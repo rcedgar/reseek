@@ -1,0 +1,38 @@
+#ifndef C
+#error "C not defined"
+#endif
+
+C(pdb2dss)
+C(pdb2ss)
+C(eval_feature)
+C(float_feature_bins)
+C(sscluster)
+C(test)
+C(scop40bench)
+C(testsw)
+C(explore1)
+C(jiggle)
+C(test_derep)
+C(scalar_sweep)
+C(scop40bit2tsv)
+C(scop40bit)
+C(scop40bit_roc)
+C(scop40bit_thresh)
+C(scop40bit_roce)
+C(scop40bit_evaleval)
+C(scop40bit_scoredist)
+C(scop40tsv2bit)
+C(famreport)
+C(domreport)
+C(kmer_eval)
+C(kmer_eval2)
+C(kmer_eval3)
+C(test_xdrop)
+C(test_xdropdss)
+C(feature_stats)
+C(combomx)
+C(msa2cmp)
+C(pdb2cal)
+C(search)
+
+#undef C

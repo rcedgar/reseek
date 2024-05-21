@@ -1,0 +1,2 @@
+C(TestCounter)
+#undef C
