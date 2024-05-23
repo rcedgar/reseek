@@ -3,6 +3,8 @@
 #include "dss.h"
 #include "alpha.h"
 
+extern float *g_FeatureFreqsVec[FEATURE_COUNT];
+
 void cmd_pdb2mega()
 	{
 	if (!optset_output)
@@ -31,6 +33,11 @@ void cmd_pdb2mega()
 		uint AlphaSize = g_AlphaSizes2[F];
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
 		  i, FeatureToStr(F), AlphaSize, Params.m_Weights[i]);
+		fprintf(fOut, "freqs");
+		const float *Freqs = g_FeatureFreqsVec[F];
+		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
+			fprintf(fOut, "\t%.3f", Freqs[Letter]);
+		fprintf(fOut, "\n");
 		float **ScoreMx = Params.m_ScoreMxs[F];
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{

@@ -291,6 +291,7 @@
     <ClCompile Include="dssparams.cpp" />
     <ClCompile Include="eval_feature.cpp" />
     <ClCompile Include="famreport.cpp" />
+    <ClCompile Include="featurefreqs.cpp" />
     <ClCompile Include="features.cpp" />
     <ClCompile Include="float_feature_bins.cpp" />
     <ClCompile Include="getbins.cpp" />
