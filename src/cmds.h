@@ -34,5 +34,6 @@ C(combomx)
 C(msa2cmp)
 C(pdb2cal)
 C(search)
+C(pdb2mega)
 
 #undef C
