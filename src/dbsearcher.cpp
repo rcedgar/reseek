@@ -186,7 +186,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 			if (m_QuerySelf)
 				{
 				DA.ToTsvBA(m_fTsv, m_MaxEvalue);
-				DA.ToAlnBA(m_fTsv, m_MaxEvalue);
+				DA.ToAlnBA(m_fAln, m_MaxEvalue);
 				OnAlnBA(ChainIndex1, ChainIndex2, DA);
 				}
 			}
