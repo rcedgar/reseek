@@ -25,37 +25,12 @@ SeqSource::~SeqSource()
 
 bool SeqSource::GetNext(SeqInfo *SI)
 	{
-	if (m_DoGetLock)
-		{
-#if	TIME_LOCKS
-		TICKS t1 = GetClockTicks();
-#endif
-		LOCK_CLASS();
-#if	TIME_LOCKS
-		TICKS t2 = GetClockTicks();
-		g_tLocks += (t2 - t1);
-#endif
-		}
+	m_Lock.lock();
 	bool Ok = GetNextLo(SI);
-	if (m_DoGetLock)
-		{
-#if	TIME_LOCKS
-		TICKS t1 = GetClockTicks();
-#endif
-		UNLOCK_CLASS();
-#if	TIME_LOCKS
-		TICKS t2 = GetClockTicks();
-		g_tUnLocks += (t2 - t1);
-#endif
-		}
+	m_Lock.unlock();
 
 	if (!Ok)
-		{
-#if	TIME_LOCKS
-		Log("SeqSource locks %.3e, unlocks %.3e\n", double(g_tLocks), double(g_tUnLocks));
-#endif
 		return false;
-		}
 
 	++m_SeqCount;
 	return true;

@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "mx.h"
-#include "omplock.h"
 #include "alpha.h"
+#include <mutex>
 
 Mx<float> g_SubstMxf;
 float **g_SubstMx;
@@ -87,13 +87,14 @@ void SetBLOSUM62Mx(Mx<float> &Sf)
 
 void SetBLOSUM62()
 	{
-	LOCK("SetBLOSUM62");
+	static mutex Lock;
+	Lock.lock();
 	if (g_SubstMx == 0)
 		{
 		SetBLOSUM62Mx(g_SubstMxf);
 		g_SubstMx = g_SubstMxf.GetData();
 		}
-	UNLOCK("SetBLOSUM62");
+	Lock.unlock();
 	}
 
 float GetBlosum62Score(char a, char b)

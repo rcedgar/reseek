@@ -4,13 +4,11 @@
 
 class DSSParams
 	{
-private:
-	vector<float> m_Weights;
-
 public:
 	string m_Desc;
 
 	vector<FEATURE> m_Features;
+	vector<float> m_Weights;
 
 	float m_GapOpen = FLT_MAX;
 	float m_GapExt = FLT_MAX;

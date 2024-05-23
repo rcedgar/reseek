@@ -1,9 +1,11 @@
 #pragma once
-
+#include <mutex>
 #include "pdbchain.h"
 
 class CalReader
 	{
+	mutex m_Lock;
+
 public:
 	FILE *m_f = 0;
 	string m_PendingLine;

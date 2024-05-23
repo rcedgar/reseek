@@ -46,30 +46,6 @@ static double g_PeakMemUseBytes;
 static char **g_ThreadStrs;
 static unsigned g_ThreadStrCount;
 
-static char *GetThreadStr()
-	{
-	unsigned ThreadIndex = (unsigned) omp_get_thread_num();
-	if (ThreadIndex >= g_ThreadStrCount)
-		{
-		unsigned NewThreadStrCount = ThreadIndex + 4;
-		char **NewThreadStrs = myalloc(char *, NewThreadStrCount);
-		zero_array(NewThreadStrs, NewThreadStrCount);
-		if (g_ThreadStrCount > 0)
-			memcpy(NewThreadStrs, g_ThreadStrs, g_ThreadStrCount*sizeof(char *));
-		g_ThreadStrs = NewThreadStrs;
-		g_ThreadStrCount = NewThreadStrCount;
-		}
-	if (g_ThreadStrs[ThreadIndex] == 0)
-		g_ThreadStrs[ThreadIndex] = myalloc(char, MAX_FORMATTED_STRING_LENGTH+1);
-	char *Str = g_ThreadStrs[ThreadIndex];
-	return Str;
-	}
-
-unsigned GetThreadIndex()
-	{
-	return omp_get_thread_num();
-	}
-
 const char *GetPlatform()
 	{
 #if	BITS==32
@@ -644,10 +620,11 @@ double GetUsableMemBytes()
 
 void myvstrprintf(string &Str, const char *Format, va_list ArgList)
 	{
-	char *szStr = GetThreadStr();
+	char *szStr = myalloc(char, MAX_FORMATTED_STRING_LENGTH);
 	vsnprintf(szStr, MAX_FORMATTED_STRING_LENGTH-1, Format, ArgList);
 	szStr[MAX_FORMATTED_STRING_LENGTH - 1] = '\0';
 	Str.assign(szStr);
+	myfree(szStr);
 	}
 
 void myvstrprintf(string &Str, const char *Format, ...)

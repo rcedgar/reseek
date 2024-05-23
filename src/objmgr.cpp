@@ -3,10 +3,6 @@
 #include "seqinfo.h"
 #include "pathinfo.h"
 
-#if	TRACK_OBJ_THREAD
-#include <omp.h>
-#endif
-
 #undef Up
 #undef Down
 

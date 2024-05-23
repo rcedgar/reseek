@@ -3,7 +3,7 @@
 
 #define RCE_MALLOC		0
 #define TRACK_ALLOC		0
-#define USE_OMP			1
+#define USE_OMP			0
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
@@ -385,10 +385,6 @@ void GetCmdLine(string &s);
 extern FILE *g_fLog;
 
 void LogAllocs();
-
-#if USE_OMP==1
-#include <omp.h>
-#endif
 
 unsigned GetRequestedThreadCount();
 

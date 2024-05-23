@@ -104,9 +104,6 @@
     <ClCompile Include="pdb2dss.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dss_main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="one2three.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -264,6 +261,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dssalignx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseek_main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd_pdb2mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

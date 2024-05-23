@@ -1,14 +1,14 @@
 #ifndef seqsource_h
 #define seqsource_h
 
-#include "lockobj.h"
+#include <mutex>
 #include "objmgr.h"
 
 class SeqInfo;
 
 class SeqSource
 	{
-	LOCKABLE(SeqSource)
+	mutex m_Lock;
 
 public:
 	bool m_DoGetLock;

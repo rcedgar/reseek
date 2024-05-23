@@ -20,10 +20,10 @@ bool CalReader::GetNext(PDBChain &Chain)
 	if (m_f == 0)
 		return false;
 
-	Lock("CalReader::GetNext");
+	m_Lock.lock();
 	if (m_EOF)
 		{
-		Unlock("CalReader::GetNext");
+		m_Lock.unlock();
 		return false;
 		}
 	asserta(!m_PendingLine.empty() && m_Lines.empty());
@@ -50,7 +50,7 @@ bool CalReader::GetNext(PDBChain &Chain)
 
 	Chain.FromCalLines(m_Lines);
 	m_Lines.clear();
-	Unlock("CalReader::GetNext");
+	m_Lock.unlock();
 	return true;
 	}
 
