@@ -3,7 +3,6 @@
 #include "scop40bench.h"
 #include "pdbchain.h"
 #include "sort.h"
-// #include "outputfiles.h"
 
 /***
 ==> 3dblastaln <==
@@ -57,6 +56,27 @@ const uint MAGIC1 = MAGIC('h', 'i', 't', '$');
 const uint MAGIC2 = MAGIC('$', 'h', 'i', 't');
 
 const uint MaxFamLen = 16;
+
+void GetDomFamFoldFromDomSlashFam(const string &Label,
+ string &Dom, string &Fam, string &Fold)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	if (SIZE(Fields) == 2)
+		{
+		Dom = Fields[0];
+		Fam = Fields[1];
+		Split(Fam, Fields, '.');
+		asserta(SIZE(Fields) == 4);
+		Fold = Fields[0] + '.' + Fields[1] + '.' + Fields[2];
+		}
+	else
+		{
+		Dom = Label;
+		Fam = "-";
+		Fold = "-";
+		}
+	}
 
 void GetDomFamFromDomSlashFam(const string &Label,
  string &Dom, string &Fam)
@@ -682,6 +702,8 @@ void cmd_scop40bit()
 	asserta(optset_output);
 
 	SCOP40Bench SB;
+	asserta(optset_benchmode);
+	SB.m_Mode = string(opt_benchmode);
 	SB.ReadChains(opt_input);
 	SB.BuildDomFamIndexesFromQueryChainLabels();
 	SB.ReadHits_Tsv(Algo);

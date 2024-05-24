@@ -1,6 +1,5 @@
 #include "myutils.h"
 #include "pdbchain.h"
-// #include "outputfiles.h"
 #include "abcxyz.h"
 #include <map>
 

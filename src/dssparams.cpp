@@ -3,7 +3,7 @@
 #include "dss.h"
 #include "sort.h"
 
-void DSSParams::SetFromCmdLine()
+void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	{
 	if (optset_namedparams)
 		SetNamedParams(opt_namedparams);
@@ -15,7 +15,15 @@ void DSSParams::SetFromCmdLine()
 			int(opt_fast) +
 			int(opt_sensitive) +
 			int(opt_verysensitive) != 1)
-			Die("Must set exactly one of -veryfast -fast -sensitive -verysensitive");
+			{
+			if (DefaultToSensitive)
+				{
+				opt_verysensitive = true;
+				optset_verysensitive = true;
+				}
+			else
+				Die("Must set exactly one of -veryfast -fast -sensitive -verysensitive");
+			}
 
 		if (opt_veryfast)
 			{

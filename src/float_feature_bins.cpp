@@ -4,7 +4,6 @@
 #include "alpha.h"
 #include "dss.h"
 #include "logodds.h"
-// #include "outputfiles.h"
 
 void GetScopDomFromLabel(const string &Label, string &Dom);
 

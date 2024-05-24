@@ -3,7 +3,6 @@
 #include "mx.h"
 #include "pdbchain.h"
 #include "xdpmem.h"
-// #include "outputfiles.h"
 #include "cigar.h"
 #include "timing.h"
 #include <thread>

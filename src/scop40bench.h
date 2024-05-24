@@ -18,9 +18,13 @@ public:
 	vector<string> m_Fams;
 	map<string, uint> m_FamToIdx;
 
+	vector<string> m_Folds;
+	map<string, uint> m_FoldToIdx;
+
 // Per-chain vectors [ChainIdx]
 	vector<uint> m_DomIdxs;
 	vector<uint> m_DomIdxToFamIdx;
+	vector<uint> m_DomIdxToFoldIdx;
 
 	bool m_ScoresAreEvalues = opt_scores_are_evalues;
 
@@ -38,7 +42,6 @@ public:
 	vector<vector<uint> > m_DomIdxToHitIdxs;
 	vector<uint> m_DomIdxToL;
 	vector<uint> m_DomIdxToSens1FP;
-	vector<uint> m_DomIdxToTPCount;
 	vector<uint> m_DomIdxToTP1Count;
 	vector<vector<uint> > m_FamIdxToDomIdxs;
 	vector<uint> m_FamSizes;
@@ -58,8 +61,11 @@ public:
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_firstfp = UINT_MAX;
 	uint m_DomsWithHomologCount = UINT_MAX;
-	uint m_DomsWithHomologAndTPCount = UINT_MAX;
 	uint m_DomsWithHomologAndTP1Count = UINT_MAX;
+
+	string m_Mode;
+	uint m_ConsideredHitCount = UINT_MAX;
+	uint m_IgnoredHitCount = UINT_MAX;
 
 public:
 	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
@@ -139,5 +145,7 @@ public:
 
 void GetDomFamFromDomSlashFam(const string &Label,
  string &Dom, string &Fam);
+void GetDomFamFoldFromDomSlashFam(const string &Label,
+ string &Dom, string &Fam, string &Fold);
 
 void GetScopDomFromLabel(const string &Label, string &Dom);

@@ -5,14 +5,17 @@
 #include "dss.h"
 #include "logodds.h"
 #include "scop40bench.h"
-// #include "outputfiles.h"
 
-static double EvalFeature(const SeqDB &Input,
-  const vector<PDBChain *> &Chains, const string &Name,
-  vector<double> &Freqs, vector<vector<double> > &ScoreMx)
+static double EvalFeature(
+  const string &FeatureName,
+  const SeqDB &Input,
+  const vector<PDBChain *> &Chains,
+  vector<double> &Freqs,
+  vector<vector<double> > &FreqMx,
+  vector<vector<double> > &ScoreMx)
 	{
-	const char *FeatureName = Name.c_str();
-	const FEATURE Feature = StrToFeature(Name.c_str());
+	const char *Name = FeatureName.c_str();
+	const FEATURE Feature = StrToFeature(Name);
 	const uint FeatureIndex = uint(Feature);
 
 	uint AlphaSize = DSS::GetAlphaSize(Feature);
@@ -104,17 +107,30 @@ static double EvalFeature(const SeqDB &Input,
 			}
 		}
 	LO.GetBackgroundFreqs(Freqs);
+	LO.GetTrueFreqMx(FreqMx);
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	return ExpectedScore;
 	}
 
 void cmd_eval_feature()
 	{
+	vector<string> FeatureNames;
+	if (!optset_features)
+		{
+		DSSParams Params;
+		Params.SetFromCmdLine(true);
+		for (uint i = 0; i < Params.GetFeatureCount(); ++i)
+			{
+			FEATURE F = Params.m_Features[i];
+			string Name = FeatureToStr(F);
+			FeatureNames.push_back(Name);
+			}
+		}
+	else
+		Split(opt_features, FeatureNames, '_');
+
 	vector<PDBChain *> Chains;
 	ReadChains(opt_train_cal, Chains);
-
-	vector<string> FeatureNames;
-	Split(opt_features, FeatureNames, '_');
 
 	SeqDB Input;
 	Input.FromFasta(g_Arg1, true);
@@ -123,11 +139,13 @@ void cmd_eval_feature()
 	vector<double> ExpectedScores(N);
 	vector<uint> AlphaSizes(N);
 	vector<vector<double> > FreqsVec(N);
+	vector<vector<vector<double> > > FreqMxVec(N);
 	vector<vector<vector<double> > > ScoreMxVec(N);
 	for (uint i = 0; i < N; ++i)
 		{
 		ExpectedScores[i] = 
-		  EvalFeature(Input, Chains, FeatureNames[i], FreqsVec[i], ScoreMxVec[i]);
+		  EvalFeature(FeatureNames[i], Input, Chains,
+			FreqsVec[i], FreqMxVec[i], ScoreMxVec[i]);
 		AlphaSizes[i] = SIZE(FreqsVec[i]);
 		}
 
@@ -141,6 +159,7 @@ void cmd_eval_feature()
 		fprintf(f, "%6.4f  %2u  %s\n",
 		  ExpectedScores[i], AlphaSizes[i], Name);
 		}
+	fprintf(f, "********************************/\n");
 
 	for (uint i = 0; i < N; ++i)
 		{
@@ -148,17 +167,18 @@ void cmd_eval_feature()
 		const vector<double> &Freqs = FreqsVec[i];
 		const uint AS = AlphaSizes[i];
 		fprintf(f, "\n");
-		fprintf(f, "Freqs %s/%u\n", Name, AS);
+		fprintf(f, "// Freqs %s/%u\n", Name, AS);
+		fprintf(f, "static double Freqs_%s[%u] = {\n", Name, AS);
 		double Sum = 0;
 		for (uint i = 0; i < AS; ++i)
 			{
 			double Freq = Freqs[i];
-			fprintf(f, "   [%2u]  %.6f\n", i, Freq);
+			fprintf(f, "%10.3g, // %u\n", Freq, i);
 			Sum += Freq;
 			}
+		fprintf(f, "};\n");
 		asserta(feq(Sum, 1));
 		}
-	fprintf(f, "********************************/\n");
 
 	for (uint Idx = 0; Idx < N; ++Idx)
 		{
@@ -173,6 +193,24 @@ void cmd_eval_feature()
 			fprintf(f, "  {");
 			for (uint j = 0; j < AS; ++j)
 				fprintf(f, " %7.4f,", ScoreMx[i][j]);
+			fprintf(f, "  }, // %u\n", i);
+			}
+		fprintf(f, "};\n");
+		}
+
+	for (uint Idx = 0; Idx < N; ++Idx)
+		{
+		const char *Name = FeatureNames[Idx].c_str();
+		const vector<vector<double> > &FreqMx = FreqMxVec[Idx];
+		const uint AS = AlphaSizes[Idx];
+
+		fprintf(f, "\n");
+		fprintf(f, "static double FreqMx_%s[%u][%u] = {\n", Name, AS, AS);
+		for (uint i = 0; i < AS; ++i)
+			{
+			fprintf(f, "  {");
+			for (uint j = 0; j < AS; ++j)
+				fprintf(f, " %9.3g,", FreqMx[i][j]);
 			fprintf(f, "  }, // %u\n", i);
 			}
 		fprintf(f, "};\n");

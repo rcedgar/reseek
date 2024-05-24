@@ -245,7 +245,7 @@
     <ClCompile Include="dbsearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_search.cpp">
+    <ClCompile Include="search.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="swfastpinop.cpp">
@@ -266,7 +266,10 @@
     <ClCompile Include="reseek_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_pdb2mega.cpp">
+    <ClCompile Include="pdb2mega.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="featurefreqs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

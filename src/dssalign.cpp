@@ -5,7 +5,6 @@
 #include "alpha.h"
 #include "tma.h"
 #include "xdpmem.h"
-// #include "outputfiles.h"
 #include "timing.h"
 #include "combomx.h"
 #include "cigar.h"

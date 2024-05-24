@@ -4,7 +4,6 @@
 #include "alpha.h"
 #include "dss.h"
 #include "logodds.h"
-// #include "outputfiles.h"
 #include "trainer.h"
 #include "sort.h"
 

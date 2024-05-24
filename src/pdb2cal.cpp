@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
 #include "chainreader.h"
-// #include "outputfiles.h"
 
 void cmd_pdb2cal()
 	{

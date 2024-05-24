@@ -76,7 +76,7 @@ public:
 	uint GetFeatureCount() const;
 	void SetParam(const string &Name, float Value, bool AppendIfWeight);
 	float GetParam(const string &Name) const;
-	void SetFromCmdLine();
+	void SetFromCmdLine(bool DefaultToSensitive = false);
 	uint GetFeatureIdx(FEATURE F) const;
 	uint GetFeatureIdx_NoError(FEATURE F) const;
 	void ToFev(FILE *f) const;

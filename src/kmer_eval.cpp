@@ -5,7 +5,6 @@
 #include "dss.h"
 #include "logodds.h"
 #include "scop40bench.h"
-// #include "outputfiles.h"
 #include "sort.h"
 #include "quarts.h"
 #include <set>

@@ -4,20 +4,19 @@
 #include "alpha.h"
 
 extern float *g_FeatureFreqsVec[FEATURE_COUNT];
+extern vector<vector<float> > g_FeatureFreqsMxVec[FEATURE_COUNT];
 
 void cmd_pdb2mega()
 	{
 	if (!optset_output)
 		Die("-output not set");
-	optset_verysensitive = true;
-	opt_verysensitive = true;
 
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
 	const uint ChainCount = SIZE(Chains);
 
 	DSSParams Params;
-	Params.SetFromCmdLine();
+	Params.SetFromCmdLine(true);
 	const uint FeatureCount = Params.GetFeatureCount();
 	asserta(FeatureCount > 0);
 	asserta(Params.m_Features[0] == FEATURE_AA);
@@ -38,14 +37,16 @@ void cmd_pdb2mega()
 		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
 			fprintf(fOut, "\t%.3f", Freqs[Letter]);
 		fprintf(fOut, "\n");
-		float **ScoreMx = Params.m_ScoreMxs[F];
+		//float **ScoreMx = Params.m_ScoreMxs[F];
+		const vector<vector<float > > &FreqMx = g_FeatureFreqsMxVec[F];
+		asserta(SIZE(FreqMx) == AlphaSize);
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{
 			fprintf(fOut, "%u", Letter1);
 			for (uint Letter2 = 0; Letter2 <= Letter1; ++Letter2)
 				{
-				float Score = ScoreMx[Letter1][Letter2];
-				fprintf(fOut, "\t%.4f", Score);
+				float Score = FreqMx[Letter1][Letter2];
+				fprintf(fOut, "\t%.3g", Score);
 				}
 			fprintf(fOut, "\n");
 			}

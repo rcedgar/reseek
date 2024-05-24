@@ -10,6 +10,8 @@
 
 void GetDomFamFromDomSlashFam(const string &Label,
  string &Dom, string &Fam);
+void GetDomFamFoldFromDomSlashFam(const string &Label,
+ string &Dom, string &Fam, string &Fold);
 bool LabelHasScopClass(const string &Label, const string &SC);
 double GetDALIScore_Path(const PDBChain& Q, const PDBChain& T,
 	const string& Path, uint LoQ, uint LoT);
@@ -100,6 +102,7 @@ void SCOP40Bench::OnSetup()
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
+	asserta(m_Mode != "");
 	BuildDomFamIndexesFromQueryChainLabels();
 	}
 
@@ -114,7 +117,8 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 
 		string Dom;
 		string Fam;
-		GetDomFamFromDomSlashFam(Chain.m_Label, Dom, Fam);
+		string Fold;
+		GetDomFamFoldFromDomSlashFam(Chain.m_Label, Dom, Fam, Fold);
 
 		uint FamIdx = UINT_MAX;
 		if (m_FamToIdx.find(Fam) == m_FamToIdx.end())
@@ -125,20 +129,28 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 			}
 		else
 			FamIdx = m_FamToIdx[Fam];
- 
-		uint DomIdx = UINT_MAX;
-		if (m_DomToIdx.find(Dom) == m_DomToIdx.end())
+
+		uint FoldIdx = UINT_MAX;
+		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
 			{
-			DomIdx = SIZE(m_Doms);
-			m_Doms.push_back(Dom + "/" + Fam);
-			m_DomToIdx[Dom] = DomIdx;
-			m_DomIdxToFamIdx.push_back(FamIdx);
+			FoldIdx = SIZE(m_Folds);
+			m_Folds.push_back(Fold);
+			m_FoldToIdx[Fold] = FoldIdx;
 			}
 		else
+			FoldIdx = m_FoldToIdx[Fold];
+ 
+		uint DomIdx = UINT_MAX;
+		if (m_DomToIdx.find(Dom) != m_DomToIdx.end())
 			{
 			Die("Duplicate dom >%s", Chain.m_Label.c_str());
 			DomIdx = m_DomToIdx[Dom];
 			}
+		DomIdx = SIZE(m_Doms);
+		m_Doms.push_back(Dom + "/" + Fam);
+		m_DomToIdx[Dom] = DomIdx;
+		m_DomIdxToFamIdx.push_back(FamIdx);
+		m_DomIdxToFoldIdx.push_back(FoldIdx);
 
 		m_DomIdxs.push_back(DomIdx);
 		m_DomToChainIdx[Dom] = ChainIndex;
@@ -147,6 +159,7 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 
 	asserta(SIZE(m_DomIdxs) == m_QueryChainCount);
 	asserta(SIZE(m_DomIdxToFamIdx) == m_QueryChainCount);
+	asserta(SIZE(m_DomIdxToFoldIdx) == m_QueryChainCount);
 	}
 
 void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2, float ScoreAB)
@@ -290,9 +303,10 @@ float SCOP40Bench::GetMeanLength(uint FamIdx) const
 
 void SCOP40Bench::ScanDomHits()
 	{
+	m_ConsideredHitCount = 0;
+	m_IgnoredHitCount = 0;
 	m_DomIdxToScoreFirstFP.clear();
 	m_DomIdxToSens1FP.clear();
-	m_DomIdxToTPCount.clear();;
 
 	m_DomIdxToHitIdxFirstFP.clear();
 	const uint DomCount = GetDomCount();
@@ -301,7 +315,6 @@ void SCOP40Bench::ScanDomHits()
 	const float InitScore = GetVeryBadScore();
 	m_DomIdxToScoreFirstFP.resize(DomCount, InitScore);
 	m_DomIdxToSens1FP.resize(DomCount, 0);
-	m_DomIdxToTPCount.resize(DomCount, 0);
 	m_DomIdxToTP1Count.resize(DomCount, 0);
 	m_DomIdxToHitIdxFirstFP.resize(DomCount, UINT_MAX);
 
@@ -312,15 +325,34 @@ void SCOP40Bench::ScanDomHits()
 		if (Dom1 == Dom2)
 			continue;
 		float Score = m_Scores[HitIdx];
+		bool T = false;
 		uint Fam1 = m_DomIdxToFamIdx[Dom1];
 		uint Fam2 = m_DomIdxToFamIdx[Dom2];
-		if (Fam1 == Fam2)
+		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
+		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
+		if (m_Mode == "family")
+			T = (Fam1 == Fam2);
+		else if (m_Mode == "fold")
+			T = (Fold1 == Fold2);
+		else if (m_Mode == "ignore")
 			{
-			++m_DomIdxToTPCount[Dom1];
+			if (Fold1 == Fold2 && Fam1 != Fam2)
+				{
+				++m_IgnoredHitCount;
+				continue;
+				}
+			T = (Fold1 == Fold2);
+			}
+		else
+			asserta(false);
+
+		++m_ConsideredHitCount;
+		if (T)
+			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				++m_DomIdxToTP1Count[Dom1];
 			}
-		if (Fam1 != Fam2)
+		else
 			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				{
@@ -339,7 +371,26 @@ void SCOP40Bench::ScanDomHits()
 		float Score = m_Scores[HitIdx];
 		uint Fam1 = m_DomIdxToFamIdx[Dom1];
 		uint Fam2 = m_DomIdxToFamIdx[Dom2];
-		if (Dom1 != Dom2 && Fam1 == Fam2)
+		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
+		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
+		bool T = false;
+		if (m_Mode == "family")
+			T = (Fam1 == Fam2);
+		else if (m_Mode == "fold")
+			T = (Fold1 == Fold2);
+		else if (m_Mode == "ignore")
+			{
+			if (Fold1 == Fold2 && Fam1 != Fam2)
+				{
+				++m_IgnoredHitCount;
+				continue;
+				}
+			T = (Fold1 == Fold2);
+			}
+		else
+			asserta(false);
+
+		if (T)
 			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				m_DomIdxToSens1FP[Dom1] += 1;
@@ -347,8 +398,6 @@ void SCOP40Bench::ScanDomHits()
 		}
 
 	m_DomsWithHomologCount = 0;
-	m_DomsWithHomologAndTPCount = 0;
-	m_DomsWithHomologAndTP1Count = 0;
 	for (uint Dom = 0; Dom < DomCount; ++Dom)
 		{
 		uint Fam = m_DomIdxToFamIdx[Dom];
@@ -356,8 +405,6 @@ void SCOP40Bench::ScanDomHits()
 		if (FamSize > 1)
 			{
 			++m_DomsWithHomologCount;
-			if (m_DomIdxToTPCount[Dom] > 0)
-				++m_DomsWithHomologAndTPCount;
 			if (m_DomIdxToTP1Count[Dom] > 0)
 				++m_DomsWithHomologAndTP1Count;
 			}
@@ -533,6 +580,8 @@ void cmd_scop40bench()
 	{
 	const string &CalFN = g_Arg1;
 	SCOP40Bench SB;
+	asserta(optset_benchmode);
+	SB.m_Mode = string(opt_benchmode);
 	DSSParams Params;
 	SB.ReadChains(CalFN, "");
 
@@ -572,14 +621,11 @@ void cmd_scop40bench()
 	uint ComboFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
 	double ComboFilterPct =
 	  GetPct(DSSAligner::m_ComboFilterCount, ComboFilterInputCount);
-	double FoundFract = double(SB.m_DomsWithHomologAndTPCount)/
-	  SB.m_DomsWithHomologCount;
 	double FoundFract1 = double(SB.m_DomsWithHomologAndTP1Count)/
 	  SB.m_DomsWithHomologCount;
 
 	ProgressLog("SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" FF=%.4f", FoundFract);
 	ProgressLog(" FF1=%.4f", FoundFract1);
 	ProgressLog(" UFil=%.1f", UFilterPct);
 	ProgressLog(" CFil=%.1f", ComboFilterPct);
@@ -608,7 +654,6 @@ void cmd_scop40bench()
 
 		fprintf(f, "%.4f", SensEPQ1);
 		fprintf(f, "\t%.4f", SensFirstFP);
-		fprintf(f, "\t%.4f", FoundFract);
 		fprintf(f, "\t%.4f", FoundFract1);
 		fprintf(f, "\t%u", Secs);
 		fprintf(f, "\t%.1f", AlnsPerThreadPerSec);

@@ -2,7 +2,6 @@
 #include "pdbchain.h"
 #include "seqdb.h"
 #include "quarts.h"
-// #include "outputfiles.h"
 
 void GetColPosVecs(const string &Row,
   vector<uint> &ColToPos, vector<uint> &PosToCol);

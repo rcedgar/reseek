@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "scop40bench.h"
 #include "sort.h"
-// #include "outputfiles.h"
 #include <set>
 
 static FILE *g_ftsv;
@@ -458,8 +457,11 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 	m_Doms.clear();
 	m_DomToIdx.clear();
 	m_Fams.clear();
+	m_Folds.clear();
 	m_FamToIdx.clear();
+	m_FoldToIdx.clear();
 	m_DomIdxToFamIdx.clear();
+	m_DomIdxToFoldIdx.clear();
 
 	vector<string> Labels;
 	ReadLinesFromFile(FileName, Labels);
@@ -470,7 +472,8 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 
 		string Dom;
 		string Fam;
-		GetDomFamFromDomSlashFam(Label, Dom, Fam);
+		string Fold;
+		GetDomFamFoldFromDomSlashFam(Label, Dom, Fam, Fold);
 
 		uint FamIdx = UINT_MAX;
 		if (m_FamToIdx.find(Fam) == m_FamToIdx.end())
@@ -481,6 +484,16 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 			}
 		else
 			FamIdx = m_FamToIdx[Fam];
+
+		uint FoldIdx = UINT_MAX;
+		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
+			{
+			FoldIdx = SIZE(m_Folds);
+			m_Folds.push_back(Fold);
+			m_FoldToIdx[Fold] = FoldIdx;
+			}
+		else
+			FoldIdx = m_FoldToIdx[Fold];
  
 		uint DomIdx = UINT_MAX;
 		if (m_DomToIdx.find(Dom) == m_DomToIdx.end())
@@ -638,6 +651,8 @@ void cmd_scop40bit_roc()
 	{
 	asserta(optset_input);
 	SCOP40Bench SB;
+	asserta(optset_benchmode);
+	SB.m_Mode = string(opt_benchmode);
 	SB.ReadBit(g_Arg1);
 	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
 	SB.m_DomIdxToFamIdx.clear();
@@ -649,8 +664,6 @@ void cmd_scop40bit_roc()
 		MaxFPR = (float) opt_maxfpr;
 	SB.SetStats(MaxFPR);
 	SB.WriteOutputFiles();
-	double FoundFract = double(SB.m_DomsWithHomologAndTPCount)/
-	  SB.m_DomsWithHomologCount;
 	double FoundFract1 = double(SB.m_DomsWithHomologAndTP1Count)/
 	  SB.m_DomsWithHomologCount;
 
@@ -660,7 +673,6 @@ void cmd_scop40bit_roc()
 	float SensEPQ1 = float(nt_epq1)/SB.m_NT;
 	ProgressLog("SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" FF=%.4f", FoundFract);
 	ProgressLog(" FF1=%.4f", FoundFract1);
 	ProgressLog("\n");
 	}

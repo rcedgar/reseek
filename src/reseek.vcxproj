@@ -277,8 +277,8 @@
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
     <ClCompile Include="cigar.cpp" />
-    <ClCompile Include="cmd_pdb2mega.cpp" />
-    <ClCompile Include="cmd_search.cpp" />
+    <ClCompile Include="pdb2mega.cpp" />
+    <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />
     <ClCompile Include="combomx_data.cpp" />
     <ClCompile Include="dali.cpp" />
