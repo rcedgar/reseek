@@ -1,4 +1,4 @@
-### Reseek
+![Reseek](http://drive5.com/images/reseek_logo.jpg)
 
 Reseek is a novel protein structure alignment algorithm which doubles sensitivity in protein homolog detection
 compared to state-of-the-art methods including DALI, TM-align and Foldseek with improved speed over Foldseek, the
