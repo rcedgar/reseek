@@ -5,8 +5,6 @@ compared to state-of-the-art methods including DALI, TM-align and Foldseek with 
 fastest previous method. 
 Reseek is based on sequence alignment where each residue in the protein backbone is represented by a 
 letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct states.
-This approach enables rapid construction of multiple alignments of thousands of structures
-using the pair-HMM method in Muscle5.
 
 This is a preview beta release, new features and improved documentation will hopefully follow soon.
 Feedback is welcome via github Issues.
