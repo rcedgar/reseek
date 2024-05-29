@@ -21,6 +21,8 @@ public:
 	vector<const float *> m_ProfComboRev;
 	vector<const int8_t *> m_ProfComboi;
 	vector<const int8_t *> m_ProfComboRevi;
+	void *m_ProfPara = 0;
+	void *m_ProfParaRev = 0;
 
 	XDPMem m_Mem;
 	Mx<float> m_SMx;
@@ -79,6 +81,7 @@ public:
 	float AlignCombo(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignCombo_Prof(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignCombo_Prof_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignX(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
@@ -115,6 +118,7 @@ public:
 	void SetSMx_NoRev();
 	void SetProf_Combo();
 	void SetProf_Comboi();
+	void SetProf_Combo_Para();
 	void SetSMx_Combo();
 	void SetSMx_Combo_Int();
 	void AllocDProw(uint LB);

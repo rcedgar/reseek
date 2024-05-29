@@ -272,6 +272,9 @@
     <ClCompile Include="featurefreqs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parasail_combo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -452,6 +455,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="usage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parasail.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

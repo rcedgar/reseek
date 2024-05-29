@@ -150,7 +150,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -249,7 +249,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -279,6 +279,7 @@
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
     <ClCompile Include="cigar.cpp" />
+    <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />
@@ -381,6 +382,7 @@
     <ClInclude Include="objmgr.h" />
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
+    <ClInclude Include="parasail.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="scop40bit.h" />
     <ClInclude Include="seqinfo.h" />

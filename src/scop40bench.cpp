@@ -5,6 +5,8 @@
 #include "xdpmem.h"
 #include "cigar.h"
 #include "timing.h"
+#include <algorithm>
+#include <random>
 #include <thread>
 #include <set>
 
@@ -550,7 +552,10 @@ void SCOP40Bench::WriteOutputFiles()
 				if (!IsT(Dom1, Dom2))
 					FPHitIdxs.push_back(HitIdx);
 				}
-			random_shuffle(FPHitIdxs.begin(), FPHitIdxs.end());
+			std::random_device rd;
+			std::mt19937 g(rd());
+
+			shuffle(FPHitIdxs.begin(), FPHitIdxs.end(), g);
 			const uint n = min(opt_nfp, SIZE(FPHitIdxs));
 			for (uint j = 0; j < n; ++j)
 				{
