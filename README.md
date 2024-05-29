@@ -47,5 +47,4 @@ STRUCTS argument is one of:
 </pre>
 
 ### Reference
-Edgar, Robert C. "Sequence alignment using large protein structure alphabets doubles sensitivity to remote homologs"     
-[https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1](https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1)
+Edgar, Robert C. "Sequence alignment using large protein structure alphabets doubles sensitivity to remote homologs" [https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1](https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1)
