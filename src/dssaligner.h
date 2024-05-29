@@ -23,6 +23,7 @@ public:
 	vector<const int8_t *> m_ProfComboRevi;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
+	bool m_UsePara = true;
 
 	XDPMem m_Mem;
 	Mx<float> m_SMx;

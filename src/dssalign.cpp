@@ -759,22 +759,22 @@ void DSSAligner::AlignComboBench(const vector<byte> &LettersA,
 float DSSAligner::AlignCombo_Prof(const vector<byte> &LettersA,
   const vector<byte> &LettersB)
 	{
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
 	m_ComboLettersA = &LettersA;
 	m_ComboLettersB = &LettersB;
+	if (m_UsePara)
+		{
+		SetProf_Combo_Para();
+		float ScorePara = AlignCombo_Prof_Para(LettersA, LettersB);
+		return ScorePara;
+		}
+
+	uint LA = SIZE(LettersA);
+	uint LB = SIZE(LettersB);
 	SetProf_Combo();
 	AllocDProw(LB);
 	StartTimer(SWFastGaplessProfb);
 	float Scorefb = SWFastGaplessProfb(m_DProw, m_ProfCombo.data(), LA, LettersB.data(), LB);
 	EndTimer(SWFastGaplessProfb);
-///////////////////////////////////////////////////////
-	{
-	SetProf_Combo_Para();
-	float ScorePara = AlignCombo_Prof_Para(LettersA, LettersB);
-	//ProgressLog("Scorefb = %.1f, para = %.1f\n", Scorefb, ScorePara);
-	}
-///////////////////////////////////////////////////////
 	return Scorefb;
 	}
 

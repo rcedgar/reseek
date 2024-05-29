@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef TIMING
-#define TIMING				1
+#define TIMING				0
 #endif
 
 #define TIMING_2D			1
