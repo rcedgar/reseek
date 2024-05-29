@@ -88,5 +88,60 @@ void cmd_combomx()
 		}
 	fprintf(f, "};\n");
 
+	const char *ComboAlphaStr = "ABCDEFGHIJKLMNOPQRSTUVWZYZabcdefghij";
+	size_t n = strlen(ComboAlphaStr);
+	asserta(n == 36);
+
+	fprintf(f, "\n");
+	fprintf(f, "\n");
+	fprintf(f, "static const int parasail_combo_[%u] = {\n", AS*AS);
+	int MinScore = INT_MAX;
+	int MaxScore = INT_MIN;
+	for (uint i = 0; i < AS; ++i)
+		{
+		for (uint j = 0; j < AS; ++j)
+			{
+			int Score = intround(ComboMx[i][j]);
+			MinScore = min(MinScore, Score);
+			MaxScore = max(MaxScore, Score);
+			fprintf(f, " %3d,", Score);
+			}
+		fprintf(f, "  // %u\n", i);
+		}
+
+	int imap[256];
+	for (uint i = 0; i < 256; ++i)
+		imap[i] = 0;
+	for (uint i = 0; i < 36; ++i)
+		{
+		char c = ComboAlphaStr[i];
+		imap[c] = i;
+		}
+
+	fprintf(f, "\n");
+	fprintf(f, "static const int parasail_combo_map[256] = {\n");
+	for (uint i = 0; i < 256; ++i)
+		{
+		if (i%32 == 0)
+			fprintf(f, "\n");
+		fprintf(f, " %2d,", imap[i]);
+		}
+	fprintf(f, "\n};\n");
+
+	fprintf(f, "\n");
+	fprintf(f, "static const parasail_matrix_t parasail_combo = {\n");
+	fprintf(f, "	\"combo\",\n");
+	fprintf(f, "	parasail_combo_,\n");
+	fprintf(f, "	parasail_combo_map,\n");
+	fprintf(f, "	%u,\n", AS);
+	fprintf(f, "	%d,\n", MaxScore);
+	fprintf(f, "	%d,\n", MinScore);
+	fprintf(f, "	NULL,\n");
+	fprintf(f, "	PARASAIL_MATRIX_TYPE_SQUARE,\n");
+	fprintf(f, "	%u,\n", AS);
+	fprintf(f, "	\"%s\",\n", ComboAlphaStr);
+	fprintf(f, "	NULL\n");
+	fprintf(f, "};\n");
+
 	CloseStdioFile(f);
 	}
