@@ -14,6 +14,7 @@
 
 mutex DSSAligner::m_TsvLock;
 mutex DSSAligner::m_StatsLock;
+bool DSSAligner::m_UsePara;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
@@ -474,25 +475,23 @@ void DSSAligner::SetSMx_NoRev()
 #endif
 	}
 
-bool DSSAligner::ComboFilter(const vector<byte> &ComboLettersA,
-  const vector<byte> &ComboLettersB)
+bool DSSAligner::ComboFilter()
 	{
 	float MCS = m_Params->m_Omega;
 	if (MCS <= 0)
 		return true;
-	float ComboScore = AlignCombo_Prof(ComboLettersA, ComboLettersB);
+	float ComboScore = AlignCombo_Prof(*m_ComboLettersA, *m_ComboLettersB);
 	if (ComboScore < MCS)
 		return false;
 	return true;
 	}
 
-bool DSSAligner::UFilter(const vector<uint> &ComboKmerBitsA,
-  const vector<uint> &ComboKmerBitsB)
+bool DSSAligner::UFilter()
 	{
 	uint MinU = m_Params->m_MinU;
 	if (MinU == 0)
 		return true;
-	uint U = GetUBits(ComboKmerBitsA, ComboKmerBitsB);
+	uint U = GetUBits(*m_ComboKmerBitsA, *m_ComboKmerBitsB);
 	if (U < MinU)
 		return false;
 	return true;
@@ -503,8 +502,8 @@ void DSSAligner::Align_ComboFilter(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	m_ChainA = &ChainA;
-	m_ChainB = &ChainB;
+	SetQuery(ChainA, ProfileA, 0, &ComboLettersA);
+	SetTarget(ChainB, ProfileB, 0, &ComboLettersB);
 
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;
@@ -514,7 +513,7 @@ void DSSAligner::Align_ComboFilter(
 	++m_AlnCount;
 	m_StatsLock.unlock();
 
-	bool ComboFilterOk = ComboFilter(ComboLettersA, ComboLettersB);
+	bool ComboFilterOk = ComboFilter();
 	if (!ComboFilterOk)
 		{
 		m_StatsLock.lock();
@@ -522,7 +521,31 @@ void DSSAligner::Align_ComboFilter(
 		m_StatsLock.unlock();
 		return;
 		}
-	Align_NoAccel(ChainA, ProfileA, ChainB, ProfileB);
+	Align_NoAccel();
+	}
+
+void DSSAligner::SetQuery(
+	const PDBChain &Chain,
+	const vector<vector<byte> > &Profile,
+	const vector<uint> *ptrComboKmerBits,
+	const vector<byte> *ptrComboLetters)
+	{
+	m_ChainA = &Chain;
+	m_ProfileA = &Profile;
+	m_ComboKmerBitsA = ptrComboKmerBits;
+	m_ComboLettersA = ptrComboLetters;
+	}
+
+void DSSAligner::SetTarget(
+	const PDBChain &Chain,
+	const vector<vector<byte> > &Profile,
+	const vector<uint> *ptrComboKmerBits,
+	const vector<byte> *ptrComboLetters)
+	{
+	m_ChainB = &Chain;
+	m_ProfileB = &Profile;
+	m_ComboKmerBitsB = ptrComboKmerBits;
+	m_ComboLettersB = ptrComboLetters;
 	}
 
 void DSSAligner::Align(
@@ -531,8 +554,8 @@ void DSSAligner::Align(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	m_ChainA = &ChainA;
-	m_ChainB = &ChainB;
+	SetQuery(ChainA, ProfileA, &ComboKmerBitsA, &ComboLettersA);
+	SetTarget(ChainB, ProfileB, &ComboKmerBitsB, &ComboLettersB);
 
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;
@@ -542,7 +565,7 @@ void DSSAligner::Align(
 	++m_AlnCount;
 	m_StatsLock.unlock();
 
-	bool UFilterOk = UFilter(ComboKmerBitsA, ComboKmerBitsB);
+	bool UFilterOk = UFilter();
 	if (!UFilterOk)
 		{
 		m_StatsLock.lock();
@@ -550,7 +573,7 @@ void DSSAligner::Align(
 		m_StatsLock.unlock();
 		return;
 		}
-	bool ComboFilterOk = ComboFilter(ComboLettersA, ComboLettersB);
+	bool ComboFilterOk = ComboFilter();
 	if (!ComboFilterOk)
 		{
 		m_StatsLock.lock();
@@ -558,17 +581,11 @@ void DSSAligner::Align(
 		m_StatsLock.unlock();
 		return;
 		}
-	Align_NoAccel(ChainA, ProfileA, ChainB, ProfileB);
+	Align_NoAccel();
 	}
 
-void DSSAligner::Align_NoAccel(
-  const PDBChain &ChainA, const vector<vector<byte> > &ProfileA,
-  const PDBChain &ChainB, const vector<vector<byte> > &ProfileB)
+void DSSAligner::Align_NoAccel()
 	{
-	m_ChainA = &ChainA;
-	m_ChainB = &ChainB;
-	m_ProfileA = &ProfileA;
-	m_ProfileB = &ProfileB;
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;
 	m_PathAB.clear();
@@ -582,10 +599,10 @@ void DSSAligner::Align_NoAccel(
 
 	XDPMem &Mem = m_Mem;
 
-	const uint LA = ChainA.GetSeqLength();
-	const uint LB = ChainB.GetSeqLength();
-	const string &A = ChainA.m_Seq;
-	const string &B = ChainB.m_Seq;
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+	const string &A = m_ChainA->m_Seq;
+	const string &B = m_ChainB->m_Seq;
 	asserta(SIZE(A) == LA);
 	asserta(SIZE(B) == LB);
 
@@ -607,7 +624,7 @@ void DSSAligner::Align_NoAccel(
 		StartTimer(DALIScore);
 		if (m_Params->m_DALIw != 0)
 			AlnDALIScore = (float)
-			  GetDALIScore_Path(ChainA, ChainB, m_PathAB, m_LoA, m_LoB);
+			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_PathAB, m_LoA, m_LoB);
 		EndTimer(DALIScore);
 		}
 	uint M = GetMatchColCount(m_PathAB);

@@ -15,15 +15,16 @@ public:
 	const PDBChain *m_ChainB = 0;
 	const vector<vector<byte> > *m_ProfileA = 0;
 	const vector<vector<byte> > *m_ProfileB = 0;
-	const vector<byte > *m_ComboLettersA = 0;
-	const vector<byte > *m_ComboLettersB = 0;
+	const vector<byte> *m_ComboLettersA = 0;
+	const vector<byte> *m_ComboLettersB = 0;
+	const vector<uint> *m_ComboKmerBitsA = 0;
+	const vector<uint> *m_ComboKmerBitsB = 0;
 	vector<const float *> m_ProfCombo;
 	vector<const float *> m_ProfComboRev;
 	vector<const int8_t *> m_ProfComboi;
 	vector<const int8_t *> m_ProfComboRevi;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
-	bool m_UsePara = true;
 
 	XDPMem m_Mem;
 	Mx<float> m_SMx;
@@ -53,6 +54,9 @@ public:
 	uint m_DProwSize = 0;
 
 public:
+	static bool m_UsePara;
+
+public:
 	static mutex m_TsvLock;
 	static mutex m_StatsLock;
 
@@ -63,10 +67,20 @@ public:
 	static uint m_UFilterCount;
 
 public:
-	bool ComboFilter(const vector<byte> &ComboLettersA,
-	  const vector<byte> &ComboLettersB);
-	bool UFilter(const vector<uint> &ComboKmerBitsA,
-	  const vector<uint> &ComboKmerBitsB);
+	void SetQuery(
+	  const PDBChain &Chain,
+	  const vector<vector<byte> > &Profile,
+	  const vector<uint> *ptrComboKmerBits,
+	  const vector<byte> *ptrComboLetters);
+
+	void SetTarget(
+	  const PDBChain &Chain,
+	  const vector<vector<byte> > &Profile,
+	  const vector<uint> *ptrComboKmerBits,
+	  const vector<byte> *ptrComboLetters);
+
+	bool ComboFilter();
+	bool UFilter();
 	void Align(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<uint> &ComboKmerBitsA, const vector<uint> &ComboKmerBitsB,
@@ -76,9 +90,7 @@ public:
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
-	void Align_NoAccel(
-	  const PDBChain &ChainA, const vector<vector<byte> > &ProfileA,
-	  const PDBChain &ChainB, const vector<vector<byte> > &ProfileB);
+	void Align_NoAccel();
 	float AlignCombo(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignCombo_Prof(const vector<byte> &LettersA, const vector<byte> &LettersB);

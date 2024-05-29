@@ -105,6 +105,12 @@ void SCOP40Bench::OnSetup()
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
 	asserta(m_Mode != "");
+	if (string(opt_parasail) == "yes")
+		DSSAligner::m_UsePara = true;
+	else if (string(opt_parasail) == "no")
+		DSSAligner::m_UsePara = false;
+	else
+		Die("Must set -parasail yes/no");
 	BuildDomFamIndexesFromQueryChainLabels();
 	}
 
@@ -194,7 +200,9 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.Align_NoAccel(Chain1, Profile1, Chain2, Profile2);
+	DA.SetQuery(Chain1, Profile1, 0, 0);
+	DA.SetTarget(Chain2, Profile2, 0, 0);
+	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
 	Path = DA.m_PathAB;
@@ -635,6 +643,7 @@ void cmd_scop40bench()
 	ProgressLog(" UFil=%.1f", UFilterPct);
 	ProgressLog(" CFil=%.1f", ComboFilterPct);
 	ProgressLog(" mode=%s", SB.m_Mode.c_str());
+	ProgressLog(" parasail=%s", opt_parasail);
 	ProgressLog(" secs=%u", Secs);
 	ProgressLog("\n");
 

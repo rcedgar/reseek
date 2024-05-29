@@ -44,7 +44,9 @@ void cmd_test_xdropdss()
 	ptrProfileA = &ProfileA;
 	ptrProfileB = &ProfileB;
 
-	DA.Align_NoAccel(ChainA, ProfileA, ChainB, ProfileB);
+	DA.SetQuery(ChainA, ProfileA, 0, 0);
+	DA.SetTarget(ChainB, ProfileB, 0, 0);
+	DA.Align_NoAccel();
 	string CIGAR;
 	PathToCIGAR(DA.m_PathAB.c_str(), CIGAR);
 	float SWPathScore = DA.GetDPScorePath(ProfileA, ProfileB,
