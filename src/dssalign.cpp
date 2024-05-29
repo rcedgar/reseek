@@ -772,7 +772,7 @@ float DSSAligner::AlignCombo_Prof(const vector<byte> &LettersA,
 	{
 	SetProf_Combo_Para();
 	float ScorePara = AlignCombo_Prof_Para(LettersA, LettersB);
-	ProgressLog("Scorefb = %.1f, para = %.1f\n", Scorefb, ScorePara);
+	//ProgressLog("Scorefb = %.1f, para = %.1f\n", Scorefb, ScorePara);
 	}
 ///////////////////////////////////////////////////////
 	return Scorefb;

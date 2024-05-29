@@ -542,7 +542,7 @@ float DSSAligner::AlignCombo_Prof_Para(const vector<byte> &LettersA,
 	uint LB = SIZE(LettersB);
 	m_ComboLettersA = &LettersA;
 	m_ComboLettersB = &LettersB;
-	SetProf_Combo_Para();
+	//SetProf_Combo_Para();
 	StartTimer(SWPara);
 
 	const parasail_profile_t * const restrict profile =
@@ -568,6 +568,7 @@ float DSSAligner::AlignCombo_Prof_Para(const vector<byte> &LettersA,
 
 void DSSAligner::SetProf_Combo_Para()
 	{
+	StartTimer(SetProf_Combo_Para);
 	if (m_ProfPara != 0)
 		free(m_ProfPara);
 	if (m_ProfParaRev != 0)
@@ -579,4 +580,5 @@ void DSSAligner::SetProf_Combo_Para()
 	vector<byte> ARev = *m_ComboLettersA;
 	reverse(ARev.begin(), ARev.end());
 	m_ProfParaRev = parasail_profile_create_avx_256_8((const char *) ARev.data(), LA, &parasail_combo_matrix);
+	EndTimer(SetProf_Combo_Para);
 	}

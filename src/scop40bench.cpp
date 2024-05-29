@@ -346,7 +346,7 @@ void SCOP40Bench::ScanDomHits()
 			T = (Fold1 == Fold2);
 			}
 		else
-			asserta(false);
+			Die("m_Mode=%s", m_Mode.c_str());
 
 		++m_ConsideredHitCount;
 		if (T)

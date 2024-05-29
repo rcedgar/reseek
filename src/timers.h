@@ -38,5 +38,9 @@ T(SetProf)
 T(SetProf_Comboi)
 T(GetUBits)
 T(USort)
+T(QuickSortSubsetDesc)
+T(QuickSortInPlaceDesc)
+T(QuickSortSubset)
+T(SetProf_Combo_Para)
 
 #undef T
