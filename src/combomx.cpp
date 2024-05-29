@@ -2,6 +2,13 @@
 #include "dss.h"
 #include "combomx.h"
 
+static int8_t intround(float f)
+	{
+	int i = int(round(f));
+	asserta(i >= INT8_MIN && i <= INT8_MAX);
+	return int8_t(i);
+	}
+
 void cmd_combomx()
 	{
 	FILE *f = CreateStdioFile(g_Arg1);
@@ -64,7 +71,19 @@ void cmd_combomx()
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %3d,", int(2*ComboMx[i][j]));
+			fprintf(f, " %3d,", intround(ComboMx[i][j]));
+		fprintf(f, "  }, // %u\n", i);
+		}
+	fprintf(f, "};\n");
+
+	fprintf(f, "\n");
+	fprintf(f, "\n");
+	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Combo_x2", AS, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		fprintf(f, "  {");
+		for (uint j = 0; j < AS; ++j)
+			fprintf(f, " %3d,", intround(2*ComboMx[i][j]));
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
