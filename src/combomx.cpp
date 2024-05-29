@@ -122,11 +122,13 @@ void cmd_combomx()
 	fprintf(f, "static const int parasail_combo_map[256] = {\n");
 	for (uint i = 0; i < 256; ++i)
 		{
-		if (i%32 == 0)
-			fprintf(f, "\n");
 		fprintf(f, " %2d,", imap[i]);
+		if (isalnum(i))
+			fprintf(f, " // %c\n", byte(i));
+		else
+			fprintf(f, " // %02X\n", byte(i));
 		}
-	fprintf(f, "\n};\n");
+	fprintf(f, "};\n");
 
 	fprintf(f, "\n");
 	fprintf(f, "static const parasail_matrix_t parasail_combo = {\n");
