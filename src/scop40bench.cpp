@@ -634,6 +634,7 @@ void cmd_scop40bench()
 	ProgressLog(" FF1=%.4f", FoundFract1);
 	ProgressLog(" UFil=%.1f", UFilterPct);
 	ProgressLog(" CFil=%.1f", ComboFilterPct);
+	ProgressLog(" mode=%s", SB.m_Mode.c_str());
 	ProgressLog(" secs=%u", Secs);
 	ProgressLog("\n");
 

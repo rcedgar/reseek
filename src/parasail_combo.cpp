@@ -67,6 +67,56 @@ static const int parasail_combo_[36*36] = {
 -4,-4,-3,-4,-3,-2,-3,-3,-2,-3,-2,-1,-2,-2,-1,-2,-1, 0,-2,-2,-1,-2,-1, 0,-1, 0, 1,-1, 0, 1,-1, 0, 1, 0, 1, 2,  // 35
 };
 
+void parasail_profile_free(parasail_profile_t *profile)
+{
+    if (!profile) {
+        fprintf(stderr, "%s: attempted free of NULL profile pointer\n", __func__);
+        return;
+    }
+
+    if (NULL != profile->profile8.score) {
+        profile->free(profile->profile8.score);
+    }
+    if (NULL != profile->profile8.matches) {
+        profile->free(profile->profile8.matches);
+    }
+    if (NULL != profile->profile8.similar) {
+        profile->free(profile->profile8.similar);
+    }
+
+    if (NULL != profile->profile16.score) {
+        profile->free(profile->profile16.score);
+    }
+    if (NULL != profile->profile16.matches) {
+        profile->free(profile->profile16.matches);
+    }
+    if (NULL != profile->profile16.similar) {
+        profile->free(profile->profile16.similar);
+    }
+
+    if (NULL != profile->profile32.score) {
+        profile->free(profile->profile32.score);
+    }
+    if (NULL != profile->profile32.matches) {
+        profile->free(profile->profile32.matches);
+    }
+    if (NULL != profile->profile32.similar) {
+        profile->free(profile->profile32.similar);
+    }
+
+    if (NULL != profile->profile64.score) {
+        profile->free(profile->profile64.score);
+    }
+    if (NULL != profile->profile64.matches) {
+        profile->free(profile->profile64.matches);
+    }
+    if (NULL != profile->profile64.similar) {
+        profile->free(profile->profile64.similar);
+    }
+
+    free(profile);
+}
+
 parasail_matrix_t parasail_combo_matrix = {
 	"combo",  // name
 	parasail_combo_,  // matrix
@@ -570,9 +620,9 @@ void DSSAligner::SetProf_Combo_Para()
 	{
 	StartTimer(SetProf_Combo_Para);
 	if (m_ProfPara != 0)
-		free(m_ProfPara);
+		parasail_profile_free((parasail_profile_t *) m_ProfPara);
 	if (m_ProfParaRev != 0)
-		free(m_ProfParaRev);
+		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	const char * A = (const char *) m_ComboLettersA->data();
 	uint LA = SIZE(*m_ComboLettersA);
 	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_combo_matrix);
@@ -582,3 +632,17 @@ void DSSAligner::SetProf_Combo_Para()
 	m_ProfParaRev = parasail_profile_create_avx_256_8((const char *) ARev.data(), LA, &parasail_combo_matrix);
 	EndTimer(SetProf_Combo_Para);
 	}
+
+//void cmd_test()
+//	{
+//	const string &A = 
+//	  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+//	const uint LA = SIZE(A);
+//	const uint N = 1000000;
+//	for (uint i = 0; i < N; ++i)
+//		{
+//		ProgressStep(i, N, "Running");
+//		void *ProfPara = parasail_profile_create_avx_256_8(A.data(), LA, &parasail_combo_matrix);
+//		parasail_profile_free((parasail_profile_t *) ProfPara);
+//		}
+//	}
