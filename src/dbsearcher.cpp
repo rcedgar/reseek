@@ -165,8 +165,11 @@ void DBSearcher::Thread(uint ThreadIndex)
 		if (!Ok)
 			break;
 
-		if (ChainIndex1 != PrevChainIndex1)
+		if (ChainIndex1 == PrevChainIndex1)
+			++m_QPCacheHits;
+		else
 			{
+			++m_QPCacheMisses;
 			const PDBChain &Chain1 = *m_Chains[ChainIndex1];
 			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];

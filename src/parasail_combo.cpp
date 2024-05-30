@@ -585,25 +585,52 @@ end:
     return result;
 }
 
-float DSSAligner::AlignComboQP_Para(const vector<byte> &LettersA,
-  const vector<byte> &LettersB)
+//float DSSAligner::AlignComboQP_Para(const vector<byte> &LettersA,
+//  const vector<byte> &LettersB)
+//	{
+//	uint LA = SIZE(LettersA);
+//	uint LB = SIZE(LettersB);
+//	m_ComboLettersA = &LettersA;
+//	m_ComboLettersB = &LettersB;
+//	//SetComboQP_Para();
+//	StartTimer(SWPara);
+//
+//	const parasail_profile_t * const restrict profile =
+//	  (const parasail_profile_t * const restrict) m_ProfPara;
+//	parasail_result_t* result =
+//	  parasail_sw_striped_profile_avx2_256_8(profile, (const char *) LettersB.data(), LB, 99, 99);
+//
+//	const parasail_profile_t * const restrict profile_rev =
+//	  (const parasail_profile_t * const restrict) m_ProfParaRev;
+//	parasail_result_t* result_rev =
+//	  parasail_sw_striped_profile_avx2_256_8(profile_rev, (const char *) LettersB.data(), LB, 99, 99);
+//
+//	EndTimer(SWPara);
+//	if (result->flag & PARASAIL_FLAG_SATURATED)
+//		result->score = 777;
+//	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
+//		result_rev->score = 777;
+//	float Score = (float) result->score - (float) result_rev->score;
+//	free(result);
+//	free(result_rev);
+//	return Score;
+//	}
+
+float DSSAligner::AlignComboQP_Para()
 	{
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
-	m_ComboLettersA = &LettersA;
-	m_ComboLettersB = &LettersB;
-	//SetComboQP_Para();
 	StartTimer(SWPara);
+	uint LA = SIZE(*m_ComboLettersA);
+	uint LB = SIZE(*m_ComboLettersB);
 
 	const parasail_profile_t * const restrict profile =
 	  (const parasail_profile_t * const restrict) m_ProfPara;
 	parasail_result_t* result =
-	  parasail_sw_striped_profile_avx2_256_8(profile, (const char *) LettersB.data(), LB, 99, 99);
+	  parasail_sw_striped_profile_avx2_256_8(profile, (const char *) m_ComboLettersB->data(), LB, 99, 99);
 
 	const parasail_profile_t * const restrict profile_rev =
 	  (const parasail_profile_t * const restrict) m_ProfParaRev;
 	parasail_result_t* result_rev =
-	  parasail_sw_striped_profile_avx2_256_8(profile_rev, (const char *) LettersB.data(), LB, 99, 99);
+	  parasail_sw_striped_profile_avx2_256_8(profile_rev, (const char *) m_ComboLettersB->data(), LB, 99, 99);
 
 	EndTimer(SWPara);
 	if (result->flag & PARASAIL_FLAG_SATURATED)

@@ -318,6 +318,7 @@ void DSSAligner::SetSMx_Combo_Int()
 
 void DSSAligner::SetComboQP()
 	{
+	StartTimer(SetComboQP);
 	const vector<byte> &ComboLettersA = *m_ComboLettersA;
 	uint LA = SIZE(ComboLettersA);
 	uint n = SIZE(m_ProfCombo);
@@ -336,6 +337,7 @@ void DSSAligner::SetComboQP()
 		m_ProfCombo[PosA] = ComboMxRow;
 		m_ProfComboRev[LA-PosA-1] = ComboMxRow;
 		}
+	EndTimer(SetComboQP);
 	}
 
 void DSSAligner::SetComboQPi()
@@ -777,8 +779,8 @@ float DSSAligner::AlignComboQP(const vector<byte> &LettersA,
 	m_ComboLettersB = &LettersB;
 	if (m_UsePara)
 		{
-		SetComboQP_Para();
-		float ScorePara = AlignComboQP_Para(LettersA, LettersB);
+		//SetComboQP_Para();
+		float ScorePara = AlignComboQP_Para();
 		return ScorePara;
 		}
 

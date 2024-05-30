@@ -42,5 +42,6 @@ T(QuickSortSubsetDesc)
 T(QuickSortInPlaceDesc)
 T(QuickSortSubset)
 T(SetComboQP_Para)
+T(SetComboQP)
 
 #undef T

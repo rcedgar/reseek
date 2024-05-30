@@ -90,7 +90,8 @@ public:
 	float AlignCombo(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignComboQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	//float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignComboQP_Para();
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignX(
 	  const PDBChain &ChainA, const PDBChain &ChainB,

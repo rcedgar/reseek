@@ -647,6 +647,12 @@ void cmd_scop40bench()
 	ProgressLog(" secs=%u", Secs);
 	ProgressLog("\n");
 
+	{
+	uint Hits = SB.m_QPCacheHits;
+	uint Misses = SB.m_QPCacheMisses;
+	ProgressLog("QP cache hits %u, misses %u\n", Hits, Misses);
+	}
+
 	if (optset_report)
 		{
 		FILE *f = CreateStdioFile(opt_report);
