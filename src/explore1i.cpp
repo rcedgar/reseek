@@ -70,8 +70,28 @@ void cmd_explore1i()
 		}
 	vector<int> FirstValues = Values;
 
+	DSSParams DefaultParams;
+	DefaultParams.SetFromCmdLine(true);
+	DefaultParams.m_ComboScoreOnly = true;
+	uint SFFP = S.Run(DefaultParams);
+
+	ProgressLog("%u\topen=%d\text=%d\t@SFFP@\n",
+	  SFFP, DefaultParams.m_ParaComboGapOpen, DefaultParams.m_ParaComboGapExt);
+
+	for (int iOpen = 2; iOpen <= 7; ++iOpen)
+		{
+		for (int iExt = 0; iExt <= 3; ++iExt)
+			{
+			Params.m_ParaComboGapOpen = iOpen;
+			Params.m_ParaComboGapExt = iExt;
+			uint SFFP = S.Run(Params);
+			ProgressLog("%u\topen=%d\text=%d\t@SFFP@\n", SFFP, iOpen, iExt);
+			}
+		}
+	return;
+
 	S.Run(Params);
-	for (uint Loop = 0;; ++Loop)
+	for (uint Loop = 0; ; ++Loop)
 		{
 		uint Improvements = 0;
 		for (uint Idx = 0; Idx < N; ++Idx)
