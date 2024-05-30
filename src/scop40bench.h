@@ -70,6 +70,9 @@ public:
 public:
 	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
 	virtual void OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
+
+public:
+	void ClearHits();
 	float GetVeryBadScore() const;
 	bool KeepScore(float Score) const;
 	bool ScoreIsBetter(float Score1, float Score2) const;

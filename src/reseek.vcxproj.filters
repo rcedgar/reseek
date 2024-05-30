@@ -275,6 +275,12 @@
     <ClCompile Include="parasail_combo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="explore1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="explore1i.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

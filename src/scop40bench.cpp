@@ -104,8 +104,12 @@ void SCOP40Bench::OnSetup()
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
-	asserta(m_Mode != "");
+	asserta(optset_benchmode);
+	m_Mode = string(opt_benchmode);
+	asserta(m_Mode == "family" || m_Mode == "fold" || m_Mode == "ignore");
+	m_ScoresAreEvalues = true;
 	BuildDomFamIndexesFromQueryChainLabels();
+	SetFamSizes();
 	}
 
 void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
@@ -255,6 +259,13 @@ void SCOP40Bench::SetDomIdxToHitIdxs()
 		uint DomIdx1 = m_DomIdx1s[HitIdx];
 		m_DomIdxToHitIdxs[DomIdx1].push_back(HitIdx);
 		}
+	}
+
+void SCOP40Bench::ClearHits()
+	{
+	m_Scores.clear();
+	m_DomIdx1s.clear();
+	m_DomIdx2s.clear();
 	}
 
 float SCOP40Bench::GetVeryBadScore() const
@@ -484,7 +495,6 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 
 void SCOP40Bench::SetStats(float MaxFPR)
 	{
-	SetFamSizes();
 	SetTFs();
 
 	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs);
@@ -588,7 +598,6 @@ void cmd_scop40bench()
 	const string &CalFN = g_Arg1;
 	SCOP40Bench SB;
 	asserta(optset_benchmode);
-	SB.m_Mode = string(opt_benchmode);
 	DSSParams Params;
 	SB.ReadChains(CalFN, "");
 
@@ -596,7 +605,6 @@ void cmd_scop40bench()
 	Params.m_DBSize = (float) SB.m_ChainCount;
 
 	SB.Setup(Params);
-	SB.m_ScoresAreEvalues = true;
 	if (optset_scores_are_not_evalues)
 		SB.m_ScoresAreEvalues = false;
 	float MaxFPR = 0.005f;

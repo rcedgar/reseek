@@ -183,17 +183,28 @@ void DBSearcher::Thread(uint ThreadIndex)
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
 		DA.SetTarget(Chain2, Profile2, &KmerBits2, &ComboLetters2);
 
-		DA.AlignQueryTarget();
-		if (!DA.m_PathAB.empty())
+		if (m_Params->m_ComboScoreOnly)
 			{
-			DA.ToTsv(m_fTsv, m_MaxEvalue);
-			DA.ToAln(m_fAln, m_MaxEvalue);
+			float ComboScore = DA.GetComboScore();
+			DA.m_EvalueAB = ComboScore;
+			DA.m_EvalueBA = ComboScore;
 			OnAln(ChainIndex1, ChainIndex2, DA);
-			if (m_QuerySelf)
+			OnAlnBA(ChainIndex1, ChainIndex2, DA);
+			}
+		else
+			{
+			DA.AlignQueryTarget();
+			if (!DA.m_PathAB.empty())
 				{
-				DA.ToTsvBA(m_fTsv, m_MaxEvalue);
-				DA.ToAlnBA(m_fAln, m_MaxEvalue);
-				OnAlnBA(ChainIndex1, ChainIndex2, DA);
+				DA.ToTsv(m_fTsv, m_MaxEvalue);
+				DA.ToAln(m_fAln, m_MaxEvalue);
+				OnAln(ChainIndex1, ChainIndex2, DA);
+				if (m_QuerySelf)
+					{
+					DA.ToTsvBA(m_fTsv, m_MaxEvalue);
+					DA.ToAlnBA(m_fAln, m_MaxEvalue);
+					OnAlnBA(ChainIndex1, ChainIndex2, DA);
+					}
 				}
 			}
 		PrevChainIndex1 = ChainIndex1;
@@ -215,6 +226,10 @@ void DBSearcher::StaticThread(uint ThreadIndex, DBSearcher *ptrDBS)
 
 void DBSearcher::Run()
 	{
+	m_D.m_Params = m_Params;
+	for (uint i = 0; i < SIZE(m_DAs); ++i)
+		m_DAs[i]->m_Params = m_Params;
+
 	if (m_Params->m_USort)
 		{
 		RunUSort();
@@ -295,6 +310,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 	asserta(m_ThreadCount == UINT_MAX);
 	asserta(m_DAs.empty());
 	asserta(m_Mems.empty());
+
 	m_ProcessedQueryCount = 0;
 
 	m_Params = &Params;

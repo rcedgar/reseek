@@ -20,14 +20,18 @@ public:
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_USort = false;
+	bool m_ComboScoreOnly = false;
 
 	float m_EvalueSlope = -6.6f;
 	float m_EvalueIntercept = 6.1f;
 	uint m_Lambda = 32;
 
-	float m_DBSize = FLT_MAX;
+	float m_DBSize = 10000;
 	uint m_MaxAccepts = UINT_MAX;
 	uint m_MaxRejects = UINT_MAX;
+
+	int m_ParaComboGapOpen = 99;
+	int m_ParaComboGapExt = 99;
 
 // Not used
 	uint m_MAXNQNR = INT_MAX;
@@ -75,7 +79,9 @@ public:
 	void WriteSummary(FILE *f) const;
 	uint GetFeatureCount() const;
 	void SetParam(const string &Name, float Value, bool AppendIfWeight);
+	void SetIntParam(const string &Name, int Value);
 	float GetParam(const string &Name) const;
+	int GetIntParam(const string &Name) const;
 	void SetFromCmdLine(bool DefaultToSensitive = false);
 	uint GetFeatureIdx(FEATURE F) const;
 	uint GetFeatureIdx_NoError(FEATURE F) const;

@@ -477,12 +477,18 @@ void DSSAligner::SetSMx_NoRev()
 #endif
 	}
 
+float DSSAligner::GetComboScore()
+	{
+	float ComboScore = AlignComboQP(*m_ComboLettersA, *m_ComboLettersB);
+	return ComboScore;
+	}
+
 bool DSSAligner::ComboFilter()
 	{
 	float MCS = m_Params->m_Omega;
 	if (MCS <= 0)
 		return true;
-	float ComboScore = AlignComboQP(*m_ComboLettersA, *m_ComboLettersB);
+	float ComboScore = GetComboScore(); // AlignComboQP(*m_ComboLettersA, *m_ComboLettersB);
 	if (ComboScore < MCS)
 		return false;
 	return true;

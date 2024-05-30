@@ -15,4 +15,5 @@ public:
 	uint Run(const DSSParams &Params);
 	bool Explore1(DSSParams &Params, uint Idx,
 	  float Delta, float Z, uint MaxTries);
+	bool Explore1i(DSSParams &Params, uint Idx, bool Plus, uint MaxTries);
 	};

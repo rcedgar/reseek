@@ -79,6 +79,7 @@ public:
 	  const vector<uint> *ptrComboKmerBits,
 	  const vector<byte> *ptrComboLetters);
 
+	float GetComboScore();
 	bool ComboFilter();
 	bool UFilter();
 	void AlignQueryTarget();

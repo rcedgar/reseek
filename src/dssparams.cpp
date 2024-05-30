@@ -179,6 +179,25 @@ float DSSParams::GetParam(const string &Name) const
 	return FLT_MAX;
 	}
 
+int DSSParams::GetIntParam(const string &Name) const
+	{
+#define x(f)	if (Name == #f) { return m_##f; }
+	x(ParaComboGapOpen);
+	x(ParaComboGapExt);
+#undef x
+	Die("GetIntParam(%s)", Name.c_str());
+	return INT_MAX;
+	}
+
+void DSSParams::SetIntParam(const string &Name, int Value)
+	{
+#define x(f)	if (Name == #f) { m_##f = Value; return; }
+	x(ParaComboGapOpen);
+	x(ParaComboGapExt);
+#undef x
+	Die("SetParam(%s)", Name.c_str());
+	}
+
 void DSSParams::SetParam(const string &Name, float Value, bool AppendIfWeight)
 	{
 #define x(f)	if (Name == #f) { m_##f = Value; return; }

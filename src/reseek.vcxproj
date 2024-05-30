@@ -279,6 +279,8 @@
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
     <ClCompile Include="cigar.cpp" />
+    <ClCompile Include="explore1.cpp" />
+    <ClCompile Include="explore1i.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="search.cpp" />
