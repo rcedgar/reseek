@@ -14,7 +14,6 @@
 
 mutex DSSAligner::m_TsvLock;
 mutex DSSAligner::m_StatsLock;
-bool DSSAligner::m_UsePara;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
@@ -542,7 +541,7 @@ void DSSAligner::SetQuery(
 	m_ProfileA = &Profile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
-	if (m_UsePara)
+	if (m_Params->m_UsePara)
 		SetComboQP_Para();
 	else
 		SetComboQP();
@@ -783,7 +782,7 @@ float DSSAligner::AlignComboQP(const vector<byte> &LettersA,
 	{
 	m_ComboLettersA = &LettersA;
 	m_ComboLettersB = &LettersB;
-	if (m_UsePara)
+	if (m_Params->m_UsePara)
 		{
 		//SetComboQP_Para();
 		float ScorePara = AlignComboQP_Para();

@@ -645,7 +645,6 @@ void cmd_scop40bench()
 	ProgressLog(" UFil=%.1f", UFilterPct);
 	ProgressLog(" CFil=%.1f", ComboFilterPct);
 	ProgressLog(" mode=%s", SB.m_Mode.c_str());
-	ProgressLog(" parasail=%s", opt_parasail);
 	ProgressLog(" secs=%u", Secs);
 	ProgressLog("\n");
 

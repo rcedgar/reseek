@@ -53,8 +53,8 @@ public:
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
 
-public:
-	static bool m_UsePara;
+//public:
+//	static bool m_UsePara;
 
 public:
 	static mutex m_TsvLock;

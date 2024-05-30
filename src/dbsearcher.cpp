@@ -292,13 +292,6 @@ uint DBSearcher::GetDBChainIndex(uint Idx) const
 
 void DBSearcher::Setup(const DSSParams &Params)
 	{
-	if (string(opt_parasail) == "yes")
-		DSSAligner::m_UsePara = true;
-	else if (string(opt_parasail) == "no")
-		DSSAligner::m_UsePara = false;
-	else
-		Die("Must set -parasail yes/no");
-
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
 	else

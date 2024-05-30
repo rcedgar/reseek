@@ -30,8 +30,9 @@ public:
 	uint m_MaxAccepts = UINT_MAX;
 	uint m_MaxRejects = UINT_MAX;
 
-	int m_ParaComboGapOpen = 99;
-	int m_ParaComboGapExt = 99;
+	bool m_UsePara = true;
+	int m_ParaComboGapOpen = 5;
+	int m_ParaComboGapExt = 1;
 
 // Not used
 	uint m_MAXNQNR = INT_MAX;

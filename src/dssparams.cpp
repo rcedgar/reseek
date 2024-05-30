@@ -48,7 +48,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 		// SEPQ1=0.3928 S1FP=0.4991 FF=0.9411 FF1=0.9127 UFil=0.0 CFil=96.1 secs=61 [6547e60]
 			SetNamedParams("defaults");
 			m_Desc = "sensitive";
-			m_Omega = 11;
+			m_Omega = 12;
 			m_MinU = 0;
 			m_USort = false;
 			}
