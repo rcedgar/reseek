@@ -81,11 +81,7 @@ public:
 
 	bool ComboFilter();
 	bool UFilter();
-	void Align(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<uint> &ComboKmerBitsA, const vector<uint> &ComboKmerBitsB,
-	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
+	void AlignQueryTarget();
 	void Align_ComboFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
@@ -93,8 +89,8 @@ public:
 	void Align_NoAccel();
 	float AlignCombo(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignCombo_Prof(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignCombo_Prof_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignComboQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignX(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
@@ -129,9 +125,9 @@ public:
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();
-	void SetProf_Combo();
-	void SetProf_Comboi();
-	void SetProf_Combo_Para();
+	void SetComboQP();
+	void SetComboQPi();
+	void SetComboQP_Para();
 	void SetSMx_Combo();
 	void SetSMx_Combo_Int();
 	void AllocDProw(uint LB);

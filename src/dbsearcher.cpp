@@ -156,6 +156,7 @@ bool DBSearcher::GetNextPair(uint &QueryChainIndex, uint &DBChainIndex)
 void DBSearcher::Thread(uint ThreadIndex)
 	{
 	asserta(ThreadIndex < SIZE(m_DAs));
+	uint PrevChainIndex1 = UINT_MAX;
 	DSSAligner &DA = *m_DAs[ThreadIndex];
 	for (;;)
 		{
@@ -164,20 +165,22 @@ void DBSearcher::Thread(uint ThreadIndex)
 		if (!Ok)
 			break;
 
-		const PDBChain &Chain1 = *m_Chains[ChainIndex1];
+		if (ChainIndex1 != PrevChainIndex1)
+			{
+			const PDBChain &Chain1 = *m_Chains[ChainIndex1];
+			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
+			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
+			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
+			DA.SetQuery(Chain1, Profile1, &KmerBits1, &ComboLetters1);
+			}
+
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
-
-		const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
-
-		const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
-
-		const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
+		DA.SetTarget(Chain2, Profile2, &KmerBits2, &ComboLetters2);
 
-		DA.Align(Chain1, Chain2, KmerBits1, KmerBits2,
-		  ComboLetters1, ComboLetters2, Profile1, Profile2);
+		DA.AlignQueryTarget();
 		if (!DA.m_PathAB.empty())
 			{
 			DA.ToTsv(m_fTsv, m_MaxEvalue);
@@ -190,6 +193,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 				OnAlnBA(ChainIndex1, ChainIndex2, DA);
 				}
 			}
+		PrevChainIndex1 = ChainIndex1;
 		}
 	}
 

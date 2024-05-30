@@ -161,7 +161,7 @@
     <ClCompile Include="getbins.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dssalign.cpp">
+    <ClCompile Include="dssaligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="scalar_sweep.cpp">

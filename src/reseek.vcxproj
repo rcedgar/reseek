@@ -289,7 +289,7 @@
     <ClCompile Include="derepper.cpp" />
     <ClCompile Include="domreport.cpp" />
     <ClCompile Include="dss.cpp" />
-    <ClCompile Include="dssalign.cpp" />
+    <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssalignx.cpp" />
     <ClCompile Include="dssparams.cpp" />
     <ClCompile Include="eval_feature.cpp" />
