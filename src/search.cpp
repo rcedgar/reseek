@@ -26,5 +26,10 @@ void cmd_search()
 	ResetTimers();
 	DBS.Run();
 	DSSAligner::Stats();
+	{
+	uint Hits = DBS.m_QPCacheHits;
+	uint Misses = DBS.m_QPCacheMisses;
+	ProgressLog("QP cache hits %u, misses %u\n", Hits, Misses);
+	}
 	CloseStdioFile(DBS.m_fTsv);
 	}

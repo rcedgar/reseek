@@ -105,12 +105,6 @@ void SCOP40Bench::OnSetup()
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
 	asserta(m_Mode != "");
-	if (string(opt_parasail) == "yes")
-		DSSAligner::m_UsePara = true;
-	else if (string(opt_parasail) == "no")
-		DSSAligner::m_UsePara = false;
-	else
-		Die("Must set -parasail yes/no");
 	BuildDomFamIndexesFromQueryChainLabels();
 	}
 
