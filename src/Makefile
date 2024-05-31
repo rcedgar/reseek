@@ -5,10 +5,10 @@ BINPATH := $(BINDIR)/reseek
 CPPFLAGS := $(CPPFLAGS) -DNDEBUG -pthread
 
 CXX = ccache g++
-CXXFLAGS := $(CXXFLAGS) -O3 -fopenmp -ffast-math -msse -mfpmath=sse
+CXXFLAGS := $(CFLAGS) -O3 -ffast-math -march=native
 
 UNAME_S := $(shell uname -s)
-LDFLAGS := $(LDFLAGS) -O3 -fopenmp -pthread -lpthread
+LDFLAGS := $(LDFLAGS) -O3 -pthread -lpthread
 ifeq ($(UNAME_S),Linux)
     LDFLAGS += -static
 endif
@@ -53,6 +53,7 @@ HDRS = \
   objtype.h \
   objtypes.h \
   omplock.h \
+  parasail.h \
   pathinfo.h \
   pdbchain.h \
   quarts.h \
@@ -84,7 +85,11 @@ OBJS = \
   $(OBJDIR)/calreader.o \
   $(OBJDIR)/chainreader.o \
   $(OBJDIR)/cigar.o \
-  $(OBJDIR)/cmd_search.o \
+  $(OBJDIR)/explore1.o \
+  $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/parasail_combo.o \
+  $(OBJDIR)/pdb2mega.o \
+  $(OBJDIR)/search.o \
   $(OBJDIR)/combomx.o \
   $(OBJDIR)/combomx_data.o \
   $(OBJDIR)/dali.o \
@@ -92,11 +97,12 @@ OBJS = \
   $(OBJDIR)/derepper.o \
   $(OBJDIR)/domreport.o \
   $(OBJDIR)/dss.o \
-  $(OBJDIR)/dssalign.o \
+  $(OBJDIR)/dssaligner.o \
   $(OBJDIR)/dssalignx.o \
   $(OBJDIR)/dssparams.o \
   $(OBJDIR)/eval_feature.o \
   $(OBJDIR)/famreport.o \
+  $(OBJDIR)/featurefreqs.o \
   $(OBJDIR)/features.o \
   $(OBJDIR)/float_feature_bins.o \
   $(OBJDIR)/getbins.o \

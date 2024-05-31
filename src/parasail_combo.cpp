@@ -247,7 +247,11 @@ parasail_profile_t* parasail_profile_new(
 void* parasail_memalign(size_t alignment, size_t size)
 {
     void *ptr = NULL;
+#ifdef _MSC_VER
     ptr = _aligned_malloc(size, alignment);
+#else
+    ptr = aligned_alloc(alignment, size);
+#endif
 	asserta(ptr != 0);
     return ptr;
 }
@@ -259,7 +263,11 @@ static __m256i * parasail_memalign___m256i(size_t alignment, size_t size)
 
 void parasail_free(void *ptr)
 {
-     _aligned_free(ptr);
+#ifdef _MSC_VER
+	_aligned_free(ptr);
+#else
+	free(ptr);
+#endif
 }
 
 static void parasail_free___m256i(void *ptr)

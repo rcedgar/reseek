@@ -57,8 +57,11 @@ void DBSearcher::ReadChains(const string &QueryCalFileName,
 	  m_QueryChains.begin(), m_QueryChains.end());
 	asserta(SIZE(m_Chains) == m_ChainCount);
 
-	ProgressLog("%u db chains, %u query chains\n",
-	  m_DBChainCount, m_QueryChainCount);
+	if (m_DBChainCount > 0)
+		ProgressLog("%u query chains, %u database chains\n",
+		  m_QueryChainCount, m_DBChainCount);
+	else
+		ProgressLog("All-vs-all %u chains\n", m_QueryChainCount);
 	}
 
 void DBSearcher::SetProfiles()

@@ -3,6 +3,7 @@
 #include "dbsearcher.h"
 #include "dssaligner.h"
 #include "xdpmem.h"
+#include <atomic>
 #include <map>
 #include <mutex>
 
