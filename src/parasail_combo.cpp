@@ -3,6 +3,13 @@
 #include "dssaligner.h"
 #include "timing.h"
 
+/***
+This source code is partly derived from the parasail library
+https://github.com/jeffdaily/parasail
+Author jeffrey.daily@gmail.com
+Copyright (c) 2015 Battelle Memorial Institute.
+***/
+
 #define restrict __restrict
 #define PARASAIL_CHECK_NULL(x)	asserta((x) != 0)
 #define PARASAIL_CHECK_GT0(x)	asserta((x) > 0)
