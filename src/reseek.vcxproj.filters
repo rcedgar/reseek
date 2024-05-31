@@ -281,6 +281,15 @@
     <ClCompile Include="explore1i.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_para.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail_cigar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -464,6 +473,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="parasail.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cigar_template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

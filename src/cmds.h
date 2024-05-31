@@ -36,5 +36,6 @@ C(msa2cmp)
 C(pdb2cal)
 C(search)
 C(pdb2mega)
+C(test_para)
 
 #undef C

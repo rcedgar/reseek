@@ -281,6 +281,8 @@
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="parasail.cpp" />
+    <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="search.cpp" />
@@ -328,6 +330,7 @@
     <ClCompile Include="swgaplessint.cpp" />
     <ClCompile Include="swgaplessprof.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
+    <ClCompile Include="test_para.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
     <ClCompile Include="test_xdropdss.cpp" />
     <ClCompile Include="timing.cpp" />
@@ -362,6 +365,7 @@
     <ClCompile Include="xdropfwd.cpp" />
     <ClInclude Include="active.h" />
     <ClInclude Include="cigar.h" />
+    <ClInclude Include="cigar_template.h" />
     <ClInclude Include="combomx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="dbsearcher.h" />

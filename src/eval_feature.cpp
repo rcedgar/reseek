@@ -19,7 +19,7 @@ static double EvalFeature(
 	const uint FeatureIndex = uint(Feature);
 
 	uint AlphaSize = DSS::GetAlphaSize(Feature);
-	ProgressLog("Feature %s (%u)\n", FeatureName, AlphaSize);
+	ProgressLog("Feature %s (%u)\n", Name, AlphaSize);
 
 	LogOdds LO;
 	LO.Init(AlphaSize);

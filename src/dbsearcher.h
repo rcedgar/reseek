@@ -40,8 +40,8 @@ public:
 	uint m_NextDBIdx = UINT_MAX;
 	uint m_ChainCount = UINT_MAX;
 	uint m_ProcessedQueryCount = UINT_MAX;
-	atomic<uint> m_QPCacheHits = 0;
-	atomic<uint> m_QPCacheMisses = 0;
+	atomic<uint> m_QPCacheHits;
+	atomic<uint> m_QPCacheMisses;
 
 	uint m_FilterRejects = 0;
 	uint m_XAlignCount = 0;

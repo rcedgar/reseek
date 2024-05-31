@@ -2,10 +2,8 @@ BINDIR := ../bin
 OBJDIR := o
 BINPATH := $(BINDIR)/reseek
 
-CPPFLAGS := $(CPPFLAGS) -DNDEBUG -pthread
-
 CXX = ccache g++
-CXXFLAGS := $(CFLAGS) -O3 -ffast-math -march=native
+CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++11
 
 UNAME_S := $(shell uname -s)
 LDFLAGS := $(LDFLAGS) -O3 -pthread -lpthread
@@ -21,6 +19,7 @@ HDRS = \
   calreader.h \
   chainreader.h \
   cigar.h \
+  cigar_template.h \
   cmds.h \
   combomx.h \
   counters.h \
@@ -87,6 +86,8 @@ OBJS = \
   $(OBJDIR)/cigar.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/parasail.o \
+  $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
   $(OBJDIR)/pdb2mega.o \
   $(OBJDIR)/search.o \
@@ -134,6 +135,7 @@ OBJS = \
   $(OBJDIR)/swgaplessint.o \
   $(OBJDIR)/swgaplessprof.o \
   $(OBJDIR)/swgaplessprofb.o \
+  $(OBJDIR)/test_para.o \
   $(OBJDIR)/test_xdrop.o \
   $(OBJDIR)/test_xdropdss.o \
   $(OBJDIR)/timing.o \
