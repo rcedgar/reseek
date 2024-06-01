@@ -113,5 +113,4 @@ public:
 	static uint ValueToInt(const vector<double> &Ts,
 	  double Value);
 	static uint GetAlphaSize(FEATURE F);
-	//static void SetComboFeatures(const vector<FEATURE> &Fs);
 	};

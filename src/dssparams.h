@@ -34,13 +34,13 @@ public:
 	int m_ParaComboGapOpen = 5;
 	int m_ParaComboGapExt = 1;
 
-// Not used
-	uint m_MAXNQNR = INT_MAX;
-	float m_X = FLT_MAX;
-	float m_MAXFX = FLT_MAX;
-	int m_MinDiagSpacing = INT_MAX;
-	int m_MaxDiagSpacing = INT_MAX;
-	float m_MinKmerScore = FLT_MAX;
+//// Not used
+//	uint m_MAXNQNR = INT_MAX;
+//	float m_X = FLT_MAX;
+//	float m_MAXFX = FLT_MAX;
+//	int m_MinDiagSpacing = INT_MAX;
+//	int m_MaxDiagSpacing = INT_MAX;
+//	float m_MinKmerScore = FLT_MAX;
 
 public:
 	static vector<FEATURE> m_ComboFeatures;
@@ -59,14 +59,8 @@ public:
 		m_DALIw = FLT_MAX;
 		m_FwdMatchScore = FLT_MAX;
 		m_MinFwdScore = FLT_MAX;
-		m_MAXNQNR = INT_MAX;
-		m_MAXFX = FLT_MAX;
-		m_MinDiagSpacing = INT_MAX;
-		m_MaxDiagSpacing = INT_MAX;
-		m_MinKmerScore = FLT_MAX;
 		m_Omega = FLT_MAX;
 		m_PatternStr = "";
-		m_X = FLT_MAX;
 		}
 
 	void SetDefaults()

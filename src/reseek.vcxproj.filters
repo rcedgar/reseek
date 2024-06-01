@@ -194,9 +194,6 @@
     <ClCompile Include="test_xdrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_xdropdss.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="prettyaln.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -228,9 +225,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="msa2cmp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="kmer_eval3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="swgaplessprof.cpp">

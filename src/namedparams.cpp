@@ -114,13 +114,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
-		m_MAXNQNR = 32;
-		m_MAXFX = 8;
-		m_MinDiagSpacing = 1;
-		m_MaxDiagSpacing = 64;
-		m_MinKmerScore = 0.01f;
 		m_PatternStr = "10000000001";
-		m_X = 4;
 		m_Omega = 10;
 		return;
 		}
@@ -140,13 +134,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
-		m_MAXNQNR = 32;
-		m_MAXFX = 8;
-		m_MinDiagSpacing = 1;
-		m_MaxDiagSpacing = 64;
-		m_MinKmerScore = 0.01f;
 		m_PatternStr = "10000000001";
-		m_X = 4;
 		m_Omega = 7.5f;
 		return;
 		}
@@ -168,13 +156,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
-		m_MAXNQNR = 32;
-		m_MAXFX = 8;
-		m_MinDiagSpacing = 1;
-		m_MaxDiagSpacing = 64;
-		m_MinKmerScore = 0.01f;
 		m_PatternStr = "10000000001";
-		m_X = 4;
 		return;
 		}
 

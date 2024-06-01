@@ -96,11 +96,6 @@ public:
 	//float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignComboQP_Para();
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignX(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<uint> &KmersA, const vector<uint> &KmersB,
-	  const vector<vector<byte> > &ProfileA, 
-	  const vector<vector<byte> > &ProfileB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB,
 	  const string &Path) const;
@@ -111,21 +106,6 @@ public:
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB) const;
 	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
-	void GetSeeds(
-		const vector<vector<byte> > &ProfileQ,
-		const vector<vector<byte> > &ProfileR,
-		const vector<uint> &KmersQ,
-		const vector<uint> &KmersR,
-	    vector<uint> &PosQs,
-		vector<uint> &PosRs) const;
-	void GetDiagSeedPairs(const vector<vector<byte> > &ProfileQ,
-		const vector<vector<byte> > &ProfileR,
-		const vector<uint> &KmersQ, const vector<uint> &KmersR,
-	    vector<uint> &DiagPosQs, vector<uint> &DiagPosRs, vector<uint> &DiagLengths) const;
-	bool GetDiagPairs(const vector<uint> &SeedPosQs, const vector<uint> &SeedPosRs,
-	  vector<uint> &DiagPosQs, vector<uint> &DiagPosRs,
-	  vector<uint> &Lengths) const;
-	bool IsDiagPair(uint PosQi, uint PosQj, uint PosRi, uint PosRj) const;
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();

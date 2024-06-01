@@ -307,7 +307,6 @@
     <ClCompile Include="kabsch.cpp" />
     <ClCompile Include="kmer_eval.cpp" />
     <ClCompile Include="kmer_eval2.cpp" />
-    <ClCompile Include="kmer_eval3.cpp" />
     <ClCompile Include="logaln.cpp" />
     <ClCompile Include="logodds.cpp" />
     <ClCompile Include="mergefwdback.cpp" />
@@ -333,7 +332,6 @@
     <ClCompile Include="test_para.cpp" />
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
-    <ClCompile Include="test_xdropdss.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />

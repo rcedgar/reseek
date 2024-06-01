@@ -140,12 +140,6 @@ void DSSParams::ToFev(FILE *f) const
 	fprintf(f, "\tFwdMatch %.4f", m_FwdMatchScore);
 	fprintf(f, "\tMinFwdScore %.4f", m_MinFwdScore);
 	fprintf(f, "\tDALIw %.4f", m_DALIw);
-	fprintf(f, "\tMAXFX %.4f", m_MAXFX);
-	fprintf(f, "\tMinKmerScore %.4f", m_MinKmerScore);
-	fprintf(f, "\tX %.4f", m_X);
-	fprintf(f, "\tMAXNQNR %u", m_MAXNQNR);
-	fprintf(f, "\tMinDiagSpacing %d", m_MinDiagSpacing);
-	fprintf(f, "\tMaxDiagSpacing %d", m_MaxDiagSpacing);
 	fprintf(f, "\n");
 	}
 
