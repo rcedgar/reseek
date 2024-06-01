@@ -99,8 +99,10 @@ float DSSAligner::AlignComboQP_Para()
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
 	float Score = (float) result->score - (float) result_rev->score;
-	free(result);
-	free(result_rev);
+	//free(result);
+	//free(result_rev);
+	parasail_result_free(result);
+	parasail_result_free(result_rev);
 	return Score;
 	}
 

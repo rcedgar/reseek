@@ -256,7 +256,7 @@ void cmd_kmer_eval()
 		FEATURE F = StrToFeature(Fields[i].c_str());
 		ComboFeatures.push_back(F);
 		}
-	DSS::SetComboFeatures(ComboFeatures);
+	DSSParams::SetComboFeatures(ComboFeatures);
 
 	uint PatternLength = SIZE(PatternStr);
 	uint PatternOnes = GetPatternOnes(PatternStr);

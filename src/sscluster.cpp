@@ -71,7 +71,8 @@ static const PDBChain *ChainQ;
 static const PDBChain *ChainR;
 
 static void TrainerOnPair(
-  const Trainer &T, uint ChainIdxQ, uint ChainIdxR)
+  const Trainer &T, uint ChainIdxQ, uint ChainIdxR,
+  const vector<uint> &PosQs, const vector<uint> &PosRs)
 	{
 	ChainQ = &T.GetChain(ChainIdxQ);
 	ChainR = &T.GetChain(ChainIdxR);

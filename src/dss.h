@@ -46,11 +46,6 @@ public:
 	uint m_PatternAlphaSize = UINT_MAX;
 
 public:
-	static vector<FEATURE> m_ComboFeatures;
-	static vector<uint> m_ComboAlphaSizes;
-	static uint m_ComboAlphaSize;
-
-public:
 	void Init(const PDBChain &Chain)
 		{
 		m_Chain = &Chain;
@@ -118,5 +113,5 @@ public:
 	static uint ValueToInt(const vector<double> &Ts,
 	  double Value);
 	static uint GetAlphaSize(FEATURE F);
-	static void SetComboFeatures(const vector<FEATURE> &Fs);
+	//static void SetComboFeatures(const vector<FEATURE> &Fs);
 	};

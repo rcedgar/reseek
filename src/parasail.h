@@ -245,6 +245,14 @@ static inline void parasail_memset___m256i(__m256i *b, __m256i c, size_t len)
 }
 
 void parasail_free(void *ptr);
+void parasail_result_free(parasail_result_t *result);
+void parasail_cigar_free(parasail_cigar_t *cigar);
+
+static inline int parasail_result_is_saturated(const parasail_result_t * const restrict result)
+{
+    PARASAIL_CHECK_NULL(result);
+    return result->flag & PARASAIL_FLAG_SATURATED;
+}
 
 static inline uint32_t* parasail_reverse_uint32_t(const uint32_t *s, size_t length)
 {

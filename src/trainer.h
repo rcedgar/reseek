@@ -7,7 +7,8 @@
 class Trainer;
 
 typedef void TRAINER_ONPAIR(
-  const Trainer &T, uint ChainIdxQ, uint ChainIdxR);
+  const Trainer &T, uint ChainIdxQ, uint ChainIdxR,
+  const vector<uint> &PosQs, const vector<uint> &PosRs);
 
 typedef void TRAINER_ONCOL(
   const Trainer &T, uint PosQ, uint PosR);

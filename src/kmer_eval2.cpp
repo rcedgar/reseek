@@ -253,11 +253,12 @@ void cmd_kmer_eval2()
 	const uint ChainCount = SB.GetChainCount();
 	map<string, uint> DomToChainIndex;
 
+	Warning("non-standard combo features");
 	vector<FEATURE> ComboFeatures;
 	ComboFeatures.push_back(FEATURE_NbrSS3);
 	ComboFeatures.push_back(FEATURE_NbrDist);
 	DSS D;
-	D.SetComboFeatures(ComboFeatures);
+	DSSParams::SetComboFeatures(ComboFeatures);
 	
 	vector<vector<uint> > LettersVec(ChainCount);
 	vector<vector<uint> > KmersVec(ChainCount);

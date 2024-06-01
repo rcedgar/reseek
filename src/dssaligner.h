@@ -57,7 +57,7 @@ public:
 //	static bool m_UsePara;
 
 public:
-	static mutex m_TsvLock;
+	static mutex m_OutputLock;
 	static mutex m_StatsLock;
 
 public:
@@ -88,7 +88,9 @@ public:
 	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void Align_NoAccel();
-	float AlignCombo(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignCombo(
+	  const vector<byte> &LettersA, const vector<byte> &LettersB,
+	  uint &LoA, uint &LoB, string &Path);
 	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignComboQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	//float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
@@ -134,6 +136,7 @@ public:
 	void SetSMx_Combo_Int();
 	void AllocDProw(uint LB);
 	void ToTsv(FILE *f, float MaxEvalue);
+	void ToFasta2(FILE *f, float MaxEvalue);
 	void ToTsvBA(FILE *f, float MaxEvalue);
 	void ToAln(FILE *f, float MaxEvalue);
 	void ToAlnBA(FILE *f, float MaxEvalue);

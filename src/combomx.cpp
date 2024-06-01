@@ -25,7 +25,9 @@ void cmd_combomx()
 	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RevNbrDist4]);
 
 	DSS D;
-	D.SetComboFeatures(Fs);
+	DSSParams Params;
+	Params.SetComboFeatures(Fs);
+	D.m_Params = &Params;
 	uint AS = D.GetAlphaSize(FEATURE_Combo);
 	vector<vector<float> > ComboMx(AS);
 	for (uint i = 0; i < AS; ++i)

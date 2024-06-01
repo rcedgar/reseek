@@ -191,12 +191,51 @@ static void GetMutatedSeq(vector<byte> &Letters,
 		}
 	}
 
-static void Test2()
+int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
+  int GapOpen, int GapExt, uint &LoQ, uint &LoT, string &Path)
+	{
+	const uint QL = SIZE(Q);
+	const uint TL = SIZE(T);
+	const char *ptrQ = (const char *) Q.data();
+	const char *ptrT = (const char *) T.data();
+
+	parasail_profile_t *QP = 
+	  parasail_profile_create_avx_256_8(ptrQ, QL, &parasail_combo_matrix);
+
+	parasail_result_t *result =
+	  parasail_sw_trace_striped_profile_avx2_256_8(QP, ptrT, TL, GapOpen, GapExt);
+	int score = result->score;
+	if (parasail_result_is_saturated(result))
+		{
+		Warning("parasail_result_is_saturated()");
+		return -777;
+		}
+
+	const parasail_result_extra_trace_t *trace = result->trace;
+
+	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
+	  result, ptrQ, QL, ptrT, TL, &parasail_combo_matrix, 1, 0);
+
+	char *cig_str = parasail_cigar_decode(cig);
+	ExpandCigar(cig_str, Path);
+
+	LoQ = (uint) cig->beg_query;
+	LoT = (uint) cig->beg_ref;
+
+	free(cig_str);
+	parasail_cigar_free(cig);
+	parasail_result_free(result);
+	parasail_profile_free(QP);
+
+	return score;
+	}
+
+static void Test2(bool Trace)
 	{
 	vector<byte> S1;
 	vector<byte> S2;
 
-	const int s1Len = 16 + randu32()%8;
+	const int s1Len = 100 + randu32()%20;
 	GetRandSeq(s1Len, S1);
 
 	uint LeftSkip = randu32()%3;
@@ -204,16 +243,19 @@ static void Test2()
 	GetMutatedSeq(S1, LeftSkip, RightSkip, 0.3, 0.1, 0.1, S2);
 	const int s2Len = (int) S2.size();
 
-	Log("__________________________________________\n");
-	Log("S1  ");
-	for (int i = 0; i < s1Len; ++i)
-		Log("%c", GetComboChar(S1[i]));
-	Log("\n");
+	if (Trace)
+		{
+		Log("__________________________________________\n");
+		Log("S1  ");
+		for (int i = 0; i < s1Len; ++i)
+			Log("%c", GetComboChar(S1[i]));
+		Log("\n");
 
-	Log("S2  ");
-	for (int i = 0; i < s2Len; ++i)
-		Log("%c", GetComboChar(S2[i]));
-	Log("\n");
+		Log("S2  ");
+		for (int i = 0; i < s2Len; ++i)
+			Log("%c", GetComboChar(S2[i]));
+		Log("\n");
+		}
 
 	const int open = 3;
 	const int ext = 1;
@@ -221,7 +263,7 @@ static void Test2()
 	const char *s1 = (const char *) S1.data();
 	const char *s2 = (const char *) S2.data();
 	
-	const parasail_profile_t* profile1 = 
+	parasail_profile_t* profile1 = 
 	  parasail_profile_create_avx_256_8(s1, s1Len, &parasail_combo_matrix);
 	
 	parasail_result_t *result1 =
@@ -239,13 +281,32 @@ static void Test2()
 
 	uint Lo1 = (uint) cig->beg_query;
 	uint Lo2 = (uint) cig->beg_ref;
-	Log("score = %d, %d lo %d, %d path %s\n",
-	  result1->score, result2->score, Lo1, Lo2, Path.c_str());
-	LogAlnComboLetters(S1, Lo1, S2, Lo2, Path);
+	if (Trace)
+		{
+		Log("score = %d, %d lo %d, %d path %s\n",
+		  result1->score, result2->score, Lo1, Lo2, Path.c_str());
+		LogAlnComboLetters(S1, Lo1, S2, Lo2, Path);
+		}
+
+	string Path2;
+	uint LoQ, LoT;
+	int Score2 = ParasailAlign(S1, S2, open, ext, LoQ, LoT, Path2);
+	asserta(Score2 == result1->score);
+	asserta(Path2 == Path);
+
+	free(cig_str);
+	parasail_cigar_free(cig);
+	parasail_profile_free(profile1);
+	parasail_result_free(result1);
+	parasail_result_free(result2);
 	}
 
 void cmd_test_para()
 	{
-	for (uint i = 0; i < 100; ++i)
-		Test2();
+	const uint N = 10000000;
+	for (uint i = 0; i < N; ++i)
+		{
+		ProgressStep(i, N, "Working");
+		Test2(false);
+		}
 	}

@@ -3,8 +3,31 @@
 #include "dss.h"
 #include "sort.h"
 
+vector<FEATURE> DSSParams::m_ComboFeatures;
+vector<uint> DSSParams::m_ComboAlphaSizes;
+uint DSSParams::m_ComboAlphaSize = UINT_MAX;
+
+void DSSParams::SetComboFeatures(const vector<FEATURE> &Fs)
+	{
+	m_ComboAlphaSizes.clear();
+	m_ComboFeatures = Fs;
+	m_ComboAlphaSize = 1;
+	for (uint i = 0; i < SIZE(Fs); ++i)
+		{
+		uint AS = DSS::GetAlphaSize(Fs[i]);
+		m_ComboAlphaSizes.push_back(AS);
+		m_ComboAlphaSize *= AS;
+		}
+	}
+
 void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	{
+	vector<FEATURE> ComboFeatures;
+	ComboFeatures.push_back(FEATURE_SS3);
+	ComboFeatures.push_back(FEATURE_NbrSS3);
+	ComboFeatures.push_back(FEATURE_RevNbrDist4);
+	DSSParams::SetComboFeatures(ComboFeatures);
+
 	if (optset_namedparams)
 		SetNamedParams(opt_namedparams);
 	else if (optset_paramsf)
@@ -18,8 +41,8 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			{
 			if (DefaultToSensitive)
 				{
-				opt_verysensitive = true;
-				optset_verysensitive = true;
+				opt_sensitive = true;
+				optset_sensitive = true;
 				}
 			else
 				Die("Must set exactly one of -veryfast -fast -sensitive -verysensitive");

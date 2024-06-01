@@ -12,7 +12,7 @@
 #include <set>
 #include <mutex>
 
-mutex DSSAligner::m_TsvLock;
+mutex DSSAligner::m_OutputLock;
 mutex DSSAligner::m_StatsLock;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
@@ -666,6 +666,91 @@ void DSSAligner::ToAlnBA(FILE *f, float MaxEvalue)
 	PrettyAln(f, *m_ChainB, *m_ChainA, m_LoA, m_LoB, PathBA, m_EvalueBA);
 	}
 
+void DSSAligner::ToFasta2(FILE *f, float MaxEvalue)
+	{
+	if (f == 0)
+		return;
+	if (m_EvalueAB > MaxEvalue)
+		return;
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	const char *LabelA = m_ChainA->m_Label.c_str();
+	const char *LabelB = m_ChainB->m_Label.c_str();
+
+	const string &SeqA = m_ChainA->m_Seq;
+	const string &SeqB = m_ChainB->m_Seq;
+
+	uint MaxLo = max(m_LoA, m_LoB);
+
+	string RowA;
+	string RowB;
+
+	for (uint i = 0; i < MaxLo - m_LoA; ++i)
+		RowA.push_back('.');
+	for (uint i = 0; i < m_LoA; i++)
+		RowA.push_back(SeqA[i]);
+
+	for (uint i = 0; i < MaxLo - m_LoB; ++i)
+		RowB.push_back('.');
+	for (uint i = 0; i < m_LoB; i++)
+		RowB.push_back(SeqB[i]);
+
+	const uint ColCount = SIZE(m_PathAB);
+	uint PosA = m_LoA;
+	uint PosB = m_LoB;
+	uint IdCount = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = m_PathAB[Col];
+		switch (c)
+			{
+		case 'M':
+			{
+			asserta(PosA < SIZE(SeqA));
+			asserta(PosB < SIZE(SeqB));
+			char a = SeqA[PosA++];
+			char b = SeqB[PosB++];
+			if (a == b)
+				++IdCount;
+			RowA += a;
+			RowB += b;
+			break;
+			}
+
+		case 'D':
+			{
+			asserta(PosA < SIZE(SeqA));
+			RowA += SeqA[PosA++];
+			RowB += '-';
+			break;
+			}
+
+		case 'I':
+			{
+			asserta(PosB < SIZE(SeqB));
+			RowA += '-';
+			RowB += SeqB[PosB++];
+			break;
+			}
+
+		default:
+			asserta(false);
+			}
+		}
+
+	string LabelAx = LabelA;
+	Psa(LabelAx, " E=%.3g Id=%.1f%%",
+	  m_EvalueAB, GetPct(IdCount, ColCount));
+	LabelAx += " (";
+	LabelAx += LabelB;
+	LabelAx += ")";
+	m_OutputLock.lock();
+	SeqToFasta(f, LabelAx.c_str(), RowA);
+	SeqToFasta(f, LabelB, RowB);
+	m_OutputLock.unlock();
+	}
+
 void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	{
 	if (f == 0)
@@ -676,7 +761,7 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	PathToCIGAR(m_PathAB.c_str(), CIGAR);
 	uint M, D, I;
 	GetPathCounts(m_PathAB, M, D, I);
-	m_TsvLock.lock();
+	m_OutputLock.lock();
 	fprintf(f, "%.3g", m_EvalueAB);
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
@@ -685,7 +770,7 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	fprintf(f, "\t%u", m_LoB + 1);
 	fprintf(f, "\t%u", m_LoB + M + I);
 	fprintf(f, "\t%s\n", CIGAR.c_str());
-	m_TsvLock.unlock();
+	m_OutputLock.unlock();
 	}
 
 void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
@@ -698,7 +783,7 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	PathToCIGAR(m_PathAB.c_str(), CIGAR, true);
 	uint M, D, I;
 	GetPathCounts(m_PathAB, M, D, I);
-	m_TsvLock.lock();
+	m_OutputLock.lock();
 	fprintf(f, "%.3g", m_EvalueBA);
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
@@ -707,25 +792,33 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	fprintf(f, "\t%u", m_LoA + 1);
 	fprintf(f, "\t%u", m_LoA + M + D);
 	fprintf(f, "\t%s\n", CIGAR.c_str());
-	m_TsvLock.unlock();
+	m_OutputLock.unlock();
 	}
 
-float DSSAligner::AlignCombo(const vector<byte> &LettersA,
-  const vector<byte> &LettersB)
+float DSSAligner::AlignCombo(
+  const vector<byte> &LettersA, const vector<byte> &LettersB,
+  uint &LoA, uint &LoB, string &Path)
 	{
-	Die("TODO");
-	return AlignComboQP(LettersA, LettersB);
 	m_ComboLettersA = &LettersA;
 	m_ComboLettersB = &LettersB;
 	SetSMx_Combo();
 	uint LA = SIZE(LettersA);
 	uint LB = SIZE(LettersB);
-	uint Besti, Bestj;
-	StartTimer(SWFastGapless);
-	float FwdScore = SWFastGapless(m_Mem, m_SMx, LA, LB, Besti, Bestj);
-	float RevScore = SWFastGapless(m_Mem, m_RevSMx, LA, LB, Besti, Bestj);
+//float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
+//  float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+//  string &Path)
+	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
+	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+	uint Loi, Loj, Leni, Lenj;
+
+	StartTimer(SWFast);
+	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
+	  Loi, Loj, Leni, Lenj, Path);
 	EndTimer(SWFastGapless);
-	return FwdScore - RevScore;
+
+	LoA = Loi;
+	LoB = Loj;
+	return FwdScore;
 	}
 
 void DSSAligner::AllocDProw(uint LB)

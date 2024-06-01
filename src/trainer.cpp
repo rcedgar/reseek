@@ -104,9 +104,13 @@ void Trainer::Scan(TRAINER_ONPAIR OnPair,
 		const vector<uint> &PosRs = m_PosVecsR[PairIndex];
 		const uint ColCount = SIZE(PosQs);
 		asserta(SIZE(PosRs) == ColCount);
-		OnPair(*this, ChainIdxQ, ChainIdxR);
-		for (uint Col = 0; Col < ColCount; ++Col)
-			OnCol(*this, PosQs[Col], PosRs[Col]);
+		if (OnPair != 0)
+			OnPair(*this, ChainIdxQ, ChainIdxR, PosQs, PosRs);
+		if (OnCol != 0)
+			{
+			for (uint Col = 0; Col < ColCount; ++Col)
+				OnCol(*this, PosQs[Col], PosRs[Col]);
+			}
 		}
 	}
 
@@ -127,7 +131,7 @@ void Trainer::TrainLogOdds(
 		const vector<uint> &PosRs = m_PosVecsR[PairIndex];
 		const uint ColCount = SIZE(PosQs);
 		asserta(SIZE(PosRs) == ColCount);
-		OnPair(*this, ChainIdxQ, ChainIdxR);
+		OnPair(*this, ChainIdxQ, ChainIdxR, PosQs, PosRs);
 		for (uint Col = 0; Col < ColCount; ++Col)
 			{
 			uint LetterQ, LetterR;

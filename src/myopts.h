@@ -36,6 +36,7 @@ STR_OPT(roc)
 STR_OPT(epqx)
 STR_OPT(fev)
 STR_OPT(benchmode)
+STR_OPT(fasta2)
 
 STR_OPT(train_cal)
 STR_OPT(test_cal)

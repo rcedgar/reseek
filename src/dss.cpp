@@ -4,10 +4,6 @@
 #include "alpha.h"
 #include "dss.h"
 
-vector<FEATURE> DSS::m_ComboFeatures;
-vector<uint> DSS::m_ComboAlphaSizes;
-uint DSS::m_ComboAlphaSize = UINT_MAX;
-
 uint GetPatternOnes(const string &Str)
 	{
 	uint n = 0;
@@ -600,7 +596,7 @@ uint DSS::Get_AA4(uint Pos)
 void DSS::GetComboLetters(uint ComboLetter, vector<uint> &Letters) const
 	{
 	Letters.clear();
-	uint n = SIZE(m_ComboFeatures);
+	uint n = SIZE(m_Params->m_ComboFeatures);
 	if (ComboLetter == UINT_MAX)
 		{
 		for (uint i = 0; i < n; ++i)
@@ -612,7 +608,7 @@ void DSS::GetComboLetters(uint ComboLetter, vector<uint> &Letters) const
 	uint m = 1;
 	for (uint i = 0; i < n; ++i)
 		{
-		uint m = m_ComboAlphaSizes[i];
+		uint m = m_Params->m_ComboAlphaSizes[i];
 		uint Letter = CL%m;
 		Letters.push_back(Letter);
 		CL /= m;
@@ -621,7 +617,7 @@ void DSS::GetComboLetters(uint ComboLetter, vector<uint> &Letters) const
 
 uint DSS::GetComboLetter(const vector<uint> &Letters) const
 	{
-	uint n = SIZE(m_ComboFeatures);
+	uint n = SIZE(m_Params->m_ComboFeatures);
 	asserta(SIZE(Letters) == n);
 	uint ComboLetter = 0;
 	uint m = 1;
@@ -631,9 +627,9 @@ uint DSS::GetComboLetter(const vector<uint> &Letters) const
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
 		ComboLetter = ComboLetter + m*Letter;
-		m *= m_ComboAlphaSizes[i];
+		m *= m_Params->m_ComboAlphaSizes[i];
 		}
-	asserta(ComboLetter < m_ComboAlphaSize);
+	asserta(ComboLetter < m_Params->m_ComboAlphaSize);
 	return ComboLetter;
 	}
 
@@ -641,16 +637,16 @@ uint DSS::Get_Combo(uint Pos)
 	{
 	uint ComboLetter = 0;
 	uint m = 1;
-	for (uint i = 0; i < SIZE(m_ComboFeatures); ++i)
+	for (uint i = 0; i < SIZE(m_Params->m_ComboFeatures); ++i)
 		{
-		uint Letter = GetFeature(m_ComboFeatures[i], Pos);
+		uint Letter = GetFeature(m_Params->m_ComboFeatures[i], Pos);
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
 		ComboLetter = ComboLetter + m*Letter;
-		m *= m_ComboAlphaSizes[i];
+		m *= m_Params->m_ComboAlphaSizes[i];
 		}
 
-	asserta(ComboLetter < m_ComboAlphaSize);
+	asserta(ComboLetter < m_Params->m_ComboAlphaSize);
 	return ComboLetter;
 	}
 
@@ -722,7 +718,7 @@ void DSS::GetComboLetters(vector<byte> &Letters)
 	const uint L = GetSeqLength();
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		uint Letter = GetFeature(FEATURE_Combo, Pos);
+		uint Letter = Get_Combo(Pos);
 		if (Letter == UINT_MAX)
 			Letter = 0;
 		asserta(Letter < 256);
@@ -752,19 +748,6 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 				}
 			}
 		Profile.push_back(ProfRow);
-		}
-	}
-
-void DSS::SetComboFeatures(const vector<FEATURE> &Fs)
-	{
-	m_ComboAlphaSizes.clear();
-	m_ComboFeatures = Fs;
-	m_ComboAlphaSize = 1;
-	for (uint i = 0; i < SIZE(Fs); ++i)
-		{
-		uint AS = GetAlphaSize(Fs[i]);
-		m_ComboAlphaSizes.push_back(AS);
-		m_ComboAlphaSize *= AS;
 		}
 	}
 
@@ -817,7 +800,7 @@ uint DSS::GetAlphaSize(FEATURE F)
 		return 16;
 
 	case FEATURE_Combo:
-		return m_ComboAlphaSize;
+		return DSSParams::m_ComboAlphaSize;
 		}
 	Die("GetAlphaSize(%s)", FeatureToStr(F));
 	return UINT_MAX;

@@ -50,6 +50,7 @@ public:
 	float m_MaxEvalue = FLT_MAX;
 	FILE *m_fTsv = 0;
 	FILE *m_fAln = 0;
+	FILE *m_fFasta2 = 0;
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 

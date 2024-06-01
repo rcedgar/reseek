@@ -43,6 +43,11 @@ public:
 	float m_MinKmerScore = FLT_MAX;
 
 public:
+	static vector<FEATURE> m_ComboFeatures;
+	static vector<uint> m_ComboAlphaSizes;
+	static uint m_ComboAlphaSize;
+
+public:
 	void Clear()
 		{
 		m_Desc.clear();
@@ -91,6 +96,8 @@ public:
 	void InitScoreMxs();
 	void ApplyWeights();
 	float ScoreToEvalue(float Score, uint QL) const;
+
+	static void SetComboFeatures(const vector<FEATURE> &Fs);
 	};
 
 uint GetPatternOnes(const string &Pattern);

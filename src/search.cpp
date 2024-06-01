@@ -20,9 +20,9 @@ void cmd_search()
 		Params.m_DBSize = (float) opt_dbsize;
 
 	DBS.Setup(Params);
-	DBS.m_MaxEvalue = FLT_MAX;
 	DBS.m_fTsv = CreateStdioFile(opt_output);
 	DBS.m_fAln = CreateStdioFile(opt_aln);
+	DBS.m_fFasta2 = CreateStdioFile(opt_fasta2);
 	ResetTimers();
 	DBS.Run();
 	DSSAligner::Stats();

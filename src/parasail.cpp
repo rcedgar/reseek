@@ -136,12 +136,6 @@ parasail_result_t* parasail_result_new()
     return result;
 }
 
-static int parasail_result_is_saturated(const parasail_result_t * const restrict result)
-{
-    PARASAIL_CHECK_NULL(result);
-    return result->flag & PARASAIL_FLAG_SATURATED;
-}
-
 parasail_result_t* parasail_result_new_trace(const int a, const int b, const size_t alignment, const size_t size)
 {
     /* declare all variables */
@@ -850,4 +844,56 @@ void parasail_profile_free(parasail_profile_t *profile)
     }
 
     free(profile);
+}
+
+void parasail_result_free(parasail_result_t *result)
+{
+    /* validate inputs */
+    if (!result) {
+        fprintf(stderr, "%s: attempted free of NULL result pointer\n", __func__);
+        return;
+    }
+    
+    if (result->flag & PARASAIL_FLAG_STATS) {
+        if (result->flag & PARASAIL_FLAG_TABLE) {
+            free(result->stats->tables->score_table);
+            free(result->stats->tables->matches_table);
+            free(result->stats->tables->similar_table);
+            free(result->stats->tables->length_table);
+            free(result->stats->tables);
+        }
+        if (result->flag & PARASAIL_FLAG_ROWCOL) {
+            free(result->stats->rowcols->score_row);
+            free(result->stats->rowcols->matches_row);
+            free(result->stats->rowcols->similar_row);
+            free(result->stats->rowcols->length_row);
+            free(result->stats->rowcols->score_col);
+            free(result->stats->rowcols->matches_col);
+            free(result->stats->rowcols->similar_col);
+            free(result->stats->rowcols->length_col);
+            free(result->stats->rowcols);
+        }
+        free(result->stats);
+    }
+    else {
+        if (result->flag & PARASAIL_FLAG_TABLE) {
+            free(result->tables->score_table);
+            free(result->tables);
+        }
+        if (result->flag & PARASAIL_FLAG_ROWCOL) {
+            free(result->rowcols->score_row);
+            free(result->rowcols->score_col);
+            free(result->rowcols);
+        }
+    }
+    if (result->flag & PARASAIL_FLAG_TRACE) {
+        parasail_free(result->trace->trace_table);
+        if (NULL != result->trace->trace_ins_table)
+            parasail_free(result->trace->trace_ins_table);
+        if (NULL != result->trace->trace_del_table)
+            parasail_free(result->trace->trace_del_table);
+        free(result->trace);
+    }
+
+    free(result);
 }

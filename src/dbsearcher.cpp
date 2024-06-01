@@ -201,6 +201,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 				{
 				DA.ToTsv(m_fTsv, m_MaxEvalue);
 				DA.ToAln(m_fAln, m_MaxEvalue);
+				DA.ToFasta2(m_fFasta2, m_MaxEvalue);
 				OnAln(ChainIndex1, ChainIndex2, DA);
 				if (m_QuerySelf)
 					{
@@ -327,9 +328,9 @@ void DBSearcher::Setup(const DSSParams &Params)
 	ComboFeatures.push_back(FEATURE_SS3);
 	ComboFeatures.push_back(FEATURE_NbrSS3);
 	ComboFeatures.push_back(FEATURE_RevNbrDist4);
+	DSSParams::SetComboFeatures(ComboFeatures);
 
 	m_D.m_Params = m_Params;
-	m_D.SetComboFeatures(ComboFeatures);
 	const uint AS = m_D.GetAlphaSize(FEATURE_Combo);
 	m_D.m_PatternAlphaSize1 = AS;
 	uint PatternOnes = GetPatternOnes(m_D.m_Params->m_PatternStr);
