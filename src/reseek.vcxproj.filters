@@ -254,9 +254,6 @@
     <ClCompile Include="usort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dssalignx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reseek_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -97,6 +97,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	if (optset_maxaccepts) m_MaxAccepts = opt_maxaccepts;
 	if (optset_maxrejects) m_MaxRejects = opt_maxrejects;
 	if (optset_usort) m_USort = true;
+	if (optset_usecombopath) m_UseComboPath = true;
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",

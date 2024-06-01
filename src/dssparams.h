@@ -21,6 +21,7 @@ public:
 	float ***m_ScoreMxs = 0;
 	bool m_USort = false;
 	bool m_ComboScoreOnly = false;
+	bool m_UseComboPath = false;
 
 	float m_EvalueSlope = -6.6f;
 	float m_EvalueIntercept = 6.1f;
@@ -33,14 +34,6 @@ public:
 	bool m_UsePara = true;
 	int m_ParaComboGapOpen = 5;
 	int m_ParaComboGapExt = 1;
-
-//// Not used
-//	uint m_MAXNQNR = INT_MAX;
-//	float m_X = FLT_MAX;
-//	float m_MAXFX = FLT_MAX;
-//	int m_MinDiagSpacing = INT_MAX;
-//	int m_MaxDiagSpacing = INT_MAX;
-//	float m_MinKmerScore = FLT_MAX;
 
 public:
 	static vector<FEATURE> m_ComboFeatures;
@@ -91,6 +84,7 @@ public:
 	void ApplyWeights();
 	float ScoreToEvalue(float Score, uint QL) const;
 
+public:
 	static void SetComboFeatures(const vector<FEATURE> &Fs);
 	};
 

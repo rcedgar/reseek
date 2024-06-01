@@ -259,6 +259,7 @@ FLAG_OPT(veryfast)
 FLAG_OPT(fast)
 FLAG_OPT(sensitive)
 FLAG_OPT(verysensitive)
+FLAG_OPT(usecombopath)
 
 #undef FLAG_OPT
 #undef UNS_OPT

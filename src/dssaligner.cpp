@@ -918,3 +918,22 @@ void DSSAligner::Stats()
 	  GetPct(m_UFilterCount, m_AlnCount),
 	  GetPct(m_ComboFilterCount, m_AlnCount - m_UFilterCount));
 	}
+
+uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const
+	{
+	set<uint> Set1;
+	for (uint i = 0; i < SIZE(Kmers1); ++i)
+		{
+		uint Kmer = Kmers1[i];
+		if (Kmer != UINT_MAX)
+			Set1.insert(Kmer);
+		}
+	uint U = 0;
+	for (uint i = 0; i < SIZE(Kmers2); ++i)
+		{
+		uint Kmer = Kmers2[i];
+		if (Kmer != UINT_MAX && Set1.find(Kmer) != Set1.end())
+			++U;
+		}
+	return U;
+	}
