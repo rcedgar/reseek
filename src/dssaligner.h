@@ -41,15 +41,6 @@ public:
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
 
-	uint m_BestHSPLo1 = UINT_MAX;
-	uint m_BestHSPLo2 = UINT_MAX;
-	uint m_BestHSPHi1 = UINT_MAX;
-	uint m_BestHSPHi2 = UINT_MAX;
-	float m_BestHSPScore = FLT_MAX;
-	string m_BestHSPPath;
-	vector<float> m_HSPScores;
-
-	//float m_ComboScore = FLT_MAX;
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
 
@@ -65,6 +56,7 @@ public:
 	static uint m_SWCount;
 	static uint m_ComboFilterCount;
 	static uint m_UFilterCount;
+	static uint m_ParasailSaturateCount;
 
 public:
 	void SetQuery(
@@ -82,6 +74,8 @@ public:
 	float GetComboScore();
 	bool ComboFilter();
 	bool UFilter();
+	void AlignComboOnly();
+	void AlignComboPath();
 	void AlignQueryTarget();
 	void Align_ComboFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
@@ -91,10 +85,9 @@ public:
 	float AlignCombo(
 	  const vector<byte> &LettersA, const vector<byte> &LettersB,
 	  uint &LoA, uint &LoB, string &Path);
-	void AlignComboBench(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignComboQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	//float AlignComboQP_Para(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignComboQP_Para();
+	float AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path);
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB,

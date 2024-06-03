@@ -642,8 +642,12 @@ void cmd_scop40bench()
 	ProgressLog("SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
 	ProgressLog(" FF1=%.4f", FoundFract1);
-	ProgressLog(" UFil=%.1f", UFilterPct);
-	ProgressLog(" CFil=%.1f", ComboFilterPct);
+	if (DSSAligner::m_UFilterCount > 0)
+		ProgressLog(" UFil=%.1f", UFilterPct);
+	if (DSSAligner::m_ComboFilterCount > 0)
+		ProgressLog(" CFil=%.1f", ComboFilterPct);
+	if (DSSAligner::m_ParasailSaturateCount > 0)
+		ProgressLog(" Sat=%u", DSSAligner::m_ParasailSaturateCount);
 	ProgressLog(" mode=%s", SB.m_Mode.c_str());
 	ProgressLog(" secs=%u", Secs);
 	ProgressLog("\n");

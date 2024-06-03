@@ -99,7 +99,6 @@ OBJS = \
   $(OBJDIR)/domreport.o \
   $(OBJDIR)/dss.o \
   $(OBJDIR)/dssaligner.o \
-  $(OBJDIR)/dssalignx.o \
   $(OBJDIR)/dssparams.o \
   $(OBJDIR)/eval_feature.o \
   $(OBJDIR)/famreport.o \
@@ -112,7 +111,6 @@ OBJS = \
   $(OBJDIR)/kabsch.o \
   $(OBJDIR)/kmer_eval.o \
   $(OBJDIR)/kmer_eval2.o \
-  $(OBJDIR)/kmer_eval3.o \
   $(OBJDIR)/logaln.o \
   $(OBJDIR)/logodds.o \
   $(OBJDIR)/mergefwdback.o \
@@ -136,8 +134,8 @@ OBJS = \
   $(OBJDIR)/swgaplessprof.o \
   $(OBJDIR)/swgaplessprofb.o \
   $(OBJDIR)/test_para.o \
+  $(OBJDIR)/test_para_path.o \
   $(OBJDIR)/test_xdrop.o \
-  $(OBJDIR)/test_xdropdss.o \
   $(OBJDIR)/timing.o \
   $(OBJDIR)/usort.o \
   $(OBJDIR)/valuetoint.o \

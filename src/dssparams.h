@@ -15,6 +15,7 @@ public:
 	float m_DALIw = FLT_MAX;
 	float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
+	float m_MinComboFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	uint m_MinU = 0;
 	string m_PatternStr = "";

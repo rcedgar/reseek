@@ -72,6 +72,51 @@ parasail_matrix_t parasail_combo_matrix = {
 	NULL // query
 };
 
+float DSSAligner::AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path)
+	{
+	Path.clear();
+	LoA = UINT_MAX;
+	LoB = UINT_MAX;
+
+	uint LA = SIZE(*m_ComboLettersA);
+	uint LB = SIZE(*m_ComboLettersB);
+	const int Open = m_Params->m_ParaComboGapOpen;
+	const int Ext = m_Params->m_ParaComboGapExt;
+
+	const char *B = (const char *) m_ComboLettersB->data();
+
+	const parasail_profile_t * const restrict profile =
+	  (const parasail_profile_t * const restrict) m_ProfPara;
+
+	StartTimer(SWPara);
+	parasail_result_t* result =
+	  parasail_sw_trace_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
+	EndTimer(SWPara);
+
+	float Score = (float) result->score;
+	if (result->flag & PARASAIL_FLAG_SATURATED)
+		Score = -1;
+	else
+		{
+		const char *SeqA = (const char *) m_ComboLettersA->data();
+		const char *SeqB = (const char *) m_ComboLettersB->data();
+		parasail_cigar_t* cig = parasail_result_get_cigar_extra(
+		  result, SeqA, LA, SeqB, LB, &parasail_combo_matrix, 1, 0);
+
+		char *cig_str = parasail_cigar_decode(cig);
+
+		void ExpandCigar(const string &s, string &Path);
+		ExpandCigar(cig_str, Path);
+
+		LoA = (uint) cig->beg_query;
+		LoB = (uint) cig->beg_ref;
+
+		free(cig_str);
+		parasail_cigar_free(cig);
+		}
+	parasail_result_free(result);
+	return Score;
+	}
 
 float DSSAligner::AlignComboQP_Para()
 	{
@@ -99,8 +144,6 @@ float DSSAligner::AlignComboQP_Para()
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
 	float Score = (float) result->score - (float) result_rev->score;
-	//free(result);
-	//free(result_rev);
 	parasail_result_free(result);
 	parasail_result_free(result_rev);
 	return Score;

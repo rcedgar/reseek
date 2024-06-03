@@ -5,7 +5,7 @@
 extern int8_t IntScoreMx_Combo[36][36];
 extern parasail_matrix_t parasail_combo_matrix;
 
-static void ExpandCigar(const string &s, string &Path)
+void ExpandCigar(const string &s, string &Path)
 	{
 	string Ops;
 	vector<uint> ns;
@@ -210,8 +210,6 @@ int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
 		Warning("parasail_result_is_saturated()");
 		return -777;
 		}
-
-	const parasail_result_extra_trace_t *trace = result->trace;
 
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
 	  result, ptrQ, QL, ptrT, TL, &parasail_combo_matrix, 1, 0);

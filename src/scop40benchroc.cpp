@@ -658,6 +658,7 @@ void cmd_scop40bit_roc()
 	SB.m_DomIdxToFamIdx.clear();
 	SB.ReadChains(opt_input);
 	SB.BuildDomFamIndexesFromQueryChainLabels();
+	SB.SetFamSizes();
 	//asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)

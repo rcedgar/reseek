@@ -186,7 +186,13 @@ void DBSearcher::Thread(uint ThreadIndex)
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
 		DA.SetTarget(Chain2, Profile2, &KmerBits2, &ComboLetters2);
 
-		if (m_Params->m_ComboScoreOnly)
+		if (m_Params->m_UseComboPath)
+			{
+			DA.AlignComboOnly();
+			OnAln(ChainIndex1, ChainIndex2, DA);
+			OnAlnBA(ChainIndex1, ChainIndex2, DA);
+			}
+		else if (m_Params->m_ComboScoreOnly)
 			{
 			float ComboScore = DA.GetComboScore();
 			DA.m_EvalueAB = ComboScore;

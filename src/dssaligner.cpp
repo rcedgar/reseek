@@ -40,6 +40,7 @@ uint DSSAligner::m_AlnCount;
 uint DSSAligner::m_SWCount;
 uint DSSAligner::m_ComboFilterCount;
 uint DSSAligner::m_UFilterCount;
+uint DSSAligner::m_ParasailSaturateCount;
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	{
@@ -559,6 +560,35 @@ void DSSAligner::SetTarget(
 	m_ComboLettersB = ptrComboLetters;
 	}
 
+void DSSAligner::AlignComboOnly()
+	{
+	m_EvalueAB = FLT_MAX;
+	m_EvalueBA = FLT_MAX;
+	m_PathAB.clear();
+
+	m_StatsLock.lock();
+	++m_AlnCount;
+	m_StatsLock.unlock();
+
+	bool UFilterOk = UFilter();
+	if (!UFilterOk)
+		{
+		m_StatsLock.lock();
+		++m_UFilterCount;
+		m_StatsLock.unlock();
+		return;
+		}
+	bool ComboFilterOk = ComboFilter();
+	if (!ComboFilterOk)
+		{
+		m_StatsLock.lock();
+		++m_ComboFilterCount;
+		m_StatsLock.unlock();
+		return;
+		}
+	AlignComboPath();
+	}
+
 void DSSAligner::AlignQueryTarget()
 	{
 	m_EvalueAB = FLT_MAX;
@@ -599,8 +629,6 @@ void DSSAligner::Align_NoAccel()
 	asserta(m_Params != 0);
 	const DSSParams &Params = *m_Params;
 
-	const uint FeatureCount = Params.GetFeatureCount();
-
 	XDPMem &Mem = m_Mem;
 
 	const uint LA = m_ChainA->GetSeqLength();
@@ -633,6 +661,56 @@ void DSSAligner::Align_NoAccel()
 		}
 	uint M = GetMatchColCount(m_PathAB);
 	float AlnScore = AlnFwdScore + M*Params.m_FwdMatchScore +
+	  Params.m_DALIw*AlnDALIScore;
+	m_EvalueAB = m_Params->ScoreToEvalue(AlnScore, LA);
+	m_EvalueBA = m_Params->ScoreToEvalue(AlnScore, LB);
+	}
+
+void DSSAligner::AlignComboPath()
+	{
+	m_EvalueAB = FLT_MAX;
+	m_EvalueBA = FLT_MAX;
+	m_PathAB.clear();
+	m_LoA = UINT_MAX;
+	m_LoB = UINT_MAX;
+
+	asserta(m_Params != 0);
+	const DSSParams &Params = *m_Params;
+
+	XDPMem &Mem = m_Mem;
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+	const string &A = m_ChainA->m_Seq;
+	const string &B = m_ChainB->m_Seq;
+	asserta(SIZE(A) == LA);
+	asserta(SIZE(B) == LB);
+
+	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_PathAB);
+	if (ComboFwdScore < 0)
+		{
+		m_StatsLock.lock();
+		++m_ParasailSaturateCount;
+		m_StatsLock.unlock();
+		SetSMx_NoRev();
+		Mx<float> &SMx = m_SMx;
+		Mx<float> &RevSMx = m_RevSMx;
+		ComboFwdScore = 
+		  AlignCombo(*m_ComboLettersA, *m_ComboLettersB, m_LoA, m_LoB, m_PathAB);
+		}
+
+// MinFwdScore small speedup by avoiding call to GetDALIScore_Path()
+	float AlnDALIScore = 0;
+	if (ComboFwdScore >= m_Params->m_MinComboFwdScore)
+		{
+		StartTimer(DALIScore);
+		if (m_Params->m_DALIw != 0)
+			AlnDALIScore = (float)
+			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_PathAB, m_LoA, m_LoB);
+		EndTimer(DALIScore);
+		}
+	uint M = GetMatchColCount(m_PathAB);
+	float AlnScore = ComboFwdScore + M*Params.m_FwdMatchScore +
 	  Params.m_DALIw*AlnDALIScore;
 	m_EvalueAB = m_Params->ScoreToEvalue(AlnScore, LA);
 	m_EvalueBA = m_Params->ScoreToEvalue(AlnScore, LB);
@@ -814,7 +892,7 @@ float DSSAligner::AlignCombo(
 	StartTimer(SWFast);
 	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
 	  Loi, Loj, Leni, Lenj, Path);
-	EndTimer(SWFastGapless);
+	EndTimer(SWFast);
 
 	LoA = Loi;
 	LoB = Loj;
@@ -830,44 +908,6 @@ void DSSAligner::AllocDProw(uint LB)
 		myfree(m_DProw);
 	m_DProwSize = 2*(LB + 100);
 	m_DProw = myalloc(float, m_DProwSize);
-	}
-
-void DSSAligner::AlignComboBench(const vector<byte> &LettersA,
-  const vector<byte> &LettersB)
-	{
-	m_ComboLettersA = &LettersA;
-	m_ComboLettersB = &LettersB;
-
-	SetSMx_Combo();
-
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
-	uint Besti, Bestj;
-	StartTimer(SWFastGapless);
-	float FwdScore = SWFastGapless(m_Mem, m_SMx, LA, LB, Besti, Bestj);
-	float RevScore = SWFastGapless(m_Mem, m_RevSMx, LA, LB, Besti, Bestj);
-	float Diff = FwdScore - RevScore;
-	EndTimer(SWFastGapless);
-
-	SetComboQP();
-	StartTimer(SWFastGapless_Prof);
-	float FwdScoreProf = SWFastGaplessProf(m_Mem, m_ProfCombo.data(), LA,
-	  LettersB.data(), LB, Besti, Bestj);
-	float RevScoreProf = SWFastGaplessProf(m_Mem, m_ProfComboRev.data(), LA,
-		LettersB.data(), LB, Besti, Bestj);
-	float DiffProf = FwdScoreProf - RevScoreProf;
-	EndTimer(SWFastGapless_Prof);
-	SetComboQPi();
-
-	SetComboQPi();
-	StartTimer(SWFastGapless_Profi);
-	float FwdScorei = (float) SWFastPinopGapless(m_ProfComboi.data(), LA,
-	  (const int8_t *) LettersB.data(), LB);
-	float RevScorei = (float) SWFastPinopGapless(m_ProfComboRevi.data(), LA,
-		(const int8_t *) LettersB.data(), LB);
-	float Diffi = FwdScorei - RevScorei;
-	EndTimer(SWFastGapless_Profi);
-	//Log("%.3g\t%.3g\t%.3g\n", Diff, DiffProf, Diffi);
 	}
 
 float DSSAligner::AlignComboQP(const vector<byte> &LettersA,
