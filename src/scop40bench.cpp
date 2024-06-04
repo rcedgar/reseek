@@ -504,11 +504,9 @@ uint SCOP40Bench::GetSens1stFP()
 		{
 		uint Dom1 = m_DomIdx1s[i];
 		uint Dom2 = m_DomIdx2s[i];
-		float Score = m_Scores[i];
-		uint Fam1 = m_DomIdxToFamIdx[Dom1];
-		uint Fam2 = m_DomIdxToFamIdx[Dom2];
-		if (Dom1 != Dom2 && Fam1 == Fam2)
+		if (Dom1 != Dom2 && IsT(Dom1, Dom2) == 1)
 			{
+			float Score = m_Scores[i];
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				++GoodCount;
 			}
