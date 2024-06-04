@@ -48,7 +48,7 @@ uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
 	const uint N = SIZE(NTPs);
 	for (uint Idx = 0; Idx < N; ++Idx)
 		{
-		float EPQ = float(NFPs[Idx]/m_ChainCount);
+		float EPQ = float(NFPs[Idx])/m_ChainCount;
 		if (Idx > 0)
 			ntp = NTPs[Idx];
 		if (EPQ >= EPQThreshold)
@@ -103,13 +103,46 @@ void SCOP40Bench::ScoreDist(const string &FileName)
 	CloseStdioFile(f);
 	}
 
-bool SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
+int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	{
 	assert(DomIdx1 < SIZE(m_DomIdxToFamIdx));
 	assert(DomIdx2 < SIZE(m_DomIdxToFamIdx));
 	uint FamIdx1 = m_DomIdxToFamIdx[DomIdx1];
 	uint FamIdx2 = m_DomIdxToFamIdx[DomIdx2];
-	return FamIdx1 == FamIdx2;
+
+	assert(DomIdx1 < SIZE(m_DomIdxToFoldIdx));
+	assert(DomIdx2 < SIZE(m_DomIdxToFoldIdx));
+	uint FoldIdx1 = m_DomIdxToFoldIdx[DomIdx1];
+	uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
+
+	if (m_Mode == "family")
+		{
+		if (FamIdx1 == FamIdx2)
+			return 1;
+		else
+			return 0;
+		}
+	if (m_Mode == "fold")
+		{
+		if (FoldIdx1 == FoldIdx2)
+			return 1;
+		else
+			return 0;
+		}
+	if (m_Mode == "ignore")
+		{
+		if (FoldIdx1 == FoldIdx2)
+			{
+			if (FamIdx1 == FamIdx2)
+				return 1;
+			else
+				return -1;
+			}
+		else
+			return 0;
+		}
+	asserta(false);
+	return INT_MAX;
 	}
 
 void SCOP40Bench::SetTFs()
@@ -117,7 +150,7 @@ void SCOP40Bench::SetTFs()
 	uint HitCount = GetHitCount();
 	m_TFs.clear();
 	m_TFs.reserve(HitCount);
-	CalcNXs(m_NT, m_NF);
+	SetNXs();
 	uint DomCount = SIZE(m_Doms);
 	uint FamCount = SIZE(m_Fams);
 	for (uint i = 0; i < HitCount; ++i)
@@ -125,7 +158,7 @@ void SCOP40Bench::SetTFs()
 		ProgressStep(i, HitCount, "Set TFs");
 		uint DomIdx1 = m_DomIdx1s[i];
 		uint DomIdx2 = m_DomIdx2s[i];
-		float T = IsT(DomIdx1, DomIdx2);
+		int T = IsT(DomIdx1, DomIdx2);
 		m_TFs.push_back(T);
 		}
 	}
@@ -188,6 +221,7 @@ void SCOP40Bench::EPQToTsvX(FILE *f, uint N)
 		float Score = Scores[i];
 		uint ntp = NTPs[i];
 		uint nfp = NFPs[i];
+		asserta(ntp <= m_NT);
 		uint nfn = m_NT - ntp;
 		asserta(ntp + nfn == m_NT);
 		float Sens = float(ntp)/(ntp + nfn);
@@ -195,7 +229,9 @@ void SCOP40Bench::EPQToTsvX(FILE *f, uint N)
 		asserta(feq(Sens, Sens2));
 	// per query = divided by number of queries = dbsize
 		float EPQ = float(nfp)/DBSize;
-		asserta(Sens <= 1);
+		if (Sens > 1)
+			Die("Sens=%.5g m_NT=%u m_NF=%u ntp=%u nfn=%u Score=%.3g",
+			  Sens, m_NT, m_NF, ntp, nfn, Score);
 		uint Bin = uint(Sens/SensStep);
 		float Err = fabsf(Sens - Bin*SensStep);
 		if (Err < BinErrs[Bin])
@@ -280,6 +316,7 @@ bool SCOP40Bench::SmoothROCSteps(const vector<float> &Scores,
 void SCOP40Bench::GetROCSteps(vector<float> &Scores,
   vector<uint> &NTPs, vector<uint> &NFPs)
 	{
+	SetNXs();
 	Scores.clear();
 	NTPs.clear();
 	NFPs.clear();
@@ -310,9 +347,10 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 			NFPs.push_back(NFP);
 			CurrentScore = Score;
 			}
-		if (m_TFs[i])
+		int T = m_TFs[i];
+		if (T == 1)
 			++NTP;
-		else
+		else if (T == 0)
 			++NFP;
 		}
 	Scores.push_back(CurrentScore);
@@ -347,26 +385,76 @@ void SCOP40Bench::GetFamSizes(vector<uint> &FamSizes) const
 		}
 	}
 
-void SCOP40Bench::CalcNXs(uint &NT, uint &NF) const
+void SCOP40Bench::GetFoldSizes(vector<uint> &FoldSizes) const
 	{
-	NT = 0;
-	NF = 0;
-	const uint DomCount = GetDomCount();
-	const uint FamCount = GetFamCount();
-
-// order matters, include self hit
-//   (query,ref) is not equivalent to (ref,query)
-	uint TotalPairCount = DomCount*DomCount;
-
-	vector<uint> FamSizes;
-	GetFamSizes(FamSizes);
-	for (uint FamIdx = 0; FamIdx < FamCount; ++FamIdx)
+	FoldSizes.clear();
+	uint FoldCount = GetFoldCount();
+	uint DomCount = GetDomCount();
+	FoldSizes.resize(FoldCount, 0);
+	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
-		uint Size = FamSizes[FamIdx];
-		uint FamPairCount = Size*Size;
-		NT += FamPairCount;
+		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
+		assert(FoldIdx < FoldCount);
+		++FoldSizes[FoldIdx];
 		}
-	NF = TotalPairCount - NT;
+	}
+
+void SCOP40Bench::SetNXs()
+	{
+	m_NT = 0;
+	m_NF = 0;
+	m_NI = 0;
+	const uint DomCount = GetDomCount();
+	const uint FoldCount = GetFoldCount();
+	vector<vector<uint> > FoldToDoms(FoldCount);
+	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
+		{
+		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
+		asserta(FoldIdx < FoldCount);
+		FoldToDoms[FoldIdx].push_back(DomIdx);
+		}
+
+	uint NonSelfPairCount = DomCount*DomCount - DomCount;
+
+	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
+		{
+		uint FamIdx = m_DomIdxToFamIdx[DomIdx];
+		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
+		const vector<uint> &FoldDoms = FoldToDoms[FoldIdx];
+		bool Found = false;
+		for (uint i = 0; i < SIZE(FoldDoms); ++i)
+			{
+			uint DomIdx2 = FoldDoms[i];
+			if (DomIdx2 == DomIdx)
+				{
+				Found = true;
+				continue;
+				}
+			uint FamIdx2 = m_DomIdxToFamIdx[DomIdx2];
+			uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
+			if (m_Mode == "family")
+				{
+				if (FamIdx2 == FamIdx)
+					++m_NT;
+				}
+			else if (m_Mode == "fold")
+				{
+				if (FoldIdx2 == FoldIdx)
+					++m_NT;
+				}
+			else if (m_Mode == "ignore")
+				{
+				if (FamIdx2 == FamIdx)
+					++m_NT;
+				else
+					++m_NI;
+				}
+			else
+				asserta(false);
+			}
+		asserta(Found);
+		}
+	m_NF = NonSelfPairCount - m_NT - m_NI;
 	}
 
 void SCOP40Bench::ReadBit(const string &FileName)

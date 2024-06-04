@@ -46,7 +46,7 @@ public:
 	vector<vector<uint> > m_FamIdxToDomIdxs;
 	vector<uint> m_FamSizes;
 	vector<uint> m_ScoreOrder;
-	vector<bool> m_TFs;
+	vector<int> m_TFs;
 
 	vector<float> m_ROCStepScores;
 	vector<uint> m_ROCStepNTPs;
@@ -58,6 +58,7 @@ public:
 	vector<uint> m_SmoothNFPs;
 	uint m_NT = UINT_MAX;
 	uint m_NF = UINT_MAX;
+	uint m_NI = UINT_MAX;
 	uint m_nt_epq0_1 = UINT_MAX;
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
@@ -82,6 +83,7 @@ public:
 	uint GetHitCount() const { return SIZE(m_Scores); }
 	uint GetDomCount() const { return SIZE(m_DomIdxToFamIdx); }
 	uint GetFamCount() const { return SIZE(m_Fams); }
+	uint GetFoldCount() const { return SIZE(m_Folds); }
 	//void ReadChains(const string &CalFileName);
 	virtual void OnSetup();
 	void BuildDomFamIndexesFromQueryChainLabels();
@@ -100,10 +102,13 @@ public:
 	void ReadHits_Tsv_DSS();
 	void WriteBit(const string &FileName) const;
 	void ReadBit(const string &FileName);
-	bool IsT(uint DomIdx1, uint DomIdx2) const;
+	int IsT(uint DomIdx1, uint DomIdx2) const;
 	void GetFamSizes(vector<uint> &FamSizes) const;
+	void GetFoldSizes(vector<uint> &FamSizes) const;
 	void SetFamSizes();
+	void SetFoldSizes();
 	uint GetFamSize(uint FamIdx) const;
+	uint GetFoldSize(uint FoldIdx) const;
 	void LoadLabels(const string &FileName);
 	void LoadHitsFromTsv(const string &FileName);
 	void LogFams() const;
@@ -117,7 +122,7 @@ public:
 // ROC analysis
 	void SetStats(float MaxFPR);
 	void SetTFs();
-	void CalcNXs(uint &NT, uint &NF) const;
+	void SetNXs();
 	void SetScoreOrder();
 	bool SmoothROCSteps(const vector<float> &Scores,
 	  const vector<uint> &NTPs, const vector<uint> &NFPs,

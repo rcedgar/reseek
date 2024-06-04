@@ -285,6 +285,7 @@
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
+    <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />
     <ClCompile Include="combomx_data.cpp" />
@@ -318,8 +319,6 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
-    <ClCompile Include="scop40bit.cpp" />
-    <ClCompile Include="scop40sens1stfp.cpp" />
     <ClCompile Include="scoremxs2.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
@@ -389,7 +388,6 @@
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
     <ClInclude Include="scop40bench.h" />
-    <ClInclude Include="scop40bit.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />
     <ClInclude Include="sweeper.h" />

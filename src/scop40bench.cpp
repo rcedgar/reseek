@@ -21,6 +21,51 @@ uint GetMatchColCount(const string &Path);
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
+void GetDomFamFoldFromDomSlashFam(const string &Label,
+ string &Dom, string &Fam, string &Fold)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	if (SIZE(Fields) == 2)
+		{
+		Dom = Fields[0];
+		Fam = Fields[1];
+		Split(Fam, Fields, '.');
+		asserta(SIZE(Fields) == 4);
+		Fold = Fields[0] + '.' + Fields[1] + '.' + Fields[2];
+		}
+	else
+		{
+		Dom = Label;
+		Fam = "-";
+		Fold = "-";
+		}
+	}
+
+void GetDomFamFromDomSlashFam(const string &Label,
+ string &Dom, string &Fam)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	if (SIZE(Fields) == 2)
+		{
+		Dom = Fields[0];
+		Fam = Fields[1];
+		}
+	else
+		{
+		Dom = Label;
+		Fam = "-";
+		}
+	}
+
+void GetDomFromDomSlashFam(const string &Label, string &Dom)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	//asserta(SIZE(Fields) == 2);
+	Dom = Fields[0];
+	}
 
 bool LabelHasScopClass(const string &Label, const string &SC)
 	{
@@ -511,6 +556,107 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	m_nt_firstfp = GetSens1stFP();
 	}
 
+void SCOP40Bench::ReadHits_Tsv_DSS()
+	{
+	const string TsvFN = "d:/int/dss/out/scop40_dss.tsv";
+	FILE *f = OpenStdioFile(TsvFN);
+	uint FileSize = GetStdioFileSize32(f);
+	Progress("Reading hits DSS\n");
+	uint HitCount = 0;
+	string Line;
+	vector<string> Fields;
+	while (ReadLineStdioFile(f, Line))
+		{
+		if (HitCount%500000 == 0)
+			{
+			uint Pos = GetStdioFilePos32(f);
+			Progress("Hits %.2f%%  %s\r", GetPct(Pos, FileSize), IntToStr(HitCount));
+			}
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == 3);
+		string Dom1;
+		string Dom2;
+		GetDomFromDomSlashFam(Fields[1], Dom1);
+		GetDomFromDomSlashFam(Fields[2], Dom2);
+		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
+		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
+		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
+			continue;
+		uint DomIdx1 = iter1->second;
+		uint DomIdx2 = iter2->second;
+		float Score = (float) StrToFloat(Fields[0]);
+		m_DomIdx1s.push_back(DomIdx1);
+		m_DomIdx2s.push_back(DomIdx2);
+		m_Scores.push_back(Score);
+		if (DomIdx1 != DomIdx2)
+			{
+			m_DomIdx1s.push_back(DomIdx2);
+			m_DomIdx2s.push_back(DomIdx1);
+			m_Scores.push_back(Score);
+			}
+		++HitCount;
+		}
+	Progress("%u hits DSS\n", HitCount);
+	}
+
+void SCOP40Bench::ReadHits_Tsv(const string &Algo)
+	{
+	if (Algo == "dss")
+		{
+		ReadHits_Tsv_DSS();
+		return;
+		}
+	const string TsvFN = "c:/data/scop40pdb/alignResults/rawoutput/" + Algo + "aln";
+	uint ScoreFieldNr = 2;
+	if (Algo == "foldseek" || Algo == "blastp")
+		ScoreFieldNr = 10;
+	FILE *f = OpenStdioFile(TsvFN);
+	uint FileSize = GetStdioFileSize32(f);
+	Progress("Reading hits %s\n", Algo.c_str());
+	uint HitCount = 0;
+	string Line;
+	vector<string> Fields;
+	uint BadLineCount = 0;
+	while (ReadLineStdioFile(f, Line))
+		{
+		if (HitCount > 0 && HitCount%500000 == 0)
+			{
+			uint Pos = GetStdioFilePos32(f);
+			Progress("Hits %.2f%%  %s\r", GetPct(Pos, FileSize), IntToStr(HitCount));
+			}
+		for (uint i = 0; i < SIZE(Line); ++i)
+			if (Line[i] == ' ')
+				Line[i] = '\t';
+		Split(Line, Fields, '\t');
+	// 3dblastswaln has blank line
+		uint FieldCount = SIZE(Fields);
+		if (FieldCount <= ScoreFieldNr)
+			{
+			++BadLineCount;
+			continue;
+			}
+		string Label1 = Fields[0];
+		string Label2 = Fields[1];
+		string Dom1, Dom2;
+		GetDomFromDomSlashFam(Label1, Dom1);
+		GetDomFromDomSlashFam(Label2, Dom2);
+
+		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
+		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
+		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
+			continue;
+		uint DomIdx1 = iter1->second;
+		uint DomIdx2 = iter2->second;
+		asserta(FieldCount > ScoreFieldNr);
+		float Score = (float) StrToFloat(Fields[ScoreFieldNr]);
+		m_DomIdx1s.push_back(DomIdx1);
+		m_DomIdx2s.push_back(DomIdx2);
+		m_Scores.push_back(Score);
+		++HitCount;
+		}
+	ProgressLog("%u hits, %u bad lines %s\n", HitCount, BadLineCount, Algo.c_str());
+	}
+
 void SCOP40Bench::WriteOutputFiles()
 	{
 	if (optset_scoredist)
@@ -563,7 +709,7 @@ void SCOP40Bench::WriteOutputFiles()
 				{
 				uint Dom1 = m_DomIdx1s[HitIdx];
 				uint Dom2 = m_DomIdx2s[HitIdx];
-				if (!IsT(Dom1, Dom2))
+				if (IsT(Dom1, Dom2) == 0)
 					FPHitIdxs.push_back(HitIdx);
 				}
 			std::random_device rd;
@@ -638,7 +784,7 @@ void cmd_scop40bench()
 	float AlnsPerThreadPerSec = SB.m_AlnsPerThreadPerSec;
 	uint nt_firstfp = SB.m_nt_firstfp;
 	float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-	float SensEPQ0_1 = float(SB.m_nt_epq1)/SB.m_NT;
+	float SensEPQ0_1 = float(SB.m_nt_epq0_1)/SB.m_NT;
 	float SensEPQ1 = float(SB.m_nt_epq1)/SB.m_NT;
 	float SensEPQ10 = float(SB.m_nt_epq10)/SB.m_NT;
 	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_ComboFilterCount;
@@ -667,4 +813,7 @@ void cmd_scop40bench()
 
 	Log("QP cache hits %u, misses %u\n",
 	  SB.m_QPCacheHits.load(), SB.m_QPCacheMisses.load());
+
+	Log("NT %u NF %u NI %u considered %u ignored %u\n",
+	  SB.m_NT, SB.m_NF, SB.m_NI, SB.m_ConsideredHitCount, SB.m_IgnoredHitCount);
 	}

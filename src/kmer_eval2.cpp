@@ -295,10 +295,10 @@ void cmd_kmer_eval2()
 			const map<uint, vector<uint> > &KmerToCoords2 =
 			  KmerToCoordsVec[ChainIndex2];
 			bool SP = HasDiagSeedPair(KmerToCoords1, KmerToCoords2);
-			bool T = SB.IsT(ChainIndex1, ChainIndex2);
-			if (T)
+			int T = SB.IsT(ChainIndex1, ChainIndex2);
+			if (T == 1)
 				++NT;
-			else
+			else if (T == 0)
 				++NF;
 			if (SP)
 				{

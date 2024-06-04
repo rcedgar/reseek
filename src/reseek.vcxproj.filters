@@ -134,12 +134,6 @@
     <ClCompile Include="cigar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scop40bit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scop40sens1stfp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="scop40bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -287,6 +281,9 @@
     <ClCompile Include="test_para_cal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scop40bit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -395,9 +392,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tma.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="scop40bit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scop40bench.h">
