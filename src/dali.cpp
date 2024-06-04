@@ -169,9 +169,11 @@ double GetDALIScore_Path(const PDBChain &Q, const PDBChain &T,
 	uint QL = Q.GetSeqLength();
 	uint TL = T.GetSeqLength();
 	if (PosQ > QL)
-		Die("GetDALIScore_Path() PosQ=%u QL=%u", PosQ, QL);
+		Die("GetDALIScore_Path() PosQ=%u QL=%u Q>%s T>%s",
+		  PosQ, QL, Q.m_Label.c_str(), T.m_Label.c_str());
 	if (PosT > TL)
-		Die("GetDALIScore_Path() PosT=%u TL=%u", PosT, TL);
+		Die("GetDALIScore_Path() PosT=%u TL=%u Q>%s T>%s",
+		  PosQ, QL, Q.m_Label.c_str(), T.m_Label.c_str());
 	return GetDALIScore(Q, T, PosQs, PosTs);
 	}
 

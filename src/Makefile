@@ -134,6 +134,7 @@ OBJS = \
   $(OBJDIR)/swgaplessprof.o \
   $(OBJDIR)/swgaplessprofb.o \
   $(OBJDIR)/test_para.o \
+  $(OBJDIR)/test_para_cal.o \
   $(OBJDIR)/test_para_path.o \
   $(OBJDIR)/test_xdrop.o \
   $(OBJDIR)/timing.o \

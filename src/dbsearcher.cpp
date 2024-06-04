@@ -177,14 +177,14 @@ void DBSearcher::Thread(uint ThreadIndex)
 			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
 			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
-			DA.SetQuery(Chain1, Profile1, &KmerBits1, &ComboLetters1);
+			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1);
 			}
 
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
 		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
-		DA.SetTarget(Chain2, Profile2, &KmerBits2, &ComboLetters2);
+		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2);
 
 		if (m_Params->m_UseComboPath)
 			{

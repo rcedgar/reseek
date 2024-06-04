@@ -198,8 +198,8 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.SetQuery(Chain1, Profile1, 0, 0);
-	DA.SetTarget(Chain2, Profile2, 0, 0);
+	DA.SetQuery(Chain1, &Profile1, 0, 0);
+	DA.SetTarget(Chain2, &Profile2, 0, 0);
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
@@ -505,7 +505,9 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	ROCStepsToTsv(opt_roc, m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
 	  m_SmoothTPRs, m_SmoothFPRs);
 
+	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
+	m_nt_epq10 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 10);
 	m_nt_firstfp = GetSens1stFP();
 	}
 
@@ -595,7 +597,15 @@ void SCOP40Bench::WriteOutputFiles()
 
 void cmd_scop40bench()
 	{
-	const string &CalFN = g_Arg1;
+	string CalFN;
+	if (g_Arg1 == ".")
+#ifdef _MSC_VER
+		CalFN = "c:/src/reseek_scop40/reseek_db/scop40_family.cal";
+#else
+		CalFN = "/c/src/reseek_scop40/reseek_db/scop40_family.cal";
+#endif
+	else
+		CalFN = g_Arg1;
 	SCOP40Bench SB;
 	asserta(optset_benchmode);
 	DSSParams Params;
@@ -627,9 +637,10 @@ void cmd_scop40bench()
 	uint Secs = SB.m_Secs;
 	float AlnsPerThreadPerSec = SB.m_AlnsPerThreadPerSec;
 	uint nt_firstfp = SB.m_nt_firstfp;
-	uint nt_epq1 = SB.m_nt_epq1;
 	float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-	float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+	float SensEPQ0_1 = float(SB.m_nt_epq1)/SB.m_NT;
+	float SensEPQ1 = float(SB.m_nt_epq1)/SB.m_NT;
+	float SensEPQ10 = float(SB.m_nt_epq10)/SB.m_NT;
 	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_ComboFilterCount;
 	double FilterPct = GetPct(TotalFilterCount, AlnCount);
 	double UFilterPct = GetPct(DSSAligner::m_UFilterCount, AlnCount);
@@ -639,62 +650,21 @@ void cmd_scop40bench()
 	double FoundFract1 = double(SB.m_DomsWithHomologAndTP1Count)/
 	  SB.m_DomsWithHomologCount;
 
-	ProgressLog("SEPQ1=%.4f", SensEPQ1);
+	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
+	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
+	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
 	ProgressLog(" FF1=%.4f", FoundFract1);
-	if (DSSAligner::m_UFilterCount > 0)
-		ProgressLog(" UFil=%.1f", UFilterPct);
-	if (DSSAligner::m_ComboFilterCount > 0)
-		ProgressLog(" CFil=%.1f", ComboFilterPct);
-	if (DSSAligner::m_ParasailSaturateCount > 0)
-		ProgressLog(" Sat=%u", DSSAligner::m_ParasailSaturateCount);
-	ProgressLog(" mode=%s", SB.m_Mode.c_str());
 	ProgressLog(" secs=%u", Secs);
-	ProgressLog("\n");
+	ProgressLog(" mode=%s\n", SB.m_Mode.c_str());
 
-	{
-	uint Hits = SB.m_QPCacheHits;
-	uint Misses = SB.m_QPCacheMisses;
-	ProgressLog("QP cache hits %u, misses %u\n", Hits, Misses);
-	}
+	if (DSSAligner::m_UFilterCount > 0)
+		Log("UFil=%.1f\n", UFilterPct);
+	if (DSSAligner::m_ComboFilterCount > 0)
+		Log(" CFil=%.1f\n", ComboFilterPct);
+	if (DSSAligner::m_ParasailSaturateCount > 0)
+		Log(" Sat=%u\n", DSSAligner::m_ParasailSaturateCount);
 
-	if (optset_report)
-		{
-		FILE *f = CreateStdioFile(opt_report);
-		fprintf(f, "SensEPQ1");
-		fprintf(f, "\tSensFirstFP");
-		fprintf(f, "\tFF");
-		fprintf(f, "\tFF1");
-		fprintf(f, "\tSecs");
-		fprintf(f, "\tAlnsPerThreadPerSec");
-		fprintf(f, "\tHitCount");
-		fprintf(f, "\tAlnCount");
-		fprintf(f, "\tnt_epq1");
-		fprintf(f, "\tnt_firstfp");
-		fprintf(f, "\tFilterPct");
-		fprintf(f, "\tUFilterPct");
-		fprintf(f, "\tComboFilterPct");
-		fprintf(f, "\tGitVer");
-		fprintf(f, "\tCmdLine");
-		fprintf(f, "\n");
-
-		fprintf(f, "%.4f", SensEPQ1);
-		fprintf(f, "\t%.4f", SensFirstFP);
-		fprintf(f, "\t%.4f", FoundFract1);
-		fprintf(f, "\t%u", Secs);
-		fprintf(f, "\t%.1f", AlnsPerThreadPerSec);
-		fprintf(f, "\t%u", HitCount);
-		fprintf(f, "\t%u", AlnCount);
-		fprintf(f, "\t%u", nt_epq1);
-		fprintf(f, "\t%u", nt_firstfp);
-		fprintf(f, "\t%.1f", FilterPct);
-		fprintf(f, "\t%.1f", UFilterPct);
-		fprintf(f, "\t%.1f", ComboFilterPct);
-		fprintf(f, "\t%s", g_GitVer);
-		const uint n = SIZE(g_Argv);
-		for (uint i = 0; i < n; ++i)
-			fprintf(f, "%c%s", i == 0 ? '\t' : ' ', g_Argv[i].c_str());
-		fprintf(f, "\n");
-		CloseStdioFile(f);
-		}
+	Log("QP cache hits %u, misses %u\n",
+	  SB.m_QPCacheHits.load(), SB.m_QPCacheMisses.load());
 	}

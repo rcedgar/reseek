@@ -109,6 +109,59 @@ float DSSAligner::GetEvaluePath(
 	return E; 
 	}
 
+int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
+  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
+  const string &Path) const
+	{
+	uint Sum = 0;
+	uint PosA = LoA;
+	uint PosB = LoB;
+	const int Open = -m_Params->m_ParaComboGapOpen;
+	const int Ext = -m_Params->m_ParaComboGapExt;
+	const float FwdMatchScore = m_Params->m_FwdMatchScore;
+	const uint ColCount = SIZE(Path);
+	extern int8_t IntScoreMx_Combo[36][36];
+ 
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		switch (c)
+			{
+		case 'M':
+			{
+			asserta(PosA < SIZE(ComboLettersA));
+			asserta(PosB < SIZE(ComboLettersB));
+			byte a = ComboLettersA[PosA];
+			byte b = ComboLettersB[PosB];
+			Sum += IntScoreMx_Combo[a][b];
+			++PosA;
+			++PosB;
+			break;
+			}
+
+		case 'D':
+			if (Col != 0 && Path[Col-1] == 'D')
+				Sum += Ext;
+			else
+				Sum += Open;
+			++PosA;
+			break;
+
+		case 'I':
+			if (Col != 0 && Path[Col-1] == 'I')
+				Sum += Ext;
+			else
+				Sum += Open;
+			++PosB;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	return Sum;
+	}
+
 // GetDPScorePath calculates AlnScore which is optimized by SWFast.
 // The test statistic is 
 //	TS = AlnScore + ColCount*g_FwdMatchScore + g_DALIw*FwdDaliScore;
@@ -510,8 +563,8 @@ void DSSAligner::Align_ComboFilter(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, ProfileA, 0, &ComboLettersA);
-	SetTarget(ChainB, ProfileB, 0, &ComboLettersB);
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
 
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;
@@ -534,12 +587,12 @@ void DSSAligner::Align_ComboFilter(
 
 void DSSAligner::SetQuery(
 	const PDBChain &Chain,
-	const vector<vector<byte> > &Profile,
+	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
 	const vector<byte> *ptrComboLetters)
 	{
 	m_ChainA = &Chain;
-	m_ProfileA = &Profile;
+	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
 	if (m_Params->m_UsePara)
@@ -550,12 +603,12 @@ void DSSAligner::SetQuery(
 
 void DSSAligner::SetTarget(
 	const PDBChain &Chain,
-	const vector<vector<byte> > &Profile,
+	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
 	const vector<byte> *ptrComboLetters)
 	{
 	m_ChainB = &Chain;
-	m_ProfileB = &Profile;
+	m_ProfileB = ptrProfile;
 	m_ComboKmerBitsB = ptrComboKmerBits;
 	m_ComboLettersB = ptrComboLetters;
 	}

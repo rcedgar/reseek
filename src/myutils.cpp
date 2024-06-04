@@ -29,7 +29,10 @@
 #include <dirent.h>
 #endif
 
+
 #include "myutils.h"
+
+mutex g_DieLock;
 
 static void CompilerInfo();
 
@@ -660,10 +663,6 @@ void Log(const char *Format, ...)
 
 void Die_(const char *Format, ...)
 	{
-	static bool InDie = false;
-	if (InDie)
-		exit(1);
-	InDie = true;
 	string Msg;
 
 	if (g_fLog != 0)
@@ -699,7 +698,7 @@ void Die_(const char *Format, ...)
 		_CrtSetDbgFlag(0);
 	__debugbreak();
 #endif
-
+	g_DieLock.unlock();
 	exit(1);
 	}
 

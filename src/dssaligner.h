@@ -61,13 +61,13 @@ public:
 public:
 	void SetQuery(
 	  const PDBChain &Chain,
-	  const vector<vector<byte> > &Profile,
+	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
 	  const vector<byte> *ptrComboLetters);
 
 	void SetTarget(
 	  const PDBChain &Chain,
-	  const vector<vector<byte> > &Profile,
+	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
 	  const vector<byte> *ptrComboLetters);
 
@@ -90,7 +90,10 @@ public:
 	float AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path);
 	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB,
+	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
+	  const string &Path) const;
+	int GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
+	  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
 	  const string &Path) const;
 	float GetEvaluePath(  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,

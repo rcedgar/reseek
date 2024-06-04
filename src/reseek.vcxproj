@@ -329,6 +329,7 @@
     <ClCompile Include="swgaplessprof.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="test_para.cpp" />
+    <ClCompile Include="test_para_cal.cpp" />
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
     <ClCompile Include="timing.cpp" />

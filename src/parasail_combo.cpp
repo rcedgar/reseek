@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "parasail.h"
 #include "dssaligner.h"
+#include "cigar.h"
 #include "timing.h"
 
 /***
@@ -104,9 +105,7 @@ float DSSAligner::AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 		  result, SeqA, LA, SeqB, LB, &parasail_combo_matrix, 1, 0);
 
 		char *cig_str = parasail_cigar_decode(cig);
-
-		void ExpandCigar(const string &s, string &Path);
-		ExpandCigar(cig_str, Path);
+		ExpandParaCigar_reverseDI(cig_str, Path);
 
 		LoA = (uint) cig->beg_query;
 		LoB = (uint) cig->beg_ref;

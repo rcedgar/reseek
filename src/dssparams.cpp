@@ -50,7 +50,6 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 
 		if (opt_veryfast)
 			{
-		// SEPQ1=0.0369 S1FP=0.0369 FF=0.4763 FF1=0.4763 UFil=0.0 CFil=89.1 secs=9 [6547e60]
 			SetNamedParams("defaults");
 			m_Desc = "veryfast";
 			m_Omega = 7;
@@ -59,7 +58,6 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			}
 		else if (opt_fast)
 			{
-		// SEPQ1=0.3708 S1FP=0.4257 FF=0.8672 FF1=0.8499 UFil=39.5 CFil=99.3 secs=37 [6547e60]
 			SetNamedParams("defaults");
 			m_Desc = "fast";
 			m_Omega = 20;
@@ -68,7 +66,6 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			}
 		else if (opt_sensitive)
 			{
-		// SEPQ1=0.3928 S1FP=0.4991 FF=0.9411 FF1=0.9127 UFil=0.0 CFil=96.1 secs=61 [6547e60]
 			SetNamedParams("defaults");
 			m_Desc = "sensitive";
 			m_Omega = 12;
@@ -77,7 +74,6 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			}
 		else if (opt_verysensitive)
 			{
-		// SEPQ1=0.3976 S1FP=0.5549 FF=1.0000 FF1=0.9504 UFil=0.0 CFil=0.0 secs=493 [6547e60]
 			SetNamedParams("defaults");
 			m_Desc = "verysensitive";
 			m_Omega = 0;

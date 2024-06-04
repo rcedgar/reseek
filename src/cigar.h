@@ -9,3 +9,5 @@ const char *LocalCIGARToPath(const string &CIGAR, string &Path,
 const char *CIGARToPath(const string &CIGAR, string &Path);
 void CIGARToLs(const string &CIGAR, uint &QL, uint &TL);
 void PathToLs(const string &Path, uint &QL, uint &TL);
+void ExpandParaCigar(const string &s, string &Path);
+void ExpandParaCigar_reverseDI(const string &s, string &Path);

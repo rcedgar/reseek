@@ -284,6 +284,9 @@
     <ClCompile Include="test_para_path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_para_cal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

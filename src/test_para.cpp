@@ -5,24 +5,6 @@
 extern int8_t IntScoreMx_Combo[36][36];
 extern parasail_matrix_t parasail_combo_matrix;
 
-void ExpandCigar(const string &s, string &Path)
-	{
-	string Ops;
-	vector<uint> ns;
-	CIGARGetOps(s, Ops, ns);
-	const uint N = SIZE(Ops);
-	asserta(SIZE(ns) == N);
-	for (uint i = 0; i < N; ++i)
-		{
-		char Op = Ops[i];
-		if (Op == 'X' || Op == '=')
-			Op = 'M';
-		asserta(Op == 'M' || Op == 'D' || Op == 'I');
-		for (uint j = 0; j < ns[i]; ++j)
-			Path += Op;
-		}
-	}
-
 char GetComboChar(byte Letter)
 	{
 	if (Letter < 26)
@@ -136,7 +118,7 @@ static void Test1()
 	  &parasail_combo_matrix, 1, 0);
 	char *cig_str = parasail_cigar_decode(cig);
 	string Path;
-	ExpandCigar(cig_str, Path);
+	ExpandParaCigar(cig_str, Path);
 
 	uint Lo1 = (uint) cig->beg_query;
 	uint Lo2 = (uint) cig->beg_ref;
@@ -215,7 +197,7 @@ int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
 	  result, ptrQ, QL, ptrT, TL, &parasail_combo_matrix, 1, 0);
 
 	char *cig_str = parasail_cigar_decode(cig);
-	ExpandCigar(cig_str, Path);
+	ExpandParaCigar(cig_str, Path);
 
 	LoQ = (uint) cig->beg_query;
 	LoT = (uint) cig->beg_ref;
@@ -275,7 +257,7 @@ static void Test2(bool Trace)
 	  &parasail_combo_matrix, 1, 0);
 	char *cig_str = parasail_cigar_decode(cig);
 	string Path;
-	ExpandCigar(cig_str, Path);
+	ExpandParaCigar(cig_str, Path);
 
 	uint Lo1 = (uint) cig->beg_query;
 	uint Lo2 = (uint) cig->beg_ref;

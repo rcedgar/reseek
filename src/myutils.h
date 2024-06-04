@@ -23,6 +23,7 @@
 #include <climits>
 #include <float.h>
 #include <algorithm>
+#include <mutex>
 
 #ifndef _MSC_VER
 #include <inttypes.h>
@@ -113,6 +114,8 @@ static inline const char *plurals(unsigned n) { return n == 1 ? "" : "s"; }
 
 extern const char *g_GitVer;
 extern vector<string> g_Argv;
+extern string g_Arg1;
+extern mutex g_DieLock;
 
 const char *GetPlatform();
 unsigned GetElapsedSecs();
@@ -261,7 +264,7 @@ static inline PTR_PRINTFLIKE_FN WarningPtr(const char *FileName, unsigned LineNr
 	return Warning_;
 	}
 
-#define Die		(*DiePtr(__FILE__, __LINE__))
+#define Die		(g_DieLock.lock(), *DiePtr(__FILE__, __LINE__))
 #define Warning	(*WarningPtr(__FILE__, __LINE__))
 
 typedef const char *(*FN_PROGRESS_CALLBACK)();
@@ -404,7 +407,5 @@ void Shuffle(vector<unsigned> &v);
 #else
 #define brk(x)		(0)
 #endif
-
-extern string g_Arg1;
 
 #endif	// myutils_h

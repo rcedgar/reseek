@@ -1,6 +1,31 @@
 #include "myutils.h"
 #include "cigar.h"
 
+/***
+https://samtools.github.io/hts-specs/SAMv1.pdf
+ 
+6. CIGAR: CIGAR string. The CIGAR operations are given in the following table (set ‘*’ if unavailable):
+
+Op BAM	Description Consumes query Consumes reference
+M	0	alignment match (can be a sequence match or mismatch) yes yes
+I	1	insertion to the reference yes no
+D	2	deletion from the reference no yes
+N	3	skipped region from the reference no yes
+S	4	soft clipping (clipped sequences present in SEQ) yes no
+H	5	hard clipping (clipped sequences NOT present in SEQ) no no
+P	6	padding (silent deletion from padded reference) no no
+=	7	sequence match yes yes
+X	8	sequence mismatch yes yes
+
+(*) "Consumes query" and "consumes reference" indicate whether the CIGAR operation causes the
+	  alignment to step along the query sequence and the reference sequence respectively.
+(*) H can only be present as the first and/or last operation.
+(*) S may only have H operations between them and the ends of the CIGAR string.
+(*) For mRNA-to-genome alignment, an N operation represents an intron. For other types of alignments,
+	  the interpretation of N is not defined.
+(*) Sum of lengths of the M/I/S/=/X operations shall equal the length of SEQ.
+***/
+
 // Query ("read") gets Snnn for soft-clip at start
 // In SAM, reference position is tabbed field 4, here
 //   T is used for number of clipped letters at start
@@ -350,4 +375,44 @@ void OpsToCIGAR(const string &Ops, const vector<uint> &Lengths,
 	asserta(SIZE(Lengths) == N);
 	for (uint i = 0; i < N; ++i)
 		Psa(CIGAR, "%u%c", Lengths[i], Ops[i]);
+	}
+
+void ExpandParaCigar(const string &s, string &Path)
+	{
+	string Ops;
+	vector<uint> ns;
+	CIGARGetOps(s, Ops, ns);
+	const uint N = SIZE(Ops);
+	asserta(SIZE(ns) == N);
+	for (uint i = 0; i < N; ++i)
+		{
+		char Op = Ops[i];
+		if (Op == 'X' || Op == '=')
+			Op = 'M';
+		asserta(Op == 'M' || Op == 'D' || Op == 'I');
+		for (uint j = 0; j < ns[i]; ++j)
+			Path += Op;
+		}
+	}
+
+void ExpandParaCigar_reverseDI(const string &s, string &Path)
+	{
+	string Ops;
+	vector<uint> ns;
+	CIGARGetOps(s, Ops, ns);
+	const uint N = SIZE(Ops);
+	asserta(SIZE(ns) == N);
+	for (uint i = 0; i < N; ++i)
+		{
+		char Op = Ops[i];
+		if (Op == 'X' || Op == '=')
+			Op = 'M';
+		if (Op == 'I')
+			Op = 'D';
+		else if (Op == 'D')
+			Op = 'I';
+		asserta(Op == 'M' || Op == 'D' || Op == 'I');
+		for (uint j = 0; j < ns[i]; ++j)
+			Path += Op;
+		}
 	}
