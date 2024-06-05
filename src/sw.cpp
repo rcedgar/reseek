@@ -82,6 +82,8 @@ float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
 #if TRACE && !DOTONLY
 	SMx.LogMe();
 #endif
+	asserta(Open <= 0);
+	asserta(Ext <= 0);
 
 	Mem.Alloc(LA+32, LB+32);
 	const float * const *SMxData = SMx.GetData();

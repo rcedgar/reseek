@@ -43,6 +43,7 @@ public:
 
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
+	float m_AlnFwdScore = FLT_MAX;
 
 //public:
 //	static bool m_UsePara;
@@ -77,6 +78,10 @@ public:
 	void AlignComboOnly();
 	void AlignComboPath();
 	void AlignQueryTarget();
+	void Align_Test(
+	  const PDBChain &ChainA, const PDBChain &ChainB,
+	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void Align_ComboFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
@@ -92,6 +97,13 @@ public:
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
+	//float GetDPScorePathVecs(
+	//  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
+	//  uint LoA, uint LoB, const string &Path,
+	//  vector<uint> &PosAs, vector<uint> &PosBs, vector<float> &ColScores) const;
+	float GetComboDPScorePath(const vector<byte> &LettersA,
+	  const vector<byte> &LettersB, uint LoA, uint LoB,
+	  float GapOpen, float GapExt, const string &Path) const;
 	int GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
 	  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
 	  const string &Path) const;
@@ -99,10 +111,11 @@ public:
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
 	  uint LoA, uint LoB, const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB) const;
+	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
 	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
+	void CalcEvalue();
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();
 	void SetComboQP();
@@ -116,5 +129,7 @@ public:
 	void ToTsvBA(FILE *f, float MaxEvalue);
 	void ToAln(FILE *f, float MaxEvalue);
 	void ToAlnBA(FILE *f, float MaxEvalue);
+
+public:
 	static void Stats();
 	};

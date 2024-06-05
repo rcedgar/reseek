@@ -1,7 +1,12 @@
 #include "myutils.h"
 #include "dssaligner.h"
+#include "xdpmem.h"
 #include "trainer.h"
 #include <set>
+
+#define	TEST_XDrop 1
+#define	TEST_GetDPScorePath 0
+#define	TEST_GetComboDPScorePath 0
 
 int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
   int GapOpen, int GapExt, uint &LoQ, uint &LoT, string &Path);
@@ -65,9 +70,6 @@ static void GetPosVecs(uint LoQ, uint LoR, const string &Path,
 		}
 	}
 
-static vector<uint> g_Counts(11);
-static uint g_Count;
-
 static void OnPair(const Trainer &Tr, uint ChainIdxQ, uint ChainIdxR,
   const vector<uint> &TrPosQs, const vector<uint> &TrPosRs)
 	{
@@ -82,33 +84,106 @@ static void OnPair(const Trainer &Tr, uint ChainIdxQ, uint ChainIdxR,
 	vector<byte> ComboLettersQ;
 	vector<byte> ComboLettersR;
 
+	vector<vector<byte> > ProfileQ;
+	vector<vector<byte> > ProfileR;
+
 	D.Init(ChainQ);
 	D.GetComboLetters(ComboLettersQ);
+	D.GetProfile(ProfileQ);
 
 	D.Init(ChainR);
 	D.GetComboLetters(ComboLettersR);
+	D.GetProfile(ProfileR);
 
-	int GapOpen = D.m_Params->m_ParaComboGapOpen;
-	int GapExt = D.m_Params->m_ParaComboGapExt;
+	DA.Align_Test(ChainQ, ChainR, ComboLettersQ, ComboLettersR,
+	  ProfileQ, ProfileR);
+	}
 
-	string Path;
-	uint LoQ, LoR;
-#if 0
-	int Score = ParasailAlign(
-	  ComboLettersQ, ComboLettersR, GapOpen, GapExt, LoQ, LoR, Path);
-	if (Score < 0)
+static uint g_LA;
+static uint g_LB;
+static const vector<vector<byte> > *g_ProfileA;
+static const vector<vector<byte> > *g_ProfileB;
+static DSSAligner *g_DA;
+static float SubFn(void *UserData, uint PosA, uint PosB)
+	{
+	float Score = g_DA->GetScorePosPair(*g_ProfileA, *g_ProfileB, PosA, PosB);
+	return Score;
+	}
+
+void DSSAligner::Align_Test(
+  const PDBChain &ChainA, const PDBChain &ChainB,
+  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
+	{
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
+
+	m_EvalueAB = FLT_MAX;
+	m_EvalueBA = FLT_MAX;
+	m_PathAB.clear();
+
+	bool ComboFilterOk = ComboFilter();
+	if (!ComboFilterOk)
 		return;
-#else
-	float Score = DA.AlignCombo(ComboLettersQ, ComboLettersR, LoQ, LoR, Path);
-	vector<uint> PosQs;
-	vector<uint> PosRs;
-	GetPosVecs(LoQ, LoR, Path, PosQs, PosRs);
+
+#if TEST_GetComboDPScorePath
+	SetSMx_Combo();
+	uint LA = SIZE(ComboLettersA);
+	uint LB = SIZE(ComboLettersB);
+	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
+	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+	uint LoA, LoB, LenA, LenB;
+	string Path;
+	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
+	  LoA, LoB, LenA, LenB, Path);
+	float FwdScore2 = GetComboDPScorePath(ComboLettersA, ComboLettersB,
+	  LoA, LoB, GapOpen, GapExt, Path);
+	asserta(feq(FwdScore, FwdScore2));
 #endif
-	++g_Count;
-	double Cm = CmpVecs(PosQs, PosRs, TrPosQs, TrPosRs);
-	uint Bin = uint(Cm*10);
-	asserta(Bin >= 0 && Bin <= 10);
-	g_Counts[Bin] += 1;
+
+#if TEST_GetDPScorePath
+	m_PathAB.clear();
+	m_LoA = UINT_MAX;
+	m_LoB = UINT_MAX;
+
+	SetSMx_NoRev();
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	uint LenA, LenB;
+	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, LenA, LenB, m_PathAB);
+	float FwdScore2 = GetDPScorePath(*m_ProfileA, *m_ProfileB,
+	  m_LoA, m_LoB, m_PathAB);
+	Log("%.1f %.1f\n", FwdScore, FwdScore2);
+#endif
+
+#if TEST_XDrop
+	SetSMx_Combo();
+	uint LA = SIZE(ComboLettersA);
+	uint LB = SIZE(ComboLettersB);
+	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
+	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+	uint LoA, LoB, LenA, LenB;
+	string Path;
+	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
+	  LoA, LoB, LenA, LenB, Path);
+	const float X = 8;
+
+	string FwdPathX;
+	string BwdPathX;
+	g_DA = this;
+	g_ProfileA = m_ProfileA;
+	g_ProfileB = m_ProfileB;
+	float FwdScoreX = XDropFwd(m_Mem, X, GapOpen, GapExt, SubFn, 0, LoA, LA, LoB, LB, FwdPathX);
+	float FwdScoreX2 = GetDPScorePath(*m_ProfileA, *m_ProfileB, LoA, LoB, FwdPathX);
+
+	float BwdScoreX = XDropBwd(m_Mem, X, GapOpen, GapExt, SubFn, 0, LoA, LA, LoB, LB, BwdPathX);
+	float BwdScoreX2 = GetDPScorePath(*m_ProfileA, *m_ProfileB, LoA, LoB, BwdPathX);
+	Log("%.1f %.1f %.1f %.1f %.1f\n", FwdScore, FwdScoreX, FwdScoreX2, BwdScoreX, BwdScoreX2);
+#endif
 	}
 
 void cmd_test_para_path()
@@ -121,13 +196,4 @@ void cmd_test_para_path()
 	Trainer Tr;
 	Tr.Init(g_Arg1, opt_train_cal);
 	Tr.Scan(OnPair, 0);
-
-	double SumPct = 0;
-	for (int Bin = 10; Bin >= 0; --Bin)
-		{
-		uint n = g_Counts[Bin];
-		double Pct = GetPct(n, g_Count);
-		SumPct += Pct;
-		ProgressLog("%.4f  %5.1f%%  %7u\n", Bin/10.0, SumPct, n);
-		}
 	}

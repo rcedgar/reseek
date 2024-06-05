@@ -93,7 +93,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	if (optset_maxaccepts) m_MaxAccepts = opt_maxaccepts;
 	if (optset_maxrejects) m_MaxRejects = opt_maxrejects;
 	if (optset_usort) m_USort = true;
-	if (optset_usecombopath) m_UseComboPath = true;
+	if (optset_usecombopath) { m_UseComboPath = true; Warning("-usecombopath bad idea"); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
@@ -302,12 +302,12 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
-float DSSParams::ScoreToEvalue(float Score, uint QL) const
+float DSSParams::TestStatisticToEvalue(float TestStatistic, uint QL) const
 	{
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 	const float Slope = -6.6f; // -7.3f;
 	const float Intercept = 6.1f;
-	float x = Score/(QL + m_Lambda);
+	float x = TestStatistic/(QL + m_Lambda);
 	float logNF = Slope*x + Intercept;
 	float NF = powf(10, logNF);
 	float Evalue = NF*m_DBSize/1e8f;

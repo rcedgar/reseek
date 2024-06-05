@@ -105,7 +105,7 @@ float DSSAligner::GetEvaluePath(
 	uint M = GetMatchColCount(Path);
 	float TestStat = ScoreDiff + M*m_Params->m_FwdMatchScore +
 	  m_Params->m_DALIw*AlnDALIScore;
-	float E = m_Params->ScoreToEvalue(TestStat, LA);
+	float E = m_Params->TestStatisticToEvalue(TestStat, LA);
 	return E; 
 	}
 
@@ -162,6 +162,123 @@ int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
 	return Sum;
 	}
 
+float DSSAligner::GetComboDPScorePath(const vector<byte> &LettersA,
+	const vector<byte> &LettersB, uint LoA, uint LoB,
+	float GapOpen, float GapExt, const string &Path) const
+	{
+	asserta(GapOpen <= 0);
+	asserta(GapExt <= 0);
+	float Sum = 0;
+	uint PosA = LoA;
+	uint PosB = LoB;
+	const uint ColCount = SIZE(Path);
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		switch (c)
+			{
+		case 'M':
+			{
+			asserta(PosA < SIZE(LettersA));
+			asserta(PosB < SIZE(LettersB));
+			uint LetterA = LettersA[PosA];
+			uint LetterB = LettersB[PosB];
+			asserta(LetterA < 36);
+			asserta(LetterB < 36);
+			extern float ScoreMx_Combo[36][36];
+			Sum += ScoreMx_Combo[LetterA][LetterB];
+			++PosA;
+			++PosB;
+			break;
+			}
+
+		case 'D':
+			if (Col != 0 && Path[Col-1] == 'D')
+				Sum += GapExt;
+			else
+				Sum += GapOpen;
+			++PosA;
+			break;
+
+		case 'I':
+			if (Col != 0 && Path[Col-1] == 'I')
+				Sum += GapExt;
+			else
+				Sum += GapOpen;
+			++PosB;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	return Sum;
+	}
+
+//float DSSAligner::GetDPScorePathVecs(
+//	const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
+//	uint LoA, uint LoB, const string &Path,
+//	vector<uint> &PosAs, vector<uint> &PosBs, vector<float> &ColScores) const
+//	{
+//	const uint ColCount = SIZE(Path);
+//	PosAs.resize(ColCount);
+//	PosBs.resize(ColCount);
+//	ColScores.resize(ColCount);
+//	float Sum = 0;
+//	uint PosA = LoA;
+//	uint PosB = LoB;
+//	const float Open = m_Params->m_GapOpen;
+//	const float Ext = m_Params->m_GapExt;
+//	for (uint Col = 0; Col < ColCount; ++Col)
+//		{
+//		char c = Path[Col];
+//		switch (c)
+//			{
+//		case 'M':
+//			{
+//			float ColScore = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
+//			Sum += ColScore;
+//			ColScores[Col] = ColScore;
+//			PosAs[Col] = PosA;
+//			PosBs[Col] = PosB;
+//			++PosA;
+//			++PosB;
+//			break;
+//			}
+//
+//		case 'D':
+//			{
+//			ColScores[Col] = Open/2;
+//			PosAs[Col] = PosA;
+//			PosBs[Col] = UINT_MAX;
+//			if (Col != 0 && Path[Col-1] == 'D')
+//				Sum += Ext;
+//			else
+//				Sum += Open;
+//			++PosA;
+//			break;
+//			}
+//
+//		case 'I':
+//			{
+//			ColScores[Col] = Open/2;
+//			PosAs[Col] = UINT_MAX;
+//			PosBs[Col] = PosB;
+//			if (Col != 0 && Path[Col-1] == 'I')
+//				Sum += Ext;
+//			else
+//				Sum += Open;
+//			++PosB;
+//			break;
+//			}
+//
+//		default:
+//			asserta(false);
+//			}
+//		}
+//	return Sum;
+//	}
+
 // GetDPScorePath calculates AlnScore which is optimized by SWFast.
 // The test statistic is 
 //	TS = AlnScore + ColCount*g_FwdMatchScore + g_DALIw*FwdDaliScore;
@@ -174,7 +291,6 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	uint PosB = LoB;
 	const float Open = m_Params->m_GapOpen;
 	const float Ext = m_Params->m_GapExt;
-	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	const uint ColCount = SIZE(Path);
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
@@ -213,7 +329,6 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const
 	{
-	//Die("TODO -- seems buggy?");
 	const DSSParams &Params = *m_Params;
 	const uint FeatureCount = Params.GetFeatureCount();
 	asserta(SIZE(ProfileA) == FeatureCount);
@@ -671,40 +786,11 @@ void DSSAligner::AlignQueryTarget()
 	Align_NoAccel();
 	}
 
-void DSSAligner::Align_NoAccel()
+void DSSAligner::CalcEvalue()
 	{
-	m_EvalueAB = FLT_MAX;
-	m_EvalueBA = FLT_MAX;
-	m_PathAB.clear();
-	m_LoA = UINT_MAX;
-	m_LoB = UINT_MAX;
-
-	asserta(m_Params != 0);
-	const DSSParams &Params = *m_Params;
-
-	XDPMem &Mem = m_Mem;
-
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-	const string &A = m_ChainA->m_Seq;
-	const string &B = m_ChainB->m_Seq;
-	asserta(SIZE(A) == LA);
-	asserta(SIZE(B) == LB);
-
-	SetSMx_NoRev();
-
-	Mx<float> &SMx = m_SMx;
-	Mx<float> &RevSMx = m_RevSMx;
-
-	uint Leni, Lenj;
-	StartTimer(SWFwd);
-	float AlnFwdScore = SWFast(Mem, SMx, LA, LB, Params.m_GapOpen, Params.m_GapExt,
-		m_LoA, m_LoB, Leni, Lenj, m_PathAB);
-	EndTimer(SWFwd);
-
 // MinFwdScore small speedup by avoiding call to GetDALIScore_Path()
 	float AlnDALIScore = 0;
-	if (AlnFwdScore >= m_Params->m_MinFwdScore)
+	if (m_AlnFwdScore >= m_Params->m_MinFwdScore)
 		{
 		StartTimer(DALIScore);
 		if (m_Params->m_DALIw != 0)
@@ -712,33 +798,45 @@ void DSSAligner::Align_NoAccel()
 			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_PathAB, m_LoA, m_LoB);
 		EndTimer(DALIScore);
 		}
+
+	const float DALIw = m_Params->m_DALIw;
+	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	uint M = GetMatchColCount(m_PathAB);
-	float AlnScore = AlnFwdScore + M*Params.m_FwdMatchScore +
-	  Params.m_DALIw*AlnDALIScore;
-	m_EvalueAB = m_Params->ScoreToEvalue(AlnScore, LA);
-	m_EvalueBA = m_Params->ScoreToEvalue(AlnScore, LB);
+	float TestStatistic = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+	m_EvalueAB = m_Params->TestStatisticToEvalue(TestStatistic, LA);
+	m_EvalueBA = m_Params->TestStatisticToEvalue(TestStatistic, LB);
 	}
 
-void DSSAligner::AlignComboPath()
+void DSSAligner::Align_NoAccel()
 	{
-	m_EvalueAB = FLT_MAX;
-	m_EvalueBA = FLT_MAX;
 	m_PathAB.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
 
-	asserta(m_Params != 0);
-	const DSSParams &Params = *m_Params;
-
-	XDPMem &Mem = m_Mem;
+	SetSMx_NoRev();
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
-	const string &A = m_ChainA->m_Seq;
-	const string &B = m_ChainB->m_Seq;
-	asserta(SIZE(A) == LA);
-	asserta(SIZE(B) == LB);
 
+	StartTimer(SWFwd);
+	uint Leni, Lenj;
+	float AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_PathAB);
+	EndTimer(SWFwd);
+
+	CalcEvalue();
+	}
+
+void DSSAligner::AlignComboPath()
+	{
+	m_PathAB.clear();
+	m_LoA = UINT_MAX;
+	m_LoB = UINT_MAX;
+	m_AlnFwdScore = 0;
 	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_PathAB);
 	if (ComboFwdScore < 0)
 		{
@@ -750,23 +848,10 @@ void DSSAligner::AlignComboPath()
 		Mx<float> &RevSMx = m_RevSMx;
 		ComboFwdScore = 
 		  AlignCombo(*m_ComboLettersA, *m_ComboLettersB, m_LoA, m_LoB, m_PathAB);
+		m_AlnFwdScore =
+		  GetDPScorePath(*m_ProfileA, *m_ProfileB, m_LoA, m_LoB, m_PathAB);
 		}
-
-// MinFwdScore small speedup by avoiding call to GetDALIScore_Path()
-	float AlnDALIScore = 0;
-	if (ComboFwdScore >= m_Params->m_MinComboFwdScore)
-		{
-		StartTimer(DALIScore);
-		if (m_Params->m_DALIw != 0)
-			AlnDALIScore = (float)
-			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_PathAB, m_LoA, m_LoB);
-		EndTimer(DALIScore);
-		}
-	uint M = GetMatchColCount(m_PathAB);
-	float AlnScore = ComboFwdScore + M*Params.m_FwdMatchScore +
-	  Params.m_DALIw*AlnDALIScore;
-	m_EvalueAB = m_Params->ScoreToEvalue(AlnScore, LA);
-	m_EvalueBA = m_Params->ScoreToEvalue(AlnScore, LB);
+	CalcEvalue();
 	}
 
 void DSSAligner::ToAln(FILE *f, float MaxEvalue)

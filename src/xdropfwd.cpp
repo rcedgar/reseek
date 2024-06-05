@@ -87,9 +87,7 @@ float XDropFwd(XDPMem &Mem,
 		}
 
 	if (Open > 0.0f || Ext > 0.0f)
-		Warning("XDropFwdFast(): non-negative open %.1f, ext %.1f",
-		  Open, Ext);
-
+		Warning("XDropFwdFast(): non-negative open %.1f, ext %.1f", Open, Ext);
 	const float AbsOpen = -Open;
 	const float AbsExt = -Ext;
 
