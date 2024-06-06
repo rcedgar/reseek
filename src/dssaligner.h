@@ -33,13 +33,15 @@ public:
 	Mx<int8_t> m_SMx_Int;
 	Mx<int8_t> m_RevSMx_Int;
 
+	uint m_AlnDomIdx1 = UINT_MAX;
+	uint m_AlnDomIdx2 = UINT_MAX;
 	string m_PathAB;
 	uint m_LoA = UINT_MAX;
 	uint m_LoB = UINT_MAX;
 	float m_EvalueAB = FLT_MAX;
 	float m_EvalueBA = FLT_MAX;
-	uint m_AlnDomIdx1 = UINT_MAX;
-	uint m_AlnDomIdx2 = UINT_MAX;
+	float m_TestStatisticAB = FLT_MAX;
+	float m_TestStatisticBA = FLT_MAX;
 
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
