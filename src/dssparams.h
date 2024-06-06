@@ -36,6 +36,10 @@ public:
 	int m_ParaComboGapOpen = 5;
 	int m_ParaComboGapExt = 1;
 
+	bool m_UseErfEvalue = false;
+	float m_ErfEvalueMu = 3.4;
+	float m_ErfEvalueSigma = 0.68;
+
 public:
 	static vector<FEATURE> m_ComboFeatures;
 	static vector<uint> m_ComboAlphaSizes;

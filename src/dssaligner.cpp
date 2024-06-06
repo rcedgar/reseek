@@ -806,6 +806,7 @@ void DSSAligner::CalcEvalue()
 	const uint LB = m_ChainB->GetSeqLength();
 	uint Lambda = m_Params->m_Lambda;
 	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
+
 	if (StatTop < 0)
 		StatTop = 0;
 	m_TestStatisticAB = StatTop/(LA + Lambda);

@@ -363,6 +363,7 @@
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClInclude Include="active.h" />
+    <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
@@ -374,6 +375,7 @@
     <ClInclude Include="dssaligner.h" />
     <ClInclude Include="dssp.h" />
     <ClInclude Include="dssparams.h" />
+    <ClInclude Include="fasterf.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="filler.h" />

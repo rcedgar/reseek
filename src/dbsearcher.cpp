@@ -189,22 +189,27 @@ void DBSearcher::Thread(uint ThreadIndex)
 		if (m_Params->m_UseComboPath)
 			{
 			DA.AlignComboOnly();
+			m_Lock.lock();
 			OnAln(ChainIndex1, ChainIndex2, DA);
 			OnAlnBA(ChainIndex1, ChainIndex2, DA);
+			m_Lock.unlock();
 			}
 		else if (m_Params->m_ComboScoreOnly)
 			{
 			float ComboScore = DA.GetComboScore();
 			DA.m_EvalueAB = ComboScore;
 			DA.m_EvalueBA = ComboScore;
+			m_Lock.lock();
 			OnAln(ChainIndex1, ChainIndex2, DA);
 			OnAlnBA(ChainIndex1, ChainIndex2, DA);
+			m_Lock.unlock();
 			}
 		else
 			{
 			DA.AlignQueryTarget();
 			if (!DA.m_PathAB.empty())
 				{
+				m_Lock.lock();
 				DA.ToTsv(m_fTsv, m_MaxEvalue);
 				DA.ToAln(m_fAln, m_MaxEvalue);
 				DA.ToFasta2(m_fFasta2, m_MaxEvalue);
@@ -215,6 +220,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 					DA.ToAlnBA(m_fAln, m_MaxEvalue);
 					OnAlnBA(ChainIndex1, ChainIndex2, DA);
 					}
+				m_Lock.unlock();
 				}
 			}
 		PrevChainIndex1 = ChainIndex1;

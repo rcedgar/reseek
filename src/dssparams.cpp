@@ -3,6 +3,8 @@
 #include "dss.h"
 #include "sort.h"
 
+double Q_func(double x, double mu, double sigma);
+
 vector<FEATURE> DSSParams::m_ComboFeatures;
 vector<uint> DSSParams::m_ComboAlphaSizes;
 uint DSSParams::m_ComboAlphaSize = UINT_MAX;
@@ -94,6 +96,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	if (optset_maxrejects) m_MaxRejects = opt_maxrejects;
 	if (optset_usort) m_USort = true;
 	if (optset_usecombopath) { m_UseComboPath = true; Warning("-usecombopath bad idea"); }
+	if (opt_useerfevalue) m_UseErfEvalue = true;
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
@@ -304,13 +307,26 @@ void DSSParams::InitScoreMxs()
 
 float DSSParams::GetEvalue(float TestStatistic) const
 	{
+	if (TestStatistic <= 0)
+		return 99;
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-	const float Slope = -6.6f; // -7.3f;
-	const float Intercept = 6.1f;
-	//float x = Score/(QL + m_Lambda);
-	float logNF = Slope*TestStatistic + Intercept;
-	float NF = powf(10, logNF);
-	float Evalue = NF*m_DBSize/1e8f;
+
+	float Evalue = FLT_MAX;
+	if (m_UseErfEvalue)
+		{
+		float logTS = -logf(TestStatistic);
+		double P = Q_func(logTS, m_ErfEvalueMu, m_ErfEvalueSigma);
+		Evalue = float(P*m_DBSize);
+		}
+	else
+		{
+
+		const float Slope = -6.6f; // -7.3f;
+		const float Intercept = 6.1f;
+		float logNF = Slope*TestStatistic + Intercept;
+		float NF = powf(10, logNF);
+		Evalue = NF*m_DBSize/1e8f;
+		}
 	return Evalue;
 	}
 

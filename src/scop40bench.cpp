@@ -221,11 +221,9 @@ void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2, float ScoreAB)
 	uint DomIdx1 = m_DomIdxs[ChainIndex1];
 	uint DomIdx2 = m_DomIdxs[ChainIndex2];
 
-	m_Lock.lock();
 	m_Scores.push_back(ScoreAB);
 	m_DomIdx1s.push_back(DomIdx1);
 	m_DomIdx2s.push_back(DomIdx2);
-	m_Lock.unlock();
 	}
 
 float SCOP40Bench::AlignDomPair(uint ThreadIndex,

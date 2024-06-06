@@ -475,5 +475,11 @@
     <ClInclude Include="calibratesearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="binner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fasterf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
