@@ -37,5 +37,6 @@ C(pdb2mega)
 C(test_para)
 C(test_para_cal)
 C(test_para_path)
+C(calibrate)
 
 #undef C

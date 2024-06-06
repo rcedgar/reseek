@@ -104,8 +104,8 @@ float DSSAligner::GetEvaluePath(
 	float ScoreDiff = DPScore;
 	uint M = GetMatchColCount(Path);
 	float TestStat = ScoreDiff + M*m_Params->m_FwdMatchScore +
-	  m_Params->m_DALIw*AlnDALIScore;
-	float E = m_Params->TestStatisticToEvalue(TestStat, LA);
+	  m_Params->m_DALIw*AlnDALIScore/(m_Params->m_Lambda + LA);
+	float E = m_Params->GetEvalue(TestStat);
 	return E; 
 	}
 
@@ -802,12 +802,15 @@ void DSSAligner::CalcEvalue()
 	const float DALIw = m_Params->m_DALIw;
 	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	uint M = GetMatchColCount(m_PathAB);
-	float TestStatistic = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
-
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
-	m_EvalueAB = m_Params->TestStatisticToEvalue(TestStatistic, LA);
-	m_EvalueBA = m_Params->TestStatisticToEvalue(TestStatistic, LB);
+	uint Lambda = m_Params->m_Lambda;
+	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
+	float TestStatisticAB = StatTop/(LA + Lambda);
+	float TestStatisticBA = StatTop/(LB + Lambda);
+
+	m_EvalueAB = m_Params->GetEvalue(TestStatisticAB);
+	m_EvalueBA = m_Params->GetEvalue(TestStatisticBA);
 	}
 
 void DSSAligner::Align_NoAccel()
@@ -823,7 +826,7 @@ void DSSAligner::Align_NoAccel()
 
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
-	float AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_PathAB);
 	EndTimer(SWFwd);

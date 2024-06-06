@@ -276,6 +276,7 @@
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
+    <ClCompile Include="calibrate.cpp" />
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
     <ClCompile Include="cigar.cpp" />
@@ -362,6 +363,7 @@
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClInclude Include="active.h" />
+    <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="combomx.h" />

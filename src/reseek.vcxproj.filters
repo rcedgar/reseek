@@ -284,6 +284,9 @@
     <ClCompile Include="scop40bit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="calibrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -467,6 +470,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cigar_template.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="calibratesearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

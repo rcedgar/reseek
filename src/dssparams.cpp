@@ -302,13 +302,13 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
-float DSSParams::TestStatisticToEvalue(float TestStatistic, uint QL) const
+float DSSParams::GetEvalue(float TestStatistic) const
 	{
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 	const float Slope = -6.6f; // -7.3f;
 	const float Intercept = 6.1f;
-	float x = TestStatistic/(QL + m_Lambda);
-	float logNF = Slope*x + Intercept;
+	//float x = Score/(QL + m_Lambda);
+	float logNF = Slope*TestStatistic + Intercept;
 	float NF = powf(10, logNF);
 	float Evalue = NF*m_DBSize/1e8f;
 	return Evalue;
