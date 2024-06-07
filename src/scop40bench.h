@@ -66,7 +66,7 @@ public:
 	//uint m_DomsWithHomologCount = UINT_MAX;
 	//uint m_DomsWithHomologAndTP1Count = UINT_MAX;
 
-	string m_Mode;
+	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 

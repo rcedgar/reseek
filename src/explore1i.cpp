@@ -39,7 +39,7 @@ void cmd_explore1i()
 		setbuf(S.m_fFev, 0);
 		}
 	SCOP40Bench &SB = S.m_SB;
-	asserta(optset_benchmode);
+	asserta(optset_benchlevel);
 	DSSParams Params;
 	SB.ReadChains(CalFN, "");
 

@@ -35,7 +35,7 @@ STR_OPT(paramsf)
 STR_OPT(roc)
 STR_OPT(sens_vs_err)
 STR_OPT(fev)
-STR_OPT(benchmode)
+STR_OPT(benchlevel)
 STR_OPT(fasta2)
 
 STR_OPT(train_cal)

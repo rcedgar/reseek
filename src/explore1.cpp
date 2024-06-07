@@ -52,7 +52,7 @@ void cmd_explore1()
 	{
 	const string &CalFN = g_Arg1;
 	SCOP40Bench SB;
-	asserta(optset_benchmode);
+	asserta(optset_benchlevel);
 	DSSParams Params;
 	SB.ReadChains(CalFN, "");
 

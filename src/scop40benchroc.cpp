@@ -99,21 +99,21 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	uint FoldIdx1 = m_DomIdxToFoldIdx[DomIdx1];
 	uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
 
-	if (m_Mode == "sf")
+	if (m_Level == "sf")
 		{
 		if (SFIdx1 == SFIdx2)
 			return 1;
 		else
 			return 0;
 		}
-	if (m_Mode == "fold")
+	if (m_Level == "fold")
 		{
 		if (FoldIdx1 == FoldIdx2)
 			return 1;
 		else
 			return 0;
 		}
-	if (m_Mode == "ignore")
+	if (m_Level == "ignore")
 		{
 		if (FoldIdx1 == FoldIdx2)
 			{
@@ -228,7 +228,7 @@ void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{
-		fprintf(f, "%s", m_Mode.c_str());
+		fprintf(f, "%s", m_Level.c_str());
 		fprintf(f, "\t%u", Bin);
 		fprintf(f, "\t%.3g", BinScores[Bin]);
 		fprintf(f, "\t%.3f", Bin*SensStep);
@@ -378,17 +378,17 @@ void SCOP40Bench::SetNXs()
 				}
 			uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
 			uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
-			if (m_Mode == "sf")
+			if (m_Level == "sf")
 				{
 				if (SFIdx2 == SFIdx)
 					++m_NT;
 				}
-			else if (m_Mode == "fold")
+			else if (m_Level == "fold")
 				{
 				if (FoldIdx2 == FoldIdx)
 					++m_NT;
 				}
-			else if (m_Mode == "ignore")
+			else if (m_Level == "ignore")
 				{
 				if (SFIdx2 == SFIdx)
 					++m_NT;
@@ -727,9 +727,9 @@ void cmd_scop40bench_tsv()
 	string Stem;
 	GetStemName(g_Arg1, Stem);
 
-	if (optset_benchmode)
+	if (optset_benchlevel)
 		{
-		SB.m_Mode = opt_benchmode;
+		SB.m_Level = opt_benchlevel;
 		SB.SetStats(MaxFPR);
 		SB.WriteOutputFiles();
 		SB.WriteSummary();
@@ -742,7 +742,7 @@ void cmd_scop40bench_tsv()
 		Modes.push_back("fold");
 		for (uint Modei = 0; Modei < 3; ++Modei)
 			{
-			SB.m_Mode = Modes[Modei];
+			SB.m_Level = Modes[Modei];
 			SB.SetStats(MaxFPR);
 			SB.WriteSummary();
 			}
@@ -762,9 +762,9 @@ void cmd_scop40bit_roc()
 	string Stem;
 	GetStemName(g_Arg1, Stem);
 
-	if (optset_benchmode)
+	if (optset_benchlevel)
 		{
-		SB.m_Mode = opt_benchmode;
+		SB.m_Level = opt_benchlevel;
 		SB.SetStats(MaxFPR);
 		SB.WriteOutputFiles();
 		SB.WriteSummary();
@@ -777,7 +777,7 @@ void cmd_scop40bit_roc()
 		Modes.push_back("fold");
 		for (uint Modei = 0; Modei < 3; ++Modei)
 			{
-			SB.m_Mode = Modes[Modei];
+			SB.m_Level = Modes[Modei];
 			SB.SetStats(MaxFPR);
 			SB.WriteSummary();
 			}
