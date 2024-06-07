@@ -66,6 +66,20 @@ void CalibrateSearcher::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA
 	v.push_back(DA.m_TestStatisticAB);
 	}
 
+void CalibrateSearcher::SetAllAccum()
+	{
+	m_AllAccum.clear();
+	m_AllAccum.resize(NBINS, UINT_MAX);
+	asserta(SIZE(m_AllBins) == NBINS);
+	uint32_t Sum = 0;
+	for (uint i = 0; i < NBINS; ++i)
+		{
+		uint Bin = NBINS - i - 1;
+		Sum += m_AllBins[Bin];
+		m_AllAccum[Bin] = Sum;
+		}
+	}
+
 void CalibrateSearcher::SetAllBins()
 	{
 	asserta(m_ptrAllBinner == 0);
@@ -194,13 +208,17 @@ void CalibrateSearcher::ScanAll()
 void CalibrateSearcher::LogAllBins() const
 	{
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
-	Log("TS\tN\tP\n");
-	for (uint32_t Bin = 0; Bin < BinCount; ++Bin)
+	Log("TS\tMid\tN\tAN\tP\n");
+	for (uint32_t i = 0; i < NBINS; ++i)
 		{
+		uint Bin = NBINS - i - 1;
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
+		asserta(m_AllBins[Bin] == n);
+		uint32_t an = m_AllAccum[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
+		float TS = exp(-Mid);
 		double P = Q_func(Mid, m_AllMean, m_AllSigma);
-		Log("%.2f\t%u\t%.3g\n", Mid, n, P);
+		Log("%.3g\t%.3f\t%u\t%u\t%.3g\n", TS, Mid, n, an, P);
 		}
 	Log("Mean %.3g, stddev %.3g\n", m_AllMean, m_AllSigma);
 	}
@@ -222,12 +240,13 @@ void cmd_calibrate()
 	DSSAligner::Stats();
 	DBS.ScanAll();
 	DBS.SetAllBins();
+	DBS.SetAllAccum();
 	DBS.SetAllMeanStdDev();
 	DBS.LogAllBins();
-	for (uint ChainIndex = 0; ChainIndex < SIZE(DBS.m_QueryChains); ++ChainIndex)
-		{
-		float Mean, Sigma;
-		DBS.Calibrate(ChainIndex, Mean, Sigma);
-		Log("%8.2f  %8.2f\n", Mean, Sigma);
-		}
+	//for (uint ChainIndex = 0; ChainIndex < SIZE(DBS.m_QueryChains); ++ChainIndex)
+	//	{
+	//	float Mean, Sigma;
+	//	DBS.Calibrate(ChainIndex, Mean, Sigma);
+	//	Log("%8.2f  %8.2f\n", Mean, Sigma);
+	//	}
 	}
