@@ -286,6 +286,7 @@
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
+    <ClCompile Include="readhits.cpp" />
     <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />

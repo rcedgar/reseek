@@ -56,10 +56,10 @@ void SCOP40Bench::ParseScopLabel(const string &Label, string &Dom,
 		Die("ParseScopLabel, bad format >%s\n", Label.c_str());
 	}
 
-void SCOP40Bench::SetSFSizes()
-	{
-	GetSFSizes(m_SFSizes);
-	}
+//void SCOP40Bench::SetSFSizes()
+//	{
+//	GetSFSizes(m_SFSizes);
+//	}
 
 uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomSlashId,
   bool FailOnErr) const
@@ -111,12 +111,78 @@ void SCOP40Bench::OnSetup()
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
-	asserta(optset_benchmode);
-	m_Mode = string(opt_benchmode);
-	asserta(m_Mode == "family" || m_Mode == "fold" || m_Mode == "ignore");
+	//asserta(optset_benchmode);
+	//m_Mode = string(opt_benchmode);
+	//asserta(m_Mode == "sf" || m_Mode == "fold" || m_Mode == "ignore");
 	m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromQueryChainLabels();
-	SetSFSizes();
+	}
+
+void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,
+  uint ChainIndex)
+	{
+	uint SFIdx = UINT_MAX;
+	if (m_SFToIdx.find(SF) == m_SFToIdx.end())
+		{
+		SFIdx = SIZE(m_SFs);
+		m_SFs.push_back(SF);
+		m_SFToIdx[SF] = SFIdx;
+		}
+	else
+		SFIdx = m_SFToIdx[SF];
+
+	uint FoldIdx = UINT_MAX;
+	if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
+		{
+		FoldIdx = SIZE(m_Folds);
+		m_Folds.push_back(Fold);
+		m_FoldToIdx[Fold] = FoldIdx;
+		}
+	else
+		FoldIdx = m_FoldToIdx[Fold];
+ 
+	uint DomIdx = UINT_MAX;
+	if (m_DomToIdx.find(Dom) != m_DomToIdx.end())
+		{
+		Die("Duplicate dom >%s", Dom.c_str());
+		DomIdx = m_DomToIdx[Dom];
+		}
+	DomIdx = SIZE(m_Doms);
+	m_Doms.push_back(Dom + "/" + SF);
+	m_DomToIdx[Dom] = DomIdx;
+	m_DomIdxToSFIdx.push_back(SFIdx);
+	m_DomIdxToFoldIdx.push_back(FoldIdx);
+
+	m_DomIdxs.push_back(DomIdx);
+	m_DomToChainIdx[Dom] = ChainIndex;
+	if (ChainIndex != UINT_MAX)
+		{
+		asserta(DomIdx < SIZE(m_DomIdxToChainIdx));
+		m_DomIdxToChainIdx[DomIdx] = ChainIndex;
+		}
+	}
+
+void SCOP40Bench::ReadLookup(const string &FileName)
+	{
+	FILE *f = OpenStdioFile(FileName);
+	string Line;
+	vector<string> Fields;
+	vector<string> Fields2;
+	while (ReadLineStdioFile(f, Line))
+		{
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == 2);
+		const string &Dom = Fields[0];
+		const string &ScopId = Fields[1];
+		Split(ScopId, Fields2, '.');
+		asserta(SIZE(Fields2) == 4);
+		const string &Cls_NOTUSED = Fields2[0];
+		const string &Fold = Fields2[0] + "." + Fields2[1];
+		const string &SF = Fields2[0] + "." + Fields2[1] + "." + Fields2[2];
+		const string &Fmy_NOTUSED = Fields2[0] + "." + Fields2[1] + "." +  Fields2[2] + "." + Fields2[3];
+		AddDom(Dom, Fold, SF);
+		}
+	CloseStdioFile(f);
 	}
 
 void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
@@ -134,42 +200,7 @@ void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 		string Fmy;
 		string Fold;
 		ParseScopLabel(Chain.m_Label, Dom, Cls, Fold, SF, Fmy);
-
-		uint SFIdx = UINT_MAX;
-		if (m_SFToIdx.find(SF) == m_SFToIdx.end())
-			{
-			SFIdx = SIZE(m_SFs);
-			m_SFs.push_back(SF);
-			m_SFToIdx[SF] = SFIdx;
-			}
-		else
-			SFIdx = m_SFToIdx[SF];
-
-		uint FoldIdx = UINT_MAX;
-		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
-			{
-			FoldIdx = SIZE(m_Folds);
-			m_Folds.push_back(Fold);
-			m_FoldToIdx[Fold] = FoldIdx;
-			}
-		else
-			FoldIdx = m_FoldToIdx[Fold];
- 
-		uint DomIdx = UINT_MAX;
-		if (m_DomToIdx.find(Dom) != m_DomToIdx.end())
-			{
-			Die("Duplicate dom >%s", Chain.m_Label.c_str());
-			DomIdx = m_DomToIdx[Dom];
-			}
-		DomIdx = SIZE(m_Doms);
-		m_Doms.push_back(Dom + "/" + SF);
-		m_DomToIdx[Dom] = DomIdx;
-		m_DomIdxToSFIdx.push_back(SFIdx);
-		m_DomIdxToFoldIdx.push_back(FoldIdx);
-
-		m_DomIdxs.push_back(DomIdx);
-		m_DomToChainIdx[Dom] = ChainIndex;
-		m_DomIdxToChainIdx[DomIdx] = ChainIndex;
+		AddDom(Dom, Fold, SF, ChainIndex);
 		}
 
 	asserta(SIZE(m_DomIdxs) == m_QueryChainCount);
@@ -352,7 +383,7 @@ void SCOP40Bench::ScanDomHits()
 		uint SF2 = m_DomIdxToSFIdx[Dom2];
 		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
 		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
-		if (m_Mode == "family")
+		if (m_Mode == "sf")
 			T = (SF1 == SF2);
 		else if (m_Mode == "fold")
 			T = (Fold1 == Fold2);
@@ -396,7 +427,7 @@ void SCOP40Bench::ScanDomHits()
 		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
 		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
 		bool T = false;
-		if (m_Mode == "family")
+		if (m_Mode == "sf")
 			T = (SF1 == SF2);
 		else if (m_Mode == "fold")
 			T = (Fold1 == Fold2);
@@ -416,19 +447,6 @@ void SCOP40Bench::ScanDomHits()
 			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				m_DomIdxToSens1FP[Dom1] += 1;
-			}
-		}
-
-	m_DomsWithHomologCount = 0;
-	for (uint Dom = 0; Dom < DomCount; ++Dom)
-		{
-		uint SF = m_DomIdxToSFIdx[Dom];
-		uint SFSize = m_SFSizes[SF];
-		if (SFSize > 1)
-			{
-			++m_DomsWithHomologCount;
-			if (m_DomIdxToTP1Count[Dom] > 0)
-				++m_DomsWithHomologAndTP1Count;
 			}
 		}
 	}
@@ -481,17 +499,15 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	if (FileName == "")
 		return;
 	const uint DomCount = SIZE(m_DomIdxToSFIdx);
-	const uint SFCount = SIZE(m_SFs);
 	const uint HitCount = SIZE(m_DomIdx1s);
-	ProgressLog("Write %u doms (%u fams), %s hits to %s\n",
-	  DomCount, SFCount, IntToStr(HitCount), FileName.c_str());
+	ProgressLog("Write %u doms %s hits to %s\n",
+	  DomCount, IntToStr(HitCount), FileName.c_str());
 	asserta(SIZE(m_DomIdx2s) == HitCount);
 	asserta(SIZE(m_Scores) == HitCount);
 
 	FILE *f = CreateStdioFile(FileName);
 	WriteStdioFile(f, &DomCount, sizeof(DomCount));
 	WriteStdioFile(f, &HitCount, sizeof(HitCount));
-	WriteStdioFile(f, m_DomIdxToSFIdx.data(), DomCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
@@ -514,107 +530,6 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
 	m_nt_epq10 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 10);
 	m_nt_firstfp = GetSens1stFP();
-	}
-
-void SCOP40Bench::ReadHits_Tsv_DSS()
-	{
-	const string TsvFN = "d:/int/dss/out/scop40_dss.tsv";
-	FILE *f = OpenStdioFile(TsvFN);
-	uint FileSize = GetStdioFileSize32(f);
-	Progress("Reading hits DSS\n");
-	uint HitCount = 0;
-	string Line;
-	vector<string> Fields;
-	while (ReadLineStdioFile(f, Line))
-		{
-		if (HitCount%500000 == 0)
-			{
-			uint Pos = GetStdioFilePos32(f);
-			Progress("Hits %.2f%%  %s\r", GetPct(Pos, FileSize), IntToStr(HitCount));
-			}
-		Split(Line, Fields, '\t');
-		asserta(SIZE(Fields) == 3);
-		string Dom1;
-		string Dom2;
-		GetDomFromLabel(Fields[1], Dom1);
-		GetDomFromLabel(Fields[2], Dom2);
-		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
-		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
-		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
-			continue;
-		uint DomIdx1 = iter1->second;
-		uint DomIdx2 = iter2->second;
-		float Score = (float) StrToFloat(Fields[0]);
-		m_DomIdx1s.push_back(DomIdx1);
-		m_DomIdx2s.push_back(DomIdx2);
-		m_Scores.push_back(Score);
-		if (DomIdx1 != DomIdx2)
-			{
-			m_DomIdx1s.push_back(DomIdx2);
-			m_DomIdx2s.push_back(DomIdx1);
-			m_Scores.push_back(Score);
-			}
-		++HitCount;
-		}
-	Progress("%u hits DSS\n", HitCount);
-	}
-
-void SCOP40Bench::ReadHits_Tsv(const string &Algo)
-	{
-	if (Algo == "dss")
-		{
-		ReadHits_Tsv_DSS();
-		return;
-		}
-	const string TsvFN = "c:/data/scop40pdb/alignResults/rawoutput/" + Algo + "aln";
-	uint ScoreFieldNr = 2;
-	if (Algo == "foldseek" || Algo == "blastp")
-		ScoreFieldNr = 10;
-	FILE *f = OpenStdioFile(TsvFN);
-	uint FileSize = GetStdioFileSize32(f);
-	Progress("Reading hits %s\n", Algo.c_str());
-	uint HitCount = 0;
-	string Line;
-	vector<string> Fields;
-	uint BadLineCount = 0;
-	while (ReadLineStdioFile(f, Line))
-		{
-		if (HitCount > 0 && HitCount%500000 == 0)
-			{
-			uint Pos = GetStdioFilePos32(f);
-			Progress("Hits %.2f%%  %s\r", GetPct(Pos, FileSize), IntToStr(HitCount));
-			}
-		for (uint i = 0; i < SIZE(Line); ++i)
-			if (Line[i] == ' ')
-				Line[i] = '\t';
-		Split(Line, Fields, '\t');
-	// 3dblastswaln has blank line
-		uint FieldCount = SIZE(Fields);
-		if (FieldCount <= ScoreFieldNr)
-			{
-			++BadLineCount;
-			continue;
-			}
-		string Label1 = Fields[0];
-		string Label2 = Fields[1];
-		string Dom1, Dom2;
-		GetDomFromLabel(Label1, Dom1);
-		GetDomFromLabel(Label2, Dom2);
-
-		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
-		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
-		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
-			continue;
-		uint DomIdx1 = iter1->second;
-		uint DomIdx2 = iter2->second;
-		asserta(FieldCount > ScoreFieldNr);
-		float Score = (float) StrToFloat(Fields[ScoreFieldNr]);
-		m_DomIdx1s.push_back(DomIdx1);
-		m_DomIdx2s.push_back(DomIdx2);
-		m_Scores.push_back(Score);
-		++HitCount;
-		}
-	ProgressLog("%u hits, %u bad lines %s\n", HitCount, BadLineCount, Algo.c_str());
 	}
 
 void SCOP40Bench::WriteOutputFiles()
@@ -701,6 +616,47 @@ void SCOP40Bench::WriteOutputFiles()
 		}
 	}
 
+void SCOP40Bench::WriteSummary()
+	{
+	uint AlnCount = DSSAligner::m_AlnCount;
+	uint HitCount = GetHitCount();
+	uint UFilterCount = DSSAligner::m_UFilterCount;
+	uint ComboFilterCount = DSSAligner::m_ComboFilterCount;
+	uint Secs = m_Secs;
+	float AlnsPerThreadPerSec = m_AlnsPerThreadPerSec;
+	uint nt_firstfp = m_nt_firstfp;
+	float SensFirstFP = float(nt_firstfp)/m_NT;
+	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
+	float SensEPQ1 = float(m_nt_epq1)/m_NT;
+	float SensEPQ10 = float(m_nt_epq10)/m_NT;
+	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_ComboFilterCount;
+	double FilterPct = GetPct(TotalFilterCount, AlnCount);
+	double UFilterPct = GetPct(DSSAligner::m_UFilterCount, AlnCount);
+	uint ComboFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
+	double ComboFilterPct =
+	  GetPct(DSSAligner::m_ComboFilterCount, ComboFilterInputCount);
+
+	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
+	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
+	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
+	ProgressLog(" S1FP=%.4f", SensFirstFP);
+	ProgressLog(" secs=%u", Secs);
+	ProgressLog(" mode=%s\n", m_Mode.c_str());
+
+	if (DSSAligner::m_UFilterCount > 0)
+		Log("UFil=%.1f\n", UFilterPct);
+	if (DSSAligner::m_ComboFilterCount > 0)
+		Log(" CFil=%.1f\n", ComboFilterPct);
+	if (DSSAligner::m_ParasailSaturateCount > 0)
+		Log(" Sat=%u\n", DSSAligner::m_ParasailSaturateCount);
+
+	Log("QP cache hits %u, misses %u\n",
+	  m_QPCacheHits.load(), m_QPCacheMisses.load());
+
+	Log("NT %u NF %u NI %u considered %u ignored %u\n",
+	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);
+	}
+
 void cmd_scop40bench()
 	{
 	string CalFN;
@@ -713,7 +669,6 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 	SCOP40Bench SB;
-	asserta(optset_benchmode);
 	DSSParams Params;
 	SB.ReadChains(CalFN, "");
 
@@ -733,47 +688,31 @@ void cmd_scop40bench()
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
 	SB.WriteBit(opt_savebit);
-	SB.SetStats(MaxFPR);
-	SB.WriteOutputFiles();
-
-	uint AlnCount = DSSAligner::m_AlnCount;
-	uint HitCount = SB.GetHitCount();
-	uint UFilterCount = DSSAligner::m_UFilterCount;
-	uint ComboFilterCount = DSSAligner::m_ComboFilterCount;
-	uint Secs = SB.m_Secs;
-	float AlnsPerThreadPerSec = SB.m_AlnsPerThreadPerSec;
-	uint nt_firstfp = SB.m_nt_firstfp;
-	float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-	float SensEPQ0_1 = float(SB.m_nt_epq0_1)/SB.m_NT;
-	float SensEPQ1 = float(SB.m_nt_epq1)/SB.m_NT;
-	float SensEPQ10 = float(SB.m_nt_epq10)/SB.m_NT;
-	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_ComboFilterCount;
-	double FilterPct = GetPct(TotalFilterCount, AlnCount);
-	double UFilterPct = GetPct(DSSAligner::m_UFilterCount, AlnCount);
-	uint ComboFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
-	double ComboFilterPct =
-	  GetPct(DSSAligner::m_ComboFilterCount, ComboFilterInputCount);
-	double FoundFract1 = double(SB.m_DomsWithHomologAndTP1Count)/
-	  SB.m_DomsWithHomologCount;
-
-	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
-	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
-	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
-	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" FF1=%.4f", FoundFract1);
-	ProgressLog(" secs=%u", Secs);
-	ProgressLog(" mode=%s\n", SB.m_Mode.c_str());
-
-	if (DSSAligner::m_UFilterCount > 0)
-		Log("UFil=%.1f\n", UFilterPct);
-	if (DSSAligner::m_ComboFilterCount > 0)
-		Log(" CFil=%.1f\n", ComboFilterPct);
-	if (DSSAligner::m_ParasailSaturateCount > 0)
-		Log(" Sat=%u\n", DSSAligner::m_ParasailSaturateCount);
-
-	Log("QP cache hits %u, misses %u\n",
-	  SB.m_QPCacheHits.load(), SB.m_QPCacheMisses.load());
-
-	Log("NT %u NF %u NI %u considered %u ignored %u\n",
-	  SB.m_NT, SB.m_NF, SB.m_NI, SB.m_ConsideredHitCount, SB.m_IgnoredHitCount);
+	if (optset_benchmode)
+		{
+		SB.SetStats(MaxFPR);
+		SB.WriteOutputFiles();
+		SB.WriteSummary();
+		}
+	else
+		{
+		vector<string> Modes;
+		Modes.push_back("sf");
+		Modes.push_back("ignore");
+		Modes.push_back("fold");
+		for (uint Modei = 0; Modei < 3; ++Modei)
+			{
+			SB.m_Mode = Modes[Modei];
+			SB.SetStats(MaxFPR);
+			uint nt_firstfp = SB.m_nt_firstfp;
+			uint nt_epq1 = SB.m_nt_epq1;
+			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
+			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+			ProgressLog("SEPQ1=%.4f", SensEPQ1);
+			ProgressLog(" S1FP=%.4f", SensFirstFP);
+			ProgressLog(" mode=%s", SB.m_Mode.c_str());
+			ProgressLog(" name=%s", SB.m_Params->m_Desc.c_str());
+			ProgressLog("\n");
+			}
+		}
 	}

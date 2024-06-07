@@ -37,8 +37,8 @@ public:
 	int m_ParaComboGapExt = 1;
 
 	bool m_UseErfEvalue = false;
-	float m_ErfEvalueMu = 3.4;
-	float m_ErfEvalueSigma = 0.68;
+	float m_ErfEvalueMu = 3.4f;
+	float m_ErfEvalueSigma = 0.68f;
 
 public:
 	static vector<FEATURE> m_ComboFeatures;

@@ -78,7 +78,7 @@ const char *GetPlatform()
 #endif
 	}
 
-const char *BaseName(const char *PathName)
+const char *GetBaseName(const char *PathName)
 	{
 	const char *q = 0;
 	for (const char *p = PathName; *p; ++p)
@@ -89,6 +89,20 @@ const char *BaseName(const char *PathName)
 	if (q != 0)
 		return q;
 	return PathName;
+	}
+
+void GetBaseName(const string &PathName, string &Base)
+	{
+	Base = string(GetBaseName(PathName.c_str()));
+	}
+
+void GetStemName(const string &PathName, string &Stem)
+	{
+	string Base;
+	GetBaseName(PathName, Base);
+	vector<string> Fields;
+	Split(Base, Fields, '.');
+	Stem = Fields[0];
 	}
 
 static void AllocBuffer(FILE *f)

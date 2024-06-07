@@ -63,18 +63,20 @@ public:
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
 	uint m_nt_firstfp = UINT_MAX;
-	uint m_DomsWithHomologCount = UINT_MAX;
-	uint m_DomsWithHomologAndTP1Count = UINT_MAX;
+	//uint m_DomsWithHomologCount = UINT_MAX;
+	//uint m_DomsWithHomologAndTP1Count = UINT_MAX;
 
 	string m_Mode;
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
 public:
+	virtual void OnSetup();
 	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
 	virtual void OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
 
 public:
+	void ReadLookup(const string &FileName);
 	void ClearHits();
 	float GetVeryBadScore() const;
 	bool KeepScore(float Score) const;
@@ -84,8 +86,8 @@ public:
 	uint GetDomCount() const { return SIZE(m_DomIdxToSFIdx); }
 	uint GetSFCount() const { return SIZE(m_SFs); }
 	uint GetFoldCount() const { return SIZE(m_Folds); }
-	//void ReadChains(const string &CalFileName);
-	virtual void OnSetup();
+	void AddDom(const string &Dom, const string &Fold, const string &SF,
+	  uint ChainIndex = UINT_MAX);
 	void BuildDomSFIndexesFromQueryChainLabels();
 	uint GetDomIdx(const string &Dom_or_DomSlashId, bool FailOnErr = true) const;
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
@@ -97,24 +99,11 @@ public:
 	void SetDomIdxToL();
 	uint GetSens1stFP();
 	void GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2);
-	void ReadHits_Tsv(const string &Algo);
-	void ReadHits_Tsv_DSS();
+	void ReadHits(const string &FN);
 	void WriteBit(const string &FileName) const;
 	void ReadBit(const string &FileName);
 	int IsT(uint DomIdx1, uint DomIdx2) const;
-	void GetSFSizes(vector<uint> &SFSizes) const;
-	void GetFoldSizes(vector<uint> &SFSizes) const;
-	void SetSFSizes();
-	void SetFoldSizes();
-	uint GetSFSize(uint SFIdx) const;
-	uint GetFoldSize(uint FoldIdx) const;
-	void LoadLabels(const string &FileName);
 	void LoadHitsFromTsv(const string &FileName);
-	void LogSFs() const;
-	void SFReport(const string &FileName);
-	void DomReport(const string &FileName);
-	void GetSFStats(uint SFIdx, uint &HitIdx1stFP,
-	  uint &TPsAtScore1stFP) const;
 	float GetMeanLength(uint SFIdx) const;
 	void StoreScore(uint ChainIdx, uint ChainIdx2, float Score12);
 
@@ -150,6 +139,7 @@ public:
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteOutputFiles();
+	void WriteSummary();
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,

@@ -357,7 +357,9 @@ double StrToFloat(const char *s);
 const char *GetElapsedTimeStr(string &s);
 const char *GetMaxRAMStr(string &s);
 
-const char *BaseName(const char *PathName);
+const char *GetBaseName(const char *PathName);
+void GetBaseName(const string &PathName, string &Base);
+void GetStemName(const string &PathName, string &Stem);
 
 const char *IntToStr(unsigned i);
 const char *IntToStr2(unsigned i);

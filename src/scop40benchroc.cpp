@@ -115,7 +115,7 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	uint FoldIdx1 = m_DomIdxToFoldIdx[DomIdx1];
 	uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
 
-	if (m_Mode == "family")
+	if (m_Mode == "sf")
 		{
 		if (SFIdx1 == SFIdx2)
 			return 1;
@@ -358,47 +358,6 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	NFPs.push_back(NFP);
 	}
 
-uint SCOP40Bench::GetSFSize(uint SFIdx) const
-	{
-	uint Size = 0;
-	uint DomCount = GetDomCount();
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		uint SFIdx2 = m_DomIdxToSFIdx[DomIdx];
-		if (SFIdx2 == SFIdx)
-			++Size;
-		}
-	return Size;
-	}
-
-void SCOP40Bench::GetSFSizes(vector<uint> &SFSizes) const
-	{
-	SFSizes.clear();
-	uint SFCount = GetSFCount();
-	uint DomCount = GetDomCount();
-	SFSizes.resize(SFCount, 0);
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
-		assert(SFIdx < SFCount);
-		++SFSizes[SFIdx];
-		}
-	}
-
-void SCOP40Bench::GetFoldSizes(vector<uint> &FoldSizes) const
-	{
-	FoldSizes.clear();
-	uint FoldCount = GetFoldCount();
-	uint DomCount = GetDomCount();
-	FoldSizes.resize(FoldCount, 0);
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
-		assert(FoldIdx < FoldCount);
-		++FoldSizes[FoldIdx];
-		}
-	}
-
 void SCOP40Bench::SetNXs()
 	{
 	m_NT = 0;
@@ -407,6 +366,7 @@ void SCOP40Bench::SetNXs()
 	const uint DomCount = GetDomCount();
 	const uint FoldCount = GetFoldCount();
 	vector<vector<uint> > FoldToDoms(FoldCount);
+	asserta(SIZE(m_DomIdxToFoldIdx) == DomCount);
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
 		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
@@ -416,6 +376,7 @@ void SCOP40Bench::SetNXs()
 
 	uint NonSelfPairCount = DomCount*DomCount - DomCount;
 
+	asserta(SIZE(m_DomIdxToSFIdx) == DomCount);
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
 		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
@@ -432,7 +393,7 @@ void SCOP40Bench::SetNXs()
 				}
 			uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
 			uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
-			if (m_Mode == "family")
+			if (m_Mode == "sf")
 				{
 				if (SFIdx2 == SFIdx)
 					++m_NT;
@@ -467,11 +428,9 @@ void SCOP40Bench::ReadBit(const string &FileName)
 	Progress("%s hits, %u doms %s\n",
 	  IntToStr(HitCount), DomCount, FileName.c_str());
 	uint32 FileSize = GetStdioFileSize32(f);
-	m_DomIdxToSFIdx.resize(DomCount, UINT_MAX);
 	m_DomIdx1s.resize(HitCount, UINT_MAX);
 	m_DomIdx2s.resize(HitCount, UINT_MAX);
 	m_Scores.resize(HitCount, FLT_MAX);
-	ReadStdioFile(f, m_DomIdxToSFIdx.data(), DomCount*sizeof(uint));
 	ReadStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	ReadStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
 	ReadStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
@@ -542,85 +501,6 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 		m_Scores.push_back(Score);
 		}
 	CloseStdioFile(f);
-	}
-
-void SCOP40Bench::LoadLabels(const string &FileName)
-	{
-	asserta(!FileName.empty());
-
-	m_Doms.clear();
-	m_DomToIdx.clear();
-	m_SFs.clear();
-	m_Folds.clear();
-	m_SFToIdx.clear();
-	m_FoldToIdx.clear();
-	m_DomIdxToSFIdx.clear();
-	m_DomIdxToFoldIdx.clear();
-
-	vector<string> Labels;
-	ReadLinesFromFile(FileName, Labels);
-	m_DomToIdx.clear();
-	for (uint Idx = 0; Idx < SIZE(Labels); ++Idx)
-		{
-		const string &Label = Labels[Idx];
-
-		string Cls;
-		string Dom;
-		string Fold;
-		string SF;
-		string Fmy;
-		ParseScopLabel(Label, Dom, Cls, Fold, SF, Fmy);
-
-		uint SFIdx = UINT_MAX;
-		if (m_SFToIdx.find(SF) == m_SFToIdx.end())
-			{
-			SFIdx = SIZE(m_SFs);
-			m_SFs.push_back(SF);
-			m_SFToIdx[SF] = SFIdx;
-			}
-		else
-			SFIdx = m_SFToIdx[SF];
-
-		uint FoldIdx = UINT_MAX;
-		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
-			{
-			FoldIdx = SIZE(m_Folds);
-			m_Folds.push_back(Fold);
-			m_FoldToIdx[Fold] = FoldIdx;
-			}
-		else
-			FoldIdx = m_FoldToIdx[Fold];
- 
-		uint DomIdx = UINT_MAX;
-		if (m_DomToIdx.find(Dom) == m_DomToIdx.end())
-			{
-			DomIdx = SIZE(m_Doms);
-			m_Doms.push_back(Dom + "/" + SF);
-			m_DomToIdx[Dom] = DomIdx;
-			m_DomIdxToSFIdx.push_back(SFIdx);
-			}
-		else
-			DomIdx = m_DomToIdx[Dom];
-
-		m_DomIdxs.push_back(DomIdx);
-		}
-	}
-
-void SCOP40Bench::LogSFs() const
-	{
-	const uint SFCount = GetSFCount();
-	vector<uint> Sizes;
-	GetSFSizes(Sizes);
-	asserta(SIZE(Sizes) == SFCount);
-	vector<uint> Order(SFCount);
-	QuickSortOrderDesc(Sizes.data(), SFCount, Order.data());
-	Log("%u fams\n", SFCount);
-	for (uint k = 0; k < SFCount; ++k)
-		{
-		uint SFIdx = Order[k];
-		uint Size = Sizes[SFIdx];
-		Log("[%5u]  %s\n", Size, m_SFs[SFIdx].c_str());
-		}
 	}
 
 void SCOP40Bench::ROCToTsv(const string &FileName, float MaxFPR)
@@ -741,37 +621,6 @@ void cmd_scop40bit_roce()
 
 	SB.EvalEval();
 	SB.WriteBit(opt_output);
-	}
-
-void cmd_scop40bit_roc()
-	{
-	asserta(optset_input);
-	SCOP40Bench SB;
-	asserta(optset_benchmode);
-	SB.m_Mode = string(opt_benchmode);
-	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	SB.BuildDomSFIndexesFromQueryChainLabels();
-	SB.SetSFSizes();
-	//asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
-	float MaxFPR = 0.01f;
-	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
-	SB.SetStats(MaxFPR);
-	SB.WriteOutputFiles();
-	double FoundFract1 = double(SB.m_DomsWithHomologAndTP1Count)/
-	  SB.m_DomsWithHomologCount;
-
-	uint nt_firstfp = SB.m_nt_firstfp;
-	uint nt_epq1 = SB.m_nt_epq1;
-	float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-	float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-	ProgressLog("SEPQ1=%.4f", SensEPQ1);
-	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" FF1=%.4f", FoundFract1);
-	ProgressLog("\n");
 	}
 
 float SCOP40Bench::GetEPQAtEvalueThreshold(const vector<float> &Evalues,
@@ -899,4 +748,106 @@ void cmd_scop40bit_scoredist()
 	SB.SetTFs();
 	SB.SetScoreOrder();
 	SB.ScoreDist(opt_scoredist);
+	}
+
+void cmd_scop40bench_tsv()
+	{
+	asserta(optset_lookup);
+	SCOP40Bench SB;
+	SB.ReadLookup(opt_lookup);
+	SB.ReadHits(g_Arg1);
+	float MaxFPR = 0.01f;
+	if (optset_maxfpr)
+		MaxFPR = (float) opt_maxfpr;
+
+	string Stem;
+	GetStemName(g_Arg1, Stem);
+
+	if (optset_benchmode)
+		{
+		SB.m_Mode = opt_benchmode;
+		SB.SetStats(MaxFPR);
+		SB.WriteOutputFiles();
+		uint nt_firstfp = SB.m_nt_firstfp;
+		uint nt_epq1 = SB.m_nt_epq1;
+		float SensFirstFP = float(nt_firstfp)/SB.m_NT;
+		float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+		ProgressLog("SEPQ1=%.4f", SensEPQ1);
+		ProgressLog(" S1FP=%.4f", SensFirstFP);
+		ProgressLog(" mode=%s", SB.m_Mode.c_str());
+		ProgressLog(" name=%s", Stem.c_str());
+		ProgressLog("\n");
+		}
+	else
+		{
+		vector<string> Modes;
+		Modes.push_back("sf");
+		Modes.push_back("ignore");
+		Modes.push_back("fold");
+		for (uint Modei = 0; Modei < 3; ++Modei)
+			{
+			SB.m_Mode = Modes[Modei];
+			SB.SetStats(MaxFPR);
+			uint nt_firstfp = SB.m_nt_firstfp;
+			uint nt_epq1 = SB.m_nt_epq1;
+			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
+			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+			ProgressLog("SEPQ1=%.4f", SensEPQ1);
+			ProgressLog(" S1FP=%.4f", SensFirstFP);
+			ProgressLog(" mode=%s", SB.m_Mode.c_str());
+			ProgressLog(" name=%s", Stem.c_str());
+			ProgressLog("\n");
+			}
+		}
+	}
+
+void cmd_scop40bit_roc()
+	{
+	asserta(optset_lookup);
+	SCOP40Bench SB;
+	SB.ReadBit(g_Arg1);
+	SB.ReadLookup(opt_lookup);
+	float MaxFPR = 0.01f;
+	if (optset_maxfpr)
+		MaxFPR = (float) opt_maxfpr;
+
+	string Stem;
+	GetStemName(g_Arg1, Stem);
+
+	if (optset_benchmode)
+		{
+		SB.m_Mode = opt_benchmode;
+		SB.SetStats(MaxFPR);
+		SB.WriteOutputFiles();
+		uint nt_firstfp = SB.m_nt_firstfp;
+		uint nt_epq1 = SB.m_nt_epq1;
+		float SensFirstFP = float(nt_firstfp)/SB.m_NT;
+		float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+		ProgressLog("SEPQ1=%.4f", SensEPQ1);
+		ProgressLog(" S1FP=%.4f", SensFirstFP);
+		ProgressLog(" mode=%s", SB.m_Mode.c_str());
+		ProgressLog(" name=%s", Stem.c_str());
+		ProgressLog("\n");
+		}
+	else
+		{
+		vector<string> Modes;
+		Modes.push_back("sf");
+		Modes.push_back("ignore");
+		Modes.push_back("fold");
+		for (uint Modei = 0; Modei < 3; ++Modei)
+			{
+			SB.m_Mode = Modes[Modei];
+			SB.SetStats(MaxFPR);
+			uint nt_firstfp = SB.m_nt_firstfp;
+			uint nt_epq1 = SB.m_nt_epq1;
+			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
+			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
+			ProgressLog("SEPQ1=%.4f", SensEPQ1);
+			ProgressLog(" S1FP=%.4f", SensFirstFP);
+			ProgressLog(" mode=%s", SB.m_Mode.c_str());
+			ProgressLog(" name=%s", Stem.c_str());
+			ProgressLog("\n");
+			}
+		}
 	}

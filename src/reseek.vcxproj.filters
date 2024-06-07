@@ -281,6 +281,9 @@
     <ClCompile Include="calibrate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="readhits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

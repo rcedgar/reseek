@@ -30,11 +30,12 @@ void cmd_scalar_sweep()
 		uint Sens = SB.GetSens1stFP();
 
 		char tofg = tof(opt_dpgaps);
-		const char *bn = BaseName(CalFN.c_str());
+		string Stem;
+		GetStemName(CalFN, Stem);
 		uint HitCount = SB.GetHitCount();
-		ProgressLog("%s=%.3g\t%u\t%s\n", opt_param, Value, Sens, bn);
+		ProgressLog("%s=%.3g\t%u\t%s\n", opt_param, Value, Sens, Stem.c_str());
 		if (ftsv != 0)
-			fprintf(ftsv, "%u\t%s\t%.4g\t%s\n", Sens, opt_param, Value, bn);
+			fprintf(ftsv, "%u\t%s\t%.4g\t%s\n", Sens, opt_param, Value, Stem.c_str());
 		}
 	CloseStdioFile(ftsv);
 	}
