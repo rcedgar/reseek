@@ -15,15 +15,15 @@ public:
 	vector<string> m_Doms;
 	map<string, uint> m_DomToIdx;
 
-	vector<string> m_Fams;
-	map<string, uint> m_FamToIdx;
+	vector<string> m_SFs;
+	map<string, uint> m_SFToIdx;
 
 	vector<string> m_Folds;
 	map<string, uint> m_FoldToIdx;
 
 // Per-chain vectors [ChainIdx]
 	vector<uint> m_DomIdxs;
-	vector<uint> m_DomIdxToFamIdx;
+	vector<uint> m_DomIdxToSFIdx;
 	vector<uint> m_DomIdxToFoldIdx;
 
 	bool m_ScoresAreEvalues = opt_scores_are_evalues;
@@ -43,8 +43,8 @@ public:
 	vector<uint> m_DomIdxToL;
 	vector<uint> m_DomIdxToSens1FP;
 	vector<uint> m_DomIdxToTP1Count;
-	vector<vector<uint> > m_FamIdxToDomIdxs;
-	vector<uint> m_FamSizes;
+	vector<vector<uint> > m_SFIdxToDomIdxs;
+	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
 	vector<int> m_TFs;
 
@@ -81,20 +81,19 @@ public:
 	bool ScoreIsBetter(float Score1, float Score2) const;
 	bool HitIsBetter(uint HitIdx1, uint HitIdx2) const;
 	uint GetHitCount() const { return SIZE(m_Scores); }
-	uint GetDomCount() const { return SIZE(m_DomIdxToFamIdx); }
-	uint GetFamCount() const { return SIZE(m_Fams); }
+	uint GetDomCount() const { return SIZE(m_DomIdxToSFIdx); }
+	uint GetSFCount() const { return SIZE(m_SFs); }
 	uint GetFoldCount() const { return SIZE(m_Folds); }
 	//void ReadChains(const string &CalFileName);
 	virtual void OnSetup();
-	void BuildDomFamIndexesFromQueryChainLabels();
-	uint GetDomIdx(const string &Dom_or_DomFam,
-	  bool FailOnErr = true) const;
+	void BuildDomSFIndexesFromQueryChainLabels();
+	uint GetDomIdx(const string &Dom_or_DomSlashId, bool FailOnErr = true) const;
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
 	const vector<vector<byte> > &GetProfileByDomIdx(uint DomIdx) const;
 
 	void ScanDomHits();
 	void SetDomIdxToHitIdxs();
-	void SetFamIdxToDomIdxs();
+	void SetSFIdxToDomIdxs();
 	void SetDomIdxToL();
 	uint GetSens1stFP();
 	void GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2);
@@ -103,20 +102,20 @@ public:
 	void WriteBit(const string &FileName) const;
 	void ReadBit(const string &FileName);
 	int IsT(uint DomIdx1, uint DomIdx2) const;
-	void GetFamSizes(vector<uint> &FamSizes) const;
-	void GetFoldSizes(vector<uint> &FamSizes) const;
-	void SetFamSizes();
+	void GetSFSizes(vector<uint> &SFSizes) const;
+	void GetFoldSizes(vector<uint> &SFSizes) const;
+	void SetSFSizes();
 	void SetFoldSizes();
-	uint GetFamSize(uint FamIdx) const;
+	uint GetSFSize(uint SFIdx) const;
 	uint GetFoldSize(uint FoldIdx) const;
 	void LoadLabels(const string &FileName);
 	void LoadHitsFromTsv(const string &FileName);
-	void LogFams() const;
-	void FamReport(const string &FileName);
+	void LogSFs() const;
+	void SFReport(const string &FileName);
 	void DomReport(const string &FileName);
-	void GetFamStats(uint FamIdx, uint &HitIdx1stFP,
+	void GetSFStats(uint SFIdx, uint &HitIdx1stFP,
 	  uint &TPsAtScore1stFP) const;
-	float GetMeanLength(uint FamIdx) const;
+	float GetMeanLength(uint SFIdx) const;
 	void StoreScore(uint ChainIdx, uint ChainIdx2, float Score12);
 
 // ROC analysis
@@ -151,11 +150,10 @@ public:
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteOutputFiles();
+
+public:
+	static void ParseScopLabel(const string &Label, string &Dom,
+	  string &Cls, string &Fold, string &SF, string &Fmy,
+	  bool MissingOk = false);
+	static void GetDomFromLabel(const string &Label, string &Dom);
 	};
-
-void GetDomFamFromDomSlashFam(const string &Label,
- string &Dom, string &Fam);
-void GetDomFamFoldFromDomSlashFam(const string &Label,
- string &Dom, string &Fam, string &Fold);
-
-void GetScopDomFromLabel(const string &Label, string &Dom);

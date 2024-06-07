@@ -167,12 +167,6 @@
     <ClCompile Include="scop40benchroc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="famreport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="domreport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="kmer_eval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

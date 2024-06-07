@@ -1,8 +1,7 @@
 #include "myutils.h"
 #include "trainer.h"
+#include "scop40bench.h"
 #include "alpha.h"
-
-void GetScopDomFromLabel(const string &Label, string &Dom);
 
 void Trainer::Init(
   const string &PairAlnFN,
@@ -23,7 +22,7 @@ void Trainer::Init(
 		{
 		const string &Label = m_Chains[ChainIndex]->m_Label;
 		string Dom;
-		GetScopDomFromLabel(Label, Dom);
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
 		m_DomToChainIndex[Dom] = ChainIndex;
 		}
 
@@ -37,8 +36,8 @@ void Trainer::Init(
 		const string &RLabel = m_PairAlnDB.GetLabel(2*PairIndex+1);
 		string QDom;
 		string RDom;
-		GetScopDomFromLabel(QLabel, QDom);
-		GetScopDomFromLabel(RLabel, RDom);
+		SCOP40Bench::GetDomFromLabel(QLabel, QDom);
+		SCOP40Bench::GetDomFromLabel(RLabel, RDom);
 		uint QChainIndex = m_DomToChainIndex[QDom];
 		uint RChainIndex = m_DomToChainIndex[RDom];
 		m_ChainIdxsQ.push_back(QChainIndex);

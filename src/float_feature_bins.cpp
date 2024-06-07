@@ -4,8 +4,7 @@
 #include "alpha.h"
 #include "dss.h"
 #include "logodds.h"
-
-void GetScopDomFromLabel(const string &Label, string &Dom);
+#include "scop40bench.h"
 
 static uint g_FeatureIndex = UINT_MAX;
 
@@ -82,7 +81,7 @@ void cmd_float_feature_bins()
 		{
 		const string &Label = Chains[ChainIndex]->m_Label;
 		string Dom;
-		GetScopDomFromLabel(Label, Dom);
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
 		DomToChainIndex[Dom] = ChainIndex;
 		}
 
@@ -106,7 +105,7 @@ void cmd_float_feature_bins()
 		const string &QDom = Fields[0];
 
 		string RDom;
-		GetScopDomFromLabel(RLabel, RDom);
+		SCOP40Bench::GetDomFromLabel(RLabel, RDom);
 		uint QChainIndex = DomToChainIndex[QDom];
 		uint RChainIndex = DomToChainIndex[RDom];
 		const PDBChain &QChain = *Chains[QChainIndex];

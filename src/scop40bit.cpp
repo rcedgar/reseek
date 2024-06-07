@@ -61,7 +61,7 @@ void cmd_scop40bit()
 	asserta(optset_benchmode);
 	SB.m_Mode = string(opt_benchmode);
 	SB.ReadChains(opt_input);
-	SB.BuildDomFamIndexesFromQueryChainLabels();
+	SB.BuildDomSFIndexesFromQueryChainLabels();
 	SB.ReadHits_Tsv(Algo);
 	SB.WriteBit(opt_output);
 	}

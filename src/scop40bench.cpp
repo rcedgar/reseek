@@ -10,106 +10,68 @@
 #include <thread>
 #include <set>
 
-void GetDomFamFromDomSlashFam(const string &Label,
- string &Dom, string &Fam);
-void GetDomFamFoldFromDomSlashFam(const string &Label,
- string &Dom, string &Fam, string &Fold);
-bool LabelHasScopClass(const string &Label, const string &SC);
-double GetDALIScore_Path(const PDBChain& Q, const PDBChain& T,
-	const string& Path, uint LoQ, uint LoT);
 uint GetMatchColCount(const string &Path);
-
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
-void GetDomFamFoldFromDomSlashFam(const string &Label,
- string &Dom, string &Fam, string &Fold)
+
+void SCOP40Bench::GetDomFromLabel(const string &Label, string &Dom)
 	{
 	vector<string> Fields;
 	Split(Label, Fields, '/');
-	if (SIZE(Fields) == 2)
+	Dom = Fields[0];
+	}
+
+void SCOP40Bench::ParseScopLabel(const string &Label, string &Dom,
+ string &Cls, string &Fold, string &SF, string &Fmy, bool MissingOk)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	if (SIZE(Fields) == 1)
 		{
+		if (!MissingOk)
+			Die("ParseScopLabel, SCOP id missing >%s\n", Label.c_str());
 		Dom = Fields[0];
-		Fam = Fields[1];
-		Split(Fam, Fields, '.');
-		asserta(SIZE(Fields) == 4);
-		Fold = Fields[0] + '.' + Fields[1] + '.' + Fields[2];
-		}
-	else
-		{
-		Dom = Label;
-		Fam = "-";
+		Cls = "-";
 		Fold = "-";
+		SF = "-";
+		Fmy = "-";
 		}
-	}
-
-void GetDomFamFromDomSlashFam(const string &Label,
- string &Dom, string &Fam)
-	{
-	vector<string> Fields;
-	Split(Label, Fields, '/');
-	if (SIZE(Fields) == 2)
+	else if (SIZE(Fields) == 2)
 		{
 		Dom = Fields[0];
-		Fam = Fields[1];
+		const string &ScopId = Fields[1];
+	// Scop identifier looks like a.1.2.3 
+	//     a    1           2      3
+	// class.fold.superfamily.family
+		vector<string> Fields2;
+		Split(ScopId, Fields2, '.');
+		if (SIZE(Fields2) != 4)
+			Die("ParseScopLabel, bad SCOP id >%s\n", Label.c_str());
+		Cls = Fields2[0];
+		Fold = Fields2[0] + "." + Fields2[1];
+		SF = Fields2[0] + "." + Fields2[1] + "." + Fields2[2];
+		Fmy = Fields2[0] + "." + Fields2[1] + "." +  Fields2[2] + "." + Fields2[3];
 		}
 	else
-		{
-		Dom = Label;
-		Fam = "-";
-		}
+		Die("ParseScopLabel, bad format >%s\n", Label.c_str());
 	}
 
-void GetDomFromDomSlashFam(const string &Label, string &Dom)
+void SCOP40Bench::SetSFSizes()
 	{
-	vector<string> Fields;
-	Split(Label, Fields, '/');
-	//asserta(SIZE(Fields) == 2);
-	Dom = Fields[0];
+	GetSFSizes(m_SFSizes);
 	}
 
-bool LabelHasScopClass(const string &Label, const string &SC)
-	{
-	if (SC == "ab" || SC == "a")
-		return (strstr(Label.c_str(), "/a.") != 0);
-	else if (SC == "ab" || SC == "b")
-		return (strstr(Label.c_str(), "/b.") != 0);
-	else if (SC == "c")
-		return (strstr(Label.c_str(), "/c.") != 0);
-	else if (SC == "d")
-		return (strstr(Label.c_str(), "/d.") != 0);
-	Die("Invalid SCOP class '%s'", SC.c_str());
-	return false;
-	}
-
-void GetScopDomFromLabel(const string &Label, string &Dom)
-	{
-	vector<string> Fields;
-	Split(Label, Fields, '/');
-	asserta(SIZE(Fields) >= 2);
-	Dom = Fields[0];
-	}
-
-void SCOP40Bench::SetFamSizes()
-	{
-	GetFamSizes(m_FamSizes);
-	}
-
-uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomFam,
+uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomSlashId,
   bool FailOnErr) const
 	{
-	string DomName;
-	if (Dom_or_DomFam.find('/') != string::npos)
-		{
-		string FamName;
-		GetDomFamFromDomSlashFam(Dom_or_DomFam, DomName, FamName);
-		}
-	else
-		DomName = Dom_or_DomFam;
-	map<string, uint>::const_iterator iter = m_DomToIdx.find(DomName);
+	vector<string> Fields;
+	Split(Dom_or_DomSlashId, Fields, '/');
+	const string &Dom = Fields[0];
+	map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
 	if (iter == m_DomToIdx.end())
 		{
 		if (FailOnErr)
-			Die("GetDomIdx(%s)", Dom_or_DomFam.c_str());
+			Die("GetDomIdx(%s)", Dom_or_DomSlashId.c_str());
 		return UINT_MAX;
 		}
 	uint DomIdx = iter->second;
@@ -153,11 +115,11 @@ void SCOP40Bench::OnSetup()
 	m_Mode = string(opt_benchmode);
 	asserta(m_Mode == "family" || m_Mode == "fold" || m_Mode == "ignore");
 	m_ScoresAreEvalues = true;
-	BuildDomFamIndexesFromQueryChainLabels();
-	SetFamSizes();
+	BuildDomSFIndexesFromQueryChainLabels();
+	SetSFSizes();
 	}
 
-void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
+void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 	{
 	m_DomIdxToChainIdx.clear();
 	m_DomIdxToChainIdx.resize(m_ChainCount, UINT_MAX);
@@ -167,19 +129,21 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 
 		string Dom;
-		string Fam;
+		string Cls;
+		string SF;
+		string Fmy;
 		string Fold;
-		GetDomFamFoldFromDomSlashFam(Chain.m_Label, Dom, Fam, Fold);
+		ParseScopLabel(Chain.m_Label, Dom, Cls, Fold, SF, Fmy);
 
-		uint FamIdx = UINT_MAX;
-		if (m_FamToIdx.find(Fam) == m_FamToIdx.end())
+		uint SFIdx = UINT_MAX;
+		if (m_SFToIdx.find(SF) == m_SFToIdx.end())
 			{
-			FamIdx = SIZE(m_Fams);
-			m_Fams.push_back(Fam);
-			m_FamToIdx[Fam] = FamIdx;
+			SFIdx = SIZE(m_SFs);
+			m_SFs.push_back(SF);
+			m_SFToIdx[SF] = SFIdx;
 			}
 		else
-			FamIdx = m_FamToIdx[Fam];
+			SFIdx = m_SFToIdx[SF];
 
 		uint FoldIdx = UINT_MAX;
 		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
@@ -198,9 +162,9 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 			DomIdx = m_DomToIdx[Dom];
 			}
 		DomIdx = SIZE(m_Doms);
-		m_Doms.push_back(Dom + "/" + Fam);
+		m_Doms.push_back(Dom + "/" + SF);
 		m_DomToIdx[Dom] = DomIdx;
-		m_DomIdxToFamIdx.push_back(FamIdx);
+		m_DomIdxToSFIdx.push_back(SFIdx);
 		m_DomIdxToFoldIdx.push_back(FoldIdx);
 
 		m_DomIdxs.push_back(DomIdx);
@@ -209,7 +173,7 @@ void SCOP40Bench::BuildDomFamIndexesFromQueryChainLabels()
 		}
 
 	asserta(SIZE(m_DomIdxs) == m_QueryChainCount);
-	asserta(SIZE(m_DomIdxToFamIdx) == m_QueryChainCount);
+	asserta(SIZE(m_DomIdxToSFIdx) == m_QueryChainCount);
 	asserta(SIZE(m_DomIdxToFoldIdx) == m_QueryChainCount);
 	}
 
@@ -260,16 +224,16 @@ void SCOP40Bench::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueBA);
 	}
 
-void SCOP40Bench::SetFamIdxToDomIdxs()
+void SCOP40Bench::SetSFIdxToDomIdxs()
 	{
-	uint FamCount = GetFamCount();
+	uint SFCount = GetSFCount();
 	uint DomCount = GetDomCount();
-	m_FamIdxToDomIdxs.clear();
-	m_FamIdxToDomIdxs.resize(FamCount);
+	m_SFIdxToDomIdxs.clear();
+	m_SFIdxToDomIdxs.resize(SFCount);
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
-		uint FamIdx = m_DomIdxToFamIdx[DomIdx];
-		m_FamIdxToDomIdxs[FamIdx].push_back(DomIdx);
+		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
+		m_SFIdxToDomIdxs[SFIdx].push_back(DomIdx);
 		}
 	}
 
@@ -334,10 +298,10 @@ bool SCOP40Bench::ScoreIsBetter(float Score1, float Score2) const
 		return Score1 > Score2;
 	}
 
-float SCOP40Bench::GetMeanLength(uint FamIdx) const
+float SCOP40Bench::GetMeanLength(uint SFIdx) const
 	{
 	float Sum = 0;
-	const vector<uint> &DomIdxs = m_FamIdxToDomIdxs[FamIdx];
+	const vector<uint> &DomIdxs = m_SFIdxToDomIdxs[SFIdx];
 	const uint N = SIZE(DomIdxs);
 	asserta(N > 0);
 	for (uint i = 0; i < N; ++i)
@@ -384,17 +348,17 @@ void SCOP40Bench::ScanDomHits()
 			continue;
 		float Score = m_Scores[HitIdx];
 		bool T = false;
-		uint Fam1 = m_DomIdxToFamIdx[Dom1];
-		uint Fam2 = m_DomIdxToFamIdx[Dom2];
+		uint SF1 = m_DomIdxToSFIdx[Dom1];
+		uint SF2 = m_DomIdxToSFIdx[Dom2];
 		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
 		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
 		if (m_Mode == "family")
-			T = (Fam1 == Fam2);
+			T = (SF1 == SF2);
 		else if (m_Mode == "fold")
 			T = (Fold1 == Fold2);
 		else if (m_Mode == "ignore")
 			{
-			if (Fold1 == Fold2 && Fam1 != Fam2)
+			if (Fold1 == Fold2 && SF1 != SF2)
 				{
 				++m_IgnoredHitCount;
 				continue;
@@ -427,18 +391,18 @@ void SCOP40Bench::ScanDomHits()
 		if (Dom1 == Dom2)
 			continue;
 		float Score = m_Scores[HitIdx];
-		uint Fam1 = m_DomIdxToFamIdx[Dom1];
-		uint Fam2 = m_DomIdxToFamIdx[Dom2];
+		uint SF1 = m_DomIdxToSFIdx[Dom1];
+		uint SF2 = m_DomIdxToSFIdx[Dom2];
 		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
 		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
 		bool T = false;
 		if (m_Mode == "family")
-			T = (Fam1 == Fam2);
+			T = (SF1 == SF2);
 		else if (m_Mode == "fold")
 			T = (Fold1 == Fold2);
 		else if (m_Mode == "ignore")
 			{
-			if (Fold1 == Fold2 && Fam1 != Fam2)
+			if (Fold1 == Fold2 && SF1 != SF2)
 				{
 				++m_IgnoredHitCount;
 				continue;
@@ -458,9 +422,9 @@ void SCOP40Bench::ScanDomHits()
 	m_DomsWithHomologCount = 0;
 	for (uint Dom = 0; Dom < DomCount; ++Dom)
 		{
-		uint Fam = m_DomIdxToFamIdx[Dom];
-		uint FamSize = m_FamSizes[Fam];
-		if (FamSize > 1)
+		uint SF = m_DomIdxToSFIdx[Dom];
+		uint SFSize = m_SFSizes[SF];
+		if (SFSize > 1)
 			{
 			++m_DomsWithHomologCount;
 			if (m_DomIdxToTP1Count[Dom] > 0)
@@ -482,9 +446,9 @@ void SCOP40Bench::GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2)
 		uint Dom1 = m_DomIdx1s[i];
 		uint Dom2 = m_DomIdx2s[i];
 		float Score = m_Scores[i];
-		uint Fam1 = m_DomIdxToFamIdx[Dom1];
-		uint Fam2 = m_DomIdxToFamIdx[Dom2];
-		if (Dom1 != Dom2 && Fam1 == Fam2)
+		uint SF1 = m_DomIdxToSFIdx[Dom1];
+		uint SF2 = m_DomIdxToSFIdx[Dom2];
+		if (Dom1 != Dom2 && SF1 == SF2)
 			{
 			Doms1.push_back(Dom1);
 			Doms2.push_back(Dom2);
@@ -516,18 +480,18 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	{
 	if (FileName == "")
 		return;
-	const uint DomCount = SIZE(m_DomIdxToFamIdx);
-	const uint FamCount = SIZE(m_Fams);
+	const uint DomCount = SIZE(m_DomIdxToSFIdx);
+	const uint SFCount = SIZE(m_SFs);
 	const uint HitCount = SIZE(m_DomIdx1s);
 	ProgressLog("Write %u doms (%u fams), %s hits to %s\n",
-	  DomCount, FamCount, IntToStr(HitCount), FileName.c_str());
+	  DomCount, SFCount, IntToStr(HitCount), FileName.c_str());
 	asserta(SIZE(m_DomIdx2s) == HitCount);
 	asserta(SIZE(m_Scores) == HitCount);
 
 	FILE *f = CreateStdioFile(FileName);
 	WriteStdioFile(f, &DomCount, sizeof(DomCount));
 	WriteStdioFile(f, &HitCount, sizeof(HitCount));
-	WriteStdioFile(f, m_DomIdxToFamIdx.data(), DomCount*sizeof(uint));
+	WriteStdioFile(f, m_DomIdxToSFIdx.data(), DomCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
@@ -572,8 +536,8 @@ void SCOP40Bench::ReadHits_Tsv_DSS()
 		asserta(SIZE(Fields) == 3);
 		string Dom1;
 		string Dom2;
-		GetDomFromDomSlashFam(Fields[1], Dom1);
-		GetDomFromDomSlashFam(Fields[2], Dom2);
+		GetDomFromLabel(Fields[1], Dom1);
+		GetDomFromLabel(Fields[2], Dom2);
 		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
 		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
 		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
@@ -634,8 +598,8 @@ void SCOP40Bench::ReadHits_Tsv(const string &Algo)
 		string Label1 = Fields[0];
 		string Label2 = Fields[1];
 		string Dom1, Dom2;
-		GetDomFromDomSlashFam(Label1, Dom1);
-		GetDomFromDomSlashFam(Label2, Dom2);
+		GetDomFromLabel(Label1, Dom1);
+		GetDomFromLabel(Label2, Dom2);
 
 		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
 		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);

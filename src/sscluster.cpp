@@ -5,9 +5,8 @@
 #include "dss.h"
 #include "logodds.h"
 #include "trainer.h"
+#include "scop40bench.h"
 #include "sort.h"
-
-void GetScopDomFromLabel(const string &Label, string &Dom);
 
 static vector<vector<double> > Means;
 static DSS g_DSSQ;
@@ -221,7 +220,7 @@ void cmd_sscluster()
 		const string &Label = Chain.m_Label;
 
 		string Dom;
-		GetScopDomFromLabel(Label, Dom);
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
 		DomToChainIndex[Dom] = ChainIndex;
 
 		string SS;

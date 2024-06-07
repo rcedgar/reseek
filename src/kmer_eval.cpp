@@ -299,7 +299,7 @@ void cmd_kmer_eval()
 		const string &Label = Chain.m_Label;
 		vector<string> Fields;
 		string Dom;
-		GetScopDomFromLabel(Label, Dom);
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
 		DomToChainIndex[Dom] = ChainIndex;
 
 		const uint QL = Chain.GetSeqLength();
@@ -353,11 +353,11 @@ void cmd_kmer_eval()
 
 		const string &LabelQ = Chains[ChainIndexQ]->m_Label;
 		const string &LabelR = Chains[ChainIndexR]->m_Label;
-		string DomQ, FamQ;
-		string DomR, FamR;
-		GetDomFamFromDomSlashFam(LabelQ, DomQ, FamQ);
-		GetDomFamFromDomSlashFam(LabelR, DomR, FamR);
-		if (FamQ == FamR)
+		string DomQ, ClsQ, FoldQ, SFQ, FmyQ;
+		string DomR, ClsR, FoldR, SFR, FmyR;
+		SCOP40Bench::ParseScopLabel(LabelQ, DomQ, ClsQ, FoldQ, SFQ, FmyQ);
+		SCOP40Bench::ParseScopLabel(LabelR, DomR, ClsR, FoldR, SFR, FmyR);
+		if (FmyQ == FmyR)
 			{
 			++Skips;
 			continue;
@@ -416,8 +416,8 @@ void cmd_kmer_eval()
 
 		string DomQ;
 		string DomR;
-		GetScopDomFromLabel(LabelQ, DomQ);
-		GetScopDomFromLabel(LabelR, DomR);
+		SCOP40Bench::GetDomFromLabel(LabelQ, DomQ);
+		SCOP40Bench::GetDomFromLabel(LabelR, DomR);
 		asserta(DomQ != DomR);
 
 		uint ChainIndexQ = DomToChainIndex[DomQ];

@@ -41,7 +41,7 @@ static double EvalFeature(
 		const string &Label = Chain.m_Label;
 		vector<string> Fields;
 		string Dom;
-		GetScopDomFromLabel(Label, Dom);
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
 		DomToChainIndex[Dom] = ChainIndex;
 
 		const uint QL = Chain.GetSeqLength();
@@ -74,7 +74,7 @@ static double EvalFeature(
 			continue;
 
 		string RDom;
-		GetScopDomFromLabel(RLabel, RDom);
+		SCOP40Bench::GetDomFromLabel(RLabel, RDom);
 		uint QChainIndex = DomToChainIndex[QDom];
 		uint RChainIndex = DomToChainIndex[RDom];
 		const PDBChain &QChain = *Chains[QChainIndex];

@@ -105,10 +105,10 @@ void SCOP40Bench::ScoreDist(const string &FileName)
 
 int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	{
-	assert(DomIdx1 < SIZE(m_DomIdxToFamIdx));
-	assert(DomIdx2 < SIZE(m_DomIdxToFamIdx));
-	uint FamIdx1 = m_DomIdxToFamIdx[DomIdx1];
-	uint FamIdx2 = m_DomIdxToFamIdx[DomIdx2];
+	assert(DomIdx1 < SIZE(m_DomIdxToSFIdx));
+	assert(DomIdx2 < SIZE(m_DomIdxToSFIdx));
+	uint SFIdx1 = m_DomIdxToSFIdx[DomIdx1];
+	uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
 
 	assert(DomIdx1 < SIZE(m_DomIdxToFoldIdx));
 	assert(DomIdx2 < SIZE(m_DomIdxToFoldIdx));
@@ -117,7 +117,7 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 
 	if (m_Mode == "family")
 		{
-		if (FamIdx1 == FamIdx2)
+		if (SFIdx1 == SFIdx2)
 			return 1;
 		else
 			return 0;
@@ -133,7 +133,7 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 		{
 		if (FoldIdx1 == FoldIdx2)
 			{
-			if (FamIdx1 == FamIdx2)
+			if (SFIdx1 == SFIdx2)
 				return 1;
 			else
 				return -1;
@@ -152,7 +152,7 @@ void SCOP40Bench::SetTFs()
 	m_TFs.reserve(HitCount);
 	SetNXs();
 	uint DomCount = SIZE(m_Doms);
-	uint FamCount = SIZE(m_Fams);
+	uint SFCount = SIZE(m_SFs);
 	for (uint i = 0; i < HitCount; ++i)
 		{
 		ProgressStep(i, HitCount, "Set TFs");
@@ -358,30 +358,30 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	NFPs.push_back(NFP);
 	}
 
-uint SCOP40Bench::GetFamSize(uint FamIdx) const
+uint SCOP40Bench::GetSFSize(uint SFIdx) const
 	{
 	uint Size = 0;
 	uint DomCount = GetDomCount();
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
-		uint FamIdx2 = m_DomIdxToFamIdx[DomIdx];
-		if (FamIdx2 == FamIdx)
+		uint SFIdx2 = m_DomIdxToSFIdx[DomIdx];
+		if (SFIdx2 == SFIdx)
 			++Size;
 		}
 	return Size;
 	}
 
-void SCOP40Bench::GetFamSizes(vector<uint> &FamSizes) const
+void SCOP40Bench::GetSFSizes(vector<uint> &SFSizes) const
 	{
-	FamSizes.clear();
-	uint FamCount = GetFamCount();
+	SFSizes.clear();
+	uint SFCount = GetSFCount();
 	uint DomCount = GetDomCount();
-	FamSizes.resize(FamCount, 0);
+	SFSizes.resize(SFCount, 0);
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
-		uint FamIdx = m_DomIdxToFamIdx[DomIdx];
-		assert(FamIdx < FamCount);
-		++FamSizes[FamIdx];
+		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
+		assert(SFIdx < SFCount);
+		++SFSizes[SFIdx];
 		}
 	}
 
@@ -418,7 +418,7 @@ void SCOP40Bench::SetNXs()
 
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
-		uint FamIdx = m_DomIdxToFamIdx[DomIdx];
+		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
 		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
 		const vector<uint> &FoldDoms = FoldToDoms[FoldIdx];
 		bool Found = false;
@@ -430,11 +430,11 @@ void SCOP40Bench::SetNXs()
 				Found = true;
 				continue;
 				}
-			uint FamIdx2 = m_DomIdxToFamIdx[DomIdx2];
+			uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
 			uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
 			if (m_Mode == "family")
 				{
-				if (FamIdx2 == FamIdx)
+				if (SFIdx2 == SFIdx)
 					++m_NT;
 				}
 			else if (m_Mode == "fold")
@@ -444,7 +444,7 @@ void SCOP40Bench::SetNXs()
 				}
 			else if (m_Mode == "ignore")
 				{
-				if (FamIdx2 == FamIdx)
+				if (SFIdx2 == SFIdx)
 					++m_NT;
 				else
 					++m_NI;
@@ -467,11 +467,11 @@ void SCOP40Bench::ReadBit(const string &FileName)
 	Progress("%s hits, %u doms %s\n",
 	  IntToStr(HitCount), DomCount, FileName.c_str());
 	uint32 FileSize = GetStdioFileSize32(f);
-	m_DomIdxToFamIdx.resize(DomCount, UINT_MAX);
+	m_DomIdxToSFIdx.resize(DomCount, UINT_MAX);
 	m_DomIdx1s.resize(HitCount, UINT_MAX);
 	m_DomIdx2s.resize(HitCount, UINT_MAX);
 	m_Scores.resize(HitCount, FLT_MAX);
-	ReadStdioFile(f, m_DomIdxToFamIdx.data(), DomCount*sizeof(uint));
+	ReadStdioFile(f, m_DomIdxToSFIdx.data(), DomCount*sizeof(uint));
 	ReadStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	ReadStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
 	ReadStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
@@ -481,10 +481,10 @@ void SCOP40Bench::ReadBit(const string &FileName)
 void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 	{
 	asserta(!m_Doms.empty());
-	asserta(!m_Fams.empty());
+	asserta(!m_SFs.empty());
 	asserta(!m_DomToIdx.empty());
-	asserta(!m_FamToIdx.empty());
-	asserta(!m_DomIdxToFamIdx.empty());
+	asserta(!m_SFToIdx.empty());
+	asserta(!m_DomIdxToSFIdx.empty());
 
 	uint ScoreFieldNr = (optset_scorefieldnr ? opt_scorefieldnr-1 : 2);
 
@@ -513,10 +513,16 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 		float Score = (float) StrToFloat(Fields[ScoreFieldNr]);
 		if (Label1.find('/') != string::npos)
 			{
-			string Fam1;
-			string Fam2;
-			GetDomFamFromDomSlashFam(Label1, Dom1, Fam1);
-			GetDomFamFromDomSlashFam(Label2, Dom2, Fam2);
+			string Cls1;
+			string Cls2;
+			string Fold1;
+			string Fold2;
+			string SF1;
+			string SF2;
+			string Fmy1;
+			string Fmy2;
+			ParseScopLabel(Label1, Dom1, Cls1, Fold1, SF1, Fmy1);
+			ParseScopLabel(Label2, Dom2, Cls2, Fold2, SF2, Fmy2);
 			}
 		else
 			{
@@ -544,11 +550,11 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 
 	m_Doms.clear();
 	m_DomToIdx.clear();
-	m_Fams.clear();
+	m_SFs.clear();
 	m_Folds.clear();
-	m_FamToIdx.clear();
+	m_SFToIdx.clear();
 	m_FoldToIdx.clear();
-	m_DomIdxToFamIdx.clear();
+	m_DomIdxToSFIdx.clear();
 	m_DomIdxToFoldIdx.clear();
 
 	vector<string> Labels;
@@ -558,20 +564,22 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 		{
 		const string &Label = Labels[Idx];
 
+		string Cls;
 		string Dom;
-		string Fam;
 		string Fold;
-		GetDomFamFoldFromDomSlashFam(Label, Dom, Fam, Fold);
+		string SF;
+		string Fmy;
+		ParseScopLabel(Label, Dom, Cls, Fold, SF, Fmy);
 
-		uint FamIdx = UINT_MAX;
-		if (m_FamToIdx.find(Fam) == m_FamToIdx.end())
+		uint SFIdx = UINT_MAX;
+		if (m_SFToIdx.find(SF) == m_SFToIdx.end())
 			{
-			FamIdx = SIZE(m_Fams);
-			m_Fams.push_back(Fam);
-			m_FamToIdx[Fam] = FamIdx;
+			SFIdx = SIZE(m_SFs);
+			m_SFs.push_back(SF);
+			m_SFToIdx[SF] = SFIdx;
 			}
 		else
-			FamIdx = m_FamToIdx[Fam];
+			SFIdx = m_SFToIdx[SF];
 
 		uint FoldIdx = UINT_MAX;
 		if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
@@ -587,9 +595,9 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 		if (m_DomToIdx.find(Dom) == m_DomToIdx.end())
 			{
 			DomIdx = SIZE(m_Doms);
-			m_Doms.push_back(Dom + "/" + Fam);
+			m_Doms.push_back(Dom + "/" + SF);
 			m_DomToIdx[Dom] = DomIdx;
-			m_DomIdxToFamIdx.push_back(FamIdx);
+			m_DomIdxToSFIdx.push_back(SFIdx);
 			}
 		else
 			DomIdx = m_DomToIdx[Dom];
@@ -598,20 +606,20 @@ void SCOP40Bench::LoadLabels(const string &FileName)
 		}
 	}
 
-void SCOP40Bench::LogFams() const
+void SCOP40Bench::LogSFs() const
 	{
-	const uint FamCount = GetFamCount();
+	const uint SFCount = GetSFCount();
 	vector<uint> Sizes;
-	GetFamSizes(Sizes);
-	asserta(SIZE(Sizes) == FamCount);
-	vector<uint> Order(FamCount);
-	QuickSortOrderDesc(Sizes.data(), FamCount, Order.data());
-	Log("%u fams\n", FamCount);
-	for (uint k = 0; k < FamCount; ++k)
+	GetSFSizes(Sizes);
+	asserta(SIZE(Sizes) == SFCount);
+	vector<uint> Order(SFCount);
+	QuickSortOrderDesc(Sizes.data(), SFCount, Order.data());
+	Log("%u fams\n", SFCount);
+	for (uint k = 0; k < SFCount; ++k)
 		{
-		uint FamIdx = Order[k];
-		uint Size = Sizes[FamIdx];
-		Log("[%5u]  %s\n", Size, m_Fams[FamIdx].c_str());
+		uint SFIdx = Order[k];
+		uint Size = Sizes[SFIdx];
+		Log("[%5u]  %s\n", Size, m_SFs[SFIdx].c_str());
 		}
 	}
 
@@ -697,10 +705,10 @@ void cmd_scop40bit2tsv()
 	asserta(g_ftsv != 0);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	uint Sens = SB.GetSens1stFP();
 	const uint HitCount = SB.GetHitCount();
 	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
@@ -720,10 +728,10 @@ void cmd_scop40bit_roce()
 	asserta(optset_input);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	SB.SetTFs();
 
 	SB.ScoresToEvalues();
@@ -742,12 +750,12 @@ void cmd_scop40bit_roc()
 	asserta(optset_benchmode);
 	SB.m_Mode = string(opt_benchmode);
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	SB.BuildDomFamIndexesFromQueryChainLabels();
-	SB.SetFamSizes();
-	//asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	SB.BuildDomSFIndexesFromQueryChainLabels();
+	SB.SetSFSizes();
+	//asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
@@ -820,10 +828,10 @@ void cmd_scop40bit_thresh()
 	asserta(optset_input);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	SB.SetTFs();
 	const uint HitCount = SB.GetHitCount();
 	uint NT = 0;
@@ -851,12 +859,12 @@ void cmd_scop40bit_thresh()
 
 		if (g_ftsv)
 			{
-			uint FamIdx1 = SB.m_DomIdxToFamIdx[DomIdx1];
-			uint FamIdx2 = SB.m_DomIdxToFamIdx[DomIdx2];
-			const string &Fam1 = SB.m_Fams[FamIdx1];
-			const string &Fam2 = SB.m_Fams[FamIdx2];
-			fprintf(g_ftsv, "%s/%s", SB.m_Doms[DomIdx1].c_str(), Fam1.c_str());
-			fprintf(g_ftsv, "\t%s/%s", SB.m_Doms[DomIdx2].c_str(), Fam2.c_str());
+			uint SFIdx1 = SB.m_DomIdxToSFIdx[DomIdx1];
+			uint SFIdx2 = SB.m_DomIdxToSFIdx[DomIdx2];
+			const string &SF1 = SB.m_SFs[SFIdx1];
+			const string &SF2 = SB.m_SFs[SFIdx2];
+			fprintf(g_ftsv, "%s/%s", SB.m_Doms[DomIdx1].c_str(), SF1.c_str());
+			fprintf(g_ftsv, "\t%s/%s", SB.m_Doms[DomIdx2].c_str(), SF2.c_str());
 			fprintf(g_ftsv, "\t%.6g", Score);
 			fprintf(g_ftsv, "\n");
 			}
@@ -871,10 +879,10 @@ void cmd_scop40bit_evaleval()
 	asserta(optset_input);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	SB.SetTFs();
 	SB.EvalEval();
 	}
@@ -884,10 +892,10 @@ void cmd_scop40bit_scoredist()
 	asserta(optset_input);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToFamIdx = SB.m_DomIdxToFamIdx;
-	SB.m_DomIdxToFamIdx.clear();
+	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
+	SB.m_DomIdxToSFIdx.clear();
 	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToFamIdx == SavedDomIdxToFamIdx);
+	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
 	SB.SetTFs();
 	SB.SetScoreOrder();
 	SB.ScoreDist(opt_scoredist);
