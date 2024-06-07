@@ -12,6 +12,7 @@ static inline double fast_erf(double x)
     double t = 1.0 / (1.0 + p * abs(x));
     double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x*x);
 
-    asserta(y > 0.0 && y < 1.0);
+    if (y < 0.0 || y > 1.0)
+		Die("fast_erf(%.8g) y=%.8g", x, y);
     return (x < 0.0 ? -y : y);
 	}

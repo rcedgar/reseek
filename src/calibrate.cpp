@@ -5,7 +5,7 @@
 #include "xdpmem.h"
 #include "cigar.h"
 #include "binner.h"
-#include "fasterf.h"
+#include "fast_erf.h"
 #include <thread>
 #include <cmath>
 #include "timing.h"
@@ -72,9 +72,8 @@ void CalibrateSearcher::SetAllAccum()
 	m_AllAccum.resize(NBINS, UINT_MAX);
 	asserta(SIZE(m_AllBins) == NBINS);
 	uint32_t Sum = 0;
-	for (uint i = 0; i < NBINS; ++i)
+	for (uint Bin = 0; Bin < NBINS; ++Bin)
 		{
-		uint Bin = NBINS - i - 1;
 		Sum += m_AllBins[Bin];
 		m_AllAccum[Bin] = Sum;
 		}
@@ -209,9 +208,8 @@ void CalibrateSearcher::LogAllBins() const
 	{
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
 	Log("TS\tMid\tN\tAN\tP\n");
-	for (uint32_t i = 0; i < NBINS; ++i)
+	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
-		uint Bin = NBINS - i - 1;
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
 		asserta(m_AllBins[Bin] == n);
 		uint32_t an = m_AllAccum[Bin];
