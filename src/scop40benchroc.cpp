@@ -24,31 +24,15 @@ FPR
 
 ***/
 
-void SCOP40Bench::ScoresToEvalues()
-	{
-// slope -7.313169328241681 intercept 6.098028716536934
-	const float Slope = -7.3f;
-	const float Intercept = 6.1f;
-	const uint HitCount = GetHitCount();
-	uint DBSize = 9354;
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		float Score = m_Scores[HitIdx];
-		float logNF = Slope*Score + Intercept;
-		float NF = powf(10, logNF);
-		float EPQ = NF/DBSize;
-		m_Scores[HitIdx] = EPQ;
-		}
-	}
-
 uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
   const vector<uint> &NFPs, float EPQThreshold) const
 	{
 	uint ntp = 0;
+	uint QueryCount = SIZE(m_Doms);
 	const uint N = SIZE(NTPs);
 	for (uint Idx = 0; Idx < N; ++Idx)
 		{
-		float EPQ = float(NFPs[Idx])/m_ChainCount;
+		float EPQ = float(NFPs[Idx])/QueryCount;
 		if (Idx > 0)
 			ntp = NTPs[Idx];
 		if (EPQ >= EPQThreshold)
@@ -185,7 +169,7 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 	asserta(SIZE(FPRs) == N);
 	asserta(SIZE(NTPs) == N);
 	asserta(SIZE(NFPs) == N);
-	float DBSize = (float) GetChainCount();
+	float DBSize = (float) SIZE(m_Doms);
 
 	FILE *f = CreateStdioFile(FileName);
 	fprintf(f, "Score\tNTP\tNFP\tTPR\tFPR\tTPQ\tEPQ\n");
@@ -201,7 +185,7 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 
 // Project onto common X axis (Sensitivity=TPR) 
 //  with N+1 ticks
-void SCOP40Bench::EPQToTsvX(FILE *f, uint N)
+void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 	{
 	if (f == 0)
 		return;
@@ -214,7 +198,7 @@ void SCOP40Bench::EPQToTsvX(FILE *f, uint N)
 	vector<uint> NTPs;
 	vector<uint> NFPs;
 	GetROCSteps(Scores, NTPs, NFPs);
-	uint DBSize = GetChainCount();
+	uint DBSize = SIZE(m_Doms);
 	const uint NS = SIZE(Scores);
 	for (uint i = 0; i < NS; ++i)
 		{
@@ -241,10 +225,11 @@ void SCOP40Bench::EPQToTsvX(FILE *f, uint N)
 			BinScores[Bin] = Score;
 			}
 		}
-	fprintf(f, "Bin\tScore\tSens=TPR\tEPQ\n");
+	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{
-		fprintf(f, "%u", Bin);
+		fprintf(f, "%s", m_Mode.c_str());
+		fprintf(f, "\t%u", Bin);
 		fprintf(f, "\t%.3g", BinScores[Bin]);
 		fprintf(f, "\t%.3f", Bin*SensStep);
 		fprintf(f, "\t%.3g", EPQs[Bin]);
@@ -556,7 +541,7 @@ void SCOP40Bench::EvalEval()
 		}
 
 	uint NF = 0;
-	uint DBSize = GetChainCount();
+	uint DBSize = SIZE(m_Doms);
 	if (g_ftsv != 0)
 		fprintf(g_ftsv, "N\tNF\tEPQ\tlog10(EPQ)\tlog10(E)\n");
 	for (int i = 0; i < MMM; ++i)
@@ -603,30 +588,10 @@ void cmd_scop40bit2tsv()
 		}
 	}
 
-void cmd_scop40bit_roce()
-	{
-	asserta(optset_input);
-	SCOP40Bench SB;
-	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
-	SB.SetTFs();
-
-	SB.ScoresToEvalues();
-	SB.m_ScoresAreEvalues = true;
-	opt_scores_are_evalues = true;
-	optset_scores_are_evalues = true;
-
-	SB.EvalEval();
-	SB.WriteBit(opt_output);
-	}
-
 float SCOP40Bench::GetEPQAtEvalueThreshold(const vector<float> &Evalues,
   const vector<uint> &NFPs, float Evalue) const
 	{
-	float DBSize = (float) GetChainCount();
+	float QueryCount = (float) SIZE(m_Doms);
 	const uint N = SIZE(Evalues);
 	asserta(SIZE(NFPs) == N);
 	for (uint i = 0; i < N; ++i)
@@ -634,18 +599,18 @@ float SCOP40Bench::GetEPQAtEvalueThreshold(const vector<float> &Evalues,
 		if (Evalues[i] >= Evalue)
 			{
 			uint NFP = NFPs[i];
-			float EPQ = NFP/DBSize;
+			float EPQ = NFP/QueryCount;
 			return EPQ;
 			}
 		}
-	float EPQ = m_NF/DBSize;
+	float EPQ = m_NF/QueryCount;
 	return EPQ;
 	}
 
 float SCOP40Bench::GetEvalueAtEPQThreshold(const vector<float> &Evalues,
   const vector<uint> &NFPs, float EPQ) const
 	{
-	float DBSize = (float) GetChainCount();
+	float DBSize = (float) SIZE(m_Doms);
 	const uint N = SIZE(Evalues);
 	asserta(SIZE(NFPs) == N);
 	for (uint i = 0; i < N; ++i)
@@ -662,7 +627,6 @@ void cmd_scop40tsv2bit()
 	{
 	SCOP40Bench SB;
 	asserta(optset_input);
-	//SB.LoadLabels(opt_labels);
 	SB.ReadChains(opt_input);
 	SB.LoadHitsFromTsv(g_Arg1);
 	SB.WriteBit(opt_output);
@@ -768,15 +732,7 @@ void cmd_scop40bench_tsv()
 		SB.m_Mode = opt_benchmode;
 		SB.SetStats(MaxFPR);
 		SB.WriteOutputFiles();
-		uint nt_firstfp = SB.m_nt_firstfp;
-		uint nt_epq1 = SB.m_nt_epq1;
-		float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-		float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-		ProgressLog("SEPQ1=%.4f", SensEPQ1);
-		ProgressLog(" S1FP=%.4f", SensFirstFP);
-		ProgressLog(" mode=%s", SB.m_Mode.c_str());
-		ProgressLog(" name=%s", Stem.c_str());
-		ProgressLog("\n");
+		SB.WriteSummary();
 		}
 	else
 		{
@@ -788,15 +744,7 @@ void cmd_scop40bench_tsv()
 			{
 			SB.m_Mode = Modes[Modei];
 			SB.SetStats(MaxFPR);
-			uint nt_firstfp = SB.m_nt_firstfp;
-			uint nt_epq1 = SB.m_nt_epq1;
-			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-			ProgressLog("SEPQ1=%.4f", SensEPQ1);
-			ProgressLog(" S1FP=%.4f", SensFirstFP);
-			ProgressLog(" mode=%s", SB.m_Mode.c_str());
-			ProgressLog(" name=%s", Stem.c_str());
-			ProgressLog("\n");
+			SB.WriteSummary();
 			}
 		}
 	}
@@ -819,15 +767,7 @@ void cmd_scop40bit_roc()
 		SB.m_Mode = opt_benchmode;
 		SB.SetStats(MaxFPR);
 		SB.WriteOutputFiles();
-		uint nt_firstfp = SB.m_nt_firstfp;
-		uint nt_epq1 = SB.m_nt_epq1;
-		float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-		float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-		ProgressLog("SEPQ1=%.4f", SensEPQ1);
-		ProgressLog(" S1FP=%.4f", SensFirstFP);
-		ProgressLog(" mode=%s", SB.m_Mode.c_str());
-		ProgressLog(" name=%s", Stem.c_str());
-		ProgressLog("\n");
+		SB.WriteSummary();
 		}
 	else
 		{
@@ -839,15 +779,7 @@ void cmd_scop40bit_roc()
 			{
 			SB.m_Mode = Modes[Modei];
 			SB.SetStats(MaxFPR);
-			uint nt_firstfp = SB.m_nt_firstfp;
-			uint nt_epq1 = SB.m_nt_epq1;
-			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-			ProgressLog("SEPQ1=%.4f", SensEPQ1);
-			ProgressLog(" S1FP=%.4f", SensFirstFP);
-			ProgressLog(" mode=%s", SB.m_Mode.c_str());
-			ProgressLog(" name=%s", Stem.c_str());
-			ProgressLog("\n");
+			SB.WriteSummary();
 			}
 		}
 	}

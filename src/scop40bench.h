@@ -119,7 +119,7 @@ public:
 	  vector<float> &STPRs, vector<float> &SFPRs) const;
 	void GetROCSteps(vector<float> &ScoreSteps,
 	   vector<uint> &NTPs, vector<uint> &NFPs);
-	void EPQToTsvX(FILE *f, uint N);
+	void WriteSensVsErr(FILE *f, uint N);
 	void ROCToTsv(const string &FileName, float MaxFPR);
 	uint GetNTPAtEPQThreshold(const vector<uint> &NTPs,
 	  const vector<uint> &NFPs, float EPQ) const;
@@ -135,7 +135,6 @@ public:
 	   vector<float> &TPRs, vector<float> &FPRs) const;
 	void EvalEval();
 	void ScoreDist(const string &FileName);
-	void ScoresToEvalues();
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteOutputFiles();

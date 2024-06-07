@@ -52,9 +52,21 @@ d12asa_ d1nnha_ 0.7510 0.8309
 
 void SCOP40Bench::ReadHits(const string &FN)
 	{
+	uint QueryFieldNr = 0;
+	uint TargetFieldNr = 1;
 	uint ScoreFieldNr = 2;
 	if (FN.find("foldseek") != string::npos || FN.find("blastp") != string::npos)
+		{
+		m_ScoresAreEvalues = true;
 		ScoreFieldNr = 10;
+		}
+	else if (FN.find("reseek") != string::npos)
+		{
+		ScoreFieldNr = 0;
+		QueryFieldNr = 1;
+		TargetFieldNr = 2;
+		m_ScoresAreEvalues = true;
+		}
 
 	string Algo;
 	GetStemName(FN, Algo);
@@ -85,8 +97,8 @@ void SCOP40Bench::ReadHits(const string &FN)
 			++BadLineCount;
 			continue;
 			}
-		string Label1 = Fields[0];
-		string Label2 = Fields[1];
+		string Label1 = Fields[QueryFieldNr];
+		string Label2 = Fields[TargetFieldNr];
 		string Dom1, Dom2;
 		GetDomFromLabel(Label1, Dom1);
 		GetDomFromLabel(Label2, Dom2);

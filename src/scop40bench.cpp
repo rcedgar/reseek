@@ -537,11 +537,11 @@ void SCOP40Bench::WriteOutputFiles()
 	if (optset_scoredist)
 		ScoreDist(opt_scoredist);
 
-	if (optset_epqx)
+	if (optset_sens_vs_err)
 		{
-		ProgressLog("Writing %s\n", opt_epqx);
-		FILE *fRocx = CreateStdioFile(opt_epqx);
-		EPQToTsvX(fRocx, 100);
+		ProgressLog("Writing %s\n", opt_sens_vs_err);
+		FILE *fRocx = CreateStdioFile(opt_sens_vs_err);
+		WriteSensVsErr(fRocx, 100);
 		CloseStdioFile(fRocx);
 		}
 	if (optset_tps1fp)
@@ -640,7 +640,8 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" secs=%u", Secs);
+	if (Secs != UINT_MAX)
+		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" mode=%s\n", m_Mode.c_str());
 
 	if (DSSAligner::m_UFilterCount > 0)
@@ -704,15 +705,7 @@ void cmd_scop40bench()
 			{
 			SB.m_Mode = Modes[Modei];
 			SB.SetStats(MaxFPR);
-			uint nt_firstfp = SB.m_nt_firstfp;
-			uint nt_epq1 = SB.m_nt_epq1;
-			float SensFirstFP = float(nt_firstfp)/SB.m_NT;
-			float SensEPQ1 = float(nt_epq1)/SB.m_NT;
-			ProgressLog("SEPQ1=%.4f", SensEPQ1);
-			ProgressLog(" S1FP=%.4f", SensFirstFP);
-			ProgressLog(" mode=%s", SB.m_Mode.c_str());
-			ProgressLog(" name=%s", SB.m_Params->m_Desc.c_str());
-			ProgressLog("\n");
+			SB.WriteSummary();
 			}
 		}
 	}
