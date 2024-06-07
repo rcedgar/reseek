@@ -55,12 +55,15 @@ void SCOP40Bench::ReadHits(const string &FN)
 	uint QueryFieldNr = 0;
 	uint TargetFieldNr = 1;
 	uint ScoreFieldNr = 2;
-	if (FN.find("foldseek") != string::npos || FN.find("blastp") != string::npos)
+
+	string Stem;
+	GetStemName(FN, Stem);
+	if (Stem.find("foldseek") != string::npos || Stem.find("blastp") != string::npos)
 		{
 		m_ScoresAreEvalues = true;
 		ScoreFieldNr = 10;
 		}
-	else if (FN.find("reseek") != string::npos)
+	else if (Stem.find("fast") != string::npos || Stem.find("sensitive") != string::npos)
 		{
 		ScoreFieldNr = 0;
 		QueryFieldNr = 1;
