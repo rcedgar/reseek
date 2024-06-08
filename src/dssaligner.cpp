@@ -1010,6 +1010,7 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 		return;
 	if (m_EvalueBA > MaxEvalue)
 		return;
+#if 0
 	string CIGAR;
 	PathToCIGAR(m_PathAB.c_str(), CIGAR, true);
 	uint M, D, I;
@@ -1024,6 +1025,14 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	fprintf(f, "\t%u", m_LoA + M + D);
 	fprintf(f, "\t%s\n", CIGAR.c_str());
 	m_OutputLock.unlock();
+#else
+	m_OutputLock.lock();
+	fprintf(f, "%.3g", m_EvalueBA);
+	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
+	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
+	fprintf(f, "\n");
+	m_OutputLock.unlock();
+#endif
 	}
 
 float DSSAligner::AlignCombo(
