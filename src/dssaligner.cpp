@@ -664,7 +664,7 @@ bool DSSAligner::ComboFilter()
 
 bool DSSAligner::UFilter()
 	{
-	uint MinU = m_Params->m_MinU;
+	uint MinU = uint(round(m_Params->m_MinU));
 	if (MinU == 0)
 		return true;
 	uint U = GetUBits(*m_ComboKmerBitsA, *m_ComboKmerBitsB);
@@ -804,7 +804,7 @@ void DSSAligner::CalcEvalue()
 	uint M = GetMatchColCount(m_PathAB);
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
-	uint Lambda = m_Params->m_Lambda;
+	uint Lambda = uint(round(m_Params->m_Lambda));
 	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
 
 	if (StatTop < 0)

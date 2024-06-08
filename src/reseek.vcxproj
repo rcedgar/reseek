@@ -390,6 +390,7 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />

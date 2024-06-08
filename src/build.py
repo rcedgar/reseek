@@ -138,4 +138,4 @@ with open("Makefile", "w") as f:
 
 rc = os.system(r'git log --oneline | head -n 1 | sed "-es/^/\"/" | sed "-es/ .*/\"/" | tee gitver.txt')
 assert rc == 0
-rc = os.system("make")
+rc = os.system("make 2> make.stderr | tee make.stdout")

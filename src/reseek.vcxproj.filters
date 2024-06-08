@@ -478,5 +478,8 @@
     <ClInclude Include="fasterf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="scalarparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

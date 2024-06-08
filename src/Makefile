@@ -59,6 +59,7 @@ HDRS = \
   pathinfo.h \
   pdbchain.h \
   quarts.h \
+  scalarparams.h \
   scop40bench.h \
   seqdb.h \
   seqinfo.h \

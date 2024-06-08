@@ -13,7 +13,7 @@ void DBSearcher::USort(uint QueryChainIndex, vector<uint> &DBChainIndexes,
 	asserta(m_QueryChainCount + m_DBChainCount == m_ChainCount);
 	asserta(QueryChainIndex < m_QueryChainCount);
 
-	const uint MinU = m_Params->m_MinU;
+	const uint MinU = uint(round(m_Params->m_MinU));
 	const vector<uint> &QueryKmerBits = m_KmerBitsVec[QueryChainIndex];
 	vector<uint> Us;
 	uint DBSize = GetDBSize();

@@ -49,58 +49,26 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			else
 				Die("Must set exactly one of -veryfast -fast -sensitive -verysensitive");
 			}
-
-		if (opt_veryfast)
-			{
-			SetNamedParams("defaults");
-			m_Desc = "veryfast";
-			m_Omega = 7;
-			m_MinU = 3;
-			m_USort = true;
-			}
-		else if (opt_fast)
-			{
-			SetNamedParams("defaults");
-			m_Desc = "fast";
-			m_Omega = 20;
-			m_MinU = 10;
-			m_USort = false;
-			}
-		else if (opt_sensitive)
-			{
-			SetNamedParams("defaults");
-			m_Desc = "sensitive";
-			m_Omega = 4;
-			m_MinU = 0;
-			m_USort = false;
-			}
-		else if (opt_verysensitive)
-			{
-			SetNamedParams("defaults");
-			m_Desc = "verysensitive";
-			m_Omega = 0;
-			m_MinU = 0;
-			m_USort = false;
-			}
+		SetNamedParams("defaults");
 		}
 
 	const int MINUS = -1; // for visual emphasis here
-	if (optset_omega) m_Omega = (float) opt_omega;
-	if (optset_daliw) m_DALIw = (float) opt_daliw;
-	if (optset_lambda) m_Lambda = opt_lambda;
-	if (optset_minfwdscore) m_MinFwdScore = float(opt_minfwdscore);
-	if (optset_gapopen) m_GapOpen = MINUS*float(opt_gapopen);
-	if (optset_gapopen) m_GapExt = MINUS*float(opt_gapext);
-	if (optset_minu) m_MinU = opt_minu;
-	if (optset_maxaccepts) m_MaxAccepts = opt_maxaccepts;
-	if (optset_maxrejects) m_MaxRejects = opt_maxrejects;
-	if (optset_usort) m_USort = true;
-	if (optset_usecombopath) { m_UseComboPath = true; Warning("-usecombopath bad idea"); }
-	if (opt_useerfevalue) m_UseErfEvalue = true;
+	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, "-omega %.4g", opt_omega); }
+	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, "-daliw %.4g", opt_daliw); }
+	if (optset_lambda) { m_Lambda = opt_lambda; Psa(m_Desc, "-lambda %u", opt_lambda); }
+	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, "-minfwdscore %.4g", opt_minfwdscore); }
+	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, "-gapopen %.4g", opt_gapopen); }
+	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, "-gapext %.4g", opt_gapext); }
+	if (optset_minu) { m_MinU = opt_minu; Psa(m_Desc, "-minu %u", opt_minu); }
+	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, "-maxaccepts %u", opt_maxaccepts); }
+	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, "-maxrejects %u", opt_maxrejects); }
+	if (optset_usort) { m_USort = true;  Psa(m_Desc, "-usort"); }
+	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, "-usecombopath"); Warning("-usecombopath bad idea"); }
+	if (opt_useerfevalue) { m_UseErfEvalue = true;  Psa(m_Desc, "-useerfvalue"); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
-		  -m_GapOpen, -m_GapExt);
+		  opt_gapopen, opt_gapext);
 
 	InitScoreMxs();
 	WriteSummary(g_fLog);
@@ -135,11 +103,9 @@ void DSSParams::ToFev(FILE *f) const
 		FEATURE F = m_Features[i];
 		fprintf(f, "\t%s=%.6g", FeatureToStr(F), m_Weights[i]);
 		}
-	fprintf(f, "\tOpen %.4f", m_GapOpen);
-	fprintf(f, "\tExt %.4f", m_GapExt);
-	fprintf(f, "\tFwdMatch %.4f", m_FwdMatchScore);
-	fprintf(f, "\tMinFwdScore %.4f", m_MinFwdScore);
-	fprintf(f, "\tDALIw %.4f", m_DALIw);
+#define P(x)	fprintf(f, "\t%s=%.6g", #x, m_##x);
+#include "scalarparams.h"
+
 	fprintf(f, "\n");
 	}
 
@@ -148,7 +114,9 @@ void DSSParams::WriteSummary(FILE *f) const
 	if (f == 0)
 		return;
 	const uint FeatureCount = GetFeatureCount();
-	fprintf(f, "Mode %s\n", m_Desc.c_str());
+	fprintf(f, "---------------------------------------------------------------------------------\n");
+	fprintf(f, "%s\n", m_Desc.c_str());
+	fprintf(f, "=================================================================================\n");
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		FEATURE F = m_Features[i];
@@ -158,14 +126,17 @@ void DSSParams::WriteSummary(FILE *f) const
 		  FeatureToStr(F), DSS::GetAlphaSize(F), m_Weights[i]);
 		}
 	fprintf(f, "\n");
-	fprintf(f, "Open %.3f", -m_GapOpen);
-	fprintf(f, " Ext %.3f", -m_GapExt);
-	fprintf(f, " FwdMatch %.3f", m_FwdMatchScore);
-	fprintf(f, " MinFwdSc %.3f", m_MinFwdScore);
+	fprintf(f, "GapO/E %.3f/", -m_GapOpen);
+	fprintf(f, "%.3f", -m_GapExt);
+	fprintf(f, " FwdM %.2f", m_FwdMatchScore);
+	fprintf(f, " MinFS %.1f", m_MinFwdScore);
+	fprintf(f, " Lamda %u", m_Lambda);
 	if (m_Omega != FLT_MAX)
-		fprintf(f, " Omega %.3f", m_Omega);
-	fprintf(f, " DALIw %.3f", m_DALIw);
+		fprintf(f, " Omega %.1f", m_Omega);
+	fprintf(f, " DALIw %.1f", m_DALIw);
+	fprintf(f, " MinU %u", m_MinU);
 	fprintf(f, "\n");
+	fprintf(f, "---------------------------------------------------------------------------------\n");
 	}
 
 uint DSSParams::GetFeatureCount() const
@@ -177,14 +148,9 @@ uint DSSParams::GetFeatureCount() const
 
 float DSSParams::GetParam(const string &Name) const
 	{
-#define x(f)	if (Name == #f) { return m_##f; }
-	x(GapOpen);
-	x(GapExt);
-	x(DALIw);
-	x(FwdMatchScore);
-	x(MinFwdScore);
-	x(Omega);
-#undef x
+#define P(f)	if (Name == #f) { return m_##f; }
+#include "scalarparams.h"
+
 	for (uint F = 0; F < FEATURE_COUNT; ++F)
 		{
 		if (Name == FeatureToStr(F))
@@ -218,14 +184,9 @@ void DSSParams::SetIntParam(const string &Name, int Value)
 
 void DSSParams::SetParam(const string &Name, float Value, bool AppendIfWeight)
 	{
-#define x(f)	if (Name == #f) { m_##f = Value; return; }
-	x(GapOpen);
-	x(GapExt);
-	x(DALIw);
-	x(FwdMatchScore);
-	x(MinFwdScore);
-	x(Omega);
-#undef x
+#define P(f)	if (Name == #f) { m_##f = Value; return; }
+#include "scalarparams.h"
+
 	if (AppendIfWeight)
 		{
 		FEATURE F = StrToFeature(Name.c_str());

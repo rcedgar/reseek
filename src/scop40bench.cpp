@@ -636,6 +636,7 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
+	ProgressLog(" N1FP=%u", nt_firstfp);
 	if (Secs != UINT_MAX)
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s\n", m_Level.c_str());
@@ -665,11 +666,13 @@ void cmd_scop40bench()
 #endif
 	else
 		CalFN = g_Arg1;
-	SCOP40Bench SB;
+
 	DSSParams Params;
+	Params.SetFromCmdLine();
+
+	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
 
-	Params.SetFromCmdLine();
 	Params.m_DBSize = (float) SB.m_ChainCount;
 
 	SB.Setup(Params);
@@ -694,10 +697,10 @@ void cmd_scop40bench()
 	else
 		{
 		vector<string> Modes;
-		Modes.push_back("sf");
-		Modes.push_back("ignore");
 		Modes.push_back("fold");
-		for (uint Modei = 0; Modei < 3; ++Modei)
+		//Modes.push_back("ignore");
+		Modes.push_back("sf");
+		for (uint Modei = 0; Modei < SIZE(Modes); ++Modei)
 			{
 			SB.m_Level = Modes[Modei];
 			SB.SetStats(MaxFPR);

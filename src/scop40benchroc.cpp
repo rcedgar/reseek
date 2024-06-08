@@ -271,7 +271,7 @@ bool SCOP40Bench::SmoothROCSteps(const vector<float> &Scores,
 	asserta(SIZE(NFPs) >= n);
 	if (n < 2*N)
 		return false;
-	ProgressLog("SmoothSteps\n");
+	Progress("SmoothSteps\n");
 	const uint HitCount = GetHitCount();
 	for (uint Bin = 0; Bin < N; ++Bin)
 		{
@@ -310,7 +310,7 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 		return;
 
 	asserta(SIZE(m_TFs) == HitCount);
-	ProgressLogPrefix("Sort scores\n");
+	Progress("Sort scores\n");
 	SetScoreOrder();
 	const vector<uint> &Order = m_ScoreOrder;
 	asserta(SIZE(Order) == HitCount);
@@ -318,7 +318,7 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	float CurrentScore = m_Scores[Order[0]];
 	uint NTP = 0;
 	uint NFP = 0;
-	ProgressLogPrefix("ROC Steps\n");
+	Progress("ROC Steps\n");
 	for (uint k = 0; k < HitCount; ++k)
 		{
 		uint i = Order[k];
