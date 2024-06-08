@@ -95,7 +95,6 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 	return *m_Chains[ChainIdx];
 	}
 
-
 bool SCOP40Bench::KeepScore(float Score) const
 	{
 	if (optset_evalue && Score > opt_evalue)
@@ -111,9 +110,6 @@ void SCOP40Bench::OnSetup()
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
-	//asserta(optset_benchlevel);
-	//m_Level = string(opt_benchlevel);
-	//asserta(m_Level == "sf" || m_Level == "fold" || m_Level == "ignore");
 	m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromQueryChainLabels();
 	}
@@ -677,11 +673,11 @@ void cmd_scop40bench()
 	Params.m_DBSize = (float) SB.m_ChainCount;
 
 	SB.Setup(Params);
-	if (optset_scores_are_not_evalues)
-		SB.m_ScoresAreEvalues = false;
+
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
+
 	ResetTimers();
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;

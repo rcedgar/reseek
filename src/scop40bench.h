@@ -63,8 +63,6 @@ public:
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
 	uint m_nt_firstfp = UINT_MAX;
-	//uint m_DomsWithHomologCount = UINT_MAX;
-	//uint m_DomsWithHomologAndTP1Count = UINT_MAX;
 
 	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;

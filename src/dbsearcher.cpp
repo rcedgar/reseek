@@ -311,7 +311,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
 	else
-		m_MaxEvalue = 10.0f;
+		m_MaxEvalue = FLT_MAX;
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);

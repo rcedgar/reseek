@@ -125,7 +125,7 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 		else
 			return 0;
 		}
-	asserta(false);
+	Die("IsT(), SCOP40Bench::m_Level='%s'", m_Level.c_str());
 	return INT_MAX;
 	}
 
