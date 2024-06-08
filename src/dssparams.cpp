@@ -53,18 +53,18 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 		}
 
 	const int MINUS = -1; // for visual emphasis here
-	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, "-omega %.4g", opt_omega); }
-	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, "-daliw %.4g", opt_daliw); }
-	if (optset_lambda) { m_Lambda = opt_lambda; Psa(m_Desc, "-lambda %u", opt_lambda); }
-	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, "-minfwdscore %.4g", opt_minfwdscore); }
-	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, "-gapopen %.4g", opt_gapopen); }
-	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, "-gapext %.4g", opt_gapext); }
+	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
+	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, " -daliw %.4g", opt_daliw); }
+	if (optset_lambda) { m_Lambda = opt_lambda; Psa(m_Desc, " -lambda %u", opt_lambda); }
+	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, " -minfwdscore %.4g", opt_minfwdscore); }
+	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, " -gapopen %.4g", opt_gapopen); }
+	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, " -gapext %.4g", opt_gapext); }
 	if (optset_minu) { m_MinU = opt_minu; Psa(m_Desc, "-minu %u", opt_minu); }
-	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, "-maxaccepts %u", opt_maxaccepts); }
-	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, "-maxrejects %u", opt_maxrejects); }
+	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, " -maxaccepts %u", opt_maxaccepts); }
+	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
 	if (optset_usort) { m_USort = true;  Psa(m_Desc, "-usort"); }
-	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, "-usecombopath"); Warning("-usecombopath bad idea"); }
-	if (opt_useerfevalue) { m_UseErfEvalue = true;  Psa(m_Desc, "-useerfvalue"); }
+	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, " -usecombopath"); Warning("-usecombopath bad idea"); }
+	if (opt_useerfevalue) { m_UseErfEvalue = true;  Psa(m_Desc, " -useerfvalue"); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",

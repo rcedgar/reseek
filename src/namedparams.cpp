@@ -8,6 +8,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 	if (Name == "defaults")
 		{
+		m_Desc.clear();
 		AddFeature(FEATURE_AA,			0.492407);
 		AddFeature(FEATURE_NbrDist,		0.133664);
 		AddFeature(FEATURE_MySS,		0.172904);
@@ -33,15 +34,15 @@ void DSSParams::SetNamedParams(const string &Name)
 		if (opt_veryfast)
 			{
 			m_Desc += "-veryfast";
-			m_Omega = 7;
-			m_MinU = 3;
+			m_Omega = 16;
+			m_MinU = 4;
 			m_USort = true;
 			}
 		else if (opt_fast)
 			{
 			m_Desc += "-fast";
-			m_Omega = 5;
-			m_MinU = 5;
+			m_Omega = 16;
+			m_MinU = 4;
 			m_USort = false;
 			}
 		else if (opt_sensitive)
@@ -54,8 +55,8 @@ void DSSParams::SetNamedParams(const string &Name)
 		else if (opt_verysensitive)
 			{
 			m_Desc += "-verysensitive";
-			m_Omega = 0;
-			m_MinU = 0;
+			m_Omega = 8;
+			m_MinU = 4;
 			m_USort = false;
 			}
 		else
