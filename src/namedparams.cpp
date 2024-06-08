@@ -6,7 +6,50 @@ void DSSParams::SetNamedParams(const string &Name)
 	Clear();
 	m_Desc = Name;
 
+//Score 164674 => 166869 (+1.33%)
+//AA 0.561938 => 0.423053
+//NbrDist 0.183907 => 0.165988
+//MySS 0.112387 => 0.214717
+//NbrMySS 0.033476 => 0.0893031
+//RevNbrDist 0.0415593 => 0.0818857
+//DstNxtHlx 0.00674395 => 0.0034708
+//StrandDens 0.0209877 => 0.0042234
+//NormDens 0.0390013 => 0.0173588
+
+//Score 166775 => 184541 (+10.65%)
+//GapOpen -1.099 => -0.752986
+//GapExt -0.143 => -0.051881
+//DALIw 2.4 => 2.99511
+//FwdMatchScore 0.1 => 0.104788
+//Omega 20 => 4.64675
 	if (Name == "defaults")
+		{
+		AddFeature(FEATURE_AA,			0.423053);
+		AddFeature(FEATURE_NbrDist,		0.165988);
+		AddFeature(FEATURE_MySS,		0.214717);
+		AddFeature(FEATURE_NbrMySS,		0.0893031);
+		AddFeature(FEATURE_RevNbrDist,	0.0818857);
+		AddFeature(FEATURE_DstNxtHlx,	0.00674395);
+		AddFeature(FEATURE_StrandDens,	0.0042234);
+		AddFeature(FEATURE_NormDens,	0.0173588);
+
+		m_GapOpen = -0.752986f;
+		m_GapExt = -0.051881;
+		m_DALIw = 3.0f;
+		m_FwdMatchScore = 0.1f;
+		m_MinFwdScore = 7.0f;
+		m_MinComboFwdScore = 7.0f;
+		m_Omega = 4;
+		m_Lambda = 32;
+		m_MinU = 15;
+		m_USort = false;
+		m_MaxAccepts = 1;
+		m_MaxRejects = 32;
+		m_PatternStr = "10000000001";
+		return;
+		}
+
+	if (Name == "old_defaults")
 		{
 		AddFeature(FEATURE_AA,			0.561938);
 		AddFeature(FEATURE_NbrDist,		0.183907);

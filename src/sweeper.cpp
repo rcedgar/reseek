@@ -4,10 +4,11 @@
 
 uint Sweeper::Run(const DSSParams &Params)
 	{
-	m_SB.m_Params = &Params;
-	m_SB.ClearHits();
-	m_SB.Run();
-	uint Score = m_SB.GetSens1stFP();
+	asserta(m_SB != 0);
+	m_SB->m_Params = &Params;
+	m_SB->ClearHits();
+	m_SB->Run();
+	uint Score = m_SB->GetSens1stFP();
 	if (m_FirstScore == UINT_MAX)
 		m_FirstScore = Score;
 	int d = int(Score) - int(m_BestScore);
@@ -19,7 +20,7 @@ uint Sweeper::Run(const DSSParams &Params)
 	if (m_fFev != 0)
 		{
 		fprintf(m_fFev, "%4u\t", Score);
-		m_SB.m_Params->ToFev(m_fFev);
+		m_SB->m_Params->ToFev(m_fFev);
 		}
 
 	Params.ToFev(g_fLog);

@@ -59,8 +59,10 @@ void cmd_explore1()
 	Params.SetFromCmdLine();
 	Params.m_DBSize = (float) SB.m_ChainCount;
 	SB.Setup(Params);
+	SB.m_Level = opt_benchlevel;
 
 	Sweeper S;
+	S.m_SB = &SB;
 	if (optset_fev)
 		{
 		S.m_fFev = CreateStdioFile(opt_fev);

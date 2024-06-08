@@ -38,9 +38,12 @@ void cmd_explore1i()
 		S.m_fFev = CreateStdioFile(opt_fev);
 		setbuf(S.m_fFev, 0);
 		}
-	SCOP40Bench &SB = S.m_SB;
 	asserta(optset_benchlevel);
+
 	DSSParams Params;
+	Params.SetFromCmdLine();
+
+	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
 
 	opt_sensitive = true;
@@ -57,6 +60,7 @@ void cmd_explore1i()
 
 	//asserta(optset_params);
 	//Split(opt_params, S.m_ParamNames, '_');
+	S.m_SB = &SB;
 	S.m_ParamNames.push_back("ParaComboGapOpen");
 	S.m_ParamNames.push_back("ParaComboGapExt");
 

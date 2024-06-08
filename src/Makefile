@@ -16,6 +16,8 @@ HDRS = \
   active.h \
   alpha.h \
   best.h \
+  binner.h \
+  calibratesearcher.h \
   calreader.h \
   chainreader.h \
   cigar.h \
@@ -29,6 +31,7 @@ HDRS = \
   dssaligner.h \
   dssp.h \
   dssparams.h \
+  fast_erf.h \
   fastaseqsource.h \
   featurelist.h \
   features.h \
@@ -57,7 +60,6 @@ HDRS = \
   pdbchain.h \
   quarts.h \
   scop40bench.h \
-  scop40bit.h \
   seqdb.h \
   seqinfo.h \
   seqsource.h \
@@ -81,6 +83,7 @@ OBJS = \
   $(OBJDIR)/b62.o \
   $(OBJDIR)/blosum.o \
   $(OBJDIR)/blosum62.o \
+  $(OBJDIR)/calibrate.o \
   $(OBJDIR)/calreader.o \
   $(OBJDIR)/chainreader.o \
   $(OBJDIR)/cigar.o \
@@ -90,18 +93,18 @@ OBJS = \
   $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
   $(OBJDIR)/pdb2mega.o \
+  $(OBJDIR)/readhits.o \
+  $(OBJDIR)/scop40bit.o \
   $(OBJDIR)/search.o \
   $(OBJDIR)/combomx.o \
   $(OBJDIR)/combomx_data.o \
   $(OBJDIR)/dali.o \
   $(OBJDIR)/dbsearcher.o \
   $(OBJDIR)/derepper.o \
-  $(OBJDIR)/domreport.o \
   $(OBJDIR)/dss.o \
   $(OBJDIR)/dssaligner.o \
   $(OBJDIR)/dssparams.o \
   $(OBJDIR)/eval_feature.o \
-  $(OBJDIR)/famreport.o \
   $(OBJDIR)/featurefreqs.o \
   $(OBJDIR)/features.o \
   $(OBJDIR)/float_feature_bins.o \
@@ -123,8 +126,6 @@ OBJS = \
   $(OBJDIR)/scalar_sweep.o \
   $(OBJDIR)/scop40bench.o \
   $(OBJDIR)/scop40benchroc.o \
-  $(OBJDIR)/scop40bit.o \
-  $(OBJDIR)/scop40sens1stfp.o \
   $(OBJDIR)/scoremxs2.o \
   $(OBJDIR)/sweeper.o \
   $(OBJDIR)/swfastpinop.o \

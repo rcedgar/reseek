@@ -70,7 +70,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 			{
 			SetNamedParams("defaults");
 			m_Desc = "sensitive";
-			m_Omega = 12;
+			m_Omega = 4;
 			m_MinU = 0;
 			m_USort = false;
 			}
@@ -183,6 +183,7 @@ float DSSParams::GetParam(const string &Name) const
 	x(DALIw);
 	x(FwdMatchScore);
 	x(MinFwdScore);
+	x(Omega);
 #undef x
 	for (uint F = 0; F < FEATURE_COUNT; ++F)
 		{

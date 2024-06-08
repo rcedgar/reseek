@@ -8,7 +8,7 @@ public:
 	vector<string> m_ParamNames;
 	uint m_BestScore = 0;
 	uint m_FirstScore = UINT_MAX;
-	SCOP40Bench m_SB;
+	SCOP40Bench *m_SB = 0;
 	FILE *m_fFev = 0;
 
 public:
