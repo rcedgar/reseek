@@ -1115,8 +1115,8 @@ float DSSAligner::AlignCombo_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
-	ProgressLog("alns %s, ufil %.1f%%, cFil %.1f%%\n",
-	  MemBytesToStr(m_AlnCount),
+	ProgressLog("alns %s, ufil %.1f%%, cfil %.1f%%\n",
+	  FloatToStr(m_AlnCount),
 	  GetPct(m_UFilterCount, m_AlnCount),
 	  GetPct(m_ComboFilterCount, m_AlnCount - m_UFilterCount));
 	}
