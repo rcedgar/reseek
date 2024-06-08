@@ -73,6 +73,7 @@ public:
 	uint GetDBChainIndex(uint Idx) const;
 	void Thread(uint ThreadIndex);
 	void ThreadUSort(uint ThreadIndex);
+	void RunStats() const;
 
 public:
 	virtual void OnSetup() {}

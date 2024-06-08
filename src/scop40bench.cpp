@@ -641,15 +641,12 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s\n", m_Level.c_str());
 
-	if (DSSAligner::m_UFilterCount > 0)
-		Log("UFil=%.1f\n", UFilterPct);
-	if (DSSAligner::m_ComboFilterCount > 0)
-		Log(" CFil=%.1f\n", ComboFilterPct);
-	if (DSSAligner::m_ParasailSaturateCount > 0)
-		Log(" Sat=%u\n", DSSAligner::m_ParasailSaturateCount);
-
-	Log("QP cache hits %u, misses %u\n",
+	Log("UFil=%.1f", UFilterPct);
+	Log(" CFil=%.1f", ComboFilterPct);
+	Log(" Sat=%u", DSSAligner::m_ParasailSaturateCount);
+	Log(" QP cache hits %u, misses %u",
 	  m_QPCacheHits.load(), m_QPCacheMisses.load());
+	Log("\n");
 
 	Log("NT %u NF %u NI %u considered %u ignored %u\n",
 	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);

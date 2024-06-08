@@ -979,6 +979,7 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 		return;
 	if (m_EvalueAB > MaxEvalue)
 		return;
+#if 0
 	string CIGAR;
 	PathToCIGAR(m_PathAB.c_str(), CIGAR);
 	uint M, D, I;
@@ -993,6 +994,14 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	fprintf(f, "\t%u", m_LoB + M + I);
 	fprintf(f, "\t%s\n", CIGAR.c_str());
 	m_OutputLock.unlock();
+#else
+	m_OutputLock.lock();
+	fprintf(f, "%.3g", m_EvalueAB);
+	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
+	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
+	fprintf(f, "\n");
+	m_OutputLock.unlock();
+#endif
 	}
 
 void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
@@ -1097,7 +1106,7 @@ float DSSAligner::AlignCombo_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
-	ProgressLog("Alns %s, Ufil %.1f%%, CFil %.1f%%\n",
+	ProgressLog("alns %s, ufil %.1f%%, cFil %.1f%%\n",
 	  MemBytesToStr(m_AlnCount),
 	  GetPct(m_UFilterCount, m_AlnCount),
 	  GetPct(m_ComboFilterCount, m_AlnCount - m_UFilterCount));

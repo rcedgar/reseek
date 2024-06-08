@@ -297,6 +297,16 @@ void DBSearcher::Run()
 	if (m_Secs == 0)
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
+	RunStats();
+	}
+
+void DBSearcher::RunStats() const
+	{
+	ProgressLog("Search time %u secs, ", m_Secs);
+	DSSAligner::Stats();
+	uint Hits = m_QPCacheHits;
+	uint Misses = m_QPCacheMisses;
+	ProgressLog("QP cache hits %u, misses %u\n", Hits, Misses);
 	}
 
 uint DBSearcher::GetDBChainIndex(uint Idx) const
