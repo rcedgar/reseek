@@ -25,8 +25,8 @@ Align two structures
 
 Output options for -search
    -aln FILE     # Alignments in human-readable format
-   -output FILE  # Hits in tabbed text format with 8 fields:
-                 #   Evalue Query Target
+   -output FILE  # Hits in tabbed text format with 3 fields:
+                 #   1. Evalue 2. Query 3. Target
                  # (More output formats coming soon)
 
 Search and alignment options
