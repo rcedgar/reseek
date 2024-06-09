@@ -35,21 +35,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	else if (optset_paramsf)
 		FromTsv(opt_paramsf);
 	else 
-		{
-		if (int(opt_veryfast) +
-			int(opt_fast) +
-			int(opt_sensitive) != 1)
-			{
-			if (DefaultToSensitive)
-				{
-				opt_sensitive = true;
-				optset_sensitive = true;
-				}
-			else
-				Die("Must set exactly one of -veryfast -fast -sensitive");
-			}
 		SetNamedParams("defaults");
-		}
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
@@ -115,8 +101,11 @@ void DSSParams::WriteSummary(FILE *f) const
 		return;
 	const uint FeatureCount = GetFeatureCount();
 	fprintf(f, "---------------------------------------------------------------------------------\n");
-	fprintf(f, "%s\n", m_Desc.c_str());
-	fprintf(f, "=================================================================================\n");
+	if (!m_Desc.empty())
+		{
+		fprintf(f, "%s\n", m_Desc.c_str());
+		fprintf(f, "=================================================================================\n");
+		}
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		FEATURE F = m_Features[i];

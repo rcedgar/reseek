@@ -47,3 +47,13 @@ STRUCTS argument is one of:
    NAME.files    # Text file with PDB file/pathnames, one per line
    NAME.cal      # C-alpha (.cal) file, recommended for databases
 </pre>
+
+### Reference
+
+https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1
+
+### SCOP40 benchmark code and results
+
+https://github.com/rcedgar/reseek_scop40
+
+<p align="center"><img src="https://github.com/rcedgar/reseek_scop40/blob/master/results/sens_vs_err_sf.png" width="100"/></p>

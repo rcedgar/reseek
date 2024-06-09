@@ -24,26 +24,22 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_MinComboFwdScore = 7.0f;
-		m_Omega = 4;
+		m_Omega = 16;
 		m_Lambda = 32;
-		m_MinU = 15;
+		m_MinU = 0;
 		m_USort = false;
 		m_MaxAccepts = 1;
 		m_MaxRejects = 32;
 		m_PatternStr = "10000000001";
-		if (opt_veryfast)
+
+		if (opt_fast)
+			;
+		else if (opt_veryfast)
 			{
 			m_Desc += "-veryfast";
 			m_Omega = 16;
 			m_MinU = 4;
 			m_USort = true;
-			}
-		else if (opt_fast)
-			{
-			m_Desc += "-fast";
-			m_Omega = 16;
-			m_MinU = 0;
-			m_USort = false;
 			}
 		else if (opt_sensitive)
 			{
@@ -52,8 +48,6 @@ void DSSParams::SetNamedParams(const string &Name)
 			m_MinU = 0;
 			m_USort = false;
 			}
-		else
-			Die("Must set one of -veryfast -fast -sensitive");
 		return;
 		}
 
