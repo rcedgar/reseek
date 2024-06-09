@@ -58,4 +58,5 @@ Edgar, Robert C. "Sequence alignment using large protein structure alphabets imp
 
 https://github.com/rcedgar/reseek_scop40
 
-<p align="center"><img src="https://github.com/rcedgar/reseek_scop40/blob/master/results/sens_vs_err_sf.png" width="100"/></p>
+<p align="center"><img src="https://github.com/rcedgar/reseek_scop40/blob/master/results/sens_vs_err_sf.png" align="left" width="700"/></p>
+<p></p>
