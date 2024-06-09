@@ -38,7 +38,7 @@ bool Sweeper::Explore1(DSSParams &Params,
 
 		//ProgressLog("  %s %.4g => %.4g\n", ParamName.c_str(), OldValue, NewValue);
 		string Why;
-		Ps(Why, "%s:%.4g..%.4g", OldValue, NewValue);
+		Ps(Why, "%s:%.4g..%.4g", ParamName.c_str(), OldValue, NewValue);
 
 		uint SavedBestScore = m_BestScore;
 		uint Score = Run(TryParams, Why);

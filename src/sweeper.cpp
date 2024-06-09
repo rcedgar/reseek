@@ -46,7 +46,7 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 			fprintf(m_fFev, "\tplusdelta=+%.3g%%", PctBetter_prevbest);
 		}
 
-	ProgressLog("%s Sens %u [%+%.0f] (%+.2f%%)\n",
+	ProgressLog("%s Sens %u [%+.0f] (%+.2f%%)\n",
 	  Why.c_str(), Score, d_prevbest, PctBetter_first);
 
 	return Score;
