@@ -22,6 +22,8 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 		m_BestScore = Score;
 		Log("%4u\twhy=%s", Score, Why.c_str());
 		Params.ToFev(g_fLog, false);
+		if (m_fFev != 0)
+			fprintf(m_fFev, "\n");
 		return Score;
 		}
 
@@ -45,6 +47,8 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 		if (m_fFev != 0)
 			fprintf(m_fFev, "\tplusdelta=+%.3g%%", PctBetter_prevbest);
 		}
+	if (m_fFev != 0)
+		fprintf(m_fFev, "\n");
 
 	ProgressLog("%s Sens %u [%+.0f] (%+.2f%%)\n",
 	  Why.c_str(), Score, d_prevbest, PctBetter_first);
