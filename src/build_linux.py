@@ -112,7 +112,7 @@ with open("Makefile", "w") as f:
         Cmd += " -lrt"
     Out(Cmd)
 
-    Out("	strip -d $(BINPATH)")
+    Out("	strip $(BINPATH)")
 
     Out("")
     Out("$(OBJDIR)/ :")
