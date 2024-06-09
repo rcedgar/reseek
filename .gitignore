@@ -12,7 +12,6 @@ CYGWIN*/
 *.o
 make.stderr
 make.stdout
-gitver.txt
 enc_temp_folder/
 
 # User-specific files
