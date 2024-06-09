@@ -256,7 +256,6 @@ FLAG_OPT(usort)
 FLAG_OPT(veryfast)
 FLAG_OPT(fast)
 FLAG_OPT(sensitive)
-FLAG_OPT(verysensitive)
 FLAG_OPT(usecombopath)
 FLAG_OPT(useerfevalue)
 

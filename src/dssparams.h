@@ -83,7 +83,7 @@ public:
 	void SetFromCmdLine(bool DefaultToSensitive = false);
 	uint GetFeatureIdx(FEATURE F) const;
 	uint GetFeatureIdx_NoError(FEATURE F) const;
-	void ToFev(FILE *f) const;
+	void ToFev(FILE *f, bool nl) const;
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();

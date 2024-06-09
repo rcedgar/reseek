@@ -16,10 +16,12 @@ bool Sweeper::Explore1i(DSSParams &Params, uint Idx, bool Plus, uint MaxTries)
 		int NewValue = OldValue + (Plus ? 1 : -1);
 		TryParams.SetIntParam(ParamName, NewValue);
 
-		ProgressLog("  %s %d => %d\n", ParamName.c_str(), OldValue, NewValue);
+		//ProgressLog("  %s %d => %d\n", ParamName.c_str(), OldValue, NewValue);
+		string Why;
+		Ps(Why, "%s:%d..%d\n", ParamName.c_str(), OldValue, NewValue);
 
 		uint SavedBestScore = m_BestScore;
-		uint Score = Run(TryParams);
+		uint Score = Run(TryParams, Why);
 		if (Score <= SavedBestScore)
 			return AnyBetter;
 
@@ -77,7 +79,7 @@ void cmd_explore1i()
 	DSSParams DefaultParams;
 	DefaultParams.SetFromCmdLine(true);
 	DefaultParams.m_ComboScoreOnly = true;
-	uint SFFP = S.Run(DefaultParams);
+	uint SFFP = S.Run(DefaultParams, "init");
 
 	ProgressLog("%u\topen=%d\text=%d\t@SFFP@\n",
 	  SFFP, DefaultParams.m_ParaComboGapOpen, DefaultParams.m_ParaComboGapExt);
@@ -88,13 +90,15 @@ void cmd_explore1i()
 			{
 			Params.m_ParaComboGapOpen = iOpen;
 			Params.m_ParaComboGapExt = iExt;
-			uint SFFP = S.Run(Params);
+			string Why;
+			Ps(Why, "iOpen:%d,iExt:%d", iOpen, iExt);
+			uint SFFP = S.Run(Params, Why);
 			ProgressLog("%u\topen=%d\text=%d\t@SFFP@\n", SFFP, iOpen, iExt);
 			}
 		}
 	return;
 
-	S.Run(Params);
+	S.Run(Params, "init");
 	for (uint Loop = 0; ; ++Loop)
 		{
 		uint Improvements = 0;

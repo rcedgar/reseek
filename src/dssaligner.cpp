@@ -1115,10 +1115,11 @@ float DSSAligner::AlignCombo_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
+	uint ComboFilterInputCount = m_AlnCount - DSSAligner::m_UFilterCount;
 	ProgressLog("alns %s, ufil %.1f%%, cfil %.1f%%\n",
 	  FloatToStr(m_AlnCount),
 	  GetPct(m_UFilterCount, m_AlnCount),
-	  GetPct(m_ComboFilterCount, m_AlnCount - m_UFilterCount));
+	  GetPct(m_ComboFilterCount, ComboFilterInputCount));
 	}
 
 uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const

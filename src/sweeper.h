@@ -12,7 +12,7 @@ public:
 	FILE *m_fFev = 0;
 
 public:
-	uint Run(const DSSParams &Params);
+	uint Run(const DSSParams &Params, const string &Why);
 	bool Explore1(DSSParams &Params, uint Idx,
 	  float Delta, float Z, uint MaxTries);
 	bool Explore1i(DSSParams &Params, uint Idx, bool Plus, uint MaxTries);

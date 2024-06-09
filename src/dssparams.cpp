@@ -38,8 +38,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 		{
 		if (int(opt_veryfast) +
 			int(opt_fast) +
-			int(opt_sensitive) +
-			int(opt_verysensitive) != 1)
+			int(opt_sensitive) != 1)
 			{
 			if (DefaultToSensitive)
 				{
@@ -47,7 +46,7 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 				optset_sensitive = true;
 				}
 			else
-				Die("Must set exactly one of -veryfast -fast -sensitive -verysensitive");
+				Die("Must set exactly one of -veryfast -fast -sensitive");
 			}
 		SetNamedParams("defaults");
 		}
@@ -59,10 +58,10 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, " -minfwdscore %.4g", opt_minfwdscore); }
 	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, " -gapopen %.4g", opt_gapopen); }
 	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, " -gapext %.4g", opt_gapext); }
-	if (optset_minu) { m_MinU = opt_minu; Psa(m_Desc, "-minu %u", opt_minu); }
+	if (optset_minu) { m_MinU = opt_minu; Psa(m_Desc, " -minu %u", opt_minu); }
 	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, " -maxaccepts %u", opt_maxaccepts); }
 	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
-	if (optset_usort) { m_USort = true;  Psa(m_Desc, "-usort"); }
+	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
 	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, " -usecombopath"); Warning("-usecombopath bad idea"); }
 	if (opt_useerfevalue) { m_UseErfEvalue = true;  Psa(m_Desc, " -useerfvalue"); }
 
@@ -92,7 +91,7 @@ void DSSParams::FromTsv(const string &FileName)
 	CloseStdioFile(f);
 	}
 
-void DSSParams::ToFev(FILE *f) const
+void DSSParams::ToFev(FILE *f, bool nl) const
 	{
 	if (f == 0)
 		return;
@@ -106,7 +105,8 @@ void DSSParams::ToFev(FILE *f) const
 #define P(x)	fprintf(f, "\t%s=%.6g", #x, m_##x);
 #include "scalarparams.h"
 
-	fprintf(f, "\n");
+	if (nl)
+		fprintf(f, "\n");
 	}
 
 void DSSParams::WriteSummary(FILE *f) const

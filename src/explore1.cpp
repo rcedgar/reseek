@@ -2,8 +2,9 @@
 #include "sweeper.h"
 #include "sort.h"
 
-const uint ITERS1 = 999999;
-static uint TRIES = 8;
+static const uint ITERS1 = 999999;
+static const uint TRIES = 8;
+static const double MIN_PCT_IMPROVED = 0.1;
 
 static float GetDelta(const string &Name)
 	{
@@ -35,10 +36,12 @@ bool Sweeper::Explore1(DSSParams &Params,
 		TryParams.NormalizeWeights();
 		TryParams.ApplyWeights();
 
-		ProgressLog("  %s %.4g => %.4g\n", ParamName.c_str(), OldValue, NewValue);
+		//ProgressLog("  %s %.4g => %.4g\n", ParamName.c_str(), OldValue, NewValue);
+		string Why;
+		Ps(Why, "%s:%.4g..%.4g", OldValue, NewValue);
 
 		uint SavedBestScore = m_BestScore;
-		uint Score = Run(TryParams);
+		uint Score = Run(TryParams, Why);
 		if (Score <= SavedBestScore)
 			return AnyBetter;
 
@@ -88,7 +91,7 @@ void cmd_explore1()
 		}
 	vector<float> FirstValues = Values;
 
-	S.Run(Params);
+	S.Run(Params, "init");
 	for (uint Loop = 0;; ++Loop)
 		{
 		uint Improvements = 0;
@@ -99,15 +102,22 @@ void cmd_explore1()
 			float Z = ParamZs[Idx];
 			ProgressLog("\n=== [%u] Idx %u/%u %s (delta %.3g, Z %.3g) === %u improves\n",
 			  Loop+1, Idx+1, N, Name.c_str(), Delta, Z, Improvements);
+			uint SavedBestScore = S.m_BestScore;
 			bool BetterUp = S.Explore1(Params, Idx, Delta, Z, TRIES);
 			if (BetterUp)
 				{
-				++Improvements;
+				double PctImproved = (S.m_BestScore - SavedBestScore)*100.0/SavedBestScore;
+				if (PctImproved >= MIN_PCT_IMPROVED)
+					++Improvements;
 				continue;
 				}
 			bool BetterDn = S.Explore1(Params, Idx, 1.0f/Delta, -Z, TRIES);
 			if (BetterDn)
-				++Improvements;
+				{
+				double PctImproved = (S.m_BestScore - SavedBestScore)*100.0/SavedBestScore;
+				if (PctImproved >= MIN_PCT_IMPROVED)
+					++Improvements;
+				}
 			}
 		if (Improvements < 2)
 			break;

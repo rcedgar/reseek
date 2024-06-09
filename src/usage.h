@@ -17,7 +17,7 @@ const char *usage_txt[] =
 "                 # (More output formats coming soon)\n"
 "\n"
 "Search and alignment options\n"
-"  -mode MODE     # veryfast|fast|sensitive|verysensitive (required)\n"
+"  -mode MODE     # veryfast|fast|sensitive (required)\n"
 "  -evalue E      # Max E-value (default 10)\n"
 "  -omega X       # Omega accelerator (floating-point)\n"
 "  -minu U        # K-mer accelerator (integer)\n"

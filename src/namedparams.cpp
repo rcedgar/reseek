@@ -42,25 +42,18 @@ void DSSParams::SetNamedParams(const string &Name)
 			{
 			m_Desc += "-fast";
 			m_Omega = 16;
-			m_MinU = 4;
+			m_MinU = 0;
 			m_USort = false;
 			}
 		else if (opt_sensitive)
 			{
 			m_Desc += "-sensitive";
-			m_Omega = 4;
+			m_Omega = 0;
 			m_MinU = 0;
 			m_USort = false;
 			}
-		else if (opt_verysensitive)
-			{
-			m_Desc += "-verysensitive";
-			m_Omega = 8;
-			m_MinU = 4;
-			m_USort = false;
-			}
 		else
-			Die("Must set one of -veryfast -fast -sensitive -verysensitive");
+			Die("Must set one of -veryfast -fast -sensitive");
 		return;
 		}
 
