@@ -48,9 +48,11 @@ STRUCTS argument is one of:
    NAME.cal      # C-alpha (.cal) file, recommended for databases
 </pre>
 
+
 ### Reference
 
-https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1
+Edgar, Robert C. "Sequence alignment using large protein structure alphabets improves sensitivity to remote homologs" [https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1](https://www.biorxiv.org/content/10.1101/2024.05.24.595840v1)
+
 
 ### SCOP40 benchmark code and results
 
