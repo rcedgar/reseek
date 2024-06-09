@@ -6,8 +6,6 @@ fastest previous method.
 
 Reseek is based on sequence alignment where each residue in the protein backbone is represented by a 
 letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct states.
-This approach enables rapid construction of multiple alignments of thousands of structures
-using the pair-HMM method in Muscle5.
 
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
