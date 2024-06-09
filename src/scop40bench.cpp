@@ -528,90 +528,6 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	m_nt_firstfp = GetSens1stFP();
 	}
 
-void SCOP40Bench::WriteOutputFiles()
-	{
-	if (optset_scoredist)
-		ScoreDist(opt_scoredist);
-
-	if (optset_sens_vs_err)
-		{
-		ProgressLog("Writing %s\n", opt_sens_vs_err);
-		FILE *fRocx = CreateStdioFile(opt_sens_vs_err);
-		WriteSensVsErr(fRocx, 100);
-		CloseStdioFile(fRocx);
-		}
-	if (optset_tps1fp)
-		{
-		FILE *f = CreateStdioFile(opt_tps1fp);
-		vector<uint> Doms1;
-		vector<uint> Doms2;
-		GetTPs1FP(Doms1, Doms2);
-		const uint N = SIZE(Doms1);
-		asserta(SIZE(Doms2) == N);
-		DSSAligner &DA = *m_DAs[0];
-		for (uint i = 0; i < N; ++i)
-			{
-			ProgressStep(i, N, "Re-aligning TPs");
-
-			uint Dom1 = Doms1[i];
-			uint Dom2 = Doms2[i];
-			if (Dom1 > Dom2)
-				continue;
-			string Path;
-			uint Lo1, Lo2;
-			float Evalue = AlignDomPair(0, Dom1, Dom2,
-			  Lo1, Lo2, Path);
-			if (optset_evalue && Evalue > opt_evalue)
-				continue;
-
-			string CIGAR;
-			LocalPathToCIGAR(Path.c_str(), Lo1, Lo2,  CIGAR, true);
-			const char *DomName1 = m_Doms[Dom1].c_str();
-			const char *DomName2 = m_Doms[Dom2].c_str();
-			fprintf(f, "T\t%.3g\t%s\t%s\t%s\n",
-			  Evalue, DomName1, DomName2, CIGAR.c_str());
-			}
-		if (optset_nfp)
-			{
-			ProgressLog("Realigning FPs...");
-			vector<uint> FPHitIdxs;
-			uint HitCount = GetHitCount();
-			for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-				{
-				uint Dom1 = m_DomIdx1s[HitIdx];
-				uint Dom2 = m_DomIdx2s[HitIdx];
-				if (IsT(Dom1, Dom2) == 0)
-					FPHitIdxs.push_back(HitIdx);
-				}
-			std::random_device rd;
-			std::mt19937 g(rd());
-
-			shuffle(FPHitIdxs.begin(), FPHitIdxs.end(), g);
-			const uint n = min(opt_nfp, SIZE(FPHitIdxs));
-			for (uint j = 0; j < n; ++j)
-				{
-				uint k = FPHitIdxs[j];
-				uint Dom1 = m_DomIdx1s[k];
-				uint Dom2 = m_DomIdx2s[k];
-
-				string Path;
-				uint Lo1, Lo2;
-				float Evalue = AlignDomPair(0, Dom1, Dom2, 
-				  Lo1, Lo2, Path);
-
-				string CIGAR;
-				LocalPathToCIGAR(Path.c_str(), Lo1, Lo2, CIGAR, true);
-				const char *DomName1 = m_Doms[Dom1].c_str();
-				const char *DomName2 = m_Doms[Dom2].c_str();
-				fprintf(f, "F\t%.3g\t%s\t%s\t%s\n",
-					Evalue, DomName1, DomName2, CIGAR.c_str());
-				}
-			ProgressLog(" done.\n");
-			}
-		CloseStdioFile(f);
-		}
-	}
-
 void SCOP40Bench::WriteSummary()
 	{
 	uint AlnCount = DSSAligner::m_AlnCount;
@@ -640,16 +556,50 @@ void SCOP40Bench::WriteSummary()
 	if (Secs != UINT_MAX)
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s\n", m_Level.c_str());
+	if (optset_fast)
+		ProgressLog(" fast [%s]", g_GitVer);
+	else if (optset_sensitive)
+		ProgressLog(" sensitive [%s]", g_GitVer);
+	ProgressLog("\n");
 
 	Log("ufil=%.1f", UFilterPct);
 	Log(" cfil=%.1f", ComboFilterPct);
 	Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
-	Log(" QP cache hits %u, misses %u",
+	Log(" qp cache hits %u, misses %u",
 	  m_QPCacheHits.load(), m_QPCacheMisses.load());
 	Log("\n");
 
 	Log("NT %u NF %u NI %u considered %u ignored %u\n",
 	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);
+	}
+
+void SCOP40Bench::WriteOutput()
+	{
+	float MaxFPR = 0.01f;
+	if (optset_maxfpr)
+		MaxFPR = (float) opt_maxfpr;
+	FILE *fSVE = CreateStdioFile(opt_sens_vs_err);
+	if (optset_benchlevel)
+		{
+		m_Level = opt_benchlevel;
+		SetStats(MaxFPR);
+		WriteSensVsErr(fSVE, 100);
+		WriteSummary();
+		}
+	else
+		{
+		vector<string> Modes;
+		Modes.push_back("sf");
+		Modes.push_back("fold");
+		for (uint Modei = 0; Modei < SIZE(Modes); ++Modei)
+			{
+			m_Level = Modes[Modei];
+			SetStats(MaxFPR);
+			WriteSensVsErr(fSVE, 100);
+			WriteSummary();
+			}
+		}
+	CloseStdioFile(fSVE);
 	}
 
 void cmd_scop40bench()
@@ -684,24 +634,5 @@ void cmd_scop40bench()
 	if (opt_scores_are_not_evalues)
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
-	SB.WriteBit(opt_savebit);
-	if (optset_benchlevel)
-		{
-		SB.SetStats(MaxFPR);
-		SB.WriteOutputFiles();
-		SB.WriteSummary();
-		}
-	else
-		{
-		vector<string> Modes;
-		Modes.push_back("fold");
-		//Modes.push_back("ignore");
-		Modes.push_back("sf");
-		for (uint Modei = 0; Modei < SIZE(Modes); ++Modei)
-			{
-			SB.m_Level = Modes[Modei];
-			SB.SetStats(MaxFPR);
-			SB.WriteSummary();
-			}
-		}
+	SB.WriteOutput();
 	}

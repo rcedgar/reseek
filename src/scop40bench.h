@@ -131,12 +131,10 @@ public:
 	   vector<float> &ScoreSteps,
 	   vector<uint> &NTPs, vector<uint> &NFPs,
 	   vector<float> &TPRs, vector<float> &FPRs) const;
-	void EvalEval();
-	void ScoreDist(const string &FileName);
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
-	void WriteOutputFiles();
 	void WriteSummary();
+	void WriteOutput();
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,

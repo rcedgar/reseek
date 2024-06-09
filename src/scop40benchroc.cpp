@@ -48,45 +48,6 @@ float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
 	return float(ntp)/m_NT;
 	}
 
-void SCOP40Bench::ScoreDist(const string &FileName)
-	{
-	if (FileName == "")
-		return;
-	FILE *f = CreateStdioFile(FileName);
-	uint ChainCount = GetChainCount();
-	uint PairCount = ChainCount*ChainCount;
-	ProgressLog("%u chains, %u pairs, NT=%u NF=%u NF+NT=%u\n",
-	  ChainCount, PairCount, m_NT, m_NF, m_NT + m_NF);
-
-	vector<float> Scores;
-	vector<uint> NTPs;
-	vector<uint> NFPs;
-	GetROCSteps(Scores, NTPs, NFPs);
-
-	vector<float> SmoothTPRs;
-	vector<float> SmoothFPRs;
-	vector<float> SmoothScores;
-	vector<uint> SmoothNTPs;
-	vector<uint> SmoothNFPs;
-	const uint BINS = 100;
-	SmoothROCSteps(Scores, NTPs, NFPs, BINS, 1,
-	  SmoothScores, SmoothNTPs, SmoothNFPs, SmoothTPRs, SmoothFPRs);
-
-	for (uint Bin = 0; Bin < BINS; ++Bin)
-		{
-		float Score = Scores[Bin];
-		uint NTP = SmoothNTPs[Bin];
-		uint NFP = SmoothNFPs[Bin];
-		uint AlnCount = NTP + NFP;
-		double Sens = double(NTP)/m_NT;
-		double FilterEff = double(m_NF - NFP)/m_NF;
-		ProgressLog("Score %.1f NT %u NF %u Sens %.3g FilterEff %.3g\n",
-		  Score, NTP, NFP, Sens, FilterEff);
-		}
-
-	CloseStdioFile(f);
-	}
-
 int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	{
 	assert(DomIdx1 < SIZE(m_DomIdxToSFIdx));
@@ -509,60 +470,6 @@ void SCOP40Bench::ROCToTsv(const string &FileName, float MaxFPR)
 	  SmoothTPRs, SmoothFPRs);
 	}
 
-void SCOP40Bench::EvalEval()
-	{
-	const uint HitCount = GetHitCount();
-// Evalue bins 1e2, 1e1, 1e0, 1e-1, 1e-2 ... 1e-10...1e-M
-	const int M = 14;
-	const int MM = 1;
-	const int MMM = M + MM + 1;
-	const float MinE = powf(10.0f, -(M+1));
-	const float MaxE = 999;
-	vector<uint> NFs(MMM);
-	float MinEFound = m_Scores[0];
-	float MaxEFound = m_Scores[0];
-	for (uint i = 0; i < HitCount; ++i)
-		{
-		float E = m_Scores[i];
-		MinEFound = min(E, MinEFound);
-		MaxEFound = max(E, MaxEFound);
-		if (E <= MinE || E > MaxE)
-			continue;
-		float log10E = log10f(E);
-		int ilog10E = int(log10E+0.5);
-		if (ilog10E < -M || ilog10E > MM)
-			continue;
-		bool T = m_TFs[i];
-		if (!T)
-			{
-			asserta(ilog10E+M >= 0 && ilog10E+M < M+3);
-			NFs[ilog10E+M] += 1;
-			}
-		}
-
-	uint NF = 0;
-	uint DBSize = SIZE(m_Doms);
-	if (g_ftsv != 0)
-		fprintf(g_ftsv, "N\tNF\tEPQ\tlog10(EPQ)\tlog10(E)\n");
-	for (int i = 0; i < MMM; ++i)
-		{
-		int ilog10E = -M + i;
-		asserta(ilog10E+M >= 0 && ilog10E+M-1 < M+3);
-		uint n = NFs[i];
-		NF += n;
-		float EPQ = float(NF)/DBSize;
-		float log10EPQ = 0;
-		if (EPQ > 1e-20)
-			log10EPQ = log10f(EPQ);
-		ProgressLog("N %10u  NF %10u  EPQ %10.3f  log10EPQ %10.3g  log10E %3d\n",
-		  n, NF, EPQ, log10EPQ, ilog10E);
-		if (g_ftsv != 0)
-			fprintf(g_ftsv, "%u\t%u\t%.3g\t%.3g\t%d\n",
-			  n, NF, EPQ, log10EPQ, ilog10E);
-		}
-	ProgressLog("Evalues %.3g .. %.3g\n", MinEFound, MaxEFound);
-	}
-
 void cmd_scop40bit2tsv()
 	{
 	asserta(optset_output);
@@ -635,85 +542,6 @@ void cmd_scop40tsv2bit()
 	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens1FP);
 	}
 
-void cmd_scop40bit_thresh()
-	{
-	asserta(optset_thresh);
-	asserta(optset_input);
-	SCOP40Bench SB;
-	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
-	SB.SetTFs();
-	const uint HitCount = SB.GetHitCount();
-	uint NT = 0;
-	uint NF = 0;
-	for (uint i = 0; i < HitCount; ++i)
-		{
-		float Score = SB.m_Scores[i];
-		if (SB.m_ScoresAreEvalues)
-			{
-			if (Score > opt_thresh)
-				continue;
-			}
-		else
-			{
-			if (Score < opt_thresh)
-				continue;
-			}
-		uint DomIdx1 = SB.m_DomIdx1s[i];
-		uint DomIdx2 = SB.m_DomIdx2s[i];
-		bool T = SB.m_TFs[i];
-		if (T)
-			++NT;
-		else
-			++NF;
-
-		if (g_ftsv)
-			{
-			uint SFIdx1 = SB.m_DomIdxToSFIdx[DomIdx1];
-			uint SFIdx2 = SB.m_DomIdxToSFIdx[DomIdx2];
-			const string &SF1 = SB.m_SFs[SFIdx1];
-			const string &SF2 = SB.m_SFs[SFIdx2];
-			fprintf(g_ftsv, "%s/%s", SB.m_Doms[DomIdx1].c_str(), SF1.c_str());
-			fprintf(g_ftsv, "\t%s/%s", SB.m_Doms[DomIdx2].c_str(), SF2.c_str());
-			fprintf(g_ftsv, "\t%.6g", Score);
-			fprintf(g_ftsv, "\n");
-			}
-		}
-	ProgressLog("thresh %.4g NT %u NF %u\n", opt_thresh, NT, NF);
-	}
-
-void cmd_scop40bit_evaleval()
-	{
-	opt_scores_are_evalues = true;
-	optset_scores_are_evalues = true;
-	asserta(optset_input);
-	SCOP40Bench SB;
-	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
-	SB.SetTFs();
-	SB.EvalEval();
-	}
-
-void cmd_scop40bit_scoredist()
-	{
-	asserta(optset_input);
-	SCOP40Bench SB;
-	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
-	SB.SetTFs();
-	SB.SetScoreOrder();
-	SB.ScoreDist(opt_scoredist);
-	}
-
 void cmd_scop40bench_tsv()
 	{
 	asserta(optset_lookup);
@@ -723,30 +551,7 @@ void cmd_scop40bench_tsv()
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
-
-	string Stem;
-	GetStemName(g_Arg1, Stem);
-
-	if (optset_benchlevel)
-		{
-		SB.m_Level = opt_benchlevel;
-		SB.SetStats(MaxFPR);
-		SB.WriteOutputFiles();
-		SB.WriteSummary();
-		}
-	else
-		{
-		vector<string> Modes;
-		Modes.push_back("sf");
-		Modes.push_back("ignore");
-		Modes.push_back("fold");
-		for (uint Modei = 0; Modei < 3; ++Modei)
-			{
-			SB.m_Level = Modes[Modei];
-			SB.SetStats(MaxFPR);
-			SB.WriteSummary();
-			}
-		}
+	SB.WriteOutput();
 	}
 
 void cmd_scop40bit_roc()
@@ -755,31 +560,5 @@ void cmd_scop40bit_roc()
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
 	SB.ReadLookup(opt_lookup);
-	float MaxFPR = 0.01f;
-	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
-
-	string Stem;
-	GetStemName(g_Arg1, Stem);
-
-	if (optset_benchlevel)
-		{
-		SB.m_Level = opt_benchlevel;
-		SB.SetStats(MaxFPR);
-		SB.WriteOutputFiles();
-		SB.WriteSummary();
-		}
-	else
-		{
-		vector<string> Modes;
-		Modes.push_back("sf");
-		Modes.push_back("ignore");
-		Modes.push_back("fold");
-		for (uint Modei = 0; Modei < 3; ++Modei)
-			{
-			SB.m_Level = Modes[Modei];
-			SB.SetStats(MaxFPR);
-			SB.WriteSummary();
-			}
-		}
+	SB.WriteOutput();
 	}
