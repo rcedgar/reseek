@@ -29,6 +29,10 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Build-commands
         run: |
+          apt-get install -q -y ccache
+          sudo /usr/sbin/update-ccache-symlinks
+          echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+          source ~/.bashrc && echo $PATH
           echo Starting Build-commands
           echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
           uname -a
@@ -60,7 +64,10 @@ jobs:
           --volume "${PWD}:/reseek"
         install: |
           apt-get update -q -y
-          apt-get install -q -y make g++ file git
+          apt-get install -q -y make g++ file git ccache
+          sudo /usr/sbin/update-ccache-symlinks
+          echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+          source ~/.bashrc && echo $PATH
         run: |
           git config --global --add safe.directory /
           cd /reseek  
