@@ -17,6 +17,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Build-commands
         run: |
+          sudo port install ccache
           echo Starting Build-commands
           echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
           uname -a
