@@ -36,13 +36,13 @@ jobs:
           cd $GITHUB_WORKSPACE
           ls -lh
           cd src
-          make -j LDFLAGS2=-static
-          file Linux/reseek | grep x86-64
+          make
+          file ../bin/reseek | grep x86-64
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: reseek-linux-binary
-          path: src/Linux/reseek
+          path: ../bin/reseek
 
   build-aarch64:
     name: Linux aarch64
@@ -68,12 +68,12 @@ jobs:
           uname -a
           lscpu
           cd src/
-          make -j LDFLAGS2=-static 
-          file Linux/reseek | grep aarch64
+          make 
+          file ../bin/reseek | grep aarch64
 
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
         name: reseek-linux-aarch64-binary
-        path: src/Linux/reseek
+        path: ../bin/reseek
     
