@@ -6,13 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  install-macports-on-macos:
+    runs-on: macos-latest
+    name: 'Install MacPorts  on MacOS'
+    steps:
+      - uses: actions/checkout@v3
+      - name: 'Run testsuite'
+        run: development/testsuite
+      - uses: melusina-org/setup-macports@v1
+        with:
+          parameters: 'testsuite/run-testsuite-on-macos-12.yaml'
+      - run: port version
   # This workflow contains a single job called "build"
   build:
     runs-on: macos-latest
 
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Runs a set of commands using the runners shell
       - name: Build-commands
@@ -26,7 +37,7 @@ jobs:
           cd src
           make
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: reseek-osx-binary
           path: $GITHUB_WORKSPACE/reseek/bin/reseek
