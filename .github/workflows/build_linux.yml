@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reseek-linux-binary
-          path: ../bin/reseek
+          path: /reseek/bin/reseek
 
   build-aarch64:
     name: Linux aarch64
@@ -75,5 +75,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: reseek-linux-aarch64-binary
-        path: ../bin/reseek
+        path: /reseek/bin/reseek
     
