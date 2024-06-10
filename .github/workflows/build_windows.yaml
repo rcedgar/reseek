@@ -3,6 +3,30 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
+name: build_windows
+
+on:
+  workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+      - name: Build
+        run: |
+          cd src
+          $msbuild = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Msbuild\Current\Bin\MSBuild.exe"
+          $a = @("muscle.sln", "/p:Platform=x64", "/p:Configuration=Release")
+          & $msbuild $a
+          
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: muscle-windows-exe
+          path: src/x64/Release/muscle.exe
+
 name: MSBuild
 
 on:
@@ -10,10 +34,12 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
+    branches: [master]
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: .
+  SOLUTION_FILE_PATH: ./src
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
