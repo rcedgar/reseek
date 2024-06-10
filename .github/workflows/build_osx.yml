@@ -9,25 +9,25 @@ jobs:
   run-testsuite:
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-11', 'macos-12', 'macos-13', 'macos-14']
+        os: ['macos-14']
     runs-on: '${{ matrix.os }}'
     name: 'Run Testsuite'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: 'Run testsuite'
         run: development/testsuite
 
   install-macports:
     strategy:
       matrix:
-        os: ['macos-11', 'macos-12', 'macos-13', 'macos-14']
+        os: ['macos-14']
         version: ['2.9.3']
         prefix: ['/opt/local']
     runs-on: '${{ matrix.os }}'
     name: 'Install MacPorts'
     needs: 'run-testsuite'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - uses: ./
         id: 'macports'
         with:
@@ -43,7 +43,7 @@ jobs:
           test "${{ steps.macports.outputs.version }}" = '${{ matrix.version }}'
       - run: port version
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
