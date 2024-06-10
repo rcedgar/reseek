@@ -6,44 +6,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-testsuite:
-    strategy:
-      matrix:
-        os: ['macos-latest']
-    runs-on: '${{ matrix.os }}'
-    name: 'Run Testsuite'
+  install-macports-on-macos-12:
+    runs-on: macos-12
+    name: 'Install MacPorts 2.9.3 on MacOS 12'
     steps:
       - uses: actions/checkout@v3
       - name: 'Run testsuite'
         run: development/testsuite
-
-  install-macports:
-    strategy:
-      matrix:
-        os: ['macos-latest']
-        version: ['2.9.3']
-        prefix: ['/opt/local']
-    runs-on: '${{ matrix.os }}'
-    name: 'Install MacPorts'
-    needs: 'run-testsuite'
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./
-        id: 'macports'
+      - uses: melusina-org/setup-macports@v1
         with:
-          parameters: 'testsuite/run-testsuite-on-${{ matrix.os }}.yaml'
-      - name: 'Validate installed MacPorts version'
-        run: >-
-          test "$(port version)" = 'Version: ${{ matrix.version }}'
-      - name: 'Validate transmitted MacPorts prefix'
-        run: >-
-          test "${{ steps.macports.outputs.prefix }}" = '${{ matrix.prefix }}'
-      - name: 'Validate transmitted MacPorts version'
-        run: >-
-          test "${{ steps.macports.outputs.version }}" = '${{ matrix.version }}'
+          parameters: 'testsuite/run-testsuite-on-macos-12.yaml'
       - run: port version
   build:
-    runs-on: macos-latest
+    runs-on: macos-12
 
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
