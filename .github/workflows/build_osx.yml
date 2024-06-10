@@ -14,7 +14,7 @@ jobs:
       - uses: melusina-org/setup-macports@v1
         id: 'macports'
         with:
-          parameters: 'testsuite/run-testsuite-on-macos-11.yaml'
+          parameters: './testsuite/run-testsuite-on-macos-11.yaml'
       - name: 'Validate installed MacPorts version'
         run: >-
           test "$(port version)" = 'Version: 2.9.3'
@@ -34,7 +34,7 @@ jobs:
         run: development/testsuite
       - uses: melusina-org/setup-macports@v1
         with:
-          parameters: 'testsuite/run-testsuite-on-macos-12.yaml'
+          parameters: './testsuite/run-testsuite-on-macos-12.yaml'
       - run: port version
   build:
     runs-on: macos-12
