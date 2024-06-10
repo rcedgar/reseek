@@ -1386,7 +1386,7 @@ string &GetProgressLevelStr(string &s)
 			s = "100%";
 		else
 			{
-			char Tmp[16];
+			char Tmp[SIZE_16];
 			snprintf(Tmp, SIZE_16, "%u", Index); 
 			s = Tmp;
 			}
