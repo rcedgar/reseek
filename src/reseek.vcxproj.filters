@@ -287,6 +287,9 @@
     <ClCompile Include="tma.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tmscore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

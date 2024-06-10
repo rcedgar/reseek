@@ -963,24 +963,6 @@ void TMA::score_matrix_rmsd_sec(double** r1, double** r2, double** score,
 		}
 	}
 
-////get initial alignment from secondary structure and previous alignments
-////input: x, y, xlen, ylen
-////output: y2x stores the best alignment: e.g., 
-////y2x[j]=i means:
-////the jth element in y is aligned to the ith element in x if i>=0 
-////the jth element in y is aligned to a gap in x if i==-1
-//void TMA::get_initial_ssplus(double** r1, double** r2, double** score, bool** path,
-//	double** val, const char* secx, const char* secy, double** x, double** y,
-//	int xlen, int ylen, int* y2x0, int* y2x, const double D0_MIN, double d0)
-//	{
-//	//create score matrix for DP
-//	score_matrix_rmsd_sec(r1, r2, score, secx, secy, x, y, xlen, ylen,
-//		y2x0, D0_MIN, d0);
-//
-//	double gap_open = -1.0;
-//	NWDP_TM1(score, path, val, xlen, ylen, gap_open, y2x);
-//	}
-
 void TMA::find_max_frag(double** x, int len, int* start_max,
 	int* end_max, double dcu0)
 	{
@@ -2890,6 +2872,7 @@ double TMA::AlignChains(const PDBChain &Q, const PDBChain &R)
 		return 0;
 	return m_TM1;
 	}
+
 int TMA::TMalign_main_score(
 	const string &rowa, const string &rowb,
 	double** xa, double** ya,
@@ -3117,8 +3100,7 @@ double TMA::CalcTMScore(const PDBChain &Q, const PDBChain &R,
 	double d0A = DBL_MAX;
 	double d0B = DBL_MAX;
 	string seqM;
-	int iResult = TMalign_main_score(
-		RowQ, RowR,
+	int iResult = TMalign_main_score(RowQ, RowR,
 	  xa, ya, seqx, seqy, m_TM1, m_TM2, d0A, d0B,
 	  seqM, m_QRow, m_RRow, xlen, ylen);
 
