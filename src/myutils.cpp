@@ -32,6 +32,10 @@
 
 #include "myutils.h"
 
+const int SIZE_16 = 16;
+const int SIZE_32 = 32;
+const int SIZE_64 = 64;
+
 mutex g_DieLock;
 
 static void CompilerInfo();
@@ -40,6 +44,7 @@ static map<FILE *, string> FileToFileName;
 
 const unsigned MY_IO_BUFSIZ = 32000;
 const unsigned MAX_FORMATTED_STRING_LENGTH = 64000;
+
 
 static char *g_IOBuffers[256];
 static time_t g_StartTime = time(0);
@@ -792,13 +797,13 @@ double GetPhysMemBytes()
 
 double GetMemUseBytes()
 	{
-	static char statm[64];
+	static char statm[SIZE_64];
 	static int PageSize = 1;
 	if (0 == statm[0])
 		{
 		PageSize = sysconf(_SC_PAGESIZE);
 		pid_t pid = getpid();
-		sprintf(statm, "/proc/%d/statm", (int) pid);
+		snprintf(statm, SIZE_64, "/proc/%d/statm", (int) pid);
 		}
 
 	int fd = open(statm, O_RDONLY);
@@ -935,11 +940,11 @@ const char *SecsToHHMMSS(int Secs)
 	int HH = Secs/3600;
 	int MM = (Secs - HH*3600)/60;
 	int SS = Secs%60;
-	static char Str[32];
+	static char Str[SIZE_32];
 	if (HH == 0)
-		sprintf(Str, "%02d:%02d", MM, SS);
+		snprintf(Str, SIZE_32, "%02d:%02d", MM, SS);
 	else
-		sprintf(Str, "%02d:%02d:%02d", HH, MM, SS);
+		snprintf(Str, SIZE_32, "%02d:%02d:%02d", HH, MM, SS);
 	return Str;
 	}
 
@@ -948,36 +953,36 @@ const char *SecsToStr(double Secs)
 	if (Secs >= 60.0)
 		return SecsToHHMMSS((int) Secs);
 
-	static char Str[16];
+	static char Str[SIZE_16];
 	if (Secs < 1e-6)
-		sprintf(Str, "%.2gs", Secs);
+		snprintf(Str, SIZE_16, "%.2gs", Secs);
 	else if (Secs < 1e-3)
-		sprintf(Str, "%.2fms", Secs*1e3);
+		snprintf(Str, SIZE_16, "%.2fms", Secs*1e3);
 	else if (Secs < 1.0)
-		sprintf(Str, "%.3fs", Secs);
+		snprintf(Str, SIZE_16, "%.3fs", Secs);
 	else if (Secs < 10.0)
-		sprintf(Str, "%.2fs", Secs);
+		snprintf(Str, SIZE_16, "%.2fs", Secs);
 	else
-		sprintf(Str, "%.1fs", Secs);
+		snprintf(Str, SIZE_16, "%.1fs", Secs);
 	return Str;
 	}
 
 const char *MemBytesToStr(double Bytes)
 	{
-	static char Str[32];
+	static char Str[SIZE_32];
 
 	if (Bytes < 1e4)
-		sprintf(Str, "%.1fb", Bytes);
+		snprintf(Str, SIZE_32, "%.1fb", Bytes);
 	else if (Bytes < 1e6)
-		sprintf(Str, "%.1fkb", Bytes/1e3);
+		snprintf(Str, SIZE_32, "%.1fkb", Bytes/1e3);
 	else if (Bytes < 10e6)
-		sprintf(Str, "%.1fMb", Bytes/1e6);
+		snprintf(Str, SIZE_32, "%.1fMb", Bytes/1e6);
 	else if (Bytes < 1e9)
-		sprintf(Str, "%.0fMb", Bytes/1e6);
+		snprintf(Str, SIZE_32, "%.0fMb", Bytes/1e6);
 	else if (Bytes < 100e9)
-		sprintf(Str, "%.1fGb", Bytes/1e9);
+		snprintf(Str, SIZE_32, "%.1fGb", Bytes/1e9);
 	else
-		sprintf(Str, "%.0fGb", Bytes/1e9);
+		snprintf(Str, SIZE_32, "%.0fGb", Bytes/1e9);
 	return Str;
 	}
 
@@ -1059,115 +1064,115 @@ double StrToMemBytes(const string &s)
 
 const char *IntToStr2(unsigned i)
 	{
-	static char Str[64];
+	static char Str[SIZE_64];
 	if (i < 9999)
-		sprintf(Str, "%u", i);
+		snprintf(Str, SIZE_64, "%u", i);
 	else
-		sprintf(Str, "%u (%s)", i, IntToStr(i));
+		snprintf(Str, SIZE_64, "%u (%s)", i, IntToStr(i));
 	return Str;
 	}
 
 const char *IntToStr(unsigned i)
 	{
-	static char Str[32];
+	static char Str[SIZE_32];
 
 	double d = (double) i;
 	if (i < 10000)
-		sprintf(Str, "%u", i);
+		snprintf(Str, SIZE_32, "%u", i);
 	else if (i < 1e6)
-		sprintf(Str, "%.1fk", d/1e3);
+		snprintf(Str, SIZE_32, "%.1fk", d/1e3);
 	else if (i < 100e6)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.1fM", d/1e6);
 	else if (i < 1e9)
-		sprintf(Str, "%.0fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.0fM", d/1e6);
 	else if (i < 10e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.1fG", d/1e9);
 	else if (i < 100e9)
-		sprintf(Str, "%.0fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.0fG", d/1e9);
 	else
-		sprintf(Str, "%.3g", d);
+		snprintf(Str, SIZE_32, "%.3g", d);
 	return Str;
 	}
 
 const char *Int64ToStr(uint64 i)
 	{
-	static char Str[64];
+	static char Str[SIZE_64];
 
 	double d = (double) i;
 	if (i < 10000)
-		sprintf(Str, "%u", (unsigned) i);
+		snprintf(Str, SIZE_64, "%u", (unsigned) i);
 	else if (i < 1e6)
-		sprintf(Str, "%.1fk", d/1e3);
+		snprintf(Str, SIZE_64, "%.1fk", d/1e3);
 	else if (i < 10e6)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_64, "%.1fM", d/1e6);
 	else if (i < 1e9)
-		sprintf(Str, "%.0fM", d/1e6);
+		snprintf(Str, SIZE_64, "%.0fM", d/1e6);
 	else if (i < 10e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_64, "%.1fG", d/1e9);
 	else if (i < 100e9)
-		sprintf(Str, "%.0fG", d/1e9);
+		snprintf(Str, SIZE_64, "%.0fG", d/1e9);
 	else
-		sprintf(Str, "%.3g", d);
+		snprintf(Str, SIZE_64, "%.3g", d);
 	return Str;
 	}
 
 const char *FloatToStr(double d)
 	{
-	static char Str[32];
+	static char Str[SIZE_32];
 
 	double a = fabs(d);
 	if (a < 0.01)
-		sprintf(Str, "%.3g", a);
+		snprintf(Str, SIZE_32, "%.3g", a);
 	else if (a >= 0.01 && a < 1)
-		sprintf(Str, "%.3f", a);
+		snprintf(Str, SIZE_32, "%.3f", a);
 	else if (a <= 10 && a >= 1)
 		{
 		double intpart;
 		if (modf(a, &intpart) < 0.05)
-			sprintf(Str, "%.0f", d);
+			snprintf(Str, SIZE_32, "%.0f", d);
 		else
-			sprintf(Str, "%.1f", d);
+			snprintf(Str, SIZE_32, "%.1f", d);
 		}
 	else if (a > 10 && a < 10000)
-		sprintf(Str, "%.1f", d);
+		snprintf(Str, SIZE_32, "%.1f", d);
 	else if (a < 1e6)
-		sprintf(Str, "%.1fk", d/1e3);
+		snprintf(Str, SIZE_32, "%.1fk", d/1e3);
 	else if (a < 10e6)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.1fM", d/1e6);
 	else if (a < 1e9)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.1fM", d/1e6);
 	else if (a < 10e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.1fG", d/1e9);
 	else if (a < 100e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.1fG", d/1e9);
 	else
-		sprintf(Str, "%.3g", d);
+		snprintf(Str, SIZE_32, "%.3g", d);
 	return Str;
 	}
 
 const char *IntFloatToStr(double d)
 	{
-	static char Str[32];
+	static char Str[SIZE_32];
 
 	double a = fabs(d);
 	if (a < 1.0)
-		sprintf(Str, "%.3g", a);
+		snprintf(Str, SIZE_32, "%.3g", a);
 	else if (a <= 10)
-		sprintf(Str, "%.0f", d);
+		snprintf(Str, SIZE_32, "%.0f", d);
 	else if (a > 10 && a < 10000)
-		sprintf(Str, "%.0f", d);
+		snprintf(Str, SIZE_32, "%.0f", d);
 	else if (a < 1e6)
-		sprintf(Str, "%.1fk", d/1e3);
+		snprintf(Str, SIZE_32, "%.1fk", d/1e3);
 	else if (a < 10e6)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.1fM", d/1e6);
 	else if (a < 1e9)
-		sprintf(Str, "%.1fM", d/1e6);
+		snprintf(Str, SIZE_32, "%.1fM", d/1e6);
 	else if (a < 10e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.1fG", d/1e9);
 	else if (a < 100e9)
-		sprintf(Str, "%.1fG", d/1e9);
+		snprintf(Str, SIZE_32, "%.1fG", d/1e9);
 	else
-		sprintf(Str, "%.3g", d);
+		snprintf(Str, SIZE_32, "%.3g", d);
 	return Str;
 	}
 
@@ -1190,8 +1195,8 @@ string &GetProgressPrefixStr(string &s)
 	if (Bytes > 0)
 		{
 		s.push_back(' ');
-		char Str[32];
-		sprintf(Str, "%5s", MemBytesToStr(Bytes));
+		char Str[SIZE_32];
+		snprintf(Str, SIZE_32, "%5s", MemBytesToStr(Bytes));
 		s += string(Str);
 		}
 	s.push_back(' ');
@@ -1208,7 +1213,7 @@ const char *GetElapsedTimeStr(string &s)
 const char *GetMaxRAMStr(string &s)
 	{
 	char Str[32];
-	sprintf(Str, "%5s", MemBytesToStr(g_PeakMemUseBytes));
+	snprintf(Str, SIZE_32, "%5s", MemBytesToStr(g_PeakMemUseBytes));
 	s = string(Str);
 	return s.c_str();
 	}
@@ -1365,9 +1370,9 @@ const char *PctStr(double x, double y)
 		else
 			return "inf%";
 		}
-	static char Str[16];
+	static char Str[SIZE_16];
 	double p = x*100.0/y;
-	sprintf(Str, "%5.1f%%", p);
+	snprintf(Str, SIZE_16, "%5.1f%%", p);
 	return Str;
 	}
 
@@ -1382,7 +1387,7 @@ string &GetProgressLevelStr(string &s)
 		else
 			{
 			char Tmp[16];
-			sprintf(Tmp, "%u", Index); 
+			snprintf(Tmp, SIZE_16, "%u", Index); 
 			s = Tmp;
 			}
 		}
