@@ -332,6 +332,7 @@
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
     <ClCompile Include="timing.cpp" />
+    <ClCompile Include="tma.cpp" />
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />

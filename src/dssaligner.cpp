@@ -3,7 +3,6 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 #include "alpha.h"
-#include "tma.h"
 #include "xdpmem.h"
 #include "timing.h"
 #include "combomx.h"

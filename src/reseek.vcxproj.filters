@@ -284,6 +284,9 @@
     <ClCompile Include="readhits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

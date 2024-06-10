@@ -1,6 +1,21 @@
 #pragma once
 
 #include "pdbchain.h"
+#include <mutex>
+
+template <class A> void NewArray(A *** array, int Narray1, int Narray2)
+	{
+    *array=new A* [Narray1];
+    for(int i=0; i<Narray1; i++) *(*array+i)=new A [Narray2];
+	}
+
+template <class A> void DeleteArray(A *** array, int Narray)
+	{
+    for(int i=0; i<Narray; i++)
+        if(*(*array+i)) delete [] *(*array+i);
+    if(Narray) delete [] (*array);
+    (*array)=NULL;
+	}
 
 class TMA
 	{
@@ -11,6 +26,10 @@ public:
 	string m_RRow;
 	double m_TM1 = 0;
 	double m_TM2 = 0;
+	FILE *m_ftsv = 0;
+	FILE *m_faln = 0;
+	FILE *m_ffasta2 = 0;
+	mutex m_Lock;
 
 public:
 	void NWDP_TM1(double **score, bool **path, double **val,
@@ -99,15 +118,10 @@ public:
 	char sec_str(double dis13, double dis14, double dis15,
 		double dis24, double dis25, double dis35);
 
-//	void make_sec(double** x, int len, char* sec);
-
 	bool get_initial5(double** r1, double** r2, double** xtm, double** ytm,
 		bool** path, double** val,
 		double** x, double** y, int xlen, int ylen, int* y2x,
 		double d0, double d0_search, const double D0_MIN);
-
-	//void get_initial_ss(bool** path, double** val,
-	//	const char* secx, const char* secy, int xlen, int ylen, int* y2x);
 
 	bool Kabsch(double **x, double **y, int n, int mode, double *rms,
 		double t[3], double u[3][3]);
@@ -132,6 +146,15 @@ public:
 		string& seqM, string& seqxA, string& seqyA,
 		const int xlen, const int ylen);
 
+	int TMalign_main_score(
+		const string &rowa, const string &rowb,
+		double** xa, double** ya,
+		const char* seqx, const char* secy,
+		double& TM1, double& TM2,
+		double& d0A, double& d0B,
+		string& seqM, string& seqxA, string& seqyA,
+		const int xlen, const int ylen);
+
 	void WriteAln(FILE *f,
 		const int xlen, const int ylen,
 		const double TM1, const double TM2,
@@ -143,4 +166,10 @@ public:
 	uint ReadCal(const string &FileName, char *Seq, double **a);
 
 	double AlignChains(const PDBChain &Q, const PDBChain &R);
+	double CalcTMScore(const PDBChain &Q, const PDBChain &R,
+	  const string &RowQ, const string &RowR);
+
+public:
+	void do_rotation(double** x, double** x1, int len, double t[3], double u[3][3]);
+	double dist(double x[3], double y[3]);
 	};
