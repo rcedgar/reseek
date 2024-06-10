@@ -12,6 +12,7 @@ const char *ObjTypeToStr(ObjType Type)
 		{
 #define T(x)	case OT_##x: return #x;
 #include "objtypes.h"
+	default: break;
 		}
 	return "OT_??";
 	}
@@ -24,8 +25,7 @@ const char *ObjTypeToStr2(ObjType Type)
 		return "SI";
 	case OT_PathInfo:
 		return "PI";
-	//case OT_AlignResult:
-	//	return "AR";
+	default: break;
 		}
 	return "??";
 	}
