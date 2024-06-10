@@ -2874,7 +2874,7 @@ double TMA::AlignChains(const PDBChain &Q, const PDBChain &R)
 	}
 
 int TMA::TMalign_main_score(
-	const string &rowa, const string &rowb,
+	const string &Path,
 	double** xa, double** ya,
 	const char* seqx, const char* secy,
 	double& TM1, double& TM2,
@@ -2932,17 +2932,22 @@ int TMA::TMalign_main_score(
 
 	int i1 = -1;// in C version, index starts from zero, not from one
 	int i2 = -1;
-	int L1 = (int) rowa.size();
-	int L2 = (int) rowb.size();
-	int L = min(L1, L2);// Get positions for aligned residues
+	//int L1 = (int) rowa.size();
+	//int L2 = (int) rowb.size();
+	//int L = min(L1, L2);// Get positions for aligned residues
+	int L = SIZE(Path);
 	for (int kk1 = 0; kk1 < L; kk1++)
 		{
-		if (rowa[kk1] != '-') i1++;
-		if (rowb[kk1] != '-')
+		char c = Path[kk1];
+		if (c != 'I')
+			i1++;
+		if (Path[kk1] != 'D')
 			{
 			i2++;
-			if (i2 >= ylen || i1 >= xlen) kk1 = L;
-			else if (rowa[kk1] != '-') invmap[i2] = i1;
+			//if (i2 >= ylen || i1 >= xlen)
+			//	kk1 = L;
+			if (c != 'I')
+				invmap[i2] = i1;
 			}
 		}
 
@@ -3061,7 +3066,7 @@ int TMA::TMalign_main_score(
 	}
 
 double TMA::CalcTMScore(const PDBChain &Q, const PDBChain &R,
-  const string &RowQ, const string &RowR)
+  const string &Path)
 	{
 	m_Q = &Q;
 	m_R = &R;
@@ -3100,7 +3105,7 @@ double TMA::CalcTMScore(const PDBChain &Q, const PDBChain &R,
 	double d0A = DBL_MAX;
 	double d0B = DBL_MAX;
 	string seqM;
-	int iResult = TMalign_main_score(RowQ, RowR,
+	int iResult = TMalign_main_score(Path,
 	  xa, ya, seqx, seqy, m_TM1, m_TM2, d0A, d0B,
 	  seqM, m_QRow, m_RRow, xlen, ylen);
 

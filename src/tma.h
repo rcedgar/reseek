@@ -147,7 +147,7 @@ public:
 		const int xlen, const int ylen);
 
 	int TMalign_main_score(
-		const string &rowa, const string &rowb,
+		const string &Path,
 		double** xa, double** ya,
 		const char* seqx, const char* secy,
 		double& TM1, double& TM2,
@@ -167,7 +167,7 @@ public:
 
 	double AlignChains(const PDBChain &Q, const PDBChain &R);
 	double CalcTMScore(const PDBChain &Q, const PDBChain &R,
-	  const string &RowQ, const string &RowR);
+	  const string &Path);
 
 public:
 	void do_rotation(double** x, double** x1, int len, double t[3], double u[3][3]);
