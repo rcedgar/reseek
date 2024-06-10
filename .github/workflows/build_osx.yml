@@ -6,35 +6,41 @@ on:
   workflow_dispatch:
 
 jobs:
-  install-macports-on-macos-11:
-    runs-on: macos-11
-    name: 'Install MacPorts 2.9.3 on MacOS 11'
+  run-testsuite:
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-11', 'macos-12', 'macos-13', 'macos-14']
+    runs-on: '${{ matrix.os }}'
+    name: 'Run Testsuite'
     steps:
-      - uses: actions/checkout@v3
-      - uses: melusina-org/setup-macports@v1
-        id: 'macports'
-        with:
-          parameters: 'testsuite/run-testsuite-on-macos-11.yaml'
-      - name: 'Validate installed MacPorts version'
-        run: >-
-          test "$(port version)" = 'Version: 2.9.3'
-      - name: 'Validate transmitted MacPorts prefix'
-        run: >-
-          test "${{ steps.macports.outputs.prefix }}" = '/opt/local'
-      - name: 'Validate transmitted MacPorts version'
-        run: >-
-          test "${{ steps.macports.outputs.version }}" = '2.9.3'
-
-  install-macports-on-macos-12:
-    runs-on: macos-12
-    name: 'Install MacPorts 2.9.3 on MacOS 12'
-    steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: 'Run testsuite'
         run: development/testsuite
-      - uses: melusina-org/setup-macports@v1
+
+  install-macports:
+    strategy:
+      matrix:
+        os: ['macos-11', 'macos-12', 'macos-13', 'macos-14']
+        version: ['2.9.3']
+        prefix: ['/opt/local']
+    runs-on: '${{ matrix.os }}'
+    name: 'Install MacPorts'
+    needs: 'run-testsuite'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: 'macports'
         with:
-          parameters: 'testsuite/run-testsuite-on-macos-12.yaml'
+          parameters: 'testsuite/run-testsuite-on-${{ matrix.os }}.yaml'
+      - name: 'Validate installed MacPorts version'
+        run: >-
+          test "$(port version)" = 'Version: ${{ matrix.version }}'
+      - name: 'Validate transmitted MacPorts prefix'
+        run: >-
+          test "${{ steps.macports.outputs.prefix }}" = '${{ matrix.prefix }}'
+      - name: 'Validate transmitted MacPorts version'
+        run: >-
+          test "${{ steps.macports.outputs.version }}" = '${{ matrix.version }}'
       - run: port version
   build:
     runs-on: macos-12
