@@ -174,7 +174,7 @@ OBJS = \
 
 $(BINPATH) : $(BINDIR)/ $(OBJDIR)/ $(OBJS)
 	$(CXX) $(LDFLAGS) $(OBJS) -o $(BINPATH)
-	strip -d $(BINPATH)
+	strip -S $(BINPATH)
 
 $(OBJDIR)/ :
 	mkdir -p $(OBJDIR)/
