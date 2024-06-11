@@ -2,12 +2,13 @@
 name: build_osx
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    branches: [ "master" ]
 
 jobs:
   build:
