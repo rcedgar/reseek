@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-  # Enable manual run from the Actions tab
   workflow_dispatch:
 
 permissions:
