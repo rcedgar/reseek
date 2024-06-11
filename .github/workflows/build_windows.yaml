@@ -48,4 +48,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
           name: reseek-windows-binary.exe
-          path: ${{env.GITHUB_WORKSPACE}}\${{env.SOLUTION_FILE_PATH}}\${{env.BUILD_CONFIGURATION}}\reseek.exe
+          path: D:\a\reseek\reseek\src\Release\reseek.exe
