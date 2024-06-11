@@ -36,8 +36,8 @@ jobs:
           cd src
           make
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: reseek-osx-binary
-          path: ../bin/reseek
+          path: /Users/runner/work/reseek/reseek/bin/reseek
 
