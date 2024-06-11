@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reseek-linux-binary
-          path: $GITHUB_WORKSPACE/bin/reseek
+          path: /home/runner/work/reseek/reseek/bin/reseek
 
   build-aarch64:
     name: Linux aarch64
