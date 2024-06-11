@@ -39,5 +39,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: reseek-osx-binary
-          path: $GITHUB_WORKSPACE/reseek/bin/reseek
+          path: ../bin/reseek
 
