@@ -808,11 +808,13 @@ void DSSAligner::CalcEvalue()
 
 	if (StatTop < 0)
 		StatTop = 0;
+
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);
 
 	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
 	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);
+
 	}
 
 void DSSAligner::Align_NoAccel()

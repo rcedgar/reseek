@@ -284,12 +284,6 @@
     <ClCompile Include="readhits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tma.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmscore.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -395,9 +389,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xdpmem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tma.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scop40bench.h">

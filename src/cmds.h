@@ -33,6 +33,5 @@ C(test_para)
 C(test_para_cal)
 C(test_para_path)
 C(calibrate)
-C(tmscore)
 
 #undef C
