@@ -3,13 +3,6 @@ name: build_windows
 on:
   workflow_dispatch:
 
-permissions:
-  contents: read    
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: ./src
