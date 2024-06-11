@@ -36,7 +36,7 @@ jobs:
           ls -lh
           cd src
           make
-          file $GITHUB_WORKSPACE/bin/reseek | grep x86-64
+          file /home/runner/work/reseek/reseek/bin/reseek | grep x86-64
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
