@@ -2,8 +2,12 @@
 name: build_osx
 
 on:
-  # Enable manual run from the Actions tab
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
   workflow_dispatch:
+    branches: [ "master" ]
 
 jobs:
   build:
