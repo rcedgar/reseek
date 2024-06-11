@@ -13,6 +13,7 @@ CYGWIN*/
 make.stderr
 make.stdout
 enc_temp_folder/
+.DSStore
 
 # User-specific files
 *.rsuser
