@@ -10,6 +10,16 @@
 #include <cmath>
 #include "timing.h"
 
+double normal(double mu, double sigma, double x)
+	{
+	static double PI = 3.14159265358979323846;
+	double two_sigma2 = 2*sigma*sigma;
+	double bottom = sqrt(2*PI*two_sigma2);
+	double x_minus_mu2 = (x - mu)*(x - mu);
+	double y = (1/bottom)*exp(x_minus_mu2/two_sigma2);
+	return y;
+	}
+
 // https://en.wikipedia.org/wiki/Q-function
 // Q(x) is the probability that a standard normal variable
 //   takes a value larger than x.
@@ -207,16 +217,18 @@ void CalibrateSearcher::ScanAll()
 void CalibrateSearcher::LogAllBins() const
 	{
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
-	Log("TS\tMid\tN\tAN\tP\n");
+	Log("TS\tMid\tN\tAN\tP\tFit\n");
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
 		asserta(m_AllBins[Bin] == n);
 		uint32_t an = m_AllAccum[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		float TS = exp(-Mid);
+		double Fit1 = normal(m_AllMean, m_AllSigma, Mid);
+		double Fit = exp(-Fit1);
+		double TS = exp(-Mid);
 		double P = Q_func(Mid, m_AllMean, m_AllSigma);
-		Log("%.3g\t%.3f\t%u\t%u\t%.3g\n", TS, Mid, n, an, P);
+		Log("%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\n", TS, Mid, n, an, P, Fit);
 		}
 	Log("Mean %.3g, stddev %.3g\n", m_AllMean, m_AllSigma);
 	}
