@@ -241,10 +241,4 @@ void cmd_calibrate()
 	DBS.SetAllAccum();
 	DBS.SetAllMeanStdDev();
 	DBS.LogAllBins();
-	//for (uint ChainIndex = 0; ChainIndex < SIZE(DBS.m_QueryChains); ++ChainIndex)
-	//	{
-	//	float Mean, Sigma;
-	//	DBS.Calibrate(ChainIndex, Mean, Sigma);
-	//	Log("%8.2f  %8.2f\n", Mean, Sigma);
-	//	}
 	}

@@ -2,10 +2,10 @@
 const char *usage_txt[] =
     {
 "All-vs-all alignment (excluding self-hits)\n"
-"    reseek -search STRUCTS -output hits.txt -mode MODE\n"
+"    reseek -search STRUCTS -output hits.txt\n"
 "\n"
 "Search query against database\n"
-"    reseek -search Q_STRUCTS -db DB_STRUCTS -mode MODE -output hits.txt\n"
+"    reseek -search Q_STRUCTS -db DB_STRUCTS -output hits.txt\n"
 "\n"
 "Align two structures\n"
 "    reseek -search NAME1.pdb -db NAME2.pdb -aln aln.txt\n"
@@ -17,7 +17,6 @@ const char *usage_txt[] =
 "                 # (More output formats coming soon)\n"
 "\n"
 "Search and alignment options\n"
-"  -mode MODE     # veryfast|fast|sensitive (required)\n"
 "  -evalue E      # Max E-value (default 10)\n"
 "  -omega X       # Omega accelerator (floating-point)\n"
 "  -minu U        # K-mer accelerator (integer)\n"
