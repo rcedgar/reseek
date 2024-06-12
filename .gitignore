@@ -12,8 +12,8 @@ CYGWIN*/
 *.o
 make.stderr
 make.stdout
-gitver.txt
 enc_temp_folder/
+.DSStore
 
 # User-specific files
 *.rsuser

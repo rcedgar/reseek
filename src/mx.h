@@ -8,6 +8,9 @@
 #include <math.h>
 #include "myutils.h"
 
+const int SIZE_3 = 3;
+const int SIZE_16 = 16;
+
 const int OPT_LOG = 0x01;
 const int OPT_EXP = 0x02;
 const int OPT_ZERO_BASED = 0x04;
@@ -25,65 +28,65 @@ template<class T> const char *TypeToStr(T t)
 
 template<> inline const char *TypeToStr<unsigned short>(unsigned short f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
-	sprintf(s, "%12u", f);
+	snprintf(s, SIZE_16, "%12u", f);
 	return s;
 	}
 
 template<> inline const char *TypeToStr<unsigned>(unsigned f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
-	sprintf(s, "%12u", f);
+	snprintf(s, SIZE_16, "%12u", f);
 	return s;
 	}
 
 template<> inline const char *TypeToStr<short>(short f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
-	sprintf(s, "%12d", f);
+	snprintf(s, SIZE_16, "%12d", f);
 	return s;
 	}
 
 template<> inline const char *TypeToStr<int>(int f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
-	sprintf(s, "%5d", f);
+	snprintf(s, SIZE_16, "%5d", f);
 	return s;
 	}
 
 template<> inline const char *TypeToStr<float>(float f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
 	if (f == UNINIT)
-		sprintf(s, "%12.12s", "?");
+		snprintf(s, SIZE_16, "%12.12s", "?");
 	else if (f < MINUS_INFINITY/2)
-		sprintf(s, "%12.12s", "*");
+		snprintf(s, SIZE_16, "%12.12s", "*");
 	else if (f == 0.0f)
-		sprintf(s, "%12.12s", ".");
+		snprintf(s, SIZE_16, "%12.12s", ".");
 	else if (f >= -1e5 && f <= 1e5)
-		sprintf(s, "%12.5f", f);
+		snprintf(s, SIZE_16, "%12.5f", f);
 	else
-		sprintf(s, "%12.4g", f);
+		snprintf(s, SIZE_16, "%12.4g", f);
 	return s;
 	}
 
 template<> inline const char *TypeToStr<double>(double f)
 	{
-	static char s[16];
+	static char s[SIZE_16];
 
 	if (f < -1e9)
-		sprintf(s, "%12.12s", "*");
+		snprintf(s, SIZE_16, "%12.12s", "*");
 	else if (f == 0.0f)
-		sprintf(s, "%12.12s", ".");
+		snprintf(s, SIZE_16, "%12.12s", ".");
 	else if (f >= -1e-5 && f <= 1e5)
-		sprintf(s, "%12.5f", f);
+		snprintf(s, SIZE_16, "%12.5f", f);
 	else
-		sprintf(s, "%12.4g", f);
+		snprintf(s, SIZE_16, "%12.4g", f);
 	return s;
 	}
 
@@ -102,8 +105,8 @@ template<> inline const char *TypeToStr<char>(char c)
 
 template<> inline const char *TypeToStr<byte>(byte c)
 	{
-	static char s[3];
-	sprintf(s, "%02x", c);
+	static char s[SIZE_3];
+	snprintf(s, SIZE_3, "%02x", c);
 	return s;
 	}
 

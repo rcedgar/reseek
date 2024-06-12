@@ -13,7 +13,7 @@ const char *usage_txt[] =
 "Output options for -search\n"
 "   -aln FILE     # Alignments in human-readable format\n"
 "   -output FILE  # Hits in tabbed text format with 8 fields:\n"
-"                 #   Evalue Query Target Qstart Qend Tstart Tend CIGAR\n"
+"                 #   Evalue Query Target\n"
 "                 # (More output formats coming soon)\n"
 "\n"
 "Search and alignment options\n"

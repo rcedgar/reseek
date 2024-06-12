@@ -135,5 +135,5 @@ void SCOP40Bench::ReadHits(const string &FN)
 	  HitCount, BadLineCount, Algo.c_str(), NotFoundCount);
 	for (set<string>::const_iterator iter = NotFound.begin();
 	  iter != NotFound.end(); ++iter)
-		Log("NOTFOUND %s\n", *iter);
+		Log("NOTFOUND %s\n", iter->c_str());
 	}

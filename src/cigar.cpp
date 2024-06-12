@@ -1,6 +1,8 @@
 #include "myutils.h"
 #include "cigar.h"
 
+const int SIZE_32 = 32;
+
 /***
 https://samtools.github.io/hts-specs/SAMv1.pdf
  
@@ -36,16 +38,16 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 	CIGAR.clear();
 	char LastC = *Path;
 	uint n = 1;
-	char Tmp[32];
+	char Tmp[SIZE_32];
 
 	if (LoQ > 0)
 		{
-		sprintf(Tmp, "%uS", LoQ);
+		snprintf(Tmp, SIZE_32, "%uS", LoQ);
 		CIGAR += string(Tmp);
 		}
 	if (LoR > 0)
 		{
-		sprintf(Tmp, "%uT", LoR);
+		snprintf(Tmp, SIZE_32, "%uT", LoR);
 		CIGAR += string(Tmp);
 		}
 
@@ -73,7 +75,7 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 				LastC = 'I';
 			else if (LastC == 'I')
 				LastC = 'D';
-			sprintf(Tmp, "%u%c", n, LastC);
+			snprintf(Tmp, SIZE_32, "%u%c", n, LastC);
 			CIGAR += string(Tmp);
 			LastC = c;
 			n = 1;
@@ -85,7 +87,7 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 			LastC = 'I';
 		else if (LastC == 'I')
 			LastC = 'D';
-		sprintf(Tmp, "%u%c", n, LastC);
+		snprintf(Tmp,  SIZE_32, "%u%c", n, LastC);
 		CIGAR += string(Tmp);
 		}
 	}
@@ -95,7 +97,7 @@ void PathToCIGAR(const char *Path, string &CIGAR, bool FlipDI)
 	CIGAR.clear();
 	char LastC = *Path;
 	uint n = 1;
-	char Tmp[32];
+	char Tmp[SIZE_32];
 	for (uint i = 1; ; ++i)
 		{
 		char c = Path[i];
@@ -116,7 +118,7 @@ void PathToCIGAR(const char *Path, string &CIGAR, bool FlipDI)
 				else if (LastC == 'I')
 					LastC = 'D';
 				}
-			sprintf(Tmp, "%u%c", n, LastC);
+			snprintf(Tmp, SIZE_32, "%u%c", n, LastC);
 			CIGAR += string(Tmp);
 			LastC = c;
 			n = 1;
@@ -131,7 +133,7 @@ void PathToCIGAR(const char *Path, string &CIGAR, bool FlipDI)
 			else if (LastC == 'I')
 				LastC = 'D';
 			}
-		sprintf(Tmp, "%u%c", n, LastC);
+		snprintf(Tmp, SIZE_32, "%u%c", n, LastC);
 		CIGAR += string(Tmp);
 		}
 	}
