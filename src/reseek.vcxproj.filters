@@ -391,9 +391,6 @@
     <ClInclude Include="xdpmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tma.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="scop40bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>

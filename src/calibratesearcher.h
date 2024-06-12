@@ -6,14 +6,15 @@
 class CalibrateSearcher : public DBSearcher
 	{
 public:
-	Binner<float> *m_ptrAllBinner = 0;
+	
+	Binner<float> *m_ptrAllBinner = 0;  // binned by -log(TS)
 	float m_MaxTS = 0;
 	vector<float> m_AllTSs; // outliers discarded
 	vector<uint32_t> m_AllBins;
 	vector<uint32_t> m_AllAccum;
 	vector<vector<float> > m_TestStatsVec;
-	float m_AllMean = 0;
-	float m_AllSigma = 0;
+	float m_NormalMeanMinusLogTS = 0;
+	float m_NormalSigmaMinusLogTS = 0;
 
 public:
 	virtual void OnSetup();
@@ -22,9 +23,9 @@ public:
 public:
 	void ScanAll();
 	void SetAllBins();
-	void SetAllMeanStdDev();
+	void FitNormal();
 	void SetAllAccum();
-	void LogAllBins() const;
+	void WriteBins(FILE *f) const;
 	void Calibrate(uint ChainIndex, float &Mean, float &Sigma);
 	};
 

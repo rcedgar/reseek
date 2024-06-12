@@ -398,7 +398,6 @@
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
-    <ClInclude Include="tma.h" />
     <ClInclude Include="tracebit.h" />
     <ClInclude Include="trainer.h" />
     <ClInclude Include="usage.h" />
