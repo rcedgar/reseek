@@ -151,6 +151,8 @@ with open("Makefile", "w") as f:
     Out("clean:")
     Out("	rm -rf $(OBJDIR)/ $(BINPATH)")
 
+rc = os.system("rm -f o/myutils.o ../bin/reseek")
+
 rc = os.system("make 2> make.stderr | tee make.stdout")
 if rc != 0:
     sys.stderr.write("\n\nERROR -- make failed, see make.std* output files\n\n")
