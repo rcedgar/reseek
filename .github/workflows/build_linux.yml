@@ -40,35 +40,34 @@ jobs:
           name: reseek-linux-binary
           path: /home/runner/work/reseek/reseek/bin/reseek
 
-  build-aarch64:
-    name: Linux aarch64
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+#  build-aarch64:
+#    name: Linux aarch64
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v4
 
-    - name: Build
-      uses: uraimo/run-on-arch-action@v2
-      with:
-        arch: aarch64
-        distro: ubuntu20.04
-        githubToken: ${{ github.token }}
-        dockerRunArgs: |
-          --volume "${PWD}:/reseek"
-        install: |
-          apt-get update -q -y
-          apt-get install -q -y make g++ file git python3 ccache
-        run: |
-          git config --global --add safe.directory /
-          cd /reseek  
-          uname -a
-          lscpu
-          cd src/
-          python3 build_linux.py
-          file /reseek/bin/reseek | grep aarch64
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: reseek-linux-aarch64-binary
-        path: /reseek/bin/reseek
-    
+#    - name: Build
+#      uses: uraimo/run-on-arch-action@v2
+#      with:
+#       arch: aarch64
+#       distro: ubuntu20.04
+#        githubToken: ${{ github.token }}
+#       dockerRunArgs: |
+#          --volume "${PWD}:/reseek"
+#       install: |
+#          apt-get update -q -y
+#          apt-get install -q -y make g++ file git python3 ccache
+#        run: |
+#          git config --global --add safe.directory /
+#          cd /reseek  
+#          uname -a
+#          lscpu
+#          cd src/
+#          python3 build_linux.py
+#          file /reseek/bin/reseek | grep aarch64
+#    - name: Upload binary artifact
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: reseek-linux-aarch64-binary
+#        path: /reseek/bin/reseek
