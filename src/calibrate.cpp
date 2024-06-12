@@ -10,6 +10,8 @@
 #include <cmath>
 #include "timing.h"
 
+double gumbel(double mu, double beta, double x);
+
 double Integrate(double x0, double dx,
   const vector<double> &ys)
 	{
@@ -169,7 +171,7 @@ void CalibrateSearcher::FitGumbel()
 	  const vector<double> &ys,
 	  double &Mu, double &Beta);
 
-	fit_gumbel(m_x0, m_dx, m_ys, m_GumbelMu, m_GumbelMu);
+	fit_gumbel(m_x0, m_dx, m_ys, m_GumbelMu, m_GumbelBeta);
 
 	Log("Gumbel: Mu %.3g, Beta %.3g\n",
 	  m_GumbelMu, m_GumbelBeta);
@@ -258,6 +260,7 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		double TS = exp(-Mid);
 		//double Fit = normal(m_NormalMean, m_NormalSigma, Mid);
 		//double P = Q_func(Mid, m_NormalMean, m_NormalSigma);
+		double Fit = gumbel(m_GumbelMu, m_GumbelBeta, x);
 		x += m_dx;
 
 		//fprintf(f, "%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\t%.3g\n",
@@ -268,7 +271,7 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		fprintf(f, "\t%u", an);
 		fprintf(f, "\t%.3g", y);
 		//fprintf(f, "\t%.3g", P);
-		//fprintf(f, "\t%.3g", Fit);
+		fprintf(f, "\t%.3g", Fit);
 		fprintf(f, "\n");
 		}
 	}
@@ -293,8 +296,8 @@ void cmd_calibrate()
 	DBS.SetAllBins();
 	DBS.SetAllAccum();
 	DBS.Setxys();
-	DBS.FitNormal();
-	//DBS.FitGumbel();
+	//DBS.FitNormal();
+	DBS.FitGumbel();
 	DBS.WriteBins(fOut);
 	CloseStdioFile(fOut);
 	}
