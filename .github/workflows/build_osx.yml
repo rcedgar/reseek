@@ -36,7 +36,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           ls -lh
           cd src
-          python3 vcxproj2makefile_reseek.py
+          python3 build_linux.py
           make
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
