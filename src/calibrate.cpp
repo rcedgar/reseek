@@ -11,6 +11,7 @@
 #include "timing.h"
 
 double gumbel(double mu, double beta, double x);
+double gumbel_cdf(double mu, double beta, double x);
 
 double Integrate(double x0, double dx,
   const vector<double> &ys)
@@ -111,16 +112,18 @@ void CalibrateSearcher::Setxys()
 	m_ys.clear();
 	asserta(SIZE(m_AllBins) == NBINS);
 	float Sumy = 0;
+
+	m_x0 = m_ptrAllBinner->GetBinMid(0);
 	double Mid0 = m_ptrAllBinner->GetBinMid(0);
 	double Mid1 = m_ptrAllBinner->GetBinMid(1);
-	m_x0 = Mid0;
+
 	m_dx = Mid1 - Mid0;
 	double x = m_x0;
+
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
-
-	// Trim outliers near x=0, should not be curve-fitted
+	// trim outliers near x=0, should not be curve-fitted
 		if (Bin < 10)
 			n = 0;
 		float unnormalized_y = float(n);
@@ -240,14 +243,14 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		return;
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
 
-	fprintf(f, "x0=%.3g\tdx=%.3g\n", m_x0, m_dx);
-
-	fprintf(f, "TS");
+	fprintf(f, "Bin");
+	fprintf(f, "\tTS");
 	fprintf(f, "\tx");
 	fprintf(f, "\tn");
 	fprintf(f, "\tan");
 	fprintf(f, "\ty");
-	fprintf(f, "\n");
+	fprintf(f, "\ty_fit");
+	fprintf(f, "\tx0=%.3g\tdx=%.3g\n", m_x0, m_dx);
 
 	double x = m_x0;
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
@@ -258,20 +261,18 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		double y = m_ys[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
 		double TS = exp(-Mid);
-		//double Fit = normal(m_NormalMean, m_NormalSigma, Mid);
-		//double P = Q_func(Mid, m_NormalMean, m_NormalSigma);
 		double Fit = gumbel(m_GumbelMu, m_GumbelBeta, x);
+		double P = gumbel_cdf(m_GumbelMu, m_GumbelBeta, x);
 		x += m_dx;
 
-		//fprintf(f, "%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\t%.3g\n",
-		//  TS, Mid, n, y, an, P, Fit);
-		fprintf(f, "%.3g", TS);
+		fprintf(f, "%u", Bin);
+		fprintf(f, "\t%.3g", TS);
 		fprintf(f, "\t%.3g", x);
 		fprintf(f, "\t%u", n);
 		fprintf(f, "\t%u", an);
 		fprintf(f, "\t%.3g", y);
-		//fprintf(f, "\t%.3g", P);
 		fprintf(f, "\t%.3g", Fit);
+		fprintf(f, "\t%.3g", P);
 		fprintf(f, "\n");
 		}
 	}

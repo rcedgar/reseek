@@ -11,6 +11,13 @@ double gumbel(double mu, double beta, double x)
 	return y;
 	}
 
+double gumbel_cdf(double mu, double beta, double x)
+	{
+	double a = (x - mu)/beta;
+	double y = exp(-exp(-a));
+	return y;
+	}
+
 #if 0
 // https://en.wikipedia.org/wiki/Gumbel_distribution
 // reproduce Wikipedia figure f(x, mu=1.0, beta=2.0)
