@@ -15,6 +15,7 @@ make.stderr
 make.stdout
 enc_temp_folder/
 .DSStore
+.swp
 
 # User-specific files
 *.rsuser
