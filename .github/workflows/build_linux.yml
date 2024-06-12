@@ -33,7 +33,6 @@ jobs:
           ls -lh
           cd src
           python3 build_linux.py
-          make
           file /home/runner/work/reseek/reseek/bin/reseek | grep x86-64
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
@@ -67,7 +66,6 @@ jobs:
           cd src/
           python3 build_linux.py
           file /reseek/bin/reseek | grep aarch64
-
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
