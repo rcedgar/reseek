@@ -4,6 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # RCE added
+gitver.txt
 o/
 obj/
 [Ll]inux/
@@ -14,6 +15,7 @@ make.stderr
 make.stdout
 enc_temp_folder/
 .DSStore
+.swp
 
 # User-specific files
 *.rsuser
