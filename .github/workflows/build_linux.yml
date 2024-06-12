@@ -32,7 +32,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           ls -lh
           cd src
-          python3 vcxproj2makefile_reseek.py
+          python3 build_linux.py
           make
           file /home/runner/work/reseek/reseek/bin/reseek | grep x86-64
       - name: Upload binary artifact
