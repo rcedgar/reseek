@@ -15,13 +15,13 @@ Feedback is welcome via github Issues.
 
 <pre>
 All-vs-all alignment (excluding self-hits)
-    reseek -search STRUCTS -mode MODE -output hits.tsv 
+    reseek -search STRUCTS -output hits.tsv 
 
 Search query structures against database
-    reseek -search Q_STRUCTS -db DB_STRUCTS -mode MODE -output hits.tsv
+    reseek -search Q_STRUCTS -db DB_STRUCTS -output hits.tsv
 
 Align two structures
-    reseek -search NAME1.pdb -db NAME2.pdb -mode MODE -aln aln.txt
+    reseek -search NAME1.pdb -db NAME2.pdb -aln aln.txt
 
 Output options for -search
    -aln FILE     # Alignments in human-readable format
@@ -30,7 +30,6 @@ Output options for -search
                  # (More output formats coming soon)
 
 Search and alignment options
-  -mode MODE     # veryfast|fast|sensitive (default fast)
   -evalue E      # Max E-value (default report all alignments)
   -omega X       # Omega accelerator (floating-point)
   -minu U        # K-mer accelerator (integer)
