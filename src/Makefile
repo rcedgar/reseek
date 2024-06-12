@@ -71,7 +71,6 @@ HDRS = \
   swtrace.h \
   timers.h \
   timing.h \
-  tma.h \
   tracebit.h \
   trainer.h \
   usage.h \
@@ -174,7 +173,7 @@ OBJS = \
 
 $(BINPATH) : $(BINDIR)/ $(OBJDIR)/ $(OBJS)
 	$(CXX) $(LDFLAGS) $(OBJS) -o $(BINPATH)
-	strip -d $(BINPATH)
+	strip $(BINPATH)
 
 $(OBJDIR)/ :
 	mkdir -p $(OBJDIR)/

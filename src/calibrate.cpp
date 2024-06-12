@@ -16,7 +16,7 @@ double normal(double mu, double sigma, double x)
 	double two_sigma2 = 2*sigma*sigma;
 	double bottom = sqrt(2*PI*two_sigma2);
 	double x_minus_mu2 = (x - mu)*(x - mu);
-	double y = (1/bottom)*exp(x_minus_mu2/two_sigma2);
+	double y = (1/bottom)*exp(-x_minus_mu2/two_sigma2);
 	return y;
 	}
 
@@ -117,7 +117,7 @@ void CalibrateSearcher::SetAllBins()
 	asserta(SIZE(m_AllBins) == NBINS);
 	}
 
-void CalibrateSearcher::SetAllMeanStdDev()
+void CalibrateSearcher::FitNormal()
 	{
 	asserta(SIZE(m_AllBins) == NBINS);
 	float SumValue = 0;
@@ -129,17 +129,17 @@ void CalibrateSearcher::SetAllMeanStdDev()
 		SumValue += n*Mid;
 		Sumn += n;
 		}
-	m_AllMean = SumValue/Sumn;
+	m_NormalMeanMinusLogTS = SumValue/Sumn;
 
 	float Sum2 = 0;
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		float Diff = Mid - m_AllMean;
+		float Diff = Mid - m_NormalMeanMinusLogTS;
 		Sum2 += n*Diff*Diff;
 		}
-	m_AllSigma = sqrtf(Sum2/Sumn);
+	m_NormalSigmaMinusLogTS = sqrtf(Sum2/Sumn);
 	}
 
 void CalibrateSearcher::Calibrate(uint ChainIndex, float &Mean, float &Sigma)
@@ -214,23 +214,23 @@ void CalibrateSearcher::ScanAll()
 		}
 	}
 
-void CalibrateSearcher::LogAllBins() const
+void CalibrateSearcher::WriteBins(FILE *f) const
 	{
+	if (f == 0)
+		return;
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
-	Log("TS\tMid\tN\tAN\tP\tFit\n");
+	fprintf(f, "TS\tMid\tN\tAN\tP\tFit\n");
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
 		asserta(m_AllBins[Bin] == n);
 		uint32_t an = m_AllAccum[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		double Fit1 = normal(m_AllMean, m_AllSigma, Mid);
-		double Fit = exp(-Fit1);
 		double TS = exp(-Mid);
-		double P = Q_func(Mid, m_AllMean, m_AllSigma);
-		Log("%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\n", TS, Mid, n, an, P, Fit);
+		double Fit = normal(m_NormalMeanMinusLogTS, m_NormalSigmaMinusLogTS, Mid);
+		double P = Q_func(Mid, m_NormalMeanMinusLogTS, m_NormalSigmaMinusLogTS);
+		fprintf(f, "%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\n", TS, Mid, n, an, P, Fit);
 		}
-	Log("Mean %.3g, stddev %.3g\n", m_AllMean, m_AllSigma);
 	}
 
 void cmd_calibrate()
@@ -244,6 +244,7 @@ void cmd_calibrate()
 	Params.m_DBSize = (float) DBS.GetDBSize();
 	if (optset_dbsize)
 		Params.m_DBSize = (float) opt_dbsize;
+	FILE *fOut = CreateStdioFile(opt_output);
 
 	DBS.Setup(Params);
 	DBS.Run();
@@ -251,6 +252,9 @@ void cmd_calibrate()
 	DBS.ScanAll();
 	DBS.SetAllBins();
 	DBS.SetAllAccum();
-	DBS.SetAllMeanStdDev();
-	DBS.LogAllBins();
+	DBS.FitNormal();
+	DBS.WriteBins(fOut);
+	CloseStdioFile(fOut);
+
+	Log("Mean %.3g, stddev %.3g\n", DBS.m_NormalMeanMinusLogTS, DBS.m_NormalSigmaMinusLogTS);
 	}
