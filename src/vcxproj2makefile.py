@@ -8,6 +8,11 @@ if rc != 0:
     sys.stderr.write("\n\nERROR -- Uncommited changes\n\n")
     sys.exit(1)
 
+rc = os.system('git log --oneline | head -n1 | cut "-d " -f1 | tee gitver.txt')
+if rc != 0:
+    sys.stderr.write("\n\nERROR -- failed to generate gitver.txt\n\n")
+    sys.exit(1)
+
 OBJDIR = "o"
 BINDIR = "../bin"
 
