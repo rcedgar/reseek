@@ -8,7 +8,7 @@ if rc != 0:
     sys.stderr.write("\n\nERROR -- Uncommited changes\n\n")
     sys.exit(1)
 
-rc = os.system('echo \"$(git log --oneline | head -n1 | cut "-d " -f1)\" | tee gitver.txt')
+rc = os.system(r'echo \"$(git log --oneline | head -n1 | cut "-d " -f1)\" | tee gitver.txt')
 if rc != 0:
     sys.stderr.write("\n\nERROR -- failed to generate gitver.txt\n\n")
     sys.exit(1)
@@ -153,7 +153,8 @@ with open("Makefile", "w") as f:
 
 rc = os.system("rm -f o/myutils.o ../bin/reseek")
 
-rc = os.system("make 2> make.stderr | tee make.stdout")
+rc = os.system("make > make.stdout 2> make.stderr")
 if rc != 0:
-    sys.stderr.write("\n\nERROR -- make failed, see make.std* output files\n\n")
+    os.system("tail make.stderr")
+    sys.stderr.write("\n\nERROR -- make failed, see make.stderr\n\n")
     sys.exit(1)
