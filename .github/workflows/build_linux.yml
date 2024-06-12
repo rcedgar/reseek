@@ -65,7 +65,7 @@ jobs:
           uname -a
           lscpu
           cd src/
-          python3 vcxproj2makefile_reseek.py
+          python3 build_linux.py
           make 
           file /reseek/bin/reseek | grep aarch64
 
