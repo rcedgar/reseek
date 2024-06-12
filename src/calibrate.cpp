@@ -10,6 +10,21 @@
 #include <cmath>
 #include "timing.h"
 
+double Integrate(double x0, double dx,
+  const vector<double> &ys)
+	{
+	const uint N = SIZE(ys);
+	double Sum = 0;
+	double x = x0;
+	for (uint i = 0; i < N; ++i)
+		{
+		double y = ys[i];
+		Sum += y*dx;
+		x += dx;
+		}
+	return Sum;
+	}
+
 double normal(double mu, double sigma, double x)
 	{
 	static double PI = 3.14159265358979323846;
@@ -89,6 +104,37 @@ void CalibrateSearcher::SetAllAccum()
 		}
 	}
 
+void CalibrateSearcher::Setxys()
+	{
+	m_ys.clear();
+	asserta(SIZE(m_AllBins) == NBINS);
+	float Sumy = 0;
+	double Mid0 = m_ptrAllBinner->GetBinMid(0);
+	double Mid1 = m_ptrAllBinner->GetBinMid(1);
+	m_x0 = Mid0;
+	m_dx = Mid1 - Mid0;
+	double x = m_x0;
+	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
+		{
+		uint32_t n = m_ptrAllBinner->GetCount(Bin);
+
+	// Trim outliers near x=0, should not be curve-fitted
+		if (Bin < 10)
+			n = 0;
+		float unnormalized_y = float(n);
+		m_ys.push_back(unnormalized_y);
+		Sumy += unnormalized_y;
+		x += m_dx;
+		}
+
+// Normalize so that integral over PDF is 1
+	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
+		m_ys[Bin] /= (Sumy*m_dx);
+
+	double S = Integrate(m_x0, m_dx, m_ys);
+	asserta(S >= 0.99 && S <= 1.01);
+	}
+
 void CalibrateSearcher::SetAllBins()
 	{
 	asserta(m_ptrAllBinner == 0);
@@ -117,75 +163,47 @@ void CalibrateSearcher::SetAllBins()
 	asserta(SIZE(m_AllBins) == NBINS);
 	}
 
-void CalibrateSearcher::FitNormal()
+void CalibrateSearcher::FitGumbel()
 	{
-	asserta(SIZE(m_AllBins) == NBINS);
-	float SumValue = 0;
-	uint32_t Sumn = 0;
-	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
-		{
-		uint32_t n = m_ptrAllBinner->GetCount(Bin);
-		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		SumValue += n*Mid;
-		Sumn += n;
-		}
-	m_NormalMeanMinusLogTS = SumValue/Sumn;
+	void fit_gumbel(double x0, double dx,
+	  const vector<double> &ys,
+	  double &Mu, double &Beta);
 
-	float Sum2 = 0;
-	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
-		{
-		uint32_t n = m_ptrAllBinner->GetCount(Bin);
-		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		float Diff = Mid - m_NormalMeanMinusLogTS;
-		Sum2 += n*Diff*Diff;
-		}
-	m_NormalSigmaMinusLogTS = sqrtf(Sum2/Sumn);
+	fit_gumbel(m_x0, m_dx, m_ys, m_GumbelMu, m_GumbelMu);
+
+	Log("Gumbel: Mu %.3g, Beta %.3g\n",
+	  m_GumbelMu, m_GumbelBeta);
 	}
 
-void CalibrateSearcher::Calibrate(uint ChainIndex, float &Mean, float &Sigma)
+void CalibrateSearcher::FitNormal()
 	{
-	Mean = FLT_MAX;
-	Sigma = FLT_MAX;
-	asserta(ChainIndex < SIZE(m_TestStatsVec));
-	 vector<float> TSVi = m_TestStatsVec[ChainIndex];
-	float MaxTS = 0;
-	sort(TSVi.begin(), TSVi.end());
-	const uint n = SIZE(TSVi);
-	vector<float> TSs;
-	for (uint j = NOUTLIERS; j < n; ++j)
-		{
-		float TS = TSVi[j];
-		if (TS > 0)
-			{
-			float logTs = -logf(TS);
-			MaxTS = max(logTs, MaxTS);
-			TSs.push_back(logTs);
-			}
-		}
-	Binner<float> B(TSs, NBINS, 0);
-	const vector<uint32_t> &Bins = B.GetBins();
+	asserta(SIZE(m_ys) == NBINS);
 
-	asserta(SIZE(Bins) == NBINS);
-	float SumValue = 0;
-	uint32_t Sumn = 0;
+	double Sumxy = 0;
+	double Sumy = 0;
+	double x = m_x0;
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
-		uint32_t n = B.GetCount(Bin);
-		float Mid = B.GetBinMid(Bin);
-		SumValue += n*Mid;
-		Sumn += n;
+		double y = m_ys[Bin];
+		Sumy += y;
+		Sumxy += x*y;
+		x += m_dx;
 		}
-	Mean = SumValue/Sumn;
+	m_NormalMean = Sumxy/Sumy;
 
-	float Sum2 = 0;
+	double Sum2 = 0;
+	x = m_x0;
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
-		uint32_t n = B.GetCount(Bin);
-		float Mid = B.GetBinMid(Bin);
-		float Diff = Mid - Mean;
-		Sum2 += n*Diff*Diff;
+		double y = m_ys[Bin];
+		double Diff = x - m_NormalMean;
+		Sum2 += y*Diff*Diff;
+		x += m_dx;
 		}
-	Sigma = sqrtf(Sum2/Sumn);
+	m_NormalSigma = sqrt(Sum2);
+
+	Log("Normal: Mean %.3g, stddev %.3g\n",
+	  m_NormalMean, m_NormalSigma);
 	}
 
 void CalibrateSearcher::ScanAll()
@@ -219,17 +237,39 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 	if (f == 0)
 		return;
 	uint32_t BinCount = m_ptrAllBinner->GetBinCount();
-	fprintf(f, "TS\tMid\tN\tAN\tP\tFit\n");
+
+	fprintf(f, "x0=%.3g\tdx=%.3g\n", m_x0, m_dx);
+
+	fprintf(f, "TS");
+	fprintf(f, "\tx");
+	fprintf(f, "\tn");
+	fprintf(f, "\tan");
+	fprintf(f, "\ty");
+	fprintf(f, "\n");
+
+	double x = m_x0;
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
 		uint32_t n = m_ptrAllBinner->GetCount(Bin);
 		asserta(m_AllBins[Bin] == n);
 		uint32_t an = m_AllAccum[Bin];
+		double y = m_ys[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
 		double TS = exp(-Mid);
-		double Fit = normal(m_NormalMeanMinusLogTS, m_NormalSigmaMinusLogTS, Mid);
-		double P = Q_func(Mid, m_NormalMeanMinusLogTS, m_NormalSigmaMinusLogTS);
-		fprintf(f, "%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\n", TS, Mid, n, an, P, Fit);
+		//double Fit = normal(m_NormalMean, m_NormalSigma, Mid);
+		//double P = Q_func(Mid, m_NormalMean, m_NormalSigma);
+		x += m_dx;
+
+		//fprintf(f, "%.3g\t%.3f\t%u\t%u\t%.3g\t%.3g\t%.3g\n",
+		//  TS, Mid, n, y, an, P, Fit);
+		fprintf(f, "%.3g", TS);
+		fprintf(f, "\t%.3g", x);
+		fprintf(f, "\t%u", n);
+		fprintf(f, "\t%u", an);
+		fprintf(f, "\t%.3g", y);
+		//fprintf(f, "\t%.3g", P);
+		//fprintf(f, "\t%.3g", Fit);
+		fprintf(f, "\n");
 		}
 	}
 
@@ -252,9 +292,9 @@ void cmd_calibrate()
 	DBS.ScanAll();
 	DBS.SetAllBins();
 	DBS.SetAllAccum();
+	DBS.Setxys();
 	DBS.FitNormal();
+	//DBS.FitGumbel();
 	DBS.WriteBins(fOut);
 	CloseStdioFile(fOut);
-
-	Log("Mean %.3g, stddev %.3g\n", DBS.m_NormalMeanMinusLogTS, DBS.m_NormalSigmaMinusLogTS);
 	}

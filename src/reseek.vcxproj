@@ -282,6 +282,7 @@
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="gumbel.cpp" />
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />

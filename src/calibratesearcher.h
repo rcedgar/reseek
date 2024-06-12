@@ -6,15 +6,25 @@
 class CalibrateSearcher : public DBSearcher
 	{
 public:
-	
 	Binner<float> *m_ptrAllBinner = 0;  // binned by -log(TS)
 	float m_MaxTS = 0;
 	vector<float> m_AllTSs; // outliers discarded
 	vector<uint32_t> m_AllBins;
 	vector<uint32_t> m_AllAccum;
 	vector<vector<float> > m_TestStatsVec;
-	float m_NormalMeanMinusLogTS = 0;
-	float m_NormalSigmaMinusLogTS = 0;
+
+	double m_NormalMean = 0;
+	double m_NormalSigma = 0;
+
+	double m_GumbelMu = 0;
+	double m_GumbelBeta = 0;
+
+// For fitting to distribution
+//   x values are -log(TS)
+//   y values are bin frequencies (sum(y) = 1)
+	double m_x0 = 0;
+	double m_dx = 0;
+	vector<double> m_ys;
 
 public:
 	virtual void OnSetup();
@@ -23,10 +33,11 @@ public:
 public:
 	void ScanAll();
 	void SetAllBins();
+	void Setxys();
 	void FitNormal();
+	void FitGumbel();
 	void SetAllAccum();
 	void WriteBins(FILE *f) const;
-	void Calibrate(uint ChainIndex, float &Mean, float &Sigma);
 	};
 
 static const uint NOUTLIERS = 3;
