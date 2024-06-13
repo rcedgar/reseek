@@ -505,11 +505,11 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::SetStats(float MaxFPR)
+void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	{
 	SetTFs();
 
-	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs);
+	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, UseTS);
 
 	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
 	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);

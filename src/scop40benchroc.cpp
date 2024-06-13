@@ -118,6 +118,14 @@ void SCOP40Bench::SetScoreOrder()
 		QuickSortOrderDesc(m_Scores.data(), HitCount, m_ScoreOrder.data());
 	}
 
+void SCOP40Bench::SetTSOrder()
+	{
+	const uint HitCount = GetHitCount();
+	asserta(SIZE(m_TSs) == HitCount);
+	m_TSOrder.resize(HitCount);
+	QuickSortOrderDesc(m_TSs.data(), HitCount, m_TSOrder.data());
+	}
+
 void SCOP40Bench::ROCStepsToTsv(const string &FileName,
   vector<float> &Scores, 
   vector<uint> &NTPs, vector<uint> &NFPs,
@@ -260,7 +268,7 @@ bool SCOP40Bench::SmoothROCSteps(const vector<float> &Scores,
 	}
 
 void SCOP40Bench::GetROCSteps(vector<float> &Scores,
-  vector<uint> &NTPs, vector<uint> &NFPs)
+  vector<uint> &NTPs, vector<uint> &NFPs, bool UseTS)
 	{
 	SetNXs();
 	Scores.clear();
@@ -272,11 +280,14 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 
 	asserta(SIZE(m_TFs) == HitCount);
 	Progress("Sort scores\n");
-	SetScoreOrder();
-	const vector<uint> &Order = m_ScoreOrder;
+	if (UseTS)
+		SetTSOrder();
+	else
+		SetScoreOrder();
+	const vector<uint> &Order = (UseTS ? m_TSOrder : m_ScoreOrder);
 	asserta(SIZE(Order) == HitCount);
 
-	float CurrentScore = m_Scores[Order[0]];
+	float CurrentScore = (UseTS ? m_TSs[Order[0]] : m_Scores[Order[0]]);
 	uint NTP = 0;
 	uint NFP = 0;
 	Progress("ROC Steps\n");
@@ -285,7 +296,7 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 		uint i = Order[k];
 		if (m_DomIdx1s[i] == m_DomIdx2s[i])
 			continue;
-		float Score = m_Scores[i];
+		float Score = (UseTS ? m_TSs[i] : m_Scores[i]);
 		if (Score != CurrentScore)
 			{
 			Scores.push_back(CurrentScore);

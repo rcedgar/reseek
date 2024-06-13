@@ -47,6 +47,7 @@ public:
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
+	vector<uint> m_TSOrder;
 	vector<int> m_TFs;
 
 	vector<float> m_ROCStepScores;
@@ -107,17 +108,18 @@ public:
 	  float Score12, float TS12);
 
 // ROC analysis
-	void SetStats(float MaxFPR);
+	void SetStats(float MaxFPR, bool UseTS = false);
 	void SetTFs();
 	void SetNXs();
 	void SetScoreOrder();
+	void SetTSOrder();
 	bool SmoothROCSteps(const vector<float> &Scores,
 	  const vector<uint> &NTPs, const vector<uint> &NFPs,
 	  uint N, float MaxFPR, vector<float> &SScores,
 	  vector<uint> &SNTPs, vector<uint> &SNPS,
 	  vector<float> &STPRs, vector<float> &SFPRs) const;
 	void GetROCSteps(vector<float> &ScoreSteps,
-	   vector<uint> &NTPs, vector<uint> &NFPs);
+	   vector<uint> &NTPs, vector<uint> &NFPs, bool UseTS = false);
 	void WriteSensVsErr(FILE *f, uint N);
 	void ROCToTsv(const string &FileName, float MaxFPR);
 	uint GetNTPAtEPQThreshold(const vector<uint> &NTPs,

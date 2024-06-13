@@ -2,6 +2,8 @@
 #include "scop40bench.h"
 #include "binner.h"
 
+static const uint BinCount = 100;
+
 void cmd_calibrate2()
 	{
 	asserta(optset_benchlevel);
@@ -17,7 +19,6 @@ void cmd_calibrate2()
 		CalFN = g_Arg1;
 
 
-	const uint BinCount = 100;
 	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
 
@@ -30,24 +31,6 @@ void cmd_calibrate2()
 	SB.m_ScoresAreEvalues = true;
 	SB.Run();
 	SB.SetTFs();
-
-	const uint HitCount = SB.GetHitCount();
-	asserta(SIZE(SB.m_TSs) == HitCount);
-	asserta(SIZE(SB.m_TFs) == HitCount);
-	vector<float> MinusLogTSs;
-	vector<float> TSs;
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		if (SB.m_TFs[HitIdx])
-			continue;
-		float TS = SB.m_TSs[HitIdx];
-		asserta(TS > 0);
-		TSs.push_back(TS);
-		float MinusLogTS = -logf(TS);
-		MinusLogTSs.push_back(MinusLogTS);
-		}
-
-	Binner<float> Blin(TSs, BinCount, 0);
-	Binner<float> Blog(MinusLogTSs, BinCount, 0);
-	Blin.ToTsv(g_fLog);
+	const float MaxFPR = 0.1;
+	SB.SetStats(MaxFPR, true);
 	}
