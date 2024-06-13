@@ -56,9 +56,9 @@ void cmd_calibrate2()
 			{
 			float TS = Scores[i];
 			uint NFP = NFPs[i];
-			if (NFP < NQ/10)
+			if (NFP < NQ/100)
 				continue;
-			if (NFP > NQ*10)
+			if (NFP > NQ*100)
 				break;
 		// P is probability hit is FP if TS >= thisTS
 			double P = double(NFP)/TotalAlns;
