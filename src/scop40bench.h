@@ -31,6 +31,7 @@ public:
 // Per hit vectors [HitIdx]
 //   order is arbitrary (multi-threading)
 	vector<float> m_Scores;
+	vector<float> m_TSs;
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
 
@@ -77,7 +78,6 @@ public:
 	void ReadLookup(const string &FileName);
 	void ClearHits();
 	float GetVeryBadScore() const;
-	bool KeepScore(float Score) const;
 	bool ScoreIsBetter(float Score1, float Score2) const;
 	bool HitIsBetter(uint HitIdx1, uint HitIdx2) const;
 	uint GetHitCount() const { return SIZE(m_Scores); }
@@ -103,7 +103,8 @@ public:
 	int IsT(uint DomIdx1, uint DomIdx2) const;
 	void LoadHitsFromTsv(const string &FileName);
 	float GetMeanLength(uint SFIdx) const;
-	void StoreScore(uint ChainIdx, uint ChainIdx2, float Score12);
+	void StoreScore(uint ChainIdx, uint ChainIdx2,
+	  float Score12, float TS12);
 
 // ROC analysis
 	void SetStats(float MaxFPR);

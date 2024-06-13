@@ -74,15 +74,15 @@ public:
 			}
 		}
 
-	uint32_t ValueToBin(float Value) const
+	uint32_t ValueToBin(T Value) const
 		{
 		if (Value > m_MaxValue)
 			Value = m_MaxValue;
 		if (Value < m_MinValue)
 			Value = m_MinValue;
-		float Range = m_MaxValue - m_MinValue;
+		T Range = m_MaxValue - m_MinValue;
 		asserta(Range > 0);
-		float r = (Value - m_MinValue)/Range;
+		T r = (Value - m_MinValue)/Range;
 		asserta(r >= 0 && r <= 1);
 		uint32_t Bin = uint32_t(r*(m_BinCount-1));
 		asserta(Bin < m_BinCount);
@@ -121,6 +121,36 @@ public:
 	uint32_t GetBinCount() const { return m_BinCount; }
 
 	const vector<uint32_t> &GetBins() { return m_Bins; }
+
+	void ValueToStr(T x, string &s) const
+		{
+		double d = double(x);
+		Ps(s, "%.4g", d);
+		}
+
+	void ToTsv(const string &FileName) const
+		{
+		FILE *f = CreateStdioFile(FileName);
+		ToTsv(f);
+		CloseStdioFile(f);
+		}
+
+	void ToTsv(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			T Mid = GetBinMid(Bin);
+			string s;
+			ValueToStr(Mid, s);
+			uint n = m_Bins[Bin];
+			if (n == 0)
+				fprintf(f, "%u\t%s\t\n", Bin, s.c_str());
+			else
+				fprintf(f, "%u\t%s\t%u\n", Bin, s.c_str(), n);
+			}
+		}
 
 	Binner(const vector<T> &Values, uint32_t BinCount, T MinValue) : Binner()
 		{

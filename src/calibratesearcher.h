@@ -3,6 +3,12 @@
 #include "scop40bench.h"
 #include "binner.h"
 
+/***
+* Calibrate distribution of FP errors on one_per_sf or one_per_fold
+* Gumbel fits well for the bulk of the distribution, but the fit is
+* poor in both tails which causes E-value estimates to diverge in
+* the most relevant ranges for practice.
+***/
 class CalibrateSearcher : public SCOP40Bench
 	{
 public:

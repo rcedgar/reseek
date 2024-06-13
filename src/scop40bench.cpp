@@ -96,21 +96,11 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 	return *m_Chains[ChainIdx];
 	}
 
-bool SCOP40Bench::KeepScore(float Score) const
-	{
-	if (optset_evalue)
-		{
-		asserta(m_ScoresAreEvalues);
-		return Score <= opt_evalue;
-		}
-	if (m_ScoresAreEvalues)
-		return Score >= 0;
-	else
-		return Score > 0;
-	}
-
 void SCOP40Bench::OnSetup()
 	{
+	if (optset_benchlevel)
+		m_Level = opt_benchlevel;
+
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
@@ -208,15 +198,16 @@ void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 	asserta(SIZE(m_DomIdxToFoldIdx) == m_QueryChainCount);
 	}
 
-void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2, float ScoreAB)
+void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2,
+  float ScoreAB, float TSAB)
 	{
-	if (!KeepScore(ScoreAB))
+	if (TSAB <= 0)
 		return;
-
 	uint DomIdx1 = m_DomIdxs[ChainIndex1];
 	uint DomIdx2 = m_DomIdxs[ChainIndex2];
-
+	asserta(TSAB > 0);
 	m_Scores.push_back(ScoreAB);
+	m_TSs.push_back(TSAB);
 	m_DomIdx1s.push_back(DomIdx1);
 	m_DomIdx2s.push_back(DomIdx2);
 	}
@@ -247,12 +238,12 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 void SCOP40Bench::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	{
-	StoreScore(ChainIndex1, ChainIndex2, DA.m_EvalueAB);
+	StoreScore(ChainIndex1, ChainIndex2, DA.m_EvalueAB, DA.m_TestStatisticAB);
 	}
 
 void SCOP40Bench::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	{
-	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueBA);
+	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueBA, DA.m_TestStatisticBA);
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()

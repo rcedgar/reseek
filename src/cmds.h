@@ -36,5 +36,6 @@ C(calibrate)
 C(test_gumbel)
 C(fit_gumbel)
 C(evalue_table)
+C(calibrate2)
 
 #undef C
