@@ -22,8 +22,13 @@ void DSSParams::SetComboFeatures(const vector<FEATURE> &Fs)
 		}
 	}
 
-void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
+void DSSParams::SetFromCmdLine(uint DBSize)
 	{
+	if (optset_dbsize)
+		m_DBSize = (float) opt_dbsize;
+	else
+		m_DBSize = (float) DBSize;
+
 	vector<FEATURE> ComboFeatures;
 	ComboFeatures.push_back(FEATURE_SS3);
 	ComboFeatures.push_back(FEATURE_NbrSS3);
@@ -49,7 +54,6 @@ void DSSParams::SetFromCmdLine(bool DefaultToSensitive)
 	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
 	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
 	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, " -usecombopath"); Warning("-usecombopath bad idea"); }
-	if (opt_useerfevalue) { m_UseErfEvalue = true;  Psa(m_Desc, " -useerfvalue"); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
@@ -256,22 +260,22 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
-float DSSParams::GetEvalue(float TestStatistic) const
+float DSSParams::GetEvalue(float TestStatistic, bool Gum) const
 	{
 	if (TestStatistic <= 0)
-		return 99;
+		return 99999;
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 
 	float Evalue = FLT_MAX;
-	if (m_UseErfEvalue)
+	if (!Gum)
 		{
-		float logTS = -logf(TestStatistic);
-		double P = Q_func(logTS, m_ErfEvalueMu, m_ErfEvalueSigma);
+		double gumbel_cdf(double mu, double beta, double x);
+		double x = -log(TestStatistic);
+		double P = gumbel_cdf(2.5, 0.613, x);
 		Evalue = float(P*m_DBSize);
 		}
 	else
 		{
-
 		const float Slope = -6.6f; // -7.3f;
 		const float Intercept = 6.1f;
 		float logNF = Slope*TestStatistic + Intercept;

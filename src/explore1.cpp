@@ -59,7 +59,7 @@ void cmd_explore1()
 	SB.ReadChains(CalFN, "");
 
 	DSSParams Params;
-	Params.SetFromCmdLine();
+	Params.SetFromCmdLine(SB.GetDBSize());
 	Params.m_DBSize = (float) SB.m_ChainCount;
 	SB.Setup(Params);
 	SB.m_Level = opt_benchlevel;

@@ -555,7 +555,7 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" N1FP=%u", nt_firstfp);
 	if (Secs != UINT_MAX)
 		ProgressLog(" secs=%u", Secs);
-	ProgressLog(" level=%s\n", m_Level.c_str());
+	ProgressLog(" level=%s", m_Level.c_str());
 	if (optset_fast)
 		ProgressLog(" fast [%s]", g_GitVer);
 	else if (optset_sensitive)
@@ -602,6 +602,27 @@ void SCOP40Bench::WriteOutput()
 	CloseStdioFile(fSVE);
 	}
 
+void SCOP40Bench::LogSens1FPReport()
+	{
+	const uint DomCount = GetDomCount();
+	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
+		{
+		const string &Name = m_Doms[DomIdx];
+		float Score = m_DomIdxToScoreFirstFP[DomIdx];
+		uint HitIdx = m_DomIdxToHitIdxFirstFP[DomIdx];
+		if (HitIdx == UINT_MAX)
+			continue;
+		uint Dom1 = m_DomIdx1s[HitIdx];
+		uint Dom2 = m_DomIdx2s[HitIdx];
+		const string &Name2 = m_Doms[Dom2];
+		float Score2 = m_Scores[HitIdx];
+		asserta(Score2 == Score);
+		asserta(!m_TFs[HitIdx]);
+		asserta(Dom1 == DomIdx);
+		Log("%s  %s  %.3g\n", Name.c_str(), Name2.c_str(), Score);
+		}
+	}
+
 void cmd_scop40bench()
 	{
 	string CalFN;
@@ -614,19 +635,22 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 
-	DSSParams Params;
-	Params.SetFromCmdLine();
 
 	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
 
-	Params.m_DBSize = (float) SB.m_ChainCount;
+	DSSParams Params;
+	Params.SetFromCmdLine(SB.GetDBSize());
 
 	SB.Setup(Params);
 
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
+
+	SB.m_fTsv = CreateStdioFile(opt_output);
+	SB.m_fAln = CreateStdioFile(opt_aln);
+	SB.m_fFasta2 = CreateStdioFile(opt_fasta2);
 
 	ResetTimers();
 	SB.m_QuerySelf = true;
@@ -635,4 +659,8 @@ void cmd_scop40bench()
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
 	SB.WriteOutput();
+	SB.LogSens1FPReport();
+#if SCORE_DIST
+	DSSAligner::ReportScoreDist();
+#endif
 	}

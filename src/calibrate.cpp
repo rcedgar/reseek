@@ -245,6 +245,7 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 
 	fprintf(f, "Bin");
 	fprintf(f, "\tTS");
+	fprintf(f, "\tMid");
 	fprintf(f, "\tx");
 	fprintf(f, "\tn");
 	fprintf(f, "\tan");
@@ -260,13 +261,13 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		uint32_t an = m_AllAccum[Bin];
 		double y = m_ys[Bin];
 		float Mid = m_ptrAllBinner->GetBinMid(Bin);
-		double TS = exp(-Mid);
+		double TS = exp(-x);
 		double Fit = gumbel(m_GumbelMu, m_GumbelBeta, x);
 		double P = gumbel_cdf(m_GumbelMu, m_GumbelBeta, x);
-		x += m_dx;
 
 		fprintf(f, "%u", Bin);
 		fprintf(f, "\t%.3g", TS);
+		fprintf(f, "\t%.3g", Mid);
 		fprintf(f, "\t%.3g", x);
 		fprintf(f, "\t%u", n);
 		fprintf(f, "\t%u", an);
@@ -274,6 +275,42 @@ void CalibrateSearcher::WriteBins(FILE *f) const
 		fprintf(f, "\t%.3g", Fit);
 		fprintf(f, "\t%.3g", P);
 		fprintf(f, "\n");
+
+		x += m_dx;
+		}
+	}
+
+static double GetE1(uint DBSize, double TS)
+	{
+	const float Slope = -6.6f; // -7.3f;
+	const float Intercept = 6.1f;
+	double logNF = Slope*TS+ Intercept;
+	double NF = pow(10, logNF);
+	double Evalue = NF*DBSize/1e8f;
+	return Evalue;
+	}
+
+// Gumbel: Mu 2.5, Beta 0.613
+static double GetE2(uint DBSize, double TS)
+	{
+	double x = -log(TS);
+	double P = gumbel_cdf(2.5, 0.613, x);
+	double E = P*DBSize;
+	return E;
+	}
+
+void cmd_evalue_table()
+	{
+	double TS = 1.0;
+	uint DBSize = 10000;
+	for (;;)
+		{
+		if (TS < 0.0001)
+			break;
+		TS *= 0.9;
+		double E1 = GetE1(DBSize, TS);
+		double E2 = GetE2(DBSize, TS);
+		Log("%.3g\t%.3g\t%.3g\n", TS, E1, E2);
 		}
 	}
 
@@ -282,14 +319,12 @@ void cmd_calibrate()
 	const string &QCalFN = g_Arg1;
 	const string &DBFN = opt_db;
 	CalibrateSearcher DBS;
-	DSSParams Params;
-	Params.SetFromCmdLine();
-	DBS.ReadChains(QCalFN, DBFN);
-	Params.m_DBSize = (float) DBS.GetDBSize();
-	if (optset_dbsize)
-		Params.m_DBSize = (float) opt_dbsize;
-	FILE *fOut = CreateStdioFile(opt_output);
+	DBS.ReadChains(QCalFN, "");
 
+	DSSParams Params;
+	Params.SetFromCmdLine(DBS.GetDBSize());
+
+	FILE *fOut = CreateStdioFile(opt_output);
 	DBS.Setup(Params);
 	DBS.Run();
 	DSSAligner::Stats();
@@ -297,7 +332,6 @@ void cmd_calibrate()
 	DBS.SetAllBins();
 	DBS.SetAllAccum();
 	DBS.Setxys();
-	//DBS.FitNormal();
 	DBS.FitGumbel();
 	DBS.WriteBins(fOut);
 	CloseStdioFile(fOut);

@@ -21,6 +21,9 @@ public:
 	~Binner() {}
 
 public:
+	T GetMax() const { return m_MaxValue; }
+	T GetMin() const { return m_MinValue; }
+
 	void SetBinCount(uint32_t n)
 		{
 		m_Bins.clear();

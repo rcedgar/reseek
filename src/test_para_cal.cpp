@@ -12,7 +12,7 @@ void cmd_test_para_cal()
 	const PDBChain &Chain2 = *Chains[1];
 
 	DSSParams Params;
-	Params.SetFromCmdLine(true);
+	Params.SetFromCmdLine(10000);
 
 	DSS D;
 	D.m_Params = &Params;

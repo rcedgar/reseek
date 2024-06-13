@@ -43,7 +43,6 @@ void cmd_explore1i()
 	asserta(optset_benchlevel);
 
 	DSSParams Params;
-	Params.SetFromCmdLine();
 
 	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
@@ -51,7 +50,7 @@ void cmd_explore1i()
 	opt_sensitive = true;
 	optset_sensitive = true;
 
-	Params.SetFromCmdLine();
+	Params.SetFromCmdLine(SB.GetDBSize());
 	Params.m_DBSize = (float) SB.m_ChainCount;
 	Params.m_ParaComboGapOpen = 3;
 	Params.m_ParaComboGapExt = 1;
@@ -77,7 +76,7 @@ void cmd_explore1i()
 	vector<int> FirstValues = Values;
 
 	DSSParams DefaultParams;
-	DefaultParams.SetFromCmdLine(true);
+	DefaultParams.SetFromCmdLine(SB.GetDBSize());
 	DefaultParams.m_ComboScoreOnly = true;
 	uint SFFP = S.Run(DefaultParams, "init");
 

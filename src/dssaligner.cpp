@@ -40,6 +40,9 @@ uint DSSAligner::m_SWCount;
 uint DSSAligner::m_ComboFilterCount;
 uint DSSAligner::m_UFilterCount;
 uint DSSAligner::m_ParasailSaturateCount;
+#if SCORE_DIST
+vector<float> DSSAligner::m_TSs;
+#endif
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	{
@@ -815,6 +818,14 @@ void DSSAligner::CalcEvalue()
 	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
 	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);
 
+#if SCORE_DIST
+	{
+	m_StatsLock.lock();
+	m_TSs.push_back(m_TestStatisticAB);
+	m_TSs.push_back(m_TestStatisticBA);
+	m_StatsLock.unlock();
+	}
+#endif
 	}
 
 void DSSAligner::Align_NoAccel()
@@ -997,7 +1008,9 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
-	fprintf(f, "%.3g", m_EvalueAB);
+	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticAB, true));
+	fprintf(f, "\t%.3g", m_Params->GetEvalue(m_TestStatisticAB, false));
+	fprintf(f, "\t%.8g", m_TestStatisticAB);
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\n");
@@ -1028,7 +1041,9 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
-	fprintf(f, "%.3g", m_EvalueBA);
+	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticBA, true));
+	fprintf(f, "\t%.3g", m_Params->GetEvalue(m_TestStatisticBA, false));
+	fprintf(f, "\t%.8g", m_TestStatisticBA);
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\n");
@@ -1141,3 +1156,22 @@ uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) co
 		}
 	return U;
 	}
+
+#if SCORE_DIST
+void DSSAligner::ReportScoreDist()
+	{
+	Binner<float> B(m_TSs, SCORE_BINS, 0);
+	Log("Max TS %.4g\n", B.GetMax());
+	B.GetBins();
+	for (uint32_t Bin = 0; Bin < SCORE_BINS; ++Bin)
+		{
+		uint32_t n = B.GetCount(Bin);
+		float TS = B.GetBinMid(Bin);
+
+		Log("%u", Bin);
+		Log("\t%.3g", TS);
+		Log("\t%u", n);
+		Log("\n");
+		}
+	}
+#endif // SCORE_DIST

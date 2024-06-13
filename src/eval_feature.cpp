@@ -118,7 +118,7 @@ void cmd_eval_feature()
 	if (!optset_features)
 		{
 		DSSParams Params;
-		Params.SetFromCmdLine(true);
+		Params.SetFromCmdLine(10000);
 		for (uint i = 0; i < Params.GetFeatureCount(); ++i)
 			{
 			FEATURE F = Params.m_Features[i];

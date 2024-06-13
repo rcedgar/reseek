@@ -135,6 +135,7 @@ public:
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteSummary();
 	void WriteOutput();
+	void LogSens1FPReport();
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,

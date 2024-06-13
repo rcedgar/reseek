@@ -36,10 +36,6 @@ public:
 	int m_ParaComboGapOpen = 5;
 	int m_ParaComboGapExt = 1;
 
-	bool m_UseErfEvalue = false;
-	float m_ErfEvalueMu = 3.4f;
-	float m_ErfEvalueSigma = 0.68f;
-
 public:
 	static vector<FEATURE> m_ComboFeatures;
 	static vector<uint> m_ComboAlphaSizes;
@@ -80,14 +76,14 @@ public:
 	void SetIntParam(const string &Name, int Value);
 	float GetParam(const string &Name) const;
 	int GetIntParam(const string &Name) const;
-	void SetFromCmdLine(bool DefaultToSensitive = false);
+	void SetFromCmdLine(uint DBSize);
 	uint GetFeatureIdx(FEATURE F) const;
 	uint GetFeatureIdx_NoError(FEATURE F) const;
 	void ToFev(FILE *f, bool nl) const;
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();
-	float GetEvalue(float Score) const;
+	float GetEvalue(float Score, bool Gum = false) const;
 
 public:
 	static void SetComboFeatures(const vector<FEATURE> &Fs);

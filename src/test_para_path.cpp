@@ -189,7 +189,7 @@ void DSSAligner::Align_Test(
 void cmd_test_para_path()
 	{
 	DSSParams Params;
-	Params.SetFromCmdLine(true);
+	Params.SetFromCmdLine(10000);
 	DA.m_Params = &Params;
 	D.m_Params = &Params;
 

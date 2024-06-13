@@ -7,6 +7,13 @@
 #include "mx.h"
 #include <mutex>
 
+#define SCORE_DIST	0
+
+#if SCORE_DIST
+#include "binner.h"
+#define SCORE_BINS	100
+#endif
+
 class DSSAligner
 	{
 public:
@@ -47,9 +54,6 @@ public:
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
 
-//public:
-//	static bool m_UsePara;
-
 public:
 	static mutex m_OutputLock;
 	static mutex m_StatsLock;
@@ -60,6 +64,9 @@ public:
 	static uint m_ComboFilterCount;
 	static uint m_UFilterCount;
 	static uint m_ParasailSaturateCount;
+#if SCORE_DIST
+	static vector<float> m_TSs;
+#endif
 
 public:
 	void SetQuery(
@@ -99,10 +106,6 @@ public:
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
-	//float GetDPScorePathVecs(
-	//  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-	//  uint LoA, uint LoB, const string &Path,
-	//  vector<uint> &PosAs, vector<uint> &PosBs, vector<float> &ColScores) const;
 	float GetComboDPScorePath(const vector<byte> &LettersA,
 	  const vector<byte> &LettersB, uint LoA, uint LoB,
 	  float GapOpen, float GapExt, const string &Path) const;
@@ -134,4 +137,7 @@ public:
 
 public:
 	static void Stats();
+#if SCORE_DIST
+	static void ReportScoreDist();
+#endif
 	};

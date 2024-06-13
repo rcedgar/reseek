@@ -16,7 +16,7 @@ void cmd_pdb2mega()
 	const uint ChainCount = SIZE(Chains);
 
 	DSSParams Params;
-	Params.SetFromCmdLine(true);
+	Params.SetFromCmdLine(ChainCount);
 	const uint FeatureCount = Params.GetFeatureCount();
 	asserta(FeatureCount > 0);
 	asserta(Params.m_Features[0] == FEATURE_AA);
