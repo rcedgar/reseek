@@ -5,6 +5,7 @@
 #include "xdpmem.h"
 #include "cigar.h"
 #include "timing.h"
+#include "sort.h"
 #include <algorithm>
 #include <random>
 #include <thread>
@@ -97,10 +98,14 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 
 bool SCOP40Bench::KeepScore(float Score) const
 	{
-	if (optset_evalue && Score > opt_evalue)
-		return false;
+	if (optset_evalue)
+		{
+		asserta(m_ScoresAreEvalues);
+		if (Score > opt_evalue)
+			return false;
+		}
 	if (m_ScoresAreEvalues)
-		return Score >= 0 && Score < 100;
+		return Score >= 0;
 	else
 		return Score > 0;
 	}
@@ -602,7 +607,45 @@ void SCOP40Bench::WriteOutput()
 	CloseStdioFile(fSVE);
 	}
 
-void SCOP40Bench::LogSens1FPReport()
+void SCOP40Bench::LogSens1FPReport_Dom(uint DomIdx) const
+	{
+	vector<uint> Dom2s;
+	vector<float> Scores;
+	vector<bool> TFs;
+	const uint HitCount = GetHitCount();
+	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
+		{
+		uint Dom1 = m_DomIdx1s[HitIdx];
+		if (Dom1 != DomIdx)
+			continue;
+		Dom2s.push_back(m_DomIdx2s[HitIdx]);
+		Scores.push_back(m_Scores[HitIdx]);
+		TFs.push_back(m_TFs[HitIdx]);
+		}
+	const uint N = SIZE(Dom2s);
+	vector<uint> Order(N);
+	QuickSortOrder(Scores.data(), N, Order.data());
+	Log("____________________________________\n");
+	const string &Name = m_Doms[DomIdx];
+	Log("%u:%s\n", DomIdx, Name.c_str());
+	uint nfp = 0;
+	for (uint k = 0; k < N; ++k)
+		{
+		uint i = Order[k];
+		uint Dom2 = Dom2s[i];
+		double Score = Scores[i];
+		bool TF = TFs[i];
+		Log("  [%3u]  %u:%s(%.3g)\n", k, Dom2, m_Doms[Dom2].c_str(), Score);
+		if (!TF)
+			{
+			++nfp;
+			if (nfp == 2)
+				break;
+			}
+		}
+	}
+
+void SCOP40Bench::LogSens1FPReport() const
 	{
 	const uint DomCount = GetDomCount();
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
@@ -611,7 +654,10 @@ void SCOP40Bench::LogSens1FPReport()
 		float Score = m_DomIdxToScoreFirstFP[DomIdx];
 		uint HitIdx = m_DomIdxToHitIdxFirstFP[DomIdx];
 		if (HitIdx == UINT_MAX)
+			{
+			Log("%u:%s ...\n", DomIdx, Name.c_str());
 			continue;
+			}
 		uint Dom1 = m_DomIdx1s[HitIdx];
 		uint Dom2 = m_DomIdx2s[HitIdx];
 		const string &Name2 = m_Doms[Dom2];
@@ -619,8 +665,9 @@ void SCOP40Bench::LogSens1FPReport()
 		asserta(Score2 == Score);
 		asserta(!m_TFs[HitIdx]);
 		asserta(Dom1 == DomIdx);
-		Log("%s  %s  %.3g\n", Name.c_str(), Name2.c_str(), Score);
+		Log("%u:%s  %u:%s  %.3g\n", DomIdx, Name.c_str(), Dom2, Name2.c_str(), Score);
 		}
+	//LogSens1FPReport_Dom(3);
 	}
 
 void cmd_scop40bench()
@@ -659,7 +706,7 @@ void cmd_scop40bench()
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
 	SB.WriteOutput();
-	SB.LogSens1FPReport();
+	//SB.LogSens1FPReport();
 #if SCORE_DIST
 	DSSAligner::ReportScoreDist();
 #endif

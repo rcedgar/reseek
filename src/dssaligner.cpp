@@ -1008,9 +1008,7 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
-	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticAB, true));
-	fprintf(f, "\t%.3g", m_Params->GetEvalue(m_TestStatisticAB, false));
-	fprintf(f, "\t%.8g", m_TestStatisticAB);
+	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticAB));
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\n");
@@ -1041,9 +1039,7 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
-	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticBA, true));
-	fprintf(f, "\t%.3g", m_Params->GetEvalue(m_TestStatisticBA, false));
-	fprintf(f, "\t%.8g", m_TestStatisticBA);
+	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticBA));
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\n");

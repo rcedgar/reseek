@@ -260,14 +260,14 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
-float DSSParams::GetEvalue(float TestStatistic, bool Gum) const
+float DSSParams::GetEvalue(float TestStatistic) const
 	{
 	if (TestStatistic <= 0)
 		return 99999;
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 
 	float Evalue = FLT_MAX;
-	if (!Gum)
+	if (opt_gum)
 		{
 		double gumbel_cdf(double mu, double beta, double x);
 		double x = -log(TestStatistic);
