@@ -85,6 +85,7 @@ void CalibrateSearcher::OnSetup()
 	{
 	m_TestStatsVec.clear();
 	m_TestStatsVec.resize(m_ChainCount);
+	SCOP40Bench::OnSetup();
 	}
 
 void CalibrateSearcher::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
@@ -92,6 +93,15 @@ void CalibrateSearcher::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA
 	asserta(ChainIndex1 < SIZE(m_TestStatsVec));
 	vector<float> &v = m_TestStatsVec[ChainIndex1];
 	v.push_back(DA.m_TestStatisticAB);
+	SCOP40Bench::OnAln(ChainIndex1, ChainIndex2, DA);
+	}
+
+void CalibrateSearcher::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
+	{
+	asserta(ChainIndex2 < SIZE(m_TestStatsVec));
+	vector<float> &v = m_TestStatsVec[ChainIndex2];
+	v.push_back(DA.m_TestStatisticBA);
+	SCOP40Bench::OnAlnBA(ChainIndex1, ChainIndex2, DA);
 	}
 
 void CalibrateSearcher::SetAllAccum()

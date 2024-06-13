@@ -276,7 +276,7 @@ float DSSParams::GetEvalue(float TestStatistic) const
 		}
 	else
 		{
-		const float Slope = -6.6f; // -7.3f;
+		const float Slope = -6.6f;
 		const float Intercept = 6.1f;
 		float logNF = Slope*TestStatistic + Intercept;
 		float NF = powf(10, logNF);

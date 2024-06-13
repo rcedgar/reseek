@@ -101,8 +101,7 @@ bool SCOP40Bench::KeepScore(float Score) const
 	if (optset_evalue)
 		{
 		asserta(m_ScoresAreEvalues);
-		if (Score > opt_evalue)
-			return false;
+		return Score <= opt_evalue;
 		}
 	if (m_ScoresAreEvalues)
 		return Score >= 0;
@@ -310,9 +309,9 @@ void SCOP40Bench::ClearHits()
 float SCOP40Bench::GetVeryBadScore() const
 	{
 	if (m_ScoresAreEvalues)
-		return 999.9f;
+		return 999999.9f;
 	else
-		return -999.9f;
+		return -999999.9f;
 	}
 
 bool SCOP40Bench::HitIsBetter(uint HitIdx1, uint HitIdx2) const

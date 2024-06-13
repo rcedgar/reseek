@@ -1,9 +1,9 @@
 #pragma once
 
-#include "dbsearcher.h"
+#include "scop40bench.h"
 #include "binner.h"
 
-class CalibrateSearcher : public DBSearcher
+class CalibrateSearcher : public SCOP40Bench
 	{
 public:
 	Binner<float> *m_ptrAllBinner = 0;  // binned by -log(TS)
@@ -29,6 +29,7 @@ public:
 public:
 	virtual void OnSetup();
 	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
+	virtual void OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
 
 public:
 	void ScanAll();
