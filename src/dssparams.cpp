@@ -260,6 +260,8 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
+// Superfamily: Linear fit to -log(P) m=20.5 b=2.89
+// Fold:        Linear fit to -log(P) m=26.6 b=2.42
 float DSSParams::GetEvalue(float TestStatistic) const
 	{
 	if (TestStatistic <= 0)
@@ -280,7 +282,14 @@ float DSSParams::GetEvalue(float TestStatistic) const
 		const float Intercept = 6.1f;
 		float logNF = Slope*TestStatistic + Intercept;
 		float NF = powf(10, logNF);
-		Evalue = NF*m_DBSize/1e8f;
+		float OldEvalue = NF*m_DBSize/1e8f;
+
+		const float m = 20.5f;
+		const float b = 2.90f;
+		float MinusLogP = TestStatistic*m + b;
+		float P = expf(-MinusLogP);
+		Evalue = P*m_DBSize;
+		//Log("%.3g\t%.3g\n", OldEvalue, Evalue);
 		}
 	return Evalue;
 	}

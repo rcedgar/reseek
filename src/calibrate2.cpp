@@ -106,7 +106,7 @@ void cmd_calibrate2()
 	const uint M = SIZE(TSs);
 	float m, b;
 	LinearFit(TSs, MinusLogPs, m, b);
-	Log("m=%.3g b=%.3g\n", m, b);
+	Log("Linear fit to -log(P) m=%.3g b=%.3g\n", m, b);
 
 	if (optset_output)
 		{
@@ -119,7 +119,8 @@ void cmd_calibrate2()
 			float MinusLogP = MinusLogPs[i];
 			float MinusLogP_fit = m*TS + b;
 			float P_fit = expf(-MinusLogP_fit);
-			fprintf(f, "%.4g\t%.4g\t%.4g\t%.4g\t%.4g\n", TS, P, MinusLogP, MinusLogP_fit, P_fit);
+			fprintf(f, "%.4g\t%.4g\t%.4g\t%.4g\t%.4g\n",
+			  TS, P, MinusLogP, MinusLogP_fit, P_fit);
 			}
 		}
 	}
