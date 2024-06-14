@@ -809,8 +809,8 @@ void DSSAligner::CalcEvalue()
 	uint Lambda = uint(round(m_Params->m_Lambda));
 	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
 
-	if (StatTop < 0)
-		StatTop = 0;
+	//if (StatTop < 0)
+	//	StatTop = 0;
 
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);

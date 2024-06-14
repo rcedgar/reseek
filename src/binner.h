@@ -11,6 +11,24 @@ private:
 	vector<uint32_t> m_Bins;
 
 public:
+	~Binner() {}
+
+// Private methods
+private:
+	void Count()
+		{
+		const vector<T> &Values = *m_ptrValues;
+		for (size_t i = 0; i < Values.size(); ++i)
+			{
+			T Value = Values[i];
+			uint32_t Bin = ValueToBin(Value);
+			asserta(Bin < m_Bins.size());
+			m_Bins[Bin] += 1;
+			}
+		}
+
+// Constructors
+public:
 	Binner()
 		{
 		m_ptrValues = 0;
@@ -18,8 +36,36 @@ public:
 		m_MaxValue = 0;
 		m_BinCount = 0;
 		}
-	~Binner() {}
 
+	Binner(const vector<T> &Values, uint32_t BinCount, T MinValue, T MaxValue) : Binner()
+		{
+		m_MinValue = MinValue;
+		m_MaxValue = MaxValue;
+		SetValues(Values);
+		SetBinCount(BinCount);
+		Count();
+		}
+
+	Binner(const vector<T> &Values, uint32_t BinCount, T MinValue) : Binner()
+		{
+		m_MinValue = MinValue;
+		SetValues(Values);
+		SetMaxFromValues();
+		SetBinCount(BinCount);
+		m_MinValue = MinValue;
+		Count();
+		}
+
+	Binner(const vector<T> &Values, uint32_t BinCount) : Binner()
+		{
+		SetValues(Values);
+		SetMinFromValues();
+		SetMaxFromValues();
+		SetBinCount(BinCount);
+		Count();
+		}
+
+// Public methosd
 public:
 	T GetMax() const { return m_MaxValue; }
 	T GetMin() const { return m_MinValue; }
@@ -135,7 +181,49 @@ public:
 		CloseStdioFile(f);
 		}
 
-	void ToTsv(FILE *f) const
+	void AccumToTsv(FILE *f, const string &Msg = "") const
+		{
+		vector<uint> AccumBins;
+		GetAccumBins(AccumBins);
+		asserta(SIZE(AccumBins) == m_BinCount);
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			T Mid = GetBinMid(Bin);
+			string s;
+			ValueToStr(Mid, s);
+			uint n = AccumBins[Bin];
+			if (n == 0)
+				fprintf(f, "%u\t%s\t", Bin, s.c_str());
+			else
+				fprintf(f, "%u\t%s\t%u", Bin, s.c_str(), n);
+			if (Msg != "")
+				fprintf(f, "\t%s", Msg.c_str());
+			fprintf(f, "\n");
+			}
+		}
+
+	void AccumToTsvReverse(FILE *f, const string &Msg = "") const
+		{
+		vector<uint> AccumBins;
+		GetAccumBinsReverse(AccumBins);
+		asserta(SIZE(AccumBins) == m_BinCount);
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			T Mid = GetBinMid(Bin);
+			string s;
+			ValueToStr(Mid, s);
+			uint n = AccumBins[Bin];
+			if (n == 0)
+				fprintf(f, "%u\t%s\t", Bin, s.c_str());
+			else
+				fprintf(f, "%u\t%s\t%u", Bin, s.c_str(), n);
+			if (Msg != "")
+				fprintf(f, "\t%s", Msg.c_str());
+			fprintf(f, "\n");
+			}
+		}
+
+	void ToTsv(FILE *f, const string &Msg = "") const
 		{
 		if (f == 0)
 			return;
@@ -146,25 +234,90 @@ public:
 			ValueToStr(Mid, s);
 			uint n = m_Bins[Bin];
 			if (n == 0)
-				fprintf(f, "%u\t%s\t\n", Bin, s.c_str());
+				fprintf(f, "%u\t%s\t", Bin, s.c_str());
 			else
-				fprintf(f, "%u\t%s\t%u\n", Bin, s.c_str(), n);
+				fprintf(f, "%u\t%s\t%u", Bin, s.c_str(), n);
+			if (Msg != "")
+				fprintf(f, "\t%s", Msg.c_str());
+			fprintf(f, "\n");
 			}
 		}
 
-	Binner(const vector<T> &Values, uint32_t BinCount, T MinValue) : Binner()
+	void GetAccumBins(vector<uint> &AccumBins) const
 		{
-		m_MinValue = MinValue;
-		SetValues(Values);
-		SetMaxFromValues();
-		SetBinCount(BinCount);
-		m_MinValue = MinValue;
-		for (size_t i = 0; i < Values.size(); ++i)
+		AccumBins.clear();
+		uint Sum = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
 			{
-			T Value = Values[i];
-			uint32_t Bin = ValueToBin(Value);
-			asserta(Bin < m_Bins.size());
-			m_Bins[Bin] += 1;
+			uint n = m_Bins[Bin];
+			Sum += n;
+			AccumBins.push_back(Sum);
 			}
+		}
+
+	void GetAccumBinsReverse(vector<uint> &AccumBins) const
+		{
+		AccumBins.clear();
+		AccumBins.resize(m_BinCount);
+		uint Sum = 0;
+		for (uint i = 0; i < m_BinCount; ++i)
+			{
+			uint Bin = m_BinCount - i - 1;
+			uint n = m_Bins[Bin];
+			Sum += n;
+			AccumBins[Bin] = Sum;
+			}
+		}
+
+	void DeleteAbove(T Value)
+		{
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			T Mid = GetBinMid(Bin);
+			if (Mid > Value)
+				m_Bins[Bin] = 0;
+			}
+		}
+
+	uint GetTotalCount() const
+		{
+		uint Sum = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			uint n = m_Bins[Bin];
+			Sum += n;
+			}
+		return Sum;
+		}
+
+// Cutoff which eliminates the largest TopN values.
+	T GetCutoff_TopN(uint TopN) const
+		{
+		uint Total = GetTotalCount();
+		uint Sum = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			uint n = m_Bins[Bin];
+			Sum += n;
+			if (Sum + TopN >= Total)
+				return GetBinMid(Bin);
+			}
+		return m_MaxValue;
+		}
+
+// Cutoff C such that Value < C contains Fract*Total
+	T GetCutoff_Fract(double Fract) const
+		{
+		asserta(Fract >= 0 && Fract <= 1.0);
+		uint Total = GetTotalCount();
+		uint Sum = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			uint n = m_Bins[Bin];
+			Sum += n;
+			if (Sum >= uint(Total*Fract))
+				return GetBinMid(Bin);
+			}
+		return m_MaxValue;
 		}
 	};

@@ -5,8 +5,7 @@
 static const uint BinCount = 100;
 
 // y = mx + b
-static void LinearFit(
-  const vector<float> &xs, const vector<float> &ys,
+static void LinearFit(const vector<float> &xs, const vector<float> &ys,
   float &m, float &b)
 	{
 	const uint N = SIZE(xs);
@@ -41,6 +40,10 @@ static void LinearFit(
 	b = meany - m*meanx;
 	}
 
+/***
+* Calibrate distribution of FP errors on all-vs-all SCOP40 by
+* linear fit of TS to -log(P) in range NFP=NQ/100 .. NFP=NQ*100.
+***/
 void cmd_calibrate2()
 	{
 	asserta(optset_benchlevel);
@@ -68,10 +71,9 @@ void cmd_calibrate2()
 	SB.m_ScoresAreEvalues = true;
 	SB.Run();
 	SB.SetTFs();
-	const float MaxFPR = 0.1;
+	const float MaxFPR = 0.1f;
 	SB.SetStats(MaxFPR, true);
-	//ROCStepsToTsv(opt_roc, m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
-	//  m_SmoothTPRs, m_SmoothFPRs);
+
 	const vector<float> &Scores = SB.m_SmoothScores;
 	const vector<uint> &NTPs = SB.m_SmoothNTPs;
 	const vector<uint> &NFPs = SB.m_SmoothNFPs;

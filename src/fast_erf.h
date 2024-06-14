@@ -16,3 +16,21 @@ static inline double fast_erf(double x)
 		Die("fast_erf(%.8g) y=%.8g", x, y);
     return (x < 0.0 ? -y : y);
 	}
+
+// https://en.wikipedia.org/wiki/Q-function
+// Q(x) is the probability that a standard normal variable
+//   takes a value larger than x.
+static inline double Q_func_standard(double x)
+	{
+	static const double SQRT2 = sqrt(2);
+	//double Q = 0.5 - 0.5*erf(x/SQRT2);
+	//double Q = 0.5 - 0.5*SUN_erf(x/SQRT2);
+	double Q = 0.5 - 0.5*fast_erf(x/SQRT2);
+	return Q;
+	}
+
+static inline double Q_func(double x, double mu, double sigma)
+	{
+	double x_standard = (mu - x)/sigma;
+	return Q_func_standard(x_standard);
+	}

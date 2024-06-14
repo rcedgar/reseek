@@ -35,7 +35,7 @@ C(test_para_path)
 C(calibrate)
 C(test_gumbel)
 C(fit_gumbel)
-C(evalue_table)
 C(calibrate2)
+C(calibrate3)
 
 #undef C

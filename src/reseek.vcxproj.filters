@@ -284,6 +284,21 @@
     <ClCompile Include="readhits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="calibrate2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gumbel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calibrate3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calibratesearcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calibratesearcher3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -476,6 +491,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scalarparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="calibratesearcher2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="calibratesearcher3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
