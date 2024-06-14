@@ -23,6 +23,7 @@ HDRS = \
   best.h \
   binner.h \
   calibratesearcher.h \
+  calibratesearcher2.h \
   calreader.h \
   chainreader.h \
   cigar.h \
@@ -89,11 +90,13 @@ OBJS = \
   $(OBJDIR)/blosum.o \
   $(OBJDIR)/blosum62.o \
   $(OBJDIR)/calibrate.o \
+  $(OBJDIR)/calibrate2.o \
   $(OBJDIR)/calreader.o \
   $(OBJDIR)/chainreader.o \
   $(OBJDIR)/cigar.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/gumbel.o \
   $(OBJDIR)/parasail.o \
   $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
