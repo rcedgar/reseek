@@ -2,6 +2,7 @@
 #include "cigar.h"
 #include "dss.h"
 #include "dbsearcher.h"
+#include "scop40bench.h"
 #include <thread>
 #include "timing.h"
 
@@ -27,6 +28,7 @@ void DBSearcher::SetKmersVec()
 	EndTimer(SetKmersVec);
 	}
 
+// Query chains first, then DB chains (unless self)
 void DBSearcher::ReadChains(const string &QueryCalFileName, 
   const string &DBCalFileName)
 	{
@@ -50,11 +52,11 @@ void DBSearcher::ReadChains(const string &QueryCalFileName,
 		m_DBChainCount = SIZE(m_DBChains);
 		}
 
-	m_ChainCount = m_DBChainCount + m_QueryChainCount;
+	m_ChainCount = m_QueryChainCount + m_DBChainCount;
 
-	m_Chains = m_DBChains;
+	m_Chains = m_QueryChains;
 	m_Chains.insert(m_Chains.end(),
-	  m_QueryChains.begin(), m_QueryChains.end());
+	  m_DBChains.begin(), m_DBChains.end());
 	asserta(SIZE(m_Chains) == m_ChainCount);
 
 	if (m_DBChainCount > 0)
@@ -90,6 +92,11 @@ const PDBChain &DBSearcher::GetChain(uint ChainIndex) const
 	{
 	asserta(ChainIndex < SIZE(m_Chains));
 	return *m_Chains[ChainIndex];
+	}
+
+uint DBSearcher::GetQueryCount() const
+	{
+	return m_QueryChainCount;
 	}
 
 bool DBSearcher::GetNextPairQuerySelf(uint &ChainIndex1, uint &ChainIndex2)
@@ -185,6 +192,12 @@ void DBSearcher::Thread(uint ThreadIndex)
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
 		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2);
+		float Calib3Q = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex1];
+		float Calib3T = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex2];
+		float dCQ = Calib3T - 0.0414f;
+		float dCT = Calib3Q - 0.0414f;
+		DA.m_dCQ = dCQ;
+		DA.m_dCT = dCT;
 
 		if (m_Params->m_UseComboPath)
 			{

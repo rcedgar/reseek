@@ -70,6 +70,8 @@ public:
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
+	vector<float> m_Calib3s;
+
 public:
 	virtual void OnSetup();
 	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA);
@@ -91,6 +93,7 @@ public:
 	uint GetDomIdx(const string &Dom_or_DomSlashId, bool FailOnErr = true) const;
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
 	const vector<vector<byte> > &GetProfileByDomIdx(uint DomIdx) const;
+	void Calib3(const string &FN);
 
 	void ScanDomHits();
 	void SetDomIdxToHitIdxs();

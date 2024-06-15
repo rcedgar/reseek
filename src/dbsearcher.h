@@ -17,7 +17,7 @@ public:
 	DSS m_D;
 
 // m_Chains has m_DBChainCount + m_QueryChainCount = 
-//   m_ChainCount chains
+//   m_ChainCount chain pointers
 	vector<PDBChain *> m_Chains;
 	vector<PDBChain *> m_QueryChains;
 	vector<PDBChain *> m_DBChains;
@@ -74,6 +74,7 @@ public:
 	void Thread(uint ThreadIndex);
 	void ThreadUSort(uint ThreadIndex);
 	void RunStats() const;
+	uint GetQueryCount() const;
 
 public:
 	virtual void OnSetup() {}

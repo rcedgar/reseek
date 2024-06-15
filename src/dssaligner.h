@@ -54,6 +54,9 @@ public:
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
 
+	float m_dCQ = FLT_MAX;
+	float m_dCT = FLT_MAX;
+
 public:
 	static mutex m_OutputLock;
 	static mutex m_StatsLock;

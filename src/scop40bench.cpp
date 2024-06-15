@@ -660,6 +660,34 @@ void SCOP40Bench::LogSens1FPReport() const
 	//LogSens1FPReport_Dom(3);
 	}
 
+void SCOP40Bench::Calib3(const string &FN)
+	{
+	m_Calib3s.clear();
+	if (FN == "")
+		return;
+	vector<string> Lines;
+	ReadLinesFromFile(FN, Lines);
+	const uint NQ = SIZE(m_QueryChains);
+	asserta(SIZE(Lines) == NQ);
+	m_Calib3s.resize(NQ, FLT_MAX);
+	vector<string> Fields;
+	for (uint i = 0; i < NQ; ++i)
+		{
+		Split(Lines[i], Fields, '\t');
+		asserta(SIZE(Fields) == 2);
+		const string &Label = Fields[0];
+		string Dom;
+		GetDomFromLabel(Label, Dom);
+		float Calib3 = (float) StrToFloat(Fields[1]);
+		map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
+		asserta(iter != m_DomToIdx.end());
+		uint DomIdx = iter->second;
+		asserta(DomIdx < NQ);
+		asserta(m_Calib3s[DomIdx] == FLT_MAX);
+		m_Calib3s[DomIdx] = Calib3;
+		}
+	}
+
 void cmd_scop40bench()
 	{
 	string CalFN;
@@ -672,7 +700,6 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 
-
 	SCOP40Bench SB;
 	SB.ReadChains(CalFN, "");
 
@@ -680,6 +707,7 @@ void cmd_scop40bench()
 	Params.SetFromCmdLine(SB.GetDBSize());
 
 	SB.Setup(Params);
+	SB.Calib3(opt_calib3);
 
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)

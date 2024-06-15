@@ -815,6 +815,12 @@ void DSSAligner::CalcEvalue()
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);
 
+	//if (m_dCT != FLT_MAX)
+	//	{
+	//	m_TestStatisticAB -= (m_dCQ + m_dCT)/2;
+	//	m_TestStatisticBA -= (m_dCQ + m_dCT)/2;
+	//	}
+
 	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
 	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);
 

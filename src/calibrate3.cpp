@@ -2,6 +2,7 @@
 #include "calibratesearcher3.h"
 #include "binner.h"
 #include "timing.h"
+#include <set>
 
 /***
 * Calibrate E-value by measuring score 
@@ -23,7 +24,17 @@ void cmd_calibrate3()
 	const string &DBFN = opt_db;
 	CalibrateSearcher3 DBS;
 	DBS.ReadChains(QCalFN, DBFN);
-	const uint NQ = DBS.m_QueryChainCount;
+	const uint NQ = DBS.GetQueryCount();
+	ProgressLog("NQ=%u\n", NQ);
+	set<string> Labels;
+	for (uint i = 0; i < NQ; ++i)
+		{
+		const PDBChain &Chain = *DBS.m_Chains[i];
+		const string &Label = Chain.m_Label;
+		if (Labels.find(Label) != Labels.end())
+			Die("Dupe label >%s", Label.c_str());
+		Labels.insert(Label);
+		}
 
 	DSSParams Params;
 	Params.SetFromCmdLine(DBS.GetDBSize());
