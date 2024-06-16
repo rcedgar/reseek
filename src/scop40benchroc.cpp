@@ -48,8 +48,12 @@ float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
 	return float(ntp)/m_NT;
 	}
 
+// Return 1=TP, 0=FP, -1=ignore
 int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	{
+	if (DomIdx1 == DomIdx2)
+		return -1;
+
 	assert(DomIdx1 < SIZE(m_DomIdxToSFIdx));
 	assert(DomIdx2 < SIZE(m_DomIdxToSFIdx));
 	uint SFIdx1 = m_DomIdxToSFIdx[DomIdx1];

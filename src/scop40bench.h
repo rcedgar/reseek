@@ -38,12 +38,14 @@ public:
 	uint m_ChainIndex1 = UINT_MAX;
 	uint m_ChainIndex2 = UINT_MAX;
 
+	vector<float> m_DomIdxToScoreLastTP;
 	vector<float> m_DomIdxToScoreFirstFP;
+	vector<uint> m_DomIdxToHitIdxLastTP;
 	vector<uint> m_DomIdxToHitIdxFirstFP;
 	vector<vector<uint> > m_DomIdxToHitIdxs;
 	vector<uint> m_DomIdxToL;
 	vector<uint> m_DomIdxToSens1FP;
-	vector<uint> m_DomIdxToTP1Count;
+	//vector<uint> m_DomIdxToTP1Count;
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
@@ -81,6 +83,7 @@ public:
 	void ReadLookup(const string &FileName);
 	void ClearHits();
 	float GetVeryBadScore() const;
+	float GetVeryGoodScore() const;
 	bool ScoreIsBetter(float Score1, float Score2) const;
 	bool HitIsBetter(uint HitIdx1, uint HitIdx2) const;
 	uint GetHitCount() const { return SIZE(m_Scores); }
@@ -141,7 +144,7 @@ public:
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteSummary();
 	void WriteOutput();
-	void LogSens1FPReport() const;
+	void WriteSens1FPReport(FILE *f) const;
 	void LogSens1FPReport_Dom(uint DomIdx) const;
 
 public:

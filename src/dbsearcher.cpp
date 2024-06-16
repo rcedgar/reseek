@@ -192,12 +192,12 @@ void DBSearcher::Thread(uint ThreadIndex)
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
 		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2);
-		float Calib3Q = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex1];
-		float Calib3T = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex2];
-		float dCQ = Calib3T - 0.0414f;
-		float dCT = Calib3Q - 0.0414f;
-		DA.m_dCQ = dCQ;
-		DA.m_dCT = dCT;
+		//float Calib3Q = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex1];
+		//float Calib3T = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex2];
+		//float dCQ = Calib3T - 0.0414f;
+		//float dCT = Calib3Q - 0.0414f;
+		//DA.m_dCQ = dCQ;
+		//DA.m_dCT = dCT;
 
 		if (m_Params->m_UseComboPath)
 			{

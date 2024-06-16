@@ -297,6 +297,14 @@ void SCOP40Bench::ClearHits()
 	m_DomIdx2s.clear();
 	}
 
+float SCOP40Bench::GetVeryGoodScore() const
+	{
+	if (m_ScoresAreEvalues)
+		return 0;
+	else
+		return 999999.9f;
+	}
+
 float SCOP40Bench::GetVeryBadScore() const
 	{
 	if (m_ScoresAreEvalues)
@@ -349,54 +357,35 @@ void SCOP40Bench::ScanDomHits()
 	{
 	m_ConsideredHitCount = 0;
 	m_IgnoredHitCount = 0;
+	m_DomIdxToScoreLastTP.clear();
 	m_DomIdxToScoreFirstFP.clear();
+	m_DomIdxToHitIdxFirstFP.clear();
 	m_DomIdxToSens1FP.clear();
 
-	m_DomIdxToHitIdxFirstFP.clear();
 	const uint DomCount = GetDomCount();
 	const uint HitCount = GetHitCount();
 
-	const float InitScore = GetVeryBadScore();
-	m_DomIdxToScoreFirstFP.resize(DomCount, InitScore);
 	m_DomIdxToSens1FP.resize(DomCount, 0);
-	m_DomIdxToTP1Count.resize(DomCount, 0);
+	m_DomIdxToHitIdxLastTP.resize(DomCount, UINT_MAX);
 	m_DomIdxToHitIdxFirstFP.resize(DomCount, UINT_MAX);
+
+	m_DomIdxToScoreLastTP.resize(DomCount, GetVeryGoodScore());
+	m_DomIdxToScoreFirstFP.resize(DomCount, GetVeryBadScore());
 
 	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
 		{
 		uint Dom1 = m_DomIdx1s[HitIdx];
 		uint Dom2 = m_DomIdx2s[HitIdx];
-		if (Dom1 == Dom2)
+		int T = IsT(Dom1, Dom2);
+		if (T == -1)
+			{
+			++m_IgnoredHitCount;
 			continue;
-		float Score = m_Scores[HitIdx];
-		bool T = false;
-		uint SF1 = m_DomIdxToSFIdx[Dom1];
-		uint SF2 = m_DomIdxToSFIdx[Dom2];
-		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
-		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
-		if (m_Level == "sf")
-			T = (SF1 == SF2);
-		else if (m_Level == "fold")
-			T = (Fold1 == Fold2);
-		else if (m_Level == "ignore")
-			{
-			if (Fold1 == Fold2 && SF1 != SF2)
-				{
-				++m_IgnoredHitCount;
-				continue;
-				}
-			T = (Fold1 == Fold2);
 			}
-		else
-			Die("m_Level=%s", m_Level.c_str());
 
+		float Score = m_Scores[HitIdx];
 		++m_ConsideredHitCount;
-		if (T)
-			{
-			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
-				++m_DomIdxToTP1Count[Dom1];
-			}
-		else
+		if (T == 0)
 			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				{
@@ -410,34 +399,22 @@ void SCOP40Bench::ScanDomHits()
 		{
 		uint Dom1 = m_DomIdx1s[HitIdx];
 		uint Dom2 = m_DomIdx2s[HitIdx];
-		if (Dom1 == Dom2)
+		int T = IsT(Dom1, Dom2);
+		if (T == -1)
 			continue;
-		float Score = m_Scores[HitIdx];
-		uint SF1 = m_DomIdxToSFIdx[Dom1];
-		uint SF2 = m_DomIdxToSFIdx[Dom2];
-		uint Fold1 = m_DomIdxToFoldIdx[Dom1];
-		uint Fold2 = m_DomIdxToFoldIdx[Dom2];
-		bool T = false;
-		if (m_Level == "sf")
-			T = (SF1 == SF2);
-		else if (m_Level == "fold")
-			T = (Fold1 == Fold2);
-		else if (m_Level == "ignore")
-			{
-			if (Fold1 == Fold2 && SF1 != SF2)
-				{
-				++m_IgnoredHitCount;
-				continue;
-				}
-			T = (Fold1 == Fold2);
-			}
-		else
-			asserta(false);
 
-		if (T)
+		float Score = m_Scores[HitIdx];
+		if (T == 1)
 			{
 			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
+				{
 				m_DomIdxToSens1FP[Dom1] += 1;
+				if (!ScoreIsBetter(Score, m_DomIdxToScoreLastTP[Dom1]))
+					{
+					m_DomIdxToScoreLastTP[Dom1] = Score;
+					m_DomIdxToHitIdxLastTP[Dom1] = HitIdx;
+					}
+				}
 			}
 		}
 	}
@@ -635,27 +612,53 @@ void SCOP40Bench::LogSens1FPReport_Dom(uint DomIdx) const
 		}
 	}
 
-void SCOP40Bench::LogSens1FPReport() const
+void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 	{
+	if (f == 0)
+		return;
+
 	const uint DomCount = GetDomCount();
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
 		const string &Name = m_Doms[DomIdx];
-		float Score = m_DomIdxToScoreFirstFP[DomIdx];
-		uint HitIdx = m_DomIdxToHitIdxFirstFP[DomIdx];
-		if (HitIdx == UINT_MAX)
+		fprintf(f, "%s", Name.c_str());
+
+		uint HitIdxTP = m_DomIdxToHitIdxLastTP[DomIdx];
+		uint HitIdxFP = m_DomIdxToHitIdxFirstFP[DomIdx];
+		if (HitIdxTP != UINT_MAX)
 			{
-			Log("%u:%s ...\n", DomIdx, Name.c_str());
-			continue;
+			asserta(m_TFs[HitIdxTP] == 1);
+			float ScoreTP = m_DomIdxToScoreLastTP[DomIdx];
+			uint Dom1TP = m_DomIdx1s[HitIdxTP];
+			uint Dom2TP = m_DomIdx2s[HitIdxTP];
+			asserta(Dom1TP == DomIdx);
+			const string &NameTP = m_Doms[Dom2TP];
+			float Score2TP = m_Scores[HitIdxTP];
+			float TS_TP = m_TSs[HitIdxTP];
+			asserta(Score2TP == ScoreTP);
+			fprintf(f, "\t%s\t%.3g\t%.3g",
+			  NameTP.c_str(), TS_TP, ScoreTP);
 			}
-		uint Dom1 = m_DomIdx1s[HitIdx];
-		uint Dom2 = m_DomIdx2s[HitIdx];
-		const string &Name2 = m_Doms[Dom2];
-		float Score2 = m_Scores[HitIdx];
-		asserta(Score2 == Score);
-		asserta(!m_TFs[HitIdx]);
-		asserta(Dom1 == DomIdx);
-		Log("%u:%s  %u:%s  %.3g\n", DomIdx, Name.c_str(), Dom2, Name2.c_str(), Score);
+		else
+			fprintf(f, "\t.\t.");
+
+		if (HitIdxFP != UINT_MAX)
+			{
+			asserta(m_TFs[HitIdxFP] == 0);
+			float ScoreFP = m_DomIdxToScoreFirstFP[DomIdx];
+			uint Dom1FP = m_DomIdx1s[HitIdxFP];
+			uint Dom2FP = m_DomIdx2s[HitIdxFP];
+			const string &NameFP = m_Doms[Dom2FP];
+			float Score2FP = m_Scores[HitIdxFP];
+			float TS_FP = m_TSs[HitIdxFP];
+			asserta(Score2FP == ScoreFP);
+			asserta(Dom1FP == DomIdx);
+			fprintf(f, "\t%s\t%.3g\t%.3g",
+			  NameFP.c_str(), TS_FP, ScoreFP);
+			}
+		else
+			fprintf(f, "\t.\t.");
+		fprintf(f, "\n");
 		}
 	//LogSens1FPReport_Dom(3);
 	}
@@ -724,7 +727,12 @@ void cmd_scop40bench()
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
 	SB.WriteOutput();
-	//SB.LogSens1FPReport();
+	if (optset_sens1fp_report)
+		{
+		FILE *f = CreateStdioFile(opt_sens1fp_report);
+		SB.WriteSens1FPReport(f);
+		CloseStdioFile(f);
+		}
 #if SCORE_DIST
 	DSSAligner::ReportScoreDist();
 #endif
