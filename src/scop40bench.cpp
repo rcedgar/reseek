@@ -640,7 +640,7 @@ void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 			  NameTP.c_str(), TS_TP, ScoreTP);
 			}
 		else
-			fprintf(f, "\t.\t.");
+			fprintf(f, "\t.\t.\t.");
 
 		if (HitIdxFP != UINT_MAX)
 			{
@@ -657,7 +657,7 @@ void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 			  NameFP.c_str(), TS_FP, ScoreFP);
 			}
 		else
-			fprintf(f, "\t.\t.");
+			fprintf(f, "\t.\t.\t.");
 		fprintf(f, "\n");
 		}
 	//LogSens1FPReport_Dom(3);

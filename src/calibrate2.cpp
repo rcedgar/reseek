@@ -5,7 +5,7 @@
 static const uint BinCount = 100;
 
 // y = mx + b
-static void LinearFit(const vector<float> &xs, const vector<float> &ys,
+void LinearFit(const vector<float> &xs, const vector<float> &ys,
   float &m, float &b)
 	{
 	const uint N = SIZE(xs);

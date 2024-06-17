@@ -120,10 +120,7 @@ void DBSearcher::WriteCalibOutput(FILE *f) const
 		for (uint Bin = 0; Bin < NBINS; ++Bin)
 			{
 			uint n = Bins[Bin];
-			if (n == 0)
-				fprintf(f, "\t");
-			else
-				fprintf(f, "\t%u", n);
+			fprintf(f, "\t%u", n);
 			}
 		fprintf(f, "\n");
 		}

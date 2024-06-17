@@ -299,6 +299,9 @@
     <ClCompile Include="calibratesearcher3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="calibrate4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
