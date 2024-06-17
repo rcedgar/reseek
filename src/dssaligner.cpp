@@ -680,8 +680,8 @@ void DSSAligner::Align_ComboFilter(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX, FLT_MAX);
 
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;
@@ -706,12 +706,15 @@ void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters)
+	const vector<byte> *ptrComboLetters,
+	float Slope_m, float Slope_b)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
+	m_Query_Slope_m = Slope_m;
+	m_Query_Slope_b = Slope_b;
 	if (m_Params->m_UsePara)
 		SetComboQP_Para();
 	else
@@ -722,12 +725,15 @@ void DSSAligner::SetTarget(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters)
+	const vector<byte> *ptrComboLetters,
+	float Slope_m, float Slope_b)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
 	m_ComboKmerBitsB = ptrComboKmerBits;
 	m_ComboLettersB = ptrComboLetters;
+	m_Target_Slope_m = Slope_m;
+	m_Target_Slope_b = Slope_b;
 	}
 
 void DSSAligner::AlignComboOnly()
@@ -809,20 +815,14 @@ void DSSAligner::CalcEvalue()
 	uint Lambda = uint(round(m_Params->m_Lambda));
 	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
 
-	//if (StatTop < 0)
-	//	StatTop = 0;
-
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);
 
-	//if (m_dCT != FLT_MAX)
-	//	{
-	//	m_TestStatisticAB -= (m_dCQ + m_dCT)/2;
-	//	m_TestStatisticBA -= (m_dCQ + m_dCT)/2;
-	//	}
+	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB,
+	  m_Target_Slope_m, m_Target_Slope_b);
 
-	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
-	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);
+	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA,
+	  m_Query_Slope_m, m_Query_Slope_b);
 
 #if SCORE_DIST
 	{

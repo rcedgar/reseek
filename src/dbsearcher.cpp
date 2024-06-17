@@ -184,20 +184,18 @@ void DBSearcher::Thread(uint ThreadIndex)
 			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
 			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
-			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1);
+			float Slope_m, Slope_b;
+			GetChainSlope(ChainIndex1, Slope_m, Slope_b);
+			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1, Slope_m, Slope_b);
 			}
 
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
 		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
-		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2);
-		//float Calib3Q = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex1];
-		//float Calib3T = ((SCOP40Bench &)(*this)).m_Calib3s[ChainIndex2];
-		//float dCQ = Calib3T - 0.0414f;
-		//float dCT = Calib3Q - 0.0414f;
-		//DA.m_dCQ = dCQ;
-		//DA.m_dCT = dCT;
+		float Slope_m, Slope_b;
+		GetChainSlope(ChainIndex2, Slope_m, Slope_b);
+		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2, Slope_m, Slope_b);
 
 		if (m_Params->m_UseComboPath)
 			{
@@ -394,6 +392,83 @@ void DBSearcher::Setup(const DSSParams &Params)
 		m_TestStatsVec.clear();
 		m_TestStatsVec.resize(m_ChainCount);
 		}
-
+	LoadCalibratedSlopes(opt_slopes);
 	OnSetup();
+	}
+
+uint DBSearcher::GetDBChainCount() const
+	{
+	if (m_QuerySelf)
+		return GetQueryChainCount();
+	asserta(m_DBChainCount != UINT_MAX);
+	asserta(m_DBChainCount > 0);
+	return m_DBChainCount;
+	}
+
+uint DBSearcher::GetQueryChainCount() const
+	{
+	asserta(m_QueryChainCount != UINT_MAX);
+	asserta(m_QueryChainCount > 0);
+	return m_QueryChainCount;
+	}
+
+void DBSearcher::GetChainSlope(uint ChainIdx, float &m, float &b) const
+	{
+	if (m_ms.empty())
+		{
+		m = FLT_MAX;
+		b = FLT_MAX;
+		return;
+		}
+	asserta(ChainIdx < SIZE(m_ms));
+	asserta(ChainIdx < SIZE(m_bs));
+	m = m_ms[ChainIdx];
+	b = m_bs[ChainIdx];
+	}
+
+void DBSearcher::LoadCalibratedSlopes(const string &FN)
+	{
+	m_ms.clear();
+	m_bs.clear();
+	if (FN == "")
+		return;
+	m_ms.resize(m_ChainCount, FLT_MAX);
+	m_bs.resize(m_ChainCount, FLT_MAX);
+	FILE *f = OpenStdioFile(FN);
+	string Line;
+	vector<string> Fields;
+	map<string, uint> LabelToIdx;
+	vector<float> ms;
+	vector<float> bs;
+	while (ReadLineStdioFile(f, Line))
+		{
+		Split(Line, Fields, '\t');
+		if (Fields[1] == "m")
+			continue;
+		asserta(SIZE(Fields) == 3);
+		const string &Label = Fields[0];
+		LabelToIdx[Label] = SIZE(ms);
+		float m = (float) StrToFloat(Fields[1]);
+		float b = (float) StrToFloat(Fields[2]);
+		ms.push_back(m);
+		bs.push_back(b);
+		}
+	CloseStdioFile(f);
+	for (uint ChainIdx = 0; ChainIdx < m_ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const string &Label = Chain.m_Label;
+		string Dom;
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
+		map<string, uint>::iterator iter = LabelToIdx.find(Dom);
+		if (iter == LabelToIdx.end())
+			Die("Label not found in slopes >%s", Label.c_str());
+		uint Idx = iter->second;
+		asserta(Idx < SIZE(ms));
+		asserta(Idx < SIZE(bs));
+		float m = ms[Idx];
+		float b = bs[Idx];
+		m_ms[ChainIdx] = m;
+		m_bs[ChainIdx] = b;
+		}
 	}

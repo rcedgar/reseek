@@ -115,8 +115,8 @@ void DSSAligner::Align_Test(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX, FLT_MAX);
 
 	m_EvalueAB = FLT_MAX;
 	m_EvalueBA = FLT_MAX;

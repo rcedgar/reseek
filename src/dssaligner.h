@@ -54,8 +54,11 @@ public:
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
 
-	float m_dCQ = FLT_MAX;
-	float m_dCT = FLT_MAX;
+	float m_Query_Slope_m = FLT_MAX;
+	float m_Query_Slope_b = FLT_MAX;
+
+	float m_Target_Slope_m = FLT_MAX;
+	float m_Target_Slope_b = FLT_MAX;
 
 public:
 	static mutex m_OutputLock;
@@ -76,13 +79,15 @@ public:
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters);
+	  const vector<byte> *ptrComboLetters,
+	  float Slope_m, float Slope_b);
 
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters);
+	  const vector<byte> *ptrComboLetters,
+	  float Slope_m, float Slope_b);
 
 	float GetComboScore();
 	bool ComboFilter();

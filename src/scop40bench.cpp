@@ -106,6 +106,7 @@ void SCOP40Bench::OnSetup()
 	asserta(m_DBChainCount == 0);
 	m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromQueryChainLabels();
+	LoadCalibratedSlopes(opt_slopes);
 	}
 
 void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,
@@ -227,8 +228,8 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.SetQuery(Chain1, &Profile1, 0, 0);
-	DA.SetTarget(Chain2, &Profile2, 0, 0);
+	DA.SetQuery(Chain1, &Profile1, 0, 0, FLT_MAX, FLT_MAX);
+	DA.SetTarget(Chain2, &Profile2, 0, 0, FLT_MAX, FLT_MAX);
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
@@ -663,34 +664,6 @@ void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 	//LogSens1FPReport_Dom(3);
 	}
 
-void SCOP40Bench::Calib3(const string &FN)
-	{
-	m_Calib3s.clear();
-	if (FN == "")
-		return;
-	vector<string> Lines;
-	ReadLinesFromFile(FN, Lines);
-	const uint NQ = SIZE(m_QueryChains);
-	asserta(SIZE(Lines) == NQ);
-	m_Calib3s.resize(NQ, FLT_MAX);
-	vector<string> Fields;
-	for (uint i = 0; i < NQ; ++i)
-		{
-		Split(Lines[i], Fields, '\t');
-		asserta(SIZE(Fields) == 2);
-		const string &Label = Fields[0];
-		string Dom;
-		GetDomFromLabel(Label, Dom);
-		float Calib3 = (float) StrToFloat(Fields[1]);
-		map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
-		asserta(iter != m_DomToIdx.end());
-		uint DomIdx = iter->second;
-		asserta(DomIdx < NQ);
-		asserta(m_Calib3s[DomIdx] == FLT_MAX);
-		m_Calib3s[DomIdx] = Calib3;
-		}
-	}
-
 void cmd_scop40bench()
 	{
 	string CalFN;
@@ -708,10 +681,8 @@ void cmd_scop40bench()
 
 	DSSParams Params;
 	Params.SetFromCmdLine(SB.GetDBSize());
-
 	SB.Setup(Params);
-	SB.Calib3(opt_calib3);
-
+	
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;

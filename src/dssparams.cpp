@@ -262,13 +262,22 @@ void DSSParams::InitScoreMxs()
 
 // Superfamily: Linear fit to -log(P) m=20.5 b=2.89
 // Fold:        Linear fit to -log(P) m=26.6 b=2.42
-float DSSParams::GetEvalue(float TestStatistic) const
+float DSSParams::GetEvalue(float TestStatistic, float m, float b) const
 	{
 	if (TestStatistic <= 0)
 		return 99999;
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-
 	float Evalue = FLT_MAX;
+	if (m != FLT_MAX)
+		{
+		asserta(b != FLT_MAX);
+	//	PredMinusLogP = m*TS + b;
+		float PredMinusLogP = m*TestStatistic + b;
+		float P = expf(-PredMinusLogP);
+		Evalue = P*m_DBSize;
+		return Evalue;
+		}
+
 	if (opt_gum)
 		{
 		double gumbel_cdf(double mu, double beta, double x);

@@ -83,7 +83,8 @@ public:
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();
-	float GetEvalue(float Score) const;
+	float GetEvalue(float Score,
+	  float m = FLT_MAX, float b = FLT_MAX) const;
 
 public:
 	static void SetComboFeatures(const vector<FEATURE> &Fs);

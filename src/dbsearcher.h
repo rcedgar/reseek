@@ -55,9 +55,15 @@ public:
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 
-// Calibration
+// Calibration training
 	bool m_CollectTestStats = false;
 	vector<vector<float> > m_TestStatsVec;
+
+// Calibrated slopes
+//	PredMinusLogP = m*TS + b;
+// ms & bs vectors indexed by ChainIdx
+	vector<float> m_ms;
+	vector<float> m_bs;
 
 public:
 	uint GetQueryChainIdx(uint Idx) const;
@@ -69,6 +75,8 @@ public:
 	void Setup(const DSSParams &Params);
 	uint GetProfileCount() const { return SIZE(m_Profiles); }
 	uint GetChainCount() const { return SIZE(m_Chains); }
+	uint GetDBChainCount() const;
+	uint GetQueryChainCount() const;
 	bool GetNextPair(uint &ChainIndex1, uint &ChainIndex2);
 	bool GetNextPairQuerySelf(uint &ChainIndex1, uint &ChainIndex2);
 	const PDBChain &GetChain(uint ChainIndex) const;
@@ -87,9 +95,13 @@ public:
 	void RunStats() const;
 	uint GetQueryCount() const;
 
-// Calibration
+// Calibration training
 	void WriteCalibSample(FILE *f) const;
 	void WriteCalibOutput(FILE *f) const;
+
+// Calibrated runtime
+	void LoadCalibratedSlopes(const string &FN);
+	void GetChainSlope(uint ChainIdx, float &m, float &b) const;
 
 public:
 	virtual void OnSetup() {}
