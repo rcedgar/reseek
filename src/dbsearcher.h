@@ -18,6 +18,7 @@ public:
 
 // m_Chains has m_DBChainCount + m_QueryChainCount = 
 //   m_ChainCount chain pointers
+// Query chains first, then DB chains (unless self)
 	vector<PDBChain *> m_Chains;
 	vector<PDBChain *> m_QueryChains;
 	vector<PDBChain *> m_DBChains;
@@ -59,8 +60,12 @@ public:
 	vector<vector<float> > m_TestStatsVec;
 
 public:
+	uint GetQueryChainIdx(uint Idx) const;
+	uint GetDBChainIdx(uint Idx) const;
 	const PDBChain &GetQueryChain(uint Idx) const;
+	const PDBChain &GetDBChain(uint Idx) const;
 	const char *GetQueryLabel(uint Idx) const;
+	const char *GetDBLabel(uint Idx) const;
 	void Setup(const DSSParams &Params);
 	uint GetProfileCount() const { return SIZE(m_Profiles); }
 	uint GetChainCount() const { return SIZE(m_Chains); }

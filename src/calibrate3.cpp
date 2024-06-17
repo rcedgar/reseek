@@ -46,6 +46,51 @@ void DBSearcher::WriteCalibSample(FILE *f) const
 		}
 	}
 
+uint DBSearcher::GetQueryChainIdx(uint Idx) const
+	{
+	asserta(Idx < m_QueryChainCount);
+	return Idx;
+	}
+
+uint DBSearcher::GetDBChainIdx(uint Idx) const
+	{
+	asserta(Idx < m_DBChainCount);
+	if (m_QuerySelf)
+		{
+		asserta(Idx < m_QueryChainCount);
+		return Idx;
+		}
+	else
+		{
+		asserta(m_QueryChainCount + Idx < SIZE(m_Chains));
+		return m_QueryChainCount + Idx;
+		}
+	}
+
+const PDBChain &DBSearcher::GetDBChain(uint Idx) const
+	{
+	uint ChainIdx = GetDBChainIdx(Idx);
+	return GetChain(ChainIdx);
+	}
+
+const PDBChain &DBSearcher::GetQueryChain(uint Idx) const
+	{
+	uint ChainIdx = GetQueryChainIdx(Idx);
+	return GetChain(ChainIdx);
+	}
+
+const char *DBSearcher::GetQueryLabel(uint Idx) const
+	{
+	const PDBChain &Chain = GetQueryChain(Idx);
+	return Chain.m_Label.c_str();
+	}
+
+const char *DBSearcher::GetDBLabel(uint Idx) const
+	{
+	const PDBChain &Chain = GetDBChain(Idx);
+	return Chain.m_Label.c_str();
+	}
+
 void DBSearcher::WriteCalibOutput(FILE *f) const
 	{
 	if (f == 0)
@@ -63,11 +108,15 @@ void DBSearcher::WriteCalibOutput(FILE *f) const
 		fprintf(f, "\t%.3g", B.GetBinMid(Bin));
 	fprintf(f, "\n");
 
-	for (uint i = 0; i < SAMPLE; ++i)
+	const uint NQ = GetQueryCount();
+	for (uint i = 0; i < NQ; ++i)
 		{
+		const char *Label = GetQueryLabel(i);
 		const vector<float> &TSs_i = m_TestStatsVec[i];
 		Binner<float> B(TSs_i, NBINS, -0.1f, 0.3f);
 		B.GetAccumBinsReverse(Bins);
+
+		fprintf(f, "%s", Label);
 		for (uint Bin = 0; Bin < NBINS; ++Bin)
 			{
 			uint n = Bins[Bin];
