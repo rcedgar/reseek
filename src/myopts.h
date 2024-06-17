@@ -39,6 +39,7 @@ STR_OPT(benchlevel)
 STR_OPT(fasta2)
 STR_OPT(calib3)
 STR_OPT(sens1fp_report)
+STR_OPT(calib_output)
 
 STR_OPT(train_cal)
 STR_OPT(test_cal)

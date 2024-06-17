@@ -223,12 +223,27 @@ void DBSearcher::Thread(uint ThreadIndex)
 			if (!DA.m_PathAB.empty())
 				{
 				m_Lock.lock();
+
+				if (m_CollectTestStats)
+					{
+					asserta(ChainIndex1 < SIZE(m_TestStatsVec));
+					vector<float> &v1 = m_TestStatsVec[ChainIndex1];
+					v1.push_back(DA.m_TestStatisticAB);
+					}
+
 				DA.ToTsv(m_fTsv, m_MaxEvalue);
 				DA.ToAln(m_fAln, m_MaxEvalue);
 				DA.ToFasta2(m_fFasta2, m_MaxEvalue);
 				OnAln(ChainIndex1, ChainIndex2, DA);
 				if (m_QuerySelf)
 					{
+					if (m_CollectTestStats)
+						{
+						asserta(ChainIndex2 < SIZE(m_TestStatsVec));
+						vector<float> &v2 = m_TestStatsVec[ChainIndex2];
+						v2.push_back(DA.m_TestStatisticBA);
+						}
+
 					DA.ToTsvBA(m_fTsv, m_MaxEvalue);
 					DA.ToAlnBA(m_fAln, m_MaxEvalue);
 					OnAlnBA(ChainIndex1, ChainIndex2, DA);
@@ -372,6 +387,13 @@ void DBSearcher::Setup(const DSSParams &Params)
 	m_D.m_PatternAlphaSize = myipow(AS, PatternOnes);
 	SetProfiles();
 	SetKmersVec();
+
+	if (m_CollectTestStats)
+		{
+		ProgressLog("\n --- collect teststats ---\n\n");
+		m_TestStatsVec.clear();
+		m_TestStatsVec.resize(m_ChainCount);
+		}
 
 	OnSetup();
 	}

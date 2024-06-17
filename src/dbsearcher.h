@@ -54,7 +54,13 @@ public:
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 
+// Calibration
+	bool m_CollectTestStats = false;
+	vector<vector<float> > m_TestStatsVec;
+
 public:
+	const PDBChain &GetQueryChain(uint Idx) const;
+	const char *GetQueryLabel(uint Idx) const;
 	void Setup(const DSSParams &Params);
 	uint GetProfileCount() const { return SIZE(m_Profiles); }
 	uint GetChainCount() const { return SIZE(m_Chains); }
@@ -75,6 +81,10 @@ public:
 	void ThreadUSort(uint ThreadIndex);
 	void RunStats() const;
 	uint GetQueryCount() const;
+
+// Calibration
+	void WriteCalibSample(FILE *f) const;
+	void WriteCalibOutput(FILE *f) const;
 
 public:
 	virtual void OnSetup() {}
