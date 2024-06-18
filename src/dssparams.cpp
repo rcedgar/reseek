@@ -260,6 +260,33 @@ void DSSParams::InitScoreMxs()
 	ApplyWeights();
 	}
 
+float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const
+	{
+	double gumbel_cdf(double mu, double beta, double x);
+	double x = -log(TS);
+	double P = gumbel_cdf(2.5, 0.613, x);
+	float Evalue = float(P*m_DBSize);
+	return Evalue;
+	}
+
+float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
+	{
+	float PredMinusLogP = m*TestStatistic + b;
+	float P = expf(-PredMinusLogP);
+	float Evalue = P*m_DBSize;
+	return Evalue;
+	}
+
+float DSSParams::GetEvalueOldLinear(float TS) const
+	{
+	const float Slope = -6.6f;
+	const float Intercept = 6.1f;
+	float logNF = Slope*TS + Intercept;
+	float NF = powf(10, logNF);
+	float Evalue = NF*m_DBSize/1e8f;
+	return Evalue;
+	}
+
 // Superfamily: Linear fit to -log(P) m=20.5 b=2.89
 // Fold:        Linear fit to -log(P) m=26.6 b=2.42
 float DSSParams::GetEvalue(float TestStatistic, float m, float b) const
@@ -269,38 +296,16 @@ float DSSParams::GetEvalue(float TestStatistic, float m, float b) const
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 	float Evalue = FLT_MAX;
 	if (m != FLT_MAX)
-		{
-		asserta(b != FLT_MAX);
-	//	PredMinusLogP = m*TS + b;
-		float PredMinusLogP = m*TestStatistic + b;
-		float P = expf(-PredMinusLogP);
-		Evalue = P*m_DBSize;
-		return Evalue;
-		}
+		return GetEvalueSlope(TestStatistic, m, b);
 
 	if (opt_gum)
 		{
-		double gumbel_cdf(double mu, double beta, double x);
-		double x = -log(TestStatistic);
-		double P = gumbel_cdf(2.5, 0.613, x);
-		Evalue = float(P*m_DBSize);
+		const double mu = 2.5;
+		const double beta = 0.613;
+		return GetEvalueGumbel(TestStatistic, mu, beta);
 		}
-	else
-		{
-		const float Slope = -6.6f;
-		const float Intercept = 6.1f;
-		float logNF = Slope*TestStatistic + Intercept;
-		float NF = powf(10, logNF);
-		float OldEvalue = NF*m_DBSize/1e8f;
 
-		const float m = 20.5f;
-		const float b = 2.90f;
-		float MinusLogP = TestStatistic*m + b;
-		float P = expf(-MinusLogP);
-		Evalue = P*m_DBSize;
-		//Log("%.3g\t%.3g\n", OldEvalue, Evalue);
-		}
-	return Evalue;
+	return GetEvalueSlope(TestStatistic, 20.5f, 2.9f);
 	}
 
 void DSSParams::ApplyWeights()

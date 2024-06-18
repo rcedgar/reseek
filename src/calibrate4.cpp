@@ -120,6 +120,9 @@ void cmd_calibrate4()
 	vector<float> TSHis;
 	vector<float> ms;
 	vector<float> bs;
+	float Sum_m = 0;
+	float Sum_b = 0;
+	uint Count = 0;
 	for (uint i = 0; i < DomCount; ++i)
 		{
 		const string &Dom = Doms[i];
@@ -153,6 +156,9 @@ void cmd_calibrate4()
 				MinusLogPs.push_back(MinusLogP);
 				}
 			LinearFit(TSs, MinusLogPs, m, b);
+			++Count;
+			Sum_m += m;
+			Sum_b += b;
 #if LOG_FIT
 			{
 			Log(">%s m=%.3g b=%.3g\n", Doms[i].c_str(), m, b);
@@ -177,6 +183,8 @@ void cmd_calibrate4()
 		ms.push_back(m);
 		bs.push_back(b);
 		}
+	ProgressLog("Mean m %.3g, b %.3g\n",
+	  Sum_m/Count, Sum_b/Count);
 
 	if (optset_report)
 		{
@@ -217,6 +225,32 @@ void cmd_calibrate4()
 			float m = ms[i];
 			float b = bs[i];
 			fprintf(fOut, "%s\t%.3g\t%.3g\n", Dom.c_str(), m, b);
+			}
+		CloseStdioFile(fOut);
+		}
+
+	if (optset_output2)
+		{
+		FILE *fOut = CreateStdioFile(opt_output2);
+		fprintf(fOut, "Dom\tm\tb");
+		for (uint Bin = 0; Bin < NBINS; ++Bin)
+			fprintf(fOut, "\t%.3g", TSHdr[Bin]);
+		fprintf(fOut, "\n");
+
+		for (uint i = 0; i < DomCount; ++i)
+			{
+			const string &Dom = Doms[i];
+			float m = ms[i];
+			float b = bs[i];
+			fprintf(fOut, "%s\t%.3g\t%.3g", Dom.c_str(), m, b);
+			for (uint Bin = 0; Bin < NBINS; ++Bin)
+				{
+				float TS = TSHdr[Bin];
+				float MinusLogP = m*TS + b;
+				float P = expf(-MinusLogP);
+				fprintf(fOut, "\t%.3g", P);
+				}
+			fprintf(fOut, "\n");
 			}
 		CloseStdioFile(fOut);
 		}

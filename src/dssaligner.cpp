@@ -1014,6 +1014,19 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
+
+#if 0////////////////////////////////////
+	Log("AB| %s", m_ChainA->m_Label.c_str());
+	Log(" %s", m_ChainB->m_Label.c_str());
+	Log(" TS=%.3g", m_TestStatisticAB);
+	Log(" Tm=%.3g", m_Target_Slope_m);
+	Log(" Tb=%.3g", m_Target_Slope_b);
+	Log(" E=%.3g", m_Params->GetEvalue(m_TestStatisticAB));
+	Log(" Eslp=%.3g", m_Params->GetEvalueSlope(m_TestStatisticAB, m_Target_Slope_m, m_Target_Slope_b));
+	Log(" Eol=%.3g", m_Params->GetEvalueOldLinear(m_TestStatisticAB));
+	Log("\n");
+#endif
+
 	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticAB));
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
@@ -1045,6 +1058,17 @@ void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
 	m_OutputLock.unlock();
 #else
 	m_OutputLock.lock();
+#if 0////////////////////////////////////
+	Log("BA| %s", m_ChainA->m_Label.c_str());
+	Log(" %s", m_ChainB->m_Label.c_str());
+	Log(" TS=%.3g", m_TestStatisticBA);
+	Log(" Qm=%.3g", m_Query_Slope_m);
+	Log(" Qb=%.3g", m_Query_Slope_b);
+	Log(" E=%.3g", m_Params->GetEvalue(m_TestStatisticBA));
+	Log(" Eslp=%.3g", m_Params->GetEvalueSlope(m_TestStatisticBA, m_Query_Slope_m, m_Query_Slope_b));
+	Log(" Eol=%.3g", m_Params->GetEvalueOldLinear(m_TestStatisticBA));
+	Log("\n");
+#endif
 	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticBA));
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
