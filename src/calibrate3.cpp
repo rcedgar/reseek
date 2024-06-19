@@ -127,8 +127,9 @@ void DBSearcher::WriteCalibOutput(FILE *f) const
 	}
 
 /***
-* Calibrate E-value by measuring score 
-* distribution (unsupervised).
+* Measure TS distribution.
+* Unsupervised, includes TPs at high scores.
+* Linear fit in calibrate4.
 ***/
 void cmd_calibrate3()
 	{

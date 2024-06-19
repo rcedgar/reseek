@@ -45,6 +45,8 @@ static void GetBinLoHi(const vector<uint> &Bins, uint &BinLo, uint &BinHi)
 		}
 	}
 
+// Per-chain unsupervised log-linear fit
+// Results are terrible, not sure why.
 void cmd_calibrate4()
 	{
 	const string &FN1 = g_Arg1;

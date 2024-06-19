@@ -903,7 +903,7 @@ void DSSAligner::ToAlnBA(FILE *f, float MaxEvalue)
 			c = 'D';
 		PathBA.push_back(c);
 		}
-	PrettyAln(f, *m_ChainB, *m_ChainA, m_LoA, m_LoB, PathBA, m_EvalueBA);
+	PrettyAln(f, *m_ChainB, *m_ChainA, m_LoB, m_LoA, PathBA, m_EvalueBA);
 	}
 
 void DSSAligner::ToFasta2(FILE *f, float MaxEvalue)

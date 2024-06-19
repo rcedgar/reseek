@@ -300,8 +300,8 @@ float DSSParams::GetEvalue(float TestStatistic, float m, float b) const
 
 	if (opt_gum)
 		{
-		const double mu = 2.5;
-		const double beta = 0.613;
+		const float mu = 2.5f;
+		const float beta = 0.613f;
 		return GetEvalueGumbel(TestStatistic, mu, beta);
 		}
 

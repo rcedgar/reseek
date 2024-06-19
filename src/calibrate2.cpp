@@ -43,6 +43,10 @@ void LinearFit(const vector<float> &xs, const vector<float> &ys,
 /***
 * Calibrate distribution of FP errors on all-vs-all SCOP40 by
 * linear fit of TS to -log(P) in range NFP=NQ/100 .. NFP=NQ*100.
+* Superfamily: Linear fit to -log(P) m=20.5 b=2.89
+* Fold:        Linear fit to -log(P) m=26.6 b=2.42
+* This works well, but similar fit for de novo per-db calibration
+* does not work (calibrate4).
 ***/
 void cmd_calibrate2()
 	{
