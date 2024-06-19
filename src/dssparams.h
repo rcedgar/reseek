@@ -2,6 +2,9 @@
 
 #include "features.h"
 
+#define SLOPE_CALIB		0
+#define GUMBEL_CALIB	1
+
 class DSSParams
 	{
 public:
@@ -24,8 +27,6 @@ public:
 	bool m_ComboScoreOnly = false;
 	bool m_UseComboPath = false;
 
-	float m_EvalueSlope = -6.6f;
-	float m_EvalueIntercept = 6.1f;
 	uint m_Lambda = 32;
 
 	float m_DBSize = 10000;
@@ -35,6 +36,17 @@ public:
 	bool m_UsePara = true;
 	int m_ParaComboGapOpen = 5;
 	int m_ParaComboGapExt = 1;
+
+	float m_Evalue_old_linear_Slope = -6.6f;
+	float m_Evalue_linear_Intercept = 6.1f;
+
+	float m_Evalue_Gumbel_mu = 2.5;
+	float m_Evalue_Gumbel_beta = 0.613f;
+
+// Superfamily: Linear fit to -log(P) m=20.5 b=2.89
+// Fold:        Linear fit to -log(P) m=26.6 b=2.42
+	float m_Evalue_linear_m = 20.5f;
+	float m_Evalue_linear_b = 2.9f;
 
 public:
 	static vector<FEATURE> m_ComboFeatures;
@@ -83,8 +95,7 @@ public:
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();
-	float GetEvalue(float TS, float m = FLT_MAX,
-	  float b = FLT_MAX) const;
+	float GetEvalue(float TS) const;
 	float GetEvalueSlope(float TS, float m, float b) const;
 	float GetEvalueGumbel(float TS, float mu, float beta) const;
 	float GetEvalueOldLinear(float TS) const;

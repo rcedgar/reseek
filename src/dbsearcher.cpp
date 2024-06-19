@@ -184,18 +184,14 @@ void DBSearcher::Thread(uint ThreadIndex)
 			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
 			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
-			float Slope_m, Slope_b;
-			GetChainSlope(ChainIndex1, Slope_m, Slope_b);
-			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1, Slope_m, Slope_b);
+			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1, FLT_MAX, FLT_MAX);
 			}
 
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
 		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
-		float Slope_m, Slope_b;
-		GetChainSlope(ChainIndex2, Slope_m, Slope_b);
-		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2, Slope_m, Slope_b);
+		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2, FLT_MAX, FLT_MAX);
 
 		if (m_Params->m_UseComboPath)
 			{
@@ -392,7 +388,12 @@ void DBSearcher::Setup(const DSSParams &Params)
 		m_TestStatsVec.clear();
 		m_TestStatsVec.resize(m_ChainCount);
 		}
+#if SLOPE_CALIB
 	LoadCalibratedSlopes(opt_slopes);
+#endif
+#if GUMBEL_CALIB
+	LoadGumbelCalib(opt_gumin);
+#endif
 	OnSetup();
 	}
 
@@ -457,6 +458,7 @@ const char *DBSearcher::GetDBLabel(uint Idx) const
 	return Chain.m_Label.c_str();
 	}
 
+#if SLOPE_CALIB
 void DBSearcher::GetChainSlope(uint ChainIdx, float &m, float &b) const
 	{
 	if (m_ms.empty())
@@ -517,3 +519,67 @@ void DBSearcher::LoadCalibratedSlopes(const string &FN)
 		m_bs[ChainIdx] = b;
 		}
 	}
+#endif // SLOPE_CALIB
+
+#if GUMBEL_CALIB
+void DBSearcher::LoadGumbelCalib(const string &FN)
+	{
+	m_Gumbel_mus.clear();
+	m_Gumbel_betas.clear();
+	if (FN == "")
+		return;
+	m_Gumbel_mus.resize(m_ChainCount, FLT_MAX);
+	m_Gumbel_betas.resize(m_ChainCount, FLT_MAX);
+	FILE *f = OpenStdioFile(FN);
+	string Line;
+	vector<string> Fields;
+	map<string, uint> LabelToIdx;
+	vector<float> mus;
+	vector<float> betas;
+	while (ReadLineStdioFile(f, Line))
+		{
+		Split(Line, Fields, '\t');
+		if (Fields[1] == "m")
+			continue;
+		asserta(SIZE(Fields) == 3);
+		const string &Label = Fields[0];
+		LabelToIdx[Label] = SIZE(mus);
+		float mu = (float) StrToFloat(Fields[1]);
+		float beta = (float) StrToFloat(Fields[2]);
+		mus.push_back(mu);
+		betas.push_back(beta);
+		}
+	CloseStdioFile(f);
+	for (uint ChainIdx = 0; ChainIdx < m_ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const string &Label = Chain.m_Label;
+		string Dom;
+		SCOP40Bench::GetDomFromLabel(Label, Dom);
+		map<string, uint>::iterator iter = LabelToIdx.find(Dom);
+		if (iter == LabelToIdx.end())
+			Die("Label not found in slopes >%s", Label.c_str());
+		uint Idx = iter->second;
+		asserta(Idx < SIZE(mus));
+		asserta(Idx < SIZE(betas));
+		float mu = mus[Idx];
+		float beta = betas[Idx];
+		m_Gumbel_mus[ChainIdx] = mu;
+		m_Gumbel_betas[ChainIdx] = beta;
+		}
+	}
+
+void DBSearcher::GetChainGumbel(uint ChainIdx, float &mu, float &beta) const
+	{
+	if (m_Gumbel_mus.empty())
+		{
+		mu = FLT_MAX;
+		beta = FLT_MAX;
+		return;
+		}
+	asserta(ChainIdx < SIZE(m_Gumbel_mus));
+	asserta(ChainIdx < SIZE(m_Gumbel_betas));
+	mu = m_Gumbel_mus[ChainIdx];
+	beta = m_Gumbel_betas[ChainIdx];
+	}
+#endif

@@ -59,11 +59,18 @@ public:
 	bool m_CollectTestStats = false;
 	vector<vector<float> > m_TestStatsVec;
 
+#if SLOPE_CALIB
 // Calibrated slopes
 //	PredMinusLogP = m*TS + b;
 // ms & bs vectors indexed by ChainIdx
 	vector<float> m_ms;
 	vector<float> m_bs;
+#endif
+
+#if GUMBEL_CALIB
+	vector<float> m_Gumbel_mus;
+	vector<float> m_Gumbel_betas;
+#endif
 
 public:
 	uint GetQueryChainIdx(uint Idx) const;
@@ -95,13 +102,20 @@ public:
 	void RunStats() const;
 	uint GetQueryCount() const;
 
-// Calibration training
-	void WriteCalibSample(FILE *f) const;
-	void WriteCalibOutput(FILE *f) const;
+#if SLOPE_CALIB
+// Slope calibration training
+	void WriteSlopeCalibSample(FILE *f) const;
+	void WriteSlopeCalibOutput(FILE *f) const;
 
-// Calibrated runtime
+// Slope calibrated runtime
 	void LoadCalibratedSlopes(const string &FN);
 	void GetChainSlope(uint ChainIdx, float &m, float &b) const;
+#endif
+
+#if GUMBEL_CALIB
+	void LoadGumbelCalib(const string &FN);
+	void GetChainGumbel(uint ChainIdx, float &mu, float &beta) const;
+#endif
 
 public:
 	virtual void OnSetup() {}

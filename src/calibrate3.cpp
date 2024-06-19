@@ -4,6 +4,7 @@
 #include "timing.h"
 #include <set>
 
+#if SLOPE_CALIB
 /***
 * -calibrate3
 * Calculate accumulated per-chain count bins for TS values.
@@ -17,7 +18,7 @@ static const uint SAMPLE = 32;
 static const uint NBINS = 32;
 
 //	Write small sample of per-query distributions for plotting
-void DBSearcher::WriteCalibSample(FILE *f) const
+void DBSearcher::WriteSlopeCalibSample(FILE *f) const
 	{
 	if (f == 0)
 		return;
@@ -55,7 +56,7 @@ void DBSearcher::WriteCalibSample(FILE *f) const
 		}
 	}
 
-void DBSearcher::WriteCalibOutput(FILE *f) const
+void DBSearcher::WriteSlopeCalibOutput(FILE *f) const
 	{
 	if (f == 0)
 		return;
@@ -141,7 +142,10 @@ void cmd_calibrate3()
 	if (optset_calib_output)
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output);
-		DBS.WriteCalibOutput(fOut);
+		DBS.WriteSlopeCalibOutput(fOut);
 		CloseStdioFile(fOut);
 		}
 	}
+#else
+void cmd_calibrate3() { Die("!SLOPE_CALIB"); }
+#endif // SLOPE_CALIB

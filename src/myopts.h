@@ -41,6 +41,7 @@ STR_OPT(calib3)
 STR_OPT(sens1fp_report)
 STR_OPT(calib_output)
 STR_OPT(slopes)
+STR_OPT(gumin)
 STR_OPT(alpha)
 
 STR_OPT(train_cal)

@@ -707,14 +707,14 @@ void DSSAligner::SetQuery(
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
 	const vector<byte> *ptrComboLetters,
-	float Slope_m, float Slope_b)
+	float Gumbel_mu, float Gumbel_beta)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
-	m_Query_Slope_m = Slope_m;
-	m_Query_Slope_b = Slope_b;
+	m_Query_Gumbel_mu = Gumbel_mu;
+	m_Query_Gumbel_beta = Gumbel_beta;
 	if (m_Params->m_UsePara)
 		SetComboQP_Para();
 	else
@@ -726,14 +726,14 @@ void DSSAligner::SetTarget(
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
 	const vector<byte> *ptrComboLetters,
-	float Slope_m, float Slope_b)
+	float Gumbel_mu, float Gumbel_beta)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
 	m_ComboKmerBitsB = ptrComboKmerBits;
 	m_ComboLettersB = ptrComboLetters;
-	m_Target_Slope_m = Slope_m;
-	m_Target_Slope_b = Slope_b;
+	m_Target_Gumbel_mu = Gumbel_mu;
+	m_Target_Gumbel_beta = Gumbel_beta;
 	}
 
 void DSSAligner::AlignComboOnly()
@@ -818,11 +818,8 @@ void DSSAligner::CalcEvalue()
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);
 
-	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB,
-	  m_Target_Slope_m, m_Target_Slope_b);
-
-	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA,
-	  m_Query_Slope_m, m_Query_Slope_b);
+	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
+	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);
 
 #if SCORE_DIST
 	{
