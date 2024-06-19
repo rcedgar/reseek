@@ -302,6 +302,9 @@
     <ClCompile Include="calibrate4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pdb2alpha.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

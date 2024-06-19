@@ -5,7 +5,7 @@
 extern int8_t IntScoreMx_Combo[36][36];
 extern parasail_matrix_t parasail_combo_matrix;
 
-char GetComboChar(byte Letter)
+static char GetComboChar(byte Letter)
 	{
 	if (Letter < 26)
 		return 'A' + Letter;
