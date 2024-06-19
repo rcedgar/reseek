@@ -2,6 +2,19 @@
 #include "scop40bench.h"
 #include <map>
 
+/***
+* -calibrate4
+* Unsupervised per-chain linear fit of -log(P) to TS
+* P is probability randomly chosen chain will have score >= TS,
+*   estimated by finding linear-like region of accumulated
+*   count bins for TS values, fitting -log(P) = m*TS + b.
+* Per-chain m and b written to -output slopes.tsv
+* For search, slopes.tsv loaded into DBSearcher::m_ms, m_bs
+* Gives much worse results for E-value.
+* See -calibrate2 for supervised linear fit (good results).
+* See -calibrate for unsupervised Gumbel fit (bad results).
+***/
+
 #define LOG_FIT	0
 
 void LinearFit(const vector<float> &xs, const vector<float> &ys,

@@ -280,6 +280,7 @@
     <ClCompile Include="calibrate2.cpp" />
     <ClCompile Include="calibrate3.cpp" />
     <ClCompile Include="calibrate4.cpp" />
+    <ClCompile Include="calibrate5.cpp" />
     <ClCompile Include="calibratesearcher.cpp" />
     <ClCompile Include="calibratesearcher3.cpp" />
     <ClCompile Include="calreader.cpp" />

@@ -24,6 +24,7 @@ HDRS = \
   binner.h \
   calibratesearcher.h \
   calibratesearcher2.h \
+  calibratesearcher3.h \
   calreader.h \
   chainreader.h \
   cigar.h \
@@ -91,6 +92,10 @@ OBJS = \
   $(OBJDIR)/blosum62.o \
   $(OBJDIR)/calibrate.o \
   $(OBJDIR)/calibrate2.o \
+  $(OBJDIR)/calibrate3.o \
+  $(OBJDIR)/calibrate4.o \
+  $(OBJDIR)/calibratesearcher.o \
+  $(OBJDIR)/calibratesearcher3.o \
   $(OBJDIR)/calreader.o \
   $(OBJDIR)/chainreader.o \
   $(OBJDIR)/cigar.o \
@@ -100,6 +105,7 @@ OBJS = \
   $(OBJDIR)/parasail.o \
   $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
+  $(OBJDIR)/pdb2alpha.o \
   $(OBJDIR)/pdb2mega.o \
   $(OBJDIR)/readhits.o \
   $(OBJDIR)/scop40bit.o \

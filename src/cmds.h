@@ -39,6 +39,7 @@ C(fit_gumbel)
 C(calibrate2)
 C(calibrate3)
 C(calibrate4)
+C(calibrate5)
 C(pdb2alpha)
 
 #undef C

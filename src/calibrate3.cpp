@@ -4,6 +4,15 @@
 #include "timing.h"
 #include <set>
 
+/***
+* -calibrate3
+* Calculate accumulated per-chain count bins for TS values.
+* 32 bins, TS range -0.1 .. 0.3, written to -calib_output calibrate3.tsv
+* Used by -calibrate4 to attempt similar linear fitting found to work
+* well for all chains with supervised FPs. 
+* Empirically, results are terrible.
+***/
+
 static const uint SAMPLE = 32;
 static const uint NBINS = 32;
 
@@ -44,51 +53,6 @@ void DBSearcher::WriteCalibSample(FILE *f) const
 			}
 		fprintf(f, "\n");
 		}
-	}
-
-uint DBSearcher::GetQueryChainIdx(uint Idx) const
-	{
-	asserta(Idx < m_QueryChainCount);
-	return Idx;
-	}
-
-uint DBSearcher::GetDBChainIdx(uint Idx) const
-	{
-	asserta(Idx < m_DBChainCount);
-	if (m_QuerySelf)
-		{
-		asserta(Idx < m_QueryChainCount);
-		return Idx;
-		}
-	else
-		{
-		asserta(m_QueryChainCount + Idx < SIZE(m_Chains));
-		return m_QueryChainCount + Idx;
-		}
-	}
-
-const PDBChain &DBSearcher::GetDBChain(uint Idx) const
-	{
-	uint ChainIdx = GetDBChainIdx(Idx);
-	return GetChain(ChainIdx);
-	}
-
-const PDBChain &DBSearcher::GetQueryChain(uint Idx) const
-	{
-	uint ChainIdx = GetQueryChainIdx(Idx);
-	return GetChain(ChainIdx);
-	}
-
-const char *DBSearcher::GetQueryLabel(uint Idx) const
-	{
-	const PDBChain &Chain = GetQueryChain(Idx);
-	return Chain.m_Label.c_str();
-	}
-
-const char *DBSearcher::GetDBLabel(uint Idx) const
-	{
-	const PDBChain &Chain = GetDBChain(Idx);
-	return Chain.m_Label.c_str();
 	}
 
 void DBSearcher::WriteCalibOutput(FILE *f) const

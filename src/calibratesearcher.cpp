@@ -15,8 +15,7 @@ double normal(double mu, double sigma, double x)
 	return y;
 	}
 
-double Integrate(double x0, double dx,
-  const vector<double> &ys)
+double Integrate(double x0, double dx, const vector<double> &ys)
 	{
 	const uint N = SIZE(ys);
 	double Sum = 0;
@@ -77,7 +76,7 @@ void CalibrateSearcher::Setxys()
 	double Mid1 = m_ptrAllBinner->GetBinMid(1);
 
 	m_dx = Mid1 - Mid0;
-	double x = m_x0;
+	//double x = m_x0;
 
 	for (uint32_t Bin = 0; Bin < NBINS; ++Bin)
 		{
@@ -88,7 +87,7 @@ void CalibrateSearcher::Setxys()
 		float unnormalized_y = float(n);
 		m_ys.push_back(unnormalized_y);
 		Sumy += unnormalized_y;
-		x += m_dx;
+		//x += m_dx;
 		}
 
 // Normalize so that integral over PDF is 1
@@ -103,7 +102,7 @@ void CalibrateSearcher::SetAllBins()
 	{
 	asserta(m_ptrAllBinner == 0);
 	const vector<vector<float> > &TSV = m_TestStatsVec;
-	vector<float> TSs;
+	vector<float> logTSs;
 	float MaxTS = 0;
 	const uint N = SIZE(TSV);
 	for (uint i = 0; i < N; ++i)
@@ -118,11 +117,11 @@ void CalibrateSearcher::SetAllBins()
 				{
 				float logTs = -logf(TS);
 				MaxTS = max(logTs, MaxTS);
-				TSs.push_back(logTs);
+				logTSs.push_back(logTs);
 				}
 			}
 		}
-	m_ptrAllBinner = new Binner<float>(TSs, NBINS, 0);
+	m_ptrAllBinner = new Binner<float>(logTSs, NBINS, 0);
 	m_AllBins = m_ptrAllBinner->GetBins();
 	asserta(SIZE(m_AllBins) == NBINS);
 	}

@@ -412,6 +412,51 @@ uint DBSearcher::GetQueryChainCount() const
 	return m_QueryChainCount;
 	}
 
+uint DBSearcher::GetQueryChainIdx(uint Idx) const
+	{
+	asserta(Idx < m_QueryChainCount);
+	return Idx;
+	}
+
+uint DBSearcher::GetDBChainIdx(uint Idx) const
+	{
+	if (m_QuerySelf)
+		{
+		asserta(Idx < m_QueryChainCount);
+		return Idx;
+		}
+	else
+		{
+		asserta(Idx < m_DBChainCount);
+		asserta(m_QueryChainCount + Idx < SIZE(m_Chains));
+		return m_QueryChainCount + Idx;
+		}
+	}
+
+const PDBChain &DBSearcher::GetDBChain(uint Idx) const
+	{
+	uint ChainIdx = GetDBChainIdx(Idx);
+	return GetChain(ChainIdx);
+	}
+
+const PDBChain &DBSearcher::GetQueryChain(uint Idx) const
+	{
+	uint ChainIdx = GetQueryChainIdx(Idx);
+	return GetChain(ChainIdx);
+	}
+
+const char *DBSearcher::GetQueryLabel(uint Idx) const
+	{
+	const PDBChain &Chain = GetQueryChain(Idx);
+	return Chain.m_Label.c_str();
+	}
+
+const char *DBSearcher::GetDBLabel(uint Idx) const
+	{
+	const PDBChain &Chain = GetDBChain(Idx);
+	return Chain.m_Label.c_str();
+	}
+
 void DBSearcher::GetChainSlope(uint ChainIdx, float &m, float &b) const
 	{
 	if (m_ms.empty())

@@ -7,7 +7,9 @@ double gumbel(double mu, double beta, double x)
 	double z = (x - mu)/beta;
 	double e_z = exp(-z);
 	double y = (1/beta)*exp(-(z + e_z));
-	asserta(!isnan(y));
+	if(isnan(y))
+		Die("gumbel(mu=%.3g, beta=%.3g, x=%.3g) = nan",
+		  mu, beta, x);
 	return y;
 	}
 
@@ -41,6 +43,7 @@ void cmd_test_gumbel()
 static double GetRMSE(double x0, double dx, const vector<double> &ys,
   double Mu, double Beta)
 	{
+	asserta(Beta > 0);
 	const uint N = SIZE(ys);
 	double Sume2 = 0;
 	double x = x0;
@@ -48,6 +51,8 @@ static double GetRMSE(double x0, double dx, const vector<double> &ys,
 		{
 		double y = ys[i];
 		double yfit = gumbel(Mu, Beta, x);
+		if (isnan(yfit))
+			Die("gumbel(Mu=%.3g, Beta=%.3g, x=%.3g) = nan", Mu, Beta, x);
 		double e = y*fabs((yfit - y));
 		Sume2 += e*2;
 		asserta(!isnan(Sume2));
@@ -126,8 +131,14 @@ void fit_gumbel(double x0, double dx,
 		if (++Iter > MAXITERS)
 			break;
 		double RMSE = GetRMSE(x0, dx, ys, Mu, Beta);
-		double RMSE_MuPlus = GetRMSE(x0, dx, ys, Mu + dMu, Beta);
-		double RMSE_MuMinus = GetRMSE(x0, dx, ys, Mu - dMu, Beta);
+		double MuPlus = Mu + dMu;
+
+		double MuMinus = Mu - dMu;
+		if (MuMinus < 0.1)
+			MuMinus = 0.1;
+
+		double RMSE_MuPlus = GetRMSE(x0, dx, ys, MuPlus, Beta);
+		double RMSE_MuMinus = GetRMSE(x0, dx, ys, MuMinus, Beta);
 
 		if (RMSE <= RMSE_MuPlus && RMSE <= RMSE_MuMinus)
 			{
@@ -138,18 +149,22 @@ void fit_gumbel(double x0, double dx,
 			{
 			StalledIters = 0;
 			RMSE = RMSE_MuPlus;
-			Mu += dMu;
+			Mu = MuPlus;
 			}
 		else
 			{
 			asserta(RMSE_MuMinus <= RMSE_MuPlus);
 			StalledIters = 0;
 			RMSE = RMSE_MuMinus;
-			Mu -= dMu;
+			Mu = MuMinus;
 			}
 
-		double RMSE_BetaPlus = GetRMSE(x0, dx, ys, Mu, Beta + dBeta);
-		double RMSE_BetaMinus = GetRMSE(x0, dx, ys, Mu, Beta - dBeta);
+		double BetaPlus = Beta + dBeta;
+		double BetaMinus = Beta - dBeta;
+		if (BetaMinus < 0.01)
+			BetaMinus = 0.01;
+		double RMSE_BetaPlus = GetRMSE(x0, dx, ys, Mu, BetaPlus);
+		double RMSE_BetaMinus = GetRMSE(x0, dx, ys, Mu, BetaMinus);
 
 		if (RMSE <= RMSE_BetaPlus && RMSE <= RMSE_BetaMinus)
 			{
@@ -160,14 +175,14 @@ void fit_gumbel(double x0, double dx,
 			{
 			StalledIters = 0;
 			RMSE = RMSE_BetaPlus;
-			Beta += dBeta;
+			Beta = BetaPlus;
 			}
 		else
 			{
 			asserta(RMSE_BetaMinus <= RMSE_BetaPlus);
 			StalledIters = 0;
 			RMSE = RMSE_BetaMinus;
-			Beta -= dBeta;
+			Beta = BetaMinus;
 			}
 
 		if (StalledIters > 2)
