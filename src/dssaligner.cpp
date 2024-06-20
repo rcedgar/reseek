@@ -805,16 +805,6 @@ float DSSAligner::AdjustTS(float TS, float mu, float beta) const
 	float dmu = mu - default_mu;
 	float adjusted_logTS = (Minus_logTS + 0.1f*dmu);
 	float AdjustedTS = expf(-adjusted_logTS);
-	//static uint Counter = 0;
-	//if (randu32()%101 == 0)
-	//	{
-	//	Log("TS %.3g => %.3g", TS, AdjustedTS);
-	//	Log(" mu %.3g(%.3g)", mu, default_mu);
-	//	Log(" beta %.3g(%.3g)", beta, default_beta);
-	//	Log("\n");
-	//	if (++Counter > 20)
-	//		Die("DONE");
-	//	}
 	return AdjustedTS;
 	}
 
@@ -1044,21 +1034,10 @@ void DSSAligner::ToTsv(FILE *f, float MaxEvalue)
 #else
 	m_OutputLock.lock();
 
-#if 0////////////////////////////////////
-	Log("AB| %s", m_ChainA->m_Label.c_str());
-	Log(" %s", m_ChainB->m_Label.c_str());
-	Log(" TS=%.3g", m_TestStatisticAB);
-	Log(" Tm=%.3g", m_Target_Slope_m);
-	Log(" Tb=%.3g", m_Target_Slope_b);
-	Log(" E=%.3g", m_Params->GetEvalue(m_TestStatisticAB));
-	Log(" Eslp=%.3g", m_Params->GetEvalueSlope(m_TestStatisticAB, m_Target_Slope_m, m_Target_Slope_b));
-	Log(" Eol=%.3g", m_Params->GetEvalueOldLinear(m_TestStatisticAB));
-	Log("\n");
-#endif
-
 	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticAB));
 	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
 	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
+	fprintf(f, "\t%.3g", m_TestStatisticAB);
 	fprintf(f, "\n");
 	m_OutputLock.unlock();
 #endif
