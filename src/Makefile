@@ -94,6 +94,7 @@ OBJS = \
   $(OBJDIR)/calibrate2.o \
   $(OBJDIR)/calibrate3.o \
   $(OBJDIR)/calibrate4.o \
+  $(OBJDIR)/calibrate5.o \
   $(OBJDIR)/calibratesearcher.o \
   $(OBJDIR)/calibratesearcher3.o \
   $(OBJDIR)/calreader.o \
