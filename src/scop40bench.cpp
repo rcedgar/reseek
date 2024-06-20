@@ -723,8 +723,8 @@ void cmd_scop40bench()
 	SB.Run();
 	SB.WriteOutput();
 	SB.WriteBit(opt_savebit);
-	SB.LogFirstFewDoms();
-	SB.LogFirstFewHits();
+	//SB.LogFirstFewDoms();
+	//SB.LogFirstFewHits();
 	if (optset_sens1fp_report)
 		{
 		FILE *f = CreateStdioFile(opt_sens1fp_report);

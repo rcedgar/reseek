@@ -271,6 +271,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="abcxyz.cpp" />
+    <ClCompile Include="adjust.cpp" />
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />

@@ -40,7 +40,7 @@ public:
 	float m_Evalue_old_linear_Slope = -6.6f;
 	float m_Evalue_linear_Intercept = 6.1f;
 
-	float m_Evalue_Gumbel_mu = 2.5;
+	float m_Evalue_Gumbel_mu = 2.5f;
 	float m_Evalue_Gumbel_beta = 0.613f;
 
 // Superfamily: Linear fit to -log(P) m=20.5 b=2.89

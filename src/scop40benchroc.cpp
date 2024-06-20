@@ -3,7 +3,7 @@
 #include "sort.h"
 #include <set>
 
-static const uint s_LogTopHits = 100;
+static const uint s_LogTopHits = 0;
 
 /***
 https://en.wikipedia.org/wiki/Receiver_operating_characteristic
@@ -514,8 +514,8 @@ void cmd_scop40bit2tsv()
 		}
 	SB.m_Level = "sf";
 	uint Sens = SB.GetSens1stFP();
-	SB.LogFirstFewDoms();
-	SB.LogFirstFewHits();
+	//SB.LogFirstFewDoms();
+	//SB.LogFirstFewHits();
 	const uint HitCount = SB.GetHitCount();
 	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
 	for (uint i = 0; i < HitCount; ++i)
