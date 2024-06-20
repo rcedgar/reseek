@@ -106,12 +106,6 @@ void SCOP40Bench::OnSetup()
 	asserta(m_DBChainCount == 0);
 	m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromQueryChainLabels();
-#if SLOPE_CALIB
-	LoadCalibratedSlopes(opt_slopes);
-#endif
-#if GUMBEL_CALIB
-	LoadGumbelCalib(opt_gumin);
-#endif
 	}
 
 void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,

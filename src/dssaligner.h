@@ -141,6 +141,7 @@ public:
 	void ToTsvBA(FILE *f, float MaxEvalue);
 	void ToAln(FILE *f, float MaxEvalue);
 	void ToAlnBA(FILE *f, float MaxEvalue);
+	float AdjustTS(float TS, float mu, float beta) const;
 
 public:
 	static void Stats();

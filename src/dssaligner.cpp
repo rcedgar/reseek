@@ -794,6 +794,30 @@ void DSSAligner::AlignQueryTarget()
 	Align_NoAccel();
 	}
 
+float DSSAligner::AdjustTS(float TS, float mu, float beta) const
+	{
+	if (TS <= 0.01)
+		return TS;
+
+	float default_mu = m_Params->m_Evalue_Gumbel_mu;
+	float default_beta = m_Params->m_Evalue_Gumbel_beta;
+	float Minus_logTS = -logf(TS);
+	float dmu = mu - default_mu;
+	float adjusted_logTS = (Minus_logTS + 0.1f*dmu);
+	float AdjustedTS = expf(-adjusted_logTS);
+	//static uint Counter = 0;
+	//if (randu32()%101 == 0)
+	//	{
+	//	Log("TS %.3g => %.3g", TS, AdjustedTS);
+	//	Log(" mu %.3g(%.3g)", mu, default_mu);
+	//	Log(" beta %.3g(%.3g)", beta, default_beta);
+	//	Log("\n");
+	//	if (++Counter > 20)
+	//		Die("DONE");
+	//	}
+	return AdjustedTS;
+	}
+
 void DSSAligner::CalcEvalue()
 	{
 // MinFwdScore small speedup by avoiding call to GetDALIScore_Path()
@@ -817,6 +841,14 @@ void DSSAligner::CalcEvalue()
 
 	m_TestStatisticAB = StatTop/(LA + Lambda);
 	m_TestStatisticBA = StatTop/(LB + Lambda);
+
+	if (m_Target_Gumbel_mu != FLT_MAX)
+		m_TestStatisticAB = AdjustTS(m_TestStatisticAB,
+		  m_Target_Gumbel_mu, m_Target_Gumbel_beta);
+
+	if (m_Query_Gumbel_mu != FLT_MAX)
+		m_TestStatisticBA = AdjustTS(m_TestStatisticBA,
+		  m_Query_Gumbel_mu, m_Query_Gumbel_beta);
 
 	m_EvalueAB = m_Params->GetEvalue(m_TestStatisticAB);
 	m_EvalueBA = m_Params->GetEvalue(m_TestStatisticBA);

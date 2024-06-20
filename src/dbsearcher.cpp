@@ -184,14 +184,30 @@ void DBSearcher::Thread(uint ThreadIndex)
 			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
 			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
 			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
-			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1, FLT_MAX, FLT_MAX);
+			float Gumbel_mu = FLT_MAX;
+			float Gumbel_beta = FLT_MAX;
+			if (!m_Gumbel_mus.empty())
+				{
+				Gumbel_mu = m_Gumbel_mus[ChainIndex1];
+				Gumbel_beta = m_Gumbel_betas[ChainIndex1];
+				}
+			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1,
+			  Gumbel_mu, Gumbel_beta);
 			}
 
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
 		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
 		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
 		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
-		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2, FLT_MAX, FLT_MAX);
+		float Gumbel_mu = FLT_MAX;
+		float Gumbel_beta = FLT_MAX;
+		if (!m_Gumbel_mus.empty())
+			{
+			Gumbel_mu = m_Gumbel_mus[ChainIndex2];
+			Gumbel_beta = m_Gumbel_betas[ChainIndex2];
+			}
+		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2,
+		  Gumbel_mu, Gumbel_beta);
 
 		if (m_Params->m_UseComboPath)
 			{
@@ -554,11 +570,9 @@ void DBSearcher::LoadGumbelCalib(const string &FN)
 		{
 		const PDBChain &Chain = *m_Chains[ChainIdx];
 		const string &Label = Chain.m_Label;
-		string Dom;
-		SCOP40Bench::GetDomFromLabel(Label, Dom);
-		map<string, uint>::iterator iter = LabelToIdx.find(Dom);
+		map<string, uint>::iterator iter = LabelToIdx.find(Label);
 		if (iter == LabelToIdx.end())
-			Die("Label not found in slopes >%s", Label.c_str());
+			Die("Label not found in gumin >%s", Label.c_str());
 		uint Idx = iter->second;
 		asserta(Idx < SIZE(mus));
 		asserta(Idx < SIZE(betas));
