@@ -26,7 +26,6 @@ static void TraceBack(XDPMem &Mem, uint Besti, uint Bestj, string &Path)
 		switch (State)
 			{
 		case 'M':
-			//brk(i == 0 && j == 0);//TODO
 			NextState = GetTBBitM(TB, i, j);
 #if TRACE && !DOTONLY
 			Log(" GetTBBitM(%u, %u) = %c\n", i, j, NextState);
@@ -161,8 +160,6 @@ float XDropFwd(XDPMem &Mem,
 			byte TraceBits = 0;
 
 			SavedM0 = M0; // SavedM0 = M0 = DPM[i][j]
-
-		//brk(i==4 && j == 3);
 
 		// MATCH
 			{

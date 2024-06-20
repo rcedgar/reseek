@@ -3,7 +3,7 @@
 #include "sort.h"
 #include <set>
 
-static FILE *g_ftsv;
+static const uint s_LogTopHits = 100;
 
 /***
 https://en.wikipedia.org/wiki/Receiver_operating_characteristic
@@ -283,7 +283,8 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 		return;
 
 	asserta(SIZE(m_TFs) == HitCount);
-	Progress("Sort scores\n");
+	Progress("Sort scores UseTS=%c m_ScoresAreEvalues=%c\n",
+	  tof(UseTS), tof(m_ScoresAreEvalues));
 	if (UseTS)
 		SetTSOrder();
 	else
@@ -298,9 +299,22 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	for (uint k = 0; k < HitCount; ++k)
 		{
 		uint i = Order[k];
-		if (m_DomIdx1s[i] == m_DomIdx2s[i])
-			continue;
+		uint Dom1 = m_DomIdx1s[i];
+		uint Dom2 = m_DomIdx2s[i];
 		float Score = (UseTS ? m_TSs[i] : m_Scores[i]);
+		int T = m_TFs[i];
+		if (k < s_LogTopHits)
+			{
+			Log("k=%u", k);
+			Log(" doms %s(%u), %s(%u)", 
+			  m_Doms[Dom1].c_str(), Dom1,
+			  m_Doms[Dom2].c_str(), Dom2);
+			Log(" score %.3g", Score);
+			Log(" T=%d\n", T);
+			}
+
+		if (Dom1 == Dom2)
+			continue;
 		if (Score != CurrentScore)
 			{
 			Scores.push_back(CurrentScore);
@@ -308,7 +322,6 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 			NFPs.push_back(NFP);
 			CurrentScore = Score;
 			}
-		int T = m_TFs[i];
 		if (T == 1)
 			++NTP;
 		else if (T == 0)
@@ -488,26 +501,45 @@ void SCOP40Bench::ROCToTsv(const string &FileName, float MaxFPR)
 void cmd_scop40bit2tsv()
 	{
 	asserta(optset_output);
-	asserta(optset_input);
-	asserta(g_ftsv != 0);
+	asserta(optset_lookup || optset_input);
+	FILE *fOut = CreateStdioFile(opt_output);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	vector<uint> SavedDomIdxToSFIdx = SB.m_DomIdxToSFIdx;
-	SB.m_DomIdxToSFIdx.clear();
-	SB.ReadChains(opt_input);
-	asserta(SB.m_DomIdxToSFIdx == SavedDomIdxToSFIdx);
+	if (optset_lookup)
+		SB.ReadLookup(opt_lookup);
+	else
+		{
+		SB.ReadChains(opt_input);
+		SB.BuildDomSFIndexesFromQueryChainLabels();
+		}
+	SB.m_Level = "sf";
 	uint Sens = SB.GetSens1stFP();
+	SB.LogFirstFewDoms();
+	SB.LogFirstFewHits();
 	const uint HitCount = SB.GetHitCount();
 	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
 	for (uint i = 0; i < HitCount; ++i)
 		{
 		uint DomIdx1 = SB.m_DomIdx1s[i];
 		uint DomIdx2 = SB.m_DomIdx2s[i];
-		fprintf(g_ftsv, "%s", SB.m_Doms[DomIdx1].c_str());
-		fprintf(g_ftsv, "\t%s", SB.m_Doms[DomIdx2].c_str());
-		fprintf(g_ftsv, "\t%.6g", SB.m_Scores[i]);
-		fprintf(g_ftsv, "\n");
+		const char *Dom1 = SB.m_Doms[DomIdx1].c_str();
+		const char *Dom2 = SB.m_Doms[DomIdx2].c_str();
+		float Score = SB.m_Scores[i];
+		if (optset_tsv_topn)
+			{
+			if (i >= opt_tsv_topn)
+				break;
+			Log("%s(%u)", Dom1, DomIdx1);
+			Log("  %s(%u)", Dom2, DomIdx2);
+			Log("  %.3g", Score);
+			Log("\n");
+			}
+		fprintf(fOut, "%s", Dom1);
+		fprintf(fOut, "\t%s", Dom2);
+		fprintf(fOut, "\t%.6g", Score);
+		fprintf(fOut, "\n");
 		}
+	CloseStdioFile(fOut);
 	}
 
 float SCOP40Bench::GetEPQAtEvalueThreshold(const vector<float> &Evalues,
@@ -571,9 +603,15 @@ void cmd_scop40bench_tsv()
 
 void cmd_scop40bit_roc()
 	{
-	asserta(optset_lookup);
+	asserta(optset_lookup || optset_input);
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	SB.ReadLookup(opt_lookup);
+	if (optset_lookup)
+		SB.ReadLookup(opt_lookup);
+	else
+		{
+		SB.ReadChains(opt_input);
+		SB.BuildDomSFIndexesFromQueryChainLabels();
+		}
 	SB.WriteOutput();
 	}

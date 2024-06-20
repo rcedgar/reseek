@@ -264,6 +264,7 @@ FLAG_OPT(fast)
 FLAG_OPT(sensitive)
 FLAG_OPT(usecombopath)
 FLAG_OPT(gum)
+FLAG_OPT(writebitts)
 
 #undef FLAG_OPT
 #undef UNS_OPT

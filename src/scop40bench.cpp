@@ -104,7 +104,10 @@ void SCOP40Bench::OnSetup()
 	asserta(m_QuerySelf);
 	asserta(m_ChainCount == m_QueryChainCount);
 	asserta(m_DBChainCount == 0);
-	m_ScoresAreEvalues = true;
+	if (opt_scores_are_not_evalues)
+		m_ScoresAreEvalues = false;
+	else
+		m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromQueryChainLabels();
 	}
 
@@ -196,6 +199,25 @@ void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 	asserta(SIZE(m_DomIdxs) == m_QueryChainCount);
 	asserta(SIZE(m_DomIdxToSFIdx) == m_QueryChainCount);
 	asserta(SIZE(m_DomIdxToFoldIdx) == m_QueryChainCount);
+	}
+
+void SCOP40Bench::LogFirstFewDoms() const
+	{
+	for (uint i = 0; i < 10; ++i)
+		Log("[%5u]  %s\n", i, m_Doms[i].c_str());
+	}
+
+void SCOP40Bench::LogFirstFewHits() const
+	{
+	for (uint i = 0; i < 10; ++i)
+		{
+		uint Dom1 = m_DomIdx1s[i];
+		uint Dom2 = m_DomIdx2s[i];
+		Log("[%5u]  ", i);
+		Log("  Dom1=%s/%5u", m_Doms[Dom1].c_str(), Dom1);
+		Log("  Dom2=%s/%5u", m_Doms[Dom2].c_str(), Dom2);
+		Log("  Score=%.3g\n", m_Scores[i]);
+		}
 	}
 
 void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2,
@@ -478,7 +500,10 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	WriteStdioFile(f, &HitCount, sizeof(HitCount));
 	WriteStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
-	WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
+	if (opt_writebitts)
+		WriteStdioFile(f, m_TSs.data(), HitCount*sizeof(float));
+	else
+		WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
 	CloseStdioFile(f);
 	}
 
@@ -697,6 +722,9 @@ void cmd_scop40bench()
 		SB.m_ScoresAreEvalues = false;
 	SB.Run();
 	SB.WriteOutput();
+	SB.WriteBit(opt_savebit);
+	SB.LogFirstFewDoms();
+	SB.LogFirstFewHits();
 	if (optset_sens1fp_report)
 		{
 		FILE *f = CreateStdioFile(opt_sens1fp_report);

@@ -143,6 +143,8 @@ public:
 	void WriteOutput();
 	void WriteSens1FPReport(FILE *f) const;
 	void LogSens1FPReport_Dom(uint DomIdx) const;
+	void LogFirstFewDoms() const;
+	void LogFirstFewHits() const;
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,
