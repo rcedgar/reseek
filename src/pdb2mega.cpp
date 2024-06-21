@@ -3,8 +3,8 @@
 #include "dss.h"
 #include "alpha.h"
 
-extern float *g_FeatureFreqsVec[FEATURE_COUNT];
-extern vector<vector<float> > g_FeatureFreqsMxVec[FEATURE_COUNT];
+extern float **g_FreqMxs2[FEATURE_COUNT];
+extern float *g_FreqVecs2[FEATURE_COUNT];
 
 void cmd_pdb2mega()
 	{
@@ -33,20 +33,18 @@ void cmd_pdb2mega()
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
 		  i, FeatureToStr(F), AlphaSize, Params.m_Weights[i]);
 		fprintf(fOut, "freqs");
-		const float *Freqs = g_FeatureFreqsVec[F];
+		const float *Freqs = g_FreqVecs2[F];
 		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
-			fprintf(fOut, "\t%.3f", Freqs[Letter]);
+			fprintf(fOut, "\t%.4g", Freqs[Letter]);
 		fprintf(fOut, "\n");
-		//float **ScoreMx = Params.m_ScoreMxs[F];
-		const vector<vector<float > > &FreqMx = g_FeatureFreqsMxVec[F];
-		asserta(SIZE(FreqMx) == AlphaSize);
+		const float * const *FreqMx = g_FreqMxs2[F];
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{
 			fprintf(fOut, "%u", Letter1);
 			for (uint Letter2 = 0; Letter2 <= Letter1; ++Letter2)
 				{
-				float Score = FreqMx[Letter1][Letter2];
-				fprintf(fOut, "\t%.3g", Score);
+				float Freq = FreqMx[Letter1][Letter2];
+				fprintf(fOut, "\t%.4g", Freq);
 				}
 			fprintf(fOut, "\n");
 			}

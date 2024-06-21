@@ -111,6 +111,8 @@ while True:
 
 print("")
 print("float **g_ScoreMxs2[FEATURE_COUNT];")
+print("float **g_FreqMxs2[FEATURE_COUNT];")
+print("float *g_FreqVecs2[FEATURE_COUNT];")
 print("uint g_AlphaSizes2[FEATURE_COUNT];");
 print("")
 print("static bool Init()")
@@ -131,12 +133,19 @@ print("")
 for k in range(K):
     name = names[k]
     n = ns[k]
+    print("\tg_FreqMxs2[FEATURE_%s] = myalloc(float *, %d);" % (name, n))
     print("\tg_ScoreMxs2[FEATURE_%s] = myalloc(float *, %d);" % (name, n))
+    print("\tg_FreqVecs2[FEATURE_%s] = myalloc(float, %d);" % (name, n))
     print("\tfor (uint i = 0; i < %d; ++i)" % n)
     print("\t\t{")
+    print("\t\tg_FreqVecs2[FEATURE_%s][i] = (float) %s_f_i[i];" % (name, name))
+    print("\t\tg_FreqMxs2[FEATURE_%s][i] = myalloc(float, %d);" % (name, n))
     print("\t\tg_ScoreMxs2[FEATURE_%s][i] = myalloc(float, %d);" % (name, n))
     print("\t\tfor (uint j = 0; j < %d; ++j)" % n)
+    print("\t\t\t{")
+    print("\t\t\tg_FreqMxs2[FEATURE_%s][i][j] = (float) %s_f_ij[i][j];" % (name, name))
     print("\t\t\tg_ScoreMxs2[FEATURE_%s][i][j] = (float) %s_S_ij[i][j];" % (name, name))
+    print("\t\t\t}")
     print("\t\t}")
 
 print("\treturn true;")

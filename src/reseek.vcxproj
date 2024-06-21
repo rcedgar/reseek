@@ -306,7 +306,6 @@
     <ClCompile Include="dss.cpp" />
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
-    <ClCompile Include="featurefreqs.cpp" />
     <ClCompile Include="features.cpp" />
     <ClCompile Include="float_feature_bins.cpp" />
     <ClCompile Include="getbins.cpp" />

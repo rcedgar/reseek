@@ -248,9 +248,6 @@
     <ClCompile Include="pdb2mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="featurefreqs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="parasail_combo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -503,6 +503,8 @@ static double NormDens_S_ij[16][16] = {
  };
 
 float **g_ScoreMxs2[FEATURE_COUNT];
+float **g_FreqMxs2[FEATURE_COUNT];
+float *g_FreqVecs2[FEATURE_COUNT];
 uint g_AlphaSizes2[FEATURE_COUNT];
 
 static bool Init()
@@ -525,61 +527,117 @@ static bool Init()
 	g_AlphaSizes2[FEATURE_StrandDens] = 16;
 	g_AlphaSizes2[FEATURE_NormDens] = 16;
 
+	g_FreqMxs2[FEATURE_AA] = myalloc(float *, 20);
 	g_ScoreMxs2[FEATURE_AA] = myalloc(float *, 20);
+	g_FreqVecs2[FEATURE_AA] = myalloc(float, 20);
 	for (uint i = 0; i < 20; ++i)
 		{
+		g_FreqVecs2[FEATURE_AA][i] = (float) AA_f_i[i];
+		g_FreqMxs2[FEATURE_AA][i] = myalloc(float, 20);
 		g_ScoreMxs2[FEATURE_AA][i] = myalloc(float, 20);
 		for (uint j = 0; j < 20; ++j)
+			{
+			g_FreqMxs2[FEATURE_AA][i][j] = (float) AA_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_AA][i][j] = (float) AA_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_NbrDist] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_NbrDist] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_NbrDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_NbrDist][i] = (float) NbrDist_f_i[i];
+		g_FreqMxs2[FEATURE_NbrDist][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_NbrDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_NbrDist][i][j] = (float) NbrDist_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_NbrDist][i][j] = (float) NbrDist_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_MySS] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_MySS] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_MySS] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_MySS][i] = (float) MySS_f_i[i];
+		g_FreqMxs2[FEATURE_MySS][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_MySS][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_MySS][i][j] = (float) MySS_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_MySS][i][j] = (float) MySS_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_NbrMySS] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_NbrMySS] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_NbrMySS] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_NbrMySS][i] = (float) NbrMySS_f_i[i];
+		g_FreqMxs2[FEATURE_NbrMySS][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_NbrMySS][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_NbrMySS][i][j] = (float) NbrMySS_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_NbrMySS][i][j] = (float) NbrMySS_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_RevNbrDist] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_RevNbrDist] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_RevNbrDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_RevNbrDist][i] = (float) RevNbrDist_f_i[i];
+		g_FreqMxs2[FEATURE_RevNbrDist][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_RevNbrDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_RevNbrDist][i][j] = (float) RevNbrDist_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_RevNbrDist][i][j] = (float) RevNbrDist_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_DstNxtHlx] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_DstNxtHlx] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_DstNxtHlx] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_DstNxtHlx][i] = (float) DstNxtHlx_f_i[i];
+		g_FreqMxs2[FEATURE_DstNxtHlx][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_DstNxtHlx][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_DstNxtHlx][i][j] = (float) DstNxtHlx_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_DstNxtHlx][i][j] = (float) DstNxtHlx_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_StrandDens] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_StrandDens] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_StrandDens] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_StrandDens][i] = (float) StrandDens_f_i[i];
+		g_FreqMxs2[FEATURE_StrandDens][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_StrandDens][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_StrandDens][i][j] = (float) StrandDens_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_StrandDens][i][j] = (float) StrandDens_S_ij[i][j];
+			}
 		}
+	g_FreqMxs2[FEATURE_NormDens] = myalloc(float *, 16);
 	g_ScoreMxs2[FEATURE_NormDens] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_NormDens] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
+		g_FreqVecs2[FEATURE_NormDens][i] = (float) NormDens_f_i[i];
+		g_FreqMxs2[FEATURE_NormDens][i] = myalloc(float, 16);
 		g_ScoreMxs2[FEATURE_NormDens][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
+			{
+			g_FreqMxs2[FEATURE_NormDens][i][j] = (float) NormDens_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_NormDens][i][j] = (float) NormDens_S_ij[i][j];
+			}
 		}
 	return true;
 	}
