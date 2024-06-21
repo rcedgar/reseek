@@ -35,6 +35,7 @@ void LogOdds::Init(uint AlphaSize)
 	m_TrueCountMx.clear();
 	m_Freqs.clear();
 	m_FreqMx.clear();
+	m_BackgroundCounts.clear();
 	m_BackgroundCounts.resize(m_AlphaSize);
 	m_TrueCountMx.resize(m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
