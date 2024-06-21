@@ -306,7 +306,6 @@
     <ClCompile Include="dss.cpp" />
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
-    <ClCompile Include="eval_feature.cpp" />
     <ClCompile Include="featurefreqs.cpp" />
     <ClCompile Include="features.cpp" />
     <ClCompile Include="float_feature_bins.cpp" />
@@ -341,6 +340,8 @@
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
     <ClCompile Include="timing.cpp" />
+    <ClCompile Include="trained_features.cpp" />
+    <ClCompile Include="train_features.cpp" />
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />
@@ -438,6 +439,9 @@
     <ClInclude Include="sfasta.h" />
     <ClInclude Include="sfastq.h" />
     <ClInclude Include="sort.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="train_features2cpp.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

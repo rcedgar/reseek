@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Python">
+      <UniqueIdentifier>{7561db3a-254f-489f-8022-8e7ab90c9709}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="myutils.cpp">
@@ -96,9 +99,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="logodds.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="eval_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pdb2dss.cpp">
@@ -311,6 +311,12 @@
     <ClCompile Include="adjust.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="train_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trained_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -511,5 +517,10 @@
     <ClInclude Include="calibratesearcher3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="train_features2cpp.py">
+      <Filter>Python</Filter>
+    </None>
   </ItemGroup>
 </Project>
