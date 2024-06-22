@@ -119,7 +119,6 @@ static void ReadChainsFromPDBFile(const string &FileName,
 	vector<string> Lines;
 	ReadLinesFromFile(FileName, Lines);
 
-	vector<PDBChain *> Chains;
 	PDBChain::ChainsFromLines(Label, Lines, Chains);
 	const uint NC = SIZE(Chains);
 	for (uint j = 0; j < NC; ++j)
