@@ -998,6 +998,17 @@ void DSSAligner::ToFasta2(FILE *f, float MaxEvalue)
 			}
 		}
 
+	while (PosA < LA)
+		{
+		RowA += SeqA[PosA++];
+		RowB += '.';
+		}
+	while (PosB < LB)
+		{
+		RowA += '.';
+		RowB += SeqB[PosB++];
+		}
+	
 	string LabelAx = LabelA;
 	Psa(LabelAx, " E=%.3g Id=%.1f%%",
 	  m_EvalueAB, GetPct(IdCount, ColCount));

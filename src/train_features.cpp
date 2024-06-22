@@ -16,6 +16,18 @@ static uint GetUngappedLength(const string &Row)
 	return L;
 	}
 
+static void GetAccFromLabel(const string &Label, string &Acc)
+	{
+	Acc.clear();
+	for (uint i = 0; i < SIZE(Label); ++i)
+		{
+		char c = Label[i];
+		if (c == ' ' || c == '/')
+			return;
+		Acc += c;
+		}
+	}
+
 static void TrainFeature(const string &FeatureName, const SeqDB &Input,
   const vector<PDBChain *> &Chains, LogOdds &LO)
 	{
@@ -29,14 +41,16 @@ static void TrainFeature(const string &FeatureName, const SeqDB &Input,
 	LO.Init(AlphaSize);
 
 	const uint ChainCount = SIZE(Chains);
-	map<string, uint> DomToChainIndex;
+	map<string, uint> AccToChainIndex;
 	DSS DQ;
 	DSS DR;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		const PDBChain &Chain = *Chains[ChainIndex];
 		const string &Label = Chain.m_Label;
-		DomToChainIndex[Label] = ChainIndex;
+		string Acc;
+		GetAccFromLabel(Label, Acc);
+		AccToChainIndex[Acc] = ChainIndex;
 
 		const uint QL = Chain.GetSeqLength();
 		DQ.Init(Chain);
@@ -57,8 +71,16 @@ static void TrainFeature(const string &FeatureName, const SeqDB &Input,
 		const string &QLabel = Input.GetLabel(2*PairIndex);
 		const string &RLabel = Input.GetLabel(2*PairIndex+1);
 
-		uint QChainIndex = DomToChainIndex[QLabel];
-		uint RChainIndex = DomToChainIndex[RLabel];
+		string QAcc, RAcc;
+		GetAccFromLabel(QLabel, QAcc);
+		GetAccFromLabel(RLabel, RAcc);
+
+		map<string, uint>::const_iterator iterq = AccToChainIndex.find(QAcc);
+		map<string, uint>::const_iterator iterr = AccToChainIndex.find(RAcc);
+		asserta(iterq != AccToChainIndex.end());
+		asserta(iterr != AccToChainIndex.end());
+		uint QChainIndex = iterq->second;
+		uint RChainIndex = iterr->second;
 
 		const PDBChain &QChain = *Chains[QChainIndex];
 		const PDBChain &RChain = *Chains[RChainIndex];
