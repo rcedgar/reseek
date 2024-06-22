@@ -24,11 +24,12 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 		Params.ToFev(g_fLog, false);
 		if (m_fFev != 0)
 			fprintf(m_fFev, "\n");
+		ProgressLog("%s Sens %u\n", Why.c_str(), Score);
 		return Score;
 		}
 
 	double PctImproveVsPrevBest = 0;
-	double d_first = double(m_BestScore) - double(m_FirstScore);
+	double d_first = double(max(Score, m_BestScore)) - double(m_FirstScore);
 	double d_prevbest = double(Score) - double(m_BestScore);
 
 	double PctBetter_first = m_FirstScore == 0 ? 0 : 100.0*d_first/m_FirstScore;

@@ -120,7 +120,8 @@ extern mutex g_DieLock;
 const char *GetPlatform();
 unsigned GetElapsedSecs();
 void mysleep(unsigned ms);
-void mylistdir(const string &DirName, vector<string> &FileNames);
+void mylistdir(const string &DirName, vector<string> &FileNames,
+  vector<bool> &IsSubDirs);
 
 #if	RCE_MALLOC
 
@@ -360,6 +361,8 @@ const char *GetMaxRAMStr(string &s);
 const char *GetBaseName(const char *PathName);
 void GetBaseName(const string &PathName, string &Base);
 void GetStemName(const string &PathName, string &Stem);
+const char *GetExtFromPathName(const char *PathName);
+void GetExtFromPathName(const string &PathName, string &Ext);
 
 const char *IntToStr(unsigned i);
 const char *IntToStr2(unsigned i);
@@ -399,6 +402,7 @@ void SeqToFasta(FILE *f, const string &Label, const string &Seq,
   uint ROWLEN = 80);
 void RevCompSeq(string &Seq);
 void StripGaps(string &Seq);
+void ToLower(string &Str);
 void StripWhiteSpace(string &Str);
 char GetOneFromThree(const string &AAA);
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines);

@@ -88,12 +88,29 @@ const char *GetBaseName(const char *PathName)
 	const char *q = 0;
 	for (const char *p = PathName; *p; ++p)
 		{
-		if (*p == '/' || *p == '\\')
+		char c = *q;
+		if (c == '/' || c == '\\')
 			q = p + 1;
 		}
 	if (q != 0)
 		return q;
 	return PathName;
+	}
+
+const char *GetExtFromPathName(const char *PathName)
+	{
+	const char *q = 0;
+	for (const char *p = PathName; *p; ++p)
+		{
+		char c = *p;
+		if (c)
+			q = p + 1;
+		else if (c == '/' || c == '\\')
+			q = 0;
+		}
+	if (q == 0)
+		return "";
+	return q;
 	}
 
 void GetBaseName(const string &PathName, string &Base)
@@ -108,6 +125,11 @@ void GetStemName(const string &PathName, string &Stem)
 	vector<string> Fields;
 	Split(Base, Fields, '.');
 	Stem = Fields[0];
+	}
+
+void GetExtFromPathName(const string &PathName, string &Ext)
+	{
+	Ext = string(GetExtFromPathName(PathName.c_str()));
 	}
 
 static void AllocBuffer(FILE *f)
@@ -887,9 +909,11 @@ double GetMemUseBytes()
 #endif
 
 #ifdef _MSC_VER
-void mylistdir(const string &DirName, vector<string> &FileNames)
+void mylistdir(const string &DirName, vector<string> &FileNames,
+  vector<bool> &IsSubDirs)
 	{
 	FileNames.clear();
+	IsSubDirs.clear();
 	bool First = true;
 	HANDLE h = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATA FFD;
@@ -910,12 +934,15 @@ void mylistdir(const string &DirName, vector<string> &FileNames)
 				return;
 			}
 		FileNames.push_back(string(FFD.cFileName));
+		IsSubDirs.push_back(bool(FFD.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY));
 		}
 	}
 #else
-void mylistdir(const string &DirName, vector<string> &FileNames)
+void mylistdir(const string &DirName, vector<string> &FileNames,
+  vector<bool> &IsSubDirs)
 	{
 	FileNames.clear();
+	IsSubDir.clear();
 	DIR *dir = opendir(DirName.c_str());
 	if (dir == 0)
 		Die("Directory not found: %s", DirName.c_str());
@@ -925,6 +952,7 @@ void mylistdir(const string &DirName, vector<string> &FileNames)
 		if (dp == 0)
 			break;
 		FileNames.push_back(string(dp->d_name));
+		IsSubDirs.push_back(dp->d_type == DT_DIR);
 		}
 	closedir(dir);
 	}
@@ -2294,6 +2322,13 @@ unsigned GetRequestedThreadCount()
 		MsgDone = true;
 		}
 	return N;
+	}
+
+void ToLower(string &Str)
+	{
+	unsigned n = SIZE(Str);
+	for (uint i = 0; i < n; ++i)
+		Str[i] = tolower(Str[i]);
 	}
 
 void StripWhiteSpace(string &Str)

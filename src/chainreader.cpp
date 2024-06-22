@@ -10,7 +10,7 @@ void ChainReader::Open(const string &FileName)
 	if (EndsWith(m_FileName, ".files"))
 		{
 		ReadLinesFromFile(FileName, m_FileNames);
-		ReadChains(m_FileNames, m_FilesChains);
+		ReadChainsFromFileNameVec(m_FileNames, m_FilesChains);
 		m_FilesChainIndex = 0;
 		m_Type = CR_Files;
 		}

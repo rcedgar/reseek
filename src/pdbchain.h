@@ -117,11 +117,12 @@ public:
 	  double &X, double &Y, double &Z, char &aa, int &ResNr);
 	};
 
-void ReadLinesFromFile(const string &FileName, vector<string> &Lines);
 void ReadChains(const string &FileName,
-  vector<PDBChain *> &Structures);
-void ReadChains(const vector<string> &FileNames,
-  vector<PDBChain *> &Structures);
+  vector<PDBChain *> &Chains);
+void ReadChainsFromFileNameVec(const vector<string> &FileNames,
+  vector<PDBChain *> &Chains);
+void ReadChainsFromDirectory(const string &DirName,
+  vector<PDBChain *> &Chains, bool Recursive);
 void GetLabelFromFileName(const string &FileName, string &Label);
 
 #endif // pdbchain_h

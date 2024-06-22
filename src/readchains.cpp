@@ -43,14 +43,16 @@ void GetLabelFromFileName(const string &FileName, string &Label)
 
 	if (n > 4 && EndsWith(Label, ".pdb"))
 		Label = Label.substr(0, n-4);
+	else if (n > 4 && EndsWith(Label, ".cif"))
+		Label = Label.substr(0, n-4);
 	else if (n == 6 && Label[4] == '_')
 		Label = Label.substr(0, 4);
 	}
 
-void ReadChains(const vector<string> &FileNames,
-  vector<PDBChain *> &Structures)
+void ReadChainsFromFileNameVec(const vector<string> &FileNames,
+  vector<PDBChain *> &Chains)
 	{
-	Structures.clear();
+	Chains.clear();
 	const uint N = SIZE(FileNames);
 	for (uint i = 0; i < N; ++i)
 		{
@@ -70,11 +72,11 @@ void ReadChains(const vector<string> &FileNames,
 		PDBChain::ChainsFromLines(Label, Lines, Chains);
 		const uint NC = SIZE(Chains);
 		for (uint j = 0; j < NC; ++j)
-			Structures.push_back(Chains[j]);
+			Chains.push_back(Chains[j]);
 		}
 	}
 
-void ReadChainsCal(const string &FileName, vector<PDBChain *> &Structures)
+static void ReadChainsFromCalFile(const string &FileName, vector<PDBChain *> &Chains)
 	{
 	CalReader CR;
 	CR.Open(FileName);
@@ -85,7 +87,7 @@ void ReadChainsCal(const string &FileName, vector<PDBChain *> &Structures)
 		bool Ok = CR.GetNext(Q);
 		if (!Ok)
 			break;
-		Structures.push_back(&Q);
+		Chains.push_back(&Q);
 		++N;
 #if DEBUG
 		if (N%1000 == 0)
@@ -102,23 +104,15 @@ void ReadChainsCal(const string &FileName, vector<PDBChain *> &Structures)
 	Progress("Reading %s 100.0%% done\n", FileName.c_str());
 	}
 
-void ReadChains(const string &FileName, vector<PDBChain *> &Structures)
+static void ReadChainsFromCIFFile(const string &FileName, 
+  vector<PDBChain *> &Chains)
 	{
-	if (FileName.empty())
-		Die("Missing chains filename");
+	Die("TODO");
+	}
 
-	if (EndsWith(FileName, ".cal") || EndsWith(FileName, ".ppc"))
-		{
-		ReadChainsCal(FileName, Structures);
-		return;
-		}
-	else if (EndsWith(FileName, ".files"))
-		{
-		vector<string> FileNames;
-		ReadLinesFromFile(FileName, FileNames);
-		ReadChains(FileNames, Structures);
-		}
-
+static void ReadChainsFromPDBFile(const string &FileName, 
+  vector<PDBChain *> &Chains)
+	{
 	string Label;
 	GetLabelFromFileName(FileName, Label);
 
@@ -129,5 +123,68 @@ void ReadChains(const string &FileName, vector<PDBChain *> &Structures)
 	PDBChain::ChainsFromLines(Label, Lines, Chains);
 	const uint NC = SIZE(Chains);
 	for (uint j = 0; j < NC; ++j)
-		Structures.push_back(Chains[j]);
+		Chains.push_back(Chains[j]);
+	}
+
+void ReadChainsFromDirectory(const string &DirName,
+  vector<PDBChain *> &Chains, bool Recursive)
+	{
+	vector<string> FileNames;
+	vector<bool> IsSubDirs;
+	mylistdir(DirName, FileNames, IsSubDirs);
+	const uint N = SIZE(FileNames);
+	asserta(SIZE(IsSubDirs) == N);
+	vector<string> SubDirs;
+	for (uint i = 0; i < N; ++i)
+		{
+		const string &FileName = FileNames[i];
+		bool IsSubDir = IsSubDirs[i];
+		if (IsSubDir)
+			{
+			SubDirs.push_back(FileName);
+			continue;
+			}
+		ReadChains(FileName, Chains);
+		}
+
+	if (Recursive)
+		{
+		const uint M = SIZE(SubDirs);
+		for (uint i = 0; i < M; ++i)
+			{
+			string Dir = DirName + string("/") + SubDirs[i] + string("/");
+			ReadChains(Dir, Chains);
+			}
+		}
+	}
+
+void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
+	{
+	if (FileName.empty())
+		Die("Missing chains filename");
+
+	if (EndsWith(FileName, "/"))
+		{
+		ReadChainsFromDirectory(FileName, Chains, false);
+		return;
+		}
+
+	string Ext;
+	GetExtFromPathName(FileName, Ext);
+	ToLower(Ext);
+
+	if (EndsWith(FileName, ".files"))
+		{
+		vector<string> FileNames;
+		ReadLinesFromFile(FileName, FileNames);
+		ReadChainsFromFileNameVec(FileNames, Chains);
+		return;
+		}
+
+	if (Ext == ".cal")
+		ReadChainsFromCalFile(FileName, Chains);
+	else if (Ext == ".pdb" || Ext == ".ent")
+		ReadChainsFromPDBFile(FileName, Chains);
+	else if (Ext == ".cif" || Ext == ".mmcif")
+		ReadChainsFromCIFFile(FileName, Chains);
 	}
