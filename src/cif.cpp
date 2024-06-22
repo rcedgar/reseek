@@ -210,9 +210,6 @@ void ReadChainsFromCIFFile(const string &FN, vector<PDBChain *> &Chains)
 	for (uint Idx = 0; Idx < FieldCount ; ++Idx)
 		FieldToIdx[FieldList[Idx]] = Idx;
 
-	//static bool GetFieldsFromResidueATOMLines(const vector<string> &Lines,
-	//  double &X, double &Y, double &Z, char &aa, int &ResNr);
-
 	uint Chain_FldIdx = GetIdx(FieldToIdx, "_atom_site.auth_asym_id");
 	uint CA_FldIdx = GetIdx(FieldToIdx, "_atom_site.label_atom_id");
 	uint X_FldIdx = GetIdx(FieldToIdx, "_atom_site.Cartn_x");
