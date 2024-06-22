@@ -9,16 +9,16 @@ void DSSParams::SetNamedParams(const string &Name)
 	if (Name == "defaults")
 		{
 		m_Desc.clear();
-		AddFeature(FEATURE_AA,			0.492407);
-		AddFeature(FEATURE_NbrDist,		0.133664);
-		AddFeature(FEATURE_MySS,		0.172904);
-		AddFeature(FEATURE_NbrMySS,		0.105681);
-		AddFeature(FEATURE_RevNbrDist,	0.0801209);
-		AddFeature(FEATURE_DstNxtHlx,	0.00589112);
-		AddFeature(FEATURE_StrandDens,	0.00730704);
-		AddFeature(FEATURE_NormDens,	0.00202601);
+		AddFeature(FEATURE_AA,			0.398145);
+		AddFeature(FEATURE_NbrDist,		0.129367);
+		AddFeature(FEATURE_MySS,		0.202354);
+		AddFeature(FEATURE_NbrMySS,		0.149383);
+		AddFeature(FEATURE_RevNbrDist,	0.0937677);
+		AddFeature(FEATURE_DstNxtHlx,	0.00475462);
+		AddFeature(FEATURE_StrandDens,	0.0183853);
+		AddFeature(FEATURE_NormDens,	0.00384384);
 
-		m_GapOpen = -0.752986f;
+		m_GapOpen = -0.685533;
 		m_GapExt = -0.051881f;
 		m_DALIw = 3.0f;
 		m_FwdMatchScore = 0.1f;

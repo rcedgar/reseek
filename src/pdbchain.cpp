@@ -4,16 +4,6 @@
 
 void GetThreeFromOne(char aa, string &AAA);
 
-void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
-	{
-	Lines.clear();
-	FILE *f = OpenStdioFile(FileName);
-	string Line;
-	while (ReadLineStdioFile(f, Line))
-		Lines.push_back(Line);
-	CloseStdioFile(f);
-	}
-
 /***
 PDBChain ATOM record format
 http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM

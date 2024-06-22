@@ -314,6 +314,9 @@
     <ClCompile Include="cif.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chainreader2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -512,6 +515,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="calibratesearcher3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainreader2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

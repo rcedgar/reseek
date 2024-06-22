@@ -2390,3 +2390,12 @@ void Shuffle(vector<unsigned> &v)
 		v[j] = vi;
 		}
 	}
+
+void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
+	{
+	FILE *f = OpenStdioFile(FileName);
+	string Line;
+	while (ReadLineStdioFile(f, Line))
+		Lines.push_back(Line);
+	CloseStdioFile(f);
+	}
