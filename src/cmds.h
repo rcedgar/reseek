@@ -42,5 +42,6 @@ C(calibrate4)
 C(calibrate5)
 C(pdb2alpha)
 C(adjust)
+C(cif2cal)
 
 #undef C

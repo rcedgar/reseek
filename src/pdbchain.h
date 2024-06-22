@@ -123,5 +123,7 @@ void ReadChains(const string &FileName,
 void ReadChains(const vector<string> &FileNames,
   vector<PDBChain *> &Structures);
 void GetLabelFromFileName(const string &FileName, string &Label);
+void ReadChainsFromCIFFile(const vector<string> &Lines,
+  vector<PDBChain *> &Chains);
 
 #endif // pdbchain_h

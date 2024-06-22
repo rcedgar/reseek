@@ -286,6 +286,7 @@
     <ClCompile Include="calibratesearcher3.cpp" />
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
+    <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
