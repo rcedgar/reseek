@@ -104,12 +104,6 @@ static void ReadChainsFromCalFile(const string &FileName, vector<PDBChain *> &Ch
 	Progress("Reading %s 100.0%% done\n", FileName.c_str());
 	}
 
-static void ReadChainsFromCIFFile(const string &FileName, 
-  vector<PDBChain *> &Chains)
-	{
-	Die("TODO");
-	}
-
 static void ReadChainsFromPDBFile(const string &FileName, 
   vector<PDBChain *> &Chains)
 	{
@@ -160,7 +154,7 @@ void ReadChainsFromDirectory(const string &DirName,
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 	{
 	if (FileName.empty())
-		Die("Missing chains filename");
+		Die("Empty filename reading structures");
 
 	if (EndsWith(FileName, "/"))
 		{

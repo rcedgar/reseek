@@ -123,6 +123,7 @@ void ReadChainsFromFileNameVec(const vector<string> &FileNames,
   vector<PDBChain *> &Chains);
 void ReadChainsFromDirectory(const string &DirName,
   vector<PDBChain *> &Chains, bool Recursive);
+void ReadChainsFromCIFFile(const string &FN, vector<PDBChain *> &Chains);
 void GetLabelFromFileName(const string &FileName, string &Label);
 
 #endif // pdbchain_h

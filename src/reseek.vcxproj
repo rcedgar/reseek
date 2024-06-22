@@ -286,6 +286,7 @@
     <ClCompile Include="calibratesearcher3.cpp" />
     <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader.cpp" />
+    <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
@@ -344,7 +345,6 @@
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />
-    <ClCompile Include="pdb2dss.cpp" />
     <ClCompile Include="fastaseqsource.cpp" />
     <ClCompile Include="fileseqsource.cpp" />
     <ClCompile Include="getss.cpp" />

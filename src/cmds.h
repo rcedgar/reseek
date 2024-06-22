@@ -2,7 +2,6 @@
 #error "C not defined"
 #endif
 
-C(pdb2dss)
 C(pdb2ss)
 C(train_features)
 C(float_feature_bins)

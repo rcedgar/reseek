@@ -101,9 +101,6 @@
     <ClCompile Include="logodds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pdb2dss.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="one2three.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -312,6 +309,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trained_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cif.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
