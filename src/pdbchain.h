@@ -92,10 +92,6 @@ public:
 	  vector<string> &Lines) const;
 
 public:
-	static void ChainsFromLines(const string &Label,
-	  const vector<string> &Lines, vector<PDBChain *> &Chains);
-	static void ReadChainsFromFile(const string &FileName,
-	  vector<PDBChain *> &Chains);
 	static void AppendChainToLabel(string &Label, char Chain);
 	static char GetChainCharFromATOMLine(const string &Line);
 	static bool IsATOMLine(const string &Line);
@@ -115,15 +111,14 @@ public:
 	  double x, double y, double z, string &OutputLine);
 	static bool GetFieldsFromResidueATOMLines(const vector<string> &Lines,
 	  double &X, double &Y, double &Z, char &aa, int &ResNr);
+
+	static PDBChain *ChainFromLines_CAL(const vector<string> &Lines);
+	static void ChainsFromLines_PDB(const vector<string> &Lines,
+		vector<PDBChain *> &Chains, const string &FallbackLabel);
+	static void ChainsFromLines_CIF(const vector<string> &Lines,
+		vector<PDBChain *> &Chains, const string &FallbackLabel);
 	};
 
-void ReadChains(const string &FileName,
-  vector<PDBChain *> &Chains);
-void ReadChainsFromFileNameVec(const vector<string> &FileNames,
-  vector<PDBChain *> &Chains);
-void ReadChainsFromDirectory(const string &DirName,
-  vector<PDBChain *> &Chains, bool Recursive);
-void ReadChainsFromCIFFile(const string &FN, vector<PDBChain *> &Chains);
-void GetLabelFromFileName(const string &FileName, string &Label);
+void ReadChains(const string &FileName, vector<PDBChain *> &Chains);
 
 #endif // pdbchain_h

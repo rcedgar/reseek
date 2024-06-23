@@ -32,6 +32,8 @@ public:
 	uint m_ChainIdx_PDB = 0;
 	uint m_ChainIdx_CIF = 0;
 
+	string m_Label_PDB;
+
 public:
 	void Open(const string &FileName);
 	PDBChain *GetNext();
@@ -49,9 +51,6 @@ public:
 	PDBChain *GetNext_CIF();
 
 public:
-	PDBChain *ChainFromLines_CAL(const vector<string> &Lines);
-	PDBChain *ChainsFromLines_PDB(const vector<string> &Lines,
-	  vector<PDBChain *> &Chains);
-	PDBChain *ChainsFromLines_CIF(const vector<string> &Lines,
-	  vector<PDBChain *> &Chains);
+	static void GetFallbackLabelFromFN(const string &FN,
+	  string &Label);
 	};

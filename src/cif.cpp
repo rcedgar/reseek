@@ -41,7 +41,7 @@ _atom_site.auth_atom_id
 _atom_site.auth_comp_id
     This data item is an author defined alternative to the value of _atom_site.label_comp_id. This item holds the PDB 3-letter-code residue names
 _atom_site.auth_seq_id
-    This data item is an author defined alternative to the value of _atom_site.label_seq_id. This item holds the PDB residue number.
+    This data item is an author defined alternative to the value of _atom_site.label_seq_id. This item holds the 1-based PDB residue number.
 _atom_site.pdbx_PDB_ins_code
     This data item corresponds to the PDB insertion code. 
 _atom_site.pdbx_PDB_model_num
@@ -115,22 +115,23 @@ enum PARSER_STATE
 	PS_Finished,
 	};
 
-void ReadChainsFromCIFFile(const string &FN, vector<PDBChain *> &Chains)
+void PDBChain::ChainsFromLines_CIF(const vector<string> &Lines,
+  vector<PDBChain *> &Chains, const string &FallbackLabel)
 	{
 	Chains.clear();
-
-	vector<string> Lines;
-	ReadLinesFromFile(FN, Lines);
-	if (SIZE(Lines) == 0)
-		Die("Empty CIF file '%s'", FN.c_str());
+	string Label = FallbackLabel;
 	const string &Line0 = Lines[0];
-	if (!StartsWith(Line0, "data_"))
-		Die("Expected cif file to start with data_XXXX");
-	vector<string> Fields;
-	Split(Line0, Fields, '_');
-	if (SIZE(Fields) != 2 || Fields[0] != "data")
-		Die("Expected cif file to start with data_XXXX");
-	const string Label = Fields[1];
+	if (StartsWith(Line0, "data_"))
+		{
+		vector<string> Fields;
+		Split(Line0, Fields, '_');
+		if (SIZE(Fields) == 2 && Fields[0] != "data")
+			{
+			Label = Fields[1];
+			if (Label == "")
+				Label = FallbackLabel;
+			}
+		}
 
 	char CurrentChainChar = 0;
 	PDBChain *Chain = 0;
@@ -222,6 +223,7 @@ void ReadChainsFromCIFFile(const string &FN, vector<PDBChain *> &Chains)
 	for (uint i = 0; i < ATOMLineCount; ++i)
 		{
 		const string &Line = ATOMLines[i];
+		vector<string> Fields;
 		SplitWhite(Line, Fields);
 		uint n = SIZE(Fields);
 		if (n != FieldCount)
@@ -269,7 +271,8 @@ void cmd_cif2cal()
 
 	FILE *f = CreateStdioFile(opt_output);
 	vector<PDBChain *> Chains;
-	ReadChainsFromCIFFile(FN, Chains);
+	string FallbackLabel = "NOLABEL";
+	PDBChain::ChainsFromLines_CIF(Lines, Chains, FallbackLabel);
 	for (uint i = 0; i < SIZE(Chains); ++i)
 		Chains[i]->ToCal(f);
 	CloseStdioFile(f);

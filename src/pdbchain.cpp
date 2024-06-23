@@ -803,9 +803,10 @@ void PDBChain::GetSubSeq(uint MotifStartPos, uint n,
 		}
 	}
 
-void PDBChain::ChainsFromLines(const string &Label,
-  const vector<string> &Lines, vector<PDBChain *> &Chains)
+void PDBChain::ChainsFromLines_PDB(const vector<string> &Lines,
+  vector<PDBChain *> &Chains, const string &FallbackLabel)
 	{
+	string Label = FallbackLabel;
 	Chains.clear();
 	const uint N = SIZE(Lines);
 	vector<string> ChainLines;
@@ -814,6 +815,18 @@ void PDBChain::ChainsFromLines(const string &Label,
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Line = Lines[i];
+		if (StartsWith(Line, "HEADER "))
+			{
+			vector<string> Fields;
+			SplitWhite(Line, Fields);
+			uint n = SIZE(Fields);
+			if (n > 1)
+				{
+				Label = Fields[n-1];
+				if (Label == "")
+					Label = FallbackLabel;
+				}
+			}
 
 		if (IsATOMLine(Line))
 			{
@@ -845,14 +858,6 @@ void PDBChain::ChainsFromLines(const string &Label,
 		ChainLines.clear();
 		Chains.push_back(Chain);
 		}
-	}
-
-void PDBChain::ReadChainsFromFile(const string &FileName,
-  vector<PDBChain *> &Chains)
-	{
-	vector<string> Lines;
-	ReadLinesFromFile(FileName, Lines);
-	ChainsFromLines(FileName, Lines, Chains);
 	}
 
 void PDBChain::GetXFormChain_tR(

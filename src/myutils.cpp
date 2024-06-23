@@ -2331,6 +2331,13 @@ void ToLower(string &Str)
 		Str[i] = tolower(Str[i]);
 	}
 
+void ToUpper(string &Str)
+	{
+	unsigned n = SIZE(Str);
+	for (uint i = 0; i < n; ++i)
+		Str[i] = toupper(Str[i]);
+	}
+
 void StripWhiteSpace(string &Str)
 	{
 	unsigned n = SIZE(Str);

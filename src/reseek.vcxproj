@@ -285,7 +285,6 @@
     <ClCompile Include="calibratesearcher.cpp" />
     <ClCompile Include="calibratesearcher3.cpp" />
     <ClCompile Include="calreader.cpp" />
-    <ClCompile Include="chainreader.cpp" />
     <ClCompile Include="chainreader2.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
@@ -427,7 +426,6 @@
     <ClInclude Include="fastaseqsource.h" />
     <ClInclude Include="fileseqsource.h" />
     <ClInclude Include="gobuff.h" />
-    <ClInclude Include="chainreader.h" />
     <ClInclude Include="linereader.h" />
     <ClInclude Include="lockobj.h" />
     <ClInclude Include="lockobjs.h" />

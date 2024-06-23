@@ -1,4 +1,6 @@
 #include "myutils.h"
+
+#if 0
 #include "pdbchain.h"
 #include "calreader.h"
 
@@ -180,4 +182,21 @@ void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 		ReadChainsFromPDBFile(FileName, Chains);
 	else if (Ext == ".cif" || Ext == ".mmcif")
 		ReadChainsFromCIFFile(FileName, Chains);
+	}
+#endif // 0
+
+#include "chainreader2.h"
+
+void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
+	{
+	Chains.clear();
+	ChainReader2 CR2;
+	CR2.Open(FileName);
+	for (;;)
+		{
+		PDBChain *Chain = CR2.GetNext();
+		if (Chain == 0)
+			break;
+		Chains.push_back(Chain);
+		}
 	}

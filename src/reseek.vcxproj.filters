@@ -83,9 +83,6 @@
     <ClCompile Include="pdbchaincal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="chainreader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="blosum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -380,9 +377,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cmds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="chainreader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="best.h">

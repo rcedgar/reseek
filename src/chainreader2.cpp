@@ -142,6 +142,24 @@ PDBChain *ChainReader2::GetNext()
 	return 0;
 	}
 
+void ChainReader2::GetFallbackLabelFromFN(const string &FileName, string &Label)
+	{
+	GetBaseName(FileName, Label);
+	string Ext;
+	GetExtFromPathName(FileName, Ext);
+	ToLower(Ext);
+
+// Special-case for downloaded PDB files e.g. pdb1iv1.ent
+	if (Ext == "pdb" || Ext == "ent")
+		{
+		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
+			{
+			Label = Label.substr(3, string::npos);
+			ToUpper(Label);
+			}
+		}
+	}
+
 PDBChain *ChainFromCALLines(const vector<string> &Lines)
 	{
 	if (Lines.empty())
@@ -184,9 +202,21 @@ PDBChain *ChainReader2::GetNext_CAL()
 PDBChain *ChainReader2::GetFirst_PDB(const string &FileName)
 	{
 	ReadLinesFromFile(FileName, m_Lines);
-	ChainsFromLines_PDB(m_Lines, m_Chains_PDB);
+	string FallbackLabel;
+	GetFallbackLabelFromFN(FileName, FallbackLabel);
+	PDBChain::ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
 	m_ChainIdx_PDB = 0;
 	return GetNext_PDB();
+	}
+
+PDBChain *ChainReader2::GetFirst_CIF(const string &FileName)
+	{
+	ReadLinesFromFile(FileName, m_Lines);
+	string FallbackLabel;
+	GetFallbackLabelFromFN(FileName, FallbackLabel);
+	PDBChain::ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);
+	m_ChainIdx_CIF = 0;
+	return GetNext_CIF();
 	}
 
 PDBChain *ChainReader2::GetNext_PDB()
@@ -196,14 +226,6 @@ PDBChain *ChainReader2::GetNext_PDB()
 		return 0;
 	asserta(m_ChainIdx_PDB < N);
 	return m_Chains_PDB[m_ChainIdx_PDB++];
-	}
-
-PDBChain *ChainReader2::GetFirst_CIF(const string &FileName)
-	{
-	ReadLinesFromFile(FileName, m_Lines);
-	ChainsFromLines_CIF(m_Lines, m_Chains_CIF);
-	m_ChainIdx_CIF = 0;
-	return GetNext_CIF();
 	}
 
 PDBChain *ChainReader2::GetNext_CIF()

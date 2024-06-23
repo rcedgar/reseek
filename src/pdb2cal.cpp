@@ -1,28 +1,26 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "chainreader.h"
+#include "chainreader2.h"
 
 void cmd_pdb2cal()
 	{
-	ChainReader CR;
+	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	PDBChain Chain;
 	uint Count = 0;
 	for (;;)
 		{
-		bool Ok = CR.GetNext(Chain);
-		if (!Ok)
+		PDBChain *ptrChain = CR.GetNext();
+		if (ptrChain == 0)
 			break;
+		PDBChain &Chain = *ptrChain;
 
 		if (++Count%100 == 0)
 			{
-			string sPct;
-			CR.GetStrPctDone(sPct);
-			Progress("%s%% done, %u converted >%s\r",
-			  sPct.c_str(), Count, Chain.m_Label.c_str());
+			Progress("%u converted >%s\r",
+			  Count, Chain.m_Label.c_str());
 			}
 		Chain.ToCal(fOut);
 		}
@@ -32,28 +30,25 @@ void cmd_pdb2cal()
 
 void cmd_pdb2fasta()
 	{
-	ChainReader CR;
+	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	PDBChain Chain;
 	uint Count = 0;
 	for (;;)
 		{
-		bool Ok = CR.GetNext(Chain);
-		if (!Ok)
+		PDBChain *ptrChain = CR.GetNext();
+		if (ptrChain == 0)
 			break;
+		PDBChain &Chain = *ptrChain;
+
 
 		if (++Count%100 == 0)
-			{
-			string sPct;
-			CR.GetStrPctDone(sPct);
-			Progress("%s%% done, %u converted >%s\r",
-			  sPct.c_str(), Count, Chain.m_Label.c_str());
-			}
+			Progress("%u converted >%s\r",
+			  Count, Chain.m_Label.c_str());
 		SeqToFasta(fOut, Chain.m_Label, Chain.m_Seq);
 		}
-	Progress("100.0%% done, %u chains converted\n", Count);
+	Progress("%u chains converted\n", Count);
 	CloseStdioFile(fOut);
 	}

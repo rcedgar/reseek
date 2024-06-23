@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
-#include "chainreader.h"
+#include "chainreader2.h"
 
 static char GetChar(byte Letter, uint AlphaSize)
 	{
@@ -18,7 +18,7 @@ static char GetChar(byte Letter, uint AlphaSize)
 
 void cmd_pdb2alpha()
 	{
-	ChainReader CR;
+	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
 	DSSParams Params;
@@ -47,22 +47,19 @@ void cmd_pdb2alpha()
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	PDBChain Chain;
+	;
 	uint Count = 0;
 	DSS D;
 	for (;;)
 		{
-		bool Ok = CR.GetNext(Chain);
-		if (!Ok)
+		PDBChain *ptrChain = CR.GetNext();
+		if (ptrChain == 0)
 			break;
+		PDBChain &Chain = *ptrChain;
 
 		if (++Count%100 == 0)
-			{
-			string sPct;
-			CR.GetStrPctDone(sPct);
-			Progress("%s%% done, %u converted >%s\r",
-			  sPct.c_str(), Count, Chain.m_Label.c_str());
-			}
+			Progress("%u converted >%s\r",
+			  Count, Chain.m_Label.c_str());
 		D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
 		string Seq;
@@ -74,6 +71,6 @@ void cmd_pdb2alpha()
 			}
 		SeqToFasta(fOut, Chain.m_Label, Seq);
 		}
-	Progress("100.0%% done, %u chains converted\n", Count);
+	Progress("%u chains converted\n", Count);
 	CloseStdioFile(fOut);
 	}

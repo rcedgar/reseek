@@ -407,6 +407,8 @@ void StripWhiteSpace(string &Str);
 char GetOneFromThree(const string &AAA);
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines);
 void Shuffle(vector<unsigned> &v);
+void ToUpper(string &s);
+void ToLower(string &s);
 
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()
