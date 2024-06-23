@@ -17,6 +17,7 @@ public:
 	string m_SS;
 
 public:
+	~PDBChain() { Clear(); }
 	void Clear()
 		{
 		m_Label.clear();

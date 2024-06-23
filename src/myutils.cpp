@@ -88,7 +88,7 @@ const char *GetBaseName(const char *PathName)
 	const char *q = 0;
 	for (const char *p = PathName; *p; ++p)
 		{
-		char c = *q;
+		char c = *p;
 		if (c == '/' || c == '\\')
 			q = p + 1;
 		}
@@ -103,7 +103,7 @@ const char *GetExtFromPathName(const char *PathName)
 	for (const char *p = PathName; *p; ++p)
 		{
 		char c = *p;
-		if (c)
+		if (c == '.')
 			q = p + 1;
 		else if (c == '/' || c == '\\')
 			q = 0;
@@ -909,6 +909,7 @@ double GetMemUseBytes()
 #endif
 
 #ifdef _MSC_VER
+// WARNING includes . and ..
 void mylistdir(const string &DirName, vector<string> &FileNames,
   vector<bool> &IsSubDirs)
 	{
@@ -938,7 +939,8 @@ void mylistdir(const string &DirName, vector<string> &FileNames,
 		}
 	}
 #else
-void mylistdir(const string &DirName, vector<string> &FileNames,
+// WARNING includes . and ..
+// void mylistdir(const string &DirName, vector<string> &FileNames,
   vector<bool> &IsSubDirs)
 	{
 	FileNames.clear();
@@ -2400,6 +2402,7 @@ void Shuffle(vector<unsigned> &v)
 
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
 	{
+	Lines.clear();
 	FILE *f = OpenStdioFile(FileName);
 	string Line;
 	while (ReadLineStdioFile(f, Line))

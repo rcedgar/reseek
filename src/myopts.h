@@ -265,6 +265,7 @@ FLAG_OPT(sensitive)
 FLAG_OPT(usecombopath)
 FLAG_OPT(gum)
 FLAG_OPT(writebitts)
+FLAG_OPT(trace_chainreader2)
 
 #undef FLAG_OPT
 #undef UNS_OPT

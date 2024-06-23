@@ -47,7 +47,6 @@ void cmd_pdb2alpha()
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	;
 	uint Count = 0;
 	DSS D;
 	for (;;)
