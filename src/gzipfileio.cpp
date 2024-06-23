@@ -54,7 +54,32 @@ void CloseGzipFile(FILE *f)
 
 void ReadLinesFromGzipFile(const string &FileName, vector<string> &Lines)
 	{
-	Die("TODO");
+	Lines.clear();
+	FILE *f = OpenGzipFile(FileName);
+	const uint BUFFER_SIZE = 1024*1024;
+	byte *Data = myalloc(byte, BUFFER_SIZE);
+	for (;;)
+		{
+		uint BytesRead = ReadGzipFile(f, Data, BUFFER_SIZE);
+		if (BytesRead == 0)
+			break;
+		string Line;
+		for (uint i = 0; i < BytesRead; ++i)
+			{
+			char c = Data[i];
+			if (c == '\r')
+				continue;
+			if (c == '\n')
+				{
+				Lines.push_back(Line);
+				Line.clear();
+				}
+			else
+				Line.push_back(c);
+			}
+		}
+	myfree(Data);
+	CloseGzipFile(f);
 	}
 
 void cmd_gunzip()

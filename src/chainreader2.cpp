@@ -57,7 +57,6 @@ bool ChainReader2::PushFileOrDir(const string &Path)
 		}
 	else if (IsRegularFile(Path))
 		{
-
 		m_PendingFiles.push_back(Path);
 		return true;
 		}

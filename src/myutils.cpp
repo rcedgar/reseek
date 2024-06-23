@@ -127,7 +127,7 @@ void GetExtFromPathName(const string &PathName, string &Ext)
 
 // Special case for .ext.gz, this is considered to be 
 //   the filename extension
-	if (LastField == ".gz" && n > 2)
+	if (LastField == "gz" && n > 2)
 		{
 		Ext = Fields[n-2] + ".gz";
 		return;
