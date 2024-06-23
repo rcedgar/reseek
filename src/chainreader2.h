@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pdbchain.h"
+#include "linereader2.h"
 #include <list>
 
 class ChainReader2
@@ -17,14 +18,19 @@ public:
 
 public:
 	mutex m_Lock;
+	string m_RootFileName;
+	string m_CurrentFileName;
 	STATE m_State = STATE_Closed;
 	list<string> m_PendingFiles;
 	list<string> m_PendingDirs;
 	FILE *m_fCal = 0;
-	string m_CalFilePendingLine;
-
-// One vector of strings per chain
-	list<vector<string> > m_LinesList;
+	LineReader2 m_LR;
+	string m_Line;
+	vector<string> m_Lines;
+	vector<PDBChain *> m_Chains_PDB;
+	vector<PDBChain *> m_Chains_CIF;
+	uint m_ChainIdx_PDB = 0;
+	uint m_ChainIdx_CIF = 0;
 
 public:
 	void Open(const string &FileName);
@@ -33,10 +39,19 @@ public:
 	void ReadNextDir();
 	void Close();
 	void PushFileOrDir(const string &Path);
-	PDBChain *StartReadingCALFile(const string &FileName) {return 0;}
-	PDBChain *StartReadingPDBFile(const string &FileName) {return 0;}
-	PDBChain *StartReadingCIFFile(const string &FileName) {return 0;}
-	PDBChain *GetNext_PDBFile() {return 0;}
-	PDBChain *GetNext_CIFFile() {return 0;}
-	PDBChain *GetNext_CALFile() {return 0;}
+	PDBChain *GetFirst_CAL(const string &FileName);
+	PDBChain *GetNext_CAL();
+
+	PDBChain *GetFirst_PDB(const string &FileName);
+	PDBChain *GetNext_PDB();
+
+	PDBChain *GetFirst_CIF(const string &FileName);
+	PDBChain *GetNext_CIF();
+
+public:
+	PDBChain *ChainFromLines_CAL(const vector<string> &Lines);
+	PDBChain *ChainsFromLines_PDB(const vector<string> &Lines,
+	  vector<PDBChain *> &Chains);
+	PDBChain *ChainsFromLines_CIF(const vector<string> &Lines,
+	  vector<PDBChain *> &Chains);
 	};

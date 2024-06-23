@@ -292,6 +292,7 @@
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
     <ClCompile Include="gumbel.cpp" />
+    <ClCompile Include="linereader2.cpp" />
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
@@ -394,6 +395,7 @@
     <ClInclude Include="floatfeatures.h" />
     <ClInclude Include="getticks.h" />
     <ClInclude Include="intfeatures.h" />
+    <ClInclude Include="linereader2.h" />
     <ClInclude Include="megacluster.h" />
     <ClInclude Include="logodds.h" />
     <ClInclude Include="murmur.h" />

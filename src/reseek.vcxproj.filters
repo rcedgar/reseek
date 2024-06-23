@@ -317,6 +317,9 @@
     <ClCompile Include="chainreader2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="linereader2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -519,6 +522,9 @@
     </ClInclude>
     <ClInclude Include="chainreader2.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="linereader2.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
