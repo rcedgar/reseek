@@ -12,6 +12,9 @@
     <Filter Include="Python">
       <UniqueIdentifier>{7561db3a-254f-489f-8022-8e7ab90c9709}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files C">
+      <UniqueIdentifier>{1cfb734f-3541-4a6d-96a9-4ec5b85e829e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="myutils.cpp">
@@ -317,6 +320,42 @@
     <ClCompile Include="linereader2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gzipfileio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="adler32.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="deflate.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="gzlib.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="gzread.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="infback.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="inflate.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="inftrees.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="trees.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="zutil.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
+    <ClCompile Include="inffast.c">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -517,8 +556,41 @@
     <ClInclude Include="chainreader2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gzguts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inftrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inffast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inffixed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="linereader2.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

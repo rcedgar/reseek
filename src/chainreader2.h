@@ -37,7 +37,7 @@ public:
 	bool m_Trace = false;
 
 public:
-	void Open(const string &FileName);
+	void Open(const string &FN);
 	PDBChain *GetNext();
 
 private:
@@ -45,15 +45,17 @@ private:
 	PDBChain *PendingFile();
 	void ReadNextDir();
 	void Close();
-	void PushFileOrDir(const string &Path);
-	PDBChain *GetFirst_CAL(const string &FileName);
+	bool PushFileOrDir(const string &Path);
+	PDBChain *GetFirst_CAL(const string &FN);
 	PDBChain *GetNext_CAL();
 
-	PDBChain *GetFirst_PDB(const string &FileName);
+	PDBChain *GetFirst_PDB(const string &FN);
 	PDBChain *GetNext_PDB();
 
-	PDBChain *GetFirst_CIF(const string &FileName);
+	PDBChain *GetFirst_CIF(const string &FN);
 	PDBChain *GetNext_CIF();
+	bool FileNameHasStructureExt(const string &FN) const;
+	bool IsStructureExt(const string &Ext) const;
 
 public:
 	static void GetFallbackLabelFromFN(const string &FN,

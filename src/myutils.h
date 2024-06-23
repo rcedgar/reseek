@@ -24,6 +24,7 @@
 #include <float.h>
 #include <algorithm>
 #include <mutex>
+#include <filesystem>
 
 #ifndef _MSC_VER
 #include <inttypes.h>
@@ -409,6 +410,8 @@ void ReadLinesFromFile(const string &FileName, vector<string> &Lines);
 void Shuffle(vector<unsigned> &v);
 void ToUpper(string &s);
 void ToLower(string &s);
+bool IsDirectory(const string &PathName);
+bool IsRegularFile(const string &PathName);
 
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()

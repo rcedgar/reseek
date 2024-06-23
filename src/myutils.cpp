@@ -97,22 +97,6 @@ const char *GetBaseName(const char *PathName)
 	return PathName;
 	}
 
-const char *GetExtFromPathName(const char *PathName)
-	{
-	const char *q = 0;
-	for (const char *p = PathName; *p; ++p)
-		{
-		char c = *p;
-		if (c == '.')
-			q = p + 1;
-		else if (c == '/' || c == '\\')
-			q = 0;
-		}
-	if (q == 0)
-		return "";
-	return q;
-	}
-
 void GetBaseName(const string &PathName, string &Base)
 	{
 	Base = string(GetBaseName(PathName.c_str()));
@@ -129,7 +113,26 @@ void GetStemName(const string &PathName, string &Stem)
 
 void GetExtFromPathName(const string &PathName, string &Ext)
 	{
-	Ext = string(GetExtFromPathName(PathName.c_str()));
+	string Base;
+	GetBaseName(PathName, Base);
+	vector<string> Fields;
+	Split(Base, Fields, '.');
+	uint n = SIZE(Fields);
+	if (n == 1)
+		{
+		Ext = "";
+		return;
+		}
+	const string &LastField = Fields[n-1];
+
+// Special case for .ext.gz, this is considered to be 
+//   the filename extension
+	if (LastField == ".gz" && n > 2)
+		{
+		Ext = Fields[n-2] + ".gz";
+		return;
+		}
+	Ext = LastField;
 	}
 
 static void AllocBuffer(FILE *f)
@@ -2402,10 +2405,30 @@ void Shuffle(vector<unsigned> &v)
 
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
 	{
+	if (EndsWith(FileName, ".gz"))
+		{
+		void ReadLinesFromGzipFile(const string &FileName, vector<string> &Lines);
+		ReadLinesFromGzipFile(FileName, Lines);
+		return;
+		}
 	Lines.clear();
 	FILE *f = OpenStdioFile(FileName);
 	string Line;
 	while (ReadLineStdioFile(f, Line))
 		Lines.push_back(Line);
 	CloseStdioFile(f);
+	}
+
+bool IsDirectory(const string &PathName)
+	{
+	std::error_code ec;
+	bool IsDir = std::filesystem::is_directory(PathName);
+	return IsDir;
+	}
+
+bool IsRegularFile(const string &PathName)
+	{
+	std::error_code ec;
+	bool IsFile = std::filesystem::is_regular_file(PathName);
+	return IsFile;
 	}

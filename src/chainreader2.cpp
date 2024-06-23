@@ -15,21 +15,53 @@ void ChainReader2::Open(const string &Path)
 	m_CurrentFileName.clear();
 	m_PendingFiles.clear();
 	m_PendingDirs.clear();
-	PushFileOrDir(Path);
+	bool Ok = PushFileOrDir(Path);
+	if (!Ok)
+		Die("Not found '%s'", Path.c_str());
 	m_State = STATE_PendingFile;
 	m_TimeLastProgressMsg = time(0);
 	m_ChainCount = 0;
 	}
 
-void ChainReader2::PushFileOrDir(const string &Path)
+bool ChainReader2::IsStructureExt(const string &Ext) const
+	{
+	string LowerExt = Ext;
+	ToLower(LowerExt);
+
+#define x(s)	if (Ext == #s || Ext == string(#s) + string(".gz")) return true;
+	x(pdb)
+	x(ent)
+	x(cif)
+	x(mmcif)
+	x(cal)
+#undef x
+	return false;
+	}
+
+bool ChainReader2::FileNameHasStructureExt(const string &FN) const
+	{
+	string Ext;
+	GetExtFromPathName(FN, Ext);
+	return IsStructureExt(Ext);
+	}
+
+bool ChainReader2::PushFileOrDir(const string &Path)
 	{
 	if (m_Trace) Log("ChainReader2::PushFileOrDir(%s)\n", Path.c_str());
 	if (Path.empty())
-		Die("Empty pathname");
-	if (EndsWith(Path, "/"))
+		return false;
+	if (IsDirectory(Path))
+		{
 		m_PendingDirs.push_back(Path);
-	else
+		return true;
+		}
+	else if (IsRegularFile(Path))
+		{
+
 		m_PendingFiles.push_back(Path);
+		return true;
+		}
+	return false;
 	}
 
 void ChainReader2::ReadNextDir()
@@ -45,17 +77,13 @@ void ChainReader2::ReadNextDir()
 	for (uint i = 0; i < SIZE(FileNames); ++i)
 		{
 		const string &FN = FileNames[i];
-		if (FN[0] == '.')
+		if (FN == "." || FN == "..")
 			continue;
-		const string &Path = Dir + string("/") + FN;
-		if (IsSubDirs[i])
+		if (IsDirectory(FN))
+			m_PendingDirs.push_back(FN);
+		else if (FileNameHasStructureExt(FN))
 			{
-			if (m_Trace) Log("  m_PendingDirs.push_back(%s)\n", Path.c_str());
-			m_PendingDirs.push_back(Path);
-			}
-		else
-			{
-			if (m_Trace) Log("  m_PendingFiles.push_back(%s)\n", Path.c_str());
+			const string &Path = Dir + string("/") + FN;
 			m_PendingFiles.push_back(Path);
 			}
 		}
@@ -86,14 +114,14 @@ PDBChain *ChainReader2::PendingFile()
 			if (Chain != 0)
 				return Chain;
 			}
-		else if (Ext == "pdb" || Ext == "ent")
+		else if (Ext == "pdb" || Ext == "pdb.gz" || Ext == "ent" || Ext == "ent.gz")
 			{
 			m_State = STATE_ReadingPDBFile;
 			PDBChain *Chain = GetFirst_PDB(m_CurrentFileName);
 			if (Chain != 0)
 				return Chain;
 			}
-		else if (Ext == "cif")
+		else if (Ext == "cif" || Ext == "cif.gz" || Ext == "mmcif" || Ext == "mmcif.gz")
 			{
 			m_State = STATE_ReadingCIFFile;
 			PDBChain *Chain = GetFirst_CIF(m_CurrentFileName);
@@ -196,11 +224,11 @@ PDBChain *ChainReader2::GetNextLo()
 	return 0;
 	}
 
-void ChainReader2::GetFallbackLabelFromFN(const string &FileName, string &Label)
+void ChainReader2::GetFallbackLabelFromFN(const string &FN, string &Label)
 	{
-	GetBaseName(FileName, Label);
+	GetStemName(FN, Label);
 	string Ext;
-	GetExtFromPathName(FileName, Ext);
+	GetExtFromPathName(FN, Ext);
 	ToLower(Ext);
 
 // Special-case for downloaded PDB files e.g. pdb1iv1.ent
@@ -214,13 +242,13 @@ void ChainReader2::GetFallbackLabelFromFN(const string &FileName, string &Label)
 		}
 	}
 
-PDBChain *ChainReader2::GetFirst_CAL(const string &FileName)
+PDBChain *ChainReader2::GetFirst_CAL(const string &FN)
 	{
-	m_LR.Open(FileName);
+	m_LR.Open(FN);
 	bool Ok = m_LR.ReadLine(m_Line);
 	if (!Ok)
 		Die("Failed to read first line of CAL file '%s'",
-		  FileName.c_str());
+		  FN.c_str());
 	return GetNext_CAL();
 	}
 
@@ -278,21 +306,21 @@ F       40.340  3.621   14.036
 	return Chain;
 	}
 
-PDBChain *ChainReader2::GetFirst_PDB(const string &FileName)
+PDBChain *ChainReader2::GetFirst_PDB(const string &FN)
 	{
-	ReadLinesFromFile(FileName, m_Lines);
+	ReadLinesFromFile(FN, m_Lines);
 	string FallbackLabel;
-	GetFallbackLabelFromFN(FileName, FallbackLabel);
+	GetFallbackLabelFromFN(FN, FallbackLabel);
 	PDBChain::ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
 	m_ChainIdx_PDB = 0;
 	return GetNext_PDB();
 	}
 
-PDBChain *ChainReader2::GetFirst_CIF(const string &FileName)
+PDBChain *ChainReader2::GetFirst_CIF(const string &FN)
 	{
-	ReadLinesFromFile(FileName, m_Lines);
+	ReadLinesFromFile(FN, m_Lines);
 	string FallbackLabel;
-	GetFallbackLabelFromFN(FileName, FallbackLabel);
+	GetFallbackLabelFromFN(FN, FallbackLabel);
 	PDBChain::ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);
 	m_ChainIdx_CIF = 0;
 	return GetNext_CIF();
