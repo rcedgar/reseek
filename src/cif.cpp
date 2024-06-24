@@ -243,8 +243,11 @@ void PDBChain::ChainsFromLines_CIF(const vector<string> &Lines,
 				Chains.push_back(Chain);
 			Chain = new PDBChain;
 			Chain->m_Label = Label;
-			Chain->m_Label += optset_chainsep ? string(opt_chainsep) : ":";
-			Chain->m_Label += ChainChar;
+			if (ChainChar != 0 && !isspace(ChainChar))
+				{
+				Chain->m_Label += optset_chainsep ? string(opt_chainsep) : ":";
+				Chain->m_Label += ChainChar;
+				}
 
 			CurrentChainChar = ChainChar;
 			}
