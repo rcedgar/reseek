@@ -64,6 +64,22 @@ void PDBChain::LogMe(bool WithCoords) const
 		}
 	}
 
+void PDBChain::ToFasta(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	SeqToFasta(f, m_Label, m_Seq);
+	}
+
+void PDBChain::ToFasta(const string &FileName) const
+	{
+	if (FileName == "")
+		return;
+	FILE *f = CreateStdioFile(FileName);
+	ToFasta(f);
+	CloseStdioFile(f);
+	}
+
 void PDBChain::ToCal(const string &FileName) const
 	{
 	if (FileName == "")
@@ -416,7 +432,7 @@ char PDBChain::FromPDBLines(const string &Label,
 
 	m_Label = Label;
 	const uint N = SIZE(Lines);
-	char Chain = 0;
+	char ChainChar = 0;
 	uint ResidueCount = 0;
 	int CurrentResidueNumber = INT_MAX;
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
@@ -431,11 +447,11 @@ char PDBChain::FromPDBLines(const string &Label,
 			continue;
 
 		char LineChain = Line[21];
-		if (Chain == 0)
-			Chain = LineChain;
-		else if (Chain != LineChain)
+		if (ChainChar == 0)
+			ChainChar = LineChain;
+		else if (ChainChar != LineChain)
 			Die("PDBChain::FromLines() two chains %c, %c",
-			  Chain, LineChain);
+			  ChainChar, LineChain);
 
 		int ResidueNumber = GetResidueNrFromATOMLine(Line);
 		if (ResidueNumber != CurrentResidueNumber)
@@ -448,7 +464,8 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_ATOMs.back().push_back(Line);
 		}
 
-	AppendChainToLabel(m_Label, Chain);
+	m_Label += optset_chainsep ? string(opt_chainsep) : ":";
+	m_Label += ChainChar;
 
 	const uint L = SIZE(m_ATOMs);
 	for (uint i = 0; i < L; ++i)
@@ -468,7 +485,7 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_ResNrs.push_back(ResNr);
 		}
 
-	return Chain;
+	return ChainChar;
 	}
 
 bool PDBChain::GetFieldsFromResidueATOMLines(const vector<string> &Lines,
@@ -907,23 +924,7 @@ void PDBChain::GetXFormChain_tR(
 		}
 	}
 
-void PDBChain::AppendChainToLabel(string &Label, char Chain)
-	{
-	if (Chain == 0)
-		return;
-	if (opt_noappendchain)
-		return;
-
-	string _X = "_";
-	_X += Chain;
-	if (Label.find(_X) == string::npos)
-		{
-		Label += "_";
-		Label += Chain;
-		}
-	}
-
- bool PDBChain::IsATOMLine(const string &Line)
+bool PDBChain::IsATOMLine(const string &Line)
 	{
 	if (SIZE(Line) < 27)
 		return false;

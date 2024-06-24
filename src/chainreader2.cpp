@@ -148,10 +148,18 @@ PDBChain *ChainReader2::GetNext()
 
 PDBChain *ChainReader2::GetNextLo1()
 	{
-	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
+	uint SanityCounter = 0;
+	for (;;)
 		{
+		if (m_Trace) Log("GetNextLo1() state=%d\n", m_State);
 		time_t Now = time(0);
 		PDBChain *Chain = GetNextLo2();
+		if (Chain == 0)
+			{
+			++SanityCounter;
+			if (SanityCounter >= 100)
+				Die("Excessive looping in ChainReader2::GetNextLo1()");
+			}
 		if (Chain == 0)
 			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=0\n"); }
 		else
@@ -159,21 +167,20 @@ PDBChain *ChainReader2::GetNextLo1()
 
 		if (Chain == 0)
 			{
-			Progress("%u chains read               \n", m_ChainCount);
+			Progress("%s chains                \n", IntToStr(m_ChainCount));
 			return 0;
 			}
 		++m_ChainCount;
 		if (Now > m_TimeLastProgressMsg)
 			{
 			m_TimeLastProgressMsg = Now;
-			Progress("%u chains read >%s\r",
-			  m_ChainCount, Chain->m_Label.c_str());
+			Progress("%s chains >%s\r",
+			  IntToStr(m_ChainCount), Chain->m_Label.c_str());
 			}
 		if (Chain->GetSeqLength() > 0)
 			return Chain;
 		delete Chain;
 		}
-	Die("Excessive looping in ChainReader2::GetNextLo1()");
 	return 0;
 	}
 
@@ -181,6 +188,7 @@ PDBChain *ChainReader2::GetNextLo2()
 	{
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
+		if (m_Trace) Log("GetNextLo2() state=%d\n", m_State);
 		switch (m_State)
 			{
 		case STATE_Closed:
@@ -189,6 +197,7 @@ PDBChain *ChainReader2::GetNextLo2()
 		case STATE_PendingFile:
 			{
 			PDBChain *Chain = PendingFile();
+			if (m_Trace) Log("PendingFile()=0, Close() and stop.\n");
 			if (Chain == 0)
 				Close();
 			return Chain;
@@ -199,6 +208,7 @@ PDBChain *ChainReader2::GetNextLo2()
 			PDBChain *Chain = GetNext_CAL();
 			if (Chain != 0)
 				return Chain;
+			if (m_Trace) Log("GetNext_CAL()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
 			}
@@ -208,6 +218,7 @@ PDBChain *ChainReader2::GetNextLo2()
 			PDBChain *Chain = GetNext_PDB();
 			if (Chain != 0)
 				return Chain;
+			if (m_Trace) Log("GetNext_PDB()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
 			}
@@ -217,6 +228,7 @@ PDBChain *ChainReader2::GetNextLo2()
 			PDBChain *Chain = GetNext_CIF();
 			if (Chain != 0)
 				return Chain;
+			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
 			}

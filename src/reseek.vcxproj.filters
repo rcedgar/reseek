@@ -356,6 +356,9 @@
     <ClCompile Include="inffast.c">
       <Filter>Source Files C</Filter>
     </ClCompile>
+    <ClCompile Include="convert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

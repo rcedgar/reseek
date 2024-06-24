@@ -66,6 +66,8 @@ public:
 	void ParseCalLabelLine(const string &Line);
 	void RenumberResidues(uint Start);
 	void ToCal(FILE *f) const;
+	void ToFasta(const string &FileName) const;
+	void ToFasta(FILE *f) const;
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void ToPDB(const string &FileName,
@@ -116,7 +118,6 @@ public:
 	  vector<string> &Lines) const;
 
 public:
-	static void AppendChainToLabel(string &Label, char Chain);
 	static char GetChainCharFromATOMLine(const string &Line);
 	static bool IsATOMLine(const string &Line);
 	static int GetResidueNrFromATOMLine(const string &Line);

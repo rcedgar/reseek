@@ -42,5 +42,6 @@ C(calibrate5)
 C(pdb2alpha)
 C(adjust)
 C(gunzip)
+C(convert)
 
 #undef C
