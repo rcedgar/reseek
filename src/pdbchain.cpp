@@ -464,8 +464,11 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_ATOMs.back().push_back(Line);
 		}
 
-	m_Label += optset_chainsep ? string(opt_chainsep) : ":";
-	m_Label += ChainChar;
+	if (ChainChar != 0 && !isspace(ChainChar))
+		{
+		m_Label += optset_chainsep ? string(opt_chainsep) : ":";
+		m_Label += ChainChar;
+		}
 
 	const uint L = SIZE(m_ATOMs);
 	for (uint i = 0; i < L; ++i)
