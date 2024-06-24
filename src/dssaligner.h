@@ -5,6 +5,7 @@
 #include "xdpmem.h"
 #include "dss.h"
 #include "mx.h"
+#include "userfields.h"
 #include <mutex>
 
 #define SCORE_DIST	0
@@ -142,6 +143,8 @@ public:
 	void ToAln(FILE *f, float MaxEvalue);
 	void ToAlnBA(FILE *f, float MaxEvalue);
 	float AdjustTS(float TS, float mu, float beta) const;
+	void AppendUserField(string &s, USERFIELD UF, bool IsBA);
+	float GetPctId() const { Die("TODO"); return -1; }
 
 public:
 	static void Stats();

@@ -34,7 +34,7 @@ const char *usage_txt[] =
 "    reseek -pdb2cal STRUCTS -output structs.fa\n"
 "\n"
 "Convert PDB file(s) to structure alphabet (FASTA)\n"
-"    reseek -pdb2cal STRUCTS -alpha ALPHA -output structs.fa\n"
+"    reseek -pdb2alpha STRUCTS -alpha ALPHA -output structs.fa\n"
 "        ALPHA is Mu, Conf3, Conf4, Conf16, NENConf16, RENConf16, NENDist16, RENConf16\n"
 "\n"
 "STRUCTS argument is one of:\n"

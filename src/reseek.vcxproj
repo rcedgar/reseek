@@ -355,6 +355,7 @@
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />
     <ClCompile Include="trees.c" />
+    <ClCompile Include="userfields.cpp" />
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />
@@ -436,6 +437,8 @@
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="usage.h" />
+    <ClInclude Include="userfieldnames.h" />
+    <ClInclude Include="userfields.h" />
     <ClInclude Include="xdpmem.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />

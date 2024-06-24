@@ -3,8 +3,6 @@
 #include "dss.h"
 #include "sort.h"
 
-double Q_func(double x, double mu, double sigma);
-
 vector<FEATURE> DSSParams::m_ComboFeatures;
 vector<uint> DSSParams::m_ComboAlphaSizes;
 uint DSSParams::m_ComboAlphaSize = UINT_MAX;

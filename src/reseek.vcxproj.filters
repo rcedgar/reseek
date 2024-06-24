@@ -359,6 +359,9 @@
     <ClCompile Include="convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="userfields.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -593,6 +596,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="linereader2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="userfieldnames.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="userfields.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
