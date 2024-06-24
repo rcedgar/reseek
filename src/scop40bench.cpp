@@ -701,7 +701,7 @@ void cmd_scop40bench()
 		CalFN = g_Arg1;
 
 	SCOP40Bench SB;
-	SB.ReadChains(CalFN, "");
+	SB.LoadChains(CalFN, "");
 
 	DSSParams Params;
 	Params.SetFromCmdLine(SB.GetDBSize());

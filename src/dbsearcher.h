@@ -87,7 +87,7 @@ public:
 	bool GetNextPair(uint &ChainIndex1, uint &ChainIndex2);
 	bool GetNextPairQuerySelf(uint &ChainIndex1, uint &ChainIndex2);
 	const PDBChain &GetChain(uint ChainIndex) const;
-	void ReadChains(const string &QueryCalFileName, 
+	void LoadChains(const string &QueryCalFileName, 
 	  const string &DBCalFileName = "");
 	void SetProfiles();
 	void SetKmersVec();

@@ -92,7 +92,7 @@ void cmd_calibrate5()
 
 	const string &DBFN = opt_db;
 	DBSearcher DBS;
-	DBS.ReadChains(QCalFN, DBFN);
+	DBS.LoadChains(QCalFN, DBFN);
 	const uint NQ = DBS.GetQueryCount();
 	ProgressLog("NQ=%u\n", NQ);
 	set<string> Labels;

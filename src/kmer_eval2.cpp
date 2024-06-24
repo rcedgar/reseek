@@ -236,7 +236,7 @@ uint GetPatternOnes(const string &Str);
 void cmd_kmer_eval2()
 	{
 	SCOP40Bench SB;
-	SB.ReadChains(g_Arg1);
+	SB.LoadChains(g_Arg1);
 
 	const string &PatternStr = "11";
 

@@ -41,7 +41,8 @@ public:
 	PDBChain *GetNext();
 
 private:
-	PDBChain *GetNextLo();
+	PDBChain *GetNextLo1();
+	PDBChain *GetNextLo2();
 	PDBChain *PendingFile();
 	void ReadNextDir();
 	void Close();

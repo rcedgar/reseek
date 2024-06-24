@@ -14,7 +14,7 @@ void cmd_scalar_sweep()
 	SCOP40Bench SB;
 	DSSParams Params;
 	SB.Setup(Params);
-	SB.ReadChains(CalFN);
+	SB.LoadChains(CalFN);
 
 	uint Sens0 = 0;
 	const uint StepCount = opt_n;

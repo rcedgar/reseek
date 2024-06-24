@@ -13,7 +13,7 @@ void cmd_search()
 	const string &DBFN = opt_db;
 	DBSearcher DBS;
 	DSSParams Params;
-	DBS.ReadChains(QCalFN, DBFN);
+	DBS.LoadChains(QCalFN, DBFN);
 	uint DBSize = DBS.GetDBSize();
 	Params.SetFromCmdLine(DBS.GetDBSize());
 

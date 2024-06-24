@@ -216,7 +216,7 @@ void cmd_adjust()
 
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
-	SB.ReadChains(opt_input);
+	SB.LoadChains(opt_input);
 	SB.BuildDomSFIndexesFromQueryChainLabels();
 	const uint DomCount = SB.GetDBChainCount();
 

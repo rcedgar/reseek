@@ -45,7 +45,7 @@ void cmd_explore1i()
 	DSSParams Params;
 
 	SCOP40Bench SB;
-	SB.ReadChains(CalFN, "");
+	SB.LoadChains(CalFN, "");
 
 	opt_sensitive = true;
 	optset_sensitive = true;

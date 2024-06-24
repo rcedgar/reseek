@@ -29,7 +29,7 @@ void DBSearcher::SetKmersVec()
 	}
 
 // Query chains first, then DB chains (unless self)
-void DBSearcher::ReadChains(const string &QueryCalFileName, 
+void DBSearcher::LoadChains(const string &QueryCalFileName, 
   const string &DBCalFileName)
 	{
 	m_ChainCount = 0;

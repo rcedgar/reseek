@@ -16,13 +16,8 @@ void cmd_pdb2cal()
 		if (ptrChain == 0)
 			break;
 		PDBChain &Chain = *ptrChain;
-
-		if (++Count%100 == 0)
-			{
-			Progress("%u converted >%s\r",
-			  Count, Chain.m_Label.c_str());
-			}
 		Chain.ToCal(fOut);
+		delete ptrChain;
 		}
 	Progress("100.0%% done, %u chains converted\n", Count);
 	CloseStdioFile(fOut);

@@ -66,7 +66,7 @@ void cmd_calibrate2()
 
 
 	SCOP40Bench SB;
-	SB.ReadChains(CalFN, "");
+	SB.LoadChains(CalFN, "");
 
 	DSSParams Params;
 	Params.SetFromCmdLine(SB.GetDBSize());

@@ -142,21 +142,28 @@ PDBChain *ChainReader2::PendingFile()
 
 PDBChain *ChainReader2::GetNext()
 	{
-	for (;;)
+	m_Lock.lock();
+	PDBChain *Chain = GetNextLo1();
+	m_Lock.unlock();
+	return Chain;
+	}
+
+PDBChain *ChainReader2::GetNextLo1()
+	{
+	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
 		time_t Now = time(0);
-		PDBChain *Chain = GetNextLo();
+		PDBChain *Chain = GetNextLo2();
 		if (Chain == 0)
-			{ if (m_Trace) Log("ChainReader2::GetNextLo() Chain=0\n"); }
+			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=0\n"); }
 		else
-			{ if (m_Trace) Log("ChainReader2::GetNextLo() Chain=%s\n", Chain->m_Label.c_str()); }
+			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=%s\n", Chain->m_Label.c_str()); }
 
 		if (Chain == 0)
 			{
 			Progress("%u chains read               \n", m_ChainCount);
 			return 0;
 			}
-		brk(Chain->m_Label.find(".pdb") != string::npos);
 		++m_ChainCount;
 		if (Now > m_TimeLastProgressMsg)
 			{
@@ -168,10 +175,11 @@ PDBChain *ChainReader2::GetNext()
 			return Chain;
 		delete Chain;
 		}
+	Die("Excessive looping in ChainReader2::GetNextLo1()");
 	return 0;
 	}
 
-PDBChain *ChainReader2::GetNextLo()
+PDBChain *ChainReader2::GetNextLo2()
 	{
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
@@ -219,7 +227,7 @@ PDBChain *ChainReader2::GetNextLo()
 			asserta(false);
 			}
 		}
-	Die("Excessive looping in ChainReader2::GetNext()");
+	Die("Excessive looping in ChainReader2::GetNextLo2()");
 	return 0;
 	}
 

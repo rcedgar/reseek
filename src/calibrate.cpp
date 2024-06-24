@@ -12,7 +12,7 @@ void cmd_calibrate()
 	const string &QCalFN = g_Arg1;
 	const string &DBFN = opt_db;
 	CalibrateSearcher DBS;
-	DBS.ReadChains(QCalFN, DBFN);
+	DBS.LoadChains(QCalFN, DBFN);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(DBS.GetDBSize());
