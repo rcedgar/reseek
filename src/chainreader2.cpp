@@ -77,14 +77,12 @@ void ChainReader2::ReadNextDir()
 		{
 		const string &FN = FileNames[i];
 		if (FN == "." || FN == "..")
-			continue;
-		if (IsDirectory(FN))
-			m_PendingDirs.push_back(FN);
+			continue; 
+		const string &Path = Dir + string("/") + FN;
+		if (IsDirectory(Path))
+			m_PendingDirs.push_back(Path);
 		else if (FileNameHasStructureExt(FN))
-			{
-			const string &Path = Dir + string("/") + FN;
 			m_PendingFiles.push_back(Path);
-			}
 		}
 	}
 
@@ -94,7 +92,7 @@ PDBChain *ChainReader2::PendingFile()
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
 		if (m_Trace) Log("ChainReader2::PendingFile() SanityCounter=%u\n", SanityCounter);
-		if (m_PendingFiles.empty())
+		while (m_PendingFiles.empty() && !m_PendingDirs.empty())
 			ReadNextDir();
 		if (m_PendingFiles.empty())
 			return 0;
