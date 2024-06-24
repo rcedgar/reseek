@@ -46,13 +46,6 @@ void PDBChain::FromCal(const string &FileName)
 	FromCalLines(Lines);
 	}
 
-PDBChain *PDBChain::ChainFromLines_CAL(const vector<string> &Lines)
-	{
-	PDBChain *Chain = new PDBChain;
-	Chain->FromCalLines(Lines);
-	return Chain;
-	}
-
 void PDBChain::FromCalLines(const vector<string> &Lines)
 	{
 	Clear();

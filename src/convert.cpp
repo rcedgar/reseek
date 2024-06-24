@@ -85,4 +85,7 @@ void cmd_convert()
 			}
 		delete ptrChain;
 		}
+	CloseStdioFile(fCal);
+	CloseStdioFile(fFasta);
+	CloseStdioFile(fFeatureFasta);
 	}

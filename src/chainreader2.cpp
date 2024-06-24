@@ -328,7 +328,7 @@ PDBChain *ChainReader2::GetFirst_PDB(const string &FN)
 	ReadLinesFromFile(FN, m_Lines);
 	string FallbackLabel;
 	GetFallbackLabelFromFN(FN, FallbackLabel);
-	PDBChain::ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
+	ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
 	m_ChainIdx_PDB = 0;
 	return GetNext_PDB();
 	}
@@ -338,7 +338,7 @@ PDBChain *ChainReader2::GetFirst_CIF(const string &FN)
 	ReadLinesFromFile(FN, m_Lines);
 	string FallbackLabel;
 	GetFallbackLabelFromFN(FN, FallbackLabel);
-	PDBChain::ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);
+	ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);
 	m_ChainIdx_CIF = 0;
 	return GetNext_CIF();
 	}
@@ -363,4 +363,81 @@ PDBChain *ChainReader2::GetNext_CIF()
 	PDBChain *Chain = m_Chains_CIF[m_ChainIdx_CIF++];
 	if (m_Trace) Log("ChainReader2::GetNext_CIF() %u/%u Label=%s\n", m_ChainIdx_CIF, N, Chain->m_Label.c_str());
 	return Chain;
+	}
+
+void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
+  vector<PDBChain *> &Chains, const string &FallbackLabel) const
+	{
+	string Label = FallbackLabel;
+	Chains.clear();
+	const uint N = SIZE(Lines);
+	vector<string> ChainLines;
+	char CurrChainChar = 0;
+	bool AnyAtoms = false;
+	for (uint i = 0; i < N; ++i)
+		{
+		const string &Line = Lines[i];
+		if (StartsWith(Line, "HEADER "))
+			{
+			vector<string> Fields;
+			SplitWhite(Line, Fields);
+			uint n = SIZE(Fields);
+			if (n > 1)
+				{
+				Label = Fields[n-1];
+				if (Label == "")
+					Label = FallbackLabel;
+				}
+			}
+
+		brk(Line.substr(0,5) == "ATOM ");
+		if (IsATOMLine_PDB(Line))
+			{
+			if (Line.size() < 57)
+				continue;
+			char ChainChar = Line[21];
+			if (ChainChar != CurrChainChar)
+				{
+				if (AnyAtoms && !ChainLines.empty())
+					{
+					PDBChain *Chain = new PDBChain;
+					char ChainChar = Chain->FromPDBLines(Label, ChainLines);
+					if (ChainChar != 0)
+						Chains.push_back(Chain);
+					ChainLines.clear();
+					AnyAtoms = false;
+					}
+				CurrChainChar = ChainChar;
+				}
+			ChainLines.push_back(Line);
+			AnyAtoms = true;
+			}
+		}
+
+	if (!ChainLines.empty() && AnyAtoms)
+		{
+		PDBChain *Chain = new PDBChain;
+		Chain->FromPDBLines(Label, ChainLines);
+		ChainLines.clear();
+		Chains.push_back(Chain);
+		}
+	}
+
+PDBChain *ChainReader2::ChainFromLines_CAL(const vector<string> &Lines) const
+	{
+	PDBChain *Chain = new PDBChain;
+	Chain->FromCalLines(Lines);
+	return Chain;
+	}
+
+bool ChainReader2::IsATOMLine_PDB(const string &Line) const
+	{
+	if (SIZE(Line) < 27)
+		return false;
+	// Insertion code is somehow about residue numbering, should be included
+	//if (Line[26] != ' ') // insertion code
+	//	return false;
+	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
+		return true;
+	return false;
 	}

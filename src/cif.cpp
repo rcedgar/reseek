@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
+#include "chainreader2.h"
 #include <map>
 
 /***
@@ -115,8 +116,8 @@ enum PARSER_STATE
 	PS_Finished,
 	};
 
-void PDBChain::ChainsFromLines_CIF(const vector<string> &Lines,
-  vector<PDBChain *> &Chains, const string &FallbackLabel)
+void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
+  vector<PDBChain *> &Chains, const string &FallbackLabel) const
 	{
 	Chains.clear();
 	string Label = FallbackLabel;
@@ -266,19 +267,4 @@ void PDBChain::ChainsFromLines_CIF(const vector<string> &Lines,
 		Chain->m_Zs.push_back(Z);
 		Chain->m_ResNrs.push_back(ResNr);
 		}
-	}
-
-void cmd_cif2cal()
-	{
-	const string &FN = g_Arg1;
-	vector<string> Lines;
-	ReadLinesFromFile(FN, Lines);
-
-	FILE *f = CreateStdioFile(opt_output);
-	vector<PDBChain *> Chains;
-	string FallbackLabel = "NOLABEL";
-	PDBChain::ChainsFromLines_CIF(Lines, Chains, FallbackLabel);
-	for (uint i = 0; i < SIZE(Chains); ++i)
-		Chains[i]->ToCal(f);
-	CloseStdioFile(f);
 	}

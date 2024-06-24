@@ -118,8 +118,8 @@ public:
 	  vector<string> &Lines) const;
 
 public:
-	static char GetChainCharFromATOMLine(const string &Line);
 	static bool IsATOMLine(const string &Line);
+	static char GetChainCharFromATOMLine(const string &Line);
 	static int GetResidueNrFromATOMLine(const string &Line);
 	static void HackHETAMLine(string &Line);
 	static void GetAtomNameFromATOMLine(const string &Line,
@@ -136,12 +136,6 @@ public:
 	  double x, double y, double z, string &OutputLine);
 	static bool GetFieldsFromResidueATOMLines(const vector<string> &Lines,
 	  double &X, double &Y, double &Z, char &aa, int &ResNr);
-
-	static PDBChain *ChainFromLines_CAL(const vector<string> &Lines);
-	static void ChainsFromLines_PDB(const vector<string> &Lines,
-		vector<PDBChain *> &Chains, const string &FallbackLabel);
-	static void ChainsFromLines_CIF(const vector<string> &Lines,
-		vector<PDBChain *> &Chains, const string &FallbackLabel);
 	};
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);

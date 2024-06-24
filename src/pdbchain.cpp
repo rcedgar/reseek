@@ -823,63 +823,6 @@ void PDBChain::GetSubSeq(uint MotifStartPos, uint n,
 		}
 	}
 
-void PDBChain::ChainsFromLines_PDB(const vector<string> &Lines,
-  vector<PDBChain *> &Chains, const string &FallbackLabel)
-	{
-	string Label = FallbackLabel;
-	Chains.clear();
-	const uint N = SIZE(Lines);
-	vector<string> ChainLines;
-	char CurrChainChar = 0;
-	bool AnyAtoms = false;
-	for (uint i = 0; i < N; ++i)
-		{
-		const string &Line = Lines[i];
-		if (StartsWith(Line, "HEADER "))
-			{
-			vector<string> Fields;
-			SplitWhite(Line, Fields);
-			uint n = SIZE(Fields);
-			if (n > 1)
-				{
-				Label = Fields[n-1];
-				if (Label == "")
-					Label = FallbackLabel;
-				}
-			}
-
-		if (IsATOMLine(Line))
-			{
-			if (Line.size() < 57)
-				continue;
-			char ChainChar = Line[21];
-			if (ChainChar != CurrChainChar)
-				{
-				if (AnyAtoms && !ChainLines.empty())
-					{
-					PDBChain *Chain = new PDBChain;
-					char ChainChar = Chain->FromPDBLines(Label, ChainLines);
-					if (ChainChar != 0)
-						Chains.push_back(Chain);
-					ChainLines.clear();
-					AnyAtoms = false;
-					}
-				CurrChainChar = ChainChar;
-				}
-			ChainLines.push_back(Line);
-			AnyAtoms = true;
-			}
-		}
-
-	if (!ChainLines.empty() && AnyAtoms)
-		{
-		PDBChain *Chain = new PDBChain;
-		Chain->FromPDBLines(Label, ChainLines);
-		ChainLines.clear();
-		Chains.push_back(Chain);
-		}
-	}
-
 void PDBChain::GetXFormChain_tR(
   const vector<double> &t,
   const vector<vector<double> > &R,
@@ -935,13 +878,6 @@ bool PDBChain::IsATOMLine(const string &Line)
 		return false;
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
-	if (strncmp(Line.c_str(), "HETATM", 6) == 0)
-		{
-		if (optset_delete_hetatm)
-			return false;
-		else
-			return true;
-		}
 	return false;
 	}
 

@@ -57,6 +57,12 @@ private:
 	PDBChain *GetNext_CIF();
 	bool FileNameHasStructureExt(const string &FN) const;
 	bool IsStructureExt(const string &Ext) const;
+	PDBChain *ChainFromLines_CAL(const vector<string> &Lines) const;
+	void ChainsFromLines_PDB(const vector<string> &Lines,
+		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
+	void ChainsFromLines_CIF(const vector<string> &Lines,
+		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
+	bool IsATOMLine_PDB(const string &Line) const;
 
 public:
 	static void GetFallbackLabelFromFN(const string &FN,
