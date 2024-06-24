@@ -45,18 +45,17 @@ void cmd_convert()
 	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
-	DSSParams Params;
-	Params.SetFromCmdLine(10000);
-
 	FILE *fCal = CreateStdioFile(opt_cal);
 	FILE *fFasta = CreateStdioFile(opt_fasta);
 	FILE *fFeatureFasta = CreateStdioFile(opt_feature_fasta);
 
+	DSSParams Params;
 	DSS D;
 	uint AlphaSize = 0;
 	FEATURE Feat = FEATURE(0);
 	if (fFeatureFasta != 0)
 		{
+		Params.SetFromCmdLine(10000);
 		DSS::GetAlphaSize(Feat);
 		Feat = GetFeatureFromCmdLine();
 		}
