@@ -92,7 +92,7 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 			const vector<vector<byte> > &ProfileR = m_Profiles[ChainIndexR];
 			DA.Align_ComboFilter(ChainQ, ChainR, 
 			  ComboLettersQ, ComboLettersR, ProfileQ, ProfileR);
-			if (DA.m_PathA.empty())
+			if (DA.m_Path.empty())
 				continue;
 			if (DA.m_EvalueA > m_MaxEvalue)
 				{
@@ -101,7 +101,7 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 				}
 			++AcceptCount;
 			DA.ToTsv(m_fTsv, m_MaxEvalue, true);
-			OnAln(ChainIndexQ, ChainIndexR, DA);
+			OnAln(ChainIndexQ, ChainIndexR, DA, true);
 			}
 		}
 	}

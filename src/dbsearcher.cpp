@@ -212,53 +212,50 @@ void DBSearcher::Thread(uint ThreadIndex)
 		if (m_Params->m_UseComboPath)
 			{
 			DA.AlignComboOnly();
-			m_Lock.lock();
-			OnAln(ChainIndex1, ChainIndex2, DA);
-			OnAlnBA(ChainIndex1, ChainIndex2, DA);
-			m_Lock.unlock();
+			OnAln(ChainIndex1, ChainIndex2, DA, true);
+			OnAln(ChainIndex1, ChainIndex2, DA, false);
 			}
 		else if (m_Params->m_ComboScoreOnly)
 			{
 			float ComboScore = DA.GetComboScore();
 			DA.m_EvalueA = ComboScore;
 			DA.m_EvalueB = ComboScore;
-			m_Lock.lock();
-			OnAln(ChainIndex1, ChainIndex2, DA);
-			OnAlnBA(ChainIndex1, ChainIndex2, DA);
-			m_Lock.unlock();
+			OnAln(ChainIndex1, ChainIndex2, DA, true);
+			OnAln(ChainIndex1, ChainIndex2, DA, false);
 			}
 		else
 			{
 			DA.AlignQueryTarget();
-			if (!DA.m_PathA.empty())
+			if (!DA.m_Path.empty())
 				{
-				m_Lock.lock();
-
 				if (m_CollectTestStats)
 					{
+					m_Lock.lock();
 					asserta(ChainIndex1 < SIZE(m_TestStatsVec));
 					vector<float> &v1 = m_TestStatsVec[ChainIndex1];
 					v1.push_back(DA.m_TestStatisticA);
+					m_Lock.unlock();
 					}
 
 				DA.ToTsv(m_fTsv, m_MaxEvalue, true);
 				DA.ToAln(m_fAln, m_MaxEvalue, true);
-				DA.ToFasta2(m_fFasta2, m_MaxEvalue, true);
-				OnAln(ChainIndex1, ChainIndex2, DA);
+				DA.ToFasta2(m_fFasta2, m_MaxEvalue, opt_global, true);
+				OnAln(ChainIndex1, ChainIndex2, DA, true);
 				if (m_QuerySelf)
 					{
 					if (m_CollectTestStats)
 						{
+						m_Lock.lock();
 						asserta(ChainIndex2 < SIZE(m_TestStatsVec));
 						vector<float> &v2 = m_TestStatsVec[ChainIndex2];
 						v2.push_back(DA.m_TestStatisticB);
+						m_Lock.unlock();
 						}
 
 					DA.ToTsv(m_fTsv, m_MaxEvalue, false);
 					DA.ToAln(m_fAln, m_MaxEvalue, false);
-					OnAlnBA(ChainIndex1, ChainIndex2, DA);
+					OnAln(ChainIndex1, ChainIndex2, DA, false);
 					}
-				m_Lock.unlock();
 				}
 			}
 		PrevChainIndex1 = ChainIndex1;

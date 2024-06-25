@@ -27,7 +27,9 @@ const char *UFToStr(USERFIELD UF)
 	return "UF_ERROR";
 	}
 
-void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
+// Up is true  if alignment is Query=A, Target=B
+// Up is false if alignment is Query=B, Target=A
+void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 	{
 	if (!s.empty())
 		s += '\t';
@@ -36,43 +38,43 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 		{
 	case UF_query:
 		{
-		s += GetLabelA(IsA);
+		s += GetLabel(Up);
 		break;
 		}
 
 	case UF_target:
 		{
-		s += GetLabelB(IsA);
+		s += GetLabel(!Up);
 		break;
 		}
 
 	case UF_evalue:
 		{
-		Psa(s, "%.3g", GetEvalueA(IsA));
+		Psa(s, "%.3g", GetEvalue(Up));
 		break;
 		}
 
 	case UF_qlo:
 		{
-		Psa(s, "%.3g", GetLoA(IsA));
+		Psa(s, "%.3g", GetLo(Up));
 		break;
 		}
 
 	case UF_qhi:
 		{
-		Psa(s, "%.3g", GetHiA(IsA));
+		Psa(s, "%.3g", GetHi(Up));
 		break;
 		}
 
 	case UF_tlo:
 		{
-		Psa(s, "%.3g", GetLoB(IsA));
+		Psa(s, "%.3g", GetLo(!Up));
 		break;
 		}
 
 	case UF_thi:
 		{
-		Psa(s, "%.3g", GetHiB(IsA));
+		Psa(s, "%.3g", GetHi(!Up));
 		break;
 		}
 
@@ -85,7 +87,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 	case UF_cigar:
 		{
 		string CIGAR;
-		PathToCIGAR(m_PathA.c_str(), CIGAR, IsA);
+		PathToCIGAR(m_Path.c_str(), CIGAR, Up);
 		s += CIGAR;
 		break;
 		}
@@ -93,7 +95,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 	case UF_qrow:
 		{
 		string Row;
-		if (IsA) GetRowB(Row); else GetRowA(Row);
+		GetRow(Up, true, false, Row);
 		s += Row;
 		break;
 		}
@@ -101,7 +103,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 	case UF_trow:
 		{
 		string Row;
-		if (IsA) GetRowA(Row); else GetRowB(Row);
+		GetRow(Up, false, false, Row);
 		s += Row;
 		break;
 		}
@@ -109,7 +111,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 	case UF_qrowg:
 		{
 		string Row;
-		if (IsA) GetRowBg(Row); else GetRowAg(Row);
+		GetRow(Up, true, true, Row);
 		s += Row;
 		break;
 		}
@@ -117,35 +119,22 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool IsA)
 	case UF_trowg:
 		{
 		string Row;
-		if (IsA) GetRowAg(Row); else GetRowBg(Row);
+		GetRow(Up, false, true, Row);
 		s += Row;
 		break;
 		}
 
 	case UF_ts:
 		{
-		Psa(s, "%.3g", IsA ? m_TestStatisticB : m_TestStatisticA);
+		Psa(s, "%.3g", GetTestStatistic(Up));
 		break;
 		}
 
 	case UF_rigid:
 		{
-		double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
-		  uint LoA, uint LoB, const string &Path,
-		  vector<double> &t, vector<vector<double> > &u);
-
 		vector<double> t;
 		vector<vector<double> > R;
-		double RMS = DBL_MAX;
-		if (IsA)
-			RMS = Kabsch(*m_ChainA, *m_ChainB, m_LoA, m_LoB, m_PathA, t, R);
-		else
-			{
-			void InvertPath(const string &Path, string &InvPath);
-			string PathBA;
-			InvertPath(m_PathA, PathBA);
-			RMS = Kabsch(*m_ChainB, *m_ChainA, m_LoB, m_LoA, PathBA, t, R);
-			}
+		float RMS = GetKabsch(t, R, Up);
 		Ps(s, "%.1f", RMS);
 		asserta(SIZE(t) == 3);
 		asserta(SIZE(R) == 3);

@@ -119,8 +119,7 @@ public:
 
 public:
 	virtual void OnSetup() {}
-	virtual void OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA) {}
-	virtual void OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA) {}
+	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up) {}
 
 public:
 	static void StaticThread(uint ThreadIndex, DBSearcher *ptrDBS);

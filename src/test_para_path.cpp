@@ -120,7 +120,7 @@ void DSSAligner::Align_Test(
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
-	m_PathA.clear();
+	m_Path.clear();
 
 	bool ComboFilterOk = ComboFilter();
 	if (!ComboFilterOk)

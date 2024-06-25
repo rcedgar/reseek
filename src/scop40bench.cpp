@@ -254,18 +254,16 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
-	Path = DA.m_PathA;
+	Path = DA.m_Path;
 	return DA.m_EvalueA;
 	}
 
-void SCOP40Bench::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
+void SCOP40Bench::OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up)
 	{
-	StoreScore(ChainIndex1, ChainIndex2, DA.m_EvalueA, DA.m_TestStatisticA);
-	}
-
-void SCOP40Bench::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
-	{
-	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueB, DA.m_TestStatisticB);
+	if (Up)
+		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA, DA.m_TestStatisticA);
+	else
+		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB, DA.m_TestStatisticB);
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()

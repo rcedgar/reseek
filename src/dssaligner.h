@@ -43,7 +43,7 @@ public:
 
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
-	string m_PathA;
+	string m_Path;
 	uint m_LoA = UINT_MAX;
 	uint m_LoB = UINT_MAX;
 	uint m_HiA = UINT_MAX;
@@ -124,9 +124,6 @@ public:
 	int GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
 	  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
 	  const string &Path) const;
-	//float GetEvaluePath(  const PDBChain &ChainA, const PDBChain &ChainB,
-	//  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-	//  uint LoA, uint LoB, const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
 	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
@@ -141,36 +138,33 @@ public:
 	void SetSMx_Combo();
 	void SetSMx_Combo_Int();
 	void AllocDProw(uint LB);
-	void ToTsv(FILE *f, float MaxEvalue, bool IsA);
-	void ToFasta2(FILE *f, float MaxEvalue, bool IsA);
-	void ToAln(FILE *f, float MaxEvalue, bool IsA);
 	float AdjustTS(float TS, float mu, float beta) const;
-	void AppendUserField(string &s, USERFIELD UF, bool IsBA);
+
+// Up is true  if alignment is Query=A, Target=B
+// Up is false if alignment is Query=B, Target=A
+	void ToTsv(FILE *f, float MaxEvalue, bool Up);
+	void ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const;
+	void ToAln(FILE *f, float MaxEvalue, bool Up) const;
+	void AppendUserField(string &s, USERFIELD UF, bool Up) const;
+
+// Top=true means fetch value for A, Top=false fetch B
+	const PDBChain &GetChain(bool Top) const { return Top ? *m_ChainA : *m_ChainB; }
+	const string &GetSeq(bool Top) const { return Top ? m_ChainA->m_Seq : m_ChainB->m_Seq; }
+	const char *GetLabel(bool Top) const { return Top ? m_ChainA->m_Label.c_str() : m_ChainB->m_Label.c_str(); }
+	uint GetLo(bool Top) const { return Top ? m_LoA : m_LoB; }
+	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
+	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
+	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
+	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
+
+	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
+
+	float GetKabsch(vector<double> &t, vector<vector<double> > &u, bool Up) const;
+
+	void GetRow_A(string &Row, bool Global) const;
+	void GetRow_B(string &Row, bool Global) const;
+
 	float GetPctId() const;
-	void GetRowA(string &Row) const;
-	void GetRowB(string &Row) const;
-	void GetRowAg(string &Row) const;
-	void GetRowBg(string &Row) const;
-#define x(type, name)	\
-  type Get##name##A(bool IsA) { return IsA ? m_##name##A : m_##name##B; } \
-  type Get##name##B(bool IsA) { return IsA ? m_##name##B : m_##name##A; }
-	x(uint, Lo)
-	x(uint, Hi)
-	x(float, Evalue)
-	x(float, TestStatistic)
-#undef x
-
-	const char *GetLabelA(bool IsA) { return IsA ? m_ChainA->m_Label.c_str() : m_ChainB->m_Label.c_str(); }
-	const char *GetLabelB(bool IsA) { return IsA ? m_ChainB->m_Label.c_str() : m_ChainA->m_Label.c_str(); }
-
-	const PDBChain &GetChainA(bool IsA) { return IsA ? *m_ChainA : *m_ChainB; }
-	const PDBChain &GetChainB(bool IsA) { return IsA ? *m_ChainB : *m_ChainA; }
-
-	const string &GetSeqA(bool IsA) { return IsA ? m_ChainA->m_Seq : m_ChainB->m_Seq; }
-	const string &GetSeqB(bool IsA) { return IsA ? m_ChainB->m_Seq : m_ChainA->m_Seq; }
-
-	uint GetLA(bool IsA) const { return IsA ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
-	uint GetLB(bool IsA) const { return IsA ? SIZE(m_ChainB->m_Seq) : SIZE(m_ChainA->m_Seq); }
 
 public:
 	static void Stats();

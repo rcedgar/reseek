@@ -728,7 +728,7 @@ void DSSAligner::Align_ComboFilter(
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
-	m_PathA.clear();
+	m_Path.clear();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -783,7 +783,7 @@ void DSSAligner::AlignComboOnly()
 	{
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
-	m_PathA.clear();
+	m_Path.clear();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -812,7 +812,7 @@ void DSSAligner::AlignQueryTarget()
 	{
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
-	m_PathA.clear();
+	m_Path.clear();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -861,14 +861,14 @@ void DSSAligner::CalcEvalue()
 		StartTimer(DALIScore);
 		if (m_Params->m_DALIw != 0)
 			AlnDALIScore = (float)
-			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_PathA, m_LoA, m_LoB);
+			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_Path, m_LoA, m_LoB);
 		EndTimer(DALIScore);
 		}
 
 	const float DALIw = m_Params->m_DALIw;
 	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	uint M, D, I;
-	GetPathCounts(m_PathA, M, D, I);
+	GetPathCounts(m_Path, M, D, I);
 	m_HiA = M + D;
 	m_HiB = M + I;
 
@@ -903,7 +903,7 @@ void DSSAligner::CalcEvalue()
 
 void DSSAligner::Align_NoAccel()
 	{
-	m_PathA.clear();
+	m_Path.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
 
@@ -916,7 +916,7 @@ void DSSAligner::Align_NoAccel()
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
-	  m_LoA, m_LoB, Leni, Lenj, m_PathA);
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 	EndTimer(SWFwd);
 
 	CalcEvalue();
@@ -924,11 +924,11 @@ void DSSAligner::Align_NoAccel()
 
 void DSSAligner::AlignComboPath()
 	{
-	m_PathA.clear();
+	m_Path.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
 	m_AlnFwdScore = 0;
-	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_PathA);
+	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_Path);
 	if (ComboFwdScore < 0)
 		{
 		m_StatsLock.lock();
@@ -938,167 +938,79 @@ void DSSAligner::AlignComboPath()
 		Mx<float> &SMx = m_SMx;
 		Mx<float> &RevSMx = m_RevSMx;
 		ComboFwdScore = 
-		  AlignCombo(*m_ComboLettersA, *m_ComboLettersB, m_LoA, m_LoB, m_PathA);
+		  AlignCombo(*m_ComboLettersA, *m_ComboLettersB, m_LoA, m_LoB, m_Path);
 		m_AlnFwdScore =
-		  GetDPScorePath(*m_ProfileA, *m_ProfileB, m_LoA, m_LoB, m_PathA);
+		  GetDPScorePath(*m_ProfileA, *m_ProfileB, m_LoA, m_LoB, m_Path);
 		}
 	CalcEvalue();
 	}
 
-void DSSAligner::ToAln(FILE *f, float MaxEvalue, bool IsA)
+void DSSAligner::ToAln(FILE *f, float MaxEvalue, bool Up) const
 	{
 	if (f == 0)
 		return;
-	if (GetEvalueA(IsA) > MaxEvalue)
+	if (GetEvalue(Up) > MaxEvalue)
 		return;
-	PrettyAln(f, *m_ChainA, *m_ChainB, m_LoA, m_LoB, m_PathA, m_EvalueA);
+	if (Up)
+		PrettyAln(f, *m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, m_EvalueA);
+	else
+		{
+		string Path;
+		InvertPath(m_Path, Path);
+		PrettyAln(f, *m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, m_EvalueB);
+		}
 	}
 
-void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool IsA)
+void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
 	{
 	if (f == 0)
 		return;
 	if (m_EvalueA > MaxEvalue)
 		return;
-	const uint LA = GetLA(IsA);
-	const uint LB = GetLB(IsA);
 
-	const char *LabelA = GetLabelA(IsA);
-	const char *LabelB = GetLabelB(IsA);
-
-	const string &SeqA = GetSeqA(IsA);
-	const string &SeqB = GetSeqB(IsA);
-
-	uint LoA = GetLoA(IsA);
-	uint LoB = GetLoA(IsA);
-	uint MaxLo = max(LoA, LoB);
-
-	string RowA;
-	string RowB;
-
-	for (uint i = 0; i < MaxLo - LoA; ++i)
-		RowA.push_back('.');
-	for (uint i = 0; i < LoA; i++)
-		RowA.push_back(SeqA[i]);
-
-	for (uint i = 0; i < MaxLo - LoB; ++i)
-		RowB.push_back('.');
-	for (uint i = 0; i < LoB; i++)
-		RowB.push_back(SeqB[i]);
-
-	const uint ColCount = SIZE(m_PathA);
-	uint PosA = LoA;
-	uint PosB = LoB;
-	uint IdCount = 0;
-	for (uint Col = 0; Col < ColCount; ++Col)
+	string RowA, RowB;
+	if (Up)
 		{
-		char c = m_PathA[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < SIZE(SeqA));
-			asserta(PosB < SIZE(SeqB));
-			char a = SeqA[PosA++];
-			char b = SeqB[PosB++];
-			if (a == b)
-				++IdCount;
-			RowA += a;
-			RowB += b;
-			break;
-			}
-
-		case 'D':
-			{
-			asserta(PosA < SIZE(SeqA));
-			RowA += SeqA[PosA++];
-			RowB += '-';
-			break;
-			}
-
-		case 'I':
-			{
-			asserta(PosB < SIZE(SeqB));
-			RowA += '-';
-			RowB += SeqB[PosB++];
-			break;
-			}
-
-		default:
-			asserta(false);
-			}
+		GetRow_A(RowA, Global);
+		GetRow_B(RowB, Global);
+		}
+	else
+		{
+		GetRow_B(RowA, Global);
+		GetRow_A(RowB, Global);
 		}
 
+	const string &LabelA = GetLabel(Up);
+	const string &LabelB = GetLabel(!Up);
+	float Evalue = GetEvalue(Up);
+	float PctId = GetPctId();
 	string LabelAx = LabelA;
-	Psa(LabelAx, " E=%.3g Id=%.1f%%",
-	  m_EvalueA, GetPct(IdCount, ColCount));
+	Psa(LabelAx, " E=%.3g Id=%.1f%%", m_EvalueA, PctId);
 	LabelAx += " (";
 	LabelAx += LabelB;
 	LabelAx += ")";
+
 	m_OutputLock.lock();
 	SeqToFasta(f, LabelAx.c_str(), RowA);
 	SeqToFasta(f, LabelB, RowB);
 	m_OutputLock.unlock();
 	}
 
-void DSSAligner::ToTsv(FILE *f, float MaxEvalue, bool IsA)
+void DSSAligner::ToTsv(FILE *f, float MaxEvalue, bool Up)
 	{
 	if (f == 0)
 		return;
-	float Evalue = GetEvalueA(IsA);
+	float Evalue = GetEvalue(Up);
 	if (Evalue > MaxEvalue)
 		return;
-	m_OutputLock.lock();
 
+	m_OutputLock.lock();
 	fprintf(f, "%.3g", Evalue);
-	fprintf(f, "\t%s", GetLabelA(IsA));
-	fprintf(f, "\t%s", GetLabelB(IsA));
-	fprintf(f, "\t%.3g", GetTestStatisticA(IsA));
+	fprintf(f, "\t%s", GetLabel(Up));
+	fprintf(f, "\t%s", GetLabel(!Up));
 	fprintf(f, "\n");
 	m_OutputLock.unlock();
 	}
-
-//void DSSAligner::ToTsvBA(FILE *f, float MaxEvalue)
-//	{
-//	if (f == 0)
-//		return;
-//	if (m_EvalueB > MaxEvalue)
-//		return;
-//#if 0
-//	string CIGAR;
-//	PathToCIGAR(m_PathA.c_str(), CIGAR, true);
-//	uint M, D, I;
-//	GetPathCounts(m_PathA, M, D, I);
-//	m_OutputLock.lock();
-//	fprintf(f, "%.3g", m_EvalueB);
-//	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
-//	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
-//	fprintf(f, "\t%u", m_LoB + 1);
-//	fprintf(f, "\t%u", m_LoB + M + I);
-//	fprintf(f, "\t%u", m_LoA + 1);
-//	fprintf(f, "\t%u", m_LoA + M + D);
-//	fprintf(f, "\t%s\n", CIGAR.c_str());
-//	m_OutputLock.unlock();
-//#else
-//	m_OutputLock.lock();
-//#if 0////////////////////////////////////
-//	Log("BA| %s", m_ChainA->m_Label.c_str());
-//	Log(" %s", m_ChainB->m_Label.c_str());
-//	Log(" TS=%.3g", m_TestStatisticB);
-//	Log(" Qm=%.3g", m_Query_Slope_m);
-//	Log(" Qb=%.3g", m_Query_Slope_b);
-//	Log(" E=%.3g", m_Params->GetEvalue(m_TestStatisticB));
-//	Log(" Eslp=%.3g", m_Params->GetEvalueSlope(m_TestStatisticB, m_Query_Slope_m, m_Query_Slope_b));
-//	Log(" Eol=%.3g", m_Params->GetEvalueOldLinear(m_TestStatisticB));
-//	Log("\n");
-//#endif
-//	fprintf(f, "%.3g", m_Params->GetEvalue(m_TestStatisticB));
-//	fprintf(f, "\t%s", m_ChainB->m_Label.c_str());
-//	fprintf(f, "\t%s", m_ChainA->m_Label.c_str());
-//	fprintf(f, "\n");
-//	m_OutputLock.unlock();
-//#endif
-//	}
 
 float DSSAligner::AlignCombo(
   const vector<byte> &LettersA, const vector<byte> &LettersB,
@@ -1109,9 +1021,7 @@ float DSSAligner::AlignCombo(
 	SetSMx_Combo();
 	uint LA = SIZE(LettersA);
 	uint LB = SIZE(LettersB);
-//float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
-//  float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-//  string &Path)
+
 	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
 	float GapExt = -(float) m_Params->m_ParaComboGapExt;
 	uint Loi, Loj, Leni, Lenj;
@@ -1206,153 +1116,107 @@ uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) co
 	return U;
 	}
 
-void DSSAligner::GetRowA(string &RowA) const
+void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const
 	{
-	RowA.clear();
-	const string &Path = m_PathA;
+	if (Up)
+		{
+		if (Top)
+			GetRow_A(Row, Global);
+		else
+			GetRow_B(Row, Global);
+		}
+	else
+		{
+		if (Top)
+			GetRow_B(Row, Global);
+		else
+			GetRow_A(Row, Global);
+		}
+	}
+
+void DSSAligner::GetRow_A(string &Row, bool Global) const
+	{
+	Row.clear();
 	const string &SeqA = m_ChainA->m_Seq;
 	const uint LA = SIZE(SeqA);
-	const uint ColCount = SIZE(Path);
-	uint PosA = m_LoA;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-		case 'D':
-			{
-			asserta(PosA < LA);
-			RowA += SeqA[PosA++];
-			break;
-			}
-
-		case 'I':
-			RowA += '-';
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	}
-
-void DSSAligner::GetRowAg(string &RowA) const
-	{
-	RowA.clear();
-	const string &Path = m_PathA;
-	const string &SeqA = m_ChainA->m_Seq;
-	const uint LA = SIZE(SeqA);
-	const uint ColCount = SIZE(Path);
-	uint MaxLo = max(m_LoA, m_LoB);
-	if (m_LoA > m_LoB)
-		{
-		for (uint i = m_LoA; i < m_LoB; ++i)
-			RowA += '.';
-		}
-	for (uint i = 0; i < m_LoA; ++i)
-		RowA += tolower(SeqA[i]);
-	uint PosA = m_LoA;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-		case 'D':
-			{
-			asserta(PosA < LA);
-			RowA += SeqA[PosA++];
-			break;
-			}
-
-		case 'I':
-			RowA += '-';
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	while (PosA < LA)
-		RowA += tolower(SeqA[PosA++]);
-	}
-
-void DSSAligner::GetRowB(string &RowB) const
-	{
-	RowB.clear();
-	const string &Path = m_PathA;
-	const string &SeqB = m_ChainB->m_Seq;
-	const uint LB = SIZE(SeqB);
-	const uint ColCount = SIZE(Path);
-	uint PosB = m_LoB;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-		case 'I':
-			{
-			asserta(PosB < LB);
-			RowB += SeqB[PosB++];
-			break;
-			}
-
-		case 'D':
-			RowB += '-';
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	}
-
-void DSSAligner::GetRowBg(string &RowB) const
-	{
-	RowB.clear();
-	const string &Path = m_PathA;
-	const string &SeqB = m_ChainB->m_Seq;
-	const uint LB = SIZE(SeqB);
-	const uint ColCount = SIZE(Path);
-	uint MaxLo = max(m_LoA, m_LoB);
-	if (m_LoB > m_LoA)
+	const uint ColCount = SIZE(m_Path);
+	if (Global)
 		{
 		for (uint i = m_LoB; i < m_LoA; ++i)
-			RowB += '.';
+			Row += '.';
+		for (uint i = 0; i < m_LoA; ++i)
+			Row += tolower(SeqA[i]);
 		}
-	for (uint i = 0; i < m_LoB; ++i)
-		RowB += tolower(SeqB[i]);
-	uint PosB = m_LoB;
+	uint PosA = m_LoA;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
-		char c = Path[Col];
+		char c = m_Path[Col];
 		switch (c)
 			{
 		case 'M':
-		case 'I':
+		case 'D':
 			{
-			asserta(PosB < LB);
-			RowB += SeqB[PosB++];
+			asserta(PosA < LA);
+			Row += SeqA[PosA++];
 			break;
 			}
 
-		case 'D':
-			RowB += '-';
+		case 'I':
+			Row += '-';
 			break;
 
 		default:
 			asserta(false);
 			}
 		}
-	while (PosB < LB)
-		RowB += tolower(SeqB[PosB++]);
+	if (Global)
+		while (PosA < LA)
+			Row += tolower(SeqA[PosA++]);
+	}
+
+void DSSAligner::GetRow_B(string &Row, bool Global) const
+	{
+	Row.clear();
+	const string &SeqB = m_ChainB->m_Seq;
+	const uint LB = SIZE(SeqB);
+	const uint ColCount = SIZE(m_Path);
+	if (Global)
+		{
+		for (uint i = m_LoA; i < m_LoB; ++i)
+			Row += '.';
+		for (uint i = 0; i < m_LoB; ++i)
+			Row += tolower(SeqB[i]);
+		}
+	uint PosB = m_LoB;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = m_Path[Col];
+		switch (c)
+			{
+		case 'M':
+		case 'I':
+			{
+			asserta(PosB < LB);
+			Row += SeqB[PosB++];
+			break;
+			}
+
+		case 'D':
+			Row += '-';
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	if (Global)
+		while (PosB < LB)
+			Row += tolower(SeqB[PosB++]);
 	}
 
 float DSSAligner::GetPctId() const
 	{
-	const string &Path = m_PathA;
+	const string &Path = m_Path;
 	const uint ColCount = SIZE(Path);
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
@@ -1394,4 +1258,20 @@ float DSSAligner::GetPctId() const
 			}
 		}
 	return N == 0 ? 0 : (n*100.0f)/N;
+	}
+
+float DSSAligner::GetKabsch(vector<double> &t, vector<vector<double> > &u, bool Up) const
+	{
+	double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
+		uint LoA, uint LoB, const string &Path,
+		vector<double> &t, vector<vector<double> > &u);
+
+	if (Up)
+		return (float) Kabsch(*m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, t, u);
+	else
+		{
+		string Path;
+		InvertPath(m_Path, Path);
+		return (float) Kabsch(*m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, t, u);
+		}
 	}
