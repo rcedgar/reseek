@@ -32,7 +32,6 @@ public:
 	uint m_ChainIdx_PDB = 0;
 	uint m_ChainIdx_CIF = 0;
 	string m_Label_PDB;
-	time_t m_TimeLastProgressMsg = 0;
 	uint m_ChainCount = 0;
 	bool m_Trace = false;
 

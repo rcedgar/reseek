@@ -19,7 +19,6 @@ void ChainReader2::Open(const string &Path)
 	if (!Ok)
 		Die("Not found '%s'", Path.c_str());
 	m_State = STATE_PendingFile;
-	m_TimeLastProgressMsg = time(0);
 	m_ChainCount = 0;
 	}
 
@@ -166,17 +165,8 @@ PDBChain *ChainReader2::GetNextLo1()
 			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=%s\n", Chain->m_Label.c_str()); }
 
 		if (Chain == 0)
-			{
-			Progress("%s chains                \n", IntToStr(m_ChainCount));
 			return 0;
-			}
 		++m_ChainCount;
-		if (Now > m_TimeLastProgressMsg)
-			{
-			m_TimeLastProgressMsg = Now;
-			Progress("%s chains >%s\r",
-			  IntToStr(m_ChainCount), Chain->m_Label.c_str());
-			}
 		if (Chain->GetSeqLength() > 0)
 			return Chain;
 		delete Chain;
@@ -390,7 +380,6 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 				}
 			}
 
-		brk(Line.substr(0,5) == "ATOM ");
 		if (IsATOMLine_PDB(Line))
 			{
 			if (Line.size() < 57)

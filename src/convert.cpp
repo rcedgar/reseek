@@ -2,6 +2,7 @@
 #include "pdbchain.h"
 #include "dss.h"
 #include "chainreader2.h"
+#include <set>
 
 static char GetFeatureChar(byte Letter, uint AlphaSize)
 	{
@@ -60,13 +61,32 @@ void cmd_convert()
 		Feat = GetFeatureFromCmdLine();
 		}
 
+	set<string> Labels;
 	uint Count = 0;
+	uint DupeLabelCount = 0;
+	time_t LastTime = 0;
 	for (;;)
 		{
 		PDBChain *ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
 		PDBChain &Chain = *ptrChain;
+		if (Labels.find(Chain.m_Label) != Labels.end())
+			{
+			Log("Dupe >%s\n", Chain.m_Label.c_str());
+			++DupeLabelCount;
+			delete ptrChain;
+			continue;
+			}
+		time_t Now = time(0);
+		if (Now - LastTime > 0)
+			{
+			Progress("%u chains converted, %u dupe labels\r",
+			  Count, DupeLabelCount);
+			LastTime = Now;
+			}
+		++Count;
+		Labels.insert(Chain.m_Label);
 
 		Chain.ToCal(fCal);
 		Chain.ToFasta(fFasta);
@@ -85,6 +105,8 @@ void cmd_convert()
 			}
 		delete ptrChain;
 		}
+	if (DupeLabelCount > 0)
+		Warning("%u duplicate labels skipped (see log file)", DupeLabelCount);
 	CloseStdioFile(fCal);
 	CloseStdioFile(fFasta);
 	CloseStdioFile(fFeatureFasta);
