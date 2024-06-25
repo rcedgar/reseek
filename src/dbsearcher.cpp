@@ -220,8 +220,8 @@ void DBSearcher::Thread(uint ThreadIndex)
 		else if (m_Params->m_ComboScoreOnly)
 			{
 			float ComboScore = DA.GetComboScore();
-			DA.m_EvalueAB = ComboScore;
-			DA.m_EvalueBA = ComboScore;
+			DA.m_EvalueA = ComboScore;
+			DA.m_EvalueB = ComboScore;
 			m_Lock.lock();
 			OnAln(ChainIndex1, ChainIndex2, DA);
 			OnAlnBA(ChainIndex1, ChainIndex2, DA);
@@ -230,7 +230,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 		else
 			{
 			DA.AlignQueryTarget();
-			if (!DA.m_PathAB.empty())
+			if (!DA.m_PathA.empty())
 				{
 				m_Lock.lock();
 
@@ -238,12 +238,12 @@ void DBSearcher::Thread(uint ThreadIndex)
 					{
 					asserta(ChainIndex1 < SIZE(m_TestStatsVec));
 					vector<float> &v1 = m_TestStatsVec[ChainIndex1];
-					v1.push_back(DA.m_TestStatisticAB);
+					v1.push_back(DA.m_TestStatisticA);
 					}
 
-				DA.ToTsv(m_fTsv, m_MaxEvalue);
-				DA.ToAln(m_fAln, m_MaxEvalue);
-				DA.ToFasta2(m_fFasta2, m_MaxEvalue);
+				DA.ToTsv(m_fTsv, m_MaxEvalue, true);
+				DA.ToAln(m_fAln, m_MaxEvalue, true);
+				DA.ToFasta2(m_fFasta2, m_MaxEvalue, true);
 				OnAln(ChainIndex1, ChainIndex2, DA);
 				if (m_QuerySelf)
 					{
@@ -251,11 +251,11 @@ void DBSearcher::Thread(uint ThreadIndex)
 						{
 						asserta(ChainIndex2 < SIZE(m_TestStatsVec));
 						vector<float> &v2 = m_TestStatsVec[ChainIndex2];
-						v2.push_back(DA.m_TestStatisticBA);
+						v2.push_back(DA.m_TestStatisticB);
 						}
 
-					DA.ToTsvBA(m_fTsv, m_MaxEvalue);
-					DA.ToAlnBA(m_fAln, m_MaxEvalue);
+					DA.ToTsv(m_fTsv, m_MaxEvalue, false);
+					DA.ToAln(m_fAln, m_MaxEvalue, false);
 					OnAlnBA(ChainIndex1, ChainIndex2, DA);
 					}
 				m_Lock.unlock();

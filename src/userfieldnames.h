@@ -16,4 +16,6 @@ x(trow)
 x(qrowg)
 x(trowg)
 x(ts)
+x(rigid)
+
 #undef x

@@ -11,7 +11,7 @@
 #include <thread>
 #include <set>
 
-uint GetMatchColCount(const string &Path);
+void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
 
@@ -254,18 +254,18 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
-	Path = DA.m_PathAB;
-	return DA.m_EvalueAB;
+	Path = DA.m_PathA;
+	return DA.m_EvalueA;
 	}
 
 void SCOP40Bench::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	{
-	StoreScore(ChainIndex1, ChainIndex2, DA.m_EvalueAB, DA.m_TestStatisticAB);
+	StoreScore(ChainIndex1, ChainIndex2, DA.m_EvalueA, DA.m_TestStatisticA);
 	}
 
 void SCOP40Bench::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	{
-	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueBA, DA.m_TestStatisticBA);
+	StoreScore(ChainIndex2, ChainIndex1, DA.m_EvalueB, DA.m_TestStatisticB);
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()

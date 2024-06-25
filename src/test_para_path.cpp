@@ -118,9 +118,9 @@ void DSSAligner::Align_Test(
 	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX, FLT_MAX);
 	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX, FLT_MAX);
 
-	m_EvalueAB = FLT_MAX;
-	m_EvalueBA = FLT_MAX;
-	m_PathAB.clear();
+	m_EvalueA = FLT_MAX;
+	m_EvalueB = FLT_MAX;
+	m_PathA.clear();
 
 	bool ComboFilterOk = ComboFilter();
 	if (!ComboFilterOk)
@@ -142,7 +142,7 @@ void DSSAligner::Align_Test(
 #endif
 
 #if TEST_GetDPScorePath
-	m_PathAB.clear();
+	m_PathA.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
 
@@ -154,9 +154,9 @@ void DSSAligner::Align_Test(
 	uint LenA, LenB;
 	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
-	  m_LoA, m_LoB, LenA, LenB, m_PathAB);
+	  m_LoA, m_LoB, LenA, LenB, m_PathA);
 	float FwdScore2 = GetDPScorePath(*m_ProfileA, *m_ProfileB,
-	  m_LoA, m_LoB, m_PathAB);
+	  m_LoA, m_LoB, m_PathA);
 	Log("%.1f %.1f\n", FwdScore, FwdScore2);
 #endif
 

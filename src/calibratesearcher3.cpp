@@ -12,12 +12,12 @@ void CalibrateSearcher3::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &D
 	{
 	asserta(ChainIndex1 < SIZE(m_TestStatsVec));
 	vector<float> &v = m_TestStatsVec[ChainIndex1];
-	v.push_back(DA.m_TestStatisticAB);
+	v.push_back(DA.m_TestStatisticA);
 	}
 
 void CalibrateSearcher3::OnAlnBA(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
 	{
 	asserta(ChainIndex2 < SIZE(m_TestStatsVec));
 	vector<float> &v = m_TestStatsVec[ChainIndex2];
-	v.push_back(DA.m_TestStatisticBA);
+	v.push_back(DA.m_TestStatisticB);
 	}

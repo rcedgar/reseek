@@ -411,5 +411,6 @@ double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 		}
 	myfree(x);
 	myfree(y);
+	asserta(M > 0);
 	return RMS/M;
 	}

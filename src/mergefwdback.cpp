@@ -1,21 +1,7 @@
 #include "myutils.h"
 #include "pdbchain.h"
 
-void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
-	{
-	M = D = I = 0;
-	const uint ColCount = SIZE(Path);
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		switch (Path[Col])
-			{
-		case 'M': ++M; continue;
-		case 'D': ++D; continue;
-		case 'I': ++I; continue;
-		default: asserta(false);
-			}
-		}
-	}
+void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 
 void MergeFwdBwd(uint LA, uint LB,
   uint FwdLoA, uint FwdLoB, const string &FwdPath,
