@@ -11,7 +11,7 @@ CC = ccache gcc
 CFLAGS := $(CFLAGS) -O3 -ffast-math -march=native
 
 CXX = ccache g++
-CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++11
+CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++17
 
 UNAME_S := $(shell uname -s)
 LDFLAGS := $(LDFLAGS) -O3 -pthread -lpthread

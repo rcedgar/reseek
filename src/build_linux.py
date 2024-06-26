@@ -5,8 +5,8 @@ import sys
 
 rc = os.system('test -z $(git status --porcelain) 2> /dev/null')
 if rc != 0:
-    sys.stderr.write("\n\nERROR -- Uncommited changes\n\n")
-    sys.exit(1)
+    sys.stderr.write("\n\nWARNING -- Uncommited changes\n\n")
+    ## sys.exit(1)
 
 rc = os.system(r'echo \"$(git log --oneline | head -n1 | cut "-d " -f1)\" | tee gitver.txt')
 if rc != 0:
@@ -90,7 +90,7 @@ with open("Makefile", "w") as f:
     if CXXNames:
         Out("")
         Out("CXX = ccache g++")
-        Out("CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++11")
+        Out("CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++17")
 
     Out("")
     Out("UNAME_S := $(shell uname -s)")

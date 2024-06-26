@@ -11,7 +11,6 @@
 #include <signal.h>
 #include <float.h>
 #include <mutex>
-#include <filesystem>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
@@ -30,8 +29,21 @@
 #include <dirent.h>
 #endif
 
-
 #include "myutils.h"
+
+bool IsDirectory(const string& PathName)
+{
+	std::error_code ec;
+	bool IsDir = std::filesystem::is_directory(PathName);
+	return IsDir;
+}
+
+bool IsRegularFile(const string& PathName)
+{
+	std::error_code ec;
+	bool IsFile = std::filesystem::is_regular_file(PathName);
+	return IsFile;
+}
 
 const int SIZE_16 = 16;
 const int SIZE_32 = 32;
@@ -944,11 +956,11 @@ void mylistdir(const string &DirName, vector<string> &FileNames,
 	}
 #else
 // WARNING includes . and ..
-// void mylistdir(const string &DirName, vector<string> &FileNames,
+void mylistdir(const string &DirName, vector<string> &FileNames,
   vector<bool> &IsSubDirs)
 	{
 	FileNames.clear();
-	IsSubDir.clear();
+	IsSubDirs.clear();
 	DIR *dir = opendir(DirName.c_str());
 	if (dir == 0)
 		Die("Directory not found: %s", DirName.c_str());
@@ -2418,18 +2430,4 @@ void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
 	while (ReadLineStdioFile(f, Line))
 		Lines.push_back(Line);
 	CloseStdioFile(f);
-	}
-
-bool IsDirectory(const string &PathName)
-	{
-	std::error_code ec;
-	bool IsDir = std::filesystem::is_directory(PathName);
-	return IsDir;
-	}
-
-bool IsRegularFile(const string &PathName)
-	{
-	std::error_code ec;
-	bool IsFile = std::filesystem::is_regular_file(PathName);
-	return IsFile;
 	}
