@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <float.h>
 #include <mutex>
+#include <filesystem>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
