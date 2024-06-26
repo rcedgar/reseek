@@ -43,5 +43,6 @@ C(pdb2alpha)
 C(adjust)
 C(gunzip)
 C(convert)
+C(daliscore_msa)
 
 #undef C

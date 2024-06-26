@@ -3,29 +3,6 @@
 
 #include "myutils.h"
 
-/***
-In PDB files x,y,z coordinates must be -999.999 .. 9999.999
-due to fixed-width formatting.
-Multiply by 10 for integer representation is
--9999 to 99999 = 199998 range, log2(199998)=17.6, 2^18 = 262144, 3*18 = 54 bits
-5 bits for 0..20 amino alphabet
-leaves 64-59 = 5 bits unused in 64-bit integer.
-cal line 
-
-         1         2  ~23 bytes = 184 bits ~3 x 64-bit
-12345678901234567890123
-R#-18.865#-3.299#39.412
-
-         1      ~17 bytes = 136 bits ~2 x 64-bit
-12345678901234567
-R#-18.8#-3.2#39.4
-
-64 bits per position
-300 aa = 4x300 = 1200 bytes/structure = 1k/structure
-
-SCOP40 = 10k * 1k = 10Mb, 35Mb as .cal.
-***/
-
 class PDBChain
 	{
 public:

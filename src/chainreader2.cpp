@@ -292,7 +292,7 @@ F       40.340  3.621   14.036
 ***/
 	const uint N = SIZE(m_Lines);
 	vector<string> Fields;
-	for (uint LineNr = 1; LineNr < N; ++LineNr)
+	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
 		const string &Line = m_Lines[LineNr];
 		Split(Line, Fields, '\t');

@@ -362,6 +362,9 @@
     <ClCompile Include="userfields.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="daliscore_msa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

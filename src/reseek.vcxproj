@@ -291,6 +291,7 @@
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="crc32.c" />
+    <ClCompile Include="daliscore_msa.cpp" />
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />

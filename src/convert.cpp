@@ -79,13 +79,13 @@ void cmd_convert()
 			continue;
 			}
 		time_t Now = time(0);
+		++Count;
 		if (Now - LastTime > 0)
 			{
 			Progress("%u chains converted, %u dupe labels\r",
 			  Count, DupeLabelCount);
 			LastTime = Now;
 			}
-		++Count;
 		Labels.insert(Chain.m_Label);
 
 		Chain.ToCal(fCal);
@@ -105,8 +105,7 @@ void cmd_convert()
 			}
 		delete ptrChain;
 		}
-	if (DupeLabelCount > 0)
-		Warning("%u duplicate labels skipped (see log file)", DupeLabelCount);
+	Progress("%u chains converted, %u dupe labels\n", Count, DupeLabelCount);
 	CloseStdioFile(fCal);
 	CloseStdioFile(fFasta);
 	CloseStdioFile(fFeatureFasta);

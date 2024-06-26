@@ -37,6 +37,35 @@ ATOM      3  C   PHE A   1      32.243  19.483  -9.229  1.00 24.35           C
 ATOM      4  CB  PHE A   1      33.494  21.006  -7.685  1.00 24.35           C  
 ***/
 
+/***
+In PDB files x,y,z coordinates must be -999.999 .. 9999.999
+due to fixed-width formatting.
+Multiply by 10 for integer representation is
+-9999 to 99999 = 199998 range, log2(199998)=17.6, 2^18 = 262144, 3*18 = 54 bits
+5 bits for 0..20 amino alphabet
+leaves 64-59 = 5 bits unused in 64-bit integer.
+
+Range in PDB: -963.585 .. 3017.753
+
+16-bit unsigned int = 65535 
+CoordToIC(X) = int((X + 1000)*10 + 0.5f)
+ICToCoord(IC) = float(IC/10.0f) - 1000.0f
+C:\src\py\reseek_integer_coords.py
+# reseek_integer_coords.py
+Min coord -1000.0
+Max coord 5553.5
+ -999.9           1   -999.9
+X=9999.9 IC 109999 out of range
+ 9999.9      109999   9999.9
+-1000.0           0  -1000.0
+ -100.0        9000   -100.0
+  -50.0        9500    -50.0
+    0.0       10000      0.0
+   50.0       10500     50.0
+  100.0       11000    100.0
+ 1000.0       20000   1000.0
+***/
+
 void PDBChain::LogMe(bool WithCoords) const
 	{
 	const size_t L = m_Xs.size();
