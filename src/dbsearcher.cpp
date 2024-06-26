@@ -212,16 +212,20 @@ void DBSearcher::Thread(uint ThreadIndex)
 		if (m_Params->m_UseComboPath)
 			{
 			DA.AlignComboOnly();
+			m_Lock.lock();
 			OnAln(ChainIndex1, ChainIndex2, DA, true);
 			OnAln(ChainIndex1, ChainIndex2, DA, false);
+			m_Lock.unlock();
 			}
 		else if (m_Params->m_ComboScoreOnly)
 			{
 			float ComboScore = DA.GetComboScore();
 			DA.m_EvalueA = ComboScore;
 			DA.m_EvalueB = ComboScore;
+			m_Lock.lock();
 			OnAln(ChainIndex1, ChainIndex2, DA, true);
 			OnAln(ChainIndex1, ChainIndex2, DA, false);
+			m_Lock.unlock();
 			}
 		else
 			{
@@ -237,10 +241,12 @@ void DBSearcher::Thread(uint ThreadIndex)
 					m_Lock.unlock();
 					}
 
+				m_Lock.lock();
 				DA.ToTsv(m_fTsv, m_MaxEvalue, true);
 				DA.ToAln(m_fAln, m_MaxEvalue, true);
 				DA.ToFasta2(m_fFasta2, m_MaxEvalue, opt_global, true);
 				OnAln(ChainIndex1, ChainIndex2, DA, true);
+				m_Lock.unlock();
 				if (m_QuerySelf)
 					{
 					if (m_CollectTestStats)
@@ -252,9 +258,11 @@ void DBSearcher::Thread(uint ThreadIndex)
 						m_Lock.unlock();
 						}
 
+					m_Lock.lock();
 					DA.ToTsv(m_fTsv, m_MaxEvalue, false);
 					DA.ToAln(m_fAln, m_MaxEvalue, false);
 					OnAln(ChainIndex1, ChainIndex2, DA, false);
+					m_Lock.unlock();
 					}
 				}
 			}

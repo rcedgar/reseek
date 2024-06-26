@@ -64,6 +64,7 @@ public:
 	float m_Target_Gumbel_beta = FLT_MAX;
 
 	vector<USERFIELD> m_UFs;
+	FILE *m_LastTsvFile = 0;
 
 public:
 	static mutex m_OutputLock;
@@ -78,6 +79,9 @@ public:
 #if SCORE_DIST
 	static vector<float> m_TSs;
 #endif
+
+public:
+	DSSAligner();
 
 public:
 	void SetQuery(
@@ -143,9 +147,10 @@ public:
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
 	void ToTsv(FILE *f, float MaxEvalue, bool Up);
+	void WriteTsvHdr(FILE *f) const;
 	void ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const;
 	void ToAln(FILE *f, float MaxEvalue, bool Up) const;
-	void AppendUserField(string &s, USERFIELD UF, bool Up) const;
+	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;
 
 // Top=true means fetch value for A, Top=false fetch B
 	const PDBChain &GetChain(bool Top) const { return Top ? *m_ChainA : *m_ChainB; }

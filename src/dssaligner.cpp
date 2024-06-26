@@ -134,25 +134,36 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 		}
 	}
 
-//float DSSAligner::GetEvaluePath(
-//  const PDBChain &ChainA, const PDBChain &ChainB,
-//  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-//  uint LoA, uint LoB, const string &Path) const
-//	{
-//	const uint LA = ChainA.GetSeqLength();
-//	float DPScore = GetDPScorePath(ProfileA, ProfileB, LoA, LoB, Path);
-//	float AlnDALIScore = 0;
-//	if (m_Params->m_DALIw != 0)
-//		AlnDALIScore = (float)
-//		  GetDALIScore_Path(ChainA, ChainB, Path, LoA, LoB);
-//	float ScoreDiff = DPScore;
-//	uint M, D, I;
-//	GetPathCounts(Path, M, D, I);
-//	float TestStat = ScoreDiff + M*m_Params->m_FwdMatchScore +
-//	  m_Params->m_DALIw*AlnDALIScore/(m_Params->m_Lambda + LA);
-//	float E = m_Params->GetEvalue(TestStat);
-//	return E; 
-//	}
+DSSAligner::DSSAligner()
+	{
+	if (optset_columns)
+		{
+		vector<string> Fields;
+		Split(string(opt_columns), Fields, '+');
+		const uint n = SIZE(Fields);
+		if (n == 0)
+			Die("Empty -columns option");
+		for (uint i = 0; i < n; ++i)
+			{
+			if (Fields[i] == "std")
+				{
+				m_UFs.push_back(UF_query);
+				m_UFs.push_back(UF_target);
+				m_UFs.push_back(UF_qlo);
+				m_UFs.push_back(UF_qhi);
+				m_UFs.push_back(UF_tlo);
+				m_UFs.push_back(UF_thi);
+				m_UFs.push_back(UF_pctid);
+				m_UFs.push_back(UF_evalue);
+				}
+			else
+				{
+				USERFIELD UF = StrToUF(Fields[i]);
+				m_UFs.push_back(UF);
+				}
+			}
+		}
+	}
 
 int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
   const vector<byte> &ComboLettersB, uint LoA, uint LoB,
@@ -993,22 +1004,55 @@ void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
 	m_OutputLock.lock();
 	SeqToFasta(f, LabelAx.c_str(), RowA);
 	SeqToFasta(f, LabelB, RowB);
+	fputc('\n', f);
 	m_OutputLock.unlock();
+	}
+
+void DSSAligner::WriteTsvHdr(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	const uint n = SIZE(m_UFs);
+	for (uint i = 0; i < n; ++i)
+		{
+		if (i > 0)
+			fputc('\t', f);
+		if (m_UFs[i] == UF_rigid)
+			fprintf(f, "RMSD\tTx\tTy\tTz\tR11\tR12\tR13\tR21\tR22\tR23\tR31\tR32\tR33");
+		else
+			fputs(UFToStr(m_UFs[i]), f);
+		}
+	fputc('\n', f);
 	}
 
 void DSSAligner::ToTsv(FILE *f, float MaxEvalue, bool Up)
 	{
 	if (f == 0)
 		return;
+	if (m_LastTsvFile != f)
+		{
+		m_LastTsvFile = f;
+		WriteTsvHdr(f);
+		}
+
 	float Evalue = GetEvalue(Up);
 	if (Evalue > MaxEvalue)
 		return;
 
 	m_OutputLock.lock();
-	fprintf(f, "%.3g", Evalue);
-	fprintf(f, "\t%s", GetLabel(Up));
-	fprintf(f, "\t%s", GetLabel(!Up));
-	fprintf(f, "\n");
+	//fprintf(f, "%.3g", Evalue);
+	//fprintf(f, "\t%s", GetLabel(Up));
+	//fprintf(f, "\t%s", GetLabel(!Up));
+	//fprintf(f, "\n");
+	const uint n = SIZE(m_UFs);
+	asserta(n > 0);
+	for (uint i = 0; i < n; ++i)
+		{
+		if (i > 0)
+			fputc('\t', f);
+		WriteUserField(f, m_UFs[i], Up);
+		}
+	fputc('\n', f);
 	m_OutputLock.unlock();
 	}
 
@@ -1138,22 +1182,32 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 	{
 	Row.clear();
 	const string &SeqA = m_ChainA->m_Seq;
+	const string &SeqB = m_ChainB->m_Seq;
 	const uint LA = SIZE(SeqA);
+	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
 	if (Global)
 		{
-		for (uint i = m_LoB; i < m_LoA; ++i)
+		for (uint i = m_LoA; i < m_LoB; ++i)
 			Row += '.';
 		for (uint i = 0; i < m_LoA; ++i)
 			Row += tolower(SeqA[i]);
 		}
 	uint PosA = m_LoA;
+	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
 		char c = m_Path[Col];
 		switch (c)
 			{
 		case 'M':
+			{
+			asserta(PosA < LA);
+			Row += SeqA[PosA++];
+			++PosB;
+			break;
+			}
+
 		case 'D':
 			{
 			asserta(PosA < LA);
@@ -1163,6 +1217,7 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 
 		case 'I':
 			Row += '-';
+			++PosB;
 			break;
 
 		default:
@@ -1170,23 +1225,33 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 			}
 		}
 	if (Global)
+		{
 		while (PosA < LA)
+			{
 			Row += tolower(SeqA[PosA++]);
+			++PosB;
+			}
+		while (PosB++ < LB)
+			Row += '~';
+		}
 	}
 
 void DSSAligner::GetRow_B(string &Row, bool Global) const
 	{
 	Row.clear();
+	const string &SeqA = m_ChainA->m_Seq;
 	const string &SeqB = m_ChainB->m_Seq;
+	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
 	if (Global)
 		{
-		for (uint i = m_LoA; i < m_LoB; ++i)
+		for (uint i = m_LoB; i < m_LoA; ++i)
 			Row += '.';
 		for (uint i = 0; i < m_LoB; ++i)
 			Row += tolower(SeqB[i]);
 		}
+	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
@@ -1194,24 +1259,42 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 		switch (c)
 			{
 		case 'M':
-		case 'I':
 			{
 			asserta(PosB < LB);
+			++PosA;
 			Row += SeqB[PosB++];
 			break;
 			}
 
 		case 'D':
+			{
+			++PosA;
 			Row += '-';
 			break;
+			}
+
+		case 'I':
+			{
+			asserta(PosB < LB);
+			++PosA;
+			Row += SeqB[PosB++];
+			break;
+			}
 
 		default:
 			asserta(false);
 			}
 		}
 	if (Global)
+		{
 		while (PosB < LB)
+			{
 			Row += tolower(SeqB[PosB++]);
+			++PosA;
+			}
+		while (PosA++ < LA)
+			Row += '!';
+		}
 	}
 
 float DSSAligner::GetPctId() const

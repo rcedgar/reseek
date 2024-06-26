@@ -29,58 +29,58 @@ const char *UFToStr(USERFIELD UF)
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
-void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
+void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 	{
-	if (!s.empty())
-		s += '\t';
+	if (f == 0)
+		return;
 
 	switch (UF)
 		{
 	case UF_query:
 		{
-		s += GetLabel(Up);
+		fputs(GetLabel(Up), f);
 		break;
 		}
 
 	case UF_target:
 		{
-		s += GetLabel(!Up);
+		fputs(GetLabel(!Up), f);
 		break;
 		}
 
 	case UF_evalue:
 		{
-		Psa(s, "%.3g", GetEvalue(Up));
+		fprintf(f, "%.3g", GetEvalue(Up));
 		break;
 		}
 
 	case UF_qlo:
 		{
-		Psa(s, "%.3g", GetLo(Up));
+		fprintf(f, "%u", GetLo(Up) + 1);
 		break;
 		}
 
 	case UF_qhi:
 		{
-		Psa(s, "%.3g", GetHi(Up));
+		fprintf(f, "%u", GetHi(Up) + 1);
 		break;
 		}
 
 	case UF_tlo:
 		{
-		Psa(s, "%.3g", GetLo(!Up));
+		fprintf(f, "%u", GetLo(!Up) + 1);
 		break;
 		}
 
 	case UF_thi:
 		{
-		Psa(s, "%.3g", GetHi(!Up));
+		fprintf(f, "%u", GetHi(!Up) + 1);
 		break;
 		}
 
 	case UF_pctid:
 		{
-		Psa(s, "%.1f", GetPctId());
+		fprintf(f, "%.1f", GetPctId());
 		break;
 		}
 
@@ -88,7 +88,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		{
 		string CIGAR;
 		PathToCIGAR(m_Path.c_str(), CIGAR, Up);
-		s += CIGAR;
+		fputs(CIGAR.c_str(), f);
 		break;
 		}
 
@@ -96,7 +96,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		{
 		string Row;
 		GetRow(Up, true, false, Row);
-		s += Row;
+		fputs(Row.c_str(), f);
 		break;
 		}
 
@@ -104,7 +104,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		{
 		string Row;
 		GetRow(Up, false, false, Row);
-		s += Row;
+		fputs(Row.c_str(), f);
 		break;
 		}
 
@@ -112,7 +112,7 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		{
 		string Row;
 		GetRow(Up, true, true, Row);
-		s += Row;
+		fputs(Row.c_str(), f);
 		break;
 		}
 
@@ -120,13 +120,13 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		{
 		string Row;
 		GetRow(Up, false, true, Row);
-		s += Row;
+		fputs(Row.c_str(), f);
 		break;
 		}
 
 	case UF_ts:
 		{
-		Psa(s, "%.3g", GetTestStatistic(Up));
+		fprintf(f, "%.3g", GetTestStatistic(Up));
 		break;
 		}
 
@@ -135,13 +135,14 @@ void DSSAligner::AppendUserField(string &s, USERFIELD UF, bool Up) const
 		vector<double> t;
 		vector<vector<double> > R;
 		float RMS = GetKabsch(t, R, Up);
-		Ps(s, "%.1f", RMS);
+		fprintf(f, "%.1f", RMS);
 		asserta(SIZE(t) == 3);
 		asserta(SIZE(R) == 3);
 		asserta(SIZE(R[0]) == 3);
-		Psa(s, "\t%.4g\t%.4g\t%.4g", t[0], t[1], t[2]);
+		fprintf(f, "\t%.4g\t%.4g\t%.4g", t[0], t[1], t[2]);
 		for (uint i = 0; i < 3; ++i)
-			Psa(s, "\t%.4g\t%.4g\t%.4g", R[i][0], R[i][1], R[i][2]);
+			fprintf(f, "\t%.4g\t%.4g\t%.4g", R[i][0], R[i][1], R[i][2]);
+		break;
 		}
 
 	default:
