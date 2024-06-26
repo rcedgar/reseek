@@ -1,4 +1,5 @@
 #include "myutils.h"
+#undef brk
 #if 1 // _MSC_VER
 #include "zlib.h"
 #else

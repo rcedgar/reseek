@@ -7,6 +7,9 @@ BINDIR := ../bin
 OBJDIR := o
 BINPATH := $(BINDIR)/reseek
 
+CC = ccache gcc
+CFLAGS := $(CFLAGS) -O3 -ffast-math -march=native
+
 CXX = ccache g++
 CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++11
 
@@ -26,13 +29,15 @@ HDRS = \
   calibratesearcher2.h \
   calibratesearcher3.h \
   calreader.h \
-  chainreader.h \
+  chainreader2.h \
   cigar.h \
   cigar_template.h \
   cmds.h \
   combomx.h \
   counters.h \
+  crc32.h \
   dbsearcher.h \
+  deflate.h \
   derepper.h \
   dss.h \
   dssaligner.h \
@@ -47,8 +52,14 @@ HDRS = \
   floatfeatures.h \
   getticks.h \
   gobuff.h \
+  gzguts.h \
+  inffast.h \
+  inffixed.h \
+  inflate.h \
+  inftrees.h \
   intfeatures.h \
   linereader.h \
+  linereader2.h \
   lockobj.h \
   lockobjs.h \
   logodds.h \
@@ -80,11 +91,18 @@ HDRS = \
   timing.h \
   tracebit.h \
   trainer.h \
+  trees.h \
   usage.h \
+  userfieldnames.h \
+  userfields.h \
   xdpmem.h \
+  zconf.h \
+  zlib.h \
+  zutil.h \
 
 OBJS = \
   $(OBJDIR)/abcxyz.o \
+  $(OBJDIR)/adjust.o \
   $(OBJDIR)/alpha.o \
   $(OBJDIR)/alpha2.o \
   $(OBJDIR)/b62.o \
@@ -98,11 +116,16 @@ OBJS = \
   $(OBJDIR)/calibratesearcher.o \
   $(OBJDIR)/calibratesearcher3.o \
   $(OBJDIR)/calreader.o \
-  $(OBJDIR)/chainreader.o \
+  $(OBJDIR)/chainreader2.o \
+  $(OBJDIR)/cif.o \
   $(OBJDIR)/cigar.o \
+  $(OBJDIR)/convert.o \
+  $(OBJDIR)/daliscore_msa.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
   $(OBJDIR)/gumbel.o \
+  $(OBJDIR)/gzipfileio.o \
+  $(OBJDIR)/linereader2.o \
   $(OBJDIR)/parasail.o \
   $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
@@ -119,8 +142,6 @@ OBJS = \
   $(OBJDIR)/dss.o \
   $(OBJDIR)/dssaligner.o \
   $(OBJDIR)/dssparams.o \
-  $(OBJDIR)/eval_feature.o \
-  $(OBJDIR)/featurefreqs.o \
   $(OBJDIR)/features.o \
   $(OBJDIR)/float_feature_bins.o \
   $(OBJDIR)/getbins.o \
@@ -154,10 +175,12 @@ OBJS = \
   $(OBJDIR)/test_para_path.o \
   $(OBJDIR)/test_xdrop.o \
   $(OBJDIR)/timing.o \
+  $(OBJDIR)/trained_features.o \
+  $(OBJDIR)/train_features.o \
+  $(OBJDIR)/userfields.o \
   $(OBJDIR)/usort.o \
   $(OBJDIR)/valuetoint.o \
   $(OBJDIR)/one2three.o \
-  $(OBJDIR)/pdb2dss.o \
   $(OBJDIR)/fastaseqsource.o \
   $(OBJDIR)/fileseqsource.o \
   $(OBJDIR)/getss.o \
@@ -183,6 +206,17 @@ OBJS = \
   $(OBJDIR)/sort.o \
   $(OBJDIR)/xdropbwd.o \
   $(OBJDIR)/xdropfwd.o \
+  $(OBJDIR)/adler32.o \
+  $(OBJDIR)/crc32.o \
+  $(OBJDIR)/deflate.o \
+  $(OBJDIR)/gzlib.o \
+  $(OBJDIR)/gzread.o \
+  $(OBJDIR)/infback.o \
+  $(OBJDIR)/inffast.o \
+  $(OBJDIR)/inflate.o \
+  $(OBJDIR)/inftrees.o \
+  $(OBJDIR)/trees.o \
+  $(OBJDIR)/zutil.o \
 
 .PHONY: clean
 
@@ -195,6 +229,9 @@ $(OBJDIR)/ :
 
 $(BINDIR)/ :
 	mkdir -p $(BINDIR)/
+
+$(OBJDIR)/%.o : %.c $(HDRS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 $(OBJDIR)/%.o : %.cpp $(HDRS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
