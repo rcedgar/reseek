@@ -36,53 +36,15 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 
 	switch (UF)
 		{
-	case UF_query:
-		{
-		fputs(GetLabel(Up), f);
-		break;
-		}
-
-	case UF_target:
-		{
-		fputs(GetLabel(!Up), f);
-		break;
-		}
-
-	case UF_evalue:
-		{
-		fprintf(f, "%.3g", GetEvalue(Up));
-		break;
-		}
-
-	case UF_qlo:
-		{
-		fprintf(f, "%u", GetLo(Up) + 1);
-		break;
-		}
-
-	case UF_qhi:
-		{
-		fprintf(f, "%u", GetHi(Up) + 1);
-		break;
-		}
-
-	case UF_tlo:
-		{
-		fprintf(f, "%u", GetLo(!Up) + 1);
-		break;
-		}
-
-	case UF_thi:
-		{
-		fprintf(f, "%u", GetHi(!Up) + 1);
-		break;
-		}
-
-	case UF_pctid:
-		{
-		fprintf(f, "%.1f", GetPctId());
-		break;
-		}
+	case UF_query:	fputs(GetLabel(Up), f); break;
+	case UF_target: fputs(GetLabel(!Up), f); break;
+	case UF_evalue:	fprintf(f, "%.3g", GetEvalue(Up)); break;
+	case UF_qlo:	fprintf(f, "%u", GetLo(Up) + 1); break;
+	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
+	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;
+	case UF_thi:	fprintf(f, "%u", GetHi(!Up) + 1); break;
+	case UF_pctid:	fprintf(f, "%.1f", GetPctId()); break;
+	case UF_ts:		fprintf(f, "%.3g", GetTestStatistic(Up)); break;
 
 	case UF_cigar:
 		{
@@ -121,12 +83,6 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 		string Row;
 		GetRow(Up, false, true, Row);
 		fputs(Row.c_str(), f);
-		break;
-		}
-
-	case UF_ts:
-		{
-		fprintf(f, "%.3g", GetTestStatistic(Up));
 		break;
 		}
 
