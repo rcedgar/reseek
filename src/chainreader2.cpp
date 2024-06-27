@@ -187,6 +187,8 @@ F       40.340  3.621   14.036
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
 		const string &Line = m_Lines[LineNr];
+		if (Line.empty())
+			continue;
 		Split(Line, Fields, '\t');
 		if (Fields.size() != 4 || Fields[0].size() != 1)
 			Die("%s: Invalid CAL record '%s'",
