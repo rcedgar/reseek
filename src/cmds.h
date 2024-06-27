@@ -45,5 +45,6 @@ C(gunzip)
 C(convert)
 C(daliscore_msa)
 C(daliscore_tsv)
+C(scan_files)
 
 #undef C

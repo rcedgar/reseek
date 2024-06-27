@@ -368,6 +368,9 @@
     <ClCompile Include="daliscore_tsv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pdbfilescanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -608,6 +611,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="userfields.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pdbfilescanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

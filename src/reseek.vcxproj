@@ -296,6 +296,7 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="pdbfilescanner.cpp" />
     <ClCompile Include="gumbel.cpp" />
     <ClCompile Include="gzipfileio.cpp" />
     <ClCompile Include="gzlib.c" />
@@ -408,6 +409,7 @@
     <ClInclude Include="fasterf.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
+    <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
     <ClInclude Include="getticks.h" />
