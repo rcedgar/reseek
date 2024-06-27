@@ -44,5 +44,6 @@ C(adjust)
 C(gunzip)
 C(convert)
 C(daliscore_msa)
+C(daliscore_tsv)
 
 #undef C

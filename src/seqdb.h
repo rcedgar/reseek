@@ -33,6 +33,8 @@ public:
 	const string &GetLabel(unsigned SeqIndex) const;
 	unsigned GetSeqLength(unsigned SeqIndex) const;
 	bool IsAligned() const;
+	uint GetUpperCount(uint ColIdx) const;
+	uint GetLowerCount(uint ColIdx) const;
 	uint GetGapCount(uint ColIdx) const;
 	unsigned GetColCount() const;
 	bool GetIsNucleo();

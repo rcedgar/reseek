@@ -9,17 +9,17 @@ void SeqDB::SetLabelToIndex()
 	const uint N = SIZE(m_Labels);
 	for (uint i = 0; i < N; ++i)
 		{
-		const string &Label = m_Labels[i];
+		const string& Label = m_Labels[i];
 		m_LabelToIndex[Label] = i;
 		}
 	}
 
-bool SeqDB::GetSeqByLabel(const string &Label, string &Seq,
-  bool FailOnError) const
+bool SeqDB::GetSeqByLabel(const string& Label, string& Seq,
+	bool FailOnError) const
 	{
 	Seq.clear();
 	map<string, uint>::const_iterator p =
-	  m_LabelToIndex.find(Label);
+		m_LabelToIndex.find(Label);
 	if (p == m_LabelToIndex.end())
 		{
 		if (FailOnError)
@@ -31,7 +31,7 @@ bool SeqDB::GetSeqByLabel(const string &Label, string &Seq,
 	return true;
 	}
 
-unsigned SeqDB::AddSeq(const string &Label, const string &Seq)
+unsigned SeqDB::AddSeq(const string& Label, const string& Seq)
 	{
 	unsigned SeqIndex = SIZE(m_Seqs);
 	unsigned L = SIZE(Seq);
@@ -47,17 +47,17 @@ unsigned SeqDB::AddSeq(const string &Label, const string &Seq)
 	return SeqIndex;
 	}
 
-const string &SeqDB::GetSeq(unsigned SeqIndex) const
+const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Seqs));
 	return m_Seqs[SeqIndex];
 	}
 
-void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string &Seq) const
+void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string& Seq) const
 	{
 	Seq.clear();
 	assert(SeqIndex < SIZE(m_Seqs));
-	const string &s = m_Seqs[SeqIndex];
+	const string& s = m_Seqs[SeqIndex];
 	const uint L = SIZE(s);
 	for (uint i = 0; i < L; ++i)
 		{
@@ -67,7 +67,7 @@ void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string &Seq) const
 		}
 	}
 
-const string &SeqDB::GetLabel(unsigned SeqIndex) const
+const string& SeqDB::GetLabel(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Labels));
 	return m_Labels[SeqIndex];
@@ -77,6 +77,24 @@ unsigned SeqDB::GetSeqLength(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Seqs));
 	return SIZE(m_Seqs[SeqIndex]);
+	}
+
+uint SeqDB::GetUpperCount(unsigned uColIndex) const
+	{
+	uint n = 0;
+	for (unsigned uSeqIndex = 0; uSeqIndex < GetSeqCount(); ++uSeqIndex)
+		if (isupper(m_Seqs[uSeqIndex][uColIndex]))
+			++n;
+	return n;
+	}
+
+uint SeqDB::GetLowerCount(unsigned uColIndex) const
+	{
+	uint n = 0;
+	for (unsigned uSeqIndex = 0; uSeqIndex < GetSeqCount(); ++uSeqIndex)
+		if (islower(m_Seqs[uSeqIndex][uColIndex]))
+			++n;
+	return n;
 	}
 
 uint SeqDB::GetGapCount(unsigned uColIndex) const
@@ -123,10 +141,10 @@ void SeqDB::SetIsNucleo()
 	unsigned i = 0;
 	for (;;)
 		{
-		unsigned SeqIndex = unsigned(rand()%SeqCount);
-		const string &Seq = GetSeq(SeqIndex);
+		unsigned SeqIndex = unsigned(rand() % SeqCount);
+		const string& Seq = GetSeq(SeqIndex);
 		unsigned L = GetSeqLength(SeqIndex);
-		const unsigned Pos = unsigned(rand()%L);
+		const unsigned Pos = unsigned(rand() % L);
 		byte c = Seq[Pos];
 		if (isgap(c))
 			continue;
@@ -141,7 +159,7 @@ void SeqDB::SetIsNucleo()
 	m_IsNucleoSet = true;
 	}
 
-void SeqDB::FromFasta(const string &FileName, bool AllowGaps)
+void SeqDB::FromFasta(const string& FileName, bool AllowGaps)
 	{
 	SFasta SF;
 	SF.Open(FileName);
@@ -150,7 +168,7 @@ void SeqDB::FromFasta(const string &FileName, bool AllowGaps)
 	m_IsAligned = false;
 	for (;;)
 		{
-		const char *Seq = SF.GetNextSeq();
+		const char* Seq = SF.GetNextSeq();
 		if (Seq == 0)
 			break;
 		const string Label = SF.GetLabel();
@@ -164,7 +182,7 @@ void SeqDB::FromFasta(const string &FileName, bool AllowGaps)
 		}
 	}
 
-void SeqDB::WritePretty(FILE *f) const
+void SeqDB::WritePretty(FILE* f) const
 	{
 	if (f == 0)
 		return;
@@ -176,11 +194,11 @@ void SeqDB::WritePretty(FILE *f) const
 	if (BLOCK_SIZE > ColCount)
 		BLOCK_SIZE = ColCount;
 
-	const unsigned BlockCount = (ColCount + BLOCK_SIZE - 1)/BLOCK_SIZE;
+	const unsigned BlockCount = (ColCount + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
 	for (unsigned BlockIndex = 0; BlockIndex < BlockCount; ++BlockIndex)
 		{
-		unsigned ColLo = BlockIndex*BLOCK_SIZE;
+		unsigned ColLo = BlockIndex * BLOCK_SIZE;
 		unsigned ColHi = ColLo + BLOCK_SIZE - 1;
 		if (ColHi >= ColCount)
 			ColHi = ColCount - 1;
@@ -189,8 +207,8 @@ void SeqDB::WritePretty(FILE *f) const
 		fprintf(f, "\n");
 		for (unsigned SeqIndex = 0; SeqIndex < SeqCount; ++SeqIndex)
 			{
-			const char *Seq = GetSeq(SeqIndex).c_str();
-			const char *Label = GetLabel(SeqIndex).c_str();
+			const char* Seq = GetSeq(SeqIndex).c_str();
+			const char* Label = GetLabel(SeqIndex).c_str();
 
 			fprintf(f, "%*.*s  ", n, n, Seq + ColLo);
 			for (unsigned i = n; i < BLOCK_SIZE; ++i)
