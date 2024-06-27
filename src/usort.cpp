@@ -100,8 +100,11 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 				continue;
 				}
 			++AcceptCount;
-			DA.ToTsv(m_fTsv, m_MaxEvalue, true);
-			OnAln(ChainIndexQ, ChainIndexR, DA, true);
+			if (DA.GetEvalue(true) <= m_MaxEvalue)
+				{
+				DA.ToTsv(m_fTsv, true);
+				BaseOnAln(ChainIndexQ, ChainIndexR, DA, true);
+				}
 			}
 		}
 	}

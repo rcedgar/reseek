@@ -222,10 +222,8 @@ void DBSearcher::Thread(uint ThreadIndex)
 			float ComboScore = DA.GetComboScore();
 			DA.m_EvalueA = ComboScore;
 			DA.m_EvalueB = ComboScore;
-			m_Lock.lock();
-			OnAln(ChainIndex1, ChainIndex2, DA, true);
-			OnAln(ChainIndex1, ChainIndex2, DA, false);
-			m_Lock.unlock();
+			BaseOnAln(ChainIndex1, ChainIndex2, DA, true);
+			BaseOnAln(ChainIndex1, ChainIndex2, DA, false);
 			}
 		else
 			{
@@ -241,12 +239,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 					m_Lock.unlock();
 					}
 
-				m_Lock.lock();
-				DA.ToTsv(m_fTsv, m_MaxEvalue, true);
-				DA.ToAln(m_fAln, m_MaxEvalue, true);
-				DA.ToFasta2(m_fFasta2, m_MaxEvalue, opt_global, true);
-				OnAln(ChainIndex1, ChainIndex2, DA, true);
-				m_Lock.unlock();
+				BaseOnAln(ChainIndex1, ChainIndex2, DA, true);
 				if (m_QuerySelf)
 					{
 					if (m_CollectTestStats)
@@ -258,11 +251,7 @@ void DBSearcher::Thread(uint ThreadIndex)
 						m_Lock.unlock();
 						}
 
-					m_Lock.lock();
-					DA.ToTsv(m_fTsv, m_MaxEvalue, false);
-					DA.ToAln(m_fAln, m_MaxEvalue, false);
-					OnAln(ChainIndex1, ChainIndex2, DA, false);
-					m_Lock.unlock();
+					BaseOnAln(ChainIndex1, ChainIndex2, DA, false);
 					}
 				}
 			}
@@ -364,7 +353,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
 	else
-		m_MaxEvalue = FLT_MAX;
+		m_MaxEvalue = 10;
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);

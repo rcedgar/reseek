@@ -28,7 +28,6 @@ HDRS = \
   calibratesearcher.h \
   calibratesearcher2.h \
   calibratesearcher3.h \
-  calreader.h \
   chainreader2.h \
   cigar.h \
   cigar_template.h \
@@ -116,7 +115,6 @@ OBJS = \
   $(OBJDIR)/calibrate5.o \
   $(OBJDIR)/calibratesearcher.o \
   $(OBJDIR)/calibratesearcher3.o \
-  $(OBJDIR)/calreader.o \
   $(OBJDIR)/chainreader2.o \
   $(OBJDIR)/cif.o \
   $(OBJDIR)/cigar.o \
@@ -125,6 +123,7 @@ OBJS = \
   $(OBJDIR)/daliscore_tsv.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/pdbchaincal.o \
   $(OBJDIR)/pdbfilescanner.o \
   $(OBJDIR)/gumbel.o \
   $(OBJDIR)/gzipfileio.o \
@@ -132,7 +131,6 @@ OBJS = \
   $(OBJDIR)/parasail.o \
   $(OBJDIR)/parasail_cigar.o \
   $(OBJDIR)/parasail_combo.o \
-  $(OBJDIR)/pdb2alpha.o \
   $(OBJDIR)/pdb2mega.o \
   $(OBJDIR)/readhits.o \
   $(OBJDIR)/scop40bit.o \
@@ -160,7 +158,6 @@ OBJS = \
   $(OBJDIR)/murmurhash.o \
   $(OBJDIR)/myss.o \
   $(OBJDIR)/namedparams.o \
-  $(OBJDIR)/pdb2cal.o \
   $(OBJDIR)/prettyaln.o \
   $(OBJDIR)/scalar_sweep.o \
   $(OBJDIR)/scop40bench.o \
@@ -196,7 +193,6 @@ OBJS = \
   $(OBJDIR)/myutils.o \
   $(OBJDIR)/objmgr.o \
   $(OBJDIR)/reseek_main.o \
-  $(OBJDIR)/pdbchaincal.o \
   $(OBJDIR)/readchains.o \
   $(OBJDIR)/pdbchain.o \
   $(OBJDIR)/quarts.o \

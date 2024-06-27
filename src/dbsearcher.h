@@ -48,7 +48,7 @@ public:
 	uint m_XAlignCount = 0;
 	uint m_SWAlignCount = 0;
 	uint m_UFilterCount = 0;
-	float m_MaxEvalue = FLT_MAX;
+	float m_MaxEvalue = 10;
 	FILE *m_fTsv = 0;
 	FILE *m_fAln = 0;
 	FILE *m_fFasta2 = 0;
@@ -119,6 +119,17 @@ public:
 
 public:
 	virtual void OnSetup() {}
+	void BaseOnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up)
+		{
+		if (DA.GetEvalue(Up) > m_MaxEvalue)
+			return;
+		m_Lock.lock();
+		DA.ToTsv(m_fTsv, true);
+		DA.ToAln(m_fAln, true);
+		DA.ToFasta2(m_fFasta2, opt_global, true);
+		OnAln(ChainIndexA, ChainIndexB, DA, Up);
+		m_Lock.unlock();
+		}
 	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up) {}
 
 public:

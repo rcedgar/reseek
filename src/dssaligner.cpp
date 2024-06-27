@@ -898,11 +898,9 @@ void DSSAligner::AlignComboPath()
 	CalcEvalue();
 	}
 
-void DSSAligner::ToAln(FILE *f, float MaxEvalue, bool Up) const
+void DSSAligner::ToAln(FILE *f, bool Up) const
 	{
 	if (f == 0)
-		return;
-	if (GetEvalue(Up) > MaxEvalue)
 		return;
 	if (Up)
 		PrettyAln(f, *m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, m_EvalueA);
@@ -914,11 +912,9 @@ void DSSAligner::ToAln(FILE *f, float MaxEvalue, bool Up) const
 		}
 	}
 
-void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
+void DSSAligner::ToFasta2(FILE *f, bool Global, bool Up) const
 	{
 	if (f == 0)
-		return;
-	if (m_EvalueA > MaxEvalue)
 		return;
 
 	string RowA, RowB;
@@ -938,7 +934,7 @@ void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
 	float Evalue = GetEvalue(Up);
 	float PctId = GetPctId();
 	string LabelAx = LabelA;
-	Psa(LabelAx, " E=%.3g Id=%.1f%%", m_EvalueA, PctId);
+	Psa(LabelAx, " E=%.3g Id=%.1f%%", Evalue, PctId);
 	LabelAx += " (";
 	LabelAx += LabelB;
 	LabelAx += ")";
@@ -950,13 +946,9 @@ void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
 	m_OutputLock.unlock();
 	}
 
-void DSSAligner::ToTsv(FILE *f, float MaxEvalue, bool Up)
+void DSSAligner::ToTsv(FILE *f, bool Up)
 	{
 	if (f == 0)
-		return;
-
-	float Evalue = GetEvalue(Up);
-	if (Evalue > MaxEvalue)
 		return;
 
 	m_OutputLock.lock();
