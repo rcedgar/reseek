@@ -7,6 +7,8 @@ void SeqToFasta(FILE *f, const char *Label, const char *Seq, unsigned L,
 	{
 	if (f == 0)
 		return;
+	if (L == 0)
+		return;
 
 	if (Label != 0)
 		fprintf(f, ">%s\n", Label);

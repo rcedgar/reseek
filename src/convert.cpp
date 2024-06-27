@@ -4,6 +4,10 @@
 #include "chainreader2.h"
 #include <set>
 
+static FILE *s_fCal;
+static FILE *s_fFasta;
+static FILE *s_fFeatureFasta;
+
 static char GetFeatureChar(byte Letter, uint AlphaSize)
 	{
 	asserta(AlphaSize <= 36);
@@ -41,47 +45,53 @@ static FEATURE GetFeatureFromCmdLine()
 	return Feat;
 	}
 
-void cmd_convert()
+static void ThreadBody(
+  uint ThreadIndex,
+  ChainReader2 *ptrCR,
+  set<string> *ptrLabels,
+  time_t *ptrLastTime,
+  uint *ptrCount,
+  uint *ptrDupeLabelCount,
+  mutex *ptrLock)
 	{
-	PDBFileScanner FS;
-	FS.Open(g_Arg1);
-
-	ChainReader2 CR;
-	CR.Open(FS);
-
-	FILE *fCal = CreateStdioFile(opt_cal);
-	FILE *fFasta = CreateStdioFile(opt_fasta);
-	FILE *fFeatureFasta = CreateStdioFile(opt_feature_fasta);
+// Using reference arguments to ThreadBody gives compile errors
+	ChainReader2 &CR = *ptrCR;
+	set<string> &Labels = *ptrLabels;
+	time_t &LastTime = *ptrLastTime;
+	uint &Count = *ptrCount;
+	uint &DupeLabelCount = *ptrDupeLabelCount;
+	mutex &Lock = *ptrLock;
 
 	DSSParams Params;
 	DSS D;
 	uint AlphaSize = 0;
 	FEATURE Feat = FEATURE(0);
-	if (fFeatureFasta != 0)
+	if (s_fFeatureFasta != 0)
 		{
 		Params.SetFromCmdLine(10000);
 		DSS::GetAlphaSize(Feat);
 		Feat = GetFeatureFromCmdLine();
 		}
 
-	set<string> Labels;
-	uint Count = 0;
-	uint DupeLabelCount = 0;
-	time_t LastTime = 0;
 	for (;;)
 		{
-		PDBChain *ptrChain = CR.GetNext();
+		PDBChain *ptrChain = ptrCR->GetNext();
 		if (ptrChain == 0)
 			break;
 		PDBChain &Chain = *ptrChain;
+		if (Chain.GetSeqLength() == 0)
+			continue;
 		if (Labels.find(Chain.m_Label) != Labels.end())
 			{
+			Lock.lock();
 			Log("Dupe >%s\n", Chain.m_Label.c_str());
 			++DupeLabelCount;
+			Lock.unlock();
 			delete ptrChain;
 			continue;
 			}
 		time_t Now = time(0);
+		Lock.lock();
 		++Count;
 		if (Now - LastTime > 0)
 			{
@@ -90,10 +100,17 @@ void cmd_convert()
 			LastTime = Now;
 			}
 		Labels.insert(Chain.m_Label);
+		Lock.unlock();
 
-		Chain.ToCal(fCal);
-		Chain.ToFasta(fFasta);
-		if (fFeatureFasta != 0)
+		Lock.lock();
+		Chain.ToCal(s_fCal);
+		Lock.unlock();
+
+		Lock.lock();
+		Chain.ToFasta(s_fFasta);
+		Lock.unlock();
+
+		if (s_fFeatureFasta != 0)
 			{
 			D.Init(Chain);
 			const uint L = Chain.GetSeqLength();
@@ -104,12 +121,53 @@ void cmd_convert()
 				char c = GetFeatureChar(Letter, AlphaSize);
 				Seq += c;
 				}
-			SeqToFasta(fFeatureFasta, Chain.m_Label, Seq);
+			Lock.lock();
+			SeqToFasta(s_fFeatureFasta, Chain.m_Label, Seq);
+			Lock.unlock();
 			}
 		delete ptrChain;
 		}
-	Progress("%u chains converted, %u dupe labels\n", Count, DupeLabelCount);
-	CloseStdioFile(fCal);
-	CloseStdioFile(fFasta);
-	CloseStdioFile(fFeatureFasta);
+	}
+
+void cmd_convert()
+	{
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
+	ChainReader2 CR;
+	CR.Open(FS);
+
+	s_fCal = CreateStdioFile(opt_cal);
+	s_fFasta = CreateStdioFile(opt_fasta);
+	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
+
+	set<string> Labels;
+	uint Count = 0;
+	uint DupeLabelCount = 0;
+	time_t LastTime = 0;
+	mutex Lock;
+
+	uint ThreadCount = GetRequestedThreadCount();
+	vector<thread *> ts;
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(ThreadBody,
+			ThreadIndex, 
+			&CR,
+			&Labels,
+			&LastTime,
+			&Count,
+			&DupeLabelCount,
+			&Lock);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+
+	ProgressLog("%u chains converted, %u dupe labels\n", Count, DupeLabelCount);
+	CloseStdioFile(s_fCal);
+	CloseStdioFile(s_fFasta);
+	CloseStdioFile(s_fFeatureFasta);
 	}
