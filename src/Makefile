@@ -76,6 +76,7 @@ HDRS = \
   parasail.h \
   pathinfo.h \
   pdbchain.h \
+  pdbfilescanner.h \
   quarts.h \
   scalarparams.h \
   scop40bench.h \
@@ -121,8 +122,10 @@ OBJS = \
   $(OBJDIR)/cigar.o \
   $(OBJDIR)/convert.o \
   $(OBJDIR)/daliscore_msa.o \
+  $(OBJDIR)/daliscore_tsv.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/pdbfilescanner.o \
   $(OBJDIR)/gumbel.o \
   $(OBJDIR)/gzipfileio.o \
   $(OBJDIR)/linereader2.o \

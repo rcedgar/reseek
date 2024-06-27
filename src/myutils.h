@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <mutex>
 #include <filesystem>
+#include <thread>
+#include <set>
 
 #ifndef _MSC_VER
 #include <inttypes.h>

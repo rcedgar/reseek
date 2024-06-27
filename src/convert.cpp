@@ -2,7 +2,6 @@
 #include "pdbchain.h"
 #include "dss.h"
 #include "chainreader2.h"
-#include <set>
 
 static FILE *s_fCal;
 static FILE *s_fFasta;
@@ -162,9 +161,15 @@ void cmd_convert()
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		ts[ThreadIndex]->join();
+		{
+		thread *t = ts[ThreadIndex];
+		t->join();
+		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		delete ts[ThreadIndex];
+		{
+		thread *t = ts[ThreadIndex];
+		delete t;
+		}
 
 	ProgressLog("%u chains converted, %u dupe labels\n", Count, DupeLabelCount);
 	CloseStdioFile(s_fCal);
