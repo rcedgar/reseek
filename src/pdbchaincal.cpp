@@ -1,43 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "calreader.h"
 #include "abcxyz.h"
-
-//	>AIZ00432 A:1:ISGDNTKWGPIH B:119:QGIHHATSSLLTSL C:160:GSSDDYAK
-void PDBChain::ParseCalLabelLine(const string &Line)
-	{
-	if (Line[0] != '>')
-		Die("Invalid .cal/.ppc file, expected '>' in line: %s",
-		  Line.c_str());
-
-	m_Label = Line.substr(1, string::npos);
-	vector<string> Fields;
-	Split(Line, Fields, ' ');
-	uint PosA = UINT_MAX;
-	uint PosB = UINT_MAX;
-	uint PosC = UINT_MAX;
-	if (Fields.size() > 1)
-		{
-		if (Fields.size() == 4 &&
-		  StartsWith(Fields[1], "A:") &&
-		  StartsWith(Fields[2], "B:") &&
-		  StartsWith(Fields[3], "C:"))
-			{
-			PosA = (uint) atoi(Fields[1].c_str() + 2);
-			PosB = (uint) atoi(Fields[2].c_str() + 2);
-			PosC = (uint) atoi(Fields[3].c_str() + 2);
-			asserta(PosA > 0);
-			asserta(PosB > 0);
-			asserta(PosC > 0);
-			asserta(PosA < PosB);
-			asserta(PosB < PosC);
-
-			m_MotifPosVec.push_back(PosA - 1);
-			m_MotifPosVec.push_back(PosB - 1);
-			m_MotifPosVec.push_back(PosC - 1);
-			}
-		}
-	}
 
 void PDBChain::FromCal(const string &FileName)
 	{
@@ -54,7 +17,7 @@ void PDBChain::FromCalLines(const vector<string> &Lines)
 		return;
 
 	const string &FirstLine = Lines[0];
-	ParseCalLabelLine(FirstLine);
+	m_Label = FirstLine.substr(1, string::npos);
 
 /***
 >102l

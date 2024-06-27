@@ -80,12 +80,6 @@
     <ClCompile Include="readchains.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="calreader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pdbchaincal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="blosum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -218,9 +212,6 @@
     <ClCompile Include="b62.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pdb2cal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dbsearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -296,9 +287,6 @@
     <ClCompile Include="calibrate4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pdb2alpha.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="calibrate5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -371,6 +359,9 @@
     <ClCompile Include="pdbfilescanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pdbchaincal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -425,9 +416,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pdbchain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calreader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cmds.h">

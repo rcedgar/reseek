@@ -11,10 +11,10 @@ public:
 	vector<double> m_Xs;
 	vector<double> m_Ys;
 	vector<double> m_Zs;
-	vector<int> m_ResNrs;
-	vector<vector<string> > m_ATOMs;
-	vector<uint> m_MotifPosVec;
-	string m_SS;
+	//vector<int> m_ResNrs;
+	//vector<vector<string> > m_ATOMs;
+	//vector<uint> m_MotifPosVec;
+	//string m_SS;
 
 public:
 	~PDBChain() { Clear(); }
@@ -25,23 +25,22 @@ public:
 		m_Xs.clear();
 		m_Ys.clear();
 		m_Zs.clear();
-		m_ResNrs.clear();
-		m_MotifPosVec.clear();
-		m_ATOMs.clear();
-		m_SS.clear();
+		//m_ResNrs.clear();
+		//m_MotifPosVec.clear();
+		//m_ATOMs.clear();
+		//m_SS.clear();
 		}
 
-	void GetReverse(PDBChain &Chain) const;
+	//void GetReverse(PDBChain &Chain) const;
 	void WriteSeqWithCoords(FILE *f) const;
-	void SetMotifPosVec(uint PosA, uint PosB, uint PosC);
+	//void SetMotifPosVec(uint PosA, uint PosB, uint PosC);
 	uint GetSeqLength() const;
 	void PrintSeqCoords(FILE *f) const;
 	char FromPDBLines(const string &Label,
 	  const vector<string> &Lines);
 	void FromCal(const string &FileName);
 	void FromCalLines(const vector<string> &Lines);
-	void ParseCalLabelLine(const string &Line);
-	void RenumberResidues(uint Start);
+	//void RenumberResidues(uint Start);
 	void ToCal(FILE *f) const;
 	void ToFasta(const string &FileName) const;
 	void ToFasta(FILE *f) const;
@@ -49,7 +48,7 @@ public:
 	void ToCal(const string &FileName) const;
 	void ToPDB(const string &FileName,
 	  const vector<string> *ptrRemarks = 0) const;
-	void ToPDB(FILE *f, const vector<string> *ptrRemarks = 0) const;
+	//void ToPDB(FILE *f, const vector<string> *ptrRemarks = 0) const;
 	void GetXFormChain_tR(
 	  const vector<double> &t,
 	  const vector<vector<double> > &R,
@@ -60,8 +59,8 @@ public:
 	double GetX(uint Pos) const;
 	double GetY(uint Pos) const;
 	double GetZ(uint Pos) const;
-	bool Get_CB_XYZ(uint Pos, double &x, double &y, double &z) const;
-	bool Get_CB_Pt(uint Pos, vector<double> &Pt) const;
+	//bool Get_CB_XYZ(uint Pos, double &x, double &y, double &z) const;
+	//bool Get_CB_Pt(uint Pos, vector<double> &Pt) const;
 	double GetCoord(uint Axis, uint Pos) const;
 	void GetPt(uint Pos, vector<double> &Pt) const;
 	void SetPt(uint Pos, const vector<double> &Pt);
@@ -70,29 +69,25 @@ public:
 	void GetSubSeq(uint StartPos, uint n,
 	  bool FailOnOverflow, string &MotifSeq) const;
 	void GetSS(string &SS) const;
-	void SetSS()
-		{
-		GetSS(m_SS);
-		}
 	double GetSmoothedCoord(uint Axis, uint i, uint N, uint w) const;
 	const char *GetAcc(string &Acc) const;
 	void GetDistMx(uint Pos, uint L, vector<vector<double> > &Mx) const;
 	void GetRange(uint Lo, uint Hi, PDBChain &Chain) const;
-	void GetCAAtomLine(uint Pos, string &Line) const;
-	void GetATOMLines(uint Pos, vector<string> &Lines) const;
-	int GetResidueNr(uint Pos, int ValueIfNotFound = INT_MAX) const;
-	void GetResidueRange(uint PosLo, uint ResidueCount, int &ResLo,
-	  int &ResHi) const;
+	//void GetCAAtomLine(uint Pos, string &Line) const;
+	//void GetATOMLines(uint Pos, vector<string> &Lines) const;
+	//int GetResidueNr(uint Pos, int ValueIfNotFound = INT_MAX) const;
+	//void GetResidueRange(uint PosLo, uint ResidueCount, int &ResLo,
+	//  int &ResHi) const;
 	void GetSphere(uint Pos, double Radius,
 	  uint MinPos, uint MaxPos,
 	  vector<uint> &PosVec) const;
-	void GetResidueAtomsInfo(uint Pos,
-	  vector<double> &Xs,
-	  vector<double> &Ys,
-	  vector<double> &Zs,
-	  vector<string> &ElementNames,
-	  vector<string> &AtomNames,
-	  vector<string> &Lines) const;
+	//void GetResidueAtomsInfo(uint Pos,
+	//  vector<double> &Xs,
+	//  vector<double> &Ys,
+	//  vector<double> &Zs,
+	//  vector<string> &ElementNames,
+	//  vector<string> &AtomNames,
+	//  vector<string> &Lines) const;
 
 public:
 	static bool IsATOMLine(const string &Line);
@@ -113,6 +108,8 @@ public:
 	  double x, double y, double z, string &OutputLine);
 	static bool GetFieldsFromResidueATOMLines(const vector<string> &Lines,
 	  double &X, double &Y, double &Z, char &aa, int &ResNr);
+	static bool GetFieldsFromATOMLine(const string &Line,
+	  double &X, double &Y, double &Z, char &aa);
 	};
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);

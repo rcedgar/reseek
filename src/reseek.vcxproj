@@ -285,7 +285,6 @@
     <ClCompile Include="calibrate5.cpp" />
     <ClCompile Include="calibratesearcher.cpp" />
     <ClCompile Include="calibratesearcher3.cpp" />
-    <ClCompile Include="calreader.cpp" />
     <ClCompile Include="chainreader2.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
@@ -296,6 +295,7 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="pdbchaincal.cpp" />
     <ClCompile Include="pdbfilescanner.cpp" />
     <ClCompile Include="gumbel.cpp" />
     <ClCompile Include="gzipfileio.cpp" />
@@ -309,7 +309,6 @@
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_combo.cpp" />
-    <ClCompile Include="pdb2alpha.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="readhits.cpp" />
     <ClCompile Include="scop40bit.cpp" />
@@ -337,7 +336,6 @@
     <ClCompile Include="murmurhash.cpp" />
     <ClCompile Include="myss.cpp" />
     <ClCompile Include="namedparams.cpp" />
-    <ClCompile Include="pdb2cal.cpp" />
     <ClCompile Include="prettyaln.cpp" />
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
@@ -374,7 +372,6 @@
     <ClCompile Include="myutils.cpp" />
     <ClCompile Include="objmgr.cpp" />
     <ClCompile Include="reseek_main.cpp" />
-    <ClCompile Include="pdbchaincal.cpp" />
     <ClCompile Include="readchains.cpp" />
     <ClCompile Include="pdbchain.cpp" />
     <ClCompile Include="quarts.cpp" />
@@ -452,7 +449,6 @@
     <ClInclude Include="abcxyz.h" />
     <ClInclude Include="alpha.h" />
     <ClInclude Include="best.h" />
-    <ClInclude Include="calreader.h" />
     <ClInclude Include="cmds.h" />
     <ClInclude Include="fastaseqsource.h" />
     <ClInclude Include="fileseqsource.h" />

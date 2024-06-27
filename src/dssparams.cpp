@@ -273,6 +273,8 @@ float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
 	float PredMinusLogP = m*TestStatistic + b;
 	float P = expf(-PredMinusLogP);
 	float Evalue = P*m_DBSize;
+	if (Evalue > 1)
+		Evalue = log10f(Evalue) + 1;
 	return Evalue;
 	}
 

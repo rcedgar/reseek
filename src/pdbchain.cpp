@@ -156,118 +156,6 @@ void PDBChain::ToCalSeg(FILE *f, uint Pos, uint n) const
 		}
 	}
 
-void PDBChain::ToPDB(const string &FileName, const vector<string> *ptrRemarks) const
-	{
-	if (FileName == "")
-		return;
-
-	FILE *f = CreateStdioFile(FileName);
-	ToPDB(f, ptrRemarks);
-	CloseStdioFile(f);
-	}
-
-void PDBChain::ToPDB(FILE *f, const vector<string> *ptrRemarks) const
-	{
-	if (f == 0)
-		return;
-
-	fprintf(f, "TITLE %s\n", m_Label.c_str());
-	if (ptrRemarks != 0)
-		{
-		const vector<string> &Remarks = *ptrRemarks;
-		const uint n = SIZE(Remarks);
-		for (uint i = 0; i < n; ++i)
-			{
-			const string &Remark = Remarks[i];
-			fprintf(f, "REMARK   %s\n", Remark.c_str());
-			}
-		}
-
-	uint AtomCount = SIZE(m_ATOMs);
-	if (AtomCount > 0)
-		{
-		for (uint i = 0; i < AtomCount; ++i)
-			{
-			const vector<string> &v = m_ATOMs[i];
-			for (uint j = 0; j < SIZE(v); ++j)
-				{
-				fputs(v[j].c_str(), f);
-				fputc('\n', f);
-				}
-			}
-		return;
-		}
-
-	const size_t L = m_Xs.size();
-	asserta(m_Ys.size() == L);
-	asserta(m_Zs.size() == L);
-	asserta(m_Seq.size() == L);
-
-	const char Chain = 'A';
-
-	for (uint i = 0; i < L; ++i)
-		{
-		char aa = m_Seq[i];
-		string sAAA;
-		GetThreeFromOne(aa, sAAA);
-		const char *AAA = sAAA.c_str();
-
-		fprintf(f, "ATOM  ");			//  1 -  6        Record name   "ATOM  "
-		fprintf(f, "%5u", i+1);			//  7 - 11        Integer       serial       Atom serial number.
-		fprintf(f, " ");				// 12
-		fprintf(f, " CA ");				// 13 - 16        Atom          name         Atom name.
-		fprintf(f, " ");				// 17             Character     altLoc       Alternate location indicator.
-		fprintf(f, "%3.3s", AAA);		// 18 - 20        Residue name  resName      Residue name.
-		fprintf(f, " ");				// 21
-		fprintf(f, "%c", Chain);		// 22             Character     chainID      Chain identifier.
-		fprintf(f, "%4u", i+1);			// 23 - 26        Integer       resSeq       Residue sequence number.
-		fprintf(f, " ");				// 27             AChar         iCode        Code for insertion of residues.
-		fprintf(f, "   ");				// 28 - 30
-		fprintf(f, "%8.3f", m_Xs[i]);	// 31 - 38        Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
-		fprintf(f, "%8.3f", m_Ys[i]);	// 39 - 46        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
-		fprintf(f, "%8.3f", m_Zs[i]);	// 47 - 57        Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
-		fprintf(f, "%6.2f", 1.0);		// 55 - 60        Real(6.2)     occupancy    Occupancy.
-		fprintf(f, "%6.2f", 0.0);		// 61 - 66        Real(6.2)     tempFactor   Temperature  factor.
-		fprintf(f, "          ");		// 67 - 76
-		fprintf(f, " C");				// 77 - 78        LString(2)    element      Element symbol, right-justified.
-		fprintf(f, "  ");				// 79 - 80        LString(2)    charge       Charge on the atom.
-
-		fprintf(f, "\n");
-		}
-	}
-
-void PDBChain::RenumberResidues(uint Start)
-	{
-	if (m_ATOMs.empty() && m_ResNrs.empty())
-		return;
-	uint N = SIZE(m_ATOMs);
-	asserta(N > 0);
-	uint CurrInputResidueNr = UINT_MAX;
-	vector<vector<string> > OutputAtoms;
-	uint AtomNr = 0;
-	for (uint OutputResidueIndex = 0; OutputResidueIndex < N;
-	  ++OutputResidueIndex)
-		{
-		const vector<string> &InputLines = m_ATOMs[OutputResidueIndex];
-		vector<string> OutputLines;
-		const uint M = SIZE(InputLines);
-		asserta(M > 0);
-		for (uint j = 0; j < M; ++j)
-			{
-			++AtomNr;
-			const string &InputLine = InputLines[j];
-			string OutputLine;
-			SetResidueNrInATOMLine(InputLine,
-			  Start+OutputResidueIndex+1, OutputLine);
-			SetAtomNrInATOMLine(InputLine,
-			  AtomNr, OutputLine);
-			OutputLines.push_back(OutputLine);
-			}
-		OutputAtoms.push_back(OutputLines);
-		}
-	m_ATOMs = OutputAtoms;
-	}
-
 static double GetFloatFromString(const string &s, uint Pos, uint n)
 	{
 	string t = s.substr(Pos, n);
@@ -306,61 +194,6 @@ void PDBChain::SetXYZInATOMLine(const string &InputLine,
 		OutputLine[30+i] = sx[i];
 		OutputLine[38+i] = sy[i];
 		OutputLine[46+i] = sz[i];
-		}
-	}
-
-void PDBChain::GetATOMLines(uint Pos, vector<string> &Lines) const
-	{
-	asserta(Pos < SIZE(m_ATOMs));
-	Lines = m_ATOMs[Pos];
-	}
-
-void PDBChain::GetCAAtomLine(uint Pos, string &Line) const
-	{
-	asserta(Pos < SIZE(m_ATOMs));
-	const vector<string> &v = m_ATOMs[Pos];
-	for (uint i = 0; i < SIZE(v); ++i)
-		{
-		Line = v[i];
-		//asserta(SIZE(Line) > 40);
-		//string AtomName = Line.substr(12, 4);
-		//StripWhiteSpace(AtomName);
-		string AtomName;
-		GetAtomNameFromATOMLine(Line, AtomName);
-		if (AtomName == "CA")
-			return;
-		}
-	assert(false);
-	}
-
-int PDBChain::GetResidueNr(uint Pos, int ValueIfNotFound) const
-	{
-	//string CALine;
-	//GetCAAtomLine(Pos, CALine);
-	//int ResNr = GetResidueNrFromATOMLine(CALine);
-	if (SIZE(m_ResNrs) == 0)
-		return (int) (Pos+1);
-	uint L = SIZE(m_ResNrs);
-	if (Pos < L)
-		return m_ResNrs[Pos];
-	if (ValueIfNotFound != INT_MAX)
-		return ValueIfNotFound;
-	Die("GetResideNr(Pos=%u) L=%u", Pos, L);
-	return -999;
-	}
-
-void PDBChain::GetResidueRange(uint PosLo, uint ResidueCount,
-  int &ResLo, int &ResHi) const
-	{
-	ResLo = INT_MAX;
-	ResHi = INT_MIN;
-	for (uint Pos = PosLo; Pos < PosLo + ResidueCount; ++Pos)
-		{
-		int ResNr = GetResidueNr(Pos);
-		if (ResNr < ResLo)
-			ResLo = ResNr;
-		if (ResNr > ResHi)
-			ResHi = ResNr;
 		}
 	}
 
@@ -458,39 +291,34 @@ char PDBChain::FromPDBLines(const string &Label,
   const vector<string> &Lines)
 	{
 	Clear();
-
 	m_Label = Label;
 	const uint N = SIZE(Lines);
 	char ChainChar = 0;
 	uint ResidueCount = 0;
 	int CurrentResidueNumber = INT_MAX;
+	vector<string> ATOMLines;
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
-		string Line = Lines[LineNr];
+		const string &Line = Lines[LineNr];
 		const size_t L = Line.size();
-
-		HackHETAMLine(Line);
-		if (strncmp(Line.c_str(), "ATOM  ", 6) != 0)
-			continue;
-		if (Line[26] != ' ') // Insertion code
-			continue;
 
 		char LineChain = Line[21];
 		if (ChainChar == 0)
 			ChainChar = LineChain;
 		else if (ChainChar != LineChain)
-			Die("PDBChain::FromLines() two chains %c, %c",
+			Die("PDBChain::FromPDBLines() two chains %c, %c",
 			  ChainChar, LineChain);
 
-		int ResidueNumber = GetResidueNrFromATOMLine(Line);
-		if (ResidueNumber != CurrentResidueNumber)
-			{
-			CurrentResidueNumber = ResidueNumber;
-			++ResidueCount;
-			m_ATOMs.resize(ResidueCount);
-			}
-		asserta(SIZE(m_ATOMs) > 0);
-		m_ATOMs.back().push_back(Line);
+		char aa;
+		double X, Y, Z;
+		bool IsCA = GetFieldsFromATOMLine(Line, X, Y, Z, aa);
+		if (!IsCA)
+			continue;
+
+		m_Seq.push_back(aa);
+		m_Xs.push_back(X);
+		m_Ys.push_back(Y);
+		m_Zs.push_back(Z);
 		}
 
 	if (ChainChar != 0 && !isspace(ChainChar))
@@ -499,25 +327,38 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_Label += ChainChar;
 		}
 
-	const uint L = SIZE(m_ATOMs);
-	for (uint i = 0; i < L; ++i)
-		{
-		char aa;
-		double X, Y, Z;
-		int ResNr;
-		bool CAFound = 
-		  GetFieldsFromResidueATOMLines(m_ATOMs[i], X, Y, Z, aa, ResNr);
-		if (!CAFound)
-			continue;
-
-		m_Seq.push_back(aa);
-		m_Xs.push_back(X);
-		m_Ys.push_back(Y);
-		m_Zs.push_back(Z);
-		m_ResNrs.push_back(ResNr);
-		}
-
 	return ChainChar;
+	}
+
+bool PDBChain::GetFieldsFromATOMLine(const string &Line,
+  double &X, double &Y, double &Z, char &aa)
+	{
+	aa = 'X';
+	X = -999;
+	Y = -999;
+	Z = -999;
+	string AtomName = Line.substr(12, 4);
+	StripWhiteSpace(AtomName);
+	if (AtomName != "CA")
+		return false;
+
+	string AAA = Line.substr(17, 3);
+	aa = GetOneFromThree(AAA);
+
+	string sX, sY, sZ;
+	sX = Line.substr(30, 8);
+	sY = Line.substr(38, 8);
+	sZ = Line.substr(46, 8);
+
+	StripWhiteSpace(sX);
+	StripWhiteSpace(sY);
+	StripWhiteSpace(sZ);
+
+	X = StrToFloat(sX);
+	Y = StrToFloat(sY);
+	Z = StrToFloat(sZ);
+
+	return true;
 	}
 
 bool PDBChain::GetFieldsFromResidueATOMLines(const vector<string> &Lines,
@@ -613,36 +454,6 @@ void PDBChain::SetPt(uint Pos, const vector<double> &Pt)
 	m_Zs[Pos] = Pt[Z];
 	}
 
-bool PDBChain::Get_CB_Pt(uint Pos, vector<double> &Pt) const
-	{
-	Pt.resize(3);
-	bool Ok = Get_CB_XYZ(Pos, Pt[0], Pt[1], Pt[2]);
-	return Ok;
-	}
-
-bool PDBChain::Get_CB_XYZ(uint Pos, double &x, double &y, double &z) const
-	{
-	x = DBL_MAX;
-	y = DBL_MAX;
-	z = DBL_MAX;
-	if (m_ATOMs.empty())
-		return false;
-	asserta(Pos < SIZE(m_ATOMs));
-	const vector<string> &v = m_ATOMs[Pos];
-	for (uint i = 0; i < SIZE(v); ++i)
-		{
-		const string &Line = v[i];
-		string AtomName;
-		GetAtomNameFromATOMLine(Line, AtomName);
-		if (AtomName == "CB")
-			{
-			GetXYZFromATOMLine(Line, x, y, z);
-			return true;
-			}
-		}
-	return false;
-	}
-
 double PDBChain::GetX(uint Pos) const
 	{
 	assert(Pos < SIZE(m_Xs));
@@ -717,45 +528,6 @@ double PDBChain::GetDist2(uint Pos1, uint Pos2) const
 	return d2;
 	}
 
-void PDBChain::GetReverse(PDBChain &Chain) const
-	{
-	Chain.Clear();
-	Chain.m_Label = m_Label + "_reverse";
-	Chain.m_Seq = m_Seq;
-
-#define rev(x)	Chain.m_##x = m_##x; reverse(Chain.m_##x.begin(), Chain.m_##x.end())
-	rev(Seq);
-	rev(Xs);
-	rev(Ys);
-	rev(Zs);
-#undef rev
-
-	Chain.m_ResNrs.clear();
-	vector<vector<string> > NewATOMs;
-	const uint N = SIZE(m_ATOMs);
-	uint NewResNr = 0;
-	uint NewAtomNr = 0;
-	for (uint i = 0; i < N; ++i)
-		{
-		++NewResNr;
-		const vector<string> &v = m_ATOMs[N-i-1];
-		vector<string> Newv;
-		const uint M = SIZE(v);
-		for (uint j = 0; j < M; ++j)
-			{
-			++NewAtomNr;
-			const string &Line = v[j];
-			string NewLine;
-			SetResidueNrInATOMLine(Line, NewResNr, NewLine);
-			string NewLine2;
-			SetAtomNrInATOMLine(NewLine, NewAtomNr, NewLine2);
-			Newv.push_back(NewLine2);
-			}
-		NewATOMs.push_back(Newv);
-		}
-	Chain.m_ATOMs = NewATOMs;
-	}
-
 void PDBChain::WriteSeqWithCoords(FILE *f) const
 	{
 	if (f == 0)
@@ -789,20 +561,6 @@ void PDBChain::WriteSeqWithCoords(FILE *f) const
 		break;
 		}
 	fprintf(f, "\n");
-	}
-
-void PDBChain::SetMotifPosVec(uint PosA, uint PosB, uint PosC)
-	{
-	const uint L = GetSeqLength();
-	asserta(PosA < L);
-	asserta(PosB < L);
-	asserta(PosC < L);
-	asserta(PosA < PosB);
-	asserta(PosC < PosA || PosB < PosC);
-	m_MotifPosVec.clear();
-	m_MotifPosVec.push_back(PosA);
-	m_MotifPosVec.push_back(PosB);
-	m_MotifPosVec.push_back(PosC);
 	}
 
 void PDBChain::PrintSeqCoords(FILE *f) const
@@ -860,16 +618,11 @@ void PDBChain::GetXFormChain_tR(
 	XChain.Clear();
 	XChain.m_Label = m_Label;
 	XChain.m_Seq = m_Seq;
-	XChain.m_MotifPosVec = m_MotifPosVec;
-	XChain.m_ATOMs = m_ATOMs;
 
 	const uint N = SIZE(m_Seq);
 	asserta(SIZE(m_Xs) == N);
 	asserta(SIZE(m_Ys) == N);
 	asserta(SIZE(m_Zs) == N);
-
-	const uint AtomCount = SIZE(m_ATOMs);
-	asserta(AtomCount == 0 || AtomCount == N);
 
 	vector<double> Pt(3);
 	vector<double> XPt(3);
@@ -885,17 +638,6 @@ void PDBChain::GetXFormChain_tR(
 		XChain.m_Xs.push_back(x);
 		XChain.m_Ys.push_back(y);
 		XChain.m_Zs.push_back(z);
-
-		if (AtomCount != 0)
-			{
-			vector<string> &a = XChain.m_ATOMs[Pos];
-			for (uint i = 0; i < SIZE(a); ++i)
-				{
-				GetXYZFromATOMLine(a[i], Pt[X], Pt[Y], Pt[Z]);
-				XFormPt(Pt, t, R, XPt);
-				SetXYZInATOMLine(a[i], XPt[X], XPt[Y], XPt[Z], a[i]);
-				}
-			}
 		}
 	}
 
@@ -975,26 +717,10 @@ void PDBChain::GetRange(uint Lo, uint Hi, PDBChain &Chain) const
 		{
 #define c(x)	Chain.m_##x.push_back(m_##x[Pos])
 		c(Seq);
-		if (!m_ATOMs.empty())
-			c(ATOMs);
 		c(Xs);
 		c(Ys);
 		c(Zs);
 #undef c
-		}
-
-	if (!m_MotifPosVec.empty())
-		{
-		asserta(SIZE(m_MotifPosVec) == 3);
-		for (uint i = 0; i < 3; ++i)
-			{
-			uint Pos = m_MotifPosVec[i];
-			if (Pos >= Lo)
-				Chain.m_MotifPosVec.push_back(Pos - Lo);
-			else
-				Chain.m_MotifPosVec.push_back(UINT_MAX);
-			}
-		asserta(SIZE(Chain.m_MotifPosVec) == 3);
 		}
 	}
 
@@ -1011,44 +737,5 @@ void PDBChain::GetSphere(uint Pos, double Radius,
 		double d = GetDist(Pos, Pos2);
 		if (d <= Radius)
 			PosVec.push_back(Pos2);
-		}
-	}
-
-void PDBChain::GetResidueAtomsInfo(uint Pos,
-	vector<double> &Xs,
-	vector<double> &Ys,
-	vector<double> &Zs,
-	vector<string> &ElementNames,
-	vector<string> &AtomNames,
-	vector<string> &Lines) const
-	{
-	Xs.clear();
-	Ys.clear();
-	Zs.clear();
-	ElementNames.clear();
-	AtomNames.clear();
-	Lines.clear();
-
-	GetATOMLines(Pos, Lines);
-	const uint n = SIZE(Lines);
-	for (uint i = 0; i < n; ++i)
-		{
-		const string &Line = Lines[i];
-
-		double X, Y, Z;
-		GetXYZFromATOMLine(Line, X, Y, Z);
-
-		string AtomName;
-		GetAtomNameFromATOMLine(Line, AtomName);
-
-		string ElementName;
-		GetElementNameFromATOMLine(Line, ElementName);
-
-		Xs.push_back(X);
-		Ys.push_back(Y);
-		Zs.push_back(Z);
-		AtomNames.push_back(AtomName);
-		ElementNames.push_back(ElementName);
-		Lines.push_back(Line);
 		}
 	}

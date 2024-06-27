@@ -234,7 +234,6 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		if (CA_Fld != "CA")
 			continue;
 		const string &Chain_Fld = Fields[Chain_FldIdx];
-		const string &ResNr_Fld = Fields[ResNr_FldIdx];
 		asserta(SIZE(Chain_Fld) == 1);
 		char ChainChar = Chain_Fld[0];
 		asserta(ChainChar != 0);
@@ -259,12 +258,10 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		double Y = StrToFloat(Fields[Y_FldIdx]);
 		double Z = StrToFloat(Fields[Z_FldIdx]);
 		char aa = GetOneFromThree(aa_Fld);
-		uint ResNr = StrToInt(ResNr_Fld);
 
 		Chain->m_Seq.push_back(aa);
 		Chain->m_Xs.push_back(X);
 		Chain->m_Ys.push_back(Y);
 		Chain->m_Zs.push_back(Z);
-		Chain->m_ResNrs.push_back(ResNr);
 		}
 	}
