@@ -7,133 +7,47 @@ void ChainReader2::Close()
 	m_State = STATE_Closed;
 	}
 
-void ChainReader2::Open(const string &Path)
+void ChainReader2::Open(PDBFileScanner &FS)
 	{
+	m_ptrFS = &FS;
 	m_Trace = opt_trace_chainreader2;
-	if (m_Trace) Log("ChainReader2::Open(%s)\n", Path.c_str());
-	m_RootFileName = Path;
-	m_CurrentFileName.clear();
-	m_PendingFiles.clear();
-	m_PendingDirs.clear();
-	bool Ok = PushFileOrDir(Path);
-	if (!Ok)
-		Die("Not found '%s'", Path.c_str());
+	if (m_Trace) Log("ChainReader2::Open()\n");
 	m_State = STATE_PendingFile;
 	m_ChainCount = 0;
 	}
 
-bool ChainReader2::IsStructureExt(const string &Ext) const
+// Files first, then directories to reduce queue
+PDBChain *ChainReader2::GetFirst(const string &FN)
 	{
-	string LowerExt = Ext;
-	ToLower(LowerExt);
+	m_CurrentFN = FN;
 
-#define x(s)	if (Ext == #s || Ext == string(#s) + string(".gz")) return true;
-	x(pdb)
-	x(ent)
-	x(cif)
-	x(mmcif)
-	x(cal)
-#undef x
-	return false;
-	}
-
-bool ChainReader2::FileNameHasStructureExt(const string &FN) const
-	{
 	string Ext;
 	GetExtFromPathName(FN, Ext);
-	return IsStructureExt(Ext);
-	}
-
-bool ChainReader2::PushFileOrDir(const string &Path)
-	{
-	if (m_Trace) Log("ChainReader2::PushFileOrDir(%s)\n", Path.c_str());
-	if (Path.empty())
-		return false;
-	if (IsDirectory(Path))
+	ToLower(Ext);
+	if (m_Trace) Log("  FN=%s Ext=%s\n", FN.c_str(), Ext.c_str());
+	if (Ext == "cal")
 		{
-		m_PendingDirs.push_back(Path);
-		return true;
+		m_State = STATE_ReadingCALFile;
+		PDBChain *Chain = GetFirst_CAL(FN);
+		if (Chain != 0)
+			return Chain;
 		}
-	else if (IsRegularFile(Path))
+	else if (Ext == "pdb" || Ext == "pdb.gz" || Ext == "ent" || Ext == "ent.gz")
 		{
-		m_PendingFiles.push_back(Path);
-		return true;
+		m_State = STATE_ReadingPDBFile;
+		PDBChain *Chain = GetFirst_PDB(FN);
+		if (Chain != 0)
+			return Chain;
 		}
-	return false;
-	}
-
-void ChainReader2::ReadNextDir()
-	{
-	if (m_PendingDirs.empty())
-		return;
-	const string Dir = m_PendingDirs.front();
-	if (m_Trace) Log("ChainReader2::ReadNextDir(%s)\n", Dir.c_str());
-	m_PendingDirs.pop_front();
-	vector<string> FileNames;
-	vector<bool> IsSubDirs;
-	mylistdir(Dir, FileNames, IsSubDirs);
-	for (uint i = 0; i < SIZE(FileNames); ++i)
+	else if (Ext == "cif" || Ext == "cif.gz" || Ext == "mmcif" || Ext == "mmcif.gz")
 		{
-		const string &FN = FileNames[i];
-		if (FN == "." || FN == "..")
-			continue; 
-		const string &Path = Dir + string("/") + FN;
-		if (IsDirectory(Path))
-			m_PendingDirs.push_back(Path);
-		else if (FileNameHasStructureExt(FN))
-			m_PendingFiles.push_back(Path);
+		m_State = STATE_ReadingCIFFile;
+		PDBChain *Chain = GetFirst_CIF(FN);
+		if (Chain != 0)
+			return Chain;
 		}
-	}
-
-// Files first, then directories to reduce queue
-PDBChain *ChainReader2::PendingFile()
-	{
-	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
-		{
-		if (m_Trace) Log("ChainReader2::PendingFile() SanityCounter=%u\n", SanityCounter);
-		while (m_PendingFiles.empty() && !m_PendingDirs.empty())
-			ReadNextDir();
-		if (m_PendingFiles.empty())
-			return 0;
-
-		m_CurrentFileName = m_PendingFiles.front();
-		m_PendingFiles.pop_front();
-
-		string Ext;
-		GetExtFromPathName(m_CurrentFileName, Ext);
-		ToLower(Ext);
-		if (m_Trace) Log("  m_CurrentFileName=%s Ext=%s\n", m_CurrentFileName.c_str(), Ext.c_str());
-		if (Ext == "cal")
-			{
-			m_State = STATE_ReadingCALFile;
-			PDBChain *Chain = GetFirst_CAL(m_CurrentFileName);
-			if (Chain != 0)
-				return Chain;
-			}
-		else if (Ext == "pdb" || Ext == "pdb.gz" || Ext == "ent" || Ext == "ent.gz")
-			{
-			m_State = STATE_ReadingPDBFile;
-			PDBChain *Chain = GetFirst_PDB(m_CurrentFileName);
-			if (Chain != 0)
-				return Chain;
-			}
-		else if (Ext == "cif" || Ext == "cif.gz" || Ext == "mmcif" || Ext == "mmcif.gz")
-			{
-			m_State = STATE_ReadingCIFFile;
-			PDBChain *Chain = GetFirst_CIF(m_CurrentFileName);
-			if (Chain != 0)
-				return Chain;
-			}
-		else if (Ext == "files")
-			{
-			vector<string> Paths;
-			ReadLinesFromFile(m_CurrentFileName, Paths);
-			for (uint i = 0; i < SIZE(Paths); ++i)
-				PushFileOrDir(Paths[i]);
-			}
-		}
-
-	Die("Excessive looping in ChainReader2::PendingFile()");
+	else
+		Die("ChainReader2::GetNext(%s), unknown extension", FN.c_str());
 	return 0;
 	}
 
@@ -147,35 +61,6 @@ PDBChain *ChainReader2::GetNext()
 
 PDBChain *ChainReader2::GetNextLo1()
 	{
-	uint SanityCounter = 0;
-	for (;;)
-		{
-		if (m_Trace) Log("GetNextLo1() state=%d\n", m_State);
-		time_t Now = time(0);
-		PDBChain *Chain = GetNextLo2();
-		if (Chain == 0)
-			{
-			++SanityCounter;
-			if (SanityCounter >= 100)
-				Die("Excessive looping in ChainReader2::GetNextLo1()");
-			}
-		if (Chain == 0)
-			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=0\n"); }
-		else
-			{ if (m_Trace) Log("ChainReader2::GetNextLo1() Chain=%s\n", Chain->m_Label.c_str()); }
-
-		if (Chain == 0)
-			return 0;
-		++m_ChainCount;
-		if (Chain->GetSeqLength() > 0)
-			return Chain;
-		delete Chain;
-		}
-	return 0;
-	}
-
-PDBChain *ChainReader2::GetNextLo2()
-	{
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
 		if (m_Trace) Log("GetNextLo2() state=%d\n", m_State);
@@ -186,11 +71,18 @@ PDBChain *ChainReader2::GetNextLo2()
 
 		case STATE_PendingFile:
 			{
-			PDBChain *Chain = PendingFile();
-			if (m_Trace) Log("PendingFile()=0, Close() and stop.\n");
-			if (Chain == 0)
+			string FN;
+			bool Ok = m_ptrFS->GetNext(FN);
+			if (!Ok)
+				{
 				Close();
-			return Chain;
+				return 0;
+				}
+			PDBChain *Chain = GetFirst(FN);
+			if (m_Trace) Log("PendingFile()=0, Close() and stop.\n");
+			if (Chain != 0)
+				return Chain;
+			continue;
 			}
 
 		case STATE_ReadingCALFile:
@@ -268,7 +160,7 @@ PDBChain *ChainReader2::GetNext_CAL()
 		}
 	if (m_Line.empty() || m_Line[0] != '>')
 		Die("%s: Expected '>' in CAL file",
-		  m_CurrentFileName.c_str());
+		  m_CurrentFN.c_str());
 
 	const string Label = m_Line.substr(1);
 	if (m_Trace) Log("ChainReader2::GetNext_CAL() Label=%s\n", Label.c_str());
@@ -298,7 +190,7 @@ F       40.340  3.621   14.036
 		Split(Line, Fields, '\t');
 		if (Fields.size() != 4 || Fields[0].size() != 1)
 			Die("%s: Invalid CAL record '%s'",
-			  m_CurrentFileName.c_str(), Line.c_str());
+			  m_CurrentFN.c_str(), Line.c_str());
 
 		char aa = Fields[0][0];
 		double X = StrToFloat(Fields[1]);

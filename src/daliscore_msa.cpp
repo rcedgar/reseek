@@ -91,8 +91,12 @@ void cmd_daliscore_msa()
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 	FILE* fOut = CreateStdioFile(opt_output);
+
+	PDBFileScanner FS;
+	FS.Open(opt_input);
 	ChainReader2 CR;
-	CR.Open(opt_input);
+	CR.Open(FS);
+
 	vector<PDBChain*> Chains;
 	map<string, uint> LabelToChainIdx;
 	for (;;)

@@ -4,8 +4,11 @@
 
 void cmd_pdb2cal()
 	{
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
 	ChainReader2 CR;
-	CR.Open(g_Arg1);
+	CR.Open(FS);
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
@@ -25,8 +28,11 @@ void cmd_pdb2cal()
 
 void cmd_pdb2fasta()
 	{
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
 	ChainReader2 CR;
-	CR.Open(g_Arg1);
+	CR.Open(FS);
 
 	FILE *fOut = CreateStdioFile(opt_output);
 

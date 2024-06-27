@@ -189,12 +189,14 @@ void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 	{
-	Chains.clear();
-	ChainReader2 CR2;
-	CR2.Open(FileName);
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
+	ChainReader2 CR;
+	CR.Open(FS);
 	for (;;)
 		{
-		PDBChain *Chain = CR2.GetNext();
+		PDBChain *Chain = CR.GetNext();
 		if (Chain == 0)
 			break;
 		Chains.push_back(Chain);

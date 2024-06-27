@@ -18,8 +18,11 @@ static char GetChar(byte Letter, uint AlphaSize)
 
 void cmd_pdb2alpha()
 	{
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
 	ChainReader2 CR;
-	CR.Open(g_Arg1);
+	CR.Open(FS);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);

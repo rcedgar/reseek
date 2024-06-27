@@ -43,8 +43,11 @@ static FEATURE GetFeatureFromCmdLine()
 
 void cmd_convert()
 	{
+	PDBFileScanner FS;
+	FS.Open(g_Arg1);
+
 	ChainReader2 CR;
-	CR.Open(g_Arg1);
+	CR.Open(FS);
 
 	FILE *fCal = CreateStdioFile(opt_cal);
 	FILE *fFasta = CreateStdioFile(opt_fasta);

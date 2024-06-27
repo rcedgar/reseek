@@ -29,8 +29,11 @@ void cmd_daliscore_tsv()
 	{
 	const string &TsvFN = g_Arg1;
 
+	PDBFileScanner FS;
+	FS.Open(opt_input);
 	ChainReader2 CR;
-	CR.Open(opt_input);
+	CR.Open(FS);
+
 	vector<PDBChain*> Chains;
 	map<string, uint> LabelToChainIdx;
 	for (;;)

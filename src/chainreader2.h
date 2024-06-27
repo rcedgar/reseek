@@ -2,6 +2,7 @@
 
 #include "pdbchain.h"
 #include "linereader2.h"
+#include "pdbfilescanner.h"
 #include <list>
 
 class ChainReader2
@@ -18,11 +19,7 @@ public:
 
 public:
 	mutex m_Lock;
-	string m_RootFileName;
-	string m_CurrentFileName;
 	STATE m_State = STATE_Closed;
-	list<string> m_PendingFiles;
-	list<string> m_PendingDirs;
 	FILE *m_fCal = 0;
 	LineReader2 m_LR;
 	string m_Line;
@@ -33,19 +30,20 @@ public:
 	uint m_ChainIdx_CIF = 0;
 	string m_Label_PDB;
 	uint m_ChainCount = 0;
+	string m_CurrentFN;
 	bool m_Trace = false;
 
+// FS object shared with other threads
+	PDBFileScanner *m_ptrFS = 0;
+
 public:
-	void Open(const string &FN);
+	void Open(PDBFileScanner &FS);
 	PDBChain *GetNext();
 
 private:
-	PDBChain *GetNextLo1();
-	PDBChain *GetNextLo2();
-	PDBChain *PendingFile();
-	void ReadNextDir();
 	void Close();
-	bool PushFileOrDir(const string &Path);
+	PDBChain *GetNextLo1();
+	PDBChain *GetFirst(const string &FN);
 	PDBChain *GetFirst_CAL(const string &FN);
 	PDBChain *GetNext_CAL();
 
@@ -54,8 +52,6 @@ private:
 
 	PDBChain *GetFirst_CIF(const string &FN);
 	PDBChain *GetNext_CIF();
-	bool FileNameHasStructureExt(const string &FN) const;
-	bool IsStructureExt(const string &Ext) const;
 	PDBChain *ChainFromLines_CAL(const vector<string> &Lines) const;
 	void ChainsFromLines_PDB(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
