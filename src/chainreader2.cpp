@@ -283,7 +283,9 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 					{
 					PDBChain *Chain = new PDBChain;
 					char ChainChar = Chain->FromPDBLines(Label, ChainLines);
-					if (ChainChar != 0)
+					if (ChainChar == 0)
+						delete Chain;
+					else
 						Chains.push_back(Chain);
 					ChainLines.clear();
 					AnyAtoms = false;
@@ -315,9 +317,6 @@ bool ChainReader2::IsATOMLine_PDB(const string &Line) const
 	{
 	if (SIZE(Line) < 27)
 		return false;
-	// Insertion code is somehow about residue numbering, should be included
-	//if (Line[26] != ' ') // insertion code
-	//	return false;
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
 	return false;

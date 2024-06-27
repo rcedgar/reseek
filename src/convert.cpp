@@ -61,6 +61,10 @@ static void ThreadBody(
 	uint &DupeLabelCount = *ptrDupeLabelCount;
 	mutex &Lock = *ptrLock;
 
+	uint MinChainLength = 0;
+	if (optset_minchainlength)
+		MinChainLength = opt_minchainlength;
+
 	DSSParams Params;
 	DSS D;
 	uint AlphaSize = 0;
@@ -79,7 +83,10 @@ static void ThreadBody(
 			break;
 		PDBChain &Chain = *ptrChain;
 		if (Chain.GetSeqLength() == 0)
+			{
+			delete ptrChain;
 			continue;
+			}
 		if (Labels.find(Chain.m_Label) != Labels.end())
 			{
 			Lock.lock();
@@ -146,32 +153,17 @@ void cmd_convert()
 	time_t LastTime = 0;
 	mutex Lock;
 
-	uint ThreadCount = GetRequestedThreadCount();
-	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		thread *t = new thread(ThreadBody,
-			ThreadIndex, 
+	ThreadBody(
+			0, 
 			&CR,
 			&Labels,
 			&LastTime,
 			&Count,
 			&DupeLabelCount,
 			&Lock);
-		ts.push_back(t);
-		}
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		thread *t = ts[ThreadIndex];
-		t->join();
-		}
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		thread *t = ts[ThreadIndex];
-		delete t;
-		}
 
-	ProgressLog("%u chains converted, %u dupe labels\n", Count, DupeLabelCount);
+	Log("%u dupe labels\n", DupeLabelCount);
+	ProgressLog("%u chains converted\n", Count);
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
 	CloseStdioFile(s_fFeatureFasta);

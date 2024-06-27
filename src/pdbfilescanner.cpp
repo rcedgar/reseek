@@ -3,7 +3,7 @@
 
 void PDBFileScanner::Open(const string &Path)
 	{
-	m_Trace = opt_trace_chainreader2;
+	m_Trace = opt_trace_filescanner;
 	if (m_Trace) Log("PDBFileScanner::Open(%s)\n", Path.c_str());
 	m_RootFileName = Path;
 	m_CurrentFileName.clear();

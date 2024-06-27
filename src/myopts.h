@@ -167,6 +167,7 @@ UNS_OPT(scorefieldnr,		10,			1,			UINT_MAX)
 UNS_OPT(nfp,			10,			1,			UINT_MAX)
 UNS_OPT(minu,			10,			1,			UINT_MAX)
 UNS_OPT(lambda,			10,			1,			UINT_MAX)
+UNS_OPT(minchainlength,			10,			1,			UINT_MAX)
 
 FLT_OPT(maxgapfract,				0.6,		0.0,			1.0)
 FLT_OPT(mintm,				0.6,		0.0,			1.0)
