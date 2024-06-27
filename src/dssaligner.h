@@ -147,7 +147,6 @@ public:
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
 	void ToTsv(FILE *f, float MaxEvalue, bool Up);
-	void WriteTsvHdr(FILE *f) const;
 	void ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const;
 	void ToAln(FILE *f, float MaxEvalue, bool Up) const;
 	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;

@@ -31,7 +31,7 @@ const char *usage_txt[] =
 "    reseek -pdb2cal STRUCTS -output structs.cal\n"
 "\n"
 "Convert PDB file(s) to amino acid sequence (FASTA)\n"
-"    reseek -pdb2cal STRUCTS -output structs.fa\n"
+"    reseek -pdb2fasta STRUCTS -output structs.fa\n"
 "\n"
 "Convert PDB file(s) to structure alphabet (FASTA)\n"
 "    reseek -pdb2alpha STRUCTS -alpha ALPHA -output structs.fa\n"

@@ -16,6 +16,17 @@ USERFIELD StrToUF(const string &Str)
 	return UF_Undefined;
 	}
 
+static const char *EvalueToStr(double E, string &s)
+	{
+	if (E > 1)
+		Ps(s, "%.1f", E);
+	else if (E > 0.001)
+		Ps(s, "%.4f", E);
+	else
+		Ps(s, "%.3g", E);
+	return s.c_str();
+	}
+
 const char *UFToStr(USERFIELD UF)
 	{
 	switch (UF)
@@ -34,11 +45,12 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 	if (f == 0)
 		return;
 
+	string TmpStr;
 	switch (UF)
 		{
 	case UF_query:	fputs(GetLabel(Up), f); break;
 	case UF_target: fputs(GetLabel(!Up), f); break;
-	case UF_evalue:	fprintf(f, "%.3g", GetEvalue(Up)); break;
+	case UF_evalue:	fprintf(f, "%s", EvalueToStr(GetEvalue(Up), TmpStr)); break;
 	case UF_qlo:	fprintf(f, "%u", GetLo(Up) + 1); break;
 	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;

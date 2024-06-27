@@ -345,11 +345,11 @@ void DBSearcher::Run()
 
 void DBSearcher::RunStats() const
 	{
-	ProgressLog("Search time %u secs, ", m_Secs);
+	ProgressLog("Search time %u secs\n", m_Secs);
 	DSSAligner::Stats();
 	uint Hits = m_QPCacheHits;
 	uint Misses = m_QPCacheMisses;
-	ProgressLog("QP cache hits %u, misses %u\n", Hits, Misses);
+	Log("QP cache hits %u, misses %u\n", Hits, Misses);
 	}
 
 uint DBSearcher::GetDBChainIndex(uint Idx) const
@@ -364,7 +364,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
 	else
-		m_MaxEvalue = FLT_MAX;
+		m_MaxEvalue = 999;
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);

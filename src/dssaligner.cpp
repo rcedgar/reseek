@@ -163,6 +163,12 @@ DSSAligner::DSSAligner()
 				}
 			}
 		}
+	else
+		{
+		m_UFs.push_back(UF_evalue);
+		m_UFs.push_back(UF_query);
+		m_UFs.push_back(UF_target);
+		}
 	}
 
 int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
@@ -944,42 +950,16 @@ void DSSAligner::ToFasta2(FILE *f, float MaxEvalue, bool Global, bool Up) const
 	m_OutputLock.unlock();
 	}
 
-void DSSAligner::WriteTsvHdr(FILE *f) const
-	{
-	if (f == 0)
-		return;
-	const uint n = SIZE(m_UFs);
-	for (uint i = 0; i < n; ++i)
-		{
-		if (i > 0)
-			fputc('\t', f);
-		if (m_UFs[i] == UF_rigid)
-			fprintf(f, "RMSD\tTx\tTy\tTz\tR11\tR12\tR13\tR21\tR22\tR23\tR31\tR32\tR33");
-		else
-			fputs(UFToStr(m_UFs[i]), f);
-		}
-	fputc('\n', f);
-	}
-
 void DSSAligner::ToTsv(FILE *f, float MaxEvalue, bool Up)
 	{
 	if (f == 0)
 		return;
-	if (m_LastTsvFile != f)
-		{
-		m_LastTsvFile = f;
-		WriteTsvHdr(f);
-		}
 
 	float Evalue = GetEvalue(Up);
 	if (Evalue > MaxEvalue)
 		return;
 
 	m_OutputLock.lock();
-	//fprintf(f, "%.3g", Evalue);
-	//fprintf(f, "\t%s", GetLabel(Up));
-	//fprintf(f, "\t%s", GetLabel(!Up));
-	//fprintf(f, "\n");
 	const uint n = SIZE(m_UFs);
 	asserta(n > 0);
 	for (uint i = 0; i < n; ++i)

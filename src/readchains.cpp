@@ -190,7 +190,7 @@ void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 	{
 	PDBFileScanner FS;
-	FS.Open(g_Arg1);
+	FS.Open(FileName);
 
 	ChainReader2 CR;
 	CR.Open(FS);
