@@ -23,6 +23,7 @@ HDRS = \
   abcxyz.h \
   active.h \
   alpha.h \
+  bcadata.h \
   best.h \
   binner.h \
   calibratesearcher.h \
@@ -106,6 +107,7 @@ OBJS = \
   $(OBJDIR)/alpha.o \
   $(OBJDIR)/alpha2.o \
   $(OBJDIR)/b62.o \
+  $(OBJDIR)/bcadata.o \
   $(OBJDIR)/blosum.o \
   $(OBJDIR)/blosum62.o \
   $(OBJDIR)/calibrate.o \
@@ -123,6 +125,7 @@ OBJS = \
   $(OBJDIR)/daliscore_tsv.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/md5.o \
   $(OBJDIR)/pdbchaincal.o \
   $(OBJDIR)/pdbfilescanner.o \
   $(OBJDIR)/gumbel.o \

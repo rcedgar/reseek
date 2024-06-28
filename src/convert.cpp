@@ -59,11 +59,9 @@ void cmd_convert()
 	s_fFasta = CreateStdioFile(opt_fasta);
 	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
 
-	set<string> Labels;
 	uint Count = 0;
 	uint DupeLabelCount = 0;
 	time_t LastTime = 0;
-
 	for (;;)
 		{
 		PDBChain *ptrChain = CR.GetNext();
@@ -75,22 +73,14 @@ void cmd_convert()
 			delete ptrChain;
 			continue;
 			}
-		if (Labels.find(Chain.m_Label) != Labels.end())
-			{
-			Log("Dupe >%s\n", Chain.m_Label.c_str());
-			++DupeLabelCount;
-			delete ptrChain;
-			continue;
-			}
 		time_t Now = time(0);
 		++Count;
 		if (Now - LastTime > 0)
 			{
-			Progress("%u chains converted, %u dupe labels\r",
+			Progress("%u chains converted\r",
 			  Count, DupeLabelCount);
 			LastTime = Now;
 			}
-		Labels.insert(Chain.m_Label);
 		Chain.ToCal(s_fCal);
 		Chain.ToFasta(s_fFasta);
 		Chain.ToFeatureFasta(s_fFeatureFasta, D, Feat);
@@ -99,8 +89,7 @@ void cmd_convert()
 		delete ptrChain;
 		}
 
-	Log("%u dupe labels\n", DupeLabelCount);
-	ProgressLog("\n%u chains converted\n", Count);
+	ProgressLog("%u chains converted\n", Count);
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
