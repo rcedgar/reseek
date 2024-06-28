@@ -93,6 +93,25 @@ void XFormPt(
 
 	}
 
+void XFormPt(
+  const vector<float> &Pt,
+  const vector<float> &t,
+  const vector<vector<float> > &R,
+  vector<float> &XPt)
+	{
+	Resize3(XPt);
+
+	vector<float> Tmp;
+	Resize3(Tmp);
+	for (uint i = 0; i < 3; ++i)
+		Tmp[i] = Pt[i] + t[i];
+
+	for (uint i = 0; i < 3; ++i)
+//		XPt[i] = R[i][0]*Tmp[0] + R[i][1]*Tmp[1] + R[i][2]*Tmp[2];
+		XPt[i] = R[0][i]*Tmp[0] + R[1][i]*Tmp[1] + R[2][i]*Tmp[2];
+
+	}
+
 void RotateMx(const vector<vector<double> > &Mx,
   uint Axis, double Theta, vector<vector<double> > &RotatedMx)
 	{

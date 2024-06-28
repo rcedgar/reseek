@@ -51,6 +51,7 @@ static inline uint GetOtherAxis_i(uint Axis) { return (Axis+1)%3;  }
 static inline uint GetOtherAxis_j(uint Axis) { return (Axis+2)%3;  }
 
 static inline void Resize3(vector<double> &v) { v.resize(3); }
+static inline void Resize3(vector<float> &v) { v.resize(3); }
 
 static inline void Resize3x3(vector<vector<double> > &Mx)
 	{
@@ -105,6 +106,18 @@ static inline double GetDist3D(
 	double dz = z1 - z2;
 	double d2 = dx*dx + dy*dy + dz*dz;
 	double d = sqrt(d2);
+	return d;
+	}
+
+static inline float GetDist3D(
+  float x1, float y1, float z1,
+  float x2, float y2, float z2)
+	{
+	float dx = x1 - x2;
+	float dy = y1 - y2;
+	float dz = z1 - z2;
+	float d2 = dx*dx + dy*dy + dz*dz;
+	float d = sqrt(d2);
 	return d;
 	}
 
@@ -276,6 +289,18 @@ void XFormMx(
   const vector<double> &t,
   const vector<vector<double> > &R,
   vector<vector<double> > &XMx);
+
+void XFormPt(
+  const vector<float> &Pt,
+  const vector<float> &t,
+  const vector<vector<float> > &R,
+  vector<float> &XPt);
+
+void XFormMx(
+  const vector<vector<float> > &Mx,
+  const vector<float> &t,
+  const vector<vector<float> > &R,
+  vector<vector<float> > &XMx);
 
 #if DEBUG
 static void AssertCanonicalUnitBasis(const vector<vector<double> > &Basis)

@@ -358,6 +358,7 @@ unsigned StrToUint(const string &s);
 int StrToInt(const string &s);
 double StrToMemBytes(const string &s);
 double StrToFloat(const string &s);
+float StrToFloatf(const string &s);
 double StrToFloat(const char *s);
 const char *GetElapsedTimeStr(string &s);
 const char *GetMaxRAMStr(string &s);

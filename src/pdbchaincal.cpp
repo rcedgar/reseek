@@ -36,9 +36,9 @@ F       40.340  3.621   14.036
 			Die("Invalid .cal record '%s'", Line.c_str());
 
 		char aa = Fields[0][0];
-		double X = StrToFloat(Fields[1]);
-		double Y = StrToFloat(Fields[2]);
-		double Z = StrToFloat(Fields[3]);
+		float X = StrToFloatf(Fields[1]);
+		float Y = StrToFloatf(Fields[2]);
+		float Z = StrToFloatf(Fields[3]);
 
 		m_Seq.push_back(aa);
 		m_Xs.push_back(X);

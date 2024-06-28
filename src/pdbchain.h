@@ -8,9 +8,9 @@ class PDBChain
 public:
 	string m_Label;
 	string m_Seq;
-	vector<double> m_Xs;
-	vector<double> m_Ys;
-	vector<double> m_Zs;
+	vector<float> m_Xs;
+	vector<float> m_Ys;
+	vector<float> m_Zs;
 
 public:
 	~PDBChain() { Clear(); }
@@ -34,25 +34,31 @@ public:
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void GetXFormChain_tR(
+	  const vector<float> &t,
+	  const vector<vector<float> > &R,
+	  PDBChain &XChain) const;
+	void GetXFormChain_tR(
 	  const vector<double> &t,
 	  const vector<vector<double> > &R,
 	  PDBChain &XChain) const;
 	void LogMe(bool WithCoords = false) const;
-	void GetXYZ(uint Pos, double &x, double &y, double &z) const;
+	void GetXYZ(uint Pos, float &x, float &y, float &z) const;
+	void GetPt(uint Pos, vector<float> &Pt) const;
 	void GetPt(uint Pos, vector<double> &Pt) const;
-	void SetPt(uint Pos, const vector<double> &Pt);
-	double GetDist(uint Pos1, uint Pos2) const;
-	double GetDist2(uint Pos1, uint Pos2) const;
+	void SetPt(uint Pos, const vector<float> &Pt);
+	float GetDist(uint Pos1, uint Pos2) const;
+	float GetDist2(uint Pos1, uint Pos2) const;
 	void GetSS(string &SS) const;
+	void AppendCoordDataToBCA(FILE *f) const;
 
 public:
 	static bool IsATOMLine(const string &Line);
 	static void GetXYZFromATOMLine(const string &InputLine,
-	  double &x, double &y, double &z);
+	  float &x, float &y, float &z);
 	static void SetXYZInATOMLine(const string &InputLine,
-	  double x, double y, double z, string &OutputLine);
+	  float x, float y, float z, string &OutputLine);
 	static bool GetFieldsFromATOMLine(const string &Line,
-	  double &X, double &Y, double &Z, char &aa);
+	  float &X, float &Y, float &Z, char &aa);
 	};
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);

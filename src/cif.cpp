@@ -255,9 +255,9 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 
 		const string &aa_Fld = Fields[aa_FldIdx];
 		asserta(SIZE(aa_Fld) == 3);
-		double X = StrToFloat(Fields[X_FldIdx]);
-		double Y = StrToFloat(Fields[Y_FldIdx]);
-		double Z = StrToFloat(Fields[Z_FldIdx]);
+		float X = StrToFloatf(Fields[X_FldIdx]);
+		float Y = StrToFloatf(Fields[Y_FldIdx]);
+		float Z = StrToFloatf(Fields[Z_FldIdx]);
 		char aa = GetOneFromThree(aa_Fld);
 
 		Chain->m_Seq.push_back(aa);

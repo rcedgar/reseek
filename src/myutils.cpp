@@ -1087,6 +1087,11 @@ double StrToFloat(const string &s)
 	return StrToFloat(s.c_str());
 	}
 
+float StrToFloatf(const string &s)
+	{
+	return (float) StrToFloat(s.c_str());
+	}
+
 double StrToMemBytes(const string &s)
 	{
 	unsigned n = SIZE(s);

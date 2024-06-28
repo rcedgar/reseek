@@ -156,11 +156,11 @@ void PDBChain::ToCalSeg(FILE *f, uint Pos, uint n) const
 		}
 	}
 
-static double GetFloatFromString(const string &s, uint Pos, uint n)
+static float GetFloatFromString(const string &s, uint Pos, uint n)
 	{
 	string t = s.substr(Pos, n);
 	StripWhiteSpace(t);
-	double Value = StrToFloat(t);
+	float Value = (float) StrToFloat(t);
 	return Value;
 	}
 
@@ -168,7 +168,7 @@ static double GetFloatFromString(const string &s, uint Pos, uint n)
 // 39 - 46        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
 // 47 - 57        Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
 void PDBChain::GetXYZFromATOMLine(const string &InputLine,
-  double &x, double &y, double &z)
+  float &x, float &y, float &z)
 	{
 	x = GetFloatFromString(InputLine, 30, 8);
 	y = GetFloatFromString(InputLine, 38, 8);
@@ -176,7 +176,7 @@ void PDBChain::GetXYZFromATOMLine(const string &InputLine,
 	}
 
 void PDBChain::SetXYZInATOMLine(const string &InputLine,
-  double x, double y, double z, string &OutputLine)
+  float x, float y, float z, string &OutputLine)
 	{
 	string sx;
 	string sy;
@@ -220,7 +220,7 @@ char PDBChain::FromPDBLines(const string &Label,
 			  ChainChar, LineChain);
 
 		char aa;
-		double X, Y, Z;
+		float X, Y, Z;
 		bool IsCA = GetFieldsFromATOMLine(Line, X, Y, Z, aa);
 		if (!IsCA)
 			continue;
@@ -241,7 +241,7 @@ char PDBChain::FromPDBLines(const string &Label,
 	}
 
 bool PDBChain::GetFieldsFromATOMLine(const string &Line,
-  double &X, double &Y, double &Z, char &aa)
+  float &X, float &Y, float &Z, char &aa)
 	{
 	aa = 'X';
 	X = -999;
@@ -264,11 +264,23 @@ bool PDBChain::GetFieldsFromATOMLine(const string &Line,
 	StripWhiteSpace(sY);
 	StripWhiteSpace(sZ);
 
-	X = StrToFloat(sX);
-	Y = StrToFloat(sY);
-	Z = StrToFloat(sZ);
+	X = StrToFloatf(sX);
+	Y = StrToFloatf(sY);
+	Z = StrToFloatf(sZ);
 
 	return true;
+	}
+
+void PDBChain::GetPt(uint Pos, vector<float> &Pt) const
+	{
+	assert(Pos < SIZE(m_Xs));
+	assert(Pos < SIZE(m_Ys));
+	assert(Pos < SIZE(m_Zs));
+
+	Resize3(Pt);
+	Pt[X] = m_Xs[Pos];
+	Pt[Y] = m_Ys[Pos];
+	Pt[Z] = m_Zs[Pos];
 	}
 
 void PDBChain::GetPt(uint Pos, vector<double> &Pt) const
@@ -283,7 +295,7 @@ void PDBChain::GetPt(uint Pos, vector<double> &Pt) const
 	Pt[Z] = m_Zs[Pos];
 	}
 
-void PDBChain::SetPt(uint Pos, const vector<double> &Pt)
+void PDBChain::SetPt(uint Pos, const vector<float> &Pt)
 	{
 	assert(Pos < SIZE(m_Xs));
 	assert(Pos < SIZE(m_Ys));
@@ -294,7 +306,7 @@ void PDBChain::SetPt(uint Pos, const vector<double> &Pt)
 	m_Zs[Pos] = Pt[Z];
 	}
 
-void PDBChain::GetXYZ(uint Pos, double &x, double &y, double &z) const
+void PDBChain::GetXYZ(uint Pos, float &x, float &y, float &z) const
 	{
 	assert(Pos < SIZE(m_Xs));
 	assert(Pos < SIZE(m_Ys));
@@ -304,33 +316,33 @@ void PDBChain::GetXYZ(uint Pos, double &x, double &y, double &z) const
 	z = m_Zs[Pos];
 	}
 
-double PDBChain::GetDist(uint Pos1, uint Pos2) const
+float PDBChain::GetDist(uint Pos1, uint Pos2) const
 	{
-	double x1, y1, z1;
-	double x2, y2, z2;
+	float x1, y1, z1;
+	float x2, y2, z2;
 	GetXYZ(Pos1, x1, y1, z1);
 	GetXYZ(Pos2, x2, y2, z2);
-	double d = GetDist3D(x1, y1, z1, x2, y2, z2);
+	float d = GetDist3D(x1, y1, z1, x2, y2, z2);
 	return d;
 	}
 
-double PDBChain::GetDist2(uint Pos1, uint Pos2) const
+float PDBChain::GetDist2(uint Pos1, uint Pos2) const
 	{
-	double x1 = m_Xs[Pos1];
-	double y1 = m_Ys[Pos1];
-	double z1 = m_Zs[Pos1];
+	float x1 = m_Xs[Pos1];
+	float y1 = m_Ys[Pos1];
+	float z1 = m_Zs[Pos1];
 
-	double x2 = m_Xs[Pos2];
-	double y2 = m_Ys[Pos2];
-	double z2 = m_Zs[Pos2];
+	float x2 = m_Xs[Pos2];
+	float y2 = m_Ys[Pos2];
+	float z2 = m_Zs[Pos2];
 
-	double dx = x1 - x2;
-	double dy = y1 - y2;
-	double dz = z1 - z2;
+	float dx = x1 - x2;
+	float dy = y1 - y2;
+	float dz = z1 - z2;
 
-	double d = GetDist(Pos1, Pos2);
+	float d = GetDist(Pos1, Pos2);
 
-	double d2 = dx*dx + dy*dy + dz*dz;
+	float d2 = dx*dx + dy*dy + dz*dz;
 	asserta(feq(d*d, d2));
 	return d2;
 	}
@@ -338,6 +350,37 @@ double PDBChain::GetDist2(uint Pos1, uint Pos2) const
 uint PDBChain::GetSeqLength() const
 	{
 	return SIZE(m_Seq);
+	}
+
+void PDBChain::GetXFormChain_tR(
+  const vector<float> &t,
+  const vector<vector<float> > &R,
+  PDBChain &XChain) const
+	{
+	XChain.Clear();
+	XChain.m_Label = m_Label;
+	XChain.m_Seq = m_Seq;
+
+	const uint N = SIZE(m_Seq);
+	asserta(SIZE(m_Xs) == N);
+	asserta(SIZE(m_Ys) == N);
+	asserta(SIZE(m_Zs) == N);
+
+	vector<float> Pt(3);
+	vector<float> XPt(3);
+	for (uint Pos = 0; Pos < N; ++Pos)
+		{
+		GetPt(Pos, Pt);
+		XFormPt(Pt, t, R, XPt);
+
+		float x = XPt[X];
+		float y = XPt[Y];
+		float z = XPt[Z];
+
+		XChain.m_Xs.push_back(x);
+		XChain.m_Ys.push_back(y);
+		XChain.m_Zs.push_back(z);
+		}
 	}
 
 void PDBChain::GetXFormChain_tR(
@@ -361,9 +404,9 @@ void PDBChain::GetXFormChain_tR(
 		GetPt(Pos, Pt);
 		XFormPt(Pt, t, R, XPt);
 
-		double x = XPt[X];
-		double y = XPt[Y];
-		double z = XPt[Z];
+		float x = (float) XPt[X];
+		float y = (float) XPt[Y];
+		float z = (float) XPt[Z];
 
 		XChain.m_Xs.push_back(x);
 		XChain.m_Ys.push_back(y);
