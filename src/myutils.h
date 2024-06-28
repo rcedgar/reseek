@@ -26,6 +26,7 @@
 #include <mutex>
 #include <filesystem>
 #include <thread>
+#include <map>
 #include <set>
 
 #ifndef _MSC_VER

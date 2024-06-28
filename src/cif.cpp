@@ -119,6 +119,7 @@ enum PARSER_STATE
 void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
   vector<PDBChain *> &Chains, const string &FallbackLabel) const
 	{
+	set<string> Seqs;
 	Chains.clear();
 	string Label = FallbackLabel;
 	const string &Line0 = Lines[0];

@@ -13,6 +13,9 @@ void ChainReader2::Open(PDBFileScanner &FS)
 	m_Trace = opt_trace_chainreader2;
 	if (m_Trace) Log("ChainReader2::Open()\n");
 	m_State = STATE_PendingFile;
+	m_DeleteDupeSeqs = true;
+	if (opt_keep_dupe_seqs)
+		m_DeleteDupeSeqs = false;
 	m_ChainCount = 0;
 	}
 
@@ -213,6 +216,8 @@ PDBChain *ChainReader2::GetFirst_PDB(const string &FN)
 	string FallbackLabel;
 	GetFallbackLabelFromFN(FN, FallbackLabel);
 	ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
+	if (m_DeleteDupeSeqs)
+		DeleteDuplicateSeqs(m_Chains_PDB);
 	m_ChainIdx_PDB = 0;
 	return GetNext_PDB();
 	}
@@ -223,6 +228,8 @@ PDBChain *ChainReader2::GetFirst_CIF(const string &FN)
 	string FallbackLabel;
 	GetFallbackLabelFromFN(FN, FallbackLabel);
 	ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);
+	if (m_DeleteDupeSeqs)
+		DeleteDuplicateSeqs(m_Chains_CIF);
 	m_ChainIdx_CIF = 0;
 	return GetNext_CIF();
 	}
@@ -322,4 +329,25 @@ bool ChainReader2::IsATOMLine_PDB(const string &Line) const
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
 	return false;
+	}
+
+void ChainReader2::DeleteDuplicateSeqs(vector<PDBChain *> &Chains)
+	{
+	if (Chains.size() <= 1)
+		return;
+
+	set<string> Seqs;
+	vector<PDBChain *> UpdatedChains;
+	for (uint i = 0; i < SIZE(Chains); ++i)
+		{
+		PDBChain *ptrChain = Chains[i];
+		const string &Seq = ptrChain->m_Seq;
+		if (Seqs.find(Seq) != Seqs.end())
+			{
+			delete ptrChain;
+			continue;
+			}
+		UpdatedChains.push_back(ptrChain);
+		}
+	Chains = UpdatedChains;
 	}
