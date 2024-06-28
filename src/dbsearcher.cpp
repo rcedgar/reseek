@@ -352,6 +352,8 @@ void DBSearcher::Setup(const DSSParams &Params)
 	{
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
+	else if (optset_fast)
+		m_MaxEvalue = 1;
 	else
 		m_MaxEvalue = 10;
 
