@@ -2,23 +2,12 @@
 #include "pdbchain.h"
 #include "dss.h"
 #include "chainreader2.h"
+#include "bcadata.h"
 
 static FILE *s_fCal;
+static FILE *s_fBca;
 static FILE *s_fFasta;
 static FILE *s_fFeatureFasta;
-
-static char GetFeatureChar(byte Letter, uint AlphaSize)
-	{
-	asserta(AlphaSize <= 36);
-	if (Letter == UINT_MAX)
-		return '*';
-	if (Letter < 26)
-		return 'A' + Letter;
-	else if (Letter < 36)
-		return 'a' + (Letter - 26);
-	asserta(false);
-	return '!';
-	}
 
 static FEATURE GetFeatureFromCmdLine()
 	{
@@ -44,22 +33,10 @@ static FEATURE GetFeatureFromCmdLine()
 	return Feat;
 	}
 
-static void ThreadBody(
-  uint ThreadIndex,
-  ChainReader2 *ptrCR,
-  set<string> *ptrLabels,
-  time_t *ptrLastTime,
-  uint *ptrCount,
-  uint *ptrDupeLabelCount,
-  mutex *ptrLock)
+void cmd_convert()
 	{
-// Using reference arguments to ThreadBody gives compile errors
-	ChainReader2 &CR = *ptrCR;
-	set<string> &Labels = *ptrLabels;
-	time_t &LastTime = *ptrLastTime;
-	uint &Count = *ptrCount;
-	uint &DupeLabelCount = *ptrDupeLabelCount;
-	mutex &Lock = *ptrLock;
+	ChainReader2 CR;
+	CR.Open(g_Arg1);
 
 	uint MinChainLength = 0;
 	if (optset_minchainlength)
@@ -72,13 +49,26 @@ static void ThreadBody(
 	if (s_fFeatureFasta != 0)
 		{
 		Params.SetFromCmdLine(10000);
-		DSS::GetAlphaSize(Feat);
 		Feat = GetFeatureFromCmdLine();
 		}
 
+	BCAData BCA;
+	if (optset_bca)
+		BCA.Create(opt_bca);
+
+	s_fCal = CreateStdioFile(opt_cal);
+	s_fBca = CreateStdioFile(opt_bca);
+	s_fFasta = CreateStdioFile(opt_fasta);
+	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
+
+	set<string> Labels;
+	uint Count = 0;
+	uint DupeLabelCount = 0;
+	time_t LastTime = 0;
+
 	for (;;)
 		{
-		PDBChain *ptrChain = ptrCR->GetNext();
+		PDBChain *ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
 		PDBChain &Chain = *ptrChain;
@@ -89,82 +79,34 @@ static void ThreadBody(
 			}
 		if (Labels.find(Chain.m_Label) != Labels.end())
 			{
-			Lock.lock();
 			Log("Dupe >%s\n", Chain.m_Label.c_str());
 			++DupeLabelCount;
-			Lock.unlock();
 			delete ptrChain;
 			continue;
 			}
 		time_t Now = time(0);
-		Lock.lock();
 		++Count;
 		if (Now - LastTime > 0)
 			{
-			Progress("%u chains converted, %u dupe labels, %u dupe seqs\r",
-			  Count, DupeLabelCount, ChainReader2::m_DupeSeqCount);
+			Progress("%u chains converted, %u dupe labels\r",
+			  Count, DupeLabelCount);
 			LastTime = Now;
 			}
 		Labels.insert(Chain.m_Label);
-		Lock.unlock();
-
-		Lock.lock();
 		Chain.ToCal(s_fCal);
-		Lock.unlock();
-
-		Lock.lock();
 		Chain.ToFasta(s_fFasta);
-		Lock.unlock();
-
-		if (s_fFeatureFasta != 0)
-			{
-			D.Init(Chain);
-			const uint L = Chain.GetSeqLength();
-			string Seq;
-			for (uint Pos = 0; Pos < L; ++Pos)
-				{
-				uint Letter = D.GetFeature(Feat, Pos);
-				char c = GetFeatureChar(Letter, AlphaSize);
-				Seq += c;
-				}
-			Lock.lock();
-			SeqToFasta(s_fFeatureFasta, Chain.m_Label, Seq);
-			Lock.unlock();
-			}
+		Chain.ToFeatureFasta(s_fFeatureFasta, D, Feat);
+		BCA.WriteChain(Chain);
 		delete ptrChain;
 		}
-	}
-
-void cmd_convert()
-	{
-	PDBFileScanner FS;
-	FS.Open(g_Arg1);
-
-	ChainReader2 CR;
-	CR.Open(FS);
-
-	s_fCal = CreateStdioFile(opt_cal);
-	s_fFasta = CreateStdioFile(opt_fasta);
-	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
-
-	set<string> Labels;
-	uint Count = 0;
-	uint DupeLabelCount = 0;
-	time_t LastTime = 0;
-	mutex Lock;
-
-	ThreadBody(
-			0, 
-			&CR,
-			&Labels,
-			&LastTime,
-			&Count,
-			&DupeLabelCount,
-			&Lock);
 
 	Log("%u dupe labels\n", DupeLabelCount);
 	ProgressLog("\n%u chains converted\n", Count);
+
+	CloseStdioFile(s_fBca);
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
 	CloseStdioFile(s_fFeatureFasta);
+	if (optset_bca)
+		BCA.Close();
 	}

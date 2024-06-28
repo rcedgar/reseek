@@ -2,6 +2,9 @@
 #define pdbchain_h
 
 #include "myutils.h"
+#include "features.h"
+
+class DSS;
 
 class PDBChain
 	{
@@ -31,6 +34,7 @@ public:
 	void ToCal(FILE *f) const;
 	void ToFasta(const string &FileName) const;
 	void ToFasta(FILE *f) const;
+	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const;
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void GetXFormChain_tR(
@@ -49,7 +53,8 @@ public:
 	float GetDist(uint Pos1, uint Pos2) const;
 	float GetDist2(uint Pos1, uint Pos2) const;
 	void GetSS(string &SS) const;
-	void AppendCoordDataToBCA(FILE *f) const;
+	void GetICs(vector<uint16_t> &ICs) const;
+	void CoordsFromICs(const vector<uint16_t> &ICs);
 
 public:
 	static bool IsATOMLine(const string &Line);
@@ -59,6 +64,8 @@ public:
 	  float x, float y, float z, string &OutputLine);
 	static bool GetFieldsFromATOMLine(const string &Line,
 	  float &X, float &Y, float &Z, char &aa);
+	static uint16_t CoordToIC(float X) { return uint16_t((X + 1000)*10 + 0.5); }
+	static float ICToCoord(uint16_t IC) { return float(IC/10.0f) - 1000; }
 	};
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);

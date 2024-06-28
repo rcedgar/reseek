@@ -32,14 +32,12 @@ public:
 	uint m_ChainCount = 0;
 	string m_CurrentFN;
 	bool m_Trace = false;
-	bool m_DeleteDupeSeqs = true;
 
 // FS object shared with other threads
 	PDBFileScanner *m_ptrFS = 0;
-public:
-	static uint m_DupeSeqCount;
 
 public:
+	void Open(const string &FileName);
 	void Open(PDBFileScanner &FS);
 	PDBChain *GetNext();
 
@@ -61,7 +59,6 @@ private:
 	void ChainsFromLines_CIF(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
 	bool IsATOMLine_PDB(const string &Line) const;
-	void DeleteDuplicateSeqs(vector<PDBChain *> &Chains);
 
 public:
 	static void GetFallbackLabelFromFN(const string &FN,

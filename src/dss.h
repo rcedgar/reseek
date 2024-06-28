@@ -8,6 +8,8 @@
 
 const uint WILDCARD = 0;
 
+class PDBChain;
+
 // Discrete Structure States
 class DSS
 	{

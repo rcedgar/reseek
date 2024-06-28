@@ -45,6 +45,7 @@ STR_OPT(gumin)
 STR_OPT(alpha)
 STR_OPT(cal)
 STR_OPT(chainsep)
+STR_OPT(bca)
 
 STR_OPT(train_cal)
 STR_OPT(test_cal)
@@ -273,7 +274,6 @@ FLAG_OPT(writebitts)
 FLAG_OPT(trace_chainreader2)
 FLAG_OPT(trace_filescanner)
 FLAG_OPT(global)
-FLAG_OPT(keep_dupe_seqs)
 
 #undef FLAG_OPT
 #undef UNS_OPT

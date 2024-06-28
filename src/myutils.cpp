@@ -518,6 +518,19 @@ void WriteStdioFile(FILE *f, const void *Buffer, uint32 Bytes)
 		}
 	}
 
+void WriteStdioFile64(FILE *f, const void *Buffer, uint64 Bytes)
+	{
+	if (0 == f)
+		Die("WriteStdioFile failed, f=NULL");
+	size_t BytesWritten = fwrite(Buffer, 1, Bytes, f);
+	if (BytesWritten != Bytes)
+		{
+		LogStdioFileState(f);
+		Die("WriteStdioFile64 failed, attempted %ul bytes, wrote %ul bytes, errno=%d",
+		  (unsigned long) Bytes, (unsigned long) BytesWritten, errno);
+		}
+	}
+
 // Return false on EOF, true if line successfully read.
 bool ReadLineStdioFile(FILE *f, char *Line, uint32 Bytes)
 	{

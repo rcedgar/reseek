@@ -43,5 +43,6 @@ C(convert)
 C(daliscore_msa)
 C(daliscore_tsv)
 C(scan_files)
+C(bca_stats)
 
 #undef C

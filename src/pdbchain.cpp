@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
+#include "dss.h"
 #include "abcxyz.h"
 
 void GetThreeFromOne(char aa, string &AAA);
@@ -66,6 +67,19 @@ X=9999.9 IC 109999 out of range
  1000.0       20000   1000.0
 ***/
 
+static char GetFeatureChar(byte Letter, uint AlphaSize)
+	{
+	asserta(AlphaSize <= 36);
+	if (Letter == UINT_MAX)
+		return '*';
+	if (Letter < 26)
+		return 'A' + Letter;
+	else if (Letter < 36)
+		return 'a' + (Letter - 26);
+	asserta(false);
+	return '!';
+	}
+
 void PDBChain::LogMe(bool WithCoords) const
 	{
 	const size_t L = m_Xs.size();
@@ -91,6 +105,23 @@ void PDBChain::LogMe(bool WithCoords) const
 			Log("\n");
 			}
 		}
+	}
+
+void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const
+	{
+	if (f == 0)
+		return;
+	D.Init(*this);
+	const uint L = GetSeqLength();
+	const uint AlphaSize = D.GetAlphaSize(Feat);
+	string Seq;
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		uint Letter = D.GetFeature(Feat, Pos);
+		char c = GetFeatureChar(Letter, AlphaSize);
+		Seq += c;
+		}
+	SeqToFasta(f, m_Label, Seq);
 	}
 
 void PDBChain::ToFasta(FILE *f) const
@@ -423,4 +454,39 @@ bool PDBChain::IsATOMLine(const string &Line)
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
 	return false;
+	}
+
+// flattened as x0, y0, z0, x1, y1, z1 ...
+void PDBChain::GetICs(vector<uint16_t> &ICs) const
+	{
+	const uint L = SIZE(m_Xs);
+	asserta(SIZE(m_Ys) == L);
+	asserta(SIZE(m_Zs) == L);
+	ICs.clear();
+	ICs.reserve(3*L);
+	for (uint i = 0; i < L; ++i)
+		{
+		ICs.push_back(CoordToIC(m_Xs[i]));
+		ICs.push_back(CoordToIC(m_Ys[i]));
+		ICs.push_back(CoordToIC(m_Zs[i]));
+		}
+	}
+
+void PDBChain::CoordsFromICs(const vector<uint16_t> &ICs)
+	{
+	const uint L3 = SIZE(ICs);
+	asserta(L3%3 == 0);
+	const uint L = L3/3;
+	m_Xs.clear();
+	m_Ys.clear();
+	m_Zs.clear();
+	m_Xs.reserve(L);
+	m_Ys.reserve(L);
+	m_Zs.reserve(L);
+	for (uint i = 0; i < L; ++i)
+		{
+		m_Xs.push_back(ICToCoord(ICs[3*i]));
+		m_Ys.push_back(ICToCoord(ICs[3*i+1]));
+		m_Zs.push_back(ICToCoord(ICs[3*i+2]));
+		}
 	}

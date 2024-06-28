@@ -276,7 +276,7 @@
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
-    <ClCompile Include="bca.cpp" />
+    <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="calibrate.cpp" />
@@ -296,6 +296,7 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="pdbchaincal.cpp" />
     <ClCompile Include="pdbfilescanner.cpp" />
     <ClCompile Include="gumbel.cpp" />
@@ -387,6 +388,7 @@
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="zutil.c" />
     <ClInclude Include="active.h" />
+    <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
