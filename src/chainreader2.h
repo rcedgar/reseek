@@ -36,6 +36,8 @@ public:
 
 // FS object shared with other threads
 	PDBFileScanner *m_ptrFS = 0;
+public:
+	static uint m_DupeSeqCount;
 
 public:
 	void Open(PDBFileScanner &FS);

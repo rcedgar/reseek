@@ -101,8 +101,8 @@ static void ThreadBody(
 		++Count;
 		if (Now - LastTime > 0)
 			{
-			Progress("%u chains converted, %u dupe labels\r",
-			  Count, DupeLabelCount);
+			Progress("%u chains converted, %u dupe labels, %u dupe seqs\r",
+			  Count, DupeLabelCount, ChainReader2::m_DupeSeqCount);
 			LastTime = Now;
 			}
 		Labels.insert(Chain.m_Label);
@@ -163,7 +163,7 @@ void cmd_convert()
 			&Lock);
 
 	Log("%u dupe labels\n", DupeLabelCount);
-	ProgressLog("%u chains converted\n", Count);
+	ProgressLog("\n%u chains converted\n", Count);
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
 	CloseStdioFile(s_fFeatureFasta);

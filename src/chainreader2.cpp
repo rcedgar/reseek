@@ -1,6 +1,8 @@
 #include "myutils.h"
 #include "chainreader2.h"
 
+uint ChainReader2::m_DupeSeqCount = 0;
+
 void ChainReader2::Close()
 	{
 	if (m_Trace) Log("ChainReader2::Close()\n");
@@ -345,8 +347,10 @@ void ChainReader2::DeleteDuplicateSeqs(vector<PDBChain *> &Chains)
 		if (Seqs.find(Seq) != Seqs.end())
 			{
 			delete ptrChain;
+			++m_DupeSeqCount;
 			continue;
 			}
+		Seqs.insert(Seq);
 		UpdatedChains.push_back(ptrChain);
 		}
 	Chains = UpdatedChains;
