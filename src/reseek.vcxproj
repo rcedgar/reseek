@@ -276,6 +276,7 @@
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
+    <ClCompile Include="bca.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="calibrate.cpp" />

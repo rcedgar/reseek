@@ -362,6 +362,9 @@
     <ClCompile Include="pdbchaincal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bca.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

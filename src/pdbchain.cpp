@@ -197,96 +197,6 @@ void PDBChain::SetXYZInATOMLine(const string &InputLine,
 		}
 	}
 
-// 77 - 78        LString(2)    element      Element symbol, right-justified.
-void PDBChain::GetElementNameFromATOMLine(const string &Line,
-  string &ElementName)
-	{
-	asserta(SIZE(Line) >= 78);
-	ElementName = Line.substr(76, 2);
-	StripWhiteSpace(ElementName);
-	}
-
-void PDBChain::GetAtomNameFromATOMLine(const string &Line,
-  string &AtomName)
-	{
-	asserta(SIZE(Line) > 40);
-	AtomName = Line.substr(12, 4);
-	StripWhiteSpace(AtomName);
-	}
-
-// Residue nr in Cols 23-26 (1-based)
-int PDBChain::GetResidueNrFromATOMLine(const string &Line)
-	{
-	asserta(SIZE(Line) > 60);
-	string s;
-	s += Line[22];
-	s += Line[23];
-	s += Line[24];
-	s += Line[25];
-	StripWhiteSpace(s);
-	int Nr = atoi(s.c_str());
-	return Nr;
-	}
-
-// Atom nr in Cols 7-11 (1-based)
-//   7 - 11        Integer       serial       Atom  serial number.
-void PDBChain::SetAtomNrInATOMLine(const string &InputLine,
-  uint AtomNr, string &OutputLine)
-	{
-	string s;
-	Ps(s, "%5u", AtomNr);
-	uint n = SIZE(s);
-	if (n != 5)
-		Die("Residue number %d overflow (max 9999)", AtomNr);
-	OutputLine.clear();
-	uint N = SIZE(InputLine);
-	for (uint i = 0; i < 6; ++i)
-		OutputLine += InputLine[i];
-	for (uint i = 0; i < 5; ++i)
-		OutputLine += s[i];
-	for (uint i = 6+5; i < N; ++i)
-		OutputLine += InputLine[i];
-	asserta(SIZE(OutputLine) == SIZE(InputLine));
-	}
-
-// Residue nr in Cols 23-26 (1-based)
-void PDBChain::SetResidueNrInATOMLine(const string &InputLine,
-  uint ResidueNr, string &OutputLine)
-	{
-	string s;
-	Ps(s, "%4u", ResidueNr);
-	uint n = SIZE(s);
-	if (n != 4)
-		Die("Residue number %d overflow (max 9999)", ResidueNr);
-	OutputLine.clear();
-	uint N = SIZE(InputLine);
-	for (uint i = 0; i < 22; ++i)
-		OutputLine += InputLine[i];
-	for (uint i = 0; i < 4; ++i)
-		OutputLine += s[i];
-	for (uint i = 22+4; i < N; ++i)
-		OutputLine += InputLine[i];
-	asserta(SIZE(OutputLine) == SIZE(InputLine));
-	}
-
-void PDBChain::HackHETAMLine(string &Line)
-	{
-	if (strncmp(Line.c_str(), "HETATM", 6) == 0 &&
-		Line.substr(17, 3) == "MSE")
-		{
-		Line[0] = 'A';
-		Line[1] = 'T';
-		Line[2] = 'O';
-		Line[3] = 'M';
-		Line[4] = ' ';
-		Line[5] = ' ';
-
-		Line[17] = 'M';
-		Line[18] = 'E';
-		Line[19] = 'T';
-		}
-	}
-
 char PDBChain::FromPDBLines(const string &Label,
   const vector<string> &Lines)
 	{
@@ -361,76 +271,6 @@ bool PDBChain::GetFieldsFromATOMLine(const string &Line,
 	return true;
 	}
 
-bool PDBChain::GetFieldsFromResidueATOMLines(const vector<string> &Lines,
-  double &X, double &Y, double &Z, char &aa, int &ResNr)
-	{
-	aa = 'X';
-	ResNr = -999;
-	X = -999;
-	Y = -999;
-	Z = -999;
-	const uint N = SIZE(Lines);
-	for (uint i = 0; i < SIZE(Lines); ++i)
-		{
-		const string &Line = Lines[i];
-		string AtomName = Line.substr(12, 4);
-		StripWhiteSpace(AtomName);
-		if (AtomName == "CA")
-			{
-			string AAA = Line.substr(17, 3);
-			aa = GetOneFromThree(AAA);
-
-			string sX, sY, sZ;
-			sX = Line.substr(30, 8);
-			sY = Line.substr(38, 8);
-			sZ = Line.substr(46, 8);
-
-			StripWhiteSpace(sX);
-			StripWhiteSpace(sY);
-			StripWhiteSpace(sZ);
-
-			X = StrToFloat(sX);
-			Y = StrToFloat(sY);
-			Z = StrToFloat(sZ);
-
-			ResNr = GetResidueNrFromATOMLine(Line);
-			return true;
-			}
-		}
-	return false;
-	}
-
-void PDBChain::GetSubSeq(uint Pos, uint n, string &s) const
-	{
-	if (Pos == UINT_MAX)
-		{
-		s = ".";
-		return;
-		}
-
-	s.clear();
-	size_t L = m_Seq.size();
-	asserta(Pos + n <= L);
-
-	for (uint i = 0; i < n; ++i)
-		{
-		char c = m_Seq[Pos+i];
-		s += c;
-		}
-	}
-
-double PDBChain::GetCoord(uint Axis, uint Pos) const
-	{
-	switch (Axis)
-		{
-	case X: return m_Xs[Pos];
-	case Y: return m_Ys[Pos];
-	case Z: return m_Zs[Pos];
-		}
-	asserta(false);
-	return 0;
-	}
-
 void PDBChain::GetPt(uint Pos, vector<double> &Pt) const
 	{
 	assert(Pos < SIZE(m_Xs));
@@ -454,24 +294,6 @@ void PDBChain::SetPt(uint Pos, const vector<double> &Pt)
 	m_Zs[Pos] = Pt[Z];
 	}
 
-double PDBChain::GetX(uint Pos) const
-	{
-	assert(Pos < SIZE(m_Xs));
-	return m_Xs[Pos];
-	}
-
-double PDBChain::GetY(uint Pos) const
-	{
-	assert(Pos < SIZE(m_Ys));
-	return m_Ys[Pos];
-	}
-
-double PDBChain::GetZ(uint Pos) const
-	{
-	assert(Pos < SIZE(m_Zs));
-	return m_Zs[Pos];
-	}
-
 void PDBChain::GetXYZ(uint Pos, double &x, double &y, double &z) const
 	{
 	assert(Pos < SIZE(m_Xs));
@@ -480,21 +302,6 @@ void PDBChain::GetXYZ(uint Pos, double &x, double &y, double &z) const
 	x = m_Xs[Pos];
 	y = m_Ys[Pos];
 	z = m_Zs[Pos];
-	}
-
-void PDBChain::GetDistMx(uint Pos, uint L,
-  vector<vector<double> > &Mx) const
-	{
-	Mx.resize(L);
-	for (uint i = 0; i < L; ++i)
-		{
-		Mx[i].resize(L);
-		for (uint j = 0; j < L; ++j)
-			{
-			double d = GetDist(Pos+i, Pos+j);
-			Mx[i][j] = d;
-			}
-		}
 	}
 
 double PDBChain::GetDist(uint Pos1, uint Pos2) const
@@ -528,86 +335,9 @@ double PDBChain::GetDist2(uint Pos1, uint Pos2) const
 	return d2;
 	}
 
-void PDBChain::WriteSeqWithCoords(FILE *f) const
-	{
-	if (f == 0)
-		return;
-	const uint L = GetSeqLength();
-	uint StartPos = 0;
-	for (;;)
-		{
-		uint EndPos = StartPos + 99;
-		if (EndPos >= L)
-			EndPos = L - 1;
-
-		fprintf(f, "\n");
-		for (uint Pos = StartPos; Pos <= EndPos; Pos += 10)
-			fprintf(f, "%-10u", Pos);
-		fprintf(f, "\n");
-		for (uint Pos = StartPos; Pos <= EndPos; ++Pos)
-			{
-			if (Pos%10 == 0)
-				fprintf(f, " ");
-			else
-				fprintf(f, "%u", Pos%10);
-			}
-		fprintf(f, "\n");
-		for (uint Pos = StartPos; Pos <= EndPos; ++Pos)
-			fprintf(f, "%c", m_Seq[Pos]);
-		fprintf(f, "\n");
-
-		StartPos = EndPos + 1;
-		if (StartPos >= L)
-		break;
-		}
-	fprintf(f, "\n");
-	}
-
-void PDBChain::PrintSeqCoords(FILE *f) const
-	{
-	if (f == 0)
-		return;
-	const uint L = GetSeqLength();
-
-	fprintf(f, "\n");
-	fprintf(f, ">%s\n", m_Label.c_str());
-	for (uint i = 0; i < L; ++i)
-		{
-		if ((i+1)%10 == 0)
-			fprintf(f, "%10u", (i+1)/10);
-		}
-	fprintf(f, "\n");
-
-	for (uint i = 0; i < L; ++i)
-		fprintf(f, "%u", (i+1)%10);
-	fprintf(f, "\n");
-
-	fprintf(f, "%s\n", m_Seq.c_str());
-	}
-
 uint PDBChain::GetSeqLength() const
 	{
 	return SIZE(m_Seq);
-	}
-
-void PDBChain::GetSubSeq(uint MotifStartPos, uint n,
-  bool FailOnOverflow, string &MotifSeq) const
-	{
-	MotifSeq.clear();
-	const uint L = GetSeqLength();
-	for (uint i = 0; i < n; ++i)
-		{
-		uint Pos = MotifStartPos + i;
-		if (Pos < 0 || Pos >= L)
-			{
-			if (FailOnOverflow)
-				Die("'%s' GetMotifSeqFromMidPos overflow",
-				  m_Label.c_str());
-			MotifSeq += '!';
-			}
-		else
-			MotifSeq += m_Seq[Pos];
-		}
 	}
 
 void PDBChain::GetXFormChain_tR(
@@ -650,92 +380,4 @@ bool PDBChain::IsATOMLine(const string &Line)
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
 	return false;
-	}
-
-char PDBChain::GetChainCharFromATOMLine(const string &Line)
-	{
-	if (!IsATOMLine(Line))
-		return 0;
-	if (Line.size() < 22)
-		return 0;
-	return Line[21];
-	}
-
-double PDBChain::GetSmoothedCoord(uint Axis, uint i, uint N, uint w) const
-	{
-	double SumCoord = 0;
-	double SumWeight = 0;
-	double dN = (double) N;
-	double dw = (double) w;
-	int iQL = (int) GetSeqLength();
-	double dQL = (double) iQL;
-	for (int k = -1; k <= int(w); ++k)
-		{
-		double dPos = (int(i) + k)*dQL/dN;
-		int iPos = int(dPos + 0.5);
-		if (iPos < 0 || iPos >= iQL)
-			continue;
-		double Weight = dw - fabs(dPos - iPos);
-		double Coord = GetCoord(Axis, (uint) iPos);
-		SumCoord += Weight*Coord;
-		SumWeight += Weight;
-		}
-	asserta(SumWeight > 0);
-	double SmoothedCoord = SumCoord/SumWeight;
-	return SmoothedCoord;
-	}
-
-static uint GetDiffs3(const char *s, const char *t)
-	{
-	uint n = 0;
-	for (uint i = 0; i < 3; ++i)
-		if (s[i] != t[i])
-			++n;
-	return n;
-	}
-
-const char *PDBChain::GetAcc(string &Acc) const
-	{
-	size_t n = m_Label.find(' ');
-	if (n > 0)
-		Acc = m_Label.substr(0, n);
-	else
-		Acc = m_Label;
-	return Acc.c_str();
-	}
-
-void PDBChain::GetRange(uint Lo, uint Hi, PDBChain &Chain) const
-	{
-	Chain.Clear();
-	asserta(Lo <= Hi);
-	uint L = GetSeqLength();
-	asserta(Hi < L);
-
-	Chain.m_Label = m_Label;
-
-	for (uint Pos = Lo; Pos <= Hi; ++Pos)
-		{
-#define c(x)	Chain.m_##x.push_back(m_##x[Pos])
-		c(Seq);
-		c(Xs);
-		c(Ys);
-		c(Zs);
-#undef c
-		}
-	}
-
-void PDBChain::GetSphere(uint Pos, double Radius,
-  uint MinPos, uint MaxPos, vector<uint> &PosVec) const
-	{
-	PosVec.clear();
-	const uint L = GetSeqLength();
-	asserta(MinPos <= MaxPos && MaxPos < L);
-	for (uint Pos2 = MinPos; Pos2 <= MaxPos; ++Pos2)
-		{
-		if (Pos2 == Pos)
-			continue;
-		double d = GetDist(Pos, Pos2);
-		if (d <= Radius)
-			PosVec.push_back(Pos2);
-		}
 	}
