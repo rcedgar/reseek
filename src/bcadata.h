@@ -13,13 +13,19 @@ public:
 	FILE *m_f = 0;
 	bool m_Writing = false;
 	bool m_Reading = false;
+	uint64 m_SeqLengthsPos64 = UINT64_MAX;
+	uint64 m_LabelDataSize64 = UINT64_MAX;
 
 public:
 	void Create(const string &FN);
 	void Open(const string &FN);
 	void WriteChain(const PDBChain &Chain);
-	uint GetChainCount() const { return SIZE(m_Labels); }
+	void ReadChain(uint64 ChainIdx, PDBChain &Chain) const;
 	void Close();
+	uint GetChainCount() const { return SIZE(m_Labels); }
+	uint64 GetSeqOffset(uint64 ChainIdx) const;
+	uint64 GetICsOffset(uint64 ChainIdx) const;
+	uint GetSeqLength(uint64 ChainIdx) const;
 
 private:
 	void CloseWriter();

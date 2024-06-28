@@ -18,6 +18,8 @@ bool PDBFileScanner::IsStructureExt(const string &Ext) const
 	{
 	string LowerExt = Ext;
 	ToLower(LowerExt);
+	if (Ext == "bca")
+		return true;
 
 #define x(s)	if (Ext == #s || Ext == string(#s) + string(".gz")) return true;
 	x(pdb)

@@ -180,9 +180,9 @@ void PDBChain::ToCalSeg(FILE *f, uint Pos, uint n) const
 			fputc(m_Seq[i], f);
 		else
 			fputc('*', f);
-		fprintf(f, "\t%.3f", m_Xs[i]);
-		fprintf(f, "\t%.3f", m_Ys[i]);
-		fprintf(f, "\t%.3f", m_Zs[i]);
+		fprintf(f, "\t%.1f", m_Xs[i]);
+		fprintf(f, "\t%.1f", m_Ys[i]);
+		fprintf(f, "\t%.1f", m_Zs[i]);
 		fputc('\n', f);
 		}
 	}
@@ -469,6 +469,22 @@ void PDBChain::GetICs(vector<uint16_t> &ICs) const
 		ICs.push_back(CoordToIC(m_Xs[i]));
 		ICs.push_back(CoordToIC(m_Ys[i]));
 		ICs.push_back(CoordToIC(m_Zs[i]));
+		}
+	}
+
+void PDBChain::CoordsFromICs(const uint16_t *ICs, uint L)
+	{
+	m_Xs.clear();
+	m_Ys.clear();
+	m_Zs.clear();
+	m_Xs.reserve(L);
+	m_Ys.reserve(L);
+	m_Zs.reserve(L);
+	for (uint i = 0; i < L; ++i)
+		{
+		m_Xs.push_back(ICToCoord(ICs[3*i]));
+		m_Ys.push_back(ICToCoord(ICs[3*i+1]));
+		m_Zs.push_back(ICToCoord(ICs[3*i+2]));
 		}
 	}
 

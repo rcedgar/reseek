@@ -40,6 +40,13 @@ PDBChain *ChainReader2::GetFirst(const string &FN)
 		if (Chain != 0)
 			return Chain;
 		}
+	else if (Ext == "bca")
+		{
+		m_State = STATE_ReadingBCAFile;
+		PDBChain *Chain = GetFirst_BCA(FN);
+		if (Chain != 0)
+			return Chain;
+		}
 	else if (Ext == "pdb" || Ext == "pdb.gz" || Ext == "ent" || Ext == "ent.gz")
 		{
 		m_State = STATE_ReadingPDBFile;
@@ -103,6 +110,16 @@ PDBChain *ChainReader2::GetNextLo1()
 			continue;
 			}
 
+		case STATE_ReadingBCAFile:
+			{
+			PDBChain *Chain = GetNext_BCA();
+			if (Chain != 0)
+				return Chain;
+			if (m_Trace) Log("GetNext_BCA()=0, state->PendingFile\n");
+			m_State = STATE_PendingFile;
+			continue;
+			}
+
 		case STATE_ReadingPDBFile:
 			{
 			PDBChain *Chain = GetNext_PDB();
@@ -147,6 +164,26 @@ void ChainReader2::GetFallbackLabelFromFN(const string &FN, string &Label)
 			ToUpper(Label);
 			}
 		}
+	}
+
+PDBChain *ChainReader2::GetFirst_BCA(const string &FN)
+	{
+	m_BCA.Open(FN);
+	m_ChainIdx_BCA = 0;
+	return GetNext_BCA();
+	}
+
+PDBChain *ChainReader2::GetNext_BCA()
+	{
+	uint64 ChainCount = m_BCA.GetChainCount();
+	if (m_ChainIdx_BCA >= ChainCount)
+		{
+		m_BCA.Close();
+		return 0;
+		}
+	PDBChain *Chain = new PDBChain;
+	m_BCA.ReadChain(m_ChainIdx_BCA++, *Chain);
+	return Chain;
 	}
 
 PDBChain *ChainReader2::GetFirst_CAL(const string &FN)

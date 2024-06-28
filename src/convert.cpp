@@ -5,7 +5,6 @@
 #include "bcadata.h"
 
 static FILE *s_fCal;
-static FILE *s_fBca;
 static FILE *s_fFasta;
 static FILE *s_fFeatureFasta;
 
@@ -57,7 +56,6 @@ void cmd_convert()
 		BCA.Create(opt_bca);
 
 	s_fCal = CreateStdioFile(opt_cal);
-	s_fBca = CreateStdioFile(opt_bca);
 	s_fFasta = CreateStdioFile(opt_fasta);
 	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
 
@@ -96,14 +94,14 @@ void cmd_convert()
 		Chain.ToCal(s_fCal);
 		Chain.ToFasta(s_fFasta);
 		Chain.ToFeatureFasta(s_fFeatureFasta, D, Feat);
-		BCA.WriteChain(Chain);
+		if (optset_bca)
+			BCA.WriteChain(Chain);
 		delete ptrChain;
 		}
 
 	Log("%u dupe labels\n", DupeLabelCount);
 	ProgressLog("\n%u chains converted\n", Count);
 
-	CloseStdioFile(s_fBca);
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
 	CloseStdioFile(s_fFeatureFasta);

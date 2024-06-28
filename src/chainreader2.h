@@ -3,6 +3,7 @@
 #include "pdbchain.h"
 #include "linereader2.h"
 #include "pdbfilescanner.h"
+#include "bcadata.h"
 #include <list>
 
 class ChainReader2
@@ -13,6 +14,7 @@ public:
 		STATE_Closed,
 		STATE_PendingFile,
 		STATE_ReadingCALFile,
+		STATE_ReadingBCAFile,
 		STATE_ReadingPDBFile,
 		STATE_ReadingCIFFile,
 		};
@@ -29,6 +31,8 @@ public:
 	uint m_ChainIdx_PDB = 0;
 	uint m_ChainIdx_CIF = 0;
 	string m_Label_PDB;
+	BCAData m_BCA;
+	uint64 m_ChainIdx_BCA = 0;
 	uint m_ChainCount = 0;
 	string m_CurrentFN;
 	bool m_Trace = false;
@@ -45,6 +49,10 @@ private:
 	void Close();
 	PDBChain *GetNextLo1();
 	PDBChain *GetFirst(const string &FN);
+
+	PDBChain *GetFirst_BCA(const string &FN);
+	PDBChain *GetNext_BCA();
+
 	PDBChain *GetFirst_CAL(const string &FN);
 	PDBChain *GetNext_CAL();
 
