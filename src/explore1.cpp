@@ -56,12 +56,12 @@ void cmd_explore1()
 	const string &CalFN = g_Arg1;
 	SCOP40Bench SB;
 	asserta(optset_benchlevel);
-	SB.LoadChains(CalFN, "");
+	SB.LoadDB(CalFN);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(SB.GetDBSize());
-	Params.m_DBSize = (float) SB.m_ChainCount;
-	SB.Setup(Params);
+	Params.m_DBSize = (float) SB.GetDBChainCount();
+	SB.Setup();
 	SB.m_Level = opt_benchlevel;
 
 	Sweeper S;

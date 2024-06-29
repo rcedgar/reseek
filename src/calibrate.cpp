@@ -9,6 +9,8 @@
 ***/
 void cmd_calibrate()
 	{
+	Die("TODO needs query vs db search");
+#if 0
 	const string &QCalFN = g_Arg1;
 	const string &DBFN = opt_db;
 	CalibrateSearcher DBS;
@@ -28,4 +30,5 @@ void cmd_calibrate()
 	DBS.FitGumbel();
 	DBS.WriteBins(fOut);
 	CloseStdioFile(fOut);
+#endif
 	}

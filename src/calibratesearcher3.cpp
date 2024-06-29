@@ -5,7 +5,7 @@
 void CalibrateSearcher3::OnSetup()
 	{
 	m_TestStatsVec.clear();
-	m_TestStatsVec.resize(m_ChainCount);
+	m_TestStatsVec.resize(GetDBChainCount());
 	}
 
 void CalibrateSearcher3::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)

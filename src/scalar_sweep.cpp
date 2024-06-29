@@ -13,8 +13,8 @@ void cmd_scalar_sweep()
 	const string &CalFN = g_Arg1;
 	SCOP40Bench SB;
 	DSSParams Params;
-	SB.Setup(Params);
-	SB.LoadChains(CalFN);
+	SB.Setup();
+	SB.LoadDB(CalFN);
 
 	uint Sens0 = 0;
 	const uint StepCount = opt_n;
@@ -26,7 +26,7 @@ void cmd_scalar_sweep()
 		Progress("%s = %.4g\n", opt_param, Value);
 		Params.SetParam(opt_param, Value, false);
 
-		SB.Run();
+		SB.RunSelf();
 		uint Sens = SB.GetSens1stFP();
 
 		char tofg = tof(opt_dpgaps);

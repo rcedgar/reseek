@@ -509,8 +509,8 @@ void cmd_scop40bit2tsv()
 		SB.ReadLookup(opt_lookup);
 	else
 		{
-		SB.LoadChains(opt_input);
-		SB.BuildDomSFIndexesFromQueryChainLabels();
+		SB.LoadDB(opt_input);
+		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.m_Level = "sf";
 	uint Sens = SB.GetSens1stFP();
@@ -581,7 +581,7 @@ void cmd_scop40tsv2bit()
 	{
 	SCOP40Bench SB;
 	asserta(optset_input);
-	SB.LoadChains(opt_input);
+	SB.LoadDB(opt_input);
 	SB.LoadHitsFromTsv(g_Arg1);
 	SB.WriteBit(opt_output);
 	uint HitCount = SB.GetHitCount();
@@ -610,8 +610,8 @@ void cmd_scop40bit_roc()
 		SB.ReadLookup(opt_lookup);
 	else
 		{
-		SB.LoadChains(opt_input);
-		SB.BuildDomSFIndexesFromQueryChainLabels();
+		SB.LoadDB(opt_input);
+		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.WriteOutput();
 	}

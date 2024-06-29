@@ -676,8 +676,8 @@ void DSSAligner::Align_ComboFilter(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
@@ -702,15 +702,12 @@ void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters,
-	float Gumbel_mu, float Gumbel_beta)
+	const vector<byte> *ptrComboLetters)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
-	m_Query_Gumbel_mu = Gumbel_mu;
-	m_Query_Gumbel_beta = Gumbel_beta;
 	if (m_Params->m_UsePara)
 		SetComboQP_Para();
 	else
@@ -721,15 +718,12 @@ void DSSAligner::SetTarget(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters,
-	float Gumbel_mu, float Gumbel_beta)
+	const vector<byte> *ptrComboLetters)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
 	m_ComboKmerBitsB = ptrComboKmerBits;
 	m_ComboLettersB = ptrComboLetters;
-	m_Target_Gumbel_mu = Gumbel_mu;
-	m_Target_Gumbel_beta = Gumbel_beta;
 	}
 
 void DSSAligner::AlignComboOnly()
@@ -832,14 +826,6 @@ void DSSAligner::CalcEvalue()
 
 	m_TestStatisticA = StatTop/(LA + Lambda);
 	m_TestStatisticB = StatTop/(LB + Lambda);
-
-	if (m_Target_Gumbel_mu != FLT_MAX)
-		m_TestStatisticA = AdjustTS(m_TestStatisticA,
-		  m_Target_Gumbel_mu, m_Target_Gumbel_beta);
-
-	if (m_Query_Gumbel_mu != FLT_MAX)
-		m_TestStatisticB = AdjustTS(m_TestStatisticB,
-		  m_Query_Gumbel_mu, m_Query_Gumbel_beta);
 
 	m_EvalueA = m_Params->GetEvalue(m_TestStatisticA);
 	m_EvalueB = m_Params->GetEvalue(m_TestStatisticB);

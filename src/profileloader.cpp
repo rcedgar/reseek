@@ -13,6 +13,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 	DSS D;
 	D.SetParams(*m_Params);
 
+	vector<uint> Kmers;
 	for (;;)
 		{
 		PDBChain *Chain = m_CR->GetNext();
@@ -23,26 +24,24 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		++m_Count;
 		if (Now > m_LastProgress)
 			{
-			Progress("%u chains loaded\n", m_Count);
+			Progress("%u chains loaded\r", m_Count);
 			m_LastProgress = Now;
 			}
 		m_Lock.unlock();
 
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
-		vector<uint> *Kmers = m_KmersVec == 0 ? 0 : new vector<uint>;
 		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;
 		vector<byte> *ComboLetters = m_ComboLetters == 0 ? 0 : new vector<byte>;
 
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_ComboLetters != 0) D.GetComboLetters(*ComboLetters);
-		if (m_KmersVec != 0 && m_ComboLetters != 0) D.GetComboKmers(*ComboLetters, *Kmers);
-		if (m_KmersVec != 0 && m_KmerBitsVec != 0) D.GetComboKmerBits(*Kmers, *KmerBits);
+		if (m_ComboLetters != 0) D.GetComboKmers(*ComboLetters, Kmers);
+		if (m_KmerBitsVec != 0) D.GetComboKmerBits(Kmers, *KmerBits);
 
 		m_Lock.lock();
 		if (m_Chains != 0) m_Chains->push_back(Chain);
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
-		if (m_KmersVec != 0) m_KmersVec->push_back(Kmers);
 		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);
 		if (m_ComboLetters != 0) m_ComboLetters->push_back(ComboLetters);
 		m_Lock.unlock();
@@ -51,27 +50,25 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 
 void ProfileLoader::Load(
   ChainReader2 &CR,
-  uint ReserveSize,
   vector<PDBChain *> *Chains,
   vector<vector<vector<byte> > *> *Profiles,
   vector<vector<byte> *> *ComboLetters,
-  vector<vector<uint> *> *KmersVec,
   vector<vector<uint> *> *KmerBitsVec,
   const DSSParams &Params,
   uint ThreadCount)
 	{
+	if (KmerBitsVec != 0)
+		asserta(ComboLetters != 0);
+
 	m_CR = &CR;
 	m_Chains = Chains;
 	m_Profiles = Profiles;
-	m_KmersVec = KmersVec;
 	m_KmerBitsVec = KmerBitsVec;
 	m_ComboLetters = ComboLetters;
 	m_Params = &Params;
 
 	Chains->clear();
 	Profiles->clear();
-	Chains->reserve(ReserveSize);
-	Profiles->reserve(ReserveSize);
 
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
@@ -83,6 +80,8 @@ void ProfileLoader::Load(
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+
+	Progress("%u chains loaded\n", m_Count);
 	}
 
 void cmd_test()
@@ -101,7 +100,7 @@ void cmd_test()
 	vector<vector<uint> *> KmerBitsVec;
 
 	uint ThreadCount = GetRequestedThreadCount();
-	PL.Load(CR, 1000, &Chains, &Profiles, &ComboLetters,
-	  &KmersVec, &KmerBitsVec, Params, ThreadCount);
+	PL.Load(CR, &Chains, &Profiles, &ComboLetters,
+	  &KmerBitsVec, Params, ThreadCount);
 	ProgressLog("Done.\n");
 	}

@@ -9,22 +9,31 @@
 
 void cmd_search()
 	{
-	const string &QCalFN = g_Arg1;
+	const string &QFN = g_Arg1;
 	const string &DBFN = opt_db;
+
 	DBSearcher DBS;
 	DSSParams Params;
-	if (DBFN == QCalFN)
-		DBS.LoadChains(QCalFN, "");
-	else
-		DBS.LoadChains(QCalFN, DBFN);
-	uint DBSize = DBS.GetDBSize();
-	Params.SetFromCmdLine(DBS.GetDBSize());
+	Params.SetFromCmdLine(10000);
+	DBS.m_Params = &Params;
 
-	DBS.Setup(Params);
+	bool Self = (DBFN == "");
+
+	if (Self)
+		DBS.LoadDB(DBFN);
+	else
+		DBS.LoadDB(QFN);
+
+	Params.m_DBSize = (float) DBS.GetDBSize();
+	DBS.Setup();
+
 	DBS.m_fTsv = CreateStdioFile(opt_output);
 	DBS.m_fAln = CreateStdioFile(opt_aln);
 	DBS.m_fFasta2 = CreateStdioFile(opt_fasta2);
 	ResetTimers();
-	DBS.Run();
+	if (Self)
+		DBS.RunSelf();
+	else
+		DBS.RunSearch();
 	CloseStdioFile(DBS.m_fTsv);
 	}

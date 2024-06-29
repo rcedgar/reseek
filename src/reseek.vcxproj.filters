@@ -242,9 +242,6 @@
     <ClCompile Include="explore1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="explore1i.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="test_para.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -369,6 +366,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="profileloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runself.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

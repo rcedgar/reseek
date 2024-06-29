@@ -57,12 +57,6 @@ public:
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
 
-	float m_Query_Gumbel_mu = FLT_MAX;
-	float m_Query_Gumbel_beta = FLT_MAX;
-
-	float m_Target_Gumbel_mu = FLT_MAX;
-	float m_Target_Gumbel_beta = FLT_MAX;
-
 	vector<USERFIELD> m_UFs;
 	FILE *m_LastTsvFile = 0;
 
@@ -88,14 +82,12 @@ public:
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters,
-	  float Gumbel_mu, float Gumbel_beta);
+	  const vector<byte> *ptrComboLetters);
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters,
-	  float Gumbel_mu, float Gumbel_beta);
+	  const vector<byte> *ptrComboLetters);
 
 	float GetComboScore();
 	bool ComboFilter();

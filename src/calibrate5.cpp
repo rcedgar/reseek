@@ -92,13 +92,13 @@ void cmd_calibrate5()
 
 	const string &DBFN = opt_db;
 	DBSearcher DBS;
-	DBS.LoadChains(QCalFN, DBFN);
-	const uint NQ = DBS.GetQueryCount();
+	DBS.LoadDB(DBFN);
+	const uint NQ = DBS.GetDBChainCount();
 	ProgressLog("NQ=%u\n", NQ);
 	set<string> Labels;
 	for (uint i = 0; i < NQ; ++i)
 		{
-		const PDBChain &Chain = *DBS.m_Chains[i];
+		const PDBChain &Chain = *DBS.m_DBChains[i];
 		const string &Label = Chain.m_Label;
 		if (Labels.find(Label) != Labels.end())
 			Die("Dupe label >%s", Label.c_str());
@@ -109,19 +109,18 @@ void cmd_calibrate5()
 	Params.SetFromCmdLine(DBS.GetDBSize());
 
 	DBS.m_CollectTestStats = true;
-	DBS.Setup(Params);
-	DBS.Run();
+	DBS.Setup();
+	DBS.RunSelf();
 	DSSAligner::Stats();
 
 	FILE *fOut = CreateStdioFile(opt_calib_output);
 	const uint DBChainCount = DBS.GetDBChainCount();
-	for (uint DBIdx = 0; DBIdx < DBChainCount; ++DBIdx)
+	for (uint Idx = 0; Idx < DBChainCount; ++Idx)
 		{
-		ProgressStep(DBIdx, DBChainCount, "Calibrating");
+		ProgressStep(Idx, DBChainCount, "Calibrating");
 
-		uint ChainIdx = DBS.GetDBChainIdx(DBIdx);
-		asserta(ChainIdx < SIZE(DBS.m_TestStatsVec));
-		const vector<float> &TSs = DBS.m_TestStatsVec[ChainIdx];
+		asserta(Idx < SIZE(DBS.m_TestStatsVec));
+		const vector<float> &TSs = DBS.m_TestStatsVec[Idx];
 		vector<float> logTSs;
 		vector<uint> Bins;
 		double x0, dx;
@@ -132,7 +131,7 @@ void cmd_calibrate5()
 		fit_gumbel(x0, dx, ys, Mu, Beta);
 		if (fOut != 0)
 			{
-			const PDBChain &Chain = DBS.GetDBChain(DBIdx);
+			const PDBChain &Chain = DBS.GetDBChain(Idx);
 			const char *Label = Chain.m_Label.c_str();
 			fprintf(fOut, "%s\t%.3g\t%.3g\n", Label, Mu, Beta);
 			}

@@ -52,7 +52,6 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, " -maxaccepts %u", opt_maxaccepts); }
 	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
 	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
-	if (optset_usecombopath) { m_UseComboPath = true; Psa(m_Desc, " -usecombopath"); Warning("-usecombopath bad idea"); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",

@@ -236,7 +236,7 @@ uint GetPatternOnes(const string &Str);
 void cmd_kmer_eval2()
 	{
 	SCOP40Bench SB;
-	SB.LoadChains(g_Arg1);
+	SB.LoadDB(g_Arg1);
 
 	const string &PatternStr = "11";
 
@@ -250,7 +250,7 @@ void cmd_kmer_eval2()
 	ProgressLog("Pattern %s len %u ones %u alpha size %u\n",
 	  PatternStr.c_str(), PatternLength, PatternOnes, AlphaSize);
 
-	const uint ChainCount = SB.GetChainCount();
+	const uint ChainCount = SB.GetDBChainCount();
 	map<string, uint> DomToChainIndex;
 
 	Warning("non-standard combo features");
@@ -265,7 +265,7 @@ void cmd_kmer_eval2()
 	vector<map<uint, vector<uint> > > KmerToCoordsVec(ChainCount);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
-		const PDBChain &Chain = SB.GetChain(ChainIndex);
+		const PDBChain &Chain = SB.GetDBChain(ChainIndex);
 
 		const uint QL = Chain.GetSeqLength();
 		D.Init(Chain);

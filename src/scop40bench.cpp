@@ -81,19 +81,19 @@ uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomSlashId,
 
 const vector<vector<byte> > &SCOP40Bench::GetProfileByDomIdx(uint DomIdx) const
 	{
-	asserta(DomIdx < SIZE(m_Profiles));
+	asserta(DomIdx < SIZE(m_DBProfiles));
 	asserta(DomIdx < SIZE(m_DomIdxToChainIdx));
 	uint ChainIdx = m_DomIdxToChainIdx[DomIdx];
-	asserta(ChainIdx < SIZE(m_Profiles));
-	return *m_Profiles[ChainIdx];
+	asserta(ChainIdx < SIZE(m_DBProfiles));
+	return *m_DBProfiles[ChainIdx];
 	}
 
 const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 	{
 	asserta(DomIdx < SIZE(m_DomIdxToChainIdx));
 	uint ChainIdx = m_DomIdxToChainIdx[DomIdx];
-	asserta(ChainIdx < SIZE(m_Chains));
-	return *m_Chains[ChainIdx];
+	asserta(ChainIdx < SIZE(m_DBChains));
+	return *m_DBChains[ChainIdx];
 	}
 
 void SCOP40Bench::OnSetup()
@@ -101,14 +101,12 @@ void SCOP40Bench::OnSetup()
 	if (optset_benchlevel)
 		m_Level = opt_benchlevel;
 
-	asserta(m_QuerySelf);
-	asserta(m_ChainCount == m_QueryChainCount);
-	asserta(m_DBChainCount == 0);
+	m_QuerySelf = true;
 	if (opt_scores_are_not_evalues)
 		m_ScoresAreEvalues = false;
 	else
 		m_ScoresAreEvalues = true;
-	BuildDomSFIndexesFromQueryChainLabels();
+	BuildDomSFIndexesFromDBChainLabels();
 	}
 
 void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,
@@ -178,14 +176,15 @@ void SCOP40Bench::ReadLookup(const string &FileName)
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
+void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 	{
+	const uint ChainCount = GetDBChainCount();
 	m_DomIdxToChainIdx.clear();
-	m_DomIdxToChainIdx.resize(m_ChainCount, UINT_MAX);
-	for (uint ChainIndex = 0; ChainIndex < m_QueryChainCount; ++ChainIndex)
+	m_DomIdxToChainIdx.resize(ChainCount, UINT_MAX);
+	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
-		ProgressStep(ChainIndex, m_ChainCount, "Index SCOP40 domains");
-		const PDBChain &Chain = *m_Chains[ChainIndex];
+		ProgressStep(ChainIndex, ChainCount, "Index SCOP40 domains");
+		const PDBChain &Chain = *m_DBChains[ChainIndex];
 
 		string Dom;
 		string Cls;
@@ -196,9 +195,9 @@ void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 		AddDom(Dom, Fold, SF, ChainIndex);
 		}
 
-	asserta(SIZE(m_DomIdxs) == m_QueryChainCount);
-	asserta(SIZE(m_DomIdxToSFIdx) == m_QueryChainCount);
-	asserta(SIZE(m_DomIdxToFoldIdx) == m_QueryChainCount);
+	asserta(SIZE(m_DomIdxs) == ChainCount);
+	asserta(SIZE(m_DomIdxToSFIdx) == ChainCount);
+	asserta(SIZE(m_DomIdxToFoldIdx) == ChainCount);
 	}
 
 void SCOP40Bench::LogFirstFewDoms() const
@@ -249,8 +248,8 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.SetQuery(Chain1, &Profile1, 0, 0, FLT_MAX, FLT_MAX);
-	DA.SetTarget(Chain2, &Profile2, 0, 0, FLT_MAX, FLT_MAX);
+	DA.SetQuery(Chain1, &Profile1, 0, 0);
+	DA.SetTarget(Chain2, &Profile2, 0, 0);
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;
@@ -292,7 +291,7 @@ void SCOP40Bench::SetDomIdxToL()
 		map<string, uint>::const_iterator iter =
 		  m_DomToChainIdx.find(Dom);
 		asserta(iter != m_DomToChainIdx.end());
-		const PDBChain &Chain = *m_Chains[iter->second];
+		const PDBChain &Chain = *m_DBChains[iter->second];
 		m_DomIdxToL.push_back(Chain.GetSeqLength());
 		}
 	}
@@ -367,7 +366,7 @@ float SCOP40Bench::GetMeanLength(uint SFIdx) const
 		  m_DomToChainIdx.find(Dom);
 		asserta(iter != m_DomToChainIdx.end());
 		uint ChainIdx = iter->second;
-		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const PDBChain &Chain = *m_DBChains[ChainIdx];
 		Sum += Chain.GetSeqLength();
 		}
 	return Sum/N;
@@ -698,12 +697,16 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 
-	SCOP40Bench SB;
-	SB.LoadChains(CalFN, "");
-
 	DSSParams Params;
-	Params.SetFromCmdLine(SB.GetDBSize());
-	SB.Setup(Params);
+	Params.SetFromCmdLine(10000);
+	SCOP40Bench SB;
+	SB.m_Params = &Params;
+	SB.LoadDB(CalFN);
+
+	asserta(SB.m_Params == &Params);
+	Params.m_DBSize = (float) SB.GetDBSize();
+
+	SB.Setup();
 	
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
@@ -718,7 +721,7 @@ void cmd_scop40bench()
 	SB.m_ScoresAreEvalues = true;
 	if (opt_scores_are_not_evalues)
 		SB.m_ScoresAreEvalues = false;
-	SB.Run();
+	SB.RunSelf();
 	SB.WriteOutput();
 	SB.WriteBit(opt_savebit);
 	//SB.LogFirstFewDoms();

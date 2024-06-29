@@ -66,16 +66,16 @@ void cmd_calibrate2()
 
 
 	SCOP40Bench SB;
-	SB.LoadChains(CalFN, "");
+	SB.LoadDB(CalFN);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(SB.GetDBSize());
 
-	SB.Setup(Params);
+	SB.Setup();
 
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;
-	SB.Run();
+	SB.RunSelf();
 	SB.SetTFs();
 	const float MaxFPR = 0.1f;
 	SB.SetStats(MaxFPR, true);
@@ -90,7 +90,7 @@ void cmd_calibrate2()
 	asserta(SIZE(FPRs) == N);
 	asserta(SIZE(NTPs) == N);
 	asserta(SIZE(NFPs) == N);
-	uint NQ = SB.m_QueryChainCount;
+	uint NQ = SB.GetDBChainCount();
 	uint TotalAlns = NQ*NQ;
 
 	vector<float> TSs;

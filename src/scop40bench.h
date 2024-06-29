@@ -89,7 +89,7 @@ public:
 	uint GetFoldCount() const { return SIZE(m_Folds); }
 	void AddDom(const string &Dom, const string &Fold, const string &SF,
 	  uint ChainIndex = UINT_MAX);
-	void BuildDomSFIndexesFromQueryChainLabels();
+	void BuildDomSFIndexesFromDBChainLabels();
 	uint GetDomIdx(const string &Dom_or_DomSlashId, bool FailOnErr = true) const;
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
 	const vector<vector<byte> > &GetProfileByDomIdx(uint DomIdx) const;

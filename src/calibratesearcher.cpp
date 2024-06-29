@@ -32,7 +32,7 @@ double Integrate(double x0, double dx, const vector<double> &ys)
 void CalibrateSearcher::OnSetup()
 	{
 	m_TestStatsVec.clear();
-	m_TestStatsVec.resize(m_ChainCount);
+	m_TestStatsVec.resize(GetDBChainCount());
 	SCOP40Bench::OnSetup();
 	}
 

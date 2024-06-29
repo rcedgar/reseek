@@ -3,7 +3,7 @@
 #include "features.h"
 
 #define SLOPE_CALIB		0
-#define GUMBEL_CALIB	1
+#define GUMBEL_CALIB	0
 
 class DSSParams
 	{
@@ -24,8 +24,8 @@ public:
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_USort = false;
-	bool m_ComboScoreOnly = false;
-	bool m_UseComboPath = false;
+	//bool m_ComboScoreOnly = false;
+	//bool m_UseComboPath = false;
 
 	uint m_Lambda = 32;
 

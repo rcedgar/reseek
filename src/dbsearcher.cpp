@@ -2,10 +2,13 @@
 #include "cigar.h"
 #include "dss.h"
 #include "dbsearcher.h"
+#include "profileloader.h"
+#include "chainreader2.h"
 #include "scop40bench.h"
 #include <thread>
 #include "timing.h"
 
+#if 0
 void DBSearcher::SetKmersVec()
 	{
 	StartTimer(SetKmersVec);
@@ -95,250 +98,18 @@ void DBSearcher::SetProfiles()
 		}
 	EndTimer(SetProfiles);
 	}
-
-const PDBChain &DBSearcher::GetChain(uint ChainIndex) const
-	{
-	asserta(ChainIndex < SIZE(m_Chains));
-	return *m_Chains[ChainIndex];
-	}
-
-uint DBSearcher::GetQueryCount() const
-	{
-	return m_QueryChainCount;
-	}
-
-bool DBSearcher::GetNextPairQuerySelf(uint &ChainIndex1, uint &ChainIndex2)
-	{
-	ChainIndex1 = UINT_MAX;
-	ChainIndex2 = UINT_MAX;
-	m_Lock.lock();
-	if (m_PairIndex == m_PairCount)
-		{
-		m_Lock.unlock();
-		return false;
-		}
-	ProgressStep(m_PairIndex, m_PairCount, "Aligning");
-	ChainIndex1 = m_NextChainIndex1;
-	ChainIndex2 = m_NextChainIndex2;
-	asserta(m_NextChainIndex1 < m_ChainCount);
-	asserta(m_NextChainIndex2 < m_ChainCount);
-	++m_NextChainIndex2;
-	if (m_NextChainIndex2 == m_ChainCount)
-		{
-		++m_NextChainIndex1;
-		m_NextChainIndex2 = m_NextChainIndex1 + 1;
-		}
-	++m_PairIndex;
-	m_Lock.unlock();
-	return true;
-	}
-
-bool DBSearcher::GetNextPair(uint &QueryChainIndex, uint &DBChainIndex)
-	{
-	if (m_QuerySelf)
-		{
-		bool Ok = GetNextPairQuerySelf(QueryChainIndex, DBChainIndex);
-		if (Ok)
-			asserta(QueryChainIndex != DBChainIndex);
-		return Ok;
-		}
-
-	QueryChainIndex = UINT_MAX;
-	DBChainIndex = UINT_MAX;
-	m_Lock.lock();
-	if (m_PairIndex == m_PairCount)
-		{
-		m_Lock.unlock();
-		return false;
-		}
-
-	asserta(m_PairIndex < m_PairCount);
-	ProgressStep(m_PairIndex++, m_PairCount, "Aligning");
-
-	QueryChainIndex = m_NextQueryIdx;
-	DBChainIndex = m_QueryChainCount + m_NextDBIdx;
-	asserta(QueryChainIndex < m_ChainCount);
-	asserta(DBChainIndex < m_ChainCount);
-
-	++m_NextQueryIdx;
-	if (m_NextQueryIdx == m_QueryChainCount)
-		{
-		m_NextQueryIdx = 0;
-		++m_NextDBIdx;
-		}
-
-	m_Lock.unlock();
-	return true;
-	}
-
-void DBSearcher::Thread(uint ThreadIndex)
-	{
-	asserta(ThreadIndex < SIZE(m_DAs));
-	uint PrevChainIndex1 = UINT_MAX;
-	DSSAligner &DA = *m_DAs[ThreadIndex];
-	for (;;)
-		{
-		uint ChainIndex1, ChainIndex2;
-		bool Ok = GetNextPair(ChainIndex1, ChainIndex2);
-		if (!Ok)
-			break;
-
-		if (ChainIndex1 == PrevChainIndex1)
-			++m_QPCacheHits;
-		else
-			{
-			++m_QPCacheMisses;
-			const PDBChain &Chain1 = *m_Chains[ChainIndex1];
-			const vector<vector<byte> > &Profile1 = *m_Profiles[ChainIndex1];
-			const vector<byte> &ComboLetters1 = *m_ComboLettersVec[ChainIndex1];
-			const vector<uint> &KmerBits1 = *m_KmerBitsVec[ChainIndex1];
-			float Gumbel_mu = FLT_MAX;
-			float Gumbel_beta = FLT_MAX;
-			if (!m_Gumbel_mus.empty())
-				{
-				Gumbel_mu = m_Gumbel_mus[ChainIndex1];
-				Gumbel_beta = m_Gumbel_betas[ChainIndex1];
-				}
-			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1,
-			  Gumbel_mu, Gumbel_beta);
-			}
-
-		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
-		const vector<vector<byte> > &Profile2 = *m_Profiles[ChainIndex2];
-		const vector<byte> &ComboLetters2 = *m_ComboLettersVec[ChainIndex2];
-		const vector<uint> &KmerBits2 = *m_KmerBitsVec[ChainIndex2];
-		float Gumbel_mu = FLT_MAX;
-		float Gumbel_beta = FLT_MAX;
-		if (!m_Gumbel_mus.empty())
-			{
-			Gumbel_mu = m_Gumbel_mus[ChainIndex2];
-			Gumbel_beta = m_Gumbel_betas[ChainIndex2];
-			}
-		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2,
-		  Gumbel_mu, Gumbel_beta);
-
-		if (m_Params->m_UseComboPath)
-			{
-			DA.AlignComboOnly();
-			m_Lock.lock();
-			OnAln(ChainIndex1, ChainIndex2, DA, true);
-			OnAln(ChainIndex1, ChainIndex2, DA, false);
-			m_Lock.unlock();
-			}
-		else if (m_Params->m_ComboScoreOnly)
-			{
-			float ComboScore = DA.GetComboScore();
-			DA.m_EvalueA = ComboScore;
-			DA.m_EvalueB = ComboScore;
-			BaseOnAln(ChainIndex1, ChainIndex2, DA, true);
-			BaseOnAln(ChainIndex1, ChainIndex2, DA, false);
-			}
-		else
-			{
-			DA.AlignQueryTarget();
-			if (!DA.m_Path.empty())
-				{
-				if (m_CollectTestStats)
-					{
-					m_Lock.lock();
-					asserta(ChainIndex1 < SIZE(m_TestStatsVec));
-					vector<float> &v1 = m_TestStatsVec[ChainIndex1];
-					v1.push_back(DA.m_TestStatisticA);
-					m_Lock.unlock();
-					}
-
-				BaseOnAln(ChainIndex1, ChainIndex2, DA, true);
-				if (m_QuerySelf)
-					{
-					if (m_CollectTestStats)
-						{
-						m_Lock.lock();
-						asserta(ChainIndex2 < SIZE(m_TestStatsVec));
-						vector<float> &v2 = m_TestStatsVec[ChainIndex2];
-						v2.push_back(DA.m_TestStatisticB);
-						m_Lock.unlock();
-						}
-
-					BaseOnAln(ChainIndex1, ChainIndex2, DA, false);
-					}
-				}
-			}
-		PrevChainIndex1 = ChainIndex1;
-		}
-	}
+#endif // 0
 
 uint DBSearcher::GetDBSize() const
 	{
-	if (m_QuerySelf)
-		return m_QueryChainCount;
-	else
-		return m_DBChainCount;
+	return GetDBChainCount();
 	}
 
-void DBSearcher::StaticThread(uint ThreadIndex, DBSearcher *ptrDBS)
+void DBSearcher::RunSearch()
 	{
-	ptrDBS->Thread(ThreadIndex);
+	Die("Not implemented");
 	}
 
-void DBSearcher::Run()
-	{
-	m_D.SetParams(*m_Params);
-	for (uint i = 0; i < SIZE(m_DAs); ++i)
-		m_DAs[i]->m_Params = m_Params;
-
-	if (m_Params->m_USort)
-		{
-		RunUSort();
-		return;
-		}
-	m_AlnsPerThreadPerSec = FLT_MAX;
-	time_t t_start = time(0);
-	m_Secs = UINT_MAX;
-	uint ThreadCount = GetRequestedThreadCount();
-#if TIMING
-	asserta(ThreadCount == 1);
-#endif
-	m_PairIndex = UINT_MAX;
-	m_PairCount = UINT_MAX;
-	m_NextChainIndex1 = UINT_MAX;
-	m_NextChainIndex2 = UINT_MAX;
-	m_NextQueryIdx = UINT_MAX;
-	m_NextDBIdx = UINT_MAX;
-	m_ProcessedQueryCount = UINT_MAX;
-
-	m_PairIndex = 0;
-	if (m_QuerySelf)
-		{
-		asserta(m_ChainCount == m_QueryChainCount);
-		asserta(m_DBChainCount == 0);
-		m_PairCount = (m_ChainCount*(m_ChainCount-1))/2;
-		m_NextChainIndex1 = 0;
-		m_NextChainIndex2 = 1;
-		}
-	else
-		{
-		m_PairCount = m_QueryChainCount*m_DBChainCount;
-		m_NextQueryIdx = 0;
-		m_NextDBIdx = 0;
-		}
-
-	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		thread *t = new thread(StaticThread, ThreadIndex, this);
-		ts.push_back(t);
-		}
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		ts[ThreadIndex]->join();
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		delete ts[ThreadIndex];
-	time_t t_end = time(0);
-	m_Secs = uint(t_end - t_start);
-	if (m_Secs == 0)
-		m_Secs = 1;
-	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
-	RunStats();
-	}
 
 void DBSearcher::RunStats() const
 	{
@@ -349,14 +120,7 @@ void DBSearcher::RunStats() const
 	Log("QP cache hits %u, misses %u\n", Hits, Misses);
 	}
 
-uint DBSearcher::GetDBChainIndex(uint Idx) const
-	{
-	if (m_QuerySelf)
-		return Idx;
-	return m_QueryChainCount + Idx;
-	}
-
-void DBSearcher::Setup(const DSSParams &Params)
+void DBSearcher::Setup()
 	{
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
@@ -374,8 +138,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 
 	m_ProcessedQueryCount = 0;
 
-	m_Params = &Params;
-	//m_D.m_Params = &Params;
+	m_D.SetParams(*m_Params);
 	m_ThreadCount = ThreadCount;
 
 	for (uint i = 0; i < ThreadCount; ++i)
@@ -388,25 +151,24 @@ void DBSearcher::Setup(const DSSParams &Params)
 		m_Mems.push_back(Mem);
 		}
 
-	vector<FEATURE> ComboFeatures;
-	ComboFeatures.push_back(FEATURE_SS3);
-	ComboFeatures.push_back(FEATURE_NbrSS3);
-	ComboFeatures.push_back(FEATURE_RevNbrDist4);
-	DSSParams::SetComboFeatures(ComboFeatures);
+	//vector<FEATURE> ComboFeatures;
+	//ComboFeatures.push_back(FEATURE_SS3);
+	//ComboFeatures.push_back(FEATURE_NbrSS3);
+	//ComboFeatures.push_back(FEATURE_RevNbrDist4);
+	//DSSParams::SetComboFeatures(ComboFeatures);
 
-	m_D.SetParams(Params);
 	//const uint AS = m_D.GetAlphaSize(FEATURE_Combo);
 	//m_D.m_PatternAlphaSize1 = AS;
 	//uint PatternOnes = GetPatternOnes(m_D.m_Params->m_PatternStr);
 	//m_D.m_PatternAlphaSize = myipow(AS, PatternOnes);
-	SetProfiles();
-	SetKmersVec();
+	//SetProfiles();
+	//SetKmersVec();
 
 	if (m_CollectTestStats)
 		{
 		ProgressLog("\n --- collect teststats ---\n\n");
 		m_TestStatsVec.clear();
-		m_TestStatsVec.resize(m_ChainCount);
+		m_TestStatsVec.resize(GetDBChainCount());
 		}
 #if SLOPE_CALIB
 	LoadCalibratedSlopes(opt_slopes);
@@ -417,59 +179,10 @@ void DBSearcher::Setup(const DSSParams &Params)
 	OnSetup();
 	}
 
-uint DBSearcher::GetDBChainCount() const
-	{
-	if (m_QuerySelf)
-		return GetQueryChainCount();
-	asserta(m_DBChainCount != UINT_MAX);
-	asserta(m_DBChainCount > 0);
-	return m_DBChainCount;
-	}
-
-uint DBSearcher::GetQueryChainCount() const
-	{
-	asserta(m_QueryChainCount != UINT_MAX);
-	asserta(m_QueryChainCount > 0);
-	return m_QueryChainCount;
-	}
-
-uint DBSearcher::GetQueryChainIdx(uint Idx) const
-	{
-	asserta(Idx < m_QueryChainCount);
-	return Idx;
-	}
-
-uint DBSearcher::GetDBChainIdx(uint Idx) const
-	{
-	if (m_QuerySelf)
-		{
-		asserta(Idx < m_QueryChainCount);
-		return Idx;
-		}
-	else
-		{
-		asserta(Idx < m_DBChainCount);
-		asserta(m_QueryChainCount + Idx < SIZE(m_Chains));
-		return m_QueryChainCount + Idx;
-		}
-	}
-
 const PDBChain &DBSearcher::GetDBChain(uint Idx) const
 	{
-	uint ChainIdx = GetDBChainIdx(Idx);
-	return GetChain(ChainIdx);
-	}
-
-const PDBChain &DBSearcher::GetQueryChain(uint Idx) const
-	{
-	uint ChainIdx = GetQueryChainIdx(Idx);
-	return GetChain(ChainIdx);
-	}
-
-const char *DBSearcher::GetQueryLabel(uint Idx) const
-	{
-	const PDBChain &Chain = GetQueryChain(Idx);
-	return Chain.m_Label.c_str();
+	asserta(Idx < SIZE(m_DBChains));
+	return *m_DBChains[Idx];
 	}
 
 const char *DBSearcher::GetDBLabel(uint Idx) const
@@ -548,8 +261,9 @@ void DBSearcher::LoadGumbelCalib(const string &FN)
 	m_Gumbel_betas.clear();
 	if (FN == "")
 		return;
-	m_Gumbel_mus.resize(m_ChainCount, FLT_MAX);
-	m_Gumbel_betas.resize(m_ChainCount, FLT_MAX);
+	uint ChainCount = GetDBChainCount();
+	m_Gumbel_mus.resize(ChainCount, FLT_MAX);
+	m_Gumbel_betas.resize(ChainCount, FLT_MAX);
 	FILE *f = OpenStdioFile(FN);
 	string Line;
 	vector<string> Fields;
@@ -572,7 +286,7 @@ void DBSearcher::LoadGumbelCalib(const string &FN)
 	CloseStdioFile(f);
 	for (uint ChainIdx = 0; ChainIdx < m_ChainCount; ++ChainIdx)
 		{
-		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const PDBChain &Chain = *m_DBChains[ChainIdx];
 		const string &Label = Chain.m_Label;
 		map<string, uint>::iterator iter = LabelToIdx.find(Label);
 		if (iter == LabelToIdx.end())
@@ -601,3 +315,19 @@ void DBSearcher::GetChainGumbel(uint ChainIdx, float &mu, float &beta) const
 	beta = m_Gumbel_betas[ChainIdx];
 	}
 #endif
+
+void DBSearcher::LoadDB(const string &DBFN)
+	{
+	ChainReader2 CR;
+	CR.Open(DBFN);
+	ProfileLoader PL;
+	uint ThreadCount = GetRequestedThreadCount();
+
+	vector<PDBChain *> *ptrChains = &m_DBChains;
+	vector<vector<vector<byte> > *> *ptrProfiles = &m_DBProfiles;
+	vector<vector<byte> *> *ptrComboLetters = &m_DBComboLettersVec;
+	vector<vector<uint> *> *ptrKmerBitsVec = &m_DBKmerBitsVec;
+
+	PL.Load(CR, ptrChains, ptrProfiles, ptrComboLetters,
+	  ptrKmerBitsVec, *m_Params, ThreadCount);
+	}

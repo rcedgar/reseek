@@ -7,7 +7,7 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 	asserta(m_SB != 0);
 	m_SB->m_Params = &Params;
 	m_SB->ClearHits();
-	m_SB->Run();
+	m_SB->RunSelf();
 	uint Score = m_SB->GetSens1stFP();
 
 	if (m_fFev != 0)

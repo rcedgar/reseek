@@ -19,18 +19,16 @@ public:
 // m_Chains has m_DBChainCount + m_QueryChainCount = 
 //   m_ChainCount chain pointers
 // Query chains first, then DB chains (unless self)
-	vector<PDBChain *> m_Chains;
-	vector<PDBChain *> m_QueryChains;
+	//vector<PDBChain *> m_Chains;
+	//vector<PDBChain *> m_QueryChains;
 	vector<PDBChain *> m_DBChains;
-	uint m_DBChainCount = UINT_MAX;
-	uint m_QueryChainCount = UINT_MAX;
 	bool m_QuerySelf = false;
 
 // Per-chain vectors [ChainIdx]
-	vector<vector<vector<byte> > *> m_Profiles;
-	vector<vector<byte> *> m_ComboLettersVec;
-	vector<vector<uint> *> m_KmersVec;
-	vector<vector<uint> *> m_KmerBitsVec;
+	vector<vector<vector<byte> > *> m_DBProfiles;
+	vector<vector<byte> *> m_DBComboLettersVec;
+	//vector<vector<uint> *> m_KmersVec;
+	vector<vector<uint> *> m_DBKmerBitsVec;
 
 	mutex m_Lock;
 	uint m_PairIndex = UINT_MAX;
@@ -39,7 +37,6 @@ public:
 	uint m_NextChainIndex2 = UINT_MAX;
 	uint m_NextQueryIdx = UINT_MAX;
 	uint m_NextDBIdx = UINT_MAX;
-	uint m_ChainCount = UINT_MAX;
 	uint m_ProcessedQueryCount = UINT_MAX;
 	atomic<uint> m_QPCacheHits;
 	atomic<uint> m_QPCacheMisses;
@@ -73,31 +70,26 @@ public:
 #endif
 
 public:
-	uint GetQueryChainIdx(uint Idx) const;
-	uint GetDBChainIdx(uint Idx) const;
-	const PDBChain &GetQueryChain(uint Idx) const;
 	const PDBChain &GetDBChain(uint Idx) const;
-	const char *GetQueryLabel(uint Idx) const;
 	const char *GetDBLabel(uint Idx) const;
-	void Setup(const DSSParams &Params);
-	uint GetProfileCount() const { return SIZE(m_Profiles); }
-	uint GetChainCount() const { return SIZE(m_Chains); }
-	uint GetDBChainCount() const;
-	uint GetQueryChainCount() const;
-	bool GetNextPair(uint &ChainIndex1, uint &ChainIndex2);
-	bool GetNextPairQuerySelf(uint &ChainIndex1, uint &ChainIndex2);
-	const PDBChain &GetChain(uint ChainIndex) const;
-	void LoadChains(const string &QueryCalFileName, 
-	  const string &DBCalFileName = "");
-	void SetProfiles();
-	void SetKmersVec();
-	void Run();
+	void Setup();
+	//uint GetDBProfileCount() const { return SIZE(m_Profiles); }
+	uint GetDBChainCount() const { return SIZE(m_DBChains); }
+	//uint GetDBChainCount() const;
+	//uint GetQueryChainCount() const;
+	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
+	//void LoadChains(const string &QueryCalFileName, 
+	//  const string &DBCalFileName = "");
+	//void SetProfiles();
+	//void SetKmersVec();
+	void LoadDB(const string &DBFN);
+	void RunSelf();
+	void RunSearch();
 	void RunUSort();
 	uint GetDBSize() const;
-	void USort(uint QueryChainIndex, vector<uint> &Idxs,
+	void USort(const vector<uint> &QueryKmerBits, vector<uint> &Idxs,
 	  vector<uint> &DBChainIndexes);
-	uint GetDBChainIndex(uint Idx) const;
-	void Thread(uint ThreadIndex);
+	void ThreadBodySelf(uint ThreadIndex);
 	void ThreadUSort(uint ThreadIndex);
 	void RunStats() const;
 	uint GetQueryCount() const;
@@ -133,6 +125,6 @@ public:
 	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up) {}
 
 public:
-	static void StaticThread(uint ThreadIndex, DBSearcher *ptrDBS);
+	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
 	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS);
 	};

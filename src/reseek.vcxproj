@@ -295,7 +295,6 @@
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
-    <ClCompile Include="explore1i.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="pdbchaincal.cpp" />
@@ -314,6 +313,7 @@
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="readhits.cpp" />
+    <ClCompile Include="runself.cpp" />
     <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />
