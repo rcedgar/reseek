@@ -15,7 +15,7 @@ void cmd_test_para_cal()
 	Params.SetFromCmdLine(10000);
 
 	DSS D;
-	D.m_Params = &Params;
+	D.SetParams(Params);
 
 	vector<vector<byte> > Profile1;
 	vector<vector<byte> > Profile2;

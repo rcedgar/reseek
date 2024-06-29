@@ -15,16 +15,16 @@ void DBSearcher::SetKmersVec()
 	asserta(m_ChainCount < 100000);
 	m_KmersVec.resize(m_ChainCount);
 	m_KmerBitsVec.resize(m_ChainCount);
+	vector<byte> ComboLetters;
 	for (uint ChainIndex = 0; ChainIndex < m_ChainCount; ++ChainIndex)
 		{
 		ProgressStep(ChainIndex, m_ChainCount, "Set k-mers");
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		D.Init(Chain);
-		//vector<uint> &Kmers = *m_KmersVec[ChainIndex];
-		//vector<uint> &Bits = *m_KmerBitsVec[ChainIndex];
 		vector<uint> *Kmers = new vector<uint>;
 		vector<uint> *Bits = new vector<uint>;
-		D.GetComboKmers(*Kmers);
+		D.GetComboLetters(ComboLetters);
+		D.GetComboKmers(ComboLetters, *Kmers);
 		D.GetComboKmerBits(*Kmers, *Bits);
 		m_KmersVec[ChainIndex] = Kmers;
 		m_KmerBitsVec[ChainIndex] = Bits;
@@ -88,7 +88,6 @@ void DBSearcher::SetProfiles()
 		D.Init(Chain);
 		vector<vector<byte> > *ptrProfile = new vector<vector<byte> >;
 		vector<byte> *ptrComboLetters = new vector<byte>;
-		//D.GetProfile(m_Profiles[ChainIndex]);
 		D.GetProfile(*ptrProfile);
 		m_Profiles[ChainIndex] = ptrProfile;
 		D.GetComboLetters(*ptrComboLetters);
@@ -283,7 +282,7 @@ void DBSearcher::StaticThread(uint ThreadIndex, DBSearcher *ptrDBS)
 
 void DBSearcher::Run()
 	{
-	m_D.m_Params = m_Params;
+	m_D.SetParams(*m_Params);
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->m_Params = m_Params;
 
@@ -376,7 +375,7 @@ void DBSearcher::Setup(const DSSParams &Params)
 	m_ProcessedQueryCount = 0;
 
 	m_Params = &Params;
-	m_D.m_Params = &Params;
+	//m_D.m_Params = &Params;
 	m_ThreadCount = ThreadCount;
 
 	for (uint i = 0; i < ThreadCount; ++i)
@@ -395,11 +394,11 @@ void DBSearcher::Setup(const DSSParams &Params)
 	ComboFeatures.push_back(FEATURE_RevNbrDist4);
 	DSSParams::SetComboFeatures(ComboFeatures);
 
-	m_D.m_Params = m_Params;
-	const uint AS = m_D.GetAlphaSize(FEATURE_Combo);
-	m_D.m_PatternAlphaSize1 = AS;
-	uint PatternOnes = GetPatternOnes(m_D.m_Params->m_PatternStr);
-	m_D.m_PatternAlphaSize = myipow(AS, PatternOnes);
+	m_D.SetParams(Params);
+	//const uint AS = m_D.GetAlphaSize(FEATURE_Combo);
+	//m_D.m_PatternAlphaSize1 = AS;
+	//uint PatternOnes = GetPatternOnes(m_D.m_Params->m_PatternStr);
+	//m_D.m_PatternAlphaSize = myipow(AS, PatternOnes);
 	SetProfiles();
 	SetKmersVec();
 

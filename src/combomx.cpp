@@ -27,7 +27,7 @@ void cmd_combomx()
 	DSS D;
 	DSSParams Params;
 	Params.SetComboFeatures(Fs);
-	D.m_Params = &Params;
+	D.SetParams(Params);
 	uint AS = D.GetAlphaSize(FEATURE_Combo);
 	vector<vector<float> > ComboMx(AS);
 	for (uint i = 0; i < AS; ++i)

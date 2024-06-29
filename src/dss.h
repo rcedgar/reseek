@@ -14,7 +14,6 @@ class PDBChain;
 class DSS
 	{
 public:
-	const DSSParams *m_Params = 0;
 	const PDBChain *m_Chain = 0;
 	uint m_L = 0;
 
@@ -47,6 +46,9 @@ public:
 	uint m_PatternAlphaSize1 = UINT_MAX;
 	uint m_PatternAlphaSize = UINT_MAX;
 
+private:
+	const DSSParams *m_Params = 0;
+
 public:
 	void Init(const PDBChain &Chain)
 		{
@@ -65,6 +67,8 @@ public:
 		if (optset_densw) m_Density_w = opt_densw;
 		if (optset_ssdensw) m_SSDensity_w = opt_ssdensw;
 		}
+
+	void SetParams(const DSSParams &Params);
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }
 
@@ -86,7 +90,8 @@ public:
 
 	void GetProfile(vector<vector<byte> > &Profile);
 	void GetComboLetters(vector<byte> &Letters);
-	void GetComboKmers(vector<uint> &Kmers);
+	void GetComboKmers(const vector<byte> &ComboLetters,
+	  vector<uint> &Kmers);
 	void GetComboKmerBits(const vector<uint> &Kmers,
 	  vector<uint> &Bits);
 	void GetComboLetters(vector<uint> &Letters);

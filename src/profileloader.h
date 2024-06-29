@@ -9,16 +9,22 @@ class ProfileLoader
 public:
 	const DSSParams *m_Params = 0;
 	ChainReader2 *m_CR = 0;
-	vector<PDBChain *> *m_Chains;
-	vector<vector<vector<byte> > *> *m_Profiles;
+	vector<PDBChain *> *m_Chains = 0;
+	vector<vector<vector<byte> > *> *m_Profiles = 0;
+	vector<vector<byte> *> *m_ComboLetters = 0;
+	vector<vector<uint> *> *m_KmersVec = 0;
+	vector<vector<uint> *> *m_KmerBitsVec = 0;
 	mutex m_Lock;
 
 public:
 	void Load(
 	  ChainReader2 &CR,
 	  uint ReserveSize,
-	  vector<PDBChain *> &Chains,
-	  vector<vector<vector<byte> > *> &m_Profiles,
+	  vector<PDBChain *> *Chains,
+	  vector<vector<vector<byte> > *> *Profiles,
+	  vector<vector<byte> *> *ComboLetters,
+	  vector<vector<uint> *> *KmersVec,
+	  vector<vector<uint> *> *KmerBitsVec,
 	  const DSSParams &Params,
 	  uint ThreadCount);
 	void ThreadBody(uint ThreadIndex);

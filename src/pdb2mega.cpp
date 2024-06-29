@@ -51,7 +51,7 @@ void cmd_pdb2mega()
 		}
 
 	DSS D;
-	D.m_Params = &Params;
+	D.SetParams(Params);
 	vector<vector<byte> > Profile;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{

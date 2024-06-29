@@ -191,7 +191,7 @@ void cmd_test_para_path()
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	DA.m_Params = &Params;
-	D.m_Params = &Params;
+	D.SetParams(Params);
 
 	Trainer Tr;
 	Tr.Init(g_Arg1, opt_train_cal);

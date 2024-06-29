@@ -269,7 +269,7 @@ void cmd_kmer_eval()
 	DSSParams Params;
 	Params.SetDefaults();
 	DSS D;
-	D.m_Params = &Params;
+	D.SetParams(Params);
 
 	DSSAligner DA;
 	DA.m_Params = &Params;

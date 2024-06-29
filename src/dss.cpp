@@ -683,11 +683,12 @@ void DSS::GetComboKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
 		}
 	}
 
-void DSS::GetComboKmers(vector<uint> &Kmers)
+void DSS::GetComboKmers(const vector<byte> &Letters,
+  vector<uint> &Kmers)
 	{
 	Kmers.clear();
-	vector<uint> Letters;
-	GetComboLetters(Letters);
+	//vector<uint> Letters;
+	//GetComboLetters(Letters);
 	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
@@ -705,10 +706,12 @@ void DSS::GetComboKmers(vector<uint> &Kmers)
 					Kmer = UINT_MAX;
 					break;
 					}
+				assert(Letter < 36);
 				Kmer = Kmer*m_PatternAlphaSize1 + Letter;
 				}
 			}
-		Kmers.push_back(Kmer);
+		if (Kmer != UINT_MAX)
+			Kmers.push_back(Kmer);
 		}
 	}
 
@@ -722,6 +725,7 @@ void DSS::GetComboLetters(vector<byte> &Letters)
 		if (Letter == UINT_MAX)
 			Letter = 0;
 		asserta(Letter < 256);
+		asserta(Letter < 36);//@@
 		Letters.push_back(byte(Letter));
 		}
 	}
@@ -804,6 +808,15 @@ uint DSS::GetAlphaSize(FEATURE F)
 		}
 	Die("GetAlphaSize(%s)", FeatureToStr(F));
 	return UINT_MAX;
+	}
+
+void DSS::SetParams(const DSSParams &Params)
+	{
+	m_Params = &Params;
+	const uint AS = GetAlphaSize(FEATURE_Combo);
+	m_PatternAlphaSize1 = AS;
+	uint PatternOnes = GetPatternOnes(m_Params->m_PatternStr);
+	m_PatternAlphaSize = myipow(AS, PatternOnes);
 	}
 
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
