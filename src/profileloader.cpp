@@ -18,6 +18,16 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		PDBChain *Chain = m_CR->GetNext();
 		if (Chain == 0)
 			return;
+		time_t Now = time(0);
+		m_Lock.lock();
+		++m_Count;
+		if (Now > m_LastProgress)
+			{
+			Progress("%u chains loaded\n", m_Count);
+			m_LastProgress = Now;
+			}
+		m_Lock.unlock();
+
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
 		vector<uint> *Kmers = m_KmersVec == 0 ? 0 : new vector<uint>;
 		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;

@@ -15,6 +15,8 @@ public:
 	vector<vector<uint> *> *m_KmersVec = 0;
 	vector<vector<uint> *> *m_KmerBitsVec = 0;
 	mutex m_Lock;
+	uint m_Count = 0;
+	time_t m_LastProgress = 0;
 
 public:
 	void Load(
