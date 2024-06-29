@@ -7,6 +7,8 @@
 #include <map>
 #include <mutex>
 
+class ChainReader2;
+
 class DBSearcher
 	{
 public:
@@ -16,18 +18,12 @@ public:
 	vector<XDPMem *> m_Mems;
 	DSS m_D;
 
-// m_Chains has m_DBChainCount + m_QueryChainCount = 
-//   m_ChainCount chain pointers
-// Query chains first, then DB chains (unless self)
-	//vector<PDBChain *> m_Chains;
-	//vector<PDBChain *> m_QueryChains;
 	vector<PDBChain *> m_DBChains;
 	bool m_QuerySelf = false;
 
 // Per-chain vectors [ChainIdx]
 	vector<vector<vector<byte> > *> m_DBProfiles;
 	vector<vector<byte> *> m_DBComboLettersVec;
-	//vector<vector<uint> *> m_KmersVec;
 	vector<vector<uint> *> m_DBKmerBitsVec;
 
 	mutex m_Lock;
@@ -51,10 +47,7 @@ public:
 	FILE *m_fFasta2 = 0;
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
-
-// Calibration training
-	bool m_CollectTestStats = false;
-	vector<vector<float> > m_TestStatsVec;
+	time_t m_LastProgress = 0;
 
 #if SLOPE_CALIB
 // Calibrated slopes
@@ -70,29 +63,24 @@ public:
 #endif
 
 public:
-	const PDBChain &GetDBChain(uint Idx) const;
-	const char *GetDBLabel(uint Idx) const;
 	void Setup();
-	//uint GetDBProfileCount() const { return SIZE(m_Profiles); }
-	uint GetDBChainCount() const { return SIZE(m_DBChains); }
-	//uint GetDBChainCount() const;
-	//uint GetQueryChainCount() const;
-	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
-	//void LoadChains(const string &QueryCalFileName, 
-	//  const string &DBCalFileName = "");
-	//void SetProfiles();
-	//void SetKmersVec();
+
 	void LoadDB(const string &DBFN);
+	uint GetDBChainCount() const { return SIZE(m_DBChains); }
+
+	void RunQuery(ChainReader2 &QCR);
 	void RunSelf();
-	void RunSearch();
-	void RunUSort();
-	uint GetDBSize() const;
-	void USort(const vector<uint> &QueryKmerBits, vector<uint> &Idxs,
-	  vector<uint> &DBChainIndexes);
+	void RunUSort(ChainReader2 &QCR);
+
+	void ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR);
 	void ThreadBodySelf(uint ThreadIndex);
 	void ThreadUSort(uint ThreadIndex);
+
+	uint GetDBSize() const;
+	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
+	void USort(const vector<uint> &QueryKmerBits, vector<uint> &Idxs,
+	  vector<uint> &DBChainIndexes);
 	void RunStats() const;
-	uint GetQueryCount() const;
 
 #if SLOPE_CALIB
 // Slope calibration training
@@ -111,20 +99,21 @@ public:
 
 public:
 	virtual void OnSetup() {}
-	void BaseOnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up)
+	void BaseOnAln(DSSAligner &DA, bool Up)
 		{
 		if (DA.GetEvalue(Up) > m_MaxEvalue)
 			return;
 		m_Lock.lock();
-		DA.ToTsv(m_fTsv, true);
-		DA.ToAln(m_fAln, true);
-		DA.ToFasta2(m_fFasta2, opt_global, true);
-		OnAln(ChainIndexA, ChainIndexB, DA, Up);
+		DA.ToTsv(m_fTsv, Up);
+		DA.ToAln(m_fAln, Up);
+		DA.ToFasta2(m_fFasta2, opt_global, Up);
+		OnAln(DA, Up);
 		m_Lock.unlock();
 		}
-	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up) {}
+	virtual void OnAln(DSSAligner &DA, bool Up) {}
 
 public:
+	static void StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
 	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS);
 	};

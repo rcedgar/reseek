@@ -108,7 +108,7 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 #endif // 0
 	}
 
-void DBSearcher::RunUSort()
+void DBSearcher::RunUSort(ChainReader2 &QCR)
 	{
 	Die("TODO does not support query-db search");
 	m_AlnsPerThreadPerSec = FLT_MAX;

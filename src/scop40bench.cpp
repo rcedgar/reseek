@@ -179,19 +179,22 @@ void SCOP40Bench::ReadLookup(const string &FileName)
 void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 	{
 	const uint ChainCount = GetDBChainCount();
+	m_LabelToChainIdx.clear();
 	m_DomIdxToChainIdx.clear();
 	m_DomIdxToChainIdx.resize(ChainCount, UINT_MAX);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		ProgressStep(ChainIndex, ChainCount, "Index SCOP40 domains");
 		const PDBChain &Chain = *m_DBChains[ChainIndex];
+		const string &Label = Chain.m_Label;
+		m_LabelToChainIdx[Label] = ChainIndex;
 
 		string Dom;
 		string Cls;
 		string SF;
 		string Fmy;
 		string Fold;
-		ParseScopLabel(Chain.m_Label, Dom, Cls, Fold, SF, Fmy);
+		ParseScopLabel(Label, Dom, Cls, Fold, SF, Fmy);
 		AddDom(Dom, Fold, SF, ChainIndex);
 		}
 
@@ -219,13 +222,13 @@ void SCOP40Bench::LogFirstFewHits() const
 		}
 	}
 
-void SCOP40Bench::StoreScore(uint ChainIndex1, uint ChainIndex2,
+void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2,
   float ScoreAB, float TSAB)
 	{
 	if (TSAB <= 0)
 		return;
-	uint DomIdx1 = m_DomIdxs[ChainIndex1];
-	uint DomIdx2 = m_DomIdxs[ChainIndex2];
+	uint DomIdx1 = m_DomIdxs[ChainIdx1];
+	uint DomIdx2 = m_DomIdxs[ChainIdx2];
 	asserta(TSAB > 0);
 	m_Scores.push_back(ScoreAB);
 	m_TSs.push_back(TSAB);
@@ -257,8 +260,16 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 	return DA.m_EvalueA;
 	}
 
-void SCOP40Bench::OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up)
+void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	{
+	const string &LabelA = DA.m_ChainA->m_Label;
+	const string &LabelB = DA.m_ChainB->m_Label;
+	map<string, uint>::const_iterator iterA = m_LabelToChainIdx.find(LabelA);
+	map<string, uint>::const_iterator iterB = m_LabelToChainIdx.find(LabelB);
+	asserta(iterA != m_LabelToChainIdx.end());
+	asserta(iterB != m_LabelToChainIdx.end());
+	uint ChainIndexA = iterA->second;
+	uint ChainIndexB = iterB->second;
 	if (Up)
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA, DA.m_TestStatisticA);
 	else

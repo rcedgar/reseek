@@ -24,7 +24,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		++m_Count;
 		if (Now > m_LastProgress)
 			{
-			Progress("%u chains loaded\r", m_Count);
+			Progress("%s target chains loaded\r", IntToStr(m_Count));
 			m_LastProgress = Now;
 			}
 		m_Lock.unlock();
@@ -81,7 +81,7 @@ void ProfileLoader::Load(
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
-	Progress("%u chains loaded\n", m_Count);
+	Progress("%s target chains loaded\n", IntToStr(m_Count));
 	}
 
 void cmd_test()

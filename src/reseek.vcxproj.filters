@@ -371,6 +371,9 @@
     <ClCompile Include="runself.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="runquery.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

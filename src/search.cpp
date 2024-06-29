@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "dbsearcher.h"
+#include "chainreader2.h"
 #include "mx.h"
 #include "pdbchain.h"
 #include "xdpmem.h"
@@ -34,6 +35,10 @@ void cmd_search()
 	if (Self)
 		DBS.RunSelf();
 	else
-		DBS.RunSearch();
+		{
+		ChainReader2 QCR;
+		QCR.Open(QFN);
+		DBS.RunQuery(QCR);
+		}
 	CloseStdioFile(DBS.m_fTsv);
 	}

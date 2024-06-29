@@ -265,7 +265,7 @@ void cmd_kmer_eval2()
 	vector<map<uint, vector<uint> > > KmerToCoordsVec(ChainCount);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
-		const PDBChain &Chain = SB.GetDBChain(ChainIndex);
+		const PDBChain &Chain = *SB.m_DBChains[ChainIndex];
 
 		const uint QL = Chain.GetSeqLength();
 		D.Init(Chain);

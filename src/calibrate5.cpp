@@ -73,6 +73,8 @@ static void Makexys(const vector<uint> &Bins, double x0, double dx,
 
 void cmd_calibrate5()
 	{
+	Die("Not supported");
+#if 0
 	optset_sensitive = true;
 	opt_sensitive = true;
 	asserta(!optset_fast);
@@ -131,10 +133,11 @@ void cmd_calibrate5()
 		fit_gumbel(x0, dx, ys, Mu, Beta);
 		if (fOut != 0)
 			{
-			const PDBChain &Chain = DBS.GetDBChain(Idx);
+			const PDBChain &Chain = *DBS.m_DBChains[Idx];
 			const char *Label = Chain.m_Label.c_str();
 			fprintf(fOut, "%s\t%.3g\t%.3g\n", Label, Mu, Beta);
 			}
 		}
 	CloseStdioFile(fOut);
+#endif
 	}

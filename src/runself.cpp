@@ -25,44 +25,23 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			{
 			++m_QPCacheMisses;
 			const PDBChain &Chain1 = *m_DBChains[ChainIndex1];
-			const vector<vector<byte> > &Profile1 = *m_DBProfiles[ChainIndex1];
-			const vector<byte> &ComboLetters1 = *m_DBComboLettersVec[ChainIndex1];
-			const vector<uint> &KmerBits1 = *m_DBKmerBitsVec[ChainIndex1];
-			DA.SetQuery(Chain1, &Profile1, &KmerBits1, &ComboLetters1);
+			const vector<vector<byte> > *ptrProfile1 = m_DBProfiles[ChainIndex1];
+			const vector<byte> *ptrComboLetters1 = (m_DBComboLettersVec.empty() ? 0 : m_DBComboLettersVec[ChainIndex1]);
+			const vector<uint> *ptrKmerBits1 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex1]);
+			DA.SetQuery(Chain1, ptrProfile1, ptrKmerBits1, ptrComboLetters1);
 			}
 
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
-		const vector<vector<byte> > &Profile2 = *m_DBProfiles[ChainIndex2];
-		const vector<byte> &ComboLetters2 = *m_DBComboLettersVec[ChainIndex2];
-		const vector<uint> &KmerBits2 = *m_DBKmerBitsVec[ChainIndex2];
-		DA.SetTarget(Chain2, &Profile2, &KmerBits2, &ComboLetters2);
+		const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[ChainIndex2];
+		const vector<byte> *ptrComboLetters2 = (m_DBComboLettersVec.empty() ? 0 : m_DBComboLettersVec[ChainIndex2]);
+		const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex2]);
+		DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2);
 
 		DA.AlignQueryTarget();
 		if (!DA.m_Path.empty())
 			{
-			if (m_CollectTestStats)
-				{
-				m_Lock.lock();
-				asserta(ChainIndex1 < SIZE(m_TestStatsVec));
-				vector<float> &v1 = m_TestStatsVec[ChainIndex1];
-				v1.push_back(DA.m_TestStatisticA);
-				m_Lock.unlock();
-				}
-
-			BaseOnAln(ChainIndex1, ChainIndex2, DA, true);
-			if (m_QuerySelf)
-				{
-				if (m_CollectTestStats)
-					{
-					m_Lock.lock();
-					asserta(ChainIndex2 < SIZE(m_TestStatsVec));
-					vector<float> &v2 = m_TestStatsVec[ChainIndex2];
-					v2.push_back(DA.m_TestStatisticB);
-					m_Lock.unlock();
-					}
-
-				BaseOnAln(ChainIndex1, ChainIndex2, DA, false);
-				}
+			BaseOnAln(DA, true);
+			BaseOnAln(DA, false);
 			}
 		PrevChainIndex1 = ChainIndex1;
 		}
@@ -101,11 +80,7 @@ void DBSearcher::RunSelf()
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->m_Params = m_Params;
 
-	if (m_Params->m_USort)
-		{
-		RunUSort();
-		return;
-		}
+	asserta(!m_Params->m_USort);
 
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);

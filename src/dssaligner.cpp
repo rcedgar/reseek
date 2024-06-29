@@ -708,10 +708,13 @@ void DSSAligner::SetQuery(
 	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
-	if (m_Params->m_UsePara)
-		SetComboQP_Para();
-	else
-		SetComboQP();
+	if (m_Params->m_Omega > 0)
+		{
+		if (m_Params->m_UsePara)
+			SetComboQP_Para();
+		else
+			SetComboQP();
+		}
 	}
 
 void DSSAligner::SetTarget(
@@ -765,22 +768,30 @@ void DSSAligner::AlignQueryTarget()
 	++m_AlnCount;
 	m_StatsLock.unlock();
 
-	bool UFilterOk = UFilter();
-	if (!UFilterOk)
+	if (m_Params->m_MinU > 0)
 		{
-		m_StatsLock.lock();
-		++m_UFilterCount;
-		m_StatsLock.unlock();
-		return;
+		bool UFilterOk = UFilter();
+		if (!UFilterOk)
+			{
+			m_StatsLock.lock();
+			++m_UFilterCount;
+			m_StatsLock.unlock();
+			return;
+			}
 		}
-	bool ComboFilterOk = ComboFilter();
-	if (!ComboFilterOk)
+
+	if (m_Params->m_Omega > 0)
 		{
-		m_StatsLock.lock();
-		++m_ComboFilterCount;
-		m_StatsLock.unlock();
-		return;
+		bool ComboFilterOk = ComboFilter();
+		if (!ComboFilterOk)
+			{
+			m_StatsLock.lock();
+			++m_ComboFilterCount;
+			m_StatsLock.unlock();
+			return;
+			}
 		}
+
 	Align_NoAccel();
 	}
 

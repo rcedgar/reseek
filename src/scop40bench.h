@@ -9,6 +9,8 @@
 class SCOP40Bench : public DBSearcher
 	{
 public:
+	map<string, uint> m_LabelToChainIdx;
+
 	map<string, uint> m_DomToChainIdx;
 	vector<uint> m_DomIdxToChainIdx;
 
@@ -34,9 +36,6 @@ public:
 	vector<float> m_TSs;
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
-
-	uint m_ChainIndex1 = UINT_MAX;
-	uint m_ChainIndex2 = UINT_MAX;
 
 	vector<float> m_DomIdxToScoreLastTP;
 	vector<float> m_DomIdxToScoreFirstFP;
@@ -74,7 +73,7 @@ public:
 
 public:
 	virtual void OnSetup();
-	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA, bool Up);
+	virtual void OnAln(DSSAligner &DA, bool Up);
 
 public:
 	void ReadLookup(const string &FileName);
@@ -106,8 +105,7 @@ public:
 	int IsT(uint DomIdx1, uint DomIdx2) const;
 	void LoadHitsFromTsv(const string &FileName);
 	float GetMeanLength(uint SFIdx) const;
-	void StoreScore(uint ChainIdx, uint ChainIdx2,
-	  float Score12, float TS12);
+	void StoreScore(uint ChainIdx1, uint ChainIdx2, float Score12, float TS12);
 
 // ROC analysis
 	void SetStats(float MaxFPR, bool UseTS = false);

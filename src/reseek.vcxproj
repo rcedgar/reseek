@@ -313,6 +313,7 @@
     <ClCompile Include="parasail_combo.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="readhits.cpp" />
+    <ClCompile Include="runquery.cpp" />
     <ClCompile Include="runself.cpp" />
     <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />

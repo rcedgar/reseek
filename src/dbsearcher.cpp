@@ -105,11 +105,6 @@ uint DBSearcher::GetDBSize() const
 	return GetDBChainCount();
 	}
 
-void DBSearcher::RunSearch()
-	{
-	Die("Not implemented");
-	}
-
 
 void DBSearcher::RunStats() const
 	{
@@ -150,26 +145,6 @@ void DBSearcher::Setup()
 		XDPMem *Mem = new XDPMem;
 		m_Mems.push_back(Mem);
 		}
-
-	//vector<FEATURE> ComboFeatures;
-	//ComboFeatures.push_back(FEATURE_SS3);
-	//ComboFeatures.push_back(FEATURE_NbrSS3);
-	//ComboFeatures.push_back(FEATURE_RevNbrDist4);
-	//DSSParams::SetComboFeatures(ComboFeatures);
-
-	//const uint AS = m_D.GetAlphaSize(FEATURE_Combo);
-	//m_D.m_PatternAlphaSize1 = AS;
-	//uint PatternOnes = GetPatternOnes(m_D.m_Params->m_PatternStr);
-	//m_D.m_PatternAlphaSize = myipow(AS, PatternOnes);
-	//SetProfiles();
-	//SetKmersVec();
-
-	if (m_CollectTestStats)
-		{
-		ProgressLog("\n --- collect teststats ---\n\n");
-		m_TestStatsVec.clear();
-		m_TestStatsVec.resize(GetDBChainCount());
-		}
 #if SLOPE_CALIB
 	LoadCalibratedSlopes(opt_slopes);
 #endif
@@ -177,18 +152,6 @@ void DBSearcher::Setup()
 	LoadGumbelCalib(opt_gumin);
 #endif
 	OnSetup();
-	}
-
-const PDBChain &DBSearcher::GetDBChain(uint Idx) const
-	{
-	asserta(Idx < SIZE(m_DBChains));
-	return *m_DBChains[Idx];
-	}
-
-const char *DBSearcher::GetDBLabel(uint Idx) const
-	{
-	const PDBChain &Chain = GetDBChain(Idx);
-	return Chain.m_Label.c_str();
 	}
 
 #if SLOPE_CALIB
@@ -327,6 +290,11 @@ void DBSearcher::LoadDB(const string &DBFN)
 	vector<vector<vector<byte> > *> *ptrProfiles = &m_DBProfiles;
 	vector<vector<byte> *> *ptrComboLetters = &m_DBComboLettersVec;
 	vector<vector<uint> *> *ptrKmerBitsVec = &m_DBKmerBitsVec;
+
+	if (m_Params->m_MinU <= 0)
+		ptrKmerBitsVec = 0;
+	if (m_Params->m_Omega <= 0)
+		ptrComboLetters = 0;
 
 	PL.Load(CR, ptrChains, ptrProfiles, ptrComboLetters,
 	  ptrKmerBitsVec, *m_Params, ThreadCount);
