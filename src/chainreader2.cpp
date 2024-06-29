@@ -9,6 +9,7 @@ void ChainReader2::Close()
 
 void ChainReader2::Open(const string &FileName)
 	{
+	asserta(m_State == STATE_Closed);
 	asserta(m_ptrFS == 0);
 	PDBFileScanner *FS = new PDBFileScanner;
 	FS->Open(FileName);
@@ -17,11 +18,19 @@ void ChainReader2::Open(const string &FileName)
 
 void ChainReader2::Open(PDBFileScanner &FS)
 	{
+	asserta(m_State == STATE_Closed);
 	m_ptrFS = &FS;
 	m_Trace = opt_trace_chainreader2;
 	if (m_Trace) Log("ChainReader2::Open()\n");
 	m_State = STATE_PendingFile;
 	m_ChainCount = 0;
+	}
+
+void ChainReader2::Open(vector<PDBChain *> &Chains)
+	{
+	asserta(m_State == STATE_Closed);
+	m_ptrChains = &Chains;
+	m_ChainIdx_Vec = 0;
 	}
 
 // Files first, then directories to reduce queue
@@ -136,6 +145,16 @@ PDBChain *ChainReader2::GetNextLo1()
 			if (Chain != 0)
 				return Chain;
 			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
+			m_State = STATE_PendingFile;
+			continue;
+			}
+
+		case STATE_ReadingVec:
+			{
+			PDBChain *Chain = GetNext_Vec();
+			if (Chain != 0)
+				return Chain;
+			if (m_Trace) Log("GetNext_Vec()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
 			}
@@ -280,6 +299,18 @@ PDBChain *ChainReader2::GetNext_PDB()
 	asserta(m_ChainIdx_PDB < N);
 	PDBChain *Chain = m_Chains_PDB[m_ChainIdx_PDB++];
 	if (m_Trace) Log("ChainReader2::GetNext_PDB() %u/%u Label=%s\n", m_ChainIdx_PDB, N, Chain->m_Label.c_str());
+	return Chain;
+	}
+
+PDBChain *ChainReader2::GetNext_Vec()
+	{
+	asserta(m_ptrChains != 0);
+	const uint N = SIZE(*m_ptrChains);
+	if (m_ChainIdx_Vec == N)
+		return 0;
+	asserta(m_ChainIdx_CIF < N);
+	PDBChain *Chain = (*m_ptrChains)[m_ChainIdx_Vec++];
+	if (m_Trace) Log("ChainReader2::GetNext_Vec() %u/%u Label=%s\n", m_ChainIdx_Vec, N, Chain->m_Label.c_str());
 	return Chain;
 	}
 

@@ -296,6 +296,7 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="explore1i.cpp" />
+    <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="pdbchaincal.cpp" />
     <ClCompile Include="pdbfilescanner.cpp" />
@@ -429,6 +430,7 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="profileloader.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqinfo.h" />

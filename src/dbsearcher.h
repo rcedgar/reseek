@@ -27,10 +27,10 @@ public:
 	bool m_QuerySelf = false;
 
 // Per-chain vectors [ChainIdx]
-	vector<vector<vector<byte> > > m_Profiles;
-	vector<vector<byte> > m_ComboLettersVec;
-	vector<vector<uint> > m_KmersVec;
-	vector<vector<uint> > m_KmerBitsVec;
+	vector<vector<vector<byte> > *> m_Profiles;
+	vector<vector<byte> *> m_ComboLettersVec;
+	vector<vector<uint> *> m_KmersVec;
+	vector<vector<uint> *> m_KmerBitsVec;
 
 	mutex m_Lock;
 	uint m_PairIndex = UINT_MAX;

@@ -14,13 +14,13 @@ void DBSearcher::USort(uint QueryChainIndex, vector<uint> &DBChainIndexes,
 	asserta(QueryChainIndex < m_QueryChainCount);
 
 	const uint MinU = uint(round(m_Params->m_MinU));
-	const vector<uint> &QueryKmerBits = m_KmerBitsVec[QueryChainIndex];
+	const vector<uint> &QueryKmerBits = *m_KmerBitsVec[QueryChainIndex];
 	vector<uint> Us;
 	uint DBSize = GetDBSize();
 	for (uint Idx = 0; Idx < DBSize; ++Idx)
 		{
 		uint DBChainIndex = GetDBChainIndex(Idx);
-		const vector<uint> &DBKmerBits = m_KmerBitsVec[DBChainIndex];
+		const vector<uint> &DBKmerBits = *m_KmerBitsVec[DBChainIndex];
 		uint U = GetUBits(QueryKmerBits, DBKmerBits);
 		if (U < MinU)
 			continue;
@@ -76,8 +76,8 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 		uint AcceptCount = 0;
 		uint RejectCount = 0;
 		const PDBChain &ChainQ = *m_Chains[ChainIndexQ];
-		const vector<byte> &ComboLettersQ = m_ComboLettersVec[ChainIndexQ];
-		const vector<vector<byte> > &ProfileQ = m_Profiles[ChainIndexQ];
+		const vector<byte> &ComboLettersQ = *m_ComboLettersVec[ChainIndexQ];
+		const vector<vector<byte> > &ProfileQ = *m_Profiles[ChainIndexQ];
 		for (uint i = 0; i < N; ++i)
 			{
 			if (AcceptCount >= MAXACCEPTS)
@@ -88,8 +88,8 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 			if (ChainIndexQ == ChainIndexR)
 				continue;
 			const PDBChain &ChainR = *m_Chains[ChainIndexR];
-			const vector<byte> &ComboLettersR = m_ComboLettersVec[ChainIndexR];
-			const vector<vector<byte> > &ProfileR = m_Profiles[ChainIndexR];
+			const vector<byte> &ComboLettersR = *m_ComboLettersVec[ChainIndexR];
+			const vector<vector<byte> > &ProfileR = *m_Profiles[ChainIndexR];
 			DA.Align_ComboFilter(ChainQ, ChainR, 
 			  ComboLettersQ, ComboLettersR, ProfileQ, ProfileR);
 			if (DA.m_Path.empty())

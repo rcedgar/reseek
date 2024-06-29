@@ -85,7 +85,7 @@ const vector<vector<byte> > &SCOP40Bench::GetProfileByDomIdx(uint DomIdx) const
 	asserta(DomIdx < SIZE(m_DomIdxToChainIdx));
 	uint ChainIdx = m_DomIdxToChainIdx[DomIdx];
 	asserta(ChainIdx < SIZE(m_Profiles));
-	return m_Profiles[ChainIdx];
+	return *m_Profiles[ChainIdx];
 	}
 
 const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
@@ -184,7 +184,7 @@ void SCOP40Bench::BuildDomSFIndexesFromQueryChainLabels()
 	m_DomIdxToChainIdx.resize(m_ChainCount, UINT_MAX);
 	for (uint ChainIndex = 0; ChainIndex < m_QueryChainCount; ++ChainIndex)
 		{
-		ProgressStep(ChainIndex, m_ChainCount, "Index chain labels");
+		ProgressStep(ChainIndex, m_ChainCount, "Index SCOP40 domains");
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 
 		string Dom;

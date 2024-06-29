@@ -20,10 +20,14 @@ void DBSearcher::SetKmersVec()
 		ProgressStep(ChainIndex, m_ChainCount, "Set k-mers");
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		D.Init(Chain);
-		vector<uint> &Kmers = m_KmersVec[ChainIndex];
-		vector<uint> &Bits = m_KmerBitsVec[ChainIndex];
-		D.GetComboKmers(Kmers);
-		D.GetComboKmerBits(Kmers, Bits);
+		//vector<uint> &Kmers = *m_KmersVec[ChainIndex];
+		//vector<uint> &Bits = *m_KmerBitsVec[ChainIndex];
+		vector<uint> *Kmers = new vector<uint>;
+		vector<uint> *Bits = new vector<uint>;
+		D.GetComboKmers(*Kmers);
+		D.GetComboKmerBits(*Kmers, *Bits);
+		m_KmersVec[ChainIndex] = Kmers;
+		m_KmerBitsVec[ChainIndex] = Bits;
 		}
 	EndTimer(SetKmersVec);
 	}
@@ -82,8 +86,13 @@ void DBSearcher::SetProfiles()
 		ProgressStep(ChainIndex, m_ChainCount, "Set profiles");
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		D.Init(Chain);
-		D.GetProfile(m_Profiles[ChainIndex]);
-		D.GetComboLetters(m_ComboLettersVec[ChainIndex]);
+		vector<vector<byte> > *ptrProfile = new vector<vector<byte> >;
+		vector<byte> *ptrComboLetters = new vector<byte>;
+		//D.GetProfile(m_Profiles[ChainIndex]);
+		D.GetProfile(*ptrProfile);
+		m_Profiles[ChainIndex] = ptrProfile;
+		D.GetComboLetters(*ptrComboLetters);
+		m_ComboLettersVec[ChainIndex] = ptrComboLetters;
 		}
 	EndTimer(SetProfiles);
 	}
@@ -181,9 +190,9 @@ void DBSearcher::Thread(uint ThreadIndex)
 			{
 			++m_QPCacheMisses;
 			const PDBChain &Chain1 = *m_Chains[ChainIndex1];
-			const vector<vector<byte> > &Profile1 = m_Profiles[ChainIndex1];
-			const vector<byte> &ComboLetters1 = m_ComboLettersVec[ChainIndex1];
-			const vector<uint> &KmerBits1 = m_KmerBitsVec[ChainIndex1];
+			const vector<vector<byte> > &Profile1 = *m_Profiles[ChainIndex1];
+			const vector<byte> &ComboLetters1 = *m_ComboLettersVec[ChainIndex1];
+			const vector<uint> &KmerBits1 = *m_KmerBitsVec[ChainIndex1];
 			float Gumbel_mu = FLT_MAX;
 			float Gumbel_beta = FLT_MAX;
 			if (!m_Gumbel_mus.empty())
@@ -196,9 +205,9 @@ void DBSearcher::Thread(uint ThreadIndex)
 			}
 
 		const PDBChain &Chain2 = *m_Chains[ChainIndex2];
-		const vector<vector<byte> > &Profile2 = m_Profiles[ChainIndex2];
-		const vector<byte> &ComboLetters2 = m_ComboLettersVec[ChainIndex2];
-		const vector<uint> &KmerBits2 = m_KmerBitsVec[ChainIndex2];
+		const vector<vector<byte> > &Profile2 = *m_Profiles[ChainIndex2];
+		const vector<byte> &ComboLetters2 = *m_ComboLettersVec[ChainIndex2];
+		const vector<uint> &KmerBits2 = *m_KmerBitsVec[ChainIndex2];
 		float Gumbel_mu = FLT_MAX;
 		float Gumbel_beta = FLT_MAX;
 		if (!m_Gumbel_mus.empty())

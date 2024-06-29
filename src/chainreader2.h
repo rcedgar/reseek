@@ -17,6 +17,7 @@ public:
 		STATE_ReadingBCAFile,
 		STATE_ReadingPDBFile,
 		STATE_ReadingCIFFile,
+		STATE_ReadingVec,
 		};
 
 public:
@@ -28,8 +29,10 @@ public:
 	vector<string> m_Lines;
 	vector<PDBChain *> m_Chains_PDB;
 	vector<PDBChain *> m_Chains_CIF;
+	vector<PDBChain *> *m_ptrChains = 0;
 	uint m_ChainIdx_PDB = 0;
 	uint m_ChainIdx_CIF = 0;
+	uint m_ChainIdx_Vec = 0;
 	string m_Label_PDB;
 	BCAData m_BCA;
 	uint64 m_ChainIdx_BCA = 0;
@@ -43,6 +46,7 @@ public:
 public:
 	void Open(const string &FileName);
 	void Open(PDBFileScanner &FS);
+	void Open(vector<PDBChain *> &Chains);
 	PDBChain *GetNext();
 
 private:
@@ -61,6 +65,9 @@ private:
 
 	PDBChain *GetFirst_CIF(const string &FN);
 	PDBChain *GetNext_CIF();
+
+	PDBChain *GetNext_Vec();
+
 	PDBChain *ChainFromLines_CAL(const vector<string> &Lines) const;
 	void ChainsFromLines_PDB(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
