@@ -18,12 +18,12 @@ void cmd_search()
 	Params.SetFromCmdLine(10000);
 	DBS.m_Params = &Params;
 
-	bool Self = (DBFN == "");
+	bool Self = (DBFN == "" || QFN == DBFN);
 
 	if (Self)
-		DBS.LoadDB(DBFN);
-	else
 		DBS.LoadDB(QFN);
+	else
+		DBS.LoadDB(DBFN);
 
 	Params.m_DBSize = (float) DBS.GetDBSize();
 	DBS.Setup();

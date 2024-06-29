@@ -77,6 +77,7 @@ HDRS = \
   pathinfo.h \
   pdbchain.h \
   pdbfilescanner.h \
+  profileloader.h \
   quarts.h \
   scalarparams.h \
   scop40bench.h \
@@ -124,7 +125,7 @@ OBJS = \
   $(OBJDIR)/daliscore_msa.o \
   $(OBJDIR)/daliscore_tsv.o \
   $(OBJDIR)/explore1.o \
-  $(OBJDIR)/explore1i.o \
+  $(OBJDIR)/profileloader.o \
   $(OBJDIR)/md5.o \
   $(OBJDIR)/pdbchaincal.o \
   $(OBJDIR)/pdbfilescanner.o \
@@ -136,6 +137,8 @@ OBJS = \
   $(OBJDIR)/parasail_combo.o \
   $(OBJDIR)/pdb2mega.o \
   $(OBJDIR)/readhits.o \
+  $(OBJDIR)/runquery.o \
+  $(OBJDIR)/runself.o \
   $(OBJDIR)/scop40bit.o \
   $(OBJDIR)/search.o \
   $(OBJDIR)/combomx.o \
