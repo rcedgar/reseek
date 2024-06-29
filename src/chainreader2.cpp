@@ -103,9 +103,15 @@ PDBChain *ChainReader2::GetNextLo1()
 				return 0;
 				}
 			PDBChain *Chain = GetFirst(FN);
-			if (m_Trace) Log("PendingFile()=0, Close() and stop.\n");
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			continue;
 			}
 
@@ -113,7 +119,14 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_CAL();
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			if (m_Trace) Log("GetNext_CAL()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -123,7 +136,14 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_BCA();
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			if (m_Trace) Log("GetNext_BCA()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -133,7 +153,14 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_PDB();
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			if (m_Trace) Log("GetNext_PDB()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -143,7 +170,14 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_CIF();
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -153,7 +187,14 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_Vec();
 			if (Chain != 0)
+				{
+				if (Chain->GetSeqLength() == 0)
+					{
+					delete Chain;
+					continue;
+					}
 				return Chain;
+				}
 			if (m_Trace) Log("GetNext_Vec()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;

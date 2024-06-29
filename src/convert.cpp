@@ -37,7 +37,7 @@ void cmd_convert()
 	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
-	uint MinChainLength = 0;
+	uint MinChainLength = 50;
 	if (optset_minchainlength)
 		MinChainLength = opt_minchainlength;
 
@@ -59,37 +59,55 @@ void cmd_convert()
 	s_fFasta = CreateStdioFile(opt_fasta);
 	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
 
-	uint Count = 0;
-	uint DupeLabelCount = 0;
+	uint InputCount = 0;
+	uint Converted = 0;
+	uint TooShort = 0;
 	time_t LastTime = 0;
 	for (;;)
 		{
 		PDBChain *ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
-		PDBChain &Chain = *ptrChain;
-		if (Chain.GetSeqLength() == 0)
+		++InputCount;
+		time_t Now = time(0);
+		if (Now - LastTime > 0)
+			{
+			Progress("%s chains, %.1f%% too short (min %u)\r",
+			  IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength);
+			LastTime = Now;
+			}
+
+		const uint L = ptrChain->GetSeqLength();
+		if (L == 0)
 			{
 			delete ptrChain;
 			continue;
 			}
-		time_t Now = time(0);
-		++Count;
-		if (Now - LastTime > 0)
+		if (L < MinChainLength)
 			{
-			Progress("%u chains converted\r",
-			  Count, DupeLabelCount);
-			LastTime = Now;
+			++TooShort;
+			delete ptrChain;
+			continue;
 			}
-		Chain.ToCal(s_fCal);
-		Chain.ToFasta(s_fFasta);
-		Chain.ToFeatureFasta(s_fFeatureFasta, D, Feat);
+
+		ptrChain->ToCal(s_fCal);
+		ptrChain->ToFasta(s_fFasta);
+		ptrChain->ToFeatureFasta(s_fFeatureFasta, D, Feat);
 		if (optset_bca)
-			BCA.WriteChain(Chain);
+			BCA.WriteChain(*ptrChain);
+		++Converted;
 		delete ptrChain;
 		}
+	ProgressLog("%s chains, %.1f%% too short (min %u)\n",
+		IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength);
 
-	ProgressLog("%u chains converted\n", Count);
+	ProgressLog("\n");
+	ProgressLog("%10u Input chains (%s)\n",
+	  InputCount, IntToStr(InputCount));
+	ProgressLog("%10u Too short (%s, %.1f%%) min length %u\n",
+	  TooShort, IntToStr(TooShort), GetPct(TooShort, InputCount), MinChainLength);
+	ProgressLog("%10u Converted (%s, %.1f%%)\n",
+	  Converted, IntToStr(Converted), GetPct(Converted, InputCount));
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);

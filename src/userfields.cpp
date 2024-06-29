@@ -51,6 +51,8 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 	case UF_query:	fputs(GetLabel(Up), f); break;
 	case UF_target: fputs(GetLabel(!Up), f); break;
 	case UF_evalue:	fprintf(f, "%s", EvalueToStr(GetEvalue(Up), TmpStr)); break;
+	case UF_ql:		fprintf(f, "%u", GetQL(Up)); break;
+	case UF_tl:		fprintf(f, "%u", GetTL(Up)); break;
 	case UF_qlo:	fprintf(f, "%u", GetLo(Up) + 1); break;
 	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;

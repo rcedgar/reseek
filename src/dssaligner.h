@@ -147,6 +147,8 @@ public:
 	const PDBChain &GetChain(bool Top) const { return Top ? *m_ChainA : *m_ChainB; }
 	const string &GetSeq(bool Top) const { return Top ? m_ChainA->m_Seq : m_ChainB->m_Seq; }
 	const char *GetLabel(bool Top) const { return Top ? m_ChainA->m_Label.c_str() : m_ChainB->m_Label.c_str(); }
+	uint GetQL(bool Top) const { return Top ? m_ChainA->GetSeqLength() : m_ChainB->GetSeqLength(); }
+	uint GetTL(bool Top) const { return Top ? m_ChainB->GetSeqLength() : m_ChainA->GetSeqLength(); }
 	uint GetLo(bool Top) const { return Top ? m_LoA : m_LoB; }
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }

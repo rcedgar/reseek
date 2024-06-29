@@ -6,19 +6,15 @@ double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
   uint LoA, uint LoB, const string &Path,
   vector<double> &t, vector<vector<double> > &R);
 
-static char GetDistSymbol(double d, bool Id)
+static char GetAnnotChar(char a, char b)
 	{
-	if (d <= 5 && Id)
+	float GetBlosum62Score(char a, char b);
+	if (a == b)
 		return '|';
-	if (d <= 1)
-		{
-		return '*';
-		}
-	if (d <= 2.5)
-		return '+';
-	if (d <= 5)
+	float Score = GetBlosum62Score(a, b);
+	if (Score >= 2.0f)
 		return ':';
-	if (d <= 10)
+	if (Score > 0)
 		return '.';
 	return ' ';
 	}
@@ -33,24 +29,14 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 
-	vector<double> t;
-	vector<vector<double> > R;
-	double RMS = Kabsch(A, B, LoA, LoB, Path, t, R);
-	PDBChain RB;
-	if (RMS > 0)
-		{
-		t[0] = -t[0];
-		t[1] = -t[1];
-		t[2] = -t[2];
-		B.GetXFormChain_tR(t, R, RB);
-		}
-
 	string RowA;
 	string RowB;
-	string RowDist;
+	string AnnotRow;
 	const uint ColCount = SIZE(Path);
 	uint PosA = LoA;
 	uint PosB = LoB;
+	uint Ids = 0;
+	uint Gaps = 0;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
 		char c = Path[Col];
@@ -58,24 +44,16 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 			{
 		case 'M':
 			{
-			double d = 0;
-			if (RMS > 0)
-				{
-				vector<double> PtA;
-				vector<double> PtRB;
-				A.GetPt(PosA, PtA);
-				RB.GetPt(PosB, PtRB);
-				d = GetDist(PtA, PtRB);
-				}
 			asserta(PosA < LA);
 			asserta(PosB < LB);
 			char a = SeqA[PosA];
 			char b = SeqB[PosB];
 			RowA += a;
 			RowB += b;
-			RowDist += GetDistSymbol(d, a==b);
+			AnnotRow += GetAnnotChar(a, b);
 			++PosA;
 			++PosB;
+			if (a == b) ++Ids;
 			break;
 			}
 
@@ -83,16 +61,18 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 			asserta(PosA < LA);
 			RowA += SeqA[PosA];
 			RowB += '-';
-			RowDist += ' ';
+			AnnotRow += ' ';
 			++PosA;
+			++Gaps;
 			break;
 
 		case 'I':
 			asserta(PosB < LB);
 			RowA += '-';
 			RowB += SeqB[PosB];
-			RowDist += ' ';
+			AnnotRow += ' ';
 			++PosB;
+			++Gaps;
 			break;
 
 		default:
@@ -111,12 +91,9 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 		for (uint Col = ColLo; Col < ColHi; ++Col)
 			fprintf(f, "%c", RowA[Col]);
 		fprintf(f, "  %s\n", A.m_Label.c_str());
-		if (RMS > 0)
-			{
-			for (uint Col = ColLo; Col < ColHi; ++Col)
-				fprintf(f, "%c", RowDist[Col]);
-			fprintf(f, "\n");
-			}
+		for (uint Col = ColLo; Col < ColHi; ++Col)
+			fprintf(f, "%c", AnnotRow[Col]);
+		fprintf(f, "\n");
 		for (uint Col = ColLo; Col < ColHi; ++Col)
 			fprintf(f, "%c", RowB[Col]);
 		fprintf(f, "  %s\n\n", B.m_Label.c_str());
@@ -125,6 +102,15 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 		asserta(ColHi < ColCount);
 		ColLo = ColHi + 1;
 		}
-	if (Evalue >= 0)
-		fprintf(f, "Evalue %.3g\n", Evalue);
+	double PctId = GetPct(Ids, ColCount);
+	double PctGaps = GetPct(Gaps, ColCount);
+
+	fprintf(f, "%s %u-%u length %u\n",
+	  A.m_Label.c_str(), LoA + 1, PosA, LA);
+
+	fprintf(f, "%s %u-%u length %u\n",
+	  B.m_Label.c_str(), LoB + 1, PosB, LB);
+
+	fprintf(f, "Cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
+	  ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
 	}
