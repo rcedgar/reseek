@@ -68,7 +68,6 @@ void cmd_convert()
 		PDBChain *ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
-		++InputCount;
 		time_t Now = time(0);
 		if (Now - LastTime > 0)
 			{
@@ -83,6 +82,8 @@ void cmd_convert()
 			delete ptrChain;
 			continue;
 			}
+
+		++InputCount;
 		if (L < MinChainLength)
 			{
 			++TooShort;
@@ -104,8 +105,9 @@ void cmd_convert()
 	ProgressLog("\n");
 	ProgressLog("%10u Input chains (%s)\n",
 	  InputCount, IntToStr(InputCount));
-	ProgressLog("%10u Too short (%s, %.1f%%) min length %u\n",
-	  TooShort, IntToStr(TooShort), GetPct(TooShort, InputCount), MinChainLength);
+	if (TooShort > 0)
+		ProgressLog("%10u Too short (%s, %.1f%%) min length %u\n",
+		  TooShort, IntToStr(TooShort), GetPct(TooShort, InputCount), MinChainLength);
 	ProgressLog("%10u Converted (%s, %.1f%%)\n",
 	  Converted, IntToStr(Converted), GetPct(Converted, InputCount));
 

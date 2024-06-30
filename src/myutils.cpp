@@ -773,7 +773,7 @@ void Die_(const char *Format, ...)
 	}
 
 void Warning_(const char *Format, ...)
-	{
+	{	
 	string Msg;
 
 	va_list ArgList;

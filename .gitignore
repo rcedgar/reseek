@@ -17,6 +17,8 @@ enc_temp_folder/
 .DSStore
 .swp
 Makefiled
+tmp/
+test_output/
 
 # User-specific files
 *.rsuser

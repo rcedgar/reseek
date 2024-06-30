@@ -151,8 +151,10 @@ DSSAligner::DSSAligner()
 				m_UFs.push_back(UF_target);
 				m_UFs.push_back(UF_qlo);
 				m_UFs.push_back(UF_qhi);
+				m_UFs.push_back(UF_ql);
 				m_UFs.push_back(UF_tlo);
 				m_UFs.push_back(UF_thi);
+				m_UFs.push_back(UF_tl);
 				m_UFs.push_back(UF_pctid);
 				m_UFs.push_back(UF_evalue);
 				}
@@ -827,8 +829,8 @@ void DSSAligner::CalcEvalue()
 	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	uint M, D, I;
 	GetPathCounts(m_Path, M, D, I);
-	m_HiA = M + D;
-	m_HiB = M + I;
+	m_HiA = m_LoA + M + D - 1;
+	m_HiB = m_LoB + M + I - 1;
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -1107,7 +1109,7 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 			{
 		case 'M':
 			{
-			asserta(PosA < LA);
+			asserta(PosA <= m_HiA);
 			Row += SeqA[PosA++];
 			++PosB;
 			break;
@@ -1115,7 +1117,7 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 
 		case 'D':
 			{
-			asserta(PosA < LA);
+			asserta(PosA <= m_HiA);
 			Row += SeqA[PosA++];
 			break;
 			}
@@ -1137,7 +1139,7 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 			++PosB;
 			}
 		while (PosB++ < LB)
-			Row += '~';
+			Row += '.';
 		}
 	}
 
@@ -1165,7 +1167,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 			{
 		case 'M':
 			{
-			asserta(PosB < LB);
+			asserta(PosB <= m_HiB);
 			++PosA;
 			Row += SeqB[PosB++];
 			break;
@@ -1180,7 +1182,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 
 		case 'I':
 			{
-			asserta(PosB < LB);
+			asserta(PosB <= m_HiB);
 			++PosA;
 			Row += SeqB[PosB++];
 			break;
