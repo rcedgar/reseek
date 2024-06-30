@@ -17,6 +17,7 @@ public:
 	mutex m_Lock;
 	uint m_Count = 0;
 	time_t m_LastProgress = 0;
+	uint m_MinChainLength = 0;
 
 public:
 	void Load(

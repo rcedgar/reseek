@@ -19,6 +19,11 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		PDBChain *Chain = m_CR->GetNext();
 		if (Chain == 0)
 			return;
+		if (Chain->GetSeqLength() < m_MinChainLength)
+			{
+			delete Chain;
+			continue;
+			}
 		time_t Now = time(0);
 		m_Lock.lock();
 		++m_Count;
@@ -57,6 +62,10 @@ void ProfileLoader::Load(
   const DSSParams &Params,
   uint ThreadCount)
 	{
+	m_MinChainLength = 50;
+	if (optset_minchainlength)
+		m_MinChainLength = opt_minchainlength;
+
 	if (KmerBitsVec != 0)
 		asserta(ComboLetters != 0);
 

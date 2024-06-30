@@ -87,7 +87,7 @@ PDBChain *ChainReader2::GetNextLo1()
 	{
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
-		if (m_Trace) Log("GetNextLo2() state=%d\n", m_State);
+		if (m_Trace) Log("GetNextLo1() state=%d\n", m_State);
 		switch (m_State)
 			{
 		case STATE_Closed:
@@ -104,14 +104,7 @@ PDBChain *ChainReader2::GetNextLo1()
 				}
 			PDBChain *Chain = GetFirst(FN);
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			continue;
 			}
 
@@ -119,14 +112,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_CAL();
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			if (m_Trace) Log("GetNext_CAL()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -136,14 +122,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_BCA();
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			if (m_Trace) Log("GetNext_BCA()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -153,14 +132,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_PDB();
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			if (m_Trace) Log("GetNext_PDB()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -170,14 +142,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_CIF();
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -187,14 +152,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			{
 			PDBChain *Chain = GetNext_Vec();
 			if (Chain != 0)
-				{
-				if (Chain->GetSeqLength() == 0)
-					{
-					delete Chain;
-					continue;
-					}
 				return Chain;
-				}
 			if (m_Trace) Log("GetNext_Vec()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
@@ -204,7 +162,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			asserta(false);
 			}
 		}
-	Die("Excessive looping in ChainReader2::GetNextLo2()");
+	Die("Excessive looping in ChainReader2::GetNextLo1()");
 	return 0;
 	}
 
@@ -216,7 +174,7 @@ void ChainReader2::GetFallbackLabelFromFN(const string &FN, string &Label)
 	ToLower(Ext);
 
 // Special-case for downloaded PDB files e.g. pdb1iv1.ent
-	if (Ext == "pdb" || Ext == "ent")
+	if (Ext == "pdb" || Ext == "ent" || Ext == "pdb.gz" || Ext == "ent.gz")
 		{
 		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
 			{
@@ -315,9 +273,9 @@ F       40.340  3.621   14.036
 PDBChain *ChainReader2::GetFirst_PDB(const string &FN)
 	{
 	ReadLinesFromFile(FN, m_Lines);
-	string FallbackLabel;
-	GetFallbackLabelFromFN(FN, FallbackLabel);
-	ChainsFromLines_PDB(m_Lines, m_Chains_PDB, FallbackLabel);
+	string Label;
+	GetFallbackLabelFromFN(FN, Label);
+	ChainsFromLines_PDB(m_Lines, m_Chains_PDB, Label);
 	m_ChainIdx_PDB = 0;
 	return GetNext_PDB();
 	}
@@ -367,9 +325,8 @@ PDBChain *ChainReader2::GetNext_CIF()
 	}
 
 void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
-  vector<PDBChain *> &Chains, const string &FallbackLabel) const
+  vector<PDBChain *> &Chains, const string &Label) const
 	{
-	string Label = FallbackLabel;
 	Chains.clear();
 	const uint N = SIZE(Lines);
 	vector<string> ChainLines;
@@ -378,19 +335,6 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Line = Lines[i];
-		if (StartsWith(Line, "HEADER "))
-			{
-			vector<string> Fields;
-			SplitWhite(Line, Fields);
-			uint n = SIZE(Fields);
-			if (n > 1)
-				{
-				Label = Fields[n-1];
-				if (Label == "")
-					Label = FallbackLabel;
-				}
-			}
-
 		if (IsATOMLine_PDB(Line))
 			{
 			if (Line.size() < 57)

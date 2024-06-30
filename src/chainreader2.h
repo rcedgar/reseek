@@ -70,12 +70,11 @@ private:
 
 	PDBChain *ChainFromLines_CAL(const vector<string> &Lines) const;
 	void ChainsFromLines_PDB(const vector<string> &Lines,
-		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
+		vector<PDBChain *> &Chains, const string &Label) const;
 	void ChainsFromLines_CIF(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
 	bool IsATOMLine_PDB(const string &Line) const;
 
 public:
-	static void GetFallbackLabelFromFN(const string &FN,
-	  string &Label);
+	static void GetFallbackLabelFromFN(const string &FN, string &Label);
 	};
