@@ -562,7 +562,7 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s", m_Level.c_str());
 	if (optset_sensitive)
-		ProgressLog(" sensitive [%s]", g_GitVer);
+		ProgressLog(" sensitive");
 	ProgressLog(" [%s]\n", g_GitVer);
 
 	Log("ufil=%.1f", UFilterPct);
