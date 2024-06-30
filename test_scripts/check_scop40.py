@@ -9,7 +9,7 @@ for line in open("../test_data/scop40_sf.tsv"):
     sf = flds[1]
     dom2sf[dom] = sf
 
-def readhits(fn):
+def readhits(fn, TP, TP1, FP1, FP):
     global errors, tp, tp1, fp, fp1
     tp = 0
     tp1 = 0
@@ -45,9 +45,22 @@ def readhits(fn):
                 tp1 += 1
             else:
                 fp1 += 1
-    print("ok TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
-    return tp, tp1, fp
+    if tp < TP*0.95:
+        print("ERROR TP too low: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        sys.exit(1)
+    if tp1 < TP1*0.98:
+        print("ERROR TP1 too low: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        sys.exit(1)
+    if fp1 < FP1*1.02:
+        print("ERROR FP1 too high: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        sys.exit(1)
 
-readhits("../test_output/scop40.tsv")
-readhits("../test_output/scop40-fast.tsv")
-readhits("../test_output/scop40-evalue1.tsv")
+    print("ok TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+
+# ok TP=244536 TP1=136178 FP1=21240 FP=3550160 ../test_output/scop40.tsv
+# ok TP=114662 TP1=114662 FP1=9259 FP=9259 ../test_output/scop40-fast.tsv
+# ok TP=133114 TP1=133114 FP1=19087 FP=19087 ../test_output/scop40-evalue1.tsv
+
+readhits("../test_output/scop40.tsv", TP=244536 TP1=136178 FP1=21240 FP=3550160)
+readhits("../test_output/scop40-fast.tsv", TP=114662 TP1=114662 FP1=9259 FP=9259)
+readhits("../test_output/scop40-evalue1.tsv", TP=133114 TP1=133114 FP1=19087 FP=19087)
