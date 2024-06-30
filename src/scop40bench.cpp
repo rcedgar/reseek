@@ -561,11 +561,9 @@ void SCOP40Bench::WriteSummary()
 	if (Secs != UINT_MAX)
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s", m_Level.c_str());
-	if (optset_fast)
-		ProgressLog(" fast [%s]", g_GitVer);
-	else if (optset_sensitive)
+	if (optset_sensitive)
 		ProgressLog(" sensitive [%s]", g_GitVer);
-	ProgressLog("\n");
+	ProgressLog(" [%s]\n", g_GitVer);
 
 	Log("ufil=%.1f", UFilterPct);
 	Log(" cfil=%.1f", ComboFilterPct);

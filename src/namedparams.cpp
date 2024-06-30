@@ -24,7 +24,8 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_MinComboFwdScore = 7.0f;
-		m_Omega = 16;
+		//m_Omega = 16;
+		m_Omega = 32;
 		m_Lambda = 32;
 		m_MinU = 0;
 		m_USort = false;
@@ -32,7 +33,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_MaxRejects = 32;
 		m_PatternStr = "10000000001";
 
-		if (opt_fast)
+		if (0) // opt_fast
 			{
 //SEPQ0.1=0.1444 SEPQ1=0.2553 SEPQ10=0.3504 S1FP=0.3197 N1FP=145363 secs=36 level=sf fast [d1307e2] uncommented
 //SEPQ0.1=0.1557 SEPQ1=0.2522 SEPQ10=0.2522 S1FP=0.2460 N1FP=111877 secs=35 level=sf fast [d1307e2] commented

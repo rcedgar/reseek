@@ -37,7 +37,7 @@ const char *usage_txt[] =
 "\n"
 "Search and alignment options\n"
 "  -fast          # Roughly 2x faster search, sensitivity may be lower\n"
-"  -evalue E      # Max E-value (default 1 if -fast, otherwise 10)\n"
+"  -evalue E      # Max E-value (default 10)\n"
 "  -omega X       # Omega accelerator (floating-point)\n"
 "  -minu U        # K-mer accelerator (integer)\n"
 "  -gapopen X     # Gap-open penalty (floating-point >= 0, default 0.7)\n"
