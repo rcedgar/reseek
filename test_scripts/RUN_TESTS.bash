@@ -8,14 +8,16 @@ rm -rf ../test_output
 mkdir ../test_output
 mkdir -p ../test_results
 
+git status \
+  > ../test_output/git_status.txt
+
 date=`date "+%Y-%m-%d/%H:%M:%S"`
-ver=`reseek --version`
-echo $date $ver INCOMPLETE/FAILED \
-  > ../test_results/test_result.txt
+ver=`reseek --version | tr -d ' \n\r'`
+echo $date $ver STARTED >> $log
 
 log=../test_output/TEST_LOG.txt
 
-echo STARTED `date` | tee $log
+echo STARTED `date` >> $log
 
 ./convert.bash
 ./align.bash
@@ -23,14 +25,13 @@ echo STARTED `date` | tee $log
 ./search.bash
 ./scop40.bash
 
-./check_logs.py | tee -a $log
-./check_convert.py | tee -a $log
-./check_columns.py | tee -a $log
-./check_scop40.py | tee -a $log
+./check_logs.py >> $log
+./check_convert.py >> $log
+./check_columns.py >> $log
+./check_scop40.py >> $log
 
 ./update_success_list.py $ver $date
 
-echo COMPLETED `date` | tee -a $log
+echo COMPLETED $date >> $log
 
-echo $date "$ver" SUCCESS \
-  > ../test_results/test_result.txt
+echo $date $ver SUCCESS >> $log
