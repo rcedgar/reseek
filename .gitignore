@@ -18,6 +18,7 @@ enc_temp_folder/
 .swp
 Makefiled
 tmp/
+tmp
 test_output/
 
 # User-specific files
