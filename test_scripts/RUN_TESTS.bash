@@ -8,14 +8,12 @@ rm -rf ../test_output
 mkdir ../test_output
 mkdir -p ../test_results
 
-git status \
-  > ../test_output/git_status.txt
+log=../test_output/TEST_LOG.txt
 
 date=`date "+%Y-%m-%d/%H:%M:%S"`
 ver=`reseek --version | tr -d ' \n\r'`
 echo $date $ver STARTED >> $log
-
-log=../test_output/TEST_LOG.txt
+git status >> $log
 
 echo STARTED `date` >> $log
 

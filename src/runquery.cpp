@@ -28,7 +28,6 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		PDBChain *Chain1 = ptrQueryCR->GetNext();
 		if (Chain1 == 0)
 			return;
-
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
 		if (m_Params->m_Omega > 0)
@@ -93,7 +92,7 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 	m_NextChainIndex2 = UINT_MAX;
 	m_NextQueryIdx = UINT_MAX;
 	m_NextDBIdx = UINT_MAX;
-	m_ProcessedQueryCount = UINT_MAX;
+	m_ProcessedQueryCount = 0;
 
 	uint ChainCount = GetDBChainCount();
 	m_PairIndex = 0;
