@@ -7,10 +7,10 @@ BINDIR := ../bin
 OBJDIR := o
 BINPATH := $(BINDIR)/reseek
 
-CC = ccache gcc
+CC = gcc
 CFLAGS := $(CFLAGS) -O3 -ffast-math -march=native
 
-CXX = ccache g++
+CXX = g++
 CXXFLAGS := $(CFLAGS) -DNDEBUG -pthread -O3 -ffast-math -march=native --std=c++17
 
 UNAME_S := $(shell uname -s)

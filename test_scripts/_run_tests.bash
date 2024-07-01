@@ -2,7 +2,7 @@
 
 cd ../src
 chmod +x ./build_linux.py
-./build_linux.py
+python3 ./build_linux.py
 cd ../test_scripts
 
 rm -rf ../test_output
@@ -24,10 +24,10 @@ echo STARTED `date` >> $log
 ./search.bash
 ./scop40.bash
 
-./check_logs.py >> $log
-./check_convert.py >> $log
-./check_columns.py >> $log
-./check_scop40.py >> $log
+python3 ./check_logs.py >> $log
+python3 ./check_convert.py >> $log
+python3 ./check_columns.py >> $log
+python3 ./check_scop40.py >> $log
 
 ./update_success_list.py $ver $date
 
