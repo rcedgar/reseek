@@ -108,7 +108,23 @@ uint DBSearcher::GetDBSize() const
 
 void DBSearcher::RunStats() const
 	{
-	ProgressLog("Search time %u secs\n", m_Secs);
+	uint Secs = m_Secs;
+	if (Secs == 0)
+		Secs = 1;
+	uint ThreadCount = GetRequestedThreadCount();
+	double QueriesPerSec = m_ProcessedQueryCount/Secs;
+	double PairsPerSec = m_ProcessedPairCount/Secs;
+	double PairsPerSecPerThread = PairsPerSec/ThreadCount;
+	ProgressLog("\n");
+	ProgressLog("%10.10s  Search time\n", SecsToHHMMSS(Secs));
+	ProgressLog("%10.10s  Query chains\n", IntToStr(m_ProcessedQueryCount));
+	ProgressLog("%10.10s  DB chains\n", IntToStr(GetDBChainCount()));
+	ProgressLog("%10.1f  Queries/sec\n", QueriesPerSec);
+	ProgressLog("%10.10s  Query-target comparisons/sec\n", FloatToStr(PairsPerSec));
+	ProgressLog("%10.10s  Query-target comparisons/sec/thread (%u threads)\n", FloatToStr(PairsPerSecPerThread), ThreadCount);
+	ProgressLog("%10.10s  Alignments\n", IntToStr(DSSAligner::m_AlnCount));
+	ProgressLog("%10.10s  Hits (max E-value %.3g)\n", IntToStr(m_HitCount), m_MaxEvalue);
+
 	DSSAligner::Stats();
 	uint Hits = m_QPCacheHits;
 	uint Misses = m_QPCacheMisses;
@@ -130,6 +146,8 @@ void DBSearcher::Setup()
 	asserta(m_Mems.empty());
 
 	m_ProcessedQueryCount = 0;
+	m_ProcessedPairCount = 0;
+	m_HitCount = 0;
 
 	m_D.SetParams(*m_Params);
 	m_ThreadCount = ThreadCount;

@@ -33,9 +33,12 @@ public:
 	uint m_NextChainIndex2 = UINT_MAX;
 	uint m_NextQueryIdx = UINT_MAX;
 	uint m_NextDBIdx = UINT_MAX;
-	uint m_ProcessedQueryCount = UINT_MAX;
-	atomic<uint> m_QPCacheHits;
-	atomic<uint> m_QPCacheMisses;
+
+	atomic<uint> m_ProcessedQueryCount = 0;
+	atomic<uint> m_ProcessedPairCount = 0;
+	atomic<uint> m_HitCount = 0;
+	atomic<uint> m_QPCacheHits = 0;
+	atomic<uint> m_QPCacheMisses = 0;
 
 	uint m_FilterRejects = 0;
 	uint m_XAlignCount = 0;
@@ -104,6 +107,7 @@ public:
 		if (DA.GetEvalue(Up) > m_MaxEvalue)
 			return;
 		m_Lock.lock();
+		++m_HitCount;
 		DA.ToTsv(m_fTsv, Up);
 		DA.ToAln(m_fAln, Up);
 		DA.ToFasta2(m_fFasta2, opt_global, Up);

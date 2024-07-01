@@ -124,7 +124,7 @@ void DBSearcher::RunUSort(ChainReader2 &QCR)
 	m_NextChainIndex2 = UINT_MAX;
 	m_NextQueryIdx = UINT_MAX;
 	m_NextDBIdx = UINT_MAX;
-	m_ProcessedQueryCount = UINT_MAX;
+	m_ProcessedQueryCount = 0;
 
 	m_NextQueryIdx = 0;
 

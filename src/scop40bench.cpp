@@ -578,6 +578,7 @@ void SCOP40Bench::WriteSummary()
 
 void SCOP40Bench::WriteOutput()
 	{
+	ProgressLog("\n");
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;

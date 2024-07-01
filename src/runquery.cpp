@@ -53,6 +53,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			DA.AlignQueryTarget();
 			if (!DA.m_Path.empty())
 				BaseOnAln(DA, true);
+			++m_ProcessedPairCount;
 			}
 		delete Chain1;
 		m_Lock.lock();

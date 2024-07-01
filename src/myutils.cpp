@@ -1837,7 +1837,7 @@ void MyCmdLine(int argc, char **argv)
 
 			++ArgIndex;
 			if (ArgIndex >= ArgCount)
-				CmdLineErr("Missing value for option --%s", LongName.c_str());
+				CmdLineErr("Missing value or invalid option -%s", LongName.c_str());
 
 			const char *Value = g_Argv[ArgIndex].c_str();
 

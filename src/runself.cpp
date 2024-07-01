@@ -66,10 +66,12 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	++m_NextChainIndex2;
 	if (m_NextChainIndex2 == ChainCount)
 		{
+		++m_ProcessedQueryCount;
 		++m_NextChainIndex1;
 		m_NextChainIndex2 = m_NextChainIndex1 + 1;
 		}
 	++m_PairIndex;
+	++m_ProcessedPairCount;
 	m_Lock.unlock();
 	return true;
 	}
@@ -95,7 +97,7 @@ void DBSearcher::RunSelf()
 	m_NextChainIndex2 = UINT_MAX;
 	m_NextQueryIdx = UINT_MAX;
 	m_NextDBIdx = UINT_MAX;
-	m_ProcessedQueryCount = UINT_MAX;
+	m_ProcessedQueryCount = 0;
 
 	uint ChainCount = GetDBChainCount();
 	m_PairIndex = 0;
