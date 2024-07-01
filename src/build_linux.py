@@ -92,7 +92,7 @@ with open(Makefile, "w") as f:
 
     if CNames:
         Out("")
-        Out("CC = ccache gcc")
+        Out("CC = gcc")
         if DebugBuild:
             Out("CFLAGS := $(CFLAGS) -ffast-math -march=native")
         else:
@@ -100,7 +100,7 @@ with open(Makefile, "w") as f:
 
     if CXXNames:
         Out("")
-        Out("CXX = ccache g++")
+        Out("CXX = g++")
         if DebugBuild:
             Out("CXXFLAGS := $(CFLAGS) -DDEBUG -pthread -march=native --std=c++17")
         else:
