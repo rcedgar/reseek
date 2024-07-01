@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 cd ../src
+chmod +x ./build_linux.py
 ./build_linux.py
 cd ../test_scripts
 
