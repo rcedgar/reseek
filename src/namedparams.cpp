@@ -24,8 +24,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_MinComboFwdScore = 7.0f;
-		//m_Omega = 16;
-		m_Omega = 32;
+		m_Omega = 29;
 		m_Lambda = 32;
 		m_MinU = 0;
 		m_USort = false;
