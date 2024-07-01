@@ -59,10 +59,6 @@ def readhits(fn, TP, TP1, FP1, FP):
 
     print("ok TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
 
-# ok TP=244536 TP1=136178 FP1=21240 FP=3550160 ../test_output/scop40.tsv
-# ok TP=114662 TP1=114662 FP1=9259 FP=9259 ../test_output/scop40-fast.tsv
-# ok TP=133114 TP1=133114 FP1=19087 FP=19087 ../test_output/scop40-evalue1.tsv
-
-readhits("../test_output/scop40.tsv", TP=244536, TP1=136178, FP1=21240, FP=3550160)
-readhits("../test_output/scop40-fast.tsv", TP=114662, TP1=114662, FP1=9259, FP=9259)
-readhits("../test_output/scop40-evalue1.tsv", TP=133114, TP1=133114, FP1=19087, FP=19087)
+readhits("../test_output/scop40.tsv", TP=164904, TP1=117382, FP1=10477, FP=300248)
+readhits("../test_output/scop40-sensitive.tsv", TP=269704, TP1=139844, FP1=26046, FP=6964134)
+readhits("../test_output/scop40-evalue1.tsv", TP=115277, TP1=115277, FP1=9604, FP=9604)
