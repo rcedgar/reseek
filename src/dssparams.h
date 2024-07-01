@@ -34,7 +34,9 @@ public:
 	uint m_MaxRejects = UINT_MAX;
 
 	bool m_UsePara = true;
-	int m_ParaComboGapOpen = 5;
+	//int m_ParaComboGapOpen = 5;
+	//int m_ParaComboGapExt = 1;
+	int m_ParaComboGapOpen = 2;
 	int m_ParaComboGapExt = 1;
 
 	float m_Evalue_old_linear_Slope = -6.6f;
