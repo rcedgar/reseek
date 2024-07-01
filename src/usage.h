@@ -42,7 +42,7 @@ const char *usage_txt[] =
 "                 # default evalue+query+target\n"
 "\n"
 "Search and alignment options\n"
-"  -sensitive     # Try harder (~2x slower)\n"
+"  -sensitive     # Try harder (~3x slower, not much better)\n"
 "  -evalue E      # Max E-value (default 10)\n"
 "  -omega X       # Omega accelerator (floating-point)\n"
 "  -minu U        # K-mer accelerator (integer)\n"
