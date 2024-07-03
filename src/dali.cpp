@@ -133,7 +133,7 @@ double GetDALIScore(const PDBChain &Q, const PDBChain &T,
 	const uint Lali = SIZE(PosQs);
 	double OffDiag = GetDALIScore_OffDiag(Q, T, PosQs, PosTs);
 	double Score = OffDiag + Lali*g_DALI_Theta;
-	Score /= 100;
+	//Score /= 100;
 	return Score;
 	}
 

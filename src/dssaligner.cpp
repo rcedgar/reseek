@@ -822,6 +822,7 @@ void DSSAligner::CalcEvalue()
 		if (m_Params->m_DALIw != 0)
 			AlnDALIScore = (float)
 			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_Path, m_LoA, m_LoB);
+		AlnDALIScore /= 100;
 		EndTimer(DALIScore);
 		}
 

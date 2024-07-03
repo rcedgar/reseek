@@ -30,8 +30,6 @@ void GetAlignedPositions(const string& RowQ, const string& RowR,
 	uint PosR = 0;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
-		if (ptrCore != 0 && !(*ptrCore)[Col])
-			continue;
 		char q = RowQ[Col];
 		char r = RowR[Col];
 		bool gq = isgap(q);
@@ -42,8 +40,11 @@ void GetAlignedPositions(const string& RowQ, const string& RowR,
 			{
 			if (isupper(q) && isupper(r))
 				{
-				PosQs.push_back(PosQ);
-				PosRs.push_back(PosR);
+				if (ptrCore == 0 || !(*ptrCore)[Col])
+					{
+					PosQs.push_back(PosQ);
+					PosRs.push_back(PosR);
+					}
 				}
 			else
 				asserta(islower(q) && islower(r));
@@ -116,7 +117,9 @@ void cmd_daliscore_msa()
 	uint NotFound = 0;
 	uint PairCount = 0;
 	double SumZ = 0;
+	double SumScore = 0;
 	double SumZCore = 0;
+	double SumScoreCore = 0;
 	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
 		{
 		const string &Label1 = string(MSA.GetLabel(SeqIdx1));
@@ -174,25 +177,31 @@ void cmd_daliscore_msa()
 					GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, 0);
 					double Score = GetDALIScore(Chain1, Chain2, Pos1s, Pos2s);
 					double Z = GetDALIZFromScoreAndLengths(Score, L1, L2);
-					SumZ += Z;
+					if (SeqIdx1 != SeqIdx2)
+						{
+						SumZ += Z;
+						SumScore += Score;
+						}
 					if (fOut != 0)
-						fprintf(fOut, "\tz-all=%.1f", Z);
+						fprintf(fOut, "\tscore-all\t%.1f\tz-all=%.1f", Score, Z);
 					}
 				else if (iCore == 1)
 					{
 					GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, &IsCore);
 					double Score = GetDALIScore(Chain1, Chain2, Pos1s, Pos2s);
 					double Z = GetDALIZFromScoreAndLengths(Score, L1, L2);
-					SumZCore += Z;
+					if (SeqIdx1 != SeqIdx2)
+						{
+						SumZCore += Z;
+						SumScoreCore += Score;
+						}
 					if (fOut != 0)
-						fprintf(fOut, "\tz-core=%.1f", Z);
+						fprintf(fOut, "\tscore-core\t%.1f\tz-core=%.1f", Score, Z);
 					}
 				else
 					asserta(false);
 				if (SeqIdx1 != SeqIdx2)
-					{
 					++PairCount;
-					}
 				}
 			if (fOut != 0)
 				fprintf(fOut, "\n");
@@ -204,11 +213,14 @@ void cmd_daliscore_msa()
 		Die("No pairs found");
 	double MeanZ = (PairCount == 0 ? 0 : SumZ / PairCount);
 	double MeanZCore = (PairCount == 0 ? 0 : SumZCore / PairCount);
+	double MeanScore = (PairCount == 0 ? 0 : SumScore / PairCount);
+	double MeanScoreCore = (PairCount == 0 ? 0 : SumScoreCore / PairCount);
 	string Name;
 	GetStemName(g_Arg1, Name);
 	ProgressLog("Z  all %.1f, core %.1f %s\n", MeanZ, MeanZCore, Name.c_str());
+	ProgressLog("Score all %.1f, core %.1f %s\n", MeanScore, MeanScoreCore, Name.c_str());
 	if (fOut != 0)
-		fprintf(fOut, "Z-all=%.1f\tZ-core=%.1f\tfile=%s\n",
-			MeanZ, MeanZCore, Name.c_str());
+		fprintf(fOut, "Z-all=%.1f\tZ-core=%.1f\tScore-all=%.1f\tScore-core=%.1f\tfile=%s\n",
+			MeanZ, MeanZCore, MeanScore, MeanScoreCore, Name.c_str());
 	CloseStdioFile(fOut);
 	}
