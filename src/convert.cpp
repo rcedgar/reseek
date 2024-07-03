@@ -62,6 +62,7 @@ void cmd_convert()
 	uint InputCount = 0;
 	uint Converted = 0;
 	uint TooShort = 0;
+	uint Shortest = 0;
 	time_t LastTime = 0;
 	for (;;)
 		{
@@ -71,8 +72,8 @@ void cmd_convert()
 		time_t Now = time(0);
 		if (Now - LastTime > 0)
 			{
-			Progress("%s chains, %.1f%% too short (min %u)\r",
-			  IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength);
+			Progress("%s chains, %.1f%% too short (min %u, shortest %u)\r",
+			  IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength, Shortest);
 			LastTime = Now;
 			}
 
@@ -86,6 +87,10 @@ void cmd_convert()
 		++InputCount;
 		if (L < MinChainLength)
 			{
+			if (Shortest == 0)
+				Shortest = L;
+			else
+				Shortest = min(L, Shortest);
 			++TooShort;
 			delete ptrChain;
 			continue;
@@ -99,8 +104,8 @@ void cmd_convert()
 		++Converted;
 		delete ptrChain;
 		}
-	ProgressLog("%s chains, %.1f%% too short (min %u)\n",
-		IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength);
+	ProgressLog("%s chains, %.1f%% too short (min %u, shortest %u)\n",
+		IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength, Shortest);
 
 	ProgressLog("\n");
 	ProgressLog("%10u Input chains (%s)\n",

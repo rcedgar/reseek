@@ -264,7 +264,7 @@ char PDBChain::FromPDBLines(const string &Label,
 
 	if (ChainChar != 0 && !isspace(ChainChar))
 		{
-		m_Label += optset_chainsep ? string(opt_chainsep) : ":";
+		m_Label += optset_chainsep ? string(opt_chainsep) : "";
 		m_Label += ChainChar;
 		}
 

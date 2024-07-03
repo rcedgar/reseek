@@ -53,7 +53,7 @@ const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	return m_Seqs[SeqIndex];
 	}
 
-void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string& Seq) const
+void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string& Seq, bool ToUpper) const
 	{
 	Seq.clear();
 	assert(SeqIndex < SIZE(m_Seqs));
@@ -63,7 +63,11 @@ void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string& Seq) const
 		{
 		char c = s[i];
 		if (!isgap(c))
+			{
+			if (ToUpper)
+				c = toupper(c);
 			Seq += c;
+			}
 		}
 	}
 

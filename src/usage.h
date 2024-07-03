@@ -66,6 +66,7 @@ const char *usage_txt[] =
 "   DIRECTORYNAME              # Directory (and its sub-directories) is searched\n"
 "                              #   for known file types including .pdb, .files etc.\n"
 "\n"
+"Other options:\n"
 "   -log FILENAME              # Log file with errors, warnings, time and memory.\n"
 "   -threads N                 # Number of threads, default number of CPU cores.\n"
     };

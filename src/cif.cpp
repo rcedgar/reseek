@@ -246,7 +246,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 			Chain->m_Label = Label;
 			if (ChainChar != 0 && !isspace(ChainChar))
 				{
-				Chain->m_Label += optset_chainsep ? string(opt_chainsep) : ":";
+				Chain->m_Label += optset_chainsep ? string(opt_chainsep) : "";
 				Chain->m_Label += ChainChar;
 				}
 

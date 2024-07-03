@@ -98,7 +98,7 @@ void cmd_daliscore_msa()
 	CR.Open(FS);
 
 	vector<PDBChain*> Chains;
-	map<string, uint> LabelToChainIdx;
+	map<string, uint> SeqToChainIdx;
 	for (;;)
 		{
 		PDBChain* ptrChain = CR.GetNext();
@@ -106,24 +106,27 @@ void cmd_daliscore_msa()
 			break;
 		uint Idx = SIZE(Chains);
 		Chains.push_back(ptrChain);
-		LabelToChainIdx[ptrChain->m_Label] = Idx;
+		SeqToChainIdx[ptrChain->m_Seq] = Idx;
 		}
 
 	const uint SeqCount = MSA.GetSeqCount();
 	vector<bool> IsCore;
 	GetCore(MSA, IsCore);
 
-	set<string> NotFound;
+	uint NotFound = 0;
 	uint PairCount = 0;
 	double SumZ = 0;
 	double SumZCore = 0;
 	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
 		{
-		const string& Label1 = string(MSA.GetLabel(SeqIdx1));
-		map<string, uint>::const_iterator iter1 = LabelToChainIdx.find(Label1);
-		if (iter1 == LabelToChainIdx.end())
+		const string &Label1 = string(MSA.GetLabel(SeqIdx1));
+		string Seq1;
+		MSA.GetSeq_StripGaps(SeqIdx1, Seq1, true);
+		map<string, uint>::const_iterator iter1 = SeqToChainIdx.find(Seq1);
+		if (iter1 == SeqToChainIdx.end())
 			{
-			NotFound.insert(Label1);
+			++NotFound;
+			Log("Not found#1 >%s '%s'\n", Label1.c_str(), Seq1.c_str());
 			continue;
 			}
 		uint ChainIdx1 = iter1->second;
@@ -136,10 +139,13 @@ void cmd_daliscore_msa()
 		for (uint SeqIdx2 = SeqIdx1; SeqIdx2 < SeqCount; ++SeqIdx2)
 			{
 			const string& Label2 = string(MSA.GetLabel(SeqIdx2));
-			map<string, uint>::const_iterator iter2 = LabelToChainIdx.find(Label2);
-			if (iter2 == LabelToChainIdx.end())
+			string Seq2;
+			MSA.GetSeq_StripGaps(SeqIdx2, Seq2, true);
+			map<string, uint>::const_iterator iter2 = SeqToChainIdx.find(Seq2);
+			if (iter2 == SeqToChainIdx.end())
 				{
-				NotFound.insert(Label2);
+				++NotFound;
+				Log("Not found#2 >%s '%s'\n", Label2.c_str(), Seq2.c_str());
 				continue;
 				}
 			uint ChainIdx2 = iter2->second;
@@ -192,15 +198,17 @@ void cmd_daliscore_msa()
 				fprintf(fOut, "\n");
 			}
 		}
+	if (NotFound > 0)
+		Warning("%u seqs not found", NotFound);
+	if (PairCount == 0)
+		Die("No pairs found");
 	double MeanZ = (PairCount == 0 ? 0 : SumZ / PairCount);
 	double MeanZCore = (PairCount == 0 ? 0 : SumZCore / PairCount);
 	string Name;
 	GetStemName(g_Arg1, Name);
 	ProgressLog("Z  all %.1f, core %.1f %s\n", MeanZ, MeanZCore, Name.c_str());
 	if (fOut != 0)
-		{
 		fprintf(fOut, "Z-all=%.1f\tZ-core=%.1f\tfile=%s\n",
 			MeanZ, MeanZCore, Name.c_str());
-		}
 	CloseStdioFile(fOut);
 	}

@@ -14,6 +14,9 @@ void cmd_pdb2mega()
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
 	const uint ChainCount = SIZE(Chains);
+	if (ChainCount == 0)
+		Die("No chains");
+	ProgressLog("%u chains\n", ChainCount);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(ChainCount);
