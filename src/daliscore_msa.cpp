@@ -1,226 +1,86 @@
 #include "myutils.h"
 #include "seqdb.h"
-#include "chainreader2.h"
-#include "alpha.h"
-#include <set>
-
-double GetDALIScore(const PDBChain& Q, const PDBChain& T,
-	const vector<uint>& PosQs, const vector<uint>& PosTs);
-
-double GetDALIZFromScoreAndLengths(double DALIScore, uint QL, uint TL)
-	{
-	double n12 = sqrt(QL * TL);
-	double x = min(n12, 400.0);
-	double mean = 7.9494 + 0.70852 * x + 2.5895e-4 * x * x - 1.9156e-6 * x * x * x;
-	if (n12 > 400)
-		mean += n12 - 400.0;
-	double sigma = 0.5 * mean;
-	double z = (DALIScore - mean) / max(1.0, sigma);
-	return z;
-	}
-
-void GetAlignedPositions(const string& RowQ, const string& RowR,
-	vector<uint>& PosQs, vector<uint>& PosRs, vector<bool>* ptrCore)
-	{
-	PosQs.clear();
-	PosRs.clear();
-	const uint ColCount = SIZE(RowQ);
-	asserta(SIZE(RowR) == ColCount);
-	uint PosQ = 0;
-	uint PosR = 0;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char q = RowQ[Col];
-		char r = RowR[Col];
-		bool gq = isgap(q);
-		bool gr = isgap(r);
-		if (gq && gr)
-			continue;
-		else if (!gq && !gr)
-			{
-			if (isupper(q) && isupper(r))
-				{
-				if (ptrCore == 0 || !(*ptrCore)[Col])
-					{
-					PosQs.push_back(PosQ);
-					PosRs.push_back(PosR);
-					}
-				}
-			else
-				asserta(islower(q) && islower(r));
-			++PosQ;
-			++PosR;
-			}
-		else if (!gq && gr)
-			++PosQ;
-		else if (gq && !gr)
-			++PosR;
-		else
-			asserta(false);
-		}
-	}
-
-void GetUngappedSeq(const string& Row, string& Seq)
-	{
-	for (uint i = 0; i < SIZE(Row); ++i)
-		{
-		char c = Row[i];
-		if (!isgap(c))
-			Seq += toupper(c);
-		}
-	}
-
-static void GetCore(const SeqDB& MSA, vector<bool>& IsCore)
-	{
-	IsCore.clear();
-	const uint SeqCount = MSA.GetSeqCount();
-	const uint ColCount = MSA.GetColCount();
-	const uint MaxGaps = SeqCount / 10 + 1;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		uint n = MSA.GetGapCount(Col);
-		uint nu = MSA.GetUpperCount(Col);
-		uint nl = MSA.GetLowerCount(Col);
-		if (nu != 0 && nl != 0)
-			Die("Mixed case");
-		IsCore.push_back(n <= MaxGaps && nl == 0);
-		}
-	}
+#include "pdbchain.h"
+#include "daliscorer.h"
 
 void cmd_daliscore_msa()
 	{
+	asserta(optset_input);
+
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 	FILE* fOut = CreateStdioFile(opt_output);
 
-	PDBFileScanner FS;
-	FS.Open(opt_input);
-	ChainReader2 CR;
-	CR.Open(FS);
+	DALIScorer DS;
+	DS.LoadChains(opt_input);
+	DS.Run(g_Arg1, MSA);
+	DS.ToFev(g_fLog);
+	}
 
-	vector<PDBChain*> Chains;
-	map<string, uint> SeqToChainIdx;
-	for (;;)
+void cmd_daliscore_msas()
+	{
+	asserta(optset_input);
+	FILE* fOut = CreateStdioFile(opt_output);
+
+	string TestDir = ".";
+	if (optset_testdir)
+		TestDir = string(opt_testdir);
+	if (!EndsWith(TestDir, "/") && !EndsWith(TestDir, "\\"))
+		TestDir += "/";
+
+	DALIScorer DS;
+	DS.LoadChains(opt_input);
+
+	vector<string> FNs;
+	ReadLinesFromFile(g_Arg1, FNs);
+
+	const uint N = SIZE(FNs);
+	double SumMeanScore = 0;
+	double SumMeanScore_core = 0;
+	double SumMeanZ_core = 0;
+	double SumMeanZ = 0;
+	uint n = 0;
+	double MeanScore = 0;
+	double MeanScore_core = 0;
+	double MeanZ_core = 0;
+	double MeanZ = 0;
+	for (uint i = 0; i < N; ++i)
 		{
-		PDBChain* ptrChain = CR.GetNext();
-		if (ptrChain == 0)
-			break;
-		uint Idx = SIZE(Chains);
-		Chains.push_back(ptrChain);
-		SeqToChainIdx[ptrChain->m_Seq] = Idx;
-		}
+		const string &FN = FNs[i];
+		ProgressStep(i, N, "n %u score %.1f score_core %.1f Z %.2f Z_core %.2f",
+		  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
 
-	const uint SeqCount = MSA.GetSeqCount();
-	vector<bool> IsCore;
-	GetCore(MSA, IsCore);
-
-	uint NotFound = 0;
-	uint PairCount = 0;
-	double SumZ = 0;
-	double SumScore = 0;
-	double SumZCore = 0;
-	double SumScoreCore = 0;
-	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
-		{
-		const string &Label1 = string(MSA.GetLabel(SeqIdx1));
-		string Seq1;
-		MSA.GetSeq_StripGaps(SeqIdx1, Seq1, true);
-		map<string, uint>::const_iterator iter1 = SeqToChainIdx.find(Seq1);
-		if (iter1 == SeqToChainIdx.end())
-			{
-			++NotFound;
-			Log("Not found#1 >%s '%s'\n", Label1.c_str(), Seq1.c_str());
+		SeqDB MSA;
+		MSA.FromFasta(TestDir + FN, true);
+		DS.Run(FN, MSA);
+		DS.ToFev(fOut);
+		if (DS.m_MeanScore == DBL_MAX)
 			continue;
-			}
-		uint ChainIdx1 = iter1->second;
-		PDBChain& Chain1 = *Chains[ChainIdx1];
-		uint L1 = Chain1.GetSeqLength();
-		const string& Row1 = MSA.GetSeq(SeqIdx1);
-		string U1;
-		GetUngappedSeq(Row1, U1);
-		asserta(U1 == Chain1.m_Seq);
-		for (uint SeqIdx2 = SeqIdx1; SeqIdx2 < SeqCount; ++SeqIdx2)
-			{
-			const string& Label2 = string(MSA.GetLabel(SeqIdx2));
-			string Seq2;
-			MSA.GetSeq_StripGaps(SeqIdx2, Seq2, true);
-			map<string, uint>::const_iterator iter2 = SeqToChainIdx.find(Seq2);
-			if (iter2 == SeqToChainIdx.end())
-				{
-				++NotFound;
-				Log("Not found#2 >%s '%s'\n", Label2.c_str(), Seq2.c_str());
-				continue;
-				}
-			uint ChainIdx2 = iter2->second;
-			PDBChain& Chain2 = *Chains[ChainIdx2];
-			uint L2 = Chain2.GetSeqLength();
-			const string& Row2 = MSA.GetSeq(SeqIdx2);
-			string U2;
-			GetUngappedSeq(Row2, U2);
-			asserta(U2 == Chain2.m_Seq);
-
-			for (int iCore = 0; iCore <= 1; ++iCore)
-				{
-				if (fOut != 0 && iCore == 0)
-					{
-					if (SeqIdx1 == SeqIdx2)
-						fprintf(fOut, "label_i=%s\t(self-align)",
-							Label1.c_str());
-					else
-						fprintf(fOut, "label_i=%s\tlabel_j=%s",
-							Label1.c_str(), Label2.c_str());
-					}
-				string Path;
-				vector<uint> Pos1s, Pos2s;
-				if (iCore == 0)
-					{
-					GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, 0);
-					double Score = GetDALIScore(Chain1, Chain2, Pos1s, Pos2s);
-					double Z = GetDALIZFromScoreAndLengths(Score, L1, L2);
-					if (SeqIdx1 != SeqIdx2)
-						{
-						SumZ += Z;
-						SumScore += Score;
-						}
-					if (fOut != 0)
-						fprintf(fOut, "\tscore-all\t%.1f\tz-all=%.1f", Score, Z);
-					}
-				else if (iCore == 1)
-					{
-					GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, &IsCore);
-					double Score = GetDALIScore(Chain1, Chain2, Pos1s, Pos2s);
-					double Z = GetDALIZFromScoreAndLengths(Score, L1, L2);
-					if (SeqIdx1 != SeqIdx2)
-						{
-						SumZCore += Z;
-						SumScoreCore += Score;
-						}
-					if (fOut != 0)
-						fprintf(fOut, "\tscore-core\t%.1f\tz-core=%.1f", Score, Z);
-					}
-				else
-					asserta(false);
-				if (SeqIdx1 != SeqIdx2)
-					++PairCount;
-				}
-			if (fOut != 0)
-				fprintf(fOut, "\n");
-			}
+		n += 1;
+		SumMeanScore += DS.m_MeanScore;
+		SumMeanScore_core += DS.m_MeanScore_core;
+		SumMeanZ_core += DS.m_MeanZ_core;
+		SumMeanZ += DS.m_MeanZ;
+		MeanScore = SumMeanScore/n;
+		MeanScore_core = SumMeanScore_core/n;
+		MeanZ_core = SumMeanZ_core/n;
+		MeanZ = SumMeanZ/n;
 		}
-	if (NotFound > 0)
-		Warning("%u seqs not found", NotFound);
-	if (PairCount == 0)
-		Die("No pairs found");
-	double MeanZ = (PairCount == 0 ? 0 : SumZ / PairCount);
-	double MeanZCore = (PairCount == 0 ? 0 : SumZCore / PairCount);
-	double MeanScore = (PairCount == 0 ? 0 : SumScore / PairCount);
-	double MeanScoreCore = (PairCount == 0 ? 0 : SumScoreCore / PairCount);
-	string Name;
-	GetStemName(g_Arg1, Name);
-	ProgressLog("Z  all %.1f, core %.1f %s\n", MeanZ, MeanZCore, Name.c_str());
-	ProgressLog("Score all %.1f, core %.1f %s\n", MeanScore, MeanScoreCore, Name.c_str());
+	ProgressLog("\nTotal n %u score %.1f score_core %.1f Z %.2f Z_core %.2f",
+	  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
 	if (fOut != 0)
-		fprintf(fOut, "Z-all=%.1f\tZ-core=%.1f\tScore-all=%.1f\tScore-core=%.1f\tfile=%s\n",
-			MeanZ, MeanZCore, MeanScore, MeanScoreCore, Name.c_str());
+		{
+		fprintf(fOut, "dir=%s", TestDir.c_str());
+		ProgressLog("\nTotal n %u score %.1f score_core %.2f Z %.1f Z_core %.1f",
+		  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
+		fprintf(fOut, "\tn=%u", n);
+		fprintf(fOut, "\tfinal_score=%1.f", MeanScore);
+		fprintf(fOut, "\tfinal_score_core=%1.f", MeanScore_core);
+		fprintf(fOut, "\tfinal_Z=%.2f", MeanZ);
+		fprintf(fOut, "\tfinal_Z_core=%.2f", MeanZ_core);
+		fprintf(fOut, "\n");
+		}
+	  
+	CloseStdioFile(g_fLog);
 	CloseStdioFile(fOut);
 	}

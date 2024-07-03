@@ -46,6 +46,7 @@ STR_OPT(alpha)
 STR_OPT(cal)
 STR_OPT(chainsep)
 STR_OPT(bca)
+STR_OPT(testdir)
 
 STR_OPT(train_cal)
 STR_OPT(test_cal)

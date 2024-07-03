@@ -374,6 +374,9 @@
     <ClCompile Include="runquery.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="daliscorer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -620,6 +623,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="profileloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="daliscorer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
