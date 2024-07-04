@@ -34,7 +34,7 @@ public:
 
 public:
 	virtual void OnSetup();
-	virtual void OnAln(uint ChainIndexA, uint ChainIndexB, DSSAligner &DA);
+	virtual void OnAln(DSSAligner &DA, bool Up);
 
 public:
 	void ScanAll();

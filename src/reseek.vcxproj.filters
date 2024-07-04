@@ -278,9 +278,6 @@
     <ClCompile Include="calibratesearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="calibratesearcher3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="calibrate4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -566,9 +563,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="calibratesearcher2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calibratesearcher3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chainreader2.h">

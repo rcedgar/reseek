@@ -36,12 +36,16 @@ void CalibrateSearcher::OnSetup()
 	SCOP40Bench::OnSetup();
 	}
 
-void CalibrateSearcher::OnAln(uint ChainIndex1, uint ChainIndex2, DSSAligner &DA)
+void CalibrateSearcher::OnAln(DSSAligner &DA, bool Up)
 	{
+	const string &LabelA = DA.m_ChainA->m_Label;
+	map<string, uint>::const_iterator iter = m_LabelToChainIdx.find(LabelA);
+	asserta(iter != m_LabelToChainIdx.end());
+	uint ChainIndex1 = iter->second;
 	asserta(ChainIndex1 < SIZE(m_TestStatsVec));
 	vector<float> &v = m_TestStatsVec[ChainIndex1];
 	v.push_back(DA.m_TestStatisticA);
-	SCOP40Bench::OnAln(DA, true);
+	//SCOP40Bench::OnAln(DA, true);
 	}
 
 void CalibrateSearcher::SetAllAccum()

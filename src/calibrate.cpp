@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "chainreader2.h"
 #include "calibratesearcher.h"
 
 /***
@@ -9,19 +10,28 @@
 ***/
 void cmd_calibrate()
 	{
-	Die("TODO needs query vs db search");
-#if 0
-	const string &QCalFN = g_Arg1;
-	const string &DBFN = opt_db;
-	CalibrateSearcher DBS;
-	DBS.LoadChains(QCalFN, DBFN);
+	optset_sensitive = true;
+	opt_sensitive = true;
 
+	optset_minchainlength = true;
+	opt_minchainlength = 5;
+
+	const string &QFN = g_Arg1;
+	const string &DBFN = g_Arg1;
+
+	CalibrateSearcher DBS;
 	DSSParams Params;
-	Params.SetFromCmdLine(DBS.GetDBSize());
+	Params.SetFromCmdLine(10000);
+	DBS.m_Params = &Params;
+
+	DBS.LoadDB(DBFN);
+	DBS.Setup();
+
+	ChainReader2 QCR;
+	QCR.Open(QFN);
+	DBS.RunQuery(QCR);
 
 	FILE *fOut = CreateStdioFile(opt_output);
-	DBS.Setup(Params);
-	DBS.Run();
 	DSSAligner::Stats();
 	DBS.ScanAll();
 	DBS.SetAllBins();
@@ -30,5 +40,4 @@ void cmd_calibrate()
 	DBS.FitGumbel();
 	DBS.WriteBins(fOut);
 	CloseStdioFile(fOut);
-#endif
 	}
