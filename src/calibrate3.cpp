@@ -14,7 +14,8 @@
 * Empirically, results are terrible.
 ***/
 
-void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f) const
+void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
+  uint BinCount, float TSlo, float TShi) const
 	{
 	if (f == 0)
 		return;
@@ -22,11 +23,11 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f) const
 // Mid-point TS values for bins
 	vector<float> Mids;
 	const vector<float> &TSs_0 = m_TestStatsVec[0];
-	Binner<float> B(TSs_0, NBINS, -0.1f, 0.3f);
+	Binner<float> B(TSs_0, BinCount, TSlo, TShi);
 	const vector<uint> &Bins = B.GetBins();
 	//B.GetAccumBinsReverse(Bins);
 	fprintf(f, "TS");
-	for (uint Bin = 0; Bin < NBINS; ++Bin)
+	for (uint Bin = 0; Bin < BinCount; ++Bin)
 		fprintf(f, "\t%.3g", B.GetBinMid(Bin));
 	fprintf(f, "\n");
 
@@ -35,12 +36,12 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f) const
 		{
 		const char *Label = m_DBChains[i]->m_Label.c_str();
 		const vector<float> &TSs_i = m_TestStatsVec[i];
-		Binner<float> B(TSs_i, NBINS, -0.1f, 0.3f);
+		Binner<float> B(TSs_i, BinCount, TSlo, TShi);
 		//B.GetAccumBinsReverse(Bins);
 		const vector<uint> &Bins = B.GetBins();
 
 		fprintf(f, "%s", Label);
-		for (uint Bin = 0; Bin < NBINS; ++Bin)
+		for (uint Bin = 0; Bin < BinCount; ++Bin)
 			{
 			uint n = Bins[Bin];
 			fprintf(f, "\t%u", n);
@@ -88,7 +89,7 @@ void cmd_calibrate3()
 	if (optset_calib_output)
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output);
-		DBS.WriteSlopeCalibOutput(fOut);
+		DBS.WriteSlopeCalibOutput(fOut, 33, 0, 0.3f);
 		CloseStdioFile(fOut);
 		}
 	}
