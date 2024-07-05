@@ -64,20 +64,30 @@ void cmd_calibrate2()
 	else
 		CalFN = g_Arg1;
 
-
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
 	SCOP40Bench SB;
+	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
 
-	DSSParams Params;
-	Params.SetFromCmdLine(SB.GetDBSize());
+	asserta(SB.m_Params == &Params);
+	Params.m_DBSize = (float) SB.GetDBSize();
 
 	SB.Setup();
+	
+	float MaxFPR = 0.005f;
+	if (optset_maxfpr)
+		MaxFPR = (float) opt_maxfpr;
+
+	SB.m_fTsv = CreateStdioFile(opt_output);
+	SB.m_fAln = CreateStdioFile(opt_aln);
+	SB.m_fFasta2 = CreateStdioFile(opt_fasta2);
 
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;
-	SB.RunSelf();
+	if (opt_scores_are_not_evalues)
+		SB.m_ScoresAreEvalues = false;	SB.RunSelf();
 	SB.SetTFs();
-	const float MaxFPR = 0.1f;
 	SB.SetStats(MaxFPR, true);
 
 	const vector<float> &Scores = SB.m_SmoothScores;

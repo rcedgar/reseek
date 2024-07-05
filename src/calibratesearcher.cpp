@@ -36,16 +36,20 @@ void CalibrateSearcher::OnSetup()
 	SCOP40Bench::OnSetup();
 	}
 
+// Store flipped TestStat (ChainB as query, this is from DB which is
+//   stored in memory while queries are not).
 void CalibrateSearcher::OnAln(DSSAligner &DA, bool Up)
 	{
-	const string &LabelA = DA.m_ChainA->m_Label;
-	map<string, uint>::const_iterator iter = m_LabelToChainIdx.find(LabelA);
+	float TS = DA.GetTestStatistic(!Up);
+	if (TS <= 0)
+		return;
+	const string &LabelB = DA.GetLabel(!Up);
+	map<string, uint>::const_iterator iter = m_LabelToChainIdx.find(LabelB);
 	asserta(iter != m_LabelToChainIdx.end());
-	uint ChainIndex1 = iter->second;
-	asserta(ChainIndex1 < SIZE(m_TestStatsVec));
-	vector<float> &v = m_TestStatsVec[ChainIndex1];
-	v.push_back(DA.m_TestStatisticA);
-	//SCOP40Bench::OnAln(DA, true);
+	uint ChainIndex2 = iter->second;
+	asserta(ChainIndex2 < SIZE(m_TestStatsVec));
+	vector<float> &v = m_TestStatsVec[ChainIndex2];
+	v.push_back(TS);
 	}
 
 void CalibrateSearcher::SetAllAccum()

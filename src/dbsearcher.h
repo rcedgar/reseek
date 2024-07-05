@@ -86,10 +86,6 @@ public:
 	void RunStats() const;
 
 #if SLOPE_CALIB
-// Slope calibration training
-	void WriteSlopeCalibSample(FILE *f) const;
-	void WriteSlopeCalibOutput(FILE *f) const;
-
 // Slope calibrated runtime
 	void LoadCalibratedSlopes(const string &FN);
 	void GetChainSlope(uint ChainIdx, float &m, float &b) const;

@@ -37,6 +37,7 @@ public:
 	virtual void OnAln(DSSAligner &DA, bool Up);
 
 public:
+// All-domain calibration
 	void ScanAll();
 	void SetAllBins();
 	void Setxys();
@@ -44,6 +45,9 @@ public:
 	void FitGumbel();
 	void SetAllAccum();
 	void WriteBins(FILE *f) const;
+
+// Per-domain calibration
+	void WriteSlopeCalibOutput(FILE *f) const;
 	};
 
 static const uint NOUTLIERS = 3;
