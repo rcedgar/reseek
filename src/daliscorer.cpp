@@ -2,8 +2,9 @@
 #include "seqdb.h"
 #include "chainreader2.h"
 #include "alpha.h"
-#include <set>
 #include "daliscorer.h"
+#include "sort.h"
+#include <set>
 
 static void GetUngappedSeq(const string& Row, string& Seq)
 	{
@@ -134,8 +135,8 @@ void DALIScorer::Run(const string &Name, const SeqDB &MSA)
 	SetSeqIdxToChainIdx();
 
 	const uint SeqCount = MSA.GetSeqCount();
-	double SumScore = 0;
-	double SumScore_core = 0;
+	m_SumScore = 0;
+	m_SumScore_core = 0;
 	double SumZ = 0;
 	double SumZ_core = 0;
 	uint PairCount = 0;
@@ -152,7 +153,8 @@ void DALIScorer::Run(const string &Name, const SeqDB &MSA)
 		string U1;
 		GetUngappedSeq(Row1, U1);
 		asserta(U1 == Chain1.m_Seq);
-		for (uint SeqIdx2 = SeqIdx1; SeqIdx2 < SeqCount; ++SeqIdx2)
+		const uint Lo = (opt_noself ? SeqIdx1 + 1 : SeqIdx1);
+		for (uint SeqIdx2 = Lo; SeqIdx2 < SeqCount; ++SeqIdx2)
 			{
 			uint ChainIdx2 = m_SeqIdxToChainIdx[SeqIdx2];
 			if (ChainIdx2 == UINT_MAX)
@@ -190,8 +192,8 @@ void DALIScorer::Run(const string &Name, const SeqDB &MSA)
 			if (SeqIdx1 != SeqIdx2)
 				{
 				++PairCount;
-				SumScore += Score;
-				SumScore_core += Score_core;
+				m_SumScore += Score;
+				m_SumScore_core += Score_core;
 				SumZ += Z;
 				SumZ_core += Z_core;
 				}
@@ -199,6 +201,8 @@ void DALIScorer::Run(const string &Name, const SeqDB &MSA)
 		}
 	if (PairCount == 0)
 		{
+		m_SumScore = DBL_MAX;
+		m_SumScore_core = DBL_MAX;
 		m_MeanScore = DBL_MAX;
 		m_MeanScore_core = DBL_MAX;
 		m_MeanZ = DBL_MAX;
@@ -206,10 +210,162 @@ void DALIScorer::Run(const string &Name, const SeqDB &MSA)
 		}
 	else
 		{
-		m_MeanScore = SumScore/PairCount;
-		m_MeanScore_core = SumScore_core/PairCount;
+		m_MeanScore = m_SumScore/PairCount;
+		m_MeanScore_core = m_SumScore_core/PairCount;
 		m_MeanZ = SumZ/PairCount;
 		m_MeanZ_core = SumZ_core/PairCount;;
+		}
+	}
+
+void DALIScorer::SetColToPosVec(bool Core)
+	{
+	const uint SeqCount = m_MSA->GetSeqCount();
+	m_ColToPosVec.resize(SeqCount);
+	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
+		GetColToPos(SeqIdx, m_ColToPosVec[SeqIdx], Core);
+	}
+
+void DALIScorer::GetColToPos(uint SeqIdx, vector<uint> &ColToPos, bool Core)
+	{
+	ColToPos.clear();
+	const string &Row = m_MSA->GetSeq(SeqIdx);
+	const uint ColCount = m_MSA->GetColCount();
+	asserta(SIZE(Row) == ColCount);
+	if (Core)
+		asserta(SIZE(m_ColIsCore) == ColCount);
+	uint Pos = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		bool IsCore = m_ColIsCore[Col];
+		char c = Row[Col];
+
+		if (islower(c) || isgap(c) || (Core && !IsCore))
+			ColToPos.push_back(UINT_MAX);
+		else
+			ColToPos.push_back(Pos);
+
+		if (!isgap(c))
+			++Pos;
+		}
+	}
+
+double DALIScorer::GetDALIPosPairScore(
+	const PDBChain &Q, uint PosQi, uint PosQj,
+	const PDBChain &T, uint PosTi, uint PosTj) const
+	{
+	double dij_Q = Q.GetDist(PosQi, PosQj);
+	double dij_T = T.GetDist(PosTi, PosTj);
+	double x = DALI_dpscorefun(dij_Q, dij_T);
+	return x;
+	}
+
+double DALIScorer::GetDALIColScore(uint Col1, uint Col2) const
+	{
+	const uint SeqCount = GetSeqCount();
+	double Sum = 0;
+	for (uint SeqX = 0; SeqX < SeqCount; ++SeqX)
+		{
+		uint ChainIdX = m_SeqIdxToChainIdx[SeqX];
+		if (ChainIdX == UINT_MAX)
+			continue;
+		asserta(ChainIdX < SIZE(m_Chains));
+		const PDBChain &ChainX = *m_Chains[ChainIdX];
+
+		const vector<uint> &ColToPosX = m_ColToPosVec[SeqX];
+		uint PosX1 = ColToPosX[Col1];
+		uint PosX2 = ColToPosX[Col2];
+		if (PosX1 == UINT_MAX || PosX2 == UINT_MAX)
+			continue;
+
+		for (uint SeqY = SeqX+1; SeqY < SeqCount; ++SeqY)
+			{
+			uint ChainIdY = m_SeqIdxToChainIdx[SeqY];
+			if (ChainIdY == UINT_MAX)
+				continue;
+			asserta(ChainIdY < SIZE(m_Chains));
+			const PDBChain &ChainY = *m_Chains[ChainIdY];
+
+			const vector<uint> &ColToPosY = m_ColToPosVec[SeqY];
+			uint PosY1 = ColToPosY[Col1];
+			uint PosY2 = ColToPosY[Col2];
+			if (PosY1 == UINT_MAX || PosY2 == UINT_MAX)
+				continue;
+
+			Sum += GetDALIPosPairScore(
+			  ChainX, PosX1, PosX2, ChainY, PosY1, PosY2);
+			}
+		}
+	return Sum;
+	}
+
+double DALIScorer::GetDiagScore() const
+	{
+	const uint SeqCount = GetSeqCount();
+	double Sum = 0;
+	for (uint i = 0; i < SeqCount; ++i)
+		for (uint j = i+1; j < SeqCount; ++j)
+			Sum += GetDiagScoreSeqPair(i, j);
+	return Sum;
+	}
+
+double DALIScorer::GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const
+	{
+	const uint ColCount = GetColCount();
+	const vector<uint> &ColToPosIdx1 = m_ColToPosVec[SeqIdx1];
+	const vector<uint> &ColToPosIdx2 = m_ColToPosVec[SeqIdx2];
+	asserta(SIZE(ColToPosIdx1) == ColCount);
+	asserta(SIZE(ColToPosIdx2) == ColCount);
+	uint Lali = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		if (ColToPosIdx1[Col] != UINT_MAX && ColToPosIdx2[Col] != UINT_MAX)
+			++Lali;
+	double DiagScore = Lali*g_DALI_Theta;
+	return DiagScore;
+	}
+
+void DALIScorer::RunCols(const string &Name, const SeqDB &MSA, bool DoCore)
+	{
+	ClearMSA();
+
+	m_Name = Name;
+	m_MSA = &MSA;
+
+	SetCore();
+	SetSeqIdxToChainIdx();
+
+	const uint SeqCount = GetSeqCount();
+	const uint ColCount = GetColCount();
+	double SumScore = 0;
+	double SumScore_core = 0;
+	double SumZ = 0;
+	double SumZ_core = 0;
+	uint PairCount = 0;
+	double SumColScores = 0;
+	m_ColScores.clear();
+	SetColToPosVec(DoCore);
+	for (uint Col1 = 0; Col1 < ColCount; ++Col1)
+		{
+		double SumCol1 = 0;
+		for (uint Col2 = 0; Col2 < ColCount; ++Col2)
+			{
+			if (Col2 == Col1)
+				continue;
+			SumCol1 += GetDALIColScore(Col1, Col2);
+			}
+		m_ColScores.push_back(SumCol1);
+		SumColScores += SumCol1;
+		}
+	double DiagScore = GetDiagScore();
+	double FinalScore = SumColScores + DiagScore;
+	ProgressLog("Core %c SumCS = %.1f, Diag = %.1f, Final = %.1f\n",
+		tof(DoCore), SumColScores, DiagScore, FinalScore);
+	vector<uint> Order(ColCount);
+	QuickSortOrder(m_ColScores.data(), ColCount, Order.data());
+	for (uint k = 0; k < ColCount; ++k)
+		{
+		uint Col = Order[k];
+		if (m_ColIsCore[Col])
+			Log("[%5u]  %.1f\n", Col, m_ColScores[Col]);
 		}
 	}
 
@@ -241,6 +397,8 @@ void DALIScorer::ToFev(FILE *f) const
 		fprintf(f, "\n");
 		}
 	fprintf(f, "set=%s", m_Name.c_str());
+	fprintf(f, "\tsum_score=%.1f", m_SumScore);
+	fprintf(f, "\tsum_score_core=%.1f", m_SumScore_core);
 	fprintf(f, "\tavg_score=%.1f", m_MeanScore);
 	fprintf(f, "\tavg_score_core=%.1f", m_MeanScore_core);
 	fprintf(f, "\tavg_Z_core=%.2f", m_MeanZ_core);

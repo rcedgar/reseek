@@ -15,6 +15,7 @@ void cmd_daliscore_msa()
 	DS.LoadChains(opt_input);
 	DS.Run(g_Arg1, MSA);
 	DS.ToFev(g_fLog);
+	DS.RunCols(g_Arg1, MSA, true);
 	}
 
 void cmd_daliscore_msas()

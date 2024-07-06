@@ -82,19 +82,21 @@ c !!!   elastic uses weights !!!
 				end if
 		end if
 ***/
-static double dpscorefun(double a, double b)
+double DALI_dpscorefun(double a, double b)
 	{
 	double Score = 0;
-	double x = fabs(a - b);
-	double y = (a + b) / 2;
-	if (y > 100)
+	double diff = fabs(a - b);
+	double mean = (a + b) / 2;
+	double ratio = diff/mean;
+	double w = Weight(mean);
+	if (mean > 100)
 		Score = 0;
 	else
 		{
-		if (y > 0)
-			Score = Weight(y) * (g_DALI_d0 - x / y);
+		if (mean > 0)
+			Score = w*(g_DALI_d0 - ratio);
 		else
-			Score = Weight(y) * g_DALI_d0;
+			Score = w*g_DALI_d0;
 		}
 	return Score;
 	}
@@ -120,7 +122,7 @@ double GetDALIScore_OffDiag(const PDBChain &Q, const PDBChain &T,
 
 			double dij_Q = Q.GetDist(PosQi, PosQj);
 			double dij_T = T.GetDist(PosTi, PosTj);
-			double x = dpscorefun(dij_Q, dij_T);
+			double x = DALI_dpscorefun(dij_Q, dij_T);
 			Sum += x;
 			}
 		}
@@ -133,7 +135,6 @@ double GetDALIScore(const PDBChain &Q, const PDBChain &T,
 	const uint Lali = SIZE(PosQs);
 	double OffDiag = GetDALIScore_OffDiag(Q, T, PosQs, PosTs);
 	double Score = OffDiag + Lali*g_DALI_Theta;
-	//Score /= 100;
 	return Score;
 	}
 
