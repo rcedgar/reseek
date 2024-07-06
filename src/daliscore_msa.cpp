@@ -6,22 +6,35 @@
 void cmd_daliscore_msa()
 	{
 	asserta(optset_input);
+	const bool MissingTestSeqOk = !opt_missingtestseqok;
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 	FILE* fOut = CreateStdioFile(opt_output);
 
+	string Name;
+	GetStemName(g_Arg1, Name);
+
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
-	DS.Run(g_Arg1, MSA);
-	DS.ToFev(g_fLog);
-	DS.RunCols(g_Arg1, MSA, true);
+	DS.SetMSA(Name, MSA, true, MissingTestSeqOk);
+	double Z = DS.GetZ();
+	double Z2 = DS.GetZ_Rows();
+	asserta(feq(Z, Z2));
+
+	DS.SetMSA(Name, MSA, false, MissingTestSeqOk);
+	double Z_core = DS.GetZ();
+	double Z_core2 = DS.GetZ_Rows();
+	asserta(feq(Z_core, Z_core2));
+
+	ProgressLog("Z %.1f Z_core %.1f %s\n", Z, Z_core, Name.c_str());
 	}
 
 void cmd_daliscore_msas()
 	{
 	asserta(optset_input);
 	FILE* fOut = CreateStdioFile(opt_output);
+	const bool MissingSeqOk = !opt_missingtestseqok;
 
 	string TestDir = ".";
 	if (optset_testdir)
@@ -36,49 +49,46 @@ void cmd_daliscore_msas()
 	ReadLinesFromFile(g_Arg1, FNs);
 
 	const uint N = SIZE(FNs);
-	double SumMeanScore = 0;
-	double SumMeanScore_core = 0;
-	double SumMeanZ_core = 0;
-	double SumMeanZ = 0;
-	uint n = 0;
-	double MeanScore = 0;
-	double MeanScore_core = 0;
-	double MeanZ_core = 0;
+	double SumZ = 0;
+	double SumZ_core = 0;
 	double MeanZ = 0;
+	double MeanZ_core = 0;
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &FN = FNs[i];
-		ProgressStep(i, N, "n %u score %.1f score_core %.1f Z %.2f Z_core %.2f",
-		  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
 
 		SeqDB MSA;
 		MSA.FromFasta(TestDir + FN, true);
-		DS.Run(FN, MSA);
-		DS.ToFev(fOut);
-		if (DS.m_MeanScore == DBL_MAX)
-			continue;
-		n += 1;
-		SumMeanScore += DS.m_MeanScore;
-		SumMeanScore_core += DS.m_MeanScore_core;
-		SumMeanZ_core += DS.m_MeanZ_core;
-		SumMeanZ += DS.m_MeanZ;
-		MeanScore = SumMeanScore/n;
-		MeanScore_core = SumMeanScore_core/n;
-		MeanZ_core = SumMeanZ_core/n;
-		MeanZ = SumMeanZ/n;
+
+		DS.SetMSA(FN, MSA, true, MissingSeqOk);
+		double Z = DS.GetZ();
+		double Z2 = DS.GetZ_Rows();
+
+		DS.SetMSA(FN, MSA, false, MissingSeqOk);
+		double Z_core = DS.GetZ();
+		double Z_core2 = DS.GetZ_Rows();
+		asserta(feq(Z, Z2));
+		asserta(feq(Z_core, Z_core2));
+
+		SumZ += Z;
+		SumZ_core += Z_core;
+		MeanZ = SumZ/(i+1);
+		MeanZ_core = SumZ_core/(i+1);
+		ProgressStep(i, N, "n %u Z %.2f Z_core %.2f", i+1, MeanZ, MeanZ_core);
+		if (fOut != 0)
+			{
+			fprintf(fOut, "aln=%s", FN.c_str());
+			fprintf(fOut, "\tZ=%.1f", Z);
+			fprintf(fOut, "\tZ_core=%.1f", Z_core);
+			fprintf(fOut, "\n");
+			}
 		}
-	ProgressLog("\nTotal n %u score %.1f score_core %.1f Z %.2f Z_core %.2f",
-	  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
+
 	if (fOut != 0)
 		{
-		fprintf(fOut, "dir=%s", TestDir.c_str());
-		ProgressLog("\nTotal n %u score %.1f score_core %.2f Z %.1f Z_core %.1f",
-		  n, MeanScore, MeanScore_core, MeanZ, MeanZ_core);
-		fprintf(fOut, "\tn=%u", n);
-		fprintf(fOut, "\tfinal_score=%1.f", MeanScore);
-		fprintf(fOut, "\tfinal_score_core=%1.f", MeanScore_core);
-		fprintf(fOut, "\tfinal_Z=%.2f", MeanZ);
-		fprintf(fOut, "\tfinal_Z_core=%.2f", MeanZ_core);
+		fprintf(fOut, "testdir=%s", TestDir.c_str());
+		fprintf(fOut, "\tZ=%.1f", MeanZ);
+		fprintf(fOut, "\tZ_core=%.1f", MeanZ_core);
 		fprintf(fOut, "\n");
 		}
 	  

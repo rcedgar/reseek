@@ -277,6 +277,7 @@ FLAG_OPT(writebitts)
 FLAG_OPT(trace_chainreader2)
 FLAG_OPT(trace_filescanner)
 FLAG_OPT(global)
+FLAG_OPT(missingtestseqok)
 
 #undef FLAG_OPT
 #undef UNS_OPT

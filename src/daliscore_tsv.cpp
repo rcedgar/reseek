@@ -7,7 +7,7 @@
 double GetDALIScore(const PDBChain& Q, const PDBChain& T,
 	const vector<uint>& PosQs, const vector<uint>& PosTs);
 void GetAlignedPositions(const string& RowQ, const string& RowR,
-	vector<uint>& PosQs, vector<uint>& PosRs, vector<bool>* ptrCore);
+	vector<uint>& PosQs, vector<uint>& PosRs, const vector<bool>* ptrCore);
 void GetUngappedSeq(const string& Row, string& Seq);
 double GetDALIZFromScoreAndLengths(double DALIScore, uint QL, uint TL);
 
