@@ -416,6 +416,7 @@ void ToUpper(string &s);
 void ToLower(string &s);
 bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
+void Dirize(string &Dir);
 
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()

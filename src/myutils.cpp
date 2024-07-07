@@ -2449,3 +2449,10 @@ void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
 		Lines.push_back(Line);
 	CloseStdioFile(f);
 	}
+
+
+void Dirize(string &Dir)
+	{
+	if (!EndsWith(Dir, "/") && !EndsWith(Dir, "\\"))
+		Dir += "/";
+	}

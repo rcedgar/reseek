@@ -15,7 +15,6 @@ public:
 	uint m_CoreColCount = 0;
 
 	vector<vector<uint> > m_ColToPosVec;
-	vector<double> m_ColScores;
 
 public:
 	void ClearMSA()
@@ -33,6 +32,7 @@ public:
 	double GetZ() const;
 	double GetZ_Rows() const;
 	double GetSumScore_Cols() const;
+	double GetSumScore_Rows() const;
 	void SetSeqIdxToChainIdx(bool MissingSeqOk);
 	void SetCore();
 	void SetColToPosVec(bool Core);
@@ -42,7 +42,7 @@ public:
 	bool GetDALIRowPair(uint SeqIdx1, uint SeqIdx2,
 	  double &Score, double &Z) const;
 	double GetDALIScoreColPair(uint Col1, uint Col2) const;
-	double GetDALIPosPairScore(
+	double GetDALIScorePosPair(
 	  const PDBChain &ChainX, uint PosX1, uint PosX2,
 	  const PDBChain &ChainY, uint PosY1, uint PosY2) const;
 	double GetDiagScore() const;

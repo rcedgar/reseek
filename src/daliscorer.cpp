@@ -295,7 +295,7 @@ void DALIScorer::GetColToPos(uint SeqIdx, vector<uint> &ColToPos, bool Core)
 		}
 	}
 
-double DALIScorer::GetDALIPosPairScore(
+double DALIScorer::GetDALIScorePosPair(
 	const PDBChain &Q, uint PosQi, uint PosQj,
 	const PDBChain &T, uint PosTi, uint PosTj) const
 	{
@@ -337,7 +337,7 @@ double DALIScorer::GetDALIScoreColPair(uint Col1, uint Col2) const
 			if (PosY1 == UINT_MAX || PosY2 == UINT_MAX)
 				continue;
 
-			Sum += GetDALIPosPairScore(
+			Sum += GetDALIScorePosPair(
 			  ChainX, PosX1, PosX2, ChainY, PosY1, PosY2);
 			}
 		}
@@ -356,6 +356,9 @@ double DALIScorer::GetDiagScore() const
 
 double DALIScorer::GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const
 	{
+	if (m_SeqIdxToChainIdx[SeqIdx1] == UINT_MAX ||
+	  m_SeqIdxToChainIdx[SeqIdx2] == UINT_MAX)
+		return 0;
 	const uint ColCount = GetColCount();
 	const vector<uint> &ColToPosIdx1 = m_ColToPosVec[SeqIdx1];
 	const vector<uint> &ColToPosIdx2 = m_ColToPosVec[SeqIdx2];
@@ -367,6 +370,24 @@ double DALIScorer::GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const
 			++Lali;
 	double DiagScore = Lali*g_DALI_Theta;
 	return DiagScore;
+	}
+
+double DALIScorer::GetSumScore_Rows() const
+	{
+	const uint SeqCount = GetSeqCount();
+	double SumScore = 0;
+	uint PairCount = 0;
+	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
+		{
+		for (uint SeqIdx2 = SeqIdx1 + 1; SeqIdx2 < SeqCount; ++SeqIdx2)
+			{
+			double Score, Z;
+			bool Ok = GetDALIRowPair(SeqIdx1, SeqIdx2, Score, Z);
+			if (Ok)
+				SumScore += Score;
+			}
+		}
+	return SumScore;
 	}
 
 double DALIScorer::GetSumScore_Cols() const
