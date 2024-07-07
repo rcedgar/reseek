@@ -12,6 +12,7 @@ public:
 	vector<uint> m_SeqIdxToChainIdx;
 	set<string> m_NotFoundLabels;
 	vector<bool> m_ColIsCore;
+	uint m_CoreColCount = 0;
 
 	vector<vector<uint> > m_ColToPosVec;
 	vector<double> m_ColScores;

@@ -63,6 +63,7 @@ void cmd_daliscore_msas()
 		DS.SetMSA(FN, MSA, true, MissingSeqOk);
 		double Z = DS.GetZ();
 		double Z2 = DS.GetZ_Rows();
+		uint CoreColCount = DS.m_CoreColCount;
 
 		DS.SetMSA(FN, MSA, false, MissingSeqOk);
 		double Z_core = DS.GetZ();
@@ -80,6 +81,7 @@ void cmd_daliscore_msas()
 			fprintf(fOut, "aln=%s", FN.c_str());
 			fprintf(fOut, "\tZ=%.1f", Z);
 			fprintf(fOut, "\tZ_core=%.1f", Z_core);
+			fprintf(fOut, "\tnr_core=%u", CoreColCount);
 			fprintf(fOut, "\n");
 			}
 		}

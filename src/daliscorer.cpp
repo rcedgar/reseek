@@ -87,6 +87,7 @@ void DALIScorer::LoadChains(const string &FN)
 
 void DALIScorer::SetCore()
 	{
+	m_CoreColCount = 0;
 	const SeqDB &MSA = *m_MSA;
 	m_ColIsCore.clear();
 	const uint SeqCount = MSA.GetSeqCount();
@@ -99,7 +100,10 @@ void DALIScorer::SetCore()
 		uint nl = MSA.GetLowerCount(Col);
 		if (nu != 0 && nl != 0)
 			Die("Mixed case");
-		m_ColIsCore.push_back(n <= MaxGaps && nl == 0);
+		bool IsCore =  n <= MaxGaps && nl == 0;
+		if (IsCore)
+			++m_CoreColCount;
+		m_ColIsCore.push_back(IsCore);
 		}
 	}
 
