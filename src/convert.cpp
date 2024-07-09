@@ -11,23 +11,36 @@ static FILE *s_fFeatureFasta;
 static FEATURE GetFeatureFromCmdLine()
 	{
 	string Alpha = "Mu";
-	FEATURE Feat = FEATURE_Combo;
+	FEATURE Feat = FEATURE(FEATURE_COUNT);
 	if (optset_alpha)
 		Alpha = opt_alpha;
+	if (Alpha == "NENConf3")
+		Alpha = "NbrSS3";
+	else if (Alpha == "RENDist4")
+		Alpha = "RevNbrDist4";
 
+	//ComboFeatures.push_back(FEATURE_SS3);
+	//ComboFeatures.push_back(FEATURE_NbrSS3);
+	//ComboFeatures.push_back(FEATURE_RevNbrDist4);
 #define c(x, y)	if (Alpha == #x) Alpha = #y;
 	c(Conf3, SS3);
+	c(NbrSS3, NbrSS3);
+	c(RevNbrDist4, RevNbrDist4);
 	c(Conf4, SS);
 	c(Conf16, MySS);
 	c(NENConf16, NbrMySS);
 	c(RENConf16, RevNbrMySS);
 	c(NENDist16, NbrDist);
 	c(RENDist16, RevNbrDist);
+	c(RENDist4, RevNbrDist4);
 #undef c
 
 #define F(x) if (Alpha == #x) Feat = FEATURE_##x;
 #include "intfeatures.h"
 #undef F
+
+	if (Feat == FEATURE(FEATURE_COUNT))
+		Die("Invalid -alpha %s", opt_alpha);
 
 	return Feat;
 	}
@@ -44,8 +57,8 @@ void cmd_convert()
 	DSSParams Params;
 	DSS D;
 	uint AlphaSize = 0;
-	FEATURE Feat = FEATURE(0);
-	if (s_fFeatureFasta != 0)
+	FEATURE Feat = FEATURE(FEATURE_COUNT);
+	if (optset_feature_fasta != 0)
 		{
 		Params.SetFromCmdLine(10000);
 		Feat = GetFeatureFromCmdLine();

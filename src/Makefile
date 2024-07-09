@@ -28,7 +28,6 @@ HDRS = \
   binner.h \
   calibratesearcher.h \
   calibratesearcher2.h \
-  calibratesearcher3.h \
   chainreader2.h \
   cigar.h \
   cigar_template.h \
@@ -36,9 +35,11 @@ HDRS = \
   combomx.h \
   counters.h \
   crc32.h \
+  daliscorer.h \
   dbsearcher.h \
   deflate.h \
   derepper.h \
+  distmxsearcher.h \
   dss.h \
   dssaligner.h \
   dssp.h \
@@ -117,13 +118,17 @@ OBJS = \
   $(OBJDIR)/calibrate4.o \
   $(OBJDIR)/calibrate5.o \
   $(OBJDIR)/calibratesearcher.o \
-  $(OBJDIR)/calibratesearcher3.o \
   $(OBJDIR)/chainreader2.o \
   $(OBJDIR)/cif.o \
   $(OBJDIR)/cigar.o \
+  $(OBJDIR)/cluster.o \
   $(OBJDIR)/convert.o \
+  $(OBJDIR)/daliscorer.o \
+  $(OBJDIR)/daliscore_msas2.o \
   $(OBJDIR)/daliscore_msa.o \
+  $(OBJDIR)/daliscore_msas.o \
   $(OBJDIR)/daliscore_tsv.o \
+  $(OBJDIR)/distmx.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/profileloader.o \
   $(OBJDIR)/md5.o \
@@ -139,6 +144,7 @@ OBJS = \
   $(OBJDIR)/readhits.o \
   $(OBJDIR)/runquery.o \
   $(OBJDIR)/runself.o \
+  $(OBJDIR)/runthreads.o \
   $(OBJDIR)/scop40bit.o \
   $(OBJDIR)/search.o \
   $(OBJDIR)/combomx.o \
