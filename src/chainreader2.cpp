@@ -79,6 +79,8 @@ PDBChain *ChainReader2::GetNext()
 	{
 	m_Lock.lock();
 	PDBChain *Chain = GetNextLo1();
+	if (Chain != 0)
+		Chain->m_Idx = m_ChainCount++;
 	m_Lock.unlock();
 	return Chain;
 	}

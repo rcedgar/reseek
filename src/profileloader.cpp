@@ -45,6 +45,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_KmerBitsVec != 0) D.GetComboKmerBits(Kmers, *KmerBits);
 
 		m_Lock.lock();
+		Chain->m_Idx = SIZE(*m_Chains);
 		if (m_Chains != 0) m_Chains->push_back(Chain);
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
 		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);

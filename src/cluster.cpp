@@ -7,7 +7,6 @@
 #include "cigar.h"
 #include "timing.h"
 #include "sort.h"
-#include "runthreads.h"
 #include <thread>
 
 static void USort1(DBSearcher &DBS,  uint MinU,
@@ -18,8 +17,13 @@ static void USort1(DBSearcher &DBS,  uint MinU,
 	if (MinU == 0)
 		{
 		Order.clear();
+		DBChainIndexes.clear();
 		for (uint Idx = 0; Idx < DBSize; ++Idx)
+			{
 			Order.push_back(Idx);
+			DBChainIndexes.push_back(Idx);
+			}
+		return;
 		}
 
 	StartTimer(USort);
@@ -184,10 +188,13 @@ void cmd_cluster()
 	DBSearcher DBS;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
-	Params.m_MaxRejects = 128;
-	Params.m_MinU = 0;
-	Params.m_MaxAccepts = 1;
-	Params.m_MaxRejects = UINT_MAX;
+
+#define p(x, y, d)	{ if (optset_##x) Params.m_##y = opt_##x; else Params.m_##y = d; }
+	p(maxaccepts, MaxAccepts, 1)
+	p(maxrejects, MaxRejects, 128)
+	p(minu, MinU, 0)
+#undef p
+
 	DBS.m_Params = &Params;
 
 	DBS.InitEmpty();

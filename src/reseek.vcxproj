@@ -297,6 +297,7 @@
     <ClCompile Include="daliscore_msas.cpp" />
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="deflate.c" />
+    <ClCompile Include="distmx.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -408,6 +409,7 @@
     <ClInclude Include="dbsearcher.h" />
     <ClInclude Include="deflate.h" />
     <ClInclude Include="derepper.h" />
+    <ClInclude Include="distmxsearcher.h" />
     <ClInclude Include="dss.h" />
     <ClInclude Include="dssaligner.h" />
     <ClInclude Include="dssp.h" />
@@ -436,7 +438,6 @@
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
     <ClInclude Include="profileloader.h" />
-    <ClInclude Include="runthreads.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqinfo.h" />

@@ -46,5 +46,6 @@ C(daliscore_tsv)
 C(scan_files)
 C(bca_stats)
 C(cluster)
+C(distmx)
 
 #undef C

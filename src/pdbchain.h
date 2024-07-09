@@ -14,6 +14,7 @@ public:
 	vector<float> m_Xs;
 	vector<float> m_Ys;
 	vector<float> m_Zs;
+	uint m_Idx = UINT_MAX;
 
 public:
 	~PDBChain() { Clear(); }

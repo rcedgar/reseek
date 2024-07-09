@@ -418,6 +418,9 @@ bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
 
+typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
+void RunThreads(fn_thread_body Body, void *ptrUserData);
+
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()
 #else

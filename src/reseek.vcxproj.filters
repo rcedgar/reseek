@@ -386,6 +386,9 @@
     <ClCompile Include="runthreads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="distmx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -634,7 +637,7 @@
     <ClInclude Include="daliscorer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="runthreads.h">
+    <ClInclude Include="distmxsearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
