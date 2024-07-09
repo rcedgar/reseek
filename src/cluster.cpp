@@ -7,6 +7,7 @@
 #include "cigar.h"
 #include "timing.h"
 #include "sort.h"
+#include "runthreads.h"
 #include <thread>
 
 static void USort1(DBSearcher &DBS,  uint MinU,
@@ -43,10 +44,6 @@ static void USort1(DBSearcher &DBS,  uint MinU,
 		}
 	else
 		Order.clear();
-	}
-
-static void ThreadBody(uint ThreadIndex, void *ptrUserData)
-	{
 	}
 
 static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
@@ -115,6 +112,71 @@ static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
 	return TopHit;
 	}
 
+struct ThreadUserData
+	{
+	atomic<uint> *ptrInputCount = 0;
+	DBSearcher *ptrDBS = 0;
+	ChainReader2 *ptrCR = 0;
+	};
+
+static void ThreadBody(uint ThreadIndex, void *ptrUserData)
+	{
+	static atomic<time_t> LastTime;
+	static mutex Lock;
+
+	ThreadUserData *ptrUD  = (ThreadUserData *) ptrUserData;
+	DBSearcher &DBS = *ptrUD->ptrDBS;
+	ChainReader2 &CR = *ptrUD->ptrCR;
+	atomic<uint> &InputCount = *ptrUD->ptrInputCount;
+
+	const DSSParams &Params = *DBS.m_Params;
+	DSS D;
+	D.SetParams(Params);
+
+	DSSAligner DA;
+	DA.m_Params = &Params;
+
+
+	vector<byte> ComboLettersQ;
+	vector<uint> KmersQ;
+	vector<uint> KmerBitsQ;
+	uint ClusterCount = 0;
+	vector<vector<byte> > ProfileQ;
+	for (;;)
+		{
+		PDBChain *ptrChainQ = CR.GetNext();
+		if (ptrChainQ == 0)
+			break;
+		Lock.lock();
+		time_t Now = time(0);
+		if (Now - LastTime > 0)
+			{
+			ClusterCount = DBS.GetDBChainCount();
+			Progress("%s chains, %u clusters\r",
+			  IntToStr(InputCount), ClusterCount);
+			LastTime = Now;
+			}
+		Lock.unlock();
+
+		D.Init(*ptrChainQ);
+		D.GetProfile(ProfileQ);
+		D.GetComboLetters(ComboLettersQ);
+		D.GetComboKmers(ComboLettersQ, KmersQ);
+		D.GetComboKmerBits(KmersQ, KmerBitsQ);
+
+		++InputCount;
+		uint TopHit = 
+		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, ComboLettersQ, KmerBitsQ);
+		if (TopHit == UINT_MAX)
+			{
+			vector<vector<byte> > *ptrProfileQ = new vector<vector<byte> >(ProfileQ);
+			vector<byte> *ptrComboLettersQ = new vector<byte>(ComboLettersQ);
+			vector<uint> *ptrKmerBitsQ = new vector<uint>(KmerBitsQ);
+			DBS.AddChain(ptrChainQ, ptrProfileQ, ptrComboLettersQ, ptrKmerBitsQ);
+			}
+		}
+	}
+
 void cmd_cluster()
 	{
 	const string &QFN = g_Arg1;
@@ -136,55 +198,18 @@ void cmd_cluster()
 
 	DBS.m_fTsv = CreateStdioFile(opt_output);
 
-	DSS D;
-	D.SetParams(Params);
-
-	DSSAligner DA;
-	DA.m_Params = &Params;
-
 	ChainReader2 CR;
 	CR.Open(QFN);
 
-	uint InputCount = 0;
-	uint ClusterCount = 0;
-	time_t LastTime = 0;
-	vector<byte> ComboLettersQ;
-	vector<uint> KmersQ;
-	vector<uint> KmerBitsQ;
-	vector<vector<byte> > ProfileQ;
-	for (;;)
-		{
-		PDBChain *ptrChainQ = CR.GetNext();
-		if (ptrChainQ == 0)
-			break;
-		time_t Now = time(0);
-		if (Now - LastTime > 0)
-			{
-			Progress("%s chains, %u clusters\r",
-			  IntToStr(InputCount), ClusterCount);
-			LastTime = Now;
-			}
+	atomic<uint> InputCount;
+	ThreadUserData UD;
+	UD.ptrInputCount = &InputCount;
+	UD.ptrDBS = &DBS;
+	UD.ptrCR = &CR;
+	RunThreads(ThreadBody, (void *) &UD);
 
-		D.Init(*ptrChainQ);
-		D.GetProfile(ProfileQ);
-		D.GetComboLetters(ComboLettersQ);
-		D.GetComboKmers(ComboLettersQ, KmersQ);
-		D.GetComboKmerBits(KmersQ, KmerBitsQ);
-
-		++InputCount;
-		uint TopHit = 
-		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, ComboLettersQ, KmerBitsQ);
-		if (TopHit == UINT_MAX)
-			{
-			vector<vector<byte> > *ptrProfileQ = new vector<vector<byte> >(ProfileQ);
-			vector<byte> *ptrComboLettersQ = new vector<byte>(ComboLettersQ);
-			vector<uint> *ptrKmerBitsQ = new vector<uint>(KmerBitsQ);
-			DBS.AddChain(ptrChainQ, ptrProfileQ, ptrComboLettersQ, ptrKmerBitsQ);
-			++ClusterCount;
-			}
-		}
-	ProgressLog("%s chains, %u clusters\n",
-	  IntToStr(InputCount), ClusterCount);
+	uint ClusterCount = DBS.GetDBChainCount();
+	ProgressLog("%s chains, %u clusters\n", IntToStr(InputCount), ClusterCount);
 
 	CloseStdioFile(DBS.m_fTsv);
 	}
