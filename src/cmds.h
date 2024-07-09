@@ -45,5 +45,6 @@ C(daliscore_msas2)
 C(daliscore_tsv)
 C(scan_files)
 C(bca_stats)
+C(cluster)
 
 #undef C

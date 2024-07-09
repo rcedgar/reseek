@@ -380,6 +380,12 @@
     <ClCompile Include="daliscore_msas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cluster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runthreads.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -626,6 +632,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="daliscorer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runthreads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

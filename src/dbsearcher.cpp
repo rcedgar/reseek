@@ -131,6 +131,22 @@ void DBSearcher::RunStats() const
 	Log("QP cache hits %u, misses %u\n", Hits, Misses);
 	}
 
+void DBSearcher::AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
+  vector<byte> *ptrComboLetters, vector<uint> *ptrKmerBits)
+	{
+	m_DBChains.push_back(ptrChain);
+	m_DBProfiles.push_back(ptrProfile);
+	m_DBComboLettersVec.push_back(ptrComboLetters);
+	m_DBKmerBitsVec.push_back(ptrKmerBits);
+	}
+
+void DBSearcher::InitEmpty()
+	{
+// Initialized by c'tor, nothing to do here because
+//   we assume object is never re-used
+	asserta(SIZE(m_DBChains) == 0);
+	}
+
 void DBSearcher::Setup()
 	{
 	if (optset_evalue)

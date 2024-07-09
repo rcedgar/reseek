@@ -288,6 +288,7 @@
     <ClCompile Include="chainreader2.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
+    <ClCompile Include="cluster.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="daliscorer.cpp" />
@@ -317,6 +318,7 @@
     <ClCompile Include="readhits.cpp" />
     <ClCompile Include="runquery.cpp" />
     <ClCompile Include="runself.cpp" />
+    <ClCompile Include="runthreads.cpp" />
     <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="combomx.cpp" />
@@ -434,6 +436,7 @@
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
     <ClInclude Include="profileloader.h" />
+    <ClInclude Include="runthreads.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqinfo.h" />

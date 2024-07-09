@@ -67,7 +67,7 @@ public:
 
 public:
 	void Setup();
-
+	void InitEmpty();
 	void LoadDB(const string &DBFN);
 	uint GetDBChainCount() const { return SIZE(m_DBChains); }
 
@@ -81,9 +81,11 @@ public:
 
 	uint GetDBSize() const;
 	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
-	void USort(const vector<uint> &QueryKmerBits, vector<uint> &Idxs,
-	  vector<uint> &DBChainIndexes);
+	void USort(const vector<uint> &QueryKmerBits,
+	  vector<uint> &TargetIdxs, vector<uint> &Order);
 	void RunStats() const;
+	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
+	  vector<byte> *ptrComboLetters, vector<uint> *ptrKmerBits);
 
 #if SLOPE_CALIB
 // Slope calibrated runtime
@@ -117,3 +119,5 @@ public:
 	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
 	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS);
 	};
+
+uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
