@@ -118,7 +118,7 @@ void cmd_convert()
 		delete ptrChain;
 		}
 	ProgressLog("%s chains, %.1f%% too short (min %u, shortest %u)\n",
-		IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength, Shortest);
+		IntToStr(Converted), GetPct(TooShort, InputCount), MinChainLength, Shortest);
 
 	ProgressLog("\n");
 	ProgressLog("%10u Input chains (%s)\n",
