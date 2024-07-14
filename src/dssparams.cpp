@@ -61,7 +61,8 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 
 	InitScoreMxs();
 	WriteSummary(g_fLog);
-	WriteSummary(stderr);
+	if (!opt_quiet)
+		WriteSummary(stderr);
 	}
 
 void DSSParams::FromTsv(const string &FileName)
