@@ -59,6 +59,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 	case UF_thi:	fprintf(f, "%u", GetHi(!Up) + 1); break;
 	case UF_pctid:	fprintf(f, "%.1f", GetPctId()); break;
 	case UF_ts:		fprintf(f, "%.3g", GetTestStatistic(Up)); break;
+	case UF_ts2:	fprintf(f, "%.3g", GetAvgTestStatistic()); break;
 
 	case UF_cigar:
 		{

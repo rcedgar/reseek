@@ -153,6 +153,7 @@ public:
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
 	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
+	float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
