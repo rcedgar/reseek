@@ -21,7 +21,6 @@ FPR
 	= P(predicted_false | false)
 	= FP / (FP + TN)
 	= FP / NF
-
 ***/
 
 uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
@@ -198,6 +197,21 @@ void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 			BinScores[Bin] = Score;
 			}
 		}
+
+	float LastEPQ = 0;
+	for (uint Bin = 0; Bin < N; ++Bin)
+		{
+		float EPQ = EPQs[Bin];
+		if (EPQ < 0)
+			EPQs[Bin] = LastEPQ;
+		else
+			LastEPQ = EPQ;
+		}
+
+	if (1)
+	{
+	}
+
 	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{

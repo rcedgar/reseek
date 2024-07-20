@@ -3,17 +3,67 @@
 #include "chainreader2.h"
 #include "binner.h"
 #include "timing.h"
+#include "sort.h"
 #include <set>
 
 /***
 * -calibrate3
-* Calculate accumulated per-chain count bins for TS values.
-* 32 bins, TS range -0.1 .. 0.3, written to -calib_output calibrate3.tsv
-* Used by -calibrate4 to attempt similar linear fitting found to work
-* well for all chains with supervised FPs. 
-* Empirically, results are terrible.
+* Calculate per-chain count bins for TS values.
 ***/
 
+void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f) const
+	{
+	if (f == 0)
+		return;
+
+	const uint DomCount = GetDomCount();
+	vector<vector<float> > DomIdxToTPs(DomCount);
+	vector<vector<float> > DomIdxToFPs(DomCount);
+	const uint HitCount = GetHitCount();
+	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
+		{
+		uint DomIdx1 = m_DomIdx1s[HitIdx];
+		uint DomIdx2 = m_DomIdx2s[HitIdx];
+		if (DomIdx1 == DomIdx2)
+			continue;
+		float TS = m_TSs[HitIdx];
+		bool T = IsT(DomIdx1, DomIdx2);
+		if (T)
+			DomIdxToTPs[DomIdx1].push_back(TS);
+		else
+			DomIdxToFPs[DomIdx1].push_back(TS);
+		}
+
+	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
+		{
+		const string &Dom = m_Doms[DomIdx];
+		vector<float> &TPs = DomIdxToTPs[DomIdx];
+		vector<float> &FPs = DomIdxToFPs[DomIdx];
+		const uint NTP = SIZE(TPs);
+		const uint NFP = SIZE(FPs);
+		if (NTP > 0)
+			QuickSortInPlaceDesc(TPs.data(), SIZE(TPs));
+		if (NFP > 0)
+			QuickSortInPlaceDesc(FPs.data(), SIZE(FPs));
+		fprintf(f, "%s\ttps=", Dom.c_str());
+		for (uint i = 0; i < min(NFP, 10u); ++i)
+			{
+			if (i > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.3g", TPs[i]);
+			}
+		fprintf(f, "\tfps=");
+		for (uint i = 0; i < min(NFP, 10u); ++i)
+			{
+			if (i > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.3g", FPs[i]);
+			}
+		fprintf(f, "\n");
+		}
+	}
+
+ //32 bins, TS range 0.0 to 0.3, written to -calib_output calibrate3.tsv
 void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
   uint BinCount, float TSlo, float TShi) const
 	{

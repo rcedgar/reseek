@@ -48,7 +48,8 @@ public:
 
 // Per-domain calibration
 	void WriteSlopeCalibOutput(FILE *f,
-  uint BinCount, float TSlo, float TShi) const;
+	  uint BinCount, float TSlo, float TShi) const;
+	void WriteTopFPsBottomTPs(FILE *f) const;
 	};
 
 static const uint NOUTLIERS = 3;
