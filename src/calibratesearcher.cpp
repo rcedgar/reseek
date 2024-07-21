@@ -50,6 +50,8 @@ void CalibrateSearcher::OnAln(DSSAligner &DA, bool Up)
 	asserta(ChainIndex2 < SIZE(m_TestStatsVec));
 	vector<float> &v = m_TestStatsVec[ChainIndex2];
 	v.push_back(TS);
+
+	SCOP40Bench::OnAln(DA, Up);
 	}
 
 void CalibrateSearcher::SetAllAccum()

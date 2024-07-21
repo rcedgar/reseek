@@ -10,8 +10,7 @@
 * -calibrate3
 * Calculate per-chain count bins for TS values.
 ***/
-
-void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f) const
+void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f, uint n) const
 	{
 	if (f == 0)
 		return;
@@ -42,18 +41,20 @@ void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f) const
 		const uint NTP = SIZE(TPs);
 		const uint NFP = SIZE(FPs);
 		if (NTP > 0)
-			QuickSortInPlaceDesc(TPs.data(), SIZE(TPs));
+			QuickSortInPlace(TPs.data(), NTP);
 		if (NFP > 0)
-			QuickSortInPlaceDesc(FPs.data(), SIZE(FPs));
+			QuickSortInPlaceDesc(FPs.data(), NFP);
+
 		fprintf(f, "%s\ttps=", Dom.c_str());
-		for (uint i = 0; i < min(NFP, 10u); ++i)
+		for (uint i = 0; i < min(NTP, n); ++i)
 			{
 			if (i > 0)
 				fprintf(f, ",");
 			fprintf(f, "%.3g", TPs[i]);
 			}
+
 		fprintf(f, "\tfps=");
-		for (uint i = 0; i < min(NFP, 10u); ++i)
+		for (uint i = 0; i < min(NFP, n); ++i)
 			{
 			if (i > 0)
 				fprintf(f, ",");
@@ -132,7 +133,7 @@ void cmd_calibrate3()
 
 	ChainReader2 QCR;
 	QCR.Open(QFN);
-	DBS.RunQuery(QCR);
+	DBS.RunSelf();
 
 	DSSAligner::Stats();
 
@@ -140,6 +141,14 @@ void cmd_calibrate3()
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output);
 		DBS.WriteSlopeCalibOutput(fOut, 33, 0, 0.3f);
+		CloseStdioFile(fOut);
+		}
+
+	if (optset_calib_output2)
+		{
+		FILE *fOut = CreateStdioFile(opt_calib_output2);
+		DBS.m_Level = string("sf");
+		DBS.WriteTopFPsBottomTPs(fOut);
 		CloseStdioFile(fOut);
 		}
 	}
