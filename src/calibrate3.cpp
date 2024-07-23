@@ -10,10 +10,23 @@
 * -calibrate3
 * Calculate per-chain TP and FP count bins for TS values.
 ***/
-void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f, uint n) const
+void CalibrateSearcher::WriteTP_FP_TSBins(FILE *f, uint BinCount,
+  float TSlo, float TShi) const
 	{
 	if (f == 0)
 		return;
+
+// Mid-point TS values for bins
+	vector<float> Mids;
+	const vector<float> &TSs_0 = m_TestStatsVec[0];
+	Binner<float> B0(TSs_0, BinCount, TSlo, TShi);
+	const vector<uint> &Bins0 = B0.GetBins();
+	fprintf(f, "TS");
+	for (uint Bin = 0; Bin < BinCount; ++Bin)
+		fprintf(f, "\tTP%.3g", B0.GetBinMid(Bin));
+	for (uint Bin = 0; Bin < BinCount; ++Bin)
+		fprintf(f, "\tFP%.3g", B0.GetBinMid(Bin));
+	fprintf(f, "\n");
 
 	const uint DomCount = GetDomCount();
 	vector<vector<float> > DomIdxToTPs(DomCount);
@@ -40,33 +53,27 @@ void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f, uint n) const
 		vector<float> &FPs = DomIdxToFPs[DomIdx];
 		const uint NTP = SIZE(TPs);
 		const uint NFP = SIZE(FPs);
-		if (NTP > 0)
-			QuickSortInPlace(TPs.data(), NTP);
-		if (NFP > 0)
-			QuickSortInPlaceDesc(FPs.data(), NFP);
-
-		fprintf(f, "%s\ttps=", Dom.c_str());
-		for (uint i = 0; i < min(NTP, n); ++i)
+		Binner<float> TPB(TPs, BinCount, TSlo, TShi);
+		Binner<float> FPB(FPs, BinCount, TSlo, TShi);
+		const vector<uint> &TPBins = TPB.GetBins();
+		const vector<uint> &FPBins = FPB.GetBins();
+		fprintf(f, "%s", Dom.c_str());
+		for (uint Bin = 0; Bin < BinCount; ++Bin)
 			{
-			if (i > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.3g", TPs[i]);
+			uint n = TPBins[Bin];
+			fprintf(f, "\t%u", n);
 			}
-
-		fprintf(f, "\tfps=");
-		for (uint i = 0; i < min(NFP, n); ++i)
+		for (uint Bin = 0; Bin < BinCount; ++Bin)
 			{
-			if (i > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.3g", FPs[i]);
+			uint n = FPBins[Bin];
+			fprintf(f, "\t%u", n);
 			}
 		fprintf(f, "\n");
 		}
 	}
 
- //32 bins, TS range 0.0 to 0.3, written to -calib_output calibrate3.tsv
-void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
-  uint BinCount, float TSlo, float TShi) const
+void CalibrateSearcher::WriteTSBins(FILE *f, uint BinCount,
+  float TSlo, float TShi) const
 	{
 	if (f == 0)
 		return;
@@ -76,7 +83,6 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
 	const vector<float> &TSs_0 = m_TestStatsVec[0];
 	Binner<float> B(TSs_0, BinCount, TSlo, TShi);
 	const vector<uint> &Bins = B.GetBins();
-	//B.GetAccumBinsReverse(Bins);
 	fprintf(f, "TS");
 	for (uint Bin = 0; Bin < BinCount; ++Bin)
 		fprintf(f, "\t%.3g", B.GetBinMid(Bin));
@@ -86,13 +92,9 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
 	for (uint i = 0; i < NR; ++i)
 		{
 		const char *Label = m_DBChains[i]->m_Label.c_str();
-
 		const vector<float> &TSs_i = m_TestStatsVec[i];
-
 		Binner<float> B(TSs_i, BinCount, TSlo, TShi);
-
 		const vector<uint> &Bins = B.GetBins();
-
 		fprintf(f, "%s", Label);
 		for (uint Bin = 0; Bin < BinCount; ++Bin)
 			{
@@ -120,7 +122,6 @@ void cmd_calibrate3()
 	const uint BIN_COUNT = 20;
 	const float MIN_TS = 0.0f;
 	const float MAX_TS = 0.8f;
-	const uint NXP = 8;
 
 	const string &QFN = g_Arg1;
 	const string &DBFN = g_Arg1;
@@ -142,7 +143,7 @@ void cmd_calibrate3()
 	if (optset_calib_output)
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output);
-		DBS.WriteSlopeCalibOutput(fOut, BIN_COUNT, MIN_TS, MAX_TS);
+		DBS.WriteTSBins(fOut, BIN_COUNT, MIN_TS, MAX_TS);
 		CloseStdioFile(fOut);
 		}
 
@@ -150,7 +151,7 @@ void cmd_calibrate3()
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output2);
 		DBS.m_Level = string("sf");
-		DBS.WriteTopFPsBottomTPs(fOut, NXP);
+		DBS.WriteTP_FP_TSBins(fOut, BIN_COUNT, MIN_TS, MAX_TS);
 		CloseStdioFile(fOut);
 		}
 	}

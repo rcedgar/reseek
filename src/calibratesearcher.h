@@ -47,9 +47,8 @@ public:
 	void WriteBins(FILE *f) const;
 
 // Per-domain calibration
-	void WriteSlopeCalibOutput(FILE *f,
-	  uint BinCount, float TSlo, float TShi) const;
-	void WriteTopFPsBottomTPs(FILE *f, uint n) const;
+	void WriteTSBins(FILE *f, uint BinCount, float TSlo, float TShi) const;
+	void WriteTP_FP_TSBins(FILE *f, uint BinCount, float TSlo, float TShi) const;
 	};
 
 static const uint NOUTLIERS = 3;
