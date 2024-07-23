@@ -8,7 +8,7 @@
 
 /***
 * -calibrate3
-* Calculate per-chain count bins for TS values.
+* Calculate per-chain TP and FP count bins for TS values.
 ***/
 void CalibrateSearcher::WriteTopFPsBottomTPs(FILE *f, uint n) const
 	{
@@ -86,9 +86,11 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
 	for (uint i = 0; i < NR; ++i)
 		{
 		const char *Label = m_DBChains[i]->m_Label.c_str();
+
 		const vector<float> &TSs_i = m_TestStatsVec[i];
+
 		Binner<float> B(TSs_i, BinCount, TSlo, TShi);
-		//B.GetAccumBinsReverse(Bins);
+
 		const vector<uint> &Bins = B.GetBins();
 
 		fprintf(f, "%s", Label);
@@ -101,11 +103,6 @@ void CalibrateSearcher::WriteSlopeCalibOutput(FILE *f,
 		}
 	}
 
-/***
-* Measure TS distribution.
-* Unsupervised, includes TPs at high scores.
-* Linear fit in calibrate4.
-***/
 void cmd_calibrate3()
 	{
 	if (optset_output)
@@ -119,6 +116,11 @@ void cmd_calibrate3()
 
 	optset_evalue = true;
 	opt_evalue = 10;
+
+	const uint BIN_COUNT = 20;
+	const float MIN_TS = 0.0f;
+	const float MAX_TS = 0.8f;
+	const uint NXP = 8;
 
 	const string &QFN = g_Arg1;
 	const string &DBFN = g_Arg1;
@@ -140,7 +142,7 @@ void cmd_calibrate3()
 	if (optset_calib_output)
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output);
-		DBS.WriteSlopeCalibOutput(fOut, 33, 0, 0.3f);
+		DBS.WriteSlopeCalibOutput(fOut, BIN_COUNT, MIN_TS, MAX_TS);
 		CloseStdioFile(fOut);
 		}
 
@@ -148,7 +150,7 @@ void cmd_calibrate3()
 		{
 		FILE *fOut = CreateStdioFile(opt_calib_output2);
 		DBS.m_Level = string("sf");
-		DBS.WriteTopFPsBottomTPs(fOut);
+		DBS.WriteTopFPsBottomTPs(fOut, NXP);
 		CloseStdioFile(fOut);
 		}
 	}
