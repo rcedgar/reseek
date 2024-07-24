@@ -18,6 +18,7 @@ public:
 	vector<uint32_t> m_AllBins;
 	vector<uint32_t> m_AllAccum;
 	vector<vector<float> > m_TestStatsVec;
+	vector<uint> m_HitChainIdxs;
 
 	double m_NormalMean = 0;
 	double m_NormalSigma = 0;
@@ -47,8 +48,10 @@ public:
 	void WriteBins(FILE *f) const;
 
 // Per-domain calibration
-	void WriteTSBins(FILE *f, uint BinCount, float TSlo, float TShi) const;
-	void WriteTP_FP_TSBins(FILE *f, uint BinCount, float TSlo, float TShi) const;
+	void WriteTSBins(const string &FN, uint BinCount, float TSlo, float TShi) const;
+	void GetTSBins(uint BinCount, float TSlo, float TShi, vector<float> &Mids,
+	  vector<string> &Labels, vector<vector<uint> > &BinsVec) const;
+	void WriteTP_FP_TSBins(const string &FN, uint BinCount, float TSlo, float TShi) const;
 	};
 
 static const uint NOUTLIERS = 3;

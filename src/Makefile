@@ -116,7 +116,6 @@ OBJS = \
   $(OBJDIR)/calibrate2.o \
   $(OBJDIR)/calibrate3.o \
   $(OBJDIR)/calibrate4.o \
-  $(OBJDIR)/calibrate5.o \
   $(OBJDIR)/calibratesearcher.o \
   $(OBJDIR)/chainreader2.o \
   $(OBJDIR)/cif.o \
@@ -182,6 +181,7 @@ OBJS = \
   $(OBJDIR)/swgaplessint.o \
   $(OBJDIR)/swgaplessprof.o \
   $(OBJDIR)/swgaplessprofb.o \
+  $(OBJDIR)/testmodel.o \
   $(OBJDIR)/test_para.o \
   $(OBJDIR)/test_para_cal.o \
   $(OBJDIR)/test_para_path.o \
