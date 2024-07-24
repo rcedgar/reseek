@@ -46,5 +46,6 @@ C(scan_files)
 C(bca_stats)
 C(cluster)
 C(distmx)
+C(testmodel)
 
 #undef C
