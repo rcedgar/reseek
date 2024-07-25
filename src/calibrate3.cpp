@@ -186,6 +186,7 @@ static void Output(FILE *f,
   const vector<vector<uint> > &BinsVec,
   const vector<uint> &XPs, bool T)
 	{
+	const char Tc = (T ? '1' : '0');
 	const uint NXP = SIZE(XPs);
 	for (uint i = 0; i < NXP; ++i)
 		{
@@ -213,7 +214,7 @@ static void Output(FILE *f,
 		asserta(SIZE(Features) == BIN_COUNT+1);
 
 		fprintf(f, "%s", Label.c_str());
-		fprintf(f, "\t1");
+		fprintf(f, "\t%c", Tc);
 		fprintf(f, "\t%.3g", TS);
 		for (uint Bin = 0; Bin < BIN_COUNT+1; ++Bin)
 			fprintf(f, "\t%.3g", Features[Bin]);
