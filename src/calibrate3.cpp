@@ -209,12 +209,12 @@ static void Output(FILE *f,
 
 		vector<float> Features;
 		GetFeatures(NoisyBins, Features);
-		asserta(SIZE(Features) == BIN_COUNT+1);
+		asserta(SIZE(Features) == BIN_COUNT);
 
 		fprintf(f, "%s", Label.c_str());
 		fprintf(f, "\t%c", Tc);
 		fprintf(f, "\t%.3g", TS);
-		for (uint Bin = 0; Bin < BIN_COUNT+1; ++Bin)
+		for (uint Bin = 0; Bin < BIN_COUNT; ++Bin)
 			fprintf(f, "\t%.3g", Features[Bin]);
 		fprintf(f, "\n");
 		}
