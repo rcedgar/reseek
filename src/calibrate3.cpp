@@ -176,8 +176,6 @@ static void GetFeatures(const vector<uint> &Bins, vector<float> &Features)
 	float FM = float(maxn) + 1;
 	for (uint i = 0; i < N; ++i)
 		Features.push_back(Bins[i]/FM);
-	float scale = 1.0f/log10f(maxn+10.0f);
-	Features.push_back(scale*scale);
 	}
 
 static void Output(FILE *f,
@@ -329,7 +327,6 @@ void cmd_calibrate3()
 	fprintf(f, "\tTS");
 	for (uint Bin = 0; Bin < BIN_COUNT; ++Bin)
 		fprintf(f, "\tF%u", Bin);
-	fprintf(f, "\tscale");
 	fprintf(f, "\n");
 
 	for (uint TSBin = 0; TSBin <= 10; ++TSBin)
