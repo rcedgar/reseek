@@ -241,7 +241,8 @@ void cmd_calibrate3()
 	const uint BIN_COUNT = 16;
 	const float MIN_TS = 0.0f;
 	const float MAX_TS = 1.0f;
-	const uint MAX_HITS_PER_TS_BIN = 1000;
+	const uint MAX_HITS_PER_TS_BIN_TP = 1000;
+	const uint MAX_HITS_PER_TS_BIN_FP = 5000;
 	const uint MIN_HITS_PER_TS_BIN = 100;
 	const uint NOISE_PCT = 20;
 
@@ -296,8 +297,8 @@ void cmd_calibrate3()
 			Shuffle(FPs);
 
 		double FractionTrue = double(NTP)/double(N);
-		uint SampledNTP = uint(FractionTrue*MAX_HITS_PER_TS_BIN);
-		uint SampledNFP = uint((1 - FractionTrue)*MAX_HITS_PER_TS_BIN);
+		uint SampledNTP = uint(FractionTrue*MAX_HITS_PER_TS_BIN_TP);
+		uint SampledNFP = uint((1 - FractionTrue)*MAX_HITS_PER_TS_BIN_FP);
 
 		if (SampledNTP < MIN_HITS_PER_TS_BIN)
 			SampledNTP = MIN_HITS_PER_TS_BIN;
