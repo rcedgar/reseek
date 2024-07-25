@@ -47,5 +47,6 @@ C(bca_stats)
 C(cluster)
 C(distmx)
 C(testmodel)
+C(testmodel2)
 
 #undef C

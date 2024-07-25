@@ -56,7 +56,7 @@ static const int ys[19] = {
 
 // y = x W^T + b
 //  W^T = transpose of weight matrix
-void forward(const vector<double> &x, vector<double> &yhat)
+static void forward(const vector<double> &x, vector<double> &yhat)
 	{
 	yhat.clear();
 	asserta(SIZE(x) == feature_count);

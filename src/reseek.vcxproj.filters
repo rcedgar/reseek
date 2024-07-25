@@ -389,6 +389,9 @@
     <ClCompile Include="testmodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testmodel2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
