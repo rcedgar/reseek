@@ -208,10 +208,6 @@ void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 			LastEPQ = EPQ;
 		}
 
-	if (1)
-	{
-	}
-
 	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{

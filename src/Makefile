@@ -128,6 +128,7 @@ OBJS = \
   $(OBJDIR)/daliscore_msas.o \
   $(OBJDIR)/daliscore_tsv.o \
   $(OBJDIR)/distmx.o \
+  $(OBJDIR)/evalue_report.o \
   $(OBJDIR)/explore1.o \
   $(OBJDIR)/profileloader.o \
   $(OBJDIR)/md5.o \
@@ -182,6 +183,7 @@ OBJS = \
   $(OBJDIR)/swgaplessprof.o \
   $(OBJDIR)/swgaplessprofb.o \
   $(OBJDIR)/testmodel.o \
+  $(OBJDIR)/testmodel2.o \
   $(OBJDIR)/test_para.o \
   $(OBJDIR)/test_para_cal.o \
   $(OBJDIR)/test_para_path.o \

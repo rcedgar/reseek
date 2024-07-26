@@ -53,7 +53,7 @@ linear_one_weight       2       17
 linear_one_bias 2       -2.9990 2.6514
 ***/
 
-static void ReadModel(const string &FN)
+void ReadNN(const string &FN)
 	{
 	FILE *f = OpenStdioFile(FN);
 	string Line;
@@ -65,6 +65,7 @@ static void ReadModel(const string &FN)
 	asserta(Fields[0] == "linear_one_weight");
 	asserta(Fields[1] == "2");
 	feature_count = StrToUint(Fields[2]);
+	asserta(feature_count == 17);
 
 	for (uint i = 0; i < 2; ++i)
 		{
@@ -89,9 +90,22 @@ static void ReadModel(const string &FN)
 	CloseStdioFile(f);
 	}
 
+double GetNNP(const vector<double> &x)
+	{
+	asserta(SIZE(x) == 17);
+	vector<double> yhat;
+	forward(x, yhat);
+	asserta(SIZE(yhat) == 2);
+
+	vector<double> ysm;
+	softmax(yhat, ysm);
+	asserta(SIZE(ysm) == 2);
+	return ysm[0];
+	}
+
 void cmd_testmodel2()
 	{
-	ReadModel(g_Arg1);
+	ReadNN(g_Arg1);
 	FILE *f = OpenStdioFile(opt_input);
 	string Line;
 	vector<string> Fields;

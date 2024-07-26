@@ -166,7 +166,7 @@ static void AddNoise(const vector<uint> &x,
 		y.push_back(AddNoise1(x[i], Pct));
 	}
 
-static void GetFeatures(const vector<uint> &Bins, vector<float> &Features)
+void GetFeatures(const vector<uint> &Bins, vector<float> &Features)
 	{
 	Features.clear();
 	const uint N = SIZE(Bins);
