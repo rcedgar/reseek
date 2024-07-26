@@ -96,6 +96,21 @@ static void log_softmax(const vector<double> &x, vector<double> &y)
 		y.push_back(x[i] - log(Sum));
 	}
 
+double GetPNN(uint Idx, double TS)
+	{
+	asserta(Idx < sample_count);
+	vector<double> x;
+	x.push_back(TS);
+	for (uint j = 1; j < feature_count; ++j)
+		x.push_back(sample_data[Idx][j]);
+	vector<double> yhat;
+	forward(x, yhat);
+
+	vector<double> ysm;
+	softmax(yhat, ysm);
+	return ysm[0];
+	}
+
 void cmd_testmodel()
 	{
 	for (uint i = 0; i < sample_count; ++i)

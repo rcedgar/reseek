@@ -297,6 +297,7 @@
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="deflate.c" />
     <ClCompile Include="distmx.cpp" />
+    <ClCompile Include="evalue_report.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />

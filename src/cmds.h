@@ -48,5 +48,6 @@ C(cluster)
 C(distmx)
 C(testmodel)
 C(testmodel2)
+C(evalue_report)
 
 #undef C

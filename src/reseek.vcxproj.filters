@@ -392,6 +392,9 @@
     <ClCompile Include="testmodel2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="evalue_report.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
