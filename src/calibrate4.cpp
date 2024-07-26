@@ -19,9 +19,15 @@ double GetNNP(const vector<double> &x);
 
 void cmd_calibrate4()
 	{
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
+
 	asserta(optset_model);
 	asserta(optset_input2);
 	asserta(optset_output);
+
+	const float m = 20.5f;
+	const float b = 2.9f;
 
 	ReadNN(opt_model);
 
@@ -73,7 +79,11 @@ d2gtlm1/b.61.7.1     167     419    196     38     10      2      2      0      
 		for (uint i = 0; i < 16; ++i)
 			x.push_back(double(Features[i]));
 		double P = GetNNP(x);
-		fprintf(fOut, "%s\t%s\t%.3g\n", Query.c_str(), Target.c_str(), P);
+		double E = 10000*(1 - P)*1e-6;
+		double Ed = Params.GetEvalue((float) TS);
+		if (Ed > 1.5) //works quite well
+			E = Ed;
+		fprintf(fOut, "%s\t%s\t%.3g\t%.3g\n", Query.c_str(), Target.c_str(), E, Ed);
 		}
 	CloseStdioFile(fOut);
 	}
