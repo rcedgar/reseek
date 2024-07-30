@@ -49,5 +49,6 @@ C(distmx)
 C(testmodel)
 C(testmodel2)
 C(evalue_report)
+C(mu_mapping)
 
 #undef C

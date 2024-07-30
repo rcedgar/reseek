@@ -334,9 +334,12 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 	vector<string> ChainLines;
 	char CurrChainChar = 0;
 	bool AnyAtoms = false;
+	bool EndOfChainFound = false;
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Line = Lines[i];
+		if (IsChainEndLine_PDB(Line))
+			EndOfChainFound = true;
 		if (IsATOMLine_PDB(Line))
 			{
 			if (Line.size() < 57)
@@ -353,11 +356,13 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 					else
 						Chains.push_back(Chain);
 					ChainLines.clear();
+					EndOfChainFound = false;
 					AnyAtoms = false;
 					}
 				CurrChainChar = ChainChar;
 				}
-			ChainLines.push_back(Line);
+			if (!EndOfChainFound)
+				ChainLines.push_back(Line);
 			AnyAtoms = true;
 			}
 		}
@@ -383,6 +388,13 @@ bool ChainReader2::IsATOMLine_PDB(const string &Line) const
 	if (SIZE(Line) < 27)
 		return false;
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
+		return true;
+	return false;
+	}
+
+bool ChainReader2::IsChainEndLine_PDB(const string &Line) const
+	{
+	if (StartsWith(Line, "TER ") || StartsWith(Line, "ENDMDL"))
 		return true;
 	return false;
 	}

@@ -74,6 +74,7 @@ private:
 	void ChainsFromLines_CIF(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
 	bool IsATOMLine_PDB(const string &Line) const;
+	bool IsChainEndLine_PDB(const string &Line) const;
 
 public:
 	static void GetFallbackLabelFromFN(const string &FN, string &Label);

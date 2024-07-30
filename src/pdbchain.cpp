@@ -67,7 +67,7 @@ X=9999.9 IC 109999 out of range
  1000.0       20000   1000.0
 ***/
 
-static char GetFeatureChar(byte Letter, uint AlphaSize)
+char GetFeatureChar(byte Letter, uint AlphaSize)
 	{
 	asserta(AlphaSize <= 36);
 	if (Letter == UINT_MAX)
@@ -241,6 +241,9 @@ char PDBChain::FromPDBLines(const string &Label,
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
 		const string &Line = Lines[LineNr];
+	// Can be multiple models for same chain, use first only
+		if (StartsWith(Line, "TER ") || StartsWith(Line, "ENDMDL"))
+			break;
 		const size_t L = Line.size();
 
 		char LineChain = Line[21];
@@ -449,8 +452,11 @@ bool PDBChain::IsATOMLine(const string &Line)
 	{
 	if (SIZE(Line) < 27)
 		return false;
-	if (Line[26] != ' ') // insertion code
-		return false;
+// Insertion code is old PDB hack to preserve numbering from
+// a reference sequence like NAST or ICTV numbers -- should
+// just ignore residue numbering.
+	//if (Line[26] != ' ') // insertion code
+	//	return false;
 	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
 		return true;
 	return false;

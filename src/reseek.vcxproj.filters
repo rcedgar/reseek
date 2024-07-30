@@ -395,6 +395,9 @@
     <ClCompile Include="evalue_report.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mu_mapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
