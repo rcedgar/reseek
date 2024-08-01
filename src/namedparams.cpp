@@ -6,6 +6,28 @@ void DSSParams::SetNamedParams(const string &Name)
 	Clear();
 	m_Desc = Name;
 
+	if (Name == "aa")
+		{
+		m_AAOnly = true;
+
+		AddFeature(FEATURE_AA,			1);
+
+		m_GapOpen = -1.099f;
+		m_GapExt = -0.143f;
+		m_DALIw = 0;
+		m_FwdMatchScore = 0;
+		m_MinFwdScore = 0;
+		m_MinComboFwdScore = 0;
+		m_Omega = 0;
+		m_Lambda = 0;
+		m_MinU = 0;
+		m_USort = false;
+		m_MaxAccepts = UINT_MAX;
+		m_MaxRejects = UINT_MAX;
+		m_PatternStr = "*";
+		return;
+		}
+
 	if (Name == "defaults")
 		{
 		m_Desc.clear();

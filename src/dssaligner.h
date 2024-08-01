@@ -126,6 +126,7 @@ public:
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void CalcEvalue();
+	void CalcEvalue_AAOnly();
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();
 	void SetComboQP();

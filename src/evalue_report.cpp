@@ -10,7 +10,7 @@ void cmd_evalue_report()
 
 	const float LoTS = 0;
 	const float HiTS = 1.55f;
-	const float dTS = 0.1;
+	const float dTS = 0.1f;
 	const float m = 20.5f;
 	const float b = 2.9f;
 

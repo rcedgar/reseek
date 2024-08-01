@@ -50,6 +50,8 @@ public:
 	float m_Evalue_linear_m = 20.5f;
 	float m_Evalue_linear_b = 2.9f;
 
+	bool m_AAOnly = false;
+
 public:
 	static vector<FEATURE> m_ComboFeatures;
 	static vector<uint> m_ComboAlphaSizes;

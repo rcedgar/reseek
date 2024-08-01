@@ -811,8 +811,32 @@ float DSSAligner::AdjustTS(float TS, float mu, float beta) const
 	return AdjustedTS;
 	}
 
+void DSSAligner::CalcEvalue_AAOnly()
+	{
+	static const float Log2 = logf(2);
+	static const float GappedLambda = 0.267f;
+	static const float LogGappedK = logf(0.0410f);
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+	const float DBSize = m_Params->m_DBSize;
+
+	float Score = m_AlnFwdScore;
+	float BitScore = (Score*GappedLambda - LogGappedK)/Log2;
+	float NM_A = float(LA)*float(DBSize);
+	float NM_B = float(LB)*float(DBSize);
+	m_EvalueA = NM_A/powf(2, BitScore);
+	m_EvalueB = NM_B/powf(2, BitScore);
+	}
+
 void DSSAligner::CalcEvalue()
 	{
+	if (m_Params->m_AAOnly)
+		{
+		CalcEvalue_AAOnly();
+		return;
+		}
+
 // MinFwdScore parameter enables small speedup by 
 //   avoiding call to GetDALIScore_Path()
 	float AlnDALIScore = 0;
