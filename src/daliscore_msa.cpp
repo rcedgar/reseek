@@ -39,7 +39,7 @@ void cmd_daliscore_msa()
 			double Score, Z;
 			bool Ok = DS.GetDALIRowPair(SeqIdx1, SeqIdx2, Score, Z);
 			if (Ok)
-				Pf(fOut, "%s\t%s\t%.3g\n", Label1, Label2, Score);
+				Pf(fOut, "%s\t%s\t%.3g\t%.1f\n", Label1, Label2, Score, Z);
 			else
 				Pf(fOut, "%s\t%s\tERROR\n", Label1, Label2);
 			}
