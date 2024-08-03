@@ -130,6 +130,7 @@ OBJS = \
   $(OBJDIR)/distmx.o \
   $(OBJDIR)/evalue_report.o \
   $(OBJDIR)/explore1.o \
+  $(OBJDIR)/mu_mapping.o \
   $(OBJDIR)/profileloader.o \
   $(OBJDIR)/md5.o \
   $(OBJDIR)/pdbchaincal.o \

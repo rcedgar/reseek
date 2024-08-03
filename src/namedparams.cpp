@@ -12,8 +12,8 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		AddFeature(FEATURE_AA,			1);
 
-		m_GapOpen = -1.099f;
-		m_GapExt = -0.143f;
+		m_GapOpen = -1.5f;
+		m_GapExt = -0.42f;
 		m_DALIw = 0;
 		m_FwdMatchScore = 0;
 		m_MinFwdScore = 0;
