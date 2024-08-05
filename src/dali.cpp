@@ -123,6 +123,7 @@ double GetDALIScore_OffDiag(const PDBChain &Q, const PDBChain &T,
 			double dij_Q = Q.GetDist(PosQi, PosQj);
 			double dij_T = T.GetDist(PosTi, PosTj);
 			double x = DALI_dpscorefun(dij_Q, dij_T);
+			//Log("PosQi=%u PosQj=%u PosTi=%u PosTj=%u dij_Q=%.3g dij_T=%.3g score=%.3g\n", PosQi, PosQj, PosTi, PosTj, dij_Q, dij_T, x);
 			Sum += x;
 			}
 		}
