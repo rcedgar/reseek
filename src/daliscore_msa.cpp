@@ -44,6 +44,7 @@ void cmd_daliscore_msa()
 		}
 
 	ProgressLog("Z=%.1f Score=%.1f MSA=%s\n", Z, Score, Name.c_str());
+	Pf(fOut, "Z=%.1f\tScore=%.1f\tMSA=%s\n", Z, Score, Name.c_str());
 
 	asserta(feq(Z, Z2));
 	asserta(feq(Score, Score2));
