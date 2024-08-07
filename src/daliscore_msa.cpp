@@ -6,7 +6,7 @@
 void cmd_daliscore_msa()
 	{
 	asserta(optset_input);
-	const bool MissingTestSeqOk = !opt_missingtestseqok;
+	const bool MissingTestSeqOk = opt_missingtestseqok;
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);

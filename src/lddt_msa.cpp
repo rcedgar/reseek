@@ -6,7 +6,7 @@
 void cmd_lddt_msa()
 	{
 	asserta(optset_input);
-	const bool MissingTestSeqOk = !opt_missingtestseqok;
+	const bool MissingTestSeqOk = opt_missingtestseqok;
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
@@ -39,7 +39,7 @@ void cmd_lddt_msa()
 				Pf(fOut, "%s\t%s\tERROR_structure_not_found\n", Label1, Label2);
 				continue;
 				}
-			double PairLDDT = DS.GetLDDTPair_muscle(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
+			double PairLDDT = DS.GetLDDTChainPair_muscle(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
 			++PairCount;
 			SumLDDT += PairLDDT;
 			Pf(fOut, "%s\t%s\t%.4f\n", Label1, Label2, PairLDDT);

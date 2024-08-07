@@ -22,7 +22,7 @@ double DALIScorer::GetLDDT_muscle() const
 			if (ChainIdx1 == UINT_MAX || ChainIdx2 == UINT_MAX)
 				continue;
 			double PairLDDT = 
-			  GetLDDTPair_muscle(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
+			  GetLDDTChainPair_muscle(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
 			++PairCount;
 			SumLDDT += PairLDDT;
 			}
@@ -33,7 +33,7 @@ double DALIScorer::GetLDDT_muscle() const
 	return LDDT;
 	}
 
-double DALIScorer::GetLDDTPair_muscle(uint ChainIdx1, uint ChainIdx2,
+double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
   const vector<uint> &col_to_pos1s, const vector<uint> &col_to_pos2s) const
 	{
 	const uint nr_cols = SIZE(col_to_pos1s);

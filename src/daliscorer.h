@@ -87,7 +87,7 @@ public:
 	double GetLDDTColScore_foldmason(uint Col) const;
 
 	double GetLDDT_muscle() const;
-	double GetLDDTPair_muscle(uint ChainId1, uint ChainId2,
+	double GetLDDTChainPair_muscle(uint ChainId1, uint ChainId2,
 	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
 	};
 

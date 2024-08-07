@@ -303,6 +303,7 @@
     <ClCompile Include="lddt_msa.cpp" />
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
+    <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="profileloader.cpp" />

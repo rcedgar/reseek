@@ -416,6 +416,9 @@
     <ClCompile Include="zscorer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="msta_score.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -53,5 +53,6 @@ C(mu_mapping)
 C(lddt_msa)
 C(lddt_msa_foldmason)
 C(msta_scores)
+C(msta_score)
 
 #undef C
