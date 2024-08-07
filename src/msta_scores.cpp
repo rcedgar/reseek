@@ -8,7 +8,7 @@ void cmd_msta_scores()
 	asserta(optset_input);
 	asserta(optset_testdir);
 	FILE* fOut = CreateStdioFile(opt_output);
-	const bool MissingSeqOk = !opt_missingtestseqok;
+	const bool MissingSeqOk = opt_missingtestseqok;
 
 	string TestDir = string(opt_testdir);
 	Dirize(TestDir);

@@ -130,6 +130,11 @@ OBJS = \
   $(OBJDIR)/distmx.o \
   $(OBJDIR)/evalue_report.o \
   $(OBJDIR)/explore1.o \
+  $(OBJDIR)/lddt_foldmason.o \
+  $(OBJDIR)/lddt_msa.o \
+  $(OBJDIR)/lddt_msa_foldmason.o \
+  $(OBJDIR)/lddt_muscle.o \
+  $(OBJDIR)/msta_scores.o \
   $(OBJDIR)/mu_mapping.o \
   $(OBJDIR)/profileloader.o \
   $(OBJDIR)/md5.o \

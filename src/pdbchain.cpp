@@ -286,7 +286,7 @@ bool PDBChain::GetFieldsFromATOMLine(const string &Line,
 	if (AtomName != "CA")
 		return false;
 	char AltLoc = Line[16];
-	if (AltLoc != ' ' && AltLoc != 'A')
+	if (AltLoc != ' ' && AltLoc != 'A' && AltLoc != '1')
 		return false;
 
 	string AAA = Line.substr(17, 3);

@@ -29,15 +29,19 @@ double DALIScorer::GetLDDTColScore_foldmason(uint col) const
 		uint posi = m_ColToPosVec[seq_idxi][col];
 		if (posi == UINT_MAX)
 			continue;
-		asserta(seq_idxi < SIZE(m_DistMxVec));
-		const vector<vector<double> > &dist_mxi = m_DistMxVec[seq_idxi];
+		asserta(seq_idxi < SIZE(m_SeqIdxToChainIdx));
+		uint chain_idxi = m_SeqIdxToChainIdx[seq_idxi];
+		const vector<vector<double> > &dist_mxi = m_DistMxVec[chain_idxi];
 		for (uint seq_idxj = seq_idxi+1; seq_idxj < nr_seqs; ++seq_idxj)
 			{
 			uint posj = m_ColToPosVec[seq_idxj][col];
 			if (posj == UINT_MAX)
 				continue;
+
+			asserta(seq_idxj < SIZE(m_SeqIdxToChainIdx));
+			uint chain_idxj = m_SeqIdxToChainIdx[seq_idxj];
 			nr_seq_pairs += 1;
-			const vector<vector<double> > &dist_mxj = m_DistMxVec[seq_idxj];
+			const vector<vector<double> > &dist_mxj = m_DistMxVec[chain_idxj];
 			double pair_score = 0;
 
 			uint nr_pairs = 0;
