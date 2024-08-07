@@ -3,7 +3,7 @@
 #include "pdbchain.h"
 #include "daliscorer.h"
 
-void cmd_daliscore_msas()
+void cmd_msta_scores()
 	{
 	asserta(optset_input);
 	asserta(optset_testdir);
@@ -23,7 +23,6 @@ void cmd_daliscore_msas()
 
 	const uint N = SIZE(FNs);
 	double SumZ = 0;
-	double MeanZ = 0;
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &FN = FNs[i];
@@ -32,21 +31,29 @@ void cmd_daliscore_msas()
 		MSA.FromFasta(TestDir + FN, true);
 
 		DS.SetMSA(FN, MSA, DoCore, MissingSeqOk);
-		uint CoreColCount = DS.m_CoreColCount;
+		ProgressStep(i, N, "%s", DS.m_Name.c_str());
+
 		double Z = DS.GetZ();
+		double LDDT_muscle = DS.GetLDDT_muscle();
+		double LDDT_foldmason = DS.GetLDDT_foldmason();
+		uint CoreColCount = DS.m_CoreColCount;
 
 		SumZ += Z;
-		MeanZ = SumZ/(i+1);
-		ProgressStep(i, N, "n %u Z %.2f", i+1, MeanZ);
 		if (fOut != 0)
 			{
 			fprintf(fOut, "aln=%s", FN.c_str());
-			fprintf(fOut, "\tZ=%.1f", Z);
+			fprintf(fOut, "\tZ=%.3f", Z);
+			fprintf(fOut, "\tLDDT_mu=%.4f", LDDT_muscle);
+			fprintf(fOut, "\tLDDT_fm=%.4f", LDDT_foldmason);
 			if (DoCore)
-				fprintf(fOut, "\tnr_core=%u", CoreColCount);
+				fprintf(fOut, "\tnr_core_cols=%u", CoreColCount);
 			fprintf(fOut, "\n");
 			}
 		}
+
+	double MeanZ = 0;
+	if (N > 0)
+		MeanZ = SumZ/N;
 
 	if (fOut != 0)
 		{

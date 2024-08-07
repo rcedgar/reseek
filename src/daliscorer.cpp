@@ -74,8 +74,16 @@ void DALIScorer::LoadChains(const string &FN)
 	ChainReader2 CR;
 	CR.Open(FN);
 
+	time_t t0 = time(0);
+	Progress("Reading chains\r");
 	for (;;)
 		{
+		time_t t = time(0);
+		if (t > t0)
+			{
+			Progress("Reading chains (%u)\r", SIZE(m_Chains));
+			t0 = t;
+			}
 		PDBChain* ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
@@ -83,6 +91,7 @@ void DALIScorer::LoadChains(const string &FN)
 		m_Chains.push_back(ptrChain);
 		m_SeqToChainIdx[ptrChain->m_Seq] = Idx;
 		}
+	Progress("Reading chains done (%u)\n", SIZE(m_Chains));
 	}
 
 void DALIScorer::SetCore()
@@ -144,44 +153,45 @@ void DALIScorer::SetMSA(const string &Name, const SeqDB &MSA,
 	else
 		m_ColIsCore.clear();
 	SetColToPosVec(DoCore);
+	SetDistMxs();
 	}
 
-bool DALIScorer::GetLDDTRowPair(uint SeqIdx1, uint SeqIdx2, double &Score) const
-	{
-	Score = DBL_MAX;
-	uint ChainIdx1 = m_SeqIdxToChainIdx[SeqIdx1];
-	if (ChainIdx1 == UINT_MAX)
-		return false;
-	uint ChainIdx2 = m_SeqIdxToChainIdx[SeqIdx2];
-	if (ChainIdx2 == UINT_MAX)
-		return false;
-	const SeqDB &MSA = *m_MSA;
-	asserta(ChainIdx1 < SIZE(m_Chains));
-	const PDBChain &Chain1 = *m_Chains[ChainIdx1];
-	const string &Row1 = MSA.GetSeq(SeqIdx1);
-	const uint L1 = Chain1.GetSeqLength();
-	const string &Label1 = Chain1.m_Label;
-	string U1;
-	GetUngappedSeq(Row1, U1);
-	asserta(U1 == Chain1.m_Seq);
-	asserta(ChainIdx2 < SIZE(m_Chains));
-	const PDBChain &Chain2 = *m_Chains[ChainIdx2];
-	const string &Row2 = MSA.GetSeq(SeqIdx2);
-	const uint L2 = Chain2.GetSeqLength();
-	const string &Label2 = Chain2.m_Label;
-	string U2;
-	GetUngappedSeq(Row2, U2);
-	asserta(U2 == Chain2.m_Seq);
-
-	vector<uint> Pos1s;
-	vector<uint> Pos2s;
-	if (m_DoCore)
-		GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, &m_ColIsCore);
-	else
-		GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, 0);
-	Score = GetLDDTScore(ChainIdx1, ChainIdx2, Pos1s, Pos2s);
-	return true;
-	}
+//bool DALIScorer::GetLDDTRowPair(uint SeqIdx1, uint SeqIdx2, double &Score) const
+//	{
+//	Score = DBL_MAX;
+//	uint ChainIdx1 = m_SeqIdxToChainIdx[SeqIdx1];
+//	if (ChainIdx1 == UINT_MAX)
+//		return false;
+//	uint ChainIdx2 = m_SeqIdxToChainIdx[SeqIdx2];
+//	if (ChainIdx2 == UINT_MAX)
+//		return false;
+//	const SeqDB &MSA = *m_MSA;
+//	asserta(ChainIdx1 < SIZE(m_Chains));
+//	const PDBChain &Chain1 = *m_Chains[ChainIdx1];
+//	const string &Row1 = MSA.GetSeq(SeqIdx1);
+//	const uint L1 = Chain1.GetSeqLength();
+//	const string &Label1 = Chain1.m_Label;
+//	string U1;
+//	GetUngappedSeq(Row1, U1);
+//	asserta(U1 == Chain1.m_Seq);
+//	asserta(ChainIdx2 < SIZE(m_Chains));
+//	const PDBChain &Chain2 = *m_Chains[ChainIdx2];
+//	const string &Row2 = MSA.GetSeq(SeqIdx2);
+//	const uint L2 = Chain2.GetSeqLength();
+//	const string &Label2 = Chain2.m_Label;
+//	string U2;
+//	GetUngappedSeq(Row2, U2);
+//	asserta(U2 == Chain2.m_Seq);
+//
+//	vector<uint> Pos1s;
+//	vector<uint> Pos2s;
+//	if (m_DoCore)
+//		GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, &m_ColIsCore);
+//	else
+//		GetAlignedPositions(Row1, Row2, Pos1s, Pos2s, 0);
+//	Score = GetLDDTPair(ChainIdx1, ChainIdx2, Pos1s, Pos2s);
+//	return true;
+//	}
 
 bool DALIScorer::GetDALIRowPair(uint SeqIdx1, uint SeqIdx2,
   double &Score, double &Z) const
@@ -338,21 +348,23 @@ double DALIScorer::GetDALIScorePosPair_ById(
 	{
 	const PDBChain &ChainX = *m_Chains[ChainIdX];
 	const PDBChain &ChainY = *m_Chains[ChainIdY];
-	double dij_X = ChainX.GetDist(PosX1, PosX2);
-	double dij_Y = ChainY.GetDist(PosY1, PosY2);
+	//double dij_X = ChainX.GetDist(PosX1, PosX2);
+	//double dij_Y = ChainY.GetDist(PosY1, PosY2);
+	double dij_X = GetDist(ChainIdX, PosX1, PosX2);
+	double dij_Y = GetDist(ChainIdY, PosY1, PosY2);
 	double x = DALI_dpscorefun(dij_X, dij_Y);
 	return x;
 	}
 
-double DALIScorer::GetDALIScorePosPair(
-	const PDBChain &Q, uint PosQi, uint PosQj,
-	const PDBChain &T, uint PosTi, uint PosTj) const
-	{
-	double dij_Q = Q.GetDist(PosQi, PosQj);
-	double dij_T = T.GetDist(PosTi, PosTj);
-	double x = DALI_dpscorefun(dij_Q, dij_T);
-	return x;
-	}
+//double DALIScorer::GetDALIScorePosPair(
+//	const PDBChain &Q, uint PosQi, uint PosQj,
+//	const PDBChain &T, uint PosTi, uint PosTj) const
+//	{
+//	double dij_Q = Q.GetDist(PosQi, PosQj);
+//	double dij_T = T.GetDist(PosTi, PosTj);
+//	double x = DALI_dpscorefun(dij_Q, dij_T);
+//	return x;
+//	}
 
 double DALIScorer::GetDALIScoreColPair(uint Col1, uint Col2) const
 	{
@@ -466,64 +478,6 @@ double DALIScorer::GetSumScore_Cols() const
 	return SumColScores + DiagScore;
 	}
 
-double DALIScorer::GetLDDTScore(uint ChainIdx1, uint ChainIdx2,
-  const vector<uint> &col_to_pos1s, const vector<uint> &col_to_pos2s) const
-	{
-	const uint nr_cols = SIZE(col_to_pos1s);
-	if (nr_cols == 0)
-		return 0;
-
-	const uint nr_thresholds = SIZE(m_LDDT_thresholds);
-	asserta(SIZE(col_to_pos2s) == nr_cols);
-	double total = 0;
-	vector<double> col_scores;
-	vector<uint> nr_preserveds;
-	vector<uint> nr_considereds;
-	uint nr_cols_considered = 0;
-	for (uint coli = 0; coli < nr_cols; ++coli)
-		{
-		uint pos1i = col_to_pos1s[coli];
-		uint pos2i = col_to_pos2s[coli];
-		if (pos1i == UINT_MAX || pos2i == UINT_MAX)
-			continue;
-		++nr_cols_considered;
-		uint nr_considered = 0;
-		uint nr_preserved = 0;
-		for (uint colj = 0; colj < nr_cols; ++colj)
-			{
-			if (coli == colj)
-				continue;
-			uint pos1j = col_to_pos1s[colj];
-			uint pos2j = col_to_pos2s[colj];
-			if (pos1j == UINT_MAX || pos2j == UINT_MAX)
-				continue;
-
-			double d1 = GetDist(ChainIdx1, pos1i, pos1j);
-			double d2 = GetDist(ChainIdx2, pos2i, pos2j);
-			if (d1 > m_LDDT_R0)
-				continue;
-
-			for (uint k = 0; k < nr_thresholds; ++k)
-				{
-				double t = m_LDDT_thresholds[k];
-				nr_considered += 1;
-				double diff = abs(d1 - d2);
-				if (diff <= t)
-					nr_preserved += 1;
-				}
-			}
-		double score = double(nr_preserved)/nr_considered;
-		total += score;
-		col_scores.push_back(score);
-		nr_preserveds.push_back(nr_preserved);
-		nr_considereds.push_back(nr_considered);
-		}
-
-	if (nr_cols_considered == 0)
-		return 0;
-	double avg = total/nr_cols_considered;
-	return avg;
-	}
 
 double DALIScorer::GetDist(uint ChainId, uint Pos1, uint Pos2) const
 	{

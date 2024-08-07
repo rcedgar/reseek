@@ -1,5 +1,12 @@
 #pragma once
 
+enum SYMMETRY
+	{
+	SYMM_First,
+	SYMM_Both,
+	SYMM_Either
+	};
+
 class DALIScorer
 	{
 public:
@@ -19,6 +26,7 @@ public:
 	vector<vector<vector<double> > > m_DistMxVec;
 	vector<double> m_LDDT_thresholds;
 	double m_LDDT_R0 = DBL_MAX;
+	SYMMETRY m_LDDT_symm = SYMM_First;
 
 public:
 	DALIScorer()
@@ -54,21 +62,25 @@ public:
 	uint GetColCount() const { return m_MSA->GetColCount(); }
 	uint GetSeqCount() const { return m_MSA->GetSeqCount(); }
 	bool GetDALIRowPair(uint SeqIdx1, uint SeqIdx2, double &Score, double &Z) const;
-	bool GetLDDTRowPair(uint SeqIdx1, uint SeqIdx2, double &Score) const;
 	double GetDALIScoreColPair(uint Col1, uint Col2) const;
-	double GetDALIScorePosPair(
-	  const PDBChain &ChainX, uint PosX1, uint PosX2,
-	  const PDBChain &ChainY, uint PosY1, uint PosY2) const;
+	//double GetDALIScorePosPair(
+	//  const PDBChain &ChainX, uint PosX1, uint PosX2,
+	//  const PDBChain &ChainY, uint PosY1, uint PosY2) const;
 	double GetDALIScorePosPair_ById(
 	  uint ChainIdxX, uint PosX1, uint PosX2,
 	  uint ChainIdxY, uint PosY1, uint PosY2) const;
 	double GetDiagScore() const;
 	double GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const;
-	double GetLDDTScore(uint ChainId1, uint ChainId2,
-	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
 	double GetDist(uint ChainId, uint Pos1, uint Pos2) const;
 	void SetDistMx(uint ChainId);
 	void SetDistMxs();
+
+	double GetLDDT_foldmason() const;
+	double GetLDDTColScore_foldmason(uint Col) const;
+
+	double GetLDDT_muscle() const;
+	double GetLDDTPair_muscle(uint ChainId1, uint ChainId2,
+	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
 	};
 
 double DALI_dpscorefun(double a, double b);

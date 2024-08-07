@@ -401,6 +401,18 @@
     <ClCompile Include="lddt_msa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="msta_scores.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lddt_muscle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lddt_foldmason.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lddt_msa_foldmason.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -20,10 +20,9 @@ void cmd_lddt_msa()
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
 	DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
-	DS.SetDistMxs();
 
 	const uint SeqCount = MSA.GetSeqCount();
-	double SumScore = 0;
+	double SumLDDT = 0;
 	uint PairCount = 0;
 	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
 		{
@@ -40,17 +39,17 @@ void cmd_lddt_msa()
 				Pf(fOut, "%s\t%s\tERROR_structure_not_found\n", Label1, Label2);
 				continue;
 				}
-			double Score = DS.GetLDDTScore(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
+			double PairLDDT = DS.GetLDDTPair_muscle(ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
 			++PairCount;
-			SumScore += Score;
-			Pf(fOut, "%s\t%s\t%.4f\n", Label1, Label2, Score);
+			SumLDDT += PairLDDT;
+			Pf(fOut, "%s\t%s\t%.4f\n", Label1, Label2, PairLDDT);
 			}
 		}
 
-	double Score = 0;
+	double LDDT = 0;
 	if (PairCount > 0)
-		Score = SumScore/PairCount;
-	ProgressLog("LDDT=%.4f MSA=%s\n", Score, Name.c_str());
-	Pf(fOut, "LDDT=%.4f\tMSA=%s\n", Score, Name.c_str());
+		LDDT = SumLDDT/PairCount;
+	ProgressLog("LDDT=%.4f MSA=%s\n", LDDT, Name.c_str());
+	Pf(fOut, "LDDT=%.4f\tMSA=%s\n", LDDT, Name.c_str());
 	CloseStdioFile(fOut);
 	}
