@@ -16,7 +16,21 @@ public:
 
 	vector<vector<uint> > m_ColToPosVec;
 
+	vector<vector<vector<double> > > m_DistMxVec;
+	vector<double> m_LDDT_thresholds;
+	double m_LDDT_R0 = DBL_MAX;
+
 public:
+	DALIScorer()
+		{
+		m_LDDT_R0 = 15;
+
+		m_LDDT_thresholds.push_back(0.5);
+		m_LDDT_thresholds.push_back(1);
+		m_LDDT_thresholds.push_back(2);
+		m_LDDT_thresholds.push_back(4);
+		}
+
 	void ClearMSA()
 		{
 		m_MSA = 0;
@@ -39,14 +53,22 @@ public:
 	void GetColToPos(uint SeqIdx, vector<uint> &ColToPos, bool Core);
 	uint GetColCount() const { return m_MSA->GetColCount(); }
 	uint GetSeqCount() const { return m_MSA->GetSeqCount(); }
-	bool GetDALIRowPair(uint SeqIdx1, uint SeqIdx2,
-	  double &Score, double &Z) const;
+	bool GetDALIRowPair(uint SeqIdx1, uint SeqIdx2, double &Score, double &Z) const;
+	bool GetLDDTRowPair(uint SeqIdx1, uint SeqIdx2, double &Score) const;
 	double GetDALIScoreColPair(uint Col1, uint Col2) const;
 	double GetDALIScorePosPair(
 	  const PDBChain &ChainX, uint PosX1, uint PosX2,
 	  const PDBChain &ChainY, uint PosY1, uint PosY2) const;
+	double GetDALIScorePosPair_ById(
+	  uint ChainIdxX, uint PosX1, uint PosX2,
+	  uint ChainIdxY, uint PosY1, uint PosY2) const;
 	double GetDiagScore() const;
 	double GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const;
+	double GetLDDTScore(uint ChainId1, uint ChainId2,
+	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
+	double GetDist(uint ChainId, uint Pos1, uint Pos2) const;
+	void SetDistMx(uint ChainId);
+	void SetDistMxs();
 	};
 
 double DALI_dpscorefun(double a, double b);

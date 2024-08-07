@@ -398,6 +398,9 @@
     <ClCompile Include="mu_mapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lddt_msa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
