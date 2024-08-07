@@ -40,6 +40,9 @@ double DALIScorer::GetLDDTPair_muscle(uint ChainIdx1, uint ChainIdx2,
 	if (nr_cols == 0)
 		return 0;
 
+	const vector<vector<double> > &DistMx1 = GetDistMx(ChainIdx1);
+	const vector<vector<double> > &DistMx2 = GetDistMx(ChainIdx2);
+
 	const uint nr_thresholds = SIZE(m_LDDT_thresholds);
 	asserta(SIZE(col_to_pos2s) == nr_cols);
 	double total = 0;
@@ -53,6 +56,10 @@ double DALIScorer::GetLDDTPair_muscle(uint ChainIdx1, uint ChainIdx2,
 		uint pos2i = col_to_pos2s[coli];
 		if (pos1i == UINT_MAX || pos2i == UINT_MAX)
 			continue;
+
+		const vector<double> &DistMxRow1i = DistMx1[pos1i];
+		const vector<double> &DistMxRow2i = DistMx2[pos2i];
+
 		++nr_cols_considered;
 		uint nr_considered = 0;
 		uint nr_preserved = 0;
@@ -65,8 +72,11 @@ double DALIScorer::GetLDDTPair_muscle(uint ChainIdx1, uint ChainIdx2,
 			if (pos1j == UINT_MAX || pos2j == UINT_MAX)
 				continue;
 
-			double d1 = GetDist(ChainIdx1, pos1i, pos1j);
-			double d2 = GetDist(ChainIdx2, pos2i, pos2j);
+			//double d1_old = GetDist(ChainIdx1, pos1i, pos1j);
+			//double d2_old = GetDist(ChainIdx2, pos2i, pos2j);
+			double d1 = DistMxRow1i[pos1j];
+			double d2 = DistMxRow2i[pos2j];
+
 			if (d1 > m_LDDT_R0)
 				continue;
 

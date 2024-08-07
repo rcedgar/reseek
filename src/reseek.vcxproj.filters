@@ -413,6 +413,9 @@
     <ClCompile Include="lddt_msa_foldmason.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="zscorer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

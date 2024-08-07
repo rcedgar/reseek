@@ -28,6 +28,11 @@ public:
 	double m_LDDT_R0 = DBL_MAX;
 	SYMMETRY m_LDDT_symm = SYMM_First;
 
+	double m_DALI_D = 20.0;
+	double m_DALI_d0 = 0.2;
+	double m_DALI_Theta = 0.2;
+	double m_DALI_R0 = DBL_MAX;
+
 public:
 	DALIScorer()
 		{
@@ -63,17 +68,20 @@ public:
 	uint GetSeqCount() const { return m_MSA->GetSeqCount(); }
 	bool GetDALIRowPair(uint SeqIdx1, uint SeqIdx2, double &Score, double &Z) const;
 	double GetDALIScoreColPair(uint Col1, uint Col2) const;
-	//double GetDALIScorePosPair(
-	//  const PDBChain &ChainX, uint PosX1, uint PosX2,
-	//  const PDBChain &ChainY, uint PosY1, uint PosY2) const;
 	double GetDALIScorePosPair_ById(
 	  uint ChainIdxX, uint PosX1, uint PosX2,
 	  uint ChainIdxY, uint PosY1, uint PosY2) const;
 	double GetDiagScore() const;
 	double GetDiagScoreSeqPair(uint SeqIdx1, uint SeqIdx2) const;
 	double GetDist(uint ChainId, uint Pos1, uint Pos2) const;
+	const vector<vector<double> > &GetDistMx(uint ChainIdx) const;
 	void SetDistMx(uint ChainId);
 	void SetDistMxs();
+
+	double GetDALIScore_ChainPair(uint ChainIdx1, uint ChainIdx2,
+	  const vector<uint> &Pos1s, vector<uint> &Pos2s) const;
+	double GetDALIScore_OffDiag(uint ChainIdx1, uint ChainIdx2,
+	  const vector<uint> &PosQs, const vector<uint> &PosTs) const;
 
 	double GetLDDT_foldmason() const;
 	double GetLDDTColScore_foldmason(uint Col) const;
@@ -84,7 +92,7 @@ public:
 	};
 
 double DALI_dpscorefun(double a, double b);
-double GetDALIScore(const PDBChain &Q, const PDBChain &T,
-	const vector<uint> &PosQs, const vector<uint> &PosTs);
+//double GetDALIScore(const PDBChain &Q, const PDBChain &T,
+//	const vector<uint> &PosQs, const vector<uint> &PosTs);
 double GetDALIZFromScoreAndLengths(double DALIScore, uint QL, uint TL);
 extern float g_DALI_Theta;

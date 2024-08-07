@@ -22,7 +22,10 @@ void cmd_msta_scores()
 	const bool DoCore = opt_core;
 
 	const uint N = SIZE(FNs);
-	double SumZ = 0;
+	double Sum_Z = 0;
+	double Sum_Z15 = 0;
+	double Sum_LDDT_mu = 0;
+	double Sum_LDDT_fm = 0;
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &FN = FNs[i];
@@ -34,31 +37,50 @@ void cmd_msta_scores()
 		ProgressStep(i, N, "%s", DS.m_Name.c_str());
 
 		double Z = DS.GetZ();
-		double LDDT_muscle = DS.GetLDDT_muscle();
-		double LDDT_foldmason = DS.GetLDDT_foldmason();
+		double LDDT_mu = DS.GetLDDT_muscle();
+		double LDDT_fm = DS.GetLDDT_foldmason();
+
+		DS.m_DALI_R0 = 15;
+		double Z15 = DS.GetZ();
+		DS.m_DALI_R0 = DBL_MAX;
+
 		uint CoreColCount = DS.m_CoreColCount;
 
-		SumZ += Z;
+		Sum_Z += Z;
+		Sum_Z15 += Z15;
+		Sum_LDDT_mu += LDDT_mu;
+		Sum_LDDT_fm += LDDT_fm;
 		if (fOut != 0)
 			{
 			fprintf(fOut, "aln=%s", FN.c_str());
 			fprintf(fOut, "\tZ=%.3f", Z);
-			fprintf(fOut, "\tLDDT_mu=%.4f", LDDT_muscle);
-			fprintf(fOut, "\tLDDT_fm=%.4f", LDDT_foldmason);
+			fprintf(fOut, "\tZ15=%.3f", Z15);
+			fprintf(fOut, "\tLDDT_mu=%.4f", LDDT_mu);
+			fprintf(fOut, "\tLDDT_fm=%.4f", LDDT_fm);
 			if (DoCore)
 				fprintf(fOut, "\tnr_core_cols=%u", CoreColCount);
 			fprintf(fOut, "\n");
 			}
 		}
 
-	double MeanZ = 0;
+	double Mean_Z = 0;
+	double Mean_Z15 = 0;
+	double Mean_LDDT_mu = 0;
+	double Mean_LDDT_fm = 0;
 	if (N > 0)
-		MeanZ = SumZ/N;
+		{
+		Mean_Z = Sum_Z/N;
+		Mean_LDDT_mu = Sum_LDDT_mu/N;
+		Mean_LDDT_fm = Sum_LDDT_fm/N;
+		}
 
 	if (fOut != 0)
 		{
 		fprintf(fOut, "testdir=%s", TestDir.c_str());
-		fprintf(fOut, "\tZ=%.1f", MeanZ);
+		fprintf(fOut, "\tavg_Z=%.1f", Mean_Z);
+		fprintf(fOut, "\tavg_Z15=%.1f", Mean_Z15);
+		fprintf(fOut, "\tavg_LDDT_mu=%.1f", Mean_LDDT_mu);
+		fprintf(fOut, "\tavg_LDDT_fm=%.1f", Mean_LDDT_fm);
 		fprintf(fOut, "\n");
 		}
 	  

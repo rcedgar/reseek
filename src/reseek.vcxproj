@@ -401,6 +401,7 @@
     <ClCompile Include="sort.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
+    <ClCompile Include="zscorer.cpp" />
     <ClCompile Include="zutil.c" />
     <ClInclude Include="active.h" />
     <ClInclude Include="bcadata.h" />
