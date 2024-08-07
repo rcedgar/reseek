@@ -121,6 +121,7 @@ void DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 	m_SeqIdxToChainIdx.clear();
 	m_NotFoundLabels.clear();
 	const uint SeqCount = m_MSA->GetSeqCount();
+	set<uint> FoundChainIdxs;
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		const string &Label = string(m_MSA->GetLabel(SeqIdx));
@@ -135,7 +136,14 @@ void DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 			m_SeqIdxToChainIdx.push_back(UINT_MAX);
 			}
 		else
-			m_SeqIdxToChainIdx.push_back(iter->second);
+			{
+			uint ChainIdx = iter->second;
+			if (FoundChainIdxs.find(ChainIdx) == FoundChainIdxs.end())
+				{
+				m_SeqIdxToChainIdx.push_back(ChainIdx);
+				FoundChainIdxs.insert(ChainIdx);
+				}
+			}
 		}
 	}
 

@@ -134,6 +134,7 @@ OBJS = \
   $(OBJDIR)/lddt_msa.o \
   $(OBJDIR)/lddt_msa_foldmason.o \
   $(OBJDIR)/lddt_muscle.o \
+  $(OBJDIR)/msta_score.o \
   $(OBJDIR)/msta_scores.o \
   $(OBJDIR)/mu_mapping.o \
   $(OBJDIR)/profileloader.o \
@@ -225,6 +226,7 @@ OBJS = \
   $(OBJDIR)/sort.o \
   $(OBJDIR)/xdropbwd.o \
   $(OBJDIR)/xdropfwd.o \
+  $(OBJDIR)/zscorer.o \
   $(OBJDIR)/adler32.o \
   $(OBJDIR)/crc32.o \
   $(OBJDIR)/deflate.o \
