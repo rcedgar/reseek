@@ -185,6 +185,7 @@ bool StdioFileExists(const string &FileName)
 	struct stat SD;
 	int i = stat(FileName.c_str(), &SD);
 	return i == 0;
+	return true;
 	}
 
 static mutex g_Lock;

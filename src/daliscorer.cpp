@@ -116,7 +116,7 @@ void DALIScorer::SetCore()
 		}
 	}
 
-void DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
+bool DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 	{
 	m_SeqIdxToChainIdx.clear();
 	m_NotFoundLabels.clear();
@@ -130,7 +130,10 @@ void DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 		if (iter == m_SeqToChainIdx.end())
 			{
 			if (!MissingSeqOk)
-				Die("Sequence not matched >%s", Label.c_str());
+				{
+				Warning("Sequence not matched >%s", Label.c_str());
+				return false;
+				}
 			m_NotFoundLabels.insert(Label);
 			m_SeqIdxToChainIdx.push_back(UINT_MAX);
 			}
@@ -140,15 +143,21 @@ void DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 			m_SeqIdxToChainIdx.push_back(ChainIdx);
 			}
 		}
+	return true;
 	}
 
-void DALIScorer::SetMSA(const string &Name, const SeqDB &MSA,
+bool DALIScorer::SetMSA(const string &Name, const SeqDB &MSA,
   bool DoCore, bool MissingSeqOk)
 	{
 	ClearMSA();
 	m_Name = Name;
 	m_MSA = &MSA;
-	SetSeqIdxToChainIdx(MissingSeqOk);
+	bool Ok = SetSeqIdxToChainIdx(MissingSeqOk);
+	if (!Ok)
+		{
+		ClearMSA();
+		return false;
+		}
 
 	m_DoCore = DoCore;
 	if (m_DoCore)
@@ -157,6 +166,7 @@ void DALIScorer::SetMSA(const string &Name, const SeqDB &MSA,
 		m_ColIsCore.clear();
 	SetColToPosVec(DoCore);
 	SetDistMxs();
+	return true;
 	}
 
 bool DALIScorer::GetDALIRowPair(uint SeqIdx1, uint SeqIdx2,

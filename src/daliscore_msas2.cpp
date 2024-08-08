@@ -47,12 +47,18 @@ void cmd_daliscore_msas2()
 		const uint SeqCount = MSA1.GetSeqCount();
 		asserta(MSA2.GetSeqCount() == SeqCount);
 
-		DS.SetMSA(FN, MSA1, DoCore, MissingSeqOk);
+		bool Ok = DS.SetMSA(FN, MSA1, DoCore, MissingSeqOk);
+		if (!Ok)
+			Die("SetMSA failed");
+
 		double Score1 = DS.GetSumScore_Rows();
 		double Z1 = DS.GetZ();
 		SumZ1 += Z1;
 
-		DS.SetMSA(FN, MSA2, DoCore, MissingSeqOk);
+		bool Ok = DS.SetMSA(FN, MSA2, DoCore, MissingSeqOk);
+		if (!Ok)
+			Die("SetMSA() failed");
+
 		double Score2 = DS.GetSumScore_Rows();
 		double Z2 = DS.GetZ();
 		SumZ2 += Z2;

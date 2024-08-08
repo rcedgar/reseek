@@ -19,7 +19,9 @@ void cmd_lddt_msa()
 
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
-	DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	if (!Ok)
+		Die("SetMSA failed");
 
 	const uint SeqCount = MSA.GetSeqCount();
 	double SumLDDT = 0;

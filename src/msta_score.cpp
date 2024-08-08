@@ -20,7 +20,9 @@ void cmd_msta_score()
 
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
-	DS.SetMSA(Name, MSA, DoCore, MissingSeqOk);
+	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingSeqOk);
+	if (!Ok)
+		Die("SetMSA failed");
 
 	vector<string> FNs;
 	ReadLinesFromFile(g_Arg1, FNs);

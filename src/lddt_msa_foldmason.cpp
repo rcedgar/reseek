@@ -19,7 +19,10 @@ void cmd_lddt_msa_foldmason()
 
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
-	DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	if (!Ok)
+		Die("SetMSA failed");
+
 	double LDDT = DS.GetLDDT_foldmason();
 	ProgressLog("LDDT_fm=%.4f MSA=%s\n", LDDT, Name.c_str());
 	Pf(fOut, "LDDT_fm=%.4f\tMSA=%s\n", LDDT, Name.c_str());

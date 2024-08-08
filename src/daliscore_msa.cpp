@@ -19,7 +19,9 @@ void cmd_daliscore_msa()
 
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
-	DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
+	if (!Ok)
+		Die("SetMSA() failed");
 	double Z = DS.GetZ();
 	double Z2 = DS.GetZ_Rows();
 

@@ -101,6 +101,5 @@ double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
 	if (nr_cols_considered == 0)
 		return 0;
 	double avg = total/nr_cols_considered;
-	asserta(!isnan(avg));
 	return avg;
 	}

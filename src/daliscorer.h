@@ -54,13 +54,13 @@ public:
 		}
 
 	void LoadChains(const string &FN);
-	void SetMSA(const string &Name, const SeqDB &MSA,
+	bool SetMSA(const string &Name, const SeqDB &MSA,
 	  bool DoCore, bool MissingSeqOk);
 	double GetZ() const;
 	double GetZ_Rows() const;
 	double GetSumScore_Cols() const;
 	double GetSumScore_Rows() const;
-	void SetSeqIdxToChainIdx(bool MissingSeqOk);
+	bool SetSeqIdxToChainIdx(bool MissingSeqOk);
 	void SetCore();
 	void SetColToPosVec(bool Core);
 	void GetColToPos(uint SeqIdx, vector<uint> &ColToPos, bool Core);

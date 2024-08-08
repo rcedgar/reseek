@@ -16,25 +16,35 @@ void cmd_msta_scores()
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
 
-	vector<string> FNs;
-	ReadLinesFromFile(g_Arg1, FNs);
+	vector<string> Accs;
+	ReadLinesFromFile(g_Arg1, Accs);
 
 	const bool DoCore = opt_core;
 
-	const uint N = SIZE(FNs);
+	const uint N = SIZE(Accs);
 	double Sum_Z = 0;
 	double Sum_Z15 = 0;
 	double Sum_LDDT_mu = 0;
 	double Sum_LDDT_fm = 0;
+	uint FoundFileCount = 0;
 	for (uint i = 0; i < N; ++i)
 		{
-		const string &FN = FNs[i];
+		const string &Acc = Accs[i];
+		const string &FN = TestDir + Acc;
+		if (!StdioFileExists(FN))
+			{
+			fprintf(fOut, "missing_aln=%s\n", FN.c_str());
+			continue;
+			}
+		++FoundFileCount;
 
 		SeqDB MSA;
-		MSA.FromFasta(TestDir + FN, true);
+		MSA.FromFasta(FN, true);
 
-		DS.SetMSA(FN, MSA, DoCore, MissingSeqOk);
-		ProgressStep(i, N, "%s", DS.m_Name.c_str());
+		ProgressStep(i, N, "%s", Acc.c_str());
+		bool Ok = DS.SetMSA(Acc, MSA, DoCore, MissingSeqOk);
+		if (!Ok)
+			continue;
 
 		double Z = DS.GetZ();
 		double LDDT_mu = DS.GetLDDT_muscle();
@@ -67,22 +77,30 @@ void cmd_msta_scores()
 	double Mean_Z15 = 0;
 	double Mean_LDDT_mu = 0;
 	double Mean_LDDT_fm = 0;
-	if (N > 0)
+	if (FoundFileCount > 0)
 		{
-		Mean_Z = Sum_Z/N;
-		Mean_LDDT_mu = Sum_LDDT_mu/N;
-		Mean_LDDT_fm = Sum_LDDT_fm/N;
+		Mean_Z = Sum_Z/FoundFileCount;
+		Mean_Z15 = Sum_Z15/FoundFileCount;
+		Mean_LDDT_mu = Sum_LDDT_mu/FoundFileCount;
+		Mean_LDDT_fm = Sum_LDDT_fm/FoundFileCount;
 		}
 
 	if (fOut != 0)
 		{
 		fprintf(fOut, "testdir=%s", TestDir.c_str());
-		fprintf(fOut, "\tavg_Z=%.1f", Mean_Z);
-		fprintf(fOut, "\tavg_Z15=%.1f", Mean_Z15);
-		fprintf(fOut, "\tavg_LDDT_mu=%.1f", Mean_LDDT_mu);
-		fprintf(fOut, "\tavg_LDDT_fm=%.1f", Mean_LDDT_fm);
+		fprintf(fOut, "\tavg_Z=%.4f", Mean_Z);
+		fprintf(fOut, "\tavg_Z15=%.4f", Mean_Z15);
+		fprintf(fOut, "\tavg_LDDT_mu=%.4f", Mean_LDDT_mu);
+		fprintf(fOut, "\tavg_LDDT_fm=%.4f", Mean_LDDT_fm);
 		fprintf(fOut, "\n");
 		}
 	  
 	CloseStdioFile(fOut);
+
+	ProgressLog("MSAs=%u/%u", FoundFileCount, N);
+	ProgressLog(" Z=%.3f", Mean_Z);
+	ProgressLog(" Z15=%.3f", Mean_Z15);
+	ProgressLog(" LDDT_mu=%.4f", Mean_LDDT_mu);
+	ProgressLog(" LDDT_fm=%.4f", Mean_LDDT_fm);
+	ProgressLog("\n");
 	}

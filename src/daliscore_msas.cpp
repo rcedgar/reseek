@@ -31,9 +31,13 @@ void cmd_daliscore_msas()
 		SeqDB MSA;
 		MSA.FromFasta(TestDir + FN, true);
 
-		DS.SetMSA(FN, MSA, DoCore, MissingSeqOk);
+		bool Ok = DS.SetMSA(FN, MSA, DoCore, MissingSeqOk);
+		if (Ok)
+			Die("SetMSA failed");
+
 		uint CoreColCount = DS.m_CoreColCount;
 		double Z = DS.GetZ();
+
 
 		SumZ += Z;
 		MeanZ = SumZ/(i+1);

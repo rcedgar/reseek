@@ -3,8 +3,6 @@
 #include "alpha.h"
 #include "xdpmem.h"
 
-extern float B62Mf[20][20];
-
 float SWFastGaplessProfb(float *DProw_, const float * const *ProfA, uint LA,
   const byte *B, uint LB)
 	{
