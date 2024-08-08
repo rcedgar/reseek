@@ -55,7 +55,7 @@ void cmd_daliscore_msas2()
 		double Z1 = DS.GetZ();
 		SumZ1 += Z1;
 
-		bool Ok = DS.SetMSA(FN, MSA2, DoCore, MissingSeqOk);
+		Ok = DS.SetMSA(FN, MSA2, DoCore, MissingSeqOk);
 		if (!Ok)
 			Die("SetMSA() failed");
 
