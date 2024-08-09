@@ -52,6 +52,7 @@ C(evalue_report)
 C(mu_mapping)
 C(lddt_msa)
 C(lddt_msa_foldmason)
+C(lddt_msas)
 C(msta_scores)
 C(msta_score)
 
