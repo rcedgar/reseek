@@ -6,15 +6,19 @@
 double DALIScorer::GetLDDT_foldmason() const
 	{
 	uint nr_cols = GetColCount();
+	uint nr_cols_considered = 0;
 	double total_col_scores = 0;
 	for (uint col = 0; col < nr_cols; ++col)
 		{
+		if (m_DoCore && !m_ColIsCore[col])
+			continue;
+		++nr_cols_considered;
 		double col_score = GetLDDTColScore_foldmason(col);
 		total_col_scores += col_score;
 		}
 	double mean_col_score = 0;
-	if (nr_cols > 0)
-		mean_col_score = total_col_scores/nr_cols;
+	if (nr_cols_considered > 0)
+		mean_col_score = total_col_scores/nr_cols_considered;
 	return mean_col_score;
 	}
 

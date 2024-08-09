@@ -52,6 +52,8 @@ double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
 	uint nr_cols_considered = 0;
 	for (uint coli = 0; coli < nr_cols; ++coli)
 		{
+		if (m_DoCore && !m_ColIsCore[coli])
+			continue;
 		uint pos1i = col_to_pos1s[coli];
 		uint pos2i = col_to_pos2s[coli];
 		if (pos1i == UINT_MAX || pos2i == UINT_MAX)
@@ -66,6 +68,8 @@ double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
 		for (uint colj = 0; colj < nr_cols; ++colj)
 			{
 			if (coli == colj)
+				continue;
+			if (m_DoCore && !m_ColIsCore[colj])
 				continue;
 			uint pos1j = col_to_pos1s[colj];
 			uint pos2j = col_to_pos2s[colj];
