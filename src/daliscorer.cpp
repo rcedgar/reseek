@@ -56,7 +56,10 @@ void GetAlignedPositions(const string& RowQ, const string& RowR,
 					}
 				}
 			else
-				asserta(islower(q) && islower(r));
+				{
+				if (!opt_mixedcasecolok)
+					asserta(islower(q) && islower(r));
+				}
 			++PosQ;
 			++PosR;
 			}

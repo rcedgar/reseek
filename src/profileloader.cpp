@@ -63,7 +63,7 @@ void ProfileLoader::Load(
   const DSSParams &Params,
   uint ThreadCount)
 	{
-	m_MinChainLength = 50;
+	m_MinChainLength = 1;
 	if (optset_minchainlength)
 		m_MinChainLength = opt_minchainlength;
 

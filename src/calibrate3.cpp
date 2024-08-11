@@ -231,7 +231,7 @@ void cmd_calibrate3()
 	opt_sensitive = true;
 
 	optset_minchainlength = true;
-	opt_minchainlength = 5;
+	opt_minchainlength = 1;
 
 	optset_evalue = true;
 	opt_evalue = 10;

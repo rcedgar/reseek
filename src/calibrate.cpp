@@ -14,7 +14,7 @@ void cmd_calibrate()
 	opt_sensitive = true;
 
 	optset_minchainlength = true;
-	opt_minchainlength = 5;
+	opt_minchainlength = 1;
 
 	const string &QFN = g_Arg1;
 	const string &DBFN = g_Arg1;

@@ -50,7 +50,7 @@ void cmd_convert()
 	ChainReader2 CR;
 	CR.Open(g_Arg1);
 
-	uint MinChainLength = 50;
+	uint MinChainLength = 1;
 	if (optset_minchainlength)
 		MinChainLength = opt_minchainlength;
 

@@ -281,6 +281,7 @@ FLAG_OPT(trace_chainreader2)
 FLAG_OPT(trace_filescanner)
 FLAG_OPT(global)
 FLAG_OPT(missingtestseqok)
+FLAG_OPT(mixedcasecolok)
 FLAG_OPT(core)
 
 #undef FLAG_OPT
