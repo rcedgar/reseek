@@ -54,6 +54,7 @@ void cmd_msta_scores()
 		double Z15 = DS.GetZ();
 		DS.m_DALI_R0 = DBL_MAX;
 
+		uint SeqCount = DS.GetSeqCount();
 		uint CoreColCount = DS.m_CoreColCount;
 
 		Sum_Z += Z;
@@ -63,6 +64,7 @@ void cmd_msta_scores()
 		if (fOut != 0)
 			{
 			fprintf(fOut, "aln=%s", FN.c_str());
+			fprintf(fOut, "\tseqs=%u", SeqCount);
 			fprintf(fOut, "\tZ=%.3f", Z);
 			fprintf(fOut, "\tZ15=%.3f", Z15);
 			fprintf(fOut, "\tLDDT_mu=%.4f", LDDT_mu);

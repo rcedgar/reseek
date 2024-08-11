@@ -75,7 +75,7 @@ void cmd_convert()
 	uint InputCount = 0;
 	uint Converted = 0;
 	uint TooShort = 0;
-	uint Shortest = 0;
+	uint Shortest = UINT_MAX;
 	time_t LastTime = 0;
 	for (;;)
 		{
@@ -85,8 +85,11 @@ void cmd_convert()
 		time_t Now = time(0);
 		if (Now - LastTime > 0)
 			{
-			Progress("%s chains, %.1f%% too short (min %u, shortest %u)\r",
-			  IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength, Shortest);
+			if (TooShort > 0)
+				Progress("%s chains, %.1f%% too short (min %u, shortest %u)\r",
+				  IntToStr(Converted), GetPct(TooShort, Converted), MinChainLength, Shortest);
+			else
+				Progress("%s chains\r", IntToStr(Converted));
 			LastTime = Now;
 			}
 
@@ -98,12 +101,9 @@ void cmd_convert()
 			}
 
 		++InputCount;
+		Shortest = min(L, Shortest);
 		if (L < MinChainLength)
 			{
-			if (Shortest == 0)
-				Shortest = L;
-			else
-				Shortest = min(L, Shortest);
 			++TooShort;
 			delete ptrChain;
 			continue;
@@ -117,17 +117,23 @@ void cmd_convert()
 		++Converted;
 		delete ptrChain;
 		}
-	ProgressLog("%s chains, %.1f%% too short (min %u, shortest %u)\n",
-		IntToStr(Converted), GetPct(TooShort, InputCount), MinChainLength, Shortest);
 
-	ProgressLog("\n");
-	ProgressLog("%10u Input chains (%s)\n",
-	  InputCount, IntToStr(InputCount));
-	if (TooShort > 0)
-		ProgressLog("%10u Too short (%s, %.1f%%) min length %u\n",
-		  TooShort, IntToStr(TooShort), GetPct(TooShort, InputCount), MinChainLength);
-	ProgressLog("%10u Converted (%s, %.1f%%)\n",
-	  Converted, IntToStr(Converted), GetPct(Converted, InputCount));
+	if (InputCount > 10000)
+		{
+		ProgressLog("\n");
+		ProgressLog("%10u converted (%s)\n", InputCount, IntToStr(InputCount));
+		if (TooShort > 0)
+			ProgressLog("%10u too short (%s, %.1f%%) min length %u\n",
+			  TooShort, IntToStr(TooShort), GetPct(TooShort, InputCount), MinChainLength);
+		}
+	else
+		{
+		ProgressLog("\n");
+		ProgressLog("%10u converted\n", InputCount);
+		if (TooShort > 0)
+			ProgressLog("%10u too short (%.1f%%), min length %u, shortest %u\n",
+			  TooShort, GetPct(TooShort, InputCount), MinChainLength, Shortest);
+		}
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
