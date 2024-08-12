@@ -2,6 +2,7 @@
 #define seqdb_h
 
 #include <map>
+#include <set>
 
 class SeqDB
 	{
@@ -32,16 +33,17 @@ public:
 	void GetSeq_StripGaps(unsigned SeqIndex, string &Seq, bool ToUpper = false) const;
 	const string &GetLabel(unsigned SeqIndex) const;
 	unsigned GetSeqLength(unsigned SeqIndex) const;
+	uint GetUpperCount(unsigned uColIndex) const;
+	uint GetLowerCount(unsigned uColIndex) const;
+	uint GetGapCount(unsigned uColIndex) const;
+
 	bool IsAligned() const;
-	uint GetUpperCount(uint ColIdx) const;
-	uint GetLowerCount(uint ColIdx) const;
-	uint GetGapCount(uint ColIdx) const;
 	unsigned GetColCount() const;
 	bool GetIsNucleo();
 	unsigned GetSeqCount() const { return SIZE(m_Seqs); }
 	void FromFasta(const string &FileName, bool AllowGaps = false);
+	void FromFasta_Labels(const string &FileName, const set<string> &Labels, bool AllowGaps = false);
 	void WritePretty(FILE *f) const;
-	void WriteMSAPretty(FILE *f) const;
 	void LogMe() const;
 
 private:

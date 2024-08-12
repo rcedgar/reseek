@@ -163,6 +163,38 @@ void SeqDB::SetIsNucleo()
 	m_IsNucleoSet = true;
 	}
 
+void SeqDB::FromFasta_Labels(const string &FileName,
+  const set<string> &Labels, bool AllowGaps)
+	{
+	SFasta SF;
+	SF.Open(FileName);
+	SF.m_AllowGaps = AllowGaps;
+	uint FoundCount = 0;
+	m_IsAligned = false;
+	for (;;)
+		{
+		const char* Seq = SF.GetNextSeq();
+		if (Seq == 0)
+			break;
+		const string Label = SF.GetLabel();
+		if (Labels.find(Label) == Labels.end())
+			continue;
+		++FoundCount;
+		const unsigned L = SF.GetSeqLength();
+		if (L == 0)
+			continue;
+		string s;
+		for (unsigned i = 0; i < L; ++i)
+			s.push_back(Seq[i]);
+		AddSeq(Label, s);
+		}
+	const uint LabelCount = SIZE(Labels);
+	if (FoundCount == 0)
+		Die("No labels found");
+	if (FoundCount < LabelCount)
+		Warning("%u / %u labels not found", LabelCount - FoundCount, LabelCount);
+	}
+
 void SeqDB::FromFasta(const string& FileName, bool AllowGaps)
 	{
 	SFasta SF;
