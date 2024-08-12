@@ -30,18 +30,25 @@ void cmd_msta_scores()
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Acc = Accs[i];
+		ProgressStep(i, N, "%s", Acc.c_str());
+
 		const string &FN = TestDir + Acc;
 		if (!StdioFileExists(FN))
 			{
 			fprintf(fOut, "missing_aln=%s\n", FN.c_str());
 			continue;
 			}
-		++FoundFileCount;
 
 		SeqDB MSA;
 		MSA.FromFasta(FN, true);
+		if (MSA.GetSeqCount() == 0)
+			{
+			fprintf(fOut, "empty_aln=%s\n", FN.c_str());
+			continue;
+			}
 
-		ProgressStep(i, N, "%s", Acc.c_str());
+		++FoundFileCount;
+
 		bool Ok = DS.SetMSA(Acc, MSA, DoCore, MissingSeqOk);
 		if (!Ok)
 			continue;
