@@ -295,8 +295,9 @@ void DALIScorer::SetColToPosVec(bool Core)
 	{
 	const uint SeqCount = m_MSA->GetSeqCount();
 	m_ColToPosVec.resize(SeqCount);
-	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
-		GetColToPos(SeqIdx, m_ColToPosVec[SeqIdx], Core);
+#pragma omp for
+	for (int SeqIdx = 0; SeqIdx < int(SeqCount); ++SeqIdx)
+		GetColToPos(uint(SeqIdx), m_ColToPosVec[SeqIdx], Core);
 	}
 
 void DALIScorer::GetColToPos(uint SeqIdx, vector<uint> &ColToPos, bool Core)
@@ -509,8 +510,10 @@ void DALIScorer::SetDistMxs()
 	m_DistMxVec.resize(ChainCount);
 
 	const uint N = SIZE(m_SeqIdxToChainIdx);
-	for (uint i = 0; i < N; ++i)
+#pragma omp for
+	for (int ii = 0; ii < int(N); ++ii)
 		{
+		uint i = uint(ii);
 		uint ChainIdx = m_SeqIdxToChainIdx[i];
 		if (ChainIdx == UINT_MAX)
 			continue;
