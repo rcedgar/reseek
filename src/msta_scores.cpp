@@ -21,11 +21,11 @@ void cmd_msta_scores()
 
 	const bool DoCore = opt_core;
 
-	string LabelDir;
-	if (optset_labeldir)
+	string SeqsDir;
+	if (optset_seqsdir)
 		{
-		LabelDir = string(opt_labeldir);
-		Dirize(LabelDir);
+		SeqsDir = string(opt_seqsdir);
+		Dirize(SeqsDir);
 		}
 
 	const uint N = SIZE(Accs);
@@ -45,18 +45,12 @@ void cmd_msta_scores()
 			}
 
 		SeqDB MSA;
-		if (optset_labeldir)
+		if (optset_seqsdir)
 			{
-			set<string> EvalLabels;
-			vector<string> EvalLabelVec;
-			string LabelFN = LabelDir + Acc;
-			ReadLinesFromFile(LabelFN, EvalLabelVec);
-			uint N = SIZE(EvalLabelVec);
-			if (N == 0)
-				Die("Empty -labels file");
-			for (uint i = 0; i < N; ++i)
-				EvalLabels.insert(EvalLabelVec[i]);
-			MSA.FromFasta_Labels(FN, EvalLabels, true);
+			string SeqsFN = SeqsDir + Acc;
+			SeqDB EvalSeqs;
+			EvalSeqs.FromFasta(SeqsFN, false);
+			MSA.FromFasta_Seqs(FN, EvalSeqs, true);
 			}
 		else
 			MSA.FromFasta(FN, true);

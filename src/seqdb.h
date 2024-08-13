@@ -42,7 +42,7 @@ public:
 	bool GetIsNucleo();
 	unsigned GetSeqCount() const { return SIZE(m_Seqs); }
 	void FromFasta(const string &FileName, bool AllowGaps = false);
-	void FromFasta_Labels(const string &FileName, const set<string> &Labels, bool AllowGaps = false);
+	void FromFasta_Seqs(const string &FileName, const SeqDB &Seqs, bool AllowGaps = false);
 	void WritePretty(FILE *f) const;
 	void LogMe() const;
 
