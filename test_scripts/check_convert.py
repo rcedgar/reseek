@@ -30,7 +30,10 @@ def check_fasta(fn):
             errors += 1
             print("ERROR %s not found in %s" % (label, fn))
             return
-        if seq != seq2:
+        if seq == seq2:
+            if 0:
+                print("seq ok %s" % label)
+        else:
             errors += 1
             print("ERROR %s different %s" % (label, fn))
             return

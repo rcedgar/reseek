@@ -11,6 +11,7 @@ ls ../test_structures/* \
 	-fasta files.fa \
 	-cal files.cal \
 	-bca files.bca \
+	-chainsep : \
 	-log convert_files.log
 
 ../bin/reseek \
@@ -18,6 +19,7 @@ ls ../test_structures/* \
 	-fasta dir.fa \
 	-cal dir.cal \
 	-bca dir.bca \
+	-chainsep : \
 	-log convert_dir.log
 
 function cvt() {
