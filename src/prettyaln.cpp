@@ -100,7 +100,7 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 		if (ColHi == ColCount)
 			break;
 		asserta(ColHi < ColCount);
-		ColLo = ColHi + 1;
+		ColLo = ColHi;
 		}
 	double PctId = GetPct(Ids, ColCount);
 	double PctGaps = GetPct(Gaps, ColCount);

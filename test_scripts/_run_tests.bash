@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 cd ../src
+rm -rf o/ ../bin/reseek*
 chmod +x ./build_linux.py
 python3 ./build_linux.py
 cd ../test_scripts
@@ -23,13 +24,14 @@ echo STARTED `date` >> $log
 ./columns.bash
 ./search.bash
 ./scop40.bash
+./pdb2mega.bash
 
 python3 ./check_logs.py >> $log
 python3 ./check_convert.py >> $log
 python3 ./check_columns.py >> $log
 python3 ./check_scop40.py >> $log
 
-./update_success_list.py $ver $date
+python3 ./update_success_list.py $ver $date
 
 echo COMPLETED $date >> $log
 
