@@ -422,6 +422,12 @@
     <ClCompile Include="lddt_msas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cmp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cmp_train.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -671,6 +677,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="distmxsearcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cmp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

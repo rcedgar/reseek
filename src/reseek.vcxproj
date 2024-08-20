@@ -288,6 +288,8 @@
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="cluster.cpp" />
+    <ClCompile Include="cmp.cpp" />
+    <ClCompile Include="cmp_train.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="daliscorer.cpp" />
@@ -413,6 +415,7 @@
     <ClInclude Include="chainreader2.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
+    <ClInclude Include="cmp.h" />
     <ClInclude Include="combomx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="crc32.h" />

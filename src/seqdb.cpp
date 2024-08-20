@@ -101,6 +101,15 @@ uint SeqDB::GetLowerCount(unsigned uColIndex) const
 	return n;
 	}
 
+uint SeqDB::GetLetterCount(unsigned uColIndex) const
+	{
+	uint n = 0;
+	for (unsigned uSeqIndex = 0; uSeqIndex < GetSeqCount(); ++uSeqIndex)
+		if (!isgap(m_Seqs[uSeqIndex][uColIndex]))
+			++n;
+	return n;
+	}
+
 uint SeqDB::GetGapCount(unsigned uColIndex) const
 	{
 	uint n = 0;

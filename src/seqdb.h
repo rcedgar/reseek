@@ -35,6 +35,7 @@ public:
 	unsigned GetSeqLength(unsigned SeqIndex) const;
 	uint GetUpperCount(unsigned uColIndex) const;
 	uint GetLowerCount(unsigned uColIndex) const;
+	uint GetLetterCount(unsigned uColIndex) const;
 	uint GetGapCount(unsigned uColIndex) const;
 
 	bool IsAligned() const;
