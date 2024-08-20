@@ -13,7 +13,7 @@ mkdir -p ../test_results
 log=../test_output/TEST_LOG.txt
 
 date=`date "+%Y-%m-%d/%H:%M:%S"`
-ver=`reseek --version | tr -d ' \n\r'`
+ver=`../bin/reseek --version | tr -d ' \n\r'`
 echo $date $ver STARTED >> $log
 git status >> $log
 
