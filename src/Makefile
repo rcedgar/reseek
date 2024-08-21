@@ -8,13 +8,13 @@ OBJDIR := o
 BINPATH := $(BINDIR)/reseek
 
 CC = gcc
-CFLAGS := $(CFLAGS)  -ffast-math -march=native -O3 -DNDEBUG
+CFLAGS := $(CFLAGS)  -ffast-math -march=native --std=c++17 -O3 -DNDEBUG -fopenmp
 
 CXX = g++
-CXXFLAGS := $(CFLAGS)  -ffast-math -march=native -O3 -DNDEBUG
+CXXFLAGS := $(CFLAGS)  -ffast-math -march=native --std=c++17 -O3 -DNDEBUG -fopenmp
 
 UNAME_S := $(shell uname -s)
-LDFLAGS := $(LDFLAGS)  -ffast-math -march=native -O3
+LDFLAGS := $(LDFLAGS)  -ffast-math -march=native -O3 -fopenmp
 ifeq ($(UNAME_S),Linux)
     LDFLAGS += -static
 endif
@@ -32,6 +32,7 @@ HDRS = \
   cigar.h \
   cigar_template.h \
   cmds.h \
+  cmp.h \
   combomx.h \
   counters.h \
   crc32.h \
@@ -121,6 +122,8 @@ OBJS = \
   $(OBJDIR)/cif.o \
   $(OBJDIR)/cigar.o \
   $(OBJDIR)/cluster.o \
+  $(OBJDIR)/cmp.o \
+  $(OBJDIR)/cmp_train.o \
   $(OBJDIR)/convert.o \
   $(OBJDIR)/daliscorer.o \
   $(OBJDIR)/daliscore_msas2.o \
