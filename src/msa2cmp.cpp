@@ -73,8 +73,8 @@ void cmd_msa2cmp()
 		GetColPosVecs(Row, ColToPosVec[SeqIdx], PosToColVec[SeqIdx]);
 		}
 	double MaxGapFract = 0.2;
-	if (optset_maxgapfract)
-		MaxGapFract = opt_maxgapfract;
+	if (optset_maxgappct)
+		MaxGapFract = opt_maxgappct/100.0;
 	const uint MSAColCount = MSA.GetColCount();
 	vector<uint> ProfColToMSACol;
 	uint GappyCount = 0;

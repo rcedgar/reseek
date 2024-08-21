@@ -47,7 +47,7 @@ void CMP::MxToFile(FILE *f, const string &Name,
 
 	const uint CoreColCount = GetCoreColCount();
 	asserta(SIZE(Mx) == CoreColCount);
-	for (uint i = 1; i < CoreColCount; ++i)
+	for (uint i = 0; i < CoreColCount; ++i)
 		{
 		fprintf(f, "%s\t%u", Name.c_str(), i);
 		for (uint j = 0; j <= i; ++j)
@@ -245,9 +245,18 @@ void CMP::SetMSA(const SeqDB &MSA)
 	m_UngappedSeqToIdx.clear();
 	m_MSA = &MSA;
 	const uint SeqCount = MSA.GetSeqCount();
+	if (SeqCount <= 2)
+		Die("MSA must have > 2 sequences");
 	const uint ColCount = MSA.GetColCount();
 
-	const uint MinLetters = 1 + uint(SeqCount/2.0);
+	double MaxGapPct = (optset_maxgappct ? opt_maxgappct/100.0 : 50);
+	double MaxGapFract = MaxGapPct/100.0;
+	uint MinLetters = uint((1 - MaxGapFract)*SeqCount + 1);
+	if (MinLetters < 2)
+		MinLetters = 2;
+	ProgressLog("Max gap pct %.1f, min %u letters/col\n",
+	  MaxGapPct, MinLetters);
+
 	for (uint ColIndex = 0; ColIndex < ColCount; ++ColIndex)
 		{
 		uint LetterCount = MSA.GetLetterCount(ColIndex);
