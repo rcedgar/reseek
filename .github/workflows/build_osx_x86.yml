@@ -33,12 +33,12 @@ jobs:
           cd src
           curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/806d016/vcxproj_make.py >./vcxproj_make.py
           chmod u+x ./vcxproj_make.py
-          ./vcxproj_make.py --openmp --cppcompiler g++-11 
+          ./vcxproj_make.py --openmp --cppcompiler g++-11 --ccompiler gcc-11
           pwd
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: muscle-osx-binary_x86
+          name: reseek-osx-binary_x86
           path: /Users/runner/work/reseek/reseek/bin/reseek
       - name: Upload make.stderr artifact
         uses: actions/upload-artifact@v4
@@ -50,5 +50,3 @@ jobs:
         with:
           name: make.stdout-osx_x86
           path: /Users/runner/work/reseek/reseek/src/make.stdout
-
-
