@@ -29,8 +29,8 @@ jobs:
           echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
           uname -a
           cd $GITHUB_WORKSPACE
-          ls -lh
           cd src
+          ls -lh
           curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/806d016/vcxproj_make.py >./vcxproj_make.py
           # chmod u+x ./vcxproj_make.py
           # ./vcxproj_make.py --openmp --cppcompiler g++-11 --ccompiler gcc-11
@@ -39,7 +39,7 @@ jobs:
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reseek-osx-binary_x86
+          name: reseek-osx-x86
           path: /Users/runner/work/reseek/reseek/bin/reseek
       - name: Upload make.stderr artifact
         uses: actions/upload-artifact@v4
