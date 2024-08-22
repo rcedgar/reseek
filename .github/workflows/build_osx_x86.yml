@@ -32,9 +32,10 @@ jobs:
           ls -lh
           cd src
           curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/806d016/vcxproj_make.py >./vcxproj_make.py
-          chmod u+x ./vcxproj_make.py
-          ./vcxproj_make.py --openmp --cppcompiler g++-11 --ccompiler gcc-11
-          pwd
+          # chmod u+x ./vcxproj_make.py
+          # ./vcxproj_make.py --openmp --cppcompiler g++-11 --ccompiler gcc-11
+          ./build_osx_x86.bash
+
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
