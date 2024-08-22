@@ -1,0 +1,54 @@
+name: build-osx-x86
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: macos-13
+ 
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v4
+
+      # Install MacPorts (new step)
+      - uses: melusina-org/setup-macports@v1
+
+      # Install ccache using port (optional, adjust as needed)
+      - name: Install ccache
+        run: |
+          sudo port install python311
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"  
+          brew update
+          brew install gcc@11
+
+      # Runs a set of commands using the runner's shell
+      - name: Build-commands
+        run: |
+          echo Starting Build-commands
+          echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+          uname -a
+          cd $GITHUB_WORKSPACE
+          ls -lh
+          cd src
+          curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/806d016/vcxproj_make.py >./vcxproj_make.py
+          chmod u+x ./vcxproj_make.py
+          ./vcxproj_make.py --openmp --cppcompiler g++-11 
+          pwd
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: muscle-osx-binary_x86
+          path: /Users/runner/work/reseek/reseek/bin/reseek
+      - name: Upload make.stderr artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: make.stderr-osx_x86
+          path: /Users/runner/work/reseek/reseek/src/make.stderr
+      - name: Upload make.stdout artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: make.stdout-osx_x86
+          path: /Users/runner/work/reseek/reseek/src/make.stdout
+
+
