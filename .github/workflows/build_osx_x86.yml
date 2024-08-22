@@ -33,13 +33,3 @@ jobs:
         with:
           name: reseek-osx-x86
           path: /Users/runner/work/reseek/reseek/bin/reseek
-      - name: Upload make.stderr artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: make.stderr-osx_x86
-          path: /Users/runner/work/reseek/reseek/src/make.stderr
-      - name: Upload make.stdout artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: make.stdout-osx_x86
-          path: /Users/runner/work/reseek/reseek/src/make.stdout
