@@ -68,8 +68,12 @@ void CMP::ToFile(const string &FileName) const
 		return;
 	FILE *f = CreateStdioFile(FileName);
 	asserta(f != 0);
+	const uint ColCount = GetColCount();
 	const uint CoreColCount = GetCoreColCount();
 	fprintf(f, "CMP\t%u\n", CoreColCount);
+	for (uint i = 0; i < ColCount; ++i)
+		fprintf(f, "%c", m_ColIsCore[i] ? '1' : '0');
+	fprintf(f, "\n");
 	MxToFile(f, "mean", m_MeanDistMx);
 	MxToFile(f, "stddev", m_StdDevs);
 	CloseStdioFile(f);
