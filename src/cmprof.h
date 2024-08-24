@@ -3,7 +3,7 @@
 #include "pdbchain.h"
 #include "seqdb.h"
 
-class CMP
+class CMProf
 	{
 public:
 	vector<vector<double> > m_MeanDistMx;
@@ -18,7 +18,7 @@ public:
 
 
 public:
-	CMP()
+	CMProf()
 		{
 		Clear();
 		};

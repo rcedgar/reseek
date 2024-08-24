@@ -725,7 +725,7 @@ void DSS::GetComboLetters(vector<byte> &Letters)
 		if (Letter == UINT_MAX)
 			Letter = 0;
 		asserta(Letter < 256);
-		asserta(Letter < 36);//@@
+		asserta(Letter < 36);
 		Letters.push_back(byte(Letter));
 		}
 	}

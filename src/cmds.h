@@ -55,6 +55,8 @@ C(lddt_msa_foldmason)
 C(lddt_msas)
 C(msta_scores)
 C(msta_score)
-C(cmp_train)
+C(cmpprof_train)
+C(msta_sscons)
+C(msta_sscons1)
 
 #undef C

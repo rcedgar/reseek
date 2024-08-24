@@ -454,7 +454,7 @@ void DSSAligner::SetSMx_Combo_Int()
 	const vector<byte> &ComboLettersB = *m_ComboLettersB;
 	const uint LA = SIZE(ComboLettersA);
 	const uint LB = SIZE(ComboLettersB);
-	const uint AS = 36; // g_AlphaSizes2[FEATURE_Combo]; @@TODO
+	const uint AS = 36;
 	asserta(AS == 36);
 
 	Mx<int8_t> &SMx = m_SMx_Int;
@@ -495,7 +495,7 @@ void DSSAligner::SetComboQP()
 		m_ProfCombo.resize(LA);
 		m_ProfComboRev.resize(LA);
 		}
-	const uint AS = 36; // g_AlphaSizes2[FEATURE_Combo]; @@TODO
+	const uint AS = 36;
 	asserta(AS == 36);
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
@@ -518,7 +518,7 @@ void DSSAligner::SetComboQPi()
 		m_ProfComboi.resize(LA);
 		m_ProfComboRevi.resize(LA);
 		}
-	const uint AS = 36; // g_AlphaSizes2[FEATURE_Combo]; @@TODO
+	const uint AS = 36;
 	asserta(AS == 36);
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
@@ -536,7 +536,7 @@ void DSSAligner::SetSMx_Combo()
 	const vector<byte> &ComboLettersB = *m_ComboLettersB;
 	const uint LA = SIZE(ComboLettersA);
 	const uint LB = SIZE(ComboLettersB);
-	const uint AS = 36; // g_AlphaSizes2[FEATURE_Combo]; @@TODO
+	const uint AS = 36;
 	asserta(AS == 36);
 
 	Mx<float> &SMx = m_SMx;

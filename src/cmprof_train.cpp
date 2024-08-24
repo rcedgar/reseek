@@ -1,11 +1,11 @@
 #include "myutils.h"
-#include "cmp.h"
+#include "cmprof.h"
 #include "chainreader2.h"
 #include "alpha.h"
 
-void cmd_cmp_train()
+void cmd_cmpprof_train()
 	{
-	const string &ChainFN = opt_cmp_train;
+	const string &ChainFN = opt_cmpprof_train;
 	const string &MSAFN = opt_input;
 
 	SeqDB MSA;
@@ -15,7 +15,7 @@ void cmd_cmp_train()
 	ChainReader2 CR;
 	CR.Open(ChainFN);
 
-	CMP Prof;
+	CMProf Prof;
 	Prof.SetMSA(MSA);
 	ProgressLog("%u core cols\n", SIZE(Prof.m_CoreCols));
 

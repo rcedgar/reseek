@@ -77,6 +77,7 @@ public:
 	const vector<vector<double> > &GetDistMx(uint ChainIdx) const;
 	void SetDistMx(uint ChainId);
 	void SetDistMxs();
+	uint GetChainIdx(const string &Seq, bool FailOnError = true) const;
 
 	double GetDALIScore_ChainPair(uint ChainIdx1, uint ChainIdx2,
 	  const vector<uint> &Pos1s, vector<uint> &Pos2s) const;
@@ -89,10 +90,14 @@ public:
 	double GetLDDT_muscle() const;
 	double GetLDDTChainPair_muscle(uint ChainId1, uint ChainId2,
 	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
+	double GetSSConsCol(uint Col, uint w) const;
+	double GetSSCons1(uint SeqIdx, uint Col, uint w) const;
+	void GetDistMxWindow(uint SeqIdx, uint Col, uint w,
+	  vector<vector<double> > &Mx) const;
+	double GetLDDTScoreWindow(const vector<vector<double> > &Mx1,
+	  const vector<vector<double> > &Mx2, uint w) const;
 	};
 
 double DALI_dpscorefun(double a, double b);
-//double GetDALIScore(const PDBChain &Q, const PDBChain &T,
-//	const vector<uint> &PosQs, const vector<uint> &PosTs);
 double GetDALIZFromScoreAndLengths(double DALIScore, uint QL, uint TL);
 extern float g_DALI_Theta;

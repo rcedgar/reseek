@@ -95,14 +95,18 @@ void DALIScorer::LoadChains(const string &FN)
 		m_SeqToChainIdx[ptrChain->m_Seq] = Idx;
 		}
 	Progress("Reading chains done (%u)\n", SIZE(m_Chains));
-	{//@@
-	for (map<string, uint>::const_iterator iter = m_SeqToChainIdx.begin();
-		iter != m_SeqToChainIdx.end(); ++iter)
-			{
-			Log("[%u] %s\n", iter->second, iter->first);
-			}
+	}
 
-	}//@@
+uint DALIScorer::GetChainIdx(const string &Seq, bool FailOnError) const
+	{
+	map<string, uint>::const_iterator iter = m_SeqToChainIdx.find(Seq);
+	if (iter == m_SeqToChainIdx.end())
+		{
+		if (FailOnError)
+			Die("GetChainIdx(%10.10s...)", Seq.c_str());
+		return UINT_MAX;
+		}
+	return iter->second;
 	}
 
 void DALIScorer::SetCore()
@@ -137,8 +141,6 @@ bool DALIScorer::SetSeqIdxToChainIdx(bool MissingSeqOk)
 		const string &Label = string(m_MSA->GetLabel(SeqIdx));
 		string Seq;
 		m_MSA->GetSeq_StripGaps(SeqIdx, Seq, true);
-		Log(">%s\n", Label.c_str());//@@
-		Log("%s\n", Seq.c_str());//@@
 		map<string, uint>::const_iterator iter = m_SeqToChainIdx.find(Seq);
 		if (iter == m_SeqToChainIdx.end())
 			{

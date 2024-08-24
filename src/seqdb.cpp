@@ -14,6 +14,20 @@ void SeqDB::SetLabelToIndex()
 		}
 	}
 
+uint SeqDB::GetSeqIndex(const string& Label, bool FailOnError) const
+	{
+	map<string, uint>::const_iterator p =
+		m_LabelToIndex.find(Label);
+	if (p == m_LabelToIndex.end())
+		{
+		if (FailOnError)
+			Die("Not found >%s", Label.c_str());
+		return UINT_MAX;
+		}
+	uint Index = p->second;
+	return Index;
+	}
+
 bool SeqDB::GetSeqByLabel(const string& Label, string& Seq,
 	bool FailOnError) const
 	{

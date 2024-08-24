@@ -1,5 +1,5 @@
 #include "myutils.h"
-#include "cmp.h"
+#include "cmprof.h"
 #include "alpha.h"
 
 double GetNormal(double Mu, double Sigma, double x)
@@ -12,7 +12,7 @@ double GetNormal(double Mu, double Sigma, double x)
 	return y;
 	}
 
-void CMP::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
+void CMProf::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
   vector<vector<double> > &DistMx)
 	{
 	DistMx.clear();
@@ -39,7 +39,7 @@ void CMP::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
 		}
 	}
 
-void CMP::MxToFile(FILE *f, const string &Name,
+void CMProf::MxToFile(FILE *f, const string &Name,
   const vector<vector<double> > &Mx) const
 	{
 	if (f == 0)
@@ -62,7 +62,7 @@ void CMP::MxToFile(FILE *f, const string &Name,
 		}
 	}
 
-void CMP::ToFile(const string &FileName) const
+void CMProf::ToFile(const string &FileName) const
 	{
 	if (FileName == "")
 		return;
@@ -70,7 +70,7 @@ void CMP::ToFile(const string &FileName) const
 	asserta(f != 0);
 	const uint ColCount = GetColCount();
 	const uint CoreColCount = GetCoreColCount();
-	fprintf(f, "CMP\t%u\n", CoreColCount);
+	fprintf(f, "CMProf\t%u\n", CoreColCount);
 	for (uint i = 0; i < ColCount; ++i)
 		fprintf(f, "%c", m_ColIsCore[i] ? '1' : '0');
 	fprintf(f, "\n");
@@ -79,7 +79,7 @@ void CMP::ToFile(const string &FileName) const
 	CloseStdioFile(f);
 	}
 
-void CMP::MxFromFile(FILE *f, string &Name, uint CoreColCount,
+void CMProf::MxFromFile(FILE *f, string &Name, uint CoreColCount,
   vector<vector<double> > &Mx)
 	{
 	Mx.resize(CoreColCount);
@@ -92,7 +92,7 @@ void CMP::MxFromFile(FILE *f, string &Name, uint CoreColCount,
 		{
 		bool Ok = ReadLineStdioFile(f, Line);
 		if (!Ok)
-			Die("Premature EOF in CMP file");
+			Die("Premature EOF in CMProf file");
 		Split(Line, Fields, '\t');
 		asserta(SIZE(Fields) == i+3);
 		if (i == 1)
@@ -112,17 +112,17 @@ void CMP::MxFromFile(FILE *f, string &Name, uint CoreColCount,
 		}
 	}
 
-void CMP::FromFile(FILE *f)
+void CMProf::FromFile(FILE *f)
 	{
 	Clear();
 	string Line;
 	vector<string> Fields;
 	bool Ok = ReadLineStdioFile(f, Line);
 	if (!Ok)
-		Die("Premature EOF in CMP file");
+		Die("Premature EOF in CMProf file");
 	Split(Line, Fields, '\t');
-	if (SIZE(Fields) != 2 || Fields[0] != "CMP")
-		Die("Invalid CMP file (hdr)");
+	if (SIZE(Fields) != 2 || Fields[0] != "CMProf")
+		Die("Invalid CMProf file (hdr)");
 	const uint CoreColCount = StrToUint(Fields[1]);
 
 	string Name;
@@ -133,7 +133,7 @@ void CMP::FromFile(FILE *f)
 	asserta(Name == "stddev");
 	}
 
-void CMP::FromFile(const string &FileName)
+void CMProf::FromFile(const string &FileName)
 	{
 	asserta(FileName != "");
 	FILE *f = OpenStdioFile(FileName);
@@ -141,7 +141,7 @@ void CMP::FromFile(const string &FileName)
 	CloseStdioFile(f);
 	}
 
-bool CMP::TrainChain(const PDBChain &Q)
+bool CMProf::TrainChain(const PDBChain &Q)
 	{
 	const string &Seq = Q.m_Seq;
 	const string Label = Q.m_Label;
@@ -173,7 +173,7 @@ bool CMP::TrainChain(const PDBChain &Q)
 	return true;
 	}
 
-void CMP::FinalizeTrain()
+void CMProf::FinalizeTrain()
 	{
 	const uint CoreColCount = GetCoreColCount();
 
@@ -206,7 +206,7 @@ void CMP::FinalizeTrain()
 		}
 	}
 
-void CMP::GetMeanStdDev(uint i, uint j,
+void CMProf::GetMeanStdDev(uint i, uint j,
   double &Mean, double &StdDev) const
 	{
 	Mean = DBL_MAX;
@@ -242,7 +242,7 @@ void CMP::GetMeanStdDev(uint i, uint j,
 	StdDev = sqrt(Sumd2/n);
 	}
 
-void CMP::SetMSA(const SeqDB &MSA)
+void CMProf::SetMSA(const SeqDB &MSA)
 	{
 	m_ColIsCore.clear();
 	m_CoreCols.clear();

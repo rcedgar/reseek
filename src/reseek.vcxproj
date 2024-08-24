@@ -288,8 +288,8 @@
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="cluster.cpp" />
-    <ClCompile Include="cmp.cpp" />
-    <ClCompile Include="cmp_train.cpp" />
+    <ClCompile Include="cmprof.cpp" />
+    <ClCompile Include="cmprof_train.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="daliscorer.cpp" />
@@ -308,6 +308,8 @@
     <ClCompile Include="lddt_muscle.cpp" />
     <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
+    <ClCompile Include="msta_sscons.cpp" />
+    <ClCompile Include="msta_sscons1.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -415,7 +417,7 @@
     <ClInclude Include="chainreader2.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
-    <ClInclude Include="cmp.h" />
+    <ClInclude Include="cmprof.h" />
     <ClInclude Include="combomx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="crc32.h" />

@@ -148,6 +148,7 @@ UNS_OPT(maxaccepts,			10,			1,			UINT_MAX)
 UNS_OPT(maxrejects,			10,			1,			UINT_MAX)
 UNS_OPT(para_mugapopen,		10,			1,			UINT_MAX)
 UNS_OPT(para_mugapext,		10,			1,			UINT_MAX)
+UNS_OPT(window,				10,			1,			UINT_MAX)
 
 UNS_OPT(secs,				60,			1,			UINT_MAX)
 UNS_OPT(flanks,				60,			1,			UINT_MAX)
@@ -284,6 +285,7 @@ FLAG_OPT(global)
 FLAG_OPT(missingtestseqok)
 FLAG_OPT(mixedcasecolok)
 FLAG_OPT(core)
+FLAG_OPT(nochainchar)
 
 #undef FLAG_OPT
 #undef UNS_OPT

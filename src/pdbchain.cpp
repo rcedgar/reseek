@@ -5,6 +5,16 @@
 
 void GetThreeFromOne(char aa, string &AAA);
 
+void ChainizeLabel(string &Label, char ChainChar)
+	{
+	if (opt_nochainchar)
+		return;
+	if (ChainChar == 0 || ChainChar == ' ')
+		ChainChar = '_';
+	Label += (optset_chainsep ? string(opt_chainsep) : "_");
+	Label += ChainChar;
+	}
+
 /***
 PDBChain ATOM record format
 http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
@@ -265,12 +275,7 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_Zs.push_back(Z);
 		}
 
-	if (ChainChar != 0 && !isspace(ChainChar))
-		{
-		m_Label += optset_chainsep ? string(opt_chainsep) : "";
-		m_Label += ChainChar;
-		}
-
+	ChainizeLabel(m_Label, ChainChar);
 	return ChainChar;
 	}
 

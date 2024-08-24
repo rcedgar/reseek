@@ -176,7 +176,6 @@ void cmd_test_xdrop()
 	{
 	Test("DVLGYLRFLTKGERQANLNF",
 		 "WVLGLRFLTKGERQANLNF");
-	return;//@@
 
 	Test("DVLGYLRFLTERQANLNF",
 		 "WVLGLRFLTKGERQANLNF");

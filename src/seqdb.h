@@ -28,6 +28,7 @@ public:
 
 	bool GetSeqByLabel(const string &Label, string &Seq,
 	  bool FailOnError = true) const;
+	uint GetSeqIndex(const string &Label, bool FailOnError = true) const;
 	unsigned AddSeq(const string &Label, const string &Seq);
 	const string &GetSeq(unsigned SeqIndex) const;
 	void GetSeq_StripGaps(unsigned SeqIndex, string &Seq, bool ToUpper = false) const;

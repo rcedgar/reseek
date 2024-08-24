@@ -46,9 +46,6 @@ double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
 	const uint nr_thresholds = SIZE(m_LDDT_thresholds);
 	asserta(SIZE(col_to_pos2s) == nr_cols);
 	double total = 0;
-	vector<double> col_scores;
-	vector<uint> nr_preserveds;
-	vector<uint> nr_considereds;
 	uint nr_cols_considered = 0;
 	for (uint coli = 0; coli < nr_cols; ++coli)
 		{
@@ -97,9 +94,6 @@ double DALIScorer::GetLDDTChainPair_muscle(uint ChainIdx1, uint ChainIdx2,
 		if (nr_considered > 0)
 			score = double(nr_preserved)/nr_considered;
 		total += score;
-		col_scores.push_back(score);
-		nr_preserveds.push_back(nr_preserved);
-		nr_considereds.push_back(nr_considered);
 		}
 
 	if (nr_cols_considered == 0)

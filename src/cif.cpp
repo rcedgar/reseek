@@ -3,6 +3,8 @@
 #include "chainreader2.h"
 #include <map>
 
+void ChainizeLabel(string &Label, char ChainChar);
+
 /***
 https://mmcif.wwpdb.org/docs/user-guide/guide.html
 
@@ -243,13 +245,8 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 			if (Chain != 0)
 				Chains.push_back(Chain);
 			Chain = new PDBChain;
+			ChainizeLabel(Label, ChainChar);
 			Chain->m_Label = Label;
-			if (ChainChar != 0 && !isspace(ChainChar))
-				{
-				Chain->m_Label += optset_chainsep ? string(opt_chainsep) : "";
-				Chain->m_Label += ChainChar;
-				}
-
 			CurrentChainChar = ChainChar;
 			}
 
