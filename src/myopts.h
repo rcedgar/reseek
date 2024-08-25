@@ -94,6 +94,8 @@ STR_OPT(features)
 STR_OPT(weights)
 STR_OPT(weightstr)
 STR_OPT(columns)
+STR_OPT(sscons_jalview)
+STR_OPT(sscons_pymol)
 
 STR_OPT(log)
 STR_OPT(input)
