@@ -428,10 +428,10 @@
     <ClCompile Include="cmprof_train.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="msta_sscons.cpp">
+    <ClCompile Include="msta_lddtmuw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="msta_sscons1.cpp">
+    <ClCompile Include="msta_lddtmuw1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

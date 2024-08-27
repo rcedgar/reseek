@@ -3,9 +3,9 @@
 #include "chainreader2.h"
 #include "alpha.h"
 
-void cmd_cmpprof_train()
+void cmd_cmprof_train()
 	{
-	const string &ChainFN = opt_cmpprof_train;
+	const string &ChainFN = opt_cmprof_train;
 	const string &MSAFN = opt_input;
 
 	SeqDB MSA;

@@ -4,15 +4,15 @@
 #include "daliscorer.h"
 #include "alpha.h"
 
-char GetSSConsSymbol(double SSCons)
+char GetLDDTMuWSymbol(double LDDTMuW)
 	{
-	if (SSCons == 0)
+	if (LDDTMuW == 0)
 		return ' ';
-	if (SSCons < 0.2)
+	if (LDDTMuW < 0.2)
 		return '.';
-	if (SSCons < 0.5)
+	if (LDDTMuW < 0.5)
 		return ':';
-	if (SSCons < 0.75)
+	if (LDDTMuW < 0.75)
 		return '|';
 	return '@';
 	}
@@ -102,7 +102,7 @@ void DALIScorer::GetDistMxWindow(uint SeqIdx, uint Pos, uint w,
 		}
 	}
 
-double DALIScorer::GetSSCons1(uint QuerySeqIdx, uint Col, uint w) const
+double DALIScorer::GetLDDTMuW1(uint QuerySeqIdx, uint Col, uint w) const
 	{
 	asserta(QuerySeqIdx < SIZE(m_ColToPosVec));
 	asserta(Col < SIZE(m_ColToPosVec[QuerySeqIdx]));
@@ -138,8 +138,8 @@ double DALIScorer::GetSSCons1(uint QuerySeqIdx, uint Col, uint w) const
 	return avg;
 	}
 
-// -msta_sscons MSA -input STRUCTS -label QUERY
-void cmd_msta_sscons1()
+// -msta_lddtmuw1 MSA -input STRUCTS -label QUERY
+void cmd_msta_lddtmuw1()
 	{
 	asserta(optset_input);
 	asserta(optset_label);
@@ -181,29 +181,29 @@ void cmd_msta_sscons1()
 
 	const uint LQ = SIZE(QuerySeq);
 	uint PosQ = 0;
-	vector<double> SSConsVec;
+	vector<double> LDDTMuWVec;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
 		char q = QueryRow[Col];
 		if (isgap(q))
 			continue;
-		double SSCons = DS.GetSSCons1(QuerySeqIdx, PosQ, w);
+		double LDDTMuW = DS.GetLDDTMuW1(QuerySeqIdx, PosQ, w);
 		Log("%u", PosQ);
 		Log("  %c", q);
-		if (SSCons == DBL_MAX)
+		if (LDDTMuW == DBL_MAX)
 			Log("  .");
 		else
-			Log("  %.4f", SSCons);
+			Log("  %.4f", LDDTMuW);
 		Log("\n");
-		SSConsVec.push_back(SSCons);
+		LDDTMuWVec.push_back(LDDTMuW);
 		++PosQ;
 		}
 
 	Log("%s\n", QuerySeq.c_str());
 	for (uint PosQ = 0; PosQ < LQ; ++PosQ)
 		{
-		double SSCons = SSConsVec[PosQ];
-		char c = GetSSConsSymbol(SSCons);
+		double LDDTMuW = LDDTMuWVec[PosQ];
+		char c = GetLDDTMuWSymbol(LDDTMuW);
 		Log("%c", c);
 		}
 	Log("\n");

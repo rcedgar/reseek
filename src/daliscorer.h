@@ -90,8 +90,8 @@ public:
 	double GetLDDT_muscle() const;
 	double GetLDDTChainPair_muscle(uint ChainId1, uint ChainId2,
 	  const vector<uint> &Pos1s, const vector<uint> &Pos2s) const;
-	double GetSSConsCol(uint Col, uint w) const;
-	double GetSSCons1(uint SeqIdx, uint Col, uint w) const;
+	double GetLDDTMuWCol(uint Col, uint w) const;
+	double GetLDDTMuW1(uint SeqIdx, uint Col, uint w) const;
 	void GetDistMxWindow(uint SeqIdx, uint Col, uint w,
 	  vector<vector<double> > &Mx) const;
 	double GetLDDTScoreWindow(const vector<vector<double> > &Mx1,

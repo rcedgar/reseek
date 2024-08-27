@@ -4,7 +4,7 @@
 #include "daliscorer.h"
 #include "alpha.h"
 
-char GetSSConsSymbol(double SSCons);
+char GetLDDTMuWSymbol(double LDDTMuW);
 
 static const char *GetColor(uint Bin)
 	{
@@ -14,18 +14,18 @@ static const char *GetColor(uint Bin)
 	return Colors[Bin];
 	}
 
-static uint GetBin(double SSCons, const vector<double> &Thresholds)
+static uint GetBin(double LDDTMuW, const vector<double> &Thresholds)
 	{
 	const uint N = SIZE(Thresholds);
 	for (uint i = 0; i < N; ++i)
 		{
-		if (SSCons <= Thresholds[i])
+		if (LDDTMuW <= Thresholds[i])
 			return i;
 		}
 	return N;
 	}
 
-double DALIScorer::GetSSConsCol(uint Col, uint w) const
+double DALIScorer::GetLDDTMuWCol(uint Col, uint w) const
 	{
 	const uint SeqCount = GetSeqCount();
 	vector<vector<vector<double> > > MxVec(SeqCount);
@@ -195,12 +195,12 @@ static void SmoothS3(string &S3)
 		}
 	}
 
-// -msta_sscons MSA -input STRUCTS
-void cmd_msta_sscons()
+// -msta_lddtmuws MSA -input STRUCTS
+void cmd_msta_lddtmuw()
 	{
 	asserta(optset_input);
-	if (optset_sscons_pymol && !optset_label)
-		Die("-sscons_pymol requires -label");
+	if (optset_lddtmuw_pymol && !optset_label)
+		Die("-lddtmuw_pymol requires -label");
 
 	uint w = 2;
 	if (optset_window)
@@ -223,22 +223,22 @@ void cmd_msta_sscons()
 	if (!Ok)
 		Die("SetMSA failed");
 
-	vector<double> SSConsVec;
+	vector<double> LDDTMuWVec;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
-		double SSCons = DS.GetSSConsCol(Col, w);
-		SSConsVec.push_back(SSCons);
+		double LDDTMuW = DS.GetLDDTMuWCol(Col, w);
+		LDDTMuWVec.push_back(LDDTMuW);
 		}
 
-	if (optset_sscons_jalview)
+	if (optset_lddtmuw_jalview)
 		{
 		vector<string> SSVec;
 		GetSSVec(DS.m_Chains, SSVec);
 		vector<string> SSMSA;
 		GetSSMSA(MSA, DS.m_SeqIdxToChainIdx, SSVec, SSMSA);
-		FILE *f = CreateStdioFile(opt_sscons_jalview);
+		FILE *f = CreateStdioFile(opt_lddtmuw_jalview);
 		fprintf(f, "JALVIEW_ANNOTATION\n");
-		fprintf(f, "BAR_GRAPH\tSSCons\t");
+		fprintf(f, "BAR_GRAPH\tLDDT-muw\t");
 		string S3;
 		for (uint Col = 0; Col < ColCount; ++Col)
 			S3 += GetConsChar3(SSMSA, Col);
@@ -247,10 +247,10 @@ void cmd_msta_sscons()
 			{
 			char c3 = S3[Col];
 			const char *Color = GetCons3Color(c3);
-			double SSCons = DS.GetSSConsCol(Col, w);
+			double LDDTMuW = DS.GetLDDTMuWCol(Col, w);
 			if (Col > 0)
 				fprintf(f, "|");
-			fprintf(f, "%.3f[%s]", SSCons, Color);
+			fprintf(f, "%.3f[%s]", LDDTMuW, Color);
 			}
 		fprintf(f, "\n");
 		CloseStdioFile(f);
@@ -270,8 +270,8 @@ void cmd_msta_sscons()
 	vector<uint> ColBins;
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
-		double SSCons = SSConsVec[Col];
-		uint Bin = GetBin(SSCons, Thresholds);
+		double LDDTMuW = LDDTMuWVec[Col];
+		uint Bin = GetBin(LDDTMuW, Thresholds);
 		ColBins.push_back(Bin);
 		}
 
@@ -291,9 +291,9 @@ void cmd_msta_sscons()
 			}
 
 		const uint LQ = SIZE(Bins);
-		if (optset_sscons_pymol)
+		if (optset_lddtmuw_pymol)
 			{
-			FILE *f = CreateStdioFile(opt_sscons_pymol);
+			FILE *f = CreateStdioFile(opt_lddtmuw_pymol);
 			uint Start = 0;
 			uint CurrentBin = Bins[0];
 			fprintf(f, "select tmp, all\n");

@@ -70,7 +70,7 @@ void CMProf::ToFile(const string &FileName) const
 	asserta(f != 0);
 	const uint ColCount = GetColCount();
 	const uint CoreColCount = GetCoreColCount();
-	fprintf(f, "CMProf\t%u\n", CoreColCount);
+	fprintf(f, "CMP\t%u\n", CoreColCount);
 	for (uint i = 0; i < ColCount; ++i)
 		fprintf(f, "%c", m_ColIsCore[i] ? '1' : '0');
 	fprintf(f, "\n");

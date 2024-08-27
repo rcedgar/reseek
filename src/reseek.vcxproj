@@ -306,10 +306,10 @@
     <ClCompile Include="lddt_msas.cpp" />
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
+    <ClCompile Include="msta_lddtmuw1.cpp" />
+    <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
-    <ClCompile Include="msta_sscons.cpp" />
-    <ClCompile Include="msta_sscons1.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
