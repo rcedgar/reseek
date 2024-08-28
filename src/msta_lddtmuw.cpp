@@ -199,6 +199,9 @@ static void SmoothS3(string &S3)
 void cmd_msta_lddtmuw()
 	{
 	asserta(optset_input);
+	if (EndsWith(opt_input, ".mega"))
+		Die("invalid -input, mega does not contain structures");
+
 	if (optset_lddtmuw_pymol && !optset_label)
 		Die("-lddtmuw_pymol requires -label");
 
@@ -219,6 +222,11 @@ void cmd_msta_lddtmuw()
 
 	DALIScorer DS;
 	DS.LoadChains(opt_input);
+	const uint ChainCount = SIZE(DS.m_Chains);
+	if (ChainCount == 0)
+		Die("No structures in %s", opt_input);
+	if (ChainCount == 1)
+		Die("Only one structure in %s", opt_input);
 	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");
