@@ -22,7 +22,8 @@ static FEATURE GetFeatureFromCmdLine()
 	//ComboFeatures.push_back(FEATURE_SS3);
 	//ComboFeatures.push_back(FEATURE_NbrSS3);
 	//ComboFeatures.push_back(FEATURE_RevNbrDist4);
-#define c(x, y)	if (Alpha == #x) Alpha = #y;
+#define c(x, y)	if (stricmp(Alpha.c_str(), #x) == 0) Alpha = #y;
+	c(Mu, COMBO);
 	c(Conf3, SS3);
 	c(NbrSS3, NbrSS3);
 	c(RevNbrDist4, RevNbrDist4);
@@ -35,7 +36,7 @@ static FEATURE GetFeatureFromCmdLine()
 	c(RENDist4, RevNbrDist4);
 #undef c
 
-#define F(x) if (Alpha == #x) Feat = FEATURE_##x;
+#define F(x) if (stricmp(Alpha.c_str(), #x) == 0) Feat = FEATURE_##x;
 #include "intfeatures.h"
 #undef F
 
@@ -58,7 +59,7 @@ void cmd_convert()
 	DSS D;
 	uint AlphaSize = 0;
 	FEATURE Feat = FEATURE(FEATURE_COUNT);
-	if (optset_feature_fasta != 0)
+	if (optset_feature_fasta)
 		{
 		Params.SetFromCmdLine(10000);
 		Feat = GetFeatureFromCmdLine();
