@@ -33,6 +33,7 @@ void cmd_pdb2mega()
 		{
 		FEATURE F = Params.m_Features[i];
 		uint AlphaSize = g_AlphaSizes2[F];
+		asserta(AlphaSize <= 20); // because 'a'+Letter below
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
 		  i, FeatureToStr(F), AlphaSize, Params.m_Weights[i]);
 		fprintf(fOut, "freqs");
@@ -48,6 +49,19 @@ void cmd_pdb2mega()
 				{
 				float Freq = FreqMx[Letter1][Letter2];
 				fprintf(fOut, "\t%.4g", Freq);
+				}
+			fprintf(fOut, "\n");
+			}
+		float **ScoreMx = Params.m_ScoreMxs[F];
+		fprintf(fOut, "logoddsmx\n");
+		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
+			{
+			char c = (F == FEATURE_AA ? g_LetterToCharAmino[Letter1] : 'a' + Letter1);
+			fprintf(fOut, "%u\t%c", Letter1, c);
+			for (uint Letter2 = 0; Letter2 <= Letter1; ++Letter2)
+				{
+				float Score = ScoreMx[Letter1][Letter2];
+				fprintf(fOut, "\t%.4g", Score);
 				}
 			fprintf(fOut, "\n");
 			}

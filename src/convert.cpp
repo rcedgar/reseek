@@ -34,6 +34,8 @@ static FEATURE GetFeatureFromCmdLine()
 	c(NENDist16, NbrDist);
 	c(RENDist16, RevNbrDist);
 	c(RENDist4, RevNbrDist4);
+	c(NormDens16, NormDens);
+	c(StrandDens16, StrandDens);
 #undef c
 
 #define F(x) if (stricmp(Alpha.c_str(), #x) == 0) Feat = FEATURE_##x;

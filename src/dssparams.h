@@ -85,6 +85,7 @@ public:
 		}
 
 	void SetNamedParams(const string &Name);
+	void FromParamStr(const string &ParamStr);
 	void NormalizeWeights();
 	void WriteSummary(FILE *f) const;
 	uint GetFeatureCount() const;

@@ -361,7 +361,6 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
-    <ClCompile Include="scoremxs2.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />

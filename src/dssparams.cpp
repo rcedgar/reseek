@@ -35,6 +35,8 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 
 	if (optset_namedparams)
 		SetNamedParams(opt_namedparams);
+	else if (optset_params)
+		FromParamStr(opt_params);
 	else if (optset_paramsf)
 		FromTsv(opt_paramsf);
 	else

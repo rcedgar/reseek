@@ -182,9 +182,6 @@
     <ClCompile Include="mergefwdback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scoremxs2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="timing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

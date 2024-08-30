@@ -1,6 +1,41 @@
 #include "myutils.h"
 #include "dssparams.h"
 
+void DSSParams::FromParamStr(const string &Str)
+	{
+	Clear();
+	m_Desc = "FromParamStr";
+	vector<string> Fields;
+	Split(Str, Fields, '_');
+
+	m_GapOpen = -1.5f;
+	m_GapExt = -0.42f;
+	m_DALIw = 0;
+	m_FwdMatchScore = 0;
+	m_MinFwdScore = 0;
+	m_MinComboFwdScore = 0;
+	m_Omega = 0;
+	m_Lambda = 0;
+	m_MinU = 0;
+	m_USort = false;
+	m_MaxAccepts = UINT_MAX;
+	m_MaxRejects = UINT_MAX;
+	m_PatternStr = "*";
+
+	const uint N = SIZE(Fields);
+	for (uint i = 0; i < N; ++i)
+		{
+		const string &Field = Fields[i];
+		vector<string> Fields2;
+		Split(Field, Fields2, ':');
+		asserta(SIZE(Fields2) == 2);
+		const string &Name = Fields2[0];
+		double w = StrToFloat(Fields2[1]);
+		FEATURE F = StrToFeature(Name.c_str());
+		AddFeature(F, w);
+		}
+	}
+
 void DSSParams::SetNamedParams(const string &Name)
 	{
 	Clear();
