@@ -26,8 +26,8 @@ void cmd_pdb2mega()
 
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	fprintf(fOut, "mega\t%u\t%u\n",
-	  FeatureCount, ChainCount);
+	fprintf(fOut, "mega\t%u\t%u\t%.4g\t%.4g\n",
+	  FeatureCount, ChainCount, -Params.m_GapOpen, -Params.m_GapExt);
 
 	for (uint i = 0; i < FeatureCount; ++i)
 		{

@@ -116,6 +116,12 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 		break;
 		}
 
+	case UF_dpscore:
+		{
+		fprintf(f, "\t%.4g", m_AlnFwdScore);
+		break;
+		}
+
 	default:
 		Die("Unsupported user field %d='%s'", UF, UFToStr(UF));
 		}

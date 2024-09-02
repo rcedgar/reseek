@@ -20,5 +20,6 @@ x(trowg)
 x(ts)
 x(ts2)
 x(rigid)
+x(dpscore)
 
 #undef x
