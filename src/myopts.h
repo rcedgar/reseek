@@ -288,6 +288,7 @@ FLAG_OPT(missingtestseqok)
 FLAG_OPT(mixedcasecolok)
 FLAG_OPT(core)
 FLAG_OPT(nochainchar)
+FLAG_OPT(tracedpscorepath)
 
 #undef FLAG_OPT
 #undef UNS_OPT

@@ -404,6 +404,7 @@
     <ClCompile Include="seqsource.cpp" />
     <ClCompile Include="sfasta.cpp" />
     <ClCompile Include="sort.cpp" />
+    <ClCompile Include="writelocalaln.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="zscorer.cpp" />

@@ -1,10 +1,14 @@
 #include "myutils.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
+#include "dssaligner.h"
 
 double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
   uint LoA, uint LoB, const string &Path,
   vector<double> &t, vector<vector<double> > &R);
+void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
+  const string &LabelB, const byte *B,
+  uint Loi, uint Loj, const char *Path);
 
 static char GetAnnotChar(char a, char b)
 	{
@@ -19,19 +23,20 @@ static char GetAnnotChar(char a, char b)
 	return ' ';
 	}
 
-void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
-  uint LoA, uint LoB, const string &Path, float Evalue)
+void DSSAligner::PrettyAln(FILE *f,
+  const PDBChain &A, const PDBChain &B,
+  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
+  uint LoA, uint LoB, const string &Path, float Evalue) const
 	{
 	if (f == 0)
 		return;
+	const string &LabelA = A.m_Label;
+	const string &LabelB = B.m_Label;
 	const string &SeqA = A.m_Seq;
 	const string &SeqB = B.m_Seq;
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 
-	string RowA;
-	string RowB;
-	string AnnotRow;
 	const uint ColCount = SIZE(Path);
 	uint PosA = LoA;
 	uint PosB = LoB;
@@ -48,9 +53,6 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 			asserta(PosB < LB);
 			char a = SeqA[PosA];
 			char b = SeqB[PosB];
-			RowA += a;
-			RowB += b;
-			AnnotRow += GetAnnotChar(a, b);
 			++PosA;
 			++PosB;
 			if (a == b) ++Ids;
@@ -59,18 +61,12 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 
 		case 'D':
 			asserta(PosA < LA);
-			RowA += SeqA[PosA];
-			RowB += '-';
-			AnnotRow += ' ';
 			++PosA;
 			++Gaps;
 			break;
 
 		case 'I':
 			asserta(PosB < LB);
-			RowA += '-';
-			RowB += SeqB[PosB];
-			AnnotRow += ' ';
 			++PosB;
 			++Gaps;
 			break;
@@ -83,27 +79,12 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	uint ColLo = 0;
 	fprintf(f, "\n");
 	fprintf(f, "_____________________________________________________________________________________________________________\n");
-	for (;;)
-		{
-		uint ColHi = ColLo + ROWLEN;
-		if (ColHi >= ColCount)
-			ColHi = ColCount;
-		for (uint Col = ColLo; Col < ColHi; ++Col)
-			fprintf(f, "%c", RowA[Col]);
-		fprintf(f, "  %s\n", A.m_Label.c_str());
-		for (uint Col = ColLo; Col < ColHi; ++Col)
-			fprintf(f, "%c", AnnotRow[Col]);
-		fprintf(f, "\n");
-		for (uint Col = ColLo; Col < ColHi; ++Col)
-			fprintf(f, "%c", RowB[Col]);
-		fprintf(f, "  %s\n\n", B.m_Label.c_str());
-		if (ColHi == ColCount)
-			break;
-		asserta(ColHi < ColCount);
-		ColLo = ColHi;
-		}
 	double PctId = GetPct(Ids, ColCount);
 	double PctGaps = GetPct(Gaps, ColCount);
+
+	const byte *ByteSeqA = (const byte *) A.m_Seq.c_str();
+	const byte *ByteSeqB = (const byte *) B.m_Seq.c_str();
+	WriteLocalAln(f, LabelA, ByteSeqA, LabelB, ByteSeqB, LoA, LoB, Path.c_str());
 
 	fprintf(f, "%s %u-%u length %u\n",
 	  A.m_Label.c_str(), LoA + 1, PosA, LA);
@@ -111,6 +92,7 @@ void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	fprintf(f, "%s %u-%u length %u\n",
 	  B.m_Label.c_str(), LoB + 1, PosB, LB);
 
-	fprintf(f, "Cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
-	  ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
+	float Score = GetDPScorePath(ProfileA, ProfileB, LoA, LoB, Path);
+	fprintf(f, "Score %.1f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
+	  Score, ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
 	}

@@ -431,6 +431,9 @@
     <ClCompile Include="msta_lddtmuw1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="writelocalaln.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

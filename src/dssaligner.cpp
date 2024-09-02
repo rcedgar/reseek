@@ -298,24 +298,50 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 		switch (c)
 			{
 		case 'M':
-			Sum += GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
+			{
+			float ColScore = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
+			Sum += ColScore;
+			if (opt_tracedpscorepath)
+				Log("M  %5u  %5u  %10.3g  %10.3g\n",
+				  PosA, PosB, ColScore, Sum);
 			++PosA;
 			++PosB;
 			break;
+			}
 
 		case 'D':
 			if (Col != 0 && Path[Col-1] == 'D')
+				{
 				Sum += Ext;
+				if (opt_tracedpscorepath)
+					Log("De %5u  %5u  %10.3g  %10.3g\n",
+					  PosA, PosB, Ext, Sum);
+				}
 			else
+				{
 				Sum += Open;
+				if (opt_tracedpscorepath)
+					Log("Do %5u  %5u  %10.3g  %10.3g\n",
+					  PosA, PosB, Open, Sum);
+				}
 			++PosA;
 			break;
 
 		case 'I':
 			if (Col != 0 && Path[Col-1] == 'I')
+				{
 				Sum += Ext;
+				if (opt_tracedpscorepath)
+					Log("Ie %5u  %5u  %10.3g  %10.3g\n",
+					  PosA, PosB, Ext, Sum);
+				}
 			else
+				{
 				Sum += Open;
+				if (opt_tracedpscorepath)
+					Log("Io %5u  %5u  %10.3g  %10.3g\n",
+					  PosA, PosB, Open, Sum);
+				}
 			++PosB;
 			break;
 
@@ -323,6 +349,8 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 			asserta(false);
 			}
 		}
+	if (opt_tracedpscorepath)
+		Log("Total score %.3g\n", Sum);
 	return Sum;
 	}
 
@@ -927,12 +955,14 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 	if (f == 0)
 		return;
 	if (Up)
-		PrettyAln(f, *m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, m_EvalueA);
+		PrettyAln(f, *m_ChainA, *m_ChainB, *m_ProfileA, *m_ProfileB,
+		  m_LoA, m_LoB, m_Path, m_EvalueA);
 	else
 		{
 		string Path;
 		InvertPath(m_Path, Path);
-		PrettyAln(f, *m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, m_EvalueB);
+		PrettyAln(f, *m_ChainB, *m_ChainA, *m_ProfileB, *m_ProfileA,
+		  m_LoB, m_LoA, Path, m_EvalueB);
 		}
 	}
 

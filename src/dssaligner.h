@@ -142,6 +142,9 @@ public:
 	void ToTsv(FILE *f, bool Up);
 	void ToFasta2(FILE *f, bool Global, bool Up) const;
 	void ToAln(FILE *f, bool Up) const;
+	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
+	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
+	  uint LoA, uint LoB, const string &Path, float Evalue) const;
 	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;
 
 // Top=true means fetch value for A, Top=false fetch B
