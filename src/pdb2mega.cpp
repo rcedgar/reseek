@@ -29,9 +29,12 @@ void cmd_pdb2mega()
 	fprintf(fOut, "mega\t%u\t%u\t%.4g\t%.4g\n",
 	  FeatureCount, ChainCount, -Params.m_GapOpen, -Params.m_GapExt);
 
+	uint AAFeatureIdx = UINT_MAX;
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		FEATURE F = Params.m_Features[i];
+		if (F == FEATURE_AA)
+			AAFeatureIdx = i;
 		uint AlphaSize = g_AlphaSizes2[F];
 		asserta(AlphaSize <= 20); // because 'a'+Letter below
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
@@ -73,6 +76,7 @@ void cmd_pdb2mega()
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		PDBChain &Chain = *Chains[ChainIndex];
+		const string &Seq = Chain.m_Seq;
 		const uint L = Chain.GetSeqLength();
 		const char *Label = Chain.m_Label.c_str();
 		fprintf(fOut, "chain\t%u\t%s\t%u\n", ChainIndex, Label, L);
@@ -87,6 +91,12 @@ void cmd_pdb2mega()
 			string s;
 			for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 				{
+				if (FeatureIdx == AAFeatureIdx)
+					{
+					s += Seq[Pos];
+					continue;
+					}
+
 				byte Letter = Profile[FeatureIdx][Pos];
 				if (FeatureIdx == 0)
 					{
