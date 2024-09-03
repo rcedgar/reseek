@@ -117,7 +117,16 @@ bool PDBFileScanner::GetNext(string &FN)
 			vector<string> Paths;
 			ReadLinesFromFile(m_CurrentFileName, Paths);
 			for (uint i = 0; i < SIZE(Paths); ++i)
-				PushFileOrDir(Paths[i]);
+				{
+				string Path = Paths[i];
+				if (optset_filesdir)
+					{
+					string FilesDir = opt_filesdir;
+					Dirize(FilesDir);
+					Path = FilesDir + Path;
+					}
+				PushFileOrDir(Path);
+				}
 			}
 		}
 	m_Lock.unlock();
