@@ -118,7 +118,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 
 	case UF_dpscore:
 		{
-		fprintf(f, "\t%.4g", m_AlnFwdScore);
+		fprintf(f, "%.4g", m_AlnFwdScore);
 		break;
 		}
 

@@ -42,6 +42,7 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	else
 		SetNamedParams("defaults");
 	if (optset_sensitive)  { m_Omega = 12; Psa(m_Desc, " -omega %.4g", m_Omega); }
+	if (optset_verysensitive)  { m_Omega = 0; m_MinU = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
