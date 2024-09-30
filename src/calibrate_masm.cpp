@@ -19,12 +19,57 @@ a.100.1.msta    2881    6.2     6.0     5.7     5.5     5.4     5.4     5.3     
 void LinearFit(const vector<float> &xs, const vector<float> &ys,
   float &m, float &b);
 
+static float g_MinScore = 1;
+static float g_MaxScore = 30;
+static uint g_BinCount = 32;
+
+static void FitBins(const string &Label, 
+  const vector<uint> &AccumRevBins, float *ptr_m, float *ptr_b)
+	{
+	asserta(SIZE(AccumRevBins) == g_BinCount);
+	const uint N = AccumRevBins[0];
+	const uint Min_n = N/100 + 1;
+	const float BinSize = (g_MaxScore - g_MinScore)/g_BinCount;
+	vector<float> xs;
+	vector<float> ys;
+	for (uint Bin = 0; Bin < g_BinCount; ++Bin)
+		{
+		uint n = AccumRevBins[Bin];
+		if (n < Min_n)
+			break;
+		float x = g_MinScore + BinSize*Bin + BinSize/2;
+		float y = log10f(float(n));
+		xs.push_back(x);
+		ys.push_back(y);
+		}
+
+	float m, b;
+	LinearFit(xs, ys, m, b);
+	*ptr_m = m;
+	*ptr_b = b;
+
+#if 0
+	const uint K = SIZE(xs);
+	Log("%s m=%.3g b=%.3g ", Label.c_str(), m, b);
+	for (uint k = 0; k < K; ++k)
+		{
+		uint n = AccumRevBins[k];
+		float x = xs[k];
+		float y = ys[k];
+		float yhat = m*x + b;
+		uint nhat = uint(powf(10, yhat));
+		Log(" %u,%u", n, nhat);
+		}
+	Log("\n");
+#endif
+	}
+
 void cmd_calibrate_masm()
 	{
 	bool DoLog2 = optset_log2;
-	float MinScore = 5; if (optset_minscore) MinScore = float(opt_minscore);
-	float MaxScore = 30;	if (optset_maxscore) MaxScore = float(opt_maxscore);
-	uint BinCount = 16; if (optset_bins) BinCount = opt_bins;
+	if (optset_minscore) g_MinScore = float(opt_minscore);
+	if (optset_maxscore) g_MaxScore = float(opt_maxscore);
+	if (optset_bins) g_BinCount = opt_bins;
 
 	string Line;
 	vector<string> Fields;
@@ -50,14 +95,14 @@ void cmd_calibrate_masm()
 			}
 
 		Binner<float> *B =
-		  new Binner(Scores, BinCount, MinScore, MaxScore);
+		  new Binner(Scores, g_BinCount, g_MinScore, g_MaxScore);
 
 		if (!HdrDone)
 			{
 			if (fOut != 0)
 				{
 				fprintf(fOut, "Bin");
-				for (uint Bin = 0; Bin < BinCount; ++Bin)
+				for (uint Bin = 0; Bin < g_BinCount; ++Bin)
 					{
 					float Lo = B->GetBinMid(Bin);
 					fprintf(fOut, "\t%.1f", Lo);
@@ -66,8 +111,8 @@ void cmd_calibrate_masm()
 				}
 			if (fOut2 != 0)
 				{
-				fprintf(fOut2, "AccRevBin");
-				for (uint Bin = 0; Bin < BinCount; ++Bin)
+				fprintf(fOut2, "AccRevBin\tm\tb");
+				for (uint Bin = 0; Bin < g_BinCount; ++Bin)
 					{
 					float Lo = B->GetBinMid(Bin);
 					fprintf(fOut2, "\t%.1f", Lo);
@@ -88,9 +133,17 @@ void cmd_calibrate_masm()
 
 		vector<uint32_t> AccRevBins;
 		B->GetAccumBinsReverse(AccRevBins);
+		float m = FLT_MAX;
+		float b = FLT_MAX;
+		FitBins(MasmLabel, AccRevBins, &m, &b);
 		if (fOut2 != 0)
 			{
-			fprintf(fOut2, "%s", MasmLabel.c_str());
+			if (isnan(m))
+				m = 0;
+			if (isnan(b))
+				b = 0;
+			fprintf(fOut2, "%s\t%.3g\t%.3g", 
+			  MasmLabel.c_str(), m, b);
 			for (uint i = 0; i < SIZE(AccRevBins); ++i)
 				fprintf(fOut2, "\t%u", AccRevBins[i]);
 			fprintf(fOut2, "\n");
