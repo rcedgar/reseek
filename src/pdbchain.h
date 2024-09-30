@@ -57,6 +57,7 @@ public:
 	void GetICs(vector<uint16_t> &ICs) const;
 	void CoordsFromICs(const vector<uint16_t> &ICs);
 	void CoordsFromICs(const uint16_t *ICs, uint L);
+	void Reverse();
 
 public:
 	static bool IsATOMLine(const string &Line);

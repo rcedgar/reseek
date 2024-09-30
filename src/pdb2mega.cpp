@@ -3,6 +3,16 @@
 #include "dss.h"
 #include "alpha.h"
 
+static void ReverseChains(vector<PDBChain *> &Chains)
+	{
+	const uint N = SIZE(Chains);
+	for (uint i = 0; i < N; ++i)
+		{
+		ProgressStep(i, N, "Reversing");
+		Chains[i]->Reverse();
+		}
+	}
+
 extern float **g_FreqMxs2[FEATURE_COUNT];
 extern float *g_FreqVecs2[FEATURE_COUNT];
 
@@ -13,6 +23,9 @@ void cmd_pdb2mega()
 
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
+	if (opt_reverse)
+		ReverseChains(Chains);
+
 	const uint ChainCount = SIZE(Chains);
 	if (ChainCount == 0)
 		Die("No chains");

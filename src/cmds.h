@@ -58,5 +58,6 @@ C(msta_score)
 C(cmprof_train)
 C(msta_lddtmuw)
 C(msta_lddtmuw1)
+C(calibrate_masm)
 
 #undef C

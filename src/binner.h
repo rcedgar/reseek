@@ -65,7 +65,7 @@ public:
 		Count();
 		}
 
-// Public methosd
+// Public methods
 public:
 	T GetMax() const { return m_MaxValue; }
 	T GetMin() const { return m_MinValue; }

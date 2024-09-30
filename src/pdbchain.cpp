@@ -520,3 +520,11 @@ void PDBChain::CoordsFromICs(const vector<uint16_t> &ICs)
 		m_Zs.push_back(ICToCoord(ICs[3*i+2]));
 		}
 	}
+
+void PDBChain::Reverse()
+	{
+	std::reverse(m_Seq.begin(), m_Seq.end());
+	std::reverse(m_Xs.begin(), m_Xs.end());
+	std::reverse(m_Ys.begin(), m_Ys.end());
+	std::reverse(m_Zs.begin(), m_Zs.end());
+	}

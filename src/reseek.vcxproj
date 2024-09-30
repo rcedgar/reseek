@@ -284,6 +284,7 @@
     <ClCompile Include="calibrate3.cpp" />
     <ClCompile Include="calibrate4.cpp" />
     <ClCompile Include="calibratesearcher.cpp" />
+    <ClCompile Include="calibrate_masm.cpp" />
     <ClCompile Include="chainreader2.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
