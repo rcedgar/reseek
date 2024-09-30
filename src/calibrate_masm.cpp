@@ -22,6 +22,7 @@ void LinearFit(const vector<float> &xs, const vector<float> &ys,
 static float g_MinScore = 1;
 static float g_MaxScore = 30;
 static uint g_BinCount = 32;
+static bool g_DoLog2 = false;
 
 static void FitBins(const string &Label, 
   const vector<uint> &AccumRevBins, float *ptr_m, float *ptr_b)
@@ -66,7 +67,7 @@ static void FitBins(const string &Label,
 
 void cmd_calibrate_masm()
 	{
-	bool DoLog2 = optset_log2;
+	if (optset_log2) g_DoLog2 = opt_log2;
 	if (optset_minscore) g_MinScore = float(opt_minscore);
 	if (optset_maxscore) g_MaxScore = float(opt_maxscore);
 	if (optset_bins) g_BinCount = opt_bins;
@@ -82,14 +83,18 @@ void cmd_calibrate_masm()
 		{
 		Split(Line, Fields, '\t');
 		const uint FieldCount = SIZE(Fields);
-		const string &MasmLabel = Fields[0];
+		string MasmLabel = Fields[0];
+		size_t dotpos = MasmLabel.find(".masm");
+		if (dotpos != string::npos)
+			MasmLabel = MasmLabel.substr(0, dotpos);
+
 		const uint n = StrToUint(Fields[1]);
 		asserta(FieldCount == n + 2);
 		vector<float> Scores;
 		for (uint i = 0; i < n; ++i)
 			{
 			float Score = (float) StrToFloat(Fields[i+2]);
-			if (DoLog2)
+			if (g_DoLog2)
 				Score = log2f(Score);
 			Scores.push_back(Score);
 			}
