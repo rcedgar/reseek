@@ -48,6 +48,7 @@ public:
 	void WriteBins(FILE *f) const;
 
 // Per-domain calibration
+	void WriteTSVec(const string &FN) const;
 	void WriteTSBins(const string &FN, uint BinCount, float TSlo, float TShi) const;
 	void GetTSBins(uint BinCount, float TSlo, float TShi, vector<float> &Mids,
 	  vector<string> &Labels, vector<vector<uint> > &BinsVec) const;

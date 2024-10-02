@@ -85,6 +85,8 @@ void cmd_convert()
 		PDBChain *ptrChain = CR.GetNext();
 		if (ptrChain == 0)
 			break;
+		if (opt_reverse)
+			ptrChain->Reverse();
 		time_t Now = time(0);
 		if (Now - LastTime > 0)
 			{

@@ -100,6 +100,25 @@ void CalibrateSearcher::GetTSBins(uint BinCount, float TSlo, float TShi,
 		}
 	}
 
+void CalibrateSearcher::WriteTSVec(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	const uint NR = GetDBChainCount();
+	for (uint i = 0; i < NR; ++i)
+		{
+		const char *Label = m_DBChains[i]->m_Label.c_str();
+		const vector<float> &TSs_i = m_TestStatsVec[i];
+		const uint N = SIZE(TSs_i);
+		fprintf(f, "%s", Label);
+		for (uint j = 0; j < N; ++j)
+			fprintf(f, "\t%.3g", TSs_i[j]);
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
+
 void CalibrateSearcher::WriteTSBins(const string &FN,
   uint BinCount, float TSlo, float TShi) const
 	{

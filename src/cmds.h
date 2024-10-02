@@ -59,5 +59,7 @@ C(cmprof_train)
 C(msta_lddtmuw)
 C(msta_lddtmuw1)
 C(calibrate_masm)
+C(calibrate5)
+C(calibrate5a)
 
 #undef C
