@@ -24,9 +24,6 @@ void cmd_msta_score()
 	if (!Ok)
 		Die("SetMSA failed");
 
-	vector<string> FNs;
-	ReadLinesFromFile(g_Arg1, FNs);
-
 	const uint SeqCount = MSA.GetSeqCount();
 	double Sum_Z = 0;
 	double Sum_Z15 = 0;

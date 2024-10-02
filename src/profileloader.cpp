@@ -94,23 +94,23 @@ void ProfileLoader::Load(
 	Progress("%s target chains loaded\n", IntToStr(m_Count));
 	}
 
-void cmd_test()
-	{
-	ProfileLoader PL;
-	ChainReader2 CR;
-	CR.Open(g_Arg1);
-
-	DSSParams Params;
-	Params.SetFromCmdLine(10000);
-
-	vector<PDBChain *> Chains;
-	vector<vector<vector<byte> > *> Profiles;
-	vector<vector<byte> *> ComboLetters;
-	vector<vector<uint> *> KmersVec;
-	vector<vector<uint> *> KmerBitsVec;
-
-	uint ThreadCount = GetRequestedThreadCount();
-	PL.Load(CR, &Chains, &Profiles, &ComboLetters,
-	  &KmerBitsVec, Params, ThreadCount);
-	ProgressLog("Done.\n");
-	}
+//void cmd_test()
+//	{
+//	ProfileLoader PL;
+//	ChainReader2 CR;
+//	CR.Open(g_Arg1);
+//
+//	DSSParams Params;
+//	Params.SetFromCmdLine(10000);
+//
+//	vector<PDBChain *> Chains;
+//	vector<vector<vector<byte> > *> Profiles;
+//	vector<vector<byte> *> ComboLetters;
+//	vector<vector<uint> *> KmersVec;
+//	vector<vector<uint> *> KmerBitsVec;
+//
+//	uint ThreadCount = GetRequestedThreadCount();
+//	PL.Load(CR, &Chains, &Profiles, &ComboLetters,
+//	  &KmerBitsVec, Params, ThreadCount);
+//	ProgressLog("Done.\n");
+//	}
