@@ -18,7 +18,7 @@ static void FitBins(const string &Label,
 	asserta(SIZE(AccumRevBins) == g_BinCount);
 	const uint N = AccumRevBins[0];
 	const uint Max_n = N/2;
-	const uint Min_n = Max_n/100;;
+	const uint Min_n = opt_k;
 	const float BinSize = (g_MaxScore - g_MinScore)/g_BinCount;
 	vector<uint> ns;
 	vector<float> xs;
