@@ -53,6 +53,10 @@ public:
 	float m_TestStatisticA = FLT_MAX;
 	float m_TestStatisticB = FLT_MAX;
 
+	uint m_Ids = UINT_MAX;
+	uint m_Gaps = UINT_MAX;
+	float m_AlnDaliScore = FLT_MAX;
+
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
@@ -125,6 +129,7 @@ public:
 	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
+	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
 	void CalcEvalue_AAOnly();
 	void SetSMx_YesRev();
@@ -168,6 +173,7 @@ public:
 	void GetRow_B(string &Row, bool Global) const;
 
 	float GetPctId() const;
+	float GetLDDT() const;
 
 public:
 	static void Stats();

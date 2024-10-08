@@ -867,14 +867,14 @@ void DSSAligner::CalcEvalue()
 
 // MinFwdScore parameter enables small speedup by 
 //   avoiding call to GetDALIScore_Path()
-	float AlnDALIScore = 0;
+	 m_AlnDaliScore = 0;
 	if (m_AlnFwdScore >= m_Params->m_MinFwdScore)
 		{
 		StartTimer(DALIScore);
 		if (m_Params->m_DALIw != 0)
-			AlnDALIScore = (float)
+			m_AlnDaliScore = (float)
 			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_Path, m_LoA, m_LoB);
-		AlnDALIScore /= 100;
+		m_AlnDaliScore /= 100;
 		EndTimer(DALIScore);
 		}
 
@@ -884,11 +884,13 @@ void DSSAligner::CalcEvalue()
 	GetPathCounts(m_Path, M, D, I);
 	m_HiA = m_LoA + M + D - 1;
 	m_HiB = m_LoB + M + I - 1;
+	m_Ids = M;
+	m_Gaps = D + I;
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 	uint Lambda = uint(round(m_Params->m_Lambda));
-	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*AlnDALIScore;
+	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*m_AlnDaliScore;
 
 	m_TestStatisticA = StatTop/(LA + Lambda);
 	m_TestStatisticB = StatTop/(LB + Lambda);
@@ -1257,6 +1259,50 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 		while (PosA++ < LA)
 			Row += '!';
 		}
+	}
+
+void DSSAligner::GetPosABs(vector<uint> &PosAs,
+  vector<uint> &PosBs) const
+	{
+	PosAs.clear();
+	PosBs.clear();
+	const uint Cols = SIZE(m_Path);
+	uint PosA = m_LoA;
+	uint PosB = m_LoB;
+	for (uint Col = 0; Col < Cols; ++Col)
+		{
+		char c = m_Path[Col];
+		switch (c)
+			{
+		case 'M':
+			PosAs.push_back(PosA);
+			PosBs.push_back(PosB);
+			++PosA;
+			++PosB;
+			break;
+
+		case 'D':
+			++PosA;
+			break;
+
+		case 'I':
+			++PosB;
+			break;
+			}
+		}
+	}
+
+float DSSAligner::GetLDDT() const
+	{
+	double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
+	  const vector<uint> &PosQs, const vector<uint> &PosTs,
+	  bool DaliScorerCompatible);
+	vector<uint> PosAs;
+	vector<uint> PosBs;
+	GetPosABs(PosAs, PosBs);
+	double LDDT = 
+	  GetLDDT_mu(*m_ChainA, *m_ChainB, PosAs, PosBs, false);
+	return (float) LDDT;
 	}
 
 float DSSAligner::GetPctId() const
