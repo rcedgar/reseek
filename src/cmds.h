@@ -61,5 +61,6 @@ C(msta_lddtmuw1)
 C(calibrate_masm)
 C(calibrate5)
 C(calibrate5a)
+C(alignselfrev)
 
 #undef C

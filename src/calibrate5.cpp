@@ -3,7 +3,7 @@
 #include "dbsearcher.h"
 
 /***
-* Calibrate DB following MASM in src/scop40s.
+* Calibrate DB following similar method to MASM in src/scop40s.
 * Specify reversed query on cmdline.
 * This is first step to report TS distribution for each query.
 ***/

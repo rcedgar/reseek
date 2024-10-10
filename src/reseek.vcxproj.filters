@@ -446,6 +446,9 @@
     <ClCompile Include="lddt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alignselfrev.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
