@@ -31,8 +31,8 @@ void cmd_test_para_cal()
 
 	DSSAligner DA;
 	DA.m_Params = &Params;
-	DA.SetQuery(Chain1, 0, 0, &ComboLetters1);
-	DA.SetTarget(Chain2, 0, 0, &ComboLetters2);
+	DA.SetQuery(Chain1, 0, 0, &ComboLetters1, FLT_MAX);
+	DA.SetTarget(Chain2, 0, 0, &ComboLetters2, FLT_MAX);
 
 	uint Lo1, Lo2;
 	string Path;

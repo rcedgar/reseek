@@ -56,6 +56,8 @@ public:
 	uint m_Ids = UINT_MAX;
 	uint m_Gaps = UINT_MAX;
 	float m_AlnDaliScore = FLT_MAX;
+	float m_SelfRevScoreA = FLT_MAX;
+	float m_SelfRevScoreB = FLT_MAX;
 
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
@@ -86,12 +88,14 @@ public:
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters);
+	  const vector<byte> *ptrComboLetters,
+	  float SelfRevScore);
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters);
+	  const vector<byte> *ptrComboLetters,
+	  float SelfRevScore);
 
 	float GetComboScore();
 	bool ComboFilter();

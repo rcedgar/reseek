@@ -8,103 +8,10 @@
 #include <thread>
 #include "timing.h"
 
-#if 0
-void DBSearcher::SetKmersVec()
-	{
-	StartTimer(SetKmersVec);
-	DSS &D = m_D;
-	m_KmersVec.clear();
-	m_KmerBitsVec.clear();
-	asserta(m_ChainCount < 100000);
-	m_KmersVec.resize(m_ChainCount);
-	m_KmerBitsVec.resize(m_ChainCount);
-	vector<byte> ComboLetters;
-	for (uint ChainIndex = 0; ChainIndex < m_ChainCount; ++ChainIndex)
-		{
-		ProgressStep(ChainIndex, m_ChainCount, "Set k-mers");
-		const PDBChain &Chain = *m_Chains[ChainIndex];
-		D.Init(Chain);
-		vector<uint> *Kmers = new vector<uint>;
-		vector<uint> *Bits = new vector<uint>;
-		D.GetComboLetters(ComboLetters);
-		D.GetComboKmers(ComboLetters, *Kmers);
-		D.GetComboKmerBits(*Kmers, *Bits);
-		m_KmersVec[ChainIndex] = Kmers;
-		m_KmerBitsVec[ChainIndex] = Bits;
-		}
-	EndTimer(SetKmersVec);
-	}
-
-// Query chains first, then DB chains (unless self)
-void DBSearcher::LoadChains(const string &QueryCalFileName, 
-  const string &DBCalFileName)
-	{
-	m_ChainCount = 0;
-	m_Chains.clear();
-	m_Profiles.clear();
-
-	::ReadChains(QueryCalFileName, m_QueryChains);
-	m_QueryChainCount = SIZE(m_QueryChains);
-
-	if (DBCalFileName == "")
-		{
-		m_QuerySelf = true;
-		m_DBChains.clear();
-		m_DBChainCount = 0;
-		}
-	else
-		{
-		m_QuerySelf = false;
-		::ReadChains(DBCalFileName, m_DBChains);
-		m_DBChainCount = SIZE(m_DBChains);
-		}
-
-	m_ChainCount = m_QueryChainCount + m_DBChainCount;
-
-	m_Chains = m_QueryChains;
-	m_Chains.insert(m_Chains.end(),
-	  m_DBChains.begin(), m_DBChains.end());
-	asserta(SIZE(m_Chains) == m_ChainCount);
-
-	if (m_DBChainCount > 0)
-		ProgressLog("%u query chains, %u database chains\n",
-		  m_QueryChainCount, m_DBChainCount);
-	else
-		ProgressLog("All-vs-all %u chains\n", m_QueryChainCount);
-	}
-
-void DBSearcher::SetProfiles()
-	{
-	StartTimer(SetProfiles);
-	asserta(m_ThreadCount != UINT_MAX);
-	asserta(m_ThreadCount != 0);
-	DSS &D = m_D;
-	m_Profiles.clear();
-	m_ComboLettersVec.clear();
-	asserta(m_ChainCount < 100000);
-	m_Profiles.resize(m_ChainCount);
-	m_ComboLettersVec.resize(m_ChainCount);
-	for (uint ChainIndex = 0; ChainIndex < m_ChainCount; ++ChainIndex)
-		{
-		ProgressStep(ChainIndex, m_ChainCount, "Set profiles");
-		const PDBChain &Chain = *m_Chains[ChainIndex];
-		D.Init(Chain);
-		vector<vector<byte> > *ptrProfile = new vector<vector<byte> >;
-		vector<byte> *ptrComboLetters = new vector<byte>;
-		D.GetProfile(*ptrProfile);
-		m_Profiles[ChainIndex] = ptrProfile;
-		D.GetComboLetters(*ptrComboLetters);
-		m_ComboLettersVec[ChainIndex] = ptrComboLetters;
-		}
-	EndTimer(SetProfiles);
-	}
-#endif // 0
-
 uint DBSearcher::GetDBSize() const
 	{
 	return GetDBChainCount();
 	}
-
 
 void DBSearcher::RunStats() const
 	{
@@ -330,6 +237,6 @@ void DBSearcher::LoadDB(const string &DBFN)
 	if (m_Params->m_Omega <= 0)
 		ptrComboLetters = 0;
 
-	PL.Load(CR, ptrChains, ptrProfiles, ptrComboLetters,
-	  ptrKmerBitsVec, *m_Params, ThreadCount);
+	PL.Load(*m_Params, CR, ptrChains, ptrProfiles, ptrComboLetters,
+	  ptrKmerBitsVec, &m_DBSelfRevScores, ThreadCount);
 	}

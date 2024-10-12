@@ -40,8 +40,8 @@ void cmd_alignselfrev()
 		D.Init(Rev);
 		D.GetProfile(RevProfile);
 
-		DA.SetQuery(*Chain, &Profile, 0, 0);
-		DA.SetTarget(Rev, &RevProfile, 0, 0);
+		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
+		DA.SetTarget(Rev, &RevProfile, 0, 0, FLT_MAX);
 		DA.AlignQueryTarget();
 		DA.ToTsv(fOut, true);
 		}

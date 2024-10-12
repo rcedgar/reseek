@@ -251,8 +251,8 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.SetQuery(Chain1, &Profile1, 0, 0);
-	DA.SetTarget(Chain2, &Profile2, 0, 0);
+	DA.SetQuery(Chain1, &Profile1, 0, 0, m_DBSelfRevScores[Dom1]);
+	DA.SetTarget(Chain2, &Profile2, 0, 0, m_DBSelfRevScores[Dom2]);
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;

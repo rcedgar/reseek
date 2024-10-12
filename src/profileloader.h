@@ -3,6 +3,7 @@
 class ChainReader2;
 class PDBChain;
 class DSSParams;
+class DSSAligner;
 
 class ProfileLoader
 	{
@@ -14,6 +15,7 @@ public:
 	vector<vector<byte> *> *m_ComboLetters = 0;
 	//vector<vector<uint> *> *m_KmersVec = 0;
 	vector<vector<uint> *> *m_KmerBitsVec = 0;
+	vector<float> *m_SelfRevScores = 0;
 	mutex m_Lock;
 	uint m_Count = 0;
 	time_t m_LastProgress = 0;
@@ -21,15 +23,18 @@ public:
 
 public:
 	void Load(
+	  const DSSParams &Params,
 	  ChainReader2 &CR,
 	  vector<PDBChain *> *Chains,
 	  vector<vector<vector<byte> > *> *Profiles,
 	  vector<vector<byte> *> *ComboLetters,
 	  //vector<vector<uint> *> *KmersVec,
 	  vector<vector<uint> *> *KmerBitsVec,
-	  const DSSParams &Params,
+	  vector<float> *SelfRevScores,
 	  uint ThreadCount);
 	void ThreadBody(uint ThreadIndex);
+	float GetSelfRevScore(DSSAligner &DA, DSS &D, 
+	  const PDBChain &Chain, const vector<vector<byte> > &Profile) const;
 
 private:
 	static void StaticThreadBody(uint ThreadIndex, ProfileLoader *PL);

@@ -45,5 +45,6 @@ T(SetComboQP_Para)
 T(SetComboQP)
 T(AlignCombo)
 T(SWFast)
+T(SelfRev)
 
 #undef T

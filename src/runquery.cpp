@@ -40,7 +40,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 		const vector<byte> *ptrComboLetters1 = (ComboLetters1.empty() ? 0 : &ComboLetters1);
 		const vector<uint> *ptrKmerBits1 = (KmerBits1.empty() ? 0 : &KmerBits1);
-		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrComboLetters1);
+#pragma warning("TODO")
+		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrComboLetters1, FLT_MAX);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
 			{
@@ -48,7 +49,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
 			const vector<byte> *ptrComboLetters2 = (m_DBComboLettersVec.empty() ? 0 : m_DBComboLettersVec[DBChainIdx]);
 			const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[DBChainIdx]);
-			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2);
+			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2, FLT_MAX);
 
 			DA.AlignQueryTarget();
 			if (!DA.m_Path.empty())

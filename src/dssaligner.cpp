@@ -706,8 +706,8 @@ void DSSAligner::Align_ComboFilter(
   const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB);
+	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX);
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
@@ -732,12 +732,14 @@ void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters)
+	const vector<byte> *ptrComboLetters,
+	float SelfRevScore)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
+	m_SelfRevScoreA = SelfRevScore;
 	if (m_Params->m_Omega > 0)
 		{
 		if (m_Params->m_UsePara)
@@ -751,12 +753,14 @@ void DSSAligner::SetTarget(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters)
+	const vector<byte> *ptrComboLetters,
+	float SelfRevScore)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
 	m_ComboKmerBitsB = ptrComboKmerBits;
 	m_ComboLettersB = ptrComboLetters;
+	m_SelfRevScoreB = SelfRevScore;
 	}
 
 void DSSAligner::AlignComboOnly()
@@ -870,13 +874,40 @@ void DSSAligner::CalcEvalue()
 	 m_AlnDaliScore = 0;
 	if (m_AlnFwdScore >= m_Params->m_MinFwdScore)
 		{
+#if 0
 		StartTimer(DALIScore);
 		if (m_Params->m_DALIw != 0)
 			m_AlnDaliScore = (float)
 			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_Path, m_LoA, m_LoB);
 		m_AlnDaliScore /= 100;
 		EndTimer(DALIScore);
+#endif
+		StartTimer(SelfRev);
+		float LDDT = GetLDDT();
+		float RevDPScore = 0;
+		if (m_SelfRevScoreA != FLT_MAX && m_SelfRevScoreB != FLT_MAX)
+			RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
+		const uint LA = m_ChainA->GetSeqLength();
+		const uint LB = m_ChainB->GetSeqLength();
+		float L = (LA + LB)/2;
+
+		const float dpw = 1.7;
+		const float lddtw = 0.13;
+		const float ladd = 250;
+		const float revtsw = 2.0;
+		m_TestStatisticA = lddtw*LDDT + (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
+		m_TestStatisticB = m_TestStatisticA;
+
+		uint M, D, I;
+		GetPathCounts(m_Path, M, D, I);
+		m_HiA = m_LoA + M + D - 1;
+		m_HiB = m_LoB + M + I - 1;
+		m_Ids = M;
+		m_Gaps = D + I;
+
+		EndTimer(SelfRev);
 		}
+	return;//////////////////////////////////////////////////////
 
 	const float DALIw = m_Params->m_DALIw;
 	const float FwdMatchScore = m_Params->m_FwdMatchScore;

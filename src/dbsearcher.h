@@ -25,6 +25,7 @@ public:
 	vector<vector<vector<byte> > *> m_DBProfiles;
 	vector<vector<byte> *> m_DBComboLettersVec;
 	vector<vector<uint> *> m_DBKmerBitsVec;
+	vector<float> m_DBSelfRevScores;
 
 	mutex m_Lock;
 	uint m_PairIndex = UINT_MAX;

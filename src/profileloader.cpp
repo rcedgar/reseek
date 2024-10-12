@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chainreader2.h"
 #include "dss.h"
+#include "dssaligner.h"
 #include "profileloader.h"
 
 void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
@@ -8,10 +9,33 @@ void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 	PL->ThreadBody(ThreadIndex);
 	}
 
+float ProfileLoader::GetSelfRevScore(DSSAligner &DA, DSS &D, 
+  const PDBChain &Chain, const vector<vector<byte> > &Profile) const
+	{
+	PDBChain RevChain = Chain;
+
+	RevChain.Reverse();
+	vector<vector<byte> > RevProfile;
+	D.Init(RevChain);
+	D.GetProfile(RevProfile);
+
+	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
+	DA.AlignQueryTarget();
+	return DA.m_AlnFwdScore;
+	}
+
 void ProfileLoader::ThreadBody(uint ThreadIndex)
 	{
 	DSS D;
 	D.SetParams(*m_Params);
+
+	DSSAligner DA;
+	DSSParams DA_Params = *m_Params;
+	DA_Params.m_UsePara = false;
+	DA_Params.m_Omega = 0;
+
+	DA.m_Params = &DA_Params;
 
 	vector<uint> Kmers;
 	for (;;)
@@ -37,12 +61,14 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
 		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;
 		vector<byte> *ComboLetters = m_ComboLetters == 0 ? 0 : new vector<byte>;
+		float SelfRevScore = FLT_MAX;
 
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_ComboLetters != 0) D.GetComboLetters(*ComboLetters);
 		if (m_ComboLetters != 0) D.GetComboKmers(*ComboLetters, Kmers);
 		if (m_KmerBitsVec != 0) D.GetComboKmerBits(Kmers, *KmerBits);
+		if (m_SelfRevScores != 0) SelfRevScore = GetSelfRevScore(DA, D, *Chain, *ptrProfile);
 
 		m_Lock.lock();
 		Chain->m_Idx = SIZE(*m_Chains);
@@ -50,17 +76,19 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
 		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);
 		if (m_ComboLetters != 0) m_ComboLetters->push_back(ComboLetters);
+		if (m_SelfRevScores != 0) m_SelfRevScores->push_back(SelfRevScore);
 		m_Lock.unlock();
 		}
 	}
 
 void ProfileLoader::Load(
+  const DSSParams &Params,
   ChainReader2 &CR,
   vector<PDBChain *> *Chains,
   vector<vector<vector<byte> > *> *Profiles,
   vector<vector<byte> *> *ComboLetters,
   vector<vector<uint> *> *KmerBitsVec,
-  const DSSParams &Params,
+  vector<float> *SelfRevScores,
   uint ThreadCount)
 	{
 	m_MinChainLength = 1;
@@ -70,12 +98,13 @@ void ProfileLoader::Load(
 	if (KmerBitsVec != 0)
 		asserta(ComboLetters != 0);
 
+	m_Params = &Params;
 	m_CR = &CR;
 	m_Chains = Chains;
 	m_Profiles = Profiles;
 	m_KmerBitsVec = KmerBitsVec;
 	m_ComboLetters = ComboLetters;
-	m_Params = &Params;
+	m_SelfRevScores = SelfRevScores;
 
 	Chains->clear();
 	Profiles->clear();
