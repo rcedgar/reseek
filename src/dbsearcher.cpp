@@ -227,8 +227,6 @@ void DBSearcher::LoadDB(const string &DBFN)
 	ProfileLoader PL;
 	uint ThreadCount = GetRequestedThreadCount();
 
-	vector<PDBChain *> *ptrChains = &m_DBChains;
-	vector<vector<vector<byte> > *> *ptrProfiles = &m_DBProfiles;
 	vector<vector<byte> *> *ptrComboLetters = &m_DBComboLettersVec;
 	vector<vector<uint> *> *ptrKmerBitsVec = &m_DBKmerBitsVec;
 
@@ -237,6 +235,6 @@ void DBSearcher::LoadDB(const string &DBFN)
 	if (m_Params->m_Omega <= 0)
 		ptrComboLetters = 0;
 
-	PL.Load(*m_Params, CR, ptrChains, ptrProfiles, ptrComboLetters,
+	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrComboLetters,
 	  ptrKmerBitsVec, &m_DBSelfRevScores, ThreadCount);
 	}

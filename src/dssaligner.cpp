@@ -16,8 +16,6 @@ mutex DSSAligner::m_StatsLock;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
-void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
-  uint LoA, uint LoB, const string &Path, float Evalue);
 void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);
 float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
@@ -26,40 +24,19 @@ float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
 float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
   const byte *B, uint LB, uint &Besti, uint &Bestj);
-double GetDALIScore_Path(const PDBChain &Q, const PDBChain &T,
-  const string &Path, uint LoQ, uint LoT);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
 int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
-float SWFastGaplessProfb(float *DProw_, const float * const *ProfA, uint LA, const byte *B, uint LB);
+float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
+	uint LA, const byte *B, uint LB);
 
 uint DSSAligner::m_AlnCount;
 uint DSSAligner::m_SWCount;
 uint DSSAligner::m_ComboFilterCount;
 uint DSSAligner::m_UFilterCount;
 uint DSSAligner::m_ParasailSaturateCount;
-
-#if SCORE_DIST
-vector<float> DSSAligner::m_TSs;
-void DSSAligner::ReportScoreDist()
-	{
-	Binner<float> B(m_TSs, SCORE_BINS, 0);
-	Log("Max TS %.4g\n", B.GetMax());
-	B.GetBins();
-	for (uint32_t Bin = 0; Bin < SCORE_BINS; ++Bin)
-		{
-		uint32_t n = B.GetCount(Bin);
-		float TS = B.GetBinMid(Bin);
-
-		Log("%u", Bin);
-		Log("\t%.3g", TS);
-		Log("\t%u", n);
-		Log("\n");
-		}
-	}
-#endif // SCORE_DIST
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	{
@@ -280,8 +257,6 @@ float DSSAligner::GetComboDPScorePath(const vector<byte> &LettersA,
 	}
 
 // GetDPScorePath calculates AlnScore which is optimized by SWFast.
-// The test statistic is 
-//	TS = AlnScore + ColCount*g_FwdMatchScore + g_DALIw*FwdDaliScore;
 float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
   const string &Path) const
@@ -709,9 +684,10 @@ void DSSAligner::Align_ComboFilter(
 	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX);
 	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX);
 
-	m_EvalueA = FLT_MAX;
-	m_EvalueB = FLT_MAX;
-	m_Path.clear();
+	//m_EvalueA = FLT_MAX;
+	//m_EvalueB = FLT_MAX;
+	//m_Path.clear();
+	ClearAlign();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -765,9 +741,10 @@ void DSSAligner::SetTarget(
 
 void DSSAligner::AlignComboOnly()
 	{
-	m_EvalueA = FLT_MAX;
-	m_EvalueB = FLT_MAX;
-	m_Path.clear();
+	//m_EvalueA = FLT_MAX;
+	//m_EvalueB = FLT_MAX;
+	//m_Path.clear();
+	ClearAlign();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -794,9 +771,10 @@ void DSSAligner::AlignComboOnly()
 
 void DSSAligner::AlignQueryTarget()
 	{
-	m_EvalueA = FLT_MAX;
-	m_EvalueB = FLT_MAX;
-	m_Path.clear();
+	//m_EvalueA = FLT_MAX;
+	//m_EvalueB = FLT_MAX;
+	//m_Path.clear();
+	ClearAlign();
 
 	m_StatsLock.lock();
 	++m_AlnCount;
@@ -829,20 +807,6 @@ void DSSAligner::AlignQueryTarget()
 	Align_NoAccel();
 	}
 
-float DSSAligner::AdjustTS(float TS, float mu, float beta) const
-	{
-	if (TS <= 0.01)
-		return TS;
-
-	float default_mu = m_Params->m_Evalue_Gumbel_mu;
-	float default_beta = m_Params->m_Evalue_Gumbel_beta;
-	float Minus_logTS = -logf(TS);
-	float dmu = mu - default_mu;
-	float adjusted_logTS = (Minus_logTS + 0.1f*dmu);
-	float AdjustedTS = expf(-adjusted_logTS);
-	return AdjustedTS;
-	}
-
 void DSSAligner::CalcEvalue_AAOnly()
 	{
 	static const float Log2 = logf(2);
@@ -869,58 +833,30 @@ void DSSAligner::CalcEvalue()
 		return;
 		}
 
-// MinFwdScore parameter enables small speedup by 
-//   avoiding call to GetDALIScore_Path()
-	 m_AlnDaliScore = 0;
-	if (m_AlnFwdScore >= m_Params->m_MinFwdScore)
-		{
-#if 0
-		StartTimer(DALIScore);
-		if (m_Params->m_DALIw != 0)
-			m_AlnDaliScore = (float)
-			  GetDALIScore_Path(*m_ChainA, *m_ChainB, m_Path, m_LoA, m_LoB);
-		m_AlnDaliScore /= 100;
-		EndTimer(DALIScore);
-#endif
-		StartTimer(SelfRev);
-		float LDDT = GetLDDT();
-		float RevDPScore = 0;
-		if (m_SelfRevScoreA != FLT_MAX && m_SelfRevScoreB != FLT_MAX)
-			RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
-		const uint LA = m_ChainA->GetSeqLength();
-		const uint LB = m_ChainB->GetSeqLength();
-		float L = float(LA + LB)/2;
+// Threshold enables small speedup by avoiding LDDT and self-rev
+	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
+		return;
 
-		const float dpw = 1.7f;
-		const float lddtw = 0.13f;
-		const float ladd = 250.0f;
-		const float revtsw = 2.0f;
-		m_NewTestStatisticA = lddtw*LDDT + (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
-		m_NewTestStatisticB = m_NewTestStatisticA;
+	StartTimer(CalcEvalue)
+	float LDDT = GetLDDT();
+	float RevDPScore = 0;
+	asserta(m_SelfRevScoreA != -FLT_MAX);
+	asserta(m_SelfRevScoreB != -FLT_MAX);
+	RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+	float L = float(LA + LB)/2;
 
-	// log y = a + b*x
-	// a = -0.66881
-	// b = -23.451
+	const float dpw = 1.7f;
+	const float lddtw = 0.13f;
+	const float ladd = 250.0f;
+	const float revtsw = 2.0f;
 
-		uint M, D, I;
-		GetPathCounts(m_Path, M, D, I);
-		m_HiA = m_LoA + M + D - 1;
-		m_HiB = m_LoB + M + I - 1;
-		m_Ids = M;
-		m_Gaps = D + I;
+	m_NewTestStatisticA = lddtw*LDDT;
+	m_NewTestStatisticA += (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
 
-		const float a = -0.66881f;
-		const float b = -23.451f;
-		float logE = a + b*m_NewTestStatisticA;
-		m_EvalueA = expf(logE);
-		m_EvalueB = m_EvalueA;
+	m_NewTestStatisticB = m_NewTestStatisticA;
 
-		EndTimer(SelfRev);
-		}
-	return;//////////////////////////////////////////////////////
-
-	const float DALIw = m_Params->m_DALIw;
-	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	uint M, D, I;
 	GetPathCounts(m_Path, M, D, I);
 	m_HiA = m_LoA + M + D - 1;
@@ -928,32 +864,38 @@ void DSSAligner::CalcEvalue()
 	m_Ids = M;
 	m_Gaps = D + I;
 
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-	uint Lambda = uint(round(m_Params->m_Lambda));
-	float StatTop = m_AlnFwdScore + M*FwdMatchScore + DALIw*m_AlnDaliScore;
-
-	m_TestStatisticA = StatTop/(LA + Lambda);
-	m_TestStatisticB = StatTop/(LB + Lambda);
-
-	m_EvalueA = m_Params->GetEvalue(m_TestStatisticA);
-	m_EvalueB = m_Params->GetEvalue(m_TestStatisticB);
-
-#if SCORE_DIST
-	{
-	m_StatsLock.lock();
-	m_TSs.push_back(m_TestStatisticA);
-	m_TSs.push_back(m_TestStatisticB);
-	m_StatsLock.unlock();
-	}
-#endif
+	const float a = -0.66881f;
+	const float b = -23.451f;
+	float logE = a + b*m_NewTestStatisticA;
+	m_EvalueA = expf(logE);
+	m_EvalueB = m_EvalueA;
+	EndTimer(CalcEvalue)
 	}
 
-void DSSAligner::Align_NoAccel()
+void DSSAligner::ClearAlign()
 	{
 	m_Path.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
+	m_HiA = UINT_MAX;
+	m_HiB = UINT_MAX;
+	m_Ids = UINT_MAX;
+	m_Gaps = UINT_MAX;
+	m_EvalueA = FLT_MAX;
+	m_EvalueB = FLT_MAX;
+	m_TestStatisticA = -FLT_MAX;
+	m_TestStatisticB = -FLT_MAX;
+	m_NewTestStatisticA = -FLT_MAX;
+	m_NewTestStatisticB = -FLT_MAX;
+	m_AlnFwdScore = -FLT_MAX;
+	}
+
+void DSSAligner::Align_NoAccel()
+	{
+	ClearAlign();
+	//m_Path.clear();
+	//m_LoA = UINT_MAX;
+	//m_LoB = UINT_MAX;
 
 	SetSMx_NoRev();
 
@@ -972,10 +914,11 @@ void DSSAligner::Align_NoAccel()
 
 void DSSAligner::AlignComboPath()
 	{
-	m_Path.clear();
-	m_LoA = UINT_MAX;
-	m_LoB = UINT_MAX;
-	m_AlnFwdScore = 0;
+	//m_Path.clear();
+	//m_LoA = UINT_MAX;
+	//m_LoB = UINT_MAX;
+	//m_AlnFwdScore = 0;
+	ClearAlign();
 	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_Path);
 	if (ComboFwdScore < 0)
 		{

@@ -9,6 +9,22 @@ void DBSearcher::StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS,
 	ptrDBS->ThreadBodyQuery(ThreadIndex, ptrQueryCR);
 	}
 
+float DBSearcher::GetSelfRevScore(const PDBChain &Chain,
+  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D)
+	{
+	PDBChain RevChain = Chain;
+
+	RevChain.Reverse();
+	vector<vector<byte> > RevProfile;
+	D.Init(RevChain);
+	D.GetProfile(RevProfile);
+
+	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
+	DA.AlignQueryTarget();
+	return DA.m_AlnFwdScore;
+	}
+
 void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	{
 	asserta(ThreadIndex < SIZE(m_DAs));
@@ -40,8 +56,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 		const vector<byte> *ptrComboLetters1 = (ComboLetters1.empty() ? 0 : &ComboLetters1);
 		const vector<uint> *ptrKmerBits1 = (KmerBits1.empty() ? 0 : &KmerBits1);
-#pragma warning("TODO")
-		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrComboLetters1, FLT_MAX);
+		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA, D);
+		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrComboLetters1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
 			{
@@ -49,7 +65,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
 			const vector<byte> *ptrComboLetters2 = (m_DBComboLettersVec.empty() ? 0 : m_DBComboLettersVec[DBChainIdx]);
 			const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[DBChainIdx]);
-			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2, FLT_MAX);
+			float SelfRevScore = (m_DBSelfRevScores.empty() ? FLT_MAX : m_DBSelfRevScores[DBChainIdx]);
+			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2, SelfRevScore);
 
 			DA.AlignQueryTarget();
 			if (!DA.m_Path.empty())

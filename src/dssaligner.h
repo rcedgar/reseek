@@ -57,7 +57,7 @@ public:
 
 	uint m_Ids = UINT_MAX;
 	uint m_Gaps = UINT_MAX;
-	float m_AlnDaliScore = FLT_MAX;
+	//float m_AlnDaliScore = FLT_MAX;
 	float m_SelfRevScoreA = FLT_MAX;
 	float m_SelfRevScoreB = FLT_MAX;
 
@@ -102,6 +102,7 @@ public:
 	float GetComboScore();
 	bool ComboFilter();
 	bool UFilter();
+	void ClearAlign();
 	void AlignComboOnly();
 	void AlignComboPath();
 	void AlignQueryTarget();
@@ -146,7 +147,6 @@ public:
 	void SetSMx_Combo();
 	void SetSMx_Combo_Int();
 	void AllocDProw(uint LB);
-	float AdjustTS(float TS, float mu, float beta) const;
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A

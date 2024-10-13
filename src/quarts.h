@@ -33,6 +33,19 @@ struct Quarts
 		Avg = 0;
 		}
 
+	void WriteMe(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		fprintf(f, "Min=%u", Min);
+		fprintf(f, ", LoQ=%u", LoQ);
+		fprintf(f, ", Med=%u", Med);
+		fprintf(f, ", HiQ=%u", HiQ);
+		fprintf(f, ", Max=%u", Max);
+		fprintf(f, ", Avg=%.1f", Avg);
+		fprintf(f, "\n");
+		}
+
 	void LogMe() const
 		{
 		Log("Min=%u", Min);
@@ -78,6 +91,19 @@ struct QuartsFloat
 		Total = 0;
 		Avg = 0;
 		StdDev = 0;
+		}
+
+	void WriteMe(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		fprintf(f, "Min=%.3g", Min);
+		fprintf(f, ", LoQ=%.3g", LoQ);
+		fprintf(f, ", Med=%.3g", Med);
+		fprintf(f, ", HiQ=%.3g", HiQ);
+		fprintf(f, ", Max=%.3g", Max);
+		fprintf(f, ", Avg=%.3g", Avg);
+		fprintf(f, "\n");
 		}
 
 	void LogMe() const

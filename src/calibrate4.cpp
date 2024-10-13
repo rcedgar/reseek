@@ -3,6 +3,8 @@
 #include <unordered_map>
 
 /***
+NN calibration -- obsolete!
+
 -calibrate4
 Input:
 	-calibrate4 /z/int/reseek_calibrate/scop40_with_ts/hits_with_ts.tsv
