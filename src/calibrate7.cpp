@@ -2,10 +2,11 @@
 #include "chainreader2.h"
 #include "dbsearcher.h"
 #include "quarts.h"
+#include "binner.h"
 
+// Min=-0.127, LoQ=-0.0482, Med=-0.0254, HiQ=-0.00619, Max=0.15, Avg=-0.0145
 // Measure binned TS distribution of database vs. reversed database.
-
-class C5_Searcher : public DBSearcher
+class C7_Searcher : public DBSearcher
 	{
 public:
 	vector<float> m_TSVec;
@@ -20,18 +21,8 @@ public:
 	virtual void OnAln(DSSAligner &DA, bool Up)
 		{
 		asserta(Up);
-		m_TSVec.push_back(DA.m_TestStatisticA);
-		}
-
-	void Write(const string &FN) const
-		{
-		FILE *f = CreateStdioFile(FN);
-		QuartsFloat QF;
-		GetQuartsFloat(m_TSVec, QF);
-		QF.LogMe();
-		QF.WriteMe(f);
-		QF.WriteMe(stderr);
-		CloseStdioFile(f);
+		if (DA.m_NewTestStatisticA > 0)
+			m_TSVec.push_back(DA.m_NewTestStatisticA);
 		}
 	};
 
@@ -43,7 +34,7 @@ void cmd_calibrate7()
 	opt_verysensitive = true;
 	optset_verysensitive = true;
 
-	C5_Searcher DBS;
+	C7_Searcher DBS;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	DBS.m_Params = &Params;
@@ -56,5 +47,17 @@ void cmd_calibrate7()
 	ChainReader2 QCR;
 	QCR.Open(QFN);
 	DBS.RunQuery(QCR);
-	DBS.Write(opt_output);
+
+	FILE *f = CreateStdioFile(opt_output);
+	QuartsFloat QF;
+	GetQuartsFloat(DBS.m_TSVec, QF);
+	QF.LogMe();
+	QF.WriteMe(f);
+	QF.WriteMe(stderr);
+
+	Binner B(DBS.m_TSVec, 21, 0.0f, 0.1f);
+	B.ToTsv(f);
+	B.AccumToTsv(f);
+	B.AccumToTsvReverse(f);
+	CloseStdioFile(f);
 	}
