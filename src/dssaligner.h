@@ -52,6 +52,8 @@ public:
 	float m_EvalueB = FLT_MAX;
 	float m_TestStatisticA = FLT_MAX;
 	float m_TestStatisticB = FLT_MAX;
+	float m_NewTestStatisticA = FLT_MAX;
+	float m_NewTestStatisticB = FLT_MAX;
 
 	uint m_Ids = UINT_MAX;
 	uint m_Gaps = UINT_MAX;
@@ -166,7 +168,8 @@ public:
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
 	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
-	float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
+	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
+	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;

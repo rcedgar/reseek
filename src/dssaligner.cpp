@@ -889,14 +889,18 @@ void DSSAligner::CalcEvalue()
 			RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
 		const uint LA = m_ChainA->GetSeqLength();
 		const uint LB = m_ChainB->GetSeqLength();
-		float L = (LA + LB)/2;
+		float L = float(LA + LB)/2;
 
-		const float dpw = 1.7;
-		const float lddtw = 0.13;
-		const float ladd = 250;
-		const float revtsw = 2.0;
-		m_TestStatisticA = lddtw*LDDT + (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
-		m_TestStatisticB = m_TestStatisticA;
+		const float dpw = 1.7f;
+		const float lddtw = 0.13f;
+		const float ladd = 250.0f;
+		const float revtsw = 2.0f;
+		m_NewTestStatisticA = lddtw*LDDT + (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
+		m_NewTestStatisticB = m_NewTestStatisticA;
+
+	// log y = a + b*x
+	// a = -0.66881
+	// b = -23.451
 
 		uint M, D, I;
 		GetPathCounts(m_Path, M, D, I);
@@ -904,6 +908,12 @@ void DSSAligner::CalcEvalue()
 		m_HiB = m_LoB + M + I - 1;
 		m_Ids = M;
 		m_Gaps = D + I;
+
+		const float a = -0.66881f;
+		const float b = -23.451f;
+		float logE = a + b*m_NewTestStatisticA;
+		m_EvalueA = expf(logE);
+		m_EvalueB = m_EvalueB;
 
 		EndTimer(SelfRev);
 		}
