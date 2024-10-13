@@ -913,7 +913,7 @@ void DSSAligner::CalcEvalue()
 		const float b = -23.451f;
 		float logE = a + b*m_NewTestStatisticA;
 		m_EvalueA = expf(logE);
-		m_EvalueB = m_EvalueB;
+		m_EvalueB = m_EvalueA;
 
 		EndTimer(SelfRev);
 		}
