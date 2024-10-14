@@ -864,11 +864,13 @@ void DSSAligner::CalcEvalue()
 	m_Ids = M;
 	m_Gaps = D + I;
 
-	const float a = -0.66881f;
-	const float b = -23.451f;
+	const float a = 17.0f;
+	const float b = -300.0f;
 	float logE = a + b*m_NewTestStatisticA;
-	m_EvalueA = expf(logE);
-	m_EvalueB = m_EvalueA;
+	float DBSize = m_Params->m_DBSize;
+	float E = expf(logE)*DBSize/11211;
+	m_EvalueA = E;
+	m_EvalueB = E;
 	EndTimer(CalcEvalue)
 	}
 
