@@ -207,6 +207,8 @@ FLT_OPT(thresh,				1.0,		0.0,		9e9)
 FLT_OPT(minfwdscore,				1.0,		0.0,		9e9)
 FLT_OPT(omega,				1.0,		0.0,		9e9)
 FLT_OPT(daliw,				1.0,		0.0,		9e9)
+FLT_OPT(evalue_a,			1.0,		0.0,		9e9)
+FLT_OPT(evalue_b,			1.0,		0.0,		9e9)
 
 FLT_OPT(match,				1.0,		0.0,		DBL_MAX)
 FLT_OPT(mismatch,			-2.0,		0.0,		DBL_MAX)
