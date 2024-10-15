@@ -50,6 +50,9 @@ public:
 	float m_Evalue_linear_m = 20.5f;
 	float m_Evalue_linear_b = 2.9f;
 
+	float m_Evalue_a = 4.0f;
+	float m_Evalue_b = -43.0f;
+
 	bool m_AAOnly = false;
 
 public:

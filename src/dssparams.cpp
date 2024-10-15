@@ -27,6 +27,9 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	else
 		m_DBSize = (float) DBSize;
 
+	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt_evalue_a);
+	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt_evalue_b);
+
 	vector<FEATURE> ComboFeatures;
 	ComboFeatures.push_back(FEATURE_SS3);
 	ComboFeatures.push_back(FEATURE_NbrSS3);
