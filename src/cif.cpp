@@ -262,4 +262,6 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		Chain->m_Ys.push_back(Y);
 		Chain->m_Zs.push_back(Z);
 		}
+	if (Chain != 0)
+		Chains.push_back(Chain);
 	}
