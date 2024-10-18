@@ -351,7 +351,8 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 				if (AnyAtoms && !ChainLines.empty())
 					{
 					PDBChain *Chain = new PDBChain;
-					char ChainChar = Chain->FromPDBLines(Label, ChainLines);
+					char ChainChar = 
+					  Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
 					if (ChainChar == 0)
 						delete Chain;
 					else
@@ -371,7 +372,7 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 	if (!ChainLines.empty() && AnyAtoms)
 		{
 		PDBChain *Chain = new PDBChain;
-		Chain->FromPDBLines(Label, ChainLines);
+		Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
 		ChainLines.clear();
 		Chains.push_back(Chain);
 		}

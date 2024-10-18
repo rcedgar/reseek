@@ -24,7 +24,6 @@ void DBSearcher::RunStats() const
 	double PairsPerSecPerThread = PairsPerSec/ThreadCount;
 	ProgressLog("\n");
 	ProgressLog("%10.10s  Search time\n", SecsToHHMMSS(Secs));
-	ProgressLog("%10.10s  Alignments\n", IntToStr(DSSAligner::m_AlnCount));
 	ProgressLog("%10.10s  Hits (max E-value %.3g)\n", IntToStr(m_HitCount), m_MaxEvalue);
 	if (m_ProcessedQueryCount < 100)
 		return;

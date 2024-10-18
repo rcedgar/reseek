@@ -656,6 +656,8 @@ float DSSAligner::GetComboScore()
 
 bool DSSAligner::ComboFilter()
 	{
+	if (m_ComboLettersA == 0 || m_ComboLettersB == 0)
+		return true;
 	float MCS = m_Params->m_Omega;
 	if (MCS <= 0)
 		return true;
@@ -716,7 +718,7 @@ void DSSAligner::SetQuery(
 	m_ComboKmerBitsA = ptrComboKmerBits;
 	m_ComboLettersA = ptrComboLetters;
 	m_SelfRevScoreA = SelfRevScore;
-	if (m_Params->m_Omega > 0)
+	if (ptrComboLetters != 0 && m_Params->m_Omega > 0)
 		{
 		if (m_Params->m_UsePara)
 			SetComboQP_Para();
@@ -842,7 +844,9 @@ void DSSAligner::CalcEvalue()
 	float RevDPScore = 0;
 	asserta(m_SelfRevScoreA != -FLT_MAX);
 	asserta(m_SelfRevScoreB != -FLT_MAX);
-	RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
+	RevDPScore = 0;
+	if (m_SelfRevScoreA != FLT_MAX && m_SelfRevScoreB != FLT_MAX)
+		RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 	float L = float(LA + LB)/2;
@@ -895,10 +899,6 @@ void DSSAligner::ClearAlign()
 void DSSAligner::Align_NoAccel()
 	{
 	ClearAlign();
-	//m_Path.clear();
-	//m_LoA = UINT_MAX;
-	//m_LoB = UINT_MAX;
-
 	SetSMx_NoRev();
 
 	const uint LA = m_ChainA->GetSeqLength();
@@ -1337,11 +1337,11 @@ float DSSAligner::GetPctId() const
 	return N == 0 ? 0 : (n*100.0f)/N;
 	}
 
-float DSSAligner::GetKabsch(vector<double> &t, vector<vector<double> > &u, bool Up) const
+float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 	{
 	double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 		uint LoA, uint LoB, const string &Path,
-		vector<double> &t, vector<vector<double> > &u);
+		double t[3], double u[3][3]);
 
 	if (Up)
 		return (float) Kabsch(*m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, t, u);

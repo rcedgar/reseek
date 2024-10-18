@@ -39,6 +39,7 @@ public:
 	uint m_ChainCount = 0;
 	string m_CurrentFN;
 	bool m_Trace = false;
+	bool m_SaveLines = false;
 
 // FS object shared with other threads
 	PDBFileScanner *m_ptrFS = 0;

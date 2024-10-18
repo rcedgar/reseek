@@ -140,3 +140,16 @@ void RotateMx(const vector<vector<double> > &Mx,
 	AssertSameLengths(Mx, RotatedMx);
 	AssertSameAngles(Mx, RotatedMx);
 	}
+
+double dot(const double a[3], const double b[3])
+	{
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+	}
+
+void transform(const double t[3], const double u[3][3],
+  const double x[3], double x_transformed[3])
+	{
+	x_transformed[0] = t[0] + dot(u[0], x);
+	x_transformed[1] = t[1] + dot(u[1], x);
+	x_transformed[2] = t[2] + dot(u[2], x);
+	}

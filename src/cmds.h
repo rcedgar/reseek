@@ -62,5 +62,6 @@ C(calibrate5)
 C(calibrate5a)
 C(calibrate7)
 C(alignselfrev)
+C(alignpair)
 
 #undef C

@@ -68,6 +68,7 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 	return avg;
 	}
 
+#if 0
 #include "seqdb.h"
 #include "daliscorer.h"
 
@@ -131,3 +132,4 @@ void cmd_test()
 			}
 		}
 	}
+#endif // 0

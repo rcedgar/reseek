@@ -239,9 +239,11 @@ void PDBChain::SetXYZInATOMLine(const string &InputLine,
 	}
 
 char PDBChain::FromPDBLines(const string &Label,
-  const vector<string> &Lines)
+  const vector<string> &Lines, bool SaveLines)
 	{
 	Clear();
+	if (SaveLines)
+		m_Lines = Lines;
 	m_Label = Label;
 	const uint N = SIZE(Lines);
 	char ChainChar = 0;

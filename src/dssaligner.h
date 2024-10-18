@@ -174,7 +174,7 @@ public:
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
 
-	float GetKabsch(vector<double> &t, vector<vector<double> > &u, bool Up) const;
+	float GetKabsch(double t[3], double u[3][3], bool Up) const;
 
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;

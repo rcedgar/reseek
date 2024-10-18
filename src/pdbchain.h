@@ -15,6 +15,7 @@ public:
 	vector<float> m_Ys;
 	vector<float> m_Zs;
 	uint m_Idx = UINT_MAX;
+	vector<string> m_Lines;
 
 public:
 	~PDBChain() { Clear(); }
@@ -25,11 +26,12 @@ public:
 		m_Xs.clear();
 		m_Ys.clear();
 		m_Zs.clear();
+		m_Lines.clear();
 		}
 
 	uint GetSeqLength() const;
 	char FromPDBLines(const string &Label,
-	  const vector<string> &Lines);
+	  const vector<string> &Lines, bool SaveLines = false);
 	void FromCal(const string &FileName);
 	void FromCalLines(const vector<string> &Lines);
 	void ToCal(FILE *f) const;
@@ -39,12 +41,12 @@ public:
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void GetXFormChain_tR(
-	  const vector<float> &t,
-	  const vector<vector<float> > &R,
-	  PDBChain &XChain) const;
-	void GetXFormChain_tR(
 	  const vector<double> &t,
 	  const vector<vector<double> > &R,
+	  PDBChain &XChain) const;
+	void GetXFormChain_tR(
+	  const vector<float> &t,
+	  const vector<vector<float> > &R,
 	  PDBChain &XChain) const;
 	void LogMe(bool WithCoords = false) const;
 	void GetXYZ(uint Pos, float &x, float &y, float &z) const;

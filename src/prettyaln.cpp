@@ -5,7 +5,7 @@
 
 double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
   uint LoA, uint LoB, const string &Path,
-  vector<double> &t, vector<vector<double> > &R);
+  double t[3], double u[3][3]);
 void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
   const string &LabelB, const byte *B,
   uint Loi, uint Loj, const char *Path);
@@ -75,7 +75,6 @@ void DSSAligner::PrettyAln(FILE *f,
 			asserta(false);
 			}
 		}
-	const uint ROWLEN = 100;
 	uint ColLo = 0;
 	fprintf(f, "\n");
 	fprintf(f, "_____________________________________________________________________________________________________________\n");

@@ -103,21 +103,6 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 		break;
 		}
 
-	case UF_rigid:
-		{
-		vector<double> t;
-		vector<vector<double> > R;
-		float RMS = GetKabsch(t, R, Up);
-		fprintf(f, "%.1f", RMS);
-		asserta(SIZE(t) == 3);
-		asserta(SIZE(R) == 3);
-		asserta(SIZE(R[0]) == 3);
-		fprintf(f, "\t%.4g\t%.4g\t%.4g", t[0], t[1], t[2]);
-		for (uint i = 0; i < 3; ++i)
-			fprintf(f, "\t%.4g\t%.4g\t%.4g", R[i][0], R[i][1], R[i][2]);
-		break;
-		}
-
 	case UF_dpscore:
 		{
 		fprintf(f, "%.4g", m_AlnFwdScore);

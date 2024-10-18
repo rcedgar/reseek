@@ -449,6 +449,9 @@
     <ClCompile Include="calibrate7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alignpair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -44,7 +44,8 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		if (!DA.m_Path.empty())
 			{
 			BaseOnAln(DA, true);
-			BaseOnAln(DA, false);
+			if (ChainIndex1 != ChainIndex2)
+				BaseOnAln(DA, false);
 			}
 		PrevChainIndex1 = ChainIndex1;
 		}
@@ -71,7 +72,7 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 		{
 		++m_ProcessedQueryCount;
 		++m_NextChainIndex1;
-		m_NextChainIndex2 = m_NextChainIndex1 + 1;
+		m_NextChainIndex2 = m_NextChainIndex1;
 		}
 	++m_PairIndex;
 	++m_ProcessedPairCount;
@@ -104,9 +105,9 @@ void DBSearcher::RunSelf()
 
 	uint ChainCount = GetDBChainCount();
 	m_PairIndex = 0;
-	m_PairCount = (ChainCount*(ChainCount-1))/2;
+	m_PairCount = ChainCount + (ChainCount*(ChainCount-1))/2;
 	m_NextChainIndex1 = 0;
-	m_NextChainIndex2 = 1;
+	m_NextChainIndex2 = 0;
 
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
