@@ -299,6 +299,7 @@ FLAG_OPT(nochainchar)
 FLAG_OPT(tracedpscorepath)
 FLAG_OPT(reverse)
 FLAG_OPT(log2)
+FLAG_OPT(fast)
 
 #undef FLAG_OPT
 #undef UNS_OPT
