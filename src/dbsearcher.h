@@ -78,7 +78,7 @@ public:
 
 	void ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR);
 	void ThreadBodySelf(uint ThreadIndex);
-	void ThreadUSort(uint ThreadIndex);
+	void ThreadUSort(uint ThreadIndex, ChainReader2 &QCR);
 
 	uint GetDBSize() const;
 	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
@@ -120,7 +120,7 @@ public:
 public:
 	static void StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
-	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS);
+	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	};
 
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);

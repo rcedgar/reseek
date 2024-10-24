@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "sort.h"
 #include "dbsearcher.h"
+#include "chainreader2.h"
 #include <thread>
 
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
@@ -34,38 +35,41 @@ void DBSearcher::USort(const vector<uint> &QueryKmerBits,
 		Order.clear();
 	}
 
-void DBSearcher::StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS)
+void DBSearcher::StaticThreadUSort(uint ThreadIndex,
+  DBSearcher *ptrDBS, ChainReader2 *ptrQCR)
 	{
-	ptrDBS->ThreadUSort(ThreadIndex);
+	ptrDBS->ThreadUSort(ThreadIndex, *ptrQCR);
 	}
 
-void DBSearcher::ThreadUSort(uint ThreadIndex)
+void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 	{
-	Die("TODO");
-#if 0
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
 	DA.m_Params = m_Params;
+	DSS D;
+	D.SetParams(*m_Params);
 	vector<uint> Order;
+	vector<byte> ComboLettersQ;
+	vector<uint> KmersQ;
+	vector<uint> KmerBitsQ;
+	vector<vector<byte> > ProfileQ;
 	for (;;)
 		{
 		m_Lock.lock();
-		uint ChainIndexQ = m_NextQueryIdx;
-		if (ChainIndexQ < m_QueryChainCount)
-			{
-			ProgressStep(ChainIndexQ, m_QueryChainCount, "Searching (u-sort)");
-			++m_NextQueryIdx;
-			}
-		else if (ChainIndexQ == m_QueryChainCount)
+		const PDBChain *ptrChainQ = QCR.GetNext();
+		if (ptrChainQ == 0)
 			{
 			m_Lock.unlock();
 			break;
 			}
-		else
-			asserta(false);
 		m_Lock.unlock();
+		const PDBChain &ChainQ = *ptrChainQ;
+		D.Init(ChainQ);
+		D.GetComboLetters(ComboLettersQ);
+		D.GetComboKmers(ComboLettersQ, KmersQ);
+		D.GetComboKmerBits(KmersQ, KmerBitsQ);
 		vector<uint> DBIdxs;
-		USort(ChainIndexQ, DBIdxs, Order);
+		USort(KmerBitsQ, DBIdxs, Order);
 		const uint N = SIZE(Order);
 		if (N == 0)
 			continue;
@@ -73,19 +77,17 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 		const uint MAXREJECTS = m_Params->m_MaxRejects;
 		uint AcceptCount = 0;
 		uint RejectCount = 0;
-		const PDBChain &ChainQ = *m_DBChains[ChainIndexQ];
-		const vector<byte> &ComboLettersQ = *m_DBComboLettersVec[ChainIndexQ];
-		const vector<vector<byte> > &ProfileQ = *m_DBProfiles[ChainIndexQ];
+		D.GetProfile(ProfileQ);
 		for (uint i = 0; i < N; ++i)
 			{
 			if (AcceptCount >= MAXACCEPTS)
 				break;
 			if (RejectCount >= MAXREJECTS)
 				break;
-			uint ChainIndexR = GetDBChainIndex(DBIdxs[Order[i]]);
-			if (ChainIndexQ == ChainIndexR)
-				continue;
+			uint ChainIndexR = DBIdxs[Order[i]];
 			const PDBChain &ChainR = *m_DBChains[ChainIndexR];
+			if (ChainQ.m_Label == ChainR.m_Label)
+				continue;
 			const vector<byte> &ComboLettersR = *m_DBComboLettersVec[ChainIndexR];
 			const vector<vector<byte> > &ProfileR = *m_DBProfiles[ChainIndexR];
 			DA.Align_ComboFilter(ChainQ, ChainR, 
@@ -101,16 +103,14 @@ void DBSearcher::ThreadUSort(uint ThreadIndex)
 			if (DA.GetEvalue(true) <= m_MaxEvalue)
 				{
 				DA.ToTsv(m_fTsv, true);
-				BaseOnAln(ChainIndexQ, ChainIndexR, DA, true);
+				BaseOnAln(DA, true);
 				}
 			}
 		}
-#endif // 0
 	}
 
 void DBSearcher::RunUSort(ChainReader2 &QCR)
 	{
-	Die("TODO does not support query-db search");
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);
 	m_Secs = UINT_MAX;
@@ -131,7 +131,7 @@ void DBSearcher::RunUSort(ChainReader2 &QCR)
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		thread *t = new thread(StaticThreadUSort, ThreadIndex, this);
+		thread *t = new thread(StaticThreadUSort, ThreadIndex, this, &QCR);
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)

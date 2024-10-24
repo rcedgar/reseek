@@ -672,6 +672,8 @@ bool DSSAligner::UFilter()
 	uint MinU = uint(round(m_Params->m_MinU));
 	if (MinU == 0)
 		return true;
+	if (m_ComboKmerBitsA == 0 || m_ComboKmerBitsB == 0)
+		return true;
 	uint U = GetUBits(*m_ComboKmerBitsA, *m_ComboKmerBitsB);
 	if (U < MinU)
 		return false;

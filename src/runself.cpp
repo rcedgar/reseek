@@ -86,7 +86,7 @@ void DBSearcher::RunSelf()
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->m_Params = m_Params;
 
-	asserta(!m_Params->m_USort);
+	//asserta(!m_Params->m_USort);
 
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);
