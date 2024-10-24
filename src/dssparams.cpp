@@ -22,9 +22,9 @@ void DSSParams::SetComboFeatures(const vector<FEATURE> &Fs)
 
 void DSSParams::SetFromCmdLine(uint DBSize)
 	{
-	int i = int(optset_fast) + int(optset_sensitive) + int(optset_verysensitive);
+	int i = int(optset_veryfast) + int(optset_fast) + int(optset_sensitive) + int(optset_verysensitive);
 	if (i != 1)
-		Die("Must specify -fast -sensitive or -verysensitive");
+		Die("Must specify -veryfast -fast -sensitive or -verysensitive");
 
 	if (optset_dbsize)
 		m_DBSize = (float) opt_dbsize;
@@ -48,7 +48,8 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		FromTsv(opt_paramsf);
 	else
 		SetNamedParams("defaults");
-	if (optset_fast) ;
+	if (optset_veryfast) {m_Omega = 16; m_MinU = 4; m_USort = true; m_Desc += "-veryfast"; }
+	else if (optset_fast) ;
 	else if (optset_sensitive)  { m_Omega = 12; Psa(m_Desc, " -omega %.4g", m_Omega); }
 	else if (optset_verysensitive)  { m_Omega = 0; m_MinU = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
 
@@ -138,7 +139,6 @@ void DSSParams::WriteSummary(FILE *f) const
 	fprintf(f, " Lamda %u", m_Lambda);
 	if (m_Omega != FLT_MAX)
 		fprintf(f, " Omega %.1f", m_Omega);
-	fprintf(f, " DALIw %.1f", m_DALIw);
 	fprintf(f, " MinU %u", m_MinU);
 	fprintf(f, "\n");
 	fprintf(f, "---------------------------------------------------------------------------------\n");
