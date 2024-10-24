@@ -59,8 +59,13 @@ void DBSearcher::Setup()
 	{
 	if (optset_evalue)
 		m_MaxEvalue = (float) opt_evalue;
-	else
-		m_MaxEvalue = 10;
+	else 
+		{
+		if (optset_verysensitive)
+			m_MaxEvalue = 999999;
+		else
+			m_MaxEvalue = 10;
+		}
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);
