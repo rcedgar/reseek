@@ -134,9 +134,9 @@ void DSSParams::WriteSummary(FILE *f) const
 	fprintf(f, "\n");
 	fprintf(f, "GapO/E %.3f/", -m_GapOpen);
 	fprintf(f, "%.3f", -m_GapExt);
-	fprintf(f, " FwdM %.2f", m_FwdMatchScore);
+	//fprintf(f, " FwdM %.2f", m_FwdMatchScore);
 	fprintf(f, " MinFS %.1f", m_MinFwdScore);
-	fprintf(f, " Lamda %u", m_Lambda);
+	//fprintf(f, " Lamda %u", m_Lambda);
 	if (m_Omega != FLT_MAX)
 		fprintf(f, " Omega %.1f", m_Omega);
 	fprintf(f, " MinU %u", m_MinU);

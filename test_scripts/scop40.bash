@@ -9,6 +9,12 @@ cd ../test_output
 
 ../bin/reseek \
 	-search scop40.bca \
+	-output scop40-fast.tsv \
+	-fast \
+	-log scop40-fast.log
+
+../bin/reseek \
+	-search scop40.bca \
 	-output scop40-sensitive.tsv \
 	-sensitive \
 	-log scop40-sensitive.log

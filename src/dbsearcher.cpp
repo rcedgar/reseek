@@ -62,7 +62,7 @@ void DBSearcher::Setup()
 	else 
 		{
 		if (optset_verysensitive)
-			m_MaxEvalue = 999999;
+			m_MaxEvalue = 1e6;
 		else
 			m_MaxEvalue = 10;
 		}

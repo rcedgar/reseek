@@ -1,9 +1,12 @@
 #!/bin/bash -e
 
+echo
+echo _run_tests.bash
+echo
+
 cd ../src
 rm -rf o/ ../bin/reseek*
-chmod +x ./build_linux.py
-python3 ./build_linux.py
+./build_linux_x86.bash
 cd ../test_scripts
 
 rm -rf ../test_output
