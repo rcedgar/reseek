@@ -326,6 +326,8 @@ void DSSParams::ApplyWeights()
 		asserta(uint(F) < FEATURE_COUNT);
 		float w = m_Weights[Idx];
 		uint AS = g_AlphaSizes2[F];
+		if (AS == 0)
+			Die("Feature %s not supported", FeatureToStr(F));
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
