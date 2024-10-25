@@ -21,6 +21,8 @@ void cmd_pdb2mega()
 	if (!optset_output)
 		Die("-output not set");
 
+	optset_fast = true;
+	opt_fast = true;
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
 	if (opt_reverse)

@@ -34,9 +34,7 @@ def readhits(fn, TP, TP1, FP1, FP):
             print("ERROR %s exception" % fn)
             return
         if dom1 == dom2:
-            errors += 1
-            print("ERROR %s dom1==dom2" % fn)
-            return
+            continue
         if sf1 == sf2:
             tp += 1
         else:
@@ -48,18 +46,20 @@ def readhits(fn, TP, TP1, FP1, FP):
             else:
                 fp1 += 1
     if tp < TP*0.95:
-        print("ERROR TP too low: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        print("ERROR TP too low: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
         sys.exit(1)
     if tp1 < TP1*0.98:
-        print("ERROR TP1 too low: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        print("ERROR TP1 too low: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
         sys.exit(1)
     if fp1 > FP1*1.02:
-        print("ERROR FP1 too high: TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        print("ERROR FP1 too high: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
+        sys.exit(1)
+    if fp > FP*1.02:
+        print("ERROR FP too high: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
         sys.exit(1)
 
-    print("ok TP=%d TP1=%d FP1=%d FP=%d %s" % (tp, tp1, fp1, fp, fn))
+    print("ok TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
 
-readhits("../test_output/scop40.tsv", TP=164904, TP1=117382, FP1=11603, FP=300248)
-readhits("../test_output/scop40-fast.tsv", TP=269704, TP1=139844, FP1=26046, FP=6964134)
-readhits("../test_output/scop40-sensitive.tsv", TP=269704, TP1=139844, FP1=26046, FP=6964134)
-readhits("../test_output/scop40-evalue1.tsv", TP=115277, TP1=115277, FP1=10503, FP=9604)
+readhits("../test_output/scop40-fast.tsv", TP=175928, TP1=133730, FP1=6236, FP=72964)
+readhits("../test_output/scop40-sensitive.tsv", TP=223980, TP1=148640, FP1=8366, FP=151672)
+readhits("../test_output/scop40-evalue1.tsv", TP=132754, TP1=132754, FP1=5930, FP=5930)

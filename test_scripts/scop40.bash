@@ -4,11 +4,6 @@ cd ../test_output
 
 ../bin/reseek \
 	-search scop40.bca \
-	-output scop40.tsv \
-	-log scop40.log
-
-../bin/reseek \
-	-search scop40.bca \
 	-output scop40-fast.tsv \
 	-fast \
 	-log scop40-fast.log
@@ -22,5 +17,6 @@ cd ../test_output
 ../bin/reseek \
 	-search scop40.bca \
 	-output scop40-evalue1.tsv \
+	-fast \
 	-evalue 1 \
 	-log scop40-evalue1.log

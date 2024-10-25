@@ -123,7 +123,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	{
 	set<string> Seqs;
 	Chains.clear();
-	string Label = FallbackLabel;
+	string TmpBaseLabel = FallbackLabel;
 	const string &Line0 = Lines[0];
 	if (StartsWith(Line0, "data_"))
 		{
@@ -131,11 +131,12 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		Split(Line0, Fields, '_');
 		if (SIZE(Fields) == 2 && Fields[0] != "data")
 			{
-			Label = Fields[1];
-			if (Label == "")
-				Label = FallbackLabel;
+			TmpBaseLabel = Fields[1];
+			if (TmpBaseLabel == "")
+				TmpBaseLabel = FallbackLabel;
 			}
 		}
+	const string &BaseLabel = TmpBaseLabel;
 
 	char CurrentChainChar = 0;
 	PDBChain *Chain = 0;
@@ -245,6 +246,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 			if (Chain != 0)
 				Chains.push_back(Chain);
 			Chain = new PDBChain;
+			string Label = BaseLabel;
 			ChainizeLabel(Label, ChainChar);
 			Chain->m_Label = Label;
 			CurrentChainChar = ChainChar;

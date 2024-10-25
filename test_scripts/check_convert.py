@@ -28,6 +28,7 @@ def check_fasta(fn):
             seq2 = seqdict2[label]
         except:
             errors += 1
+            print(seqdict2.keys())
             print("ERROR %s not found in %s" % (label, fn))
             return
         if seq == seq2:

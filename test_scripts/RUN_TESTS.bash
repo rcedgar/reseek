@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 if [ ! -s ./_run_tests.bash ] ; then
 	echo "ERROR -- must run in test_scripts/ directory"
