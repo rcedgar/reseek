@@ -1,4 +1,4 @@
-#include "myutils.h"
+"myutils.h"
 #include "chainreader2.h"
 #include "dssaligner.h"
 #include "pdbchain.h"
@@ -67,6 +67,8 @@ void cmd_alignpair()
 	ReadChains_SaveLines(QFN, ChainsQ);
 	ReadChains_SaveLines(TFN, ChainsT);
 
+	optset_sensitive = true;
+	opt_sensitive = true;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	Params.m_UsePara = false;
