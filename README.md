@@ -14,6 +14,7 @@ on the regime with false-positive error rates <10 per query, corresponding to E<
 Commands
   -search        # Alignment (e.g. DB search, pairwise, all-vs-all)
   -convert       # Convert file formats (e.g. create DB)
+  -alignpair     # Pair-wise alignment and superposition
 
 Search against database
     reseek -search STRUCTS -db STRUCTS -output hits.txt
@@ -22,10 +23,12 @@ Search against database
 Recommended format for large database is .bca, e.g.
     reseek -convert /data/PDB_mirror/ -bca PDB.bca
 
-Align two structures
-    reseek -search 1XYZ.pdb -db 2ABC.pdb -aln aln.txt
+Align and superpose two structures
+    reseek -alignpair 1XYZ.pdb -input2 2ABC.pdb
+           -aln FILE     # Sequence alignment (text)
+           -output FILE  # Rotated 1XYZ (PDB format)
 
-All-vs-all alignment (excluding self-hits)
+All-vs-all alignment
     reseek -search STRUCTS -output hits.txt
 
 Output options for -search
@@ -52,8 +55,8 @@ Output options for -search
                  # default evalue+query+target
 
 Search and alignment options
-  -sensitive     # Try harder (~3x slower, not much better)
-  -evalue E      # Max E-value (default 10)
+  -fast, -sensitive or -verysensitive     # Required
+  -evalue E      # Max E-value (default 10 unless -verysensitive)
   -omega X       # Omega accelerator (floating-point)
   -minu U        # K-mer accelerator (integer)
   -gapopen X     # Gap-open penalty (floating-point >= 0)
@@ -66,6 +69,9 @@ Convert between file formats
            -bca FILENAME    # .bca format, binary .cal, recommended for DBs
            -fasta FILENAME  # FASTA format
 
+Create input for Muscle-3D multiple structure alignment:
+    reseek -pdb2mega STRUCTS -output structs.mega
+
 STRUCTS argument is one of:
    NAME.cif or NAME.mmcif     # PDBx/mmCIF file
    NAME.pdb                   # Legacy format PDB file
@@ -75,11 +81,26 @@ STRUCTS argument is one of:
                               #   may be filename, directory or .files
    DIRECTORYNAME              # Directory (and its sub-directories) is searched
                               #   for known file types including .pdb, .files etc.
+
 Other options:
    -log FILENAME              # Log file with errors, warnings, time and memory.
    -threads N                 # Number of threads, default number of CPU cores.
 </pre>
 
+#### Build from source on Linux x86
+<pre>
+cd src/
+./build_linux_x86.bash
+</pre>
+
+#### Build from source on OSX x86
+<pre>
+cd src/
+./build_osx_x86.bash
+</pre>
+
+#### Build from source on Windows
+Load the `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
 
 ### Reference
 
