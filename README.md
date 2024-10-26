@@ -111,5 +111,5 @@ Edgar, Robert C. (2024) "Sequence alignment using large protein structure alphab
 
 https://github.com/rcedgar/reseek_scop40
 
-<p align="center"><img src="https://github.com/rcedgar/reseek_scop40/blob/master/results/reseek_v2_readme_figure.svg" align="left" width="700"/></p>
+<p align="center"><img src="https://github.com/rcedgar/reseek_scop40/blob/master/results/reseek_v2_readme_figure.png" align="left" width="700"/></p>
 <p></p>
