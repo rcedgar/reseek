@@ -89,18 +89,16 @@ Other options:
 
 #### Build from source on Linux x86
 <pre>
-cd src/
-./build_linux_x86.bash
+cd src/; chmod +x build_linux_x86.bash ; ./build_linux_x86.bash
 </pre>
 
 #### Build from source on OSX x86
 <pre>
-cd src/
-./build_osx_x86.bash
+cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 </pre>
 
 #### Build from source on Windows
-Load the `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
+Load `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
 
 ### Reference
 
