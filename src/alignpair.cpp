@@ -1,4 +1,4 @@
-"myutils.h"
+#include "myutils.h"
 #include "chainreader2.h"
 #include "dssaligner.h"
 #include "pdbchain.h"
