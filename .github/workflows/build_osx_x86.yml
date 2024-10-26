@@ -5,19 +5,18 @@ on:
   
 jobs:
   build:
-    runs-on: macos-13
- 
+    runs-on: macos-latest
     steps:
-      # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v4
-
-      # Install MacPorts (new step)
-      - uses: melusina-org/setup-macports@v1
-
-      - name: Install dependencies
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up MacPorts
+        uses: melusina-org/setup-macports@v1
+      - name: Update MacPorts and sync ports
         run: |
-          sudo port install python311
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"  
+          sudo port selfupdate
+          sudo port sync
+      - name: Install Python 3.11
+        run: sudo port install python311
           brew update
           brew install gcc@11
 
