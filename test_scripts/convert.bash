@@ -6,7 +6,7 @@ cd ../test_output
 ls ../test_structures/* \
 	> test_structures.files
 
-../bin/reseek \
+$reseek \
 	-convert test_structures.files \
 	-fasta files.fa \
 	-cal files.cal \
@@ -14,7 +14,7 @@ ls ../test_structures/* \
 	-chainsep : \
 	-log convert_files.log
 
-../bin/reseek \
+$reseek \
 	-convert ../test_structures/ \
 	-fasta dir.fa \
 	-cal dir.cal \
@@ -26,7 +26,7 @@ function cvt() {
 	from=$1
 	opt=$2
 	to=$3
-	../bin/reseek \
+	$reseek \
 		-convert $from \
 		-$opt $to \
 		-log $to.log
@@ -39,7 +39,7 @@ cvt dir.bca cal cvt_dir_bca.cal
 rm -f scop40.cal*
 cp ../test_data/scop40.cal.gz .
 gunzip scop40.cal.gz
-../bin/reseek \
+$reseek \
 	-convert scop40.cal \
 	-minchainlength 5 \
 	-bca scop40.bca

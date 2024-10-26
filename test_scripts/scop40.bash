@@ -2,19 +2,19 @@
 
 cd ../test_output
 
-../bin/reseek \
+$reseek \
 	-search scop40.bca \
 	-output scop40-fast.tsv \
 	-fast \
 	-log scop40-fast.log
 
-../bin/reseek \
+$reseek \
 	-search scop40.bca \
 	-output scop40-sensitive.tsv \
 	-sensitive \
 	-log scop40-sensitive.log
 
-../bin/reseek \
+$reseek \
 	-search scop40.bca \
 	-output scop40-evalue1.tsv \
 	-fast \

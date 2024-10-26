@@ -2,7 +2,7 @@
 
 cd ../test_output
 
-../bin/reseek \
+$reseek \
 	-search dir.bca \
 	-fast \
 	-aln all_vs_all.aln \

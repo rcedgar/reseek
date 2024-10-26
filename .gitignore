@@ -20,6 +20,7 @@ Makefiled
 tmp/
 tmp
 test_output/
+github_releases/
 
 # User-specific files
 *.rsuser
