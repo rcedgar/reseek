@@ -11,7 +11,7 @@ $reseek \
 $reseek \
 	-search dir.bca \
 	-fast \
-	-columns qual+query+target_evalue \
+	-columns qual+query+target+evalue \
 	-output columns_same_as_default.tsv \
 	-log columns_same_as_default.log
 
