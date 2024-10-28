@@ -63,22 +63,28 @@ def check_default(fn):
     global errors
     for line in open(fn):
         flds = line[:-1].split('\t')
-        if len(flds) != 3:
-            print("ERROR %s not three flds" % fn)
+        if len(flds) != 4:
+            print("ERROR %s not four flds" % fn)
             errors += 1
             return
         try:
-            E = float(flds[0])
+            Q = float(flds[0])
+        except:
+            print("ERROR %s qual %s not float" % (fn, flds[0]))
+            errors += 1
+            return
+        try:
+            E = float(flds[3])
         except:
             print("ERROR %s evalue %s not float" % (fn, flds[0]))
             errors += 1
             return
         if not flds[1] in labels:
-            print("ERROR %s label %s not three flds" % (fn, flds[1]))
+            print("ERROR %s label %s not found" % (fn, flds[1]))
             errors += 1
             return
         if not flds[2] in labels:
-            print("ERROR %s label %s not three flds" % (fn, flds[2]))
+            print("ERROR %s label %s not found" % (fn, flds[2]))
             errors += 1
             return
             
