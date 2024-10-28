@@ -23,5 +23,6 @@ x(dpscore)
 x(lddt)
 x(ids)
 x(gaps)
+x(qual)
 
 #undef x

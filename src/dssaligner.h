@@ -50,6 +50,8 @@ public:
 	uint m_HiB = UINT_MAX;
 	float m_EvalueA = FLT_MAX;
 	float m_EvalueB = FLT_MAX;
+	float m_QualityA = FLT_MAX;
+	float m_QualityB = FLT_MAX;
 	float m_TestStatisticA = FLT_MAX;
 	float m_TestStatisticB = FLT_MAX;
 	float m_NewTestStatisticA = FLT_MAX;
@@ -155,7 +157,7 @@ public:
 	void ToAln(FILE *f, bool Up) const;
 	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-	  uint LoA, uint LoB, const string &Path, float Evalue) const;
+	  uint LoA, uint LoB, const string &Path, float Quality, float Evalue) const;
 	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;
 
 // Top=true means fetch value for A, Top=false fetch B
@@ -171,6 +173,7 @@ public:
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
 	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
+	float GetQuality(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
 

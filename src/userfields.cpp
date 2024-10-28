@@ -115,6 +115,12 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 		break;
 		}
 
+	case UF_qual:
+		{
+		fprintf(f, "%.4f", GetQuality(Up));
+		break;
+		}
+
 	default:
 		Die("Unsupported user field %d='%s'", UF, UFToStr(UF));
 		}

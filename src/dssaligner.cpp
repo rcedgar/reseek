@@ -144,9 +144,10 @@ DSSAligner::DSSAligner()
 		}
 	else
 		{
-		m_UFs.push_back(UF_evalue);
+		m_UFs.push_back(UF_qual);
 		m_UFs.push_back(UF_query);
 		m_UFs.push_back(UF_target);
+		m_UFs.push_back(UF_evalue);
 		}
 	}
 
@@ -825,6 +826,8 @@ void DSSAligner::CalcEvalue_AAOnly()
 	float BitScore = (Score*GappedLambda - LogGappedK)/Log2;
 	float NM_A = float(LA)*float(DBSize);
 	float NM_B = float(LB)*float(DBSize);
+	m_QualityA = 0;
+	m_QualityB = 0;
 	m_EvalueA = NM_A/powf(2, BitScore);
 	m_EvalueB = NM_B/powf(2, BitScore);
 	}
@@ -875,6 +878,9 @@ void DSSAligner::CalcEvalue()
 	float logE = a + b*m_NewTestStatisticA;
 	float DBSize = m_Params->m_DBSize;
 	float E = expf(logE)*DBSize/11211;
+	float Qual = 1.0f / (1.0f + expf(-5*(m_NewTestStatisticA - 0.5f)));
+	m_QualityA = Qual;
+	m_QualityB = Qual;
 	m_EvalueA = E;
 	m_EvalueB = E;
 	EndTimer(CalcEvalue)
@@ -946,13 +952,13 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 		return;
 	if (Up)
 		PrettyAln(f, *m_ChainA, *m_ChainB, *m_ProfileA, *m_ProfileB,
-		  m_LoA, m_LoB, m_Path, m_EvalueA);
+		  m_LoA, m_LoB, m_Path, m_QualityA, m_EvalueA);
 	else
 		{
 		string Path;
 		InvertPath(m_Path, Path);
 		PrettyAln(f, *m_ChainB, *m_ChainA, *m_ProfileB, *m_ProfileA,
-		  m_LoB, m_LoA, Path, m_EvalueB);
+		  m_LoB, m_LoA, Path, m_QualityB, m_EvalueB);
 		}
 	}
 
