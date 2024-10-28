@@ -19,12 +19,12 @@ def readhits(fn, TP, TP1, FP1, FP):
     fp1 = 0
     for line in open(fn):
         flds = line[:-1].split('\t')
-        if len(flds) != 3:
+        if len(flds) != 4:
             errors += 1
             print("ERROR %s not 3 flds" % fn)
             return
         try:
-            E = float(flds[0])
+            E = float(flds[3])
             dom1 = flds[1]
             dom2 = flds[2]
             sf1 = dom2sf[dom1]

@@ -878,7 +878,7 @@ void DSSAligner::CalcEvalue()
 	float logE = a + b*m_NewTestStatisticA;
 	float DBSize = m_Params->m_DBSize;
 	float E = expf(logE)*DBSize/11211;
-	float Qual = 1.0f / (1.0f + expf(-5*(m_NewTestStatisticA - 0.5f)));
+	float Qual = 1.0f / (1.0f + expf(-1.0f*(m_NewTestStatisticA - 0.5f)));
 	m_QualityA = Qual;
 	m_QualityB = Qual;
 	m_EvalueA = E;
