@@ -24,7 +24,8 @@ void cmd_search()
 	else
 		DBS.LoadDB(DBFN);
 
-	Params.m_DBSize = (float) DBS.GetDBSize();
+	if (!optset_dbsize)
+		Params.m_DBSize = (float) DBS.GetDBSize();
 	DBS.Setup();
 
 	DBS.m_fTsv = CreateStdioFile(opt_output);

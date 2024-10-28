@@ -4,6 +4,22 @@
 #include "pdbchain.h"
 #include "abcxyz.h"
 
+float GetSelfRevScore(const PDBChain &Chain,
+  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D)
+	{
+	PDBChain RevChain = Chain;
+
+	RevChain.Reverse();
+	vector<vector<byte> > RevProfile;
+	D.Init(RevChain);
+	D.GetProfile(RevProfile);
+
+	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
+	DA.AlignQueryTarget();
+	return DA.m_AlnFwdScore;
+	}
+
 static void ReadChains_SaveLines(const string &FileName,
   vector<PDBChain *> &Chains)
 	{
@@ -54,6 +70,79 @@ static void XformLines(const double t[3],
 		}
 	}
 
+static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
+  const PDBChain *ChainQ, const PDBChain *ChainT, bool DoOutput)
+	{
+	vector<vector<byte> > ProfileQ;
+	vector<vector<byte> > ProfileT;
+
+	vector<byte> ComboLettersQ;
+	vector<uint> KmersQ;
+	vector<uint> KmerBitsQ;
+
+	float BestScore = 0;
+	uint BestChainIndexQ = UINT_MAX;
+	uint BestChainIndexT = UINT_MAX;
+	D.Init(*ChainQ);
+	D.GetProfile(ProfileQ);
+	if (Params.m_Omega > 0)
+		D.GetComboLetters(ComboLettersQ);
+	if (Params.m_MinU > 0)
+		{
+		D.GetComboKmers(ComboLettersQ, KmersQ);
+		D.GetComboKmerBits(KmersQ, KmerBitsQ);
+		}
+
+	float SelfRevScoreQ = GetSelfRevScore(*ChainQ, ProfileQ, DA, D);
+
+	vector<byte> ComboLettersT;
+	vector<uint> KmersT;
+	vector<uint> KmerBitsT;
+
+	D.Init(*ChainT);
+	D.GetProfile(ProfileT);
+
+	if (Params.m_Omega > 0)
+		D.GetComboLetters(ComboLettersT);
+	if (Params.m_MinU > 0)
+		{
+		D.GetComboKmers(ComboLettersT, KmersT);
+		D.GetComboKmerBits(KmersT, KmerBitsT);
+		}
+
+	float SelfRevScoreT = GetSelfRevScore(*ChainT, ProfileT, DA, D);
+	
+	DA.SetQuery(*ChainQ, &ProfileQ, &KmerBitsQ, &ComboLettersQ, SelfRevScoreQ);
+	DA.SetTarget(*ChainT, &ProfileT, &KmerBitsT, &ComboLettersT, SelfRevScoreT);
+	DA.AlignQueryTarget();
+	float Score = DA.m_AlnFwdScore;
+	if (DoOutput)
+		{
+		if (optset_aln)
+			{
+			FILE *f = CreateStdioFile(opt_aln);
+			DA.ToAln(f, true);
+			CloseStdioFile(f);
+			}
+
+		double t[3];
+		double u[3][3];
+		DA.GetKabsch(t, u, true);
+
+		vector<string> LinesQ = ChainQ->m_Lines;
+		XformLines(t, u, LinesQ);
+
+		if (optset_output)
+			{
+			FILE *f = CreateStdioFile(opt_output);
+			for (uint i = 0; i < SIZE(LinesQ); ++i)
+				fprintf(f, "%s\n", LinesQ[i].c_str());
+			CloseStdioFile(f);
+			}
+		}
+	return Score;
+	}
+
 void cmd_alignpair()
 	{
 	if (!optset_input2)
@@ -88,25 +177,20 @@ void cmd_alignpair()
 	vector<vector<byte> > ProfileQ;
 	vector<vector<byte> > ProfileT;
 
+	vector<byte> ComboLettersQ;
+	vector<uint> KmersQ;
+	vector<uint> KmerBitsQ;
+
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;
 	uint BestChainIndexT = UINT_MAX;
 	for (uint ChainIndexQ = 0; ChainIndexQ < ChainCountQ; ++ChainIndexQ)
 		{
 		PDBChain *ChainQ = ChainsQ[ChainIndexQ];
-		D.Init(*ChainQ);
-		D.GetProfile(ProfileQ);
-		DA.SetQuery(*ChainQ, &ProfileQ, 0, 0, FLT_MAX);
-
 		for (uint ChainIndexT = 0; ChainIndexT < ChainCountT; ++ChainIndexT)
 			{
 			PDBChain *ChainT = ChainsT[ChainIndexT];
-
-			D.Init(*ChainT);
-			D.GetProfile(ProfileT);
-
-			DA.SetTarget(*ChainT, &ProfileT, 0, 0, FLT_MAX);
-			DA.AlignQueryTarget();
+			AlignPair1(Params, D, DA, ChainQ, ChainT, false);
 			float Score = DA.m_AlnFwdScore;
 			if (Score > BestScore)
 				{
@@ -120,49 +204,6 @@ void cmd_alignpair()
 		Die("No alignment found");
 
 	PDBChain *ChainQ = ChainsQ[BestChainIndexQ];
-	D.Init(*ChainQ);
-	D.GetProfile(ProfileQ);
-	DA.SetQuery(*ChainQ, &ProfileQ, 0, 0, FLT_MAX);
-
 	PDBChain *ChainT = ChainsT[BestChainIndexT];
-
-	D.Init(*ChainT);
-	D.GetProfile(ProfileT);
-
-	DA.SetTarget(*ChainT, &ProfileT, 0, 0, FLT_MAX);
-	DA.AlignQueryTarget();
-
-	if (optset_aln)
-		{
-		FILE *f = CreateStdioFile(opt_aln);
-		DA.ToAln(f, true);
-		CloseStdioFile(f);
-		}
-	Log("%s\n", DA.m_Path.c_str());
-
-	double t[3];
-	double u[3][3];
-	DA.GetKabsch(t, u, true);
-
-	vector<string> &LinesQ = ChainQ->m_Lines;
-	vector<string> &LinesT = ChainT->m_Lines;
-
-	XformLines(t, u, LinesQ);
-	//XformLines(t, u, LinesT);
-
-	if (optset_output)
-		{
-		FILE *f = CreateStdioFile(opt_output);
-		for (uint i = 0; i < SIZE(LinesQ); ++i)
-			fprintf(f, "%s\n", LinesQ[i].c_str());
-		CloseStdioFile(f);
-		}
-
-	//if (optset_output2)
-	//	{
-	//	FILE *f = CreateStdioFile(opt_output2);
-	//	for (uint i = 0; i < SIZE(LinesT); ++i)
-	//		fprintf(f, "%s\n", LinesT[i].c_str());
-	//	CloseStdioFile(f);
-	//	}
+	AlignPair1(Params, D, DA, ChainQ, ChainT, true);
 	}
