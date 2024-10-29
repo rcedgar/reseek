@@ -877,8 +877,17 @@ void DSSAligner::CalcEvalue()
 	const float b = -40.0f;
 	float logE = a + b*m_NewTestStatisticA;
 	float DBSize = m_Params->m_DBSize;
-	float E = expf(logE)*DBSize/11211;
-	float Qual = 1.0f / (1.0f + expf(-1.0f*(m_NewTestStatisticA - 0.5f)));
+	float E_scop = expf(logE)/11211;
+	float E = E_scop*DBSize;
+	// FPEPQ=1 at TS=0.17 (SCOP40 SF)
+	float Qual = 0;
+	if (E < 1e-6)
+		Qual = 1.0f;
+	else
+		{
+		float a = log10(1.0f/E_scop);
+		Qual = 1.0f/(1.0f + expf(-0.5f*a));
+		}
 	m_QualityA = Qual;
 	m_QualityB = Qual;
 	m_EvalueA = E;
