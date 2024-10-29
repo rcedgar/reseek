@@ -144,7 +144,7 @@ DSSAligner::DSSAligner()
 		}
 	else
 		{
-		m_UFs.push_back(UF_qual);
+		m_UFs.push_back(UF_aq);
 		m_UFs.push_back(UF_query);
 		m_UFs.push_back(UF_target);
 		m_UFs.push_back(UF_evalue);

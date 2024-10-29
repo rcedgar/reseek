@@ -115,9 +115,9 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
 		break;
 		}
 
-	case UF_qual:
+	case UF_aq:
 		{
-		fprintf(f, "%.4f", GetQuality(Up));
+		fprintf(f, "%.4f", GetAQ(Up));
 		break;
 		}
 

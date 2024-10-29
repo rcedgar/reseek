@@ -70,7 +70,7 @@ def check_default(fn):
         try:
             Q = float(flds[0])
         except:
-            print("ERROR %s qual %s not float" % (fn, flds[0]))
+            print("ERROR %s aq %s not float" % (fn, flds[0]))
             errors += 1
             return
         try:

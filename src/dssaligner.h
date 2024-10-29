@@ -173,7 +173,7 @@ public:
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
 	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
-	float GetQuality(bool Top) const { return Top ? m_QualityA : m_QualityB; }
+	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
 
