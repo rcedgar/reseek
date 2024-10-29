@@ -877,15 +877,17 @@ void DSSAligner::CalcEvalue()
 	const float b = -40.0f;
 	float logE = a + b*m_NewTestStatisticA;
 	float DBSize = m_Params->m_DBSize;
-	//// FPEPQ=1 at TS=0.17 (SCOP40 SF)
-	//float Qual = 0;
-	//if (E < 1e-6)
-	//	Qual = 1.0f;
-	//else
-	//	{
-	//	float c = log10(1.0f/E_scop);
-	//	Qual = 1.0f/(1.0f + expf(-0.5f*c));
-	//	}
+//a = 5
+//b = -40
+//def get_qual(ts):
+//	LogE = a + b*ts
+//	if LogE < -20:
+//		return 1
+//	c = LogE
+//	# x = math.exp(0.25*c)
+//	x = 10**(c/10)
+//	Qual = 1/(1 + x)
+//	return Qual
 
 	float Qual = 0;
 	if (logE < -20)
@@ -893,7 +895,7 @@ void DSSAligner::CalcEvalue()
 	else
 		{
 		float x = powf(10, logE/10);
-		Qual = 1.0f/(1.0f - x);
+		Qual = 1/(1 + x/2);
 		}
 
 	float E_scop = expf(logE)/11211;
