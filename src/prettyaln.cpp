@@ -26,7 +26,7 @@ static char GetAnnotChar(char a, char b)
 void DSSAligner::PrettyAln(FILE *f,
   const PDBChain &A, const PDBChain &B,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-  uint LoA, uint LoB, const string &Path, float Qual, float Evalue) const
+  uint LoA, uint LoB, const string &Path, float AQ, float Evalue) const
 	{
 	if (f == 0)
 		return;
@@ -91,6 +91,6 @@ void DSSAligner::PrettyAln(FILE *f,
 	fprintf(f, "%s %u-%u length %u\n",
 	  B.m_Label.c_str(), LoB + 1, PosB, LB);
 
-	fprintf(f, "Qual %.4f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
-	  Qual, ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
+	fprintf(f, "AQ %.4f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
+	  AQ, ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
 	}

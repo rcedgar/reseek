@@ -36,7 +36,7 @@ const char *usage_txt[] =
 "                 #   tl      Target length\n"
 "                 #   pctid   Percent identity of alignment\n"
 "                 #   cigar   CIGAR string\n"
-"                 #   aq      AQ (aln. qual., 0 .. 1, >0.5 suggests homology)\n"
+"                 #   aq      AQ (aln. qual., 0 to 1, >0.5 suggests homology)\n"
 "                 #   evalue  You can guess this one\n"
 "                 #   qrow    Aligned query sequence with gaps (local)\n"
 "                 #   trow    Aligned target sequence with gaps (local)\n"

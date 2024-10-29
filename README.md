@@ -10,6 +10,8 @@ letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) dis
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
 
+<p align="center"><img src="https://drive5.com/images/reseek_v2_readme_figure.png" align="left" width="700"/></p>
+
 <pre>
 Commands
   -search        # Alignment (e.g. DB search, pairwise, all-vs-all)
@@ -47,12 +49,13 @@ Output options for -search
                  #   pctid   Percent identity of alignment
                  #   cigar   CIGAR string
                  #   evalue  You can guess this one
+                 #   aq      AQ (aln. qual., 0 to 1, >0.5 suggests homology)
                  #   qrow    Aligned query sequence with gaps (local)
                  #   trow    Aligned target sequence with gaps (local)
                  #   qrowg   Aligned query sequence with gaps (global)
                  #   trowg   Aligned target sequence with gaps (global)
                  #   std     query+target+qlo+qhi+ql+tlo+thi+tl+pctid+evalue
-                 # default evalue+query+target
+                 # default aq+query+target+evalue
 
 Search and alignment options
   -fast, -sensitive or -verysensitive     # Required
@@ -108,6 +111,3 @@ Edgar, Robert C. (2024) "Sequence alignment using large protein structure alphab
 ### SCOP40 benchmark code and results
 
 https://github.com/rcedgar/reseek_bench
-
-<p align="center"><img src="https://drive5.com/images/reseek_v2_readme_figure.png" align="left" width="700"/></p>
-<p></p>
