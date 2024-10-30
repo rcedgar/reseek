@@ -10,10 +10,10 @@ letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) dis
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
 
-<p align="center"><img src="https://drive5.com/images/reseek_v2_readme_figure.png" align="left" width="700"/></p>
+![Reseek bench](https://drive5.com/images/reseek_v2_readme_figure.png)
 
+### Command line
 <pre>
-Commands
   -search        # Alignment (e.g. DB search, pairwise, all-vs-all)
   -convert       # Convert file formats (e.g. create DB)
   -alignpair     # Pair-wise alignment and superposition
@@ -102,6 +102,10 @@ cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 
 #### Build from source on Windows
 Load `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
+
+### More documentation
+
+[https://drive5.com/reseek](https://drive5.com/reseek)
 
 ### Reference
 
