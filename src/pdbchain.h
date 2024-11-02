@@ -30,8 +30,8 @@ public:
 		}
 
 	uint GetSeqLength() const;
-	char FromPDBLines(const string &Label,
-	  const vector<string> &Lines, bool SaveLines = false);
+	bool FromPDBLines(const string &Label, const vector<string> &Lines,
+	  bool SaveLines = false);
 	void FromCal(const string &FileName);
 	void FromCalLines(const vector<string> &Lines);
 	void ToCal(FILE *f) const;

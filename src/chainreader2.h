@@ -17,11 +17,11 @@ public:
 		STATE_ReadingBCAFile,
 		STATE_ReadingPDBFile,
 		STATE_ReadingCIFFile,
-		STATE_ReadingVec,
 		};
 
 public:
-	mutex m_Lock;
+	mutex m_CRPerThreadLock;
+	mutex m_CRGlobalLock;
 	STATE m_State = STATE_Closed;
 	FILE *m_fCal = 0;
 	LineReader2 m_LR;
@@ -36,13 +36,16 @@ public:
 	string m_Label_PDB;
 	BCAData m_BCA;
 	uint64 m_ChainIdx_BCA = 0;
-	uint m_ChainCount = 0;
 	string m_CurrentFN;
 	bool m_Trace = false;
 	bool m_SaveLines = false;
 
 // FS object shared with other threads
 	PDBFileScanner *m_ptrFS = 0;
+
+public:
+	static uint m_CRGlobalChainCount;
+	static uint m_CRGlobalFormatErrors;
 
 public:
 	void Open(const string &FileName);
@@ -73,9 +76,11 @@ private:
 	void ChainsFromLines_PDB(const vector<string> &Lines,
 		vector<PDBChain *> &Chains, const string &Label) const;
 	void ChainsFromLines_CIF(const vector<string> &Lines,
-		vector<PDBChain *> &Chains, const string &FallbackLabel) const;
+		vector<PDBChain *> &Chains, const string &FallbackLabel);
 	bool IsATOMLine_PDB(const string &Line) const;
 	bool IsChainEndLine_PDB(const string &Line) const;
+	uint GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name);
+	void IncFormatErrors();
 
 public:
 	static void GetFallbackLabelFromFN(const string &FN, string &Label);

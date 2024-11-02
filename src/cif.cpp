@@ -3,7 +3,7 @@
 #include "chainreader2.h"
 #include <map>
 
-void ChainizeLabel(string &Label, char ChainChar);
+void ChainizeLabel(string &Label, const string &ChainStr);
 
 /***
 https://mmcif.wwpdb.org/docs/user-guide/guide.html
@@ -100,11 +100,23 @@ ATOM   6     C  CG  . PRO A 1 1   ? -21.298 0.482   35.504  1.00 149.55 ? 1    P
 ATOM   7     C  CD  . PRO A 1 1   ? -21.457 0.838   37.004  1.00 109.96 ? 1    PRO A CD  1
 ***/
 
-static uint GetIdx(const map<string, uint> &FieldToIdx, const string &Name)
+void ChainReader2::IncFormatErrors()
+	{
+	m_CRGlobalLock.lock();
+	++m_CRGlobalFormatErrors;
+	m_CRGlobalLock.unlock();
+	}
+
+uint ChainReader2::GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name)
 	{
 	map<string, uint>::const_iterator iter = FieldToIdx.find(Name);
 	if (iter == FieldToIdx.end())
-		Die("Field not found '%s'", Name.c_str());
+		{
+		IncFormatErrors();
+		Log("%s: CIF field %s not found\n",
+		  m_CurrentFN.c_str(), Name.c_str());
+		return UINT_MAX;
+		}
 	uint Idx = iter->second;
 	return Idx;
 	}
@@ -119,7 +131,7 @@ enum PARSER_STATE
 	};
 
 void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
-  vector<PDBChain *> &Chains, const string &FallbackLabel) const
+  vector<PDBChain *> &Chains, const string &FallbackLabel)
 	{
 	set<string> Seqs;
 	Chains.clear();
@@ -138,7 +150,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		}
 	const string &BaseLabel = TmpBaseLabel;
 
-	char CurrentChainChar = 0;
+	string CurrentChainStr;
 	PDBChain *Chain = 0;
 	const uint N = SIZE(Lines);
 	PARSER_STATE PS = PS_WaitingForLoop;
@@ -186,14 +198,15 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 				StripWhiteSpace(Name);
 				FieldList.push_back(Name);
 				}
+			else if (Line == "loop_")
+				PS = PS_AtLoop;
 			else if (StartsWith(Line, "ATOM "))
 				{
 				PS = PS_InATOMs;
 				ATOMLines.push_back(Line);
 				}
-			else
-				Die("Unexpected line after _atom_site. '%s'",
-				  Line.c_str());
+			else if (StartsWith(Line, "HETATM"))
+				PS = PS_InATOMs;
 			break;
 			}
 
@@ -201,6 +214,8 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 			{
 			if (StartsWith(Line, "ATOM "))
 				ATOMLines.push_back(Line);
+			else if (StartsWith(Line, "HETATM"))
+				continue;
 			else
 				PS = PS_Finished;
 			break;
@@ -216,13 +231,19 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	for (uint Idx = 0; Idx < FieldCount ; ++Idx)
 		FieldToIdx[FieldList[Idx]] = Idx;
 
-	uint Chain_FldIdx = GetIdx(FieldToIdx, "_atom_site.auth_asym_id");
-	uint CA_FldIdx = GetIdx(FieldToIdx, "_atom_site.label_atom_id");
-	uint X_FldIdx = GetIdx(FieldToIdx, "_atom_site.Cartn_x");
-	uint Y_FldIdx = GetIdx(FieldToIdx, "_atom_site.Cartn_y");
-	uint Z_FldIdx = GetIdx(FieldToIdx, "_atom_site.Cartn_z");
-	uint aa_FldIdx = GetIdx(FieldToIdx, "_atom_site.label_comp_id");
-	uint ResNr_FldIdx = GetIdx(FieldToIdx, "_atom_site.label_seq_id");
+	uint Chain_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.auth_asym_id");
+	uint CA_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_atom_id");
+	uint X_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_x");
+	uint Y_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_y");
+	uint Z_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_z");
+	uint aa_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_comp_id");
+
+	if (Chain_FldIdx == UINT_MAX) return;
+	if (CA_FldIdx == UINT_MAX) return;
+	if (X_FldIdx == UINT_MAX) return;
+	if (Y_FldIdx == UINT_MAX) return;
+	if (Z_FldIdx == UINT_MAX) return;
+	if (aa_FldIdx == UINT_MAX) return;
 
 	const uint ATOMLineCount = SIZE(ATOMLines);
 	for (uint i = 0; i < ATOMLineCount; ++i)
@@ -232,28 +253,36 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		SplitWhite(Line, Fields);
 		uint n = SIZE(Fields);
 		if (n != FieldCount)
-			Die("Expected %u fields got %u in '%s'", FieldCount, n, Line.c_str());
+			{
+			IncFormatErrors();
+			Log("%s: Expected %u fields got %u in '%s'\n",
+			  m_CurrentFN.c_str(), FieldCount, n, Line.c_str());
+			if (Chain != 0)
+				delete Chain;
+			return;
+			}
 
 		const string &CA_Fld = Fields[CA_FldIdx];
 		if (CA_Fld != "CA")
 			continue;
 		const string &Chain_Fld = Fields[Chain_FldIdx];
-		asserta(SIZE(Chain_Fld) == 1);
-		char ChainChar = Chain_Fld[0];
-		asserta(ChainChar != 0);
-		if (ChainChar != CurrentChainChar)
+		string ChainStr = Chain_Fld;
+		if (ChainStr == "")
+			ChainStr = "__";
+		if (ChainStr != CurrentChainStr)
 			{
 			if (Chain != 0)
 				Chains.push_back(Chain);
 			Chain = new PDBChain;
 			string Label = BaseLabel;
-			ChainizeLabel(Label, ChainChar);
+			ChainizeLabel(Label, ChainStr);
 			Chain->m_Label = Label;
-			CurrentChainChar = ChainChar;
+			CurrentChainStr = ChainStr;
 			}
 
 		const string &aa_Fld = Fields[aa_FldIdx];
-		asserta(SIZE(aa_Fld) == 3);
+		if (SIZE(aa_Fld) != 3)
+			continue;
 		float X = StrToFloatf(Fields[X_FldIdx]);
 		float Y = StrToFloatf(Fields[Y_FldIdx]);
 		float Z = StrToFloatf(Fields[Z_FldIdx]);

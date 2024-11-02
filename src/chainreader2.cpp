@@ -1,6 +1,9 @@
 #include "myutils.h"
 #include "chainreader2.h"
 
+uint ChainReader2::m_CRGlobalChainCount;
+uint ChainReader2::m_CRGlobalFormatErrors;
+
 void ChainReader2::Close()
 	{
 	if (m_Trace) Log("ChainReader2::Close()\n");
@@ -24,7 +27,7 @@ void ChainReader2::Open(PDBFileScanner &FS)
 	m_ptrFS->m_Trace = opt_trace_chainreader2;
 	if (m_Trace) Log("ChainReader2::Open()\n");
 	m_State = STATE_PendingFile;
-	m_ChainCount = 0;
+	m_CRGlobalChainCount = 0;
 	}
 
 void ChainReader2::Open(vector<PDBChain *> &Chains)
@@ -78,12 +81,27 @@ PDBChain *ChainReader2::GetFirst(const string &FN)
 
 PDBChain *ChainReader2::GetNext()
 	{
-	m_Lock.lock();
-	PDBChain *Chain = GetNextLo1();
-	if (Chain != 0)
-		Chain->m_Idx = m_ChainCount++;
-	m_Lock.unlock();
-	return Chain;
+	for (uint SanityCounter = 0; ; ++SanityCounter)
+		{
+		if (SanityCounter > 100)
+			Warning("Excessive looping in ChainReader2::GetNext()");
+
+		m_CRPerThreadLock.lock();
+		PDBChain *Chain = GetNextLo1();
+		m_CRPerThreadLock.unlock();
+
+		if (Chain == 0)
+			return 0;
+		if (Chain->GetSeqLength() == 0)
+			{
+			delete Chain;
+			continue;
+			}
+		m_CRGlobalLock.lock();
+		Chain->m_Idx = m_CRGlobalChainCount++;
+		m_CRGlobalLock.unlock();
+		return Chain;
+		}
 	}
 
 PDBChain *ChainReader2::GetNextLo1()
@@ -147,16 +165,6 @@ PDBChain *ChainReader2::GetNextLo1()
 			if (Chain != 0)
 				return Chain;
 			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
-			m_State = STATE_PendingFile;
-			continue;
-			}
-
-		case STATE_ReadingVec:
-			{
-			PDBChain *Chain = GetNext_Vec();
-			if (Chain != 0)
-				return Chain;
-			if (m_Trace) Log("GetNext_Vec()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
 			continue;
 			}
@@ -351,12 +359,12 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 				if (AnyAtoms && !ChainLines.empty())
 					{
 					PDBChain *Chain = new PDBChain;
-					char ChainChar = 
-					  Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
-					if (ChainChar == 0)
-						delete Chain;
-					else
+					string ChainStr;
+					bool Ok = Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
+					if (Ok)
 						Chains.push_back(Chain);
+					else
+						delete Chain;
 					ChainLines.clear();
 					EndOfChainFound = false;
 					AnyAtoms = false;
@@ -372,7 +380,7 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 	if (!ChainLines.empty() && AnyAtoms)
 		{
 		PDBChain *Chain = new PDBChain;
-		Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
+		bool Ok = Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
 		ChainLines.clear();
 		Chains.push_back(Chain);
 		}

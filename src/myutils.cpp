@@ -1989,7 +1989,11 @@ void SplitWhite(const string &Str, vector<string> &Fields)
 			Field.push_back(c);
 		}
 	if (!Field.empty())
-		Fields.push_back(Field);
+		{
+		StripWhiteSpace(Field);
+		if (!Field.empty())
+			Fields.push_back(Field);
+		}
 	}
 
 void Split(const string &Str, vector<string> &Fields, char Sep)

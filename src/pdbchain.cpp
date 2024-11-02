@@ -5,14 +5,15 @@
 
 void GetThreeFromOne(char aa, string &AAA);
 
-void ChainizeLabel(string &Label, char ChainChar)
+void ChainizeLabel(string &Label, const string &_ChainStr)
 	{
 	if (opt_nochainchar)
 		return;
-	if (ChainChar == 0 || ChainChar == ' ')
-		ChainChar = '_';
+	string ChainStr = _ChainStr;
+	if (ChainStr == "" || ChainStr == " ")
+		ChainStr = '_';
 	Label += (optset_chainsep ? string(opt_chainsep) : "_");
-	Label += ChainChar;
+	Label += ChainStr;
 	}
 
 /***
@@ -238,7 +239,7 @@ void PDBChain::SetXYZInATOMLine(const string &InputLine,
 		}
 	}
 
-char PDBChain::FromPDBLines(const string &Label,
+bool PDBChain::FromPDBLines(const string &Label,
   const vector<string> &Lines, bool SaveLines)
 	{
 	Clear();
@@ -246,10 +247,10 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_Lines = Lines;
 	m_Label = Label;
 	const uint N = SIZE(Lines);
-	char ChainChar = 0;
 	uint ResidueCount = 0;
 	int CurrentResidueNumber = INT_MAX;
 	vector<string> ATOMLines;
+	string ChainStr;
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
 		const string &Line = Lines[LineNr];
@@ -258,12 +259,14 @@ char PDBChain::FromPDBLines(const string &Label,
 			break;
 		const size_t L = Line.size();
 
-		char LineChain = Line[21];
-		if (ChainChar == 0)
-			ChainChar = LineChain;
-		else if (ChainChar != LineChain)
-			Die("PDBChain::FromPDBLines() two chains %c, %c",
-			  ChainChar, LineChain);
+		char LineChainChar = Line[21];
+		string LineChainStr;
+		LineChainStr.push_back(LineChainChar);
+		if (ChainStr == "")
+			ChainStr = LineChainStr;
+		else if (ChainStr != LineChainStr)
+			Die("PDBChain::FromPDBLines() two chains %s, %s",
+			  ChainStr.c_str(), LineChainStr.c_str());
 
 		char aa;
 		float X, Y, Z;
@@ -277,8 +280,9 @@ char PDBChain::FromPDBLines(const string &Label,
 		m_Zs.push_back(Z);
 		}
 
-	ChainizeLabel(m_Label, ChainChar);
-	return ChainChar;
+	ChainizeLabel(m_Label, ChainStr);
+	bool Ok = (SIZE(m_Xs) > 0);
+	return Ok;
 	}
 
 bool PDBChain::GetFieldsFromATOMLine(const string &Line,
