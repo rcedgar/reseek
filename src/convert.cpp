@@ -203,22 +203,22 @@ void cmd_convert()
 	if (s_InputCount > 10000)
 		{
 		ProgressLog("\n");
-		ProgressLog("%10u converted (%s)\n", s_InputCount, IntToStr(s_InputCount));
+		ProgressLogPrefix("%u converted (%s)\n", s_InputCount, IntToStr(s_InputCount));
 		if (s_TooShort > 0)
-			ProgressLog("%10u too short (%s, %.1f%%) min length %u\n",
+			ProgressLogPrefix("%u too short (%s, %.1f%%) min length %u\n",
 			  s_TooShort, IntToStr(s_TooShort), GetPct(s_TooShort, s_InputCount), MinChainLength);
 		}
 	else
 		{
 		ProgressLog("\n");
-		ProgressLog("%10u converted\n", s_InputCount);
+		ProgressLogPrefix("%u converted\n", s_InputCount);
 		if (s_TooShort > 0)
-			ProgressLog("%10u too short (%.1f%%), min length %u, shortest %u\n",
+			ProgressLogPrefix("%u too short (%.1f%%), min length %u, shortest %u\n",
 			  s_TooShort, GetPct(s_TooShort, s_InputCount), MinChainLength, s_Shortest);
 		}
 	uint ne = ChainReader2::m_CRGlobalFormatErrors;
 	if (ne > 0)
-		ProgressLog("%u format errors\n", ne);
+		ProgressLogPrefix("%u format errors\n", ne);
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
