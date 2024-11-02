@@ -74,7 +74,7 @@ void ReadLinesFromGzipFile(const string &FileName, vector<string> &Lines)
 			char c = Data[i];
 			if (c == '\r')
 				continue;
-			if (c == '\n')
+			else if (c == '\n')
 				{
 				Lines.push_back(Line);
 				Line.clear();
@@ -107,5 +107,24 @@ void cmd_gunzip()
 		}
 
 	CloseGzipFile(fIn);
+	CloseStdioFile(fOut);
+	}
+
+void cmd_gunzip_lines()
+	{
+	const string &InputFileName = g_Arg1;
+
+	vector<string> Lines;
+	ReadLinesFromGzipFile(InputFileName, Lines);
+
+	if (!optset_output)
+		return;
+
+	FILE *fOut = CreateStdioFile(opt_output);
+	for (uint i = 0; i < SIZE(Lines); ++i)
+		{
+		fputs(Lines[i].c_str(), fOut);
+		fputc('\n', fOut);
+		}
 	CloseStdioFile(fOut);
 	}
