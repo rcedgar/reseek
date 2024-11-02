@@ -294,6 +294,7 @@ PDBChain *ChainReader2::GetFirst_PDB(const string &FN)
 PDBChain *ChainReader2::GetFirst_CIF(const string &FN)
 	{
 	ReadLinesFromFile(FN, m_Lines);
+
 	string FallbackLabel;
 	GetFallbackLabelFromFN(FN, FallbackLabel);
 	ChainsFromLines_CIF(m_Lines, m_Chains_CIF, FallbackLabel);

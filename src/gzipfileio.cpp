@@ -59,12 +59,16 @@ void ReadLinesFromGzipFile(const string &FileName, vector<string> &Lines)
 	FILE *f = OpenGzipFile(FileName);
 	const uint BUFFER_SIZE = 1024*1024;
 	byte *Data = myalloc(byte, BUFFER_SIZE);
+	string Line;
 	for (;;)
 		{
 		uint BytesRead = ReadGzipFile(f, Data, BUFFER_SIZE);
 		if (BytesRead == 0)
+			{
+			if (!Line.empty())
+				Lines.push_back(Line);
 			break;
-		string Line;
+			}
 		for (uint i = 0; i < BytesRead; ++i)
 			{
 			char c = Data[i];
