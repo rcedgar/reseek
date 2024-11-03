@@ -375,7 +375,6 @@
     <ClCompile Include="swgaplessint.cpp" />
     <ClCompile Include="swgaplessprof.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
-    <ClCompile Include="test.cpp" />
     <ClCompile Include="testmodel.cpp" />
     <ClCompile Include="testmodel2.cpp" />
     <ClCompile Include="test_para.cpp" />

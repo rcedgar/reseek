@@ -578,6 +578,8 @@ void DSSAligner::SetSMx_NoRev()
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 
+// Memory blows up with grow-only strategy due to tail of long chains
+	m_SMx.Clear();
 	Mx<float> &SMx = m_SMx;
 	SMx.Alloc("SMx", LA, LB);
 	StartTimer(SetSMx_NoRev);
