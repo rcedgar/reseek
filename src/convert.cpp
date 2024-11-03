@@ -16,6 +16,7 @@ static uint s_TooShort;
 static uint s_Converted;
 static uint s_Shortest;
 static uint s_InputCount;
+static uint s_OutputCount;
 static uint MinChainLength;
 static BCAData *s_ptrBCA = 0;
 static DSS *s_ptrD = 0;
@@ -24,6 +25,8 @@ static mutex s_LockStats;
 static mutex s_LockCal;
 static mutex s_LockFasta;
 static mutex s_LockBCA;
+static set<string> *s_ptrLabelSet;
+static uint s_LabelSetSize;
 
 static FEATURE GetFeatureFromCmdLine()
 	{
@@ -75,7 +78,9 @@ static void ThreadBody(uint ThreadIndex)
 		s_Now = time(0);
 		if (s_Now - s_LastTime > 0)
 			{
-			if (s_TooShort > 0)
+			if (s_LabelSetSize > 0)
+				Progress("%u / %u chains found", s_OutputCount, s_LabelSetSize);
+			else if (s_TooShort > 0)
 				Progress("%s chains, %.1f%% too short (min %u, shortest %u)",
 				  IntToStr(s_Converted), GetPct(s_TooShort, s_Converted),
 				  MinChainLength, s_Shortest);
@@ -103,6 +108,15 @@ static void ThreadBody(uint ThreadIndex)
 		s_Shortest = min(L, s_Shortest);
 		s_LockStats.unlock();
 
+		if (s_ptrLabelSet != 0)
+			{
+			if (s_ptrLabelSet->find(ptrChain->m_Label) == s_ptrLabelSet->end())
+				{
+				delete ptrChain;
+				continue;
+				}
+			}
+
 		if (L < MinChainLength)
 			{
 			s_LockStats.lock();
@@ -112,6 +126,11 @@ static void ThreadBody(uint ThreadIndex)
 			continue;
 			}
 
+		s_LockStats.lock();
+		++s_OutputCount;
+		if (s_ptrLabelSet != 0)
+			s_ptrLabelSet->erase(ptrChain->m_Label);
+		s_LockStats.unlock();
 
 		if (s_fCal != 0)
 			{
@@ -168,6 +187,25 @@ void cmd_convert()
 		s_Feat = GetFeatureFromCmdLine();
 		}
 
+	vector<string> Labels;
+	if (optset_labels)
+		{
+		ReadLinesFromFile(opt_labels, Labels);
+		if (Labels.empty())
+			Die("No labels found in '%s'", opt_labels);
+		}
+	else if (optset_label)
+		Labels.push_back(opt_label);
+
+	set<string> LabelSet;
+	for (uint i = 0; i < SIZE(Labels); ++i)
+		LabelSet.insert(Labels[i]);
+	if (!LabelSet.empty())
+		{
+		s_ptrLabelSet = &LabelSet;
+		s_LabelSetSize = SIZE(LabelSet);
+		}
+
 	BCAData BCA;
 	if (optset_bca)
 		{
@@ -203,7 +241,9 @@ void cmd_convert()
 	if (s_InputCount > 10000)
 		{
 		ProgressLog("\n");
-		ProgressLogPrefix("%u converted (%s)\n", s_InputCount, IntToStr(s_InputCount));
+		ProgressLogPrefix("%u / %u converted (%s, %.1f%%)\n",
+		  s_OutputCount, s_InputCount, IntToStr(s_InputCount),
+		  GetPct(s_OutputCount, s_InputCount));
 		if (s_TooShort > 0)
 			ProgressLogPrefix("%u too short (%s, %.1f%%) min length %u\n",
 			  s_TooShort, IntToStr(s_TooShort), GetPct(s_TooShort, s_InputCount), MinChainLength);
@@ -219,6 +259,10 @@ void cmd_convert()
 	uint ne = ChainReader2::m_CRGlobalFormatErrors;
 	if (ne > 0)
 		ProgressLogPrefix("%u format errors\n", ne);
+
+	if (optset_label || optset_labels)
+		ProgressLogPrefix("Searched for %u labels, %u found (%.1f%%)\n", 
+			s_LabelSetSize, s_OutputCount, GetPct(s_OutputCount, s_LabelSetSize));
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
