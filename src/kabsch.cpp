@@ -437,6 +437,7 @@ static void Test(const double t_in[3],
 		}
 	}
 
+#if 0
 void cmd_test()
 	{
 	double t[3] = { 1, 2, 3 };
@@ -459,3 +460,4 @@ void cmd_test()
 
 	Test(t, u, 4);
 	}
+#endif // 0

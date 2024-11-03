@@ -33,8 +33,8 @@ public:
 	  vector<float> *SelfRevScores,
 	  uint ThreadCount);
 	void ThreadBody(uint ThreadIndex);
-	float GetSelfRevScore(DSSAligner &DA, DSS &D, 
-	  const PDBChain &Chain, const vector<vector<byte> > &Profile) const;
+	//static float GetSelfRevScore(DSSAligner &DA, DSS &D, 
+	//  const PDBChain &Chain, const vector<vector<byte> > &Profile);
 
 private:
 	static void StaticThreadBody(uint ThreadIndex, ProfileLoader *PL);

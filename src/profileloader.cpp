@@ -4,25 +4,26 @@
 #include "dssaligner.h"
 #include "profileloader.h"
 
-void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
+float GetSelfRevScore(DSSAligner &DA, DSS &D, 
+  const PDBChain &Chain, const vector<vector<byte> > &Profile)
 	{
-	PL->ThreadBody(ThreadIndex);
-	}
+	if (opt_selfrev0)
+		return 0;
 
-float ProfileLoader::GetSelfRevScore(DSSAligner &DA, DSS &D, 
-  const PDBChain &Chain, const vector<vector<byte> > &Profile) const
-	{
 	PDBChain RevChain = Chain;
-
 	RevChain.Reverse();
 	vector<vector<byte> > RevProfile;
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
-
 	DA.SetQuery(Chain, &Profile, 0, 0, 0);
 	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0);
 	DA.AlignQueryTarget();
 	return DA.m_AlnFwdScore;
+	}
+
+void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
+	{
+	PL->ThreadBody(ThreadIndex);
 	}
 
 void ProfileLoader::ThreadBody(uint ThreadIndex)
@@ -42,7 +43,13 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		{
 		PDBChain *Chain = m_CR->GetNext();
 		if (Chain == 0)
+			{
+			//static mutex m;
+			//m.lock();
+			//ProgressLogPrefix("Chain=0 %.3g\n", GetMemUseBytes());
+			//m.unlock();
 			return;
+			}
 		if (Chain->GetSeqLength() < m_MinChainLength)
 			{
 			delete Chain;
@@ -117,29 +124,9 @@ void ProfileLoader::Load(
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		ts[ThreadIndex]->join();
+
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
 	Progress("%s target chains loaded\n", IntToStr(m_Count));
 	}
-
-//void cmd_test()
-//	{
-//	ProfileLoader PL;
-//	ChainReader2 CR;
-//	CR.Open(g_Arg1);
-//
-//	DSSParams Params;
-//	Params.SetFromCmdLine(10000);
-//
-//	vector<PDBChain *> Chains;
-//	vector<vector<vector<byte> > *> Profiles;
-//	vector<vector<byte> *> ComboLetters;
-//	vector<vector<uint> *> KmersVec;
-//	vector<vector<uint> *> KmerBitsVec;
-//
-//	uint ThreadCount = GetRequestedThreadCount();
-//	PL.Load(CR, &Chains, &Profiles, &ComboLetters,
-//	  &KmerBitsVec, Params, ThreadCount);
-//	ProgressLog("Done.\n");
-//	}

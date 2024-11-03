@@ -103,6 +103,12 @@ cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 #### Build from source on Windows
 Load `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
 
+#### Static link warning
+Don't worry about a warning something like this, it's expected:
+<pre>
+warning: Using 'dlopen' in statically linked applications requires
+  at runtime the shared libraries from the glibc version used for linking
+</pre>
 ### More documentation
 
 [https://drive5.com/reseek](https://drive5.com/reseek)
