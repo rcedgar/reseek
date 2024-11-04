@@ -25,6 +25,8 @@ void ChainizeLabel(string &Label, const string &_ChainStr)
 	string ChainStr = _ChainStr;
 	if (ChainStr == "" || ChainStr == " ")
 		ChainStr = '_';
+	if (LabelAlreadyHasChain(Label, _ChainStr))
+		return;
 	Label += (optset_chainsep ? string(opt_chainsep) : "_");
 	Label += ChainStr;
 	}
