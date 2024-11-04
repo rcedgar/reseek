@@ -318,6 +318,7 @@
     <ClCompile Include="msta_scores.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
+    <ClCompile Include="pdb.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="pdbchaincal.cpp" />

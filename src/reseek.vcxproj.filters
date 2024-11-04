@@ -455,6 +455,9 @@
     <ClCompile Include="getchains.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

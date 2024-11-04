@@ -5,17 +5,6 @@
 
 void GetThreeFromOne(char aa, string &AAA);
 
-void ChainizeLabel(string &Label, const string &_ChainStr)
-	{
-	if (opt_nochainchar)
-		return;
-	string ChainStr = _ChainStr;
-	if (ChainStr == "" || ChainStr == " ")
-		ChainStr = '_';
-	Label += (optset_chainsep ? string(opt_chainsep) : "_");
-	Label += ChainStr;
-	}
-
 /***
 PDBChain ATOM record format
 http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
@@ -237,52 +226,6 @@ void PDBChain::SetXYZInATOMLine(const string &InputLine,
 		OutputLine[38+i] = sy[i];
 		OutputLine[46+i] = sz[i];
 		}
-	}
-
-bool PDBChain::FromPDBLines(const string &Label,
-  const vector<string> &Lines, bool SaveLines)
-	{
-	Clear();
-	if (SaveLines)
-		m_Lines = Lines;
-	m_Label = Label;
-	const uint N = SIZE(Lines);
-	uint ResidueCount = 0;
-	int CurrentResidueNumber = INT_MAX;
-	vector<string> ATOMLines;
-	string ChainStr;
-	for (uint LineNr = 0; LineNr < N; ++LineNr)
-		{
-		const string &Line = Lines[LineNr];
-	// Can be multiple models for same chain, use first only
-		if (StartsWith(Line, "TER ") || StartsWith(Line, "ENDMDL"))
-			break;
-		const size_t L = Line.size();
-
-		char LineChainChar = Line[21];
-		string LineChainStr;
-		LineChainStr.push_back(LineChainChar);
-		if (ChainStr == "")
-			ChainStr = LineChainStr;
-		else if (ChainStr != LineChainStr)
-			Die("PDBChain::FromPDBLines() two chains %s, %s",
-			  ChainStr.c_str(), LineChainStr.c_str());
-
-		char aa;
-		float X, Y, Z;
-		bool IsCA = GetFieldsFromATOMLine(Line, X, Y, Z, aa);
-		if (!IsCA)
-			continue;
-
-		m_Seq.push_back(aa);
-		m_Xs.push_back(X);
-		m_Ys.push_back(Y);
-		m_Zs.push_back(Z);
-		}
-
-	ChainizeLabel(m_Label, ChainStr);
-	bool Ok = (SIZE(m_Xs) > 0);
-	return Ok;
 	}
 
 bool PDBChain::GetFieldsFromATOMLine(const string &Line,

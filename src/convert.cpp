@@ -72,6 +72,8 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	ChainReader2 CR;
 	CR.Open(*s_ptrFS);
+	if (optset_pdboutdir)
+		CR.m_SaveLines = true;
 	for (;;)
 		{
 		s_LockStats.lock();
@@ -158,6 +160,24 @@ static void ThreadBody(uint ThreadIndex)
 			s_LockBCA.lock();
 			s_ptrBCA->WriteChain(*ptrChain);
 			s_LockBCA.unlock();
+			}
+
+		if (optset_pdboutdir)
+			{
+			const vector<string> &Lines = ptrChain->m_Lines;
+			asserta(!Lines.empty());
+			const string &FN = ptrChain->m_Label;
+			string PathN = opt_pdboutdir;
+			Dirize(PathN);
+			PathN += FN;
+			PathN += ".pdb";
+			FILE *fOut = CreateStdioFile(PathN);
+			for (uint i = 0; i < SIZE(Lines); ++i)
+				{
+				fputs(Lines[i].c_str(), fOut);
+				fputc('\n', fOut);
+				}
+			CloseStdioFile(fOut);
 			}
 
 		s_LockStats.lock();

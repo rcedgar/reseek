@@ -336,57 +336,6 @@ PDBChain *ChainReader2::GetNext_CIF()
 	return Chain;
 	}
 
-void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
-  vector<PDBChain *> &Chains, const string &Label) const
-	{
-	Chains.clear();
-	const uint N = SIZE(Lines);
-	vector<string> ChainLines;
-	char CurrChainChar = 0;
-	bool AnyAtoms = false;
-	bool EndOfChainFound = false;
-	for (uint i = 0; i < N; ++i)
-		{
-		const string &Line = Lines[i];
-		if (IsChainEndLine_PDB(Line))
-			EndOfChainFound = true;
-		if (IsATOMLine_PDB(Line))
-			{
-			if (Line.size() < 57)
-				continue;
-			char ChainChar = Line[21];
-			if (ChainChar != CurrChainChar)
-				{
-				if (AnyAtoms && !ChainLines.empty())
-					{
-					PDBChain *Chain = new PDBChain;
-					string ChainStr;
-					bool Ok = Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
-					if (Ok)
-						Chains.push_back(Chain);
-					else
-						delete Chain;
-					ChainLines.clear();
-					EndOfChainFound = false;
-					AnyAtoms = false;
-					}
-				CurrChainChar = ChainChar;
-				}
-			if (!EndOfChainFound)
-				ChainLines.push_back(Line);
-			AnyAtoms = true;
-			}
-		}
-
-	if (!ChainLines.empty() && AnyAtoms)
-		{
-		PDBChain *Chain = new PDBChain;
-		bool Ok = Chain->FromPDBLines(Label, ChainLines, m_SaveLines);
-		ChainLines.clear();
-		Chains.push_back(Chain);
-		}
-	}
-
 PDBChain *ChainReader2::ChainFromLines_CAL(const vector<string> &Lines) const
 	{
 	PDBChain *Chain = new PDBChain;
