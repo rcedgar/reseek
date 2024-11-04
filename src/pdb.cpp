@@ -12,7 +12,7 @@ static bool LabelAlreadyHasChain(const string &Label,
 		return false;
 	if (tolower(Label[labn-1]) != tolower(ChainStr[chn-1]))
 		return false;
-	char c = Label[labn-1];
+	char c = Label[labn-2];
 	if (c == '_' || c == ':' || c == '.')
 		return true;
 	return false;
