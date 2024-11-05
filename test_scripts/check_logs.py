@@ -11,7 +11,7 @@ def check_log(fn):
             print("ok %s" % fn)
             return
     errors += 1
-    print("ERROR %s Finished not found" % fn)
+    print("%s: ERROR %s Finished not found" % (sys.argv[0], fn))
 
 d = "../test_output/"
 fns = os.listdir(d)

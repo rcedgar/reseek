@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import sys
+
 def read_fasta(fn):
     seqdict = {}
     label = None
@@ -29,14 +31,14 @@ def check_fasta(fn):
         except:
             errors += 1
             print(seqdict2.keys())
-            print("ERROR %s not found in %s" % (label, fn))
+            print("%s: ERROR %s not found in %s" % (sys.argv[0], label, fn))
             return
         if seq == seq2:
             if 0:
                 print("seq ok %s" % label)
         else:
             errors += 1
-            print("ERROR %s different %s" % (label, fn))
+            print("%s: ERROR %s different %s" % (sys.argv[0], label, fn))
             return
     print("ok %s" % fn)
 

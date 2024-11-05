@@ -21,7 +21,7 @@ def readhits(fn, TP, TP1, FP1, FP):
         flds = line[:-1].split('\t')
         if len(flds) != 4:
             errors += 1
-            print("ERROR %s not 3 flds" % fn)
+            print("%s: ERROR %s not 3 flds" % (sys.argv[0], fn))
             return
         try:
             E = float(flds[3])
@@ -31,7 +31,7 @@ def readhits(fn, TP, TP1, FP1, FP):
             sf2 = dom2sf[dom2]
         except:
             errors += 1
-            print("ERROR %s exception" % fn)
+            print("%s: ERROR %s exception" % (sys.argv[0], fn))
             return
         if dom1 == dom2:
             continue
