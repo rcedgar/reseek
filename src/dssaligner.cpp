@@ -1274,7 +1274,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 			++PosA;
 			}
 		while (PosA++ < LA)
-			Row += '!';
+			Row += '-';
 		}
 	}
 

@@ -29,6 +29,7 @@ void ChainizeLabel(string &Label, const string &_ChainStr)
 		return;
 	Label += (optset_chainsep ? string(opt_chainsep) : "_");
 	Label += ChainStr;
+	brk(Label == "4v5a:B6");
 	}
 
 bool PDBChain::FromPDBLines(const string &Label,
