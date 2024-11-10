@@ -124,6 +124,7 @@ float DSSAligner::AlignComboQP_Para()
 	uint LB = SIZE(*m_ComboLettersB);
 	const int Open = m_Params->m_ParaComboGapOpen;
 	const int Ext = m_Params->m_ParaComboGapExt;
+	const float OmegaFwd = m_Params->m_OmegaFwd;
 
 	const char *B = (const char *) m_ComboLettersB->data();
 
@@ -131,18 +132,25 @@ float DSSAligner::AlignComboQP_Para()
 	  (const parasail_profile_t * const restrict) m_ProfPara;
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
+	if (result->flag & PARASAIL_FLAG_SATURATED)
+		result->score = 777;
+	float fwd_score = (float) result->score;
+	if (fwd_score < OmegaFwd)
+		{
+		parasail_result_free(result);
+		return 0;
+		}
 
 	const parasail_profile_t * const restrict profile_rev =
 	  (const parasail_profile_t * const restrict) m_ProfParaRev;
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
+	float rev_score = (float) result_rev->score;
 
 	EndTimer(SWPara);
-	if (result->flag & PARASAIL_FLAG_SATURATED)
-		result->score = 777;
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
-	float Score = (float) result->score - (float) result_rev->score;
+	float Score = fwd_score - rev_score;
 	parasail_result_free(result);
 	parasail_result_free(result_rev);
 	return Score;

@@ -49,12 +49,13 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	else
 		SetNamedParams("defaults");
 	if (optset_veryfast) {m_Omega = 16; m_MinU = 4; m_USort = true; m_Desc += "-veryfast"; }
-	else if (optset_fast) ;
-	else if (optset_sensitive)  { m_Omega = 12; Psa(m_Desc, " -omega %.4g", m_Omega); }
-	else if (optset_verysensitive)  { m_Omega = 0; m_MinU = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
+	else if (optset_fast) { m_OmegaFwd = 60; }
+	else if (optset_sensitive)  { m_Omega = 12; m_OmegaFwd = 20; Psa(m_Desc, " -omega %.4g", m_Omega); }
+	else if (optset_verysensitive)  { m_Omega = 0; m_MinU = 0; m_OmegaFwd = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
+	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; Psa(m_Desc, " -omegafwd %.4g", opt_omegafwd); }
 	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, " -daliw %.4g", opt_daliw); }
 	if (optset_lambda) { m_Lambda = opt_lambda; Psa(m_Desc, " -lambda %u", opt_lambda); }
 	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, " -minfwdscore %.4g", opt_minfwdscore); }
@@ -139,6 +140,8 @@ void DSSParams::WriteSummary(FILE *f) const
 	//fprintf(f, " Lamda %u", m_Lambda);
 	if (m_Omega != FLT_MAX)
 		fprintf(f, " Omega %.1f", m_Omega);
+	if (m_OmegaFwd != FLT_MAX)
+		fprintf(f, " OmegaFwd %.1f", m_OmegaFwd);
 	fprintf(f, " MinU %u", m_MinU);
 	fprintf(f, "\n");
 	fprintf(f, "---------------------------------------------------------------------------------\n");
