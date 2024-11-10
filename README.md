@@ -1,4 +1,4 @@
-<p align="left"><img src="https://drive5.com/images/reseek_logo.jpg" height="100"/></p>
+![Reseek](http://drive5.com/images/reseek_logo.jpg)
 
 Reseek is a protein structure search and alignment algorithm which improves sensitivity in protein homolog detection
 compared to state-of-the-art methods including DALI, TM-align and Foldseek with improved speed over Foldseek, the
@@ -10,7 +10,7 @@ letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) dis
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
 
-![Reseek bench](https://drive5.com/images/reseek_v2_readme_figure.png)
+![Reseek](http://drive5.com/images/reseek_readme.jpg)
 
 ### Command line
 <pre>
