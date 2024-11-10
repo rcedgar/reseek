@@ -5,7 +5,6 @@
 class DistMxSearcher : public DBSearcher
 	{
 public:
-	float m_MinTS = 0.01f;
 	float m_MaxTS = 0;
 	FILE *m_fDistMx = 0;
 	uint m_ChainCount = 0;

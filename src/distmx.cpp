@@ -27,22 +27,28 @@ void DistMxSearcher::OnAln(DSSAligner &DA, bool Up)
 	{
 	if (!Up)
 		return;
-	asserta(m_fDistMx!= 0);
-	float MeanTS = (DA.m_TestStatisticA + DA.m_TestStatisticB)/2;
-	if (MeanTS < m_MinTS)
+	if (DA.m_EvalueA > m_MaxEvalue)
 		return;
-	m_MaxTS = max(MeanTS, m_MaxTS);
+	asserta(m_fDistMx!= 0);
 	uint IdxA = DA.m_ChainA->m_Idx;
 	uint IdxB = DA.m_ChainB->m_Idx;
 	asserta(IdxA < m_ChainCount);
 	asserta(IdxB < m_ChainCount);
-	fprintf(m_fDistMx, "%u\t%u\t%.3f\n", IdxA, IdxB, MeanTS);
+	float ts = DA.m_NewTestStatisticA;
+	m_MaxTS = max(ts, m_MaxTS);
+	fprintf(m_fDistMx, "%u\t%u\t%.3f\n", IdxA, IdxB, ts);
 	}
 
 void cmd_distmx()
 	{
 	asserta(optset_output);
 	const string &DBFN = g_Arg1;
+
+	if (!optset_fast && !optset_sensitive && !optset_verysensitive)
+		{
+		opt_fast = true;
+		optset_fast = true;
+		}
 
 	DistMxSearcher DBS;
 	DSSParams Params;
