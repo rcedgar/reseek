@@ -35,25 +35,25 @@ static FEATURE GetFeatureFromCmdLine()
 	if (optset_alpha)
 		Alpha = opt_alpha;
 	if (Alpha == "NENConf3")
-		Alpha = "NbrSS3";
+		Alpha = "NENSS3";
 	else if (Alpha == "RENDist4")
-		Alpha = "RevNbrDist4";
+		Alpha = "RENDist4";
 
-	//ComboFeatures.push_back(FEATURE_SS3);
-	//ComboFeatures.push_back(FEATURE_NbrSS3);
-	//ComboFeatures.push_back(FEATURE_RevNbrDist4);
+	//MuFeatures.push_back(FEATURE_SS3);
+	//MuFeatures.push_back(FEATURE_NENSS3);
+	//MuFeatures.push_back(FEATURE_RENDist4);
 #define c(x, y)	if (stricmp(Alpha.c_str(), #x) == 0) Alpha = #y;
 	c(Mu, COMBO);
 	c(Conf3, SS3);
-	c(NbrSS3, NbrSS3);
-	c(RevNbrDist4, RevNbrDist4);
+	c(NENSS3, NENSS3);
+	c(RENDist4, RENDist4);
 	c(Conf4, SS);
-	c(Conf16, MySS);
-	c(NENConf16, NbrMySS);
-	c(RENConf16, RevNbrMySS);
-	c(NENDist16, NbrDist);
-	c(RENDist16, RevNbrDist);
-	c(RENDist4, RevNbrDist4);
+	c(Conf16, Conf);
+	c(NENConf16, NENConf);
+	c(RENConf16, RENConf);
+	c(NENDist16, NENDist);
+	c(RENDist16, RENDist);
+	c(RENDist4, RENDist4);
 	c(NormDens16, NormDens);
 	c(StrandDens16, StrandDens);
 #undef c

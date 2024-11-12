@@ -2,10 +2,10 @@
 #include "parasail.h"
 #include "cigar.h"
 
-extern int8_t IntScoreMx_Combo[36][36];
+extern int8_t IntScoreMx_Mu[36][36];
 extern parasail_matrix_t parasail_combo_matrix;
 
-static char GetComboChar(byte Letter)
+static char GetMuChar(byte Letter)
 	{
 	if (Letter < 26)
 		return 'A' + Letter;
@@ -15,7 +15,7 @@ static char GetComboChar(byte Letter)
 	return '!';
 	}
 
-void LogAlnComboLetters(
+void LogAlnMuLetters(
   const vector<byte> &A, uint LoA,
   const vector<byte> &B, uint LoB,
   const string &Path)
@@ -42,21 +42,21 @@ void LogAlnComboLetters(
 			char m = (a == b ? '|' : ' ');
 			if (a == b)
 				m = '|';
-			else if (IntScoreMx_Combo[a][b] > 0)
+			else if (IntScoreMx_Mu[a][b] > 0)
 				m = '+';
 			else
 				m = ' ';
 			RowM += m;
 
-			RowA += GetComboChar(a);
-			RowB += GetComboChar(b);
+			RowA += GetMuChar(a);
+			RowB += GetMuChar(b);
 			break;
 			}
 
 		case 'I':
 			{
 			asserta(PosA < LA);
-			RowA += GetComboChar(A[PosA++]);
+			RowA += GetMuChar(A[PosA++]);
 			RowB += '-';
 			RowM += ' ';
 			break;
@@ -66,7 +66,7 @@ void LogAlnComboLetters(
 			{
 			asserta(PosB < LB);
 			RowA += '-';
-			RowB += GetComboChar(B[PosB++]);
+			RowB += GetMuChar(B[PosB++]);
 			RowM += ' ';
 			break;
 			}
@@ -124,7 +124,7 @@ static void Test1()
 	uint Lo2 = (uint) cig->beg_ref;
 	Log("score = %d, %d lo %d, %d path %s\n",
 	  result1->score, result2->score, Lo1, Lo2, Path.c_str());
-	LogAlnComboLetters(S1, Lo1, S2, Lo2, Path);
+	LogAlnMuLetters(S1, Lo1, S2, Lo2, Path);
 	}
 
 static byte GetRandLetter()
@@ -228,12 +228,12 @@ static void Test2(bool Trace)
 		Log("__________________________________________\n");
 		Log("S1  ");
 		for (int i = 0; i < s1Len; ++i)
-			Log("%c", GetComboChar(S1[i]));
+			Log("%c", GetMuChar(S1[i]));
 		Log("\n");
 
 		Log("S2  ");
 		for (int i = 0; i < s2Len; ++i)
-			Log("%c", GetComboChar(S2[i]));
+			Log("%c", GetMuChar(S2[i]));
 		Log("\n");
 		}
 
@@ -265,7 +265,7 @@ static void Test2(bool Trace)
 		{
 		Log("score = %d, %d lo %d, %d path %s\n",
 		  result1->score, result2->score, Lo1, Lo2, Path.c_str());
-		LogAlnComboLetters(S1, Lo1, S2, Lo2, Path);
+		LogAlnMuLetters(S1, Lo1, S2, Lo2, Path);
 		}
 
 	string Path2;

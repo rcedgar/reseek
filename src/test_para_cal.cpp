@@ -20,24 +20,24 @@ void cmd_test_para_cal()
 	vector<vector<byte> > Profile1;
 	vector<vector<byte> > Profile2;
 
-	vector<byte> ComboLetters1;
-	vector<byte> ComboLetters2;
+	vector<byte> MuLetters1;
+	vector<byte> MuLetters2;
 
 	D.Init(Chain1);
-	D.GetComboLetters(ComboLetters1);
+	D.GetMuLetters(MuLetters1);
 
 	D.Init(Chain2);
-	D.GetComboLetters(ComboLetters2);
+	D.GetMuLetters(MuLetters2);
 
 	DSSAligner DA;
 	DA.m_Params = &Params;
-	DA.SetQuery(Chain1, 0, 0, &ComboLetters1, FLT_MAX);
-	DA.SetTarget(Chain2, 0, 0, &ComboLetters2, FLT_MAX);
+	DA.SetQuery(Chain1, 0, 0, &MuLetters1, FLT_MAX);
+	DA.SetTarget(Chain2, 0, 0, &MuLetters2, FLT_MAX);
 
 	uint Lo1, Lo2;
 	string Path;
-	float Score = DA.AlignComboQP_Para_Path(Lo1, Lo2, Path);
-	int Score2 = DA.GetComboDPScorePathInt(ComboLetters1, ComboLetters2,
+	float Score = DA.AlignMuQP_Para_Path(Lo1, Lo2, Path);
+	int Score2 = DA.GetMuDPScorePathInt(MuLetters1, MuLetters2,
 	  Lo1, Lo2, Path);
 	Log("%.1f (%d) %u, %u %s\n", Score, Score2, Lo1, Lo2, Path.c_str());
 	}

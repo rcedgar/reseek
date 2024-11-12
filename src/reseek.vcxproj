@@ -417,7 +417,6 @@
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="zscorer.cpp" />
     <ClCompile Include="zutil.c" />
-    <ClInclude Include="active.h" />
     <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />

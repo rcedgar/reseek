@@ -15,33 +15,33 @@ void cmd_combomx()
 
 	vector<FEATURE> Fs;
 	Fs.push_back(FEATURE_SS3);
-	Fs.push_back(FEATURE_NbrSS3);
-	Fs.push_back(FEATURE_RevNbrDist4);
+	Fs.push_back(FEATURE_NENSS3);
+	Fs.push_back(FEATURE_RENDist4);
 	const uint NF = SIZE(Fs);
 
 	vector<float **> ScoreMxs;
 	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NbrSS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RevNbrDist4]);
+	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
+	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
 
 	DSS D;
 	DSSParams Params;
-	Params.SetComboFeatures(Fs);
+	Params.SetMuFeatures(Fs);
 	D.SetParams(Params);
-	uint AS = D.GetAlphaSize(FEATURE_Combo);
-	vector<vector<float> > ComboMx(AS);
+	uint AS = D.GetAlphaSize(FEATURE_Mu);
+	vector<vector<float> > MuMx(AS);
 	for (uint i = 0; i < AS; ++i)
 		{
-		ComboMx[i].resize(AS);
+		MuMx[i].resize(AS);
 
 		vector<uint> Lettersi;
-		D.GetComboLetters(i, Lettersi);
+		D.GetMuLetters(i, Lettersi);
 		asserta(SIZE(Lettersi) == NF);
 
 		for (uint j = 0; j < AS; ++j)
 			{
 			vector<uint> Lettersj;
-			D.GetComboLetters(j, Lettersj);
+			D.GetMuLetters(j, Lettersj);
 			asserta(SIZE(Lettersj) == NF);
 
 			float Score = 0;
@@ -51,47 +51,47 @@ void cmd_combomx()
 				uint Letterj = Lettersj[k];
 				Score += ScoreMxs[k][Letteri][Letterj];
 				}
-			ComboMx[i][j] = Score;
+			MuMx[i][j] = Score;
 			}
 		}
 
 	fprintf(f, "\n");
-	fprintf(f, "float ScoreMx_%s[%u][%u] = {\n", "Combo", AS, AS);
+	fprintf(f, "float ScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %5.2ff,", ComboMx[i][j]);
+			fprintf(f, " %5.2ff,", MuMx[i][j]);
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
 
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Combo", AS, AS);
+	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %3d,", intround(ComboMx[i][j]));
+			fprintf(f, " %3d,", intround(MuMx[i][j]));
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
 
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Combo_x2", AS, AS);
+	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Mu_x2", AS, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %3d,", intround(2*ComboMx[i][j]));
+			fprintf(f, " %3d,", intround(2*MuMx[i][j]));
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
 
-	const char *ComboAlphaStr = "ABCDEFGHIJKLMNOPQRSTUVWZYZabcdefghij";
-	size_t n = strlen(ComboAlphaStr);
+	const char *MuAlphaStr = "ABCDEFGHIJKLMNOPQRSTUVWZYZabcdefghij";
+	size_t n = strlen(MuAlphaStr);
 	asserta(n == 36);
 
 	fprintf(f, "\n");
@@ -103,7 +103,7 @@ void cmd_combomx()
 		{
 		for (uint j = 0; j < AS; ++j)
 			{
-			int Score = intround(ComboMx[i][j]);
+			int Score = intround(MuMx[i][j]);
 			MinScore = min(MinScore, Score);
 			MaxScore = max(MaxScore, Score);
 			fprintf(f, "%2d,", Score);
@@ -117,7 +117,7 @@ void cmd_combomx()
 		imap[i] = 0;
 	for (uint i = 0; i < 36; ++i)
 		{
-		char c = ComboAlphaStr[i];
+		char c = MuAlphaStr[i];
 		imap[c] = i;
 		}
 
@@ -144,7 +144,7 @@ void cmd_combomx()
 	fprintf(f, "	NULL,\n");
 	fprintf(f, "	PARASAIL_MATRIX_TYPE_SQUARE,\n");
 	fprintf(f, "	%u,\n", AS);
-	fprintf(f, "	\"%s\",\n", ComboAlphaStr);
+	fprintf(f, "	\"%s\",\n", MuAlphaStr);
 	fprintf(f, "	NULL\n");
 	fprintf(f, "};\n");
 

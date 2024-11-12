@@ -18,8 +18,8 @@ public:
 	uint m_L = 0;
 
 	vector<double> m_Density_ScaledValues;
-	vector<uint> m_Nbrs;
-	vector<uint> m_RevNbrs;
+	vector<uint> m_NENs;
+	vector<uint> m_RENs;
 	string m_SS;
 
 	int m_Density_W = 50;
@@ -28,10 +28,10 @@ public:
 	int m_SSDensity_w = 8;
 	double m_Density_Radius = 20.0;
 	double m_NU_ND_Radius = 20.0;
-	int m_Nbr_W = 100;
-	int m_Nbr_w = 12;
+	int m_NEN_W = 100;
+	int m_NEN_w = 12;
 	int m_NUDX_W = 50;
-	double m_DefaultNbrDist = 10.0;
+	double m_DefaultNENDist = 10.0;
 	double m_SSDensity_epsilon = 1;
 	uint m_SSE_MinLength = 8;
 	uint m_SSE_Margin = 8;
@@ -55,15 +55,15 @@ public:
 		m_Chain = &Chain;
 		m_Density_ScaledValues.clear();
 		m_SS.clear();
-		m_Nbrs.clear();
-		m_RevNbrs.clear();
+		m_NENs.clear();
+		m_RENs.clear();
 		m_SSE_Mids.clear();
 		m_SSE_cs.clear();
 		m_NUs.clear();
 		m_NDs.clear();
 		m_NXs.clear();
 
-		if (optset_nbrw) m_Nbr_w = opt_nbrw;
+		if (optset_nbrw) m_NEN_w = opt_nbrw;
 		if (optset_densw) m_Density_w = opt_densw;
 		if (optset_ssdensw) m_SSDensity_w = opt_ssdensw;
 		}
@@ -89,29 +89,29 @@ public:
 #undef F
 
 	void GetProfile(vector<vector<byte> > &Profile);
-	void GetComboLetters(vector<byte> &Letters);
-	void GetComboKmers(const vector<byte> &ComboLetters,
+	void GetMuLetters(vector<byte> &Letters);
+	void GetMuKmers(const vector<byte> &MuLetters,
 	  vector<uint> &Kmers);
-	void GetComboKmerBits(const vector<uint> &Kmers,
+	void GetMuKmerBits(const vector<uint> &Kmers,
 	  vector<uint> &Bits);
-	void GetComboLetters(vector<uint> &Letters);
+	void GetMuLetters(vector<uint> &Letters);
 	void SetDensity_ScaledValues();
 	double GetDensity(uint Pos) const;
 	double GetSSDensity(uint Pos, char c);
-	uint GetNbr(uint Pos);
-	uint GetRevNbr(uint Pos);
-	uint CalcNbr(uint Pos) const;
-	uint CalcRevNbr(uint Pos, uint Nbr) const;
+	uint GetNEN(uint Pos);
+	uint GetREN(uint Pos);
+	uint CalcNEN(uint Pos) const;
+	uint CalcREN(uint Pos, uint NEN) const;
 
-	void SetNbrs();
+	void SetNENs();
 	void SetSS();
 	void GetSSEs(uint MinLength, vector<uint> &Los,
 	  vector<uint> &Lengths, vector<char> &cs) const;
 	void SetSSEs();
 	void Get_NU_ND(uint Pos, double &NU, double &ND) const;
 	void Set_NU_ND_Vecs();
-	void GetComboLetters(uint ComboLetter, vector<uint> &Letters) const;
-	uint GetComboLetter(const vector<uint> &Letters) const;
+	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
+	uint GetMuLetter(const vector<uint> &Letters) const;
 
 public:
 	static void GetBins(FEATURE F, vector<float> &Bins);

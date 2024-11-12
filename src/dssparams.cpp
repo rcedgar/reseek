@@ -3,20 +3,20 @@
 #include "dss.h"
 #include "sort.h"
 
-vector<FEATURE> DSSParams::m_ComboFeatures;
-vector<uint> DSSParams::m_ComboAlphaSizes;
-uint DSSParams::m_ComboAlphaSize = UINT_MAX;
+vector<FEATURE> DSSParams::m_MuFeatures;
+vector<uint> DSSParams::m_MuAlphaSizes;
+uint DSSParams::m_MuAlphaSize = UINT_MAX;
 
-void DSSParams::SetComboFeatures(const vector<FEATURE> &Fs)
+void DSSParams::SetMuFeatures(const vector<FEATURE> &Fs)
 	{
-	m_ComboAlphaSizes.clear();
-	m_ComboFeatures = Fs;
-	m_ComboAlphaSize = 1;
+	m_MuAlphaSizes.clear();
+	m_MuFeatures = Fs;
+	m_MuAlphaSize = 1;
 	for (uint i = 0; i < SIZE(Fs); ++i)
 		{
 		uint AS = DSS::GetAlphaSize(Fs[i]);
-		m_ComboAlphaSizes.push_back(AS);
-		m_ComboAlphaSize *= AS;
+		m_MuAlphaSizes.push_back(AS);
+		m_MuAlphaSize *= AS;
 		}
 	}
 
@@ -34,11 +34,11 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt_evalue_a);
 	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt_evalue_b);
 
-	vector<FEATURE> ComboFeatures;
-	ComboFeatures.push_back(FEATURE_SS3);
-	ComboFeatures.push_back(FEATURE_NbrSS3);
-	ComboFeatures.push_back(FEATURE_RevNbrDist4);
-	DSSParams::SetComboFeatures(ComboFeatures);
+	vector<FEATURE> MuFeatures;
+	MuFeatures.push_back(FEATURE_SS3);
+	MuFeatures.push_back(FEATURE_NENSS3);
+	MuFeatures.push_back(FEATURE_RENDist4);
+	DSSParams::SetMuFeatures(MuFeatures);
 
 	if (optset_namedparams)
 		SetNamedParams(opt_namedparams);
@@ -65,8 +65,8 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, " -maxaccepts %u", opt_maxaccepts); }
 	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
 	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
-	if (optset_para_mugapopen) { m_ParaComboGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
-	if (optset_para_mugapext) { m_ParaComboGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
+	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
+	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
@@ -174,8 +174,8 @@ float DSSParams::GetParam(const string &Name) const
 int DSSParams::GetIntParam(const string &Name) const
 	{
 #define x(f)	if (Name == #f) { return m_##f; }
-	x(ParaComboGapOpen);
-	x(ParaComboGapExt);
+	x(ParaMuGapOpen);
+	x(ParaMuGapExt);
 #undef x
 	Die("GetIntParam(%s)", Name.c_str());
 	return INT_MAX;
@@ -184,8 +184,8 @@ int DSSParams::GetIntParam(const string &Name) const
 void DSSParams::SetIntParam(const string &Name, int Value)
 	{
 #define x(f)	if (Name == #f) { m_##f = Value; return; }
-	x(ParaComboGapOpen);
-	x(ParaComboGapExt);
+	x(ParaMuGapOpen);
+	x(ParaMuGapExt);
 #undef x
 	Die("SetParam(%s)", Name.c_str());
 	}

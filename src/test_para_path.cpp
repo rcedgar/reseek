@@ -6,7 +6,7 @@
 
 #define	TEST_XDrop 1
 #define	TEST_GetDPScorePath 0
-#define	TEST_GetComboDPScorePath 0
+#define	TEST_GetMuDPScorePath 0
 
 int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
   int GapOpen, int GapExt, uint &LoQ, uint &LoT, string &Path);
@@ -81,21 +81,21 @@ static void OnPair(const Trainer &Tr, uint ChainIdxQ, uint ChainIdxR,
 	const PDBChain &ChainQ = *Tr.m_Chains[ChainIdxQ];
 	const PDBChain &ChainR = *Tr.m_Chains[ChainIdxR];
 
-	vector<byte> ComboLettersQ;
-	vector<byte> ComboLettersR;
+	vector<byte> MuLettersQ;
+	vector<byte> MuLettersR;
 
 	vector<vector<byte> > ProfileQ;
 	vector<vector<byte> > ProfileR;
 
 	D.Init(ChainQ);
-	D.GetComboLetters(ComboLettersQ);
+	D.GetMuLetters(MuLettersQ);
 	D.GetProfile(ProfileQ);
 
 	D.Init(ChainR);
-	D.GetComboLetters(ComboLettersR);
+	D.GetMuLetters(MuLettersR);
 	D.GetProfile(ProfileR);
 
-	DA.Align_Test(ChainQ, ChainR, ComboLettersQ, ComboLettersR,
+	DA.Align_Test(ChainQ, ChainR, MuLettersQ, MuLettersR,
 	  ProfileQ, ProfileR);
 	}
 
@@ -112,31 +112,31 @@ static float SubFn(void *UserData, uint PosA, uint PosB)
 
 void DSSAligner::Align_Test(
   const PDBChain &ChainA, const PDBChain &ChainB,
-  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, FLT_MAX);
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
 	m_Path.clear();
 
-	bool ComboFilterOk = ComboFilter();
-	if (!ComboFilterOk)
+	bool MuFilterOk = MuFilter();
+	if (!MuFilterOk)
 		return;
 
-#if TEST_GetComboDPScorePath
-	SetSMx_Combo();
-	uint LA = SIZE(ComboLettersA);
-	uint LB = SIZE(ComboLettersB);
-	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
-	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+#if TEST_GetMuDPScorePath
+	SetSMx_Mu();
+	uint LA = SIZE(MuLettersA);
+	uint LB = SIZE(MuLettersB);
+	float GapOpen = -(float) m_Params->m_ParaMuGapOpen;
+	float GapExt = -(float) m_Params->m_ParaMuGapExt;
 	uint LoA, LoB, LenA, LenB;
 	string Path;
 	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
 	  LoA, LoB, LenA, LenB, Path);
-	float FwdScore2 = GetComboDPScorePath(ComboLettersA, ComboLettersB,
+	float FwdScore2 = GetMuDPScorePath(MuLettersA, MuLettersB,
 	  LoA, LoB, GapOpen, GapExt, Path);
 	asserta(feq(FwdScore, FwdScore2));
 #endif
@@ -161,11 +161,11 @@ void DSSAligner::Align_Test(
 #endif
 
 #if TEST_XDrop
-	SetSMx_Combo();
-	uint LA = SIZE(ComboLettersA);
-	uint LB = SIZE(ComboLettersB);
-	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
-	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+	SetSMx_Mu();
+	uint LA = SIZE(MuLettersA);
+	uint LB = SIZE(MuLettersB);
+	float GapOpen = -(float) m_Params->m_ParaMuGapOpen;
+	float GapExt = -(float) m_Params->m_ParaMuGapExt;
 	uint LoA, LoB, LenA, LenB;
 	string Path;
 	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,

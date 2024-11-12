@@ -73,18 +73,18 @@ parasail_matrix_t parasail_combo_matrix = {
 	NULL // query
 };
 
-float DSSAligner::AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path)
+float DSSAligner::AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 	{
 	Path.clear();
 	LoA = UINT_MAX;
 	LoB = UINT_MAX;
 
-	uint LA = SIZE(*m_ComboLettersA);
-	uint LB = SIZE(*m_ComboLettersB);
-	const int Open = m_Params->m_ParaComboGapOpen;
-	const int Ext = m_Params->m_ParaComboGapExt;
+	uint LA = SIZE(*m_MuLettersA);
+	uint LB = SIZE(*m_MuLettersB);
+	const int Open = m_Params->m_ParaMuGapOpen;
+	const int Ext = m_Params->m_ParaMuGapExt;
 
-	const char *B = (const char *) m_ComboLettersB->data();
+	const char *B = (const char *) m_MuLettersB->data();
 
 	const parasail_profile_t * const restrict profile =
 	  (const parasail_profile_t * const restrict) m_ProfPara;
@@ -99,8 +99,8 @@ float DSSAligner::AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 		Score = -1;
 	else
 		{
-		const char *SeqA = (const char *) m_ComboLettersA->data();
-		const char *SeqB = (const char *) m_ComboLettersB->data();
+		const char *SeqA = (const char *) m_MuLettersA->data();
+		const char *SeqB = (const char *) m_MuLettersB->data();
 		parasail_cigar_t* cig = parasail_result_get_cigar_extra(
 		  result, SeqA, LA, SeqB, LB, &parasail_combo_matrix, 1, 0);
 
@@ -117,16 +117,16 @@ float DSSAligner::AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 	return Score;
 	}
 
-float DSSAligner::AlignComboQP_Para()
+float DSSAligner::AlignMuQP_Para()
 	{
 	StartTimer(SWPara);
-	uint LA = SIZE(*m_ComboLettersA);
-	uint LB = SIZE(*m_ComboLettersB);
-	const int Open = m_Params->m_ParaComboGapOpen;
-	const int Ext = m_Params->m_ParaComboGapExt;
+	uint LA = SIZE(*m_MuLettersA);
+	uint LB = SIZE(*m_MuLettersB);
+	const int Open = m_Params->m_ParaMuGapOpen;
+	const int Ext = m_Params->m_ParaMuGapExt;
 	const float OmegaFwd = m_Params->m_OmegaFwd;
 
-	const char *B = (const char *) m_ComboLettersB->data();
+	const char *B = (const char *) m_MuLettersB->data();
 
 	const parasail_profile_t * const restrict profile =
 	  (const parasail_profile_t * const restrict) m_ProfPara;
@@ -156,20 +156,20 @@ float DSSAligner::AlignComboQP_Para()
 	return Score;
 	}
 
-void DSSAligner::SetComboQP_Para()
+void DSSAligner::SetMuQP_Para()
 	{
-	StartTimer(SetComboQP_Para);
+	StartTimer(SetMuQP_Para);
 	if (m_ProfPara != 0)
 		parasail_profile_free((parasail_profile_t *) m_ProfPara);
 	if (m_ProfParaRev != 0)
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
-	const char *A = (const char *) m_ComboLettersA->data();
-	uint LA = SIZE(*m_ComboLettersA);
+	const char *A = (const char *) m_MuLettersA->data();
+	uint LA = SIZE(*m_MuLettersA);
 	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_combo_matrix);
 
-	vector<byte> ARev = *m_ComboLettersA;
+	vector<byte> ARev = *m_MuLettersA;
 	const char *AR = (const char *) ARev.data();
 	reverse(ARev.begin(), ARev.end());
 	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_combo_matrix);
-	EndTimer(SetComboQP_Para);
+	EndTimer(SetMuQP_Para);
 	}

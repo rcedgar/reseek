@@ -76,7 +76,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	vector<vector<byte> > ProfileQ;
 	vector<vector<byte> > ProfileT;
 
-	vector<byte> ComboLettersQ;
+	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
 	vector<uint> KmerBitsQ;
 
@@ -86,16 +86,16 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	D.Init(*ChainQ);
 	D.GetProfile(ProfileQ);
 	if (Params.m_Omega > 0)
-		D.GetComboLetters(ComboLettersQ);
+		D.GetMuLetters(MuLettersQ);
 	if (Params.m_MinU > 0)
 		{
-		D.GetComboKmers(ComboLettersQ, KmersQ);
-		D.GetComboKmerBits(KmersQ, KmerBitsQ);
+		D.GetMuKmers(MuLettersQ, KmersQ);
+		D.GetMuKmerBits(KmersQ, KmerBitsQ);
 		}
 
 	float SelfRevScoreQ = GetSelfRevScore(*ChainQ, ProfileQ, DA, D);
 
-	vector<byte> ComboLettersT;
+	vector<byte> MuLettersT;
 	vector<uint> KmersT;
 	vector<uint> KmerBitsT;
 
@@ -103,17 +103,17 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	D.GetProfile(ProfileT);
 
 	if (Params.m_Omega > 0)
-		D.GetComboLetters(ComboLettersT);
+		D.GetMuLetters(MuLettersT);
 	if (Params.m_MinU > 0)
 		{
-		D.GetComboKmers(ComboLettersT, KmersT);
-		D.GetComboKmerBits(KmersT, KmerBitsT);
+		D.GetMuKmers(MuLettersT, KmersT);
+		D.GetMuKmerBits(KmersT, KmerBitsT);
 		}
 
 	float SelfRevScoreT = GetSelfRevScore(*ChainT, ProfileT, DA, D);
 	
-	DA.SetQuery(*ChainQ, &ProfileQ, &KmerBitsQ, &ComboLettersQ, SelfRevScoreQ);
-	DA.SetTarget(*ChainT, &ProfileT, &KmerBitsT, &ComboLettersT, SelfRevScoreT);
+	DA.SetQuery(*ChainQ, &ProfileQ, &KmerBitsQ, &MuLettersQ, SelfRevScoreQ);
+	DA.SetTarget(*ChainT, &ProfileT, &KmerBitsT, &MuLettersT, SelfRevScoreT);
 	DA.AlignQueryTarget();
 	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
@@ -177,7 +177,7 @@ void cmd_alignpair()
 	vector<vector<byte> > ProfileQ;
 	vector<vector<byte> > ProfileT;
 
-	vector<byte> ComboLettersQ;
+	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
 	vector<uint> KmerBitsQ;
 

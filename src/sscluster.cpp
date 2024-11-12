@@ -367,5 +367,5 @@ void cmd_sscluster()
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	ProgressLog("K=%u myss3=%s M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
 	  K, opt_myss3, M, N, opt_randseed, TopPct, ExpectedScore);
-	LO.MxToSrc(g_fLog, "MySS", ScoreMx);
+	LO.MxToSrc(g_fLog, "Conf", ScoreMx);
 	}

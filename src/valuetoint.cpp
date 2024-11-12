@@ -3,7 +3,7 @@
 
 #define BIN_T(Feat, Idx, t)	if (Value < t) return Idx;
 
-uint DSS::ValueToInt_NbrDist(double Value) const
+uint DSS::ValueToInt_NENDist(double Value) const
 	{
 	if (Value < 4.417) return 0;
 	if (Value < 4.647) return 1;
@@ -23,7 +23,7 @@ uint DSS::ValueToInt_NbrDist(double Value) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_RevNbrDist(double Value) const
+uint DSS::ValueToInt_RENDist(double Value) const
 	{
 	if (Value < 6) return 0;
 	if (Value < 7) return 1;

@@ -12,7 +12,7 @@ public:
 	ChainReader2 *m_CR = 0;
 	vector<PDBChain *> *m_Chains = 0;
 	vector<vector<vector<byte> > *> *m_Profiles = 0;
-	vector<vector<byte> *> *m_ComboLetters = 0;
+	vector<vector<byte> *> *m_MuLetters = 0;
 	//vector<vector<uint> *> *m_KmersVec = 0;
 	vector<vector<uint> *> *m_KmerBitsVec = 0;
 	vector<float> *m_SelfRevScores = 0;
@@ -27,7 +27,7 @@ public:
 	  ChainReader2 &CR,
 	  vector<PDBChain *> *Chains,
 	  vector<vector<vector<byte> > *> *Profiles,
-	  vector<vector<byte> *> *ComboLetters,
+	  vector<vector<byte> *> *MuLetters,
 	  //vector<vector<uint> *> *KmersVec,
 	  vector<vector<uint> *> *KmerBitsVec,
 	  vector<float> *SelfRevScores,

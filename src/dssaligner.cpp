@@ -34,7 +34,7 @@ float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
 
 uint DSSAligner::m_AlnCount;
 uint DSSAligner::m_SWCount;
-uint DSSAligner::m_ComboFilterCount;
+uint DSSAligner::m_MuFilterCount;
 uint DSSAligner::m_UFilterCount;
 uint DSSAligner::m_ParasailSaturateCount;
 
@@ -151,18 +151,18 @@ DSSAligner::DSSAligner()
 		}
 	}
 
-int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
-  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
+int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
+  const vector<byte> &MuLettersB, uint LoA, uint LoB,
   const string &Path) const
 	{
 	uint Sum = 0;
 	uint PosA = LoA;
 	uint PosB = LoB;
-	const int Open = -m_Params->m_ParaComboGapOpen;
-	const int Ext = -m_Params->m_ParaComboGapExt;
+	const int Open = -m_Params->m_ParaMuGapOpen;
+	const int Ext = -m_Params->m_ParaMuGapExt;
 	const float FwdMatchScore = m_Params->m_FwdMatchScore;
 	const uint ColCount = SIZE(Path);
-	extern int8_t IntScoreMx_Combo[36][36];
+	extern int8_t IntScoreMx_Mu[36][36];
  
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
@@ -171,11 +171,11 @@ int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
 			{
 		case 'M':
 			{
-			asserta(PosA < SIZE(ComboLettersA));
-			asserta(PosB < SIZE(ComboLettersB));
-			byte a = ComboLettersA[PosA];
-			byte b = ComboLettersB[PosB];
-			Sum += IntScoreMx_Combo[a][b];
+			asserta(PosA < SIZE(MuLettersA));
+			asserta(PosB < SIZE(MuLettersB));
+			byte a = MuLettersA[PosA];
+			byte b = MuLettersB[PosB];
+			Sum += IntScoreMx_Mu[a][b];
 			++PosA;
 			++PosB;
 			break;
@@ -204,7 +204,7 @@ int DSSAligner::GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
 	return Sum;
 	}
 
-float DSSAligner::GetComboDPScorePath(const vector<byte> &LettersA,
+float DSSAligner::GetMuDPScorePath(const vector<byte> &LettersA,
 	const vector<byte> &LettersB, uint LoA, uint LoB,
 	float GapOpen, float GapExt, const string &Path) const
 	{
@@ -227,8 +227,8 @@ float DSSAligner::GetComboDPScorePath(const vector<byte> &LettersA,
 			uint LetterB = LettersB[PosB];
 			asserta(LetterA < 36);
 			asserta(LetterB < 36);
-			extern float ScoreMx_Combo[36][36];
-			Sum += ScoreMx_Combo[LetterA][LetterB];
+			extern float ScoreMx_Mu[36][36];
+			Sum += ScoreMx_Mu[LetterA][LetterB];
 			++PosA;
 			++PosB;
 			break;
@@ -452,12 +452,12 @@ void DSSAligner::SetSMx_YesRev()
 #endif
 	}
 
-void DSSAligner::SetSMx_Combo_Int()
+void DSSAligner::SetSMx_Mu_Int()
 	{
-	const vector<byte> &ComboLettersA = *m_ComboLettersA;
-	const vector<byte> &ComboLettersB = *m_ComboLettersB;
-	const uint LA = SIZE(ComboLettersA);
-	const uint LB = SIZE(ComboLettersB);
+	const vector<byte> &MuLettersA = *m_MuLettersA;
+	const vector<byte> &MuLettersB = *m_MuLettersB;
+	const uint LA = SIZE(MuLettersA);
+	const uint LB = SIZE(MuLettersB);
 	const uint AS = 36;
 	asserta(AS == 36);
 
@@ -465,81 +465,81 @@ void DSSAligner::SetSMx_Combo_Int()
 	SMx.Alloc("SMx_Int", LA, LB);
 	Mx<int8_t> &RevSMx = m_RevSMx_Int;
 	RevSMx.Alloc("RevSMx_Int", LA, LB);
-	StartTimer(SetSMx_Combo_Int);
+	StartTimer(SetSMx_Mu_Int);
 	int8_t **Sim = SMx.GetData();
 	int8_t **RevSim = RevSMx.GetData();
 
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		byte LetterA = ComboLettersA[PosA];
+		byte LetterA = MuLettersA[PosA];
 		asserta(LetterA < AS);
-		const int8_t *ComboMxRow = IntScoreMx_Combo[LetterA];
+		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
 		int8_t *SimRow = Sim[PosA];
 		int8_t *RevSimRow = RevSim[PosA];
 		for (uint PosB = 0; PosB < LB; ++PosB)
 			{
-			byte LetterB = ComboLettersB[PosB];
+			byte LetterB = MuLettersB[PosB];
 			asserta(LetterB < AS);
-			int8_t Score = ComboMxRow[LetterB];
+			int8_t Score = MuMxRow[LetterB];
 			SimRow[PosB] = Score;
 			RevSimRow[LB-1-PosB] = Score;
 			}
 		}
-	EndTimer(SetSMx_Combo_Int);
+	EndTimer(SetSMx_Mu_Int);
 	}
 
-void DSSAligner::SetComboQP()
+void DSSAligner::SetMuQP()
 	{
-	StartTimer(SetComboQP);
-	const vector<byte> &ComboLettersA = *m_ComboLettersA;
-	uint LA = SIZE(ComboLettersA);
-	uint n = SIZE(m_ProfCombo);
+	StartTimer(SetMuQP);
+	const vector<byte> &MuLettersA = *m_MuLettersA;
+	uint LA = SIZE(MuLettersA);
+	uint n = SIZE(m_ProfMu);
 	if (LA > n)
 		{
-		m_ProfCombo.resize(LA);
-		m_ProfComboRev.resize(LA);
+		m_ProfMu.resize(LA);
+		m_ProfMuRev.resize(LA);
 		}
 	const uint AS = 36;
 	asserta(AS == 36);
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		byte LetterA = ComboLettersA[PosA];
+		byte LetterA = MuLettersA[PosA];
 		asserta(LetterA < AS);
-		const float *ComboMxRow = ScoreMx_Combo[LetterA];
-		m_ProfCombo[PosA] = ComboMxRow;
-		m_ProfComboRev[LA-PosA-1] = ComboMxRow;
+		const float *MuMxRow = ScoreMx_Mu[LetterA];
+		m_ProfMu[PosA] = MuMxRow;
+		m_ProfMuRev[LA-PosA-1] = MuMxRow;
 		}
-	EndTimer(SetComboQP);
+	EndTimer(SetMuQP);
 	}
 
-void DSSAligner::SetComboQPi()
+void DSSAligner::SetMuQPi()
 	{
-	const vector<byte> &ComboLettersA = *m_ComboLettersA;
-	uint LA = SIZE(ComboLettersA);
-	uint n = SIZE(m_ProfComboi);
+	const vector<byte> &MuLettersA = *m_MuLettersA;
+	uint LA = SIZE(MuLettersA);
+	uint n = SIZE(m_ProfMui);
 	if (LA > n)
 		{
-		m_ProfComboi.resize(LA);
-		m_ProfComboRevi.resize(LA);
+		m_ProfMui.resize(LA);
+		m_ProfMuRevi.resize(LA);
 		}
 	const uint AS = 36;
 	asserta(AS == 36);
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		byte LetterA = ComboLettersA[PosA];
+		byte LetterA = MuLettersA[PosA];
 		asserta(LetterA < AS);
-		const int8_t *ComboMxRow = IntScoreMx_Combo[LetterA];
-		m_ProfComboi[PosA] = ComboMxRow;
-		m_ProfComboRevi[LA-PosA-1] = ComboMxRow;
+		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
+		m_ProfMui[PosA] = MuMxRow;
+		m_ProfMuRevi[LA-PosA-1] = MuMxRow;
 		}
 	}
 
-void DSSAligner::SetSMx_Combo()
+void DSSAligner::SetSMx_Mu()
 	{
-	const vector<byte> &ComboLettersA = *m_ComboLettersA;
-	const vector<byte> &ComboLettersB = *m_ComboLettersB;
-	const uint LA = SIZE(ComboLettersA);
-	const uint LB = SIZE(ComboLettersB);
+	const vector<byte> &MuLettersA = *m_MuLettersA;
+	const vector<byte> &MuLettersB = *m_MuLettersB;
+	const uint LA = SIZE(MuLettersA);
+	const uint LB = SIZE(MuLettersB);
 	const uint AS = 36;
 	asserta(AS == 36);
 
@@ -547,27 +547,27 @@ void DSSAligner::SetSMx_Combo()
 	SMx.Alloc("SMx", LA, LB);
 	Mx<float> &RevSMx = m_RevSMx;
 	RevSMx.Alloc("RevSMx", LA, LB);
-	StartTimer(SetSMx_Combo);
+	StartTimer(SetSMx_Mu);
 	float **Sim = SMx.GetData();
 	float **RevSim = RevSMx.GetData();
 
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		byte LetterA = ComboLettersA[PosA];
+		byte LetterA = MuLettersA[PosA];
 		asserta(LetterA < AS);
-		const float *ComboMxRow = ScoreMx_Combo[LetterA];
+		const float *MuMxRow = ScoreMx_Mu[LetterA];
 		float *SimRow = Sim[PosA];
 		float *RevSimRow = RevSim[PosA];
 		for (uint PosB = 0; PosB < LB; ++PosB)
 			{
-			byte LetterB = ComboLettersB[PosB];
+			byte LetterB = MuLettersB[PosB];
 			asserta(LetterB < AS);
-			float Score = ComboMxRow[LetterB];
+			float Score = MuMxRow[LetterB];
 			SimRow[PosB] = Score;
 			RevSimRow[LB-1-PosB] = Score;
 			}
 		}
-	EndTimer(SetSMx_Combo);
+	EndTimer(SetSMx_Mu);
 	}
 
 void DSSAligner::SetSMx_NoRev()
@@ -651,21 +651,21 @@ void DSSAligner::SetSMx_NoRev()
 #endif
 	}
 
-float DSSAligner::GetComboScore()
+float DSSAligner::GetMuScore()
 	{
-	float ComboScore = AlignComboQP(*m_ComboLettersA, *m_ComboLettersB);
-	return ComboScore;
+	float MuScore = AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	return MuScore;
 	}
 
-bool DSSAligner::ComboFilter()
+bool DSSAligner::MuFilter()
 	{
-	if (m_ComboLettersA == 0 || m_ComboLettersB == 0)
+	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
 	float MCS = m_Params->m_Omega;
 	if (MCS <= 0)
 		return true;
-	float ComboScore = GetComboScore(); // AlignComboQP(*m_ComboLettersA, *m_ComboLettersB);
-	if (ComboScore < MCS)
+	float MuScore = GetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	if (MuScore < MCS)
 		return false;
 	return true;
 	}
@@ -675,21 +675,21 @@ bool DSSAligner::UFilter()
 	uint MinU = uint(round(m_Params->m_MinU));
 	if (MinU == 0)
 		return true;
-	if (m_ComboKmerBitsA == 0 || m_ComboKmerBitsB == 0)
+	if (m_MuKmerBitsA == 0 || m_MuKmerBitsB == 0)
 		return true;
-	uint U = GetUBits(*m_ComboKmerBitsA, *m_ComboKmerBitsB);
+	uint U = GetUBits(*m_MuKmerBitsA, *m_MuKmerBitsB);
 	if (U < MinU)
 		return false;
 	return true;
 	}
 
-void DSSAligner::Align_ComboFilter(
+void DSSAligner::Align_MuFilter(
   const PDBChain &ChainA, const PDBChain &ChainB,
-  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &ComboLettersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &ComboLettersB, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, FLT_MAX);
 
 	//m_EvalueA = FLT_MAX;
 	//m_EvalueB = FLT_MAX;
@@ -700,11 +700,11 @@ void DSSAligner::Align_ComboFilter(
 	++m_AlnCount;
 	m_StatsLock.unlock();
 
-	bool ComboFilterOk = ComboFilter();
-	if (!ComboFilterOk)
+	bool MuFilterOk = MuFilter();
+	if (!MuFilterOk)
 		{
 		m_StatsLock.lock();
-		++m_ComboFilterCount;
+		++m_MuFilterCount;
 		m_StatsLock.unlock();
 		return;
 		}
@@ -714,39 +714,39 @@ void DSSAligner::Align_ComboFilter(
 void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
-	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters,
+	const vector<uint> *ptrMuKmerBits,
+	const vector<byte> *ptrMuLetters,
 	float SelfRevScore)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
-	m_ComboKmerBitsA = ptrComboKmerBits;
-	m_ComboLettersA = ptrComboLetters;
+	m_MuKmerBitsA = ptrMuKmerBits;
+	m_MuLettersA = ptrMuLetters;
 	m_SelfRevScoreA = SelfRevScore;
-	if (ptrComboLetters != 0 && m_Params->m_Omega > 0)
+	if (ptrMuLetters != 0 && m_Params->m_Omega > 0)
 		{
 		if (m_Params->m_UsePara)
-			SetComboQP_Para();
+			SetMuQP_Para();
 		else
-			SetComboQP();
+			SetMuQP();
 		}
 	}
 
 void DSSAligner::SetTarget(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
-	const vector<uint> *ptrComboKmerBits,
-	const vector<byte> *ptrComboLetters,
+	const vector<uint> *ptrMuKmerBits,
+	const vector<byte> *ptrMuLetters,
 	float SelfRevScore)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
-	m_ComboKmerBitsB = ptrComboKmerBits;
-	m_ComboLettersB = ptrComboLetters;
+	m_MuKmerBitsB = ptrMuKmerBits;
+	m_MuLettersB = ptrMuLetters;
 	m_SelfRevScoreB = SelfRevScore;
 	}
 
-void DSSAligner::AlignComboOnly()
+void DSSAligner::AlignMuOnly()
 	{
 	//m_EvalueA = FLT_MAX;
 	//m_EvalueB = FLT_MAX;
@@ -765,15 +765,15 @@ void DSSAligner::AlignComboOnly()
 		m_StatsLock.unlock();
 		return;
 		}
-	bool ComboFilterOk = ComboFilter();
-	if (!ComboFilterOk)
+	bool MuFilterOk = MuFilter();
+	if (!MuFilterOk)
 		{
 		m_StatsLock.lock();
-		++m_ComboFilterCount;
+		++m_MuFilterCount;
 		m_StatsLock.unlock();
 		return;
 		}
-	AlignComboPath();
+	AlignMuPath();
 	}
 
 void DSSAligner::AlignQueryTarget()
@@ -801,11 +801,11 @@ void DSSAligner::AlignQueryTarget()
 
 	if (m_Params->m_Omega > 0)
 		{
-		bool ComboFilterOk = ComboFilter();
-		if (!ComboFilterOk)
+		bool MuFilterOk = MuFilter();
+		if (!MuFilterOk)
 			{
 			m_StatsLock.lock();
-			++m_ComboFilterCount;
+			++m_MuFilterCount;
 			m_StatsLock.unlock();
 			return;
 			}
@@ -945,15 +945,15 @@ void DSSAligner::Align_NoAccel()
 	CalcEvalue();
 	}
 
-void DSSAligner::AlignComboPath()
+void DSSAligner::AlignMuPath()
 	{
 	//m_Path.clear();
 	//m_LoA = UINT_MAX;
 	//m_LoB = UINT_MAX;
 	//m_AlnFwdScore = 0;
 	ClearAlign();
-	float ComboFwdScore = AlignComboQP_Para_Path(m_LoA, m_LoB, m_Path);
-	if (ComboFwdScore < 0)
+	float MuFwdScore = AlignMuQP_Para_Path(m_LoA, m_LoB, m_Path);
+	if (MuFwdScore < 0)
 		{
 		m_StatsLock.lock();
 		++m_ParasailSaturateCount;
@@ -961,8 +961,8 @@ void DSSAligner::AlignComboPath()
 		SetSMx_NoRev();
 		Mx<float> &SMx = m_SMx;
 		Mx<float> &RevSMx = m_RevSMx;
-		ComboFwdScore = 
-		  AlignCombo(*m_ComboLettersA, *m_ComboLettersB, m_LoA, m_LoB, m_Path);
+		MuFwdScore = 
+		  AlignMu(*m_MuLettersA, *m_MuLettersB, m_LoA, m_LoB, m_Path);
 		m_AlnFwdScore =
 		  GetDPScorePath(*m_ProfileA, *m_ProfileB, m_LoA, m_LoB, m_Path);
 		}
@@ -1037,18 +1037,18 @@ void DSSAligner::ToTsv(FILE *f, bool Up)
 	m_OutputLock.unlock();
 	}
 
-float DSSAligner::AlignCombo(
+float DSSAligner::AlignMu(
   const vector<byte> &LettersA, const vector<byte> &LettersB,
   uint &LoA, uint &LoB, string &Path)
 	{
-	m_ComboLettersA = &LettersA;
-	m_ComboLettersB = &LettersB;
-	SetSMx_Combo();
+	m_MuLettersA = &LettersA;
+	m_MuLettersB = &LettersB;
+	SetSMx_Mu();
 	uint LA = SIZE(LettersA);
 	uint LB = SIZE(LettersB);
 
-	float GapOpen = -(float) m_Params->m_ParaComboGapOpen;
-	float GapExt = -(float) m_Params->m_ParaComboGapExt;
+	float GapOpen = -(float) m_Params->m_ParaMuGapOpen;
+	float GapExt = -(float) m_Params->m_ParaMuGapExt;
 	uint Loi, Loj, Leni, Lenj;
 
 	StartTimer(SWFast);
@@ -1072,42 +1072,42 @@ void DSSAligner::AllocDProw(uint LB)
 	m_DProw = myalloc(float, m_DProwSize);
 	}
 
-float DSSAligner::AlignComboQP(const vector<byte> &LettersA,
+float DSSAligner::AlignMuQP(const vector<byte> &LettersA,
   const vector<byte> &LettersB)
 	{
-	m_ComboLettersA = &LettersA;
-	m_ComboLettersB = &LettersB;
+	m_MuLettersA = &LettersA;
+	m_MuLettersB = &LettersB;
 	if (m_Params->m_UsePara)
 		{
-		//SetComboQP_Para();
-		float ScorePara = AlignComboQP_Para();
+		//SetMuQP_Para();
+		float ScorePara = AlignMuQP_Para();
 		return ScorePara;
 		}
 
 	uint LA = SIZE(LettersA);
 	uint LB = SIZE(LettersB);
-	//SetComboQP();
+	//SetMuQP();
 	AllocDProw(LB);
 	StartTimer(SWFastGaplessProfb);
-	float Scorefb = SWFastGaplessProfb(m_DProw, m_ProfCombo.data(), LA, LettersB.data(), LB);
+	float Scorefb = SWFastGaplessProfb(m_DProw, m_ProfMu.data(), LA, LettersB.data(), LB);
 	EndTimer(SWFastGaplessProfb);
 	return Scorefb;
 	}
 
-float DSSAligner::AlignCombo_Int(const vector<byte> &LettersA,
+float DSSAligner::AlignMu_Int(const vector<byte> &LettersA,
   const vector<byte> &LettersB)
 	{
-	m_ComboLettersA = &LettersA;
-	m_ComboLettersB = &LettersB;
-	StartTimer(SetComboQPi);
-	SetComboQPi();
-	EndTimer(SetComboQPi);
+	m_MuLettersA = &LettersA;
+	m_MuLettersB = &LettersB;
+	StartTimer(SetMuQPi);
+	SetMuQPi();
+	EndTimer(SetMuQPi);
 	uint LA = SIZE(LettersA);
 	uint LB = SIZE(LettersB);
 	StartTimer(SWFastGapless_Profi);
-	float FwdScore = (float) SWFastPinopGapless(m_ProfComboi.data(), LA,
+	float FwdScore = (float) SWFastPinopGapless(m_ProfMui.data(), LA,
 	  (const int8_t *) LettersB.data(), LB);
-	float RevScore = (float) SWFastPinopGapless(m_ProfComboRevi.data(), LA,
+	float RevScore = (float) SWFastPinopGapless(m_ProfMuRevi.data(), LA,
 		(const int8_t *) LettersB.data(), LB);
 	EndTimer(SWFastGapless_Profi);
 	return (FwdScore - RevScore)/2;
@@ -1115,11 +1115,11 @@ float DSSAligner::AlignCombo_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
-	uint ComboFilterInputCount = m_AlnCount - DSSAligner::m_UFilterCount;
+	uint MuFilterInputCount = m_AlnCount - DSSAligner::m_UFilterCount;
 	Log("DSSAligner::Stats() alns %s, ufil %.1f%%, cfil %.1f%%\n",
 	  FloatToStr(m_AlnCount),
 	  GetPct(m_UFilterCount, m_AlnCount),
-	  GetPct(m_ComboFilterCount, ComboFilterInputCount));
+	  GetPct(m_MuFilterCount, MuFilterInputCount));
 	}
 
 uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const

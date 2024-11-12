@@ -222,16 +222,13 @@ void SCOP40Bench::LogFirstFewHits() const
 		}
 	}
 
-void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2,
-  float ScoreAB, float TSAB)
+void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2, float ScoreAB)
 	{
-	if (TSAB <= 0)
+	if (ScoreAB <= 0)
 		return;
 	uint DomIdx1 = m_DomIdxs[ChainIdx1];
 	uint DomIdx2 = m_DomIdxs[ChainIdx2];
-	asserta(TSAB > 0);
 	m_Scores.push_back(ScoreAB);
-	m_TSs.push_back(TSAB);
 	m_DomIdx1s.push_back(DomIdx1);
 	m_DomIdx2s.push_back(DomIdx2);
 	}
@@ -271,9 +268,9 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	uint ChainIndexA = iterA->second;
 	uint ChainIndexB = iterB->second;
 	if (Up)
-		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA, DA.m_TestStatisticA);
+		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
 	else
-		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB, DA.m_TestStatisticB);
+		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()
@@ -538,7 +535,7 @@ void SCOP40Bench::WriteSummary()
 	uint AlnCount = DSSAligner::m_AlnCount;
 	uint HitCount = GetHitCount();
 	uint UFilterCount = DSSAligner::m_UFilterCount;
-	uint ComboFilterCount = DSSAligner::m_ComboFilterCount;
+	uint MuFilterCount = DSSAligner::m_MuFilterCount;
 	uint Secs = m_Secs;
 	float AlnsPerThreadPerSec = m_AlnsPerThreadPerSec;
 	uint nt_firstfp = m_nt_firstfp;
@@ -546,12 +543,12 @@ void SCOP40Bench::WriteSummary()
 	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
 	float SensEPQ1 = float(m_nt_epq1)/m_NT;
 	float SensEPQ10 = float(m_nt_epq10)/m_NT;
-	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_ComboFilterCount;
+	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_MuFilterCount;
 	double FilterPct = GetPct(TotalFilterCount, AlnCount);
 	double UFilterPct = GetPct(DSSAligner::m_UFilterCount, AlnCount);
-	uint ComboFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
-	double ComboFilterPct =
-	  GetPct(DSSAligner::m_ComboFilterCount, ComboFilterInputCount);
+	uint MuFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
+	double MuFilterPct =
+	  GetPct(DSSAligner::m_MuFilterCount, MuFilterInputCount);
 
 	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
@@ -566,7 +563,7 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" [%s]\n", g_GitVer);
 
 	Log("ufil=%.1f", UFilterPct);
-	Log(" cfil=%.1f", ComboFilterPct);
+	Log(" cfil=%.1f", MuFilterPct);
 	Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
 	Log(" qp cache hits %u, misses %u",
 	  m_QPCacheHits.load(), m_QPCacheMisses.load());
@@ -594,7 +591,6 @@ void SCOP40Bench::WriteOutput()
 		{
 		vector<string> Modes;
 		Modes.push_back("sf");
-		Modes.push_back("fold");
 		for (uint Modei = 0; Modei < SIZE(Modes); ++Modei)
 			{
 			m_Level = Modes[Modei];

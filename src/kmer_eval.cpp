@@ -247,21 +247,21 @@ void cmd_kmer_eval()
 	const float MinSeedScore = optset_minseedscore ? (float) opt_minseedscore : 0.01f;
 	const string &PatternStr = optset_pattern ? string(opt_pattern) : "10001";
 
-	vector<FEATURE> ComboFeatures;
+	vector<FEATURE> MuFeatures;
 	asserta(optset_features);
 	vector<string> Fields;
 	Split(opt_features, Fields, '_');
 	for (uint i = 0; i < SIZE(Fields); ++i)
 		{
 		FEATURE F = StrToFeature(Fields[i].c_str());
-		ComboFeatures.push_back(F);
+		MuFeatures.push_back(F);
 		}
-	DSSParams::SetComboFeatures(ComboFeatures);
+	DSSParams::SetMuFeatures(MuFeatures);
 
 	uint PatternLength = SIZE(PatternStr);
 	uint PatternOnes = GetPatternOnes(PatternStr);
 
-	uint AlphaSize1 = DSS::GetAlphaSize(FEATURE_Combo);
+	uint AlphaSize1 = DSS::GetAlphaSize(FEATURE_Mu);
 	uint AlphaSize = AlphaSize1;
 	for (uint i = 1; i < PatternOnes; ++i)
 		AlphaSize *= AlphaSize1;
@@ -305,7 +305,7 @@ void cmd_kmer_eval()
 		const uint QL = Chain.GetSeqLength();
 		D.Init(Chain);
 		D.GetProfile(Profile);
-		GetLetters(D, FEATURE_Combo, AlphaSize1, Letters);
+		GetLetters(D, FEATURE_Mu, AlphaSize1, Letters);
 		GetKmers(Letters, PatternStr, AlphaSize1, AlphaSize, Kmers);
 		for (uint i = 0; i < SIZE(Kmers); ++i)
 			{

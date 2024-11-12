@@ -243,7 +243,7 @@ void cmd_kmer_eval2()
 	uint PatternLength = SIZE(PatternStr);
 	uint PatternOnes = GetPatternOnes(PatternStr);
 
-	uint AlphaSize1 = DSS::GetAlphaSize(FEATURE_Combo);
+	uint AlphaSize1 = DSS::GetAlphaSize(FEATURE_Mu);
 	uint AlphaSize = AlphaSize1;
 	for (uint i = 1; i < PatternOnes; ++i)
 		AlphaSize *= AlphaSize1;
@@ -254,11 +254,11 @@ void cmd_kmer_eval2()
 	map<string, uint> DomToChainIndex;
 
 	Warning("non-standard combo features");
-	vector<FEATURE> ComboFeatures;
-	ComboFeatures.push_back(FEATURE_NbrSS3);
-	ComboFeatures.push_back(FEATURE_NbrDist);
+	vector<FEATURE> MuFeatures;
+	MuFeatures.push_back(FEATURE_NENSS3);
+	MuFeatures.push_back(FEATURE_NENDist);
 	DSS D;
-	DSSParams::SetComboFeatures(ComboFeatures);
+	DSSParams::SetMuFeatures(MuFeatures);
 	
 	vector<vector<uint> > LettersVec(ChainCount);
 	vector<vector<uint> > KmersVec(ChainCount);
@@ -271,7 +271,7 @@ void cmd_kmer_eval2()
 		D.Init(Chain);
 		vector<uint> &Letters = LettersVec[ChainIndex];
 		vector<uint> &Kmers = KmersVec[ChainIndex];
-		GetLetters(D, FEATURE_Combo, AlphaSize1, Letters);
+		GetLetters(D, FEATURE_Mu, AlphaSize1, Letters);
 		GetKmers(Letters, PatternStr, AlphaSize1, AlphaSize, Kmers);
 		GetKmerToCoords(Kmers, KmerToCoordsVec[ChainIndex]);
 		}

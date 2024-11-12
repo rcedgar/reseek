@@ -18,15 +18,15 @@ public:
 	float m_DALIw = FLT_MAX;
 	float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
-	float m_MinComboFwdScore = FLT_MAX;
+	float m_MinMuFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
 	uint m_MinU = 0;
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_USort = false;
-	//bool m_ComboScoreOnly = false;
-	//bool m_UseComboPath = false;
+	//bool m_MuScoreOnly = false;
+	//bool m_UseMuPath = false;
 
 	uint m_Lambda = 32;
 
@@ -35,10 +35,10 @@ public:
 	uint m_MaxRejects = UINT_MAX;
 
 	bool m_UsePara = true;
-	//int m_ParaComboGapOpen = 5;
-	//int m_ParaComboGapExt = 1;
-	int m_ParaComboGapOpen = 2;
-	int m_ParaComboGapExt = 1;
+	//int m_ParaMuGapOpen = 5;
+	//int m_ParaMuGapExt = 1;
+	int m_ParaMuGapOpen = 2;
+	int m_ParaMuGapExt = 1;
 
 	float m_Evalue_old_linear_Slope = -6.6f;
 	float m_Evalue_linear_Intercept = 6.1f;
@@ -57,9 +57,9 @@ public:
 	bool m_AAOnly = false;
 
 public:
-	static vector<FEATURE> m_ComboFeatures;
-	static vector<uint> m_ComboAlphaSizes;
-	static uint m_ComboAlphaSize;
+	static vector<FEATURE> m_MuFeatures;
+	static vector<uint> m_MuAlphaSizes;
+	static uint m_MuAlphaSize;
 
 public:
 	void Clear()
@@ -110,7 +110,7 @@ public:
 	float GetEvalueOldLinear(float TS) const;
 
 public:
-	static void SetComboFeatures(const vector<FEATURE> &Fs);
+	static void SetMuFeatures(const vector<FEATURE> &Fs);
 	};
 
 uint GetPatternOnes(const string &Pattern);

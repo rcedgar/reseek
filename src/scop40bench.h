@@ -105,7 +105,7 @@ public:
 	int IsT(uint DomIdx1, uint DomIdx2) const;
 	void LoadHitsFromTsv(const string &FileName);
 	float GetMeanLength(uint SFIdx) const;
-	void StoreScore(uint ChainIdx1, uint ChainIdx2, float Score12, float TS12);
+	void StoreScore(uint ChainIdx1, uint ChainIdx2, float Score12);
 
 // ROC analysis
 	void SetStats(float MaxFPR, bool UseTS = false);

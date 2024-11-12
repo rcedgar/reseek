@@ -23,7 +23,7 @@ public:
 
 // Per-chain vectors [ChainIdx]
 	vector<vector<vector<byte> > *> m_DBProfiles;
-	vector<vector<byte> *> m_DBComboLettersVec;
+	vector<vector<byte> *> m_DBMuLettersVec;
 	vector<vector<uint> *> m_DBKmerBitsVec;
 	vector<float> m_DBSelfRevScores;
 
@@ -86,7 +86,7 @@ public:
 	  vector<uint> &TargetIdxs, vector<uint> &Order);
 	void RunStats() const;
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
-	  vector<byte> *ptrComboLetters, vector<uint> *ptrKmerBits);
+	  vector<byte> *ptrMuLetters, vector<uint> *ptrKmerBits);
 	float GetSelfRevScore(const PDBChain &Chain,
 	  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D);
 

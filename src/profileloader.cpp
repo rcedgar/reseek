@@ -67,14 +67,14 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
 		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;
-		vector<byte> *ComboLetters = m_ComboLetters == 0 ? 0 : new vector<byte>;
+		vector<byte> *MuLetters = m_MuLetters == 0 ? 0 : new vector<byte>;
 		float SelfRevScore = FLT_MAX;
 
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
-		if (m_ComboLetters != 0) D.GetComboLetters(*ComboLetters);
-		if (m_ComboLetters != 0) D.GetComboKmers(*ComboLetters, Kmers);
-		if (m_KmerBitsVec != 0) D.GetComboKmerBits(Kmers, *KmerBits);
+		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
+		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, Kmers);
+		if (m_KmerBitsVec != 0) D.GetMuKmerBits(Kmers, *KmerBits);
 		if (m_SelfRevScores != 0) SelfRevScore = GetSelfRevScore(DA, D, *Chain, *ptrProfile);
 
 		m_Lock.lock();
@@ -82,7 +82,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_Chains != 0) m_Chains->push_back(Chain);
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
 		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);
-		if (m_ComboLetters != 0) m_ComboLetters->push_back(ComboLetters);
+		if (m_MuLetters != 0) m_MuLetters->push_back(MuLetters);
 		if (m_SelfRevScores != 0) m_SelfRevScores->push_back(SelfRevScore);
 		m_Lock.unlock();
 		}
@@ -93,7 +93,7 @@ void ProfileLoader::Load(
   ChainReader2 &CR,
   vector<PDBChain *> *Chains,
   vector<vector<vector<byte> > *> *Profiles,
-  vector<vector<byte> *> *ComboLetters,
+  vector<vector<byte> *> *MuLetters,
   vector<vector<uint> *> *KmerBitsVec,
   vector<float> *SelfRevScores,
   uint ThreadCount)
@@ -103,14 +103,14 @@ void ProfileLoader::Load(
 		m_MinChainLength = opt_minchainlength;
 
 	if (KmerBitsVec != 0)
-		asserta(ComboLetters != 0);
+		asserta(MuLetters != 0);
 
 	m_Params = &Params;
 	m_CR = &CR;
 	m_Chains = Chains;
 	m_Profiles = Profiles;
 	m_KmerBitsVec = KmerBitsVec;
-	m_ComboLetters = ComboLetters;
+	m_MuLetters = MuLetters;
 	m_SelfRevScores = SelfRevScores;
 
 	Chains->clear();

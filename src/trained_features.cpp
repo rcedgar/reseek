@@ -76,10 +76,10 @@ static double AA_S_ij[20][20] = {
  };
 
 //////////////////////////////////
-// NbrDist ES=0.6350
+// NENDist ES=0.6350
 //////////////////////////////////
 
-static double NbrDist_f_i[16] = {
+static double NENDist_f_i[16] = {
    0.0528, // 0
    0.0521, // 1
    0.0517, // 2
@@ -98,7 +98,7 @@ static double NbrDist_f_i[16] = {
    0.1070, // 15
  };
 
-static double NbrDist_f_ij[16][16] = {
+static double NENDist_f_ij[16][16] = {
    {    0.02381,    0.01367,   0.007359,   0.004611,   0.003204,   0.002385,   0.001827,   0.001157,  0.0008335,  0.0006485,  0.0005677,  0.0004579,  0.0003982,  0.0003178,  0.0002132,  0.0001439, }, // 0
    {    0.01367,      0.018,     0.0139,   0.007529,    0.00406,   0.002491,   0.001634,  0.0009854,   0.000727,  0.0005076,  0.0004615,  0.0003814,  0.0003237,  0.0002654,  0.0001645,  0.0001267, }, // 1
    {   0.007359,     0.0139,    0.01804,    0.01145,     0.0059,   0.003276,   0.001972,   0.001132,  0.0008169,  0.0006074,  0.0004939,  0.0004088,  0.0003398,  0.0002872,  0.0001866,  0.0001523, }, // 2
@@ -117,7 +117,7 @@ static double NbrDist_f_ij[16][16] = {
    {  0.0001439,  0.0001267,  0.0001523,  0.0001815,  0.0002446,  0.0003382,  0.0005294,  0.0006818,  0.0007846,   0.001033,   0.001333,   0.001855,   0.002675,   0.004231,    0.01038,    0.04321, }, // 15
  };
 
-static double NbrDist_S_ij[16][16] = {
+static double NENDist_S_ij[16][16] = {
    {      2.146,      1.605,      0.992,     0.5072,     0.1202,     -0.211,    -0.5549,     -1.046,     -1.369,     -1.623,     -1.752,     -1.982,      -2.14,     -2.389,     -2.883,      -3.67, }, // 0
    {      1.605,      1.893,      1.641,      1.011,     0.3702,    -0.1544,    -0.6532,     -1.194,     -1.493,     -1.855,     -1.946,     -2.152,     -2.334,     -2.555,      -3.13,     -3.784, }, // 1
    {      0.992,      1.641,      1.909,      1.437,     0.7509,     0.1266,    -0.4583,     -1.048,     -1.369,     -1.668,     -1.871,     -2.076,     -2.278,      -2.47,     -2.996,     -3.593, }, // 2
@@ -137,10 +137,10 @@ static double NbrDist_S_ij[16][16] = {
  };
 
 //////////////////////////////////
-// MySS ES=1.2640
+// Conf ES=1.2640
 //////////////////////////////////
 
-static double MySS_f_i[16] = {
+static double Conf_f_i[16] = {
    0.2978, // 0
    0.1026, // 1
    0.0802, // 2
@@ -159,7 +159,7 @@ static double MySS_f_i[16] = {
    0.0257, // 15
  };
 
-static double MySS_f_ij[16][16] = {
+static double Conf_f_ij[16][16] = {
    {      0.253,   0.001647,  0.0008881,  0.0007231,   0.001253,   0.000702,  0.0007163,   0.005044,    0.00207,    0.00135,  0.0005329,   0.008786,   0.001337,  0.0005361,  0.0005256,  0.0003149, }, // 0
    {   0.001647,    0.06538,    0.02076,   0.006955,   0.001279,   0.007452,  0.0008511,  0.0001147,  0.0001373,  0.0003445,   0.006422,  0.0002545,   6.81e-05,  0.0009889,  0.0003344,  0.0001024, }, // 1
    {  0.0008881,    0.02076,    0.06826,    0.00113,  0.0004438,   0.002954,  0.0002149,  2.126e-05,  3.517e-05,  7.977e-05,    0.00104,  5.635e-05,  2.566e-05,  0.0001757,  6.424e-05,  2.028e-05, }, // 2
@@ -178,7 +178,7 @@ static double MySS_f_ij[16][16] = {
    {  0.0003149,  0.0001024,  2.028e-05,  0.0001332,  0.0002365,    7.6e-05,  0.0004668,  0.0005896,   0.001079,    0.00344,    0.00018,  0.0001378,   0.001376,  0.0005706,  0.0006422,     0.0162, }, // 15
  };
 
-static double MySS_S_ij[16][16] = {
+static double Conf_S_ij[16][16] = {
    {      1.048,     -2.921,     -3.292,     -3.022,     -2.459,     -2.978,      -2.93,    -0.9572,       -1.8,     -2.193,     -3.103,    -0.3403,     -2.029,     -2.839,      -2.84,      -3.19, }, // 0
    {     -2.921,      1.825,     0.9252,     0.3069,     -1.374,     0.4492,     -1.693,     -3.676,     -3.448,     -2.493,     0.4514,     -2.817,     -3.941,     -1.162,     -2.227,     -3.248, }, // 1
    {     -3.292,     0.9252,      2.362,     -1.263,     -2.185,    -0.2291,     -2.822,     -5.114,     -4.562,     -3.709,     -1.122,     -4.078,      -4.67,     -2.643,      -3.63,      -4.62, }, // 2
@@ -198,10 +198,10 @@ static double MySS_S_ij[16][16] = {
  };
 
 //////////////////////////////////
-// NbrMySS ES=0.5870
+// NENConf ES=0.5870
 //////////////////////////////////
 
-static double NbrMySS_f_i[16] = {
+static double NENConf_f_i[16] = {
    0.2439, // 0
    0.1353, // 1
    0.1246, // 2
@@ -220,7 +220,7 @@ static double NbrMySS_f_i[16] = {
    0.0248, // 15
  };
 
-static double NbrMySS_f_ij[16][16] = {
+static double NENConf_f_ij[16][16] = {
    {     0.1395,   0.008571,   0.006752,   0.004092,   0.003108,   0.003327,   0.002477,   0.007049,   0.003076,   0.005219,   0.002386,   0.006468,   0.004605,   0.002838,   0.002547,    0.00236, }, // 0
    {   0.008571,    0.06779,    0.03103,   0.008509,    0.00311,   0.009583,   0.002949,   0.001097,   0.001062,   0.002585,   0.007484,   0.001434,   0.001591,   0.002983,   0.001933,   0.001279, }, // 1
    {   0.006752,    0.03103,    0.09111,   0.003809,   0.002005,   0.006608,   0.001637,  0.0007023,  0.0006638,   0.001714,   0.003336,  0.0008244,   0.001015,   0.001598,   0.001174,  0.0007994, }, // 2
@@ -239,7 +239,7 @@ static double NbrMySS_f_ij[16][16] = {
    {    0.00236,   0.001279,  0.0007994,  0.0006845,  0.0005768,  0.0004999,   0.001158,  0.0008006,  0.0007443,   0.002271,  0.0006774,  0.0004196,   0.001017,  0.0008422,  0.0007806,   0.007617, }, // 15
  };
 
-static double NbrMySS_S_ij[16][16] = {
+static double NENConf_S_ij[16][16] = {
    {     0.8518,     -1.348,     -1.504,     -1.261,      -1.12,     -1.334,     -1.295,    -0.2256,    -0.7107,    -0.7126,     -1.432,    -0.2992,    -0.6039,     -1.167,     -1.061,    -0.9396, }, // 0
    {     -1.348,      1.309,       0.61,    0.06016,      -0.53,     0.3132,    -0.5315,     -1.497,     -1.185,    -0.8258,     0.3011,     -1.217,     -1.077,     -0.528,     -0.748,    -0.9624, }, // 1
    {     -1.504,       0.61,       1.77,    -0.6611,    -0.8862,    0.02405,     -1.038,      -1.86,     -1.572,     -1.154,    -0.4244,     -1.687,     -1.445,      -1.07,     -1.164,      -1.35, }, // 2
@@ -259,10 +259,10 @@ static double NbrMySS_S_ij[16][16] = {
  };
 
 //////////////////////////////////
-// RevNbrDist ES=0.8040
+// RENDist ES=0.8040
 //////////////////////////////////
 
-static double RevNbrDist_f_i[16] = {
+static double RENDist_f_i[16] = {
    0.0513, // 0
    0.0267, // 1
    0.0452, // 2
@@ -281,7 +281,7 @@ static double RevNbrDist_f_i[16] = {
    0.1142, // 15
  };
 
-static double RevNbrDist_f_ij[16][16] = {
+static double RENDist_f_ij[16][16] = {
    {     0.0555,   0.005908,   0.002601,   0.001612,   0.001196,  0.0007761,  0.0002856,  0.0002057,   0.000173,  0.0001283,  7.438e-05,  5.267e-05,  3.499e-05,   2.79e-05,   3.58e-05,   0.000127, }, // 0
    {   0.005908,    0.01085,   0.007284,   0.003249,   0.001817,  0.0009797,  0.0004493,  0.0002793,  0.0001906,   0.000128,  8.847e-05,  4.334e-05,  3.427e-05,   2.88e-05,  2.979e-05,  0.0001211, }, // 1
    {   0.002601,   0.007284,    0.01842,    0.01191,    0.00548,   0.002495,   0.001222,  0.0006654,  0.0004263,  0.0002634,  0.0001809,  0.0001303,  8.551e-05,  6.299e-05,  5.321e-05,  0.0001755, }, // 2
@@ -300,7 +300,7 @@ static double RevNbrDist_f_ij[16][16] = {
    {   0.000127,  0.0001211,  0.0001755,  0.0002841,  0.0004681,    0.01554,  0.0006381,  0.0007037,  0.0008806,   0.001086,   0.001385,   0.001876,    0.00252,   0.003842,   0.008687,    0.05812, }, // 15
  };
 
-static double RevNbrDist_S_ij[16][16] = {
+static double RENDist_S_ij[16][16] = {
    {       3.05,       1.46,     0.1157,    -0.8224,     -1.452,     -2.722,     -2.474,     -2.607,      -2.64,     -2.782,     -3.149,     -3.392,     -3.708,     -3.879,     -3.893,     -3.831, }, // 0
    {       1.46,      2.719,      1.796,     0.5287,    -0.3827,     -1.839,     -1.371,     -1.651,     -1.893,     -2.134,     -2.325,     -2.936,     -3.078,     -3.197,     -3.427,     -3.228, }, // 1
    {     0.1157,      1.796,        2.2,      1.304,     0.1968,     -1.428,    -0.8939,     -1.307,     -1.612,     -1.936,     -2.134,      -2.36,     -2.688,     -2.939,     -3.371,     -3.381, }, // 2
@@ -510,19 +510,19 @@ uint g_AlphaSizes2[FEATURE_COUNT];
 static bool Init()
 	{
 	asserta(DSS::GetAlphaSize(FEATURE_AA) == 20);
-	asserta(DSS::GetAlphaSize(FEATURE_NbrDist) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_MySS) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_NbrMySS) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_RevNbrDist) == 16);
+	asserta(DSS::GetAlphaSize(FEATURE_NENDist) == 16);
+	asserta(DSS::GetAlphaSize(FEATURE_Conf) == 16);
+	asserta(DSS::GetAlphaSize(FEATURE_NENConf) == 16);
+	asserta(DSS::GetAlphaSize(FEATURE_RENDist) == 16);
 	asserta(DSS::GetAlphaSize(FEATURE_DstNxtHlx) == 16);
 	asserta(DSS::GetAlphaSize(FEATURE_StrandDens) == 16);
 	asserta(DSS::GetAlphaSize(FEATURE_NormDens) == 16);
 
 	g_AlphaSizes2[FEATURE_AA] = 20;
-	g_AlphaSizes2[FEATURE_NbrDist] = 16;
-	g_AlphaSizes2[FEATURE_MySS] = 16;
-	g_AlphaSizes2[FEATURE_NbrMySS] = 16;
-	g_AlphaSizes2[FEATURE_RevNbrDist] = 16;
+	g_AlphaSizes2[FEATURE_NENDist] = 16;
+	g_AlphaSizes2[FEATURE_Conf] = 16;
+	g_AlphaSizes2[FEATURE_NENConf] = 16;
+	g_AlphaSizes2[FEATURE_RENDist] = 16;
 	g_AlphaSizes2[FEATURE_DstNxtHlx] = 16;
 	g_AlphaSizes2[FEATURE_StrandDens] = 16;
 	g_AlphaSizes2[FEATURE_NormDens] = 16;
@@ -541,60 +541,60 @@ static bool Init()
 			g_ScoreMxs2[FEATURE_AA][i][j] = (float) AA_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_NbrDist] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_NbrDist] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_NbrDist] = myalloc(float, 16);
+	g_FreqMxs2[FEATURE_NENDist] = myalloc(float *, 16);
+	g_ScoreMxs2[FEATURE_NENDist] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_NENDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
-		g_FreqVecs2[FEATURE_NbrDist][i] = (float) NbrDist_f_i[i];
-		g_FreqMxs2[FEATURE_NbrDist][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_NbrDist][i] = myalloc(float, 16);
+		g_FreqVecs2[FEATURE_NENDist][i] = (float) NENDist_f_i[i];
+		g_FreqMxs2[FEATURE_NENDist][i] = myalloc(float, 16);
+		g_ScoreMxs2[FEATURE_NENDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
-			g_FreqMxs2[FEATURE_NbrDist][i][j] = (float) NbrDist_f_ij[i][j];
-			g_ScoreMxs2[FEATURE_NbrDist][i][j] = (float) NbrDist_S_ij[i][j];
+			g_FreqMxs2[FEATURE_NENDist][i][j] = (float) NENDist_f_ij[i][j];
+			g_ScoreMxs2[FEATURE_NENDist][i][j] = (float) NENDist_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_MySS] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_MySS] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_MySS] = myalloc(float, 16);
+	g_FreqMxs2[FEATURE_Conf] = myalloc(float *, 16);
+	g_ScoreMxs2[FEATURE_Conf] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_Conf] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
-		g_FreqVecs2[FEATURE_MySS][i] = (float) MySS_f_i[i];
-		g_FreqMxs2[FEATURE_MySS][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_MySS][i] = myalloc(float, 16);
+		g_FreqVecs2[FEATURE_Conf][i] = (float) Conf_f_i[i];
+		g_FreqMxs2[FEATURE_Conf][i] = myalloc(float, 16);
+		g_ScoreMxs2[FEATURE_Conf][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
-			g_FreqMxs2[FEATURE_MySS][i][j] = (float) MySS_f_ij[i][j];
-			g_ScoreMxs2[FEATURE_MySS][i][j] = (float) MySS_S_ij[i][j];
+			g_FreqMxs2[FEATURE_Conf][i][j] = (float) Conf_f_ij[i][j];
+			g_ScoreMxs2[FEATURE_Conf][i][j] = (float) Conf_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_NbrMySS] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_NbrMySS] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_NbrMySS] = myalloc(float, 16);
+	g_FreqMxs2[FEATURE_NENConf] = myalloc(float *, 16);
+	g_ScoreMxs2[FEATURE_NENConf] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_NENConf] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
-		g_FreqVecs2[FEATURE_NbrMySS][i] = (float) NbrMySS_f_i[i];
-		g_FreqMxs2[FEATURE_NbrMySS][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_NbrMySS][i] = myalloc(float, 16);
+		g_FreqVecs2[FEATURE_NENConf][i] = (float) NENConf_f_i[i];
+		g_FreqMxs2[FEATURE_NENConf][i] = myalloc(float, 16);
+		g_ScoreMxs2[FEATURE_NENConf][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
-			g_FreqMxs2[FEATURE_NbrMySS][i][j] = (float) NbrMySS_f_ij[i][j];
-			g_ScoreMxs2[FEATURE_NbrMySS][i][j] = (float) NbrMySS_S_ij[i][j];
+			g_FreqMxs2[FEATURE_NENConf][i][j] = (float) NENConf_f_ij[i][j];
+			g_ScoreMxs2[FEATURE_NENConf][i][j] = (float) NENConf_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_RevNbrDist] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_RevNbrDist] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_RevNbrDist] = myalloc(float, 16);
+	g_FreqMxs2[FEATURE_RENDist] = myalloc(float *, 16);
+	g_ScoreMxs2[FEATURE_RENDist] = myalloc(float *, 16);
+	g_FreqVecs2[FEATURE_RENDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
-		g_FreqVecs2[FEATURE_RevNbrDist][i] = (float) RevNbrDist_f_i[i];
-		g_FreqMxs2[FEATURE_RevNbrDist][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_RevNbrDist][i] = myalloc(float, 16);
+		g_FreqVecs2[FEATURE_RENDist][i] = (float) RENDist_f_i[i];
+		g_FreqMxs2[FEATURE_RENDist][i] = myalloc(float, 16);
+		g_ScoreMxs2[FEATURE_RENDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
-			g_FreqMxs2[FEATURE_RevNbrDist][i][j] = (float) RevNbrDist_f_ij[i][j];
-			g_ScoreMxs2[FEATURE_RevNbrDist][i][j] = (float) RevNbrDist_S_ij[i][j];
+			g_FreqMxs2[FEATURE_RENDist][i][j] = (float) RENDist_f_ij[i][j];
+			g_ScoreMxs2[FEATURE_RENDist][i][j] = (float) RENDist_S_ij[i][j];
 			}
 		}
 	g_FreqMxs2[FEATURE_DstNxtHlx] = myalloc(float *, 16);

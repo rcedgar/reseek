@@ -27,13 +27,13 @@ uint DSS::Get_SS(uint Pos)
 	return Letter;
 	}
 
-uint DSS::Get_NbrSS3(uint Pos)
+uint DSS::Get_NENSS3(uint Pos)
 	{
 	SetSS();
-	uint Nbr = GetNbr(Pos);
-	if (Nbr == UINT_MAX)
+	uint NEN = GetNEN(Pos);
+	if (NEN == UINT_MAX)
 		return WILDCARD;
-	char c = m_SS[Nbr];
+	char c = m_SS[NEN];
 	switch (c)
 		{
 	case 'h': return 0;
@@ -44,13 +44,13 @@ uint DSS::Get_NbrSS3(uint Pos)
 	return WILDCARD;
 	}
 
-uint DSS::Get_RevNbrSS3(uint Pos)
+uint DSS::Get_RENSS3(uint Pos)
 	{
 	SetSS();
-	uint Nbr = GetRevNbr(Pos);
-	if (Nbr == UINT_MAX)
+	uint NEN = GetREN(Pos);
+	if (NEN == UINT_MAX)
 		return WILDCARD;
-	char c = m_SS[Nbr];
+	char c = m_SS[NEN];
 	switch (c)
 		{
 	case 'h': return 0;
@@ -366,17 +366,17 @@ double DSS::GetSSDensity(uint Pos, char c)
 	return r;
 	}
 
-uint DSS::CalcRevNbr(uint Pos, uint Nbr) const
+uint DSS::CalcREN(uint Pos, uint NEN) const
 	{
-	if (Nbr == UINT_MAX)
+	if (NEN == UINT_MAX)
 		return UINT_MAX;
 
 	const uint L = GetSeqLength();
 	int iLo = INT_MAX;
 	int iHi = INT_MAX;
-	if (Nbr > Pos)
+	if (NEN > Pos)
 		{
-		iLo = int(Pos) - m_Nbr_W;
+		iLo = int(Pos) - m_NEN_W;
 		if (iLo < 0)
 			iLo = 0;
 		iHi = int(Pos) - 1;
@@ -384,7 +384,7 @@ uint DSS::CalcRevNbr(uint Pos, uint Nbr) const
 	else
 		{
 		iLo = int(Pos) + 1;
-		iHi = int(Pos) + m_Nbr_W;
+		iHi = int(Pos) + m_NEN_W;
 		if (iHi >= int(L))
 			iHi = int(L)-1;
 		}
@@ -397,7 +397,7 @@ uint DSS::CalcRevNbr(uint Pos, uint Nbr) const
 	uint MinPos = UINT_MAX;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
-		if (Pos2 + m_Nbr_w >= Pos && Pos2 <= Pos + m_Nbr_w)
+		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
 			continue;
 		double Dist = m_Chain->GetDist(Pos, Pos2);
 		if (Dist < MinDist)
@@ -409,20 +409,20 @@ uint DSS::CalcRevNbr(uint Pos, uint Nbr) const
 	return MinPos;
 	}
 
-uint DSS::CalcNbr(uint Pos) const
+uint DSS::CalcNEN(uint Pos) const
 	{
 	const uint L = GetSeqLength();
-	int iLo = int(Pos) - m_Nbr_W;
+	int iLo = int(Pos) - m_NEN_W;
 	if (iLo < 0)
 		iLo = 0;
-	int iHi = int(Pos) + m_Nbr_W;
+	int iHi = int(Pos) + m_NEN_W;
 	if (iHi >= int(L))
 		iHi = int(L)-1;
 	double MinDist = 999;
 	uint MinPos = UINT_MAX;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
-		if (Pos2 + m_Nbr_w >= Pos && Pos2 <= Pos + m_Nbr_w)
+		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
 			continue;
 		double Dist = m_Chain->GetDist(Pos, Pos2);
 		if (Dist < MinDist)
@@ -434,78 +434,66 @@ uint DSS::CalcNbr(uint Pos) const
 	return MinPos;
 	}
 
-uint DSS::GetNbr(uint Pos)
+uint DSS::GetNEN(uint Pos)
 	{
-	SetNbrs();
-	asserta(Pos < SIZE(m_Nbrs));
-	return m_Nbrs[Pos];
+	SetNENs();
+	asserta(Pos < SIZE(m_NENs));
+	return m_NENs[Pos];
 	}
 
-uint DSS::GetRevNbr(uint Pos)
+uint DSS::GetREN(uint Pos)
 	{
-	SetNbrs();
-	asserta(Pos < SIZE(m_RevNbrs));
-	return m_RevNbrs[Pos];
+	SetNENs();
+	asserta(Pos < SIZE(m_RENs));
+	return m_RENs[Pos];
 	}
 
-void DSS::SetNbrs()
+void DSS::SetNENs()
 	{
-	if (!m_Nbrs.empty())
+	if (!m_NENs.empty())
 		return;
 	const uint L = GetSeqLength();
-	m_Nbrs.reserve(L);
-	m_RevNbrs.reserve(L);
+	m_NENs.reserve(L);
+	m_RENs.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		uint Nbr = CalcNbr(Pos);
-		uint RevNbr = CalcRevNbr(Pos, Nbr);
-		m_Nbrs.push_back(Nbr);
-		m_RevNbrs.push_back(RevNbr);
+		uint NEN = CalcNEN(Pos);
+		uint REN = CalcREN(Pos, NEN);
+		m_NENs.push_back(NEN);
+		m_RENs.push_back(REN);
 		}
 	}
 
-uint DSS::Get_NbrSS(uint Pos)
+uint DSS::Get_NENSS(uint Pos)
 	{
 	SetSS();
-	SetNbrs();
-	uint Nbr = GetNbr(Pos);
-	if (Nbr == UINT_MAX)
+	SetNENs();
+	uint NEN = GetNEN(Pos);
+	if (NEN == UINT_MAX)
 		return SSCharToInt('~');
-	asserta(Nbr < SIZE(m_SS));
-	char c = m_SS[Nbr];
+	asserta(NEN < SIZE(m_SS));
+	char c = m_SS[NEN];
 	return SSCharToInt(c);
 	}
 
-uint DSS::Get_RevNbrSS(uint Pos)
+uint DSS::Get_RENSS(uint Pos)
 	{
 	SetSS();
-	SetNbrs();
-	uint Nbr = GetRevNbr(Pos);
-	if (Nbr == UINT_MAX)
+	SetNENs();
+	uint NEN = GetREN(Pos);
+	if (NEN == UINT_MAX)
 		return SSCharToInt('~');
-	asserta(Nbr < SIZE(m_SS));
-	char c = m_SS[Nbr];
+	asserta(NEN < SIZE(m_SS));
+	char c = m_SS[NEN];
 	return SSCharToInt(c);
 	}
 
-//uint DSS::Get_NbrSS3(uint Pos)
-//	{
-//	SetSS();
-//	SetNbrs();
-//	uint Nbr = GetNbr(Pos);
-//	if (Nbr == UINT_MAX)
-//		return SSCharToInt3('~');
-//	asserta(Nbr < SIZE(m_SS));
-//	char c = m_SS[Nbr];
-//	return SSCharToInt3(c);
-//	}
-
-double DSS::GetFloat_NbrDist(uint Pos)
+double DSS::GetFloat_NENDist(uint Pos)
 	{
-	uint Nbr = GetNbr(Pos);
-	if (Nbr == UINT_MAX)
-		return m_DefaultNbrDist;
-	double d = m_Chain->GetDist(Pos, Nbr);
+	uint NEN = GetNEN(Pos);
+	if (NEN == UINT_MAX)
+		return m_DefaultNENDist;
+	double d = m_Chain->GetDist(Pos, NEN);
 	return d;
 	}
 
@@ -525,12 +513,12 @@ double DSS::GetFloat_PMDist(uint Pos)
 	return d;
 	}
 
-double DSS::GetFloat_RevNbrDist(uint Pos)
+double DSS::GetFloat_RENDist(uint Pos)
 	{
-	uint Nbr = GetRevNbr(Pos);
-	if (Nbr == UINT_MAX)
-		return m_DefaultNbrDist;
-	double d = m_Chain->GetDist(Pos, Nbr);
+	uint NEN = GetREN(Pos);
+	if (NEN == UINT_MAX)
+		return m_DefaultNENDist;
+	double d = m_Chain->GetDist(Pos, NEN);
 	return d;
 	}
 
@@ -543,18 +531,18 @@ uint DSS::Get_NormDens4(uint Pos)
 	return ND/4;
 	}
 
-uint DSS::Get_NbrDist4(uint Pos)
+uint DSS::Get_NENDist4(uint Pos)
 	{
-	uint ND = GetFeature(FEATURE_NbrDist, Pos);
+	uint ND = GetFeature(FEATURE_NENDist, Pos);
 	if (ND == UINT_MAX)
 		return WILDCARD;
 	asserta(ND < 16);
 	return ND/4;
 	}
 
-uint DSS::Get_RevNbrDist4(uint Pos)
+uint DSS::Get_RENDist4(uint Pos)
 	{
-	uint ND = GetFeature(FEATURE_RevNbrDist, Pos);
+	uint ND = GetFeature(FEATURE_RENDist, Pos);
 	if (ND == UINT_MAX)
 		return WILDCARD;
 	asserta(ND < 16);
@@ -593,76 +581,76 @@ uint DSS::Get_AA4(uint Pos)
 	return WILDCARD;
 	}
 
-void DSS::GetComboLetters(uint ComboLetter, vector<uint> &Letters) const
+void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	{
 	Letters.clear();
-	uint n = SIZE(m_Params->m_ComboFeatures);
-	if (ComboLetter == UINT_MAX)
+	uint n = SIZE(m_Params->m_MuFeatures);
+	if (MuLetter == UINT_MAX)
 		{
 		for (uint i = 0; i < n; ++i)
 			Letters.push_back(UINT_MAX);
 		return;
 		}
 
-	uint CL = ComboLetter;
+	uint CL = MuLetter;
 	uint m = 1;
 	for (uint i = 0; i < n; ++i)
 		{
-		uint m = m_Params->m_ComboAlphaSizes[i];
+		uint m = m_Params->m_MuAlphaSizes[i];
 		uint Letter = CL%m;
 		Letters.push_back(Letter);
 		CL /= m;
 		}
 	}
 
-uint DSS::GetComboLetter(const vector<uint> &Letters) const
+uint DSS::GetMuLetter(const vector<uint> &Letters) const
 	{
-	uint n = SIZE(m_Params->m_ComboFeatures);
+	uint n = SIZE(m_Params->m_MuFeatures);
 	asserta(SIZE(Letters) == n);
-	uint ComboLetter = 0;
+	uint MuLetter = 0;
 	uint m = 1;
 	for (uint i = 0; i < n; ++i)
 		{
 		uint Letter = Letters[i];
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
-		ComboLetter = ComboLetter + m*Letter;
-		m *= m_Params->m_ComboAlphaSizes[i];
+		MuLetter = MuLetter + m*Letter;
+		m *= m_Params->m_MuAlphaSizes[i];
 		}
-	asserta(ComboLetter < m_Params->m_ComboAlphaSize);
-	return ComboLetter;
+	asserta(MuLetter < m_Params->m_MuAlphaSize);
+	return MuLetter;
 	}
 
-uint DSS::Get_Combo(uint Pos)
+uint DSS::Get_Mu(uint Pos)
 	{
-	uint ComboLetter = 0;
+	uint MuLetter = 0;
 	uint m = 1;
-	for (uint i = 0; i < SIZE(m_Params->m_ComboFeatures); ++i)
+	for (uint i = 0; i < SIZE(m_Params->m_MuFeatures); ++i)
 		{
-		uint Letter = GetFeature(m_Params->m_ComboFeatures[i], Pos);
+		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
-		ComboLetter = ComboLetter + m*Letter;
-		m *= m_Params->m_ComboAlphaSizes[i];
+		MuLetter = MuLetter + m*Letter;
+		m *= m_Params->m_MuAlphaSizes[i];
 		}
 
-	asserta(ComboLetter < m_Params->m_ComboAlphaSize);
-	return ComboLetter;
+	asserta(MuLetter < m_Params->m_MuAlphaSize);
+	return MuLetter;
 	}
 
-void DSS::GetComboLetters(vector<uint> &Letters)
+void DSS::GetMuLetters(vector<uint> &Letters)
 	{
 	Letters.clear();
 	const uint L = GetSeqLength();
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		uint Letter = GetFeature(FEATURE_Combo, Pos);
+		uint Letter = GetFeature(FEATURE_Mu, Pos);
 		asserta(Letter < m_PatternAlphaSize1 || Letter == UINT_MAX);
 		Letters.push_back(Letter);
 		}
 	}
 
-void DSS::GetComboKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
+void DSS::GetMuKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
 	{
 	const uint DictSize = 36*36;
 	const uint DictSizeWords = 1 + (DictSize - 1)/32;
@@ -683,12 +671,12 @@ void DSS::GetComboKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
 		}
 	}
 
-void DSS::GetComboKmers(const vector<byte> &Letters,
+void DSS::GetMuKmers(const vector<byte> &Letters,
   vector<uint> &Kmers)
 	{
 	Kmers.clear();
 	//vector<uint> Letters;
-	//GetComboLetters(Letters);
+	//GetMuLetters(Letters);
 	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
@@ -715,13 +703,13 @@ void DSS::GetComboKmers(const vector<byte> &Letters,
 		}
 	}
 
-void DSS::GetComboLetters(vector<byte> &Letters)
+void DSS::GetMuLetters(vector<byte> &Letters)
 	{
 	Letters.clear();
 	const uint L = GetSeqLength();
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		uint Letter = Get_Combo(Pos);
+		uint Letter = Get_Mu(Pos);
 		if (Letter == UINT_MAX)
 			Letter = 0;
 		asserta(Letter < 256);
@@ -775,26 +763,26 @@ uint DSS::GetAlphaSize(FEATURE F)
 		return 20;
 
 	case FEATURE_SS:
-	case FEATURE_NbrSS:
-	case FEATURE_RevNbrSS:
+	case FEATURE_NENSS:
+	case FEATURE_RENSS:
 	case FEATURE_NormDens4:
-	case FEATURE_NbrDist4:
-	case FEATURE_RevNbrDist4:
+	case FEATURE_NENDist4:
+	case FEATURE_RENDist4:
 	case FEATURE_AA4:
 		return 4;
 
 	case FEATURE_SS3:
-	case FEATURE_NbrSS3:
-	case FEATURE_RevNbrSS3:
+	case FEATURE_NENSS3:
+	case FEATURE_RENSS3:
 	case FEATURE_AA3:
 		return 3;
 
-	case FEATURE_MySS:
-	case FEATURE_NbrMySS:
-	case FEATURE_RevNbrMySS:
+	case FEATURE_Conf:
+	case FEATURE_NENConf:
+	case FEATURE_RENConf:
 	case FEATURE_NormDens:
-	case FEATURE_NbrDist:
-	case FEATURE_RevNbrDist:
+	case FEATURE_NENDist:
+	case FEATURE_RENDist:
 	case FEATURE_HelixDens:
 	case FEATURE_StrandDens:
 	case FEATURE_DstNxtHlx:
@@ -803,8 +791,8 @@ uint DSS::GetAlphaSize(FEATURE F)
 	case FEATURE_PMDist:
 		return 16;
 
-	case FEATURE_Combo:
-		return DSSParams::m_ComboAlphaSize;
+	case FEATURE_Mu:
+		return DSSParams::m_MuAlphaSize;
 		}
 	Die("GetAlphaSize(%s)", FeatureToStr(F));
 	return UINT_MAX;
@@ -813,7 +801,7 @@ uint DSS::GetAlphaSize(FEATURE F)
 void DSS::SetParams(const DSSParams &Params)
 	{
 	m_Params = &Params;
-	const uint AS = GetAlphaSize(FEATURE_Combo);
+	const uint AS = GetAlphaSize(FEATURE_Mu);
 	m_PatternAlphaSize1 = AS;
 	uint PatternOnes = GetPatternOnes(m_Params->m_PatternStr);
 	m_PatternAlphaSize = myipow(AS, PatternOnes);

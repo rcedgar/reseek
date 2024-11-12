@@ -32,7 +32,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	const uint DBChainCount = GetDBChainCount();
 
 	vector<vector<byte> > Profile1;
-	vector<byte> ComboLetters1;
+	vector<byte> MuLetters1;
 	vector<uint> Kmers1;
 	vector<uint> KmerBits1;
 
@@ -47,26 +47,26 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
 		if (m_Params->m_Omega > 0)
-			D.GetComboLetters(ComboLetters1);
+			D.GetMuLetters(MuLetters1);
 		if (m_Params->m_MinU > 0)
 			{
-			D.GetComboKmers(ComboLetters1, Kmers1);
-			D.GetComboKmerBits(Kmers1, KmerBits1);
+			D.GetMuKmers(MuLetters1, Kmers1);
+			D.GetMuKmerBits(Kmers1, KmerBits1);
 			}
 
-		const vector<byte> *ptrComboLetters1 = (ComboLetters1.empty() ? 0 : &ComboLetters1);
+		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrKmerBits1 = (KmerBits1.empty() ? 0 : &KmerBits1);
 		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA, D);
-		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrComboLetters1, SelfRevScore);
+		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrMuLetters1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
 			{
 			const PDBChain &Chain2 = *m_DBChains[DBChainIdx];
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
-			const vector<byte> *ptrComboLetters2 = (m_DBComboLettersVec.empty() ? 0 : m_DBComboLettersVec[DBChainIdx]);
+			const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[DBChainIdx]);
 			const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[DBChainIdx]);
 			float SelfRevScore = (m_DBSelfRevScores.empty() ? FLT_MAX : m_DBSelfRevScores[DBChainIdx]);
-			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrComboLetters2, SelfRevScore);
+			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, SelfRevScore);
 
 			DA.AlignQueryTarget();
 			if (!DA.m_Path.empty())

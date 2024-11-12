@@ -89,7 +89,7 @@ SSKMEAN( 15,       2712,      6.515,      7.566,      6.319,      5.675,      5.
 	}
 static bool g_InitDone = Init();
 
-static double MySS[16][16] = {
+static double Conf[16][16] = {
 //                   A           C           D           E           F           G           H           I           K           L           M           N           P           Q           R           S
 /*   A */ {      2.731,     0.5676,    -0.9645,     -1.992,    0.01539,     -2.716,     0.7432,     0.8708,     -1.487,     -1.101,     -0.928,     -1.114,    -0.8759,     0.2462,    -0.7739,    -0.9635}, // A
 /*   C */ {     0.5676,      2.548,     0.3908,     -1.252,     0.4374,     -2.252,     0.2289,     0.4025,    -0.4552,    -0.1668,    -0.1715,      -1.91,    0.06908,     0.1485,     0.5235,     -0.377}, // C
@@ -124,7 +124,7 @@ static double GetDist(
 	return sqrt(Sum2);
 	}
 
-static uint GetMySSLetter(const vector<double> &v)
+static uint GetConfLetter(const vector<double> &v)
 	{
 	asserta(SIZE(v) == M);
 	double MinDist = DBL_MAX;
@@ -159,47 +159,47 @@ static void Getv(const PDBChain &Chain, uint Pos,
 	asserta(SIZE(v) == M);
 	}
 
-uint DSS::Get_MySS(uint Pos)
+uint DSS::Get_Conf(uint Pos)
 	{
 	vector<double> v;
 	Getv(*m_Chain, Pos, v);
 	if (v.empty())
 		return WILDCARD;
-	uint Letter = GetMySSLetter(v);
+	uint Letter = GetConfLetter(v);
 	return Letter;
 	}
 
-uint DSS::Get_NbrMySS(uint Pos)
+uint DSS::Get_NENConf(uint Pos)
 	{
-	SetNbrs();
+	SetNENs();
 	vector<double> v;
-	uint Nbr = GetNbr(Pos);
-	if (Nbr == UINT_MAX)
+	uint NEN = GetNEN(Pos);
+	if (NEN == UINT_MAX)
 		return WILDCARD;
 
-	Getv(*m_Chain, Nbr, v);
+	Getv(*m_Chain, NEN, v);
 	if (v.empty())
 		return WILDCARD;
 
-	uint Letter = GetMySSLetter(v);
+	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
 		return WILDCARD;
 	return Letter;
 	}
 
-uint DSS::Get_RevNbrMySS(uint Pos)
+uint DSS::Get_RENConf(uint Pos)
 	{
-	SetNbrs();
+	SetNENs();
 	vector<double> v;
-	uint Nbr = GetRevNbr(Pos);
-	if (Nbr == UINT_MAX)
+	uint NEN = GetREN(Pos);
+	if (NEN == UINT_MAX)
 		return WILDCARD;
 
-	Getv(*m_Chain, Nbr, v);
+	Getv(*m_Chain, NEN, v);
 	if (v.empty())
 		return WILDCARD;
 
-	uint Letter = GetMySSLetter(v);
+	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
 		return WILDCARD;
 	asserta(Letter < 16);

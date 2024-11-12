@@ -11,23 +11,23 @@ void cmd_mu_mapping()
 
 	DSS D;
 	D.SetParams(Params);
-	//void GetComboLetters(uint ComboLetter, vector<uint> &Letters) const;
-	//uint GetComboLetter(const vector<uint> &Letters) const;
-	uint AS = Params.m_ComboAlphaSize;
-	const uint N = SIZE(Params.m_ComboFeatures);
+	//void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
+	//uint GetMuLetter(const vector<uint> &Letters) const;
+	uint AS = Params.m_MuAlphaSize;
+	const uint N = SIZE(Params.m_MuFeatures);
 	Log("Mu");
 	for (uint i = 0; i < N; ++i)
-		Log("\t%s", FeatureToStr(Params.m_ComboFeatures[i]));
+		Log("\t%s", FeatureToStr(Params.m_MuFeatures[i]));
 	Log("\n");
 
 	vector<uint> ASs;
 	for (uint i = 0; i < N; ++i)
-		ASs.push_back(DSS::GetAlphaSize(Params.m_ComboFeatures[i]));
+		ASs.push_back(DSS::GetAlphaSize(Params.m_MuFeatures[i]));
 
 	for (uint Letter = 0; Letter < AS; ++Letter)
 		{
 		vector<uint> Letters;
-		D.GetComboLetters(Letter, Letters);
+		D.GetMuLetters(Letter, Letters);
 		asserta(SIZE(Letters) == N);
 		char c = GetFeatureChar(Letter, AS);
 		Log("%c", c);

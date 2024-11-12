@@ -49,7 +49,7 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 	DSS D;
 	D.SetParams(*m_Params);
 	vector<uint> Order;
-	vector<byte> ComboLettersQ;
+	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
 	vector<uint> KmerBitsQ;
 	vector<vector<byte> > ProfileQ;
@@ -65,9 +65,9 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 		m_Lock.unlock();
 		const PDBChain &ChainQ = *ptrChainQ;
 		D.Init(ChainQ);
-		D.GetComboLetters(ComboLettersQ);
-		D.GetComboKmers(ComboLettersQ, KmersQ);
-		D.GetComboKmerBits(KmersQ, KmerBitsQ);
+		D.GetMuLetters(MuLettersQ);
+		D.GetMuKmers(MuLettersQ, KmersQ);
+		D.GetMuKmerBits(KmersQ, KmerBitsQ);
 		vector<uint> DBIdxs;
 		USort(KmerBitsQ, DBIdxs, Order);
 		const uint N = SIZE(Order);
@@ -88,10 +88,10 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 			const PDBChain &ChainR = *m_DBChains[ChainIndexR];
 			if (ChainQ.m_Label == ChainR.m_Label)
 				continue;
-			const vector<byte> &ComboLettersR = *m_DBComboLettersVec[ChainIndexR];
+			const vector<byte> &MuLettersR = *m_DBMuLettersVec[ChainIndexR];
 			const vector<vector<byte> > &ProfileR = *m_DBProfiles[ChainIndexR];
-			DA.Align_ComboFilter(ChainQ, ChainR, 
-			  ComboLettersQ, ComboLettersR, ProfileQ, ProfileR);
+			DA.Align_MuFilter(ChainQ, ChainR, 
+			  MuLettersQ, MuLettersR, ProfileQ, ProfileR);
 			if (DA.m_Path.empty())
 				continue;
 			if (DA.m_EvalueA > m_MaxEvalue)

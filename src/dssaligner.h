@@ -23,14 +23,14 @@ public:
 	const PDBChain *m_ChainB = 0;
 	const vector<vector<byte> > *m_ProfileA = 0;
 	const vector<vector<byte> > *m_ProfileB = 0;
-	const vector<byte> *m_ComboLettersA = 0;
-	const vector<byte> *m_ComboLettersB = 0;
-	const vector<uint> *m_ComboKmerBitsA = 0;
-	const vector<uint> *m_ComboKmerBitsB = 0;
-	vector<const float *> m_ProfCombo;
-	vector<const float *> m_ProfComboRev;
-	vector<const int8_t *> m_ProfComboi;
-	vector<const int8_t *> m_ProfComboRevi;
+	const vector<byte> *m_MuLettersA = 0;
+	const vector<byte> *m_MuLettersB = 0;
+	const vector<uint> *m_MuKmerBitsA = 0;
+	const vector<uint> *m_MuKmerBitsB = 0;
+	vector<const float *> m_ProfMu;
+	vector<const float *> m_ProfMuRev;
+	vector<const int8_t *> m_ProfMui;
+	vector<const int8_t *> m_ProfMuRevi;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
 
@@ -77,7 +77,7 @@ public:
 public:
 	static uint m_AlnCount;
 	static uint m_SWCount;
-	static uint m_ComboFilterCount;
+	static uint m_MuFilterCount;
 	static uint m_UFilterCount;
 	static uint m_ParasailSaturateCount;
 #if SCORE_DIST
@@ -91,47 +91,47 @@ public:
 	void SetQuery(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
-	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters,
+	  const vector<uint> *ptrMuKmerBits,
+	  const vector<byte> *ptrMuLetters,
 	  float SelfRevScore);
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
-	  const vector<uint> *ptrComboKmerBits,
-	  const vector<byte> *ptrComboLetters,
+	  const vector<uint> *ptrMuKmerBits,
+	  const vector<byte> *ptrMuLetters,
 	  float SelfRevScore);
 
-	float GetComboScore();
-	bool ComboFilter();
+	float GetMuScore();
+	bool MuFilter();
 	bool UFilter();
 	void ClearAlign();
-	void AlignComboOnly();
-	void AlignComboPath();
+	void AlignMuOnly();
+	void AlignMuPath();
 	void AlignQueryTarget();
 	void Align_Test(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
-	void Align_ComboFilter(
+	void Align_MuFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &ComboLettersA, const vector<byte> &ComboLettersB,
+	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void Align_NoAccel();
-	float AlignCombo(
+	float AlignMu(
 	  const vector<byte> &LettersA, const vector<byte> &LettersB,
 	  uint &LoA, uint &LoB, string &Path);
-	float AlignComboQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignComboQP_Para();
-	float AlignComboQP_Para_Path(uint &LoA, uint &LoB, string &Path);
-	float AlignCombo_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	float AlignMuQP_Para();
+	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
+	float AlignMu_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
-	float GetComboDPScorePath(const vector<byte> &LettersA,
+	float GetMuDPScorePath(const vector<byte> &LettersA,
 	  const vector<byte> &LettersB, uint LoA, uint LoB,
 	  float GapOpen, float GapExt, const string &Path) const;
-	int GetComboDPScorePathInt(const vector<byte> &ComboLettersA,
-	  const vector<byte> &ComboLettersB, uint LoA, uint LoB,
+	int GetMuDPScorePathInt(const vector<byte> &MuLettersA,
+	  const vector<byte> &MuLettersB, uint LoA, uint LoB,
 	  const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
@@ -143,11 +143,11 @@ public:
 	void CalcEvalue_AAOnly();
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();
-	void SetComboQP();
-	void SetComboQPi();
-	void SetComboQP_Para();
-	void SetSMx_Combo();
-	void SetSMx_Combo_Int();
+	void SetMuQP();
+	void SetMuQPi();
+	void SetMuQP_Para();
+	void SetSMx_Mu();
+	void SetSMx_Mu_Int();
 	void AllocDProw(uint LB);
 
 // Up is true  if alignment is Query=A, Target=B
