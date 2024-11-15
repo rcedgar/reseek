@@ -108,6 +108,10 @@ Don't worry about a warning something like this, it's expected:
 warning: Using 'dlopen' in statically linked applications requires
   at runtime the shared libraries from the glibc version used for linking
 </pre>
+### Pre-built databases
+
+[https://drive5.com/reseek/downloads.html](https://drive5.com/reseek/downloads.html)
+
 ### More documentation
 
 [https://drive5.com/reseek](https://drive5.com/reseek)
