@@ -67,6 +67,7 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
 	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
 	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
+	if (optset_pattern) { m_PatternStr = string(opt_pattern); Psa(m_Desc, " -pattern %s", opt_pattern); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",

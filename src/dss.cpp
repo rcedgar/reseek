@@ -671,16 +671,14 @@ void DSS::GetMuKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
 		}
 	}
 
-void DSS::GetMuKmers(const vector<byte> &Letters,
+void DSS::GetAaKmers(const vector<byte> &Letters,
   vector<uint> &Kmers)
 	{
 	Kmers.clear();
-	//vector<uint> Letters;
-	//GetMuLetters(Letters);
 	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
-	for (uint Pos = 0; Pos + PatternLength < L; ++Pos)
+	for (uint Pos = 0; Pos + PatternLength <= L; ++Pos)
 		{
 		uint Kmer = 0;
 		for (uint j = 0; j < PatternLength; ++j)
@@ -689,17 +687,58 @@ void DSS::GetMuKmers(const vector<byte> &Letters,
 				{
 				asserta(Pos + j < SIZE(Letters));
 				uint Letter = Letters[Pos + j];
-				if (Letter == UINT_MAX)
-					{
-					Kmer = UINT_MAX;
-					break;
-					}
-				assert(Letter < 36);
-				Kmer = Kmer*m_PatternAlphaSize1 + Letter;
+				assert(Letter < 20);
+				Kmer = Kmer*20 + Letter;
 				}
 			}
 		if (Kmer != UINT_MAX)
 			Kmers.push_back(Kmer);
+		}
+	}
+
+void DSS::GetMuKmers(const vector<byte> &Letters,
+  vector<uint> &Kmers)
+	{
+	Kmers.clear();
+	const string PatternStr = m_Params->m_PatternStr;
+	const uint PatternLength = SIZE(PatternStr);
+	const uint L = SIZE(Letters);
+	for (uint Pos = 0; Pos + PatternLength <= L; ++Pos)
+		{
+		uint Kmer = 0;
+		for (uint j = 0; j < PatternLength; ++j)
+			{
+			if (PatternStr[j] == '1')
+				{
+				asserta(Pos + j < SIZE(Letters));
+				uint Letter = Letters[Pos + j];
+				//if (Letter == UINT_MAX)
+				//	{
+				//	Kmer = UINT_MAX;
+				//	break;
+				//	}
+				assert(Letter < 36);
+				Kmer = Kmer*m_PatternAlphaSize1 + Letter;
+				}
+			}
+		//if (Kmer != UINT_MAX)
+		assert(Kmer != UINT_MAX);
+		Kmers.push_back(Kmer);
+		}
+	}
+
+void DSS::GetAaLetters(vector<byte> &Letters)
+	{
+	Letters.clear();
+	const uint L = GetSeqLength();
+	const string &Seq = m_Chain->m_Seq;
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		char c = Seq[Pos];
+		uint Letter = g_CharToLetterAmino[c];
+		if (Letter >= 20)
+			Letter = 0;
+		Letters.push_back(byte(Letter));
 		}
 	}
 

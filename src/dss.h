@@ -90,7 +90,10 @@ public:
 
 	void GetProfile(vector<vector<byte> > &Profile);
 	void GetMuLetters(vector<byte> &Letters);
+	void GetAaLetters(vector<byte> &Letters);
 	void GetMuKmers(const vector<byte> &MuLetters,
+	  vector<uint> &Kmers);
+	void GetAaKmers(const vector<byte> &AaLetters,
 	  vector<uint> &Kmers);
 	void GetMuKmerBits(const vector<uint> &Kmers,
 	  vector<uint> &Bits);

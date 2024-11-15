@@ -3,6 +3,7 @@
 
 struct Quarts
 	{
+	unsigned N;
 	unsigned Min;
 	unsigned LoQ;
 	unsigned Med;
@@ -48,7 +49,8 @@ struct Quarts
 
 	void LogMe() const
 		{
-		Log("Min=%u", Min);
+		Log("N=%u", N);
+		Log(", Min=%u", Min);
 		Log(", LoQ=%u", LoQ);
 		Log(", Med=%u", Med);
 		Log(", HiQ=%u", HiQ);
@@ -60,6 +62,7 @@ struct Quarts
 
 struct QuartsFloat
 	{
+	uint N;
 	float Min;
 	float LoQ;
 	float Med;
@@ -108,7 +111,8 @@ struct QuartsFloat
 
 	void LogMe() const
 		{
-		Log("Min=%.3g", Min);
+		Log("N=u", N);
+		Log(", Min=%.3g", Min);
 		Log(", LoQ=%.3g", LoQ);
 		Log(", Med=%.3g", Med);
 		Log(", HiQ=%.3g", HiQ);

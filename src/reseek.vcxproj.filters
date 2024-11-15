@@ -458,6 +458,15 @@
     <ClCompile Include="pdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="train_seeds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="seedtrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="train_seeds_scoredist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

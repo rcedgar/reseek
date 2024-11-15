@@ -231,6 +231,18 @@ void SeqDB::FromFasta_Seqs(const string &FileName,
 		Warning("%u / %u labels not found", EvalSeqCount - FoundCount, EvalSeqCount);
 	}
 
+void SeqDB::TruncLabels()
+	{
+	uint SeqCount = GetSeqCount();
+	for (unsigned SeqIndex = 0; SeqIndex < SeqCount; ++SeqIndex)
+		{
+		const string &Label = m_Labels[SeqIndex];
+		size_t n = Label.find(' ');
+		if (n != string::npos && n > 0)
+			m_Labels[SeqIndex][n] = 0;
+		}
+	}
+
 void SeqDB::FromFasta(const string& FileName, bool AllowGaps)
 	{
 	SFasta SF;

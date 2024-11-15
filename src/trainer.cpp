@@ -14,8 +14,10 @@ void Trainer::Init(
 	asserta(m_PosVecsQ.empty());
 	asserta(m_PosVecsR.empty());
 
+	ProgressLog("Reading %s\n", PairAlnFN.c_str());
 	m_PairAlnDB.FromFasta(PairAlnFN, true);
 
+	ProgressLog("Reading %s\n", ChainsFN.c_str());
 	ReadChains(ChainsFN, m_Chains);
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
@@ -51,6 +53,9 @@ void Trainer::Init(
 		const string &RRow = m_PairAlnDB.GetSeq(2*PairIndex+1);
 		const uint ColCount = SIZE(QRow);
 		asserta(SIZE(QRow) == SIZE(RRow));
+
+		m_RowsQ.push_back(QRow);
+		m_RowsR.push_back(RRow);
 
 		vector<uint> PosQs;
 		vector<uint> PosRs;
@@ -90,8 +95,49 @@ uint Trainer::GetPairCount() const
 	return PairCount;
 	}
 
-void Trainer::Scan(TRAINER_ONPAIR OnPair,
-  TRAINER_ONCOL OnCol) const
+void Trainer::EnumChainPairsT(TRAINER_ONPAIR_T OnPair)
+	{
+	const uint PairCount = GetPairCount();
+	uint SkippedCount = 0;
+	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
+		{
+		ProgressStep(PairIndex, PairCount, "Scanning T");
+		OnPair(*this, PairIndex);
+		}
+	}
+
+void Trainer::EnumChainPairsF(TRAINER_IS_TP IsTP, TRAINER_ONPAIR_F OnPair)
+	{
+	const uint PairCount = GetPairCount();
+	const uint ChainCount = GetChainCount();
+	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
+		{
+		uint ChainIdxQ = m_ChainIdxsQ[PairIndex];
+		uint ChainIdxR = UINT_MAX;
+		const string &LabelQ = GetLabel(ChainIdxQ);
+		ProgressStep(PairIndex, PairCount, "Scanning F");
+		for (uint Try = 0; ; ++Try)
+			{
+			assert(Try < 100);
+			ChainIdxR = randu32()%ChainCount;
+			if (ChainIdxR == ChainIdxQ)
+				continue;
+			const string &LabelR = GetLabel(ChainIdxR);
+			if (!IsTP(LabelQ, LabelR))
+				break;
+			}
+		OnPair(*this, ChainIdxQ, ChainIdxR);
+		}
+	}
+
+uint Trainer::GetSeqLength(uint ChainIdx) const
+	{
+	const PDBChain &Chain = GetChain(ChainIdx);
+	uint L = Chain.GetSeqLength();
+	return L;
+	}
+
+void Trainer::Scan(TRAINER_ONPAIR OnPair, TRAINER_ONCOL OnCol) const
 	{
 	const uint PairCount = GetPairCount();
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)

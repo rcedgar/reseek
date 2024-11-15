@@ -16,6 +16,14 @@ static uint GetUngappedLength(const string &Row)
 	return L;
 	}
 
+static void TruncLabel(string &Label)
+	{
+	size_t n = Label.find(' ');
+	if (n == string::npos || n == 0)
+		return;
+	Label.resize(n);
+	}
+
 static void TrainFeature(const string &FeatureName, const SeqDB &Input,
   const vector<PDBChain *> &Chains, LogOdds &LO)
 	{
@@ -54,11 +62,19 @@ static void TrainFeature(const string &FeatureName, const SeqDB &Input,
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
 		ProgressStep(PairIndex, PairCount, "Processing");
-		const string &QLabel = Input.GetLabel(2*PairIndex);
-		const string &RLabel = Input.GetLabel(2*PairIndex+1);
+		string QLabel = Input.GetLabel(2*PairIndex);
+		string RLabel = Input.GetLabel(2*PairIndex+1);
+		TruncLabel(QLabel);
+		TruncLabel(RLabel);
 
-		uint QChainIndex = DomToChainIndex[QLabel];
-		uint RChainIndex = DomToChainIndex[RLabel];
+		map<string, uint>::const_iterator iterq = DomToChainIndex.find(QLabel);
+		map<string, uint>::const_iterator iterr = DomToChainIndex.find(RLabel);
+		if (iterq == DomToChainIndex.end())
+			Die("Not found >%s", QLabel.c_str());
+		asserta(iterr != DomToChainIndex.end());
+
+		uint QChainIndex = iterq->second;
+		uint RChainIndex = iterr->second;
 
 		const PDBChain &QChain = *Chains[QChainIndex];
 		const PDBChain &RChain = *Chains[RChainIndex];

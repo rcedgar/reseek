@@ -369,6 +369,7 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
+    <ClCompile Include="seedtrainer.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />
@@ -385,6 +386,8 @@
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />
+    <ClCompile Include="train_seeds.cpp" />
+    <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="usort.cpp" />

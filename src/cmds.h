@@ -65,5 +65,7 @@ C(calibrate7)
 C(alignselfrev)
 C(alignpair)
 C(getchains)
+C(train_seeds)
+C(train_seeds_scoredist)
 
 #undef C

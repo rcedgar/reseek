@@ -1184,6 +1184,7 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 		case 'M':
 			{
 			asserta(PosA <= m_HiA);
+			asserta(PosB <= m_HiB);
 			Row += SeqA[PosA++];
 			++PosB;
 			break;
@@ -1241,6 +1242,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 			{
 		case 'M':
 			{
+			asserta(PosA <= m_HiA);
 			asserta(PosB <= m_HiB);
 			++PosA;
 			Row += SeqB[PosB++];
@@ -1250,6 +1252,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 		case 'D':
 			{
 			++PosA;
+			asserta(PosA <= m_HiA);
 			Row += '-';
 			break;
 			}
@@ -1257,7 +1260,6 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 		case 'I':
 			{
 			asserta(PosB <= m_HiB);
-			++PosA;
 			Row += SeqB[PosB++];
 			break;
 			}
@@ -1274,7 +1276,7 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 			++PosA;
 			}
 		while (PosA++ < LA)
-			Row += '-';
+			Row += '.';
 		}
 	}
 

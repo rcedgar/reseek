@@ -47,6 +47,7 @@ public:
 	void FromFasta_Seqs(const string &FileName, const SeqDB &Seqs, bool AllowGaps = false);
 	void WritePretty(FILE *f) const;
 	void LogMe() const;
+	void TruncLabels();
 
 private:
 	void SetIsNucleo();
