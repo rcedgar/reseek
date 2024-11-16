@@ -118,8 +118,7 @@ warning: Using 'dlopen' in statically linked applications requires
 
 ### Reference
 
-Edgar, Robert C. (2024) "Sequence alignment using large protein structure alphabets improves sensitivity to remote homologs" [https://www.biorxiv.org/content/10.1101/2024.05.24.595840v2](https://www.biorxiv.org/content/10.1101/2024.05.24.595840v2)
-
+Edgar, Robert C. (2024) "Protein structure alignment by reseek improves sensitivity to remote homologs" [https://doi.org/10.1093/bioinformatics/btae687](https://doi.org/10.1093/bioinformatics/btae687)
 
 ### SCOP40 benchmark code and results
 
