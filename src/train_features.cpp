@@ -190,11 +190,14 @@ static void WriteLO(FILE *f, const string &strName, const LogOdds &LO)
 
 void cmd_train_features()
 	{
+	optset_fast = true;
+	opt_fast = true;
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
+
 	vector<string> FeatureNames;
 	if (!optset_features)
 		{
-		DSSParams Params;
-		Params.SetFromCmdLine(10000);
 		for (uint i = 0; i < Params.GetFeatureCount(); ++i)
 			{
 			FEATURE F = Params.m_Features[i];

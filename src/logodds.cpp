@@ -6,7 +6,7 @@
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi)
 	{
 	asserta(fabs(x) <= maxabsf);
-	int i = int((x*maxabsi)/maxabsf);
+	int i = int(std::round((x*maxabsi)/maxabsf));
 	if (i > maxabsi)
 		i = maxabsi;
 	else if (i < -maxabsi)
@@ -44,6 +44,7 @@ void LogOdds::GetSymbol(uint Letter, string &s) const
 
 void LogOdds::Init(uint AlphaSize)
 	{
+	asserta(AlphaSize < 4096);
 	m_AlphaSize = AlphaSize;
 	m_TrueCountMx.clear();
 	m_Freqs.clear();
@@ -173,7 +174,8 @@ void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
 	Mxi.resize(m_AlphaSize);
 	double MaxAbs = 0;
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
-		MaxAbs = max(MaxAbs, Mxd[Letter1][Letter1]);
+		for (uint Letter2 = Letter1; Letter2 < m_AlphaSize; ++Letter2)
+			MaxAbs = max(MaxAbs, fabs(Mxd[Letter1][Letter2]));
 
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
 		{
@@ -181,7 +183,7 @@ void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
 		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
 			{
 			double d = Mxd[Letter1][Letter2];
-			int8_t i8 = FloatToInt8(d, MaxAbs, MaxAbsi);
+			int8_t i8 = FloatToInt8((float) d, (float) MaxAbs, MaxAbsi);
 			Mxi[Letter1][Letter2] = i8;
 			}
 		}
