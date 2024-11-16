@@ -96,7 +96,7 @@ cd src/; chmod +x build_linux_x86.bash ; ./build_linux_x86.bash
 
 #### Build from source on OSX x86
 <pre>
-cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
+cd src/; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 </pre>
 
 #### Build from source on Windows
