@@ -116,6 +116,35 @@ static void TrainFeature(const string &FeatureName, const SeqDB &Input,
 		}
 	}
 
+static void WriteLOInt8(FILE *f, const string &strName, const LogOdds &LO)
+	{
+	if (f == 0)
+		return;
+	const char *Name = strName.c_str();
+
+	vector<double> Freqs;
+	vector<vector<double> > PairFreqs;
+	vector<vector<double> > LogOddsScores;
+	const uint AS = LO.m_AlphaSize;
+	LO.GetBackgroundFreqs(Freqs);
+	LO.GetTrueFreqMx(PairFreqs);
+	double ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
+
+	vector<vector<int8_t> > LogOddsScoresi;
+	LO.GetLogOddsMxInt8(LogOddsScores, LogOddsScoresi, 8);
+
+	fprintf(f, "FEATURE\t%s\t%u\t%.3f\n", Name, AS, ExpectedScore);
+	asserta(SIZE(LogOddsScoresi) == AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		asserta(SIZE(LogOddsScores[i]) == AS);
+		fprintf(f, "S_ij\t%u", i);
+		for (uint j = 0; j < AS; ++j)
+			fprintf(f, "\t%d", LogOddsScoresi[i][j]);
+		fprintf(f, "\n");
+		}
+	}
+
 static void WriteLO(FILE *f, const string &strName, const LogOdds &LO)
 	{
 	if (f == 0)
@@ -184,11 +213,14 @@ void cmd_train_features()
 
 	const uint N = SIZE(FeatureNames);
 	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut2 = CreateStdioFile(opt_output2);
 	LogOdds LO;
 	for (uint i = 0; i < N; ++i)
 		{
 		TrainFeature(FeatureNames[i], Input, Chains, LO);
 		WriteLO(fOut, FeatureNames[i], LO);
+		WriteLOInt8(fOut2, FeatureNames[i], LO);
 		}
 	CloseStdioFile(fOut);
+	CloseStdioFile(fOut2);
 	}

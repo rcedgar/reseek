@@ -16,6 +16,8 @@ public:
 	void GetBackgroundFreqs(vector<double> &Freqs) const;
 	void GetTrueFreqMx(vector<vector<double> > &Mx) const;
 	double GetLogOddsMx(vector<vector<double> > &Mx) const;
+	void GetLogOddsMxInt8(vector<vector<double> > &Mxd,
+	  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const;
 	uint GetTrueTotal() const;
 	void MxToSrc(FILE *f, const string &Name, 
 	  const vector<vector<double> > &Mx) const;
@@ -25,3 +27,5 @@ public:
 	  const vector<double> &v) const;
 	void GetSymbol(uint Letter, string &s) const;
 	};
+
+int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi);

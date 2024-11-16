@@ -3,6 +3,19 @@
 #include "dssparams.h"
 #include "alpha.h"
 
+int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi)
+	{
+	asserta(fabs(x) <= maxabsf);
+	int i = int((x*maxabsi)/maxabsf);
+	if (i > maxabsi)
+		i = maxabsi;
+	else if (i < -maxabsi)
+		i = -maxabsi;
+	int8_t i8 = int8_t(i);
+	asserta(i8 == i);
+	return i8;
+	}
+
 void LogOdds::GetSymbol(uint Letter, string &s) const
 	{
 	s.clear();
@@ -151,6 +164,27 @@ double LogOdds::GetLogOddsMx(vector<vector<double> > &Mx) const
 		}
 	asserta(feq(SumFreq, 1.0));
 	return ExpectedScore;
+	}
+
+void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
+  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const
+	{
+	Mxi.clear();
+	Mxi.resize(m_AlphaSize);
+	double MaxAbs = 0;
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		MaxAbs = max(MaxAbs, Mxd[Letter1][Letter1]);
+
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		{
+		Mxi[Letter1].resize(m_AlphaSize);
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			double d = Mxd[Letter1][Letter2];
+			int8_t i8 = FloatToInt8(d, MaxAbs, MaxAbsi);
+			Mxi[Letter1][Letter2] = i8;
+			}
+		}
 	}
 
 void LogOdds::VecToSrc(FILE *f, const string &Name, 
