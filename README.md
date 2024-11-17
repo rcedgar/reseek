@@ -9,7 +9,8 @@ letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) dis
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
 
-![Reseek](http://drive5.com/images/reseek_readme.jpg)
+[<img src="https://drive5.com/reseek/youtube_snip.gif" width="150">](https://www.youtube.com/watch?v=BzIgqdm9xDs)
+![Reseek](https://drive5.com/images/reseek_readme.jpg)
 
 ### Command line
 <pre>
