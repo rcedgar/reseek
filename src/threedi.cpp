@@ -96,16 +96,46 @@ static void test_pair_score(const string &s, int should_be)
 		if (sc >= 78)
 			++nge78;
 		}
-	ProgressLog("Nbrs: %s = %3d (%3d)\n", s.c_str(), nge78, should_be);
+	ProgressLog("Nbrs: %s = %5d (%5d)\n", s.c_str(), nge78, should_be);
 	}
 
-// Foldseek high-scoring k-mer pair threshold kmerThr=78
-// min -69, max 40, maxd 40, avg -15.2
-// VVVVVV =  72 ( 72)
-// NVDDNV = 112 (112)
-// WDTRDD = 136 (136)
-// Randomly selected 6-mer pairs:
-//	min -358, max 188, avg -91.3, nge78=0.000342, npk=21912
+/***
+min -69, max 40, maxd 40, avg -15.2
+Randomly selected 6-mer pairs:
+	min -358, max 188, avg -91.3, nge78=0.000342, npk=21912
+***/
+
+/***
+Self: VVVVVV =  72 ( 72)
+Self: NVDDNV = 112 (112)
+Self: WDTRDD = 136 (136)
+***/
+
+/***
+Foldseek high-scoring k-mer pair threshold kmerThr=78
+
+Nbrs: CVPVVV =     5 (    0)
+Nbrs: VVVVCV =     1 (    0)
+Nbrs: SLVVVV =    38 (    1)
+Nbrs: VSVVCQ =   186 (   31)
+Nbrs: SVVVQA =   206 (   72)
+Nbrs: AVNPKD =  4660 ( 4660)
+Nbrs: VNPHDT =  4323 ( 4299)
+Nbrs: CQVNDH =  1891 ( 1118)
+***/
+
+/***
+ticks for k-mer neighborhood in foldseek
+ticks: std::chrono::high_resolution_clock::now() /auto elapsed = t1 - t0;
+
+30 37 41 45 46 46 47 49 54 54 55 59 66 111 111 124 124 127 131 132 134 138 147 157 
+160 171 176 193 199 201 216 218 224 225 226 237 239 244 245 246 250 253 255 261 266
+277 280 284 285 287 293 297 306 307 314 337 338 356 367 385 396 417 418 418 440 463
+489 505 549 616 618 631 647 689 690 711 726 782 810 863 866 878 911 922 942 976 978
+1005 1014 1112 1294 1362 1418 1436 1569 1757 1770 1831 1892 2110 2140 2340 2391 2557
+2690 2802 2815 2895 2984 3323 3705 3850 3864 3983 4070 4377 4852 5550 5645 5778 6342
+8857 12780 14104 14499 21780 48680 82394
+***/
 
 void cmd_threedi()
 	{
@@ -144,6 +174,9 @@ void cmd_threedi()
 	test_self_score("NVDDNV", 112);
 	test_self_score("WDTRDD", 136);
 
+	test_pair_score("CVPVVV", 0);
+	test_pair_score("VVVVCV", 0);
+	test_pair_score("SLVVVV", 1);
 	test_pair_score("VSVVCQ", 31);
 	test_pair_score("SVVVQA", 72);
 	test_pair_score("AVNPKD", 4660);
