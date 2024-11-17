@@ -9,7 +9,8 @@ letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) dis
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
 on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
 
-![Reseek](http://drive5.com/images/reseek_readme.jpg)
+[<img src="https://drive5.com/reseek/youtube_snip.gif" width="150">](https://www.youtube.com/watch?v=BzIgqdm9xDs)
+![Reseek](https://drive5.com/images/reseek_readme.jpg)
 
 ### Command line
 <pre>
@@ -96,7 +97,7 @@ cd src/; chmod +x build_linux_x86.bash ; ./build_linux_x86.bash
 
 #### Build from source on OSX x86
 <pre>
-cd src/; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
+cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 </pre>
 
 #### Build from source on Windows
@@ -108,17 +109,14 @@ Don't worry about a warning something like this, it's expected:
 warning: Using 'dlopen' in statically linked applications requires
   at runtime the shared libraries from the glibc version used for linking
 </pre>
-### Pre-built databases
-
-[https://drive5.com/reseek/downloads.html](https://drive5.com/reseek/downloads.html)
-
 ### More documentation
 
 [https://drive5.com/reseek](https://drive5.com/reseek)
 
 ### Reference
 
-Edgar, Robert C. (2024) "Protein structure alignment by reseek improves sensitivity to remote homologs" [https://doi.org/10.1093/bioinformatics/btae687](https://doi.org/10.1093/bioinformatics/btae687)
+Edgar, Robert C. (2024) "Sequence alignment using large protein structure alphabets improves sensitivity to remote homologs" [https://www.biorxiv.org/content/10.1101/2024.05.24.595840v2](https://www.biorxiv.org/content/10.1101/2024.05.24.595840v2)
+
 
 ### SCOP40 benchmark code and results
 
