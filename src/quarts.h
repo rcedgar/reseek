@@ -109,6 +109,19 @@ struct QuartsFloat
 		fprintf(f, "\n");
 		}
 
+	void ProgressLogMe() const
+		{
+		ProgressLog("N=u", N);
+		ProgressLog(", Min=%.3g", Min);
+		ProgressLog(", LoQ=%.3g", LoQ);
+		ProgressLog(", Med=%.3g", Med);
+		ProgressLog(", HiQ=%.3g", HiQ);
+		ProgressLog(", Max=%.3g", Max);
+		ProgressLog(", Avg=%.3g", Avg);
+		ProgressLog(", StdDev=%.3g", StdDev);
+		ProgressLog("\n");
+		}
+
 	void LogMe() const
 		{
 		Log("N=u", N);

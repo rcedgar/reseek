@@ -379,10 +379,12 @@
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="testmodel.cpp" />
     <ClCompile Include="testmodel2.cpp" />
+    <ClCompile Include="test_chrono_ticks.cpp" />
     <ClCompile Include="test_para.cpp" />
     <ClCompile Include="test_para_cal.cpp" />
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
+    <ClCompile Include="threedi.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />

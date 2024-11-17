@@ -1437,7 +1437,10 @@ const char *PctStr(double x, double y)
 		}
 	static char Str[SIZE_16];
 	double p = x*100.0/y;
-	snprintf(Str, SIZE_16, "%5.1f%%", p);
+	if (p < 0.1)
+		snprintf(Str, SIZE_16, "%.3g%%", p);
+	else
+		snprintf(Str, SIZE_16, "%5.1f%%", p);
 	return Str;
 	}
 

@@ -467,6 +467,12 @@
     <ClCompile Include="train_seeds_scoredist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_chrono_ticks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="threedi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
