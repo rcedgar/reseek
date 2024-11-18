@@ -202,10 +202,10 @@ static void TestNbr(MerMx &MM, const string &sKmer, uint FSn, uint FSTicks)
 
 	uint n_Brute = MM.GetHighScoring6mers_Brute(Kmer, 78, Kmers_Brute, true);
 
-	short *Work = myalloc(short, 2*MM.m_AS3);
+	//short *Work = myalloc(short, 2*MM.m_AS3);
 
 	auto c0 = std::chrono::high_resolution_clock::now();
-	uint n = MM.GetHighScoring6mers(Kmer, 78, Work, Kmers);
+	uint n = MM.GetHighScoring6mers(Kmer, 78, Kmers);
 	auto c1 = std::chrono::high_resolution_clock::now();
 	auto elapsed = c1 - c0;
 	uint32_t cticks = (uint32_t) elapsed.count();

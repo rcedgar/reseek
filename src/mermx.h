@@ -55,8 +55,7 @@ public:
 //   against another s-mer
 	short GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const;
 
-	uint GetHighScoring6mers(uint Kmer, short MinScore, short *Work, 
-							 uint *Kmers) const;
+	uint GetHighScoring6mers(uint Kmer, short MinScore, uint *Kmers) const;
 	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
 	};
