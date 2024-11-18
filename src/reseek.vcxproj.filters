@@ -473,6 +473,9 @@
     <ClCompile Include="threedi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mermx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -722,6 +725,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cmprof.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mermx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

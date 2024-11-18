@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "alpha.h"
 #include "quarts.h"
+#include "mermx.h"
 
 static int8_t threedi_substmx[20][20] = {
 { 24, -12, 4,8, 12, -8, -8, -29, -12, -12, -41, -20, -4, 4, -16, -29, -20, -25, 0, -8 }, // i=0
@@ -139,6 +140,19 @@ ticks: std::chrono::high_resolution_clock::now() /auto elapsed = t1 - t0;
 
 void cmd_threedi()
 	{
+	short **MxPtrs = myalloc(short *, 20);
+	for (uint i = 0; i < 20; ++i)
+		{
+		short *Row = myalloc(short, 20);
+		for (uint j = 0; j < 20; ++j)
+			Row[j] = threedi_substmx[i][j];
+		MxPtrs[i] = Row;
+		}
+	MerMx MM;
+	MM.Init(MxPtrs, 20);
+	MM.LogMe();
+	return;
+
 	int scmin = threedi_substmx[0][0];
 	int scmax = threedi_substmx[0][0];
 	int scmaxd = threedi_substmx[0][0];

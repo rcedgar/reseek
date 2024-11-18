@@ -312,6 +312,7 @@
     <ClCompile Include="lddt_msas.cpp" />
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
+    <ClCompile Include="mermx.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />
     <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_score.cpp" />
@@ -445,6 +446,7 @@
     <ClInclude Include="fasterf.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
+    <ClInclude Include="mermx.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
