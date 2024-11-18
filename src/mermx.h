@@ -1,13 +1,19 @@
 #pragma once
 
 // K-mer scoring matrix
+// First letter in K-mer is in most significant bits = Kmer/(AS^(k-1))
+// Last letter in K-mer is in least significant bits = Kmer%AS
 class MerMx
 	{
 public:
+// K-mer size
+	uint m_k = 6;
+
 // AS = alphabet size
 	uint m_AS = UINT_MAX;
 	uint m_AS2 = UINT_MAX;	// AS^2
 	uint m_AS3 = UINT_MAX;	// AS^3
+	uint *m_AS_pow = 0;		// m_AS_pow[i] == AS^i
 
 // AS x AS scoring matrix m_Mx[Letter_i][Letter_j]
 	const short * const *m_Mx = 0;
@@ -31,12 +37,26 @@ public:
 	uint *m_Order = 0;
 
 public:
-	void Init(short **Mx, uint AS);
+	void Init(short **Mx, uint k, uint AS);
 	void BuildRow2(uint Letter);
 	void BuildRow3(uint Letter);
-	short GetScore2(uint Kmer_i, uint Kmer_j) const;
-	short GetScore3(uint Kmer_i, uint Kmer_j) const;
+	short GetScoreKmerPair(uint Kmer_i, uint Kmer_j) const;
+	short GetScore2merPair(uint Kmer_i, uint Kmer_j) const;
+	short GetScore3merPair(uint Kmer_i, uint Kmer_j) const;
 	void KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const;
 	const char *KmerToStr(uint Kmer, uint k, string &s) const;
+	uint StrToKmer(const string &s) const;
 	void LogMe() const;
+
+// s-mer starting at position i in Kmer
+	uint GetSubmer(uint Kmer, uint s, uint i) const;
+
+// Max score of s-mer starting at position pos in Kmer
+//   against another s-mer
+	short GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const;
+
+	uint GetHighScoring6mers(uint Kmer, short MinScore, short *Work, 
+							 uint *Kmers) const;
+	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
+								   bool Trace = false) const;
 	};

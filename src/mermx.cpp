@@ -14,6 +14,22 @@ void MerMx::KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const
 		}
 	}
 
+uint MerMx::StrToKmer(const string &s) const
+	{
+	uint k = SIZE(s);
+	uint Kmer = 0;
+	for (uint i = 0; i < k; ++i)
+		{
+		Kmer *= m_AS;
+		byte c = s[i];
+		uint Letter = g_CharToLetterAmino[c];
+		asserta(Letter < m_AS);
+		Kmer += Letter;
+		}
+	string Tmp;
+	return Kmer;
+	}
+
 const char *MerMx::KmerToStr(uint Kmer, uint k, string &s) const
 	{
 	s.clear();
@@ -23,10 +39,27 @@ const char *MerMx::KmerToStr(uint Kmer, uint k, string &s) const
 		s.push_back(g_LetterToCharAmino[Letter]);
 		Kmer /= m_AS;
 		}
+	reverse(s.begin(), s.end());
 	return s.c_str();
 	}
 
-short MerMx::GetScore2(uint a_Kmer_i, uint a_Kmer_j) const
+short MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
+	{
+	uint Kmer_i = a_Kmer_i;
+	uint Kmer_j = a_Kmer_j;
+	int sum = 0;
+	for (uint i = 0; i < 6; ++i)
+		{
+		uint code1 = Kmer_i%20;
+		uint code2 = Kmer_j%20;
+		sum += m_Mx[code1][code2];
+		Kmer_i /= 20;
+		Kmer_j /= 20;
+		}
+	return sum;
+	}
+	
+short MerMx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
@@ -62,7 +95,7 @@ short MerMx::GetScore2(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-short MerMx::GetScore3(uint a_Kmer_i, uint a_Kmer_j) const
+short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
@@ -113,13 +146,25 @@ short MerMx::GetScore3(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-void MerMx::Init(short **Mx, uint AS)
+void MerMx::Init(short **Mx, uint k, uint AS)
 	{
+	asserta(k > 1 && k < 8);
+	m_k = k;
 	asserta(AS > 2 && AS < 4096);
 	m_Mx = Mx;
 	m_AS = AS;
 	m_AS2 = AS*AS;
 	m_AS3 = AS*AS*AS;
+
+	uint AS_pow = 1;
+	m_AS_pow = myalloc(uint, k+1);
+	for (uint i = 0; i <= k; ++i)
+		{
+		m_AS_pow[i] = AS_pow;
+		AS_pow *= AS;
+		}
+	asserta(m_AS2 == m_AS_pow[2]);
+	asserta(m_AS3 == m_AS_pow[3]);
 
 	m_Order = myalloc(uint, m_AS3);
 
@@ -158,7 +203,7 @@ void MerMx::BuildRow2(uint Kmer_i)
 
 	for (uint Kmer_j = 0; Kmer_j < m_AS2; ++Kmer_j)
 		{
-		short Score = GetScore2(Kmer_i, Kmer_j);
+		short Score = GetScore2merPair(Kmer_i, Kmer_j);
 		m_Mx2[Kmer_i][Kmer_j] = Score;
 		Scores.push_back(Score);
 		}
@@ -186,7 +231,7 @@ void MerMx::BuildRow3(uint Kmer_i)
 
 	for (uint Kmer_j = 0; Kmer_j < m_AS3; ++Kmer_j)
 		{
-		short Score = GetScore3(Kmer_i, Kmer_j);
+		short Score = GetScore3merPair(Kmer_i, Kmer_j);
 		m_Mx3[Kmer_i][Kmer_j] = Score;
 		Scores.push_back(Score);
 		}
@@ -272,4 +317,146 @@ void MerMx::LogMe() const
 			}
 		Log(" ... \n");
 		}
+	}
+
+uint MerMx::GetSubmer(uint a_Kmer, uint pos, uint s) const
+	{
+	string Tmp, Tmp1, Tmp2;
+	assert(pos + s <= m_k);
+	uint k_minus_pos = m_k - pos;
+	uint K_minus_pos_mer = a_Kmer%m_AS_pow[m_k - pos];
+	uint Smer = K_minus_pos_mer/m_AS_pow[k_minus_pos - s];
+	return Smer;
+	}
+
+short MerMx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
+	{
+	uint Smer = GetSubmer(Kmer, pos, s);
+	if (s == 2)
+		{
+		assert(Smer < m_AS2);
+		return m_Scores2[Smer][0];
+		}
+	else if (s == 3)
+		{
+		assert(Smer < m_AS3);
+		return m_Scores3[Smer][0];
+		}
+	else
+		Die("GetSelfScoreSubmer(s=%u)", s);
+	return 0;
+	}
+
+// Work buffer stores possible first 3mers of high-scoring Sixmer
+//	Work[2*i] is score of first 3mer against first 3mer in Sixmer
+//	Work[2*i+1] is i'th first 3mer
+uint MerMx::GetHighScoring6mers(uint Sixmer, short MinScore, short *Work, 
+								uint *Sixmers) const
+	{
+	string Tmp;
+	uint First_3mer = GetSubmer(Sixmer, 0, 3);
+	uint Second_3mer = GetSubmer(Sixmer, 3, 3);
+	short MaxScoreFirst_3mer = GetMaxPairScoreSubmer(Sixmer, 0, 3);
+	short MaxScoreSecond_3mer = GetMaxPairScoreSubmer(Sixmer, 3, 3);
+	short MinScoreFirstThreemer = MinScore - MaxScoreSecond_3mer;
+#if 0
+	{
+	Log("GetHighScoring6mers(%s)", KmerToStr(Sixmer, 6, Tmp));
+	Log(" first 3mer %s", KmerToStr(First_3mer, 3, Tmp));
+	Log(", second 3mer %s", KmerToStr(Second_3mer, 3, Tmp));
+	Log("; scores %d, %d\n", MaxScoreFirst_3mer, MaxScoreSecond_3mer);
+	Log("MinScoreFirstThreemer = %d\n", MinScoreFirstThreemer);
+	Log("\n");
+	}
+#endif
+	uint First3mer_Count = 0;
+	const short *Row = m_Scores3[First_3mer];
+#if 0
+	short LastScore = SHRT_MAX;
+#endif
+	for (uint i = 0; i < m_AS3; ++i)
+		{
+		short Score = Row[2*i];
+		if (Score < MinScoreFirstThreemer)
+			break;
+		uint Mer = Row[2*i + 1];
+		Work[2*First3mer_Count] = Score;
+		Work[2*First3mer_Count+1] = Mer;
+		++First3mer_Count;
+#if 0
+		{
+		Log(" %s(%d)", KmerToStr(Mer, 3, Tmp), Score);
+		short CheckScore = m_Mx2[First_3mer][Mer];
+		assert(CheckScore == Score);
+		assert(Score <= LastScore);
+		LastScore = Score;
+		}
+#endif
+		}
+#if 0
+	Log("\n");
+#endif
+
+	uint n = 0;
+	uint First_mul = m_AS_pow[3];
+	for (uint i = 0; i < First3mer_Count; ++i)
+		{
+		short Score_First3mer = Work[2*i];
+		uint First_3mer = Work[2*i+1];
+		const short *Row = m_Scores3[Second_3mer];
+		for (uint j = 0; j < m_AS3; ++j)
+			{
+			short Score_Second3mer = Row[2*j];
+			short TotalScore = Score_First3mer + Score_Second3mer;
+			if (TotalScore < MinScore)
+				break;
+			uint Second_3mer = Row[2*j+1];
+			uint ThisSixmer = First_3mer*First_mul + Second_3mer;
+#if DEBUG
+			{
+			short CheckScore = GetScoreKmerPair(Sixmer, ThisSixmer);
+			assert(CheckScore == Score);
+			}
+#endif
+#if 0
+			Log("%s", KmerToStr(First_3mer, 3, Tmp));
+			Log("+%s", KmerToStr(Second_3mer, 3, Tmp));
+			Log("=%s", KmerToStr(ThisSixmer, 6, Tmp));
+			Log(" score=%d", TotalScore);
+			Log(" ,%d", TotalScore);
+			Log("\n");
+#endif
+			Sixmers[n++] = ThisSixmer;
+			}
+#if 0
+	Log("\n");
+#endif
+		}
+#if 0
+	Log(" \n");
+#endif
+	return n;
+	}
+
+uint MerMx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers,
+									  bool Trace) const
+	{
+	uint n = 0;
+	uint DictSize = m_AS_pow[6];
+	for (uint Sixmer2 = 0; Sixmer2 < DictSize; ++Sixmer2)
+		{
+		short Score = GetScoreKmerPair(Sixmer, Sixmer2);
+		if (Score >= MinScore)
+			{
+			if (Trace)
+				{
+				string Tmp;
+				Log(" %s", KmerToStr(Sixmer2, 6, Tmp));
+				}
+			Sixmers[n++] = Sixmer2;
+			}
+		}
+	if (Trace)
+		Log("\n");
+	return n;
 	}

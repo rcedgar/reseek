@@ -2,6 +2,7 @@
 #include "alpha.h"
 #include "quarts.h"
 #include "mermx.h"
+#include <chrono>
 
 static int8_t threedi_substmx[20][20] = {
 { 24, -12, 4,8, 12, -8, -8, -29, -12, -12, -41, -20, -4, 4, -16, -29, -20, -25, 0, -8 }, // i=0
@@ -36,6 +37,7 @@ static char *kmer2str(uint kmer)
 		s[i] = g_LetterToCharAmino[kmer%20];
 		kmer /= 20;
 		}
+	return s;
 	}
 
 static uint str2kmer(const string &s)
@@ -85,7 +87,8 @@ static void test_self_score(const string &s, int should_be)
 	ProgressLog("Self: %s = %3d (%3d)\n", s.c_str(), sc, should_be);
 	}
 
-static void test_pair_score(const string &s, int should_be)
+static void test_pair_score(const string &s, int should_be,
+							bool Trace = false)
 	{
 	asserta(s.size() == 6);
 	uint kmer = str2kmer(s);
@@ -95,7 +98,11 @@ static void test_pair_score(const string &s, int should_be)
 		{
 		int sc = get_kmer_pair_score(kmer, kmer2);
 		if (sc >= 78)
+			{
+			if (Trace)
+				Log(" %s = %d\n", kmer2str(kmer2), sc);
 			++nge78;
+			}
 		}
 	ProgressLog("Nbrs: %s = %5d (%5d)\n", s.c_str(), nge78, should_be);
 	}
@@ -138,21 +145,8 @@ ticks: std::chrono::high_resolution_clock::now() /auto elapsed = t1 - t0;
 8857 12780 14104 14499 21780 48680 82394
 ***/
 
-void cmd_threedi()
+static void Test()
 	{
-	short **MxPtrs = myalloc(short *, 20);
-	for (uint i = 0; i < 20; ++i)
-		{
-		short *Row = myalloc(short, 20);
-		for (uint j = 0; j < 20; ++j)
-			Row[j] = threedi_substmx[i][j];
-		MxPtrs[i] = Row;
-		}
-	MerMx MM;
-	MM.Init(MxPtrs, 20);
-	MM.LogMe();
-	return;
-
 	int scmin = threedi_substmx[0][0];
 	int scmax = threedi_substmx[0][0];
 	int scmaxd = threedi_substmx[0][0];
@@ -191,9 +185,75 @@ void cmd_threedi()
 	test_pair_score("CVPVVV", 0);
 	test_pair_score("VVVVCV", 0);
 	test_pair_score("SLVVVV", 1);
-	test_pair_score("VSVVCQ", 31);
+	test_pair_score("VSVVCQ", 31, true);
 	test_pair_score("SVVVQA", 72);
 	test_pair_score("AVNPKD", 4660);
 	test_pair_score("VNPHDT", 4299);
 	test_pair_score("CQVNDH", 1118);
+	}
+
+static void TestNbr(MerMx &MM, const string &sKmer, uint FSn, uint FSTicks)
+	{
+	uint Kmer = MM.StrToKmer(sKmer);
+	uint DictSize = myipow(20, 6);
+
+	uint *Kmers = myalloc(uint, DictSize);
+	uint *Kmers_Brute = myalloc(uint, DictSize);
+
+	uint n_Brute = MM.GetHighScoring6mers_Brute(Kmer, 78, Kmers_Brute, true);
+
+	short *Work = myalloc(short, 2*MM.m_AS3);
+
+	auto c0 = std::chrono::high_resolution_clock::now();
+	uint n = MM.GetHighScoring6mers(Kmer, 78, Work, Kmers);
+	auto c1 = std::chrono::high_resolution_clock::now();
+	auto elapsed = c1 - c0;
+	uint32_t cticks = (uint32_t) elapsed.count();
+	ProgressLog("%s cticks=%u,%u, n=%u,%u\n",
+				sKmer.c_str(), cticks, FSTicks, n, FSn);
+	asserta(n == n_Brute);
+	}
+
+void cmd_threedi()
+	{
+	//Test();
+	//return;
+
+	short **MxPtrs = myalloc(short *, 20);
+	for (uint i = 0; i < 20; ++i)
+		{
+		short *Row = myalloc(short, 20);
+		for (uint j = 0; j < 20; ++j)
+			Row[j] = threedi_substmx[i][j];
+		MxPtrs[i] = Row;
+		}
+	MerMx MM;
+	MM.Init(MxPtrs, 6, 20);
+	//MM.LogMe();
+
+	//uint Kmer = MM.StrToKmer("SLVVVV");
+	//uint DictSize = myipow(20, 6);
+
+	//uint *Kmers = myalloc(uint, DictSize);
+	//uint *Kmers_Brute = myalloc(uint, DictSize);
+
+	//uint n_Brute = MM.GetHighScoring6mers_Brute(Kmer, 78, Kmers_Brute, true);
+	//ProgressLog("n_Brute=%u\n", n_Brute);
+
+	//short *Work = myalloc(short, 2*MM.m_AS3);
+
+	//auto c0 = std::chrono::high_resolution_clock::now();
+	//uint n = MM.GetHighScoring6mers(Kmer, 78, Work, Kmers);
+	//auto c1 = std::chrono::high_resolution_clock::now();
+	//auto elapsed = c1 - c0;
+	//uint32_t cticks = (uint32_t) elapsed.count();
+	//ProgressLog("cticks=%u, n=%u\n", cticks, n);
+
+	TestNbr(MM, "AVNPKD", 4660, 4020);
+	TestNbr(MM, "VNPHDT", 4299, 4017);
+	TestNbr(MM, "CQVNDH", 1118, 1429);
+	//TestNbr(MM, "VVLVVV", 0, 110);
+	//TestNbr(MM, "DLVVLV", 20, 321);
+	//TestNbr(MM, "ADVLVL", 131, 484);
+	//TestNbr(MM, "DDVSSN", 781, 1685);
 	}
