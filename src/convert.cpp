@@ -43,7 +43,7 @@ static FEATURE GetFeatureFromCmdLine()
 	//MuFeatures.push_back(FEATURE_NENSS3);
 	//MuFeatures.push_back(FEATURE_RENDist4);
 #define c(x, y)	if (stricmp(Alpha.c_str(), #x) == 0) Alpha = #y;
-	c(Mu, COMBO);
+	c(Mu, Mu);
 	c(Conf3, SS3);
 	c(NENSS3, NENSS3);
 	c(RENDist4, RENDist4);
@@ -192,6 +192,9 @@ void cmd_convert()
 	{
 	PDBFileScanner FS;
 	FS.Open(g_Arg1);
+
+	optset_fast = true;
+	opt_fast = true;
 
 	uint MinChainLength = 1;
 	if (optset_minchainlength)

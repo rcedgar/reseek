@@ -69,5 +69,6 @@ C(train_seeds)
 C(train_seeds_scoredist)
 C(test_chrono_ticks)
 C(threedi)
+C(mudex)
 
 #undef C

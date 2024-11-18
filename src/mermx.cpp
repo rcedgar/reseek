@@ -374,12 +374,6 @@ uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) con
 				break;
 			uint Second_3merb = Row2[2*j+1];
 			uint ThisSixmer = First_3merb*First_mul + Second_3merb;
-#if DEBUG
-			{
-			short CheckScore = GetScoreKmerPair(Sixmer, ThisSixmer);
-			assert(CheckScore == Score);
-			}
-#endif
 			Sixmers[n++] = ThisSixmer;
 			}
 		}

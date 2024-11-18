@@ -3287,3 +3287,522 @@ float g_AminoFreqs[20] =
 	0.0134f, // 'W' = Trp
 	0.0339f, // 'Y' = Tyr
 	};
+
+unsigned char g_CharToLetterMu[256] =
+	{
+	INVALID_CHAR, // [  0] 0x00
+	INVALID_CHAR, // [  1] 0x01
+	INVALID_CHAR, // [  2] 0x02
+	INVALID_CHAR, // [  3] 0x03
+	INVALID_CHAR, // [  4] 0x04
+	INVALID_CHAR, // [  5] 0x05
+	INVALID_CHAR, // [  6] 0x06
+	INVALID_CHAR, // [  7] 0x07
+	INVALID_CHAR, // [  8] 0x08
+	INVALID_CHAR, // [  9] 0x09
+	INVALID_CHAR, // [ 10] 0x0a
+	INVALID_CHAR, // [ 11] 0x0b
+	INVALID_CHAR, // [ 12] 0x0c
+	INVALID_CHAR, // [ 13] 0x0d
+	INVALID_CHAR, // [ 14] 0x0e
+	INVALID_CHAR, // [ 15] 0x0f
+	INVALID_CHAR, // [ 16] 0x10
+	INVALID_CHAR, // [ 17] 0x11
+	INVALID_CHAR, // [ 18] 0x12
+	INVALID_CHAR, // [ 19] 0x13
+	INVALID_CHAR, // [ 20] 0x14
+	INVALID_CHAR, // [ 21] 0x15
+	INVALID_CHAR, // [ 22] 0x16
+	INVALID_CHAR, // [ 23] 0x17
+	INVALID_CHAR, // [ 24] 0x18
+	INVALID_CHAR, // [ 25] 0x19
+	INVALID_CHAR, // [ 26] 0x1a
+	INVALID_CHAR, // [ 27] 0x1b
+	INVALID_CHAR, // [ 28] 0x1c
+	INVALID_CHAR, // [ 29] 0x1d
+	INVALID_CHAR, // [ 30] 0x1e
+	INVALID_CHAR, // [ 31] 0x1f
+	INVALID_CHAR, // [ 32]
+	INVALID_CHAR, // [ 33]
+	INVALID_CHAR, // [ 34]
+	INVALID_CHAR, // [ 35]
+	INVALID_CHAR, // [ 36]
+	INVALID_CHAR, // [ 37]
+	INVALID_CHAR, // [ 38]
+	INVALID_CHAR, // [ 39]
+	INVALID_CHAR, // [ 40]
+	INVALID_CHAR, // [ 41]
+	INVALID_CHAR, // [ 42]
+	INVALID_CHAR, // [ 43]
+	INVALID_CHAR, // [ 44]
+	INVALID_CHAR, // [ 45]
+	INVALID_CHAR, // [ 46]
+	INVALID_CHAR, // [ 47]
+	INVALID_CHAR, // [ 48]
+	INVALID_CHAR, // [ 49]
+	INVALID_CHAR, // [ 50]
+	INVALID_CHAR, // [ 51]
+	INVALID_CHAR, // [ 52]
+	INVALID_CHAR, // [ 53]
+	INVALID_CHAR, // [ 54]
+	INVALID_CHAR, // [ 55]
+	INVALID_CHAR, // [ 56]
+	INVALID_CHAR, // [ 57]
+	INVALID_CHAR, // [ 58]
+	INVALID_CHAR, // [ 59]
+	INVALID_CHAR, // [ 60]
+	INVALID_CHAR, // [ 61]
+	INVALID_CHAR, // [ 62]
+	INVALID_CHAR, // [ 63]
+	INVALID_CHAR, // [ 64]
+	0  ,         // [ 65] 'A'
+	1  ,         // [ 66] 'B'
+	2  ,         // [ 67] 'C'
+	3  ,         // [ 68] 'D'
+	4  ,         // [ 69] 'E'
+	5  ,         // [ 70] 'F'
+	6  ,         // [ 71] 'G'
+	7  ,         // [ 72] 'H'
+	8  ,         // [ 73] 'I'
+	9  ,         // [ 74] 'J'
+	11 ,         // [ 75] 'K'
+	10 ,         // [ 76] 'L'
+	12 ,         // [ 77] 'M'
+	13 ,         // [ 78] 'N'
+	14 ,         // [ 79] 'O'
+	15 ,         // [ 80] 'P'
+	16 ,         // [ 81] 'Q'
+	17 ,         // [ 82] 'R'
+	18 ,         // [ 83] 'S'
+	19 ,         // [ 84] 'T'
+	20 ,         // [ 85] 'U'
+	21 ,         // [ 86] 'V'
+	22 ,         // [ 87] 'W'
+	23 ,         // [ 88] 'X'
+	24 ,         // [ 89] 'Y'
+	25 ,         // [ 90] 'Z'
+	INVALID_CHAR, // [ 91]
+	INVALID_CHAR, // [ 92]
+	INVALID_CHAR, // [ 93]
+	INVALID_CHAR, // [ 94]
+	INVALID_CHAR, // [ 95]
+	INVALID_CHAR, // [ 96]
+	26 ,         // [ 97] 'a'
+	27 ,         // [ 98] 'b'
+	28 ,         // [ 99] 'c'
+	29 ,         // [100] 'd'
+	30 ,         // [101] 'e'
+	31 ,         // [102] 'f'
+	32 ,         // [103] 'g'
+	33 ,         // [104] 'h'
+	34 ,         // [105] 'i'
+	35 ,         // [106] 'j'
+	INVALID_CHAR, // [107]
+	INVALID_CHAR, // [108]
+	INVALID_CHAR, // [109]
+	INVALID_CHAR, // [110]
+	INVALID_CHAR, // [111]
+	INVALID_CHAR, // [112]
+	INVALID_CHAR, // [113]
+	INVALID_CHAR, // [114]
+	INVALID_CHAR, // [115]
+	INVALID_CHAR, // [116]
+	INVALID_CHAR, // [117]
+	INVALID_CHAR, // [118]
+	INVALID_CHAR, // [119]
+	INVALID_CHAR, // [120]
+	INVALID_CHAR, // [121]
+	INVALID_CHAR, // [122]
+	INVALID_CHAR, // [123]
+	INVALID_CHAR, // [124]
+	INVALID_CHAR, // [125]
+	INVALID_CHAR, // [126]
+	INVALID_CHAR, // [127] 0x7f
+	INVALID_CHAR, // [128] 0x80
+	INVALID_CHAR, // [129] 0x81
+	INVALID_CHAR, // [130] 0x82
+	INVALID_CHAR, // [131] 0x83
+	INVALID_CHAR, // [132] 0x84
+	INVALID_CHAR, // [133] 0x85
+	INVALID_CHAR, // [134] 0x86
+	INVALID_CHAR, // [135] 0x87
+	INVALID_CHAR, // [136] 0x88
+	INVALID_CHAR, // [137] 0x89
+	INVALID_CHAR, // [138] 0x8a
+	INVALID_CHAR, // [139] 0x8b
+	INVALID_CHAR, // [140] 0x8c
+	INVALID_CHAR, // [141] 0x8d
+	INVALID_CHAR, // [142] 0x8e
+	INVALID_CHAR, // [143] 0x8f
+	INVALID_CHAR, // [144] 0x90
+	INVALID_CHAR, // [145] 0x91
+	INVALID_CHAR, // [146] 0x92
+	INVALID_CHAR, // [147] 0x93
+	INVALID_CHAR, // [148] 0x94
+	INVALID_CHAR, // [149] 0x95
+	INVALID_CHAR, // [150] 0x96
+	INVALID_CHAR, // [151] 0x97
+	INVALID_CHAR, // [152] 0x98
+	INVALID_CHAR, // [153] 0x99
+	INVALID_CHAR, // [154] 0x9a
+	INVALID_CHAR, // [155] 0x9b
+	INVALID_CHAR, // [156] 0x9c
+	INVALID_CHAR, // [157] 0x9d
+	INVALID_CHAR, // [158] 0x9e
+	INVALID_CHAR, // [159] 0x9f
+	INVALID_CHAR, // [160] 0xa0
+	INVALID_CHAR, // [161] 0xa1
+	INVALID_CHAR, // [162] 0xa2
+	INVALID_CHAR, // [163] 0xa3
+	INVALID_CHAR, // [164] 0xa4
+	INVALID_CHAR, // [165] 0xa5
+	INVALID_CHAR, // [166] 0xa6
+	INVALID_CHAR, // [167] 0xa7
+	INVALID_CHAR, // [168] 0xa8
+	INVALID_CHAR, // [169] 0xa9
+	INVALID_CHAR, // [170] 0xaa
+	INVALID_CHAR, // [171] 0xab
+	INVALID_CHAR, // [172] 0xac
+	INVALID_CHAR, // [173] 0xad
+	INVALID_CHAR, // [174] 0xae
+	INVALID_CHAR, // [175] 0xaf
+	INVALID_CHAR, // [176] 0xb0
+	INVALID_CHAR, // [177] 0xb1
+	INVALID_CHAR, // [178] 0xb2
+	INVALID_CHAR, // [179] 0xb3
+	INVALID_CHAR, // [180] 0xb4
+	INVALID_CHAR, // [181] 0xb5
+	INVALID_CHAR, // [182] 0xb6
+	INVALID_CHAR, // [183] 0xb7
+	INVALID_CHAR, // [184] 0xb8
+	INVALID_CHAR, // [185] 0xb9
+	INVALID_CHAR, // [186] 0xba
+	INVALID_CHAR, // [187] 0xbb
+	INVALID_CHAR, // [188] 0xbc
+	INVALID_CHAR, // [189] 0xbd
+	INVALID_CHAR, // [190] 0xbe
+	INVALID_CHAR, // [191] 0xbf
+	INVALID_CHAR, // [192] 0xc0
+	INVALID_CHAR, // [193] 0xc1
+	INVALID_CHAR, // [194] 0xc2
+	INVALID_CHAR, // [195] 0xc3
+	INVALID_CHAR, // [196] 0xc4
+	INVALID_CHAR, // [197] 0xc5
+	INVALID_CHAR, // [198] 0xc6
+	INVALID_CHAR, // [199] 0xc7
+	INVALID_CHAR, // [200] 0xc8
+	INVALID_CHAR, // [201] 0xc9
+	INVALID_CHAR, // [202] 0xca
+	INVALID_CHAR, // [203] 0xcb
+	INVALID_CHAR, // [204] 0xcc
+	INVALID_CHAR, // [205] 0xcd
+	INVALID_CHAR, // [206] 0xce
+	INVALID_CHAR, // [207] 0xcf
+	INVALID_CHAR, // [208] 0xd0
+	INVALID_CHAR, // [209] 0xd1
+	INVALID_CHAR, // [210] 0xd2
+	INVALID_CHAR, // [211] 0xd3
+	INVALID_CHAR, // [212] 0xd4
+	INVALID_CHAR, // [213] 0xd5
+	INVALID_CHAR, // [214] 0xd6
+	INVALID_CHAR, // [215] 0xd7
+	INVALID_CHAR, // [216] 0xd8
+	INVALID_CHAR, // [217] 0xd9
+	INVALID_CHAR, // [218] 0xda
+	INVALID_CHAR, // [219] 0xdb
+	INVALID_CHAR, // [220] 0xdc
+	INVALID_CHAR, // [221] 0xdd
+	INVALID_CHAR, // [222] 0xde
+	INVALID_CHAR, // [223] 0xdf
+	INVALID_CHAR, // [224] 0xe0
+	INVALID_CHAR, // [225] 0xe1
+	INVALID_CHAR, // [226] 0xe2
+	INVALID_CHAR, // [227] 0xe3
+	INVALID_CHAR, // [228] 0xe4
+	INVALID_CHAR, // [229] 0xe5
+	INVALID_CHAR, // [230] 0xe6
+	INVALID_CHAR, // [231] 0xe7
+	INVALID_CHAR, // [232] 0xe8
+	INVALID_CHAR, // [233] 0xe9
+	INVALID_CHAR, // [234] 0xea
+	INVALID_CHAR, // [235] 0xeb
+	INVALID_CHAR, // [236] 0xec
+	INVALID_CHAR, // [237] 0xed
+	INVALID_CHAR, // [238] 0xee
+	INVALID_CHAR, // [239] 0xef
+	INVALID_CHAR, // [240] 0xf0
+	INVALID_CHAR, // [241] 0xf1
+	INVALID_CHAR, // [242] 0xf2
+	INVALID_CHAR, // [243] 0xf3
+	INVALID_CHAR, // [244] 0xf4
+	INVALID_CHAR, // [245] 0xf5
+	INVALID_CHAR, // [246] 0xf6
+	INVALID_CHAR, // [247] 0xf7
+	INVALID_CHAR, // [248] 0xf8
+	INVALID_CHAR, // [249] 0xf9
+	INVALID_CHAR, // [250] 0xfa
+	INVALID_CHAR, // [251] 0xfb
+	INVALID_CHAR, // [252] 0xfc
+	INVALID_CHAR, // [253] 0xfd
+	INVALID_CHAR, // [254] 0xfe
+	INVALID_CHAR, // [255] 0xff
+	};
+unsigned char g_LetterToCharMu[256] =
+	{
+	'A',           // [0]
+	'B',           // [1]
+	'C',           // [2]
+	'D',           // [3]
+	'E',           // [4]
+	'F',           // [5]
+	'G',           // [6]
+	'H',           // [7]
+	'I',           // [8]
+	'J',           // [9]
+	'L',           // [10]
+	'K',           // [11]
+	'M',           // [12]
+	'N',           // [13]
+	'O',           // [14]
+	'P',           // [15]
+	'Q',           // [16]
+	'R',           // [17]
+	'S',           // [18]
+	'T',           // [19]
+	'U',           // [20]
+	'V',           // [21]
+	'W',           // [22]
+	'X',           // [23]
+	'Y',           // [24]
+	'Z',           // [25]
+	'a',           // [26]
+	'b',           // [27]
+	'c',           // [28]
+	'd',           // [29]
+	'e',           // [30]
+	'f',           // [31]
+	'g',           // [32]
+	'h',           // [33]
+	'i',           // [34]
+	'j',           // [35]
+	INVALID_LETTER, // [36]
+	INVALID_LETTER, // [37]
+	INVALID_LETTER, // [38]
+	INVALID_LETTER, // [39]
+	INVALID_LETTER, // [40]
+	INVALID_LETTER, // [41]
+	INVALID_LETTER, // [42]
+	INVALID_LETTER, // [43]
+	INVALID_LETTER, // [44]
+	INVALID_LETTER, // [45]
+	INVALID_LETTER, // [46]
+	INVALID_LETTER, // [47]
+	INVALID_LETTER, // [48]
+	INVALID_LETTER, // [49]
+	INVALID_LETTER, // [50]
+	INVALID_LETTER, // [51]
+	INVALID_LETTER, // [52]
+	INVALID_LETTER, // [53]
+	INVALID_LETTER, // [54]
+	INVALID_LETTER, // [55]
+	INVALID_LETTER, // [56]
+	INVALID_LETTER, // [57]
+	INVALID_LETTER, // [58]
+	INVALID_LETTER, // [59]
+	INVALID_LETTER, // [60]
+	INVALID_LETTER, // [61]
+	INVALID_LETTER, // [62]
+	INVALID_LETTER, // [63]
+	INVALID_LETTER, // [64]
+	INVALID_LETTER, // [65]
+	INVALID_LETTER, // [66]
+	INVALID_LETTER, // [67]
+	INVALID_LETTER, // [68]
+	INVALID_LETTER, // [69]
+	INVALID_LETTER, // [70]
+	INVALID_LETTER, // [71]
+	INVALID_LETTER, // [72]
+	INVALID_LETTER, // [73]
+	INVALID_LETTER, // [74]
+	INVALID_LETTER, // [75]
+	INVALID_LETTER, // [76]
+	INVALID_LETTER, // [77]
+	INVALID_LETTER, // [78]
+	INVALID_LETTER, // [79]
+	INVALID_LETTER, // [80]
+	INVALID_LETTER, // [81]
+	INVALID_LETTER, // [82]
+	INVALID_LETTER, // [83]
+	INVALID_LETTER, // [84]
+	INVALID_LETTER, // [85]
+	INVALID_LETTER, // [86]
+	INVALID_LETTER, // [87]
+	INVALID_LETTER, // [88]
+	INVALID_LETTER, // [89]
+	INVALID_LETTER, // [90]
+	INVALID_LETTER, // [91]
+	INVALID_LETTER, // [92]
+	INVALID_LETTER, // [93]
+	INVALID_LETTER, // [94]
+	INVALID_LETTER, // [95]
+	INVALID_LETTER, // [96]
+	INVALID_LETTER, // [97]
+	INVALID_LETTER, // [98]
+	INVALID_LETTER, // [99]
+	INVALID_LETTER, // [100]
+	INVALID_LETTER, // [101]
+	INVALID_LETTER, // [102]
+	INVALID_LETTER, // [103]
+	INVALID_LETTER, // [104]
+	INVALID_LETTER, // [105]
+	INVALID_LETTER, // [106]
+	INVALID_LETTER, // [107]
+	INVALID_LETTER, // [108]
+	INVALID_LETTER, // [109]
+	INVALID_LETTER, // [110]
+	INVALID_LETTER, // [111]
+	INVALID_LETTER, // [112]
+	INVALID_LETTER, // [113]
+	INVALID_LETTER, // [114]
+	INVALID_LETTER, // [115]
+	INVALID_LETTER, // [116]
+	INVALID_LETTER, // [117]
+	INVALID_LETTER, // [118]
+	INVALID_LETTER, // [119]
+	INVALID_LETTER, // [120]
+	INVALID_LETTER, // [121]
+	INVALID_LETTER, // [122]
+	INVALID_LETTER, // [123]
+	INVALID_LETTER, // [124]
+	INVALID_LETTER, // [125]
+	INVALID_LETTER, // [126]
+	INVALID_LETTER, // [127]
+	INVALID_LETTER, // [128]
+	INVALID_LETTER, // [129]
+	INVALID_LETTER, // [130]
+	INVALID_LETTER, // [131]
+	INVALID_LETTER, // [132]
+	INVALID_LETTER, // [133]
+	INVALID_LETTER, // [134]
+	INVALID_LETTER, // [135]
+	INVALID_LETTER, // [136]
+	INVALID_LETTER, // [137]
+	INVALID_LETTER, // [138]
+	INVALID_LETTER, // [139]
+	INVALID_LETTER, // [140]
+	INVALID_LETTER, // [141]
+	INVALID_LETTER, // [142]
+	INVALID_LETTER, // [143]
+	INVALID_LETTER, // [144]
+	INVALID_LETTER, // [145]
+	INVALID_LETTER, // [146]
+	INVALID_LETTER, // [147]
+	INVALID_LETTER, // [148]
+	INVALID_LETTER, // [149]
+	INVALID_LETTER, // [150]
+	INVALID_LETTER, // [151]
+	INVALID_LETTER, // [152]
+	INVALID_LETTER, // [153]
+	INVALID_LETTER, // [154]
+	INVALID_LETTER, // [155]
+	INVALID_LETTER, // [156]
+	INVALID_LETTER, // [157]
+	INVALID_LETTER, // [158]
+	INVALID_LETTER, // [159]
+	INVALID_LETTER, // [160]
+	INVALID_LETTER, // [161]
+	INVALID_LETTER, // [162]
+	INVALID_LETTER, // [163]
+	INVALID_LETTER, // [164]
+	INVALID_LETTER, // [165]
+	INVALID_LETTER, // [166]
+	INVALID_LETTER, // [167]
+	INVALID_LETTER, // [168]
+	INVALID_LETTER, // [169]
+	INVALID_LETTER, // [170]
+	INVALID_LETTER, // [171]
+	INVALID_LETTER, // [172]
+	INVALID_LETTER, // [173]
+	INVALID_LETTER, // [174]
+	INVALID_LETTER, // [175]
+	INVALID_LETTER, // [176]
+	INVALID_LETTER, // [177]
+	INVALID_LETTER, // [178]
+	INVALID_LETTER, // [179]
+	INVALID_LETTER, // [180]
+	INVALID_LETTER, // [181]
+	INVALID_LETTER, // [182]
+	INVALID_LETTER, // [183]
+	INVALID_LETTER, // [184]
+	INVALID_LETTER, // [185]
+	INVALID_LETTER, // [186]
+	INVALID_LETTER, // [187]
+	INVALID_LETTER, // [188]
+	INVALID_LETTER, // [189]
+	INVALID_LETTER, // [190]
+	INVALID_LETTER, // [191]
+	INVALID_LETTER, // [192]
+	INVALID_LETTER, // [193]
+	INVALID_LETTER, // [194]
+	INVALID_LETTER, // [195]
+	INVALID_LETTER, // [196]
+	INVALID_LETTER, // [197]
+	INVALID_LETTER, // [198]
+	INVALID_LETTER, // [199]
+	INVALID_LETTER, // [200]
+	INVALID_LETTER, // [201]
+	INVALID_LETTER, // [202]
+	INVALID_LETTER, // [203]
+	INVALID_LETTER, // [204]
+	INVALID_LETTER, // [205]
+	INVALID_LETTER, // [206]
+	INVALID_LETTER, // [207]
+	INVALID_LETTER, // [208]
+	INVALID_LETTER, // [209]
+	INVALID_LETTER, // [210]
+	INVALID_LETTER, // [211]
+	INVALID_LETTER, // [212]
+	INVALID_LETTER, // [213]
+	INVALID_LETTER, // [214]
+	INVALID_LETTER, // [215]
+	INVALID_LETTER, // [216]
+	INVALID_LETTER, // [217]
+	INVALID_LETTER, // [218]
+	INVALID_LETTER, // [219]
+	INVALID_LETTER, // [220]
+	INVALID_LETTER, // [221]
+	INVALID_LETTER, // [222]
+	INVALID_LETTER, // [223]
+	INVALID_LETTER, // [224]
+	INVALID_LETTER, // [225]
+	INVALID_LETTER, // [226]
+	INVALID_LETTER, // [227]
+	INVALID_LETTER, // [228]
+	INVALID_LETTER, // [229]
+	INVALID_LETTER, // [230]
+	INVALID_LETTER, // [231]
+	INVALID_LETTER, // [232]
+	INVALID_LETTER, // [233]
+	INVALID_LETTER, // [234]
+	INVALID_LETTER, // [235]
+	INVALID_LETTER, // [236]
+	INVALID_LETTER, // [237]
+	INVALID_LETTER, // [238]
+	INVALID_LETTER, // [239]
+	INVALID_LETTER, // [240]
+	INVALID_LETTER, // [241]
+	INVALID_LETTER, // [242]
+	INVALID_LETTER, // [243]
+	INVALID_LETTER, // [244]
+	INVALID_LETTER, // [245]
+	INVALID_LETTER, // [246]
+	INVALID_LETTER, // [247]
+	INVALID_LETTER, // [248]
+	INVALID_LETTER, // [249]
+	INVALID_LETTER, // [250]
+	INVALID_LETTER, // [251]
+	INVALID_LETTER, // [252]
+	INVALID_LETTER, // [253]
+	INVALID_LETTER, // [254]
+	INVALID_LETTER, // [255]
+	};

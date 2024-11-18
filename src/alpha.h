@@ -20,6 +20,8 @@ extern unsigned char g_CodonWordToAminoLetter[];
 extern unsigned char g_CodonWordToAminoChar[];
 extern unsigned char g_CharToCompChar[];
 extern unsigned char g_CharToCompLetter[];
+extern unsigned char g_CharToLetterMu[];
+extern unsigned char g_LetterToCharMu[];
 
 extern bool g_IsAminoChar[];
 extern bool g_IsNucleoChar[];

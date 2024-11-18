@@ -55,7 +55,7 @@ struct Quarts
 		Log(", Med=%u", Med);
 		Log(", HiQ=%u", HiQ);
 		Log(", Max=%u", Max);
-		Log(", Avg=%.1f", Avg);
+		Log(", Avg=%3g", Avg);
 		Log("\n");
 		}
 	};
@@ -137,6 +137,7 @@ struct QuartsFloat
 	};
 
 void GetQuarts(const vector<unsigned> &v, Quarts &Q);
+void GetQuarts(const unsigned *v, uint N, Quarts &Q);
 void GetQuartsFloat(const vector<float> &v, QuartsFloat &Q);
 
 #endif // quarts_h

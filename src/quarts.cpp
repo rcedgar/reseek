@@ -31,6 +31,14 @@ void GetQuarts(const vector<unsigned> &v, Quarts &Q)
 	Q.Avg = float(Q.Total)/N;
 	}
 
+void GetQuarts(const unsigned *v, uint N, Quarts &Q)
+	{
+	vector<uint> v2;
+	for (uint i = 0; i < N; ++i)
+		v2.push_back(v[i]);
+	GetQuarts(v2, Q);
+	}
+
 void GetQuartsFloat(const vector<float> &v, QuartsFloat &Q)
 	{
 	const unsigned N = SIZE(v);

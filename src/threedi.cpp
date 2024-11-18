@@ -249,9 +249,11 @@ void cmd_threedi()
 	//uint32_t cticks = (uint32_t) elapsed.count();
 	//ProgressLog("cticks=%u, n=%u\n", cticks, n);
 
-	TestNbr(MM, "AVNPKD", 4660, 4020);
-	TestNbr(MM, "VNPHDT", 4299, 4017);
-	TestNbr(MM, "CQVNDH", 1118, 1429);
+	TestNbr(MM, "PALVVV", 18, 9999);
+	//TestNbr(MM, "AVNPKD", 4660, 4020);
+	//TestNbr(MM, "VNPHDT", 4299, 4017);
+	//TestNbr(MM, "CQVNDH", 1118, 1429);
+
 	//TestNbr(MM, "VVLVVV", 0, 110);
 	//TestNbr(MM, "DLVVLV", 20, 321);
 	//TestNbr(MM, "ADVLVL", 131, 484);
