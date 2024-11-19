@@ -159,6 +159,16 @@ void cmd_mudex()
 		if (L >= 5)
 			SumL4 += L - 4;
 		}
+
+	MD.Alloc_Pass2();
+	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
+		{
+		ProgressStep(SeqIdx, SeqCount, "Pass 2");
+		const string &Seq = Input.GetSeq(SeqIdx);
+		const uint L = SIZE(Seq);
+		MD.AddSeq_Pass2(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
+		}
+
 	MD.LogStats();
 	Log("SumL = %u %u\n", SumL, SumL4);
 	}
