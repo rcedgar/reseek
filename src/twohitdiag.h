@@ -38,7 +38,7 @@ public:
 	static const uint32_t m_DiagShift = 10;
 	static const uint32_t m_FixedEntriesPerRdx = 16;
 	static const uint32_t m_OverflowPointerBytes = sizeof(uint8_t *);
-	static const uint32_t m_ItemSize = 8;
+	static const uint32_t m_ItemSize = 6;
 	static const uint32_t m_FixedBytes = 
 		m_NrRdxs*m_FixedEntriesPerRdx*m_ItemSize; // 2097152 (2 M)
 
@@ -49,7 +49,7 @@ public:
 	list<uint8_t *> **m_Overflows = 0;
 	uint32_t *m_Sizes = 0;
 
-// Vector of size m_BusyRdxCount <= m_NrRdxs
+// Vector of size m_BusyCount <= m_NrRdxs
 	uint32_t *m_BusyRdxs = 0;
 	uint32_t m_BusyCount = 0;
 
@@ -74,32 +74,29 @@ public:
 		return Rdx;
 		}
 
-	void PutRaw(uint8_t *ptrData, uint32_t SeqIdx, uint16_t Pos, uint16_t Diag)
+	void PutRaw(uint8_t *ptrData, uint32_t SeqIdx, uint16_t Diag)
 		{
-		uint64_t u = uint64_t(SeqIdx)
-			| (uint64_t(Pos) << 32)
-			| (uint64_t(Diag) << 48);
-		uint64_t *ptrData64 = (uint64_t *) ptrData;
-		*ptrData64 = u;
+		uint32_t *ptrData32 = (uint32_t *) ptrData;
+		uint16_t *ptrData16 = (uint16_t *) (ptrData + 4);
+		*ptrData32 = SeqIdx;
+		*ptrData16 = Diag;
 		}
 
-	uint32_t GetRaw(const uint8_t *ptrData, uint16_t &Pos, uint16_t &Diag) const
+	uint32_t GetRaw(const uint8_t *ptrData, uint16_t &Diag) const
 		{
-		uint64_t *ptrData64 = (uint64_t *) ptrData;
-		uint64 u = *ptrData64;
-		uint32_t SeqIdx = uint32_t(u);
-		uint32_t v = (u >> 32);
-		Pos = uint16_t(v);
-		Diag = (v >> 16);
+		const uint16_t *ptrData16 = (uint16_t *) (ptrData + 4);
+		Diag = *ptrData16;
+		const uint32_t *ptrData32 = (uint32_t *) ptrData;
+		uint32_t SeqIdx = *ptrData32;
 		return SeqIdx;
 		}
 
-	void Add(uint32_t SeqIdx, uint16_t Pos, uint16_t Diag);
+	void Add(uint32_t SeqIdx, uint16_t Diag);
 	void Reset();
 	void ValidateEmpty() const;
 	void ValidateEmptyRdx(uint Rdx) const;
-	void ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxPos, uint MaxDiag) const;
-	void Validate(uint MaxSeqIdx, uint MaxPos, uint MaxDiag) const;
+	void ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxDiag) const;
+	void Validate(uint MaxSeqIdx, uint MaxDiag) const;
 	void LogRdx(uint Rdx) const;
 	void LogStats() const;
 	};

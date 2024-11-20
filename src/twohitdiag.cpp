@@ -21,7 +21,7 @@ TwoHitDiag::TwoHitDiag()
 	zero_array(m_Data, m_FixedBytes);
 	}
 
-void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Pos, uint16_t Diag)
+void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 	{
 	uint32_t Rdx = GetRdx(SeqIdx, Diag);
 	assert(Rdx < m_NrRdxs);
@@ -38,7 +38,7 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Pos, uint16_t Diag)
 		// No overflow
 		m_Data[Rdx*m_FixedEntriesPerRdx + Size];
 		uint32_t Offset = Rdx*m_FixedEntriesPerRdx*m_ItemSize + Size*m_ItemSize;
-		PutRaw(m_Data + Offset, SeqIdx, Pos, Diag);
+		PutRaw(m_Data + Offset, SeqIdx, Diag);
 		m_Sizes[Rdx] = Size + 1;
 		m_Size += 1;
 		}
@@ -55,7 +55,7 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Pos, uint16_t Diag)
 		uint8_t *NewData = myalloc(uint8_t, m_FixedEntriesPerRdx*m_ItemSize);
 		Overflow->push_back(NewData);
 		m_Overflows[Rdx] = Overflow;
-		PutRaw(NewData, SeqIdx, Pos, Diag);
+		PutRaw(NewData, SeqIdx, Diag);
 		m_Sizes[Rdx] = Size + 1;
 		m_Size += 1;
 		}
@@ -66,7 +66,7 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Pos, uint16_t Diag)
 		assert(Overflow != 0);
 		uint8_t *Data = Overflow->back();
 		uint32_t Idx = Size%m_FixedEntriesPerRdx;
-		PutRaw(Data + Idx*m_ItemSize, SeqIdx, Pos, Diag);
+		PutRaw(Data + Idx*m_ItemSize, SeqIdx, Diag);
 		m_Sizes[Rdx] = Size + 1;
 		m_Size += 1;
 		}
@@ -82,9 +82,9 @@ void TwoHitDiag::LogRdx(uint Rdx) const
 		{
 		uint32_t Offset = i*m_ItemSize;
 		asserta(Offset < m_FixedBytes);
-		uint16_t Pos, Diag;
-		uint32_t SeqIdx = GetRaw(BasePtr + Offset, Pos, Diag);
-		Log(" %u:%u,%u", SeqIdx, Pos, Diag);
+		uint16_t Diag;
+		uint32_t SeqIdx = GetRaw(BasePtr + Offset, Diag);
+		Log(" %u:%u", SeqIdx, Diag);
 		}
 	Log("\n");
 
@@ -114,9 +114,9 @@ void TwoHitDiag::LogRdx(uint Rdx) const
 		for (uint i = 0; i < n; ++i)
 			{
 			const uint8_t *ptr = Data + i*m_ItemSize;
-			uint16_t Pos, Diag;
-			uint32_t SeqIdx = GetRaw(ptr, Pos, Diag);
-			Log(" %u:%u,%u", SeqIdx, Pos, Diag);
+			uint16_t Diag;
+			uint32_t SeqIdx = GetRaw(ptr, Diag);
+			Log(" %u:%u,%u", SeqIdx, Diag);
 			}
 		Log("\n");
 		}
@@ -156,7 +156,7 @@ void TwoHitDiag::ValidateEmptyRdx(uint Rdx) const
 	asserta(m_Overflows[Rdx] == 0);
 	}
 
-void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxPos, uint MaxDiag) const
+void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxDiag) const
 	{
 	uint Size = m_Sizes[Rdx];
 	if (Size == 0)
@@ -190,10 +190,9 @@ void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxPos, uint MaxDiag
 		for (uint i = 0; i < n; ++i)
 			{
 			const uint8_t *ptr = Data + i*m_ItemSize;
-			uint16_t Pos, Diag;
-			uint32_t SeqIdx = GetRaw(ptr, Pos, Diag);
+			uint16_t Diag;
+			uint32_t SeqIdx = GetRaw(ptr, Diag);
 			asserta(SeqIdx <= MaxSeqIdx);
-			asserta(Pos <= MaxPos);
 			asserta(Diag <= MaxDiag);
 			}
 		}
@@ -208,10 +207,10 @@ void TwoHitDiag::ValidateEmpty() const
 	asserta(m_BusyCount == 0);
 	}
 
-void TwoHitDiag::Validate(uint MaxSeqIndex, uint MaxPos, uint MaxDiag) const
+void TwoHitDiag::Validate(uint MaxSeqIndex, uint MaxDiag) const
 	{
 	for (uint Rdx = 0; Rdx < m_NrRdxs; ++Rdx)
-		ValidateRdx(Rdx, MaxSeqIndex, MaxPos, MaxDiag);
+		ValidateRdx(Rdx, MaxSeqIndex, MaxDiag);
 
 	uint BusyCount = 0;
 	uint TotalSize = 0;
@@ -234,16 +233,14 @@ static void TestPutGet()
 	for (uint Try = 0; Try < 100; ++Try)
 		{
 		uint32_t SeqIdx = randu32();
-		uint16_t Pos = uint16_t(randu32());
 		uint16_t Diag = uint16_t(randu32());
 		uint Offset = randu32()%(T.m_FixedBytes - 32);
 		uint8_t *ptr = T.m_Data + Offset;
-		T.PutRaw(ptr, SeqIdx, Pos, Diag);
+		T.PutRaw(ptr, SeqIdx, Diag);
 
-		uint16_t Pos2, Diag2;
-		uint SeqIdx2 = T.GetRaw(ptr, Pos2, Diag2);
+		uint16_t Diag2;
+		uint SeqIdx2 = T.GetRaw(ptr, Diag2);
 		asserta(SeqIdx2 == SeqIdx);
-		asserta(Pos2 == Pos);
 		asserta(Diag2 == Diag);
 		}
 	ProgressLog("TestPutGet ok\n");
@@ -257,10 +254,10 @@ static void SimpleTests()
 	T.ValidateEmpty();
 	ProgressLog("ValidateEmpty #1 ok\n");
 
-	T.Validate(0, 0, 0);
+	T.Validate(0, 0);
 	ProgressLog("Validate #1 ok\n");
 
-	T.Add(1, 2, 3);
+	T.Add(1, 3);
 	ProgressLog("Validate #2 ok\n");
 
 	T.Reset();
@@ -274,12 +271,12 @@ static void Test2()
 	uint32_t SeqIdx = 0;
 	uint16_t Diag = 123;
 	for (uint Pos = 0; Pos < 23; ++Pos)
-		T.Add(SeqIdx, Pos, Diag);
+		T.Add(SeqIdx, Diag);
 
 	uint Rdx = T.GetRdx(SeqIdx, Diag);
 	T.LogRdx(Rdx);
-	T.ValidateRdx(Rdx, 0, 999, 123);
-	T.Validate(0, 999, 123);
+	T.ValidateRdx(Rdx, 0, 999);
+	T.Validate(0, 9999);
 	T.Reset();
 	T.ValidateEmpty();
 	}
@@ -302,7 +299,7 @@ void TwoHitDiag::LogStats() const
 	asserta(m_BusyCount == BusyCount);
 	}
 
-static void Test3(uint MaxSeqIdx, uint16_t MaxPos, uint16_t MaxDiag, uint Tries)
+static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 	{
 	TwoHitDiag T;
 
@@ -312,17 +309,13 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxPos, uint16_t MaxDiag, uint Tries)
 		uint16_t Diag = uint16_t(randu32()%MaxDiag + 1);
 		uint n = 1 + randu32()%128;
 		for (uint j = 0; j < n; ++j)
-			{
-			uint Pos = uint16_t(randu32()%MaxPos + 1);
-			MaxPos = max(Diag, MaxPos);
-			T.Add(SeqIdx, Diag, Pos);
-			}
+			T.Add(SeqIdx, Diag);
 		}
-	T.Validate(MaxSeqIdx, MaxPos, MaxDiag);
+	T.Validate(MaxSeqIdx, MaxDiag);
 //	ProgressLog("Validate #1 ok\n");
 
 	T.Reset();
-	T.Validate(0, 0, 0);
+	T.Validate(0, 0);
 //	ProgressLog("Validate #2 ok\n");
 
 	T.ValidateEmpty();
@@ -334,7 +327,7 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxPos, uint16_t MaxDiag, uint Tries)
 
 void cmd_twohit()
 	{
-	Test3(156789987, 555, 666, 100);
-	Test3(89987, 878, 1023, 1000);
-	Test3(8339987, 999, 9999, 9999);
+	Test3(156789987, 555, 100);
+	Test3(89987, 878, 1000);
+	Test3(8339987, 999, 9999);
 	}
