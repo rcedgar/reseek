@@ -393,6 +393,7 @@
     <ClCompile Include="train_seeds.cpp" />
     <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
+    <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
@@ -481,6 +482,7 @@
     <ClInclude Include="tracebit.h" />
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
+    <ClInclude Include="twohitdiag.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />
