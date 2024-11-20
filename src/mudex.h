@@ -11,6 +11,9 @@ public:
 	static const uint32_t m_k = 5;
 
 /***
+Finger index.
+
+Pass 1 counts K-mers.
 After Pass 1, before adjustment:
 	Size(Kmer)
 		= m_Finger[Kmer+1]
@@ -22,6 +25,15 @@ After adjustment, before Pass 2:
 	Size(Kmer)
 		= m_Finger[Kmer+2] - m_Finger[Kmer+1]
 
+Pass 2 builds the index.
+During Pass 2:
+	Initially m_Finger[Kmer+1] is data offset of first entry
+	With each K-mer added, m_Finger[Kmer+1] is incremented
+	Finally m_Finger[Kmer+1] is 1 + (data offset of last entry of Kmer)
+	   = (data offset of first entry for Kmer+1, if any).
+	   For this to work for the special case Kmer=0, an initial 0 in
+	   m_Finger[0] is preserved and not touched throughout Passes 1 and 2.
+
 After Pass 2:
 	Data offset of first entry:
 		m_Finger[Kmer]
@@ -31,8 +43,9 @@ After Pass 2:
 
 ***/
 #if DEBUG
-	vector<uint> m_KmerToCount;
-	vector<uint> m_KmerToDataOffset;
+	vector<uint> m_KmerToCount1;
+	vector<uint> m_KmerToCount2;
+	vector<uint> m_KmerToDataStart;
 #endif
 
 	SeqDB *m_SeqDB = 0;
@@ -55,6 +68,12 @@ public:
 	uint GetSeqKmer(uint SeqIdx, uint SeqPos) const;
 	void LogIndexKmer(uint Kmer) const;
 
+#if DEBUG
+	void CheckAfterPass1() const;
+	void CheckAfterAdjust() const;
+	void CheckAfterPass2() const;
+#endif
+
 	uint GetRowSize(uint Kmer) const
 		{
 		assert(Kmer < m_DictSize);
@@ -65,7 +84,7 @@ public:
 
 	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 		{
-		uint8_t *ptr = m_Data + DataOffset;
+		uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
 		*(uint32_t *) ptr = SeqIdx;
 		*(uint16_t *) (ptr + 4) = SeqPos;
 #if DEBUG
@@ -81,7 +100,7 @@ public:
 
 	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 		{
-		const uint8_t *ptr = m_Data + DataOffset;
+		const uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
 		SeqIdx = *(uint32_t *) ptr;
 		SeqPos = *(uint16_t *) (ptr + 4);
 		}
