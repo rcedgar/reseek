@@ -4,16 +4,23 @@
 
 /***
 Radix
-	= seqidx%1024, diag%16
-	= 10 bits + 14 bits, 2^14
-	= 16k headers
+	= 10 lo bits of SeqIdx, 4 lo bits of Diag
+	= SeqIdx%1024, Diag%16
+	= 10 bits + 14 bits
+	= 2^14 radixes = 16k
 
+SeqIdx
+	32 bits, SeqIdx/1024 is 32-10 = 22 bits
+	Max hi bits = 2^22 = 4M, so max 4M SeqIdx's per radix
+	Bit map is 4M/8 = 0.5Mb
+	Could search for duplicates with two bitmaps = 1Mb per thread
 
-If SeqIdx is 32 bits, SeqIdx/1024 is 32-10 = 22 bits
-If Diag is 14 bits (max 16k), Diag/16 = 14-4 = 10 bits
+Diag 
+	14 bits (max 16k), Diag/16 = 14-4 = 10 bits
 
 Item 
 	= SeqIdx/1024,Diag/16
+	= 22 hi bits of SeqIdx, 10 hi bits of Diag
 	= 32 bits
 
 m_Data has fixed space for 16 entries per radix.
@@ -135,4 +142,6 @@ public:
 	void Validate(uint MaxSeqIdx, uint MaxDiag) const;
 	void LogRdx(uint Rdx) const;
 	void LogStats() const;
+	void GetAll(set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
+	void AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
 	};

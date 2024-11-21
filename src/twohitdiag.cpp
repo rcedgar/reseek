@@ -293,6 +293,54 @@ void TwoHitDiag::TestPutGet(uint32_t SeqIdx, uint16_t Diag) const
 	asserta(SeqIdxHiBits2 == SeqIdxHiBits);
 	}
 
+void TwoHitDiag::AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
+	{
+	uint Size = m_Sizes[Rdx];
+	const uint32_t *BasePtr = m_Data + Rdx*m_FixedItemsPerRdx;
+	uint n1 = min(Size, m_FixedItemsPerRdx);
+	for (uint i = 0; i < n1; ++i)
+		{
+		uint16_t Diag;
+		uint32_t SeqIdx = GetAllBits(Rdx, BasePtr + i, Diag);
+		SeqIdxDiagPairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+		}
+
+	if (Size <= m_FixedItemsPerRdx)
+		{
+		asserta(m_Overflows[Rdx] == 0);
+		return;
+		}
+
+	const list<uint32_t *> *Overflow = m_Overflows[Rdx];
+	asserta(Overflow != 0);
+
+	uint Sum = 0;
+	uint Remainder = Size - m_FixedItemsPerRdx;
+	for (list<uint32_t *>::const_iterator iter = Overflow->begin();
+		 iter != Overflow->end(); ++iter)
+		{
+		const uint32_t *Data = *iter;
+		uint n = Remainder;
+		if (n > m_FixedItemsPerRdx)
+			n = m_FixedItemsPerRdx;
+		Remainder -= n;
+		for (uint i = 0; i < n; ++i)
+			{
+			const uint32_t *ptr = Data + i;
+			uint16_t Diag;
+			uint32_t SeqIdx = GetAllBits(Rdx, ptr, Diag);
+			SeqIdxDiagPairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+			}
+		}
+	}
+
+void TwoHitDiag::GetAll(set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
+	{
+	SeqIdxDiagPairs.clear();
+	for (uint Rdx = 0; Rdx < m_NrRdxs; ++Rdx)
+		AppendAll(Rdx, SeqIdxDiagPairs);
+	}
+
 static void TestPutGet()
 	{
 	TwoHitDiag T;
@@ -373,16 +421,32 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 	{
 	TwoHitDiag T;
 
+	set<pair<uint32_t, uint16_t> > Pairs;
 	for (uint i = 0; i < Tries; ++i)
 		{
 		uint SeqIdx = randu32()%(MaxSeqIdx + 1);
 		uint16_t Diag = uint16_t(randu32()%MaxDiag + 1);
 		uint n = 1 + randu32()%128;
 		for (uint j = 0; j < n; ++j)
+			{
 			T.Add(SeqIdx, Diag);
+			Pairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+			}
 		}
 	T.Validate(MaxSeqIdx, MaxDiag);
 //	ProgressLog("Validate #1 ok\n");
+
+	set<pair<uint32_t, uint16_t> > Pairs2;
+	T.GetAll(Pairs2);
+
+	for (set<pair<uint32_t, uint16_t> >::const_iterator iter = Pairs.begin();
+		 iter != Pairs.end(); ++iter)
+		{
+		const pair<uint32_t, uint16_t> &Pair = *iter;
+		set<pair<uint32_t, uint16_t> >::const_iterator iter2 = Pairs2.find(Pair);
+		asserta(iter2 != Pairs2.end());
+		}
+	asserta(SIZE(Pairs2) == SIZE(Pairs));
 
 	T.Reset();
 	T.Validate(0, 0);
