@@ -337,6 +337,8 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 void cmd_mudex()
 	{
 	SeqDB Input;
+	Input.FromFasta(g_Arg1);
+
 	MuDex MD;
 	MD.FromSeqDB(Input);
 	MD.LogIndexKmer(0);
