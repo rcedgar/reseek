@@ -281,68 +281,64 @@ uint MuDex::GetSeqKmer(uint SeqIdx, uint SeqPos) const
 	return Kmer;
 	}
 
-void cmd_mudex()
+void MuDex::FromSeqDB(const SeqDB &Input)
 	{
-	SeqDB Input;
-	Input.FromFasta(g_Arg1);
+	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
-	MuDex MD;
-	MD.Alloc_Pass1();
-	MD.m_SeqDB = &Input;
 
+	Alloc_Pass1();
 	uint SumL4 = 0;
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
-		ProgressStep(SeqIdx, SeqCount, "Pass 1");
+		ProgressStep(SeqIdx, SeqCount, "MuDex pass 1");
 		const string &Seq = Input.GetSeq(SeqIdx);
 		const uint L = SIZE(Seq);
-		MD.AddSeq_Pass1(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
+		AddSeq_Pass1(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
 		if (L >= 5)
 			SumL4 += L - 4;
 		}
 #if DEBUG
-	MD.CheckAfterPass1();
+	CheckAfterPass1();
 #endif
 
-	MD.AdjustFinger();
+	AdjustFinger();
 #if DEBUG
-	MD.CheckAfterAdjust();
+	CheckAfterAdjust();
 #endif
 
-	MD.Alloc_Pass2();
+	Alloc_Pass2();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
-		ProgressStep(SeqIdx, SeqCount, "Pass 2");
+		ProgressStep(SeqIdx, SeqCount, "MuDex pass 2");
 		const string &Seq = Input.GetSeq(SeqIdx);
 		const uint L = SIZE(Seq);
-		MD.AddSeq_Pass2(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
+		AddSeq_Pass2(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
 		}
 #if DEBUG
-	MD.CheckAfterPass2();
+	CheckAfterPass2();
 #endif
 
 #if DEBUG
 	{
-	for (uint Kmer = 0; Kmer < MD.m_DictSize; ++Kmer)
+	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
-		uint RowSize = MD.GetRowSize(Kmer);
-		uint Check_RowSize = MD.m_KmerToCount1[Kmer];
+		uint RowSize = GetRowSize(Kmer);
+		uint Check_RowSize = m_KmerToCount1[Kmer];
 		asserta(Check_RowSize == RowSize);
 		if (RowSize == 0)
 			continue;
-		uint Offset = MD.m_Finger[Kmer];
-		uint Check_Offset = MD.m_KmerToDataStart[Kmer];
-		//if (Check_Offset != Offset)
-		//	{
-		//	Log("Kmer = %08x m_Finger[Kmer]=%u m_Finger1[Kmer]=%u Check_Offset=%u\n",
-		//		Kmer, MD.m_Finger[Kmer], MD.m_Finger1[Kmer], Check_Offset);
-		//	Die("Offset");
-		//	}
+		uint Offset = m_Finger[Kmer];
+		uint Check_Offset = m_KmerToDataStart[Kmer];
 		}
 	}
 #endif
+	}
 
-	Log("SumL4 = %u\n", SumL4);
+void cmd_mudex()
+	{
+	SeqDB Input;
+	MuDex MD;
+	MD.FromSeqDB(Input);
 	MD.LogIndexKmer(0);
 	MD.LogIndexKmer(0x01733125);
 	MD.LogIndexKmer(0x01bdf141);

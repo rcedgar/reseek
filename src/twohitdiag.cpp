@@ -615,7 +615,7 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 				MaxSeqIdx, MaxDiag, Tries, DupeCount);
 	}
 
-void cmd_twohit()
+static void SavedTests()
 	{
 	TestPutGet1();
 	TestPutGet();
@@ -630,4 +630,8 @@ void cmd_twohit()
 		uint Tries = 23 + randu32()%222;
 		Test3(MaxSeqIndex, MaxDiag, Tries);
 		}
+	}
+
+void cmd_twohit()
+	{
 	}

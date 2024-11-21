@@ -48,12 +48,13 @@ After Pass 2:
 	vector<uint> m_KmerToDataStart;
 #endif
 
-	SeqDB *m_SeqDB = 0;
+	const SeqDB *m_SeqDB = 0;
 	uint32_t m_Size = 0;
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
 
 public:
+	void FromSeqDB(const SeqDB &Input);
 	const char *KmerToStr(uint Kmer, string &s) const;
 	uint StrToKmer(const string &s) const;
 	uint StrToKmer(const char *s) const;
