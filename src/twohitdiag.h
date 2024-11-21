@@ -8,9 +8,13 @@ Radix
 	= 10 bits + 14 bits, 2^14
 	= 16k headers
 
+
+If SeqIdx is 32 bits, SeqIdx/1024 is 32-10 = 22 bits
+If Diag is 14 bits (max 16k), Diag/16 = 14-4 = 10 bits
+
 Item 
-	= Seq+Pos+Diag
-	= 32+16+16 bytes
+	= SeqIdx/1024,Diag/16
+	= 32 bits
 
 m_Data has fixed space for 16 entries per radix.
 
@@ -29,24 +33,28 @@ Overflow if >16 entries in a radix:
 class TwoHitDiag
 	{
 public:
-	typedef list<uint8_t *> *listptr_t;
+	static const uint32_t m_Mask10 = 0b1111111111;
+	static const uint32_t m_Mask14 = 0b11111111111111;
+	static const uint32_t m_Mask22 = 0b1111111111111111111111;
 
+	static const uint32_t m_DiagHi = m_Mask14 + 1; // MaxDiag + 1 = 2^14 = 16k
 	static const uint32_t m_SeqMod = 1024;
 	static const uint32_t m_DiagMod = 16;
 	static const uint32_t m_NrRdxs = m_SeqMod*m_DiagMod; // 16384
-	static const uint32_t m_SeqMask = m_NrRdxs - 1;
-	static const uint32_t m_DiagShift = 10;
-	static const uint32_t m_FixedEntriesPerRdx = 16;
-	static const uint32_t m_OverflowPointerBytes = sizeof(uint8_t *);
-	static const uint32_t m_ItemSize = 6;
-	static const uint32_t m_FixedBytes = 
-		m_NrRdxs*m_FixedEntriesPerRdx*m_ItemSize; // 2097152 (2 M)
+	static const uint32_t m_DiagShiftRdx = 10;
+	static const uint32_t m_DiagShiftItem = 22;
+	static const uint32_t m_FixedItemsPerRdx = 16;
+	static const uint32_t m_ItemSize = sizeof(uint32_t);
+	static const uint32_t m_TotalFixedItems = m_NrRdxs*m_FixedItemsPerRdx;
+
+	static const uint32_t m_SeqIdxMaskRdx =	m_Mask10;
+	static const uint32_t m_SeqIdxMaskItem = m_Mask22;
 
 // Total number of items, for validation only
 	uint m_Size = 0;
 
 // Arrays of size m_NrRdxs with index Rdx
-	list<uint8_t *> **m_Overflows = 0;
+	list<uint32_t *> **m_Overflows = 0;
 	uint32_t *m_Sizes = 0;
 
 // Vector of size m_BusyCount <= m_NrRdxs
@@ -54,42 +62,70 @@ public:
 	uint32_t m_BusyCount = 0;
 
 // Fixed buffer size m_FixedBytes
-	uint8_t *m_Data = 0;
+	uint32_t *m_Data = 0;
 
 public:
 	TwoHitDiag();
 	~TwoHitDiag();
 
-	uint32_t UnpackRdx(uint32_t Rdx, uint16_t &Diag) const
+	uint32_t UnpackRdx(uint32_t Rdx, uint16_t &DiagLoBits) const
 		{
-		Diag = (Rdx >> m_DiagShift);
-		uint32_t SeqIdx = (Rdx & m_SeqMask);
-		return SeqIdx;
+		DiagLoBits = (Rdx >> m_DiagShiftRdx);
+		uint32_t SeqIdxLoBits = (Rdx & m_SeqIdxMaskRdx);
+		return SeqIdxLoBits;
 		}
 
 	uint32_t GetRdx(uint32_t SeqIdx, uint16_t Diag) const
 		{
-		uint32_t Rdx = SeqIdx%m_SeqMod + ((Diag%m_DiagMod) << m_DiagShift);
+		asserta(Diag <= m_Mask14);
+
+		uint32_t SeqIdxLoBits = SeqIdx%m_SeqMod;
+		uint16_t DiagLoBits = Diag%m_DiagMod;
+		uint32_t Rdx = (SeqIdxLoBits | (DiagLoBits << m_DiagShiftRdx));
+#if DEBUG
 		assert(Rdx < m_NrRdxs);
+		uint16_t DiagLoBits2;
+		uint32_t SeqIdxLoBits2 = UnpackRdx(Rdx, DiagLoBits2);
+		assert(SeqIdxLoBits2 == SeqIdxLoBits);
+		assert(DiagLoBits2 == DiagLoBits);
+#endif
 		return Rdx;
 		}
 
-	void PutRaw(uint8_t *ptrData, uint32_t SeqIdx, uint16_t Diag)
+	void PutRaw(uint32_t *ptrData, uint32_t SeqIdx, uint16_t Diag)
 		{
-		uint32_t *ptrData32 = (uint32_t *) ptrData;
-		uint16_t *ptrData16 = (uint16_t *) (ptrData + 4);
-		*ptrData32 = SeqIdx;
-		*ptrData16 = Diag;
+		asserta(Diag <= m_Mask14);
+
+		uint32_t Item = ((SeqIdx/m_SeqMod) | (Diag/m_DiagMod) << m_DiagShiftItem);
+		*ptrData = Item;
 		}
 
-	uint32_t GetRaw(const uint8_t *ptrData, uint16_t &Diag) const
+	uint32_t GetHiBits(const uint32_t *ptrData, uint16_t &DiagHiBits) const
 		{
-		const uint16_t *ptrData16 = (uint16_t *) (ptrData + 4);
-		Diag = *ptrData16;
-		const uint32_t *ptrData32 = (uint32_t *) ptrData;
-		uint32_t SeqIdx = *ptrData32;
+		uint32_t Item = *ptrData;
+		uint32_t SeqIdxHiBits = (Item & m_SeqIdxMaskItem);
+		DiagHiBits = uint16_t(Item >> m_DiagShiftItem);
+		return SeqIdxHiBits;
+		}
+
+	uint32_t GetAllBits(uint Rdx, const uint32_t *ptrData, uint16_t &Diag) const
+		{
+		uint32_t Item = *ptrData;
+		uint32_t SeqIdxHiBits = (Item & m_SeqIdxMaskItem);
+		uint16_t DiagHiBits = uint16_t(Item >> m_DiagShiftItem);
+
+		uint16_t DiagLoBits;
+		uint32_t SeqIdxLoBits = UnpackRdx(Rdx, DiagLoBits);
+
+		uint32_t SeqIdx = (SeqIdxLoBits | (SeqIdxHiBits*m_SeqMod));
+
+		Diag = (DiagLoBits | (DiagHiBits*m_DiagMod));
+		asserta(Diag <= m_Mask14);
+
 		return SeqIdx;
 		}
+
+	void TestPutGet(uint32_t SeqIdx, uint16_t Diag) const;
 
 	void Add(uint32_t SeqIdx, uint16_t Diag);
 	void Reset();
