@@ -176,7 +176,7 @@ void MuDex::CheckAfterPass1() const
 
 void MuDex::CheckAfterAdjust() const
 	{
-	assert(m_Finger[m_DictSize] == m_Size);
+	assert(m_Finger[m_DictSize+1] == m_Size);
 	uint Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
@@ -227,6 +227,7 @@ void MuDex::AdjustFinger()
 		m_Finger[Kmer+1] = Sum;
 		Sum += Kmer_Size;
 		}
+	asserta(Sum == m_Size);
 	}
 
 void MuDex::Validate() const
