@@ -13,7 +13,7 @@ SeqIdx
 	32 bits, SeqIdx/1024 is 32-10 = 22 bits
 	Max hi bits = 2^22 = 4M, so max 4M SeqIdx's per radix
 	Bit map is 4M/8 = 0.5Mb
-	Could search for duplicates with two bitmaps = 1Mb per thread
+	Can search for duplicates with two bitmaps = 1Mb per thread
 
 Diag 
 	14 bits (max 16k), Diag/16 = 14-4 = 10 bits

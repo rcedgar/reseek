@@ -71,5 +71,6 @@ C(test_chrono_ticks)
 C(threedi)
 C(mudex)
 C(twohit)
+C(duper)
 
 #undef C

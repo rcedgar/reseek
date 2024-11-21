@@ -482,6 +482,12 @@
     <ClCompile Include="twohitdiag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="duper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="prime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -740,6 +746,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="twohitdiag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="duper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="primes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

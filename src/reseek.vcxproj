@@ -303,6 +303,7 @@
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="deflate.c" />
     <ClCompile Include="distmx.cpp" />
+    <ClCompile Include="duper.cpp" />
     <ClCompile Include="evalue_report.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="getchains.cpp" />
@@ -321,6 +322,7 @@
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="pdb.cpp" />
+    <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="pdbchaincal.cpp" />
@@ -445,6 +447,7 @@
     <ClInclude Include="dssaligner.h" />
     <ClInclude Include="dssp.h" />
     <ClInclude Include="dssparams.h" />
+    <ClInclude Include="duper.h" />
     <ClInclude Include="fasterf.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
@@ -470,6 +473,7 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
