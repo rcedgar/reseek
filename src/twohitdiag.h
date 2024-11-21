@@ -63,12 +63,13 @@ public:
 // Arrays of size m_NrRdxs with index Rdx
 	list<uint32_t *> **m_Overflows = 0;
 	uint32_t *m_Sizes = 0;
+	uint32_t *m_MaxSeqIdxHiBits = 0;
 
 // Vector of size m_BusyCount <= m_NrRdxs
 	uint32_t *m_BusyRdxs = 0;
 	uint32_t m_BusyCount = 0;
 
-// Fixed buffer size m_FixedBytes
+// Item array with constant size m_TotalFixedItems
 	uint32_t *m_Data = 0;
 
 public:

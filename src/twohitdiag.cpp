@@ -14,6 +14,9 @@ TwoHitDiag::TwoHitDiag()
 	m_Sizes = myalloc(uint32_t, m_NrRdxs);
 	zero_array(m_Sizes, m_NrRdxs);
 
+	m_MaxSeqIdxHiBits = myalloc(uint32_t, m_NrRdxs);
+	zero_array(m_MaxSeqIdxHiBits, m_NrRdxs);
+
 	m_Overflows = myalloc(list<uint32_t *> *, m_NrRdxs);
 	zero_array(m_Overflows, m_NrRdxs);
 
@@ -25,8 +28,11 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 	{
 	uint32_t Rdx = GetRdx(SeqIdx, Diag);
 	assert(Rdx < m_NrRdxs);
-	uint32_t Size = m_Sizes[Rdx];
 
+	uint32_t SeqIdxHiBits = SeqIdx/m_SeqMod;
+	m_MaxSeqIdxHiBits[Rdx] = max(m_MaxSeqIdxHiBits[Rdx], SeqIdxHiBits);
+
+	uint32_t Size = m_Sizes[Rdx];
 	if (Size == 0)
 		{
 		assert(m_BusyCount < m_NrRdxs);
@@ -141,6 +147,7 @@ void TwoHitDiag::Reset()
 			m_Overflows[Rdx] = 0;
 			}
 		m_Sizes[Rdx] = 0;
+		m_MaxSeqIdxHiBits[Rdx] = 0;
 		m_BusyRdxs[i] = 0;
 		}
 	m_BusyRdxs = 0;
@@ -157,6 +164,7 @@ void TwoHitDiag::ValidateEmptyRdx(uint Rdx) const
 void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxDiag) const
 	{
 	uint Size = m_Sizes[Rdx];
+	uint32_t MaxSeqIdxHiBits = 0;
 	if (Size == 0)
 		{
 		ValidateEmptyRdx(Rdx);
@@ -171,6 +179,16 @@ void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxDiag) const
 
 	const list<uint32_t *> *Overflow = m_Overflows[Rdx];
 	asserta(Overflow != 0);
+
+	uint n1 = min(Size, m_FixedItemsPerRdx);
+	const uint32_t *BasePtr = m_Data + Rdx*m_FixedItemsPerRdx;
+	for (uint i = 0; i < n1; ++i)
+		{
+		uint16_t Diag;
+		uint32_t SeqIdx = GetAllBits(Rdx, BasePtr + i, Diag);
+		uint32_t SeqIdxHiBits = SeqIdx/m_SeqMod;
+		MaxSeqIdxHiBits = max(SeqIdxHiBits, MaxSeqIdxHiBits);
+		}
 
 	uint Sum = 0;
 	uint BlockIdx = 0;
@@ -192,10 +210,14 @@ void TwoHitDiag::ValidateRdx(uint Rdx, uint MaxSeqIdx, uint MaxDiag) const
 			uint32_t SeqIdx = GetAllBits(Rdx, ptr, Diag);
 			asserta(SeqIdx <= MaxSeqIdx);
 			asserta(Diag <= MaxDiag);
+
+			uint32_t SeqIdxHiBits = SeqIdx/m_SeqMod;
+			MaxSeqIdxHiBits = max(SeqIdxHiBits, MaxSeqIdxHiBits);
 			}
 		}
 	uint ExpectedBlockCount = (Size - 1)/m_FixedItemsPerRdx;
 	asserta(BlockIdx == ExpectedBlockCount);
+	asserta(m_MaxSeqIdxHiBits[Rdx] == MaxSeqIdxHiBits);
 	}
 
 void TwoHitDiag::ValidateEmpty() const
