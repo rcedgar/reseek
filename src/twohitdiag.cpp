@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "twohitdiag.h"
+#include "duper.h"
 
 TwoHitDiag::~TwoHitDiag()
 	{
@@ -315,7 +316,7 @@ void TwoHitDiag::TestPutGet(uint32_t SeqIdx, uint16_t Diag) const
 	asserta(SeqIdxHiBits2 == SeqIdxHiBits);
 	}
 
-void TwoHitDiag::AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
+void TwoHitDiag::AppendAll(uint Rdx, vector<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
 	{
 	uint Size = m_Sizes[Rdx];
 	const uint32_t *BasePtr = m_Data + Rdx*m_FixedItemsPerRdx;
@@ -324,7 +325,7 @@ void TwoHitDiag::AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagP
 		{
 		uint16_t Diag;
 		uint32_t SeqIdx = GetAllBits(Rdx, BasePtr + i, Diag);
-		SeqIdxDiagPairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+		SeqIdxDiagPairs.push_back(pair<uint32_t, uint16_t>(SeqIdx, Diag));
 		}
 
 	if (Size <= m_FixedItemsPerRdx)
@@ -351,16 +352,128 @@ void TwoHitDiag::AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagP
 			const uint32_t *ptr = Data + i;
 			uint16_t Diag;
 			uint32_t SeqIdx = GetAllBits(Rdx, ptr, Diag);
-			SeqIdxDiagPairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+			SeqIdxDiagPairs.push_back(pair<uint32_t, uint16_t>(SeqIdx, Diag));
 			}
 		}
 	}
 
-void TwoHitDiag::GetAll(set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
+void TwoHitDiag::GetAll(vector<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const
 	{
 	SeqIdxDiagPairs.clear();
 	for (uint Rdx = 0; Rdx < m_NrRdxs; ++Rdx)
 		AppendAll(Rdx, SeqIdxDiagPairs);
+	}
+
+void TwoHitDiag::AddItems(Duper &D, uint Rdx) const
+	{
+	uint Size = m_Sizes[Rdx];
+	const uint32_t *Data = m_Data + Rdx*m_FixedItemsPerRdx;
+	uint n1 = min(Size, m_FixedItemsPerRdx);
+	for (uint i = 0; i < n1; ++i)
+		D.Add(Data[i]);
+	if (Size <= m_FixedItemsPerRdx)
+		{
+		assert(m_Overflows[Rdx] == 0);
+		return;
+		}
+
+	const list<uint32_t *> *Overflow = m_Overflows[Rdx];
+	assert(Overflow != 0);
+
+	uint Sum = 0;
+	uint BlockIdx = 0;
+	uint Remainder = Size - m_FixedItemsPerRdx;
+	for (list<uint32_t *>::const_iterator iter = Overflow->begin();
+		iter != Overflow->end(); ++iter)
+		{
+		++BlockIdx;
+		Data = *iter;
+		uint n = Remainder;
+		if (n > m_FixedItemsPerRdx)
+			n = m_FixedItemsPerRdx;
+		Remainder -= n;
+		for (uint i = 0; i < n; ++i)
+			D.Add(Data[i]);
+		}
+	uint ExpectedBlockCount = (Size - 1)/m_FixedItemsPerRdx;
+	asserta(BlockIdx == ExpectedBlockCount);
+	}
+
+void TwoHitDiag::SetDupesRdx(uint Rdx)
+	{
+	uint Size = m_Sizes[Rdx];
+	if (Size < 2)
+		return;
+	Duper &D = *new Duper(Size);
+	AddItems(D, Rdx);
+	for (uint j = 0; j < D.m_DupeCount; ++j)
+		{
+		uint32_t Item = D.m_Dupes[j];
+
+		uint16_t Diag;
+		uint32_t SeqIdx = CvtItem(Rdx, Item, Diag);
+
+		m_DupeSeqIdxs[m_DupeCount] = SeqIdx;
+		m_DupeDiags[m_DupeCount] = Diag;
+		++m_DupeCount;
+		}
+	}
+
+void TwoHitDiag::SetDupes()
+	{
+	m_DupeCount = 0;
+	if (m_Size < 2)
+		return;
+	m_DupeSeqIdxs = myalloc(uint32_t, m_Size);
+	m_DupeDiags = myalloc(uint16_t, m_Size);
+	for (uint i = 0; i < m_BusyCount; ++i)
+		SetDupesRdx(m_BusyRdxs[i]);
+	}
+
+void TwoHitDiag::ClearDupes()
+	{
+	if (m_DupeSeqIdxs != 0)
+		{
+		assert(m_DupeDiags != 0);
+		delete m_DupeSeqIdxs;
+		delete m_DupeDiags;
+		m_DupeSeqIdxs = 0;
+		m_DupeDiags = 0;
+		}
+	else
+		assert(m_DupeDiags == 0);
+	}
+
+void TwoHitDiag::CheckDupes()
+	{
+	vector<pair<uint32_t, uint16_t> > Pairs;
+	GetAll(Pairs);
+	map<pair<uint32_t, uint16_t>, uint32_t> PairToCount;
+	uint DupeCount = 0;
+	for (uint i = 0; i < SIZE(Pairs); ++i)
+		{
+		const pair<uint32_t, uint16_t> &Pair = Pairs[i];
+		if (PairToCount.find(Pair) == PairToCount.end())
+			PairToCount[Pair] = 1;
+		else
+			{
+			uint n = PairToCount[Pair];
+			if (n == 1)
+				++DupeCount;
+			PairToCount[Pair] = n + 1;
+			}
+		}
+	for (uint i = 0; i < m_DupeCount; ++i)
+		{
+		uint32_t SeqIdx = m_DupeSeqIdxs[i];
+		uint16_t Diag = m_DupeDiags[i];
+		pair<uint32_t, uint16_t> Pair(SeqIdx, Diag);
+		map<pair<uint32_t, uint16_t>, uint32_t>::const_iterator iter =
+			PairToCount.find(Pair);
+		asserta(iter != PairToCount.end());
+		asserta(iter->second > 1);
+		}
+	asserta(DupeCount == m_DupeCount);
 	}
 
 static void TestPutGet()
@@ -439,11 +552,20 @@ static void Test2()
 	T.ValidateEmpty();
 	}
 
+static void VecToSet(const vector<pair<uint32_t, uint16_t> > &PairsVec,
+					 set<pair<uint32_t, uint16_t>> &Pairs)
+	{
+	Pairs.clear();
+	const uint N = SIZE(PairsVec);
+	for (uint i = 0; i < N; ++i)
+		Pairs.insert(PairsVec[i]);
+	}
+
 static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 	{
 	TwoHitDiag T;
 
-	set<pair<uint32_t, uint16_t> > Pairs;
+	vector<pair<uint32_t, uint16_t> > PairsVec;
 	for (uint i = 0; i < Tries; ++i)
 		{
 		uint SeqIdx = randu32()%(MaxSeqIdx + 1);
@@ -452,14 +574,20 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 		for (uint j = 0; j < n; ++j)
 			{
 			T.Add(SeqIdx, Diag);
-			Pairs.insert(pair<uint32_t, uint16_t>(SeqIdx, Diag));
+			PairsVec.push_back(pair<uint32_t, uint16_t>(SeqIdx, Diag));
 			}
 		}
 	T.Validate(MaxSeqIdx, MaxDiag);
 //	ProgressLog("Validate #1 ok\n");
 
+	set<pair<uint32_t, uint16_t> > Pairs;
+	VecToSet(PairsVec, Pairs);
+
+	vector<pair<uint32_t, uint16_t> > Pairs2Vec;
+	T.GetAll(Pairs2Vec);
+
 	set<pair<uint32_t, uint16_t> > Pairs2;
-	T.GetAll(Pairs2);
+	VecToSet(Pairs2Vec, Pairs2);
 
 	for (set<pair<uint32_t, uint16_t> >::const_iterator iter = Pairs.begin();
 		 iter != Pairs.end(); ++iter)
@@ -470,6 +598,11 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 		}
 	asserta(SIZE(Pairs2) == SIZE(Pairs));
 
+	T.SetDupes();
+	uint DupeCount = T.m_DupeCount;
+	T.CheckDupes();
+	T.ClearDupes();
+
 	T.Reset();
 	T.Validate(0, 0);
 //	ProgressLog("Validate #2 ok\n");
@@ -478,7 +611,8 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 //	ProgressLog("ValidateEmpty #3 ok\n");
 
 	T.LogStats();
-	ProgressLog("Test3(%u, %u) Ok\n", MaxSeqIdx, Tries);
+	ProgressLog("Test3(%u, %u, %u) Ok, %u dupes\n",
+				MaxSeqIdx, MaxDiag, Tries, DupeCount);
 	}
 
 void cmd_twohit()
@@ -486,7 +620,14 @@ void cmd_twohit()
 	TestPutGet1();
 	TestPutGet();
 	SimpleTests();
-	Test3(156789987, 555, 100);
-	Test3(89987, 878, 1000);
-	Test3(8339987, 999, 9999);
+
+	for (uint Try = 0; Try < 100; ++Try)
+		{
+		uint MaxSeqIndex = 12345 + randu32()%8339987;
+		uint16_t MaxDiag = (123 + randu32()%63001) & TwoHitDiag::m_Mask14;
+		if (MaxDiag < 10)
+			continue;
+		uint Tries = 23 + randu32()%222;
+		Test3(MaxSeqIndex, MaxDiag, Tries);
+		}
 	}

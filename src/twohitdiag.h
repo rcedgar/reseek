@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+class Duper;
 
 /***
 Radix
@@ -12,8 +13,6 @@ Radix
 SeqIdx
 	32 bits, SeqIdx/1024 is 32-10 = 22 bits
 	Max hi bits = 2^22 = 4M, so max 4M SeqIdx's per radix
-	Bit map is 4M/8 = 0.5Mb
-	Can search for duplicates with two bitmaps = 1Mb per thread
 
 Diag 
 	14 bits (max 16k), Diag/16 = 14-4 = 10 bits
@@ -57,7 +56,7 @@ public:
 	static const uint32_t m_SeqIdxMaskRdx =	m_Mask10;
 	static const uint32_t m_SeqIdxMaskItem = m_Mask22;
 
-// Total number of items, for validation only
+// Total number of items
 	uint m_Size = 0;
 
 // Arrays of size m_NrRdxs with index Rdx
@@ -71,6 +70,10 @@ public:
 
 // Item array with constant size m_TotalFixedItems
 	uint32_t *m_Data = 0;
+
+	uint32_t m_DupeCount = 0;
+	uint32_t *m_DupeSeqIdxs = 0;
+	uint16_t *m_DupeDiags = 0;
 
 public:
 	TwoHitDiag();
@@ -119,6 +122,11 @@ public:
 	uint32_t GetAllBits(uint Rdx, const uint32_t *ptrData, uint16_t &Diag) const
 		{
 		uint32_t Item = *ptrData;
+		return CvtItem(Rdx, Item, Diag);
+		}
+
+	uint32_t CvtItem(uint Rdx, uint Item, uint16_t &Diag) const
+		{
 		uint32_t SeqIdxHiBits = (Item & m_SeqIdxMaskItem);
 		uint16_t DiagHiBits = uint16_t(Item >> m_DiagShiftItem);
 
@@ -143,6 +151,11 @@ public:
 	void Validate(uint MaxSeqIdx, uint MaxDiag) const;
 	void LogRdx(uint Rdx) const;
 	void LogStats() const;
-	void GetAll(set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
-	void AppendAll(uint Rdx, set<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
+	void GetAll(vector<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
+	void AppendAll(uint Rdx, vector<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
+	void SetDupes();
+	void SetDupesRdx(uint Rdx);
+	void AddItems(Duper &D, uint Rdx) const;
+	void ClearDupes();
+	void CheckDupes();
 	};
