@@ -37,7 +37,7 @@ public:
 	uint *m_Order = 0;
 
 public:
-	void Init(short **Mx, uint k, uint AS);
+	void Init(short **Mx, uint k, uint AS, uint n);
 	void BuildRow2(uint Letter);
 	void BuildRow3(uint Letter);
 	short GetScoreKmerPair(uint Kmer_i, uint Kmer_j) const;

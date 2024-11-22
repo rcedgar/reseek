@@ -5,7 +5,7 @@
 #include "alpha.h"
 #include "xdpmem.h"
 #include "timing.h"
-#include "combomx.h"
+#include "mumx.h"
 #include "cigar.h"
 #include <thread>
 #include <set>

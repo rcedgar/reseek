@@ -63,11 +63,24 @@ while True:
     print("// %s ES=%.4f" % (name, ES))
     print("//////////////////////////////////")
 
-    print("\nstatic int_8 %s_S_ij[%d] = {" % (name, n*n))
+    print("int8_t %s_S_ij_vec[%d] = {" % (name, n*n))
     for i in range(n):
         s = ""
         for j in range(n):
-            s += "%2d," % S_ijs[i][j]
+            s += "%3s," % ("%d" % S_ijs[i][j])
         s += " // %2d" % i
         print(s)
     print(" };")
+
+    print("int8_t %s_S_ij[%d][%d] = {" % (name, n, n))
+    s =   "// 0 "
+    for j in range(1, n):
+        s += "%3d " % j
+    print(s)
+    for i in range(n):
+        s = "{"
+        for j in range(n):
+            s += "%3s," % ("%d" % S_ijs[i][j])
+        s += " }, // %2d" % i
+        print(s)
+    print("};")

@@ -191,10 +191,10 @@
     <ClCompile Include="gsw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="combomx.cpp">
+    <ClCompile Include="mumx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="combomx_data.cpp">
+    <ClCompile Include="mumx_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="swgaplessint.cpp">
@@ -233,7 +233,7 @@
     <ClCompile Include="pdb2mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parasail_combo.cpp">
+    <ClCompile Include="parasail_mu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="explore1.cpp">
@@ -488,6 +488,15 @@
     <ClCompile Include="prime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mumxtest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="diaghsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="diag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -625,7 +634,7 @@
     <ClInclude Include="dssaligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="combomx.h">
+    <ClInclude Include="mumx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cigar.h">
@@ -752,6 +761,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="primes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diaghsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

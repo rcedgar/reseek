@@ -116,7 +116,7 @@ static void TrainFeature(const string &FeatureName, const SeqDB &Input,
 		}
 	}
 
-static void WriteLOInt8(FILE *f, const string &strName, const LogOdds &LO)
+static void WriteLOInt8(FILE *f, const string &strName, const LogOdds &LO, int8_t MaxAbsi8)
 	{
 	if (f == 0)
 		return;
@@ -131,7 +131,7 @@ static void WriteLOInt8(FILE *f, const string &strName, const LogOdds &LO)
 	double ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
 
 	vector<vector<int8_t> > LogOddsScoresi;
-	LO.GetLogOddsMxInt8(LogOddsScores, LogOddsScoresi, 8);
+	LO.GetLogOddsMxInt8(LogOddsScores, LogOddsScoresi, MaxAbsi8);
 
 	fprintf(f, "FEATURE\t%s\t%u\t%.3f\n", Name, AS, ExpectedScore);
 	asserta(SIZE(LogOddsScoresi) == AS);
@@ -194,6 +194,13 @@ void cmd_train_features()
 	opt_fast = true;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
+	int8_t MaxAbsi8 = 20;
+	if (optset_maxi8)
+		{
+		uint Max = opt_maxi8;
+		MaxAbsi8 = uint8_t(Max);
+		asserta(uint(MaxAbsi8) == Max);
+		}
 
 	vector<string> FeatureNames;
 	if (!optset_features)
@@ -222,7 +229,8 @@ void cmd_train_features()
 		{
 		TrainFeature(FeatureNames[i], Input, Chains, LO);
 		WriteLO(fOut, FeatureNames[i], LO);
-		WriteLOInt8(fOut2, FeatureNames[i], LO);
+
+		WriteLOInt8(fOut2, FeatureNames[i], LO, MaxAbsi8);
 		}
 	CloseStdioFile(fOut);
 	CloseStdioFile(fOut2);

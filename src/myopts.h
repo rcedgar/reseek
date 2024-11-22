@@ -155,6 +155,7 @@ UNS_OPT(maxrejects,			10,			1,			UINT_MAX)
 UNS_OPT(para_mugapopen,		10,			1,			UINT_MAX)
 UNS_OPT(para_mugapext,		10,			1,			UINT_MAX)
 UNS_OPT(window,				10,			1,			UINT_MAX)
+UNS_OPT(maxi8,				10,			1,			UINT_MAX)
 
 UNS_OPT(secs,				60,			1,			UINT_MAX)
 UNS_OPT(flanks,				60,			1,			UINT_MAX)

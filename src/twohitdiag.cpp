@@ -1,6 +1,9 @@
 #include "myutils.h"
+#include "seqdb.h"
 #include "twohitdiag.h"
 #include "duper.h"
+#include "mudex.h"
+#include "mermx.h"
 
 TwoHitDiag::~TwoHitDiag()
 	{
@@ -634,4 +637,12 @@ static void SavedTests()
 
 void cmd_twohit()
 	{
+	SeqDB Input;
+	Input.FromFasta(g_Arg1);
+
+	MuDex MD;
+	MD.FromSeqDB(Input);
+
+	MerMx MM;
+	ProgressLog("Done.\n");
 	}

@@ -302,6 +302,8 @@
     <ClCompile Include="daliscore_msas.cpp" />
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="deflate.c" />
+    <ClCompile Include="diag.cpp" />
+    <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="distmx.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="evalue_report.cpp" />
@@ -319,6 +321,7 @@
     <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
     <ClCompile Include="mudex.cpp" />
+    <ClCompile Include="mumxtest.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="pdb.cpp" />
@@ -338,7 +341,7 @@
     <ClCompile Include="linereader2.cpp" />
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
-    <ClCompile Include="parasail_combo.cpp" />
+    <ClCompile Include="parasail_mu.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="readhits.cpp" />
     <ClCompile Include="runquery.cpp" />
@@ -346,8 +349,8 @@
     <ClCompile Include="runthreads.cpp" />
     <ClCompile Include="scop40bit.cpp" />
     <ClCompile Include="search.cpp" />
-    <ClCompile Include="combomx.cpp" />
-    <ClCompile Include="combomx_data.cpp" />
+    <ClCompile Include="mumx.cpp" />
+    <ClCompile Include="mumx_data.cpp" />
     <ClCompile Include="dali.cpp" />
     <ClCompile Include="dbsearcher.cpp" />
     <ClCompile Include="derepper.cpp" />
@@ -435,7 +438,9 @@
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
-    <ClInclude Include="combomx.h" />
+    <ClInclude Include="diag.h" />
+    <ClInclude Include="diaghsp.h" />
+    <ClInclude Include="mumx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="crc32.h" />
     <ClInclude Include="daliscorer.h" />

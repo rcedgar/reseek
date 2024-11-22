@@ -72,5 +72,7 @@ C(threedi)
 C(mudex)
 C(twohit)
 C(duper)
+C(mumxtest)
+C(diagtest)
 
 #undef C

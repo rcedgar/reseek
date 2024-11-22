@@ -228,7 +228,7 @@ void cmd_threedi()
 		MxPtrs[i] = Row;
 		}
 	MerMx MM;
-	MM.Init(MxPtrs, 6, 20);
+	MM.Init(MxPtrs, 6, 20, 3);
 	//MM.LogMe();
 
 	//uint Kmer = MM.StrToKmer("SLVVVV");

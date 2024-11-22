@@ -146,8 +146,9 @@ short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-void MerMx::Init(short **Mx, uint k, uint AS)
+void MerMx::Init(short **Mx, uint k, uint AS, uint n)
 	{
+	asserta(n == 2 || n == 3);
 	asserta(k > 1 && k < 8);
 	m_k = k;
 	asserta(AS > 2 && AS < 4096);
@@ -166,12 +167,10 @@ void MerMx::Init(short **Mx, uint k, uint AS)
 	asserta(m_AS2 == m_AS_pow[2]);
 	asserta(m_AS3 == m_AS_pow[3]);
 
-	m_Order = myalloc(uint, m_AS3);
+	m_Order = myalloc(uint, n == 2 ? m_AS2 : m_AS3);
 
 	m_Mx2 = myalloc(short *, m_AS2);
-	m_Mx3 = myalloc(short *, m_AS3);
 	m_Scores2 = myalloc(short *, m_AS2);
-	m_Scores3 = myalloc(short *, m_AS3);
 
 	for (uint Kmer = 0; Kmer < m_AS2; ++Kmer)
 		{
@@ -179,15 +178,21 @@ void MerMx::Init(short **Mx, uint k, uint AS)
 		m_Scores2[Kmer] = myalloc(short, 2*m_AS2);
 		}
 
+	for (uint Kmer = 0; Kmer < m_AS2; ++Kmer)
+		BuildRow2(Kmer);
+
+	if (n == 2)
+		return;
+
+	m_Scores3 = myalloc(short *, m_AS3);
+	m_Mx3 = myalloc(short *, m_AS3);
+
 	for (uint Kmer = 0; Kmer < m_AS3; ++Kmer)
 		{
 		ProgressStep(Kmer, m_AS3, "3-mers Mx");
 		m_Mx3[Kmer] = myalloc(short, m_AS3);
 		m_Scores3[Kmer] = myalloc(short, 2*m_AS3);
 		}
-
-	for (uint Kmer = 0; Kmer < m_AS2; ++Kmer)
-		BuildRow2(Kmer);
 
 	for (uint Kmer = 0; Kmer < m_AS3; ++Kmer)
 		{
