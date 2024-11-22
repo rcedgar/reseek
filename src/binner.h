@@ -233,10 +233,7 @@ public:
 			string s;
 			ValueToStr(Mid, s);
 			uint n = m_Bins[Bin];
-			if (n == 0)
-				fprintf(f, "%u\t%s\t", Bin, s.c_str());
-			else
-				fprintf(f, "%u\t%s\t%u", Bin, s.c_str(), n);
+			fprintf(f, "%u\t%s\t%u", Bin, s.c_str(), n);
 			if (Msg != "")
 				fprintf(f, "\t%s", Msg.c_str());
 			fprintf(f, "\n");

@@ -497,6 +497,9 @@
     <ClCompile Include="diag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="diagtrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -767,6 +770,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="diag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diagtrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

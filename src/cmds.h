@@ -75,5 +75,6 @@ C(duper)
 C(mumxtest)
 C(diagtest)
 C(hsptest)
+C(train_diags_scoredist)
 
 #undef C

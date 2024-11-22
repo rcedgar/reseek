@@ -304,6 +304,7 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="diag.cpp" />
     <ClCompile Include="diaghsp.cpp" />
+    <ClCompile Include="diagtrainer.cpp" />
     <ClCompile Include="distmx.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="evalue_report.cpp" />
@@ -440,6 +441,7 @@
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
+    <ClInclude Include="diagtrainer.h" />
     <ClInclude Include="mumx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="crc32.h" />

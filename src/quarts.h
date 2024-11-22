@@ -111,7 +111,7 @@ struct QuartsFloat
 
 	void ProgressLogMe() const
 		{
-		ProgressLog("N=u", N);
+		ProgressLog("N=%u", N);
 		ProgressLog(", Min=%.3g", Min);
 		ProgressLog(", LoQ=%.3g", LoQ);
 		ProgressLog(", Med=%.3g", Med);
