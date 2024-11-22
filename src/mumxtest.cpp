@@ -5,12 +5,23 @@
 #include "mumx.h"
 #include <chrono>
 
+/***
+k=3 self N=46656	Min=12	LoQ=25	Med=28	HiQ=32	Max=45 Avg=28.4 StdDev=4.54
+k=3 pair N=1000000	Min=-60	LoQ=-23 Med=-15 HiQ=-7	Max=38 Avg=-15.1 StdDev=12
+k=4 self N=1679616	Min=16	LoQ=34	Med=38	HiQ=41	Max=60 Avg=37.8 StdDev=5.24
+k=4 pair N=1000000	Min=-73	LoQ=-30	Med=-20 HiQ=-11 Max=40 Avg=-20.1 StdDev=13.8
+k=5 self N=60466176	Min=20	LoQ=43	Med=47	HiQ=51	Max=75 Avg=18 StdDev=30.1
+k=5 pair N=1000000	Min=-84 LoQ=-36	Med=-25 HiQ=-15	Max=47 Avg=-25.2 StdDev=15.4
+k=6 self N=1000000	Min=30	LoQ=52	Med=57	HiQ=61	Max=88 Avg=57 StdDev=6.41
+k=6 pair N=1000000	Min=-103 LoQ=-42 Med=-30 HiQ=-19 Max=47 Avg=-30.2 StdDev=16.9
+***/
+
 static uint s_dict_size;
 
-static char *kmer2str(uint kmer)
+static char *kmer2str(uint k, uint kmer)
 	{
 	static char s[7];
-	for (uint i = 0; i < 6; ++i)
+	for (uint i = 0; i < k; ++i)
 		{
 		s[i] = g_LetterToCharAmino[kmer%36];
 		kmer /= 36;
@@ -31,10 +42,10 @@ static uint str2kmer(const string &s)
 	return kmer;
 	}
 
-static int get_kmer_self_score(uint kmer)
+static int get_kmer_self_score(uint k, uint kmer)
 	{
 	int sum = 0;
-	for (uint i = 0; i < 6; ++i)
+	for (uint i = 0; i < k; ++i)
 		{
 		uint code = kmer%36;
 		sum += Mu_S_ij_short[code][code];
@@ -43,10 +54,10 @@ static int get_kmer_self_score(uint kmer)
 	return sum;
 	}
 
-static int get_kmer_pair_score(uint kmer1, uint kmer2)
+static int get_kmer_pair_score(uint k, uint kmer1, uint kmer2)
 	{
 	int sum = 0;
-	for (uint i = 0; i < 6; ++i)
+	for (uint i = 0; i < k; ++i)
 		{
 		uint code1 = kmer1%36;
 		uint code2 = kmer2%36;
@@ -59,26 +70,28 @@ static int get_kmer_pair_score(uint kmer1, uint kmer2)
 
 static void test_self_score(const string &s, int should_be)
 	{
-	asserta(s.size() == 6);
+	uint k = SIZE(s);
+	asserta(k == 6);
 	uint kmer = str2kmer(s);
-	int sc = get_kmer_self_score(kmer);
+	int sc = get_kmer_self_score(k, kmer);
 	ProgressLog("Self: %s = %3d (%3d)\n", s.c_str(), sc, should_be);
 	}
 
 static void test_pair_score(const string &s, int should_be,
 							bool Trace = false)
 	{
-	asserta(s.size() == 6);
+	uint k = SIZE(s);
+	asserta(k == 6);
 	uint kmer = str2kmer(s);
-	int sc = get_kmer_self_score(kmer);
+	int sc = get_kmer_self_score(k, kmer);
 	uint nge78 = 0;
 	for (uint kmer2 = 0; kmer2 < s_dict_size; ++kmer2)
 		{
-		int sc = get_kmer_pair_score(kmer, kmer2);
+		int sc = get_kmer_pair_score(k, kmer, kmer2);
 		if (sc >= 78)
 			{
 			if (Trace)
-				Log(" %s = %d\n", kmer2str(kmer2), sc);
+				Log(" %s = %d\n", kmer2str(k, kmer2), sc);
 			++nge78;
 			}
 		}
@@ -106,63 +119,82 @@ static void Info()
 				scmin, scmax, scmaxd, scsum/400);
 	}
 
-static void Test()
+static uint GetRandomKmer(uint k)
 	{
-	s_dict_size = myipow(36, 5);
-	asserta(s_dict_size == 60466176);
-	vector<float> kmer_self_scores;
-	for (uint kmer = 0; kmer < s_dict_size; ++kmer)
-		{
-		ProgressStep(kmer, s_dict_size, "self scores");
-		int self_score = get_kmer_self_score(kmer);
-		kmer_self_scores.push_back(float(self_score));
-		}
-	QuartsFloat QF;
-	GetQuartsFloat(kmer_self_scores, QF);
-	QF.ProgressLogMe();
-
-	test_self_score("VVVVV", 72);
-	test_self_score("NVDDN", 112);
-	test_self_score("WDTRD", 136);
-
-	test_pair_score("CVPVV", 0);
-	test_pair_score("VVVVC", 0);
-	test_pair_score("SLVVV", 1);
-	test_pair_score("VSVVC", 31);
-	test_pair_score("SVVVQ", 72);
-	test_pair_score("AVNPK", 4660);
-	test_pair_score("VNPHD", 4299);
-	test_pair_score("CQVND", 1118);
+	uint Kmer = 0;
+	for (uint i = 0; i < k; ++i)
+		Kmer = Kmer*36 + randu32()%36;
+	return Kmer;
 	}
 
-static void TestNbr(MerMx &MM, const string &sKmer, uint FSn, uint FSTicks)
+static void KmerSelfScoreDist(uint k)
 	{
-	uint Kmer = MM.StrToKmer(sKmer);
-	uint DictSize = myipow(36, 5);
-	asserta(DictSize == 60466176);
+	vector<float> Scores;
+	uint DictSize64 = 1;
+	for (uint i = 0; i < k; ++i)
+		DictSize64 *= 36;
+	asserta(DictSize64 < UINT32_MAX);
+	uint DictSize = uint(DictSize64);
+	Scores.reserve(DictSize);
+	for (uint Kmer = 0; Kmer < DictSize; ++Kmer)
+		{
+		float Score = (float) get_kmer_pair_score(k, Kmer, Kmer);
+		Scores.push_back(Score);
+		}
+	QuartsFloat QF;
+	GetQuartsFloat(Scores, QF);
+	ProgressLog("k=%u self ", k);
+	QF.ProgressLogMe();
+	}
 
-	uint *Kmers = myalloc(uint, DictSize);
-	uint *Kmers_Brute = myalloc(uint, DictSize);
+static void KmerSelfScoreDistSample(uint k, uint N)
+	{
+	vector<float> Scores;
+	Scores.reserve(N);
+	uint DictSize64 = 1;
+	for (uint i = 0; i < k; ++i)
+		DictSize64 *= 36;
+	asserta(DictSize64 < UINT32_MAX);
+	uint DictSize = uint(DictSize64);
+	for (uint i = 0; i < N; ++i)
+		{
+		uint Kmer = randu32()%DictSize;
+		float Score = (float) get_kmer_pair_score(k, Kmer, Kmer);
+		Scores.push_back(Score);
+		}
+	QuartsFloat QF;
+	GetQuartsFloat(Scores, QF);
+	ProgressLog("k=%u self(sample) ", k);
+	QF.ProgressLogMe();
+	}
 
-	uint n_Brute = MM.GetHighScoring6mers_Brute(Kmer, 78, Kmers_Brute, true);
-
-	//short *Work = myalloc(short, 2*MM.m_AS3);
-
-	auto c0 = std::chrono::high_resolution_clock::now();
-	uint n = MM.GetHighScoring6mers(Kmer, 78, Kmers);
-	auto c1 = std::chrono::high_resolution_clock::now();
-	auto elapsed = c1 - c0;
-	uint32_t cticks = (uint32_t) elapsed.count();
-	ProgressLog("%s cticks=%u,%u, n=%u,%u\n",
-				sKmer.c_str(), cticks, FSTicks, n, FSn);
-	asserta(n == n_Brute);
+static void KmerScoreDist(uint k, uint N)
+	{
+	vector<float> Scores;
+	Scores.reserve(N);
+	for (uint i = 0; i < N; ++i)
+		{
+		uint Kmer1 = GetRandomKmer(k);
+		uint Kmer2 = GetRandomKmer(k);
+		float Score = (float) get_kmer_pair_score(k, Kmer1, Kmer2);
+		Scores.push_back(Score);
+		}
+	QuartsFloat QF;
+	GetQuartsFloat(Scores, QF);
+	ProgressLog("k=%u pair ", k);
+	QF.ProgressLogMe();
 	}
 
 void cmd_mumxtest()
 	{
 	Info();
-	return;
-	MerMx MM;
-	MM.Init((short **) Mu_S_ij_short, 5, 36, 2);
-	TestNbr(MM, "PALVV", 18, 9999);
+	const uint SAMPLE_SIZE = 1000*1000;
+	for (uint k = 3; k <= 6; ++k)
+		{
+		if (k >= 6)
+			KmerSelfScoreDistSample(k, SAMPLE_SIZE);
+		else
+			KmerSelfScoreDist(k);
+		KmerScoreDist(k, SAMPLE_SIZE);
+		}
 	}
