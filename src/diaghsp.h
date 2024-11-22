@@ -4,23 +4,35 @@ class DiagHSP
 	{
 public:
 	const byte *m_Q = 0;
-	uint m_QL = 0;
 	const byte *m_T = 0;
-	uint m_TL = 0;
-
-	uint m_QHi = 0;
-	uint m_THi = 0;
-	short m_Score = 0;
-	uint m_Diag = UINT_MAX;
-
+	int m_LQ = 0;
+	int m_LT = 0;
+	uint m_AS = 0;
 	const short * const *m_ScoreMx = 0;
 
 public:
-	void SetQ(const byte *Q, uint QL)
+	DiagHSP()
 		{
-		m_Q = Q;
-		m_QL = QL;
+		extern const short * const *Mu_S_ij_short;
+		m_AS = 36;
+		m_ScoreMx = Mu_S_ij_short;
 		}
 
-	void Search(const byte *T, uint TL, uint Diag);
+	void SetQ(const byte *Q, uint LQ)
+		{
+		m_Q = Q;
+		m_LQ = LQ;
+		}
+
+	void SetT(const byte *T, uint LT)
+		{
+		m_T = T;
+		m_LT = LT;
+		}
+
+	int Search(int d, int &Lo, int &Len) const;
+	int Search_Trace(int d, int &Lo, int &Len) const;
+	int SearchBrute(int d, int &Lo, int &Len) const;
+	int GetHSPScore(int d, int lo, int hi) const;
+	int GetHSPScore_Trace(int d, int lo, int len) const;
 	};

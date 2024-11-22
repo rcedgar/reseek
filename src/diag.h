@@ -75,4 +75,13 @@ public:
 			maxj = m_LT - 1;
 		return maxj;
 		}
+
+	int getlen(int d) const
+		{
+		int maxi = getmaxi(d);
+		int mini = getmini(d);
+		int len = maxi - mini + 1;
+		assert(len > 0);
+		return len;
+		}
 	};

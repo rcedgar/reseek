@@ -74,5 +74,6 @@ C(twohit)
 C(duper)
 C(mumxtest)
 C(diagtest)
+C(hsptest)
 
 #undef C
