@@ -52,10 +52,16 @@ bool DiagTrainer::SeedMatch(const byte *Q, int i, uint LQ,
 
 bool DiagTrainer::GetKmer(const byte *Q, int i, uint QL, uint *Letters) const
 	{
-	if (i + m_k > QL)
+	const uint n = SIZE(m_Pattern);
+	if (i + n > QL)
 		return false;
-	for (uint offset = 0; offset < m_k; ++offset)
-		Letters[offset] = Q[i+offset];
+	uint kmerpos = 0;
+	for (uint patpos = 0; patpos < n; ++patpos)
+		{
+		char c = m_Pattern[patpos];
+		if (c == '1')
+			Letters[kmerpos++] = Q[i+patpos];
+		}
 	return true;
 	}
 
@@ -73,15 +79,15 @@ void DiagTrainer::OnPair(uint ChainIdxQ, uint ChainIdxR, bool IsT)
 	diag dg(LQ, LR);
 	int mind = dg.getmind();
 	int maxd = dg.getmaxd();
-	int MaxScore = 0;
+	int MaxDiagScore = 0;
 	int MaxDiag = 0;
 	for (int d = mind; d <= maxd; ++d)
 		{
 		int Lo, Len;
 		int Score = m_DH.Search(d, Lo, Len);
-		if (Score > MaxScore)
+		if (Score > MaxDiagScore)
 			{
-			MaxScore = Score;
+			MaxDiagScore = Score;
 			MaxDiag = d;
 			}
 		}
@@ -114,7 +120,7 @@ void DiagTrainer::OnPair(uint ChainIdxQ, uint ChainIdxR, bool IsT)
 			}
 		}
 
-	if (SeedHitCount >= m_MinSeedHits && MaxScore >= m_MinDiagScore)
+	if (SeedHitCount >= m_MinSeedHits && MaxDiagScore >= m_MinDiagScore)
 		{
 		if (IsT)
 			++m_SeedCountT;
@@ -123,27 +129,74 @@ void DiagTrainer::OnPair(uint ChainIdxQ, uint ChainIdxR, bool IsT)
 		}
 
 	if (IsT)
-		m_PosScores.push_back((float) MaxScore);
+		m_PosScores.push_back((float) MaxDiagScore);
 	else
-		m_NegScores.push_back((float) MaxScore);
+		m_NegScores.push_back((float) MaxDiagScore);
 	}
 
 void cmd_train_diags_scoredist()
 	{
-	asserta(optset_output);
 	opt_fast = true;
 	optset_fast = true;
 
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 
+	const string TrainParamStr = string(opt_trainparams);
 	DiagTrainer DT;
+
+	DT.m_k = UINT_MAX;
+	DT.m_MinKmerScore = INT_MAX;
+	DT.m_MinSeedHits = UINT_MAX;
+	DT.m_MinDiagScore = INT_MAX;
+	DT.m_Pattern = "";
+
+	vector<string> Fields;
+	Split(TrainParamStr, Fields, ',');
+	for (uint i = 0; i < SIZE(Fields); ++i)
+		{
+		vector<string> Fields2;
+		Split(Fields[i], Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		const string &Name = Fields2[0];
+		const string &Value = Fields2[1];
+		if (Name == "minksc")
+			DT.m_MinKmerScore = StrToInt(Value);
+		else if (Name == "mindsc")
+			DT.m_MinDiagScore = StrToInt(Value);
+		else if (Name == "n")
+			DT.m_MinSeedHits = StrToUint(Value);
+		else if (Name == "pattern")
+			DT.m_Pattern = Value;
+		else
+			Die("Bad param '%s'", Name.c_str());
+		}
+
+	asserta(DT.m_k == UINT_MAX);
+	asserta(DT.m_MinKmerScore != INT_MAX);
+	asserta(DT.m_MinSeedHits != UINT_MAX);
+	asserta(DT.m_MinDiagScore != INT_MAX);
+	asserta(DT.m_Pattern != "");
+
+	DT.m_k = 0;
+	for (uint i = 0; i < SIZE(DT.m_Pattern); ++i)
+		{
+		char c = DT.m_Pattern[i];
+		if (c == '1')
+			++DT.m_k;
+		else if (c == '0')
+			;
+		else
+			Die("Bad pattern '%s'", DT.m_Pattern.c_str());
+		}
+
+	Progress("k=%u, minksc=%d, mindsc=%d, n=%u, pattern=%s\n",
+				DT.m_k, DT.m_MinKmerScore, DT.m_MinDiagScore,
+				DT.m_MinSeedHits, DT.m_Pattern.c_str());
+
 	DT.Init(Params, g_Arg1, opt_train_cal);
 	DT.EnumChainPairsT(OnPairT);
 	DT.EnumChainPairsF(Scop40_IsTP_SF, OnPairF);
-
-	ProgressLog("Seeds T %7u (%.1f%%)\n", DT.m_SeedCountT, GetPct(DT.m_SeedCountT, DT.m_NT));
-	ProgressLog("Seeds F %7u (%.1f%%)\n", DT.m_SeedCountF, GetPct(DT.m_SeedCountF, DT.m_NF));
 
 	QuartsFloat QuT, QuF;
 	GetQuartsFloat(DT.m_PosScores, QuT);
@@ -151,14 +204,29 @@ void cmd_train_diags_scoredist()
 	QuT.ProgressLogMe();
 	QuF.ProgressLogMe();
 
-	ProgressLog("True bins...");
-	Binner <float>BT(DT.m_PosScores, 30, 0, 300);
-	ProgressLog("\nFalse bins...");
-	Binner <float>BF(DT.m_NegScores, 30, 0, 300);
+	if (optset_output)
+		{
+		ProgressLog("True bins...");
+		Binner <float>BT(DT.m_PosScores, 30, 0, 300);
+		ProgressLog("\nFalse bins...");
+		Binner <float>BF(DT.m_NegScores, 30, 0, 300);
 
-	ProgressLog("\nWriting %s\n", opt_output);
-	FILE *f = CreateStdioFile(opt_output);
-	BT.ToTsv(f, "T");
-	BF.ToTsv(f, "F");
-	CloseStdioFile(f);
+		ProgressLog("\nWriting %s\n", opt_output);
+		FILE *f = CreateStdioFile(opt_output);
+		BT.ToTsv(f, "T");
+		BF.ToTsv(f, "F");
+		BT.AccumToTsvReverse(f, "AccRevT");
+		CloseStdioFile(f);
+		}
+
+	ProgressLog("");
+	double PctT = GetPct(DT.m_SeedCountT, DT.m_NT);
+	double PctF = GetPct(DT.m_SeedCountF, DT.m_NF);
+	double T4F = PctT - PctF/2;
+	ProgressLog("%.1f\t@D@", T4F);
+	ProgressLog("\tk=%u\tminksc=%d\tmindsc=%d\tn=%u\tpattern=%s",
+				DT.m_k, DT.m_MinKmerScore, DT.m_MinDiagScore,
+				DT.m_MinSeedHits, DT.m_Pattern.c_str());
+	ProgressLog("\tseedsT=%.1f\tseedsF=%.1f", PctT, PctF);
+	ProgressLog("\n");
 	}

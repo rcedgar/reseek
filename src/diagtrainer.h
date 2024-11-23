@@ -22,9 +22,10 @@ public:
 	uint m_SeedCountF = 0;
 
 	uint m_k = 5;
-	int m_MinKmerScore = 30;
+	int m_MinKmerScore = 35;
 	uint m_MinSeedHits = 2;
-	int m_MinDiagScore = 100;
+	int m_MinDiagScore = 150;
+	string m_Pattern;
 
 public:
 	void Init(const DSSParams &Params, const string &PairAlnFN,
