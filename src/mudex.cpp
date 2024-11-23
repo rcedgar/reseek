@@ -4,6 +4,13 @@
 #include "seqdb.h"
 #include "quarts.h"
 
+/***
+32 bits 2^5, 64 bits 2^6
+5 bits per aa letter
+6 bits per Mu letter
+8 bits per char
+***/
+
 #define TRACE	0
 
 uint MuDex::StrToKmer(const string &s) const
