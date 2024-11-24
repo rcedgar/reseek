@@ -68,6 +68,11 @@ public:
 	void ValidateKmer(uint Kmer) const;
 	uint GetSeqKmer(uint SeqIdx, uint SeqPos) const;
 	void LogIndexKmer(uint Kmer) const;
+	const uint32_t GetRowStart(uint Kmer) const
+		{
+		assert(Kmer < m_DictSize);
+		return m_Finger[Kmer];
+		}
 
 #if DEBUG
 	void CheckAfterPass1() const;

@@ -4,6 +4,20 @@
 #include "duper.h"
 #include "mudex.h"
 #include "mermx.h"
+#include "alpha.h"
+#include "diaghsp.h"
+#include "diag.h"
+
+const void StrToMuLetters(const string &StrSeq, byte *Letters)
+	{
+	const uint L = SIZE(StrSeq);
+	for (uint i = 0; i < L; ++i)
+		{
+		byte Letter = g_CharToLetterMu[StrSeq[i]];
+		assert(Letter < 36);
+		Letters[i] = Letter;
+		}
+	}
 
 TwoHitDiag::~TwoHitDiag()
 	{
@@ -355,6 +369,7 @@ void TwoHitDiag::AppendAll(uint Rdx, vector<pair<uint32_t, uint16_t> > &SeqIdxDi
 			const uint32_t *ptr = Data + i;
 			uint16_t Diag;
 			uint32_t SeqIdx = GetAllBits(Rdx, ptr, Diag);
+			brk(SeqIdx == 1 && Diag == 432);
 			SeqIdxDiagPairs.push_back(pair<uint32_t, uint16_t>(SeqIdx, Diag));
 			}
 		}
@@ -635,14 +650,142 @@ static void SavedTests()
 		}
 	}
 
+void LogDiagAln(const byte *MuSeqQ, uint LQ, const char *LabelQ,
+				const byte *MuSeqT, uint LT, const char *LabelT,
+				uint16_t Diag, int Lo, int Len)
+	{
+	diag dg(LQ, LT);
+	int mini = dg.getmini(Diag);
+	int minj = dg.getminj(Diag);
+	Log("\n");
+	Log("%5d  ", mini+1);
+	for (int diagpos = 0; diagpos < Len; ++diagpos)
+		{
+		int posq = mini+diagpos;
+		asserta(posq < int(LQ));
+		char c = g_LetterToCharMu[MuSeqQ[posq]];
+		Log("%c", c);
+		}
+	Log("  >%s (%u)\n", LabelQ, LQ);
+
+	Log("%5d  ", minj+1);
+	for (int diagpos = 0; diagpos < Len; ++diagpos)
+		{
+		int post = minj+diagpos;
+		asserta(post < int(LT));
+		char c = g_LetterToCharMu[MuSeqT[post]];
+		Log("%c", c);
+		}
+	Log("  >%s (%u)\n", LabelT, LT);
+	}
+
 void cmd_twohit()
 	{
+	asserta(optset_label);
+
 	SeqDB Input;
 	Input.FromFasta(g_Arg1);
+	Input.SetLabelToIndex();
+	const uint SeqCount = Input.GetSeqCount();
+
+	byte **MuSeqs = myalloc(byte *, SeqCount);
+	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
+		{
+		uint L = Input.GetSeqLength(SeqIdx);
+		byte *MuSeq = myalloc(byte, L);
+		StrToMuLetters(Input.GetSeq(SeqIdx), MuSeq);
+		MuSeqs[SeqIdx] = MuSeq;
+		}
 
 	MuDex MD;
 	MD.FromSeqDB(Input);
 
-	MerMx MM;
-	ProgressLog("Done.\n");
+	uint SeqIdxQ = Input.GetSeqIndex(opt_label);
+	const char *SeqQ = Input.GetSeq(SeqIdxQ).c_str();
+	uint LQ32 = Input.GetSeqLength(SeqIdxQ);
+	asserta(LQ32 < UINT16_MAX);
+	uint16_t LQ = uint16_t(LQ32);
+	const char *LabelQ = Input.GetLabel(SeqIdxQ).c_str();
+
+	TwoHitDiag TH;
+
+	const uint k = MD.m_k;
+	const uint DictSize = MD.m_DictSize;
+	uint Kmer = 0;
+	for (uint SeqPosQ = 0; SeqPosQ < k-1; ++SeqPosQ)
+		{
+		byte Letter = g_CharToLetterMu[SeqQ[SeqPosQ]];
+		assert(Letter < 36);
+		Kmer = Kmer*36 + Letter;
+		}
+
+	for (uint SeqPosQ = k-1; SeqPosQ < LQ; ++SeqPosQ)
+		{
+		byte Letter = g_CharToLetterMu[SeqQ[SeqPosQ]];
+		assert(Letter < 36);
+		Kmer = Kmer*36 + Letter;
+		Kmer %= DictSize;
+		assert(Kmer < DictSize);
+		uint RowSize = MD.GetRowSize(Kmer);
+		uint DataOffset = MD.GetRowStart(Kmer);
+		for (uint ColIdx = 0; ColIdx < RowSize; ++ColIdx)
+			{
+			uint32_t SeqIdxT;
+			uint16_t SeqPosT;
+			MD.Get(DataOffset++, SeqIdxT, SeqPosT);
+			if (SeqIdxT == SeqIdxQ)
+				continue;
+			uint LT32 = Input.GetSeqLength(SeqIdxT);
+			asserta(LT32 < UINT16_MAX);
+			uint16_t LT = uint16_t(LT32);
+			diag dg(LQ, LT);
+			uint16_t Diag = dg.getd(SeqPosQ, SeqPosT);
+			TH.Add(SeqIdxT, Diag);
+			}
+		}
+	TH.SetDupes();
+	TH.Validate(SeqCount, 3*LQ);
+	vector<pair<uint32_t, uint16_t> > SeqIdxDiagPairs;
+	uint DupeCount = TH.m_DupeCount;
+	ProgressLog("%u dupes\n", DupeCount);
+	const byte *MuSeqQ = MuSeqs[SeqIdxQ];
+	DiagHSP DH;
+	DH.SetQ(MuSeqQ, LQ);
+	Log(" Idx   Diag  Score     Lo    Len\n");
+	//  12345  12345  12345  12345  12345
+	int TopScore = 0;
+	uint16_t TopDiag = 0;
+	int TopLo = 0;
+	int TopLen = 0;
+	uint TopSeqIdxT = 0;
+	for (uint i = 0; i < DupeCount; ++i)
+		{
+		uint32_t SeqIdxT = TH.m_DupeSeqIdxs[i];
+		uint16_t Diag = TH.m_DupeDiags[i];
+		const byte *MuSeqT = MuSeqs[SeqIdxT];
+		const uint LT = Input.GetSeqLength(SeqIdxT);
+		DH.SetT(MuSeqT, LT);
+		int Lo, Len;
+		int Score = DH.Search(Diag, Lo, Len);
+		Log("%5u  %5u  %5d  %5d  %5d  >%s (%u)\n",
+			SeqIdxT, Diag, Score, Lo, Len,
+			Input.GetLabel(SeqIdxT).c_str(), LT);
+		if (Score > TopScore)
+			{
+			TopScore = Score;
+			TopDiag = Diag;
+			TopLo = Lo;
+			TopLen = Len;
+			TopSeqIdxT = SeqIdxT;
+			}
+		}
+
+	if (TopScore > 0)
+		{
+		const byte *MuSeqT = MuSeqs[TopSeqIdxT];
+		const char *LabelT = Input.GetLabel(TopSeqIdxT).c_str();
+		uint LT = Input.GetSeqLength(TopSeqIdxT);
+		LogDiagAln(MuSeqQ, LQ, LabelQ, MuSeqT, LT, LabelT,
+				   TopDiag, TopLo, TopLen);
+		}
 	}
