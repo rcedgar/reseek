@@ -310,7 +310,6 @@
     <ClCompile Include="evalue_report.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="getchains.cpp" />
-    <ClCompile Include="getpdbchains.cpp" />
     <ClCompile Include="lddt.cpp" />
     <ClCompile Include="lddt_foldmason.cpp" />
     <ClCompile Include="lddt_msa.cpp" />
