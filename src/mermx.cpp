@@ -187,7 +187,8 @@ void MerMx::Init(const short * const *Mx, uint k, uint AS, uint n)
 	m_Scores2 = myalloc(short *, m_AS2);
 
 	for (uint Letter = 0; Letter < m_AS; ++Letter)
-		m_Scores1[Letter] = myalloc(short, m_AS);
+		m_Scores1[Letter] = myalloc(short, 2*m_AS);
+
 	for (uint Letter = 0; Letter < m_AS; ++Letter)
 		BuildRow1(Letter);
 
@@ -417,6 +418,10 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 
 // Minimum score for AB+ab
 	const short MinScore_AB_ab = MinScore - MaxScore_CDE_cde;
+#if 0
+	Log("MaxScore_CD_cd=%d, MaxScore_E_e=%d, MaxScore_CDE_cde=%d, MinScore_AB_ab=%d\n",
+		MaxScore_CD_cd, MaxScore_E_e, MaxScore_CDE_cde, MinScore_AB_ab);
+#endif
 
 	const short *Row_AB = m_Scores2[AB];
 	const uint ABmul = m_AS_pow[3];
@@ -469,7 +474,7 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 				assert(Score >= MinScore);
 				}
 #endif
-				Fivemers[n] = abcde;
+				Fivemers[n++] = abcde;
 				}
 			}
 		}

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "mermx.h"
 #include "quarts.h"
+#include "alpha.h"
 
 /***
 PairScoreDist()
@@ -75,11 +76,14 @@ static void Test(const MerMx &MM, const char *KmerStr, int ScoreDelta)
 	assert(Kmer < MM.m_AS_pow[5]);
 	int SelfScore = MM.GetScoreKmerPair(Kmer, Kmer);
 	int MinScore = SelfScore - ScoreDelta;
-	ProgressLog("Self score %s = %d, MinScore = %d\n", KmerStr, SelfScore, MinScore);
+	ProgressLog("Self %s Delta %d Self %d MinScore %d",
+				KmerStr, ScoreDelta, SelfScore, MinScore);
 	uint n_Brute = MM.GetHighScoring5mers_Brute(Kmer, MinScore, Kmers, false);
-	ProgressLog("n_Brute=%u\n", n_Brute);
+	ProgressLog(" n_Brute=%u", n_Brute);
 	uint n_Fast = MM.GetHighScoring5mers(Kmer, MinScore, Kmers);
-	ProgressLog("n_Fast=%u\n", n_Brute);
+	ProgressLog(" n_Fast=%u", n_Fast);
+	ProgressLog("\n");
+	asserta(n_Brute == n_Fast);
 	myfree(Kmers);
 	}
 
@@ -89,7 +93,17 @@ void cmd_testmu5mers()
 	extern const short * const *Mu_S_ij_short;
 	MM.Init(Mu_S_ij_short, 5, 36, 2);
 
-	Test(MM, "AAAAA", 4);
+	Test(MM, "AAAAA", 0);
 	Test(MM, "ABCDE", 4);
 	Test(MM, "abcde", 4);
+
+	uint Tries = 100;
+	for (uint Try = 0; Try < Tries; ++Try)
+		{
+		string KmerStr;
+		for (uint i = 0; i < 5; ++i)
+			KmerStr += char(g_LetterToCharMu[randu32()%36]);
+		int ScoreDelta = int(randu32()%16);
+		Test(MM, KmerStr.c_str(), ScoreDelta);
+		}
 	}

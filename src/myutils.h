@@ -127,6 +127,12 @@ void mysleep(unsigned ms);
 void mylistdir(const string &DirName, vector<string> &FileNames,
   vector<bool> &IsSubDirs);
 
+#if defined(_MSC_VER) && defined(DEBUG)
+#define _chkmem()	asserta(_CrtCheckMemory())
+#else
+#define _chkmem()	/* empty */
+#endif
+
 #if	RCE_MALLOC
 
 void *rce_malloc(size_t bytes, const char *FileName, int Line);
