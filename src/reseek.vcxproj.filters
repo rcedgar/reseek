@@ -500,6 +500,9 @@
     <ClCompile Include="diagtrainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testmu5mers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

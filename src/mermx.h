@@ -14,6 +14,8 @@ public:
 	uint m_AS2 = UINT_MAX;	// AS^2
 	uint m_AS3 = UINT_MAX;	// AS^3
 	uint *m_AS_pow = 0;		// m_AS_pow[i] == AS^i
+	const byte *m_CharToLetter = 0;
+	const byte *m_LetterToChar = 0;
 
 // AS x AS scoring matrix m_Mx[Letter_i][Letter_j]
 	const short * const *m_Mx = 0;
@@ -23,6 +25,11 @@ public:
 
 // AS3 x AS3 scoring matrix m_Mx3[Kmer_i][Kmer_j]
 	short **m_Mx3 = 0;
+
+// m_Scores1 sorted by decreasing score
+// m_Scores1[Letter_j][2*i] = score of Letter_i,Letter_j
+// m_Scores1[Letter_j][2*i+1] = Letter_j
+	short **m_Scores1 = 0;
 
 // m_Scores2 sorted by decreasing score
 // m_Scores2[2mer_i][2*i] = score of 2mer_i,2mer_j
@@ -37,10 +44,11 @@ public:
 	uint *m_Order = 0;
 
 public:
-	void Init(short **Mx, uint k, uint AS, uint n);
-	void BuildRow2(uint Letter);
-	void BuildRow3(uint Letter);
-	short GetScoreKmerPair(uint Kmer_i, uint Kmer_j) const;
+	void Init(const short * const *Mx, uint k, uint AS, uint n);
+	void BuildRow1(uint Letter);
+	void BuildRow2(uint Twomer);
+	void BuildRow3(uint Threemer);
+	int GetScoreKmerPair(uint Kmer_i, uint Kmer_j) const;
 	short GetScore2merPair(uint Kmer_i, uint Kmer_j) const;
 	short GetScore3merPair(uint Kmer_i, uint Kmer_j) const;
 	void KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const;
@@ -55,7 +63,10 @@ public:
 //   against another s-mer
 	short GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const;
 
+	uint GetHighScoring5mers(uint Kmer, short MinScore, uint *Kmers) const;
 	uint GetHighScoring6mers(uint Kmer, short MinScore, uint *Kmers) const;
+	uint GetHighScoring5mers_Brute(uint Kmer, short MinScore, uint *Kmers,
+								   bool Trace = false) const;
 	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
 	};

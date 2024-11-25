@@ -387,6 +387,7 @@
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="testmodel.cpp" />
     <ClCompile Include="testmodel2.cpp" />
+    <ClCompile Include="testmu5mers.cpp" />
     <ClCompile Include="test_chrono_ticks.cpp" />
     <ClCompile Include="test_para.cpp" />
     <ClCompile Include="test_para_cal.cpp" />

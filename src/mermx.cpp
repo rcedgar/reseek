@@ -22,7 +22,7 @@ uint MerMx::StrToKmer(const string &s) const
 		{
 		Kmer *= m_AS;
 		byte c = s[i];
-		uint Letter = g_CharToLetterAmino[c];
+		uint Letter = m_CharToLetter[c];
 		asserta(Letter < m_AS);
 		Kmer += Letter;
 		}
@@ -36,25 +36,27 @@ const char *MerMx::KmerToStr(uint Kmer, uint k, string &s) const
 	for (uint i = 0; i < k; ++i)
 		{
 		byte Letter = Kmer%m_AS;
-		s.push_back(g_LetterToCharAmino[Letter]);
+		s.push_back(m_LetterToChar[Letter]);
 		Kmer /= m_AS;
 		}
 	reverse(s.begin(), s.end());
 	return s.c_str();
 	}
 
-short MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
+int MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
 	int sum = 0;
-	for (uint i = 0; i < 6; ++i)
+	for (uint i = 0; i < m_k; ++i)
 		{
-		uint code1 = Kmer_i%20;
-		uint code2 = Kmer_j%20;
+		uint code1 = Kmer_i%m_AS;
+		uint code2 = Kmer_j%m_AS;
+		assert(code1 < 36);
+		assert(code2 < 36);
 		sum += m_Mx[code1][code2];
-		Kmer_i /= 20;
-		Kmer_j /= 20;
+		Kmer_i /= m_AS;
+		Kmer_j /= m_AS;
 		}
 	return sum;
 	}
@@ -146,12 +148,23 @@ short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-void MerMx::Init(short **Mx, uint k, uint AS, uint n)
+void MerMx::Init(const short * const *Mx, uint k, uint AS, uint n)
 	{
 	asserta(n == 2 || n == 3);
 	asserta(k > 1 && k < 8);
 	m_k = k;
-	asserta(AS > 2 && AS < 4096);
+	if (AS == 20)
+		{
+		m_CharToLetter = g_CharToLetterAmino;
+		m_LetterToChar = g_LetterToCharAmino;
+		}
+	else if (AS == 36)
+		{
+		m_CharToLetter = g_CharToLetterMu;
+		m_LetterToChar = g_LetterToCharMu;
+		}
+	else
+		Die("MerMx::Init() AS=%d", AS);
 	m_Mx = Mx;
 	m_AS = AS;
 	m_AS2 = AS*AS;
@@ -170,7 +183,13 @@ void MerMx::Init(short **Mx, uint k, uint AS, uint n)
 	m_Order = myalloc(uint, n == 2 ? m_AS2 : m_AS3);
 
 	m_Mx2 = myalloc(short *, m_AS2);
+	m_Scores1 = myalloc(short *, m_AS);
 	m_Scores2 = myalloc(short *, m_AS2);
+
+	for (uint Letter = 0; Letter < m_AS; ++Letter)
+		m_Scores1[Letter] = myalloc(short, m_AS);
+	for (uint Letter = 0; Letter < m_AS; ++Letter)
+		BuildRow1(Letter);
 
 	for (uint Kmer = 0; Kmer < m_AS2; ++Kmer)
 		{
@@ -178,8 +197,8 @@ void MerMx::Init(short **Mx, uint k, uint AS, uint n)
 		m_Scores2[Kmer] = myalloc(short, 2*m_AS2);
 		}
 
-	for (uint Kmer = 0; Kmer < m_AS2; ++Kmer)
-		BuildRow2(Kmer);
+	for (uint Twomer = 0; Twomer < m_AS2; ++Twomer)
+		BuildRow2(Twomer);
 
 	if (n == 2)
 		return;
@@ -187,17 +206,32 @@ void MerMx::Init(short **Mx, uint k, uint AS, uint n)
 	m_Scores3 = myalloc(short *, m_AS3);
 	m_Mx3 = myalloc(short *, m_AS3);
 
-	for (uint Kmer = 0; Kmer < m_AS3; ++Kmer)
+	for (uint Threemer = 0; Threemer < m_AS3; ++Threemer)
 		{
-		ProgressStep(Kmer, m_AS3, "3-mers Mx");
-		m_Mx3[Kmer] = myalloc(short, m_AS3);
-		m_Scores3[Kmer] = myalloc(short, 2*m_AS3);
+		ProgressStep(Threemer, m_AS3, "3-mers Mx");
+		m_Mx3[Threemer] = myalloc(short, m_AS3);
+		m_Scores3[Threemer] = myalloc(short, 2*m_AS3);
 		}
 
-	for (uint Kmer = 0; Kmer < m_AS3; ++Kmer)
+	for (uint Threemer = 0; Threemer < m_AS3; ++Threemer)
 		{
-		ProgressStep(Kmer, m_AS3, "3-mers sorted");
-		BuildRow3(Kmer);
+		ProgressStep(Threemer, m_AS3, "3-mers sorted");
+		BuildRow3(Threemer);
+		}
+	}
+
+void MerMx::BuildRow1(uint Letter_i)
+	{
+	QuickSortOrderDesc<short>(m_Mx[Letter_i], m_AS, m_Order);
+	short LastScore = SHRT_MAX;
+	for (uint j = 0; j < m_AS; ++j)
+		{
+		uint Letter_j = m_Order[j];
+		short Score = m_Mx[Letter_i][Letter_j];
+		assert(Score <= LastScore);
+		m_Scores1[Letter_i][2*j] = Score;
+		m_Scores1[Letter_i][2*j+1] = Letter_j;
+		LastScore = Score;
 		}
 	}
 
@@ -264,7 +298,7 @@ void MerMx::LogMe() const
 	uint m = min(m_AS, 4u);
 	for (uint i = 0; i < m; ++i)
 		{
-		Log("Mx[%c] ", g_LetterToCharAmino[i]);
+		Log("Mx[%c] ", m_LetterToChar[i]);
 		for (uint j = 0; j < m; ++j)
 			Log(" %4d", m_Mx[i][j]);
 		Log(" ... \n");
@@ -352,9 +386,96 @@ short MerMx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
 	return 0;
 	}
 
-// Work buffer stores possible first 3mers of high-scoring Sixmer
-//	Work[2*i] is score of first 3mer against first 3mer in Sixmer
-//	Work[2*i+1] is i'th first 3mer
+uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) const
+	{
+//  Query 5-mer is ABCDE
+//  Neigbor 5-mer is abcde
+//	Alignment is split into two 2-mers and one letter
+//		AB CD E
+//		ab cd e
+	const uint AB = GetSubmer(ABCDE, 0, 2);
+	const uint CD = GetSubmer(ABCDE, 2, 2);
+	const uint E = GetSubmer(ABCDE, 4, 1);
+#if 0
+	{
+	string Tmp;
+	Log("AB=%s", KmerToStr(AB, 2, Tmp));
+	Log(" CD=%s", KmerToStr(CD, 2, Tmp));
+	Log(" E=%s", KmerToStr(E, 1, Tmp));
+	Log("\n");
+	}
+#endif
+
+// Max possible score of CD+cd
+	const short MaxScore_CD_cd = GetMaxPairScoreSubmer(ABCDE, 2, 2);
+
+// Max possible score of E+e
+	const short MaxScore_E_e = m_Scores1[E][0];
+
+// Max possible score for CDE+cde
+	const short MaxScore_CDE_cde = MaxScore_CD_cd + MaxScore_E_e;
+
+// Minimum score for AB+ab
+	const short MinScore_AB_ab = MinScore - MaxScore_CDE_cde;
+
+	const short *Row_AB = m_Scores2[AB];
+	const uint ABmul = m_AS_pow[3];
+	const uint CDmul = m_AS_pow[1];
+	uint n = 0;
+	for (uint Idx_ab = 0; Idx_ab < m_AS2; ++Idx_ab)
+		{
+		short Score_AB_ab = Row_AB[2*Idx_ab];
+		if (Score_AB_ab < MinScore_AB_ab)
+			break;
+		assert(Score_AB_ab + MaxScore_CDE_cde >= MinScore);
+
+		uint ab = Row_AB[2*Idx_ab+1];
+
+		const short *Row_CD = m_Scores2[CD];
+		const short MinScore_CD_cd = MinScore - Score_AB_ab - MaxScore_E_e;
+		for (uint Idx_cd = 0; Idx_cd < m_AS2; ++Idx_cd)
+			{
+			short Score_CD_cd = Row_CD[2*Idx_cd];
+			if (Score_CD_cd < MinScore_CD_cd)
+				break;
+			assert(Score_AB_ab + Score_CD_cd + MaxScore_E_e >= MinScore);
+			uint cd = Row_CD[2*Idx_cd+1];
+			const short MinScore_E_e = MinScore - Score_AB_ab - Score_CD_cd;
+			for (uint Idx_e = 0; Idx_e < m_AS; ++Idx_e)
+				{
+				short Score_E_e = m_Scores1[E][2*Idx_e];
+				if (Score_E_e < MinScore_E_e)
+					break;
+				assert(Score_AB_ab + Score_CD_cd + Score_E_e >= MinScore);
+
+				uint e = m_Scores1[E][2*Idx_e+1];
+				uint abcde = ABmul*ab + CDmul*cd + e;
+#if 0
+				{
+				string Tmp;
+				Log("ab=%s", KmerToStr(ab, 2, Tmp));
+				Log(" cd=%s", KmerToStr(cd, 2, Tmp));
+				Log(" e=%s", KmerToStr(e, 1, Tmp));
+				Log(" abcde=%s", KmerToStr(abcde, 5, Tmp));
+				int Score = GetScoreKmerPair(ABCDE, abcde);
+				Log(" Score=%d (Min %d)", Score, MinScore);
+				Log("\n");
+				}
+#endif
+#if DEBUG
+				{
+				int Score = GetScoreKmerPair(ABCDE, abcde);
+				assert(Score == Score_AB_ab + Score_CD_cd + Score_E_e);
+				assert(Score >= MinScore);
+				}
+#endif
+				Fivemers[n] = abcde;
+				}
+			}
+		}
+	return n;
+	}
+
 uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) const
 	{
 	const uint First_3mera = GetSubmer(Sixmera, 0, 3);
@@ -382,6 +503,30 @@ uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) con
 			Sixmers[n++] = ThisSixmer;
 			}
 		}
+	return n;
+	}
+
+
+uint MerMx::GetHighScoring5mers_Brute(uint Fivemer, short MinScore, uint *Fivemers,
+									  bool Trace) const
+	{
+	uint n = 0;
+	uint DictSize = m_AS_pow[5];
+	for (uint Fivemer2 = 0; Fivemer2 < DictSize; ++Fivemer2)
+		{
+		short Score = GetScoreKmerPair(Fivemer, Fivemer2);
+		if (Score >= MinScore)
+			{
+			if (Trace)
+				{
+				string Tmp;
+				Log(" %s", KmerToStr(Fivemer2, 5, Tmp));
+				}
+			Fivemers[n++] = Fivemer2;
+			}
+		}
+	if (Trace)
+		Log("\n");
 	return n;
 	}
 
