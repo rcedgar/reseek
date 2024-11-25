@@ -503,6 +503,9 @@
     <ClCompile Include="testmu5mers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="twohit2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

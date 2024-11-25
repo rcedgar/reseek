@@ -400,6 +400,7 @@
     <ClCompile Include="train_seeds.cpp" />
     <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
+    <ClCompile Include="twohit2.cpp" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="usort.cpp" />
