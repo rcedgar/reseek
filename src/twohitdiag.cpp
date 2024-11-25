@@ -705,8 +705,9 @@ void LogDiagAln(const byte *MuSeqQ, uint LQ, const char *LabelQ,
 
 void cmd_twohit()
 	{
-	const int HSMinScore = 30;
+	const int HSMinScore = 35;
 	const int MinDiagScore = 130;
+	bool Self = false;
 
 	SeqDB Input;
 	Input.FromFasta(g_Arg1);
@@ -737,21 +738,26 @@ void cmd_twohit()
 
 	int *SeqIdxTToBestDiagScore = myalloc(int, SeqCount);
 	int *SeqIdxTToBestDiag = myalloc(int, SeqCount);
+	int *SeqIdxTToBestDiagLo = myalloc(int, SeqCount);
+	int *SeqIdxTToBestDiagLen = myalloc(int, SeqCount);
 	uint *SeqIdxTs = myalloc(uint, SeqCount);
 	uint HitCount = 0;
 
 	zero_array(SeqIdxTToBestDiagScore, SeqCount);
 	zero_array(SeqIdxTToBestDiag, SeqCount);
+	zero_array(SeqIdxTToBestDiagLo, SeqCount);
+	zero_array(SeqIdxTToBestDiagLen, SeqCount);
 	zero_array(SeqIdxTs, SeqCount);
 
 	for (uint SeqIdxQ = 0; SeqIdxQ < SeqCount; ++SeqIdxQ)
 		{
 		ProgressStep(SeqIdxQ, SeqCount, "Searching");
 		const char *SeqQ = Input.GetSeq(SeqIdxQ).c_str();
+		const char *LabelQ = Input.GetLabel(SeqIdxQ).c_str();
 		uint LQ32 = Input.GetSeqLength(SeqIdxQ);
 		asserta(LQ32 < UINT16_MAX);
 		uint16_t LQ = uint16_t(LQ32);
-#if 1
+#if 0
 		{
 		const char *LabelQ = Input.GetLabel(SeqIdxQ).c_str();
 		Log("Q>%s\n", LabelQ);
@@ -779,7 +785,7 @@ void cmd_twohit()
 		// Construct high-scoring neighborhood of current k-mer (Kmer)
 			const uint HSKmerCount =
 				MM.GetHighScoring5mers(Kmer, HSMinScore, HSKmers);
-#if 1
+#if 0
 			{
 			if (HSKmerCount > 0)
 				{
@@ -795,7 +801,7 @@ void cmd_twohit()
 			// Look up HSKmer in MuDex (Mu k-mer index of db)
 				uint RowSize = MD.GetRowSize(HSKmer);
 				uint DataOffset = MD.GetRowStart(HSKmer);
-#if 1
+#if 0
 				{
 				if (RowSize > 1)
 					{
@@ -811,19 +817,21 @@ void cmd_twohit()
 					MD.Get(DataOffset++, SeqIdxT, SeqPosT);
 					if (SeqIdxT == SeqIdxQ)
 						continue;
+					if (Self && SeqIdxT < SeqIdxQ)
+						continue;
 					uint LT32 = Input.GetSeqLength(SeqIdxT);
 					asserta(LT32 < UINT16_MAX);
 					uint16_t LT = uint16_t(LT32);
 					diag dg(LQ, LT);
 					uint16_t Diag = dg.getd(SeqPosQ, SeqPosT);
 					TH.Add(SeqIdxT, Diag);
-#if 1
+#if 0
 					{
 					Log(" %u:%u", SeqIdxT, Diag);
 					}
 #endif
 					}
-#if 1
+#if 0
 				{
 				if (RowSize > 1)
 					Log("\n");
@@ -833,14 +841,14 @@ void cmd_twohit()
 			}
 		TH.SetDupes();
 #if DEBUG
-		TH.Validate(SeqCount, 3*LQ);
+		TH.Validate(SeqCount, INT16_MAX);
 #endif
 		vector<pair<uint32_t, uint16_t> > SeqIdxDiagPairs;
 		uint DupeCount = TH.m_DupeCount;
 		const byte *MuSeqQ = MuSeqs[SeqIdxQ];
 		DiagHSP DH;
 		DH.SetQ(MuSeqQ, LQ);
-#if 1
+#if 0
 		Log("%u dupes\n", DupeCount);
 		Log(" Idx   Diag  Score     Lo    Len\n");
 		//  12345  12345  12345  12345  12345
@@ -855,7 +863,7 @@ void cmd_twohit()
 			DH.SetT(MuSeqT, LT);
 			int Lo, Len;
 			int DiagScore = DH.Search(Diag, Lo, Len);
-#if 1
+#if 0
 			Log("%5u  %5u  %5d  %5d  %5d  >%s (%u)\n",
 				SeqIdxT, Diag, DiagScore, Lo, Len,
 				Input.GetLabel(SeqIdxT).c_str(), LT);
@@ -868,17 +876,21 @@ void cmd_twohit()
 					SeqIdxTs[HitCount++] = SeqIdxT;
 					SeqIdxTToBestDiagScore[SeqIdxT] = DiagScore;
 					SeqIdxTToBestDiag[SeqIdxT] = Diag;
+					SeqIdxTToBestDiagLo[SeqIdxT] = Lo;
+					SeqIdxTToBestDiagLen[SeqIdxT] = Len;
 					}
 				else if (DiagScore > SeqIdxTToBestDiagScore[SeqIdxT])
 					{
 					SeqIdxTToBestDiagScore[SeqIdxT] = DiagScore;
 					SeqIdxTToBestDiag[SeqIdxT] = Diag;
+					SeqIdxTToBestDiagLo[SeqIdxT] = Lo;
+					SeqIdxTToBestDiagLen[SeqIdxT] = Len;
 					}
 				}
 			}
 #if 1
 		{
-		Log("%u hits\n", HitCount);
+		ProgressLog("Hits %u / %u Q>%s\n", HitCount, SeqCount-1, LabelQ);
 		if (HitCount > 0)
 			{
 			for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
@@ -886,8 +898,15 @@ void cmd_twohit()
 				uint SeqIdxT = SeqIdxTs[HitIdx];
 				int BestDiagScore = SeqIdxTToBestDiagScore[SeqIdxT];
 				int BestDiag = SeqIdxTToBestDiag[SeqIdxT];
+				int BestDiagLo = SeqIdxTToBestDiagLo[SeqIdxT];
+				int BestDiagLen = SeqIdxTToBestDiagLen[SeqIdxT];
 				const char *LabelT = Input.GetLabel(SeqIdxT).c_str();
+				const byte *MuSeqT = MuSeqs[SeqIdxT];
+				uint LT = Input.GetSeqLength(SeqIdxT);
 				Log("%6d  %6d  >%s\n", BestDiagScore, BestDiag, LabelT);
+				LogDiagAln(MuSeqQ, LQ, LabelQ,
+						   MuSeqT, LT, LabelT,
+						   BestDiag, BestDiagLo, BestDiagLen);
 				}
 			}
 		}
