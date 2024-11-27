@@ -4,6 +4,7 @@
 #define RCE_MALLOC		0
 #define TRACK_ALLOC		0
 #define USE_OMP			0
+#define LEAK_CHECK		1
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
@@ -152,10 +153,20 @@ void rce_dumpptr_(void *p, const char *FileName, int LineNr);
 #else // RCE_MALLOC
 
 void Version(FILE *f);
+
+#if LEAK_CHECK
+void *mymalloc(size_t bytes, const char *FileName, int LineNr);
+void myfree(void *p);
+#define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t), __FILE__, __LINE__)
+void LeakCheck(const char *Msg);
+#else
 void *mymalloc(size_t bytes);
 void myfree(void *p);
-#define rce_chkmem()	/* empty */
 #define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t))
+#define	LeakCheck(Msg)	/* empty */
+#endif // LEAK_CHECK
+
+#define rce_chkmem()	/* empty */
 
 #endif // RCE_MALLOC
 

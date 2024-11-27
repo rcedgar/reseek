@@ -2289,6 +2289,46 @@ void myfree2(void *p, unsigned bytes, const char *FileName, int Line)
 
 #else // RCE_MALLOC
 
+#if LEAK_CHECK
+#include <unordered_map>
+unordered_map<void *, pair<string, size_t> > *g_AllocMap = 0;
+void *mymalloc(size_t bytes, const char *FileName, int LineNr)
+	{
+	void *p = malloc(bytes);
+	if (0 == p)
+		{
+		double b = GetMemUseBytes();
+		fprintf(stderr, "\nOut of memory mymalloc(%u), curr %.3g bytes",
+		  (unsigned) bytes, b);
+#if DEBUG && defined(_MSC_VER)
+		asserta(_heapchk() == _HEAPOK);
+#endif
+		Die("Out of memory, mymalloc(%u), curr %.3g bytes\n",
+		  (unsigned) bytes, b);
+		}
+	char Tmp[128];
+	sprintf(Tmp, "%.63s:%d", FileName, LineNr);
+	string sTmp = string(Tmp);
+	if (g_AllocMap == 0)
+		g_AllocMap = new unordered_map<void *, pair<string, size_t> >;
+	g_AllocMap->insert_or_assign(p, pair<string, size_t>(sTmp, bytes) );
+	return p;
+	}
+
+void myfree(void *p)
+	{
+	if (p == 0)
+		return;
+	if (g_AllocMap != 0)
+		{
+		unordered_map<void *, pair<string, size_t> >::iterator iter = g_AllocMap->find(p);
+		if (iter != g_AllocMap->end())
+			g_AllocMap->erase(iter);
+		}
+	free(p);
+	}
+
+#else
 void *mymalloc(size_t bytes)
 	{
 	void *p = malloc(bytes);
@@ -2312,7 +2352,7 @@ void myfree(void *p)
 		return;
 	free(p);
 	}
-
+#endif // LEAK_CHECK
 #endif // RCE_MALLOC
 
 void Ps(string &Str, const char *Format, ...)

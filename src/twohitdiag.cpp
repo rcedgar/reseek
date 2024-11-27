@@ -8,6 +8,8 @@
 #include "diaghsp.h"
 #include "diag.h"
 
+#define LOGDIAGALNS	0
+
 void StrToMuLetters(const string &StrSeq, byte *Letters)
 	{
 	const uint L = SIZE(StrSeq);
@@ -453,8 +455,8 @@ void TwoHitDiag::ClearDupes()
 	if (m_DupeSeqIdxs != 0)
 		{
 		assert(m_DupeDiags != 0);
-		delete m_DupeSeqIdxs;
-		delete m_DupeDiags;
+		myfree(m_DupeSeqIdxs);
+		myfree(m_DupeDiags);
 		m_DupeSeqIdxs = 0;
 		m_DupeDiags = 0;
 		}
@@ -619,7 +621,7 @@ static void Test3(uint MaxSeqIdx, uint16_t MaxDiag, uint Tries)
 	T.SetDupes();
 	uint DupeCount = T.m_DupeCount;
 	T.CheckDupes();
-	T.ClearDupes();
+//	T.ClearDupes();
 
 	T.Reset();
 	T.Validate(0, 0);
@@ -708,6 +710,7 @@ void cmd_twohit()
 	const int HSMinScore = 35;
 	const int MinDiagScore = 130;
 	bool Self = false;
+	FILE *fOut = CreateStdioFile(opt_output);
 
 	SeqDB Input;
 	Input.FromFasta(g_Arg1);
@@ -733,6 +736,8 @@ void cmd_twohit()
 	MM.Init(Mu_S_ij_short, 5, 36, 2);
 	asserta(MM.m_AS_pow[5] == DictSize);
 
+	DiagHSP DH;
+
 // Buffer for high-scoring k-mers
 	uint *HSKmers = myalloc(uint, DictSize);
 
@@ -749,9 +754,19 @@ void cmd_twohit()
 	zero_array(SeqIdxTToBestDiagLen, SeqCount);
 	zero_array(SeqIdxTs, SeqCount);
 
+	LeakCheck("Before_loop");
+
+	TwoHitDiag TH;
 	for (uint SeqIdxQ = 0; SeqIdxQ < SeqCount; ++SeqIdxQ)
 		{
 		ProgressStep(SeqIdxQ, SeqCount, "Searching");
+		if (SeqIdxQ == 5)
+			LeakCheck("SeqIdxQ == 5");
+		else if (SeqIdxQ == 10)
+			{
+			LeakCheck("SeqIdxQ == 10");
+			Die("TODO");
+			}
 		const char *SeqQ = Input.GetSeq(SeqIdxQ).c_str();
 		const char *LabelQ = Input.GetLabel(SeqIdxQ).c_str();
 		uint LQ32 = Input.GetSeqLength(SeqIdxQ);
@@ -763,8 +778,6 @@ void cmd_twohit()
 		Log("Q>%s\n", LabelQ);
 		}
 #endif
-
-		TwoHitDiag TH;
 
 	// Initialize k-mer scan of Query
 		uint Kmer = 0;
@@ -839,6 +852,7 @@ void cmd_twohit()
 #endif
 				}
 			}
+		TH.ClearDupes();
 		TH.SetDupes();
 #if DEBUG
 		TH.Validate(SeqCount, INT16_MAX);
@@ -846,7 +860,6 @@ void cmd_twohit()
 		vector<pair<uint32_t, uint16_t> > SeqIdxDiagPairs;
 		uint DupeCount = TH.m_DupeCount;
 		const byte *MuSeqQ = MuSeqs[SeqIdxQ];
-		DiagHSP DH;
 		DH.SetQ(MuSeqQ, LQ);
 #if 0
 		Log("%u dupes\n", DupeCount);
@@ -890,7 +903,6 @@ void cmd_twohit()
 			}
 #if 1
 		{
-		ProgressLog("Hits %u / %u Q>%s\n", HitCount, SeqCount-1, LabelQ);
 		if (HitCount > 0)
 			{
 			for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
@@ -903,10 +915,15 @@ void cmd_twohit()
 				const char *LabelT = Input.GetLabel(SeqIdxT).c_str();
 				const byte *MuSeqT = MuSeqs[SeqIdxT];
 				uint LT = Input.GetSeqLength(SeqIdxT);
+				if (fOut != 0)
+					fprintf(fOut, "%s\t%s\n", LabelQ, LabelT);
+#if LOGDIAGALNS
 				Log("%6d  %6d  >%s\n", BestDiagScore, BestDiag, LabelT);
 				LogDiagAln(MuSeqQ, LQ, LabelQ,
 						   MuSeqT, LT, LabelT,
 						   BestDiag, BestDiagLo, BestDiagLen);
+#endif
+
 				}
 			}
 		}
@@ -926,4 +943,5 @@ void cmd_twohit()
 #endif
 		HitCount = 0;
 		}
+	CloseStdioFile(fOut);
 	}
