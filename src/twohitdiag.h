@@ -1,6 +1,5 @@
 #pragma once
 
-#include <list>
 class Duper;
 
 /***
@@ -60,9 +59,9 @@ public:
 	uint m_Size = 0;
 
 // Arrays of size m_NrRdxs with index Rdx
-	list<uint32_t *> **m_Overflows = 0;
 	uint32_t *m_Sizes = 0;
 	uint32_t *m_MaxSeqIdxHiBits = 0;
+	uint32_t **m_Overflows = 0;
 
 // Vector of size m_BusyCount <= m_NrRdxs
 	uint32_t *m_BusyRdxs = 0;

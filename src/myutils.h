@@ -4,7 +4,7 @@
 #define RCE_MALLOC		0
 #define TRACK_ALLOC		0
 #define USE_OMP			0
-#define LEAK_CHECK		1
+#define LEAK_CHECK		0
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
