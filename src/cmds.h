@@ -77,6 +77,7 @@ C(duper)
 C(mumxtest)
 C(diagtest)
 C(hsptest)
+C(hspspeedtest)
 C(train_diags_scoredist)
 C(testmu5mers)
 

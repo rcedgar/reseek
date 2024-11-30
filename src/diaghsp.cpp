@@ -2,6 +2,7 @@
 #include "diaghsp.h"
 #include "diag.h"
 #include "alpha.h"
+#include "getticks.h"
 
 /***
 F = highest-scoring suffix x_s .. x_k-1 for some s has score f
@@ -61,6 +62,30 @@ int DiagHSP::SearchBrute(int d, int &Lo, int &Len) const
 	return MaxSubseqScore;
 	}
 
+void DiagHSP::FreeQueryProfile()
+	{
+	if (m_QueryProfile == 0)
+		return;
+	myfree(m_QueryProfile);
+	m_QueryProfile = 0;
+	}
+
+void DiagHSP::SetQueryProfile()
+	{
+	assert(m_QueryProfile == 0);
+	assert(m_LQ != 0);
+	uint LP = m_LQ*m_AS;
+	m_QueryProfile = myalloc(short, LP);
+	uint k = 0;
+	for (int PosQ = 0; PosQ < m_LQ; ++PosQ)
+		{
+		byte LetterQ = m_Q[PosQ];
+		for (uint LetterT = 0; LetterT < m_AS; ++LetterT)
+			m_QueryProfile[k++] = m_ScoreMx[LetterQ][LetterT];
+		}
+	assert(k == LP);
+	}
+
 int DiagHSP::Search(int d, int &Lo, int &Len) const
 	{
 	diag dg(m_LQ, m_LT);
@@ -84,6 +109,46 @@ int DiagHSP::Search(int d, int &Lo, int &Len) const
 		assert(t < m_AS);
 		short Score = m_ScoreMx[q][t];
 		F += Score;
+		if (F > B)
+			{
+			B = F;
+			Lo = SuffixLo;
+			Len = ++CurrLen;
+			}
+		else if (F > 0)
+			++CurrLen;
+		else
+			{
+			F = 0;
+			SuffixLo = k+1;
+			CurrLen = 0;
+			}
+		}
+	return B;
+	}
+
+int DiagHSP::Search_Profile(int d, int &Lo, int &Len) const
+	{
+	diag dg(m_LQ, m_LT);
+	int i = dg.getmini(d);
+	int j = dg.getminj(d);
+	int n = dg.getlen(d);
+
+	int B = 0;
+	int F = 0;
+	int CurrLen = 0;
+	Lo = 0;
+	Len = 0;
+	int SuffixLo = 0;
+	uint ProfOffset = i*m_AS;
+	for (int k = 0; k < n; ++k)
+		{
+		assert(j < m_LT);
+		byte t = m_T[j++];
+		assert(t < m_AS);
+		short Score = m_QueryProfile[ProfOffset + t];
+		F += Score;
+		ProfOffset += m_AS;
 		if (F > B)
 			{
 			B = F;
@@ -215,6 +280,7 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 	int maxd = dg.getmaxd();
 
 	DH.SetQ(Q, LQ);
+	DH.SetQueryProfile();
 	DH.SetT(T, LT);
 
 	for (int d = mind; d <= maxd; ++d)
@@ -232,6 +298,7 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 #endif
 		int Lo, Len;
 		int Score = DH.Search_Trace(d, Lo, Len);
+		int ProfileScore = DH.Search_Profile(d, Lo, Len);
 		int CheckScore = DH.GetHSPScore(d, Lo, Len);
 
 #if 0
@@ -245,7 +312,10 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 			DH.Search_Trace(d, lo_notused, len_notused);
 			Die("Score %d != CheckScore %d", Score, CheckScore);
 			}
+		if (ProfileScore != CheckScore)
+			Die("ProfileScore %d != CheckScore %d", Score, CheckScore);
 		}
+	DH.FreeQueryProfile();
 	}
 
 static void GetRandMuSeq(string &s, uint MinL, uint MaxL)
@@ -259,12 +329,22 @@ static void GetRandMuSeq(string &s, uint MinL, uint MaxL)
 		}
 	}
 
+static byte *GetRandMuByteSeq(uint MinL, uint MaxL, uint &L)
+	{
+	L = MinL + randu32()%(MaxL - MinL);
+	byte *s = myalloc(byte, L);
+	for (uint i = 0; i < L; ++i)
+		s[i] = randu32()%36;
+	return s;
+	}
+
 void cmd_hsptest()
 	{
 	string sQ = "SOMEOTHERSTRING";
 	string sT = "SEQVENCE";
 
 	DiagHSP DH;
+	Test(DH, sQ, sT);
 
 	const uint Iters = 100;
 	for (uint Try = 0; Try < Iters; ++Try)
@@ -275,4 +355,44 @@ void cmd_hsptest()
 		Test(DH, sQ, sT);
 		}
 	Progress("Test passed ok\n");
+	}
+
+void cmd_hspspeedtest()
+	{
+	uint TargetCount = 10000;
+	vector<const byte *> Ts;
+	vector<uint> LTs;
+
+	uint LQ, LT;
+	const byte *Q = GetRandMuByteSeq(100, 200, LQ);
+	for (uint i = 0; i < TargetCount; ++i)
+		{
+		const byte *T = GetRandMuByteSeq(100, 200, LT);
+		Ts.push_back(T);
+		LTs.push_back(LT);
+		}
+
+	DiagHSP DH;
+	DH.SetQ(Q, LQ);
+	TICKS t1 = GetClockTicks();
+	for (uint i = 0; i < TargetCount; ++i)
+		{
+		const byte *T = Ts[i];
+		LT = LTs[i];
+		DH.SetT(T, LT);
+
+		int iLQ = int(LQ);
+		int iLT = int(LT);
+		diag dg(iLQ, iLT);
+
+		int dmin = dg.getmind();
+		int dmax = dg.getmaxd();
+		int d = dmin + int(randu32()%uint(dmax - dmin + 1));
+		asserta(d >= dmin && d <= dmax);
+
+		int Lo, Len;
+		DH.Search(d, Lo, Len);
+		}
+	TICKS t2 = GetClockTicks();
+	ProgressLog("%.0f ticks\n", double(t2 - t1));
 	}
