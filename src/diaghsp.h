@@ -34,6 +34,7 @@ public:
 	void SetQueryProfile();
 	void FreeQueryProfile();
 	int Search(int d, int &Lo, int &Len) const;
+	int Search_NoLo(int d) const;
 	int Search_Profile(int d, int &Lo, int &Len) const;
 	int Search_Trace(int d, int &Lo, int &Len) const;
 	int SearchBrute(int d, int &Lo, int &Len) const;

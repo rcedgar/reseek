@@ -127,6 +127,33 @@ int DiagHSP::Search(int d, int &Lo, int &Len) const
 	return B;
 	}
 
+int DiagHSP::Search_NoLo(int d) const
+	{
+	diag dg(m_LQ, m_LT);
+	int i = dg.getmini(d);
+	int j = dg.getminj(d);
+	int n = dg.getlen(d);
+
+	int B = 0;
+	int F = 0;
+	for (int k = 0; k < n; ++k)
+		{
+		assert(i < m_LQ);
+		assert(j < m_LT);
+		byte q = m_Q[i++];
+		byte t = m_T[j++];
+		assert(q < m_AS);
+		assert(t < m_AS);
+		short Score = m_ScoreMx[q][t];
+		F += Score;
+		if (F > B)
+			B = F;
+		else if (F < 0)
+			F = 0;
+		}
+	return B;
+	}
+
 int DiagHSP::Search_Profile(int d, int &Lo, int &Len) const
 	{
 	diag dg(m_LQ, m_LT);
@@ -298,6 +325,7 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 #endif
 		int Lo, Len;
 		int Score = DH.Search_Trace(d, Lo, Len);
+		int NoLoScore = DH.Search_NoLo(d);
 		int ProfileScore = DH.Search_Profile(d, Lo, Len);
 		int CheckScore = DH.GetHSPScore(d, Lo, Len);
 
@@ -314,6 +342,8 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 			}
 		if (ProfileScore != CheckScore)
 			Die("ProfileScore %d != CheckScore %d", Score, CheckScore);
+		if (NoLoScore != CheckScore)
+			Die("NoLo %d != CheckScore %d", Score, CheckScore);
 		}
 	DH.FreeQueryProfile();
 	}
@@ -359,7 +389,7 @@ void cmd_hsptest()
 
 void cmd_hspspeedtest()
 	{
-	uint TargetCount = 10000;
+	uint TargetCount = 1000000;
 	vector<const byte *> Ts;
 	vector<uint> LTs;
 
@@ -372,27 +402,38 @@ void cmd_hspspeedtest()
 		LTs.push_back(LT);
 		}
 
-	DiagHSP DH;
-	DH.SetQ(Q, LQ);
-	TICKS t1 = GetClockTicks();
-	for (uint i = 0; i < TargetCount; ++i)
+	for (int Method = 0; Method < 3; ++Method)
 		{
-		const byte *T = Ts[i];
-		LT = LTs[i];
-		DH.SetT(T, LT);
+		DiagHSP DH;
+		DH.SetQ(Q, LQ);
+		if (Method == 0)
+			DH.SetQueryProfile();
+		TICKS t1 = GetClockTicks();
+		for (uint i = 0; i < TargetCount; ++i)
+			{
+			const byte *T = Ts[i];
+			LT = LTs[i];
+			DH.SetT(T, LT);
 
-		int iLQ = int(LQ);
-		int iLT = int(LT);
-		diag dg(iLQ, iLT);
+			int iLQ = int(LQ);
+			int iLT = int(LT);
+			diag dg(iLQ, iLT);
 
-		int dmin = dg.getmind();
-		int dmax = dg.getmaxd();
-		int d = dmin + int(randu32()%uint(dmax - dmin + 1));
-		asserta(d >= dmin && d <= dmax);
+			int dmin = dg.getmind();
+			int dmax = dg.getmaxd();
+			int d = dmin + int(randu32()%uint(dmax - dmin + 1));
+			asserta(d >= dmin && d <= dmax);
 
-		int Lo, Len;
-		DH.Search(d, Lo, Len);
+			int Lo, Len;
+			switch (Method)
+				{
+			case 0: DH.Search_Profile(d, Lo, Len); break;
+			case 1: DH.Search(d, Lo, Len); break;
+			case 2: DH.Search_NoLo(d); break;
+			default: asserta(false);
+				}
+			}
+		TICKS t2 = GetClockTicks();
+		ProgressLog("Method %d, %.0f ticks\n", Method, double(t2 - t1));
 		}
-	TICKS t2 = GetClockTicks();
-	ProgressLog("%.0f ticks\n", double(t2 - t1));
 	}
