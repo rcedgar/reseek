@@ -6,6 +6,7 @@
 #include "diaghsp.h"
 #include "diag.h"
 #include "alpha.h"
+#include "scop40bench.h"
 
 #define MAP_CHECK	0	// Verify by keeping count map
 
@@ -34,8 +35,38 @@ void StrToMuLetters(const string &StrSeq, byte *Letters);
 
 void cmd_twohit()
 	{
-	const int HSMinScore = 35;
-	const int MinDiagScore = 130;
+	asserta(optset_hsminscore);
+	asserta(optset_mindiagscore);
+	asserta(optset_ref);
+
+	const int HSMinScore = opt_hsminscore;
+	const int MinDiagScore = opt_mindiagscore;
+	const string &RefFN = opt_ref; // "c:/int/reseek_bench/alns/reseek_fast.tsv";
+
+	set<pair<string, string> > RefHitSet;
+	uint NTP_ref = 0;
+	uint NH_ref = 0;
+	{
+	FILE *fRef = OpenStdioFile(RefFN);
+	string Line;
+	vector<string> Fields;
+	Progress("Reading ref...");
+	while (ReadLineStdioFile(fRef, Line))
+		{
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == 3);
+		const string &Q = Fields[0];
+		const string &T = Fields[1];
+		bool IsT = SCOP40Bench::IsTP_SF(Q, T);
+		if (IsT)
+			++NTP_ref;
+		++NH_ref;
+		RefHitSet.insert(pair<string, string>(Q, T));
+		}
+	Progress(" done.\n");
+	CloseStdioFile(fRef);
+	}
+
 	bool Self = false;
 	FILE *fOut = CreateStdioFile(opt_output);
 
@@ -85,15 +116,15 @@ void cmd_twohit()
 	zero_array(SeqIdxTToBestDiagLen, SeqCount);
 	zero_array(SeqIdxTs, SeqCount);
 
+	uint NH2 = 0;
+	uint NT2 = 0;
+	uint NT_both = 0;
 	TwoHitDiag TH;
 	for (uint SeqIdxQ = 0; SeqIdxQ < SeqCount; ++SeqIdxQ)
 		{
-		//LeakCheck("SeqIdxQ loop");
-		//if (SeqIdxQ == 3)
-		//	Die("TODO");
 		ProgressStep(SeqIdxQ, SeqCount, "Searching");
 		const char *SeqQ = Input.GetSeq(SeqIdxQ).c_str();
-		const char *LabelQ = Input.GetLabel(SeqIdxQ).c_str();
+		const string &LabelQ = Input.GetLabel(SeqIdxQ);
 		uint LQ32 = Input.GetSeqLength(SeqIdxQ);
 		asserta(LQ32 < UINT16_MAX);
 		uint16_t LQ = uint16_t(LQ32);
@@ -257,15 +288,22 @@ void cmd_twohit()
 			for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
 				{
 				uint SeqIdxT = SeqIdxTs[HitIdx];
-				int BestDiagScore = SeqIdxTToBestDiagScore[SeqIdxT];
-				int BestDiag = SeqIdxTToBestDiag[SeqIdxT];
-				int BestDiagLo = SeqIdxTToBestDiagLo[SeqIdxT];
-				int BestDiagLen = SeqIdxTToBestDiagLen[SeqIdxT];
-				const char *LabelT = Input.GetLabel(SeqIdxT).c_str();
-				const byte *MuSeqT = MuSeqs[SeqIdxT];
-				uint LT = Input.GetSeqLength(SeqIdxT);
+				const string &LabelT = Input.GetLabel(SeqIdxT);
+				bool IsT = SCOP40Bench::IsTP_SF(LabelQ, LabelT);
+				++NH2;
+				if (IsT)
+					{
+					++NT2;
+					if (RefHitSet.find(pair<string, string>(LabelQ, LabelT)) !=
+									   RefHitSet.end())
+						++NT_both;
+					}
+				//int BestDiagScore = SeqIdxTToBestDiagScore[SeqIdxT];
+				//int BestDiag = SeqIdxTToBestDiag[SeqIdxT];
+				//int BestDiagLo = SeqIdxTToBestDiagLo[SeqIdxT];
+				//int BestDiagLen = SeqIdxTToBestDiagLen[SeqIdxT];
 				if (fOut != 0)
-					fprintf(fOut, "%s\t%s\n", LabelQ, LabelT);
+					fprintf(fOut, "%s\t%s\n", LabelQ.c_str(), LabelT.c_str());
 #if LOGDIAGALNS
 				Log("%6d  %6d  >%s\n", BestDiagScore, BestDiag, LabelT);
 				LogDiagAln(MuSeqQ, LQ, LabelQ,
@@ -294,4 +332,10 @@ void cmd_twohit()
 		TH.Reset();
 		}
 	CloseStdioFile(fOut);
+	ProgressLog("NT2=%u", NT2);
+	ProgressLog("\tNT_both=%u", NT_both);
+	ProgressLog("\tNH=%u", NH2);
+	ProgressLog("\tNT_ref=%u", NTP_ref);
+	ProgressLog("\ths=%u", opt_hsminscore);
+	ProgressLog("\tdg=%u", opt_mindiagscore);
 	}

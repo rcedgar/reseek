@@ -160,6 +160,8 @@ UNS_OPT(maxi8,				10,			1,			UINT_MAX)
 
 UNS_OPT(secs,				60,			1,			UINT_MAX)
 UNS_OPT(flanks,				60,			1,			UINT_MAX)
+UNS_OPT(hsminscore,			60,			1,			UINT_MAX)
+UNS_OPT(mindiagscore,		60,			1,			UINT_MAX)
 
 UNS_OPT(maxseqlength,		500000000,		1,			UINT_MAX)
 UNS_OPT(sfasta_buff_bytes,	512*1024*1024,1024,		UINT_MAX)

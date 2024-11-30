@@ -15,11 +15,32 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
 
+void SCOP40Bench::GetDomSFFromLabel(const string &Label,
+									string &Dom, string &SF)
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '/');
+	asserta(SIZE(Fields) == 2);
+	Dom = Fields[0];
+	const string Fam = Fields[1];
+	Split(Fam, Fields, '.');
+	asserta(SIZE(Fields) == 4);
+	SF = Fields[0] + "." + Fields[1] + "." + Fields[2];
+	}
+
 void SCOP40Bench::GetDomFromLabel(const string &Label, string &Dom)
 	{
 	vector<string> Fields;
 	Split(Label, Fields, '/');
 	Dom = Fields[0];
+	}
+
+bool SCOP40Bench::IsTP_SF(const string &Label1, const string &Label2)
+	{
+	string Dom1, Dom2, SF1, SF2;
+	GetDomSFFromLabel(Label1, Dom1, SF1);
+	GetDomSFFromLabel(Label2, Dom2, SF2);
+	return SF1 == SF2;
 	}
 
 void SCOP40Bench::ParseScopLabel(const string &Label, string &Dom,

@@ -148,4 +148,6 @@ public:
 	  string &Cls, string &Fold, string &SF, string &Fmy,
 	  bool MissingOk = false);
 	static void GetDomFromLabel(const string &Label, string &Dom);
+	static void GetDomSFFromLabel(const string &Label, string &Dom, string &SF);
+	static bool IsTP_SF(const string &Label1, const string &Label2);
 	};
