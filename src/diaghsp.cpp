@@ -194,6 +194,32 @@ int DiagHSP::Search_Profile(int d, int &Lo, int &Len) const
 	return B;
 	}
 
+int DiagHSP::Search_Profile_NoLo(int d) const
+	{
+	diag dg(m_LQ, m_LT);
+	int i = dg.getmini(d);
+	int j = dg.getminj(d);
+	int n = dg.getlen(d);
+
+	int B = 0;
+	int F = 0;
+	uint ProfOffset = i*m_AS;
+	for (int k = 0; k < n; ++k)
+		{
+		assert(j < m_LT);
+		byte t = m_T[j++];
+		assert(t < m_AS);
+		short Score = m_QueryProfile[ProfOffset + t];
+		F += Score;
+		ProfOffset += m_AS;
+		if (F > B)
+			B = F;
+		else if (F < 0)
+			F = 0;
+		}
+	return B;
+	}
+
 int DiagHSP::Search_Trace(int d, int &Lo, int &Len) const
 	{
 	diag dg(m_LQ, m_LT);
@@ -327,6 +353,7 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 		int Score = DH.Search_Trace(d, Lo, Len);
 		int NoLoScore = DH.Search_NoLo(d);
 		int ProfileScore = DH.Search_Profile(d, Lo, Len);
+		int ProfileNoLoScore = DH.Search_Profile_NoLo(d);
 		int CheckScore = DH.GetHSPScore(d, Lo, Len);
 
 #if 0
@@ -344,6 +371,8 @@ static void Test(DiagHSP &DH, const string sQ, const string sT)
 			Die("ProfileScore %d != CheckScore %d", Score, CheckScore);
 		if (NoLoScore != CheckScore)
 			Die("NoLo %d != CheckScore %d", Score, CheckScore);
+		if (ProfileNoLoScore != CheckScore)
+			Die("ProfileNoLo %d != CheckScore %d", Score, CheckScore);
 		}
 	DH.FreeQueryProfile();
 	}
@@ -402,11 +431,11 @@ void cmd_hspspeedtest()
 		LTs.push_back(LT);
 		}
 
-	for (int Method = 0; Method < 3; ++Method)
+	for (int Method = 0; Method < 4; ++Method)
 		{
 		DiagHSP DH;
 		DH.SetQ(Q, LQ);
-		if (Method == 0)
+		if (Method == 0 || Method == 3)
 			DH.SetQueryProfile();
 		TICKS t1 = GetClockTicks();
 		for (uint i = 0; i < TargetCount; ++i)
@@ -430,6 +459,7 @@ void cmd_hspspeedtest()
 			case 0: DH.Search_Profile(d, Lo, Len); break;
 			case 1: DH.Search(d, Lo, Len); break;
 			case 2: DH.Search_NoLo(d); break;
+			case 3: DH.Search_Profile_NoLo(d); break;
 			default: asserta(false);
 				}
 			}
