@@ -403,6 +403,7 @@
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohit.cpp" />
     <ClCompile Include="twohit2.cpp" />
+    <ClCompile Include="twohit3.cpp" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="usort.cpp" />
