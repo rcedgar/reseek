@@ -11,13 +11,14 @@
 
 void StrToMuLetters(const string &StrSeq, byte *Letters);
 
+static DSSParams m_Params;
 static vector<PDBChain *> m_Chains;
 static vector<vector<byte> > m_MuLettersVec;
 static uint m_NH2, m_NT2, m_NT3;
 static SeqDB *m_Input;
 static vector<vector<vector<byte> > *> m_Profiles;
-static uint m_SeqCount;
-static byte **m_MuSeqs = myalloc(byte *, m_SeqCount);
+//static byte **m_MuSeqs = myalloc(byte *, m_SeqCount);
+static byte **m_MuSeqs;
 static uint m_DictSize;
 static MuDex m_MD;
 static MerMx m_MM;
@@ -25,6 +26,9 @@ static uint m_k;
 static FILE *m_fOut;
 static int m_MinDiagScore;
 static int m_HSMinScore;
+static uint m_SeqIndex;
+static uint m_SeqCount;
+static mutex m_Lock;
 
 static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 				uint *HSKmers, int *SeqIdxTToBestDiagScore, int *SeqIdxTToBestDiag,
@@ -33,8 +37,10 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 	double FractDone = double(SeqIdxQ)/m_SeqCount;
 	double IdealNT = FractDone*173058;
 	double PctIdeal = m_NT3*100.0/(IdealNT + 1);
+	m_Lock.lock();
 	ProgressStep(SeqIdxQ, m_SeqCount, "Searching %u %u (%.1f, %.1f%%)",
 					m_NT2, m_NT3, IdealNT, PctIdeal);
+	m_Lock.unlock();
 	const PDBChain &ChainQ = *m_Chains[SeqIdxQ];
 	const vector<vector<byte> > *ptrProfileQ = m_Profiles[SeqIdxQ];
 	vector<byte> *ptrMuLettersQ = &m_MuLettersVec[SeqIdxQ];
@@ -173,6 +179,37 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 	TH.Reset();
 	}
 
+static void ThreadBody(uint ThreadIndex)
+	{
+	DiagHSP DH;
+	TwoHitDiag TH;
+
+	DSSAligner DA;
+	DA.m_Params = &m_Params;
+
+	uint *HSKmers = myalloc(uint, m_DictSize);
+	int *SeqIdxTToBestDiagScore = myalloc(int, m_SeqCount);
+	int *SeqIdxTToBestDiag = myalloc(int, m_SeqCount);
+	uint *SeqIdxTs = myalloc(uint, m_SeqCount);
+	zero_array(SeqIdxTToBestDiagScore, m_SeqCount);
+	zero_array(SeqIdxTToBestDiag, m_SeqCount);
+	zero_array(SeqIdxTs, m_SeqCount);
+
+	for (;;)
+		{
+		m_Lock.lock();
+		uint SeqIdxQ = m_SeqIndex;
+		if (SeqIdxQ < m_SeqCount)
+			++m_SeqIndex;
+		m_Lock.unlock();
+		if (m_SeqIndex == m_SeqCount)
+			return;
+
+		DoQ(SeqIdxQ, DA, TH, DH, HSKmers,
+			SeqIdxTToBestDiagScore, SeqIdxTToBestDiag, SeqIdxTs);
+		}
+	}
+
 void cmd_twohit3()
 	{
 	asserta(optset_hsminscore);
@@ -186,14 +223,10 @@ void cmd_twohit3()
 		DBSize = uint(opt_dbsize);
 	ProgressLog("dbsize=%u\n", DBSize);
 
-	DSSParams Params;
-	Params.SetFromCmdLine(DBSize);
+	m_Params.SetFromCmdLine(DBSize);
 
 	DSS D;
-	D.SetParams(Params);
-
-	DSSAligner DA;
-	DA.m_Params = &Params;
+	D.SetParams(m_Params);
 
 	m_Profiles.resize(ChainCount);
 	for (uint i = 0; i < ChainCount; ++i)
@@ -246,30 +279,18 @@ void cmd_twohit3()
 	m_MM.Init(Mu_S_ij_short, 5, 36, 2);
 	asserta(m_MM.m_AS_pow[5] == m_DictSize);
 
-	DiagHSP DH;
-
-// Buffer for high-scoring m_k-mers
-	uint *HSKmers = myalloc(uint, m_DictSize);
-
-	int *SeqIdxTToBestDiagScore = myalloc(int, m_SeqCount);
-	int *SeqIdxTToBestDiag = myalloc(int, m_SeqCount);
-	//int *SeqIdxTToBestDiagLo = myalloc(int, m_SeqCount);
-	//int *SeqIdxTToBestDiagLen = myalloc(int, m_SeqCount);
-	uint *SeqIdxTs = myalloc(uint, m_SeqCount);
-	uint HitCount = 0;
-
-	zero_array(SeqIdxTToBestDiagScore, m_SeqCount);
-	zero_array(SeqIdxTToBestDiag, m_SeqCount);
-	//zero_array(SeqIdxTToBestDiagLo, m_SeqCount);
-	//zero_array(SeqIdxTToBestDiagLen, m_SeqCount);
-	zero_array(SeqIdxTs, m_SeqCount);
-
-	TwoHitDiag TH;
-	for (uint SeqIdxQ = 0; SeqIdxQ < m_SeqCount; ++SeqIdxQ)
+	vector<thread *> ts;
+	uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		DoQ(SeqIdxQ, DA, TH, DH, HSKmers, SeqIdxTToBestDiagScore,
-			SeqIdxTToBestDiag, SeqIdxTs);
+		thread *t = new thread(ThreadBody, ThreadIndex);
+		ts.push_back(t);
 		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+
 	CloseStdioFile(m_fOut);
 
 	double PctIdeal = m_NT3*100.0/173058;
