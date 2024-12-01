@@ -27,6 +27,7 @@ static FILE *m_fOut;
 static int m_MinDiagScore;
 static int m_HSMinScore;
 static uint m_SeqIndex;
+static uint m_SeqCounter;
 static uint m_SeqCount;
 static mutex m_Lock;
 
@@ -38,8 +39,7 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 	double IdealNT = FractDone*173058;
 	double PctIdeal = m_NT3*100.0/(IdealNT + 1);
 	m_Lock.lock();
-	ProgressStep(SeqIdxQ, m_SeqCount, "Searching %u %u (%.1f, %.1f%%)",
-					m_NT2, m_NT3, IdealNT, PctIdeal);
+	ProgressStep(m_SeqCounter++, m_SeqCount, "Searching %.1f%%", PctIdeal);
 	m_Lock.unlock();
 	const PDBChain &ChainQ = *m_Chains[SeqIdxQ];
 	const vector<vector<byte> > *ptrProfileQ = m_Profiles[SeqIdxQ];
@@ -112,7 +112,7 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 		const uint LT = m_Input->GetSeqLength(SeqIdxT);
 		DH.SetT(MuSeqT, LT);
 		int Lo, Len;
-		int DiagScore = DH.Search(Diag, Lo, Len);
+		int DiagScore = DH.Search_NoLo(Diag);
 		if (DiagScore >= m_MinDiagScore)
 			{
 			int BestDiagScoreT = SeqIdxTToBestDiagScore[SeqIdxT];
@@ -202,7 +202,7 @@ static void ThreadBody(uint ThreadIndex)
 		if (SeqIdxQ < m_SeqCount)
 			++m_SeqIndex;
 		m_Lock.unlock();
-		if (m_SeqIndex == m_SeqCount)
+		if (SeqIdxQ == m_SeqCount)
 			return;
 
 		DoQ(SeqIdxQ, DA, TH, DH, HSKmers,
@@ -221,8 +221,6 @@ void cmd_twohit3()
 	uint DBSize = ChainCount;
 	if (optset_dbsize)
 		DBSize = uint(opt_dbsize);
-	ProgressLog("dbsize=%u\n", DBSize);
-
 	m_Params.SetFromCmdLine(DBSize);
 
 	DSS D;
@@ -294,11 +292,16 @@ void cmd_twohit3()
 	CloseStdioFile(m_fOut);
 
 	double PctIdeal = m_NT3*100.0/173058;
+	string TS;
+	GetElapsedTimeStr(TS);
 
+	ProgressLog("\n");
 	ProgressLog("m_NT2=%u", m_NT2);
 	ProgressLog("\tNT3=%u", m_NT3);
 	ProgressLog("\tNH2=%u", m_NH2);
 	ProgressLog("\tIdeal=%.1f%%", PctIdeal);
 	ProgressLog("\ths=%u", opt_hsminscore);
 	ProgressLog("\tdg=%u", opt_mindiagscore);
+	ProgressLog("\ttime=%s", TS.c_str());
+	ProgressLog("\n");
 	}
