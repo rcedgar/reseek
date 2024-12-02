@@ -16,8 +16,8 @@ static vector<PDBChain *> m_Chains;
 static vector<vector<byte> > m_MuLettersVec;
 static uint m_NH2, m_NT2, m_NT3;
 static SeqDB *m_Input;
+static float *m_SelfRevScores;
 static vector<vector<vector<byte> > *> m_Profiles;
-//static byte **m_MuSeqs = myalloc(byte *, m_SeqCount);
 static byte **m_MuSeqs;
 static uint m_DictSize;
 static MuDex m_MD;
@@ -30,6 +30,9 @@ static uint m_SeqIndex;
 static uint m_SeqCounter;
 static uint m_SeqCount;
 static mutex m_Lock;
+
+float GetSelfRevScore(DSSAligner &DA, DSS &D, 
+  const PDBChain &Chain, const vector<vector<byte> > &Profile);
 
 static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 				uint *HSKmers, int *SeqIdxTToBestDiagScore, int *SeqIdxTToBestDiag,
@@ -44,7 +47,8 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 	const PDBChain &ChainQ = *m_Chains[SeqIdxQ];
 	const vector<vector<byte> > *ptrProfileQ = m_Profiles[SeqIdxQ];
 	vector<byte> *ptrMuLettersQ = &m_MuLettersVec[SeqIdxQ];
-	DA.SetQuery(ChainQ, ptrProfileQ, 0, ptrMuLettersQ, 0);
+	float SelfRevScoreQ = m_SelfRevScores[SeqIdxQ];
+	DA.SetQuery(ChainQ, ptrProfileQ, 0, ptrMuLettersQ, SelfRevScoreQ);
 
 	const char *SeqQ = m_Input->GetSeq(SeqIdxQ).c_str();
 	const string &LabelQ = m_Input->GetLabel(SeqIdxQ);
@@ -152,12 +156,13 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 			const PDBChain *ChainT = m_Chains[SeqIdxT];
 			const vector<vector<byte> > *ptrProfileT = m_Profiles[SeqIdxT];
 			vector<byte> *ptrMuLettersT = &m_MuLettersVec[SeqIdxT];
-			DA.SetTarget(*ChainT, ptrProfileT, 0, ptrMuLettersT, 0);
+			float SelfRevScoreT = m_SelfRevScores[SeqIdxT];
+			DA.SetTarget(*ChainT, ptrProfileT, 0, ptrMuLettersT, SelfRevScoreT);
 			DA.AlignQueryTarget();
 			float Evalue = DA.m_EvalueA;
 			if (IsT && Evalue <= 10)
 				++m_NT3;
-			if (m_fOut != 0)
+			if (Evalue <= 10 && m_fOut != 0)
 				fprintf(m_fOut, "%s\t%s\t%.3g\n",
 						LabelQ.c_str(), LabelT.c_str(), Evalue);
 			}
@@ -225,15 +230,22 @@ void cmd_twohit3()
 
 	DSS D;
 	D.SetParams(m_Params);
+	
+	DSSAligner DA;
+	DA.m_Params = &m_Params;
 
 	m_Profiles.resize(ChainCount);
+	m_SelfRevScores = myalloc(float, ChainCount);
 	for (uint i = 0; i < ChainCount; ++i)
 		{
-		ProgressStep(i, ChainCount, "m_Profiles");
-		D.Init(*m_Chains[i]);
+		const PDBChain &Chain = *m_Chains[i];
+		ProgressStep(i, ChainCount, "Profiles and self-rev");
+		D.Init(Chain);
 		vector<vector<byte> > *Profile = new vector<vector<byte> >;
 		D.GetProfile(*Profile);
 		m_Profiles[i] = Profile;
+		float SelfRevScore = GetSelfRevScore(DA, D, Chain, *Profile);
+		m_SelfRevScores[i] = SelfRevScore;
 		}
 
 	m_HSMinScore = opt_hsminscore;
