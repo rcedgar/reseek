@@ -237,6 +237,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	uint Y_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_y");
 	uint Z_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_z");
 	uint aa_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_comp_id");
+	uint ModelNr_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.pdbx_PDB_model_num");
 
 	if (Chain_FldIdx == UINT_MAX) return;
 	if (CA_FldIdx == UINT_MAX) return;
@@ -244,6 +245,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	if (Y_FldIdx == UINT_MAX) return;
 	if (Z_FldIdx == UINT_MAX) return;
 	if (aa_FldIdx == UINT_MAX) return;
+	uint CurrentModelNr = UINT_MAX;
 
 	const uint ATOMLineCount = SIZE(ATOMLines);
 	for (uint i = 0; i < ATOMLineCount; ++i)
@@ -265,6 +267,15 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		const string &CA_Fld = Fields[CA_FldIdx];
 		if (CA_Fld != "CA")
 			continue;
+
+		if (ModelNr_FldIdx != UINT_MAX)
+			{
+			uint ModelNr = (uint) atoi(Fields[ModelNr_FldIdx].c_str());
+			if (CurrentModelNr != UINT_MAX && ModelNr != CurrentModelNr)
+				break;
+			CurrentModelNr = ModelNr;
+			}
+
 		const string &Chain_Fld = Fields[Chain_FldIdx];
 		string ChainStr = Chain_Fld;
 		if (ChainStr == "")

@@ -61,6 +61,15 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
 			{
+			if (DBChainIdx%10000 == 0)
+				{
+				time_t Now = time(0);
+				if (Now > m_LastProgress)
+					{
+					Progress("%s query chains\r", IntToStr(m_ProcessedQueryCount));
+					m_LastProgress = Now;
+					}
+				}
 			const PDBChain &Chain2 = *m_DBChains[DBChainIdx];
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
 			const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[DBChainIdx]);

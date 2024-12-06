@@ -66,6 +66,7 @@ void DBSearcher::Setup()
 		else
 			m_MaxEvalue = 10;
 		}
+	ProgressLog("Max E-value %.3g\n", m_MaxEvalue);
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);

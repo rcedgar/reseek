@@ -10,6 +10,10 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D,
 	if (opt_selfrev0)
 		return 0;
 
+	const uint L = Chain.GetSeqLength();
+	if (L > 512)
+		return 0;
+
 	PDBChain RevChain = Chain;
 	RevChain.Reverse();
 	vector<vector<byte> > RevProfile;
