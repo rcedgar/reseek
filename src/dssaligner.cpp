@@ -1116,10 +1116,11 @@ float DSSAligner::AlignMu_Int(const vector<byte> &LettersA,
 void DSSAligner::Stats()
 	{
 	uint MuFilterInputCount = m_AlnCount - DSSAligner::m_UFilterCount;
-	Log("DSSAligner::Stats() alns %s, ufil %.1f%%, cfil %.1f%%\n",
+	Log("DSSAligner::Stats() alns %s, ufil %.1f%%, mufil %.1f%% (sat %u)\n",
 	  FloatToStr(m_AlnCount),
 	  GetPct(m_UFilterCount, m_AlnCount),
-	  GetPct(m_MuFilterCount, MuFilterInputCount));
+	  GetPct(m_MuFilterCount, MuFilterInputCount),
+	  m_ParasailSaturateCount);
 	}
 
 uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const

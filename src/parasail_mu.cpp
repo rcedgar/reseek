@@ -133,7 +133,12 @@ float DSSAligner::AlignMuQP_Para()
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
 	if (result->flag & PARASAIL_FLAG_SATURATED)
+		{
+		m_StatsLock.lock();
+		++m_ParasailSaturateCount;
+		m_StatsLock.unlock();
 		result->score = 777;
+		}
 	float fwd_score = (float) result->score;
 	if (fwd_score < OmegaFwd)
 		{
