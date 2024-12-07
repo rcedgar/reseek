@@ -115,7 +115,6 @@ static void DoQ(uint SeqIdxQ, DSSAligner &DA, TwoHitDiag &TH, DiagHSP &DH,
 		const byte *MuSeqT = m_MuSeqs[SeqIdxT];
 		const uint LT = m_Input->GetSeqLength(SeqIdxT);
 		DH.SetT(MuSeqT, LT);
-		int Lo, Len;
 		int DiagScore = DH.Search_NoLo(Diag);
 		if (DiagScore >= m_MinDiagScore)
 			{

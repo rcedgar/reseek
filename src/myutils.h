@@ -2,9 +2,8 @@
 #define myutils_h
 
 #define RCE_MALLOC		0
-#define TRACK_ALLOC		0
 #define USE_OMP			0
-#define LEAK_CHECK		0
+#define TRACK_MYALLOCS	0
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
@@ -28,6 +27,7 @@
 #include <filesystem>
 #include <thread>
 #include <map>
+#include <unordered_map>
 #include <set>
 
 #ifndef _MSC_VER
@@ -154,35 +154,26 @@ void rce_dumpptr_(void *p, const char *FileName, int LineNr);
 
 void Version(FILE *f);
 
-#if LEAK_CHECK
+#if TRACK_MYALLOCS
 void *mymalloc(size_t bytes, const char *FileName, int LineNr);
 void myfree(void *p);
 #define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t), __FILE__, __LINE__)
-void LeakCheck(const char *Msg);
+void LogMyAllocs(const char *Msg);
+void GetMyAllocState(unordered_map<void *, pair<string, size_t> > &AllocMap);
+void CmpMyAllocStates(const char *Msg,
+	unordered_map<void *, pair<string, size_t> > &AllocMap1,
+	unordered_map<void *, pair<string, size_t> > &AllocMap2);
+
 #else
 void *mymalloc(size_t bytes);
 void myfree(void *p);
 #define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t))
-#define	LeakCheck(Msg)	/* empty */
-#endif // LEAK_CHECK
+#define	LogMyAllocs(Msg)	/* empty */
+#endif // TRACK_MYALLOCS
 
 #define rce_chkmem()	/* empty */
 
 #endif // RCE_MALLOC
-
-#if TRACK_ALLOC
-
-#undef myalloc
-#undef myfree
-
-void *myalloc_track(unsigned Bytes, unsigned AllocId, const char *FileName, int LineNr);
-void myfree_track(void *p, const char *FileName, int LineNr);
-void myalloc_trace(bool On);
-
-#define myalloc(t, n)	(t *) myalloc_track(sizeof(t)*(n), AllocId, __FILE__, __LINE__)
-#define myfree(p)		myfree_track(p, __FILE__, __LINE__)
-
-#endif // TRACK_ALLOC
 
 #define SIZE(c)	unsigned((c).size())
 #define RoundUp(Bytes, BlockSize)	((Bytes) + ((BlockSize) - (Bytes)%(BlockSize)))

@@ -2289,9 +2289,10 @@ void myfree2(void *p, unsigned bytes, const char *FileName, int Line)
 
 #else // RCE_MALLOC
 
-#if LEAK_CHECK
+#if TRACK_MYALLOCS
 #include <unordered_map>
 unordered_map<void *, pair<string, size_t> > *g_AllocMap = 0;
+static mutex s_AllocMapMutex;
 void *mymalloc(size_t bytes, const char *FileName, int LineNr)
 	{
 	void *p = malloc(bytes);
@@ -2309,9 +2310,11 @@ void *mymalloc(size_t bytes, const char *FileName, int LineNr)
 	char Tmp[128];
 	sprintf(Tmp, "%.63s:%d", FileName, LineNr);
 	string sTmp = string(Tmp);
+	s_AllocMapMutex.lock();
 	if (g_AllocMap == 0)
 		g_AllocMap = new unordered_map<void *, pair<string, size_t> >;
 	g_AllocMap->insert_or_assign(p, pair<string, size_t>(sTmp, bytes) );
+	s_AllocMapMutex.unlock();
 	return p;
 	}
 
@@ -2321,9 +2324,11 @@ void myfree(void *p)
 		return;
 	if (g_AllocMap != 0)
 		{
+		s_AllocMapMutex.lock();
 		unordered_map<void *, pair<string, size_t> >::iterator iter = g_AllocMap->find(p);
 		if (iter != g_AllocMap->end())
 			g_AllocMap->erase(iter);
+		s_AllocMapMutex.unlock();
 		}
 	free(p);
 	}
@@ -2352,7 +2357,7 @@ void myfree(void *p)
 		return;
 	free(p);
 	}
-#endif // LEAK_CHECK
+#endif // TRACK_MYALLOCS
 #endif // RCE_MALLOC
 
 void Ps(string &Str, const char *Format, ...)

@@ -35,26 +35,26 @@ Overflow if >16 entries in a radix:
 	  deleted in Reset()
 ***/
 
+static const uint32_t m_Mask10 = 0b1111111111;
+static const uint32_t m_Mask14 = 0b11111111111111;
+static const uint32_t m_Mask22 = 0b1111111111111111111111;
+
+static const uint32_t m_DiagHi = m_Mask14 + 1; // MaxDiag + 1 = 2^14 = 16k
+static const uint32_t m_SeqMod = 1024;
+static const uint32_t m_DiagMod = 16;
+static const uint32_t m_NrRdxs = m_SeqMod*m_DiagMod; // 16384
+static const uint32_t m_DiagShiftRdx = 10;
+static const uint32_t m_DiagShiftItem = 22;
+static const uint32_t m_FixedItemsPerRdx = 16;
+static const uint32_t m_ItemSize = sizeof(uint32_t);
+static const uint32_t m_TotalFixedItems = m_NrRdxs*m_FixedItemsPerRdx;
+
+static const uint32_t m_SeqIdxMaskRdx =	m_Mask10;
+static const uint32_t m_SeqIdxMaskItem = m_Mask22;
+
 class TwoHitDiag
 	{
 public:
-	static const uint32_t m_Mask10 = 0b1111111111;
-	static const uint32_t m_Mask14 = 0b11111111111111;
-	static const uint32_t m_Mask22 = 0b1111111111111111111111;
-
-	static const uint32_t m_DiagHi = m_Mask14 + 1; // MaxDiag + 1 = 2^14 = 16k
-	static const uint32_t m_SeqMod = 1024;
-	static const uint32_t m_DiagMod = 16;
-	static const uint32_t m_NrRdxs = m_SeqMod*m_DiagMod; // 16384
-	static const uint32_t m_DiagShiftRdx = 10;
-	static const uint32_t m_DiagShiftItem = 22;
-	static const uint32_t m_FixedItemsPerRdx = 16;
-	static const uint32_t m_ItemSize = sizeof(uint32_t);
-	static const uint32_t m_TotalFixedItems = m_NrRdxs*m_FixedItemsPerRdx;
-
-	static const uint32_t m_SeqIdxMaskRdx =	m_Mask10;
-	static const uint32_t m_SeqIdxMaskItem = m_Mask22;
-
 // Total number of items
 	uint m_Size = 0;
 

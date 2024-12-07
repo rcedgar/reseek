@@ -449,8 +449,8 @@ static void TestPutGet()
 	for (uint Try = 0; Try < 100; ++Try)
 		{
 		uint32_t SeqIdx = randu32();
-		uint16_t Diag = uint16_t(randu32()%T.m_DiagHi);
-		uint Offset = randu32()%(T.m_TotalFixedItems - 32);
+		uint16_t Diag = uint16_t(randu32()%m_DiagHi);
+		uint Offset = randu32()%(m_TotalFixedItems - 32);
 		uint32_t *ptr = T.m_Data + Offset;
 		uint Rdx = T.GetRdx(SeqIdx, Diag);
 		T.PutRaw(ptr, SeqIdx, Diag);
@@ -591,7 +591,7 @@ static void SavedTests()
 	for (uint Try = 0; Try < 100; ++Try)
 		{
 		uint MaxSeqIndex = 12345 + randu32()%8339987;
-		uint16_t MaxDiag = (123 + randu32()%63001) & TwoHitDiag::m_Mask14;
+		uint16_t MaxDiag = (123 + randu32()%63001) & m_Mask14;
 		if (MaxDiag < 10)
 			continue;
 		uint Tries = 23 + randu32()%222;

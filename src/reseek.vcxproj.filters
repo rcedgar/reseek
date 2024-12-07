@@ -506,7 +506,7 @@
     <ClCompile Include="twohit2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="leakcheck.cpp">
+    <ClCompile Include="track_myallocs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="twohit.cpp">
