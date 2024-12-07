@@ -515,6 +515,9 @@
     <ClCompile Include="twohit3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mukmeraln.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

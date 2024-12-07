@@ -1,5 +1,6 @@
 #pragma once
 
+#include "profileloader.h"
 #include "dbsearcher.h"
 #include "dssaligner.h"
 #include "xdpmem.h"
@@ -12,6 +13,31 @@ class ChainReader2;
 class DBSearcher
 	{
 public:
+#if MUKMERS
+	vector<vector<uint> *> m_DBMuKmersVec;
+	vector<byte> m_MuLettersQ;
+	const vector<byte> *m_ptrMuLettersT = 0;
+	vector<uint> m_MuKmersQ;
+	uint16_t *m_KmerHashTableQ = 0;
+	uint m_QTPairCount = 0;
+	uint m_QTSeedCount = 0;
+	uint m_MuHSPCount = 0;
+	uint m_MuHSPCount10 = 0;
+	uint m_MuHSPCount1 = 0;
+	uint m_MuEle10Count = 0;
+	uint m_MuEle1Count = 0;
+	uint m_MuFPHSPCount = 0;
+	const PDBChain *m_ChainQ = 0;
+	const PDBChain *m_ChainT = 0;
+
+	void MuKmerSetQ(const PDBChain &ChainQ);
+	void MuKmerResetQ();
+	void MuKmerAln(const PDBChain &ChainT, double Evalue, 
+				   const vector<byte> &MuLettersT,
+				   const vector<uint> &MuKmersT);
+	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X);
+#endif
+
 	const DSSParams *m_Params = 0;
 	uint m_ThreadCount = UINT_MAX;
 	vector<DSSAligner *> m_DAs;

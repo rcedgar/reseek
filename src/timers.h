@@ -46,5 +46,10 @@ T(SetMuQP)
 T(AlignMu)
 T(SWFast)
 T(SelfRev)
+T(CalcEvalue)
+T(MuKmerAln)
+T(MuKmerSetQ)
+T(MuKmerResetQ)
+T(MuXDrop)
 
 #undef T

@@ -42,18 +42,15 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 
 	DA.m_Params = &DA_Params;
 
-	vector<uint> Kmers;
+#if !MUKMERS
+	vector<uint> TheKmers;
+	vector<uint> *Kmers = &TheKmers;
+#endif
 	for (;;)
 		{
 		PDBChain *Chain = m_CR->GetNext();
 		if (Chain == 0)
-			{
-			//static mutex m;
-			//m.lock();
-			//ProgressLogPrefix("Chain=0 %.3g\n", GetMemUseBytes());
-			//m.unlock();
 			return;
-			}
 		if (Chain->GetSeqLength() < m_MinChainLength)
 			{
 			delete Chain;
@@ -72,13 +69,18 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
 		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;
 		vector<byte> *MuLetters = m_MuLetters == 0 ? 0 : new vector<byte>;
+#if MUKMERS
+		vector<uint> *Kmers = m_MuLetters == 0 ? 0 : new vector<uint>;
+#endif
 		float SelfRevScore = FLT_MAX;
 
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
-		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, Kmers);
-		if (m_KmerBitsVec != 0) D.GetMuKmerBits(Kmers, *KmerBits);
+		if (m_KmerBitsVec != 0) D.GetMuKmerBits(*Kmers, *KmerBits);
+#if MUKMERS
+		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *Kmers);
+#endif
 		if (m_SelfRevScores != 0) SelfRevScore = GetSelfRevScore(DA, D, *Chain, *ptrProfile);
 
 		m_Lock.lock();
@@ -87,6 +89,9 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
 		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);
 		if (m_MuLetters != 0) m_MuLetters->push_back(MuLetters);
+#if MUKMERS
+		if (m_KmersVec != 0) m_KmersVec->push_back(Kmers);
+#endif
 		if (m_SelfRevScores != 0) m_SelfRevScores->push_back(SelfRevScore);
 		m_Lock.unlock();
 		}
@@ -98,6 +103,7 @@ void ProfileLoader::Load(
   vector<PDBChain *> *Chains,
   vector<vector<vector<byte> > *> *Profiles,
   vector<vector<byte> *> *MuLetters,
+  vector<vector<uint> *> *KmersVec,
   vector<vector<uint> *> *KmerBitsVec,
   vector<float> *SelfRevScores,
   uint ThreadCount)
@@ -114,6 +120,9 @@ void ProfileLoader::Load(
 	m_Chains = Chains;
 	m_Profiles = Profiles;
 	m_KmerBitsVec = KmerBitsVec;
+#if MUKMERS
+	m_KmersVec = KmersVec;
+#endif
 	m_MuLetters = MuLetters;
 	m_SelfRevScores = SelfRevScores;
 

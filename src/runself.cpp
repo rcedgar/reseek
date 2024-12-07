@@ -31,6 +31,10 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			const vector<uint> *ptrKmerBits1 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex1]);
 			float SelfRevScore1 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex1] : FLT_MAX;
 			DA.SetQuery(Chain1, ptrProfile1, ptrKmerBits1, ptrMuLetters1, SelfRevScore1);
+#if MUKMERS
+			MuKmerResetQ();
+			MuKmerSetQ(Chain1);
+#endif
 			}
 
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
@@ -39,8 +43,11 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, SelfRevScore2);
-
 		DA.AlignQueryTarget();
+#if MUKMERS
+		if (ChainIndex1 != ChainIndex2)
+			MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
+#endif
 		if (!DA.m_Path.empty())
 			{
 			BaseOnAln(DA, true);

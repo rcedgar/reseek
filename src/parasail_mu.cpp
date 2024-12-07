@@ -143,6 +143,7 @@ float DSSAligner::AlignMuQP_Para()
 	if (fwd_score < OmegaFwd)
 		{
 		parasail_result_free(result);
+		EndTimer(SWPara);
 		return 0;
 		}
 
