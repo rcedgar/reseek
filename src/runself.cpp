@@ -37,16 +37,26 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 #endif
 			}
 
+		if (opt_noself && ChainIndex1 == ChainIndex2)
+			continue;
+
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
 		const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[ChainIndex2];
 		const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex2]);
 		const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, SelfRevScore2);
-		DA.AlignQueryTarget();
+		DA.ClearAlign();
 #if MUKMERS
-		if (ChainIndex1 != ChainIndex2)
-			MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
+		bool FoundHSP = false;
+		if (ChainIndex1 == ChainIndex2)
+			FoundHSP = true;
+		else
+			FoundHSP = MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
+		if (FoundHSP)
+			DA.AlignQueryTarget();
+#else
+		DA.AlignQueryTarget();
 #endif
 		if (!DA.m_Path.empty())
 			{

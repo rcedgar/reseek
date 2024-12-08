@@ -32,7 +32,7 @@ public:
 
 	void MuKmerSetQ(const PDBChain &ChainQ);
 	void MuKmerResetQ();
-	void MuKmerAln(const PDBChain &ChainT, double Evalue, 
+	bool MuKmerAln(const PDBChain &ChainT, double Evalue, 
 				   const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X);

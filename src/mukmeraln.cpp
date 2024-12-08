@@ -4,10 +4,13 @@
 
 //static const uint DictSize = 36*36*36*36*36;
 //static const string PatternStr = "11111";
-static const uint DictSize = 36*36*36*36;
-static const string PatternStr = "1111";
+//static const uint DictSize = 36*36*36*36;
+//static const string PatternStr = "1111";
+static const uint DictSize = 36*36*36;
+static const string PatternStr = "111";
 extern int8_t IntScoreMx_Mu[36][36];
 
+#if MUKMERS
 int DBSearcher::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X)
 	{
 	StartTimer(MuXDrop);
@@ -92,7 +95,7 @@ void DBSearcher::MuKmerSetQ(const PDBChain &ChainQ)
 	EndTimer(MuKmerSetQ);
 	}
 
-void DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
+bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 						   const vector<byte> &MuLettersT,
 						   const vector<uint> &MuKmersT)
 	{
@@ -107,6 +110,7 @@ void DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 	const uint KmerCountT = SIZE(MuKmersT);
 	int LQ = int(m_ChainQ->GetSeqLength());
 	int LT = int(m_ChainT->GetSeqLength());
+	bool FoundHSP = false;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];
@@ -120,6 +124,7 @@ void DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 			StartTimer(MuKmerAln);
 			if (Score >= 50)
 				{
+				FoundHSP = true;
 				++m_MuHSPCount;
 				if (Evalue <= 1)
 					++m_MuHSPCount1;
@@ -132,4 +137,6 @@ void DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 			}
 		}
 	EndTimer(MuKmerAln);
+	return FoundHSP;
 	}
+#endif // MUKMERS
