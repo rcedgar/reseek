@@ -518,6 +518,9 @@
     <ClCompile Include="mukmeraln.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -791,6 +794,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="diagtrainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

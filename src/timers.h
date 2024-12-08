@@ -51,5 +51,6 @@ T(MuKmerAln)
 T(MuKmerSetQ)
 T(MuKmerResetQ)
 T(MuXDrop)
+T(Chain)
 
 #undef T

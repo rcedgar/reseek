@@ -37,14 +37,9 @@ void DBSearcher::RunStats() const
 	uint Hits = m_QPCacheHits;
 	uint Misses = m_QPCacheMisses;
 	Log("QP cache hits %u, misses %u\n", Hits, Misses);
-#if MUKMERS
-	double SeedsPerPair = double(m_QTSeedCount)/(m_QTPairCount+1);
-	ProgressLog("Pairs %u, Seeds %u (%.1f), HSPs %u, FPHSPs %u\n",
-				m_QTPairCount, m_QTSeedCount, SeedsPerPair,
-				m_MuHSPCount, m_MuFPHSPCount);
-	ProgressLog("E<=10 %u, %u\n", m_MuEle10Count, m_MuHSPCount10);
-	ProgressLog("E<=1  %u, %u\n", m_MuEle1Count, m_MuHSPCount1);
-#endif
+	ProgressLog("Mkfilter %u / %u (%.1f%%)\n",
+				m_MuKmerFilterHitCount, m_MuKmerFilterPairCount,
+				GetPct(m_MuKmerFilterHitCount, m_MuKmerFilterPairCount));
 	}
 
 void DBSearcher::AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,

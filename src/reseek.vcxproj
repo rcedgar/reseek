@@ -288,6 +288,7 @@
     <ClCompile Include="calibrate7.cpp" />
     <ClCompile Include="calibratesearcher.cpp" />
     <ClCompile Include="calibrate_masm.cpp" />
+    <ClCompile Include="chainer.cpp" />
     <ClCompile Include="chainreader2.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
@@ -441,6 +442,7 @@
     <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
+    <ClInclude Include="chainer.h" />
     <ClInclude Include="chainreader2.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />

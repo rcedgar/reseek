@@ -54,7 +54,10 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		else
 			FoundHSP = MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
 		if (FoundHSP)
+			{
 			DA.AlignQueryTarget();
+			MuKmerCmpHSPPath(DA);
+			}
 #else
 		DA.AlignQueryTarget();
 #endif

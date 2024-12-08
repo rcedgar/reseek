@@ -19,23 +19,22 @@ public:
 	const vector<byte> *m_ptrMuLettersT = 0;
 	vector<uint> m_MuKmersQ;
 	uint16_t *m_KmerHashTableQ = 0;
-	uint m_QTPairCount = 0;
-	uint m_QTSeedCount = 0;
-	uint m_MuHSPCount = 0;
-	uint m_MuHSPCount10 = 0;
-	uint m_MuHSPCount1 = 0;
-	uint m_MuEle10Count = 0;
-	uint m_MuEle1Count = 0;
-	uint m_MuFPHSPCount = 0;
+	uint m_MuKmerFilterPairCount = 0;
+	uint m_MuKmerFilterHitCount = 0;
 	const PDBChain *m_ChainQ = 0;
 	const PDBChain *m_ChainT = 0;
+	vector<int> m_MuKmerBestLois;
+	vector<int> m_MuKmerBestLojs;
+	vector<int> m_MuKmerBestLens;
 
 	void MuKmerSetQ(const PDBChain &ChainQ);
 	void MuKmerResetQ();
 	bool MuKmerAln(const PDBChain &ChainT, double Evalue, 
 				   const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
-	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X);
+	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
+				int &Loi, int &Loj, int &Len);
+	void MuKmerCmpHSPPath(DSSAligner &DA);
 #endif
 
 	const DSSParams *m_Params = 0;
