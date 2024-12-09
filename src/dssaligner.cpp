@@ -601,10 +601,10 @@ void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 		{
 		uint PosA = uint(Lo_i + kA);
 		byte ia = ProfRowA[PosA];
-		float *SimRow = Sim[kA];
 		assert(ia < AlphaSize0);
 		const float *ScoreMxRow = ScoreMx0[ia];
 
+		float *SimRow = Sim[kA];
 		for (int kB = 0; kB < SegLenB; ++kB)
 			{
 			uint PosB = uint(Lo_j + kB);
@@ -628,8 +628,8 @@ void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 			byte ia = ProfRowA[PosA];
 			assert(ia < AlphaSize);
 			const float *ScoreMxRow = ScoreMx[ia];
-			float *SimRow = Sim[kA];
 
+			float *SimRow = Sim[kA];
 			for (int kB = 0; kB < SegLenB; ++kB)
 				{
 				uint PosB = uint(Lo_j + kB);
@@ -1003,36 +1003,36 @@ void DSSAligner::ClearAlign()
 void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 	{
 	ClearAlign();
-	SetSMx_NoRev();
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
 
 	Lo_i -= 64;
 	Hi_i += 64;
 	Lo_j -= 64;
 	Hi_j += 64;
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
 
-	//const uint SegLenA = uint(Hi_i - Lo_i + 1);
-	//const uint SegLenB = uint(Hi_j - Lo_j + 1);
+	if (Lo_i < 0) Lo_i = 0;
+	if (Lo_j < 0) Lo_j = 0;
 
-	//asserta(SegLenA <= LA && SegLenB <= LB);
+	if (Hi_i >= int(LA)) Hi_i = int(LA) - 1;
+	if (Hi_j >= int(LB)) Hi_j = int(LB) - 1;
 
-	float **M = m_SMx.GetData();
-	for (int i = 0; i < int(LA); ++i)
-		{
-		for (int j = 0; j < int(LB); ++j)
-			{
-			if (i >= Lo_i && i <= Hi_i && j >= Lo_j && j <= Hi_j)
-				continue;
-			M[i][j] = -999;
-			}
-		}
+	//SetSMx_NoRev();
+	SetSMx_Box(Lo_i, Hi_i, Lo_j, Hi_j);
+
+	const uint SegLenA = uint(Hi_i - Lo_i + 1);
+	const uint SegLenB = uint(Hi_j - Lo_j + 1);
+
+	asserta(SegLenA <= LA && SegLenB <= LB);
 
 	StartTimer(SW_Box);
-	uint Leni, Lenj;
-	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	uint LoA, LoB, Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, m_SMx, SegLenA, SegLenB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
-	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	  LoA, LoB, Leni, Lenj, m_Path);
+	m_LoA = Lo_i + LoA;
+	m_LoB = Lo_j + LoB;
 	EndTimer(SW_Box);
 
 	CalcEvalue();

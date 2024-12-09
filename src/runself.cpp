@@ -55,8 +55,8 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			FoundHSP = true;
 		else
 			FoundHSP = MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
-		bool IsTP = SCOP40Bench::IsTP_SF(DA.m_ChainA->m_Label,
-										 DA.m_ChainB->m_Label);
+		//bool IsTP = SCOP40Bench::IsTP_SF(DA.m_ChainA->m_Label,
+		//								 DA.m_ChainB->m_Label);
 		//if (IsTP)
 		//	m_TPChainScores.push_back(float(m_BestChainScore));
 		//else
