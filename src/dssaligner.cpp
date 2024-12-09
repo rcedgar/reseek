@@ -570,6 +570,79 @@ void DSSAligner::SetSMx_Mu()
 	EndTimer(SetSMx_Mu);
 	}
 
+void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
+	{
+	const DSSParams &Params = *m_Params;
+	const vector<vector<byte> > &ProfileA = *m_ProfileA;
+	const vector<vector<byte> > &ProfileB = *m_ProfileB;
+	const int SegLenA = Hi_i - Lo_i + 1;
+	const int SegLenB = Hi_j - Lo_j + 1;
+	asserta(SegLenA > 0 && SegLenB > 0);
+
+// Memory blows up with grow-only strategy due to tail of long chains
+	m_SMx.Clear();
+	Mx<float> &SMx = m_SMx;
+	SMx.Alloc("SMx", (uint) SegLenA, (uint) SegLenB);
+	StartTimer(SetSMx_Box);
+	float **Sim = SMx.GetData();
+
+	const uint FeatureCount = Params.GetFeatureCount();
+	asserta(SIZE(ProfileA) == FeatureCount);
+	asserta(SIZE(ProfileB) == FeatureCount);
+
+// Special case first feature because = not += and
+	FEATURE F0 = m_Params->m_Features[0];
+	uint AlphaSize0 = g_AlphaSizes2[F0];
+	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	const vector<byte> &ProfRowA = ProfileA[0];
+	const vector<byte> &ProfRowB = ProfileB[0];
+	//for (uint PosA = 0; PosA < LA; ++PosA)
+	for (int kA = 0; kA < SegLenA; ++kA)
+		{
+		uint PosA = uint(Lo_i + kA);
+		byte ia = ProfRowA[PosA];
+		float *SimRow = Sim[kA];
+		assert(ia < AlphaSize0);
+		const float *ScoreMxRow = ScoreMx0[ia];
+
+		for (int kB = 0; kB < SegLenB; ++kB)
+			{
+			uint PosB = uint(Lo_j + kB);
+			byte ib = ProfRowB[PosB];
+			assert(ia < AlphaSize0 && ib < AlphaSize0);
+			float MatchScore = ScoreMxRow[ib];
+			SimRow[kB] = MatchScore;
+			}
+		}
+
+	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
+		{
+		FEATURE F = m_Params->m_Features[FeatureIdx];
+		uint AlphaSize = g_AlphaSizes2[F];
+		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
+		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
+		for (int kA = 0; kA < SegLenA; ++kA)
+			{
+			uint PosA = uint(Lo_i + kA);
+			byte ia = ProfRowA[PosA];
+			assert(ia < AlphaSize);
+			const float *ScoreMxRow = ScoreMx[ia];
+			float *SimRow = Sim[kA];
+
+			for (int kB = 0; kB < SegLenB; ++kB)
+				{
+				uint PosB = uint(Lo_j + kB);
+				byte ib = ProfRowB[PosB];
+				assert(ib < AlphaSize);
+				float MatchScore = ScoreMxRow[ib];
+				SimRow[kB] += MatchScore;
+				}
+			}
+		}
+	EndTimer(SetSMx_Box);
+	}
+
 void DSSAligner::SetSMx_NoRev()
 	{
 	const DSSParams &Params = *m_Params;
@@ -925,6 +998,44 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = -FLT_MAX;
+	}
+
+void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
+	{
+	ClearAlign();
+	SetSMx_NoRev();
+
+	Lo_i -= 64;
+	Hi_i += 64;
+	Lo_j -= 64;
+	Hi_j += 64;
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	//const uint SegLenA = uint(Hi_i - Lo_i + 1);
+	//const uint SegLenB = uint(Hi_j - Lo_j + 1);
+
+	//asserta(SegLenA <= LA && SegLenB <= LB);
+
+	float **M = m_SMx.GetData();
+	for (int i = 0; i < int(LA); ++i)
+		{
+		for (int j = 0; j < int(LB); ++j)
+			{
+			if (i >= Lo_i && i <= Hi_i && j >= Lo_j && j <= Hi_j)
+				continue;
+			M[i][j] = -999;
+			}
+		}
+
+	StartTimer(SW_Box);
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	EndTimer(SW_Box);
+
+	CalcEvalue();
 	}
 
 void DSSAligner::Align_NoAccel()

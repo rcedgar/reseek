@@ -116,6 +116,8 @@ public:
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
+	void Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
+	void SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void Align_NoAccel();
 	float AlignMu(
 	  const vector<byte> &LettersA, const vector<byte> &LettersB,

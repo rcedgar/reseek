@@ -64,7 +64,9 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 
 		if (FoundHSP && m_BestChainScore > 0)
 			{
-			DA.AlignQueryTarget();
+			DA.SetSMx_Box(m_ChainLo_i, m_ChainHi_i, m_ChainLo_j, m_ChainHi_j);
+			DA.Align_Box(m_ChainLo_i, m_ChainHi_i, m_ChainLo_j, m_ChainHi_j);
+			//DA.AlignQueryTarget();
 			//MuKmerCmpHSPPath(DA);
 			}
 #else
