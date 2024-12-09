@@ -14,6 +14,9 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 	asserta(ThreadIndex < SIZE(m_DAs));
 	uint PrevChainIndex1 = UINT_MAX;
 	DSSAligner &DA = *m_DAs[ThreadIndex];
+#if MUKMERS
+	MuKmerFilter &MKF = *m_MKFs[ThreadIndex];
+#endif
 	const bool HasSelfRevScores = !m_DBSelfRevScores.empty();
 	for (;;)
 		{
@@ -34,8 +37,8 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			float SelfRevScore1 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex1] : FLT_MAX;
 			DA.SetQuery(Chain1, ptrProfile1, ptrKmerBits1, ptrMuLetters1, SelfRevScore1);
 #if MUKMERS
-			MuKmerResetQ();
-			MuKmerSetQ(Chain1);
+			MKF.MuKmerResetQ();
+			MKF.MuKmerSetQ(Chain1);
 #endif
 			}
 
@@ -54,20 +57,12 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		if (ChainIndex1 == ChainIndex2)
 			FoundHSP = true;
 		else
-			FoundHSP = MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
-		//bool IsTP = SCOP40Bench::IsTP_SF(DA.m_ChainA->m_Label,
-		//								 DA.m_ChainB->m_Label);
-		//if (IsTP)
-		//	m_TPChainScores.push_back(float(m_BestChainScore));
-		//else
-		//	m_FPChainScores.push_back(float(m_BestChainScore));
+			FoundHSP = MKF.MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
 
-		if (FoundHSP && m_BestChainScore > 0)
+		if (FoundHSP && MKF.m_BestChainScore > 0)
 			{
-			DA.SetSMx_Box(m_ChainLo_i, m_ChainHi_i, m_ChainLo_j, m_ChainHi_j);
-			DA.Align_Box(m_ChainLo_i, m_ChainHi_i, m_ChainLo_j, m_ChainHi_j);
-			//DA.AlignQueryTarget();
-			//MuKmerCmpHSPPath(DA);
+			DA.SetSMx_Box(MKF.m_ChainLo_i, MKF.m_ChainHi_i, MKF.m_ChainLo_j, MKF.m_ChainHi_j);
+			DA.Align_Box(MKF.m_ChainLo_i, MKF.m_ChainHi_i, MKF.m_ChainLo_j, MKF.m_ChainHi_j);
 			}
 #else
 		DA.AlignQueryTarget();
@@ -113,7 +108,13 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf()
 	{
-	m_D.SetParams(*m_Params);
+#if MUKMERS
+	for (uint i = 0; i < SIZE(m_MKFs); ++i)
+		{
+		m_MKFs[i]->m_Params = m_Params;
+		m_MKFs[i]->m_D.SetParams(*m_Params);
+		}
+#endif
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->m_Params = m_Params;
 

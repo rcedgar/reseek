@@ -8,49 +8,52 @@
 #include <map>
 #include <mutex>
 
+#if MUKMERS
+#include "mukmerfilter.h"
+#endif
+
 class ChainReader2;
 
 class DBSearcher
 	{
 public:
 #if MUKMERS
-	vector<vector<uint> *> m_DBMuKmersVec;
-	vector<byte> m_MuLettersQ;
-	const vector<byte> *m_ptrMuLettersT = 0;
-	vector<uint> m_MuKmersQ;
-	uint16_t *m_KmerHashTableQ = 0;
-	uint m_MuKmerFilterPairCount = 0;
-	uint m_MuKmerFilterHitCount = 0;
-	const PDBChain *m_ChainQ = 0;
-	const PDBChain *m_ChainT = 0;
-	vector<int> m_MuKmerHSPLois;
-	vector<int> m_MuKmerHSPLojs;
-	vector<int> m_MuKmerHSPLens;
-	vector<int> m_MuKmerHSPScores;
-	int m_BestChainScore = 0;
-	//vector<float> m_TPChainScores;
-	//vector<float> m_FPChainScores;
-	int m_ChainLo_i = 0;
-	int m_ChainHi_i = 0;
-	int m_ChainLo_j = 0;
-	int m_ChainHi_j = 0;
+	//vector<vector<uint> *> m_DBMuKmersVec;
+	//vector<byte> m_MuLettersQ;
+	//const vector<byte> *m_ptrMuLettersT = 0;
+	//vector<uint> m_MuKmersQ;
+	//uint16_t *m_KmerHashTableQ = 0;
+	//uint m_MuKmerFilterPairCount = 0;
+	//uint m_MuKmerFilterHitCount = 0;
+	//const PDBChain *m_ChainQ = 0;
+	//const PDBChain *m_ChainT = 0;
+	//vector<int> m_MuKmerHSPLois;
+	//vector<int> m_MuKmerHSPLojs;
+	//vector<int> m_MuKmerHSPLens;
+	//vector<int> m_MuKmerHSPScores;
+	//int m_BestChainScore = 0;
+	//int m_ChainLo_i = 0;
+	//int m_ChainHi_i = 0;
+	//int m_ChainLo_j = 0;
+	//int m_ChainHi_j = 0;
 
-	void MuKmerSetQ(const PDBChain &ChainQ);
-	void MuKmerResetQ();
-	bool MuKmerAln(const PDBChain &ChainT, double Evalue, 
-				   const vector<byte> &MuLettersT,
-				   const vector<uint> &MuKmersT);
-	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
-				int &Loi, int &Loj, int &Len);
-	void MuKmerCmpHSPPath(DSSAligner &DA);
-	void ChainHSPs();
+	//void MuKmerSetQ(DSS &D, const PDBChain &ChainQ);
+	//void MuKmerResetQ();
+	//bool MuKmerAln(const PDBChain &ChainT, double Evalue, 
+	//			   const vector<byte> &MuLettersT,
+	//			   const vector<uint> &MuKmersT);
+	//int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
+	//			int &Loi, int &Loj, int &Len);
+	//void ChainHSPs();
+	//DSS m_Ds;
+	vector<MuKmerFilter *> m_MKFs;
+	vector<vector<uint> *> m_DBMuKmersVec;
 #endif
 
 	const DSSParams *m_Params = 0;
 	uint m_ThreadCount = UINT_MAX;
 	vector<DSSAligner *> m_DAs;
 	vector<XDPMem *> m_Mems;
-	DSS m_D;
 
 	vector<PDBChain *> m_DBChains;
 	bool m_QuerySelf = false;

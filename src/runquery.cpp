@@ -97,7 +97,13 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 void DBSearcher::RunQuery(ChainReader2 &QCR)
 	{
-	m_D.SetParams(*m_Params);
+#if MUKMERS
+	for (uint i = 0; i < SIZE(m_MKFs); ++i)
+		{
+		m_MKFs[i]->m_Params = m_Params;
+		m_MKFs[i]->m_D.SetParams(*m_Params); 
+		}
+#endif
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->m_Params = m_Params;
 

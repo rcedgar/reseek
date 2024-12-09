@@ -1,9 +1,11 @@
 #include "myutils.h"
 #include "dbsearcher.h"
 #include "chainer.h"
+#include "mukmerfilter.h"
 #include "timing.h"
 
-const int MIN_HSP_SCORE = 60;
+const int MIN_HSP_SCORE = 50;
+const int MU_X = 8;
 
 #if MUKMERS
 
@@ -12,135 +14,10 @@ const int MIN_HSP_SCORE = 60;
 //static const uint DictSize = 36*36*36*36;
 //static const string PatternStr = "1111";
 static const uint DictSize = 36*36*36;
-static const string PatternStr = "111";
+static const string PatternStr = "1001001";
 extern int8_t IntScoreMx_Mu[36][36];
 
-void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
-
-static void GetColToPos(const string &Path, bool IsQ, uint Lo, uint L,
-						vector<uint> &ColToPos)
-	{
-	const uint ColCount = SIZE(Path);
-	uint Pos = Lo;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		bool IsGap = false;
-		if (IsQ)
-			{
-			if (c == 'I')
-				IsGap = true;
-			}
-		else
-			{
-			if (c == 'D')
-				IsGap = true;
-			}
-		if (IsGap)
-			ColToPos.push_back(UINT_MAX);
-		else
-			{
-			asserta(Pos < L);
-			ColToPos.push_back(Pos++);
-			}
-		}
-	}
-
-static void GetPosToPosVecs(const string &Path, uint LoQ, uint LQ, uint LoT, uint LT,
-							vector<uint> &PosQToPosT,
-							vector<uint> &PosTToPosQ)
-	{
-	PosQToPosT.clear();
-	PosTToPosQ.clear();
-
-	const uint ColCount = SIZE(Path);
-	vector<uint> ColToPosQ;
-	vector<uint> ColToPosT;
-	GetColToPos(Path, true, LoQ, LQ, ColToPosQ);
-	GetColToPos(Path, false, LoT, LT, ColToPosT);
-	asserta(SIZE(ColToPosQ) == ColCount);
-	asserta(SIZE(ColToPosT) == ColCount);
-
-	PosQToPosT.resize(LQ, UINT_MAX);
-	PosTToPosQ.resize(LT, UINT_MAX);
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		uint PosQ = ColToPosQ[Col];
-		uint PosT = ColToPosT[Col];
-		if (PosQ != UINT_MAX)
-			{
-			asserta(PosQ < LQ);
-			PosQToPosT[PosQ] = PosT;
-			}
-		if (PosT != UINT_MAX)
-			{
-			asserta(PosT < LT);
-			PosTToPosQ[PosT] = PosQ;
-			}
-		}
-	}
-
-void DBSearcher::MuKmerCmpHSPPath(DSSAligner &DA)
-	{
-	const string &Path = DA.m_Path;
-	if (Path.empty())
-		return;
-	const uint N = SIZE(m_MuKmerHSPLens);
-	asserta(N > 0);
-	uint LoQ = DA.m_LoA;
-	uint LoT = DA.m_LoB;
-	uint LQ = DA.GetL(true);
-	uint LT = DA.GetL(false);
-	//uint M, D, I;
-	//GetPathCounts(Path, M, D, I);
-	//asserta(LoQ + M + D <= LQ);
-	//asserta(LoT + M + I <= LT);
-	//vector<uint> PosQToPosT;
-	//vector<uint> PosTToPosQ;
-	//GetPosToPosVecs(DA.m_Path, LoQ, LQ, LoT, LT, PosQToPosT, PosTToPosQ);
-
-	//int i = m_MuKmerBestLoi;
-	//int j = m_MuKmerBestLoj;
-	//Log("\n");
-	//Log(">%s, %s (%.3g)\n",
-	//	DA.m_ChainA->m_Label.c_str(), DA.m_ChainB->m_Label.c_str(),
-	//	DA.m_EvalueA);
-	//for (int k = 0; k < m_MuKmerBestLen; ++k)
-	//	{
-	//	uint j2 = PosQToPosT[i];
-	//	uint i2 = PosTToPosQ[j];
-	//	Log("i=%5d  i2=%5d  j=%5d  j2=%5d\n", i, i2, j, j2);
-	//	++i;
-	//	++j;
-	//	}
-	//Log("@CMP@");
-	//Log("\t%.3g", DA.m_EvalueA);
-	//Log("\t%u", N);
-	//Log("\t%u", LoQ);
-	//Log("\t%u", LQ);
-	//Log("\t%u", LoT);
-	//Log("\t%u", LT);
-	//Log("\t%s", Path.c_str());
-	//for (uint i = 0; i < N; ++i)
-	//	{
-	//	Log("\t%d", m_MuKmerHSPLois[i]);
-	//	Log("\t%d", m_MuKmerHSPLojs[i]);
-	//	Log("\t%d", m_MuKmerHSPLens[i]);
-	//	}
-	//Log("\n");
-
-	if (DA.m_EvalueA < 10)
-		{
-		Log("@CMP@");
-		Log("\t%.3g", DA.m_EvalueA);
-		Log("\t%s", DA.m_ChainA->m_Label.c_str());
-		Log("\t%s", DA.m_ChainB->m_Label.c_str());
-		Log("\t%.0f", m_BestChainScore);
-		Log("\n");
-		}
-	}
-
-int DBSearcher::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
+int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 						int &Loi, int &Loj, int &Len)
 	{
 	StartTimer(MuXDrop);
@@ -212,7 +89,7 @@ int DBSearcher::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 	return BestScore;
 	}
 
-void DBSearcher::MuKmerResetQ()
+void MuKmerFilter::MuKmerResetQ()
 	{
 	if (m_KmerHashTableQ == 0)
 		{
@@ -235,7 +112,7 @@ void DBSearcher::MuKmerResetQ()
 #endif
 	}
 
-void DBSearcher::MuKmerSetQ(const PDBChain &ChainQ)
+void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ)
 	{
 	StartTimer(MuKmerSetQ);
 	m_ChainQ = &ChainQ;
@@ -256,7 +133,7 @@ void DBSearcher::MuKmerSetQ(const PDBChain &ChainQ)
 	EndTimer(MuKmerSetQ);
 	}
 
-bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
+bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT, double Evalue,
 						   const vector<byte> &MuLettersT,
 						   const vector<uint> &MuKmersT)
 	{
@@ -283,7 +160,7 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 			{
 			EndTimer(MuKmerAln);
 			int Loi, Loj, Len;
-			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, 10, Loi, Loj, Len);
+			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, MU_X, Loi, Loj, Len);
 			StartTimer(MuKmerAln);
 			if (Score >= MIN_HSP_SCORE)
 				{
@@ -319,7 +196,7 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 	return FoundHSP;
 	}
 
-void DBSearcher::ChainHSPs()
+void MuKmerFilter::ChainHSPs()
 	{
 	const uint N = SIZE(m_MuKmerHSPLois);
 	asserta(SIZE(m_MuKmerHSPLens) == N);

@@ -37,9 +37,6 @@ void DBSearcher::RunStats() const
 	uint Hits = m_QPCacheHits;
 	uint Misses = m_QPCacheMisses;
 	Log("QP cache hits %u, misses %u\n", Hits, Misses);
-	ProgressLog("Mkfilter %u / %u (%.1f%%)\n",
-				m_MuKmerFilterHitCount, m_MuKmerFilterPairCount,
-				GetPct(m_MuKmerFilterHitCount, m_MuKmerFilterPairCount));
 	}
 
 void DBSearcher::AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
@@ -82,7 +79,6 @@ void DBSearcher::Setup()
 	m_ProcessedPairCount = 0;
 	m_HitCount = 0;
 
-	m_D.SetParams(*m_Params);
 	m_ThreadCount = ThreadCount;
 
 	for (uint i = 0; i < ThreadCount; ++i)
@@ -93,7 +89,12 @@ void DBSearcher::Setup()
 
 		XDPMem *Mem = new XDPMem;
 		m_Mems.push_back(Mem);
+#if MUKMERS
+		MuKmerFilter *MKF = new MuKmerFilter;
+		m_MKFs.push_back(MKF);
+#endif
 		}
+
 #if SLOPE_CALIB
 	LoadCalibratedSlopes(opt_slopes);
 #endif

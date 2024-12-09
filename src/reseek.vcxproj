@@ -318,6 +318,7 @@
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
     <ClCompile Include="mukmeraln.cpp" />
+    <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="track_myallocs.cpp" />
     <ClCompile Include="mermx.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />
@@ -450,6 +451,7 @@
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="diagtrainer.h" />
+    <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
     <ClInclude Include="counters.h" />
     <ClInclude Include="crc32.h" />
