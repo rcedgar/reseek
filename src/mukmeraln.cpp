@@ -1,6 +1,9 @@
 #include "myutils.h"
 #include "dbsearcher.h"
+#include "chainer.h"
 #include "timing.h"
+
+const int MIN_HSP_SCORE = 60;
 
 #if MUKMERS
 
@@ -82,7 +85,7 @@ void DBSearcher::MuKmerCmpHSPPath(DSSAligner &DA)
 	const string &Path = DA.m_Path;
 	if (Path.empty())
 		return;
-	const uint N = SIZE(m_MuKmerBestLens);
+	const uint N = SIZE(m_MuKmerHSPLens);
 	asserta(N > 0);
 	uint LoQ = DA.m_LoA;
 	uint LoT = DA.m_LoB;
@@ -110,21 +113,31 @@ void DBSearcher::MuKmerCmpHSPPath(DSSAligner &DA)
 	//	++i;
 	//	++j;
 	//	}
-	Log("@CMP@");
-	Log("\t%.3g", DA.m_EvalueA);
-	Log("\t%u", N);
-	Log("\t%u", LoQ);
-	Log("\t%u", LQ);
-	Log("\t%u", LoT);
-	Log("\t%u", LT);
-	Log("\t%s", Path.c_str());
-	for (uint i = 0; i < N; ++i)
+	//Log("@CMP@");
+	//Log("\t%.3g", DA.m_EvalueA);
+	//Log("\t%u", N);
+	//Log("\t%u", LoQ);
+	//Log("\t%u", LQ);
+	//Log("\t%u", LoT);
+	//Log("\t%u", LT);
+	//Log("\t%s", Path.c_str());
+	//for (uint i = 0; i < N; ++i)
+	//	{
+	//	Log("\t%d", m_MuKmerHSPLois[i]);
+	//	Log("\t%d", m_MuKmerHSPLojs[i]);
+	//	Log("\t%d", m_MuKmerHSPLens[i]);
+	//	}
+	//Log("\n");
+
+	if (DA.m_EvalueA < 10)
 		{
-		Log("\t%d", m_MuKmerBestLois[i]);
-		Log("\t%d", m_MuKmerBestLojs[i]);
-		Log("\t%d", m_MuKmerBestLens[i]);
+		Log("@CMP@");
+		Log("\t%.3g", DA.m_EvalueA);
+		Log("\t%s", DA.m_ChainA->m_Label.c_str());
+		Log("\t%s", DA.m_ChainB->m_Label.c_str());
+		Log("\t%.0f", m_BestChainScore);
+		Log("\n");
 		}
-	Log("\n");
 	}
 
 int DBSearcher::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
@@ -256,9 +269,11 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 	int LT = int(m_ChainT->GetSeqLength());
 	bool FoundHSP = false;
 	int BestHSPScore = 0;
-	m_MuKmerBestLois.clear();
-	m_MuKmerBestLojs.clear();
-	m_MuKmerBestLens.clear();
+	m_MuKmerHSPLois.clear();
+	m_MuKmerHSPLojs.clear();
+	m_MuKmerHSPLens.clear();
+	m_MuKmerHSPScores.clear();
+	m_BestChainScore = 0;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];
@@ -270,15 +285,15 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 			int Loi, Loj, Len;
 			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, 10, Loi, Loj, Len);
 			StartTimer(MuKmerAln);
-			if (Score >= 75)
+			if (Score >= MIN_HSP_SCORE)
 				{
 				if (Score > BestHSPScore)
 					{
 					FoundHSP = true;
 					bool OldHSP = false;
-					for (uint i = 0; i < SIZE(m_MuKmerBestLois); ++i)
+					for (uint i = 0; i < SIZE(m_MuKmerHSPLois); ++i)
 						{
-						if (Loi == m_MuKmerBestLois[i])
+						if (Loi == m_MuKmerHSPLois[i])
 							{
 							OldHSP = true;
 							break;
@@ -286,9 +301,10 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 						}
 					if (!OldHSP)
 						{
-						m_MuKmerBestLois.push_back(Loi);
-						m_MuKmerBestLojs.push_back(Loj);
-						m_MuKmerBestLens.push_back(Len);
+						m_MuKmerHSPLois.push_back(Loi);
+						m_MuKmerHSPLojs.push_back(Loj);
+						m_MuKmerHSPLens.push_back(Len);
+						m_MuKmerHSPScores.push_back(Score);
 						}
 					}
 				}
@@ -296,7 +312,63 @@ bool DBSearcher::MuKmerAln(const PDBChain &ChainT, double Evalue,
 		}
 	EndTimer(MuKmerAln);
 	if (FoundHSP)
+		{
 		++m_MuKmerFilterHitCount;
+		ChainHSPs();
+		}
 	return FoundHSP;
 	}
+
+void DBSearcher::ChainHSPs()
+	{
+	const uint N = SIZE(m_MuKmerHSPLois);
+	asserta(SIZE(m_MuKmerHSPLens) == N);
+	asserta(SIZE(m_MuKmerHSPScores) == N);
+	vector<uint> Los;
+	vector<uint> His;
+	vector<float> Scores;
+	for (uint i = 0; i < N; ++i)
+		{
+		uint Lo = m_MuKmerHSPLois[i];
+		uint Hi = Lo + m_MuKmerHSPLens[i] - 1;
+		Los.push_back(Lo);
+		His.push_back(Hi);
+		Scores.push_back((float) m_MuKmerHSPScores[i]);
+		}
+	Chainer C;
+	vector<uint> Idxs;
+	m_BestChainScore = (int) C.Chain(Los, His, Scores, Idxs);
+	m_ChainLo_i = 0;
+	m_ChainHi_i = 0;
+	m_ChainLo_j = 0;
+	m_ChainHi_j = 0;
+	const uint M = SIZE(Idxs);
+	if (M == 0)
+		return;
+	for (uint k = 0; k < M; ++k)
+		{
+		int Idx = Idxs[k];
+		int Loi = m_MuKmerHSPLois[Idx];
+		int Loj = m_MuKmerHSPLojs[Idx];
+		int Hii = Loi + m_MuKmerHSPLens[Idx] - 1;
+		int Hij = Loj + m_MuKmerHSPLens[Idx] - 1;
+		if (k == 0)
+			{
+			m_ChainLo_i = Loi;
+			m_ChainHi_i = Hii;
+
+			m_ChainLo_j = Loj;
+			m_ChainHi_j = Hij;
+			}
+		else
+			{
+			m_ChainLo_i = min(Loi, m_ChainLo_i);
+			m_ChainHi_i = max(Hii, m_ChainHi_i);
+
+			m_ChainLo_j = min(Loj, m_ChainLo_j);
+			m_ChainHi_j = max(Hij, m_ChainHi_j);
+			}
+		}
+	}
+
 #endif // MUKMERS

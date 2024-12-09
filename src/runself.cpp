@@ -1,5 +1,7 @@
 #include "myutils.h"
 #include "dbsearcher.h"
+#include "scop40bench.h"
+#include "binner.h"
 #include "timing.h"
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
@@ -53,10 +55,17 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			FoundHSP = true;
 		else
 			FoundHSP = MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
-		if (FoundHSP)
+		bool IsTP = SCOP40Bench::IsTP_SF(DA.m_ChainA->m_Label,
+										 DA.m_ChainB->m_Label);
+		//if (IsTP)
+		//	m_TPChainScores.push_back(float(m_BestChainScore));
+		//else
+		//	m_FPChainScores.push_back(float(m_BestChainScore));
+
+		if (FoundHSP && m_BestChainScore > 0)
 			{
 			DA.AlignQueryTarget();
-			MuKmerCmpHSPPath(DA);
+			//MuKmerCmpHSPPath(DA);
 			}
 #else
 		DA.AlignQueryTarget();
@@ -145,4 +154,11 @@ void DBSearcher::RunSelf()
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
 	RunStats();
+
+	//Binner<float> BTP(m_TPChainScores, 100, 0, 200);
+	//Binner<float> BFP(m_FPChainScores, 100, 0, 200);
+	//Log("TP\n");
+	//BTP.ToTsv(g_fLog);
+	//Log("FP\n");
+	//BFP.ToTsv(g_fLog);
 	}

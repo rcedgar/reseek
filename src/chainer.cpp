@@ -34,12 +34,15 @@ void Chainer::Clear()
 	if (m_ChainScores != 0) { myfree(m_ChainScores); m_ChainScores = 0; }
 	}
 
-void Chainer::Chain(const uint *Los, const uint *His,
-  const float *Scores, uint N, vector<uint> &Idxs)
+float Chainer::Chain(const vector<uint> &Los, const vector<uint> &His,
+	  const vector<float> &Scores, vector<uint> &Idxs)
 	{
 	Idxs.clear();
+	const uint N = SIZE(Los);
+	assert(SIZE(His) == N);
+	assert(SIZE(Los) == N);
 	if (N == 0)
-		return;
+		return 0;
 
 #if	TRACE
 	Log("Chainer::Chain(N=%u)\n", N);
@@ -158,9 +161,11 @@ void Chainer::Chain(const uint *Los, const uint *His,
 #endif
 
 	uint Index = BestChainEnd;
+	float Score = 0;
 	for (;;)
 		{
 		assert(SIZE(Idxs) < N);
+		Score += Scores[Index];
 		Idxs.push_back(Index);
 		assert(Index < N);
 		Index = m_TB[Index];
@@ -190,6 +195,7 @@ void Chainer::Chain(const uint *Los, const uint *His,
 	Log("Sum %.1f\n", Sum);
 	}
 #endif
+	return Score;
 	}
 
 float Chainer::GetChainScore(const uint *Los, const uint *His,

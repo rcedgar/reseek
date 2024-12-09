@@ -18,8 +18,8 @@ public:
 	uint *m_TB = 0;
 
 public:
-	void Chain(const uint *Los, const uint *His,
-	  const float *Scores, uint N, vector<uint> &Idxs);
+	float Chain(const vector<uint> &Los, const vector<uint> &His,
+	  const vector<float> &Scores, vector<uint> &Idxs);
 	void Clear();
 
 	static float GetChainScore(const uint *Los, const uint *His, const float *Scores,

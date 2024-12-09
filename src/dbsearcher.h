@@ -23,9 +23,17 @@ public:
 	uint m_MuKmerFilterHitCount = 0;
 	const PDBChain *m_ChainQ = 0;
 	const PDBChain *m_ChainT = 0;
-	vector<int> m_MuKmerBestLois;
-	vector<int> m_MuKmerBestLojs;
-	vector<int> m_MuKmerBestLens;
+	vector<int> m_MuKmerHSPLois;
+	vector<int> m_MuKmerHSPLojs;
+	vector<int> m_MuKmerHSPLens;
+	vector<int> m_MuKmerHSPScores;
+	int m_BestChainScore = 0;
+	//vector<float> m_TPChainScores;
+	//vector<float> m_FPChainScores;
+	int m_ChainLo_i = 0;
+	int m_ChainHi_i = 0;
+	int m_ChainLo_j = 0;
+	int m_ChainHi_j = 0;
 
 	void MuKmerSetQ(const PDBChain &ChainQ);
 	void MuKmerResetQ();
@@ -35,6 +43,7 @@ public:
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 				int &Loi, int &Loj, int &Len);
 	void MuKmerCmpHSPPath(DSSAligner &DA);
+	void ChainHSPs();
 #endif
 
 	const DSSParams *m_Params = 0;
