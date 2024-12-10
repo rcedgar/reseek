@@ -1166,7 +1166,7 @@ float DSSAligner::AlignMu(
 	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
 	  Loi, Loj, Leni, Lenj, Path);
 	EndTimer(SWFast);
-
+	m_Mem.Clear();
 	LoA = Loi;
 	LoB = Loj;
 	return FwdScore;

@@ -317,7 +317,6 @@
     <ClCompile Include="lddt_msas.cpp" />
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
-    <ClCompile Include="mukmeraln.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="track_myallocs.cpp" />
     <ClCompile Include="mermx.cpp" />

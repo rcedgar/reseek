@@ -515,13 +515,10 @@
     <ClCompile Include="twohit3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mukmeraln.cpp">
+    <ClCompile Include="mukmerfilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="chainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mukmerfilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
