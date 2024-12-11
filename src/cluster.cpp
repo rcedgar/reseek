@@ -52,7 +52,7 @@ static void USort1(DBSearcher &DBS,  uint MinU,
 
 static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
   const PDBChain &ChainQ, const vector<vector<byte> > &ProfileQ,
-  vector<byte> &MuLettersQ, vector<uint> &KmerBitsQ)
+  vector<byte> &MuLettersQ, vector<uint> &MuKmersQ, vector<uint> &KmerBitsQ)
 	{
 	const DSSParams &Params = *DBS.m_Params;
 	const uint MinU = uint(Params.m_MinU + 0.5);
@@ -62,8 +62,8 @@ static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
 	const uint N = SIZE(Order);
 	if (N == 0)
 		return UINT_MAX;
-	const uint MAXACCEPTS = Params.m_MaxAccepts;
-	const uint MAXREJECTS = Params.m_MaxRejects;
+	const uint MAXACCEPTS = 1;//@@TODO
+	const uint MAXREJECTS = 64;//@@TODO
 	uint AcceptCount = 0;
 	uint RejectCount = 0;
 	uint TopHit = UINT_MAX;
@@ -77,9 +77,10 @@ static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
 		uint ChainIndexR = DBIdxs[Order[i]];
 		const PDBChain &ChainR = *DBS.m_DBChains[ChainIndexR];
 		const vector<byte> &MuLettersR = *DBS.m_DBMuLettersVec[ChainIndexR];
+		const vector<uint> &MuKmersR = *DBS.m_DBMuKmersVec[ChainIndexR];
 		const vector<vector<byte> > &ProfileR = *DBS.m_DBProfiles[ChainIndexR];
 		DA.Align_MuFilter(ChainQ, ChainR, 
-			MuLettersQ, MuLettersR, ProfileQ, ProfileR);
+			MuLettersQ, MuKmersQ, MuLettersR, MuKmersR, ProfileQ, ProfileR);
 		if (DA.m_Path.empty())
 			continue;
 		if (DA.m_EvalueA > DBS.m_MaxEvalue)
@@ -138,7 +139,7 @@ static void ThreadBody(uint ThreadIndex, void *ptrUserData)
 	D.SetParams(Params);
 
 	DSSAligner DA;
-	DA.m_Params = &Params;
+	DA.SetParams(Params);
 
 
 	vector<byte> MuLettersQ;
@@ -170,7 +171,7 @@ static void ThreadBody(uint ThreadIndex, void *ptrUserData)
 
 		++InputCount;
 		uint TopHit = 
-		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, MuLettersQ, KmerBitsQ);
+		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, MuLettersQ, KmersQ, KmerBitsQ);
 		if (TopHit == UINT_MAX)
 			{
 			vector<vector<byte> > *ptrProfileQ = new vector<vector<byte> >(ProfileQ);
@@ -188,12 +189,6 @@ void cmd_cluster()
 	DBSearcher DBS;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
-
-#define p(x, y, d)	{ if (optset_##x) Params.m_##y = opt_##x; else Params.m_##y = d; }
-	p(maxaccepts, MaxAccepts, 1)
-	p(maxrejects, MaxRejects, 128)
-	p(minu, MinU, 0)
-#undef p
 
 	DBS.m_Params = &Params;
 

@@ -84,15 +84,11 @@ void DBSearcher::Setup()
 	for (uint i = 0; i < ThreadCount; ++i)
 		{
 		DSSAligner *DA = new DSSAligner;
-		DA->m_Params = m_Params;
+		DA->SetParams(*m_Params);
 		m_DAs.push_back(DA);
 
 		XDPMem *Mem = new XDPMem;
 		m_Mems.push_back(Mem);
-#if MUKMERS
-		MuKmerFilter *MKF = new MuKmerFilter;
-		m_MKFs.push_back(MKF);
-#endif
 		}
 
 #if SLOPE_CALIB
@@ -238,18 +234,12 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 	vector<vector<byte> *> *ptrMuLetters = &m_DBMuLettersVec;
 	vector<vector<uint> *> *ptrKmerBitsVec = &m_DBKmerBitsVec;
-#if MUKMERS
 	vector<vector<uint> *> *ptrMuKmersVec = &m_DBMuKmersVec;
-#else
-	vector<vector<uint> *> *ptrMuKmersVec = 0;
-#endif
 	if (m_Params->m_MinU <= 0)
 		ptrKmerBitsVec = 0;
 	if (m_Params->m_Omega <= 0)
 		ptrMuLetters = 0;
 
-	LogHeapSummary("Before PL.Load");
 	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, ptrKmerBitsVec, &m_DBSelfRevScores, ThreadCount);
-	LogHeapSummary("After PL.Load");
 	}

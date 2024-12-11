@@ -221,9 +221,6 @@
     <ClCompile Include="swgaplessprofb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="usort.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reseek_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -455,9 +452,6 @@
     <ClCompile Include="pdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="train_seeds.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="seedtrainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -486,6 +480,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mymalloc_debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="usort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -272,7 +272,7 @@ void cmd_kmer_eval()
 	D.SetParams(Params);
 
 	DSSAligner DA;
-	DA.m_Params = &Params;
+	DA.SetParams(Params);
 
 	SeqDB Input;
 	Input.FromFasta(g_Arg1, true);

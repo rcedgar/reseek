@@ -22,8 +22,8 @@ float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   string &Path);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
-float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
-  const byte *B, uint LB, uint &Besti, uint &Bestj);
+//float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
+//  const byte *B, uint LB, uint &Besti, uint &Bestj);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
 int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
@@ -762,11 +762,12 @@ bool DSSAligner::UFilter()
 
 void DSSAligner::Align_MuFilter(
   const PDBChain &ChainA, const PDBChain &ChainB,
-  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
+  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
+  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, &MuKmersA, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, &MuKmersB, FLT_MAX);
 
 	//m_EvalueA = FLT_MAX;
 	//m_EvalueB = FLT_MAX;
@@ -788,17 +789,25 @@ void DSSAligner::Align_MuFilter(
 	Align_NoAccel();
 	}
 
+void DSSAligner::SetParams(const DSSParams &Params)
+	{
+	m_Params = &Params;
+	m_MKF.m_Params = &Params;
+	}
+
 void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrMuKmerBits,
 	const vector<byte> *ptrMuLetters,
+	const vector<uint> *ptrMuKmers,
 	float SelfRevScore)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_MuKmerBitsA = ptrMuKmerBits;
 	m_MuLettersA = ptrMuLetters;
+	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
 	if (ptrMuLetters != 0 && m_Params->m_Omega > 0)
 		{
@@ -807,6 +816,13 @@ void DSSAligner::SetQuery(
 		else
 			SetMuQP();
 		}
+
+	if (ptrMuKmers != 0)
+		{
+		asserta(ptrMuLetters != 0);
+		m_MKF.MuKmerResetQ();
+		m_MKF.MuKmerSetQ(Chain, ptrMuLetters, ptrMuKmers);
+		}
 	}
 
 void DSSAligner::SetTarget(
@@ -814,11 +830,13 @@ void DSSAligner::SetTarget(
 	const vector<vector<byte> > *ptrProfile,
 	const vector<uint> *ptrMuKmerBits,
 	const vector<byte> *ptrMuLetters,
+	const vector<uint> *ptrMuKmers,
 	float SelfRevScore)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
 	m_MuKmerBitsB = ptrMuKmerBits;
+	m_MuKmersB = ptrMuKmers;
 	m_MuLettersB = ptrMuLetters;
 	m_SelfRevScoreB = SelfRevScore;
 	}
@@ -1499,5 +1517,17 @@ float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 		string Path;
 		InvertPath(m_Path, Path);
 		return (float) Kabsch(*m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, t, u);
+		}
+	}
+
+void DSSAligner::AlignMKF()
+	{
+	ClearAlign();
+	bool FoundHSP = m_MKF.MuKmerAln(*m_ChainA, *m_MuLettersB, *m_MuKmersB);
+
+	if (FoundHSP && m_MKF.m_BestChainScore > 0)
+		{
+		SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
+		Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 		}
 	}

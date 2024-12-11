@@ -14,8 +14,8 @@ float GetSelfRevScore(const PDBChain &Chain,
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
 
-	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
+	DA.SetQuery(Chain, &Profile, 0, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0, FLT_MAX);
 	DA.AlignQueryTarget();
 	return DA.m_AlnFwdScore;
 	}
@@ -77,8 +77,8 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	vector<vector<byte> > ProfileT;
 
 	vector<byte> MuLettersQ;
-	vector<uint> KmersQ;
-	vector<uint> KmerBitsQ;
+	vector<uint> MuKmersQ;
+	vector<uint> MuKmerBitsQ;
 
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;
@@ -89,15 +89,15 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 		D.GetMuLetters(MuLettersQ);
 	if (Params.m_MinU > 0)
 		{
-		D.GetMuKmers(MuLettersQ, KmersQ);
-		D.GetMuKmerBits(KmersQ, KmerBitsQ);
+		D.GetMuKmers(MuLettersQ, MuKmersQ);
+		D.GetMuKmerBits(MuKmersQ, MuKmerBitsQ);
 		}
 
 	float SelfRevScoreQ = GetSelfRevScore(*ChainQ, ProfileQ, DA, D);
 
 	vector<byte> MuLettersT;
-	vector<uint> KmersT;
-	vector<uint> KmerBitsT;
+	vector<uint> MuKmersT;
+	vector<uint> MuKmerBitsT;
 
 	D.Init(*ChainT);
 	D.GetProfile(ProfileT);
@@ -106,14 +106,14 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 		D.GetMuLetters(MuLettersT);
 	if (Params.m_MinU > 0)
 		{
-		D.GetMuKmers(MuLettersT, KmersT);
-		D.GetMuKmerBits(KmersT, KmerBitsT);
+		D.GetMuKmers(MuLettersT, MuKmersT);
+		D.GetMuKmerBits(MuKmersT, MuKmerBitsT);
 		}
 
 	float SelfRevScoreT = GetSelfRevScore(*ChainT, ProfileT, DA, D);
 	
-	DA.SetQuery(*ChainQ, &ProfileQ, &KmerBitsQ, &MuLettersQ, SelfRevScoreQ);
-	DA.SetTarget(*ChainT, &ProfileT, &KmerBitsT, &MuLettersT, SelfRevScoreT);
+	DA.SetQuery(*ChainQ, &ProfileQ, &MuKmerBitsQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
+	DA.SetTarget(*ChainT, &ProfileT, &MuKmerBitsT, &MuLettersT, &MuKmersT, SelfRevScoreT);
 	DA.AlignQueryTarget();
 	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
@@ -164,7 +164,7 @@ void cmd_alignpair()
 	Params.m_Omega = 0;
 
 	DSSAligner DA;
-	DA.m_Params = &Params;
+	DA.SetParams(Params);
 
 	DSS D;
 	D.SetParams(Params);

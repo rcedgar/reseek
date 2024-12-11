@@ -14,9 +14,6 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 	asserta(ThreadIndex < SIZE(m_DAs));
 	uint PrevChainIndex1 = UINT_MAX;
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-#if MUKMERS
-	MuKmerFilter &MKF = *m_MKFs[ThreadIndex];
-#endif
 	const bool HasSelfRevScores = !m_DBSelfRevScores.empty();
 	for (;;)
 		{
@@ -33,13 +30,12 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			const PDBChain &Chain1 = *m_DBChains[ChainIndex1];
 			const vector<vector<byte> > *ptrProfile1 = m_DBProfiles[ChainIndex1];
 			const vector<byte> *ptrMuLetters1 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex1]);
+			const vector<uint> *ptrMuKmers1 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex1]);
 			const vector<uint> *ptrKmerBits1 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex1]);
 			float SelfRevScore1 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex1] : FLT_MAX;
-			DA.SetQuery(Chain1, ptrProfile1, ptrKmerBits1, ptrMuLetters1, SelfRevScore1);
-#if MUKMERS
-			MKF.MuKmerResetQ();
-			MKF.MuKmerSetQ(Chain1);
-#endif
+			DA.SetQuery(Chain1, ptrProfile1, ptrKmerBits1, ptrMuLetters1, ptrMuKmers1, SelfRevScore1);
+			//MKF.MuKmerResetQ();
+			//MKF.MuKmerSetQ(Chain1);
 			}
 
 		if (opt_noself && ChainIndex1 == ChainIndex2)
@@ -48,22 +44,12 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
 		const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[ChainIndex2];
 		const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex2]);
+		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);
 		const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
-		DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, SelfRevScore2);
-		DA.ClearAlign();
-#if MUKMERS
-		bool FoundHSP = false;
-		if (ChainIndex1 == ChainIndex2)
-			FoundHSP = true;
-		else
-			FoundHSP = MKF.MuKmerAln(Chain2, DA.m_EvalueA, *m_DBMuLettersVec[ChainIndex2], *m_DBMuKmersVec[ChainIndex2]);
-
-		if (FoundHSP && MKF.m_BestChainScore > 0)
-			{
-			DA.SetSMx_Box(MKF.m_ChainLo_i, MKF.m_ChainHi_i, MKF.m_ChainLo_j, MKF.m_ChainHi_j);
-			DA.Align_Box(MKF.m_ChainLo_i, MKF.m_ChainHi_i, MKF.m_ChainLo_j, MKF.m_ChainHi_j);
-			}
+		DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
+#if 1//@@
+		DA.AlignMKF();
 #else
 		DA.AlignQueryTarget();
 #endif
@@ -77,28 +63,16 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		}
 	}
 
-void LogMxAllocCounts(const char *s);
 bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	{
 	ChainIndex1 = UINT_MAX;
 	ChainIndex2 = UINT_MAX;
 	m_Lock.lock();
-	if (m_PairIndex == 0 || m_PairIndex == m_PairCount/2)
-		{
-		string s;
-		Ps(s, "pair=%u", m_PairIndex);
-		LogHeapSummary(s.c_str());
-		LogMxAllocCounts(s.c_str());
-		LogHeapBlocks(_NORMAL_BLOCK, s.c_str());
-		}
 	if (m_PairIndex == m_PairCount)
 		{
 		m_Lock.unlock();
 		return false;
 		}
-	//extern uint g_MxAllocCount, g_MxFreeCount;
-	//ProgressStep(m_PairIndex, m_PairCount, "Aligning %u %u (%u)",
-	//			 g_MxAllocCount, g_MxFreeCount, g_MxAllocCount - g_MxFreeCount);
 	ProgressStep(m_PairIndex, m_PairCount, "Aligning");
 	ChainIndex1 = m_NextChainIndex1;
 	ChainIndex2 = m_NextChainIndex2;
@@ -120,15 +94,8 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf()
 	{
-#if MUKMERS
-	for (uint i = 0; i < SIZE(m_MKFs); ++i)
-		{
-		m_MKFs[i]->m_Params = m_Params;
-		m_MKFs[i]->m_D.SetParams(*m_Params);
-		}
-#endif
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
-		m_DAs[i]->m_Params = m_Params;
+		m_DAs[i]->SetParams(*m_Params);
 
 	//asserta(!m_Params->m_USort);
 
@@ -169,5 +136,4 @@ void DBSearcher::RunSelf()
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
 	RunStats();
-	LogHeapSummary("Exit");
 	}

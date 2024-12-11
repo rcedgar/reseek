@@ -6,6 +6,7 @@
 #include "dss.h"
 #include "mx.h"
 #include "userfields.h"
+#include "mukmerfilter.h"
 #include <mutex>
 
 #define SCORE_DIST	0
@@ -17,8 +18,10 @@
 
 class DSSAligner
 	{
-public:
+private:
 	const DSSParams *m_Params = 0;
+
+public:
 	const PDBChain *m_ChainA = 0;
 	const PDBChain *m_ChainB = 0;
 	const vector<vector<byte> > *m_ProfileA = 0;
@@ -27,12 +30,15 @@ public:
 	const vector<byte> *m_MuLettersB = 0;
 	const vector<uint> *m_MuKmerBitsA = 0;
 	const vector<uint> *m_MuKmerBitsB = 0;
+	const vector<uint> *m_MuKmersA = 0;
+	const vector<uint> *m_MuKmersB = 0;
 	vector<const float *> m_ProfMu;
 	vector<const float *> m_ProfMuRev;
 	vector<const int8_t *> m_ProfMui;
 	vector<const int8_t *> m_ProfMuRevi;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
+	MuKmerFilter m_MKF;
 
 	XDPMem m_Mem;
 	Mx<float> m_SMx;
@@ -88,17 +94,21 @@ public:
 	DSSAligner();
 
 public:
+	void SetParams(const DSSParams &Params);
+
 	void SetQuery(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrMuKmerBits,
 	  const vector<byte> *ptrMuLetters,
+	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
 	  const vector<uint> *ptrMuKmerBits,
 	  const vector<byte> *ptrMuLetters,
+	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
 
 	float GetMuScore();
@@ -114,8 +124,10 @@ public:
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void Align_MuFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
+	  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
+	  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
+	void AlignMKF();
 	void Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void Align_NoAccel();

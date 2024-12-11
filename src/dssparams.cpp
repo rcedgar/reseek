@@ -22,9 +22,9 @@ void DSSParams::SetMuFeatures(const vector<FEATURE> &Fs)
 
 void DSSParams::SetFromCmdLine(uint DBSize)
 	{
-	int i = int(optset_veryfast) + int(optset_fast) + int(optset_sensitive) + int(optset_verysensitive);
+	int i = int(optset_fast) + int(optset_sensitive) + int(optset_verysensitive);
 	if (i != 1)
-		Die("Must specify -veryfast -fast -sensitive or -verysensitive");
+		Die("Must specify -fast -sensitive or -verysensitive");
 
 	if (optset_dbsize)
 		m_DBSize = (float) opt_dbsize;
@@ -48,8 +48,7 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		FromTsv(opt_paramsf);
 	else
 		SetNamedParams("defaults");
-	if (optset_veryfast) {m_Omega = 16; m_MinU = 4; m_USort = true; m_Desc += "-veryfast"; }
-	else if (optset_fast) { m_OmegaFwd = 60; }
+	if (optset_fast) { m_OmegaFwd = 60; }
 	else if (optset_sensitive)  { m_Omega = 12; m_OmegaFwd = 20; Psa(m_Desc, " -omega %.4g", m_Omega); }
 	else if (optset_verysensitive)  { m_Omega = 0; m_MinU = 0; m_OmegaFwd = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
 
@@ -62,9 +61,6 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, " -gapopen %.4g", opt_gapopen); }
 	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, " -gapext %.4g", opt_gapext); }
 	if (optset_minu) { m_MinU = opt_minu; Psa(m_Desc, " -minu %u", opt_minu); }
-	if (optset_maxaccepts) { m_MaxAccepts = opt_maxaccepts; Psa(m_Desc, " -maxaccepts %u", opt_maxaccepts); }
-	if (optset_maxrejects) { m_MaxRejects = opt_maxrejects; Psa(m_Desc, " -maxrejects %u", opt_maxrejects); }
-	if (optset_usort) { m_USort = true;  Psa(m_Desc, " -usort"); }
 	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
 	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
 	if (optset_pattern) { m_PatternStr = string(opt_pattern); Psa(m_Desc, " -pattern %s", opt_pattern); }

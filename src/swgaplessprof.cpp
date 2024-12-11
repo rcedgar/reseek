@@ -9,7 +9,7 @@ extern float B62Mf[20][20];
 float SWGapless(Mx<float> &DPMx, const Mx<float> &SMx, uint LA, uint LB,
   uint &Loi, uint &Loj, uint &ColCount);
 
-float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
+static float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
   const byte *B, uint LB, uint &Besti, uint &Bestj)
 	{
 	Mem.Alloc(LA+1, LB+1);

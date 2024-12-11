@@ -115,8 +115,8 @@ void DSSAligner::Align_Test(
   const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, 0, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, 0, FLT_MAX);
 
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
@@ -190,7 +190,7 @@ void cmd_test_para_path()
 	{
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
-	DA.m_Params = &Params;
+	DA.SetParams(Params);
 	D.SetParams(Params);
 
 	Trainer Tr;

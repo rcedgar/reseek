@@ -17,9 +17,6 @@ void DSSParams::FromParamStr(const string &Str)
 	m_Omega = 0;
 	m_Lambda = 0;
 	m_MinU = 0;
-	m_USort = false;
-	m_MaxAccepts = UINT_MAX;
-	m_MaxRejects = UINT_MAX;
 	m_PatternStr = "*";
 
 	const uint N = SIZE(Fields);
@@ -56,9 +53,6 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_Omega = 0;
 		m_Lambda = 0;
 		m_MinU = 0;
-		m_USort = false;
-		m_MaxAccepts = UINT_MAX;
-		m_MaxRejects = UINT_MAX;
 		m_PatternStr = "*";
 		return;
 		}
@@ -85,41 +79,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_OmegaFwd = 29;
 		m_Lambda = 32;
 		m_MinU = 0;
-		m_USort = false;
-		m_MaxAccepts = 1;
-		m_MaxRejects = 32;
 		m_PatternStr = "10000000001";
-
-//		if (0) // opt_fast
-//			{
-////SEPQ0.1=0.1444 SEPQ1=0.2553 SEPQ10=0.3504 S1FP=0.3197 N1FP=145363 secs=36 level=sf fast [d1307e2] uncommented
-////SEPQ0.1=0.1557 SEPQ1=0.2522 SEPQ10=0.2522 S1FP=0.2460 N1FP=111877 secs=35 level=sf fast [d1307e2] commented
-//			//m_GapOpen = -0.325218;
-//			//m_GapExt = -0.0165677;
-//			//m_FwdMatchScore = 0.537963;
-//			//m_DALIw = 5.47414;
-//			//SetParam("NENDist", 0.154403, false);
-//			//SetParam("Conf", 0.240193, false);
-//			//SetParam("NENConf", 0.147806, false);
-//			//SetParam("RENDist", 0.102264, false);
-//			//SetParam("DstNxtHlx", 0.0110055, false);
-//			//SetParam("StrandDens", 0.0136859, false);
-//			//SetParam("NormDens", 0.00594393, false);
-//			}
-//		else if (opt_veryfast)
-//			{
-//			m_Desc += "-veryfast";
-//			m_Omega = 16;
-//			m_MinU = 4;
-//			m_USort = true;
-//			}
-//		else if (opt_sensitive)
-//			{
-//			m_Desc += "-sensitive";
-//			m_Omega = 0;
-//			m_MinU = 0;
-//			m_USort = false;
-//			}
 		return;
 		}
 
@@ -143,9 +103,6 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_Omega = 11;
 		m_Lambda = 32;
 		m_MinU = 15;
-		m_USort = false;
-		m_MaxAccepts = 1;
-		m_MaxRejects = 32;
 		m_PatternStr = "10000000001";
 		return;
 		}

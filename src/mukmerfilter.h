@@ -6,9 +6,9 @@ class MuKmerFilter
 	{
 public:
 	const DSSParams *m_Params = 0;
-	vector<byte> m_MuLettersQ;
+	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
-	vector<uint> m_MuKmersQ;
+	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_KmerHashTableQ = 0;
 	uint m_MuKmerFilterPairCount = 0;
 	uint m_MuKmerFilterHitCount = 0;
@@ -25,13 +25,14 @@ public:
 	int m_ChainHi_j = 0;
 
 public:
-	void MuKmerSetQ(const PDBChain &ChainQ);
+	void MuKmerSetQ(const PDBChain &ChainQ,
+					const vector<byte> *ptrMuLettersQ,
+					const vector<uint> *ptrMuKmersQ);
 	void MuKmerResetQ();
-	bool MuKmerAln(const PDBChain &ChainT, double Evalue, 
+	bool MuKmerAln(const PDBChain &ChainT,
 				   const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 				int &Loi, int &Loj, int &Len);
 	void ChainHSPs();
-	DSS m_D;
 	};

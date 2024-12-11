@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef MUKMERS
-#define MUKMERS	1
-#endif
-
 class ChainReader2;
 class PDBChain;
 class DSSParams;
@@ -17,9 +13,7 @@ public:
 	vector<PDBChain *> *m_Chains = 0;
 	vector<vector<vector<byte> > *> *m_Profiles = 0;
 	vector<vector<byte> *> *m_MuLetters = 0;
-#if MUKMERS
 	vector<vector<uint> *> *m_KmersVec = 0;
-#endif
 	vector<vector<uint> *> *m_KmerBitsVec = 0;
 	vector<float> *m_SelfRevScores = 0;
 	mutex m_Lock;
@@ -39,8 +33,6 @@ public:
 	  vector<float> *SelfRevScores,
 	  uint ThreadCount);
 	void ThreadBody(uint ThreadIndex);
-	//static float GetSelfRevScore(DSSAligner &DA, DSS &D, 
-	//  const PDBChain &Chain, const vector<vector<byte> > &Profile);
 
 private:
 	static void StaticThreadBody(uint ThreadIndex, ProfileLoader *PL);

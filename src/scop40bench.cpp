@@ -15,6 +15,16 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);
 
+bool Scop40_IsTP_SF(const string &Label1, const string &Label2)
+	{
+	string Dom1, Cls1, Fold1, SF1, Fam1;
+	string Dom2, Cls2, Fold2, SF2, Fam2;
+	SCOP40Bench::ParseScopLabel(Label1, Dom1, Cls1, Fold1, SF1, Fam1);
+	SCOP40Bench::ParseScopLabel(Label2, Dom2, Cls2, Fold2, SF2, Fam2);
+	bool t = (SF1 == SF2);
+	return t;
+	}
+
 void SCOP40Bench::GetDomSFFromLabel(const string &Label,
 									string &Dom, string &SF)
 	{
@@ -269,8 +279,8 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.SetQuery(Chain1, &Profile1, 0, 0, m_DBSelfRevScores[Dom1]);
-	DA.SetTarget(Chain2, &Profile2, 0, 0, m_DBSelfRevScores[Dom2]);
+	DA.SetQuery(Chain1, &Profile1, 0, 0, 0, m_DBSelfRevScores[Dom1]);
+	DA.SetTarget(Chain2, &Profile2, 0, 0, 0, m_DBSelfRevScores[Dom2]);
 	DA.Align_NoAccel();
 	Lo1 = DA.m_LoA;
 	Lo2 = DA.m_LoB;

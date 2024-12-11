@@ -13,7 +13,7 @@ void cmd_alignselfrev()
 	Params.m_Omega = 0;
 
 	DSSAligner DA;
-	DA.m_Params = &Params;
+	DA.SetParams(Params);
 
 	DSS D;
 	D.SetParams(Params);
@@ -40,8 +40,8 @@ void cmd_alignselfrev()
 		D.Init(Rev);
 		D.GetProfile(RevProfile);
 
-		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
-		DA.SetTarget(Rev, &RevProfile, 0, 0, FLT_MAX);
+		DA.SetQuery(*Chain, &Profile, 0, 0, 0, FLT_MAX);
+		DA.SetTarget(Rev, &RevProfile, 0, 0, 0, FLT_MAX);
 		DA.AlignQueryTarget();
 		DA.ToTsv(fOut, true);
 		}

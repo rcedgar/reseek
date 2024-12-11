@@ -32,13 +32,7 @@ void cmd_search()
 	DBS.m_fAln = CreateStdioFile(opt_aln);
 	DBS.m_fFasta2 = CreateStdioFile(opt_fasta2);
 	ResetTimers();
-	if (Params.m_USort)
-		{
-		ChainReader2 QCR;
-		QCR.Open(QFN);
-		DBS.RunUSort(QCR);
-		}
-	else if (Self)
+	if (Self)
 		DBS.RunSelf();
 	else
 		{

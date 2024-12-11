@@ -24,15 +24,12 @@ public:
 	uint m_MinU = 0;
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
-	bool m_USort = false;
 	//bool m_MuScoreOnly = false;
 	//bool m_UseMuPath = false;
 
 	uint m_Lambda = 32;
 
 	float m_DBSize = 10000;
-	uint m_MaxAccepts = UINT_MAX;
-	uint m_MaxRejects = UINT_MAX;
 
 	bool m_UsePara = true;
 	//int m_ParaMuGapOpen = 5;

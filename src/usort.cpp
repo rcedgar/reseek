@@ -45,7 +45,7 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 	{
 	asserta(ThreadIndex < SIZE(m_DAs));
 	DSSAligner &DA = *m_DAs[ThreadIndex];
-	DA.m_Params = m_Params;
+	DA.SetParams(*m_Params);
 	DSS D;
 	D.SetParams(*m_Params);
 	vector<uint> Order;
@@ -73,8 +73,8 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 		const uint N = SIZE(Order);
 		if (N == 0)
 			continue;
-		const uint MAXACCEPTS = m_Params->m_MaxAccepts;
-		const uint MAXREJECTS = m_Params->m_MaxRejects;
+		const uint MAXACCEPTS = 1;//@@TODO
+		const uint MAXREJECTS = 64;//@@TODO
 		uint AcceptCount = 0;
 		uint RejectCount = 0;
 		D.GetProfile(ProfileQ);
@@ -89,9 +89,10 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 			if (ChainQ.m_Label == ChainR.m_Label)
 				continue;
 			const vector<byte> &MuLettersR = *m_DBMuLettersVec[ChainIndexR];
+			const vector<uint> &KmersR = *m_DBMuKmersVec[ChainIndexR];
 			const vector<vector<byte> > &ProfileR = *m_DBProfiles[ChainIndexR];
 			DA.Align_MuFilter(ChainQ, ChainR, 
-			  MuLettersQ, MuLettersR, ProfileQ, ProfileR);
+			  MuLettersQ, KmersQ, MuLettersR, KmersR, ProfileQ, ProfileR);
 			if (DA.m_Path.empty())
 				continue;
 			if (DA.m_EvalueA > m_MaxEvalue)
@@ -107,40 +108,4 @@ void DBSearcher::ThreadUSort(uint ThreadIndex, ChainReader2 &QCR)
 				}
 			}
 		}
-	}
-
-void DBSearcher::RunUSort(ChainReader2 &QCR)
-	{
-	m_AlnsPerThreadPerSec = FLT_MAX;
-	time_t t_start = time(0);
-	m_Secs = UINT_MAX;
-	uint ThreadCount = GetRequestedThreadCount();
-#if TIMING
-	asserta(ThreadCount == 1);
-#endif
-	m_PairIndex = UINT_MAX;
-	m_PairCount = UINT_MAX;
-	m_NextChainIndex1 = UINT_MAX;
-	m_NextChainIndex2 = UINT_MAX;
-	m_NextQueryIdx = UINT_MAX;
-	m_NextDBIdx = UINT_MAX;
-	m_ProcessedQueryCount = 0;
-
-	m_NextQueryIdx = 0;
-
-	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		thread *t = new thread(StaticThreadUSort, ThreadIndex, this, &QCR);
-		ts.push_back(t);
-		}
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		ts[ThreadIndex]->join();
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		delete ts[ThreadIndex];
-	time_t t_end = time(0);
-	m_Secs = uint(t_end - t_start);
-	if (m_Secs == 0)
-		m_Secs = 1;
-	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
 	}

@@ -7,12 +7,6 @@
 const int MIN_HSP_SCORE = 50;
 const int MU_X = 8;
 
-#if MUKMERS
-
-//static const uint DictSize = 36*36*36*36*36;
-//static const string PatternStr = "11111";
-//static const uint DictSize = 36*36*36*36;
-//static const string PatternStr = "1111";
 static const uint DictSize = 36*36*36;
 static const string PatternStr = "1001001";
 extern int8_t IntScoreMx_Mu[36][36];
@@ -26,8 +20,8 @@ int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 	Len = 0;
 	int i = PosQ;
 	int j = PosT;
-	const byte *Q = m_MuLettersQ.data();
-	const byte *T = (*m_ptrMuLettersT).data();
+	const byte *Q = m_ptrMuLettersQ->data();
+	const byte *T = m_ptrMuLettersT->data();
 
 	int FwdScore = 0;
 	int BestFwdScore = 0;
@@ -98,11 +92,14 @@ void MuKmerFilter::MuKmerResetQ()
 		memset(m_KmerHashTableQ, 0xff, DictSize*sizeof(uint16_t));
 		}
 
-	const uint KmerCountQ = SIZE(m_MuKmersQ);
-	for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
+	if (m_ptrMuKmersQ != 0)
 		{
-		uint Kmer = m_MuKmersQ[PosQ];
-		m_KmerHashTableQ[Kmer] = 0xffff;
+		const uint KmerCountQ = SIZE(*m_ptrMuKmersQ);
+		for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
+			{
+			uint Kmer = (*m_ptrMuKmersQ)[PosQ];
+			m_KmerHashTableQ[Kmer] = 0xffff;
+			}
 		}
 #if DEBUG
 	{
@@ -112,20 +109,21 @@ void MuKmerFilter::MuKmerResetQ()
 #endif
 	}
 
-void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ)
+void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
+							  const vector<byte> *ptrMuLettersQ,
+							  const vector<uint> *ptrMuKmersQ)
 	{
 	StartTimer(MuKmerSetQ);
 	m_ChainQ = &ChainQ;
 
-	m_D.Init(ChainQ);
-	m_D.GetMuLetters(m_MuLettersQ);
-	m_D.GetMuKmers(m_MuLettersQ, m_MuKmersQ);
+	m_ptrMuLettersQ = ptrMuLettersQ;
+	m_ptrMuKmersQ = ptrMuKmersQ;
 
-	const uint KmerCountQ = SIZE(m_MuKmersQ);
+	const uint KmerCountQ = SIZE(*m_ptrMuKmersQ);
 	asserta(KmerCountQ < 0xffff);
 	for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
 		{
-		uint Kmer = m_MuKmersQ[PosQ];
+		uint Kmer = (*m_ptrMuKmersQ)[PosQ];
 		assert(Kmer < DictSize);
 		if (m_KmerHashTableQ[Kmer] == 0xffff)
 			m_KmerHashTableQ[Kmer] = PosQ;
@@ -133,7 +131,7 @@ void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ)
 	EndTimer(MuKmerSetQ);
 	}
 
-bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT, double Evalue,
+bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 						   const vector<byte> &MuLettersT,
 						   const vector<uint> &MuKmersT)
 	{
@@ -247,5 +245,3 @@ void MuKmerFilter::ChainHSPs()
 			}
 		}
 	}
-
-#endif // MUKMERS

@@ -393,7 +393,6 @@
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />
-    <ClCompile Include="train_seeds.cpp" />
     <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="userfields.cpp" />
