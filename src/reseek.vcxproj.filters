@@ -188,9 +188,6 @@
     <ClCompile Include="namedparams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gsw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mumx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -470,46 +467,13 @@
     <ClCompile Include="test_chrono_ticks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="threedi.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mermx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mudex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="twohitdiag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="duper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="prime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mumxtest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="diaghsp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="diag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="diagtrainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testmu5mers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="twohit2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="twohit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="twohit3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mukmerfilter.cpp">
@@ -778,25 +742,10 @@
     <ClInclude Include="mermx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mudex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="twohitdiag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="duper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="primes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="diaghsp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="diag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="diagtrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chainer.h">

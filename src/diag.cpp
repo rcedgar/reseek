@@ -1,5 +1,4 @@
 #include "myutils.h"
-#include "diaghsp.h"
 #include "diag.h"
 
 static void DiagTest(int LQ, int LT)
