@@ -506,9 +506,6 @@
     <ClCompile Include="twohit2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="track_myallocs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="twohit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -519,6 +516,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="chainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mymalloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mymalloc_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -800,6 +803,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mukmerfilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="myallocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

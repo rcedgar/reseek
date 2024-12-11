@@ -3,8 +3,9 @@
 
 #include "mx.h"
 
-static const unsigned g_MaxL = 4096;
-static const double g_MaxL2 = double(g_MaxL)*double(g_MaxL);
+static const float MINUS_INFINITY = -9e9f;
+static const float UNINIT = -8e8f;
+static const int MINUS_INFINITY_INT = INT_MIN;
 
 typedef float fn_SubstScore(void *UserData, uint PosA, uint PosB);
 typedef float (*ptr_fn_SubstScore)(void *UserData, uint PosA, uint PosB);
@@ -14,8 +15,8 @@ class ObjMgr;
 class XDPMem
 	{
 public:
-	unsigned m_MaxLA;
-	unsigned m_MaxLB;
+	unsigned m_LA;
+	unsigned m_LB;
 	Mx<byte> m_TBBit;
 	byte *m_RevA;
 	byte *m_RevB;
@@ -46,8 +47,6 @@ public:
 			myfree(m_RevB);
 			}
 		
-		m_MaxLA = 0;
-		m_MaxLB = 0;
 		m_RevA = 0;
 		m_RevB = 0;
 		m_Buffer1 = 0;
@@ -87,40 +86,16 @@ public:
 
 	void Alloc(unsigned LA, unsigned LB)
 		{
-		if (LA + 8 > m_TBBit.m_AllocatedRowCount || LB + 8 > m_TBBit.m_AllocatedColCount)
-			m_TBBit.Alloc("TBBit", LA+129, LB+129);
+		Clear();
+		m_LA = LA;
+		m_LB = LB;
+		m_TBBit.Alloc(LA+8, LB+8);
 
-		if (LA > m_MaxLA)
-			{
-			m_MaxLA = LA + 128;
-			myfree(m_RevA);
-			m_RevA = myalloc(byte, m_MaxLA);
-			}
-
-		if (LB > m_MaxLB)
-			{
-			myfree(m_Buffer1);
-			myfree(m_Buffer2);
-			myfree(m_RevB);
-
-			m_MaxLB = LB + 128;
-
-		// Allow use of [-1]
-			m_Buffer1 = myalloc(float, m_MaxLB+3);
-			m_Buffer1_Int = myalloc(int, m_MaxLB+3);
-			m_Buffer2 = myalloc(float, m_MaxLB+3);
-			m_RevB = myalloc(byte, m_MaxLB);
-			}
-		asserta(m_TBBit.m_AllocatedRowCount >= LA+1 && 
-		  m_TBBit.m_AllocatedColCount >= LB+1);
-		}
-
-	void LogAlloc() const
-		{
-		Log("XDPMem[%p] m_MaxLA %u, m_MaxLB %u\n", this, m_MaxLA, m_MaxLB);
-		Log("m_TBBit Rows %u, Cols %u, AllocRows %u, AllocCols %u\n",
-		  m_TBBit.m_RowCount, m_TBBit.m_ColCount,
-		  m_TBBit.m_AllocatedRowCount, m_TBBit.m_AllocatedColCount);
+		m_Buffer1 = myalloc(float, LB+8);
+		m_Buffer1_Int = myalloc(int, m_LB+8);
+		m_Buffer2 = myalloc(float, m_LB+8);
+		m_RevA = myalloc(byte, LA+8);
+		m_RevB = myalloc(byte, LB+8);
 		}
 	};
 

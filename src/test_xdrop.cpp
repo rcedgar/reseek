@@ -91,7 +91,7 @@ static void Test(const string &A, const string &B)
 	const uint LB = SIZE(B);
 
 	Mx<float> SMx;
-	SMx.Alloc("SMx", LA, LB);
+	SMx.Alloc(LA, LB);
 	float **S = SMx.GetData();
 	for (uint i = 0; i < LA; ++i)
 		for (uint j = 0; j < LB; ++j)

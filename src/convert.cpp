@@ -70,13 +70,6 @@ static FEATURE GetFeatureFromCmdLine()
 
 static void ThreadBody(uint ThreadIndex)
 	{
-#if TRACK_MYALLOCS
-	unordered_map<void *, pair<string, size_t> > AllocMap1;
-	unordered_map<void *, pair<string, size_t> > AllocMap2;
-	if (ThreadIndex == 0)
-		GetMyAllocState(AllocMap1);
-#endif
-
 	ChainReader2 CR;
 	CR.Open(*s_ptrFS);
 	if (optset_pdboutdir)
@@ -193,13 +186,6 @@ static void ThreadBody(uint ThreadIndex)
 
 		delete ptrChain;
 		}
-#if TRACK_MYALLOCS
-	if (ThreadIndex == 0)
-		{
-		GetMyAllocState(AllocMap2);
-		CmpMyAllocStates("", AllocMap1, AllocMap2);
-		}
-#endif
 	}
 
 void cmd_convert()

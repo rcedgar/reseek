@@ -17,6 +17,17 @@ public:
 	uint m_Idx = UINT_MAX;
 	vector<string> m_Lines;
 
+#if _MSC_VER && DEBUG
+	void *operator new(size_t n)
+		{
+		void *p = _malloc_dbg(n, _CLIENT_BLOCK|(1<<16), __FILE__, __LINE__);
+		return p;
+		}
+
+	void operator delete(void *p) { _free_dbg(p, _CLIENT_BLOCK|(1<<16)); }
+
+#endif // DEBUG
+
 public:
 	~PDBChain() { Clear(); }
 	void Clear()

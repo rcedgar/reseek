@@ -1,8 +1,8 @@
 #include "myutils.h"
 #include "mx.h"
 #include "xdpmem.h"
-
-float GSWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB)
+#if 0
+float GaplessSWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB)
 	{
 #if TRACE && !DOTONLY
 	SMx.LogMe();
@@ -40,3 +40,4 @@ float GSWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB)
 		}
 	return BestScore;
 	}
+#endif

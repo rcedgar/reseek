@@ -1,9 +1,7 @@
 #ifndef myutils_h
 #define myutils_h
 
-#define RCE_MALLOC		0
 #define USE_OMP			0
-#define TRACK_MYALLOCS	0
 
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
@@ -134,46 +132,7 @@ void mylistdir(const string &DirName, vector<string> &FileNames,
 #define _chkmem()	/* empty */
 #endif
 
-#if	RCE_MALLOC
-
-void *rce_malloc(size_t bytes, const char *FileName, int Line);
-void rce_free(void *p, const char *FileName, int LineNr);
-void rce_chkmem();
-
-void rce_assertvalidptr_(void *p, const char *FileName, int LineNr);
-#define rce_assertvalidptr(p)	rce_assertvalidptr_(p, __FILE__, __LINE__)
-
-void rce_dumpptr_(void *p, const char *FileName, int LineNr);
-#define rce_dumpptr(p)	rce_dumpptr_(p, __FILE__, __LINE__)
-
-#define mymalloc(n)		rce_malloc((n), __FILE__, __LINE__)
-#define myfree(p)		rce_free(p, __FILE__, __LINE__)
-#define myalloc(t, n)	(t *) rce_malloc((n)*sizeof(t), __FILE__, __LINE__)
-
-#else // RCE_MALLOC
-
 void Version(FILE *f);
-
-#if TRACK_MYALLOCS
-void *mymalloc(size_t bytes, const char *FileName, int LineNr);
-void myfree(void *p);
-#define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t), __FILE__, __LINE__)
-void LogMyAllocs(const char *Msg);
-void GetMyAllocState(unordered_map<void *, pair<string, size_t> > &AllocMap);
-void CmpMyAllocStates(const char *Msg,
-	unordered_map<void *, pair<string, size_t> > &AllocMap1,
-	unordered_map<void *, pair<string, size_t> > &AllocMap2);
-
-#else
-void *mymalloc(size_t bytes);
-void myfree(void *p);
-#define myalloc(t, n)	(t *) mymalloc((n)*sizeof(t))
-#define	LogMyAllocs(Msg)	/* empty */
-#endif // TRACK_MYALLOCS
-
-#define rce_chkmem()	/* empty */
-
-#endif // RCE_MALLOC
 
 #define SIZE(c)	unsigned((c).size())
 #define RoundUp(Bytes, BlockSize)	((Bytes) + ((BlockSize) - (Bytes)%(BlockSize)))
@@ -405,8 +364,6 @@ void GetCmdLine(string &s);
 
 extern FILE *g_fLog;
 
-void LogAllocs();
-
 unsigned GetRequestedThreadCount();
 
 void SeqToFasta(FILE *f, const char *Label, const char *Seq, unsigned L,
@@ -434,5 +391,7 @@ void RunThreads(fn_thread_body Body, void *ptrUserData);
 #else
 #define brk(x)		(0)
 #endif
+
+#include "mymalloc.h"
 
 #endif	// myutils_h

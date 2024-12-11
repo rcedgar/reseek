@@ -248,6 +248,8 @@ void DBSearcher::LoadDB(const string &DBFN)
 	if (m_Params->m_Omega <= 0)
 		ptrMuLetters = 0;
 
+	LogHeapSummary("Before PL.Load");
 	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, ptrKmerBitsVec, &m_DBSelfRevScores, ThreadCount);
+	LogHeapSummary("After PL.Load");
 	}

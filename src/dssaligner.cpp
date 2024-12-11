@@ -377,9 +377,9 @@ void DSSAligner::SetSMx_YesRev()
 	const uint LB = m_ChainB->GetSeqLength();
 
 	Mx<float> &SMx = m_SMx;
-	SMx.Alloc("SMx", LA, LB);
+	SMx.Alloc(LA, LB);
 	Mx<float> &RevSMx = m_RevSMx;
-	RevSMx.Alloc("RevSMx", LA, LB);
+	RevSMx.Alloc(LA, LB);
 	StartTimer(SetSMx_YesRev);
 	float **Sim = SMx.GetData();
 	float **RevSim = RevSMx.GetData();
@@ -461,10 +461,12 @@ void DSSAligner::SetSMx_Mu_Int()
 	const uint AS = 36;
 	asserta(AS == 36);
 
+	m_SMx_Int.Clear();
+	m_RevSMx_Int.Clear();
 	Mx<int8_t> &SMx = m_SMx_Int;
-	SMx.Alloc("SMx_Int", LA, LB);
+	SMx.Alloc(LA, LB);
 	Mx<int8_t> &RevSMx = m_RevSMx_Int;
-	RevSMx.Alloc("RevSMx_Int", LA, LB);
+	RevSMx.Alloc(LA, LB);
 	StartTimer(SetSMx_Mu_Int);
 	int8_t **Sim = SMx.GetData();
 	int8_t **RevSim = RevSMx.GetData();
@@ -543,10 +545,12 @@ void DSSAligner::SetSMx_Mu()
 	const uint AS = 36;
 	asserta(AS == 36);
 
+	m_SMx.Clear();
+	m_RevSMx.Clear();
 	Mx<float> &SMx = m_SMx;
-	SMx.Alloc("SMx", LA, LB);
+	SMx.Alloc(LA, LB);
 	Mx<float> &RevSMx = m_RevSMx;
-	RevSMx.Alloc("RevSMx", LA, LB);
+	RevSMx.Alloc(LA, LB);
 	StartTimer(SetSMx_Mu);
 	float **Sim = SMx.GetData();
 	float **RevSim = RevSMx.GetData();
@@ -582,7 +586,7 @@ void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 // Memory blows up with grow-only strategy due to tail of long chains
 	m_SMx.Clear();
 	Mx<float> &SMx = m_SMx;
-	SMx.Alloc("SMx", (uint) SegLenA, (uint) SegLenB);
+	SMx.Alloc((uint) SegLenA, (uint) SegLenB);
 	StartTimer(SetSMx_Box);
 	float **Sim = SMx.GetData();
 
@@ -654,7 +658,7 @@ void DSSAligner::SetSMx_NoRev()
 // Memory blows up with grow-only strategy due to tail of long chains
 	m_SMx.Clear();
 	Mx<float> &SMx = m_SMx;
-	SMx.Alloc("SMx", LA, LB);
+	SMx.Alloc(LA, LB);
 	StartTimer(SetSMx_NoRev);
 	float **Sim = SMx.GetData();
 

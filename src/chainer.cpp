@@ -28,12 +28,6 @@ static int CmpBPs(const void *vpBP1, const void *vpBP2)
 	return 0;
 	}
 
-void Chainer::Clear()
-	{
-	if (m_BPs != 0) { myfree(m_BPs); m_BPs = 0; }
-	if (m_ChainScores != 0) { myfree(m_ChainScores); m_ChainScores = 0; }
-	}
-
 float Chainer::Chain(const vector<uint> &Los, const vector<uint> &His,
 	  const vector<float> &Scores, vector<uint> &Idxs)
 	{

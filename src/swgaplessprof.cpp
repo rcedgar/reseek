@@ -67,7 +67,7 @@ static void MakeBlosumS(const string &A, const string &B,
 	{
 	uint LA = SIZE(A);
 	uint LB = SIZE(B);
-	MxS.Alloc("BlosumS", LA, LB);
+	MxS.Alloc(LA, LB);
 #if DEBUG
 	MxS.Assign(FLT_MAX);
 #endif

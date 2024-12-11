@@ -62,7 +62,7 @@ float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
 float SWGapless(Mx<float> &DPMx, const Mx<float> &SMx, uint LA, uint LB,
   uint &Loi, uint &Loj, uint &ColCount)
 	{
-	DPMx.Alloc("DPMx", LA+1, LB+1);
+	DPMx.Alloc(LA+1, LB+1);
 	float **DP = DPMx.GetData();
 #if DEBUG
 	DPMx.Assign(FLT_MAX);

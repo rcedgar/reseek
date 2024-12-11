@@ -77,16 +77,28 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		}
 	}
 
+void LogMxAllocCounts(const char *s);
 bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	{
 	ChainIndex1 = UINT_MAX;
 	ChainIndex2 = UINT_MAX;
 	m_Lock.lock();
+	if (m_PairIndex == 0 || m_PairIndex == m_PairCount/2)
+		{
+		string s;
+		Ps(s, "pair=%u", m_PairIndex);
+		LogHeapSummary(s.c_str());
+		LogMxAllocCounts(s.c_str());
+		LogHeapBlocks(_NORMAL_BLOCK, s.c_str());
+		}
 	if (m_PairIndex == m_PairCount)
 		{
 		m_Lock.unlock();
 		return false;
 		}
+	//extern uint g_MxAllocCount, g_MxFreeCount;
+	//ProgressStep(m_PairIndex, m_PairCount, "Aligning %u %u (%u)",
+	//			 g_MxAllocCount, g_MxFreeCount, g_MxAllocCount - g_MxFreeCount);
 	ProgressStep(m_PairIndex, m_PairCount, "Aligning");
 	ChainIndex1 = m_NextChainIndex1;
 	ChainIndex2 = m_NextChainIndex2;
@@ -157,11 +169,5 @@ void DBSearcher::RunSelf()
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
 	RunStats();
-
-	//Binner<float> BTP(m_TPChainScores, 100, 0, 200);
-	//Binner<float> BFP(m_FPChainScores, 100, 0, 200);
-	//Log("TP\n");
-	//BTP.ToTsv(g_fLog);
-	//Log("FP\n");
-	//BFP.ToTsv(g_fLog);
+	LogHeapSummary("Exit");
 	}

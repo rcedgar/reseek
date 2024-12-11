@@ -4,6 +4,7 @@
 #include "xdpmem.h"
 #include "swtrace.h"
 
+
 void TraceBackBitSW(XDPMem &Mem,
   uint LA, uint LB, uint Besti, uint Bestj,
   uint &Leni, uint &Lenj, string &Path)
@@ -85,6 +86,7 @@ float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
 
+	Mem.Clear();
 	Mem.Alloc(LA+32, LB+32);
 	const float * const *SMxData = SMx.GetData();
 
