@@ -25,7 +25,7 @@ public:
 	float ***m_ScoreMxs = 0;
 	//bool m_MuScoreOnly = false;
 	//bool m_UseMuPath = false;
-	uint m_MKFL = 500;
+	uint m_MKFL = 300;
 
 	uint m_Lambda = 32;
 
@@ -52,6 +52,9 @@ public:
 	float m_Evalue_b = -43.0f;
 
 	bool m_AAOnly = false;
+
+	int m_MKF_X = 8;
+	int m_MKF_MinHSPScore = 50;
 
 public:
 	static vector<FEATURE> m_MuFeatures;

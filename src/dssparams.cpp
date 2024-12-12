@@ -50,7 +50,7 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		SetNamedParams("defaults");
 	if (optset_fast) { m_OmegaFwd = 60; }
 	else if (optset_sensitive)  { m_Omega = 12; m_OmegaFwd = 20; Psa(m_Desc, " -omega %.4g", m_Omega); }
-	else if (optset_verysensitive)  { m_Omega = 0; m_OmegaFwd = 0; Psa(m_Desc, " -omega 0 -minu 0"); }
+	else if (optset_verysensitive)  { m_Omega = 0; m_OmegaFwd = 0; Psa(m_Desc, " -omega 0"); }
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
@@ -63,6 +63,9 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
 	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
 	if (optset_pattern) { m_PatternStr = string(opt_pattern); Psa(m_Desc, " -pattern %s", opt_pattern); }
+	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; Psa(m_Desc, " -minhsp %u", opt_minhsp); }
+	if (optset_xdrop) { m_MKF_X = int(opt_xdrop); Psa(m_Desc, " -xdrop %u", opt_xdrop); }
+	if (optset_mkfl) { m_MKFL = int(opt_mkfl); Psa(m_Desc, " -mkfl %u", opt_mkfl); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",

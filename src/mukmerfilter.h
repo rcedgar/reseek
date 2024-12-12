@@ -4,8 +4,13 @@
 
 class MuKmerFilter
 	{
-public:
+private:
 	const DSSParams *m_Params = 0;
+
+public:
+	uint m_DictSize = 0;
+	int m_MinHSPScore = INT_MAX;
+	int m_X = INT_MAX;
 	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
@@ -25,6 +30,7 @@ public:
 	int m_ChainHi_j = 0;
 
 public:
+	void SetParams(const DSSParams &Params);
 	void MuKmerSetQ(const PDBChain &ChainQ,
 					const vector<byte> *ptrMuLettersQ,
 					const vector<uint> *ptrMuKmersQ);

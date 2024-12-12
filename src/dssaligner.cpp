@@ -756,7 +756,7 @@ void DSSAligner::Align_MuFilter(
 void DSSAligner::SetParams(const DSSParams &Params)
 	{
 	m_Params = &Params;
-	m_MKF.m_Params = &Params;
+	m_MKF.SetParams(Params);
 	}
 
 void DSSAligner::SetQuery(

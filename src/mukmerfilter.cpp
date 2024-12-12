@@ -4,12 +4,16 @@
 #include "mukmerfilter.h"
 #include "timing.h"
 
-const int MIN_HSP_SCORE = 50;
-const int MU_X = 8;
-
-static const uint DictSize = 36*36*36;
-static const string PatternStr = "1001001";
 extern int8_t IntScoreMx_Mu[36][36];
+
+void MuKmerFilter::SetParams(const DSSParams &Params)
+	{
+	uint k = GetPatternOnes(Params.m_PatternStr);
+	asserta(k >= 1 && k < 6);
+	m_DictSize = myipow(36, k);
+	m_MinHSPScore = Params.m_MKF_MinHSPScore;
+	m_X = Params.m_MKF_X;
+	}
 
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 						int &Loi, int &Loj, int &Len)
@@ -87,9 +91,8 @@ void MuKmerFilter::MuKmerResetQ()
 	{
 	if (m_KmerHashTableQ == 0)
 		{
-		asserta(m_Params->m_PatternStr == PatternStr);
-		m_KmerHashTableQ = myalloc(uint16_t, DictSize);
-		memset(m_KmerHashTableQ, 0xff, DictSize*sizeof(uint16_t));
+		m_KmerHashTableQ = myalloc(uint16_t, m_DictSize);
+		memset(m_KmerHashTableQ, 0xff, m_DictSize*sizeof(uint16_t));
 		}
 
 	if (m_ptrMuKmersQ != 0)
@@ -103,7 +106,7 @@ void MuKmerFilter::MuKmerResetQ()
 		}
 #if DEBUG
 	{
-	for (uint Kmer = 0; Kmer < DictSize; ++Kmer)
+	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		asserta(m_KmerHashTableQ[Kmer] == 0xffff);
 	}
 #endif
@@ -124,7 +127,7 @@ void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
 	for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
 		{
 		uint Kmer = (*m_ptrMuKmersQ)[PosQ];
-		assert(Kmer < DictSize);
+		assert(Kmer < m_DictSize);
 		if (m_KmerHashTableQ[Kmer] == 0xffff)
 			m_KmerHashTableQ[Kmer] = PosQ;
 		}
@@ -152,15 +155,15 @@ bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];
-		assert(KmerT < DictSize);
+		assert(KmerT < m_DictSize);
 		uint PosQ = m_KmerHashTableQ[KmerT];
 		if (PosQ != 0xffff)
 			{
 			EndTimer(MuKmerAln);
 			int Loi, Loj, Len;
-			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, MU_X, Loi, Loj, Len);
+			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, m_X, Loi, Loj, Len);
 			StartTimer(MuKmerAln);
-			if (Score >= MIN_HSP_SCORE)
+			if (Score >= m_MinHSPScore)
 				{
 				if (Score > BestHSPScore)
 					{
