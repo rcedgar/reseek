@@ -14,6 +14,7 @@ class ChainReader2;
 class DBSearcher
 	{
 public:
+	mutex m_Lock;
 	const DSSParams *m_Params = 0;
 	uint m_ThreadCount = UINT_MAX;
 	vector<DSSAligner *> m_DAs;
@@ -28,7 +29,6 @@ public:
 	vector<vector<uint> *> m_DBMuKmersVec;
 	vector<float> m_DBSelfRevScores;
 
-	mutex m_Lock;
 	uint m_PairIndex = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
 	uint m_NextChainIndex1 = UINT_MAX;
@@ -100,18 +100,7 @@ public:
 
 public:
 	virtual void OnSetup() {}
-	void BaseOnAln(DSSAligner &DA, bool Up)
-		{
-		if (DA.GetEvalue(Up) > m_MaxEvalue)
-			return;
-		m_Lock.lock();
-		++m_HitCount;
-		DA.ToTsv(m_fTsv, Up);
-		DA.ToAln(m_fAln, Up);
-		DA.ToFasta2(m_fFasta2, opt_global, Up);
-		OnAln(DA, Up);
-		m_Lock.unlock();
-		}
+	void BaseOnAln(DSSAligner &DA, bool Up);
 	virtual void OnAln(DSSAligner &DA, bool Up) {}
 
 public:

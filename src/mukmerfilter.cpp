@@ -6,6 +6,12 @@
 
 extern int8_t IntScoreMx_Mu[36][36];
 
+uint MuKmerFilter::m_PairCount;
+uint MuKmerFilter::m_PairWithHSPCount;
+uint MuKmerFilter::m_BoxAlnCount;
+double MuKmerFilter::m_SumBoxFract;
+mutex MuKmerFilter::m_Lock;
+
 void MuKmerFilter::SetParams(const DSSParams &Params)
 	{
 	uint k = GetPatternOnes(Params.m_PatternStr);
@@ -134,24 +140,26 @@ void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
 	EndTimer(MuKmerSetQ);
 	}
 
-bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
+void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 						   const vector<byte> &MuLettersT,
 						   const vector<uint> &MuKmersT)
 	{
 	StartTimer(MuKmerAln);
 	m_ChainT = &ChainT;
 	m_ptrMuLettersT = &MuLettersT;
-	++m_MuKmerFilterPairCount;
+	m_Lock.lock();
+	++m_PairCount;
+	m_Lock.unlock();
 	const uint KmerCountT = SIZE(MuKmersT);
 	int LQ = int(m_ChainQ->GetSeqLength());
 	int LT = int(m_ChainT->GetSeqLength());
-	bool FoundHSP = false;
 	int BestHSPScore = 0;
 	m_MuKmerHSPLois.clear();
 	m_MuKmerHSPLojs.clear();
 	m_MuKmerHSPLens.clear();
 	m_MuKmerHSPScores.clear();
 	m_BestChainScore = 0;
+	bool FoundHSP = false;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];
@@ -165,9 +173,9 @@ bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 			StartTimer(MuKmerAln);
 			if (Score >= m_MinHSPScore)
 				{
+				FoundHSP = true;
 				if (Score > BestHSPScore)
 					{
-					FoundHSP = true;
 					bool OldHSP = false;
 					for (uint i = 0; i < SIZE(m_MuKmerHSPLois); ++i)
 						{
@@ -191,10 +199,11 @@ bool MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 	EndTimer(MuKmerAln);
 	if (FoundHSP)
 		{
-		++m_MuKmerFilterHitCount;
+		m_Lock.lock();
+		++m_PairWithHSPCount;
+		m_Lock.unlock();
 		ChainHSPs();
 		}
-	return FoundHSP;
 	}
 
 void MuKmerFilter::ChainHSPs()
@@ -247,4 +256,13 @@ void MuKmerFilter::ChainHSPs()
 			m_ChainHi_j = max(Hij, m_ChainHi_j);
 			}
 		}
+	}
+
+void MuKmerFilter::Stats()
+	{
+
+	ProgressLog("MKF %u pairs, %u with HSPs (%.1f%%), box alns %u fract %.3g\n",
+				m_PairCount, m_PairWithHSPCount,
+				GetPct(m_PairWithHSPCount,m_PairCount),
+				m_BoxAlnCount, m_SumBoxFract/(m_BoxAlnCount+1));
 	}

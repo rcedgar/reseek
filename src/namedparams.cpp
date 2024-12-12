@@ -76,7 +76,10 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_Omega = 29;
 		m_OmegaFwd = 29;
 		m_Lambda = 32;
-		m_PatternStr = "10000000001";
+		m_PatternStr = "111";
+		m_MKFL = 300;
+		m_MKF_X = 8;
+		m_MKF_MinHSPScore = 50;
 		return;
 		}
 

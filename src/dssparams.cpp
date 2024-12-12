@@ -142,6 +142,7 @@ void DSSParams::WriteSummary(FILE *f) const
 	if (m_OmegaFwd != FLT_MAX)
 		fprintf(f, " OmegaFwd %.1f", m_OmegaFwd);
 	fprintf(f, "\n");
+	fprintf(f, "MKF L=%u, X=%d, H=%d\n", m_MKFL, m_MKF_X, m_MKF_MinHSPScore);
 	fprintf(f, "---------------------------------------------------------------------------------\n");
 	}
 

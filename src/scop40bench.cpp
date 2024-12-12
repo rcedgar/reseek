@@ -564,8 +564,8 @@ void SCOP40Bench::WriteSummary()
 	{
 	uint AlnCount = DSSAligner::m_AlnCount;
 	uint HitCount = GetHitCount();
-	uint UFilterCount = DSSAligner::m_UFilterCount;
-	uint MuFilterCount = DSSAligner::m_MuFilterCount;
+	uint MuFilterInputCount = DSSAligner::m_MuFilterInputCount;
+	uint MuFilterDiscardCount = DSSAligner::m_MuFilterDiscardCount;
 	uint Secs = m_Secs;
 	float AlnsPerThreadPerSec = m_AlnsPerThreadPerSec;
 	uint nt_firstfp = m_nt_firstfp;
@@ -573,12 +573,6 @@ void SCOP40Bench::WriteSummary()
 	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
 	float SensEPQ1 = float(m_nt_epq1)/m_NT;
 	float SensEPQ10 = float(m_nt_epq10)/m_NT;
-	uint TotalFilterCount = DSSAligner::m_UFilterCount + DSSAligner::m_MuFilterCount;
-	double FilterPct = GetPct(TotalFilterCount, AlnCount);
-	double UFilterPct = GetPct(DSSAligner::m_UFilterCount, AlnCount);
-	uint MuFilterInputCount = AlnCount - DSSAligner::m_UFilterCount;
-	double MuFilterPct =
-	  GetPct(DSSAligner::m_MuFilterCount, MuFilterInputCount);
 
 	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
@@ -592,8 +586,9 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" sensitive");
 	ProgressLog(" [%s]\n", g_GitVer);
 
-	Log("ufil=%.1f", UFilterPct);
-	Log(" cfil=%.1f", MuFilterPct);
+	Log(" mufil=%u/%u (%.1f)%%",
+		MuFilterDiscardCount, MuFilterInputCount,
+		GetPct(MuFilterDiscardCount, MuFilterInputCount));
 	Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
 	Log(" qp cache hits %u, misses %u",
 	  m_QPCacheHits.load(), m_QPCacheMisses.load());

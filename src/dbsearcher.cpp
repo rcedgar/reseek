@@ -239,3 +239,16 @@ void DBSearcher::LoadDB(const string &DBFN)
 	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
 	}
+
+void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
+	{
+	if (DA.GetEvalue(Up) > m_MaxEvalue)
+		return;
+	m_Lock.lock();
+	++m_HitCount;
+	DA.ToTsv(m_fTsv, Up);
+	DA.ToAln(m_fAln, Up);
+	DA.ToFasta2(m_fFasta2, opt_global, Up);
+	OnAln(DA, Up);
+	m_Lock.unlock();
+	}

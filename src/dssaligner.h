@@ -81,8 +81,8 @@ public:
 public:
 	static uint m_AlnCount;
 	static uint m_SWCount;
-	static uint m_MuFilterCount;
-	static uint m_UFilterCount;
+	static uint m_MuFilterDiscardCount;
+	static uint m_MuFilterInputCount;
 	static uint m_ParasailSaturateCount;
 #if SCORE_DIST
 	static vector<float> m_TSs;

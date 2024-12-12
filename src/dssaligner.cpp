@@ -34,8 +34,8 @@ float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
 
 uint DSSAligner::m_AlnCount;
 uint DSSAligner::m_SWCount;
-uint DSSAligner::m_MuFilterCount;
-uint DSSAligner::m_UFilterCount;
+uint DSSAligner::m_MuFilterInputCount;
+uint DSSAligner::m_MuFilterDiscardCount;
 uint DSSAligner::m_ParasailSaturateCount;
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
@@ -743,13 +743,15 @@ void DSSAligner::Align_MuFilter(
 	m_StatsLock.unlock();
 
 	bool MuFilterOk = MuFilter();
+	m_StatsLock.lock();
+	++m_MuFilterInputCount;
 	if (!MuFilterOk)
 		{
-		m_StatsLock.lock();
-		++m_MuFilterCount;
+		++m_MuFilterDiscardCount;
 		m_StatsLock.unlock();
 		return;
 		}
+	m_StatsLock.unlock();
 	Align_NoAccel();
 	}
 
@@ -832,11 +834,14 @@ void DSSAligner::AlignQueryTarget()
 
 	if (m_Params->m_Omega > 0)
 		{
+		m_StatsLock.lock();
+		++m_MuFilterInputCount;
+		m_StatsLock.unlock();
 		bool MuFilterOk = MuFilter();
 		if (!MuFilterOk)
 			{
 			m_StatsLock.lock();
-			++m_MuFilterCount;
+			++m_MuFilterDiscardCount;
 			m_StatsLock.unlock();
 			return;
 			}
@@ -975,6 +980,14 @@ void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 
 	if (Hi_i >= int(LA)) Hi_i = int(LA) - 1;
 	if (Hi_j >= int(LB)) Hi_j = int(LB) - 1;
+
+	int Size_i = Hi_i - Lo_i + 1;
+	int Size_j = Hi_j - Lo_j + 1;
+	double BoxFract = double(Size_i*Size_j)/(LA*LB);
+	m_MKF.m_Lock.lock();
+	m_MKF.m_BoxAlnCount += 1;
+	m_MKF.m_SumBoxFract += BoxFract;
+	m_MKF.m_Lock.unlock();
 
 	//SetSMx_NoRev();
 	SetSMx_Box(Lo_i, Hi_i, Lo_j, Hi_j);
@@ -1184,12 +1197,11 @@ float DSSAligner::AlignMu_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
-	uint MuFilterInputCount = m_AlnCount - DSSAligner::m_UFilterCount;
-	Log("DSSAligner::Stats() alns %s, ufil %.1f%%, mufil %.1f%% (sat %u)\n",
-	  FloatToStr(m_AlnCount),
-	  GetPct(m_UFilterCount, m_AlnCount),
-	  GetPct(m_MuFilterCount, MuFilterInputCount),
+	ProgressLog("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)\n",
+	  FloatToStr(m_AlnCount), m_MuFilterInputCount, m_MuFilterDiscardCount,
+	  GetPct(m_MuFilterDiscardCount, m_MuFilterInputCount),
 	  m_ParasailSaturateCount);
+	MuKmerFilter::Stats();
 	}
 
 uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const
@@ -1459,9 +1471,9 @@ float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 void DSSAligner::AlignMKF()
 	{
 	ClearAlign();
-	bool FoundHSP = m_MKF.MuKmerAln(*m_ChainA, *m_MuLettersB, *m_MuKmersB);
+	m_MKF.MuKmerAln(*m_ChainA, *m_MuLettersB, *m_MuKmersB);
 
-	if (FoundHSP && m_MKF.m_BestChainScore > 0)
+	if (m_MKF.m_BestChainScore > 0)
 		{
 		SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 		Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
