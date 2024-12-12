@@ -801,12 +801,30 @@ void DSSAligner::SetTarget(
 	m_SelfRevScoreB = SelfRevScore;
 	}
 
+bool DSSAligner::DoMKF() const
+	{
+	if (m_MuLettersA == 0 || m_MuLettersB == 0)
+		return false;
+	if (m_MuKmersA == 0 || m_MuKmersB == 0)
+		return false;
+	uint LA = m_ChainA->GetSeqLength();
+	uint LB = m_ChainB->GetSeqLength();
+	if (LA >= m_Params->m_MKFL)
+		return true;
+	if (LB >= m_Params->m_MKFL)
+		return true;
+	return false;
+	}
+
 void DSSAligner::AlignQueryTarget()
 	{
-	//m_EvalueA = FLT_MAX;
-	//m_EvalueB = FLT_MAX;
-	//m_Path.clear();
 	ClearAlign();
+
+	if (DoMKF())
+		{
+		AlignMKF();
+		return;
+		}
 
 	m_StatsLock.lock();
 	++m_AlnCount;

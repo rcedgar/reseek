@@ -25,6 +25,7 @@ public:
 	float ***m_ScoreMxs = 0;
 	//bool m_MuScoreOnly = false;
 	//bool m_UseMuPath = false;
+	uint m_MKFL = 500;
 
 	uint m_Lambda = 32;
 

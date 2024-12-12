@@ -106,6 +106,7 @@ public:
 	  const vector<byte> *ptrMuLetters,
 	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
+	bool DoMKF() const;
 
 	float GetMuScore();
 	bool MuFilter();

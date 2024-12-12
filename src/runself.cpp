@@ -46,11 +46,7 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
-#if 1//@@
-		DA.AlignMKF();
-#else
 		DA.AlignQueryTarget();
-#endif
 		if (!DA.m_Path.empty())
 			{
 			BaseOnAln(DA, true);

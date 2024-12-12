@@ -70,11 +70,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			const vector<uint> *ptrMuKmers2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuKmersVec[DBChainIdx]);
 			float SelfRevScore = (m_DBSelfRevScores.empty() ? FLT_MAX : m_DBSelfRevScores[DBChainIdx]);
 			DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore);
-#if 1
-			DA.AlignMKF();
-#else
 			DA.AlignQueryTarget();
-#endif
 			if (!DA.m_Path.empty())
 				BaseOnAln(DA, true);
 			++m_ProcessedPairCount;
