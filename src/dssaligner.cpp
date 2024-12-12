@@ -7,6 +7,7 @@
 #include "timing.h"
 #include "mumx.h"
 #include "cigar.h"
+#include "scop40bench.h"//@@TODO
 #include <thread>
 #include <set>
 #include <mutex>
@@ -549,6 +550,47 @@ void DSSAligner::SetSMx_Mu()
 			}
 		}
 	EndTimer(SetSMx_Mu);
+	}
+
+float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
+	{
+	StartTimer(GetMegaHSPScore);
+	const DSSParams &Params = *m_Params;
+	const vector<vector<byte> > &ProfileA = *m_ProfileA;
+	const vector<vector<byte> > &ProfileB = *m_ProfileB;
+	const uint FeatureCount = Params.GetFeatureCount();
+	asserta(SIZE(ProfileA) == FeatureCount);
+	asserta(SIZE(ProfileB) == FeatureCount);
+
+// Special case first feature because = not += and
+	FEATURE F0 = m_Params->m_Features[0];
+	uint AlphaSize0 = g_AlphaSizes2[F0];
+	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	const vector<byte> &ProfRowA = ProfileA[0];
+	const vector<byte> &ProfRowB = ProfileB[0];
+	float Total = 0;
+	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+		{
+		FEATURE F = m_Params->m_Features[FeatureIdx];
+		uint AlphaSize = g_AlphaSizes2[F];
+		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
+		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
+		for (uint k = 0; k < Len; ++k)
+			{
+			uint PosA = uint(Lo_i + k);
+			byte ia = ProfRowA[PosA];
+			assert(ia < AlphaSize);
+			const float *ScoreMxRow = ScoreMx[ia];
+
+			uint PosB = uint(Lo_j + k);
+			byte ib = ProfRowB[PosB];
+			assert(ib < AlphaSize);
+			Total += ScoreMxRow[ib];
+			}
+		}
+	EndTimer(GetMegaHSPScore);
+	return Total;
 	}
 
 void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
@@ -1471,11 +1513,27 @@ float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 void DSSAligner::AlignMKF()
 	{
 	ClearAlign();
-	m_MKF.MuKmerAln(*m_ChainA, *m_MuLettersB, *m_MuKmersB);
+	m_MKF.MuKmerAln(*m_ChainB, *m_MuLettersB, *m_MuKmersB);
 
 	if (m_MKF.m_BestChainScore > 0)
 		{
-		SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
-		Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
+		float MegaHSPTotal = 0;
+		const uint M = SIZE(m_MKF.m_ChainHSPLois);
+		for (uint i = 0; i < M; ++i)
+			{
+			uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
+			uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
+			uint Len = (uint) m_MKF.m_ChainHSPLens[i];
+			MegaHSPTotal += GetMegaHSPScore(Loi, Loj, Len);
+			}
+		//m_OutputLock.lock();
+		//bool IsTP = SCOP40Bench::IsTP_SF(m_ChainA->m_Label, m_ChainB->m_Label);
+		//Log("@M%c@ %.3g %s %s\n", tof(IsTP), MegaHSPTotal, m_ChainA->m_Label.c_str(), m_ChainB->m_Label.c_str());
+		//m_OutputLock.unlock();
+		if (MegaHSPTotal > -4)
+			{
+			SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
+			Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
+			}
 		}
 	}

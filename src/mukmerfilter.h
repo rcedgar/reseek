@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dss.h"
+#include "chainer.h"
 
 class MuKmerFilter
 	{
@@ -26,11 +27,20 @@ public:
 	int m_ChainHi_i = 0;
 	int m_ChainLo_j = 0;
 	int m_ChainHi_j = 0;
+	vector<int> m_ChainHSPLois;
+	vector<int> m_ChainHSPLojs;
+	vector<int> m_ChainHSPLens;
+	vector<float> Scores;
+
+public:
+	Chainer m_C;
 
 public:
 	static uint m_PairCount;
 	static uint m_PairWithHSPCount;
 	static uint m_BoxAlnCount;
+	static uint m_ChainCount;
+	static uint m_ChainHSPCount;
 	static double m_SumBoxFract;
 	static mutex m_Lock;
 

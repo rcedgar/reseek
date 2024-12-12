@@ -41,6 +41,7 @@ float Chainer::Chain(const vector<uint> &Los, const vector<uint> &His,
 #if	TRACE
 	Log("Chainer::Chain(N=%u)\n", N);
 #endif
+
 	Clear();
 	m_BPs = myalloc(BPData, 2*N);
 

@@ -54,5 +54,6 @@ T(MuKmerSetQ)
 T(MuKmerResetQ)
 T(MuXDrop)
 T(Chain)
+T(GetMegaHSPScore)
 
 #undef T

@@ -123,6 +123,7 @@ public:
 	  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void AlignMKF();
+	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
 	void Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void Align_NoAccel();

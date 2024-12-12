@@ -9,6 +9,8 @@ extern int8_t IntScoreMx_Mu[36][36];
 uint MuKmerFilter::m_PairCount;
 uint MuKmerFilter::m_PairWithHSPCount;
 uint MuKmerFilter::m_BoxAlnCount;
+uint MuKmerFilter::m_ChainCount;
+uint MuKmerFilter::m_ChainHSPCount;
 double MuKmerFilter::m_SumBoxFract;
 mutex MuKmerFilter::m_Lock;
 
@@ -208,6 +210,10 @@ void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 
 void MuKmerFilter::ChainHSPs()
 	{
+	m_ChainHSPLois.clear();
+	m_ChainHSPLojs.clear();
+	m_ChainHSPLens.clear();
+
 	const uint N = SIZE(m_MuKmerHSPLois);
 	asserta(SIZE(m_MuKmerHSPLens) == N);
 	asserta(SIZE(m_MuKmerHSPScores) == N);
@@ -222,9 +228,8 @@ void MuKmerFilter::ChainHSPs()
 		His.push_back(Hi);
 		Scores.push_back((float) m_MuKmerHSPScores[i]);
 		}
-	Chainer C;
 	vector<uint> Idxs;
-	m_BestChainScore = (int) C.Chain(Los, His, Scores, Idxs);
+	m_BestChainScore = (int) m_C.Chain(Los, His, Scores, Idxs);
 	m_ChainLo_i = 0;
 	m_ChainHi_i = 0;
 	m_ChainLo_j = 0;
@@ -232,13 +237,25 @@ void MuKmerFilter::ChainHSPs()
 	const uint M = SIZE(Idxs);
 	if (M == 0)
 		return;
+
+	m_Lock.lock();
+	++m_ChainCount;
+	m_ChainHSPCount += M;
+	m_Lock.unlock();
+
 	for (uint k = 0; k < M; ++k)
 		{
 		int Idx = Idxs[k];
 		int Loi = m_MuKmerHSPLois[Idx];
 		int Loj = m_MuKmerHSPLojs[Idx];
-		int Hii = Loi + m_MuKmerHSPLens[Idx] - 1;
-		int Hij = Loj + m_MuKmerHSPLens[Idx] - 1;
+		int Len = m_MuKmerHSPLens[Idx];
+		int Hii = Loi + Len - 1;
+		int Hij = Loj + Len - 1;
+
+		m_ChainHSPLois.push_back(Loi);
+		m_ChainHSPLojs.push_back(Loj);
+		m_ChainHSPLens.push_back(Len);
+
 		if (k == 0)
 			{
 			m_ChainLo_i = Loi;
@@ -260,9 +277,11 @@ void MuKmerFilter::ChainHSPs()
 
 void MuKmerFilter::Stats()
 	{
-
-	ProgressLog("MKF %u pairs, %u with HSPs (%.1f%%), box alns %u fract %.3g\n",
+	ProgressLog("MKF %u pairs, %u with HSPs (%.1f%%), box alns %u fract %.3g",
 				m_PairCount, m_PairWithHSPCount,
 				GetPct(m_PairWithHSPCount,m_PairCount),
 				m_BoxAlnCount, m_SumBoxFract/(m_BoxAlnCount+1));
+	ProgressLog(", hsps/chain %.1f",
+				double(m_ChainHSPCount)/double(m_ChainCount+0.1));
+	ProgressLog("\n");
 	}
