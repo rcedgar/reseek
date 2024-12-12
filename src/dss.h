@@ -95,8 +95,6 @@ public:
 	  vector<uint> &Kmers);
 	void GetAaKmers(const vector<byte> &AaLetters,
 	  vector<uint> &Kmers);
-	void GetMuKmerBits(const vector<uint> &Kmers,
-	  vector<uint> &Bits);
 	void GetMuLetters(vector<uint> &Letters);
 	void SetDensity_ScaledValues();
 	double GetDensity(uint Pos) const;

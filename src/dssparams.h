@@ -21,7 +21,6 @@ public:
 	float m_MinMuFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
-	uint m_MinU = 0;
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
 	//bool m_MuScoreOnly = false;

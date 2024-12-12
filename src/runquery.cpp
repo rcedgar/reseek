@@ -19,8 +19,8 @@ float DBSearcher::GetSelfRevScore(const PDBChain &Chain,
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
 
-	DA.SetQuery(Chain, &Profile, 0, 0, 0, FLT_MAX);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0, FLT_MAX);
+	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
 	DA.AlignQueryTarget();
 	return DA.m_AlnFwdScore;
 	}
@@ -34,7 +34,6 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	vector<vector<byte> > Profile1;
 	vector<byte> MuLetters1;
 	vector<uint> Kmers1;
-	vector<uint> KmerBits1;
 
 	DSS D;
 	D.SetParams(*m_Params);
@@ -48,18 +47,11 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		D.GetProfile(Profile1);
 		if (m_Params->m_Omega > 0)
 			D.GetMuLetters(MuLetters1);
-		if (m_Params->m_MinU > 0)
-			{
-			D.GetMuKmers(MuLetters1, Kmers1);
-			D.GetMuKmerBits(Kmers1, KmerBits1);
-			D.GetMuKmers(MuLetters1, Kmers1);
-			}
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (Kmers1.empty() ? 0 : &Kmers1);
-		const vector<uint> *ptrKmerBits1 = (KmerBits1.empty() ? 0 : &KmerBits1);
 		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA, D);
-		DA.SetQuery(*Chain1, &Profile1, ptrKmerBits1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
+		DA.SetQuery(*Chain1, &Profile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
 			{
@@ -76,9 +68,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
 			const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[DBChainIdx]);
 			const vector<uint> *ptrMuKmers2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuKmersVec[DBChainIdx]);
-			const vector<uint> *ptrKmerBits2 = (m_DBKmerBitsVec.empty() ? 0 : m_DBKmerBitsVec[DBChainIdx]);
 			float SelfRevScore = (m_DBSelfRevScores.empty() ? FLT_MAX : m_DBSelfRevScores[DBChainIdx]);
-			DA.SetTarget(Chain2, ptrProfile2, ptrKmerBits2, ptrMuLetters2, ptrMuKmers2, SelfRevScore);
+			DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore);
 #if 1
 			DA.AlignMKF();
 #else

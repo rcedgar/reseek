@@ -14,7 +14,6 @@ public:
 	vector<vector<vector<byte> > *> *m_Profiles = 0;
 	vector<vector<byte> *> *m_MuLetters = 0;
 	vector<vector<uint> *> *m_KmersVec = 0;
-	vector<vector<uint> *> *m_KmerBitsVec = 0;
 	vector<float> *m_SelfRevScores = 0;
 	mutex m_Lock;
 	uint m_Count = 0;
@@ -29,7 +28,6 @@ public:
 	  vector<vector<vector<byte> > *> *Profiles,
 	  vector<vector<byte> *> *MuLetters,
 	  vector<vector<uint> *> *KmersVec,
-	  vector<vector<uint> *> *KmerBitsVec,
 	  vector<float> *SelfRevScores,
 	  uint ThreadCount);
 	void ThreadBody(uint ThreadIndex);

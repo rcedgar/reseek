@@ -16,7 +16,6 @@ void DSSParams::FromParamStr(const string &Str)
 	m_MinMuFwdScore = 0;
 	m_Omega = 0;
 	m_Lambda = 0;
-	m_MinU = 0;
 	m_PatternStr = "*";
 
 	const uint N = SIZE(Fields);
@@ -52,7 +51,6 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_MinMuFwdScore = 0;
 		m_Omega = 0;
 		m_Lambda = 0;
-		m_MinU = 0;
 		m_PatternStr = "*";
 		return;
 		}
@@ -78,31 +76,6 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_Omega = 29;
 		m_OmegaFwd = 29;
 		m_Lambda = 32;
-		m_MinU = 0;
-		m_PatternStr = "10000000001";
-		return;
-		}
-
-	if (Name == "old_defaults")
-		{
-		AddFeature(FEATURE_AA,			0.561938);
-		AddFeature(FEATURE_NENDist,		0.183907);
-		AddFeature(FEATURE_Conf,		0.112387);
-		AddFeature(FEATURE_NENConf,		0.033476);
-		AddFeature(FEATURE_RENDist,	0.0415593);
-		AddFeature(FEATURE_DstNxtHlx,	0.00674395);
-		AddFeature(FEATURE_StrandDens,	0.0209877);
-		AddFeature(FEATURE_NormDens,	0.0390013);
-
-		m_GapOpen = -1.099f;
-		m_GapExt = -0.143f;
-		m_DALIw = 2.4f;
-		m_FwdMatchScore = 0.1f;
-		m_MinFwdScore = 7.0f;
-		m_MinMuFwdScore = 7.0f;
-		m_Omega = 11;
-		m_Lambda = 32;
-		m_MinU = 15;
 		m_PatternStr = "10000000001";
 		return;
 		}

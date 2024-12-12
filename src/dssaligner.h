@@ -28,8 +28,6 @@ public:
 	const vector<vector<byte> > *m_ProfileB = 0;
 	const vector<byte> *m_MuLettersA = 0;
 	const vector<byte> *m_MuLettersB = 0;
-	const vector<uint> *m_MuKmerBitsA = 0;
-	const vector<uint> *m_MuKmerBitsB = 0;
 	const vector<uint> *m_MuKmersA = 0;
 	const vector<uint> *m_MuKmersB = 0;
 	vector<const float *> m_ProfMu;
@@ -99,23 +97,19 @@ public:
 	void SetQuery(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
-	  const vector<uint> *ptrMuKmerBits,
 	  const vector<byte> *ptrMuLetters,
 	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
 	void SetTarget(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,
-	  const vector<uint> *ptrMuKmerBits,
 	  const vector<byte> *ptrMuLetters,
 	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
 
 	float GetMuScore();
 	bool MuFilter();
-	bool UFilter();
 	void ClearAlign();
-	void AlignMuOnly();
 	void AlignMuPath();
 	void AlignQueryTarget();
 	void Align_Test(

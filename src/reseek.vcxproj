@@ -396,7 +396,6 @@
     <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="userfields.cpp" />
-    <ClCompile Include="usort.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />
     <ClCompile Include="fastaseqsource.cpp" />

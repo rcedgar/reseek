@@ -650,27 +650,6 @@ void DSS::GetMuLetters(vector<uint> &Letters)
 		}
 	}
 
-void DSS::GetMuKmerBits(const vector<uint> &Kmers, vector<uint> &Bits)
-	{
-	const uint DictSize = 36*36;
-	const uint DictSizeWords = 1 + (DictSize - 1)/32;
-	Bits.clear();
-	Bits.resize(DictSizeWords, 0);
-	const uint N = SIZE(Kmers);
-	for (uint i = 0; i < N; ++i)
-		{
-		uint Kmer = Kmers[i];
-		asserta(Kmer != UINT_MAX);
-		asserta(Kmer < DictSize);
-		uint WordNr = Kmer/32;
-		asserta(WordNr < DictSizeWords);
-		uint BitNr = Kmer%32;
-		uint Bit = (1 << BitNr);
-		uint NewWord = (Bits[WordNr] | Bit);
-		Bits[WordNr] = NewWord;
-		}
-	}
-
 void DSS::GetAaKmers(const vector<byte> &Letters,
   vector<uint> &Kmers)
 	{

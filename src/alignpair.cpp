@@ -14,8 +14,8 @@ float GetSelfRevScore(const PDBChain &Chain,
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
 
-	DA.SetQuery(Chain, &Profile, 0, 0, 0, FLT_MAX);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0, FLT_MAX);
+	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
 	DA.AlignQueryTarget();
 	return DA.m_AlnFwdScore;
 	}
@@ -78,7 +78,6 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 
 	vector<byte> MuLettersQ;
 	vector<uint> MuKmersQ;
-	vector<uint> MuKmerBitsQ;
 
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;
@@ -87,33 +86,22 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	D.GetProfile(ProfileQ);
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
-	if (Params.m_MinU > 0)
-		{
-		D.GetMuKmers(MuLettersQ, MuKmersQ);
-		D.GetMuKmerBits(MuKmersQ, MuKmerBitsQ);
-		}
 
 	float SelfRevScoreQ = GetSelfRevScore(*ChainQ, ProfileQ, DA, D);
 
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
-	vector<uint> MuKmerBitsT;
 
 	D.Init(*ChainT);
 	D.GetProfile(ProfileT);
 
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
-	if (Params.m_MinU > 0)
-		{
-		D.GetMuKmers(MuLettersT, MuKmersT);
-		D.GetMuKmerBits(MuKmersT, MuKmerBitsT);
-		}
 
 	float SelfRevScoreT = GetSelfRevScore(*ChainT, ProfileT, DA, D);
 	
-	DA.SetQuery(*ChainQ, &ProfileQ, &MuKmerBitsQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
-	DA.SetTarget(*ChainT, &ProfileT, &MuKmerBitsT, &MuLettersT, &MuKmersT, SelfRevScoreT);
+	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
+	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
 	DA.AlignQueryTarget();
 	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
@@ -179,7 +167,6 @@ void cmd_alignpair()
 
 	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
-	vector<uint> KmerBitsQ;
 
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;

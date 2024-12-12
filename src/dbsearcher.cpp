@@ -40,12 +40,11 @@ void DBSearcher::RunStats() const
 	}
 
 void DBSearcher::AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
-  vector<byte> *ptrMuLetters, vector<uint> *ptrKmerBits)
+  vector<byte> *ptrMuLetters)
 	{
 	m_DBChains.push_back(ptrChain);
 	m_DBProfiles.push_back(ptrProfile);
 	m_DBMuLettersVec.push_back(ptrMuLetters);
-	m_DBKmerBitsVec.push_back(ptrKmerBits);
 	}
 
 void DBSearcher::InitEmpty()
@@ -233,13 +232,10 @@ void DBSearcher::LoadDB(const string &DBFN)
 	uint ThreadCount = GetRequestedThreadCount();
 
 	vector<vector<byte> *> *ptrMuLetters = &m_DBMuLettersVec;
-	vector<vector<uint> *> *ptrKmerBitsVec = &m_DBKmerBitsVec;
 	vector<vector<uint> *> *ptrMuKmersVec = &m_DBMuKmersVec;
-	if (m_Params->m_MinU <= 0)
-		ptrKmerBitsVec = 0;
 	if (m_Params->m_Omega <= 0)
 		ptrMuLetters = 0;
 
 	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
-	  ptrMuKmersVec, ptrKmerBitsVec, &m_DBSelfRevScores, ThreadCount);
+	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
 	}

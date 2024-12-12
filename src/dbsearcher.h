@@ -26,7 +26,6 @@ public:
 	vector<vector<vector<byte> > *> m_DBProfiles;
 	vector<vector<byte> *> m_DBMuLettersVec;
 	vector<vector<uint> *> m_DBMuKmersVec;
-	vector<vector<uint> *> m_DBKmerBitsVec;
 	vector<float> m_DBSelfRevScores;
 
 	mutex m_Lock;
@@ -79,15 +78,12 @@ public:
 
 	void ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR);
 	void ThreadBodySelf(uint ThreadIndex);
-	void ThreadUSort(uint ThreadIndex, ChainReader2 &QCR);
 
 	uint GetDBSize() const;
 	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);
-	void USort(const vector<uint> &QueryKmerBits,
-	  vector<uint> &TargetIdxs, vector<uint> &Order);
 	void RunStats() const;
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
-	  vector<byte> *ptrMuLetters, vector<uint> *ptrKmerBits);
+	  vector<byte> *ptrMuLetters);
 	float GetSelfRevScore(const PDBChain &Chain,
 	  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D);
 
@@ -121,7 +117,4 @@ public:
 public:
 	static void StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
-	static void StaticThreadUSort(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	};
-
-uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR);

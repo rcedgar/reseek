@@ -10,9 +10,11 @@
 #include <thread>
 
 static void USort1(DBSearcher &DBS,  uint MinU,
-  const vector<uint> &QueryKmerBits, vector<uint> &DBChainIndexes,
+  vector<uint> &DBChainIndexes,
   vector<uint> &Order)
 	{
+	Die("TODO");
+#if 0
 	uint DBSize = DBS.GetDBSize();
 	if (MinU == 0)
 		{
@@ -32,8 +34,8 @@ static void USort1(DBSearcher &DBS,  uint MinU,
 	vector<uint> Us;
 	for (uint Idx = 0; Idx < DBSize; ++Idx)
 		{
-		const vector<uint> &DBKmerBits = *DBS.m_DBKmerBitsVec[Idx];
-		uint U = GetUBits(QueryKmerBits, DBKmerBits);
+		const vector<uint> &DBKmers = *DBS.m_DBMuKmersVec[Idx];
+		uint U = GetU(QueryKmers, DBKmers);
 		if (U < MinU)
 			continue;
 		Us.push_back(U);
@@ -48,12 +50,15 @@ static void USort1(DBSearcher &DBS,  uint MinU,
 		}
 	else
 		Order.clear();
+#endif
 	}
 
 static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
   const PDBChain &ChainQ, const vector<vector<byte> > &ProfileQ,
-  vector<byte> &MuLettersQ, vector<uint> &MuKmersQ, vector<uint> &KmerBitsQ)
+  vector<byte> &MuLettersQ, vector<uint> &MuKmersQ)
 	{
+	Die("TODO");
+#if 0
 	const DSSParams &Params = *DBS.m_Params;
 	const uint MinU = uint(Params.m_MinU + 0.5);
 	vector<uint> DBIdxs;
@@ -115,6 +120,8 @@ static uint ClusterQuery(DBSearcher &DBS, DSSAligner &DA,
 			}
 		}
 	return TopHit;
+#endif
+	return UINT_MAX;
 	}
 
 struct ThreadUserData
@@ -144,7 +151,6 @@ static void ThreadBody(uint ThreadIndex, void *ptrUserData)
 
 	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
-	vector<uint> KmerBitsQ;
 	uint ClusterCount = 0;
 	vector<vector<byte> > ProfileQ;
 	for (;;)
@@ -167,17 +173,15 @@ static void ThreadBody(uint ThreadIndex, void *ptrUserData)
 		D.GetProfile(ProfileQ);
 		D.GetMuLetters(MuLettersQ);
 		D.GetMuKmers(MuLettersQ, KmersQ);
-		D.GetMuKmerBits(KmersQ, KmerBitsQ);
 
 		++InputCount;
 		uint TopHit = 
-		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, MuLettersQ, KmersQ, KmerBitsQ);
+		  ClusterQuery(DBS, DA, *ptrChainQ, ProfileQ, MuLettersQ, KmersQ);
 		if (TopHit == UINT_MAX)
 			{
 			vector<vector<byte> > *ptrProfileQ = new vector<vector<byte> >(ProfileQ);
 			vector<byte> *ptrMuLettersQ = new vector<byte>(MuLettersQ);
-			vector<uint> *ptrKmerBitsQ = new vector<uint>(KmerBitsQ);
-			DBS.AddChain(ptrChainQ, ptrProfileQ, ptrMuLettersQ, ptrKmerBitsQ);
+			DBS.AddChain(ptrChainQ, ptrProfileQ, ptrMuLettersQ);
 			}
 		}
 	}

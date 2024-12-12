@@ -54,29 +54,6 @@ uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	return U;
 	}
 
-uint GetUBits(const vector<uint> &KmerBitsQ, const vector<uint> &KmerBitsR)
-	{
-	const uint DictSize = 36*36;
-	const uint DictSizeWords = 1 + (DictSize - 1)/32;
-	asserta(SIZE(KmerBitsQ) == DictSizeWords);
-	asserta(SIZE(KmerBitsR) == DictSizeWords);
-	uint n = 0;
-	for (uint i = 0; i < DictSizeWords; ++i)
-		{
-		uint WordQ = KmerBitsQ[i];
-		uint WordR = KmerBitsR[i];
-		uint And = (WordQ & WordR);
-		uint Bit = 1;
-		for (uint j = 0; j < 32; ++j)
-			{
-			if (And & Bit)
-				++n;
-			Bit <<= 1;
-			}
-		}
-	return n;
-	}
-
 void InvertPath(const string &Path, string &InvPath)
 	{
 	InvPath.clear();
@@ -747,27 +724,14 @@ bool DSSAligner::MuFilter()
 	return true;
 	}
 
-bool DSSAligner::UFilter()
-	{
-	uint MinU = uint(round(m_Params->m_MinU));
-	if (MinU == 0)
-		return true;
-	if (m_MuKmerBitsA == 0 || m_MuKmerBitsB == 0)
-		return true;
-	uint U = GetUBits(*m_MuKmerBitsA, *m_MuKmerBitsB);
-	if (U < MinU)
-		return false;
-	return true;
-	}
-
 void DSSAligner::Align_MuFilter(
   const PDBChain &ChainA, const PDBChain &ChainB,
   const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
   const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
 	{
-	SetQuery(ChainA, &ProfileA, 0, &MuLettersA, &MuKmersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, 0, &MuLettersB, &MuKmersB, FLT_MAX);
+	SetQuery(ChainA, &ProfileA, &MuLettersA, &MuKmersA, FLT_MAX);
+	SetTarget(ChainB, &ProfileB, &MuLettersB, &MuKmersB, FLT_MAX);
 
 	//m_EvalueA = FLT_MAX;
 	//m_EvalueB = FLT_MAX;
@@ -798,14 +762,12 @@ void DSSAligner::SetParams(const DSSParams &Params)
 void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
-	const vector<uint> *ptrMuKmerBits,
 	const vector<byte> *ptrMuLetters,
 	const vector<uint> *ptrMuKmers,
 	float SelfRevScore)
 	{
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
-	m_MuKmerBitsA = ptrMuKmerBits;
 	m_MuLettersA = ptrMuLetters;
 	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
@@ -828,47 +790,15 @@ void DSSAligner::SetQuery(
 void DSSAligner::SetTarget(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,
-	const vector<uint> *ptrMuKmerBits,
 	const vector<byte> *ptrMuLetters,
 	const vector<uint> *ptrMuKmers,
 	float SelfRevScore)
 	{
 	m_ChainB = &Chain;
 	m_ProfileB = ptrProfile;
-	m_MuKmerBitsB = ptrMuKmerBits;
 	m_MuKmersB = ptrMuKmers;
 	m_MuLettersB = ptrMuLetters;
 	m_SelfRevScoreB = SelfRevScore;
-	}
-
-void DSSAligner::AlignMuOnly()
-	{
-	//m_EvalueA = FLT_MAX;
-	//m_EvalueB = FLT_MAX;
-	//m_Path.clear();
-	ClearAlign();
-
-	m_StatsLock.lock();
-	++m_AlnCount;
-	m_StatsLock.unlock();
-
-	bool UFilterOk = UFilter();
-	if (!UFilterOk)
-		{
-		m_StatsLock.lock();
-		++m_UFilterCount;
-		m_StatsLock.unlock();
-		return;
-		}
-	bool MuFilterOk = MuFilter();
-	if (!MuFilterOk)
-		{
-		m_StatsLock.lock();
-		++m_MuFilterCount;
-		m_StatsLock.unlock();
-		return;
-		}
-	AlignMuPath();
 	}
 
 void DSSAligner::AlignQueryTarget()
@@ -881,18 +811,6 @@ void DSSAligner::AlignQueryTarget()
 	m_StatsLock.lock();
 	++m_AlnCount;
 	m_StatsLock.unlock();
-
-	if (m_Params->m_MinU > 0)
-		{
-		bool UFilterOk = UFilter();
-		if (!UFilterOk)
-			{
-			m_StatsLock.lock();
-			++m_UFilterCount;
-			m_StatsLock.unlock();
-			return;
-			}
-		}
 
 	if (m_Params->m_Omega > 0)
 		{

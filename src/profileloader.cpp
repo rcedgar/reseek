@@ -19,8 +19,8 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D,
 	vector<vector<byte> > RevProfile;
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
-	DA.SetQuery(Chain, &Profile, 0, 0, 0, 0);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0, 0);
+	DA.SetQuery(Chain, &Profile, 0, 0, 0);
+	DA.SetTarget(RevChain, &RevProfile, 0, 0, 0);
 	DA.AlignQueryTarget();
 	return DA.m_AlnFwdScore;
 	}
@@ -63,7 +63,6 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		m_Lock.unlock();
 
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
-		vector<uint> *KmerBits = m_KmerBitsVec == 0 ? 0 : new vector<uint>;
 		vector<byte> *MuLetters = m_MuLetters == 0 ? 0 : new vector<byte>;
 		vector<uint> *Kmers = m_MuLetters == 0 ? 0 : new vector<uint>;
 		float SelfRevScore = FLT_MAX;
@@ -71,7 +70,6 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
-		if (m_KmerBitsVec != 0) D.GetMuKmerBits(*Kmers, *KmerBits);
 		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *Kmers);
 		if (m_SelfRevScores != 0) SelfRevScore = GetSelfRevScore(DA, D, *Chain, *ptrProfile);
 
@@ -79,7 +77,6 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		Chain->m_Idx = SIZE(*m_Chains);
 		if (m_Chains != 0) m_Chains->push_back(Chain);
 		if (m_Profiles != 0) m_Profiles->push_back(ptrProfile);
-		if (m_KmerBitsVec != 0) m_KmerBitsVec->push_back(KmerBits);
 		if (m_MuLetters != 0) m_MuLetters->push_back(MuLetters);
 		if (m_KmersVec != 0) m_KmersVec->push_back(Kmers);
 		if (m_SelfRevScores != 0) m_SelfRevScores->push_back(SelfRevScore);
@@ -94,7 +91,6 @@ void ProfileLoader::Load(
   vector<vector<vector<byte> > *> *Profiles,
   vector<vector<byte> *> *MuLetters,
   vector<vector<uint> *> *KmersVec,
-  vector<vector<uint> *> *KmerBitsVec,
   vector<float> *SelfRevScores,
   uint ThreadCount)
 	{
@@ -102,14 +98,10 @@ void ProfileLoader::Load(
 	if (optset_minchainlength)
 		m_MinChainLength = opt_minchainlength;
 
-	if (KmerBitsVec != 0)
-		asserta(MuLetters != 0);
-
 	m_Params = &Params;
 	m_CR = &CR;
 	m_Chains = Chains;
 	m_Profiles = Profiles;
-	m_KmerBitsVec = KmerBitsVec;
 	m_KmersVec = KmersVec;
 	m_MuLetters = MuLetters;
 	m_SelfRevScores = SelfRevScores;
