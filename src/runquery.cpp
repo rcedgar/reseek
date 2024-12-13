@@ -65,7 +65,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 					m_LastProgress = Now;
 					}
 				}
-			m_Lock.lock();
+			m_Lock.unlock();
 			const PDBChain &Chain2 = *m_DBChains[DBChainIdx];
 			const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[DBChainIdx];
 			const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[DBChainIdx]);

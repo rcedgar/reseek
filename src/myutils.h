@@ -27,6 +27,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <atomic>
 
 #ifndef _MSC_VER
 #include <inttypes.h>
