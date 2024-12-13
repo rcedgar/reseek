@@ -80,6 +80,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_MKFL = 300;
 		m_MKF_X = 8;
 		m_MKF_MinHSPScore = 50;
+		m_MKF_MinMegaHSPScore = -4;
 		return;
 		}
 

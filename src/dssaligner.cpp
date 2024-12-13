@@ -1046,6 +1046,7 @@ void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 	  LoA, LoB, Leni, Lenj, m_Path);
 	m_LoA = Lo_i + LoA;
 	m_LoB = Lo_j + LoB;
+	Log("SW %.3g %u,%u  %s\n", m_AlnFwdScore, m_LoA, m_LoB, m_Path.c_str());//@@
 	EndTimer(SW_Box);
 
 	CalcEvalue();
@@ -1515,25 +1516,29 @@ void DSSAligner::AlignMKF()
 	ClearAlign();
 	m_MKF.MuKmerAln(*m_ChainB, *m_MuLettersB, *m_MuKmersB);
 
-	if (m_MKF.m_BestChainScore > 0)
+	if (m_MKF.m_BestChainScore < 0)
+		return;
+
+	float MegaHSPTotal = 0;
+	const uint M = SIZE(m_MKF.m_ChainHSPLois);
+	for (uint i = 0; i < M; ++i)
 		{
-		float MegaHSPTotal = 0;
-		const uint M = SIZE(m_MKF.m_ChainHSPLois);
-		for (uint i = 0; i < M; ++i)
-			{
-			uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
-			uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
-			uint Len = (uint) m_MKF.m_ChainHSPLens[i];
-			MegaHSPTotal += GetMegaHSPScore(Loi, Loj, Len);
-			}
-		//m_OutputLock.lock();
-		//bool IsTP = SCOP40Bench::IsTP_SF(m_ChainA->m_Label, m_ChainB->m_Label);
-		//Log("@M%c@ %.3g %s %s\n", tof(IsTP), MegaHSPTotal, m_ChainA->m_Label.c_str(), m_ChainB->m_Label.c_str());
-		//m_OutputLock.unlock();
-		if (MegaHSPTotal > -4)
-			{
-			SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
-			Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
-			}
+		uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
+		uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
+		uint Len = (uint) m_MKF.m_ChainHSPLens[i];
+		MegaHSPTotal += GetMegaHSPScore(Loi, Loj, Len);
 		}
+	if (MegaHSPTotal < m_Params->m_MKF_MinMegaHSPScore)
+		return;
+
+	for (uint i = 0; i < M; ++i)
+		{
+		uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
+		uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
+		uint Len = (uint) m_MKF.m_ChainHSPLens[i];
+		XDropHSP(Loi, Loj, Len);
+		}
+
+	SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
+	Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 	}

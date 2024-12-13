@@ -247,6 +247,7 @@ FLT_OPT(gapopen,		1.0,		0.0,		100.0)
 FLT_OPT(gapext,		1.0,		0.0,		100.0)
 FLT_OPT(dbsize,		1.0,		0.0,		100.0)
 FLT_OPT(aaweight,		1.0,		0.0,		100.0)
+FLT_OPT(minmegahsp,		1.0,		0.0,		100.0)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(notrunclabels)

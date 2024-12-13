@@ -192,12 +192,16 @@ public:
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;
 
+	void XDropHSP(uint Loi, uint Loj, uint Len);
+
 	float GetPctId() const;
 	float GetLDDT() const;
+	float SubstScore(uint PosA, uint PosB);
 
 public:
 	static void Stats();
 #if SCORE_DIST
 	static void ReportScoreDist();
 #endif
+	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	};

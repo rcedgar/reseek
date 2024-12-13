@@ -423,6 +423,7 @@
     <ClCompile Include="writelocalaln.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
+    <ClCompile Include="xdrophsp.cpp" />
     <ClCompile Include="zscorer.cpp" />
     <ClCompile Include="zutil.c" />
     <ClInclude Include="bcadata.h" />

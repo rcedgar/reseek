@@ -55,6 +55,7 @@ public:
 	uint m_MKFL = UINT_MAX;
 	int m_MKF_X = INT_MAX;
 	int m_MKF_MinHSPScore = INT_MAX;
+	float m_MKF_MinMegaHSPScore = FLT_MAX;
 
 public:
 	static vector<FEATURE> m_MuFeatures;

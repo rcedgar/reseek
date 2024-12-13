@@ -482,6 +482,9 @@
     <ClCompile Include="mymalloc_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="xdrophsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

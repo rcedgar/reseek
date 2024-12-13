@@ -147,6 +147,7 @@ void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 						   const vector<uint> &MuKmersT)
 	{
 	StartTimer(MuKmerAln);
+	m_C.Clear();
 	m_ChainT = &ChainT;
 	m_ptrMuLettersT = &MuLettersT;
 	m_Lock.lock();

@@ -38,7 +38,7 @@ public:
 		{
 		if (m_BPs != 0) { myfree(m_BPs); m_BPs = 0; }
 		if (m_ChainScores != 0) { myfree(m_ChainScores); m_ChainScores = 0; }
-		if (m_TB != 0) { myfree(m_TB); }
+		if (m_TB != 0) { myfree(m_TB); m_TB = 0; }
 		}
 
 
