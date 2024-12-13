@@ -586,10 +586,10 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" sensitive");
 	ProgressLog(" [%s]\n", g_GitVer);
 
-	Log(" mufil=%u/%u (%.1f)%%",
-		MuFilterDiscardCount, MuFilterInputCount,
-		GetPct(MuFilterDiscardCount, MuFilterInputCount));
-	Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
+	//Log(" mufil=%u/%u (%.1f)%%",
+	//	MuFilterDiscardCount, MuFilterInputCount,
+	//	GetPct(MuFilterDiscardCount, MuFilterInputCount));
+	//Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
 	Log(" qp cache hits %u, misses %u",
 	  m_QPCacheHits.load(), m_QPCacheMisses.load());
 	Log("\n");

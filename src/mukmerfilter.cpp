@@ -19,8 +19,7 @@ void MuKmerFilter::SetParams(const DSSParams &Params)
 	uint k = GetPatternOnes(Params.m_PatternStr);
 	asserta(k >= 1 && k < 6);
 	m_DictSize = myipow(36, k);
-	m_MinHSPScore = Params.m_MKF_MinHSPScore;
-	m_X = Params.m_MKF_X;
+	m_Params = &Params;
 	}
 
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
@@ -161,8 +160,13 @@ void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 	m_MuKmerHSPLojs.clear();
 	m_MuKmerHSPLens.clear();
 	m_MuKmerHSPScores.clear();
+	m_ChainHSPLois.clear();
+	m_ChainHSPLojs.clear();
+	m_ChainHSPLens.clear();
 	m_BestChainScore = 0;
 	bool FoundHSP = false;
+	const int MinHSPScore = m_Params->m_MKF_MinHSPScore;
+	const int X1 = m_Params->m_MKF_X1;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];
@@ -172,9 +176,9 @@ void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 			{
 			EndTimer(MuKmerAln);
 			int Loi, Loj, Len;
-			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, m_X, Loi, Loj, Len);
+			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, X1, Loi, Loj, Len);
 			StartTimer(MuKmerAln);
-			if (Score >= m_MinHSPScore)
+			if (Score >= MinHSPScore)
 				{
 				FoundHSP = true;
 				if (Score > BestHSPScore)

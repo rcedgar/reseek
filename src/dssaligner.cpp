@@ -13,7 +13,7 @@
 #include <mutex>
 
 mutex DSSAligner::m_OutputLock;
-mutex DSSAligner::m_StatsLock;
+//mutex DSSAligner::m_StatsLock;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
@@ -33,11 +33,13 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
 	uint LA, const byte *B, uint LB);
 
-uint DSSAligner::m_AlnCount;
-uint DSSAligner::m_SWCount;
-uint DSSAligner::m_MuFilterInputCount;
-uint DSSAligner::m_MuFilterDiscardCount;
-uint DSSAligner::m_ParasailSaturateCount;
+atomic<uint> DSSAligner::m_AlnCount;
+atomic<uint> DSSAligner::m_XDropAlnCount;
+atomic<uint> DSSAligner::m_XDropDiscardCount;
+atomic<uint> DSSAligner::m_SWCount;
+atomic<uint> DSSAligner::m_MuFilterInputCount;
+atomic<uint> DSSAligner::m_MuFilterDiscardCount;
+atomic<uint> DSSAligner::m_ParasailSaturateCount;
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	{
@@ -780,20 +782,15 @@ void DSSAligner::Align_MuFilter(
 	//m_Path.clear();
 	ClearAlign();
 
-	m_StatsLock.lock();
 	++m_AlnCount;
-	m_StatsLock.unlock();
 
 	bool MuFilterOk = MuFilter();
-	m_StatsLock.lock();
 	++m_MuFilterInputCount;
 	if (!MuFilterOk)
 		{
 		++m_MuFilterDiscardCount;
-		m_StatsLock.unlock();
 		return;
 		}
-	m_StatsLock.unlock();
 	Align_NoAccel();
 	}
 
@@ -870,21 +867,15 @@ void DSSAligner::AlignQueryTarget()
 		return;
 		}
 
-	m_StatsLock.lock();
 	++m_AlnCount;
-	m_StatsLock.unlock();
 
 	if (m_Params->m_Omega > 0)
 		{
-		m_StatsLock.lock();
 		++m_MuFilterInputCount;
-		m_StatsLock.unlock();
 		bool MuFilterOk = MuFilter();
 		if (!MuFilterOk)
 			{
-			m_StatsLock.lock();
 			++m_MuFilterDiscardCount;
-			m_StatsLock.unlock();
 			return;
 			}
 		}
@@ -1046,7 +1037,6 @@ void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
 	  LoA, LoB, Leni, Lenj, m_Path);
 	m_LoA = Lo_i + LoA;
 	m_LoB = Lo_j + LoB;
-	Log("SW %.3g %u,%u  %s\n", m_AlnFwdScore, m_LoA, m_LoB, m_Path.c_str());//@@
 	EndTimer(SW_Box);
 
 	CalcEvalue();
@@ -1080,9 +1070,7 @@ void DSSAligner::AlignMuPath()
 	float MuFwdScore = AlignMuQP_Para_Path(m_LoA, m_LoB, m_Path);
 	if (MuFwdScore < 0)
 		{
-		m_StatsLock.lock();
 		++m_ParasailSaturateCount;
-		m_StatsLock.unlock();
 		SetSMx_NoRev();
 		Mx<float> &SMx = m_SMx;
 		Mx<float> &RevSMx = m_RevSMx;
@@ -1240,10 +1228,13 @@ float DSSAligner::AlignMu_Int(const vector<byte> &LettersA,
 
 void DSSAligner::Stats()
 	{
-	ProgressLog("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)\n",
-	  FloatToStr(m_AlnCount), m_MuFilterInputCount, m_MuFilterDiscardCount,
-	  GetPct(m_MuFilterDiscardCount, m_MuFilterInputCount),
-	  m_ParasailSaturateCount);
+	uint Satn = m_ParasailSaturateCount;
+	uint Disn = m_MuFilterDiscardCount;
+	uint Inn = m_MuFilterInputCount;
+	ProgressLog("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)",
+	  FloatToStr(m_AlnCount), Inn, Disn, GetPct(Disn, Inn), Satn);
+	ProgressLog(" xfil %.1f%%\n",
+				GetPct(m_XDropDiscardCount, m_XDropAlnCount+1));
 	MuKmerFilter::Stats();
 	}
 
@@ -1516,29 +1507,45 @@ void DSSAligner::AlignMKF()
 	ClearAlign();
 	m_MKF.MuKmerAln(*m_ChainB, *m_MuLettersB, *m_MuKmersB);
 
-	if (m_MKF.m_BestChainScore < 0)
+	if (m_MKF.m_BestChainScore <= 0)
 		return;
 
+	++m_XDropAlnCount;
 	float MegaHSPTotal = 0;
 	const uint M = SIZE(m_MKF.m_ChainHSPLois);
-	for (uint i = 0; i < M; ++i)
+	float BestMegaScore = 0;
+	uint BestMegaIdx = 0;
+	for (uint Idx = 0; Idx < M; ++Idx)
 		{
-		uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
-		uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
-		uint Len = (uint) m_MKF.m_ChainHSPLens[i];
-		MegaHSPTotal += GetMegaHSPScore(Loi, Loj, Len);
+		uint Loi = (uint) m_MKF.m_ChainHSPLois[Idx];
+		uint Loj = (uint) m_MKF.m_ChainHSPLojs[Idx];
+		uint Len = (uint) m_MKF.m_ChainHSPLens[Idx];
+		float MegaScore = GetMegaHSPScore(Loi, Loj, Len);
+		if (MegaScore > BestMegaScore)
+			{
+			BestMegaScore = MegaScore;
+			BestMegaIdx = Idx;
+			}
+		MegaHSPTotal += MegaScore;
 		}
 	if (MegaHSPTotal < m_Params->m_MKF_MinMegaHSPScore)
 		return;
 
-	for (uint i = 0; i < M; ++i)
-		{
-		uint Loi = (uint) m_MKF.m_ChainHSPLois[i];
-		uint Loj = (uint) m_MKF.m_ChainHSPLojs[i];
-		uint Len = (uint) m_MKF.m_ChainHSPLens[i];
-		XDropHSP(Loi, Loj, Len);
-		}
-
+	uint Loi = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
+	uint Loj = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
+	uint Len = (uint) m_MKF.m_ChainHSPLens[BestMegaIdx];
+	m_XDropScore = XDropHSP(Loi, Loj, Len);
+	//if (m_XDropScore < 10)
+	//	{
+	//	m_StatsLock.lock();
+	//	++m_XDropDiscardCount;
+	//	m_StatsLock.unlock();
+	//	return;
+	//	}
+	m_AlnFwdScore = m_XDropScore;
+	m_Path = m_XDropPath;
+	CalcEvalue();
+	return;
 	SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 	Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 	}

@@ -65,7 +65,8 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_pattern) { m_PatternStr = string(opt_pattern); Psa(m_Desc, " -pattern %s", opt_pattern); }
 	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; Psa(m_Desc, " -minhsp %u", opt_minhsp); }
 	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt_minmegahsp); Psa(m_Desc, " -minmegahsp %.1f", opt_minmegahsp); }
-	if (optset_xdrop) { m_MKF_X = int(opt_xdrop); Psa(m_Desc, " -xdrop %u", opt_xdrop); }
+	if (optset_xdrop1) { m_MKF_X1 = int(opt_xdrop1); Psa(m_Desc, " -xdrop1 %u", opt_xdrop1); }
+	if (optset_xdrop2) { m_MKF_X2 = int(opt_xdrop2); Psa(m_Desc, " -xdrop2 %u", opt_xdrop2); }
 	if (optset_mkfl) { m_MKFL = int(opt_mkfl); Psa(m_Desc, " -mkfl %u", opt_mkfl); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
@@ -143,8 +144,8 @@ void DSSParams::WriteSummary(FILE *f) const
 	if (m_OmegaFwd != FLT_MAX)
 		fprintf(f, " OmegaFwd %.1f", m_OmegaFwd);
 	fprintf(f, "\n");
-	fprintf(f, "MKF L=%u, X=%d, H=%d HM=%.1f\n",
-			m_MKFL, m_MKF_X, m_MKF_MinHSPScore, m_MKF_MinMegaHSPScore);
+	fprintf(f, "MKF L=%u, X=%d,%d H=%d HM=%.1f\n",
+			m_MKFL, m_MKF_X1, m_MKF_X2, m_MKF_MinHSPScore, m_MKF_MinMegaHSPScore);
 	fprintf(f, "---------------------------------------------------------------------------------\n");
 	}
 

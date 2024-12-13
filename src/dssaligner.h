@@ -37,6 +37,8 @@ public:
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
 	MuKmerFilter m_MKF;
+	float m_XDropScore = 0;
+	string m_XDropPath;
 
 	XDPMem m_Mem;
 	Mx<float> m_SMx;
@@ -76,14 +78,16 @@ public:
 
 public:
 	static mutex m_OutputLock;
-	static mutex m_StatsLock;
+	//static mutex m_StatsLock;
 
 public:
-	static uint m_AlnCount;
-	static uint m_SWCount;
-	static uint m_MuFilterDiscardCount;
-	static uint m_MuFilterInputCount;
-	static uint m_ParasailSaturateCount;
+	static atomic<uint> m_AlnCount;
+	static atomic<uint> m_SWCount;
+	static atomic<uint> m_MuFilterDiscardCount;
+	static atomic<uint> m_MuFilterInputCount;
+	static atomic<uint> m_ParasailSaturateCount;
+	static atomic<uint> m_XDropAlnCount;
+	static atomic<uint> m_XDropDiscardCount;
 #if SCORE_DIST
 	static vector<float> m_TSs;
 #endif
@@ -192,7 +196,7 @@ public:
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;
 
-	void XDropHSP(uint Loi, uint Loj, uint Len);
+	float XDropHSP(uint Loi, uint Loj, uint Len);
 
 	float GetPctId() const;
 	float GetLDDT() const;

@@ -53,7 +53,8 @@ public:
 	bool m_AAOnly = false;
 
 	uint m_MKFL = UINT_MAX;
-	int m_MKF_X = INT_MAX;
+	int m_MKF_X1 = INT_MAX;
+	int m_MKF_X2 = INT_MAX;
 	int m_MKF_MinHSPScore = INT_MAX;
 	float m_MKF_MinMegaHSPScore = FLT_MAX;
 

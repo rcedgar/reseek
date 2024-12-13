@@ -35,11 +35,12 @@ float DSSAligner::StaticSubstScore(void *UserData_this, uint PosA, uint PosB)
 	return Score;
 	}
 
-void DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
+float DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
 	{
 	const float Open = m_Params->m_GapOpen;
 	const float Ext = m_Params->m_GapExt;
-	const float X = 16;
+	const float X = m_Params->m_MKF_X2;
+	//const float X = 8;
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 
@@ -55,8 +56,18 @@ void DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
 	float ScoreBwd = 
 		XDropBwd(m_Mem, X, Open, Ext, StaticSubstScore, (void *) this, 
 				 LoA-1, LA, LoB-1, LB, PathBwd);
+	float TotalScore = ScoreFwd + ScoreBwd;
+	if (TotalScore < 10)
+		{
+		m_XDropPath.clear();
+		return 0;
+		}
 
-	ProgressLog("\n%.3g", ScoreBwd + ScoreFwd);//@@
-	ProgressLog(" %u,%u", LoA, LoB);
-	ProgressLog(" %s %s\n", PathBwd.c_str(), PathFwd.c_str());//@@
+	uint MergedLoA, MergedLoB, MergedHiA, MergedHiB;
+	MergeFwdBwd(LA, LB,
+				LoA, LoB, PathFwd,
+				LoA-1, LoB-1, PathBwd,
+				MergedLoA, MergedLoB, MergedHiA, MergedHiB, m_XDropPath);
+
+	return TotalScore;
 	}
