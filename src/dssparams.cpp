@@ -62,10 +62,10 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		m_Omega = 12;
 		m_OmegaFwd = 20;
 		m_MKFL = 600;
-		m_MKF_X1 = 12;
-		m_MKF_X2 = 12;
-		m_MKF_MinHSPScore = 40;
-		m_MKF_MinMegaHSPScore = -6;
+		m_MKF_X1 = 8;
+		m_MKF_X2 = 8;
+		m_MKF_MinHSPScore = 50;
+		m_MKF_MinMegaHSPScore = -4;
 		}
 	else if (optset_verysensitive) 
 		{
