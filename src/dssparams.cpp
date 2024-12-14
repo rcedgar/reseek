@@ -48,10 +48,35 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		FromTsv(opt_paramsf);
 	else
 		SetNamedParams("defaults");
-	if (optset_fast) { m_OmegaFwd = 60; }
-	else if (optset_sensitive)  { m_Omega = 12; m_OmegaFwd = 20; Psa(m_Desc, " -omega %.4g", m_Omega); }
-	else if (optset_verysensitive)  { m_Omega = 0; m_OmegaFwd = 0; Psa(m_Desc, " -omega 0"); }
-
+	if (optset_fast)
+		{
+		m_OmegaFwd = 60;
+		m_MKFL = 400;
+		m_MKF_X1 = 8;
+		m_MKF_X2 = 8;
+		m_MKF_MinHSPScore = 50;
+		m_MKF_MinMegaHSPScore = -4;
+		}
+	else if (optset_sensitive)
+		{
+		m_Omega = 12;
+		m_OmegaFwd = 20;
+		m_MKFL = 600;
+		m_MKF_X1 = 12;
+		m_MKF_X2 = 12;
+		m_MKF_MinHSPScore = 40;
+		m_MKF_MinMegaHSPScore = -6;
+		}
+	else if (optset_verysensitive) 
+		{
+		m_Omega = 0;
+		m_OmegaFwd = 0;
+		m_MKFL = 99999;
+		m_MKF_X1 = 99999;
+		m_MKF_X2 = 99999;
+		m_MKF_MinHSPScore = 0;
+		m_MKF_MinMegaHSPScore = -99999;
+		}
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
 	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; Psa(m_Desc, " -omegafwd %.4g", opt_omegafwd); }
