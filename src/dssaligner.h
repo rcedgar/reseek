@@ -98,6 +98,7 @@ public:
 public:
 	void SetParams(const DSSParams &Params);
 
+	void UnsetQuery();
 	void SetQuery(
 	  const PDBChain &Chain,
 	  const vector<vector<byte> > *ptrProfile,

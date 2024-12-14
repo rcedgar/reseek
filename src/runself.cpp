@@ -33,8 +33,6 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			const vector<uint> *ptrMuKmers1 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex1]);
 			float SelfRevScore1 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex1] : FLT_MAX;
 			DA.SetQuery(Chain1, ptrProfile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore1);
-			//MKF.MuKmerResetQ();
-			//MKF.MuKmerSetQ(Chain1);
 			}
 
 		if (opt_noself && ChainIndex1 == ChainIndex2)

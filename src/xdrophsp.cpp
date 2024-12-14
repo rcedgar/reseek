@@ -39,7 +39,7 @@ float DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
 	{
 	const float Open = m_Params->m_GapOpen;
 	const float Ext = m_Params->m_GapExt;
-	const float X = m_Params->m_MKF_X2;
+	const float X = float(m_Params->m_MKF_X2);
 	//const float X = 8;
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();

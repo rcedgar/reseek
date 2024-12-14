@@ -800,6 +800,16 @@ void DSSAligner::SetParams(const DSSParams &Params)
 	m_MKF.SetParams(Params);
 	}
 
+void DSSAligner::UnsetQuery()
+	{
+	m_MKF.MuKmerResetQ();
+	m_ChainA = 0;
+	m_ProfileA = 0;
+	m_MuLettersA = 0;
+	m_MuKmersA = 0;
+	m_SelfRevScoreA = 0;
+	}
+
 void DSSAligner::SetQuery(
 	const PDBChain &Chain,
 	const vector<vector<byte> > *ptrProfile,

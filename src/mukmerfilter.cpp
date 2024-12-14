@@ -108,8 +108,10 @@ void MuKmerFilter::MuKmerResetQ()
 		for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
 			{
 			uint Kmer = (*m_ptrMuKmersQ)[PosQ];
+			assert(Kmer < m_DictSize);
 			m_KmerHashTableQ[Kmer] = 0xffff;
 			}
+		m_ptrMuKmersQ = 0;
 		}
 #if DEBUG
 	{

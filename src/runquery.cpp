@@ -33,7 +33,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 	vector<vector<byte> > Profile1;
 	vector<byte> MuLetters1;
-	vector<uint> Kmers1;
+	vector<uint> MuKmers1;
 
 	DSS D;
 	D.SetParams(*m_Params);
@@ -45,11 +45,11 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			return;
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
-		if (m_Params->m_Omega > 0)
-			D.GetMuLetters(MuLetters1);
+		D.GetMuLetters(MuLetters1);
+		D.GetMuKmers(MuLetters1, MuKmers1);
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
-		const vector<uint> *ptrMuKmers1 = (Kmers1.empty() ? 0 : &Kmers1);
+		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);
 		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA, D);
 		DA.SetQuery(*Chain1, &Profile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
 
@@ -77,6 +77,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 				BaseOnAln(DA, true);
 			++m_ProcessedPairCount;
 			}
+		DA.UnsetQuery();
 		delete Chain1;
 		m_Lock.lock();
 		++m_ProcessedQueryCount;
