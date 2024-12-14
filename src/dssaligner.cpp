@@ -7,13 +7,11 @@
 #include "timing.h"
 #include "mumx.h"
 #include "cigar.h"
-#include "scop40bench.h"//@@TODO
 #include <thread>
 #include <set>
 #include <mutex>
 
 mutex DSSAligner::m_OutputLock;
-//mutex DSSAligner::m_StatsLock;
 
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
@@ -23,8 +21,6 @@ float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   string &Path);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
-//float SWFastGaplessProf(XDPMem &Mem, const float * const *ProfA, uint LA,
-//  const byte *B, uint LB, uint &Besti, uint &Bestj);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
   uint &Besti, uint &Bestj);
 int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
@@ -1545,17 +1541,7 @@ void DSSAligner::AlignMKF()
 	uint Loj = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
 	uint Len = (uint) m_MKF.m_ChainHSPLens[BestMegaIdx];
 	m_XDropScore = XDropHSP(Loi, Loj, Len);
-	//if (m_XDropScore < 10)
-	//	{
-	//	m_StatsLock.lock();
-	//	++m_XDropDiscardCount;
-	//	m_StatsLock.unlock();
-	//	return;
-	//	}
 	m_AlnFwdScore = m_XDropScore;
 	m_Path = m_XDropPath;
 	CalcEvalue();
-	return;
-	SetSMx_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
-	Align_Box(m_MKF.m_ChainLo_i, m_MKF.m_ChainHi_i, m_MKF.m_ChainLo_j, m_MKF.m_ChainHi_j);
 	}
