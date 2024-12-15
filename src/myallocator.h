@@ -1,5 +1,5 @@
 #pragma once
-
+#if 0
 // Modified from original here:
 // https://learn.microsoft.com/en-us/cpp/standard-library/allocators?view=msvc-170
 
@@ -48,3 +48,4 @@ void Myallocator<T>::deallocate(T *const p, size_t) const noexcept
 	{
 	free(p);
 	}
+#endif // 0

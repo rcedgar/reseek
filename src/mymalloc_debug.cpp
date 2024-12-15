@@ -3,8 +3,12 @@
 #if _MSC_VER && DEBUG
 
 static mutex s_Lock;
-static uint g_MallocCount;
-static uint g_FreeCount;
+static bool s_trace;
+
+void MemTrace(bool On)
+	{
+	s_trace = On;
+	}
 
 struct HEAP_BLOCK
 	{
@@ -40,21 +44,15 @@ void operator delete(void *p)
 	_free_dbg(p, _CLIENT_BLOCK);
 	}
 
+static FILE *f;
+static time_t t0;
+
 void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 	{
 	if (bytes == 0)
 		return 0;
-
-	s_Lock.lock();
-	++g_MallocCount;
-	s_Lock.unlock();
-
 	size_t B = size_t(n)*size_t(bytes);
-#if _MSC_VER
 	void *p = _malloc_dbg(B, _NORMAL_BLOCK, fn, linenr);
-#else
-	void *p = malloc(B);
-#endif
 	if (0 == p)
 		{
 		double b = GetMemUseBytes();
@@ -62,6 +60,18 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 		  fn, linenr, n, bytes, b);
 		exit(1);
 		}
+
+	s_Lock.lock();
+	if (f == 0)
+		{
+		f = fopen("myalloc.trace", "w");
+		t0 = time(0);
+		setbuf(f, 0);
+		}
+	uint secs = uint(time(0) - t0);
+	fprintf(f, "%u\talloc\t%s\t%d\t%d\t%u\t%p\n", secs, fn, linenr, n, bytes, p);
+	s_Lock.unlock();
+
 	return p;
 	}
 
@@ -70,7 +80,8 @@ void myfree(void *p)
 	if (p == 0)
 		return;
 	s_Lock.lock();
-	++g_FreeCount;
+	uint secs = uint(time(0) - t0);
+	fprintf(f, "%u\tfree\t%p\n", secs, p);
 	s_Lock.unlock();
 	_free_dbg(p, _NORMAL_BLOCK);
 	}
@@ -151,6 +162,7 @@ void LogHeapBlocks(int aType, const char *s)
 	_CrtCheckMemory();
 	_CrtMemState MS;
 	_CrtMemCheckpoint(&MS);
+	//Log("LogHeapBlocks(%d, %s)\n", aType, s);
 
 	uint Count = 0;
 	double Total = 0;
@@ -159,9 +171,9 @@ void LogHeapBlocks(int aType, const char *s)
 		{
 		int Type = b->_block_use & 0xffff;
 		if (b->_file_name == 0)
-			fprintf(g_fLog, "@%s@ NULL:0 %.3g\n", s, double(b->_data_size));
+			Log("@HB_%s\tNULL:0\t%.3g\n", s, double(b->_data_size));
 		else
-			fprintf(g_fLog, "@%s@ %s:%d %.3g\n", s, b->_file_name, b->_line_number, double(b->_data_size));
+			Log("@HB_%s\t%s:%d\t%.3g\n", s, b->_file_name, b->_line_number, double(b->_data_size));
 		if (Type == aType)
 			{
 			++Count;
@@ -169,7 +181,6 @@ void LogHeapBlocks(int aType, const char *s)
 			}
 		}
 
-	Log("Allocs %u, frees %u\n", g_MallocCount, g_FreeCount);
 	Log("Blocks %u, total = %.0f (%s)\n",
 		Count, Total, MemBytesToStr(double(Total)));
 	}

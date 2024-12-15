@@ -25,7 +25,6 @@ public:
 		}
 
 	void operator delete(void *p) { _free_dbg(p, _CLIENT_BLOCK|(1<<16)); }
-
 #endif // DEBUG
 
 public:

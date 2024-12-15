@@ -412,7 +412,6 @@ void DSSAligner::SetSMx_YesRev()
 				}
 			}
 		}
-		EndTimer(SetSMx_YesRev);
 #if DEBUG
 	{
 	for (uint PosA = 0; PosA < LA; ++PosA)
@@ -426,6 +425,78 @@ void DSSAligner::SetSMx_YesRev()
 		}
 	}
 #endif
+	}
+
+void DSSAligner::SetSMx_QRev()
+	{
+	const DSSParams &Params = *m_Params;
+	const vector<vector<byte> > &ProfileA = *m_ProfileA;
+	const uint LA = m_ChainA->GetSeqLength();
+
+	Mx<float> &SMx = m_SMx;
+	SMx.Alloc(LA, LA);
+	StartTimer(SetSMx_QRev);
+	float **Sim = SMx.GetData();
+
+	const uint FeatureCount = Params.GetFeatureCount();
+	asserta(SIZE(ProfileA) == FeatureCount);
+
+// Special case first feature because = not += and
+	FEATURE F0 = m_Params->m_Features[0];
+	uint AlphaSize0 = g_AlphaSizes2[F0];
+	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	const vector<byte> &ProfRowA = ProfileA[0];
+	for (uint PosA = 0; PosA < LA; ++PosA)
+		{
+		byte ia = ProfRowA[PosA];
+		float *SimRow = Sim[PosA];
+		const float *ScoreMxRow = ScoreMx0[ia];
+
+		for (uint PosB = 0; PosB < LA; ++PosB)
+			{
+			byte ib = ProfRowA[LA-1-PosB];
+			assert(ia < AlphaSize0 && ib < AlphaSize0);
+			float MatchScore = ScoreMxRow[ib];
+			SimRow[PosB] = MatchScore;
+			}
+		}
+
+	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
+		{
+		FEATURE F = m_Params->m_Features[FeatureIdx];
+		uint AlphaSize = g_AlphaSizes2[F];
+		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
+		for (uint PosA = 0; PosA < LA; ++PosA)
+			{
+			byte ia = ProfRowA[PosA];
+			float *SimRow = Sim[PosA];
+			const float *ScoreMxRow = ScoreMx[ia];
+
+			for (uint PosB = 0; PosB < LA; ++PosB)
+				{
+				byte ib = ProfRowA[LA-1-PosB];
+				float MatchScore = 0;
+				assert(ia < AlphaSize && ib < AlphaSize);
+				MatchScore = ScoreMxRow[ib];
+				SimRow[PosB] += MatchScore;
+				}
+			}
+		}
+#if DEBUG
+	{
+	for (uint PosA = 0; PosA < LA; ++PosA)
+		{
+		for (uint PosB = 0; PosB < LB; ++PosB)
+			{
+			float MatchScore = Sim[PosA][PosB];
+			float MatchScore2 = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
+			asserta(feq(MatchScore2, MatchScore));
+			}
+		}
+	}
+#endif
+	EndTimer(SetSMx_QRev);
 	}
 
 void DSSAligner::SetSMx_Mu_Int()
@@ -1064,6 +1135,21 @@ void DSSAligner::Align_NoAccel()
 	EndTimer(SWFwd);
 
 	CalcEvalue();
+	}
+
+void DSSAligner::Align_QRev()
+	{
+	ClearAlign();
+	SetSMx_QRev();
+
+	const uint LA = m_ChainA->GetSeqLength();
+
+	StartTimer(SWFwd);
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LA,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	EndTimer(SWFwd);
 	}
 
 void DSSAligner::AlignMuPath()

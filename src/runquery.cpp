@@ -2,6 +2,7 @@
 #include "dbsearcher.h"
 #include "chainreader2.h"
 #include "timing.h"
+#include "mx.h"
 
 void DBSearcher::StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS,
   ChainReader2 *ptrQueryCR)
@@ -10,18 +11,11 @@ void DBSearcher::StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS,
 	}
 
 float DBSearcher::GetSelfRevScore(const PDBChain &Chain,
-  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D)
+  const vector<vector<byte> > &Profile, DSSAligner &DA)
 	{
-	PDBChain RevChain = Chain;
-
-	RevChain.Reverse();
-	vector<vector<byte> > RevProfile;
-	D.Init(RevChain);
-	D.GetProfile(RevProfile);
-
 	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
-	DA.AlignQueryTarget();
+	DA.Align_QRev();
+	DA.m_AlnFwdScore = 0;
 	return DA.m_AlnFwdScore;
 	}
 
@@ -50,7 +44,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);
-		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA, D);
+		float SelfRevScore = GetSelfRevScore(*Chain1, Profile1, DA);
 		DA.SetQuery(*Chain1, &Profile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
@@ -61,7 +55,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 				time_t Now = time(0);
 				if (Now > m_LastProgress)
 					{
-					Progress("%s query chains\r", IntToStr(m_ProcessedQueryCount));
+					Progress("%s query chains\r",
+							 IntToStr(m_ProcessedQueryCount));
 					m_LastProgress = Now;
 					}
 				}
@@ -84,7 +79,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		time_t Now = time(0);
 		if (Now > m_LastProgress)
 			{
-			Progress("%s query chains\r", IntToStr(m_ProcessedQueryCount));
+			Progress("%s query chains\r",
+					 IntToStr(m_ProcessedQueryCount));
 			m_LastProgress = Now;
 			}
 		m_Lock.unlock();
@@ -116,7 +112,7 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 	m_PairCount = (ChainCount*(ChainCount-1))/2;
 	m_NextChainIndex1 = 0;
 	m_NextChainIndex2 = 1;
-
+	MemTrace(true);
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
@@ -127,6 +123,7 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+
 	time_t t_end = time(0);
 	m_Secs = uint(t_end - t_start);
 	if (m_Secs == 0)

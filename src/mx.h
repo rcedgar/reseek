@@ -21,6 +21,7 @@ public:
 
 	void Alloc(unsigned RowCount, unsigned ColCount)
 		{
+		FreeData();
 		g_MxLock.lock();
 		++g_MxAllocCount;
 		g_MxLock.unlock();
@@ -105,5 +106,7 @@ public:
 				m_Data[i][j] = v;
 		}
 	};
+
+void LogMxAllocCounts(const char *s);
 
 #endif // mx_h

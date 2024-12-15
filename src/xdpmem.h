@@ -15,38 +15,33 @@ class ObjMgr;
 class XDPMem
 	{
 public:
-	unsigned m_LA;
-	unsigned m_LB;
+	unsigned m_LA = 0;
+	unsigned m_LB = 0;
 	Mx<byte> m_TBBit;
-	byte *m_RevA;
-	byte *m_RevB;
-	float *m_Buffer1;
-	float *m_Buffer2;
-	int *m_Buffer1_Int;
+	byte *m_RevA = 0;
+	byte *m_RevB = 0;
+	float *m_Buffer1 = 0;
+	float *m_Buffer2 = 0;
+	int *m_Buffer1_Int = 0;
 
 public:
-	XDPMem()
-		{
-		Clear(true);
-		}
-
 	~XDPMem()
 		{
-		Clear(false);
+		Clear();
 		}
 
-	void Clear(bool ctor = false)
+	void Clear()
 		{
-		if (!ctor)
-			{
-			m_TBBit.Clear();
-			myfree(m_Buffer1);
-			myfree(m_Buffer2);
-			myfree(m_Buffer1_Int);
-			myfree(m_RevA);
-			myfree(m_RevB);
-			}
+		myfree(m_Buffer1);
+		myfree(m_Buffer2);
+		myfree(m_Buffer1_Int);
+		myfree(m_RevA);
+		myfree(m_RevB);
+
+		m_TBBit.Clear();
 		
+		m_LA = 0;
+		m_LB = 0;
 		m_RevA = 0;
 		m_RevB = 0;
 		m_Buffer1 = 0;

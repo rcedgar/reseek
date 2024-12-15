@@ -1,9 +1,5 @@
 #include "myutils.h"
 #include "mx.h"
-#include <mutex>
-
-#define StartTimer(x)	/* empty */
-#define EndTimer(x)	/* empty */
 
 uint g_MxAllocCount;
 uint g_MxFreeCount;

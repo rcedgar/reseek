@@ -132,6 +132,7 @@ public:
 	void Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void Align_NoAccel();
+	void Align_QRev();
 	float AlignMu(
 	  const vector<byte> &LettersA, const vector<byte> &LettersB,
 	  uint &LoA, uint &LoB, string &Path);
@@ -156,6 +157,7 @@ public:
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
 	void CalcEvalue_AAOnly();
+	void SetSMx_QRev();
 	void SetSMx_YesRev();
 	void SetSMx_NoRev();
 	void SetMuQP();
