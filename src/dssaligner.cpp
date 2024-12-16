@@ -487,10 +487,10 @@ void DSSAligner::SetSMx_QRev()
 	{
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		for (uint PosB = 0; PosB < LB; ++PosB)
+		for (uint PosB = 0; PosB < LA; ++PosB)
 			{
 			float MatchScore = Sim[PosA][PosB];
-			float MatchScore2 = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
+			float MatchScore2 = GetScorePosPair(ProfileA, ProfileA, PosA, LA-1-PosB);
 			asserta(feq(MatchScore2, MatchScore));
 			}
 		}

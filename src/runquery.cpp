@@ -15,7 +15,6 @@ float DBSearcher::GetSelfRevScore(const PDBChain &Chain,
 	{
 	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
 	DA.Align_QRev();
-	DA.m_AlnFwdScore = 0;
 	return DA.m_AlnFwdScore;
 	}
 
