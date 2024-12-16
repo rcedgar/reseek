@@ -11,8 +11,8 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D,
 		return 0;
 
 	const uint L = Chain.GetSeqLength();
-	if (L > 512)
-		return 0;
+	//if (L > 512)
+	//	return 0;
 
 	PDBChain RevChain = Chain;
 	RevChain.Reverse();
