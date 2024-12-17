@@ -3,6 +3,8 @@
 #include "dss.h"
 #include "chainer.h"
 
+const uint HASHW = 4;
+
 class MuKmerFilter
 	{
 private:
@@ -10,8 +12,6 @@ private:
 
 public:
 	uint m_DictSize = 0;
-	//int m_MinHSPScore = INT_MAX;
-	//int m_X = INT_MAX;
 	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;

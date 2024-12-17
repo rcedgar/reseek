@@ -3,6 +3,7 @@
 void myfree(void *p);
 
 #define MYMALLOC_TRACK_SIZE	0
+#define MYMALLOC_TRACE		0
 
 #if MYMALLOC_TRACK_SIZE
 double GetMymallocTotal();

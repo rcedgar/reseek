@@ -98,8 +98,8 @@ void MuKmerFilter::MuKmerResetQ()
 	{
 	if (m_KmerHashTableQ == 0)
 		{
-		m_KmerHashTableQ = myalloc(uint16_t, m_DictSize);
-		memset(m_KmerHashTableQ, 0xff, m_DictSize*sizeof(uint16_t));
+		m_KmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
+		memset(m_KmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
 		}
 
 	if (m_ptrMuKmersQ != 0)
@@ -109,13 +109,14 @@ void MuKmerFilter::MuKmerResetQ()
 			{
 			uint Kmer = (*m_ptrMuKmersQ)[PosQ];
 			assert(Kmer < m_DictSize);
-			m_KmerHashTableQ[Kmer] = 0xffff;
+			for (uint w = 0; w < HASHW; ++w)
+				m_KmerHashTableQ[HASHW*Kmer+w] = 0xffff;
 			}
 		m_ptrMuKmersQ = 0;
 		}
 #if DEBUG
 	{
-	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
+	for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
 		asserta(m_KmerHashTableQ[Kmer] == 0xffff);
 	}
 #endif
@@ -137,8 +138,14 @@ void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
 		{
 		uint Kmer = (*m_ptrMuKmersQ)[PosQ];
 		assert(Kmer < m_DictSize);
-		if (m_KmerHashTableQ[Kmer] == 0xffff)
-			m_KmerHashTableQ[Kmer] = PosQ;
+		for (uint w = 0; w < HASHW; ++w)
+			{
+			if (m_KmerHashTableQ[Kmer*HASHW+w] == 0xffff)
+				{
+				m_KmerHashTableQ[Kmer*HASHW+w] = PosQ;
+				break;
+				}
+			}
 		}
 	EndTimer(MuKmerSetQ);
 	}
@@ -173,33 +180,36 @@ void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
 		{
 		uint KmerT = MuKmersT[PosT];
 		assert(KmerT < m_DictSize);
-		uint PosQ = m_KmerHashTableQ[KmerT];
-		if (PosQ != 0xffff)
+		for (uint w = 0; w < HASHW; ++w)
 			{
-			EndTimer(MuKmerAln);
-			int Loi, Loj, Len;
-			int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, X1, Loi, Loj, Len);
-			StartTimer(MuKmerAln);
-			if (Score >= MinHSPScore)
+			uint PosQ = m_KmerHashTableQ[HASHW*KmerT+w];
+			if (PosQ != 0xffff)
 				{
-				FoundHSP = true;
-				if (Score > BestHSPScore)
+				EndTimer(MuKmerAln);
+				int Loi, Loj, Len;
+				int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, X1, Loi, Loj, Len);
+				StartTimer(MuKmerAln);
+				if (Score >= MinHSPScore)
 					{
-					bool OldHSP = false;
-					for (uint i = 0; i < SIZE(m_MuKmerHSPLois); ++i)
+					FoundHSP = true;
+					if (Score > BestHSPScore)
 						{
-						if (Loi == m_MuKmerHSPLois[i])
+						bool OldHSP = false;
+						for (uint i = 0; i < SIZE(m_MuKmerHSPLois); ++i)
 							{
-							OldHSP = true;
-							break;
+							if (Loi == m_MuKmerHSPLois[i])
+								{
+								OldHSP = true;
+								break;
+								}
 							}
-						}
-					if (!OldHSP)
-						{
-						m_MuKmerHSPLois.push_back(Loi);
-						m_MuKmerHSPLojs.push_back(Loj);
-						m_MuKmerHSPLens.push_back(Len);
-						m_MuKmerHSPScores.push_back(Score);
+						if (!OldHSP)
+							{
+							m_MuKmerHSPLois.push_back(Loi);
+							m_MuKmerHSPLojs.push_back(Loj);
+							m_MuKmerHSPLens.push_back(Len);
+							m_MuKmerHSPScores.push_back(Score);
+							}
 						}
 					}
 				}

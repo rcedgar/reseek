@@ -2,12 +2,16 @@
 
 #if _MSC_VER && DEBUG
 
+#if MYMALLOC_TRACE
 static mutex s_Lock;
 static bool s_trace;
+#endif
 
 void MemTrace(bool On)
 	{
+#if MYMALLOC_TRACE
 	s_trace = On;
+#endif
 	}
 
 struct HEAP_BLOCK
@@ -61,6 +65,7 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 		exit(1);
 		}
 
+#if MYMALLOC_TRACE
 	s_Lock.lock();
 	if (f == 0)
 		{
@@ -71,7 +76,7 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 	uint secs = uint(time(0) - t0);
 	fprintf(f, "%u\talloc\t%s\t%d\t%d\t%u\t%p\n", secs, fn, linenr, n, bytes, p);
 	s_Lock.unlock();
-
+#endif
 	return p;
 	}
 
@@ -79,10 +84,12 @@ void myfree(void *p)
 	{
 	if (p == 0)
 		return;
+#if MYMALLOC_TRACE
 	s_Lock.lock();
 	uint secs = uint(time(0) - t0);
 	fprintf(f, "%u\tfree\t%p\n", secs, p);
 	s_Lock.unlock();
+#endif
 	_free_dbg(p, _NORMAL_BLOCK);
 	}
 

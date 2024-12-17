@@ -1025,17 +1025,6 @@ void DSSAligner::CalcEvalue()
 	const float b = -40.0f;
 	float logE = a + b*m_NewTestStatisticA;
 	float DBSize = m_Params->m_DBSize;
-//a = 5
-//b = -40
-//def get_qual(ts):
-//	LogE = a + b*ts
-//	if LogE < -20:
-//		return 1
-//	c = LogE
-//	# x = math.exp(0.25*c)
-//	x = 10**(c/10)
-//	Qual = 1/(1 + x)
-//	return Qual
 
 	float Qual = 0;
 	if (logE < -20)

@@ -2,11 +2,12 @@
 
 #if defined(__GNUC__) && DEBUG
 
+#if MYMALLOC_TRACE
 static mutex s_Lock;
 bool s_trace = false;
-
 static FILE *f;
 static time_t t0;
+#endif
 
 void MemTrace(bool On)
 	{
@@ -15,16 +16,19 @@ void MemTrace(bool On)
 
 static void init()
 	{
+#if MYMALLOC_TRACE
 	if (f != 0)
 		return;
 	f = fopen("myalloc.trace", "w");
 	t0 = time(0);
 	setbuf(f, 0);
+#endif
 	}
 
 void *operator new(size_t n)
 	{
 	void *p = malloc(n);
+#if MYMALLOC_TRACE
 	if (s_trace)
 		{
 		s_Lock.lock();
@@ -33,11 +37,13 @@ void *operator new(size_t n)
 		fprintf(f, "%u\tnew\t%u\t%p\n", secs, uint(n), p);
 		s_Lock.unlock();
 		}
+#endif
 	return p;
 	}
 
 void operator delete(void *p)
 	{
+#if MYMALLOC_TRACE
 	if (s_trace)
 		{
 		s_Lock.lock();
@@ -46,6 +52,7 @@ void operator delete(void *p)
 		fprintf(f, "%u\tdelete\t%p\n", secs, p);
 		s_Lock.unlock();
 		}
+#endif
 	free(p);
 	}
 
@@ -63,6 +70,7 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 		exit(1);
 		}
 
+#if MYMALLOC_TRACE
 	if (s_trace)
 		{
 		s_Lock.lock();
@@ -71,7 +79,7 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 		fprintf(f, "%u\talloc\t%s\t%d\t%d\t%u\t%p\n", secs, fn, linenr, n, bytes, p);
 		s_Lock.unlock();
 		}
-
+#endif
 	return p;
 	}
 
