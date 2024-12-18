@@ -50,8 +50,9 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		SetNamedParams("defaults");
 	if (optset_fast)
 		{
-		m_OmegaFwd = 60;
-		m_MKFL = 400;
+		m_Omega = 22;
+		m_OmegaFwd = 50;
+		m_MKFL = 500;
 		m_MKF_X1 = 8;
 		m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
@@ -81,7 +82,6 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
 	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; Psa(m_Desc, " -omegafwd %.4g", opt_omegafwd); }
 	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, " -daliw %.4g", opt_daliw); }
-	if (optset_lambda) { m_Lambda = opt_lambda; Psa(m_Desc, " -lambda %u", opt_lambda); }
 	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, " -minfwdscore %.4g", opt_minfwdscore); }
 	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, " -gapopen %.4g", opt_gapopen); }
 	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, " -gapext %.4g", opt_gapext); }
@@ -163,7 +163,6 @@ void DSSParams::WriteSummary(FILE *f) const
 	fprintf(f, "%.3f", -m_GapExt);
 	//fprintf(f, " FwdM %.2f", m_FwdMatchScore);
 	fprintf(f, " MinFS %.1f", m_MinFwdScore);
-	//fprintf(f, " Lamda %u", m_Lambda);
 	if (m_Omega != FLT_MAX)
 		fprintf(f, " Omega %.1f", m_Omega);
 	if (m_OmegaFwd != FLT_MAX)

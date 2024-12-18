@@ -13,9 +13,7 @@ void DSSParams::FromParamStr(const string &Str)
 	m_DALIw = 0;
 	m_FwdMatchScore = 0;
 	m_MinFwdScore = 0;
-	m_MinMuFwdScore = 0;
 	m_Omega = 0;
-	m_Lambda = 0;
 	m_PatternStr = "*";
 
 	const uint N = SIZE(Fields);
@@ -48,9 +46,7 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_DALIw = 0;
 		m_FwdMatchScore = 0;
 		m_MinFwdScore = 0;
-		m_MinMuFwdScore = 0;
 		m_Omega = 0;
-		m_Lambda = 0;
 		m_PatternStr = "*";
 		return;
 		}
@@ -72,10 +68,8 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_DALIw = 3.0f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
-		m_MinMuFwdScore = 7.0f;
 		m_Omega = 29;
 		m_OmegaFwd = 29;
-		m_Lambda = 32;
 		m_PatternStr = "111";
 		//m_MKFL = 400;
 		//m_MKF_X1 = 8;

@@ -18,15 +18,12 @@ public:
 	float m_DALIw = FLT_MAX;
 	float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
-	float m_MinMuFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
 	//bool m_MuScoreOnly = false;
 	//bool m_UseMuPath = false;
-
-	uint m_Lambda = 32;
 
 	float m_DBSize = 10000;
 
