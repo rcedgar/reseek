@@ -325,6 +325,7 @@
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_debug.cpp" />
     <ClCompile Include="mymalloc_debug_linux.cpp" />
+    <ClCompile Include="objcounter.cpp" />
     <ClCompile Include="pdb.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />
@@ -456,6 +457,7 @@
     <ClInclude Include="mermx.h" />
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
+    <ClInclude Include="objcounter.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />

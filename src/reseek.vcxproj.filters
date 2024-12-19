@@ -488,6 +488,9 @@
     <ClCompile Include="mymalloc_debug_linux.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="objcounter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -758,6 +761,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="myallocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objcounter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

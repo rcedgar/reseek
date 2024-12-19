@@ -3,6 +3,7 @@
 
 #include "myutils.h"
 #include "features.h"
+//#include "objcounter.h"
 
 class DSS;
 
@@ -16,6 +17,8 @@ public:
 	vector<float> m_Zs;
 	uint m_Idx = UINT_MAX;
 	vector<string> m_Lines;
+
+	//OBJCOUNTER(PDBChain);
 
 #if _MSC_VER && DEBUG
 	void *operator new(size_t n)
