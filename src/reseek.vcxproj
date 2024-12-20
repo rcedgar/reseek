@@ -323,8 +323,8 @@
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />
-    <ClCompile Include="mymalloc_debug.cpp" />
-    <ClCompile Include="mymalloc_debug_linux.cpp" />
+    <ClCompile Include="mymalloc_dbg.cpp" />
+    <ClCompile Include="mymalloc_win_debug.cpp" />
     <ClCompile Include="objcounter.cpp" />
     <ClCompile Include="pdb.cpp" />
     <ClCompile Include="prime.cpp" />

@@ -64,6 +64,12 @@ static time_t g_StartTime = time(0);
 extern vector<string> g_Argv;
 static double g_PeakMemUseBytes;
 
+static void UpdMemUse(double Bytes)
+	{
+	if (Bytes > g_PeakMemUseBytes)
+		g_PeakMemUseBytes = Bytes;
+	}
+
 static char **g_ThreadStrs;
 static unsigned g_ThreadStrCount;
 
@@ -813,8 +819,7 @@ double GetMemUseBytes()
 	if (!bOk)
 		return 1000000;
 	double Bytes = (double) PMC.WorkingSetSize;
-	if (Bytes > g_PeakMemUseBytes)
-		g_PeakMemUseBytes = Bytes;
+	UpdMemUse(Bytes);
 	return Bytes;
 	}
 
@@ -877,8 +882,7 @@ double GetMemUseBytes()
 	double Pages = atof(p);
 
 	double Bytes = Pages*PageSize;
-	if (Bytes > g_PeakMemUseBytes)
-		g_PeakMemUseBytes = Bytes;
+	UpdMemUse(Bytes);
 	return Bytes;
 	}
 
@@ -917,8 +921,7 @@ double GetMemUseBytes()
 		return DEFAULT_MEM_USE;
 
 	double Bytes = (double ) ti.resident_size;
-	if (Bytes > g_PeakMemUseBytes)
-		g_PeakMemUseBytes = Bytes;
+	UpdMemUse(Bytes);
 	return Bytes;
 	}
 

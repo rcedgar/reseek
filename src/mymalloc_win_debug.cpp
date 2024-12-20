@@ -1,6 +1,6 @@
 #include "myutils.h"
 
-#if _MSC_VER && DEBUG
+#if 0 // _MSC_VER && DEBUG
 
 #if MYMALLOC_TRACE
 static mutex s_Lock;
@@ -56,7 +56,7 @@ void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr)
 	if (bytes == 0)
 		return 0;
 	size_t B = size_t(n)*size_t(bytes);
-	void *p = _malloc_dbg(B, _NORMAL_BLOCK, fn, linenr);
+	void *p = malloc(B);
 	if (0 == p)
 		{
 		double b = GetMemUseBytes();

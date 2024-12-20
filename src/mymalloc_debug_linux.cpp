@@ -1,6 +1,6 @@
 #include "myutils.h"
 
-#if defined(__GNUC__) && DEBUG
+#if defined(__GNUC__)
 
 #if MYMALLOC_TRACE
 static mutex s_Lock;

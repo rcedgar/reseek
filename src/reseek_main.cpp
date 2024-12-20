@@ -5,22 +5,7 @@
 int g_Frame = 0;
 string g_Arg1;
 
-void cmd_test()
-	{
-#if defined(__GNUC__)
-	fprintf(stderr, "__GNUC__ defined\n");
-#else
-	fprintf(stderr, "__GNUC__ not defined\n");
-#endif
-#if DEBUG
-	fprintf(stderr, "DEBUG true\n");
-#else
-	fprintf(stderr, "DEBUG false\n");
-#endif
-	char *p = myalloc(char, 10);
-	fprintf(stderr, "myalloc=%p\n", p);
-	free(p);
-	}
+// void cmd_test() {}
 
 int main(int argc, char **argv)
 	{

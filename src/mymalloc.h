@@ -2,26 +2,21 @@
 
 void myfree(void *p);
 
-#define MYMALLOC_TRACK_SIZE	0
-#define MYMALLOC_TRACE		0
+#define MYMALLOC_DBG		1
 
-#if MYMALLOC_TRACK_SIZE
-double GetMymallocTotal();
-#endif
+void myfree(void *p);
 
-#if DEBUG
+#if MYMALLOC_DBG
 
+void mymalloc_print_state(FILE *f, const char *Msg);
+void mymalloc_trace(bool on);
 void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr);
+void *mymalloc(unsigned n, unsigned bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t), __FILE__, __LINE__)
-void LogHeapSummary(const char *s);
-void LogHeapBlocks(int Type, const char *fn);
-void MemTrace(bool on);
 
 #else
-
+#define mymalloc_print_state(f, Msg)	/* empty */
 void *mymalloc(unsigned n, unsigned bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t))
-#define LogHeapSummary(s)	/* empty */
-#define LogHeapBlocks(Type, fn)	/* empty */
-#define MemTrace(on) /* empty */
+
 #endif

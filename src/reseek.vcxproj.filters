@@ -479,16 +479,16 @@
     <ClCompile Include="mymalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymalloc_debug.cpp">
+    <ClCompile Include="mymalloc_win_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xdrophsp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymalloc_debug_linux.cpp">
+    <ClCompile Include="objcounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="objcounter.cpp">
+    <ClCompile Include="mymalloc_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

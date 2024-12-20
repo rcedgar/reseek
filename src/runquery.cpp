@@ -113,7 +113,6 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 	m_PairCount = (ChainCount*(ChainCount-1))/2;
 	m_NextChainIndex1 = 0;
 	m_NextChainIndex2 = 1;
-	MemTrace(true);
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{

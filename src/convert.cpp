@@ -81,7 +81,8 @@ static void ThreadBody(uint ThreadIndex)
 		if (s_Now - s_LastTime > 0)
 			{
 			if (s_LabelSetSize > 0)
-				Progress("%u / %u chains found", s_OutputCount, s_LabelSetSize);
+				Progress("%u / %u chains found (%s searched)",
+						 s_OutputCount, s_LabelSetSize, IntToStr(s_InputCount));
 			else if (s_TooShort > 0)
 				Progress("%s chains, %.1f%% too short (min %u, shortest %u)",
 				  IntToStr(s_Converted), GetPct(s_TooShort, s_Converted),
@@ -112,7 +113,10 @@ static void ThreadBody(uint ThreadIndex)
 
 		if (s_ptrLabelSet != 0)
 			{
-			if (s_ptrLabelSet->find(ptrChain->m_Label) == s_ptrLabelSet->end())
+			string UpperLabel = ptrChain->m_Label;
+			ToUpper(UpperLabel);
+			set<string>::iterator iter = s_ptrLabelSet->find(UpperLabel);
+			if (iter == s_ptrLabelSet->end())
 				{
 				delete ptrChain;
 				continue;
@@ -222,7 +226,10 @@ void cmd_convert()
 
 	set<string> LabelSet;
 	for (uint i = 0; i < SIZE(Labels); ++i)
+		{
+		ToUpper(Labels[i]);
 		LabelSet.insert(Labels[i]);
+		}
 	if (!LabelSet.empty())
 		{
 		s_ptrLabelSet = &LabelSet;
@@ -284,8 +291,25 @@ void cmd_convert()
 		ProgressLogPrefix("%u format errors\n", ne);
 
 	if (optset_label || optset_labels)
+		{
 		ProgressLogPrefix("Searched for %u labels, %u found (%.1f%%)\n", 
 			s_LabelSetSize, s_OutputCount, GetPct(s_OutputCount, s_LabelSetSize));
+		uint NotFound = SIZE(*s_ptrLabelSet);
+		if (NotFound > 0)
+			{
+			Progress("%u not found", NotFound);
+			Log("%u not found\n", NotFound);
+			uint Counter = 0;
+			for (set<string>::const_iterator iter = s_ptrLabelSet->begin();
+				 iter != s_ptrLabelSet->end(); ++iter)
+				{
+				if (Counter++ < 3)
+					Progress(" %s", iter->c_str());
+				Log(">%s\n", iter->c_str());
+				}
+			Progress("\n");
+			}
+		}
 
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
