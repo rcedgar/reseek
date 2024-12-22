@@ -477,3 +477,9 @@ void PDBChain::Reverse()
 	std::reverse(m_Ys.begin(), m_Ys.end());
 	std::reverse(m_Zs.begin(), m_Zs.end());
 	}
+
+void PDBChain::GetReverse(PDBChain &Rev) const
+	{
+	Rev = *this;
+	Rev.Reverse();
+	}

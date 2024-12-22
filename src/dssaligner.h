@@ -3,7 +3,6 @@
 #include "dssparams.h"
 #include "pdbchain.h"
 #include "xdpmem.h"
-#include "dss.h"
 #include "mx.h"
 #include "userfields.h"
 #include "mukmerfilter.h"
