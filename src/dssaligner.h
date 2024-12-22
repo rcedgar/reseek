@@ -41,7 +41,7 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	Mx<float> m_SMxxx;
+	//Mx<float> m_SM;
 
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
@@ -70,7 +70,6 @@ public:
 	float m_AlnFwdScore = FLT_MAX;
 
 	vector<USERFIELD> m_UFs;
-	FILE *m_LastTsvFile = 0;
 
 	float **m_SMx_Data = 0;
 	float *m_SMx_Buffer = 0;

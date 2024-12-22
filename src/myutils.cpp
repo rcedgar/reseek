@@ -2399,7 +2399,6 @@ void ReadLinesFromFile(const string &FileName, vector<string> &Lines)
 	CloseStdioFile(f);
 	}
 
-
 void Dirize(string &Dir)
 	{
 	if (!EndsWith(Dir, "/") && !EndsWith(Dir, "\\"))
