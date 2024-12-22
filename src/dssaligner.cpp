@@ -1366,6 +1366,12 @@ void DSSAligner::FreeSMxData()
 static uint TESTN = 100000;
 static void TestThreadBody(uint ThreadIdx)
 	{
+	size_t m_SMx_BufferSize = 0;
+	uint m_SMx_Rows = 0;
+	uint m_SMx_Cols = 0;
+	float **m_SMx_Data = 0;
+	float *m_SMx_Buffer = 0;
+
 	DSSAligner DA;
 	auto id = this_thread::get_id();
 	for (uint i = 0; i < TESTN; ++i)
@@ -1373,7 +1379,32 @@ static void TestThreadBody(uint ThreadIdx)
 		if (ThreadIdx == 0)
 			ProgressStep(i, TESTN, "Working");
 		uint LA = 200 + randu32()%5000;
-		DA.AllocSMxData(LA, LA);
+		//DA.AllocSMxData(LA, LA);
+		if (LA <= (2*m_SMx_Rows)/3)
+			continue;
+
+		//free(m_SMx_Data);
+		free(m_SMx_Buffer);
+
+		m_SMx_Data = 0;
+		m_SMx_Buffer = 0;
+		m_SMx_BufferSize = 0;
+		m_SMx_Rows = 0;
+		m_SMx_Cols = 0;
+	
+		size_t n = size_t(LA)*size_t(LA);
+		uint un = uint(n);
+		if (size_t(un) != n)
+			Die("AllocSMxData(%u, %u) overflow", LA, LA);
+
+		m_SMx_Buffer = (float *) malloc(un*sizeof(float));
+		//m_SMx_Data = (float **) malloc(LA*sizeof(float *));
+		//for (uint i = 0; i < LA; ++i)
+		//	m_SMx_Data[i] = m_SMx_Buffer + i*LA;
+
+		m_SMx_Rows = LA;
+		m_SMx_Cols = LA;
+		m_SMx_BufferSize = n;
 		this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
