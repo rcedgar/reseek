@@ -839,7 +839,7 @@ void DSSAligner::ClearAlign()
 	m_TestStatisticB = -FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
-	m_AlnFwdScore = -FLT_MAX;
+	m_AlnFwdScore = 0;
 	}
 
 void DSSAligner::Align_NoAccel()

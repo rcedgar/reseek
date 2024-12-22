@@ -88,7 +88,7 @@ int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 		byte t = T[j++];
 		CheckScore += IntScoreMx_Mu[q][t];
 		}
-	asserta(CheckScore = BestScore);
+	asserta(CheckScore == BestScore);
 	}
 #endif
 	return BestScore;

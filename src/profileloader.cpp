@@ -11,6 +11,9 @@ float GetSelfRevScore(DSSAligner &DA, const PDBChain &Chain,
 	{
 	if (opt_selfrev0)
 		return 0;
+	const uint L = Chain.GetSeqLength();
+	if (L < 10)
+		return 0;
 
 	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 
@@ -18,7 +21,6 @@ float GetSelfRevScore(DSSAligner &DA, const PDBChain &Chain,
 	Chain.GetReverse(ChainRev);
 	vector<vector<byte> > ProfileRev;
 
-	const uint L = Chain.GetSeqLength();
 	const uint FeatureCount = SIZE(Profile);
 	ProfileRev.resize(FeatureCount);
 	for (uint F = 0; F < FeatureCount; ++F)
