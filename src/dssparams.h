@@ -22,6 +22,7 @@ public:
 	float m_OmegaFwd = FLT_MAX;
 	string m_PatternStr = "";
 	float ***m_ScoreMxs = 0;
+	bool m_OwnScoreMxs = false;
 	//bool m_MuScoreOnly = false;
 	//bool m_UseMuPath = false;
 
@@ -59,6 +60,9 @@ public:
 	static vector<FEATURE> m_MuFeatures;
 	static vector<uint> m_MuAlphaSizes;
 	static uint m_MuAlphaSize;
+
+public:
+	~DSSParams();
 
 public:
 	void Clear()

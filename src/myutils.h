@@ -383,6 +383,7 @@ void ToLower(string &s);
 bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
+void MyutilsExit();
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);

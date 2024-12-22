@@ -168,12 +168,14 @@ void DSSAligner::SetMuQP_Para()
 	if (m_ProfParaRev != 0)
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	const char *A = (const char *) m_MuLettersA->data();
-	uint LA = SIZE(*m_MuLettersA);
+	const uint LA = SIZE(*m_MuLettersA);
 	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_combo_matrix);
 
-	vector<byte> ARev = *m_MuLettersA;
-	const char *AR = (const char *) ARev.data();
-	reverse(ARev.begin(), ARev.end());
+	m_MuRevA.clear();
+	m_MuRevA.reserve(LA);
+	for (uint i = 0; i < LA; ++i)
+		m_MuRevA.push_back((*m_MuLettersA)[LA-i-1]);
+	const char *AR = (const char *) m_MuRevA.data();
 	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_combo_matrix);
 	EndTimer(SetMuQP_Para);
 	}

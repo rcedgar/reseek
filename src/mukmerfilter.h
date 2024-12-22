@@ -36,6 +36,12 @@ public:
 	Chainer m_C;
 
 public:
+	~MuKmerFilter()
+		{
+		myfree(m_KmerHashTableQ);
+		}
+
+public:
 	static uint m_PairCount;
 	static uint m_PairWithHSPCount;
 	static uint m_BoxAlnCount;

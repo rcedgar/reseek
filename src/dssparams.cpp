@@ -276,6 +276,27 @@ void DSSParams::NormalizeWeights()
 	asserta(feq(Sum2, 1.0f));
 	}
 
+DSSParams::~DSSParams()
+	{
+	uint FeatureCount = GetFeatureCount();
+	if (!m_OwnScoreMxs)
+		return;
+	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
+		{
+		FEATURE F = m_Features[Idx];
+		asserta(uint(F) < FEATURE_COUNT);
+		uint AS = g_AlphaSizes2[F];
+		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
+			{
+			asserta(m_ScoreMxs[F][Letter1] != 0);
+			myfree(m_ScoreMxs[F][Letter1]);
+			}
+		asserta(m_ScoreMxs[F] != 0);
+		myfree(m_ScoreMxs[F]);
+		}
+	myfree(m_ScoreMxs);
+	}
+
 void DSSParams::InitScoreMxs()
 	{
 	asserta(m_ScoreMxs == 0);
@@ -288,6 +309,7 @@ void DSSParams::InitScoreMxs()
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
 		uint AS = g_AlphaSizes2[F];
+		asserta(m_ScoreMxs[F] == 0);
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
@@ -299,6 +321,7 @@ void DSSParams::InitScoreMxs()
 			}
 		}
 	ApplyWeights();
+	m_OwnScoreMxs = true;
 	}
 
 float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const

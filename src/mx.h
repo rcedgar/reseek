@@ -3,9 +3,7 @@
 
 #include <mutex>
 
-extern uint g_MxAllocCount;
-extern uint g_MxFreeCount;
-extern mutex g_MxLock;
+#define ONE_BUFFER	1
 
 template<class T> class Mx
 	{
@@ -13,22 +11,42 @@ public:
 	uint m_RowCount = 0;
 	uint m_ColCount = 0;
 	T **m_Data = 0;
+#if ONE_BUFFER
+	T *m_Buffer = 0;
+#endif
+
+private:
+	Mx(const Mx &rhs);
+	Mx(Mx &rhs);
+
+public:
+	Mx()
+		{
+		m_RowCount = 0;
+		m_ColCount = 0;
+		m_Data = 0;
+		m_Buffer = 0;
+		}
 
 	~Mx()
 		{
 		FreeData();
 		}
 
-	void Alloc(unsigned RowCount, unsigned ColCount)
+	void Alloc(unsigned RowCount, unsigned ColCount, const char *fn, int linenr)
 		{
+		asserta(RowCount > 0 && ColCount > 0);
 		FreeData();
-		g_MxLock.lock();
-		++g_MxAllocCount;
-		g_MxLock.unlock();
 		m_Data = myalloc(T *, RowCount);
+#if ONE_BUFFER
+		uint n = RowCount*ColCount;
+		m_Buffer = myalloc(T, n);
+		for (uint i = 0; i < RowCount; ++i)
+			m_Data[i] = m_Buffer + i*ColCount;
+#else
 		for (unsigned i = 0; i < RowCount; ++i)
 			m_Data[i] = myalloc(T, ColCount);
-
+#endif
 		m_RowCount = RowCount;
 		m_ColCount = ColCount;
 		}
@@ -43,25 +61,29 @@ public:
 		if (m_RowCount == 0)
 			{
 			asserta(m_ColCount == 0);
+			asserta(m_Data == 0);
+#if ONE_BUFFER
+			asserta(m_Buffer == 0);
+#endif
 			return;
 			}
-		g_MxLock.lock();
-		++g_MxFreeCount;
-		g_MxLock.unlock();
+#if ONE_BUFFER
+		myfree(m_Buffer);
+#else
 		for (unsigned i = 0; i < m_RowCount; ++i)
 			myfree(m_Data[i]);
+#endif
 		myfree(m_Data);
 
 		m_Data = 0;
 		m_RowCount = 0;
 		m_ColCount = 0;
-		m_RowCount = 0;
-		m_ColCount = 0;
+		m_Buffer = 0;
 		}
 
 	T **GetData()
 		{
-		return (T **) m_Data;
+		return m_Data;
 		}
 
 	T Get(unsigned i, unsigned j) const

@@ -91,7 +91,7 @@ static void Test(const string &A, const string &B)
 	const uint LB = SIZE(B);
 
 	Mx<float> SMx;
-	SMx.Alloc(LA, LB);
+	SMx.Alloc(LA, LB, __FILE__, __LINE__);
 	float **S = SMx.GetData();
 	for (uint i = 0; i < LA; ++i)
 		for (uint j = 0; j < LB; ++j)
@@ -101,7 +101,7 @@ static void Test(const string &A, const string &B)
 	uint Loi, Loj, Leni, Lenj;
 	Log("______________________________SWFast________________________\n");
 	float SWScore =
-	  SWFast(Mem, SMx, LA, LB, Open, Ext, Loi, Loj, Leni, Lenj, SWPath);
+	  SWFast(Mem, SMx.GetData(), LA, LB, Open, Ext, Loi, Loj, Leni, Lenj, SWPath);
 	uint LoA = Loi;
 	uint LoB = Loj;
 	ProgressLog("SW score = %.3g Path = %s\n", SWScore, SWPath.c_str());

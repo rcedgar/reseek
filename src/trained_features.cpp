@@ -507,8 +507,11 @@ float **g_FreqMxs2[FEATURE_COUNT];
 float *g_FreqVecs2[FEATURE_COUNT];
 uint g_AlphaSizes2[FEATURE_COUNT];
 
+static void FreeMe();
+
 static bool Init()
 	{
+	atexit(FreeMe);
 	asserta(DSS::GetAlphaSize(FEATURE_AA) == 20);
 	asserta(DSS::GetAlphaSize(FEATURE_NENDist) == 16);
 	asserta(DSS::GetAlphaSize(FEATURE_Conf) == 16);
@@ -642,3 +645,26 @@ static bool Init()
 	return true;
 	}
 static bool InitDone = Init();
+
+static void FreeMe()
+	{
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		{
+		if (g_ScoreMxs2[F] != 0)
+			{
+			uint AS = g_AlphaSizes2[F];
+			for (uint i = 0; i < AS; ++i)
+				myfree(g_ScoreMxs2[F][i]);
+			myfree(g_ScoreMxs2[F]);
+			}
+		if (g_FreqMxs2[F] != 0)
+			{
+			uint AS = g_AlphaSizes2[F];
+			for (uint i = 0; i < AS; ++i)
+				myfree(g_FreqMxs2[F][i]);
+			myfree(g_FreqMxs2[F]);
+			}
+		if (g_FreqVecs2[F] != 0)
+			myfree(g_FreqVecs2[F]);
+		}
+	}

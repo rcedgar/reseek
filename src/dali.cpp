@@ -39,8 +39,11 @@ static double Weight_NoLookup(double y)
 	return w;
 	}
 
+static void FreeMe();
+
 static bool InitWeightLookup()
 	{
+	atexit(FreeMe);
 	WeightLookup = myalloc(double, TBLSZ);
 	for (int i = 0; i < TBLSZ; ++i)
 		{
@@ -51,6 +54,11 @@ static bool InitWeightLookup()
 	return true;
 	};
 static bool InitWeightLookupDone = InitWeightLookup();
+
+static void FreeMe()
+	{
+	myfree(WeightLookup);
+	}
 
 /***
 comparemodules.f, line 1397

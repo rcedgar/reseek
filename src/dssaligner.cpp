@@ -7,6 +7,7 @@
 #include "timing.h"
 #include "mumx.h"
 #include "cigar.h"
+#include "parasail.h"
 #include <thread>
 #include <set>
 #include <mutex>
@@ -16,7 +17,7 @@ mutex DSSAligner::m_OutputLock;
 uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
   const int8_t *B, uint LB);
 void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);
-float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
+float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path);
 float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
@@ -85,6 +86,14 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 		else if (c == 'I')
 			++I;
 		}
+	}
+
+DSSAligner::~DSSAligner()
+	{
+	if (m_ProfPara != 0)
+		parasail_profile_free((parasail_profile_t *) m_ProfPara);
+	if (m_ProfParaRev != 0)
+		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	}
 
 DSSAligner::DSSAligner()
@@ -344,117 +353,36 @@ float DSSAligner::GetScoreSegPair(const vector<vector<byte> > &ProfileA,
 	return Score;
 	}
 
-void DSSAligner::SetSMx_YesRev()
-	{
-	const DSSParams &Params = *m_Params;
-	const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	const vector<vector<byte> > &ProfileB = *m_ProfileB;
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-
-	Mx<float> &SMx = m_SMx;
-	SMx.Alloc(LA, LB);
-	Mx<float> &RevSMx = m_RevSMx;
-	RevSMx.Alloc(LA, LB);
-	StartTimer(SetSMx_YesRev);
-	float **Sim = SMx.GetData();
-	float **RevSim = RevSMx.GetData();
-
-	const uint FeatureCount = Params.GetFeatureCount();
-	asserta(SIZE(ProfileA) == FeatureCount);
-	asserta(SIZE(ProfileB) == FeatureCount);
-
-// Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
-	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
-	const vector<byte> &ProfRowA = ProfileA[0];
-	const vector<byte> &ProfRowB = ProfileB[0];
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte ia = ProfRowA[PosA];
-		float *SimRow = Sim[PosA];
-		float *RevSimRow = RevSim[PosA];
-		const float *ScoreMxRow = ScoreMx0[ia];
-
-		for (uint PosB = 0; PosB < LB; ++PosB)
-			{
-			byte ib = ProfRowB[PosB];
-			assert(ia < AlphaSize0 && ib < AlphaSize0);
-			float MatchScore = ScoreMxRow[ib];
-			SimRow[PosB] = MatchScore;
-			RevSimRow[LB-1-PosB] = MatchScore;
-			}
-		}
-
-	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
-		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
-		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
-		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
-		for (uint PosA = 0; PosA < LA; ++PosA)
-			{
-			byte ia = ProfRowA[PosA];
-			float *SimRow = Sim[PosA];
-			float *RevSimRow = RevSim[PosA];
-			const float *ScoreMxRow = ScoreMx[ia];
-
-			for (uint PosB = 0; PosB < LB; ++PosB)
-				{
-				byte ib = ProfRowB[PosB];
-				float MatchScore = 0;
-				assert(ia < AlphaSize && ib < AlphaSize);
-				MatchScore = ScoreMxRow[ib];
-				SimRow[PosB] += MatchScore;
-				RevSimRow[LB-1-PosB] += MatchScore;
-				}
-			}
-		}
-#if DEBUG
-	{
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		for (uint PosB = 0; PosB < LB; ++PosB)
-			{
-			float MatchScore = Sim[PosA][PosB];
-			float MatchScore2 = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
-			asserta(feq(MatchScore2, MatchScore));
-			}
-		}
-	}
-#endif
-	}
-
 void DSSAligner::SetSMx_QRev()
 	{
-	const DSSParams &Params = *m_Params;
-	const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	const uint LA = m_ChainA->GetSeqLength();
+	//const vector<vector<byte> > &ProfileA = *m_ProfileA;
+	uint LA = m_ChainA->GetSeqLength();
+	if (LA > 500)
+		LA = 500;//FIXME
 
-	Mx<float> &SMx = m_SMx;
-	SMx.Alloc(LA, LA);
+	//Mx<float> &SMx = m_SMx;
+	//m_SMx.Alloc(LA, LA, __FILE__, __LINE__);
+	AllocSMxData(LA, LA);
 	StartTimer(SetSMx_QRev);
-	float **Sim = SMx.GetData();
+	float **Sim = GetSMxData();
 
-	const uint FeatureCount = Params.GetFeatureCount();
-	asserta(SIZE(ProfileA) == FeatureCount);
+	const uint FeatureCount = m_Params->GetFeatureCount();
+	asserta(SIZE((*m_ProfileA)) == FeatureCount);
 
 // Special case first feature because = not += and
 	FEATURE F0 = m_Params->m_Features[0];
 	uint AlphaSize0 = g_AlphaSizes2[F0];
 	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
-	const vector<byte> &ProfRowA = ProfileA[0];
+	//const vector<byte> &ProfRowA = (*m_ProfileA)[0];
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
-		byte ia = ProfRowA[PosA];
+		byte ia = (*m_ProfileA)[0][PosA];
 		float *SimRow = Sim[PosA];
 		const float *ScoreMxRow = ScoreMx0[ia];
 
 		for (uint PosB = 0; PosB < LA; ++PosB)
 			{
-			byte ib = ProfRowA[LA-1-PosB];
+			byte ib = (*m_ProfileA)[0][LA-1-PosB];
 			assert(ia < AlphaSize0 && ib < AlphaSize0);
 			float MatchScore = ScoreMxRow[ib];
 			SimRow[PosB] = MatchScore;
@@ -466,16 +394,16 @@ void DSSAligner::SetSMx_QRev()
 		FEATURE F = m_Params->m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
 		float **ScoreMx = m_Params->m_ScoreMxs[F];
-		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
+		//const vector<byte> &ProfRowA = (*m_ProfileA)[FeatureIdx];
 		for (uint PosA = 0; PosA < LA; ++PosA)
 			{
-			byte ia = ProfRowA[PosA];
+			byte ia = (*m_ProfileA)[FeatureIdx][PosA];
 			float *SimRow = Sim[PosA];
 			const float *ScoreMxRow = ScoreMx[ia];
 
 			for (uint PosB = 0; PosB < LA; ++PosB)
 				{
-				byte ib = ProfRowA[LA-1-PosB];
+				byte ib = (*m_ProfileA)[FeatureIdx][LA-1-PosB];
 				float MatchScore = 0;
 				assert(ia < AlphaSize && ib < AlphaSize);
 				MatchScore = ScoreMxRow[ib];
@@ -490,51 +418,13 @@ void DSSAligner::SetSMx_QRev()
 		for (uint PosB = 0; PosB < LA; ++PosB)
 			{
 			float MatchScore = Sim[PosA][PosB];
-			float MatchScore2 = GetScorePosPair(ProfileA, ProfileA, PosA, LA-1-PosB);
+			float MatchScore2 = GetScorePosPair(*m_ProfileA, *m_ProfileA, PosA, LA-1-PosB);
 			asserta(feq(MatchScore2, MatchScore));
 			}
 		}
 	}
 #endif
 	EndTimer(SetSMx_QRev);
-	}
-
-void DSSAligner::SetSMx_Mu_Int()
-	{
-	const vector<byte> &MuLettersA = *m_MuLettersA;
-	const vector<byte> &MuLettersB = *m_MuLettersB;
-	const uint LA = SIZE(MuLettersA);
-	const uint LB = SIZE(MuLettersB);
-	const uint AS = 36;
-	asserta(AS == 36);
-
-	m_SMx_Int.Clear();
-	m_RevSMx_Int.Clear();
-	Mx<int8_t> &SMx = m_SMx_Int;
-	SMx.Alloc(LA, LB);
-	Mx<int8_t> &RevSMx = m_RevSMx_Int;
-	RevSMx.Alloc(LA, LB);
-	StartTimer(SetSMx_Mu_Int);
-	int8_t **Sim = SMx.GetData();
-	int8_t **RevSim = RevSMx.GetData();
-
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte LetterA = MuLettersA[PosA];
-		asserta(LetterA < AS);
-		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
-		int8_t *SimRow = Sim[PosA];
-		int8_t *RevSimRow = RevSim[PosA];
-		for (uint PosB = 0; PosB < LB; ++PosB)
-			{
-			byte LetterB = MuLettersB[PosB];
-			asserta(LetterB < AS);
-			int8_t Score = MuMxRow[LetterB];
-			SimRow[PosB] = Score;
-			RevSimRow[LB-1-PosB] = Score;
-			}
-		}
-	EndTimer(SetSMx_Mu_Int);
 	}
 
 void DSSAligner::SetMuQP()
@@ -583,44 +473,6 @@ void DSSAligner::SetMuQPi()
 		}
 	}
 
-void DSSAligner::SetSMx_Mu()
-	{
-	const vector<byte> &MuLettersA = *m_MuLettersA;
-	const vector<byte> &MuLettersB = *m_MuLettersB;
-	const uint LA = SIZE(MuLettersA);
-	const uint LB = SIZE(MuLettersB);
-	const uint AS = 36;
-	asserta(AS == 36);
-
-	m_SMx.Clear();
-	m_RevSMx.Clear();
-	Mx<float> &SMx = m_SMx;
-	SMx.Alloc(LA, LB);
-	Mx<float> &RevSMx = m_RevSMx;
-	RevSMx.Alloc(LA, LB);
-	StartTimer(SetSMx_Mu);
-	float **Sim = SMx.GetData();
-	float **RevSim = RevSMx.GetData();
-
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte LetterA = MuLettersA[PosA];
-		asserta(LetterA < AS);
-		const float *MuMxRow = ScoreMx_Mu[LetterA];
-		float *SimRow = Sim[PosA];
-		float *RevSimRow = RevSim[PosA];
-		for (uint PosB = 0; PosB < LB; ++PosB)
-			{
-			byte LetterB = MuLettersB[PosB];
-			asserta(LetterB < AS);
-			float Score = MuMxRow[LetterB];
-			SimRow[PosB] = Score;
-			RevSimRow[LB-1-PosB] = Score;
-			}
-		}
-	EndTimer(SetSMx_Mu);
-	}
-
 float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	{
 	StartTimer(GetMegaHSPScore);
@@ -662,79 +514,6 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	return Total;
 	}
 
-void DSSAligner::SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
-	{
-	const DSSParams &Params = *m_Params;
-	const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	const vector<vector<byte> > &ProfileB = *m_ProfileB;
-	const int SegLenA = Hi_i - Lo_i + 1;
-	const int SegLenB = Hi_j - Lo_j + 1;
-	asserta(SegLenA > 0 && SegLenB > 0);
-
-// Memory blows up with grow-only strategy due to tail of long chains
-	m_SMx.Clear();
-	Mx<float> &SMx = m_SMx;
-	SMx.Alloc((uint) SegLenA, (uint) SegLenB);
-	StartTimer(SetSMx_Box);
-	float **Sim = SMx.GetData();
-
-	const uint FeatureCount = Params.GetFeatureCount();
-	asserta(SIZE(ProfileA) == FeatureCount);
-	asserta(SIZE(ProfileB) == FeatureCount);
-
-// Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
-	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
-	const vector<byte> &ProfRowA = ProfileA[0];
-	const vector<byte> &ProfRowB = ProfileB[0];
-	//for (uint PosA = 0; PosA < LA; ++PosA)
-	for (int kA = 0; kA < SegLenA; ++kA)
-		{
-		uint PosA = uint(Lo_i + kA);
-		byte ia = ProfRowA[PosA];
-		assert(ia < AlphaSize0);
-		const float *ScoreMxRow = ScoreMx0[ia];
-
-		float *SimRow = Sim[kA];
-		for (int kB = 0; kB < SegLenB; ++kB)
-			{
-			uint PosB = uint(Lo_j + kB);
-			byte ib = ProfRowB[PosB];
-			assert(ia < AlphaSize0 && ib < AlphaSize0);
-			float MatchScore = ScoreMxRow[ib];
-			SimRow[kB] = MatchScore;
-			}
-		}
-
-	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
-		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
-		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
-		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
-		for (int kA = 0; kA < SegLenA; ++kA)
-			{
-			uint PosA = uint(Lo_i + kA);
-			byte ia = ProfRowA[PosA];
-			assert(ia < AlphaSize);
-			const float *ScoreMxRow = ScoreMx[ia];
-
-			float *SimRow = Sim[kA];
-			for (int kB = 0; kB < SegLenB; ++kB)
-				{
-				uint PosB = uint(Lo_j + kB);
-				byte ib = ProfRowB[PosB];
-				assert(ib < AlphaSize);
-				float MatchScore = ScoreMxRow[ib];
-				SimRow[kB] += MatchScore;
-				}
-			}
-		}
-	EndTimer(SetSMx_Box);
-	}
-
 void DSSAligner::SetSMx_NoRev()
 	{
 	const DSSParams &Params = *m_Params;
@@ -744,11 +523,12 @@ void DSSAligner::SetSMx_NoRev()
 	const uint LB = m_ChainB->GetSeqLength();
 
 // Memory blows up with grow-only strategy due to tail of long chains
-	m_SMx.Clear();
-	Mx<float> &SMx = m_SMx;
-	SMx.Alloc(LA, LB);
+	//m_SMx.Clear();
+	//Mx<float> &SMx = m_SMx;
+	//m_SMx.Alloc(LA, LB, __FILE__, __LINE__);
+	AllocSMxData(LA, LB);
 	StartTimer(SetSMx_NoRev);
-	float **Sim = SMx.GetData();
+	float **Sim = GetSMxData();
 
 	const uint FeatureCount = Params.GetFeatureCount();
 	asserta(SIZE(ProfileA) == FeatureCount);
@@ -1062,52 +842,6 @@ void DSSAligner::ClearAlign()
 	m_AlnFwdScore = -FLT_MAX;
 	}
 
-void DSSAligner::Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j)
-	{
-	ClearAlign();
-
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-
-	Lo_i -= 64;
-	Hi_i += 64;
-	Lo_j -= 64;
-	Hi_j += 64;
-
-	if (Lo_i < 0) Lo_i = 0;
-	if (Lo_j < 0) Lo_j = 0;
-
-	if (Hi_i >= int(LA)) Hi_i = int(LA) - 1;
-	if (Hi_j >= int(LB)) Hi_j = int(LB) - 1;
-
-	int Size_i = Hi_i - Lo_i + 1;
-	int Size_j = Hi_j - Lo_j + 1;
-	double BoxFract = double(Size_i*Size_j)/(LA*LB);
-	m_MKF.m_Lock.lock();
-	m_MKF.m_BoxAlnCount += 1;
-	m_MKF.m_SumBoxFract += BoxFract;
-	m_MKF.m_Lock.unlock();
-
-	//SetSMx_NoRev();
-	SetSMx_Box(Lo_i, Hi_i, Lo_j, Hi_j);
-
-	const uint SegLenA = uint(Hi_i - Lo_i + 1);
-	const uint SegLenB = uint(Hi_j - Lo_j + 1);
-
-	asserta(SegLenA <= LA && SegLenB <= LB);
-
-	StartTimer(SW_Box);
-	uint LoA, LoB, Leni, Lenj;
-	m_AlnFwdScore = SWFast(m_Mem, m_SMx, SegLenA, SegLenB,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
-	  LoA, LoB, Leni, Lenj, m_Path);
-	m_LoA = Lo_i + LoA;
-	m_LoB = Lo_j + LoB;
-	EndTimer(SW_Box);
-
-	CalcEvalue();
-	}
-
 void DSSAligner::Align_NoAccel()
 	{
 	ClearAlign();
@@ -1118,7 +852,7 @@ void DSSAligner::Align_NoAccel()
 
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
-	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LB,
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 	EndTimer(SWFwd);
@@ -1130,37 +864,18 @@ void DSSAligner::Align_QRev()
 	{
 	ClearAlign();
 	SetSMx_QRev();
-
-	const uint LA = m_ChainA->GetSeqLength();
+	m_AlnFwdScore = 0;
+	return;//FIXME
+	uint LA = m_ChainA->GetSeqLength();
+	if (LA > 500)
+		LA = 500;//FIXME
 
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
-	m_AlnFwdScore = SWFast(m_Mem, m_SMx, LA, LA,
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LA,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 	EndTimer(SWFwd);
-	}
-
-void DSSAligner::AlignMuPath()
-	{
-	//m_Path.clear();
-	//m_LoA = UINT_MAX;
-	//m_LoB = UINT_MAX;
-	//m_AlnFwdScore = 0;
-	ClearAlign();
-	float MuFwdScore = AlignMuQP_Para_Path(m_LoA, m_LoB, m_Path);
-	if (MuFwdScore < 0)
-		{
-		++m_ParasailSaturateCount;
-		SetSMx_NoRev();
-		Mx<float> &SMx = m_SMx;
-		Mx<float> &RevSMx = m_RevSMx;
-		MuFwdScore = 
-		  AlignMu(*m_MuLettersA, *m_MuLettersB, m_LoA, m_LoB, m_Path);
-		m_AlnFwdScore =
-		  GetDPScorePath(*m_ProfileA, *m_ProfileB, m_LoA, m_LoB, m_Path);
-		}
-	CalcEvalue();
 	}
 
 void DSSAligner::ToAln(FILE *f, bool Up) const
@@ -1229,30 +944,6 @@ void DSSAligner::ToTsv(FILE *f, bool Up)
 		}
 	fputc('\n', f);
 	m_OutputLock.unlock();
-	}
-
-float DSSAligner::AlignMu(
-  const vector<byte> &LettersA, const vector<byte> &LettersB,
-  uint &LoA, uint &LoB, string &Path)
-	{
-	m_MuLettersA = &LettersA;
-	m_MuLettersB = &LettersB;
-	SetSMx_Mu();
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
-
-	float GapOpen = -(float) m_Params->m_ParaMuGapOpen;
-	float GapExt = -(float) m_Params->m_ParaMuGapExt;
-	uint Loi, Loj, Leni, Lenj;
-
-	StartTimer(SWFast);
-	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
-	  Loi, Loj, Leni, Lenj, Path);
-	EndTimer(SWFast);
-	m_Mem.Clear();
-	LoA = Loi;
-	LoB = Loj;
-	return FwdScore;
 	}
 
 void DSSAligner::AllocDProw(uint LB)
@@ -1619,4 +1310,85 @@ void DSSAligner::AlignMKF()
 	m_AlnFwdScore = m_XDropScore;
 	m_Path = m_XDropPath;
 	CalcEvalue();
+	}
+
+const float * const *DSSAligner::GetSMxData() const
+	{
+	return m_SMx_Data;
+	}
+
+float **DSSAligner::GetSMxData()
+	{
+	return m_SMx_Data;
+	}
+
+void DSSAligner::AllocSMxData(uint LA, uint LB)
+	{
+	if (LA <= (2*m_SMx_Rows)/3 && LB <= (2*m_SMx_Cols)/3)
+		return;
+	FreeSMxData();
+	
+	size_t n = size_t(LA)*size_t(LB);
+	uint un = uint(n);
+	if (size_t(un) != n)
+		Die("AllocSMxData(%u, %u) overflow", LA, LB);
+
+	m_SMx_Buffer = (float *) malloc(un*sizeof(float));
+	m_SMx_Data = (float **) malloc(LA*sizeof(float *));
+	for (uint i = 0; i < LA; ++i)
+		m_SMx_Data[i] = m_SMx_Buffer + i*LB;
+
+	m_SMx_Rows = LA;
+	m_SMx_Cols = LB;
+	m_SMx_BufferSize = n;
+	}
+
+void DSSAligner::FreeSMxData()
+	{
+	if (m_SMx_Rows == 0)
+		{
+		asserta(m_SMx_BufferSize == 0);
+		asserta(m_SMx_Buffer == 0);
+		asserta(m_SMx_Data == 0);
+		return;
+		}
+
+	free(m_SMx_Data);
+	free(m_SMx_Buffer);
+
+	m_SMx_Data = 0;
+	m_SMx_Buffer = 0;
+	m_SMx_BufferSize = 0;
+	m_SMx_Rows = 0;
+	m_SMx_Cols = 0;
+	}
+
+static uint TESTN = 100000;
+static void TestThreadBody(uint ThreadIdx)
+	{
+	DSSAligner DA;
+	auto id = this_thread::get_id();
+	for (uint i = 0; i < TESTN; ++i)
+		{
+		if (ThreadIdx == 0)
+			ProgressStep(i, TESTN, "Working");
+		uint LA = 200 + randu32()%5000;
+		DA.AllocSMxData(LA, LA);
+		this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	}
+
+void cmd_test()
+	{
+	vector<thread *> ts;
+	const uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(TestThreadBody, ThreadIndex);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
 	}

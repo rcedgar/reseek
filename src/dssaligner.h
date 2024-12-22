@@ -34,6 +34,7 @@ public:
 	vector<const float *> m_ProfMuRev;
 	vector<const int8_t *> m_ProfMui;
 	vector<const int8_t *> m_ProfMuRevi;
+	vector<byte> m_MuRevA;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
 	MuKmerFilter m_MKF;
@@ -41,11 +42,7 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	Mx<float> m_SMx;
-	Mx<float> m_RevSMx;
-
-	Mx<int8_t> m_SMx_Int;
-	Mx<int8_t> m_RevSMx_Int;
+	Mx<float> m_SMxxx;
 
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
@@ -76,6 +73,12 @@ public:
 	vector<USERFIELD> m_UFs;
 	FILE *m_LastTsvFile = 0;
 
+	float **m_SMx_Data = 0;
+	float *m_SMx_Buffer = 0;
+	size_t m_SMx_BufferSize = 0;
+	uint m_SMx_Rows = 0;
+	uint m_SMx_Cols = 0;
+
 public:
 	static mutex m_OutputLock;
 	//static mutex m_StatsLock;
@@ -94,6 +97,7 @@ public:
 
 public:
 	DSSAligner();
+	~DSSAligner();
 
 public:
 	void SetParams(const DSSParams &Params);
@@ -116,7 +120,6 @@ public:
 	float GetMuScore();
 	bool MuFilter();
 	void ClearAlign();
-	void AlignMuPath();
 	void AlignQueryTarget();
 	void Align_Test(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
@@ -129,13 +132,8 @@ public:
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void AlignMKF();
 	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
-	void Align_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
-	void SetSMx_Box(int Lo_i, int Hi_i, int Lo_j, int Hi_j);
 	void Align_NoAccel();
 	void Align_QRev();
-	float AlignMu(
-	  const vector<byte> &LettersA, const vector<byte> &LettersB,
-	  uint &LoA, uint &LoB, string &Path);
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignMuQP_Para();
 	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
@@ -158,14 +156,16 @@ public:
 	void CalcEvalue();
 	void CalcEvalue_AAOnly();
 	void SetSMx_QRev();
-	void SetSMx_YesRev();
 	void SetSMx_NoRev();
 	void SetMuQP();
 	void SetMuQPi();
 	void SetMuQP_Para();
-	void SetSMx_Mu();
-	void SetSMx_Mu_Int();
+	//void SetSMx_Mu();
 	void AllocDProw(uint LB);
+	const float * const *GetSMxData() const;
+	float **GetSMxData();
+	void AllocSMxData(uint LA, uint LB);
+	void FreeSMxData();
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A

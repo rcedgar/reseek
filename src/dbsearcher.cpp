@@ -8,6 +8,18 @@
 #include <thread>
 #include "timing.h"
 
+DBSearcher::~DBSearcher()
+	{
+#define delv(x)	for (uint i = 0; i < SIZE(x); ++i) delete x[i];
+
+	delv(m_Mems)
+	delv(m_DAs)
+	delv(m_DBChains)
+	delv(m_DBProfiles);
+	delv(m_DBMuLettersVec);
+	delv(m_DBMuKmersVec);
+	}
+
 uint DBSearcher::GetDBSize() const
 	{
 	return GetDBChainCount();

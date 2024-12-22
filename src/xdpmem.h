@@ -24,7 +24,21 @@ public:
 	float *m_Buffer2 = 0;
 	int *m_Buffer1_Int = 0;
 
+private:
+	XDPMem(const XDPMem &);
+
 public:
+	XDPMem()
+		{
+		m_LA = 0;
+		m_LB = 0;
+		m_RevA = 0;
+		m_RevB = 0;
+		m_Buffer1 = 0;
+		m_Buffer2 = 0;
+		m_Buffer1_Int = 0;
+		}
+
 	~XDPMem()
 		{
 		Clear();
@@ -84,7 +98,7 @@ public:
 		Clear();
 		m_LA = LA;
 		m_LB = LB;
-		m_TBBit.Alloc(LA+8, LB+8);
+		m_TBBit.Alloc(LA+8, LB+8, __FILE__, __LINE__);
 
 		m_Buffer1 = myalloc(float, LB+8);
 		m_Buffer1_Int = myalloc(int, m_LB+8);
@@ -94,7 +108,7 @@ public:
 		}
 	};
 
-float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
+float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path);
 

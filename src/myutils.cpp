@@ -1781,10 +1781,20 @@ static bool TryStrOpt(const char *OptName, const char *Value)
 	return false;
 	}
 
+static void FreeOpts()
+	{
+#define FLT_OPT(Name, Default, Min, Max)	/* empty */
+#define UNS_OPT(Name, Default, Min, Max)	/* empty */
+#define FLAG_OPT(Name)						/* empty */
+#define STR_OPT(Name)						if (optset_##Name) free((void *) opt_##Name);
+#include "myopts.h"
+	}
+
 void MyCmdLine(int argc, char **argv)
 	{
 	setbuf(stdout, 0);
 	setbuf(stderr, 0);
+	atexit(FreeOpts);
 
 	if (argc == 1 ||
 	  argc == 2 && !strcmp(argv[1], "-h") ||
@@ -2394,4 +2404,9 @@ void Dirize(string &Dir)
 	{
 	if (!EndsWith(Dir, "/") && !EndsWith(Dir, "\\"))
 		Dir += "/";
+	}
+
+void MyutilsExit()
+	{
+	CloseStdioFile(g_fLog);
 	}

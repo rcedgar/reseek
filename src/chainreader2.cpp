@@ -8,6 +8,8 @@ void ChainReader2::Close()
 	{
 	if (m_Trace) Log("ChainReader2::Close()\n");
 	m_State = STATE_Closed;
+	if (m_ptrFS != 0)
+		delete m_ptrFS;
 	}
 
 void ChainReader2::Open(const string &FileName)

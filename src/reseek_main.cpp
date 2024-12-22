@@ -48,6 +48,6 @@ int main(int argc, char **argv)
 
 	LogTiming();
 	LogElapsedTimeAndRAM();
-
+	MyutilsExit();
 	return 0;
 	}

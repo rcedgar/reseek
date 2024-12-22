@@ -491,6 +491,9 @@
     <ClCompile Include="mymalloc_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mymalloc_gcc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

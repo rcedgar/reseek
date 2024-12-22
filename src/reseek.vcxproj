@@ -324,6 +324,7 @@
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_dbg.cpp" />
+    <ClCompile Include="mymalloc_gcc.cpp" />
     <ClCompile Include="mymalloc_win_debug.cpp" />
     <ClCompile Include="objcounter.cpp" />
     <ClCompile Include="pdb.cpp" />

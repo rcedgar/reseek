@@ -160,16 +160,17 @@ void DSSAligner::Align_Test(
 	Log("%.1f %.1f\n", FwdScore, FwdScore2);
 #endif
 
-#if TEST_XDrop
-	SetSMx_Mu();
+#if 0 // TEST_XDrop
+	//SetSMx_Mu(); 
+	Die("TODO");
 	uint LA = SIZE(MuLettersA);
 	uint LB = SIZE(MuLettersB);
 	float GapOpen = -(float) m_Params->m_ParaMuGapOpen;
 	float GapExt = -(float) m_Params->m_ParaMuGapExt;
 	uint LoA, LoB, LenA, LenB;
 	string Path;
-	float FwdScore = SWFast(m_Mem, m_SMx, LA, LB, GapOpen, GapExt,
-	  LoA, LoB, LenA, LenB, Path);
+	//float FwdScore = SWFast(m_Mem, m_SMx.GetData(), LA, LB, GapOpen, GapExt,
+	//  LoA, LoB, LenA, LenB, Path);
 	const float X = 8;
 
 	string FwdPathX;

@@ -307,7 +307,7 @@ void DALIScorer::SetColToPosVec(bool Core)
 	{
 	const uint SeqCount = m_MSA->GetSeqCount();
 	m_ColToPosVec.resize(SeqCount);
-#pragma omp for
+//#pragma omp for
 	for (int SeqIdx = 0; SeqIdx < int(SeqCount); ++SeqIdx)
 		GetColToPos(uint(SeqIdx), m_ColToPosVec[SeqIdx], Core);
 	}
@@ -522,7 +522,7 @@ void DALIScorer::SetDistMxs()
 	m_DistMxVec.resize(ChainCount);
 
 	const uint N = SIZE(m_SeqIdxToChainIdx);
-#pragma omp for
+//#pragma omp for
 	for (int ii = 0; ii < int(N); ++ii)
 		{
 		uint i = uint(ii);

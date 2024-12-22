@@ -1,6 +1,6 @@
 #include "myutils.h"
 
-#define TEST_MYMALLOC_DBG	1
+#define TEST_MYMALLOC_DBG	0
 
 #if MYMALLOC_DBG
 
@@ -18,7 +18,6 @@ struct MemData
 
 static mutex s_Lock;
 static bool s_trace = false;
-static bool s_use_malloc = false;
 static FILE *s_ftrace;
 static time_t s_t0 = time(0);
 static const uint32_t MEM_MAGIC = 0x3e3e3e3e;
@@ -49,7 +48,7 @@ static void DeleteBlock(MemData *Block)
 		Block->fwd->bwd = Block->bwd;
 	}
 
-static void MemTraceInit()
+static void mymalloc_trace_init()
 	{
 	s_Lock.lock();
 	if (s_ftrace == 0)
@@ -60,18 +59,15 @@ static void MemTraceInit()
 	s_Lock.unlock();
 	}
 
-void MemTrace(bool On)
+void mymalloc_trace(bool On)
 	{
 	s_trace = On;
 	if (On)
-		MemTraceInit();
+		mymalloc_trace_init();
 	}
 
 void *mymalloc(uint n, uint bytes1, const char *fn, int linenr)
 	{
-	if (s_use_malloc)
-		return mymalloc(n, bytes1);
-
 	size_t tot = size_t(n)*size_t(bytes1) + sizeof(MemData);
 	if (size_t(uint32(tot)) != tot)
 		{
@@ -94,7 +90,6 @@ void *mymalloc(uint n, uint bytes1, const char *fn, int linenr)
 	g_myalloc_netbytes += requested_bytes;
 	if (s_trace)
 		fprintf(s_ftrace, "%s:%d\t%p\t%u\n", fn, linenr, userp, requested_bytes);
-	s_Lock.unlock();
 
 	MemData *Block = (MemData *) p;
 
@@ -107,6 +102,7 @@ void *mymalloc(uint n, uint bytes1, const char *fn, int linenr)
 	Block->secs = uint(time(0) - s_t0);
 
 	InsertBlock(Block);
+	s_Lock.unlock();
 
 	return userp;
 	}
@@ -115,11 +111,6 @@ void myfree(void *userp)
 	{
 	if (userp == 0)
 		return;
-	if (s_use_malloc)
-		{
-		free(userp);
-		return;
-		}
 
 	MemData *p = (MemData *) (((byte *) userp) - sizeof(MemData));
 
@@ -129,9 +120,8 @@ void myfree(void *userp)
 		exit(1);
 		}
 
-	DeleteBlock(p);
-
 	s_Lock.lock();
+	DeleteBlock(p);
 	--g_mymalloc_netallocount;
 	g_myalloc_netbytes -= p->bytes;
 	if (s_trace)
@@ -156,36 +146,71 @@ void operator delete(void *p)
 	myfree(p);
 	}
 
-void mymalloc_print_state(FILE *f, const char *Msg)
+void mymalloc_write_state(const char *fn)
 	{
-	if (f == 0)
-		return;
-	const bool saved_use_malloc = s_use_malloc;
-	s_use_malloc = true;
-
-	fprintf(f, "\n");
-	fprintf(f, "mymalloc_print_state(%s)\n", Msg);
-	fprintf(f, "    idx     bytes   secs  src\n");
-	//          1234567  12345678  12345
-	uint64 sumbytes = 0;
+	s_Lock.lock();
+	fprintf(stderr, "\nmymalloc_write_state(%s)\n", fn);
+	FILE *f = fopen(fn, "w");
 	for (MemData *Block = s_BlockList; Block != 0; Block = Block->fwd)
-		{
-		sumbytes += Block->bytes;
-		fprintf(f, "%7u  %8u  %5u  %s:%d\n",
+		fprintf(f, "%u\t%u\t%u\t%s:%d\n",
 				Block->idx, 
 				Block->bytes,
 				Block->secs,
 				GetBaseName(Block->fn),
 				Block->linenr);
+	fclose(f);
+	s_Lock.unlock();
+	}
+
+void mymalloc_print_summary(FILE *f, const char *Msg)
+	{
+	if (f == 0)
+		return;
+	s_Lock.lock();
+
+	if (strcmp(Msg, "") != 0)
+		{
+		fprintf(f, "\n");
+		fprintf(f, "mymalloc_print_summary(%s)\n", Msg);
 		}
+
+	uint64 sumbytes = 0;
+	for (MemData *Block = s_BlockList; Block != 0; Block = Block->fwd)
+		sumbytes += Block->bytes;
 
 	fprintf(f, "%10.0f  mem bytes\n", GetMemUseBytes());
 	fprintf(f, "%10.0f  net bytes\n", double(g_myalloc_netbytes));
 	fprintf(f, "%10.0f  sum bytes\n", double(sumbytes));
 	fprintf(f, "%10u  net allocs\n", g_mymalloc_netallocount.load());
 	fprintf(f, "%10u  net news\n", g_mymalloc_netnewcount.load());
+	extern atomic<int> g_MxNetAllocCount;
+	extern atomic<int> g_MxNetAllocCount2;
+	fprintf(f, "%10d  net mx allocs\n", g_MxNetAllocCount.load());
+	fprintf(f, "%10d  net mx allocs #2\n", g_MxNetAllocCount2.load());
+	s_Lock.unlock();
+	}
 
-	s_use_malloc = saved_use_malloc;
+void mymalloc_print_state(FILE *f, const char *Msg)
+	{
+	if (f == 0)
+		return;
+
+	fprintf(f, "\n");
+	fprintf(f, "mymalloc_print_state(%s)\n", Msg);
+	fprintf(f, "    idx     bytes   secs  src\n");
+	//          1234567  12345678  12345
+	uint64 sumbytes = 0;
+	s_Lock.lock();
+	for (MemData *Block = s_BlockList; Block != 0; Block = Block->fwd)
+		fprintf(f, "%7u  %8u  %5u  %s:%d\n",
+				Block->idx, 
+				Block->bytes,
+				Block->secs,
+				GetBaseName(Block->fn),
+				Block->linenr);
+
+	mymalloc_print_summary(f, "");
+	s_Lock.unlock();
 	}
 
 #endif // MYMALLOC_DBG
@@ -201,6 +226,7 @@ void cmd_test()
 		ps.push_back(p);
 		}
 	mymalloc_print_state(g_fLog, "");
+	mymalloc_write_state("mymalloc.state");
 	}
 
 #endif

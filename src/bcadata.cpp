@@ -191,6 +191,7 @@ void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	uint16_t *ICs = myalloc(uint16_t, 3*L);
 	ReadStdioFile64(m_f, SeqOffset + L, ICs, 6*L);
 	Chain.CoordsFromICs(ICs, L);
+	myfree(ICs);
 	asserta(ChainIdx < SIZE(m_Labels));
 	Chain.m_Label = m_Labels[ChainIdx];
 	}

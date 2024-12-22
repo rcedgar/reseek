@@ -76,7 +76,7 @@ void TraceBackBitSW(XDPMem &Mem,
 		}
 	}
 
-float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
+float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path)
 	{
@@ -88,7 +88,7 @@ float SWFast(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
 
 	Mem.Clear();
 	Mem.Alloc(LA+32, LB+32);
-	const float * const *SMxData = SMx.GetData();
+	//const float * const *SMxData = SMx.GetData();
 
 	Leni = 0;
 	Lenj = 0;

@@ -14,6 +14,9 @@ class ChainReader2;
 class DBSearcher
 	{
 public:
+	~DBSearcher();
+
+public:
 	mutex m_Lock;
 	const DSSParams *m_Params = 0;
 	uint m_ThreadCount = UINT_MAX;

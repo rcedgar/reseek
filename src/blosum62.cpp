@@ -52,7 +52,7 @@ void SetBLOSUM62Mx(Mx<float> &Sf)
 	{
 	unsigned N = unsigned(strlen(Alphabet));
 
-	Sf.Alloc(256, 256);
+	Sf.Alloc(256, 256, __FILE__, __LINE__);
 	Sf.Init(0);
 	float **Data = Sf.GetData();
 
