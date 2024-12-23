@@ -4,8 +4,8 @@
 #include "pdbchain.h"
 #include "abcxyz.h"
 
-float GetSelfRevScore(const PDBChain &Chain,
-  const vector<vector<byte> > &Profile, DSSAligner &DA, DSS &D)
+float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
+					  const vector<vector<byte> > &Profile)
 	{
 	PDBChain RevChain = Chain;
 
@@ -17,6 +17,7 @@ float GetSelfRevScore(const PDBChain &Chain,
 	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
 	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
 	DA.AlignQueryTarget();
+	//DA.Align_NoAccel();
 	return DA.m_AlnFwdScore;
 	}
 
@@ -87,7 +88,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
-	float SelfRevScoreQ = GetSelfRevScore(*ChainQ, ProfileQ, DA, D);
+	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ);
 
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
@@ -98,7 +99,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
 
-	float SelfRevScoreT = GetSelfRevScore(*ChainT, ProfileT, DA, D);
+	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT);
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);

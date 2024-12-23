@@ -581,7 +581,7 @@ void DSSAligner::SetSMx_NoRev()
 		}
 	EndTimer(SetSMx_NoRev);
 // GetScorePosPair bug?
-#if 0 // DEBUG
+#if DEBUG
 	{
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{

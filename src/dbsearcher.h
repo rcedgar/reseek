@@ -87,8 +87,6 @@ public:
 	void RunStats() const;
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
 	  vector<byte> *ptrMuLetters);
-	//float GetSelfRevScore(const PDBChain &Chain,
-	//  const vector<vector<byte> > &Profile, DSSAligner &DA);
 
 #if SLOPE_CALIB
 // Slope calibrated runtime

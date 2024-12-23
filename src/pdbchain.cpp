@@ -482,4 +482,5 @@ void PDBChain::GetReverse(PDBChain &Rev) const
 	{
 	Rev = *this;
 	Rev.Reverse();
+	Rev.m_Label += ".rev";
 	}
