@@ -6,10 +6,16 @@ uint ChainReader2::m_CRGlobalFormatErrors;
 
 void ChainReader2::Close()
 	{
+	m_CRGlobalLock.lock();
 	if (m_Trace) Log("ChainReader2::Close()\n");
-	m_State = STATE_Closed;
-	if (m_ptrFS != 0)
-		delete m_ptrFS;
+	if (m_State != STATE_Closed)
+		{
+		m_State = STATE_Closed;
+		if (m_ptrFS != 0)
+			delete m_ptrFS;
+		m_ptrFS = 0;
+		}
+	m_CRGlobalLock.unlock();
 	}
 
 void ChainReader2::Open(const string &FileName)
@@ -94,6 +100,7 @@ PDBChain *ChainReader2::GetNext()
 
 		if (Chain == 0)
 			return 0;
+
 		if (Chain->GetSeqLength() == 0)
 			{
 			delete Chain;
@@ -121,10 +128,7 @@ PDBChain *ChainReader2::GetNextLo1()
 			string FN;
 			bool Ok = m_ptrFS->GetNext(FN);
 			if (!Ok)
-				{
-				Close();
 				return 0;
-				}
 			PDBChain *Chain = GetFirst(FN);
 			if (Chain != 0)
 				return Chain;
