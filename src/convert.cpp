@@ -135,7 +135,11 @@ static void ThreadBody(uint ThreadIndex)
 		s_LockStats.lock();
 		++s_OutputCount;
 		if (s_ptrLabelSet != 0)
-			s_ptrLabelSet->erase(ptrChain->m_Label);
+			{
+			string UpperLabel = ptrChain->m_Label;
+			ToUpper(UpperLabel);
+			s_ptrLabelSet->erase(UpperLabel);
+			}
 		s_LockStats.unlock();
 
 		if (s_fCal != 0)
