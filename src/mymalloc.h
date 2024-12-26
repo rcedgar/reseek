@@ -10,9 +10,9 @@ void myfree(void *p);
 
 uint mymalloc_set_summary_secs(uint secs);
 void mymalloc_set_dump_secs(uint secs);
-void mymalloc_print_summary(FILE *f, const char *Msg);
-void mymalloc_print_state(FILE *f, const char *Msg);
-void mymalloc_write_state();
+void mymalloc_print_summary(int fd, const char *Msg);
+void mymalloc_print_state(int fd, const char *Msg);
+void mymalloc_write_state(const char *fn);
 void mymalloc_trace(bool on);
 void *mymalloc(unsigned n, unsigned bytes, const char *fn, int linenr);
 void *mymalloc(unsigned n, unsigned bytes);

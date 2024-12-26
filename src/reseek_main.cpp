@@ -6,7 +6,7 @@
 int g_Frame = 0;
 string g_Arg1;
 
-void cmd_test() {}
+// void cmd_test() {}
 
 int main(int argc, char **argv)
 	{
@@ -52,7 +52,8 @@ int main(int argc, char **argv)
 
 #define C(x)	if (optset_##x) { void cmd_##x(); cmd_##x(); }
 #include "cmds.h"
-	mymalloc_write_state();
+	if (optset_myalloc_exit_state)
+		mymalloc_write_state("exit.state");
 
 	LogTiming();
 	LogElapsedTimeAndRAM();
