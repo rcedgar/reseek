@@ -25,7 +25,9 @@ public:
 		m_RowCount = 0;
 		m_ColCount = 0;
 		m_Data = 0;
+#if ONE_BUFFER
 		m_Buffer = 0;
+#endif
 		}
 
 	~Mx()
@@ -78,7 +80,9 @@ public:
 		m_Data = 0;
 		m_RowCount = 0;
 		m_ColCount = 0;
+#if ONE_BUFFER
 		m_Buffer = 0;
+#endif
 		}
 
 	T **GetData()
@@ -129,6 +133,6 @@ public:
 		}
 	};
 
-void LogMxAllocCounts(const char *s);
+// void LogMxAllocCounts(const char *s);
 
 #endif // mx_h

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "dss.h"
 #include "timing.h"
+#include <malloc.h>
 
 int g_Frame = 0;
 string g_Arg1;
@@ -9,6 +10,11 @@ void cmd_test() {}
 
 int main(int argc, char **argv)
 	{
+#if defined(__GNUC__)
+//	//mallopt(M_MMAP_THRESHOLD, 128*1024);
+//	//mallopt(M_MMAP_THRESHOLD, 1024*1024*1024);
+	mallopt(M_MMAP_MAX, 0);
+#endif
 	MyCmdLine(argc, argv);
 	LogProgramInfoAndCmdLine();
 	if (!opt_quiet)
@@ -17,7 +23,6 @@ int main(int argc, char **argv)
 		PrintCopyright(stdout);
 		}
 	InitTiming();
-
 	uint n = SIZE(g_Argv);
 	asserta(n > 0);
 	string ShortCmdLine;
@@ -34,6 +39,11 @@ int main(int argc, char **argv)
 		Progress("[%s]\n", ShortCmdLine.c_str() + 1);
 		ProgressPrefix(true);
 		}
+
+	if (optset_myalloc_summary_secs)
+		mymalloc_set_summary_secs(opt_myalloc_summary_secs);
+	if (optset_myalloc_dump_secs)
+		mymalloc_set_dump_secs(opt_myalloc_dump_secs);
 
 	uint CmdCount = 0;
 #define C(x)	if (optset_##x) ++CmdCount;

@@ -30,17 +30,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		{
 		PDBChain *Chain1 = ptrQueryCR->GetNext();
 		if (Chain1 == 0)
-			{
-			static bool ExitMsgDone = false;
-			m_Lock.lock();
-			if (!ExitMsgDone)
-				{
-				ProgressLog("Before exit threads %.4g\n", GetMemUseBytes());
-				ExitMsgDone = true;
-				}
-			m_Lock.unlock();
 			return;
-			}
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
@@ -120,8 +110,7 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-	ProgressLog("After exit threads %.4g\n", GetMemUseBytes());
-
+ 
 	time_t t_end = time(0);
 	m_Secs = uint(t_end - t_start);
 	if (m_Secs == 0)

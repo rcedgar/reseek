@@ -41,6 +41,4 @@ void cmd_search()
 		DBS.RunQuery(QCR);
 		}
 	CloseStdioFile(DBS.m_fTsv);
-	Log("cmd_search() exit Params.m_OwnScoreMxs=%c\n",
-		tof(Params.m_OwnScoreMxs));
 	}

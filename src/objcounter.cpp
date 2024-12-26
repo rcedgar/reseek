@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "objcounter.h"
-
+#if 0
 mutex g_ObjCounter_Lock;
 map<string, int> g_ObjCounter_NameToObjCount;
 map<string, int> g_ObjCounter_NameToMaxObjCount;
@@ -53,3 +53,4 @@ void ObjCounter_LogReport()
 		}
 	g_ObjCounter_Lock.unlock();
 	}
+#endif // 0
