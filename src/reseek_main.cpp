@@ -10,11 +10,6 @@ void cmd_test() {}
 
 int main(int argc, char **argv)
 	{
-#if defined(__GNUC__)
-//	//mallopt(M_MMAP_THRESHOLD, 128*1024);
-//	//mallopt(M_MMAP_THRESHOLD, 1024*1024*1024);
-	mallopt(M_MMAP_MAX, 0);
-#endif
 	MyCmdLine(argc, argv);
 	LogProgramInfoAndCmdLine();
 	if (!opt_quiet)
@@ -44,6 +39,8 @@ int main(int argc, char **argv)
 		mymalloc_set_summary_secs(opt_myalloc_summary_secs);
 	if (optset_myalloc_dump_secs)
 		mymalloc_set_dump_secs(opt_myalloc_dump_secs);
+	if (optset_myalloc_trace)
+		mymalloc_trace(true);
 
 	uint CmdCount = 0;
 #define C(x)	if (optset_##x) ++CmdCount;
@@ -55,6 +52,7 @@ int main(int argc, char **argv)
 
 #define C(x)	if (optset_##x) { void cmd_##x(); cmd_##x(); }
 #include "cmds.h"
+	mymalloc_write_state();
 
 	LogTiming();
 	LogElapsedTimeAndRAM();
