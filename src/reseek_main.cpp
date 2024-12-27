@@ -1,12 +1,11 @@
 #include "myutils.h"
 #include "dss.h"
 #include "timing.h"
-#include <malloc.h>
 
 int g_Frame = 0;
 string g_Arg1;
 
-// void cmd_test() {}
+void cmd_test() {}
 
 int main(int argc, char **argv)
 	{
@@ -53,7 +52,11 @@ int main(int argc, char **argv)
 #define C(x)	if (optset_##x) { void cmd_##x(); cmd_##x(); }
 #include "cmds.h"
 	if (optset_myalloc_exit_state)
-		mymalloc_write_state("exit.state");
+		{
+		mymalloc_write_state("myalloc_exit.state");
+		mymalloc_write_map("myalloc_exit.map");
+		mymalloc_print_summary("exit");
+		}
 
 	LogTiming();
 	LogElapsedTimeAndRAM();

@@ -182,6 +182,8 @@ void DSS::SetDensity_ScaledValues()
 		return;
 	const uint L = GetSeqLength();
 	vector<double> Values;
+	m_Density_ScaledValues.reserve(L);
+	Values.reserve(L);
 	double MinValue = 999;
 	double MaxValue = 0;
 	for (uint Pos = 0; Pos < L; ++Pos)
@@ -303,6 +305,9 @@ void DSS::Set_NU_ND_Vecs()
 	if (!m_NUs.empty())
 		return;
 	const uint L = GetSeqLength();
+	m_NUs.reserve(L);
+	m_NDs.reserve(L);
+	m_NXs.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		double NU, ND;
@@ -642,6 +647,7 @@ void DSS::GetMuLetters(vector<uint> &Letters)
 	{
 	Letters.clear();
 	const uint L = GetSeqLength();
+	Letters.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		uint Letter = GetFeature(FEATURE_Mu, Pos);
@@ -657,6 +663,7 @@ void DSS::GetAaKmers(const vector<byte> &Letters,
 	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
+	Kmers.reserve(L);
 	for (uint Pos = 0; Pos + PatternLength <= L; ++Pos)
 		{
 		uint Kmer = 0;
@@ -682,6 +689,7 @@ void DSS::GetMuKmers(const vector<byte> &Letters,
 	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
+	Kmers.reserve(L);
 	for (uint Pos = 0; Pos + PatternLength <= L; ++Pos)
 		{
 		uint Kmer = 0;
@@ -710,6 +718,7 @@ void DSS::GetAaLetters(vector<byte> &Letters)
 	{
 	Letters.clear();
 	const uint L = GetSeqLength();
+	Letters.reserve(L);
 	const string &Seq = m_Chain->m_Seq;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
@@ -725,6 +734,7 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 	{
 	Letters.clear();
 	const uint L = GetSeqLength();
+	Letters.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		uint Letter = Get_Mu(Pos);
@@ -742,9 +752,11 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 	const uint L = GetSeqLength();
 	const string &Seq = m_Chain->m_Seq;
 	const uint FeatureCount = m_Params->GetFeatureCount();
+	Profile.reserve(FeatureCount);
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		vector<byte> ProfRow;
+		ProfRow.reserve(L);
 		FEATURE Feature = m_Params->m_Features[i];
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{

@@ -5,7 +5,9 @@
 #include "profileloader.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile);
+					  const vector<vector<byte> > &Profile,
+					  const vector<byte> *ptrMuLetters,
+					  const vector<uint> *ptrMuKmers);
 
 void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 	{
@@ -55,7 +57,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
 		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers);
 		if (m_SelfRevScores != 0) SelfRevScore =
-			GetSelfRevScore(DA, D, *Chain, *ptrProfile);
+			GetSelfRevScore(DA, D, *Chain, *ptrProfile, MuLetters, MuKmers);
 
 		m_Lock.lock();
 		Chain->m_Idx = SIZE(*m_Chains);

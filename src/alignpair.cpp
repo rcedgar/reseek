@@ -5,17 +5,20 @@
 #include "abcxyz.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile)
+					  const vector<vector<byte> > &Profile,
+					  const vector<byte> *ptrMuLetters,
+					  const vector<uint> *ptrMuKmers)
 	{
-	PDBChain RevChain = Chain;
-
-	RevChain.Reverse();
+	if (opt_selfrev0)
+		return 0;
+	PDBChain RevChain;
+	Chain.GetReverse(RevChain);
 	vector<vector<byte> > RevProfile;
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
 
-	DA.SetQuery(Chain, &Profile, 0, 0, FLT_MAX);
-	DA.SetTarget(RevChain, &RevProfile, 0, 0, FLT_MAX);
+	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 	DA.AlignQueryTarget();
 	//DA.Align_NoAccel();
 	return DA.m_AlnFwdScore;
@@ -88,7 +91,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
-	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ);
+	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ, 0, 0);
 
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
@@ -99,7 +102,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
 
-	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT);
+	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT, 0, 0);
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);

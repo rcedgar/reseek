@@ -5,7 +5,9 @@
 #include "mx.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile);
+					  const vector<vector<byte> > &Profile,
+					  const vector<byte> *ptrMuLetters,
+					  const vector<uint> *ptrMuKmers);
 
 void DBSearcher::StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS,
   ChainReader2 *ptrQueryCR)
@@ -38,7 +40,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);
-		float SelfRevScore = GetSelfRevScore(DA, D, *Chain1, Profile1);
+		float SelfRevScore = GetSelfRevScore(
+			DA, D, *Chain1, Profile1, ptrMuLetters1, ptrMuKmers1);
 		DA.SetQuery(*Chain1, &Profile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)
@@ -50,6 +53,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 				time_t now = time(0);
 				if (now > m_LastProgress)
 					{
+					static bool DumpDone = false;
 					Progress("%s query chains\r",
 							 IntToStr(m_ProcessedQueryCount));
 					m_LastProgress = now;

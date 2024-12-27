@@ -390,8 +390,6 @@ void RunThreads(fn_thread_body Body, void *ptrUserData);
 
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()
-#else
-#define brk(x)		(0)
 #endif
 
 #include "mymalloc.h"

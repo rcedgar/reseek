@@ -1,8 +1,11 @@
 #include "myutils.h"
 #include <fcntl.h>
+#if defined(__GNUC__)
+#include <unistd.h>
+#include <sys/resource.h>
+#else
 #include <io.h>
-
-#define TEST_MYMALLOC_DBG	1
+#endif
 
 #if MYMALLOC_DBG
 
@@ -33,18 +36,19 @@ static uint s_dump_secs = 0;
 static time_t s_last_summary_secs = 0;
 static int s_summary_fd = -1;
 static bool s_write_state_done = false;
+static bool s_touch_mem = true;
 
 static const size_t s_printf_buffer_sz = 1023;
 static char s_printf_buffer[s_printf_buffer_sz+1];
 
-static const char *ps(const char *Format, ...)
-	{
-	va_list ArgList;
-	va_start(ArgList, Format);
-	vsnprintf(s_printf_buffer, s_printf_buffer_sz, Format, ArgList);
-	s_printf_buffer[s_printf_buffer_sz] = 0;
-	va_end(ArgList);
-	}
+//static const char *ps(const char *Format, ...)
+//	{
+//	va_list ArgList;
+//	va_start(ArgList, Format);
+//	vsnprintf(s_printf_buffer, s_printf_buffer_sz, Format, ArgList);
+//	s_printf_buffer[s_printf_buffer_sz] = 0;
+//	va_end(ArgList);
+//	}
 
 static void writes(int fd, const char *Format, ...)
 	{
@@ -54,7 +58,7 @@ static void writes(int fd, const char *Format, ...)
 	s_printf_buffer[s_printf_buffer_sz] = 0;
 	va_end(ArgList);
 	size_t n = strlen(s_printf_buffer);
-	write(fd, s_printf_buffer, uint(n));
+	int rc = write(fd, s_printf_buffer, uint(n));
 	}
 
 void mymalloc_set_dump_secs(uint secs)
@@ -66,7 +70,7 @@ uint mymalloc_set_summary_secs(uint secs)
 	{
 	uint old_secs = s_summary_secs;
 	if (secs > 0 && s_summary_fd < 0)
-		s_summary_fd = open("myalloc.summary", O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
+		s_summary_fd = open("myalloc.summary", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	s_summary_secs = secs;
 	return old_secs;
 	}
@@ -97,7 +101,7 @@ static void mymalloc_trace_init()
 	{
 	s_Lock.lock();
 	if (s_trace_fd < 0)
-		s_trace_fd = open("mem.trace", O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
+		s_trace_fd = open("mem.trace", O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	s_Lock.unlock();
 	}
 
@@ -111,7 +115,11 @@ void mymalloc_trace(bool On)
 void *mymalloc_lo(uint n, uint bytes1, const char *fn, int linenr)
 	{
 	size_t tot = size_t(n)*size_t(bytes1) + sizeof(mem_data);
-
+#if defined(__GNUC__)
+	rusage ru;
+	getrusage(RUSAGE_SELF, &ru);
+	double RSS1 = ru.ru_maxrss*1024.0;
+#endif
 	if (size_t(uint32(tot)) != tot)
 		{
 		writes(2, "\n\nmymalloc(%u, %u) overflow\n\n", n, bytes1);
@@ -119,6 +127,8 @@ void *mymalloc_lo(uint n, uint bytes1, const char *fn, int linenr)
 		}
 	uint32_t requested_bytes = uint32_t(n*bytes1);
 	void *p = malloc(tot);
+	if (s_touch_mem)
+		memset(p, 0xff, tot);
 	if (0 == p)
 		{
 		double b = GetMemUseBytes();
@@ -126,6 +136,12 @@ void *mymalloc_lo(uint n, uint bytes1, const char *fn, int linenr)
 		  n, bytes1, b);
 		exit(1);
 		}
+#if defined(__GNUC__)
+	getrusage(RUSAGE_SELF, &ru);
+	double RSS2 = ru.ru_maxrss*1024.0;
+	if (RSS1 - RSS2 > 1e9)
+		Die("myalloc_lo(%u, %u, %s:%d)", n, bytes1, fn, linenr);
+#endif
 
 	void *userp = (void *) (((byte *) p) + sizeof(mem_data));
 	s_Lock.lock();
@@ -223,7 +239,7 @@ void mymalloc_write_state(const char *fn)
 	{
 	if (fn[0] == 0)
 		return;
-	int fd = open(fn, O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
+	int fd = open(fn, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fd < 0)
 		{
 		writes(2, "\nmymalloc_write_state(%s) open error %d\n", fn, errno);
@@ -239,42 +255,54 @@ void mymalloc_write_state(const char *fn)
 				Block->secs,
 				GetBaseName(Block->fn),
 				Block->linenr);
+	close(fd);
+	s_Lock.unlock();
+	}
 
 #if defined(__GNUC__)
+void mymalloc_write_map(const char *fn)
 	{
 	int proc_maps_fd = open("/proc/self/maps", O_RDONLY);
 	if (proc_maps_fd < 0)
 		{
 		int e = errno;
 		writes(2, "\nopen(/proc/self/maps) failed errno=%d\n", e);
+		return;
 		}
-	else
+	int proc_maps_copy_fd = open(fn, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (proc_maps_copy_fd < 0)
 		{
-		int proc_maps_copy_fd = open("myalloc.maps", O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
-		if (proc_maps_copy_fd < 0)
+		int e = errno;
+		writes(2, "\nopen(/proc/self/maps) failed errno=%d\n", e);
+		close(proc_maps_fd);
+		return;
+		}
+	for (;;)
+		{
+		byte data = 0;
+		int rc = read(proc_maps_fd, &data, 1);
+		if (rc == 0 || data == 0)
+			break;
+		if (rc < 0)
 			{
 			int e = errno;
-			writes(2, "\nopen(/proc/self/maps) failed errno=%d\n", e);
+			writes(2, "\nopen(/proc/self/maps) read error errno=%d\n", e);
+			break;
 			}
-		else
+		rc = write(proc_maps_copy_fd, &data, 1);
+		if (rc < 0)
 			{
-			for (;;)
-				{
-				byte data;
-				int c = read(proc_maps_fd, &data, 1);
-				if (c == -1)
-					break;
-				write(proc_maps_copy_fd, &data, 1);
-				}
-			close(proc_maps_copy_fd);
+			int e = errno;
+			writes(2, "\nopen(/proc/self/maps) write error errno=%d\n", e);
+			break;
 			}
-		close(proc_maps_fd);
 		}
+	close(proc_maps_copy_fd);
+	close(proc_maps_fd);
 	}
+#else // !__GNUC__
+void mymalloc_write_map(const char *fn) {}
 #endif // __GNUC__
-	close(fd);
-	s_Lock.unlock();
-	}
 
 void mymalloc_print_summary(int fd, const char *Msg)
 	{
@@ -302,7 +330,6 @@ void mymalloc_print_summary(int fd, const char *Msg)
 	double net = double(g_myalloc_netbytes);
 	double sum = double(sumbytes);
 	double newbytes = double(g_mymalloc_netnewbytes.load());
-
 	writes(fd, "%10.0f  mem_bytes (%.3g)\n", mem, mem);
 	writes(fd, "%10.0f  net_bytes (%.3g)\n", net, net);
 	writes(fd, "%10.0f  sum_block_bytes (%.3g)\n", sum, sum);
@@ -311,6 +338,12 @@ void mymalloc_print_summary(int fd, const char *Msg)
 	writes(fd, "%10u  net_allocs\n", g_mymalloc_netallocount.load());
 	writes(fd, "%10u  net_news\n", g_mymalloc_netnewcount.load());
 	writes(fd, "%10u  nrblocks\n", nrblocks);
+#if defined(__GNUC__)
+	rusage ru;
+	getrusage(RUSAGE_SELF, &ru);
+	double RSS = ru.ru_maxrss*1024.0;
+	writes(fd, "%10.0f  maxrss (%.3g)\n", RSS, RSS);
+#endif
 	s_Lock.unlock();
 	}
 
@@ -336,24 +369,9 @@ void mymalloc_print_state(int fd, const char *Msg)
 	s_Lock.unlock();
 	}
 
-#endif // MYMALLOC_DBG
-
-#if TEST_MYMALLOC_DBG
-
-void cmd_test()
+void mymalloc_print_summary(const char *Msg)
 	{
-	vector<byte *> ps;
-	for (int i = 0; i < 100; ++i)
-		{
-		byte *p = myalloc(byte, randu32()%100 + 3);
-		ps.push_back(p);
-		}
-	if (g_fLog != 0)
-		{
-		int fd = fileno(g_fLog);
-		mymalloc_print_state(fd, "");
-		}
-	mymalloc_write_state("test.state");
+	mymalloc_print_summary(s_summary_fd, Msg);
 	}
 
-#endif
+#endif // MYMALLOC_DBG
