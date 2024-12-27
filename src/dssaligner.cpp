@@ -1003,9 +1003,9 @@ void DSSAligner::Stats()
 	uint Satn = m_ParasailSaturateCount;
 	uint Disn = m_MuFilterDiscardCount;
 	uint Inn = m_MuFilterInputCount;
-	ProgressLog("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)",
+	Log("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)",
 	  FloatToStr(m_AlnCount), Inn, Disn, GetPct(Disn, Inn), Satn);
-	ProgressLog(" xfil %.1f%%\n",
+	Log(" xfil %.1f%%\n",
 				GetPct(m_XDropDiscardCount, m_XDropAlnCount+1));
 	MuKmerFilter::Stats();
 	}

@@ -294,11 +294,11 @@ void MuKmerFilter::ChainHSPs()
 
 void MuKmerFilter::Stats()
 	{
-	ProgressLog("MKF %u pairs, %u with HSPs (%.1f%%), box alns %u fract %.3g",
+	Log("MKF %u pairs, %u with HSPs (%.1f%%), box alns %u fract %.3g",
 				m_PairCount, m_PairWithHSPCount,
 				GetPct(m_PairWithHSPCount,m_PairCount),
 				m_BoxAlnCount, m_SumBoxFract/(m_BoxAlnCount+1));
-	ProgressLog(", hsps/chain %.1f",
+	Log(", hsps/chain %.1f",
 				double(m_ChainHSPCount)/double(m_ChainCount+0.1));
-	ProgressLog("\n");
+	Log("\n");
 	}

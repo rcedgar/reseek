@@ -4,13 +4,11 @@
 void DSSParams::FromParamStr(const string &Str)
 	{
 	Clear();
-	m_Desc = "FromParamStr";
 	vector<string> Fields;
 	Split(Str, Fields, '_');
 
 	m_GapOpen = -1.5f;
 	m_GapExt = -0.42f;
-	m_DALIw = 0;
 	m_FwdMatchScore = 0;
 	m_MinFwdScore = 0;
 	m_Omega = 0;
@@ -33,7 +31,6 @@ void DSSParams::FromParamStr(const string &Str)
 void DSSParams::SetNamedParams(const string &Name)
 	{
 	Clear();
-	m_Desc = Name;
 
 	if (Name == "aa")
 		{
@@ -43,7 +40,6 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -1.5f;
 		m_GapExt = -0.42f;
-		m_DALIw = 0;
 		m_FwdMatchScore = 0;
 		m_MinFwdScore = 0;
 		m_Omega = 0;
@@ -53,7 +49,6 @@ void DSSParams::SetNamedParams(const string &Name)
 
 	if (Name == "defaults")
 		{
-		m_Desc.clear();
 		AddFeature(FEATURE_AA,			0.398145);
 		AddFeature(FEATURE_NENDist,		0.129367);
 		AddFeature(FEATURE_Conf,		0.202354);
@@ -65,7 +60,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.685533f;
 		m_GapExt = -0.051881f;
-		m_DALIw = 3.0f;
+		//m_DALIw = 3.0f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_Omega = 29;
@@ -90,7 +85,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.945997f;
 		m_GapExt = -0.12f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_Omega = 10;
@@ -107,7 +102,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.947013f;
 		m_GapExt = -0.131341f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_Omega = 10;
@@ -123,7 +118,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.861921f;
 		m_GapExt = -0.156609f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_Omega = 10;
@@ -138,7 +133,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.861921f;
 		m_GapExt = -0.156609f;
-		m_DALIw = 2.78145f;
+		//m_DALIw = 2.78145f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_Omega = 10;
@@ -158,7 +153,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -1.09f;
 		m_GapExt = -0.12f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_PatternStr = "10000000001";
@@ -178,7 +173,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -1.1f;
 		m_GapExt = -0.143f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_PatternStr = "10000000001";
@@ -200,7 +195,7 @@ void DSSParams::SetNamedParams(const string &Name)
 
 		m_GapOpen = -0.8832f;
 		m_GapExt = -0.1348f;
-		m_DALIw = 2.4f;
+		//m_DALIw = 2.4f;
 		m_FwdMatchScore = 0.1f;
 		m_MinFwdScore = 7.0f;
 		m_PatternStr = "10000000001";

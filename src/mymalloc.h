@@ -22,13 +22,13 @@ void *mymalloc(unsigned n, unsigned bytes);
 
 #else
 
-#define mymalloc_print_summary(x)	/* empty */ 
-#define mymalloc_set_summary_secs(secs) /* empty */
-#define mymalloc_set_dump_secs(secs) /* empty */
-#define mymalloc_print_state(f, Msg)	/* empty */
-#define mymalloc_write_map(fn)	/* empty */
-#define mymalloc_write_state(fn)	/* empty */
-#define mymalloc_trace(on)	/* empty */
+#define mymalloc_print_summary(x)	0
+#define mymalloc_set_summary_secs(secs) 0
+#define mymalloc_set_dump_secs(secs) 0
+#define mymalloc_print_state(f, Msg)	0
+#define mymalloc_write_map(fn)	0
+#define mymalloc_write_state(fn)	0
+#define mymalloc_trace(on)	0
 void *mymalloc(unsigned n, unsigned bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t))
 

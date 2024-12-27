@@ -79,29 +79,25 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		m_MKF_MinMegaHSPScore = -99999;
 		}
 	const int MINUS = -1; // for visual emphasis here
-	if (optset_omega) { m_Omega = (float) opt_omega; Psa(m_Desc, " -omega %.4g", opt_omega); }
-	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; Psa(m_Desc, " -omegafwd %.4g", opt_omegafwd); }
-	if (optset_daliw) { m_DALIw = (float) opt_daliw; Psa(m_Desc, " -daliw %.4g", opt_daliw); }
-	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); Psa(m_Desc, " -minfwdscore %.4g", opt_minfwdscore); }
-	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); Psa(m_Desc, " -gapopen %.4g", opt_gapopen); }
-	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); Psa(m_Desc, " -gapext %.4g", opt_gapext); }
-	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; Psa(m_Desc, " -para_mugapopen %u", opt_para_mugapopen); }
-	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; Psa(m_Desc, " -para_mugapext %u", opt_para_mugapext); }
-	if (optset_pattern) { m_PatternStr = string(opt_pattern); Psa(m_Desc, " -pattern %s", opt_pattern); }
-	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; Psa(m_Desc, " -minhsp %u", opt_minhsp); }
-	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt_minmegahsp); Psa(m_Desc, " -minmegahsp %.1f", opt_minmegahsp); }
-	if (optset_xdrop1) { m_MKF_X1 = int(opt_xdrop1); Psa(m_Desc, " -xdrop1 %u", opt_xdrop1); }
-	if (optset_xdrop2) { m_MKF_X2 = int(opt_xdrop2); Psa(m_Desc, " -xdrop2 %u", opt_xdrop2); }
-	if (optset_mkfl) { m_MKFL = int(opt_mkfl); Psa(m_Desc, " -mkfl %u", opt_mkfl); }
+	if (optset_omega) { m_Omega = (float) opt_omega;  }
+	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; }
+	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); }
+	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); }
+	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); }
+	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; }
+	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; }
+	if (optset_pattern) { m_PatternStr = string(opt_pattern); }
+	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; }
+	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt_minmegahsp); }
+	if (optset_xdrop1) { m_MKF_X1 = int(opt_xdrop1); }
+	if (optset_xdrop2) { m_MKF_X2 = int(opt_xdrop2); }
+	if (optset_mkfl) { m_MKFL = int(opt_mkfl); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
 		  opt_gapopen, opt_gapext);
 
 	InitScoreMxs();
-	WriteSummary(g_fLog);
-	if (!opt_quiet)
-		WriteSummary(stderr);
 	}
 
 void DSSParams::FromTsv(const string &FileName)
@@ -137,40 +133,6 @@ void DSSParams::ToFev(FILE *f, bool nl) const
 
 	if (nl)
 		fprintf(f, "\n");
-	}
-
-void DSSParams::WriteSummary(FILE *f) const
-	{
-	if (f == 0)
-		return;
-	const uint FeatureCount = GetFeatureCount();
-	fprintf(f, "---------------------------------------------------------------------------------\n");
-	if (!m_Desc.empty())
-		{
-		fprintf(f, "%s\n", m_Desc.c_str());
-		fprintf(f, "=================================================================================\n");
-		}
-	for (uint i = 0; i < FeatureCount; ++i)
-		{
-		FEATURE F = m_Features[i];
-		if (i > 0 && i%5 == 0)
-			fprintf(f, "\n");
-		fprintf(f, "%s:%u/%.3f ",
-		  FeatureToStr(F), DSS::GetAlphaSize(F), m_Weights[i]);
-		}
-	fprintf(f, "\n");
-	fprintf(f, "GapO/E %.3f/", -m_GapOpen);
-	fprintf(f, "%.3f", -m_GapExt);
-	//fprintf(f, " FwdM %.2f", m_FwdMatchScore);
-	fprintf(f, " MinFS %.1f", m_MinFwdScore);
-	if (m_Omega != FLT_MAX)
-		fprintf(f, " Omega %.1f", m_Omega);
-	if (m_OmegaFwd != FLT_MAX)
-		fprintf(f, " OmegaFwd %.1f", m_OmegaFwd);
-	fprintf(f, "\n");
-	fprintf(f, "MKF L=%u, X=%d,%d H=%d HM=%.1f\n",
-			m_MKFL, m_MKF_X1, m_MKF_X2, m_MKF_MinHSPScore, m_MKF_MinMegaHSPScore);
-	fprintf(f, "---------------------------------------------------------------------------------\n");
 	}
 
 uint DSSParams::GetFeatureCount() const

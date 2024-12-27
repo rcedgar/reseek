@@ -1417,14 +1417,16 @@ void LogElapsedTimeAndRAM()
 	const char *s = asctime(t);
 	unsigned Secs = GetElapsedSecs();
 
-	Log("\n");
-	Log("Finished %s", s); // there is a newline in s
+	ProgressLog("\n");
 	Log("Elapsed time %s\n", SecsToHHMMSS((int) Secs));
 	Log("Max memory %s\n", MemBytesToStr(g_PeakMemUseBytes));
+	Log("Finished %s", s); // there is a newline in s
+
+	ProgressLogPrefix("(max %s) finished\n", MemBytesToStr(g_PeakMemUseBytes));
+
 #if	WIN32 && DEBUG
 // Skip exit(), which can be very slow in DEBUG build
-// VERY DANGEROUS practice, because it skips global destructors.
-// But if you know the rules, you can break 'em, right?
+// WARNING -- skips global destructors.
 	ExitProcess(0);
 #endif
 	}

@@ -8,14 +8,11 @@
 class DSSParams
 	{
 public:
-	string m_Desc;
-
 	vector<FEATURE> m_Features;
 	vector<float> m_Weights;
 
 	float m_GapOpen = FLT_MAX;
 	float m_GapExt = FLT_MAX;
-	float m_DALIw = FLT_MAX;
 	float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
@@ -67,13 +64,11 @@ public:
 public:
 	void Clear()
 		{
-		m_Desc.clear();
 		m_Features.clear();
 		m_Weights.clear();
 
 		m_GapOpen = FLT_MAX;
 		m_GapExt = FLT_MAX;
-		m_DALIw = FLT_MAX;
 		m_FwdMatchScore = FLT_MAX;
 		m_MinFwdScore = FLT_MAX;
 		m_Omega = FLT_MAX;
@@ -94,7 +89,6 @@ public:
 	void SetNamedParams(const string &Name);
 	void FromParamStr(const string &ParamStr);
 	void NormalizeWeights();
-	void WriteSummary(FILE *f) const;
 	uint GetFeatureCount() const;
 	void SetParam(const string &Name, float Value, bool AppendIfWeight);
 	void SetIntParam(const string &Name, int Value);
