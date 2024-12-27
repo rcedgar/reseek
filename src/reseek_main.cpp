@@ -33,13 +33,14 @@ int main(int argc, char **argv)
 		Progress("[%s]\n", ShortCmdLine.c_str() + 1);
 		ProgressPrefix(true);
 		}
-
+#if MYMALLOC_DBG
 	if (optset_myalloc_summary_secs)
 		mymalloc_set_summary_secs(opt_myalloc_summary_secs);
 	if (optset_myalloc_dump_secs)
 		mymalloc_set_dump_secs(opt_myalloc_dump_secs);
 	if (optset_myalloc_trace)
 		mymalloc_trace(true);
+#endif
 
 	uint CmdCount = 0;
 #define C(x)	if (optset_##x) ++CmdCount;

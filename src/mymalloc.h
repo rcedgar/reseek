@@ -2,7 +2,7 @@
 
 void myfree(void *p);
 
-#define MYMALLOC_DBG		1
+#define MYMALLOC_DBG		0
 
 void myfree(void *p);
 
@@ -22,13 +22,13 @@ void *mymalloc(unsigned n, unsigned bytes);
 
 #else
 
-#define mymalloc_print_summary(fd)	/* empty */ 
-#define mymalloc_print_summary(fd, Msg)	/* empty */ 
+#define mymalloc_print_summary(x)	/* empty */ 
 #define mymalloc_set_summary_secs(secs) /* empty */
 #define mymalloc_set_dump_secs(secs) /* empty */
 #define mymalloc_print_state(f, Msg)	/* empty */
 #define mymalloc_write_map(fn)	/* empty */
 #define mymalloc_write_state(fn)	/* empty */
+#define mymalloc_trace(on)	/* empty */
 void *mymalloc(unsigned n, unsigned bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t))
 
