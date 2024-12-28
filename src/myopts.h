@@ -1,5 +1,5 @@
 #ifndef MY_VERSION
-#define MY_VERSION	"2.1"
+#define MY_VERSION	"2.2"
 #endif
 
 #define C(x)	STR_OPT(x)
