@@ -54,7 +54,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 				if (now > m_LastProgress)
 					{
 					static bool DumpDone = false;
-					Progress("%s query chains\r",
+					Progress("%s chains scanned   \r",
 							 IntToStr(m_ProcessedQueryCount));
 					m_LastProgress = now;
 					}
@@ -120,6 +120,6 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 	if (m_Secs == 0)
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
-	Progress("%s query chains\n", IntToStr(m_ProcessedQueryCount));
+	Progress("%s chains scanned   \n", IntToStr(m_ProcessedQueryCount));
 	RunStats();
 	}

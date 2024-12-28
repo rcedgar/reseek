@@ -39,11 +39,11 @@ void DBSearcher::RunStats() const
 	ProgressLog("%10.10s  Hits (max E-value %.3g)\n", IntToStr(m_HitCount), m_MaxEvalue);
 	if (m_ProcessedQueryCount < 100)
 		return;
-	ProgressLog("%10.10s  Query chains\n", IntToStr(m_ProcessedQueryCount));
-	ProgressLog("%10.10s  DB chains\n", IntToStr(GetDBChainCount()));
-	ProgressLog("%10.1f  Queries/sec\n", QueriesPerSec);
-	ProgressLog("%10.10s  Query-target comparisons/sec\n", FloatToStr(PairsPerSec));
-	ProgressLog("%10.10s  Query-target comparisons/sec/thread (%u threads)\n", FloatToStr(PairsPerSecPerThread), ThreadCount);
+	ProgressLog("%10.10s  DB chains\n", IntToStr(m_ProcessedQueryCount));
+	ProgressLog("%10.10s  Query chains\n", IntToStr(GetDBChainCount()));
+	ProgressLog("%10.1f  Chains/sec\n", QueriesPerSec);
+	ProgressLog("%10.10s  Comparisons/sec\n", FloatToStr(PairsPerSec));
+	ProgressLog("%10.10s  Comparisons/sec/thread (%u threads)\n", FloatToStr(PairsPerSecPerThread), ThreadCount);
 
 	DSSAligner::Stats();
 	uint Hits = m_QPCacheHits;

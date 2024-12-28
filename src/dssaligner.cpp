@@ -894,11 +894,12 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 		}
 	}
 
-void DSSAligner::ToFasta2(FILE *f, bool Global, bool Up) const
+void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	{
 	if (f == 0)
 		return;
 
+	const bool Up = !aUp;
 	string RowA, RowB;
 	if (Up)
 		{
