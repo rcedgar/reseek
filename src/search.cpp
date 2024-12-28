@@ -19,13 +19,20 @@ void cmd_search()
 	DBS.m_Params = &Params;
 
 	bool Self = (DBFN == "");
-	if (DBFN == "")
-		DBS.LoadDB(QFN);
-	else
-		DBS.LoadDB(DBFN);
+	DBS.LoadDB(QFN);
 
-	if (!optset_dbsize)
+	if (Self)
 		Params.m_DBSize = (float) DBS.GetDBSize();
+	else
+		{
+		if (optset_dbsize)
+			Params.m_DBSize = (float) opt_dbsize;
+		else
+			{
+			Warning("-dbsize not set, defaulting to effective size 10,000 chains");
+			Params.m_DBSize = 10000;
+			}
+		}
 	DBS.Setup();
 
 	DBS.m_fTsv = CreateStdioFile(opt_output);
@@ -36,9 +43,9 @@ void cmd_search()
 		DBS.RunSelf();
 	else
 		{
-		ChainReader2 QCR;
-		QCR.Open(QFN);
-		DBS.RunQuery(QCR);
+		ChainReader2 CR;
+		CR.Open(DBFN);
+		DBS.RunQuery(CR);
 		}
 	CloseStdioFile(DBS.m_fTsv);
 	}

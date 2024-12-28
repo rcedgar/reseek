@@ -40,10 +40,12 @@ const char *UFToStr(USERFIELD UF)
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
-void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up) const
+void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	{
 	if (f == 0)
 		return;
+
+	const bool Up = !aUp;
 
 	string TmpStr;
 	switch (UF)
