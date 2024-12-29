@@ -197,7 +197,9 @@ public:
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;
 
-	float XDropHSP(uint Loi, uint Loj, uint Len);
+	float XDropHSP(uint Loi_in, uint Loj_in, uint Len,
+				   uint &Loi_out, uint &Loj_out,
+				   uint &Hii_out, uint &Hij_out);
 
 	float GetPctId() const;
 	float GetLDDT() const;

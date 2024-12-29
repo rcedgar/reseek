@@ -1304,12 +1304,17 @@ void DSSAligner::AlignMKF()
 	if (MegaHSPTotal < m_Params->m_MKF_MinMegaHSPScore)
 		return;
 
-	uint Loi = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
-	uint Loj = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
+	uint HSPLoA = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
+	uint HSPLoB = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
 	uint Len = (uint) m_MKF.m_ChainHSPLens[BestMegaIdx];
-	m_XDropScore = XDropHSP(Loi, Loj, Len);
+	m_XDropScore = XDropHSP(HSPLoA, HSPLoB, Len,
+							m_LoA, m_LoB, m_HiA, m_HiB);
 	m_AlnFwdScore = m_XDropScore;
 	m_Path = m_XDropPath;
+	uint nM, nD, nI;
+	GetPathCounts(m_Path, nM, nD, nI);
+	m_HiA = m_LoA + nM + nD - 1;
+	m_HiB = m_LoB + nM + nI - 1;
 	CalcEvalue();
 	}
 

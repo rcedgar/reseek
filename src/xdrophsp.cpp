@@ -35,8 +35,14 @@ float DSSAligner::StaticSubstScore(void *UserData_this, uint PosA, uint PosB)
 	return Score;
 	}
 
-float DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
+float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
+						   uint &Loi_out, uint &Loj_out,
+						   uint &Hii_out, uint &Hij_out)
 	{
+	Loi_out = UINT_MAX;
+	Loj_out = UINT_MAX;
+	Hii_out = UINT_MAX;
+	Hij_out = UINT_MAX;
 	const float Open = m_Params->m_GapOpen;
 	const float Ext = m_Params->m_GapExt;
 	const float X = float(m_Params->m_MKF_X2);
@@ -44,8 +50,8 @@ float DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 
-	uint LoA = Loi + Len/2;
-	uint LoB = Loj + Len/2;
+	uint LoA = Loi_in + Len/2;
+	uint LoB = Loj_in + Len/2;
 	asserta(LoA > 0 && LoB > 0);
 
 	string PathFwd, PathBwd;
@@ -63,11 +69,10 @@ float DSSAligner::XDropHSP(uint Loi, uint Loj, uint Len)
 		return 0;
 		}
 
-	uint MergedLoA, MergedLoB, MergedHiA, MergedHiB;
 	MergeFwdBwd(LA, LB,
 				LoA, LoB, PathFwd,
 				LoA-1, LoB-1, PathBwd,
-				MergedLoA, MergedLoB, MergedHiA, MergedHiB, m_XDropPath);
+				Loi_out, Loj_out, Hii_out, Hij_out, m_XDropPath);
 
 	return TotalScore;
 	}
