@@ -19,8 +19,10 @@ on the regime with false-positive error rates <10 per query, corresponding to E<
   -alignpair     # Pair-wise alignment and superposition
 
 Search against database
-    reseek -search STRUCTS -db STRUCTS -output hits.txt
+    reseek -search STRUCTS -db STRUCTS -output hits.txt -dbsize NR_CHAINS
                  # STRUCTS specifies structure(s), see below
+                 # NR_CHAINS should be set to the total number of chains 
+                 #   to get the best E-value estimates
 
 Recommended format for large database is .bca, e.g.
     reseek -convert /data/PDB_mirror/ -bca PDB.bca
@@ -64,7 +66,7 @@ Search and alignment options
   -minu U        # K-mer accelerator (integer)
   -gapopen X     # Gap-open penalty (floating-point >= 0)
   -gapext X      # Gap-extend penalty (floating-point >= 0)
-  -dbsize D      # DB size (nr. chains) for E-value (default actual size)
+  -dbsize D      # DB size (nr. chains) for E-value (default 10000)
 
 Convert between file formats
     reseek -convert STRUCTS [one or more output options]
