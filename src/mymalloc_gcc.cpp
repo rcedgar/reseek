@@ -1,4 +1,4 @@
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__APPLE__)
 #include <dlfcn.h>
 #include <atomic>
 #include <stdio.h>
