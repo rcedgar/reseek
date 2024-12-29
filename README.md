@@ -22,7 +22,8 @@ Search against database
     reseek -search STRUCTS -db STRUCTS -output hits.txt -dbsize NR_CHAINS
                  # STRUCTS specifies structure(s), see below
                  # NR_CHAINS should be set to the total number of chains 
-                 #   to get the best E-value estimates
+                 #   to get the best E-value estimates, if the database
+                 #   is chunked then should be sum over all chunks
 
 Recommended format for large database is .bca, e.g.
     reseek -convert /data/PDB_mirror/ -bca PDB.bca
