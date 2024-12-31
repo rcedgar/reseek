@@ -494,6 +494,12 @@
     <ClCompile Include="mymalloc_gcc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chains2pdbs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mufilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

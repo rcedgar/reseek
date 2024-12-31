@@ -649,7 +649,7 @@ void DSSAligner::SetParams(const DSSParams &Params)
 
 void DSSAligner::UnsetQuery()
 	{
-	m_MKF.MuKmerResetQ();
+	m_MKF.ResetQ();
 	m_ChainA = 0;
 	m_ProfileA = 0;
 	m_MuLettersA = 0;
@@ -680,8 +680,8 @@ void DSSAligner::SetQuery(
 	if (ptrMuKmers != 0)
 		{
 		asserta(ptrMuLetters != 0);
-		m_MKF.MuKmerResetQ();
-		m_MKF.MuKmerSetQ(Chain, ptrMuLetters, ptrMuKmers);
+		m_MKF.ResetQ();
+		m_MKF.SetQ(ptrMuLetters, ptrMuKmers);
 		}
 	}
 
@@ -1278,7 +1278,7 @@ float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 void DSSAligner::AlignMKF()
 	{
 	ClearAlign();
-	m_MKF.MuKmerAln(*m_ChainB, *m_MuLettersB, *m_MuKmersB);
+	m_MKF.Align(*m_MuLettersB, *m_MuKmersB);
 
 	if (m_MKF.m_BestChainScore <= 0)
 		return;

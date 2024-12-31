@@ -65,5 +65,7 @@ C(calibrate7)
 C(alignselfrev)
 C(alignpair)
 C(getchains)
+C(chains2pdbs)
+C(mufilter)
 
 #undef C

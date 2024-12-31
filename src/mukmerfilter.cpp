@@ -94,7 +94,7 @@ int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 	return BestScore;
 	}
 
-void MuKmerFilter::MuKmerResetQ()
+void MuKmerFilter::ResetQ()
 	{
 	if (m_KmerHashTableQ == 0)
 		{
@@ -122,12 +122,11 @@ void MuKmerFilter::MuKmerResetQ()
 #endif
 	}
 
-void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
-							  const vector<byte> *ptrMuLettersQ,
+void MuKmerFilter::SetQ(const vector<byte> *ptrMuLettersQ,
 							  const vector<uint> *ptrMuKmersQ)
 	{
 	StartTimer(MuKmerSetQ);
-	m_ChainQ = &ChainQ;
+	//m_ChainQ = &ChainQ;
 
 	m_ptrMuLettersQ = ptrMuLettersQ;
 	m_ptrMuKmersQ = ptrMuKmersQ;
@@ -150,20 +149,19 @@ void MuKmerFilter::MuKmerSetQ(const PDBChain &ChainQ,
 	EndTimer(MuKmerSetQ);
 	}
 
-void MuKmerFilter::MuKmerAln(const PDBChain &ChainT,
-						   const vector<byte> &MuLettersT,
-						   const vector<uint> &MuKmersT)
+void MuKmerFilter::Align(const vector<byte> &MuLettersT,
+							 const vector<uint> &MuKmersT)
 	{
 	StartTimer(MuKmerAln);
 	m_C.Clear();
-	m_ChainT = &ChainT;
+	//m_ChainT = &ChainT;
 	m_ptrMuLettersT = &MuLettersT;
 	m_Lock.lock();
 	++m_PairCount;
 	m_Lock.unlock();
 	const uint KmerCountT = SIZE(MuKmersT);
-	int LQ = int(m_ChainQ->GetSeqLength());
-	int LT = int(m_ChainT->GetSeqLength());
+	int LQ = int(GetQL());
+	int LT = int(GetTL());
 	int BestHSPScore = 0;
 	m_MuKmerHSPLois.clear();
 	m_MuKmerHSPLojs.clear();

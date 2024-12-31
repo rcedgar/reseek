@@ -16,8 +16,8 @@ public:
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_KmerHashTableQ = 0;
-	const PDBChain *m_ChainQ = 0;
-	const PDBChain *m_ChainT = 0;
+	//const PDBChain *m_ChainQ = 0;
+	//const PDBChain *m_ChainT = 0;
 	vector<int> m_MuKmerHSPLois;
 	vector<int> m_MuKmerHSPLojs;
 	vector<int> m_MuKmerHSPLens;
@@ -52,16 +52,18 @@ public:
 
 public:
 	void SetParams(const DSSParams &Params);
-	void MuKmerSetQ(const PDBChain &ChainQ,
-					const vector<byte> *ptrMuLettersQ,
+	void SetQ(const vector<byte> *ptrMuLettersQ,
 					const vector<uint> *ptrMuKmersQ);
-	void MuKmerResetQ();
-	void MuKmerAln(const PDBChain &ChainT,
-				   const vector<byte> &MuLettersT,
+
+// TODO -- maybe no need to support ResetQ()?
+	void ResetQ();
+	void Align(const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 				int &Loi, int &Loj, int &Len);
 	void ChainHSPs();
+	uint GetQL() const { return SIZE(*m_ptrMuLettersQ); };
+	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };
 
 public:
 	static void Stats();
