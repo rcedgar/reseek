@@ -17,7 +17,7 @@ static mutex s_ProgressLock;
 static mutex s_DataLock;
 static time_t s_last_progress;
 
-static uint MU_FILTER_KEEPN = 5;
+static uint MU_FILTER_KEEPN = 1000;
 
 static vector<vector<int> > s_QueryIdxToScoreVec;
 static vector<vector<uint> > s_QueryIdxToTargetIdxVec;
@@ -229,9 +229,6 @@ static void ThreadBody(uint ThreadIndex,
 				++s_BCSCount;
 				//brk(QueryIdx == 19 && SI->m_Index == 6);
 				AddScore(QueryIdx, SI->m_Index, Score);
-#if CHECK_SCORE_VECS
-				CheckScoreVecs(QueryIdx);
-#endif
 				}
 			}
 		}

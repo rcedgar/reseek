@@ -16,8 +16,6 @@ public:
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_KmerHashTableQ = 0;
-	//const PDBChain *m_ChainQ = 0;
-	//const PDBChain *m_ChainT = 0;
 	vector<int> m_MuKmerHSPLois;
 	vector<int> m_MuKmerHSPLojs;
 	vector<int> m_MuKmerHSPLens;
