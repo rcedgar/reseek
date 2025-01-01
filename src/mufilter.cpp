@@ -79,7 +79,10 @@ static void CheckScoreVecs(uint QueryIdx)
 	asserta(SIZE(FullTargetIdxVec) == FullSize);
 	uint *Order = myalloc(uint, FullSize);
 	QuickSortOrderDesc(FullScoreVec.data(), FullSize, Order);
-	uint Lok = Order[FullSize-1];
+	uint M = FullSize - 1;
+	if (M > MU_FILTER_KEEPN-1)
+		M = MU_FILTER_KEEPN-1;
+	uint Lok = Order[M];
 	int LoScore = FullScoreVec[Lok];
 
 	for (uint k = 0; k < FullSize; ++k)
@@ -122,7 +125,8 @@ static void AddScore(uint QueryIdx, uint TargetIdx, int Score)
 		}
 	else
 		{
-		if (Score >= s_QueryIdxToLoScore[QueryIdx])
+		int LoScore = s_QueryIdxToLoScore[QueryIdx];
+		if (Score >= LoScore)
 			{
 			if (CurrentSize < 2*MU_FILTER_KEEPN)
 				{
@@ -223,6 +227,7 @@ static void ThreadBody(uint ThreadIndex,
 			if (Score > 0)
 				{
 				++s_BCSCount;
+				//brk(QueryIdx == 19 && SI->m_Index == 6);
 				AddScore(QueryIdx, SI->m_Index, Score);
 #if CHECK_SCORE_VECS
 				CheckScoreVecs(QueryIdx);
