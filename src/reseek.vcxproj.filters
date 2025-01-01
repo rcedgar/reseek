@@ -500,6 +500,9 @@
     <ClCompile Include="mufilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mukmerfilter2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

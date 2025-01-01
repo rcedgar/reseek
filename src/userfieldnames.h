@@ -24,5 +24,7 @@ x(lddt)
 x(ids)
 x(gaps)
 x(aq)
+x(muhsp)
+x(muchain)
 
 #undef x

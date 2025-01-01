@@ -23,7 +23,7 @@ void MuKmerFilter::SetParams(const DSSParams &Params)
 	}
 
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
-						int &Loi, int &Loj, int &Len)
+						int &Loi, int &Loj, int &Len) const
 	{
 	StartTimer(MuXDrop);
 	Loi = PosQ;
@@ -149,6 +149,36 @@ void MuKmerFilter::SetQ(const vector<byte> *ptrMuLettersQ,
 	EndTimer(MuKmerSetQ);
 	}
 
+int MuKmerFilter::GetMaxHSPScore(const vector<byte> &MuLettersT,
+							 const vector<uint> &MuKmersT)
+	{
+	StartTimer(GetMaxHSPScore);
+	m_ptrMuLettersT = &MuLettersT;
+	const uint KmerCountT = SIZE(MuKmersT);
+	int LQ = int(GetQL());
+	int LT = int(SIZE(MuLettersT));
+	const int X1 = m_Params->m_MKF_X1;
+	int MaxHSPScore = 0;
+	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
+		{
+		uint KmerT = MuKmersT[PosT];
+		assert(KmerT < m_DictSize);
+		for (uint w = 0; w < HASHW; ++w)
+			{
+			uint PosQ = m_KmerHashTableQ[HASHW*KmerT+w];
+			if (PosQ != 0xffff)
+				{
+				int Loi, Loj, Len;
+				int Score = MuXDrop(int(PosQ), LQ, int(PosT), LT, X1, Loi, Loj, Len);
+				if (Score > MaxHSPScore)
+					MaxHSPScore = Score;
+				}
+			}
+		}
+	EndTimer(GetMaxHSPScore);
+	return MaxHSPScore;
+	}
+
 void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 							 const vector<uint> &MuKmersT)
 	{
@@ -162,7 +192,6 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	const uint KmerCountT = SIZE(MuKmersT);
 	int LQ = int(GetQL());
 	int LT = int(GetTL());
-	int BestHSPScore = 0;
 	m_MuKmerHSPLois.clear();
 	m_MuKmerHSPLojs.clear();
 	m_MuKmerHSPLens.clear();
@@ -171,6 +200,7 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	m_ChainHSPLojs.clear();
 	m_ChainHSPLens.clear();
 	m_BestChainScore = 0;
+	m_BestHSPScore = 0;
 	bool FoundHSP = false;
 	const int MinHSPScore = m_Params->m_MKF_MinHSPScore;
 	const int X1 = m_Params->m_MKF_X1;
@@ -190,8 +220,9 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 				if (Score >= MinHSPScore)
 					{
 					FoundHSP = true;
-					if (Score > BestHSPScore)
+					if (Score > m_BestHSPScore)
 						{
+						m_BestHSPScore = Score;
 						bool OldHSP = false;
 						for (uint i = 0; i < SIZE(m_MuKmerHSPLois); ++i)
 							{

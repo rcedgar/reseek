@@ -1,5 +1,7 @@
 #pragma once
 
+#define MUHSPFIL	1
+
 #include "dssparams.h"
 #include "pdbchain.h"
 #include "xdpmem.h"
@@ -76,6 +78,9 @@ public:
 	size_t m_SMx_BufferSize = 0;
 	uint m_SMx_Rows = 0;
 	uint m_SMx_Cols = 0;
+#if MUHSPFIL
+	int m_BestHSPScore = 0;
+#endif
 
 public:
 	static mutex m_OutputLock;

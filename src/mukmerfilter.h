@@ -21,6 +21,7 @@ public:
 	vector<int> m_MuKmerHSPLens;
 	vector<int> m_MuKmerHSPScores;
 	int m_BestChainScore = 0;
+	int m_BestHSPScore = 0;
 	int m_ChainLo_i = 0;
 	int m_ChainHi_i = 0;
 	int m_ChainLo_j = 0;
@@ -55,10 +56,12 @@ public:
 
 // TODO -- maybe no need to support ResetQ()?
 	void ResetQ();
+	int GetMaxHSPScore(const vector<byte> &MuLettersT,
+				   const vector<uint> &MuKmersT);
 	void Align(const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
-				int &Loi, int &Loj, int &Len);
+				int &Loi, int &Loj, int &Len) const;
 	void ChainHSPs();
 	uint GetQL() const { return SIZE(*m_ptrMuLettersQ); };
 	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };

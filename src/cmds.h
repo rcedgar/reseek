@@ -67,5 +67,6 @@ C(alignpair)
 C(getchains)
 C(chains2pdbs)
 C(mufilter)
+C(mukmerfilter)
 
 #undef C

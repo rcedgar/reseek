@@ -123,6 +123,18 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 		break;
 		}
 
+	case UF_muhsp:
+		{
+		fprintf(f, "%d", m_MKF.m_BestHSPScore);
+		break;
+		}
+
+	case UF_muchain:
+		{
+		fprintf(f, "%d", m_MKF.m_BestChainScore);
+		break;
+		}
+
 	default:
 		Die("Unsupported user field %d='%s'", UF, UFToStr(UF));
 		}

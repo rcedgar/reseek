@@ -718,11 +718,17 @@ void DSSAligner::AlignQueryTarget()
 	{
 	ClearAlign();
 
+#if MUHSPFIL
+	m_BestHSPScore = m_MKF.GetMaxHSPScore(*m_MuLettersB, *m_MuKmersB);
+	if (m_BestHSPScore < m_Params->m_MKF_MinHSPScore)
+		return;
+#else
 	if (DoMKF())
 		{
 		AlignMKF();
 		return;
 		}
+#endif
 
 	++m_AlnCount;
 
@@ -737,7 +743,9 @@ void DSSAligner::AlignQueryTarget()
 			}
 		}
 
+	int Saved = m_BestHSPScore;
 	Align_NoAccel();
+	m_BestHSPScore = Saved;
 	}
 
 void DSSAligner::CalcEvalue_AAOnly()
@@ -840,6 +848,9 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;
+#if MUHSPFIL
+	m_BestHSPScore = 0;
+#endif
 	}
 
 void DSSAligner::Align_NoAccel()

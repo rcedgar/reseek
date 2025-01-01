@@ -322,6 +322,7 @@
     <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
+    <ClCompile Include="mukmerfilter2.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />

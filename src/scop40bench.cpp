@@ -254,7 +254,9 @@ void SCOP40Bench::LogFirstFewHits() const
 
 void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2, float ScoreAB)
 	{
-	if (ScoreAB <= 0)
+	if (m_ScoresAreEvalues && ScoreAB < 0)
+		return;
+	if (!m_ScoresAreEvalues && ScoreAB <= 0)
 		return;
 	uint DomIdx1 = m_DomIdxs[ChainIdx1];
 	uint DomIdx2 = m_DomIdxs[ChainIdx2];
@@ -297,10 +299,16 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	asserta(iterB != m_LabelToChainIdx.end());
 	uint ChainIndexA = iterA->second;
 	uint ChainIndexB = iterB->second;
+	if (ChainIndexA == ChainIndexB)
+		return;
 	if (Up)
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
 	else
 		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+#if MUHSPFIL
+	asserta(DA.m_BestHSPScore > 0);
+	m_HSPScores.push_back(DA.m_BestHSPScore);
+#endif
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()
@@ -716,6 +724,67 @@ void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 	//LogSens1FPReport_Dom(3);
 	}
 
+#if MUHSPFIL
+void SCOP40Bench::MUHSPFIL_HackHits()
+	{
+	const uint DomCount = GetDomCount();
+	const uint HitCount = GetHitCount();
+	asserta(SIZE(m_HSPScores) == HitCount);
+
+	vector<uint> NewDomIdx1s;
+	vector<uint> NewDomIdx2s;
+	vector<float> NewScores;
+
+	vector<vector<uint> > DomIdxToDomIdx2Vec(DomCount);
+	vector<vector<float> > DomIdxToScoreVec(DomCount);
+	vector<vector<int> > DomIdxToHSPScoreVec(DomCount);
+
+	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
+		{
+		uint DomIdx1 = m_DomIdx1s[HitIdx];
+		uint DomIdx2 = m_DomIdx2s[HitIdx];
+		float Score = m_Scores[HitIdx];
+		int HSPScore = m_HSPScores[HitIdx];
+
+		DomIdxToDomIdx2Vec[DomIdx1].push_back(DomIdx2);
+		DomIdxToScoreVec[DomIdx1].push_back(Score);
+		DomIdxToHSPScoreVec[DomIdx1].push_back(HSPScore);
+		}
+
+	for (uint DomIdx1 = 0; DomIdx1 < DomCount; ++DomIdx1)
+		{
+		const vector<uint> &DomIdx2s = DomIdxToDomIdx2Vec[DomIdx1];
+		const uint n = SIZE(DomIdx2s);
+		if (n == 0)
+			continue;
+		const vector<float> &Scores= DomIdxToScoreVec[DomIdx1];
+		const vector<int> &HSPScores= DomIdxToHSPScoreVec[DomIdx1];
+		uint *Order = myalloc(uint, n);
+		QuickSortOrderDesc<int>(HSPScores.data(), n, Order);
+		uint m = n;
+		if (m > 1000)
+			m = 1000;
+		for (uint k = 0; k < m; ++k)
+			{
+			uint i = Order[k];
+			uint DomIdx2 = DomIdx2s[i];
+			float Score = Scores[i];
+			int HSPScore = HSPScores[i];
+			asserta(HSPScore > 0);
+
+			NewDomIdx1s.push_back(DomIdx1);
+			NewDomIdx2s.push_back(DomIdx2);
+			NewScores.push_back(Score);
+			}
+		}
+
+	m_TSs.clear();
+	m_DomIdx1s = NewDomIdx1s;
+	m_DomIdx2s = NewDomIdx2s;
+	m_Scores = NewScores;
+	}
+#endif
+
 void cmd_scop40bench()
 	{
 	string CalFN;
@@ -753,6 +822,9 @@ void cmd_scop40bench()
 	if (opt_scores_are_not_evalues)
 		SB.m_ScoresAreEvalues = false;
 	SB.RunSelf();
+#if MUHSPFIL
+	SB.MUHSPFIL_HackHits();
+#endif
 	SB.WriteOutput();
 	SB.WriteBit(opt_savebit);
 	//SB.LogFirstFewDoms();

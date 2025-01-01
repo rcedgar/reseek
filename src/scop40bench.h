@@ -36,6 +36,9 @@ public:
 	vector<float> m_TSs;
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
+#if MUHSPFIL
+	vector<int> m_HSPScores;
+#endif
 
 	vector<float> m_DomIdxToScoreLastTP;
 	vector<float> m_DomIdxToScoreFirstFP;
@@ -142,6 +145,9 @@ public:
 	void LogSens1FPReport_Dom(uint DomIdx) const;
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
+#if MUHSPFIL
+	void MUHSPFIL_HackHits();
+#endif
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,
