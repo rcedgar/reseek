@@ -2,6 +2,7 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 #include "sort.h"
+#include "mudex.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
@@ -31,6 +32,8 @@ void cmd_mukmerfilter()
 	optset_fast = true;
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
+	MuDex::Set_k(3);
+	MuDex MD;
 	asserta(optset_output);
 	FILE *fOut = CreateStdioFile(opt_output);
 	vector<PDBChain *> Chains;

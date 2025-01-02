@@ -503,6 +503,9 @@
     <ClCompile Include="mukmerfilter2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mudex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -776,6 +779,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="objcounter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mudex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -315,6 +315,7 @@
     <ClCompile Include="lddt_msas.cpp" />
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
+    <ClCompile Include="mudex.cpp" />
     <ClCompile Include="mufilter.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="mermx.cpp" />
@@ -442,6 +443,7 @@
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
+    <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
     <ClInclude Include="counters.h" />

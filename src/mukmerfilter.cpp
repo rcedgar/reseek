@@ -2,6 +2,7 @@
 #include "dbsearcher.h"
 #include "chainer.h"
 #include "mukmerfilter.h"
+#include "mudex.h"
 #include "timing.h"
 
 extern int8_t IntScoreMx_Mu[36][36];

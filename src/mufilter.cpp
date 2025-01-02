@@ -7,6 +7,10 @@
 #include "seqinfo.h"
 #include "fastaseqsource.h"
 #include "sort.h"
+#include "mudex.h"
+
+extern int8_t IntScoreMx_Mu[36][36];
+static const int X = 8;
 
 #define CHECK_SCORE_VECS	1
 
@@ -17,11 +21,88 @@ static mutex s_ProgressLock;
 static mutex s_DataLock;
 static time_t s_last_progress;
 
-static uint MU_FILTER_KEEPN = 1000;
+static uint MU_FILTER_KEEPN = 5;
 
 static vector<vector<int> > s_QueryIdxToScoreVec;
 static vector<vector<uint> > s_QueryIdxToTargetIdxVec;
+static vector<vector<byte> > s_QueryIdxToMuLetters;
+static vector<vector<uint> > s_QueryIdxToMuKmers;
 static vector<int> s_QueryIdxToLoScore;
+static vector<uint> s_QueryIdxToLength;
+static SeqDB *s_ptrQueryDB;
+
+static int MuXDrop(const byte *Q, int PosQ, int LQ, 
+				   const byte *T, int PosT, int LT,
+				   int X)
+	{
+	StartTimer(MuXDrop);
+#if DEBUG
+	int Loi = PosQ;
+	int Loj = PosT;
+	int Len = 0;
+#endif
+	int i = PosQ;
+	int j = PosT;
+
+	int FwdScore = 0;
+	int BestFwdScore = 0;
+	int FwdLen = 0;
+	while (i < LQ && j < LT)
+		{
+		byte q = Q[i++];
+		byte t = T[j++];
+		FwdScore += IntScoreMx_Mu[q][t];
+		if (FwdScore > BestFwdScore)
+			{
+			FwdLen = i - PosQ;
+			BestFwdScore = FwdScore;
+			}
+		else if (FwdScore + X < BestFwdScore)
+			break;
+		}
+
+	int RevScore = 0;
+	int BestRevScore = 0;
+	int RevLen = 0;
+	i = PosQ - 1;
+	j = PosT - 1;
+	while (i >= 0 && j >= 0)
+		{
+		byte q = Q[i];
+		byte t = T[j];
+		RevScore += IntScoreMx_Mu[q][t];
+		if (RevScore > BestRevScore)
+			{
+			BestRevScore = RevScore;
+			Loi = i;
+			Loj = j;
+			RevLen = PosQ - i;
+			}
+		else if (RevScore + X < BestRevScore)
+			break;
+		--i;
+		--j;
+		}
+	int BestScore = BestFwdScore + BestRevScore;
+	Len = FwdLen + RevLen;
+	EndTimer(MuXDrop);
+#if DEBUG
+	{
+	int CheckScore = 0;
+	int i = Loi;
+	int j = Loj;
+	for (int k = 0; k < Len; ++k)
+		{
+		asserta(i >= 0 && j >= 0 && i < LQ && j < LT);
+		byte q = Q[i++];
+		byte t = T[j++];
+		CheckScore += IntScoreMx_Mu[q][t];
+		}
+	asserta(CheckScore == BestScore);
+	}
+#endif
+	return BestScore;
+	}
 
 static void TruncateVecs(uint QueryIdx)
 	{
@@ -172,35 +253,38 @@ static void GetMuKmers(const string &PatternStr,
 static void ThreadBody(uint ThreadIndex, 
 					   const DSSParams *ptrParams,
 					   FASTASeqSource *ptrFSS, 
-					   vector<MuKmerFilter *> *ptrMKFs)
+					   const MuDex *ptrMD)
 	{
 	const DSSParams &Params = *ptrParams;
 	FASTASeqSource &FSS = *ptrFSS;
-	vector<MuKmerFilter *> &MKFs = *ptrMKFs;
+	const MuDex &MD = *ptrMD;
 	const string &PatternStr = Params.m_PatternStr;
-	const uint QueryCount = SIZE(MKFs);
+	const uint QueryCount = s_ptrQueryDB->GetSeqCount();
 
 	ObjMgr OM;
 
 	SeqInfo *SI = OM.GetSeqInfo();
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
+	int *QueryIdxToBestHSPScore = myalloc(int, QueryCount);
 	for (;;)
 		{
 		bool Ok = FSS.GetNext(SI);
 		if (!Ok)
 			return;
-		uint TL = SI->m_L;
-		const byte *T = SI->m_Seq;
+		const uint LT = SI->m_L;
+		const uint TargetIdx = SI->m_Index;
+		const byte *ByteSeqT = SI->m_Seq;
 		MuLettersT.clear();
-		MuLettersT.reserve(TL);
-		for (uint i = 0; i < TL; ++i)
+		MuLettersT.reserve(LT);
+		for (uint i = 0; i < LT; ++i)
 			{
-			byte c = T[i];
+			byte c = ByteSeqT[i];
 			byte Letter = g_CharToLetterMu[c];
 			asserta(Letter < 36);
 			MuLettersT.push_back(Letter);
 			}
+		const byte *ByteLettersT = MuLettersT.data();
 		GetMuKmers(PatternStr, MuLettersT, MuKmersT);
 		bool DoProgress = false;
 		s_ProgressLock.lock();
@@ -218,18 +302,39 @@ static void ThreadBody(uint ThreadIndex,
 		if (DoProgress)
 			Progress("%u chains scanned   \r", s_TargetCount);
 
+		const uint KmerCountT = SIZE(MuKmersT);
+		asserta(KmerCountT + 2 == LT);
+		zero_array(QueryIdxToBestHSPScore, QueryCount);
+		for (uint PosT = 0; PosT < KmerCountT; ++PosT)
+			{
+			uint KmerT = MuKmersT[PosT];
+			uint RowSize = MD.GetRowSize(KmerT);
+			const uint DataOffset = MD.GetDataOffset(KmerT);
+			uint32_t QueryIdx;
+			uint16_t PosQ;
+			for (uint i = 0; i < RowSize; ++i)
+				{
+				MD.Get(DataOffset+i, QueryIdx, PosQ);
+				assert(QueryIdx < QueryCount);
+				assert(PosQ < s_ptrQueryDB->GetSeqLength(QueryIdx));
+				uint LQ = s_QueryIdxToLength[QueryIdx];
+				const byte *ByteLettersQ = s_QueryIdxToMuLetters[QueryIdx].data();
+				int HSPScore = MuXDrop(
+					ByteLettersQ, PosQ, LQ, 
+					ByteLettersT, PosT, LT,
+					X);
+				if (HSPScore > 30)
+					{
+					if (HSPScore > QueryIdxToBestHSPScore[QueryIdx])
+						QueryIdxToBestHSPScore[QueryIdx] = HSPScore;
+					}
+				}
+			}
 		for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 			{
-			MuKmerFilter &MKF = *MKFs[QueryIdx];
-			MKF.Align(MuLettersT, MuKmersT);
-			++s_PairCount;
-			int Score = MKF.m_BestChainScore;
-			if (Score > 0)
-				{
-				++s_BCSCount;
-				//brk(QueryIdx == 19 && SI->m_Index == 6);
-				AddScore(QueryIdx, SI->m_Index, Score);
-				}
+			int Score = QueryIdxToBestHSPScore[QueryIdx];
+			if (Score >= 30)
+				AddScore(QueryIdx, TargetIdx, Score);
 			}
 		}
 	}
@@ -245,10 +350,16 @@ void cmd_mufilter()
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	const string &PatternStr = Params.m_PatternStr;
+	asserta(PatternStr == "111");
 
 	SeqDB QueryDB;
 	QueryDB.FromFasta(QueryFN);
 	const uint QueryCount = QueryDB.GetSeqCount();
+	s_ptrQueryDB = &QueryDB;
+
+	MuDex::Set_k(3);
+	MuDex MD;
+	MD.FromSeqDB(QueryDB);
 
 	s_QueryIdxToScoreVec.resize(QueryCount);
 	s_QueryIdxToTargetIdxVec.resize(QueryCount);
@@ -258,35 +369,36 @@ void cmd_mufilter()
 	s_QueryIdxToFullScoreVec.resize(QueryCount);
 #endif
 
-	vector<MuKmerFilter *> MKFs;
+	s_QueryIdxToMuLetters.resize(QueryCount);
+	s_QueryIdxToMuKmers.resize(QueryCount);
+
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		{
 		ProgressStep(QueryIdx, QueryCount, "Indexing query");
 		MuKmerFilter *MKF = new MuKmerFilter;
 		MKF->SetParams(Params);
 		const uint QL = QueryDB.GetSeqLength(QueryIdx);
+		s_QueryIdxToLength.push_back(QL);
 		const string &Q = QueryDB.GetSeq(QueryIdx);
-		vector<byte> *ptrMuLetters = new vector<byte>;
-		vector<uint> *ptrMuKmers = new vector<uint>;
-		ptrMuLetters->reserve(QL);
+		vector<byte> &MuLetters = s_QueryIdxToMuLetters[QueryIdx];
+		vector<uint> &MuKmers = s_QueryIdxToMuKmers[QueryIdx];
+		MuLetters.reserve(QL);
+		MuKmers.reserve(QL);
 		for (uint i = 0; i < QL; ++i)
 			{
 			byte c = Q[i];
 			byte Letter = g_CharToLetterMu[c];
 			asserta(Letter < 36);
-			ptrMuLetters->push_back(Letter);
+			MuLetters.push_back(Letter);
 			}
-		GetMuKmers(PatternStr, *ptrMuLetters, *ptrMuKmers);
-		MKF->ResetQ();
-		MKF->SetQ(ptrMuLetters, ptrMuKmers);
-		MKFs.push_back(MKF);
+		GetMuKmers(PatternStr, MuLetters, MuKmers);
 		}
 
 	const uint ThreadCount = GetRequestedThreadCount();
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		thread *t = new thread(ThreadBody, ThreadIndex, &Params, &FSS, &MKFs);
+		thread *t = new thread(ThreadBody, ThreadIndex, &Params, &FSS, &MD);
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
