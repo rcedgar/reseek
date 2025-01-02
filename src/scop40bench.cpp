@@ -776,6 +776,7 @@ void SCOP40Bench::MUHSPFIL_HackHits()
 			NewDomIdx2s.push_back(DomIdx2);
 			NewScores.push_back(Score);
 			}
+		myfree(Order);
 		}
 
 	m_TSs.clear();
