@@ -11,8 +11,8 @@
 
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
-static const int MIN_HSP_SCORE = 50;
-static uint MU_FILTER_KEEPN = 5000;
+static const int MIN_HSP_SCORE = 30;
+static uint MU_FILTER_KEEPN = 1000;
 
 #define CHECK_SCORE_VECS	0
 #define CHECK_SCORE_VECSX	0
@@ -450,14 +450,39 @@ void cmd_mufilter()
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		TruncateVecs(QueryIdx);
 
+	map<uint, vector<uint> > TargetIdxToQueryIdxs;
+	vector<uint> TargetIdxs;
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		{
 		const vector<int> &ScoreVec = s_QueryIdxToScoreVec[QueryIdx];
 		const vector<uint> &TargetIdxVec = s_QueryIdxToTargetIdxVec[QueryIdx];
 		const uint n = SIZE(ScoreVec);
-		fprintf(fOut, "%u\t%s\n", n, s_ptrQueryDB->GetLabel(QueryIdx).c_str());
 		for (uint i = 0; i < n; ++i)
-			fprintf(fOut, "%u\n", TargetIdxVec[i]);
+			{
+			uint TargetIdx = TargetIdxVec[i];
+			if (TargetIdxToQueryIdxs.find(TargetIdx) == TargetIdxToQueryIdxs.end())
+				{
+				TargetIdxs.push_back(TargetIdx);
+				vector<uint> Empty;
+				TargetIdxToQueryIdxs[TargetIdx] = Empty;
+				}
+			TargetIdxToQueryIdxs[TargetIdx].push_back(QueryIdx);
+			}
+		}
+	const uint TargetCount = SIZE(TargetIdxs);
+	QuickSortInPlace(TargetIdxs.data(), TargetCount);
+	fprintf(fOut, "mufilter\t%u\n", TargetCount);
+	for (uint k = 0; k < TargetCount; ++k)
+		{
+		uint TargetIdx = TargetIdxs[k];
+		map<uint, vector<uint> >::const_iterator iter = TargetIdxToQueryIdxs.find(TargetIdx);
+		asserta(iter != TargetIdxToQueryIdxs.end());
+		const vector<uint> &QIdxs = iter->second;
+		const uint K = SIZE(QIdxs);
+		fprintf(fOut, "%u\t%u", TargetIdx, K);
+		for (uint i = 0; i < K; ++i)
+			fprintf(fOut, "\t%u", QIdxs[i]);
+		fprintf(fOut, "\n");
 		}
 	CloseStdioFile(fOut);
 
