@@ -19,6 +19,7 @@ public:
 	uint32 m_BufferBytes;
 	uint32 m_BufferOffset;
 	uint64 m_FileSize;
+	uint64 m_BytesProcessed;
 	bool m_EOF;
 
 public:
@@ -30,6 +31,7 @@ public:
 	void Close();
 	void Rewind();
 	unsigned GetPctDoneX10();
+	double GetPctDone();
 
 // Caller must own memory for Line because
 // LineReader object may be used by multiple threads.

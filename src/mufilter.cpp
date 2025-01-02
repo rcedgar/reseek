@@ -10,18 +10,20 @@
 #include "mudex.h"
 
 extern int8_t IntScoreMx_Mu[36][36];
-static const int X = 8;
+static const int X = 12;
+static const int MIN_HSP_SCORE = 50;
+static uint MU_FILTER_KEEPN = 5000;
 
-#define CHECK_SCORE_VECS	1
+#define CHECK_SCORE_VECS	0
+#define CHECK_SCORE_VECSX	0
 
 static atomic<uint> s_PairCount;
-static atomic<uint> s_BCSCount;
+static atomic<uint> s_PveCount;
 static uint s_TargetCount;
 static mutex s_ProgressLock;
 static mutex s_DataLock;
 static time_t s_last_progress;
 
-static uint MU_FILTER_KEEPN = 5;
 
 static vector<vector<int> > s_QueryIdxToScoreVec;
 static vector<vector<uint> > s_QueryIdxToTargetIdxVec;
@@ -46,7 +48,9 @@ static int MuXDrop(const byte *Q, int PosQ, int LQ,
 
 	int FwdScore = 0;
 	int BestFwdScore = 0;
+#if DEBUG
 	int FwdLen = 0;
+#endif
 	while (i < LQ && j < LT)
 		{
 		byte q = Q[i++];
@@ -54,7 +58,9 @@ static int MuXDrop(const byte *Q, int PosQ, int LQ,
 		FwdScore += IntScoreMx_Mu[q][t];
 		if (FwdScore > BestFwdScore)
 			{
+#if DEBUG
 			FwdLen = i - PosQ;
+#endif
 			BestFwdScore = FwdScore;
 			}
 		else if (FwdScore + X < BestFwdScore)
@@ -63,7 +69,9 @@ static int MuXDrop(const byte *Q, int PosQ, int LQ,
 
 	int RevScore = 0;
 	int BestRevScore = 0;
+#if DEBUG
 	int RevLen = 0;
+#endif
 	i = PosQ - 1;
 	j = PosT - 1;
 	while (i >= 0 && j >= 0)
@@ -74,9 +82,11 @@ static int MuXDrop(const byte *Q, int PosQ, int LQ,
 		if (RevScore > BestRevScore)
 			{
 			BestRevScore = RevScore;
+#if DEBUG
 			Loi = i;
 			Loj = j;
 			RevLen = PosQ - i;
+#endif
 			}
 		else if (RevScore + X < BestRevScore)
 			break;
@@ -84,10 +94,10 @@ static int MuXDrop(const byte *Q, int PosQ, int LQ,
 		--j;
 		}
 	int BestScore = BestFwdScore + BestRevScore;
-	Len = FwdLen + RevLen;
 	EndTimer(MuXDrop);
 #if DEBUG
 	{
+	Len = FwdLen + RevLen;
 	int CheckScore = 0;
 	int i = Loi;
 	int j = Loj;
@@ -113,7 +123,6 @@ static void TruncateVecs(uint QueryIdx)
 
 	uint *Order = myalloc(uint, CurrentSize);
 	QuickSortOrderDesc(ScoreVec.data(), CurrentSize, Order);
-
 	vector<uint> &TargetIdxVec = s_QueryIdxToTargetIdxVec[QueryIdx];
 	vector<int> NewScoreVec;
 	vector<uint> NewTargetIdxVec;
@@ -127,9 +136,10 @@ static void TruncateVecs(uint QueryIdx)
 		NewScoreVec.push_back(Score);
 		NewTargetIdxVec.push_back(TargetIdx);
 		}
+	int NewLo = NewScoreVec[MU_FILTER_KEEPN-1];
 	s_QueryIdxToTargetIdxVec[QueryIdx] = NewTargetIdxVec;
 	s_QueryIdxToScoreVec[QueryIdx] = NewScoreVec;
-	s_QueryIdxToLoScore[QueryIdx] = NewScoreVec[MU_FILTER_KEEPN-1];
+	s_QueryIdxToLoScore[QueryIdx] = NewLo;
 	myfree(Order);
 	}
 
@@ -144,11 +154,19 @@ static void CheckScoreVecs(uint QueryIdx)
 	const vector<int> &ScoreVec = s_QueryIdxToScoreVec[QueryIdx];
 	const vector<uint> &TargetIdxVec = s_QueryIdxToTargetIdxVec[QueryIdx];
 	const uint N = SIZE(ScoreVec);
+	if (N == 0)
+		{
+		asserta(ScoreVec.empty());
+		asserta(TargetIdxVec.empty());
+		return;
+		}
+	int LoScore = s_QueryIdxToLoScore[QueryIdx];
 	asserta(SIZE(TargetIdxVec) == N);
 	map<uint, int> TargetIdxToScore;
 	for (uint i = 0; i < N; ++i)
 		{
 		int Score = ScoreVec[i];
+		asserta(Score >= LoScore);
 		uint TargetIdx = TargetIdxVec[i];
 		asserta(TargetIdxToScore.find(TargetIdx) == TargetIdxToScore.end());
 		TargetIdxToScore[TargetIdx] = Score;
@@ -164,7 +182,7 @@ static void CheckScoreVecs(uint QueryIdx)
 	if (M > MU_FILTER_KEEPN-1)
 		M = MU_FILTER_KEEPN-1;
 	uint Lok = Order[M];
-	int LoScore = FullScoreVec[Lok];
+	int FullLoScore = FullScoreVec[Lok];
 
 	for (uint k = 0; k < FullSize; ++k)
 		{
@@ -175,7 +193,23 @@ static void CheckScoreVecs(uint QueryIdx)
 		map<uint, int>::const_iterator iter = TargetIdxToScore.find(TargetIdx);
 		if (Score > LoScore)
 			{
-			asserta(iter != TargetIdxToScore.end());
+			if (iter == TargetIdxToScore.end())
+				{
+				Log("CheckScoreVecs(%u) LoScore=%d, FullLoScore=%d\n",
+					QueryIdx, LoScore, FullLoScore);
+				Log("Short: ");
+				for (uint i = 0; i < N; ++i)
+					Log(" %u=%d", TargetIdxVec[i], ScoreVec[i]);
+				Log("\n");
+				Log("Full: ");
+				for (uint k = 0; k < FullSize; ++k)
+					{
+					uint i = Order[k];
+					Log(" %u=%d", FullTargetIdxVec[i], FullScoreVec[i]);
+					}
+				Log("\n");
+				Die("CheckAllScoreVecs");
+				}
 			asserta(iter->second == Score);
 			}
 		}
@@ -192,34 +226,21 @@ static void CheckAllScoreVecs()
 
 static void AddScore(uint QueryIdx, uint TargetIdx, int Score)
 	{
+	//brk(QueryIdx==0 && TargetIdx==23 && Score==66);
 	s_DataLock.lock();
+	++s_PveCount;
 #if CHECK_SCORE_VECS
 	s_QueryIdxToFullTargetIdxVec[QueryIdx].push_back(TargetIdx);
 	s_QueryIdxToFullScoreVec[QueryIdx].push_back(Score);
 #endif
 	vector<int> &ScoreVec = s_QueryIdxToScoreVec[QueryIdx];
-	uint CurrentSize = SIZE(ScoreVec);
-	if (CurrentSize < MU_FILTER_KEEPN)
+	int LoScore = s_QueryIdxToLoScore[QueryIdx];
+	if (Score >= LoScore)
 		{
 		ScoreVec.push_back(Score);
 		s_QueryIdxToTargetIdxVec[QueryIdx].push_back(TargetIdx);
-		}
-	else
-		{
-		int LoScore = s_QueryIdxToLoScore[QueryIdx];
-		if (Score >= LoScore)
-			{
-			if (CurrentSize < 2*MU_FILTER_KEEPN)
-				{
-				ScoreVec.push_back(Score);
-				s_QueryIdxToTargetIdxVec[QueryIdx].push_back(TargetIdx);
-				}
-			else
-				{
-				asserta(CurrentSize == 2*MU_FILTER_KEEPN);
-				TruncateVecs(QueryIdx);
-				}
-			}
+		if (SIZE(ScoreVec) >= 2*MU_FILTER_KEEPN)
+			TruncateVecs(QueryIdx);
 		}
 	s_DataLock.unlock();
 	}
@@ -289,7 +310,7 @@ static void ThreadBody(uint ThreadIndex,
 		bool DoProgress = false;
 		s_ProgressLock.lock();
 		++s_TargetCount;
-		if (s_TargetCount%100 == 0)
+		if (1 || s_TargetCount%100 == 0)
 			{
 			time_t now = time(0);
 			if (now != s_last_progress)
@@ -300,7 +321,11 @@ static void ThreadBody(uint ThreadIndex,
 			}
 		s_ProgressLock.unlock();
 		if (DoProgress)
-			Progress("%u chains scanned   \r", s_TargetCount);
+			{
+			double Pct = FSS.GetPctDone();
+			Progress("%s chains scanned (%.1f%%)   \r",
+					 IntToStr(s_TargetCount), Pct);
+			}
 
 		const uint KmerCountT = SIZE(MuKmersT);
 		asserta(KmerCountT + 2 == LT);
@@ -323,7 +348,7 @@ static void ThreadBody(uint ThreadIndex,
 					ByteLettersQ, PosQ, LQ, 
 					ByteLettersT, PosT, LT,
 					X);
-				if (HSPScore > 30)
+				if (HSPScore > MIN_HSP_SCORE)
 					{
 					if (HSPScore > QueryIdxToBestHSPScore[QueryIdx])
 						QueryIdxToBestHSPScore[QueryIdx] = HSPScore;
@@ -334,8 +359,18 @@ static void ThreadBody(uint ThreadIndex,
 			{
 			int Score = QueryIdxToBestHSPScore[QueryIdx];
 			if (Score >= 30)
+				{
+#if CHECK_SCORE_VECSX
+				asserta(GetRequestedThreadCount() == 1);
+				CheckAllScoreVecs();
+#endif
 				AddScore(QueryIdx, TargetIdx, Score);
+#if CHECK_SCORE_VECSX
+				CheckAllScoreVecs();
+#endif
+				}
 			}
+		s_PairCount += QueryCount;
 		}
 	}
 
@@ -346,6 +381,10 @@ void cmd_mufilter()
 	const string &DBFN = string(opt_db);
 	FASTASeqSource FSS;
 	FSS.Open(DBFN);
+
+	if (!optset_output)
+		Die("-output option required");
+	FILE *fOut = CreateStdioFile(opt_output);
 
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
@@ -406,14 +445,24 @@ void cmd_mufilter()
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
-	ProgressLog("%u / %u with +ve HSP score (%.1f%%)\n",
-				s_BCSCount.load(), s_PairCount.load(),
-				GetPct(s_BCSCount, s_PairCount));
+		Progress("%s chains scanned (100%%)    \n", IntToStr(s_TargetCount));
 
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		TruncateVecs(QueryIdx);
 
+	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
+		{
+		const vector<int> &ScoreVec = s_QueryIdxToScoreVec[QueryIdx];
+		const vector<uint> &TargetIdxVec = s_QueryIdxToTargetIdxVec[QueryIdx];
+		const uint n = SIZE(ScoreVec);
+		fprintf(fOut, "%u\t%s\n", n, s_ptrQueryDB->GetLabel(QueryIdx).c_str());
+		for (uint i = 0; i < n; ++i)
+			fprintf(fOut, "%u\n", TargetIdxVec[i]);
+		}
+	CloseStdioFile(fOut);
+
 #if CHECK_SCORE_VECS
 	CheckAllScoreVecs();
+	ProgressLog("CheckAllScoreVecs() ok\n");
 #endif
 	}

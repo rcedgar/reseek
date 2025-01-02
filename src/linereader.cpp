@@ -19,16 +19,28 @@ void LineReader::Open(const string &FileName)
 	m_BufferBytes = 0;
 	m_BufferOffset = 0;
 	m_LineNr = 0;
+	m_BytesProcessed = 0;
 	m_EOF = false;
 	m_FileSize = GetStdioFileSize64(m_f);
+	}
+
+double LineReader::GetPctDone()
+	{
+	if (m_FileSize == UINT64_MAX || m_FileSize == 0)
+		return 0;
+	//uint64 Pos = GetPos();
+	double Pct = double(m_BytesProcessed)*100.0/double(m_FileSize);
+	if (Pct > 100)
+		Pct = 100;
+	return Pct;
 	}
 
 unsigned LineReader::GetPctDoneX10()
 	{
 	if (m_FileSize == UINT64_MAX || m_FileSize == 0)
 		return 0;
-	uint64 Pos = GetPos();
-	double f = double(Pos)/double(m_FileSize);
+	//uint64 Pos = GetPos();
+	double f = double(m_BytesProcessed)/double(m_FileSize);
 	uint n = uint(f*1000);
 	if (n >= 999)
 		n = 998;
@@ -59,6 +71,7 @@ void LineReader::Close()
 void LineReader::Rewind()
 	{
 	SetStdioFilePos(m_f, 0);
+	m_BytesProcessed = 0;
 	}
 
 uint64 LineReader::GetPos() const
@@ -76,6 +89,7 @@ bool LineReader::ReadLine(t_LineBuff &Line)
 	unsigned Length = 0;
 	for (;;)
 		{
+		++m_BytesProcessed;
 		if (m_BufferOffset >= m_BufferBytes)
 			{
 			FillBuff();
