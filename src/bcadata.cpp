@@ -87,7 +87,11 @@ void BCAData::Open(const string &FN)
 	m_SeqLengths.resize(ChainCount64);
 
 	SetStdioFilePos64(m_f, m_SeqLengthsPos64);
-	ReadStdioFile64(m_f, m_SeqLengths.data(), sizeof(uint32_t)*ChainCount);
+	uint64 SeqLengthsBytes = sizeof(uint32_t)*ChainCount;
+//#include "todo.h"
+//	ProgressLog("Read m_SeqLengths(%s)", FN.c_str());
+	ReadStdioFile64(m_f, m_SeqLengths.data(), SeqLengthsBytes);
+	//ProgressLog(" ok\n");
 	for (uint64 i = 0; i < ChainCount64; ++i)
 		{
 		m_Offsets.push_back(Offset);

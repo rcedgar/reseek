@@ -19,7 +19,7 @@ static uint s_InputCount;
 static uint s_OutputCount;
 static uint MinChainLength;
 static BCAData *s_ptrBCA = 0;
-static DSS *s_ptrD = 0;
+static const DSSParams *s_ptrParams = 0;
 static FEATURE s_Feat;
 static mutex s_LockStats;
 static mutex s_LockCal;
@@ -70,6 +70,13 @@ static FEATURE GetFeatureFromCmdLine()
 
 static void ThreadBody(uint ThreadIndex)
 	{
+	DSS *ptrD = 0;
+	if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
+		{
+		ptrD = new DSS;
+		ptrD->SetParams(*s_ptrParams);
+		}
+
 	ChainReader2 CR;
 	CR.Open(*s_ptrFS);
 	if (optset_pdboutdir)
@@ -158,8 +165,21 @@ static void ThreadBody(uint ThreadIndex)
 
 		if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
 			{
+			DSS &D = *ptrD;
+			D.Init(*ptrChain);
+			const uint L = ptrChain->GetSeqLength();
+			const uint AlphaSize = D.GetAlphaSize(s_Feat);
+			string Seq;
+			for (uint Pos = 0; Pos < L; ++Pos)
+				{
+				uint Letter = D.GetFeature(s_Feat, Pos);
+				char GetFeatureChar(byte Letter, uint AlphaSize);
+				char c = GetFeatureChar(Letter, AlphaSize);
+				Seq += c;
+				}
 			s_LockFasta.lock();
-			ptrChain->ToFeatureFasta(s_fFeatureFasta, *s_ptrD, s_Feat);
+			//ptrChain->ToFeatureFasta(s_fFeatureFasta, *s_ptrD, s_Feat);
+			SeqToFasta(s_fFeatureFasta, ptrChain->m_Label, Seq);
 			s_LockFasta.unlock();
 			}
 
@@ -209,13 +229,16 @@ void cmd_convert()
 		MinChainLength = opt_minchainlength;
 
 	DSSParams Params;
-	DSS D;
+	//DSS D;
 	uint AlphaSize = 0;
 	s_Feat = FEATURE(FEATURE_COUNT);
 	if (optset_feature_fasta)
 		{
+		optset_fast = true;
+		opt_fast = true;
 		Params.SetFromCmdLine(10000);
 		s_Feat = GetFeatureFromCmdLine();
+		s_ptrParams = &Params;
 		}
 
 	vector<string> Labels;
@@ -248,7 +271,6 @@ void cmd_convert()
 		}
 
 	s_ptrFS = &FS;
-	s_ptrD = &D;
 
 	s_fCal = CreateStdioFile(opt_cal);
 	s_fFasta = CreateStdioFile(opt_fasta);

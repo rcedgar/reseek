@@ -348,8 +348,11 @@ void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 	if (BytesRead != Bytes)
 		{
 		LogStdioFileState(f);
-		Die("ReadStdioFile64 failed, attempted %lu bytes, read %lu bytes, errno=%d",
-		  (unsigned long) Bytes, (unsigned long) BytesRead, errno);
+		ProgressLog("\nf=%p\n", f);
+		ProgressLog("Pos=%llu\n", (unsigned long long) Pos);
+		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);
+		ProgressLog("BytesRead=%llu\n", (unsigned long long) BytesRead);
+		Die("ReadStdioFile64() failed, errno=%d", (int) errno);
 		}
 	}
 
@@ -374,8 +377,10 @@ void ReadStdioFile64(FILE *f, void *Buffer, uint64 Bytes)
 	if (BytesRead != Bytes)
 		{
 		LogStdioFileState(f);
-		Die("ReadStdioFile failed, attempted %u bytes, read %u bytes, errno=%d",
-		  Bytes, BytesRead, errno);
+		ProgressLog("\nf=%p\n", f);
+		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);
+		ProgressLog("BytesRead=%llu\n", (unsigned long long) BytesRead);
+		Die("ReadStdioFile64() failed, errno=%d", (int) errno);
 		}
 	}
 
