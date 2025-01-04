@@ -21,9 +21,9 @@ void BCAData::Create(const string &FN)
 	m_f = CreateStdioFile(FN);
 	WriteStdioFile(m_f, &BCA_MAGIC, sizeof(BCA_MAGIC));
 
-// Placeholder #1 will be overwritten with number of chains
-// Placeholder #2 will be overwritten with address of labels in Close()
-// Placeholder #3 will be overwritten with size of labels data
+// Placeholder #1 overwritten with number of chains
+// Placeholder #2 overwritten with address of labels in Close()
+// Placeholder #3 overwritten with size of labels data
 	uint64_t Placeholder = 0;
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
@@ -61,6 +61,7 @@ void BCAData::Open(const string &FN)
 	{
 	if (FN == "")
 		Die("Empty BCA filename");
+	m_FN = FN;
 	asserta(!m_Writing && !m_Reading);
 	asserta(m_f == 0);
 
@@ -72,9 +73,9 @@ void BCAData::Open(const string &FN)
 		Die("Bad magic %08lx, invalid .bca file '%s'",
 		  Magic, FN.c_str());
 
-// Placeholder #1 will be overwritten with number of chains
-// Placeholder #2 will be overwritten with address of labels in Close()
-// Placeholder #3 will be overwritten with size of labels data
+// Placeholder #1 overwritten with number of chains
+// Placeholder #2 overwritten with address of labels in Close()
+// Placeholder #3 overwritten with size of labels data
 	uint64_t ChainCount64;
 	ReadStdioFile(m_f, &ChainCount64, sizeof(uint64_t));
 	ReadStdioFile(m_f, &m_SeqLengthsPos64, sizeof(uint64_t));
@@ -83,19 +84,18 @@ void BCAData::Open(const string &FN)
 
 	uint ChainCount = uint(ChainCount64);
 	asserta(ChainCount == ChainCount64);
+	uint64 SeqLengthsBytes = sizeof(uint32_t)*ChainCount;
 
 	m_SeqLengths.resize(ChainCount64);
 
 	SetStdioFilePos64(m_f, m_SeqLengthsPos64);
-	uint64 SeqLengthsBytes = sizeof(uint32_t)*ChainCount;
-//#include "todo.h"
-//	ProgressLog("Read m_SeqLengths(%s)", FN.c_str());
-	ReadStdioFile64(m_f, m_SeqLengths.data(), SeqLengthsBytes);
-	//ProgressLog(" ok\n");
+	ReadStdioFile64NoPos(m_f, m_SeqLengths.data(), SeqLengthsBytes);
 	for (uint64 i = 0; i < ChainCount64; ++i)
 		{
+		uint L = m_SeqLengths[i];
+		uint Bytes = 7*L;
 		m_Offsets.push_back(Offset);
-		Offset += 7*m_SeqLengths[i];
+		Offset += Bytes;
 		}
 
 	uint LabelDataSize = uint(m_LabelDataSize64);
@@ -116,13 +116,25 @@ void BCAData::Open(const string &FN)
 	m_Reading = true;
 	}
 
+void BCAData::Clear()
+	{
+	m_Labels.clear();
+	m_Offsets.clear();
+	m_SeqLengths.clear();
+	m_FN.clear();
+	if (m_f != 0)
+		CloseStdioFile(m_f);
+	m_f = 0;
+	m_Writing = false;
+	m_Reading = false;
+	m_SeqLengthsPos64 = UINT64_MAX;
+	m_LabelDataSize64 = UINT64_MAX;
+	}
+
 void BCAData::CloseReader()
 	{
 	asserta(m_Reading && !m_Writing);
-	CloseStdioFile(m_f);
-	m_f = 0;
-	m_Reading = false;
-	m_Writing = false;
+	Clear();
 	}
 
 void BCAData::CloseWriter()
@@ -152,21 +164,17 @@ void BCAData::CloseWriter()
 	WriteStdioFile(m_f, &ChainCount64, sizeof(ChainCount64));
 	WriteStdioFile(m_f, &m_SeqLengthsPos64, sizeof(m_SeqLengthsPos64));
 	WriteStdioFile(m_f, &m_LabelDataSize64, sizeof(m_LabelDataSize64));
-
-	CloseStdioFile(m_f);
-	m_f = 0;
-	m_Writing = false;
-	m_Reading = false;
+	Clear();
 	}
 
-uint64 BCAData::GetICsOffset(uint64 ChainIdx) const
-	{
-	asserta(ChainIdx < SIZE(m_Offsets));
-	asserta(ChainIdx < SIZE(m_SeqLengths));
-	uint64 Offset = m_Offsets[ChainIdx];
-	uint L = m_SeqLengths[ChainIdx];
-	return Offset + L;
-	}
+//uint64 BCAData::GetICsOffset(uint64 ChainIdx) const
+//	{
+//	asserta(ChainIdx < SIZE(m_Offsets));
+//	asserta(ChainIdx < SIZE(m_SeqLengths));
+//	uint64 Offset = m_Offsets[ChainIdx];
+//	uint L = m_SeqLengths[ChainIdx];
+//	return Offset + L;
+//	}
 
 uint64 BCAData::GetSeqOffset(uint64 ChainIdx) const
 	{
@@ -184,16 +192,39 @@ void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	{
 	asserta(m_Reading && !m_Writing);
 	Chain.Clear();
-	uint64 SeqOffset = GetSeqOffset(ChainIdx);
 	uint L = GetSeqLength(ChainIdx);
+	uint64 SeqOffset = GetSeqOffset(ChainIdx);
 	char *Seq = myalloc(char, L+1);
-	ReadStdioFile64(m_f, SeqOffset, Seq, L);
+	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, Seq, L);
+	if (nL != L)
+		{
+		Log("FN=%s\n", m_FN.c_str());
+		Log("ChainIdx=%u\n", ChainIdx);
+		Log("Chains=%u\n", SIZE(m_SeqLengths));
+		Log("L=%u\n", L);
+		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+		Log("nL=%llu\n", (unsigned long long) nL);
+		Die("BCAData::ReadChain(#2)");
+		}
+
 	Seq[L] = 0;
 	Chain.m_Seq = string(Seq);
 	myfree(Seq);
 
 	uint16_t *ICs = myalloc(uint16_t, 3*L);
-	ReadStdioFile64(m_f, SeqOffset + L, ICs, 6*L);
+	uint64 BytesToRead = 6*L;
+	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L, ICs, BytesToRead);
+	if (nIC != BytesToRead)
+		{
+		Log("FN=%s\n", m_FN.c_str());
+		Log("ChainIdx=%u\n", ChainIdx);
+		Log("Chains=%u\n", SIZE(m_SeqLengths));
+		Log("L=%u\n", L);
+		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+		Log("nIC=%llu\n", (unsigned long long) nIC);
+		Die("BCAData::ReadChain(#2)");
+		}
+
 	Chain.CoordsFromICs(ICs, L);
 	myfree(ICs);
 	asserta(ChainIdx < SIZE(m_Labels));

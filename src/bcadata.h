@@ -17,6 +17,7 @@ public:
 	uint64 m_LabelDataSize64 = UINT64_MAX;
 
 public:
+	void Clear();
 	void Create(const string &FN);
 	void Open(const string &FN);
 	void WriteChain(const PDBChain &Chain);
@@ -24,7 +25,7 @@ public:
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;
-	uint64 GetICsOffset(uint64 ChainIdx) const;
+	//uint64 GetICsOffset(uint64 ChainIdx) const;
 	uint GetSeqLength(uint64 ChainIdx) const;
 
 private:

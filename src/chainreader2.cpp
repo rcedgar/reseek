@@ -203,10 +203,7 @@ void ChainReader2::GetFallbackLabelFromFN(const string &FN, string &Label)
 
 PDBChain *ChainReader2::GetFirst_BCA(const string &FN)
 	{
-//#include "todo.h"
-//	ProgressLog("GetFirst_BCA(%s)\n", FN.c_str());
 	m_BCA.Open(FN);
-	//ProgressLog("GetFirst_BCA(%s) open ok\n", FN.c_str());
 	m_ChainIdx_BCA = 0;
 	return GetNext_BCA();
 	}

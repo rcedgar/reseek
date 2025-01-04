@@ -195,9 +195,10 @@ uint64 GetStdioFileSize64(FILE *f);
 uint32 ReadStdioFile_NoFail(FILE *f, void *Buffer, uint32 Bytes);
 void ReadStdioFile(FILE *f, uint32 Pos, void *Buffer, uint32 Bytes);
 void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes);
+uint64 ReadStdioFile64_NoFail(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes);
 
 void ReadStdioFile(FILE *f, void *Buffer, uint32 Bytes);
-void ReadStdioFile64(FILE *f, void *Buffer, uint64 Bytes);
+void ReadStdioFile64NoPos(FILE *f, void *Buffer, uint64 Bytes);
 
 void WriteStdioFile(FILE *f, uint32 Pos, const void *Buffer, uint32 Bytes);
 void WriteStdioFile64(FILE *f, uint64 Pos, const void *Buffer, uint64 Bytes);
@@ -384,6 +385,7 @@ bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
 void MyutilsExit();
+const char *GetCurrentThreadStr(string &s);
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);

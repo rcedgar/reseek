@@ -338,6 +338,16 @@ void ReadStdioFile(FILE *f, uint32 Pos, void *Buffer, uint32 Bytes)
 		}
 	}
 
+uint64 ReadStdioFile64_NoFail(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
+	{
+	asserta(f != 0);
+	uint32 Bytes32 = (uint32) Bytes;
+	asserta(Bytes32 == Bytes);
+	SetStdioFilePos64(f, Pos);
+	uint64 BytesRead = (uint64) fread(Buffer, 1, Bytes32, f);
+	return BytesRead;
+	}
+
 void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 	{
 	asserta(f != 0);
@@ -348,10 +358,12 @@ void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 	if (BytesRead != Bytes)
 		{
 		LogStdioFileState(f);
+		string ts;
 		ProgressLog("\nf=%p\n", f);
 		ProgressLog("Pos=%llu\n", (unsigned long long) Pos);
 		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);
 		ProgressLog("BytesRead=%llu\n", (unsigned long long) BytesRead);
+		ProgressLog("thread=%s\n", GetCurrentThreadStr(ts));
 		Die("ReadStdioFile64() failed, errno=%d", (int) errno);
 		}
 	}
@@ -368,7 +380,7 @@ void ReadStdioFile(FILE *f, void *Buffer, uint32 Bytes)
 		}
 	}
 
-void ReadStdioFile64(FILE *f, void *Buffer, uint64 Bytes)
+void ReadStdioFile64NoPos(FILE *f, void *Buffer, uint64 Bytes)
 	{
 	asserta(f != 0);
 	uint32 Bytes32 = (uint32) Bytes;
@@ -2415,4 +2427,13 @@ void Dirize(string &Dir)
 void MyutilsExit()
 	{
 	CloseStdioFile(g_fLog);
+	}
+
+const char *GetCurrentThreadStr(string &s)
+	{
+	auto myid = this_thread::get_id();
+	stringstream ss;
+	ss << myid;
+	s = ss.str();
+	return s.c_str();
 	}
