@@ -332,6 +332,7 @@
     <ClCompile Include="mymalloc_win_debug.cpp" />
     <ClCompile Include="objcounter.cpp" />
     <ClCompile Include="pdb.cpp" />
+    <ClCompile Include="postmufilter.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />

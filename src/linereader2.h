@@ -28,6 +28,7 @@ public:
 	void Close();
 	void Rewind();
 	unsigned GetPctDoneX10();
+	double GetPctDone();
 
 // Caller must own memory for Line because
 // LineReader object may be used by multiple threads.

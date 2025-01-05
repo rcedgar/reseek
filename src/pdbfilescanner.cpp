@@ -53,6 +53,8 @@ bool PDBFileScanner::PushFileOrDir(const string &Path)
 		m_PendingFiles.push_back(Path);
 		return true;
 		}
+	else
+		Die("Invalid file/pathname '%s'", Path.c_str());
 	return false;
 	}
 

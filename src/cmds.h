@@ -68,5 +68,6 @@ C(getchains)
 C(chains2pdbs)
 C(mufilter)
 C(mukmerfilter)
+C(postmufilter)
 
 #undef C

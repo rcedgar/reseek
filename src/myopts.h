@@ -132,6 +132,7 @@ STR_OPT(requiremfs)
 STR_OPT(savebit)
 STR_OPT(tps1fp)
 STR_OPT(aln)
+STR_OPT(filin)
 
 UNS_OPT(threads,			8,			0,			UINT_MAX)
 UNS_OPT(alpha_size,			8,			0,			UINT_MAX)

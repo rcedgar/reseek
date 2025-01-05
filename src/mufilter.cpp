@@ -23,7 +23,7 @@ static uint s_TargetCount;
 static mutex s_ProgressLock;
 static mutex s_DataLock;
 static time_t s_last_progress;
-
+static uint s_last_progress_pair_count;
 
 static vector<vector<int> > s_QueryIdxToScoreVec;
 static vector<vector<uint> > s_QueryIdxToTargetIdxVec;
@@ -310,13 +310,14 @@ static void ThreadBody(uint ThreadIndex,
 		bool DoProgress = false;
 		s_ProgressLock.lock();
 		++s_TargetCount;
-		if (1 || s_TargetCount%100 == 0)
+		if (s_PairCount > s_last_progress_pair_count + 1000)
 			{
 			time_t now = time(0);
 			if (now != s_last_progress)
 				{
 				DoProgress = true;
 				s_last_progress = now;
+				s_last_progress_pair_count = s_PairCount;
 				}
 			}
 		s_ProgressLock.unlock();
@@ -377,8 +378,8 @@ static void ThreadBody(uint ThreadIndex,
 void cmd_mufilter()
 	{
 	asserta(optset_db);
-	const string &QueryFN = g_Arg1;
-	const string &DBFN = string(opt_db);
+	const string &QueryFN = g_Arg1;			// Mu FASTA
+	const string &DBFN = string(opt_db);	// Mu FASTA
 	FASTASeqSource FSS;
 	FSS.Open(DBFN);
 

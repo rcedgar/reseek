@@ -23,6 +23,15 @@ void LineReader2::Open(const string &FileName)
 	m_FileSize = GetStdioFileSize64(m_f);
 	}
 
+double LineReader2::GetPctDone()
+	{
+	if (m_FileSize == UINT64_MAX || m_FileSize == 0)
+		return -1;
+	uint64 Pos = GetPos();
+	double Pct = double(Pos)/double(m_FileSize);
+	return Pct;
+	}
+
 unsigned LineReader2::GetPctDoneX10()
 	{
 	if (m_FileSize == UINT64_MAX || m_FileSize == 0)
