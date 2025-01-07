@@ -383,7 +383,6 @@ void cmd_mufilter()
 	FASTASeqSource FSS;
 	FSS.Open(DBFN);
 
-#include "todo.h"
 	FILE *fOut2 = CreateStdioFile(opt_output2);
 
 	if (!optset_output)
@@ -488,13 +487,16 @@ void cmd_mufilter()
 			fprintf(fOut, "\t%u", QIdxs[i]);
 		fprintf(fOut, "\n");
 
-		const string &LabelT = QueryDB.GetLabel(TargetIdx);
-		for (uint i = 0; i < K; ++i)
+		if (fOut2 != 0)
 			{
-			uint IdxQ = QIdxs[i];
-			const string LabelQ = QueryDB.GetLabel(IdxQ);
-			fprintf(fOut2, "%u\t%s\t%u\t%s\n",
-					TargetIdx, LabelT.c_str(), IdxQ, LabelQ.c_str());
+			const string &LabelT = QueryDB.GetLabel(TargetIdx);
+			for (uint i = 0; i < K; ++i)
+				{
+				uint IdxQ = QIdxs[i];
+				const string LabelQ = QueryDB.GetLabel(IdxQ);
+				fprintf(fOut2, "%u\t%s\t%u\t%s\n",
+						TargetIdx, LabelT.c_str(), IdxQ, LabelQ.c_str());
+				}
 			}
 		}
 	CloseStdioFile(fOut);
