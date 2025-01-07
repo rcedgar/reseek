@@ -69,5 +69,6 @@ C(chains2pdbs)
 C(mufilter)
 C(mukmerfilter)
 C(postmufilter)
+C(tracealn)
 
 #undef C

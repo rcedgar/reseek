@@ -399,6 +399,7 @@
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
     <ClCompile Include="timing.cpp" />
+    <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />
     <ClCompile Include="train_seeds_scoredist.cpp" />

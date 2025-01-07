@@ -714,21 +714,88 @@ bool DSSAligner::DoMKF() const
 	return false;
 	}
 
-void DSSAligner::AlignQueryTarget()
+void DSSAligner::AlignQueryTarget_Trace()
 	{
+	Log("\n");
+	Log("______________________________________\n");
+	Log("A>%s(%u)\n", m_ChainA->m_Label.c_str(), m_ChainA->GetSeqLength());
+	Log("B>%s(%u)\n", m_ChainB->m_Label.c_str(), m_ChainB->GetSeqLength());
+
 	ClearAlign();
 
-#if MUHSPFIL
-	m_BestHSPScore = m_MKF.GetMaxHSPScore(*m_MuLettersB, *m_MuKmersB);
-	if (m_BestHSPScore < m_Params->m_MKF_MinHSPScore)
+	if (DoMKF())
+		{
+		Log("DoMKF()=true\n");
+		AlignMKF();
+		Log("m_MKF.m_BestChainScore=%d\n", m_MKF.m_BestChainScore);
+		Log("m_XDropScore=%.1f\n", m_XDropScore);
+		Log("AlnFwdScore=%.3g\n", m_AlnFwdScore);
+		float E = m_EvalueA;
+		if (E > 1e5)
+			Log("EvalueA=%.3g\n", E);
+		else
+			Log("EvalueA=%.1f\n", E);
+		Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
 		return;
-#else
+		}
+
+	if (m_Params->m_Omega > 0)
+		{
+		Log("Omega > 0\n");
+		++m_MuFilterInputCount;
+		bool MuFilterOk = MuFilter();
+		Log("MuFilterOk=%c\n", tof(MuFilterOk));
+		if (!MuFilterOk)
+			{
+			++m_MuFilterDiscardCount;
+			return;
+			}
+		}
+
+	SetSMx_NoRev();
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+
+	CalcEvalue();
+
+	Log("AlnFwdScore=%.3g\n", m_AlnFwdScore);
+	float E = m_EvalueA;
+	if (E > 1e5)
+		Log("EvalueA=%.3g\n", E);
+	else
+		Log("EvalueA=%.1f\n", E);
+	Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
+	}
+
+void DSSAligner::AlignQueryTarget()
+	{
+	if (optset_label1 && optset_label2)
+		{
+		const string Label1 = string(opt_label1);
+		const string Label2 = string(opt_label2);
+		bool DoTrace = (m_ChainA->m_Label == Label1 && m_ChainB->m_Label == Label2) ||
+			(m_ChainA->m_Label == Label2 && m_ChainB->m_Label == Label1);
+		if (DoTrace)
+			{
+			ProgressLog("Trace %s, %s\n", Label1.c_str(), Label2.c_str());
+			AlignQueryTarget_Trace();
+			return;
+			}
+		}
+
+	ClearAlign();
+
 	if (DoMKF())
 		{
 		AlignMKF();
 		return;
 		}
-#endif
 
 	++m_AlnCount;
 
@@ -743,9 +810,7 @@ void DSSAligner::AlignQueryTarget()
 			}
 		}
 
-	int Saved = m_BestHSPScore;
 	Align_NoAccel();
-	m_BestHSPScore = Saved;
 	}
 
 void DSSAligner::CalcEvalue_AAOnly()
@@ -848,9 +913,6 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;
-#if MUHSPFIL
-	m_BestHSPScore = 0;
-#endif
 	}
 
 void DSSAligner::Align_NoAccel()

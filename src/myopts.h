@@ -61,6 +61,8 @@ STR_OPT(scoredist)
 
 STR_OPT(ref)
 STR_OPT(label)
+STR_OPT(label1)
+STR_OPT(label2)
 STR_OPT(labels)
 STR_OPT(seqsdir)
 STR_OPT(fasta)
