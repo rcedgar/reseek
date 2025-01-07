@@ -9,13 +9,13 @@ class MuKmerFilter
 	{
 private:
 	const DSSParams *m_Params = 0;
-
-public:
-	uint m_DictSize = 0;
 	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_KmerHashTableQ = 0;
+
+public:
+	uint m_DictSize = 0;
 	vector<int> m_MuKmerHSPLois;
 	vector<int> m_MuKmerHSPLojs;
 	vector<int> m_MuKmerHSPLens;
@@ -35,6 +35,13 @@ public:
 	Chainer m_C;
 
 public:
+	MuKmerFilter()
+		{
+		//m_KmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
+		//memset(m_KmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
+		//Validate();
+		}
+
 	~MuKmerFilter()
 		{
 		myfree(m_KmerHashTableQ);
@@ -54,7 +61,6 @@ public:
 	void SetQ(const vector<byte> *ptrMuLettersQ,
 					const vector<uint> *ptrMuKmersQ);
 
-// TODO -- maybe no need to support ResetQ()?
 	void ResetQ();
 	int GetMaxHSPScore(const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
@@ -65,6 +71,7 @@ public:
 	void ChainHSPs();
 	uint GetQL() const { return SIZE(*m_ptrMuLettersQ); };
 	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };
+	void Validate() const;
 
 public:
 	static void Stats();

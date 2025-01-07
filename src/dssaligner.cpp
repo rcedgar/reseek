@@ -664,6 +664,12 @@ void DSSAligner::SetQuery(
 	const vector<uint> *ptrMuKmers,
 	float SelfRevScore)
 	{
+	if (ptrMuKmers != 0)
+		{
+		asserta(ptrMuLetters != 0);
+		m_MKF.SetQ(ptrMuLetters, ptrMuKmers);
+		}
+
 	m_ChainA = &Chain;
 	m_ProfileA = ptrProfile;
 	m_MuLettersA = ptrMuLetters;
@@ -675,13 +681,6 @@ void DSSAligner::SetQuery(
 			SetMuQP_Para();
 		else
 			SetMuQP();
-		}
-
-	if (ptrMuKmers != 0)
-		{
-		asserta(ptrMuLetters != 0);
-		m_MKF.ResetQ();
-		m_MKF.SetQ(ptrMuLetters, ptrMuKmers);
 		}
 	}
 
