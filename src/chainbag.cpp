@@ -20,14 +20,19 @@ bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 	}
 
 void DSSAligner::AlignBags(const ChainBag &BagQ,
-						   const ChainBag &BagT)
+						   const ChainBag &BagB)
 	{
 	ClearAlign();
-	if (DoMKF_Bags(BagQ, BagT))
+	if (DoMKF_Bags(BagA, BagB))
 		{
 		m_MKF.SetBagQ(BagQ);
 		m_MKF.AlignBag(BagT);
 		PostAlignMKF();
 		return;
+		}
+
+	if (m_Params->m_Omega > 0)
+		{
+		AlignMuParaBags(
 		}
 	}
