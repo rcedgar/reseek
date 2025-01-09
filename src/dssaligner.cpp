@@ -1351,7 +1351,11 @@ void DSSAligner::AlignMKF()
 	{
 	ClearAlign();
 	m_MKF.Align(*m_MuLettersB, *m_MuKmersB);
+	PostAlignMKF();
+	}
 
+void DSSAligner::PostAlignMKF()
+	{
 	if (m_MKF.m_BestChainScore <= 0)
 		return;
 

@@ -179,3 +179,49 @@ void DSSAligner::SetMuQP_Para()
 	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_combo_matrix);
 	EndTimer(SetMuQP_Para);
 	}
+
+float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
+	{
+	asserta(BagA.m_ptrProfPara != 0);
+	asserta(BagA.m_ptrProfParaRev != 0);
+	asserta(BagB.m_ptrMuLetters != 0);
+
+	uint LB = BagB.m_ptrChain->GetSeqLength();
+	asserta(SIZE(*BagB.m_ptrMuLetters) == LB);
+
+	const int Open = m_Params->m_ParaMuGapOpen;
+	const int Ext = m_Params->m_ParaMuGapExt;
+	const float OmegaFwd = m_Params->m_OmegaFwd;
+
+	const char *B = (const char *) BagB.m_ptrMuLetters->data();
+
+	const parasail_profile_t * const restrict profile =
+	  (const parasail_profile_t * const restrict) BagA.m_ptrProfPara;
+	parasail_result_t* result =
+	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
+	if (result->flag & PARASAIL_FLAG_SATURATED)
+		{
+		++m_ParasailSaturateCount;
+		result->score = 777;
+		}
+	float fwd_score = (float) result->score;
+	if (fwd_score < OmegaFwd)
+		{
+		parasail_result_free(result);
+		return 0;
+		}
+
+	const parasail_profile_t * const restrict profile_rev =
+	  (const parasail_profile_t * const restrict) BagA.m_ptrProfParaRev;
+	parasail_result_t* result_rev =
+	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
+	float rev_score = (float) result_rev->score;
+
+	EndTimer(SWPara);
+	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
+		result_rev->score = 777;
+	float Score = fwd_score - rev_score;
+	parasail_result_free(result);
+	parasail_result_free(result_rev);
+	return Score;
+	}

@@ -2,17 +2,19 @@
 
 #include "dss.h"
 #include "chainer.h"
+#include "chainbag.h"
 
 const uint HASHW = 4;
 
 class MuKmerFilter
 	{
 private:
+	const ChainBag *m_ptrBagQ = 0;
 	const DSSParams *m_Params = 0;
 	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
-	uint16_t *m_KmerHashTableQ = 0;
+	uint16_t *m_ptrKmerHashTableQ = 0;
 
 public:
 	uint m_DictSize = 0;
@@ -35,16 +37,9 @@ public:
 	Chainer m_C;
 
 public:
-	MuKmerFilter()
-		{
-		//m_KmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
-		//memset(m_KmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
-		//Validate();
-		}
-
 	~MuKmerFilter()
 		{
-		myfree(m_KmerHashTableQ);
+		myfree(m_ptrKmerHashTableQ);
 		}
 
 public:
@@ -58,20 +53,23 @@ public:
 
 public:
 	void SetParams(const DSSParams &Params);
-	void SetQ(const vector<byte> *ptrMuLettersQ,
-					const vector<uint> *ptrMuKmersQ);
-
 	void ResetQ();
+	void SetQ(const vector<byte> *ptrMuLettersQ,
+			  const vector<uint> *ptrMuKmersQ);
+	void SetBagQ(const ChainBag &BagQ);
 	int GetMaxHSPScore(const vector<byte> &MuLettersT,
-				   const vector<uint> &MuKmersT);
+					   const vector<uint> &MuKmersT);
 	void Align(const vector<byte> &MuLettersT,
 				   const vector<uint> &MuKmersT);
+	void AlignBag(const ChainBag &BagT);
 	int MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 				int &Loi, int &Loj, int &Len) const;
 	void ChainHSPs();
 	uint GetQL() const { return SIZE(*m_ptrMuLettersQ); };
 	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };
+#if DEBUG
 	void Validate() const;
+#endif
 
 public:
 	static void Stats();

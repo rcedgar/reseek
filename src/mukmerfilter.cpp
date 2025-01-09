@@ -15,14 +15,15 @@ uint MuKmerFilter::m_ChainHSPCount;
 double MuKmerFilter::m_SumBoxFract;
 mutex MuKmerFilter::m_Lock;
 
+#if DEBUBG
 void MuKmerFilter::Validate() const
 	{
-	asserta(m_KmerHashTableQ != 0);
+	asserta(m_ptrKmerHashTableQ != 0);
 	if (m_ptrMuLettersQ == 0)
 		{
 		asserta(m_ptrMuKmersQ == 0);
 		for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
-			asserta(m_KmerHashTableQ[Kmer] == 0xffff);
+			asserta(m_ptrKmerHashTableQ[Kmer] == 0xffff);
 		return;
 		}
 	asserta(m_ptrMuKmersQ != 0);
@@ -33,11 +34,11 @@ void MuKmerFilter::Validate() const
 		uint Kmer = (*m_ptrMuKmersQ)[PosQ];
 		KmerSetQ.insert(Kmer);
 		assert(Kmer < m_DictSize);
-		asserta(m_KmerHashTableQ[HASHW*Kmer] != 0xffff);
+		asserta(m_ptrKmerHashTableQ[HASHW*Kmer] != 0xffff);
 		uint low = UINT_MAX;
 		for (uint w = 1; w < HASHW; ++w)
 			{
-			if (m_KmerHashTableQ[HASHW*Kmer+w] == 0xffff)
+			if (m_ptrKmerHashTableQ[HASHW*Kmer+w] == 0xffff)
 				{
 				low = w;
 				break;
@@ -46,7 +47,7 @@ void MuKmerFilter::Validate() const
 		if (low != UINT_MAX)
 			{
 			for (uint w = low+1; w < HASHW; ++w)
-				asserta(m_KmerHashTableQ[HASHW*Kmer+w] == 0xffff);
+				asserta(m_ptrKmerHashTableQ[HASHW*Kmer+w] == 0xffff);
 			}
 		}
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
@@ -54,9 +55,10 @@ void MuKmerFilter::Validate() const
 		if (KmerSetQ.find(Kmer) != KmerSetQ.end())
 			continue;
 		for (uint w = 0; w < HASHW; ++w)
-			asserta(m_KmerHashTableQ[HASHW*Kmer+w] == 0xffff);
+			asserta(m_ptrKmerHashTableQ[HASHW*Kmer+w] == 0xffff);
 		}
 	}
+#endif // DEBUG
 
 void MuKmerFilter::SetParams(const DSSParams &Params)
 	{
@@ -64,8 +66,8 @@ void MuKmerFilter::SetParams(const DSSParams &Params)
 	asserta(k >= 1 && k < 6);
 	m_DictSize = myipow(36, k);
 	m_Params = &Params;
-	m_KmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
-	memset(m_KmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
+	m_ptrKmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
+	memset(m_ptrKmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
 	}
 
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
@@ -151,7 +153,7 @@ void MuKmerFilter::ResetQ()
 			uint Kmer = (*m_ptrMuKmersQ)[PosQ];
 			assert(Kmer < m_DictSize);
 			for (uint w = 0; w < HASHW; ++w)
-				m_KmerHashTableQ[HASHW*Kmer+w] = 0xffff;
+				m_ptrKmerHashTableQ[HASHW*Kmer+w] = 0xffff;
 			}
 		m_ptrMuKmersQ = 0;
 		m_ptrMuLettersQ = 0;
@@ -159,7 +161,7 @@ void MuKmerFilter::ResetQ()
 #if DEBUG
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
-		asserta(m_KmerHashTableQ[Kmer] == 0xffff);
+		asserta(m_ptrKmerHashTableQ[Kmer] == 0xffff);
 	}
 #endif
 	}
@@ -182,9 +184,9 @@ void MuKmerFilter::SetQ(const vector<byte> *ptrMuLettersQ,
 		assert(Kmer < m_DictSize);
 		for (uint w = 0; w < HASHW; ++w)
 			{
-			if (m_KmerHashTableQ[Kmer*HASHW+w] == 0xffff)
+			if (m_ptrKmerHashTableQ[Kmer*HASHW+w] == 0xffff)
 				{
-				m_KmerHashTableQ[Kmer*HASHW+w] = PosQ;
+				m_ptrKmerHashTableQ[Kmer*HASHW+w] = PosQ;
 				break;
 				}
 			}
@@ -208,7 +210,7 @@ int MuKmerFilter::GetMaxHSPScore(const vector<byte> &MuLettersT,
 		assert(KmerT < m_DictSize);
 		for (uint w = 0; w < HASHW; ++w)
 			{
-			uint PosQ = m_KmerHashTableQ[HASHW*KmerT+w];
+			uint PosQ = m_ptrKmerHashTableQ[HASHW*KmerT+w];
 			if (PosQ != 0xffff)
 				{
 				int Loi, Loj, Len;
@@ -220,6 +222,13 @@ int MuKmerFilter::GetMaxHSPScore(const vector<byte> &MuLettersT,
 		}
 	EndTimer(GetMaxHSPScore);
 	return MaxHSPScore;
+	}
+
+void MuKmerFilter::AlignBag(const ChainBag &BagT)
+	{
+	asserta(BagT.m_ptrMuLetters != 0);
+	asserta(BagT.m_ptrMuKmers != 0);
+	Align(*BagT.m_ptrMuLetters, *BagT.m_ptrMuKmers);
 	}
 
 void MuKmerFilter::Align(const vector<byte> &MuLettersT,
@@ -253,7 +262,7 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 		assert(KmerT < m_DictSize);
 		for (uint w = 0; w < HASHW; ++w)
 			{
-			uint PosQ = m_KmerHashTableQ[HASHW*KmerT+w];
+			uint PosQ = m_ptrKmerHashTableQ[HASHW*KmerT+w];
 			if (PosQ != 0xffff)
 				{
 				EndTimer(MuKmerAln);
@@ -373,4 +382,22 @@ void MuKmerFilter::Stats()
 	Log(", hsps/chain %.1f",
 				double(m_ChainHSPCount)/double(m_ChainCount+0.1));
 	Log("\n");
+	}
+
+void MuKmerFilter::SetBagQ(const ChainBag &BagQ)
+	{
+	if (m_ptrBagQ == &BagQ)
+		return;
+	if (m_ptrBagQ != 0)
+		ResetQ();
+
+	m_ptrBagQ = &BagQ;
+
+	m_ptrMuLettersQ = BagQ.m_ptrMuLetters;
+	m_ptrMuKmersQ = BagQ.m_ptrMuKmers;
+	m_ptrKmerHashTableQ = BagQ.m_ptrKmerHashTableQ;
+
+	asserta(m_ptrMuLettersQ != 0);
+	asserta(m_ptrMuKmersQ != 0);
+	asserta(m_ptrKmerHashTableQ != 0);
 	}

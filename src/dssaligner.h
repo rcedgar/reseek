@@ -130,11 +130,13 @@ public:
 	  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void AlignMKF();
+	void PostAlignMKF();
 	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
 	void Align_NoAccel();
 	void Align_QRev();
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignMuQP_Para();
+	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
 	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
 	float AlignMu_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
@@ -205,6 +207,11 @@ public:
 	float GetPctId() const;
 	float GetLDDT() const;
 	float SubstScore(uint PosA, uint PosB);
+	const DSSParams &GetParams() const { return *m_Params; }
+	void AlignBags(const ChainBag &BagQ,
+				   const ChainBag &BagT);
+	bool DoMKF_Bags(const ChainBag &BagQ,
+					const ChainBag &BagT) const;
 
 public:
 	static void Stats();
