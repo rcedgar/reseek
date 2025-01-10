@@ -82,13 +82,16 @@ void cmd_postmufilter()
 	const uint QueryCount = SIZE(QChains);
 
 	DSS D;
-	D.SetParams(Params);
-
+	MuKmerFilter MKF;
 	DSSAligner DA;
+	D.SetParams(Params);
 	DA.SetParams(Params);
+	MKF.SetParams(Params);
 
 	vector<DSSAligner *> DAs;
+	vector<ChainBag *> ChainBagsQ;
 	DAs.reserve(QueryCount);
+	ChainBagsQ.reserve(QueryCount);
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		{
 		ProgressStep(QueryIdx, QueryCount, "Index query");
@@ -106,8 +109,20 @@ void cmd_postmufilter()
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
 		float QSelfRevScore = GetSelfRevScore(DA, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
+		MKF.SetQ(ptrQMuLetters, ptrQMuKmers);
+
 		ptrDA->SetQuery(QChain, ptrQProfile, ptrQMuLetters, ptrQMuKmers, QSelfRevScore);
 		DAs.push_back(ptrDA);
+
+		ChainBag *ptrCBQ = new ChainBag;
+		ptrCBQ->m_ptrChain = &QChain;
+		ptrCBQ->m_ptrProfile = ptrQProfile;
+		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
+		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
+		ptrCBQ->m_ptrSelfRevScore = QSelfRevScore;
+		ptrCBQ->m_ptrProfPara = DA.m_ProfPara;
+		ptrCBQ->m_ptrProfParaRev = DA.m_ProfParaRev;
+		ChainBagsQ.push_back(ptrCBQ);
 		}
 
 	BCAData DB;
@@ -130,6 +145,7 @@ void cmd_postmufilter()
 	vector<byte> DBMuLetters;
 	vector<uint> DBMuKmers;
 	float SelfRevScore = 0;
+	ChainBag CBT;
 	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
 		{
 #if JOIN
@@ -156,7 +172,15 @@ void cmd_postmufilter()
 		float DBSelfRevScore = GetSelfRevScore(DA, D, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
 
-		DA.SetTarget(DBChain, &DBProfile, &DBMuLetters, &DBMuKmers, DBSelfRevScore);
+		//DA.SetTarget(DBChain, &DBProfile, &DBMuLetters, &DBMuKmers, DBSelfRevScore);
+
+		CBT.m_ptrChain = &DBChain;
+		CBT.m_ptrProfile = &DBProfile;
+		CBT.m_ptrMuLetters = &DBMuLetters;
+		CBT.m_ptrMuKmers = &DBMuKmers;
+		CBT.m_ptrSelfRevScore = DBSelfRevScore;
+		CBT.m_ptrProfPara = 0;
+		CBT.m_ptrProfParaRev = 0;
 
 		const uint FilHitCount = StrToUint(Fields[1]);
 		asserta(FilHitCount + 2 == FieldCount);

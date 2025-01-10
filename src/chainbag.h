@@ -11,6 +11,6 @@ public:
 	const vector<uint> *m_ptrMuKmers = 0;
 	void *m_ptrProfPara = 0;
 	void *m_ptrProfParaRev = 0;
-	float m_ptrSelfRevScore = FLT_MAX;
 	uint16_t *m_ptrKmerHashTableQ = 0;
+	float m_ptrSelfRevScore = FLT_MAX;
 	};
