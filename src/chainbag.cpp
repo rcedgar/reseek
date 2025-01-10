@@ -19,20 +19,33 @@ bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 	return false;
 	}
 
-void DSSAligner::AlignBags(const ChainBag &BagQ,
+void DSSAligner::AlignBags(const ChainBag &BagA,
 						   const ChainBag &BagB)
 	{
 	ClearAlign();
 	if (DoMKF_Bags(BagA, BagB))
 		{
-		m_MKF.SetBagQ(BagQ);
-		m_MKF.AlignBag(BagT);
+		m_MKF.SetBagQ(BagA);
+		m_MKF.AlignBag(BagB);
 		PostAlignMKF();
 		return;
 		}
 
-	if (m_Params->m_Omega > 0)
+	float Omega = m_Params->m_Omega;
+	if (Omega > 0)
 		{
-		AlignMuParaBags(
+		float MuScore = AlignMuParaBags(BagA, BagB);
+		if (MuScore < Omega)
+			return;
 		}
+	SetSMx_NoRev(*m_Params, *BagA.m_ptrProfile, *BagB.m_ptrProfile);
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+
+	CalcEvalue();
 	}

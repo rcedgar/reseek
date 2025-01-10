@@ -514,11 +514,13 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	return Total;
 	}
 
-void DSSAligner::SetSMx_NoRev()
+void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
+					  const vector<vector<byte> > &ProfileA,
+					  const vector<vector<byte> > &ProfileB)
 	{
-	const DSSParams &Params = *m_Params;
-	const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	const vector<vector<byte> > &ProfileB = *m_ProfileB;
+	//const DSSParams &Params = *m_Params;
+	//const vector<vector<byte> > &ProfileA = *m_ProfileA;
+	//const vector<vector<byte> > &ProfileB = *m_ProfileB;
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 
@@ -751,7 +753,7 @@ void DSSAligner::AlignQueryTarget_Trace()
 			}
 		}
 
-	SetSMx_NoRev();
+	SetSMx_NoRev(*m_Params, *m_ProfileA, *m_ProfileB);
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -917,7 +919,7 @@ void DSSAligner::ClearAlign()
 void DSSAligner::Align_NoAccel()
 	{
 	ClearAlign();
-	SetSMx_NoRev();
+	SetSMx_NoRev(*m_Params, *m_ProfileA, *m_ProfileB);
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();

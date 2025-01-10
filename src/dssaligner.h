@@ -157,7 +157,9 @@ public:
 	void CalcEvalue();
 	void CalcEvalue_AAOnly();
 	void SetSMx_QRev();
-	void SetSMx_NoRev();
+	void SetSMx_NoRev(const DSSParams &Params,
+					  const vector<vector<byte> > &ProfileA,
+					  const vector<vector<byte> > &ProfileB);
 	void SetMuQP();
 	void SetMuQPi();
 	void SetMuQP_Para();
@@ -208,10 +210,10 @@ public:
 	float GetLDDT() const;
 	float SubstScore(uint PosA, uint PosB);
 	const DSSParams &GetParams() const { return *m_Params; }
-	void AlignBags(const ChainBag &BagQ,
-				   const ChainBag &BagT);
-	bool DoMKF_Bags(const ChainBag &BagQ,
-					const ChainBag &BagT) const;
+	void AlignBags(const ChainBag &BagA,
+				   const ChainBag &BagB);
+	bool DoMKF_Bags(const ChainBag &BagA,
+					const ChainBag &BagB) const;
 
 public:
 	static void Stats();
