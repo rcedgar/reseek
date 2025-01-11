@@ -27,21 +27,14 @@ void cmd_postmufilter()
 	DSSParams Params;
 	Params.SetFromCmdLine((uint) opt_dbsize);
 
-	//DBSearcher DBS;
-	//DBS.m_Params = &Params;
-	//DBS.LoadDB(QueryCAFN);
-	//const uint QueryCount = DBS.GetDBChainCount();
-
 	vector<PDBChain *> QChains;
 	ReadChains(QueryCAFN, QChains);
 	const uint QueryCount = SIZE(QChains);
 
 	DSS D;
-	//MuKmerFilter MKF;
 	DSSAligner DASelfRev;
 	D.SetParams(Params);
 	DASelfRev.SetParams(Params);
-	//MKF.SetParams(Params);
 
 	vector<DSSAligner *> DAs;
 	vector<ChainBag *> ChainBagsQ;
@@ -64,8 +57,6 @@ void cmd_postmufilter()
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
 		float QSelfRevScore = GetSelfRevScore(DASelfRev, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
-		//MKF.SetQ(QChain.m_Label, ptrQMuLetters, ptrQMuKmers);
-
 		ptrDA->SetQuery(QChain, ptrQProfile, ptrQMuLetters, ptrQMuKmers, QSelfRevScore);
 		DAs.push_back(ptrDA);
 
@@ -78,11 +69,8 @@ void cmd_postmufilter()
 		ptrCBQ->m_ptrProfPara = ptrDA->m_ProfPara;
 		ptrCBQ->m_ptrProfParaRev = ptrDA->m_ProfParaRev;
 		ptrCBQ->m_ptrKmerHashTableQ = ptrDA->m_MKF.GetHashTableQ();
-		ptrCBQ->Validate("CBQ");
 		ChainBagsQ.push_back(ptrCBQ);
 		}
-	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
-		ChainBagsQ[QueryIdx]->Validate("CBQ1");
 
 	BCAData DB;
 	DB.Open(opt_db);
@@ -137,32 +125,17 @@ void cmd_postmufilter()
 		CBT.m_SelfRevScore = DBSelfRevScore;
 		CBT.m_ptrProfPara = 0;
 		CBT.m_ptrProfParaRev = 0;
-		CBT.Validate("CBT");
 
 		const uint FilHitCount = StrToUint(Fields[1]);
 		asserta(FilHitCount + 2 == FieldCount);
 		for (uint FilHitIdx = 0; FilHitIdx < FilHitCount; ++FilHitIdx)
 			{
 			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
-			asserta(QueryIdx < QueryCount);
-
-			//DSSAligner &DA = *DAs[QueryIdx];
-			//DA.SetTarget(DBChain, &DBProfile, &DBMuLetters, &DBMuKmers, DBSelfRevScore);
-			//DA.AlignQueryTarget();
-			//if (DA.m_EvalueA <= MaxEvalue)
-			//	DA.ToTsv(fTsv, true);
-			++ScannedCount;
-
-			//float E1 = DA.m_EvalueA;
-			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
-			CBQ.Validate("Q");
-			CBT.Validate("T");
 			TheDA.AlignBags(CBQ, CBT);
-			float E2 = TheDA.m_EvalueA;
-			//asserta(feq(E1, E2));
 			if (TheDA.m_EvalueA <= MaxEvalue)
 				TheDA.ToTsv(fTsv, true);
+			++ScannedCount;
 			}
 		}
 	Ok = LR.ReadLine(Line);
