@@ -12,7 +12,7 @@ public:
 	const void *m_ptrProfPara = 0;
 	const void *m_ptrProfParaRev = 0;
 	const uint16_t *m_ptrKmerHashTableQ = 0;
-	float m_ptrSelfRevScore = FLT_MAX;
+	float m_SelfRevScore = FLT_MAX;
 
 public:
 	void Validate(const char *Msg) const;

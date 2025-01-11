@@ -24,6 +24,16 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 						   const ChainBag &BagB)
 	{
 	ClearAlign();
+
+	m_ChainA = BagA.m_ptrChain;
+	m_ChainB = BagB.m_ptrChain;
+
+	m_ProfileA = BagA.m_ptrProfile;
+	m_ProfileB = BagB.m_ptrProfile;
+
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+
 	if (DoMKF_Bags(BagA, BagB))
 		{
 		m_MKF.SetBagQ(BagA);
@@ -40,8 +50,8 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 			return;
 		}
 	SetSMx_NoRev(*m_Params, *BagA.m_ptrProfile, *BagB.m_ptrProfile);
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
+	const uint LA = BagA.m_ptrChain->GetSeqLength();
+	const uint LB = BagB.m_ptrChain->GetSeqLength();
 
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
