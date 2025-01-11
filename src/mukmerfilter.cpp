@@ -15,7 +15,40 @@ uint MuKmerFilter::m_ChainHSPCount;
 double MuKmerFilter::m_SumBoxFract;
 mutex MuKmerFilter::m_Lock;
 
-#if DEBUBG
+#if DEBUG
+void MuKmerFilter::Dump(FILE *f, const char *Msg) const
+	{
+	if (f == 0)
+		return;
+	fprintf(f, "MuKmerFilter::Dump(%s) m_Label=%s\n", Msg, m_LabelQ.c_str());
+	fprintf(f, "Letters %p ", m_ptrMuLettersQ);
+	if (m_ptrMuLettersQ != 0)
+		{
+		fprintf(f, "[%u]", SIZE(*m_ptrMuLettersQ));
+		for (uint i = 0; i < SIZE(*m_ptrMuLettersQ); ++i)
+			fprintf(f, " %u", (*m_ptrMuLettersQ)[i]);
+		}
+	fprintf(f, "\n");
+
+	fprintf(f, "Kmers %p ", m_ptrMuKmersQ);
+	if (m_ptrMuKmersQ != 0)
+		{
+		const uint n = SIZE(*m_ptrMuKmersQ);
+		fprintf(f, "[%u]", n);
+		for (uint i = 0; i < n; ++i)
+			fprintf(f, " %u", (*m_ptrMuKmersQ)[i]);
+		}
+	fprintf(f, "\n");
+
+	uint Busy = 0;
+	for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
+		{
+		if (m_ptrKmerHashTableQ[Kmer] != 0xffff)
+			++Busy;
+		}
+	Log("Busy=%u\n", Busy);
+	}
+
 void MuKmerFilter::Validate() const
 	{
 	asserta(m_ptrKmerHashTableQ != 0);
@@ -157,19 +190,26 @@ void MuKmerFilter::ResetQ()
 			}
 		m_ptrMuKmersQ = 0;
 		m_ptrMuLettersQ = 0;
+		m_LabelQ.clear();
 		}
 #if DEBUG
 	{
+	Validate();
 	for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
 		asserta(m_ptrKmerHashTableQ[Kmer] == 0xffff);
 	}
 #endif
 	}
 
-void MuKmerFilter::SetQ(const vector<byte> *ptrMuLettersQ,
-							  const vector<uint> *ptrMuKmersQ)
+void MuKmerFilter::SetQ(const string &LabelQ,
+	const vector<byte> *ptrMuLettersQ,
+	const vector<uint> *ptrMuKmersQ)
 	{
+#if DEBUG
+	Validate();
+#endif
 	ResetQ();
+	m_LabelQ = LabelQ;
 	StartTimer(MuKmerSetQ);
 	//m_ChainQ = &ChainQ;
 
@@ -191,6 +231,9 @@ void MuKmerFilter::SetQ(const vector<byte> *ptrMuLettersQ,
 				}
 			}
 		}
+#if DEBUG
+	Validate();
+#endif
 	EndTimer(MuKmerSetQ);
 	}
 
@@ -387,15 +430,19 @@ void MuKmerFilter::Stats()
 void MuKmerFilter::SetBagQ(const ChainBag &BagQ)
 	{
 	if (m_ptrBagQ == &BagQ)
+		{
+		assert(m_LabelQ == BagQ.m_ptrChain->m_Label);
 		return;
-	if (m_ptrBagQ != 0)
-		ResetQ();
+		}
 
 	m_ptrBagQ = &BagQ;
+	m_LabelQ = BagQ.m_ptrChain->m_Label;
 
 	m_ptrMuLettersQ = BagQ.m_ptrMuLetters;
 	m_ptrMuKmersQ = BagQ.m_ptrMuKmers;
-	m_ptrKmerHashTableQ = BagQ.m_ptrKmerHashTableQ;
+	memcpy(m_ptrKmerHashTableQ, 
+		   BagQ.m_ptrKmerHashTableQ,
+		   m_DictSize*HASHW*sizeof(uint16_t));
 
 	asserta(m_ptrMuLettersQ != 0);
 	asserta(m_ptrMuKmersQ != 0);

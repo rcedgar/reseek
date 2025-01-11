@@ -2,6 +2,11 @@
 #include "dssaligner.h"
 #include "chainreader2.h"
 
+/***
+[c300a5f] Add bags to postmufilter but not used, 
+	SEPQ0.1=0.2109 SEPQ1=0.3142 SEPQ10=0.3878 S1FP=0.3347 N1FP=152204 area=7.14
+***/
+
 #define JOIN	0
 
 #if JOIN
@@ -82,11 +87,11 @@ void cmd_postmufilter()
 	const uint QueryCount = SIZE(QChains);
 
 	DSS D;
-	MuKmerFilter MKF;
-	DSSAligner DA;
+	//MuKmerFilter MKF;
+	DSSAligner DASelfRev;
 	D.SetParams(Params);
-	DA.SetParams(Params);
-	MKF.SetParams(Params);
+	DASelfRev.SetParams(Params);
+	//MKF.SetParams(Params);
 
 	vector<DSSAligner *> DAs;
 	vector<ChainBag *> ChainBagsQ;
@@ -107,9 +112,9 @@ void cmd_postmufilter()
 		D.GetProfile(*ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
-		float QSelfRevScore = GetSelfRevScore(DA, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
+		float QSelfRevScore = GetSelfRevScore(DASelfRev, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
-		MKF.SetQ(ptrQMuLetters, ptrQMuKmers);
+		//MKF.SetQ(QChain.m_Label, ptrQMuLetters, ptrQMuKmers);
 
 		ptrDA->SetQuery(QChain, ptrQProfile, ptrQMuLetters, ptrQMuKmers, QSelfRevScore);
 		DAs.push_back(ptrDA);
@@ -120,10 +125,14 @@ void cmd_postmufilter()
 		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
 		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
 		ptrCBQ->m_ptrSelfRevScore = QSelfRevScore;
-		ptrCBQ->m_ptrProfPara = DA.m_ProfPara;
-		ptrCBQ->m_ptrProfParaRev = DA.m_ProfParaRev;
+		ptrCBQ->m_ptrProfPara = ptrDA->m_ProfPara;
+		ptrCBQ->m_ptrProfParaRev = ptrDA->m_ProfParaRev;
+		ptrCBQ->m_ptrKmerHashTableQ = ptrDA->m_MKF.GetHashTableQ();
+		ptrCBQ->Validate("CBQ");
 		ChainBagsQ.push_back(ptrCBQ);
 		}
+	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
+		ChainBagsQ[QueryIdx]->Validate("CBQ1");
 
 	BCAData DB;
 	DB.Open(opt_db);
@@ -169,10 +178,9 @@ void cmd_postmufilter()
 		D.GetMuLetters(DBMuLetters);
 		D.GetMuKmers(DBMuLetters, DBMuKmers);
 
-		float DBSelfRevScore = GetSelfRevScore(DA, D, DBChain, DBProfile,
+		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
-
-		//DA.SetTarget(DBChain, &DBProfile, &DBMuLetters, &DBMuKmers, DBSelfRevScore);
+		DASelfRev.UnsetQuery();
 
 		CBT.m_ptrChain = &DBChain;
 		CBT.m_ptrProfile = &DBProfile;
@@ -181,6 +189,7 @@ void cmd_postmufilter()
 		CBT.m_ptrSelfRevScore = DBSelfRevScore;
 		CBT.m_ptrProfPara = 0;
 		CBT.m_ptrProfParaRev = 0;
+		CBT.Validate("CBT");
 
 		const uint FilHitCount = StrToUint(Fields[1]);
 		asserta(FilHitCount + 2 == FieldCount);
@@ -234,6 +243,15 @@ void cmd_postmufilter()
 			if (DA.m_EvalueA <= MaxEvalue)
 				DA.ToTsv(fTsv, true);
 			++ScannedCount;
+
+			float E1 = DA.m_EvalueA;
+			asserta(QueryIdx < SIZE(ChainBagsQ));
+			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
+			CBQ.Validate("Q");
+			CBT.Validate("T");
+			DA.AlignBags(CBQ, CBT);
+			float E2 = DA.m_EvalueA;
+			asserta(feq(E1, E2));
 			}
 		}
 	Ok = LR.ReadLine(Line);

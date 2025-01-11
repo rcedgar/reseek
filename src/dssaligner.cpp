@@ -669,7 +669,7 @@ void DSSAligner::SetQuery(
 	if (ptrMuKmers != 0)
 		{
 		asserta(ptrMuLetters != 0);
-		m_MKF.SetQ(ptrMuLetters, ptrMuKmers);
+		m_MKF.SetQ(Chain.m_Label, ptrMuLetters, ptrMuKmers);
 		}
 
 	m_ChainA = &Chain;

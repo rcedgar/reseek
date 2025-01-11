@@ -9,14 +9,17 @@ const uint HASHW = 4;
 class MuKmerFilter
 	{
 private:
-	const ChainBag *m_ptrBagQ = 0;
 	const DSSParams *m_Params = 0;
+
+	const ChainBag *m_ptrBagQ = 0;
 	const vector<byte> *m_ptrMuLettersQ = 0;
-	const vector<byte> *m_ptrMuLettersT = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_ptrKmerHashTableQ = 0;
 
+	const vector<byte> *m_ptrMuLettersT = 0;
+
 public:
+	string m_LabelQ;
 	uint m_DictSize = 0;
 	vector<int> m_MuKmerHSPLois;
 	vector<int> m_MuKmerHSPLojs;
@@ -52,9 +55,14 @@ public:
 	static mutex m_Lock;
 
 public:
+	const uint16_t *GetHashTableQ() const
+		{
+		return m_ptrKmerHashTableQ;
+		}
 	void SetParams(const DSSParams &Params);
 	void ResetQ();
-	void SetQ(const vector<byte> *ptrMuLettersQ,
+	void SetQ(const string &LabelQ,
+			  const vector<byte> *ptrMuLettersQ,
 			  const vector<uint> *ptrMuKmersQ);
 	void SetBagQ(const ChainBag &BagQ);
 	int GetMaxHSPScore(const vector<byte> &MuLettersT,
@@ -69,6 +77,7 @@ public:
 	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };
 #if DEBUG
 	void Validate() const;
+	void Dump(FILE *f, const char *Msg) const;
 #endif
 
 public:

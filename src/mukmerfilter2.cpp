@@ -84,7 +84,7 @@ void cmd_mukmerfilter()
 		const string &Labeli = Chaini.m_Label;
 
 		MKF.ResetQ();
-		MKF.SetQ(&MuLettersi, &MuKmersi);
+		MKF.SetQ(Labeli, &MuLettersi, &MuKmersi);
 
 		DA.SetQuery(Chaini, &Profilei, &MuLettersi, &MuKmersi, SelfScorei);
 

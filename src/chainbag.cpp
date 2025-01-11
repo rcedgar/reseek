@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chainbag.h"
 #include "dssaligner.h"
+#include "parasail.h"
 
 bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 							const ChainBag &BagB) const
@@ -48,4 +49,27 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 
 	CalcEvalue();
+	}
+
+void ChainBag::Validate(const char *Msg) const
+	{
+	if (m_ptrChain == 0)
+		{
+		asserta(m_ptrProfile == 0);
+		asserta(m_ptrMuLetters == 0);
+		asserta(m_ptrMuKmers == 0);
+		asserta(m_ptrProfPara == 0);
+		asserta(m_ptrProfParaRev == 0);
+		asserta(m_ptrKmerHashTableQ == 0);
+		return;
+		}
+	const uint L = m_ptrChain->GetSeqLength();
+	asserta(SIZE(*m_ptrMuLetters) == L);
+	asserta(SIZE(*m_ptrMuKmers) + 2 == L);
+	const parasail_profile_t *Prof = (const parasail_profile_t *) m_ptrProfPara;
+	const parasail_profile_t *ProfRev = (const parasail_profile_t *) m_ptrProfParaRev;
+	if (Prof != 0)
+		asserta(Prof->s1Len == L);
+	if (ProfRev != 0)
+		asserta(ProfRev->s1Len == L);
 	}
