@@ -55,12 +55,24 @@ public:
 	static mutex m_Lock;
 
 public:
+	void ForceZero()
+		{
+		m_ptrBagQ = 0;
+		m_ptrMuLettersQ = 0;
+		m_ptrMuKmersQ = 0;
+		m_ptrMuLettersT = 0;
+		m_ptrKmerHashTableQ = 0;
+		}
+
 	const uint16_t *GetHashTableQ() const
 		{
 		return m_ptrKmerHashTableQ;
 		}
 	void SetParams(const DSSParams &Params);
 	void ResetQ();
+	uint16_t *CreateEmptyHashTable() const;
+	void InitHashTable(uint16_t *HT) const;
+	void SetHashTable(const vector<uint> &Kmers, uint16_t *HT) const;
 	void SetQ(const string &LabelQ,
 			  const vector<byte> *ptrMuLettersQ,
 			  const vector<uint> *ptrMuKmersQ);

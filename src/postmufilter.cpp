@@ -5,12 +5,87 @@
 /***
 [c300a5f] Add bags to postmufilter but not used, 
 	SEPQ0.1=0.2109 SEPQ1=0.3142 SEPQ10=0.3878 S1FP=0.3347 N1FP=152204 area=7.14
+
+[36f6da1] Single-theaded bags
+	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3879 S1FP=0.3348 N1FP=152253 area=7.14
 ***/
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
 					  const vector<byte> *ptrMuLetters,
 					  const vector<uint> *ptrMuKmers);
+
+static mutex s_IndexQueryLock;
+static uint s_QueryIdx;
+static uint s_QueryCount;
+static vector<PDBChain *> *s_ptrQChains;
+static vector<ChainBag *> *s_ptrChainBagsQ;
+static DSSParams *s_ptrParams;
+
+static void ThreadBody_IndexQuery(uint ThreadIndex)
+	{
+	DSS D;
+	DSSAligner DASelfRev;
+	D.SetParams(*s_ptrParams);
+	DASelfRev.SetParams(*s_ptrParams);
+	MuKmerFilter MKF;
+	MKF.SetParams(*s_ptrParams);
+	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
+
+	vector<PDBChain *> &QChains = *s_ptrQChains;
+
+	if (ThreadIndex == 0)
+		ProgressStep(0, s_QueryCount, "Index query");
+	for (;;)
+		{
+		s_IndexQueryLock.lock();
+		uint QueryIdx = s_QueryIdx++;
+		s_IndexQueryLock.unlock();
+
+		if (QueryIdx >= s_QueryCount)
+			{
+			if (ThreadIndex == 0)
+				ProgressStep(s_QueryCount-1, s_QueryCount, "Index query");
+			return;
+			}
+
+		if (ThreadIndex == 0)
+			ProgressStep(QueryIdx, s_QueryCount, "Index query");
+
+		const PDBChain &QChain = *QChains[QueryIdx];
+		D.Init(QChain);
+
+		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
+		vector<byte> *ptrQMuLetters = new vector<byte>;
+		vector<uint> *ptrQMuKmers = new vector<uint>;
+
+		D.GetProfile(*ptrQProfile);
+		D.GetMuLetters(*ptrQMuLetters);
+		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
+		float QSelfRevScore = GetSelfRevScore(DASelfRev, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
+
+		uint16_t *HT = MKF.CreateEmptyHashTable();
+		MKF.SetHashTable(*ptrQMuKmers, HT);
+
+		ChainBag *ptrCBQ = new ChainBag;
+		ptrCBQ->m_ptrChain = &QChain;
+		ptrCBQ->m_ptrProfile = ptrQProfile;
+		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
+		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
+		ptrCBQ->m_SelfRevScore = QSelfRevScore;
+		ptrCBQ->m_ptrProfPara = DASelfRev.m_ProfPara;
+		ptrCBQ->m_ptrProfParaRev = DASelfRev.m_ProfParaRev;
+		ptrCBQ->m_ptrKmerHashTableQ = HT;
+		asserta(ChainBagsQ[QueryIdx] == 0);
+		s_IndexQueryLock.lock();
+		ChainBagsQ[QueryIdx] = ptrCBQ;
+		s_IndexQueryLock.unlock();
+
+		//DASelfRev.m_MKF.ForceZero();
+		DASelfRev.m_ProfPara = 0;
+		DASelfRev.m_ProfParaRev = 0;
+		}
+	}
 
 // Query & DB need C-alpha
 void cmd_postmufilter()
@@ -29,48 +104,33 @@ void cmd_postmufilter()
 
 	vector<PDBChain *> QChains;
 	ReadChains(QueryCAFN, QChains);
-	const uint QueryCount = SIZE(QChains);
+	s_QueryCount = SIZE(QChains);
 
 	DSS D;
 	DSSAligner DASelfRev;
 	D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 
-	vector<DSSAligner *> DAs;
 	vector<ChainBag *> ChainBagsQ;
-	DAs.reserve(QueryCount);
-	ChainBagsQ.reserve(QueryCount);
-	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
+	ChainBagsQ.resize(s_QueryCount, 0);
+
+	s_ptrQChains = &QChains;
+	s_ptrChainBagsQ = &ChainBagsQ;
+	s_ptrParams = &Params;
+
+	uint ThreadCount = GetRequestedThreadCount();
+	vector<thread *> ts;
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		ProgressStep(QueryIdx, QueryCount, "Index query");
-		const PDBChain &QChain = *QChains[QueryIdx];
-		D.Init(QChain);
-
-		DSSAligner *ptrDA = new DSSAligner;
-		ptrDA->SetParams(Params);
-		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
-		vector<byte> *ptrQMuLetters = new vector<byte>;
-		vector<uint> *ptrQMuKmers = new vector<uint>;
-
-		D.GetProfile(*ptrQProfile);
-		D.GetMuLetters(*ptrQMuLetters);
-		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
-		float QSelfRevScore = GetSelfRevScore(DASelfRev, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
-
-		ptrDA->SetQuery(QChain, ptrQProfile, ptrQMuLetters, ptrQMuKmers, QSelfRevScore);
-		DAs.push_back(ptrDA);
-
-		ChainBag *ptrCBQ = new ChainBag;
-		ptrCBQ->m_ptrChain = &QChain;
-		ptrCBQ->m_ptrProfile = ptrQProfile;
-		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
-		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
-		ptrCBQ->m_SelfRevScore = QSelfRevScore;
-		ptrCBQ->m_ptrProfPara = ptrDA->m_ProfPara;
-		ptrCBQ->m_ptrProfParaRev = ptrDA->m_ProfParaRev;
-		ptrCBQ->m_ptrKmerHashTableQ = ptrDA->m_MKF.GetHashTableQ();
-		ChainBagsQ.push_back(ptrCBQ);
+		thread *t = new thread(ThreadBody_IndexQuery, ThreadIndex);
+		ts.push_back(t);
 		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+
+	asserta(SIZE(*s_ptrChainBagsQ) == s_QueryCount);
 
 	BCAData DB;
 	DB.Open(opt_db);
@@ -131,8 +191,18 @@ void cmd_postmufilter()
 		for (uint FilHitIdx = 0; FilHitIdx < FilHitCount; ++FilHitIdx)
 			{
 			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
+			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
+			//const string Label1 = "d3grsa3/d.87.1.1";
+			//const string Label2 = "d1d7ya3/d.87.1.1";
+			//bool Trace = (CBQ.m_ptrChain->m_Label == Label1 && CBT.m_ptrChain->m_Label == Label2);
+			//Trace = Trace || (CBQ.m_ptrChain->m_Label == Label2 && CBT.m_ptrChain->m_Label == Label1);
+			//brk(Trace);
 			TheDA.AlignBags(CBQ, CBT);
+			//Log("%u %u %s %s %.3g\n",
+			//	TargetIdx, QueryIdx,
+			//	CBQ.m_ptrChain->m_Label.c_str(), CBT.m_ptrChain->m_Label.c_str(),
+			//	TheDA.m_EvalueA);//@@
 			if (TheDA.m_EvalueA <= MaxEvalue)
 				TheDA.ToTsv(fTsv, true);
 			++ScannedCount;

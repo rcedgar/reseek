@@ -281,8 +281,8 @@ void cmd_convert()
 	s_TooShort = 0;
 	s_Shortest = UINT_MAX;
 	s_LastTime = 0;
-	vector<thread *> ts;
 
+	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{

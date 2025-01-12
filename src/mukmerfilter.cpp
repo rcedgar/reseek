@@ -99,8 +99,6 @@ void MuKmerFilter::SetParams(const DSSParams &Params)
 	asserta(k >= 1 && k < 6);
 	m_DictSize = myipow(36, k);
 	m_Params = &Params;
-	m_ptrKmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
-	memset(m_ptrKmerHashTableQ, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
 	}
 
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
@@ -201,14 +199,52 @@ void MuKmerFilter::ResetQ()
 #endif
 	}
 
+void MuKmerFilter::InitHashTable(uint16_t *HT) const
+	{
+	memset(HT, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
+	}
+
+void MuKmerFilter::SetHashTable(const vector<uint> &Kmers, uint16_t *HT) const
+	{
+	const uint KmerCount = SIZE(Kmers);
+	asserta(KmerCount < 0xffff);
+	for (uint PosQ = 0; PosQ < KmerCount; ++PosQ)
+		{
+		uint Kmer = Kmers[PosQ];
+		assert(Kmer < m_DictSize);
+		for (uint w = 0; w < HASHW; ++w)
+			{
+			if (HT[Kmer*HASHW+w] == 0xffff)
+				{
+				HT[Kmer*HASHW+w] = PosQ;
+				break;
+				}
+			}
+		}
+	}
+
+uint16_t *MuKmerFilter::CreateEmptyHashTable() const\
+	{
+	uint16_t *HT = myalloc(uint16_t, m_DictSize*HASHW);
+	memset(HT, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
+	return HT;
+	}
+
 void MuKmerFilter::SetQ(const string &LabelQ,
 	const vector<byte> *ptrMuLettersQ,
 	const vector<uint> *ptrMuKmersQ)
 	{
+	if (m_ptrKmerHashTableQ == 0)
+		{
+		m_ptrKmerHashTableQ = CreateEmptyHashTable();
+		InitHashTable(m_ptrKmerHashTableQ);
+		}
+	else
+		ResetQ();
+
 #if DEBUG
 	Validate();
 #endif
-	ResetQ();
 	m_LabelQ = LabelQ;
 	StartTimer(MuKmerSetQ);
 	//m_ChainQ = &ChainQ;
@@ -216,21 +252,22 @@ void MuKmerFilter::SetQ(const string &LabelQ,
 	m_ptrMuLettersQ = ptrMuLettersQ;
 	m_ptrMuKmersQ = ptrMuKmersQ;
 
-	const uint KmerCountQ = SIZE(*m_ptrMuKmersQ);
-	asserta(KmerCountQ < 0xffff);
-	for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
-		{
-		uint Kmer = (*m_ptrMuKmersQ)[PosQ];
-		assert(Kmer < m_DictSize);
-		for (uint w = 0; w < HASHW; ++w)
-			{
-			if (m_ptrKmerHashTableQ[Kmer*HASHW+w] == 0xffff)
-				{
-				m_ptrKmerHashTableQ[Kmer*HASHW+w] = PosQ;
-				break;
-				}
-			}
-		}
+	//const uint KmerCountQ = SIZE(*m_ptrMuKmersQ);
+	//asserta(KmerCountQ < 0xffff);
+	//for (uint PosQ = 0; PosQ < KmerCountQ; ++PosQ)
+	//	{
+	//	uint Kmer = (*m_ptrMuKmersQ)[PosQ];
+	//	assert(Kmer < m_DictSize);
+	//	for (uint w = 0; w < HASHW; ++w)
+	//		{
+	//		if (m_ptrKmerHashTableQ[Kmer*HASHW+w] == 0xffff)
+	//			{
+	//			m_ptrKmerHashTableQ[Kmer*HASHW+w] = PosQ;
+	//			break;
+	//			}
+	//		}
+	//	}
+	SetHashTable(*m_ptrMuKmersQ, m_ptrKmerHashTableQ);
 #if DEBUG
 	Validate();
 #endif
@@ -440,6 +477,8 @@ void MuKmerFilter::SetBagQ(const ChainBag &BagQ)
 
 	m_ptrMuLettersQ = BagQ.m_ptrMuLetters;
 	m_ptrMuKmersQ = BagQ.m_ptrMuKmers;
+	if (m_ptrKmerHashTableQ == 0)
+		m_ptrKmerHashTableQ = myalloc(uint16_t, m_DictSize*HASHW);
 	memcpy(m_ptrKmerHashTableQ, 
 		   BagQ.m_ptrKmerHashTableQ,
 		   m_DictSize*HASHW*sizeof(uint16_t));

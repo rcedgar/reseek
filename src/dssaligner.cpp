@@ -1007,6 +1007,8 @@ void DSSAligner::ToTsv(FILE *f, bool Up)
 	{
 	if (f == 0)
 		return;
+	if (opt_noself && m_ChainA->m_Label == m_ChainB->m_Label)
+		return;
 
 	m_OutputLock.lock();
 	const uint n = SIZE(m_UFs);
