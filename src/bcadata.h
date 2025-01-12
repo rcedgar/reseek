@@ -15,6 +15,7 @@ public:
 	bool m_Reading = false;
 	uint64 m_SeqLengthsPos64 = UINT64_MAX;
 	uint64 m_LabelDataSize64 = UINT64_MAX;
+	mutable mutex m_ReadLock;
 
 public:
 	void Clear();

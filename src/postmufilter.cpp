@@ -8,6 +8,9 @@
 
 [36f6da1] Single-theaded bags
 	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3879 S1FP=0.3348 N1FP=152253 area=7.14
+
+[32f9f25] Multi-threaded query indexing
+	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152296 area=7.14
 ***/
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
@@ -16,22 +19,30 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<uint> *ptrMuKmers);
 
 static mutex s_IndexQueryLock;
+static mutex s_ScanLock;
 static uint s_QueryIdx;
 static uint s_QueryCount;
 static vector<PDBChain *> *s_ptrQChains;
 static vector<ChainBag *> *s_ptrChainBagsQ;
 static DSSParams *s_ptrParams;
+static BCAData *s_ptrDB;
+static uint s_LineIdx;
+static uint s_LineCount;
+static uint s_ScannedCount;
+static LineReader2 *s_ptrLR;
+static float s_MaxEvalue = 10;
+static FILE *s_fTsv;
 
 static void ThreadBody_IndexQuery(uint ThreadIndex)
 	{
+	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(*s_ptrParams);
-	DASelfRev.SetParams(*s_ptrParams);
+	D.SetParams(Params);
+	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
-	MKF.SetParams(*s_ptrParams);
+	MKF.SetParams(Params);
 	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
-
 	vector<PDBChain *> &QChains = *s_ptrQChains;
 
 	if (ThreadIndex == 0)
@@ -87,6 +98,90 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		}
 	}
 
+static void ThreadBody_Scan(uint ThreadIndex)
+	{
+	const DSSParams &Params = *s_ptrParams;
+	DSS D;
+	DSSAligner DASelfRev;
+	D.SetParams(Params);
+	DASelfRev.SetParams(Params);
+	MuKmerFilter MKF;
+	MKF.SetParams(Params);
+	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
+	vector<PDBChain *> &QChains = *s_ptrQChains;
+	const BCAData &DB = *s_ptrDB;
+	vector<vector<byte> > DBProfile;
+	vector<byte> DBMuLetters;
+	vector<uint> DBMuKmers;
+	float SelfRevScore = 0;
+	ChainBag CBT;
+	DSSAligner TheDA;
+	TheDA.SetParams(Params);
+	LineReader2 &LR = *s_ptrLR;
+
+	string Line;
+	vector<string> Fields;
+
+	if (ThreadIndex == 0)
+		ProgressStep(0, s_LineCount, "Scanning");
+	for (;;)
+		{
+		s_ScanLock.lock();
+		uint LineIdx = s_LineIdx++;
+		bool Ok = LR.ReadLine(Line);
+		s_ScanLock.unlock();
+		if (LineIdx >= s_LineCount)
+			{
+			if (ThreadIndex == 0)
+				ProgressStep(s_LineCount-1, s_LineCount, "Scanning");
+			return;
+			}
+		asserta(Ok);
+		if (ThreadIndex == 0 && LineIdx+1 < s_LineCount)
+			ProgressStep(LineIdx, s_LineCount, "Scanning");
+		double Pct = LR.GetPctDone();
+		Split(Line, Fields, '\t');
+		uint FieldCount = SIZE(Fields);
+		asserta(FieldCount > 2);
+		const uint TargetIdx = StrToUint(Fields[0]);
+
+		PDBChain DBChain;
+		DB.ReadChain(TargetIdx, DBChain);
+
+		D.Init(DBChain);
+		D.GetProfile(DBProfile);
+		D.GetMuLetters(DBMuLetters);
+		D.GetMuKmers(DBMuLetters, DBMuKmers);
+
+		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
+										   &DBMuLetters, &DBMuKmers);
+		DASelfRev.UnsetQuery();
+
+		CBT.m_ptrChain = &DBChain;
+		CBT.m_ptrProfile = &DBProfile;
+		CBT.m_ptrMuLetters = &DBMuLetters;
+		CBT.m_ptrMuKmers = &DBMuKmers;
+		CBT.m_SelfRevScore = DBSelfRevScore;
+		CBT.m_ptrProfPara = 0;
+		CBT.m_ptrProfParaRev = 0;
+
+		const uint FilHitCount = StrToUint(Fields[1]);
+		asserta(FilHitCount + 2 == FieldCount);
+		for (uint FilHitIdx = 0; FilHitIdx < FilHitCount; ++FilHitIdx)
+			{
+			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
+			asserta(QueryIdx < SIZE(ChainBagsQ));
+			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
+			TheDA.AlignBags(CBQ, CBT);
+			if (TheDA.m_EvalueA <= s_MaxEvalue)
+				TheDA.ToTsv(s_fTsv, true);
+			s_ScanLock.lock();
+			++s_ScannedCount;
+			s_ScanLock.unlock();
+			}
+		}
+	}
+
 // Query & DB need C-alpha
 void cmd_postmufilter()
 	{
@@ -94,10 +189,10 @@ void cmd_postmufilter()
 	asserta(optset_filin);
 	asserta(optset_dbsize);
 	const string &QueryCAFN = g_Arg1;
-	FILE *fTsv = CreateStdioFile(opt_output);
-	float MaxEvalue = 10;
+	s_fTsv = CreateStdioFile(opt_output);
+	s_MaxEvalue = 10;
 	if (optset_evalue)
-		MaxEvalue = (float) opt_evalue;
+		s_MaxEvalue = (float) opt_evalue;
 
 	DSSParams Params;
 	Params.SetFromCmdLine((uint) opt_dbsize);
@@ -134,82 +229,33 @@ void cmd_postmufilter()
 
 	BCAData DB;
 	DB.Open(opt_db);
+	s_ptrDB = &DB;
 
 	LineReader2 LR;
 	LR.Open(opt_filin);
+	s_ptrLR = &LR;
 	string Line;
 	vector<string> Fields;
-	uint PairCount = 0;
-	uint ScannedCount = 0;
-	time_t TimeLastProgress = 0;
 	bool Ok = LR.ReadLine(Line);
 	asserta(Ok);
 	Split(Line, Fields, '\t');
 	uint FieldCount = SIZE(Fields);
 	asserta(FieldCount == 2);
-	const uint LineCount  = StrToUint(Fields[1]);
-	vector<vector<byte> > DBProfile;
-	vector<byte> DBMuLetters;
-	vector<uint> DBMuKmers;
-	float SelfRevScore = 0;
-	ChainBag CBT;
-	DSSAligner TheDA;
-	TheDA.SetParams(Params);
-	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
+	s_LineCount  = StrToUint(Fields[1]);
+
+	ts.clear();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		ProgressStep(LineIdx, LineCount, "Scanning");
-		bool Ok = LR.ReadLine(Line);
-		asserta(Ok);
-		double Pct = LR.GetPctDone();
-		Split(Line, Fields, '\t');
-		FieldCount = SIZE(Fields);
-		asserta(FieldCount > 2);
-		const uint TargetIdx = StrToUint(Fields[0]);
-
-		PDBChain DBChain;
-		DB.ReadChain(TargetIdx, DBChain);
-
-		D.Init(DBChain);
-		D.GetProfile(DBProfile);
-		D.GetMuLetters(DBMuLetters);
-		D.GetMuKmers(DBMuLetters, DBMuKmers);
-
-		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
-										   &DBMuLetters, &DBMuKmers);
-		DASelfRev.UnsetQuery();
-
-		CBT.m_ptrChain = &DBChain;
-		CBT.m_ptrProfile = &DBProfile;
-		CBT.m_ptrMuLetters = &DBMuLetters;
-		CBT.m_ptrMuKmers = &DBMuKmers;
-		CBT.m_SelfRevScore = DBSelfRevScore;
-		CBT.m_ptrProfPara = 0;
-		CBT.m_ptrProfParaRev = 0;
-
-		const uint FilHitCount = StrToUint(Fields[1]);
-		asserta(FilHitCount + 2 == FieldCount);
-		for (uint FilHitIdx = 0; FilHitIdx < FilHitCount; ++FilHitIdx)
-			{
-			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
-			asserta(QueryIdx < SIZE(ChainBagsQ));
-			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
-			//const string Label1 = "d3grsa3/d.87.1.1";
-			//const string Label2 = "d1d7ya3/d.87.1.1";
-			//bool Trace = (CBQ.m_ptrChain->m_Label == Label1 && CBT.m_ptrChain->m_Label == Label2);
-			//Trace = Trace || (CBQ.m_ptrChain->m_Label == Label2 && CBT.m_ptrChain->m_Label == Label1);
-			//brk(Trace);
-			TheDA.AlignBags(CBQ, CBT);
-			//Log("%u %u %s %s %.3g\n",
-			//	TargetIdx, QueryIdx,
-			//	CBQ.m_ptrChain->m_Label.c_str(), CBT.m_ptrChain->m_Label.c_str(),
-			//	TheDA.m_EvalueA);//@@
-			if (TheDA.m_EvalueA <= MaxEvalue)
-				TheDA.ToTsv(fTsv, true);
-			++ScannedCount;
-			}
+		thread *t = new thread(ThreadBody_Scan, ThreadIndex);
+		ts.push_back(t);
 		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+
 	Ok = LR.ReadLine(Line);
 	asserta(!Ok);
 	LR.Close();
-	CloseStdioFile(fTsv);
+	CloseStdioFile(s_fTsv);
 	}
