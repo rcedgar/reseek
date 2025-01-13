@@ -11,6 +11,9 @@
 
 [32f9f25] Multi-threaded query indexing
 	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152296 area=7.14
+
+[8143e24] Multi-threaded scanning
+	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152301 area=7.14
 ***/
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,

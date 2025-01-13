@@ -298,6 +298,7 @@
     <ClCompile Include="cmprof.cpp" />
     <ClCompile Include="cmprof_train.cpp" />
     <ClCompile Include="convert.cpp" />
+    <ClCompile Include="convert2mu.cpp" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="daliscorer.cpp" />
     <ClCompile Include="daliscore_msas2.cpp" />
@@ -325,6 +326,7 @@
     <ClCompile Include="msta_score.cpp" />
     <ClCompile Include="msta_scores.cpp" />
     <ClCompile Include="mukmerfilter2.cpp" />
+    <ClCompile Include="museqsource.cpp" />
     <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />
@@ -465,6 +467,7 @@
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
+    <ClInclude Include="museqsource.h" />
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="objcounter.h" />
@@ -522,7 +525,6 @@
     <ClInclude Include="lockobjs.h" />
     <ClInclude Include="myopts.h" />
     <ClInclude Include="myutils.h" />
-    <ClInclude Include="omplock.h" />
     <ClInclude Include="pathinfo.h" />
     <ClInclude Include="pdbchain.h" />
     <ClInclude Include="quarts.h" />

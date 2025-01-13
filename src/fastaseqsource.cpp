@@ -2,7 +2,6 @@
 #include "fastaseqsource.h"
 #include "seqinfo.h"
 #include "alpha.h"
-#include "omplock.h"
 
 bool FastaFileIsNucleo(FILE *f);
 

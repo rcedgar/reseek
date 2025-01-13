@@ -515,6 +515,12 @@
     <ClCompile Include="chainbag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="museqsource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="convert2mu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -524,9 +530,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="myopts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="omplock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="alpha.h">
@@ -794,6 +797,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chainbag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="museqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

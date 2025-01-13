@@ -70,5 +70,6 @@ C(mufilter)
 C(mukmerfilter)
 C(postmufilter)
 C(tracealn)
+C(convert2mu)
 
 #undef C
