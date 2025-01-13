@@ -27,6 +27,8 @@ public:
 	virtual unsigned GetPctDoneX10() = 0;
 	virtual const char *GetFileNameC() const = 0;
 	virtual void Rewind() = 0;
+	virtual bool GetPctDone_Supported() const { return false; }
+	virtual double GetPctDone() const { return -1; }
 
 public:
 	virtual bool GetNextLo(SeqInfo *SI) = 0;

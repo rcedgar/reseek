@@ -27,7 +27,7 @@ static uint s_QueryIdx;
 static uint s_QueryCount;
 static vector<PDBChain *> *s_ptrQChains;
 static vector<ChainBag *> *s_ptrChainBagsQ;
-static DSSParams *s_ptrParams;
+static const DSSParams *s_ptrParams;
 static BCAData *s_ptrDB;
 static uint s_LineIdx;
 static uint s_LineCount;
@@ -186,19 +186,15 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	}
 
 // Query & DB need C-alpha
-void cmd_postmufilter()
+void PostMuFilter(const DSSParams &Params,
+				  const string &MuFilterTsvFN,
+				  const string &QueryCAFN,
+				  const string &DBBCAFN,
+				  float MaxEvalue,
+				  const string &HitsFN)
 	{
-	asserta(optset_db);
-	asserta(optset_filin);
-	asserta(optset_dbsize);
-	const string &QueryCAFN = g_Arg1;
-	s_fTsv = CreateStdioFile(opt_output);
-	s_MaxEvalue = 10;
-	if (optset_evalue)
-		s_MaxEvalue = (float) opt_evalue;
-
-	DSSParams Params;
-	Params.SetFromCmdLine((uint) opt_dbsize);
+	s_fTsv = CreateStdioFile(HitsFN);
+	s_MaxEvalue = MaxEvalue;
 
 	vector<PDBChain *> QChains;
 	ReadChains(QueryCAFN, QChains);
@@ -231,7 +227,7 @@ void cmd_postmufilter()
 	asserta(SIZE(*s_ptrChainBagsQ) == s_QueryCount);
 
 	BCAData DB;
-	DB.Open(opt_db);
+	DB.Open(DBBCAFN);
 	s_ptrDB = &DB;
 
 	LineReader2 LR;
@@ -261,4 +257,32 @@ void cmd_postmufilter()
 	asserta(!Ok);
 	LR.Close();
 	CloseStdioFile(s_fTsv);
+	}
+
+void cmd_postmufilter()
+	{
+	const string &QueryCAFN = g_Arg1;
+	const string &HitsFN = opt_output;
+
+	asserta(optset_db);
+	const string &DBCAFN = opt_db;
+
+	asserta(optset_filin);
+	const string &MuFilterTsvFN = opt_filin;
+
+	s_fTsv = CreateStdioFile(opt_output);
+	float MaxEvalue = 10;
+	if (optset_evalue)
+		MaxEvalue = (float) opt_evalue;
+
+	DSSParams Params;
+	asserta(optset_dbsize);
+	Params.SetFromCmdLine((uint) opt_dbsize);
+
+	PostMuFilter(Params,
+				 opt_filin,
+				 QueryCAFN,
+				 DBCAFN,
+				 MaxEvalue,
+				 HitsFN);
 	}

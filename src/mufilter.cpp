@@ -273,11 +273,11 @@ static void GetMuKmers(const string &PatternStr,
 
 static void ThreadBody(uint ThreadIndex, 
 					   const DSSParams *ptrParams,
-					   FASTASeqSource *ptrFSS, 
+					   SeqSource *ptrFSS, 
 					   const MuDex *ptrMD)
 	{
 	const DSSParams &Params = *ptrParams;
-	FASTASeqSource &FSS = *ptrFSS;
+	SeqSource &FSS = *ptrFSS;
 	const MuDex &MD = *ptrMD;
 	const string &PatternStr = Params.m_PatternStr;
 	const uint QueryCount = s_ptrQueryDB->GetSeqCount();
@@ -323,9 +323,14 @@ static void ThreadBody(uint ThreadIndex,
 		s_ProgressLock.unlock();
 		if (DoProgress)
 			{
-			double Pct = FSS.GetPctDone();
-			Progress("%s chains scanned (%.1f%%)   \r",
-					 IntToStr(s_TargetCount), Pct);
+			if (FSS.GetPctDone_Supported())
+				{
+				double Pct = FSS.GetPctDone();
+				Progress("%s chains scanned (%.1f%%)   \r",
+						 IntToStr(s_TargetCount), Pct);
+				}
+			else
+				Progress("%s chains scanned  \r", IntToStr(s_TargetCount));
 			}
 
 		const uint KmerCountT = SIZE(MuKmersT);
@@ -375,13 +380,10 @@ static void ThreadBody(uint ThreadIndex,
 		}
 	}
 
-void cmd_mufilter()
+void MuFilter(const DSSParams &Params, SeqDB &QueryDB, SeqSource &FSS)
 	{
-	asserta(optset_db);
-	const string &QueryFN = g_Arg1;			// Mu FASTA
-	const string &DBFN = string(opt_db);	// Mu FASTA
-	FASTASeqSource FSS;
-	FSS.Open(DBFN);
+	const string &PatternStr = Params.m_PatternStr;
+	asserta(PatternStr == "111");
 
 	FILE *fOut2 = CreateStdioFile(opt_output2);
 
@@ -389,19 +391,12 @@ void cmd_mufilter()
 		Die("-output option required");
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	DSSParams Params;
-	Params.SetFromCmdLine(10000);
-	const string &PatternStr = Params.m_PatternStr;
-	asserta(PatternStr == "111");
-
-	SeqDB QueryDB;
-	QueryDB.FromFasta(QueryFN);
-	const uint QueryCount = QueryDB.GetSeqCount();
 	s_ptrQueryDB = &QueryDB;
 
 	MuDex::Set_k(3);
 	MuDex MD;
 	MD.FromSeqDB(QueryDB);
+	const uint QueryCount = QueryDB.GetSeqCount();
 
 	s_QueryIdxToScoreVec.resize(QueryCount);
 	s_QueryIdxToTargetIdxVec.resize(QueryCount);
@@ -505,4 +500,30 @@ void cmd_mufilter()
 	CheckAllScoreVecs();
 	ProgressLog("CheckAllScoreVecs() ok\n");
 #endif
+	}
+
+void cmd_mufilter()
+	{
+	asserta(optset_db);
+	const string &QueryFN = g_Arg1;			// Mu FASTA
+	const string &DBFN = string(opt_db);	// Mu FASTA
+	FASTASeqSource FSS;
+	FSS.Open(DBFN);
+
+	FILE *fOut2 = CreateStdioFile(opt_output2);
+
+	if (!optset_output)
+		Die("-output option required");
+	FILE *fOut = CreateStdioFile(opt_output);
+
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
+	const string &PatternStr = Params.m_PatternStr;
+	asserta(PatternStr == "111");
+
+	SeqDB QueryDB;
+	QueryDB.FromFasta(QueryFN);
+	s_ptrQueryDB = &QueryDB;
+
+	MuFilter(Params, QueryDB, FSS);
 	}
