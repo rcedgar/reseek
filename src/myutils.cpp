@@ -2437,3 +2437,24 @@ const char *GetCurrentThreadStr(string &s)
 	s = ss.str();
 	return s.c_str();
 	}
+
+uint GetUniqueInt()
+	{
+	uint pid = uint(getpid());
+	uint now = uint(time(0));
+	uint i = pid ^ now;
+	uint j = i*1664525 + 1013904223;
+	return j;
+	}
+
+void GetTmpFileName(string &FN)
+	{
+	const char *TmpDir = getenv("TMPDIR");
+#ifdef _MSC_VER
+	if (TmpDir == 0) TmpDir = ".";
+#else
+	if (TmpDir == 0) TmpDir = "/tmp";
+#endif
+	uint u = GetUniqueInt();
+	Ps(FN, "%s/rce.%x.tmp", TmpDir, u);
+	}

@@ -1,8 +1,6 @@
 #ifndef myutils_h
 #define myutils_h
 
-#define USE_OMP			0
-
 #if defined(__x86_64__) || defined(_M_X64)
 #define	BITS			64
 #else
@@ -386,6 +384,8 @@ bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
 void MyutilsExit();
 const char *GetCurrentThreadStr(string &s);
+uint GetUniqueInt();
+void GetTmpFileName(string &FN);
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);

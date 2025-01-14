@@ -188,6 +188,23 @@ void PostMuFilter(const DSSParams &Params,
 				  float MaxEvalue,
 				  const string &HitsFN)
 	{
+	LineReader2 LR;
+	LR.Open(MuFilterTsvFN);
+	s_ptrLR = &LR;
+	string Line;
+	vector<string> Fields;
+	bool Ok = LR.ReadLine(Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	uint FieldCount = SIZE(Fields);
+	asserta(FieldCount == 2);
+	s_LineCount  = StrToUint(Fields[1]);
+	if (s_LineCount == 0)
+		{
+		Warning("No hits found by mufilter pass");
+		return;
+		}
+
 	s_fTsv = CreateStdioFile(HitsFN);
 	s_MaxEvalue = MaxEvalue;
 
@@ -224,18 +241,6 @@ void PostMuFilter(const DSSParams &Params,
 	BCAData DB;
 	DB.Open(DBBCAFN);
 	s_ptrDB = &DB;
-
-	LineReader2 LR;
-	LR.Open(MuFilterTsvFN);
-	s_ptrLR = &LR;
-	string Line;
-	vector<string> Fields;
-	bool Ok = LR.ReadLine(Line);
-	asserta(Ok);
-	Split(Line, Fields, '\t');
-	uint FieldCount = SIZE(Fields);
-	asserta(FieldCount == 2);
-	s_LineCount  = StrToUint(Fields[1]);
 
 	ts.clear();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)

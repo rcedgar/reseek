@@ -314,6 +314,7 @@ FLAG_OPT(log2)
 FLAG_OPT(fast)
 FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
+FLAG_OPT(keeptmp)
 
 #undef FLAG_OPT
 #undef UNS_OPT

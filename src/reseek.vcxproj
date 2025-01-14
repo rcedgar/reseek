@@ -418,7 +418,6 @@
     <ClCompile Include="trainer.cpp" />
     <ClCompile Include="usage.cpp" />
     <ClCompile Include="linereader.cpp" />
-    <ClCompile Include="lockobj.cpp" />
     <ClCompile Include="mx.cpp" />
     <ClCompile Include="myutils.cpp" />
     <ClCompile Include="objmgr.cpp" />
@@ -522,8 +521,6 @@
     <ClInclude Include="fileseqsource.h" />
     <ClInclude Include="gobuff.h" />
     <ClInclude Include="linereader.h" />
-    <ClInclude Include="lockobj.h" />
-    <ClInclude Include="lockobjs.h" />
     <ClInclude Include="myopts.h" />
     <ClInclude Include="myutils.h" />
     <ClInclude Include="pathinfo.h" />

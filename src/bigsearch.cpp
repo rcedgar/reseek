@@ -29,13 +29,17 @@ void cmd_bigsearch()
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
-	asserta(optset_output3);
-	const string &MuFilterTsvFN = opt_output3;
+	string MuFilterTsvFN;
+	GetTmpFileName(MuFilterTsvFN);
+	Log("MuFilterTsvFN=%s\n", MuFilterTsvFN.c_str());
 
 	MuSeqSource QSS;
 	MuSeqSource DBSS;
 	QSS.Open(QueryFN, Params);
-	DBSS.Open(DBFN, Params);
+	if (optset_input2)
+		DBSS.OpenFasta(opt_input2);
+	else
+		DBSS.Open(DBFN, Params);
 
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
@@ -46,4 +50,7 @@ void cmd_bigsearch()
 
 	MuFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 	PostMuFilter(Params, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
+
+	if (!opt_keeptmp)
+		DeleteStdioFile(MuFilterTsvFN);
 	}

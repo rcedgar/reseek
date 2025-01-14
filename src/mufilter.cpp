@@ -310,7 +310,7 @@ static void ThreadBody(uint ThreadIndex,
 		bool DoProgress = false;
 		s_ProgressLock.lock();
 		++s_TargetCount;
-		if (s_PairCount > s_last_progress_pair_count + 1000)
+		if (ThreadIndex == 0 && s_PairCount > s_last_progress_pair_count + 1000)
 			{
 			time_t now = time(0);
 			if (now != s_last_progress)
@@ -389,8 +389,6 @@ void MuFilter(const DSSParams &Params,
 	asserta(PatternStr == "111");
 
 	FILE *fOut2 = CreateStdioFile(opt_output2);
-
-	asserta(OutputFN != "");
 	FILE *fOut = CreateStdioFile(OutputFN);
 
 	s_ptrQueryDB = &QueryDB;
@@ -445,7 +443,7 @@ void MuFilter(const DSSParams &Params,
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
-		Progress("%s chains scanned (100%%)    \n", IntToStr(s_TargetCount));
+	Progress("%s chains scanned (100%%)    \n", IntToStr(s_TargetCount));
 
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		TruncateVecs(QueryIdx);

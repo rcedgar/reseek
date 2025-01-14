@@ -56,9 +56,6 @@
     <ClCompile Include="seqsource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lockobj.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="linereader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -554,12 +551,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="seqsource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lockobj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lockobjs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="linereader.h">

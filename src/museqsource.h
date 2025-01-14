@@ -1,14 +1,16 @@
 #pragma once
 
 #include <stdio.h>
-#include "seqsource.h"
+#include "fastaseqsource.h"
 #include "chainreader2.h"
 #include "dss.h"
 
 class MuSeqSource : public SeqSource
 	{
 public:
+	bool m_IsFasta = false;
 	ChainReader2 m_CR;
+	FASTASeqSource m_FSS;
 	const DSSParams *m_Params = 0;
 	const PDBChain *m_Chain = 0;
 	DSS m_DSS;
@@ -29,6 +31,7 @@ public:
 	virtual void Rewind() { Die("MuSeqSource::Rewind()"); };
 
 public:
+	void OpenFasta(const string &FileName);
 	void Open(const string &FileName, const DSSParams &Params);
 	void Close();
 	};

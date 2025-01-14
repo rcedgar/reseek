@@ -1,7 +1,7 @@
 #include "myutils.h"
+#include "museqsource.h"
 #include "pdbchain.h"
 #include "dss.h"
-#include "museqsource.h"
 #include "seqinfo.h"
 
 void cmd_convert2mu()

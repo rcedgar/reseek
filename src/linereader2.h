@@ -1,5 +1,4 @@
-#ifndef linereader_h
-#define linereader_h
+#pragma once
 #include <mutex>
 
 const unsigned LR_BUFF2 = (32*1024*1024);
@@ -39,5 +38,3 @@ protected:
 	void FillBuff();
 	void Clear();
 	};
-
-#endif // linereader_h
