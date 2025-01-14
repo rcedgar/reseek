@@ -380,16 +380,18 @@ static void ThreadBody(uint ThreadIndex,
 		}
 	}
 
-void MuFilter(const DSSParams &Params, SeqDB &QueryDB, SeqSource &FSS)
+void MuFilter(const DSSParams &Params,
+			  SeqDB &QueryDB,
+			  SeqSource &FSS,
+			  const string &OutputFN)
 	{
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
 	FILE *fOut2 = CreateStdioFile(opt_output2);
 
-	if (!optset_output)
-		Die("-output option required");
-	FILE *fOut = CreateStdioFile(opt_output);
+	asserta(OutputFN != "");
+	FILE *fOut = CreateStdioFile(OutputFN);
 
 	s_ptrQueryDB = &QueryDB;
 
@@ -521,9 +523,8 @@ void cmd_mufilter()
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
-	SeqDB QueryDB;
-	QueryDB.FromFasta(QueryFN);
-	s_ptrQueryDB = &QueryDB;
+	SeqDB MuQueryDB;
+	MuQueryDB.FromFasta(QueryFN);
 
-	MuFilter(Params, QueryDB, FSS);
+	MuFilter(Params, MuQueryDB, FSS, opt_output);
 	}

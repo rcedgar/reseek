@@ -4,15 +4,10 @@
 
 /***
 [c300a5f] Add bags to postmufilter but not used, 
-	SEPQ0.1=0.2109 SEPQ1=0.3142 SEPQ10=0.3878 S1FP=0.3347 N1FP=152204 area=7.14
-
 [36f6da1] Single-theaded bags
-	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3879 S1FP=0.3348 N1FP=152253 area=7.14
-
 [32f9f25] Multi-threaded query indexing
-	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152296 area=7.14
-
 [8143e24] Multi-threaded scanning
+[b5ee61c] MuSeqSource + [Post]MuFilter => functions
 	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152301 area=7.14
 ***/
 
@@ -231,7 +226,7 @@ void PostMuFilter(const DSSParams &Params,
 	s_ptrDB = &DB;
 
 	LineReader2 LR;
-	LR.Open(opt_filin);
+	LR.Open(MuFilterTsvFN);
 	s_ptrLR = &LR;
 	string Line;
 	vector<string> Fields;

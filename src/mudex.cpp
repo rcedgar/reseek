@@ -90,7 +90,8 @@ void MuDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const char *Seq, uint L
 
 	for (uint SeqPos = m_k-1; SeqPos < L; ++SeqPos)
 		{
-		byte Letter = g_CharToLetterMu[Seq[SeqPos]];
+		byte c = Seq[SeqPos];
+		byte Letter = g_CharToLetterMu[c];
 		assert(Letter < 36);
 		Kmer = Kmer*36 + Letter;
 		Kmer %= m_DictSize;

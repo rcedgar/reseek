@@ -30,7 +30,11 @@ bool SeqSource::GetNext(SeqInfo *SI)
 	m_Lock.unlock();
 
 	if (!Ok)
+		{
+		SI->m_Label = 0;
+		SI->m_Seq = 0;
 		return false;
+		}
 
 	++m_SeqCount;
 	return true;

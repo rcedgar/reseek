@@ -4,6 +4,8 @@
 #include <map>
 #include <set>
 
+class SeqSource;
+
 class SeqDB
 	{
 public:
@@ -29,6 +31,7 @@ public:
 	bool GetSeqByLabel(const string &Label, string &Seq,
 	  bool FailOnError = true) const;
 	uint GetSeqIndex(const string &Label, bool FailOnError = true) const;
+	unsigned AddSeq_CopyData(const char *Label, const byte *Seq, unsigned L);
 	unsigned AddSeq(const string &Label, const string &Seq);
 	const string &GetSeq(unsigned SeqIndex) const;
 	void GetSeq_StripGaps(unsigned SeqIndex, string &Seq, bool ToUpper = false) const;
@@ -38,6 +41,7 @@ public:
 	uint GetLowerCount(unsigned uColIndex) const;
 	uint GetLetterCount(unsigned uColIndex) const;
 	uint GetGapCount(unsigned uColIndex) const;
+	void FromSS(SeqSource &SS);
 
 	bool IsAligned() const;
 	unsigned GetColCount() const;
@@ -48,6 +52,7 @@ public:
 	void WritePretty(FILE *f) const;
 	void LogMe() const;
 	void TruncLabels();
+	void Alloc(uint SeqCount);
 
 private:
 	void SetIsNucleo();

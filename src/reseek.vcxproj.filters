@@ -521,6 +521,9 @@
     <ClCompile Include="convert2mu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bigsearch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

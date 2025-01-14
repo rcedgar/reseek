@@ -2,6 +2,9 @@
 #include "seqdb.h"
 #include "sfasta.h"
 #include "alpha.h"
+#include "objmgr.h"
+#include "seqinfo.h"
+#include "seqsource.h"
 
 void SeqDB::SetLabelToIndex()
 	{
@@ -243,6 +246,27 @@ void SeqDB::TruncLabels()
 		}
 	}
 
+void SeqDB::FromSS(SeqSource &SS)
+	{
+	ObjMgr OM;
+	SeqInfo *SI = OM.GetSeqInfo();
+	for (;;)
+		{
+		bool Ok = SS.GetNext(SI);
+		if (!Ok)
+			break;
+		const uint L = SI->m_L;
+		string Seq;
+		Seq.reserve(L);
+		for (uint i = 0; i < L; ++i)
+			{
+			byte c = SI->m_Seq[i];
+			Seq.push_back(c);
+			}
+		AddSeq(string(SI->m_Label), Seq);
+		}
+	}
+
 void SeqDB::FromFasta(const string& FileName, bool AllowGaps)
 	{
 	SFasta SF;
@@ -305,4 +329,26 @@ void SeqDB::WritePretty(FILE* f) const
 void SeqDB::LogMe() const
 	{
 	WritePretty(g_fLog);
+	}
+
+unsigned SeqDB::AddSeq_CopyData(const char *Label, const byte *aSeq, unsigned L)
+	{
+	if (L == 0)
+		Die("Zero length sequence not allowed");
+
+	uint Index = SIZE(m_Seqs);
+	asserta(SIZE(m_Labels) == Index);
+
+	string Seq;
+	Seq.reserve(L);
+	for (uint i = 0; i < L; ++i)
+		{
+		byte c = aSeq[i];
+		Seq.push_back(c);
+		}
+
+	m_Labels.push_back(string(Label));
+	m_Seqs.push_back(Seq);
+
+	return Index;
 	}
