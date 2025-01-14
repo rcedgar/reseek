@@ -294,6 +294,8 @@ static void ThreadBody(uint ThreadIndex,
 		if (!Ok)
 			return;
 		const uint LT = SI->m_L;
+		if (LT < 16)//@@TODO param
+			continue;
 		const uint TargetIdx = SI->m_Index;
 		const byte *ByteSeqT = SI->m_Seq;
 		MuLettersT.clear();
@@ -334,7 +336,7 @@ static void ThreadBody(uint ThreadIndex,
 			}
 
 		const uint KmerCountT = SIZE(MuKmersT);
-		asserta(KmerCountT + 2 == LT);
+		asserta(KmerCountT + 2 == LT);//@@TODO param
 		zero_array(QueryIdxToBestHSPScore, QueryCount);
 		for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 			{

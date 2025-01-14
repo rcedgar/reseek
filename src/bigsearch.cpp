@@ -37,7 +37,10 @@ void cmd_bigsearch()
 	MuSeqSource DBSS;
 	QSS.Open(QueryFN, Params);
 	if (optset_input2)
+		{
+		Progress("open %s\n", opt_input2);
 		DBSS.OpenFasta(opt_input2);
+		}
 	else
 		DBSS.Open(DBFN, Params);
 
