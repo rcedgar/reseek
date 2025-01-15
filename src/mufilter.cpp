@@ -12,7 +12,7 @@
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
 static const int MIN_HSP_SCORE = 30;
-static uint MU_FILTER_KEEPN = 500;
+static uint MU_FILTER_KEEPN = 1000;
 
 #define CHECK_SCORE_VECS	0
 #define CHECK_SCORE_VECSX	0
@@ -387,6 +387,10 @@ void MuFilter(const DSSParams &Params,
 			  SeqSource &FSS,
 			  const string &OutputFN)
 	{
+	time_t t0 = time(0);
+	if (optset_mun)
+		MU_FILTER_KEEPN = opt_mun;
+	ProgressLog("MU_FILTER_KEEPN=%u\n", MU_FILTER_KEEPN);
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
@@ -502,6 +506,8 @@ void MuFilter(const DSSParams &Params,
 	CheckAllScoreVecs();
 	ProgressLog("CheckAllScoreVecs() ok\n");
 #endif
+	time_t t1 = time(0);
+	ProgressLog("Mu filter time %u secs\n", uint(t1 - t0));
 	}
 
 void cmd_mufilter()

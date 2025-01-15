@@ -188,6 +188,7 @@ void PostMuFilter(const DSSParams &Params,
 				  float MaxEvalue,
 				  const string &HitsFN)
 	{
+	time_t t0 = time(0);
 	LineReader2 LR;
 	LR.Open(MuFilterTsvFN);
 	s_ptrLR = &LR;
@@ -257,6 +258,8 @@ void PostMuFilter(const DSSParams &Params,
 	asserta(!Ok);
 	LR.Close();
 	CloseStdioFile(s_fTsv);
+	time_t t1 = time(0);
+	ProgressLog("Post-mu time %u secs\n", uint(t1 - t0));
 	}
 
 void cmd_postmufilter()
