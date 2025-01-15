@@ -12,7 +12,7 @@
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
 static const int MIN_HSP_SCORE = 30;
-static uint MU_FILTER_KEEPN = 1000;
+static uint MU_FILTER_KEEPN = 500;
 
 #define CHECK_SCORE_VECS	0
 #define CHECK_SCORE_VECSX	0
