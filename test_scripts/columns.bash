@@ -3,34 +3,34 @@
 cd ../test_output
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-output columns_default.tsv \
 	-log columns_default.log
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-columns aq+query+target+evalue \
 	-output columns_same_as_default.tsv \
 	-log columns_same_as_default.log
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-columns std \
 	-output columns_std.tsv \
 	-log columns_std.log
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-columns query+target+qlo+qhi+ql+tlo+thi+tl+cigar+qrow+trow \
 	-output columns_local_rows.tsv \
 	-log columns_local_rows.log
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-columns query+target+qlo+qhi+ql+tlo+thi+tl+cigar+qrowg+trowg \
 	-output columns_global_rows.tsv \

@@ -3,7 +3,7 @@
 cd ../test_output
 
 $reseek \
-	-selfsearch dir.bca \
+	-search dir.bca \
 	-fast \
 	-aln all_vs_all.aln \
 	-log all_vs_all.log
