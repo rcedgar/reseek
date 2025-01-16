@@ -1,65 +1,51 @@
 #!/usr/bin/python3
 
 import sys
+import scop40
 
 errors = 0
 
-dom2sf = {}
-for line in open("../test_data/scop40_sf.tsv"):
-    flds = line[:-1].split('\t')
-    dom = flds[0]
-    sf = flds[1]
-    dom2sf[dom] = sf
+sc = scop40.Scop40('e', "sf2", "../test_data/dom_scopid.tsv")
 
-def readhits(fn, TP, TP1, FP1, FP):
-    global errors, tp, tp1, fp, fp1
-    tp = 0
-    tp1 = 0
-    fp = 0
-    fp1 = 0
-    for line in open(fn):
-        flds = line[:-1].split('\t')
-        if len(flds) != 4:
-            errors += 1
-            print("%s: ERROR %s not 3 flds" % (sys.argv[0], fn))
-            return
-        try:
-            E = float(flds[3])
-            dom1 = flds[1]
-            dom2 = flds[2]
-            sf1 = dom2sf[dom1]
-            sf2 = dom2sf[dom2]
-        except:
-            errors += 1
-            print("%s: ERROR %s exception" % (sys.argv[0], fn))
-            return
-        if dom1 == dom2:
-            continue
-        if sf1 == sf2:
-            tp += 1
-        else:
-            fp += 1
+def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
+	global errors
 
-        if E <= 1:
-            if sf1 == sf2:
-                tp1 += 1
-            else:
-                fp1 += 1
-    if tp < TP*0.95:
-        print("ERROR TP too low: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
-        sys.exit(1)
-    if tp1 < TP1*0.98:
-        print("ERROR TP1 too low: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
-        sys.exit(1)
-    if fp1 > FP1*1.02:
-        print("ERROR FP1 too high: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
-        sys.exit(1)
-    if fp > FP*1.02:
-        print("ERROR FP too high: TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
-        sys.exit(1)
+	qfldnr = 1
+	tfldnr = 2
+	scorefldnr = 3
+	is_sorted = False
+	sc.eval_file(tsv_fn, qfldnr, tfldnr, scorefldnr, is_sorted)
+	sepq0_1 = sc.tpr_at_fpepq0_1
+	sepq1 = sc.tpr_at_fpepq1
+	sepq10 = sc.tpr_at_fpepq10
 
-    print("ok TP=%d, TP1=%d, FP1=%d, FP=%d %s" % (tp, tp1, fp1, fp, fn))
+	d0_1 = sepq0_1-SEPQ0_1
+	d1 = sepq1-SEPQ1
+	d10 = sepq10-SEPQ10
 
-readhits("../test_output/scop40-fast.tsv", TP=175928, TP1=133730, FP1=8300, FP=125400)
-readhits("../test_output/scop40-sensitive.tsv", TP=223980, TP1=148640, FP1=8750, FP=161000)
-readhits("../test_output/scop40-evalue1.tsv", TP=132754, TP1=132754, FP1=7800, FP=7800)
+	if d0_1 < -0.01:
+		errors += 1
+		print("%s: ERROR d0_1" % sys.argv[0])
+	if d1 < -0.01:
+		errors += 1
+		print("%s: ERROR d1" % sys.argv[0])
+	if d10 < -0.01:
+		errors += 1
+		print("%s: ERROR d10" % sys.argv[0])
+
+	s = "SEPQ0.1=%.4f(%+.4f)" % (sepq0_1, d0_1)
+	s += " SEPQ1=%.4f(%+.4f)" % (sepq1, d1)
+	s += " SEPQ10=%.4f(%+.4f)" % (sepq10, d10)
+	print(s)
+
+# SEPQ0.1=0.2107 SEPQ1=0.3144 SEPQ10=0.3882 S1FP=0.3350 N1FP=152340 area=7.14 fast
+# SEPQ0.1=0.2173 SEPQ1=0.3411 SEPQ10=0.4745 S1FP=0.3874 N1FP=176191 area=10.6 sensitive
+# SEPQ0.1=0.2106 SEPQ1=0.2950 SEPQ10=0.2950 S1FP=0.2848 N1FP=129529 area=3.99 evalue1
+
+dofile("../test_output/scop40-fast.tsv", 0.2107, 0.3144, 0.3882)
+dofile("../test_output/scop40-sensitive.tsv", 0.2173, 0.3411, 0.4745)
+dofile("../test_output/scop40-evalue1.tsv", 0.2106, 0.2950, 0.2950)
+
+if errors == 0:
+	print("%s: PASSED" % sys.argv[0])
+exit(1 if errors > 0 else 0)
