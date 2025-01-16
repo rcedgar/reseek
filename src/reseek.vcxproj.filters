@@ -206,9 +206,6 @@
     <ClCompile Include="dbsearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="smallsearch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="swfastpinop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -522,9 +519,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="output.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="selfsearch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

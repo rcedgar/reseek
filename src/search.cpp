@@ -2,12 +2,77 @@
 #include "dss.h"
 #include "seqdb.h"
 #include "museqsource.h"
+#include "dbsearcher.h"
 #include "search.h"
+#include "output.h"
+
+void SelfSearch()
+	{
+	const string &QFN = g_Arg1;
+	if (optset_db)
+		Die("-db not used for -selfsearch");
+
+	DBSearcher DBS;
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
+	DBS.m_Params = &Params;
+
+	DBS.LoadDB(QFN);
+	DBS.Setup();
+	Params.m_DBSize = (float) DBS.GetDBSize();
+	if (optset_dbsize)
+		Params.m_DBSize = (float) opt_dbsize;
+
+	OpenOutputFiles();
+	DBS.RunSelf();
+	CloseOutputFiles();
+	}
+
+static void Search_NoMuFilter()
+	{
+	if (!optset_db)
+		Die("-db required");
+
+	const string &QFN = g_Arg1;
+	const string &DBFN = opt_db;
+
+	DBSearcher DBS;
+	DSSParams Params;
+	Params.SetFromCmdLine(10000);
+	DBS.m_Params = &Params;
+
+	DBS.LoadDB(QFN);
+
+	if (optset_dbsize)
+		Params.m_DBSize = (float) opt_dbsize;
+	else
+		{
+		Warning("-dbsize not set, defaulting to effective size 10,000 chains");
+		Params.m_DBSize = 10000;
+		}
+	DBS.Setup();
+
+	OpenOutputFiles();
+	ChainReader2 CR;
+	CR.Open(DBFN);
+	DBS.RunQuery(CR);
+	CloseOutputFiles();
+	}
+
 
 void cmd_search()
 	{
 	if (!optset_db)
-		Die("-db option required");
+		{
+		SelfSearch();
+		return;
+		}
+
+	if (!optset_fast)
+		{
+		Search_NoMuFilter();
+		return;
+		}
 
 	const string &QueryFN = g_Arg1;
 	const string &DBFN = string(opt_db);

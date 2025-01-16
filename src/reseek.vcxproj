@@ -361,8 +361,6 @@
     <ClCompile Include="runself.cpp" />
     <ClCompile Include="runthreads.cpp" />
     <ClCompile Include="scop40bit.cpp" />
-    <ClCompile Include="selfsearch.cpp" />
-    <ClCompile Include="smallsearch.cpp" />
     <ClCompile Include="mumx.cpp" />
     <ClCompile Include="mumx_data.cpp" />
     <ClCompile Include="dali.cpp" />

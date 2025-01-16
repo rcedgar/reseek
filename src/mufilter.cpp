@@ -507,7 +507,7 @@ uint MuFilter(const DSSParams &Params,
 	ProgressLog("CheckAllScoreVecs() ok\n");
 #endif
 	time_t t1 = time(0);
-	ProgressLog("Mu filter time %u secs\n", uint(t1 - t0));
+	ProgressLog("Mu filter %u secs\n", uint(t1 - t0));
 	return s_TargetCount;
 	}
 

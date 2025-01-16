@@ -259,7 +259,7 @@ void PostMuFilter(const DSSParams &Params,
 	LR.Close();
 	CloseStdioFile(s_fTsv);
 	time_t t1 = time(0);
-	ProgressLog("Post-mu time %u secs\n", uint(t1 - t0));
+	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
 	}
 
 void cmd_postmufilter()
