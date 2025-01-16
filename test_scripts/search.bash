@@ -22,8 +22,8 @@ $reseek \
 	-log search_dir_cal_bca.log
 
 $reseek \
-	-search dir.bca \
-	-db dir.cal \
+	-search dir.cal \
+	-db dir.bca \
 	-output search_dir_bca_cal.tsv \
 	-fast \
 	-log search_dir_bca_cal.log
