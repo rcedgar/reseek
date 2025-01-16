@@ -1,51 +1,54 @@
 #include "myutils.h"
-#include "dbsearcher.h"
-#include "chainreader2.h"
-#include "mx.h"
-#include "pdbchain.h"
-#include "xdpmem.h"
-#include "cigar.h"
-#include "timing.h"
-#include <thread>
+#include "dss.h"
+#include "seqdb.h"
+#include "museqsource.h"
+#include "search.h"
 
 void cmd_search()
 	{
-	const string &QFN = g_Arg1;
-	const string &DBFN = opt_db;
+	if (!optset_db)
+		Die("-db option required");
 
-	DBSearcher DBS;
+	const string &QueryFN = g_Arg1;
+	const string &DBFN = string(opt_db);
+
+	if (!EndsWith(DBFN, ".bca"))
+		Die(".bca format required for -db");
+
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
-	DBS.m_Params = &Params;
+	const string &PatternStr = Params.m_PatternStr;
+	asserta(PatternStr == "111");
 
-	bool Self = (DBFN == "");
-	DBS.LoadDB(QFN);
+	string MuFilterTsvFN;
+	GetTmpFileName(MuFilterTsvFN);
+	Log("MuFilterTsvFN=%s\n", MuFilterTsvFN.c_str());
 
-	if (Self)
-		Params.m_DBSize = (float) DBS.GetDBSize();
-	else
+	MuSeqSource QSS;
+	MuSeqSource DBSS;
+	QSS.Open(QueryFN, Params);
+	if (optset_input2)
 		{
-		if (optset_dbsize)
-			Params.m_DBSize = (float) opt_dbsize;
-		else
-			{
-			Warning("-dbsize not set, defaulting to effective size 10,000 chains");
-			Params.m_DBSize = 10000;
-			}
+		Progress("open %s\n", opt_input2);
+		DBSS.OpenFasta(opt_input2);
 		}
-	DBS.Setup();
-
-	DBS.m_fTsv = CreateStdioFile(opt_output);
-	DBS.m_fAln = CreateStdioFile(opt_aln);
-	DBS.m_fFasta2 = CreateStdioFile(opt_fasta2);
-	ResetTimers();
-	if (Self)
-		DBS.RunSelf();
 	else
-		{
-		ChainReader2 CR;
-		CR.Open(DBFN);
-		DBS.RunQuery(CR);
-		}
-	CloseStdioFile(DBS.m_fTsv);
+		DBSS.Open(DBFN, Params);
+
+	SeqDB MuQueryDB;
+	MuQueryDB.FromSS(QSS);
+
+	float MaxEvalue = 10;
+	if (optset_evalue)
+		MaxEvalue = (float) opt_evalue;
+
+	uint DBSize = MuFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
+	if (optset_dbsize)
+		DBSize = uint(opt_dbsize);
+	Params.m_DBSize = float(DBSize);
+
+	PostMuFilter(Params, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
+
+	if (!opt_keeptmp)
+		DeleteStdioFile(MuFilterTsvFN);
 	}

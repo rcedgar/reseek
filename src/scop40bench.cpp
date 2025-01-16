@@ -6,6 +6,7 @@
 #include "cigar.h"
 #include "timing.h"
 #include "sort.h"
+#include "output.h"
 #include <algorithm>
 #include <random>
 #include <thread>
@@ -747,9 +748,7 @@ void cmd_scop40bench()
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
 
-	SB.m_fTsv = CreateStdioFile(opt_output);
-	SB.m_fAln = CreateStdioFile(opt_aln);
-	SB.m_fFasta2 = CreateStdioFile(opt_fasta2);
+	OpenOutputFiles();
 
 	ResetTimers();
 	SB.m_QuerySelf = true;

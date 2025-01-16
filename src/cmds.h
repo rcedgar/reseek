@@ -71,6 +71,7 @@ C(mukmerfilter)
 C(postmufilter)
 C(tracealn)
 C(convert2mu)
-C(bigsearch)
+C(smallsearch)
+C(selfsearch)
 
 #undef C

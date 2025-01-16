@@ -50,9 +50,6 @@ public:
 	uint m_SWAlignCount = 0;
 	uint m_UFilterCount = 0;
 	float m_MaxEvalue = 10;
-	FILE *m_fTsv = 0;
-	FILE *m_fAln = 0;
-	FILE *m_fFasta2 = 0;
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t m_LastProgress = 0;

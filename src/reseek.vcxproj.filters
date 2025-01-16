@@ -206,7 +206,7 @@
     <ClCompile Include="dbsearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="search.cpp">
+    <ClCompile Include="smallsearch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="swfastpinop.cpp">
@@ -518,7 +518,13 @@
     <ClCompile Include="convert2mu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bigsearch.cpp">
+    <ClCompile Include="search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="output.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="selfsearch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -794,6 +800,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="museqsource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="search.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

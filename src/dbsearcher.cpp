@@ -7,6 +7,7 @@
 #include "scop40bench.h"
 #include <thread>
 #include "timing.h"
+#include "output.h"
 
 DBSearcher::~DBSearcher()
 	{
@@ -257,9 +258,9 @@ void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 		return;
 	m_Lock.lock();
 	++m_HitCount;
-	DA.ToTsv(m_fTsv, Up);
-	DA.ToAln(m_fAln, Up);
-	DA.ToFasta2(m_fFasta2, opt_global, Up);
+	DA.ToTsv(g_fTsv, Up);
+	DA.ToAln(g_fAln, Up);
+	DA.ToFasta2(g_fFasta2, opt_global, Up);
 	OnAln(DA, Up);
 	m_Lock.unlock();
 	}

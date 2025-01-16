@@ -277,7 +277,7 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
-    <ClCompile Include="bigsearch.cpp" />
+    <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="calibrate.cpp" />
@@ -335,6 +335,7 @@
     <ClCompile Include="mymalloc_gcc.cpp" />
     <ClCompile Include="mymalloc_win_debug.cpp" />
     <ClCompile Include="objcounter.cpp" />
+    <ClCompile Include="output.cpp" />
     <ClCompile Include="pdb.cpp" />
     <ClCompile Include="postmufilter.cpp" />
     <ClCompile Include="prime.cpp" />
@@ -360,7 +361,8 @@
     <ClCompile Include="runself.cpp" />
     <ClCompile Include="runthreads.cpp" />
     <ClCompile Include="scop40bit.cpp" />
-    <ClCompile Include="search.cpp" />
+    <ClCompile Include="selfsearch.cpp" />
+    <ClCompile Include="smallsearch.cpp" />
     <ClCompile Include="mumx.cpp" />
     <ClCompile Include="mumx_data.cpp" />
     <ClCompile Include="dali.cpp" />
@@ -471,6 +473,7 @@
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="objcounter.h" />
+    <ClInclude Include="output.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
@@ -495,6 +498,7 @@
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
+    <ClInclude Include="search.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />
     <ClInclude Include="sweeper.h" />

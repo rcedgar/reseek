@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "scop40bench.h"
 #include "binner.h"
+#include "output.h"
 
 /***
 * Calibrate distribution of FP errors on all-vs-all SCOP40 by
@@ -79,9 +80,7 @@ void cmd_calibrate2()
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
 
-	SB.m_fTsv = CreateStdioFile(opt_output);
-	SB.m_fAln = CreateStdioFile(opt_aln);
-	SB.m_fFasta2 = CreateStdioFile(opt_fasta2);
+	OpenOutputFiles();
 
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;

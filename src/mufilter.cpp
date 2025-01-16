@@ -328,11 +328,11 @@ static void ThreadBody(uint ThreadIndex,
 			if (FSS.GetPctDone_Supported())
 				{
 				double Pct = FSS.GetPctDone();
-				Progress("%s chains scanned (%.1f%%)   \r",
+				Progress("%s target chains scanned (%.1f%%)   \r",
 						 IntToStr(s_TargetCount), Pct);
 				}
 			else
-				Progress("%s chains scanned  \r", IntToStr(s_TargetCount));
+				Progress("%s target chains scanned  \r", IntToStr(s_TargetCount));
 			}
 
 		const uint KmerCountT = SIZE(MuKmersT);
@@ -382,7 +382,7 @@ static void ThreadBody(uint ThreadIndex,
 		}
 	}
 
-void MuFilter(const DSSParams &Params,
+uint MuFilter(const DSSParams &Params,
 			  SeqDB &QueryDB,
 			  SeqSource &FSS,
 			  const string &OutputFN)
@@ -390,7 +390,7 @@ void MuFilter(const DSSParams &Params,
 	time_t t0 = time(0);
 	if (optset_mun)
 		MU_FILTER_KEEPN = opt_mun;
-	ProgressLog("MU_FILTER_KEEPN=%u\n", MU_FILTER_KEEPN);
+	Log("MU_FILTER_KEEPN=%u\n", MU_FILTER_KEEPN);
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
@@ -508,6 +508,7 @@ void MuFilter(const DSSParams &Params,
 #endif
 	time_t t1 = time(0);
 	ProgressLog("Mu filter time %u secs\n", uint(t1 - t0));
+	return s_TargetCount;
 	}
 
 void cmd_mufilter()

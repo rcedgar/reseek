@@ -3,19 +3,19 @@
 cd ../test_output
 
 $reseek \
-	-search dir.bca \
+	-selfsearch dir.bca \
 	-fast \
 	-output search_dir.bca.tsv \
 	-log search_dir_bca.log
 
 $reseek \
-	-search dir.cal \
+	-selfsearch dir.cal \
 	-output search_dir.cal.tsv \
 	-fast \
 	-log search_dir_cal.log
 
 $reseek \
-	-search dir.cal \
+	-smallsearch dir.cal \
 	-db dir.bca \
 	-output search_dir_cal_bca.tsv \
 	-fast \
