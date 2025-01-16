@@ -14,6 +14,7 @@ void cmd_selfsearch()
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
+	DBS.Setup();
 	Params.m_DBSize = (float) DBS.GetDBSize();
 	if (optset_dbsize)
 		Params.m_DBSize = (float) opt_dbsize;
