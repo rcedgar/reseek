@@ -1,8 +1,10 @@
 #if defined(__GNUC__)
+#if 0
 #include <dlfcn.h>
 #include <atomic>
 #include <stdio.h>
 #include <malloc.h>
+#endif
 
 #if 0
 
