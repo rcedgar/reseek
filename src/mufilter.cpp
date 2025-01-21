@@ -312,7 +312,7 @@ static void ThreadBody(uint ThreadIndex,
 		bool DoProgress = false;
 		s_ProgressLock.lock();
 		++s_TargetCount;
-		if (ThreadIndex == 0 && s_PairCount > s_last_progress_pair_count + 1000)
+		if (s_PairCount > s_last_progress_pair_count + 100)
 			{
 			time_t now = time(0);
 			if (now != s_last_progress)
@@ -328,11 +328,11 @@ static void ThreadBody(uint ThreadIndex,
 			if (FSS.GetPctDone_Supported())
 				{
 				double Pct = FSS.GetPctDone();
-				Progress("%s target chains scanned (%.1f%%)   \r",
+				Progress("%s target chains filtered (%.1f%%)   \r",
 						 IntToStr(s_TargetCount), Pct);
 				}
 			else
-				Progress("%s target chains scanned  \r", IntToStr(s_TargetCount));
+				Progress("%s target chains filtered  \r", IntToStr(s_TargetCount));
 			}
 
 		const uint KmerCountT = SIZE(MuKmersT);
@@ -449,7 +449,7 @@ uint MuFilter(const DSSParams &Params,
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
-	Progress("%s chains scanned (100%%)    \n", IntToStr(s_TargetCount));
+	Progress("%s chains filtered (100%%)    \n", IntToStr(s_TargetCount));
 
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		TruncateVecs(QueryIdx);

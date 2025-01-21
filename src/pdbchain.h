@@ -74,6 +74,7 @@ public:
 	void CoordsFromICs(const vector<uint16_t> &ICs);
 	void CoordsFromICs(const uint16_t *ICs, uint L);
 	void Reverse();
+	void Flip();
 	void GetReverse(PDBChain &Rev) const;
 
 public:
