@@ -165,6 +165,7 @@ UNS_OPT(xdrop1,				10,			1,			UINT_MAX)
 UNS_OPT(xdrop2,				10,			1,			UINT_MAX)
 UNS_OPT(mkfl,				10,			1,			UINT_MAX)
 UNS_OPT(mun,				10,			1,			UINT_MAX)
+UNS_OPT(muhsp,				10,			1,			UINT_MAX)
 UNS_OPT(dbsize,				10,			1,			UINT_MAX)
 
 UNS_OPT(secs,				60,			1,			UINT_MAX)

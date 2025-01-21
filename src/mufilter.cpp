@@ -11,7 +11,7 @@
 
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
-static const int MIN_HSP_SCORE = 30;
+static int MIN_HSP_SCORE = 30;
 static uint MU_FILTER_KEEPN = 1000;
 
 #define CHECK_SCORE_VECS	0
@@ -390,11 +390,13 @@ uint MuFilter(const DSSParams &Params,
 	time_t t0 = time(0);
 	if (optset_mun)
 		MU_FILTER_KEEPN = opt_mun;
+	if (optset_muhsp)
+		MIN_HSP_SCORE = opt_muhsp;
 	Log("MU_FILTER_KEEPN=%u\n", MU_FILTER_KEEPN);
+	Log("MIN_HSP_SCORE=%.1f\n", MIN_HSP_SCORE);
 	const string &PatternStr = Params.m_PatternStr;
 	asserta(PatternStr == "111");
 
-	FILE *fOut2 = CreateStdioFile(opt_output2);
 	FILE *fOut = CreateStdioFile(OutputFN);
 
 	s_ptrQueryDB = &QueryDB;
@@ -487,18 +489,6 @@ uint MuFilter(const DSSParams &Params,
 		for (uint i = 0; i < K; ++i)
 			fprintf(fOut, "\t%u", QIdxs[i]);
 		fprintf(fOut, "\n");
-
-		if (fOut2 != 0)
-			{
-			const string &LabelT = QueryDB.GetLabel(TargetIdx);
-			for (uint i = 0; i < K; ++i)
-				{
-				uint IdxQ = QIdxs[i];
-				const string LabelQ = QueryDB.GetLabel(IdxQ);
-				fprintf(fOut2, "%u\t%s\t%u\t%s\n",
-						TargetIdx, LabelT.c_str(), IdxQ, LabelQ.c_str());
-				}
-			}
 		}
 	CloseStdioFile(fOut);
 
@@ -518,8 +508,7 @@ void cmd_mufilter()
 	const string &DBFN = string(opt_db);	// Mu FASTA
 	FASTASeqSource FSS;
 	FSS.Open(DBFN);
-
-	FILE *fOut2 = CreateStdioFile(opt_output2);
+	asserta(!optset_output2);
 
 	if (!optset_output)
 		Die("-output option required");
