@@ -8,7 +8,8 @@
 #include "fastaseqsource.h"
 #include "sort.h"
 #include "mudex.h"
-
+#include "parasail.h"
+extern parasail_matrix_t parasail_combo_matrix;
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
 static const int MIN_HSP_SCORE = 30;
@@ -29,9 +30,46 @@ static vector<vector<int> > s_QueryIdxToScoreVec;
 static vector<vector<uint> > s_QueryIdxToTargetIdxVec;
 static vector<vector<byte> > s_QueryIdxToMuLetters;
 static vector<vector<uint> > s_QueryIdxToMuKmers;
+static vector<parasail_profile_t *> s_QueryIdxToParaProf;
+static vector<parasail_profile_t *> s_QueryIdxToParaProfRev;
 static vector<int> s_QueryIdxToLoScore;
 static vector<uint> s_QueryIdxToLength;
 static SeqDB *s_ptrQueryDB;
+
+static int GetOmega(const vector<byte> &MuLettersT, uint QueryIdx)
+	{
+	asserta(QueryIdx < SIZE(s_QueryIdxToParaProf));
+	parasail_profile_t *ParaProf = s_QueryIdxToParaProf[QueryIdx];
+
+	const char *T = (const char *) MuLettersT.data();
+	uint LT = SIZE(MuLettersT);
+
+	const int Open = 5;
+	const int Ext = 2;
+	const int OmegaFwd = 50;
+
+	parasail_result_t* fwd_result =
+	  parasail_sw_striped_profile_avx2_256_8(ParaProf, T, LT, Open, Ext);
+	if (fwd_result->flag & PARASAIL_FLAG_SATURATED)
+		fwd_result->score = 777;
+	int fwd_score = fwd_result->score;
+	parasail_result_free(fwd_result);
+	fwd_result = 0;
+	if (fwd_score < OmegaFwd)
+		return 0;
+
+	asserta(QueryIdx < SIZE(s_QueryIdxToParaProfRev));
+	parasail_profile_t *ParaProfRev = s_QueryIdxToParaProfRev[QueryIdx];
+	parasail_result_t* rev_result =
+	  parasail_sw_striped_profile_avx2_256_8(ParaProfRev, T, LT, Open, Ext);
+	if (rev_result->flag & PARASAIL_FLAG_SATURATED)
+		rev_result->score = 777;
+	int rev_score = rev_result->score;
+	parasail_result_free(rev_result);
+	rev_result = 0;
+	int Omega = fwd_score - rev_score;
+	return Omega;
+	}
 
 static int MuXDrop(const byte *Q, int PosQ, int LQ, 
 				   const byte *T, int PosT, int LT,
@@ -365,14 +403,16 @@ static void ThreadBody(uint ThreadIndex,
 			}
 		for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 			{
-			int Score = QueryIdxToBestHSPScore[QueryIdx];
-			if (Score >= 30)
+			int HSPScore = QueryIdxToBestHSPScore[QueryIdx];
+			if (HSPScore >= 30)
 				{
 #if CHECK_SCORE_VECSX
 				asserta(GetRequestedThreadCount() == 1);
 				CheckAllScoreVecs();
 #endif
-				AddScore(QueryIdx, TargetIdx, Score);
+				int Omega = GetOmega(MuLettersT, QueryIdx);
+				if (Omega >= 10)
+					AddScore(QueryIdx, TargetIdx, Omega);
 #if CHECK_SCORE_VECSX
 				CheckAllScoreVecs();
 #endif
@@ -414,7 +454,10 @@ uint MuFilter(const DSSParams &Params,
 
 	s_QueryIdxToMuLetters.resize(QueryCount);
 	s_QueryIdxToMuKmers.resize(QueryCount);
+	s_QueryIdxToParaProf.resize(QueryCount);
+	s_QueryIdxToParaProfRev.resize(QueryCount);
 
+	vector<byte> MuLettersRev;
 	for (uint QueryIdx = 0; QueryIdx < QueryCount; ++QueryIdx)
 		{
 		ProgressStep(QueryIdx, QueryCount, "Indexing query");
@@ -427,6 +470,8 @@ uint MuFilter(const DSSParams &Params,
 		vector<uint> &MuKmers = s_QueryIdxToMuKmers[QueryIdx];
 		MuLetters.reserve(QL);
 		MuKmers.reserve(QL);
+		MuLettersRev.reserve(QL);
+
 		for (uint i = 0; i < QL; ++i)
 			{
 			byte c = Q[i];
@@ -434,7 +479,27 @@ uint MuFilter(const DSSParams &Params,
 			asserta(Letter < 36);
 			MuLetters.push_back(Letter);
 			}
+
+		MuLettersRev.clear();
+		for (uint i = 0; i < QL; ++i)
+			{
+			byte c = MuLetters[QL-i-1];
+			MuLettersRev.push_back(c);
+			}
+
 		GetMuKmers(PatternStr, MuLetters, MuKmers);
+
+		const char *QMu = (const char *) MuLetters.data();
+		const char *QMuRev = (const char *) MuLettersRev.data();
+
+		parasail_profile_t *Prof =
+			parasail_profile_create_avx_256_8(QMu, QL, &parasail_combo_matrix);
+
+		parasail_profile_t *ProfRev =
+			parasail_profile_create_avx_256_8(QMuRev, QL, &parasail_combo_matrix);
+
+		s_QueryIdxToParaProf[QueryIdx] = Prof;
+		s_QueryIdxToParaProfRev[QueryIdx] = ProfRev;
 		}
 
 	const uint ThreadCount = GetRequestedThreadCount();
