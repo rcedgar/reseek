@@ -260,7 +260,7 @@ void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	++m_HitCount;
 	DA.ToTsv(g_fTsv, Up);
 	DA.ToAln(g_fAln, Up);
-	DA.ToFasta2(g_fFasta2, opt_global, Up);
+	DA.ToFasta2(g_fFasta2, opt_unaligned, Up);
 	OnAln(DA, Up);
 	m_Lock.unlock();
 	}

@@ -21,7 +21,6 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 
 	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 	DA.AlignQueryTarget();
-	//DA.Align_NoAccel();
 	return DA.m_AlnFwdScore;
 	}
 
@@ -107,7 +106,10 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
-	DA.AlignQueryTarget();
+	if (opt_global)
+		DA.AlignQueryTarget_Global();
+	else
+		DA.AlignQueryTarget();
 	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
 		{

@@ -77,6 +77,9 @@ public:
 	uint m_SMx_Rows = 0;
 	uint m_SMx_Cols = 0;
 
+	float m_GlobalScore = FLT_MAX;
+	string m_GlobalPath;
+
 public:
 	static mutex m_OutputLock;
 	//static mutex m_StatsLock;
@@ -119,6 +122,7 @@ public:
 	bool MuFilter();
 	void ClearAlign();
 	void AlignQueryTarget();
+	void AlignQueryTarget_Global();
 	void AlignQueryTarget_Trace();
 	void Align_Test(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
