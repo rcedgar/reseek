@@ -254,7 +254,7 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	{
-	if (DA.GetEvalue(Up) > m_MaxEvalue)
+	if (!opt_scores_are_not_evalues && DA.GetEvalue(Up) > m_MaxEvalue)
 		return;
 	m_Lock.lock();
 	++m_HitCount;

@@ -28,7 +28,7 @@ public:
 	vector<uint> m_DomIdxToSFIdx;
 	vector<uint> m_DomIdxToFoldIdx;
 
-	bool m_ScoresAreEvalues = opt_scores_are_evalues;
+	bool m_ScoresAreEvalues = true;
 
 // Per hit vectors [HitIdx]
 //   order is arbitrary (multi-threading)
@@ -70,6 +70,12 @@ public:
 	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
+
+	vector<float> m_CurveScores;
+	vector<float> m_CurveTPRs;
+	vector<float> m_CurveEPQs;
+	vector<float> m_CurveLog10EPQs;
+	float m_Area = FLT_MAX;
 
 public:
 	virtual void OnSetup();
@@ -130,6 +136,21 @@ public:
 	  const vector<uint> &NFPs, float Evalue) const;
 	float GetEvalueAtEPQThreshold(const vector<float> &Evalues,
 	  const vector<uint> &NFPs, float NFP) const;
+	void GetSmoothCurve(const vector<float> &TPRs,
+						const vector<float> &Es,
+						float dE,
+						vector<float> &SmoothTPRs,
+						vector<float> &SmoothEs) const;
+
+	void GetCurve(const vector<float> &Scores,
+		const vector<uint> &NTPs,
+		const vector<uint> &NFPs,
+		float MinEPQ, float MaxEPQ,
+		vector<float> &CurveScores,
+		vector<float> &CurveTPRs,
+		vector<float> &CurveEPQs,
+		vector<float> &CurveLog10EPQs) const;
+
 	void ROCStepsToTsv(const string &FileName,
 	   vector<float> &ScoreSteps,
 	   vector<uint> &NTPs, vector<uint> &NFPs,
@@ -142,8 +163,11 @@ public:
 	void LogSens1FPReport_Dom(uint DomIdx) const;
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
+	void WriteCurve(const string &FN) const;
 
 public:
+	static float GetArea(const vector<float> &TPRs,
+		const vector<float> &EPQs);
 	static void ParseScopLabel(const string &Label, string &Dom,
 	  string &Cls, string &Fold, string &SF, string &Fmy,
 	  bool MissingOk = false);

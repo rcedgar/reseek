@@ -135,6 +135,12 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 		break;
 		}
 
+	case UF_gscore:
+		{
+		fprintf(f, "%.1f", m_GlobalScore);
+		break;
+		}
+
 	default:
 		Die("Unsupported user field %d='%s'", UF, UFToStr(UF));
 		}

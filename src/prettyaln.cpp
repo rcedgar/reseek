@@ -91,6 +91,9 @@ void DSSAligner::PrettyAln(FILE *f,
 	fprintf(f, "%s %u-%u length %u\n",
 	  B.m_Label.c_str(), LoB + 1, PosB, LB);
 
-	fprintf(f, "AQ %.4f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%), E-value %.3g\n",
-	  AQ, ColCount, Gaps, PctGaps, Ids, PctId, Evalue);
+	fprintf(f, "AQ %.4f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%)",
+	  AQ, ColCount, Gaps, PctGaps, Ids, PctId);
+	if (Evalue != FLT_MAX)
+		fprintf(f, ", E-value %.3g", Evalue);
+	fprintf(f, "\n");
 	}

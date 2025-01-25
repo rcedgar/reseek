@@ -255,6 +255,8 @@ void SCOP40Bench::LogFirstFewHits() const
 
 void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2, float ScoreAB)
 	{
+	if (ScoreAB == FLT_MAX)
+		return;
 	if (m_ScoresAreEvalues && ScoreAB < 0)
 		return;
 	if (!m_ScoresAreEvalues && ScoreAB <= 0)
@@ -302,6 +304,15 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	uint ChainIndexB = iterB->second;
 	if (ChainIndexA == ChainIndexB)
 		return;
+	if (opt_global)
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_GlobalScore);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_GlobalScore);
+		return;
+		}
+
 	if (Up)
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
 	else
@@ -552,6 +563,9 @@ void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	SetTFs();
 
 	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, UseTS);
+	GetCurve(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 0.01f, 10.0f,
+			 m_CurveScores, m_CurveTPRs, m_CurveEPQs, m_CurveLog10EPQs);
+	m_Area = GetArea(m_CurveTPRs, m_CurveLog10EPQs);
 
 	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
 	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);
@@ -584,6 +598,7 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
 	ProgressLog(" S1FP=%.4f", SensFirstFP);
 	ProgressLog(" N1FP=%u", nt_firstfp);
+	ProgressLog(" Area=%.4f", m_Area);
 	if (Secs != UINT_MAX)
 		ProgressLog(" secs=%u", Secs);
 	ProgressLog(" level=%s", m_Level.c_str());
@@ -603,6 +618,23 @@ void SCOP40Bench::WriteSummary()
 	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);
 	}
 
+void SCOP40Bench::WriteCurve(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	const uint n = SIZE(m_CurveScores);
+	asserta(SIZE(m_CurveTPRs) == n);
+	asserta(SIZE(m_CurveEPQs) == n);
+	for (uint i = 0; i < n; ++i)
+		fprintf(f, "%.3g\t%.3g\t%.3g\t%.3g\n",
+				m_CurveTPRs[i],
+				m_CurveEPQs[i],
+				m_CurveLog10EPQs[i],
+				m_CurveScores[i]);
+	CloseStdioFile(f);
+	}
+
 void SCOP40Bench::WriteOutput()
 	{
 	ProgressLog("\n");
@@ -610,25 +642,13 @@ void SCOP40Bench::WriteOutput()
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
 	FILE *fSVE = CreateStdioFile(opt_sens_vs_err);
+	m_Level = "sf";
 	if (optset_benchlevel)
-		{
 		m_Level = opt_benchlevel;
-		SetStats(MaxFPR);
-		WriteSensVsErr(fSVE, 100);
-		WriteSummary();
-		}
-	else
-		{
-		vector<string> Modes;
-		Modes.push_back("sf");
-		for (uint Modei = 0; Modei < SIZE(Modes); ++Modei)
-			{
-			m_Level = Modes[Modei];
-			SetStats(MaxFPR);
-			WriteSensVsErr(fSVE, 100);
-			WriteSummary();
-			}
-		}
+	SetStats(MaxFPR);
+	WriteSensVsErr(fSVE, 100);
+	WriteCurve(opt_curve);
+	WriteSummary();
 	CloseStdioFile(fSVE);
 	}
 
@@ -733,6 +753,12 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 
+	if (optset_global)
+		{
+		void InitGapStr();
+		InitGapStr();
+		}
+
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	SCOP40Bench SB;
@@ -756,6 +782,9 @@ void cmd_scop40bench()
 	if (opt_scores_are_not_evalues)
 		SB.m_ScoresAreEvalues = false;
 	SB.RunSelf();
+	ProgressLog("%u / %u mu filter discards\n",
+				DSSAligner::m_MuFilterDiscardCount.load(),
+				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
 	SB.WriteBit(opt_savebit);
 	//SB.LogFirstFewDoms();

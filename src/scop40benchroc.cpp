@@ -40,6 +40,121 @@ uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
 	return ntp;
 	}
 
+/***
+
+  EPQ
+   |       |
+   |       |
+E1 ++++++++ 
+   +++++++/ 
+   ++++++/  
+E0 +++++    
+   |        
+    -------------------------- TPR
+	    T0 T1
+
+dArea = (E1 + E0)*(T1 + T0)/4
+***/
+
+float SCOP40Bench::GetArea(const vector<float> &TPRs,
+	const vector<float> &Log10EPQs)
+	{
+	const uint N = SIZE(TPRs);
+	asserta(SIZE(Log10EPQs) == N);
+	float Area = 0;
+	for (uint i = 1; i < N; ++i)
+		{
+		float Ti_1 = TPRs[i-1];
+		float Ti = TPRs[i];
+
+		float Ei_1 = Log10EPQs[i-1];
+		float Ei = Log10EPQs[i];
+
+		float dA = (Ti + Ti_1)*(Ei - Ei_1)/2;
+		Area += dA;
+		}
+	return Area;
+	}
+
+void SCOP40Bench::GetSmoothCurve(const vector<float> &TPRs,
+						const vector<float> &Es,
+						float dE,
+						vector<float> &SmoothTPRs,
+						vector<float> &SmoothEs) const
+	{
+	}
+
+void SCOP40Bench::GetCurve(const vector<float> &Scores,
+	const vector<uint> &NTPs,
+	const vector<uint> &NFPs,
+	float MinEPQ, float MaxEPQ,
+	vector<float> &CurveScores,
+	vector<float> &CurveTPRs,
+	vector<float> &CurveEPQs,
+	vector<float> &CurveLog10EPQs) const
+	{
+	CurveScores.clear();
+	CurveTPRs.clear();
+	CurveEPQs.clear();
+	CurveLog10EPQs.clear();
+
+	const uint QueryCount = SIZE(m_Doms);
+	const uint N = SIZE(Scores);
+	const float StartScore = (m_ScoresAreEvalues ? 0 : FLT_MAX);
+	float LastScore = StartScore;
+	float LastTPR = 0;
+	float LastEPQ = 0;
+	float Sum = 0;
+	for (uint i = 0; i < N; ++i)
+		{
+		uint NTP = NTPs[i];
+		uint NFP = NFPs[i];
+
+		float Score = Scores[i];
+		if (m_ScoresAreEvalues)
+			asserta(i == 0 || Score > LastScore);
+		else
+			asserta(Score < LastScore);
+		float TPR = NTP/float(m_NT);
+		float EPQ = NFP/float(QueryCount);
+		if (TPR == LastTPR || EPQ == LastEPQ || EPQ < MinEPQ)
+			{
+			LastScore = Score;
+			LastTPR = TPR;
+			LastEPQ = EPQ;
+			continue;
+			}
+		float Log10EPQ = log10f(EPQ);
+		if (EPQ >= MinEPQ && LastEPQ < MinEPQ)
+			{
+			if (i > 0)
+				{
+				CurveScores.push_back(LastScore);
+				CurveTPRs.push_back(LastTPR);
+				CurveEPQs.push_back(LastEPQ);
+				if (LastEPQ > 0)
+					CurveLog10EPQs.push_back(log10f(LastEPQ));
+				else
+					CurveLog10EPQs.push_back(0);
+				}
+			}
+
+		if (EPQ >= MinEPQ && LastEPQ <= MaxEPQ)
+			{
+			CurveScores.push_back(Score);
+			CurveTPRs.push_back(TPR);
+			CurveEPQs.push_back(EPQ);
+			CurveLog10EPQs.push_back(Log10EPQ);
+			if (LastEPQ >= MaxEPQ)
+				break;
+			}
+
+		LastScore = Score;
+		LastTPR = TPR;
+		LastEPQ = EPQ;
+		}
+	}
+
 float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
   const vector<uint> &NFPs, float EPQThreshold) const
 	{
@@ -624,4 +739,31 @@ void cmd_scop40bit_roc()
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.WriteOutput();
+	}
+
+void cmd_test()
+	{
+	vector<float> TPRs;
+	vector<float> Log10EPQs;
+
+	uint N = 10;
+	//float LoTPR = 0.1f;
+	//float HiTPR = 0.4f;
+	//float LoE = -2.0f;
+	//float HiE = 1.0f;
+	float LoTPR = 1;
+	float HiTPR = 2;
+	float LoE = 1;
+	float HiE = 2;
+	float CorrectA = (HiTPR + LoTPR)*(HiE - LoE)/2;
+	for (uint i = 0; i < N; ++i)
+		{
+		float TPR = LoTPR + i*(HiTPR - LoTPR)/(N-1);
+		float E = LoE + i*(HiE - LoE)/(N-1);
+		TPRs.push_back(TPR);
+		Log10EPQs.push_back(E);
+		}
+	float A = SCOP40Bench::GetArea(TPRs, Log10EPQs);
+	ProgressLog("A = %.4g, correct = %.4g\n", A, CorrectA);
+	Log("");
 	}

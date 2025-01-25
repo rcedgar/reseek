@@ -914,6 +914,9 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;
+
+	m_GlobalScore = -9999;
+	m_GlobalPath.clear();
 	}
 
 void DSSAligner::Align_NoAccel()

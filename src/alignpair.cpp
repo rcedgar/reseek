@@ -106,11 +106,17 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
+	float Score = FLT_MAX;
 	if (opt_global)
+		{
 		DA.AlignQueryTarget_Global();
+		Score = DA.m_GlobalScore;
+		}
 	else
+		{
 		DA.AlignQueryTarget();
-	float Score = DA.m_AlnFwdScore;
+		Score = DA.m_AlnFwdScore;
+		}
 	if (DoOutput)
 		{
 		if (optset_aln)
@@ -175,7 +181,7 @@ void cmd_alignpair()
 	vector<byte> MuLettersQ;
 	vector<uint> KmersQ;
 
-	float BestScore = 0;
+	float BestScore = -9999;
 	uint BestChainIndexQ = UINT_MAX;
 	uint BestChainIndexT = UINT_MAX;
 	for (uint ChainIndexQ = 0; ChainIndexQ < ChainCountQ; ++ChainIndexQ)
@@ -184,8 +190,7 @@ void cmd_alignpair()
 		for (uint ChainIndexT = 0; ChainIndexT < ChainCountT; ++ChainIndexT)
 			{
 			PDBChain *ChainT = ChainsT[ChainIndexT];
-			AlignPair1(Params, D, DA, ChainQ, ChainT, false);
-			float Score = DA.m_AlnFwdScore;
+			float Score = AlignPair1(Params, D, DA, ChainQ, ChainT, false);
 			if (Score > BestScore)
 				{
 				BestScore = Score;

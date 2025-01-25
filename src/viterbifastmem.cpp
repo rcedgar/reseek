@@ -10,13 +10,28 @@ static float s_TermExt = 0;
 
 void TraceBackBitMem(XDPMem &Mem, uint LA, uint LB, char State, string &Path);
 
+void InitGapStr()
+	{
+	asserta(optset_gapstr);
+	vector<string> Fields;
+	Split(opt_gapstr, Fields, '_');
+	asserta(SIZE(Fields) == 4);
+	s_Open = StrToFloatf(Fields[0]);
+	s_Ext = StrToFloatf(Fields[1]);
+	s_TermOpen = StrToFloatf(Fields[2]);
+	s_TermExt = StrToFloatf(Fields[3]);
+	ProgressLog("open=%.3g, ext=%.3g, term_open=%.3g, term_ext=%.3g\n",
+				s_Open, s_Ext, s_TermOpen, s_TermExt);
+	}
+
 float ViterbiFastMem(XDPMem &Mem, uint LA, uint LB,
 	fn_SubstScore SubFn, void *UserData, string &Path)
 	{
 	if (LA*LB > 100*1000*1000)
 		Die("ViterbiFastMem, seqs too long LA=%u, LB=%u", LA, LB);
 
-	Mem.Alloc(LA, LB);
+	Mem.Clear();
+	Mem.Alloc(LA+32, LB+32);
 	
 	float Open = s_TermOpen;
 	float Ext = s_TermExt;
