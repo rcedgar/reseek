@@ -618,6 +618,36 @@ void SCOP40Bench::WriteSummary()
 	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);
 	}
 
+void SCOP40Bench::WriteSortedHits(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	const uint HitCount = GetHitCount();
+	asserta(SIZE(m_ScoreOrder) == HitCount);
+	asserta(SIZE(m_DomIdx1s) == HitCount);
+	asserta(SIZE(m_DomIdx2s) == HitCount);
+	asserta(SIZE(m_Scores) == HitCount);
+	asserta(SIZE(m_TFs) == HitCount);
+	for (uint k = 0; k < HitCount; ++k)
+		{
+		uint i = m_ScoreOrder[k];
+		asserta(i < HitCount);
+		uint DomIdx1 = m_DomIdx1s[i];
+		uint DomIdx2 = m_DomIdx2s[i];
+		float Score = m_Scores[i];
+		bool TF = m_TFs[i];
+		const string &Dom1 = m_Doms[DomIdx1];
+		const string &Dom2 = m_Doms[DomIdx2];
+		fprintf(f, "%s", Dom1.c_str());
+		fprintf(f, "\t%s", Dom2.c_str());
+		fprintf(f, "\t%.3g", Score);
+		fprintf(f, "\t%c", tof(TF));
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
+
 void SCOP40Bench::WriteCurve(const string &FN) const
 	{
 	if (FN == "")
@@ -648,6 +678,7 @@ void SCOP40Bench::WriteOutput()
 	SetStats(MaxFPR);
 	WriteSensVsErr(fSVE, 100);
 	WriteCurve(opt_curve);
+	WriteSortedHits(opt_sortedhits);
 	WriteSummary();
 	CloseStdioFile(fSVE);
 	}

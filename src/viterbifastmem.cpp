@@ -22,6 +22,11 @@ void InitGapStr()
 	s_TermExt = StrToFloatf(Fields[3]);
 	ProgressLog("open=%.3g, ext=%.3g, term_open=%.3g, term_ext=%.3g\n",
 				s_Open, s_Ext, s_TermOpen, s_TermExt);
+
+	s_Open *= -1;
+	s_Ext *= -1;
+	s_TermOpen *= -1;
+	s_TermExt *= -1;
 	}
 
 float ViterbiFastMem(XDPMem &Mem, uint LA, uint LB,

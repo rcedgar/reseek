@@ -164,6 +164,7 @@ public:
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
 	void WriteCurve(const string &FN) const;
+	void WriteSortedHits(const string &FN) const;
 
 public:
 	static float GetArea(const vector<float> &TPRs,
