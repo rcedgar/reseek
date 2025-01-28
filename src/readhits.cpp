@@ -75,19 +75,27 @@ void SCOP40Bench::ReadHits(const string &FN)
 	GetStemName(FN, Algo);
 
 	FILE *f = OpenStdioFile(FN);
-	uint FileSize = GetStdioFileSize32(f);
+	uint64 FileSize = GetStdioFileSize64(f);
 	Progress("Reading hits %s\n", Algo.c_str());
 	uint HitCount = 0;
 	string Line;
 	vector<string> Fields;
 	uint BadLineCount = 0;
 	set<string> NotFound;
+	time_t t0 = time(0);
 	while (ReadLineStdioFile(f, Line))
 		{
-		if (HitCount > 0 && HitCount%500000 == 0)
+		if (HitCount > 0 && HitCount%1000 == 0)
 			{
-			uint Pos = GetStdioFilePos32(f);
-			Progress("Hits %.2f%%  %s\r", GetPct(Pos, FileSize), IntToStr(HitCount));
+			time_t t1 = time(0);
+			if (t1 > t0)
+				{
+				uint64 Pos = GetStdioFilePos64(f);
+				Progress("Hits %.2f%%  %s\r",
+						 GetPct(double(Pos), double(FileSize)),
+						 IntToStr(HitCount));
+				t0 = t1;
+				}
 			}
 		for (uint i = 0; i < SIZE(Line); ++i)
 			if (Line[i] == ' ')
@@ -102,28 +110,8 @@ void SCOP40Bench::ReadHits(const string &FN)
 			}
 		string Label1 = Fields[QueryFieldNr];
 		string Label2 = Fields[TargetFieldNr];
-		string Dom1, Dom2;
-		GetDomFromLabel(Label1, Dom1);
-		GetDomFromLabel(Label2, Dom2);
-
-		const map<string, uint>::iterator iter1 = m_DomToIdx.find(Dom1);
-		const map<string, uint>::iterator iter2 = m_DomToIdx.find(Dom2);
-		bool Ok = true;
-		if (iter1 == m_DomToIdx.end())
-			{
-			Ok = false;
-			NotFound.insert(Dom1);
-			}
-		if (iter2 == m_DomToIdx.end())
-			{
-			NotFound.insert(Dom2);
-			Ok = false;
-			}
-		if (!Ok)
-			continue;
-		uint DomIdx1 = iter1->second;
-		uint DomIdx2 = iter2->second;
-		asserta(FieldCount > ScoreFieldNr);
+		uint DomIdx1 = GetDomIdx(Label1, false);
+		uint DomIdx2 = GetDomIdx(Label2, false);
 		float Score = (float) StrToFloat(Fields[ScoreFieldNr]);
 		m_DomIdx1s.push_back(DomIdx1);
 		m_DomIdx2s.push_back(DomIdx2);

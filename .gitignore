@@ -13,6 +13,7 @@ CYGWIN*/
 *.o
 make.stderr
 make.stdout
+make.bash
 enc_temp_folder/
 .DSStore
 .swp

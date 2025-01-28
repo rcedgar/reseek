@@ -96,6 +96,8 @@ void SCOP40Bench::ParseScopLabel(const string &Label, string &Dom,
 uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomSlashId,
   bool FailOnErr) const
 	{
+	if (StartsWith(Dom_or_DomSlashId, "AF-"))
+		return UINT_MAX;
 	vector<string> Fields;
 	Split(Dom_or_DomSlashId, Fields, '/');
 	const string &Dom = Fields[0];
@@ -460,7 +462,8 @@ void SCOP40Bench::ScanDomHits()
 		++m_ConsideredHitCount;
 		if (T == 0)
 			{
-			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
+			if (Dom1 != UINT_MAX && 
+				ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				{
 				m_DomIdxToScoreFirstFP[Dom1] = Score;
 				m_DomIdxToHitIdxFirstFP[Dom1] = HitIdx;
@@ -479,7 +482,8 @@ void SCOP40Bench::ScanDomHits()
 		float Score = m_Scores[HitIdx];
 		if (T == 1)
 			{
-			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
+			if (Dom1 != UINT_MAX &&
+				ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
 				{
 				m_DomIdxToSens1FP[Dom1] += 1;
 				if (!ScoreIsBetter(Score, m_DomIdxToScoreLastTP[Dom1]))
@@ -671,16 +675,16 @@ void SCOP40Bench::WriteOutput()
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
-	FILE *fSVE = CreateStdioFile(opt_sens_vs_err);
+	FILE *fCVE = CreateStdioFile(opt_cve);
 	m_Level = "sf";
 	if (optset_benchlevel)
 		m_Level = opt_benchlevel;
 	SetStats(MaxFPR);
-	WriteSensVsErr(fSVE, 100);
+	WriteCVE(fCVE, 100);
 	WriteCurve(opt_curve);
 	WriteSortedHits(opt_sortedhits);
 	WriteSummary();
-	CloseStdioFile(fSVE);
+	CloseStdioFile(fCVE);
 	}
 
 void SCOP40Bench::LogSens1FPReport_Dom(uint DomIdx) const

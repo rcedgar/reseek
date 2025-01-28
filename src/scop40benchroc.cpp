@@ -165,6 +165,13 @@ float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
 // Return 1=TP, 0=FP, -1=ignore
 int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	{
+	if (DomIdx1 == UINT_MAX && DomIdx2 == UINT_MAX)
+		return -1;
+	if (DomIdx1 == UINT_MAX && DomIdx2 != UINT_MAX)
+		return 0;
+	if (DomIdx1 != UINT_MAX && DomIdx2 == UINT_MAX)
+		return 0;
+
 	if (DomIdx1 == DomIdx2)
 		return -1;
 
@@ -226,6 +233,45 @@ void SCOP40Bench::SetTFs()
 		}
 	}
 
+//static const vector<float> *s_ptrScores;
+//static const vector<int> *s_ptrTFs;
+//static bool s_ScoresAreEvalues;
+//static bool CompareHitIdxs(uint HitIdx1, uint HitIdx2)
+//	{
+//	const vector<float> &Scores = *s_ptrScores;
+//	const vector<int> &TFs = *s_ptrTFs;
+//	const uint N = SIZE(Scores);
+//	asserta(SIZE(TFs) == N);
+//	asserta(HitIdx1 < N);
+//	asserta(HitIdx2 < N);
+//	float Score1 = Scores[HitIdx1];
+//	float Score2 = Scores[HitIdx2];
+//	if (s_ScoresAreEvalues)
+//		{
+//		if (Score1 < Score2)
+//			return true;
+//		if (Score1 > Score2)
+//			return false;
+//		}
+//	else
+//		{
+//		if (Score1 > Score2)
+//			return true;
+//		if (Score1 < Score2)
+//			return false;
+//		}
+//
+//// FPs should appear before TPs
+//// 1=TP, 0=FP, -1=ignore
+//	int TF1 = TFs[HitIdx1];
+//	int TF2 = TFs[HitIdx2];
+//	if (TF1 == 0 && TF2 != 0)
+//		return true;
+//	if (TF1 != 0 && TF2 == 0)
+//		return false;
+//	return TF1 < TF2;
+//	}
+
 void SCOP40Bench::SetScoreOrder()
 	{
 	const uint HitCount = GetHitCount();
@@ -234,6 +280,13 @@ void SCOP40Bench::SetScoreOrder()
 		QuickSortOrder(m_Scores.data(), HitCount, m_ScoreOrder.data());
 	else
 		QuickSortOrderDesc(m_Scores.data(), HitCount, m_ScoreOrder.data());
+	//s_ptrScores = &m_Scores;
+	//s_ptrTFs = &m_TFs;
+	//s_ScoresAreEvalues = m_ScoresAreEvalues;
+	//m_ScoreOrder.reserve(HitCount);
+	//for (uint i = 0; i < HitCount; ++i)
+	//	m_ScoreOrder.push_back(i);
+	//std::sort(m_ScoreOrder.begin(), m_ScoreOrder.end(), CompareHitIdxs);
 	}
 
 void SCOP40Bench::SetTSOrder()
@@ -272,12 +325,12 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 
 // Project onto common X axis (Sensitivity=TPR) 
 //  with N+1 ticks
-void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
+void SCOP40Bench::WriteCVE(FILE *f, uint N)
 	{
 	if (f == 0)
 		return;
 	vector<float> EPQs(N+1, -1);
-	vector<float> BinScores(N+1, -1);
+	vector<float> BinScores(N+1, FLT_MAX);
 	vector<float> BinErrs(N+1, 99);
 	float SensStep = 1.0f/N;
 
@@ -323,14 +376,16 @@ void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 			LastEPQ = EPQ;
 		}
 
-	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
+	fprintf(f, "=TPR\tEPQ\tScore/E\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{
-		fprintf(f, "%s", m_Level.c_str());
-		fprintf(f, "\t%u", Bin);
-		fprintf(f, "\t%.3g", BinScores[Bin]);
-		fprintf(f, "\t%.3f", Bin*SensStep);
+		float TPR = Bin*SensStep;
+		float Score = BinScores[Bin];
+		if (Score == FLT_MAX)
+			break;
+		fprintf(f, "%.3f", TPR);
 		fprintf(f, "\t%.3g", EPQs[Bin]);
+		fprintf(f, "\t%.3g", Score);
 		fprintf(f, "\n");
 		}
 	}
