@@ -193,6 +193,7 @@ UNS_OPT(biassteps,			10,			1,			UINT_MAX)
 UNS_OPT(opensteps,			10,			1,			UINT_MAX)
 UNS_OPT(extsteps,			10,			1,			UINT_MAX)
 UNS_OPT(scorefieldnr,		10,			1,			UINT_MAX)
+UNS_OPT(fieldnr,		10,			1,			UINT_MAX)
 UNS_OPT(nfp,			10,			1,			UINT_MAX)
 UNS_OPT(minu,			10,			1,			UINT_MAX)
 UNS_OPT(lambda,			10,			1,			UINT_MAX)
@@ -319,6 +320,7 @@ FLAG_OPT(fast)
 FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(keeptmp)
+FLAG_OPT(log10)
 
 #undef FLAG_OPT
 #undef UNS_OPT

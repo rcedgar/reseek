@@ -212,7 +212,7 @@ static void ThreadBody(uint ThreadIndex)
 
 		if (optset_pdbcaoutdir)
 			{
-			const string &FN = ptrChain->m_Label;
+			string &FN = ptrChain->m_Label;
 			string PathN = opt_pdbcaoutdir;
 			Dirize(PathN);
 			PathN += FN;

@@ -26,5 +26,6 @@ x(gaps)
 x(aq)
 x(muhsp)
 x(muchain)
+x(raw)
 
 #undef x
