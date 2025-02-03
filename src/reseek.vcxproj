@@ -277,6 +277,8 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
+    <ClCompile Include="convert_foldseekdb.cpp" />
+    <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="search.cpp" />

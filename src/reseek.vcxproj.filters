@@ -528,7 +528,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="binner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="convert_foldseekdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="foldseek_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

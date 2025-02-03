@@ -72,5 +72,6 @@ C(postmufilter)
 C(tracealn)
 C(convert2mu)
 C(binner)
+C(convert_foldseekdb)
 
 #undef C
