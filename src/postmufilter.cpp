@@ -30,6 +30,7 @@ static uint s_ScannedCount;
 static LineReader2 *s_ptrLR;
 static float s_MaxEvalue = 10;
 static FILE *s_fTsv;
+static FILE *s_fTsv2;
 
 static void ThreadBody_IndexQuery(uint ThreadIndex)
 	{
@@ -174,6 +175,13 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			if (TheDA.m_EvalueA <= s_MaxEvalue)
 				TheDA.ToTsv(s_fTsv, true);
 			s_ScanLock.lock();
+			if (s_fTsv2)
+				{
+				fprintf(s_fTsv2, "%s\t%s\t%c\n",
+						DBChain.m_Label.c_str(),
+						CBQ.m_ptrChain->m_Label.c_str(),
+						tof(TheDA.m_EvalueA <= s_MaxEvalue));
+				}
 			++s_ScannedCount;
 			s_ScanLock.unlock();
 			}
@@ -207,6 +215,7 @@ void PostMuFilter(const DSSParams &Params,
 		}
 
 	s_fTsv = CreateStdioFile(HitsFN);
+	s_fTsv2 = CreateStdioFile(opt_output2);
 	s_MaxEvalue = MaxEvalue;
 
 	vector<PDBChain *> QChains;
@@ -258,6 +267,7 @@ void PostMuFilter(const DSSParams &Params,
 	asserta(!Ok);
 	LR.Close();
 	CloseStdioFile(s_fTsv);
+	CloseStdioFile(s_fTsv2);
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
 	}

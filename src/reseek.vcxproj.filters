@@ -528,6 +528,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp">
+    <ClCompile Include="binner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

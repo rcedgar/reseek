@@ -1439,7 +1439,7 @@ void LogElapsedTimeAndRAM()
 	Log("Max memory %s\n", MemBytesToStr(g_PeakMemUseBytes));
 	Log("Finished %s", s); // there is a newline in s
 
-	ProgressLogPrefix("(max %s) finished\n", MemBytesToStr(g_PeakMemUseBytes));
+	Progress("(max %s) finished\n", MemBytesToStr(g_PeakMemUseBytes));
 
 #if	WIN32 && DEBUG
 // Skip exit(), which can be very slow in DEBUG build

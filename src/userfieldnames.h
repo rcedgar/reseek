@@ -27,5 +27,6 @@ x(aq)
 x(muhsp)
 x(muchain)
 x(gscore)
+x(raw)
 
 #undef x

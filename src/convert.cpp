@@ -112,6 +112,8 @@ static void ThreadBody(uint ThreadIndex)
 
 		if (opt_reverse)
 			ptrChain->Reverse();
+		if (opt_flip)
+			ptrChain->Flip();
 
 		s_LockStats.lock();
 		++s_InputCount;
@@ -206,6 +208,16 @@ static void ThreadBody(uint ThreadIndex)
 				fputc('\n', fOut);
 				}
 			CloseStdioFile(fOut);
+			}
+
+		if (optset_pdbcaoutdir)
+			{
+			string &FN = ptrChain->m_Label;
+			string PathN = opt_pdbcaoutdir;
+			Dirize(PathN);
+			PathN += FN;
+			PathN += ".pdb";
+			ptrChain->ToPDB(PathN);
 			}
 
 		s_LockStats.lock();

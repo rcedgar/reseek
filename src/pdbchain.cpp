@@ -484,3 +484,14 @@ void PDBChain::GetReverse(PDBChain &Rev) const
 	Rev.Reverse();
 	Rev.m_Label += ".rev";
 	}
+
+void PDBChain::Flip()
+	{
+	const uint L = GetSeqLength();
+	for (uint i = 0; i < L; ++i)
+		{
+		m_Xs[i] = -m_Xs[i];
+		m_Ys[i] = -m_Ys[i];
+		m_Zs[i] = -m_Zs[i];
+		}
+	}

@@ -278,6 +278,7 @@
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="global.cpp" />
+    <ClCompile Include="binner.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
