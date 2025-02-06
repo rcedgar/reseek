@@ -57,6 +57,7 @@ STR_OPT(testdir2)
 STR_OPT(trainparams)
 STR_OPT(gapstr)
 STR_OPT(sortedhits)
+STR_OPT(multipdb)
 
 STR_OPT(train_cal)
 STR_OPT(test_cal)

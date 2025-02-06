@@ -73,5 +73,6 @@ C(tracealn)
 C(convert2mu)
 C(binner)
 C(convert_foldseekdb)
+C(create_foldseekdb)
 
 #undef C

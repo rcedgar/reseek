@@ -7,6 +7,7 @@
 
 static FILE *s_fCal;
 static FILE *s_fFasta;
+static FILE *s_fMultiPDB;
 static FILE *s_fFeatureFasta;
 
 static PDBFileScanner *s_ptrFS = 0;
@@ -23,6 +24,8 @@ static const DSSParams *s_ptrParams = 0;
 static FEATURE s_Feat;
 static mutex s_LockStats;
 static mutex s_LockCal;
+static mutex s_LockMultiPDB;
+static uint s_MultiPDBIdx;
 static mutex s_LockFasta;
 static mutex s_LockBCA;
 static set<string> *s_ptrLabelSet;
@@ -150,6 +153,20 @@ static void ThreadBody(uint ThreadIndex)
 			s_ptrLabelSet->erase(UpperLabel);
 			}
 		s_LockStats.unlock();
+
+		if (s_fMultiPDB != 0)
+			{
+			s_LockMultiPDB.lock();
+			fprintf(s_fMultiPDB, "MODEL%10u\n", s_MultiPDBIdx);
+			if (ptrChain->m_Label != "")
+				fprintf(s_fMultiPDB, "TITLE     %s\n", ptrChain->m_Label.c_str());
+			else
+				fprintf(s_fMultiPDB, "TITLE     _blank_%u\n", s_MultiPDBIdx);
+			ptrChain->ToPDB(s_fMultiPDB, true);
+			fprintf(s_fMultiPDB, "ENDMDL\n");
+			++s_MultiPDBIdx;
+			s_LockMultiPDB.unlock();
+			}
 
 		if (s_fCal != 0)
 			{
@@ -287,6 +304,7 @@ void cmd_convert()
 	s_fCal = CreateStdioFile(opt_cal);
 	s_fFasta = CreateStdioFile(opt_fasta);
 	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
+	s_fMultiPDB = CreateStdioFile(opt_multipdb);
 
 	s_InputCount = 0;
 	s_Converted = 0;
@@ -352,6 +370,7 @@ void cmd_convert()
 	CloseStdioFile(s_fCal);
 	CloseStdioFile(s_fFasta);
 	CloseStdioFile(s_fFeatureFasta);
+	CloseStdioFile(s_fMultiPDB);
 	if (optset_bca)
 		BCA.Close();
 	}

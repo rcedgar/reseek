@@ -2342,6 +2342,22 @@ void ToUpper(string &Str)
 		Str[i] = toupper(Str[i]);
 	}
 
+void TruncateAtFirstWhiteSpace(string &Str)
+	{
+	unsigned n = SIZE(Str);
+	unsigned FirstNonWhite = UINT_MAX;
+	unsigned LastNonWhite = UINT_MAX;
+	for (unsigned i = 0; i < n; ++i)
+		{
+		char c = Str[i];
+		if (isspace(c))
+			{
+			Str.resize(i);
+			return;
+			}
+		}
+	}
+
 void StripWhiteSpace(string &Str)
 	{
 	unsigned n = SIZE(Str);

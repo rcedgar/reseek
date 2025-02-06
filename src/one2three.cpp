@@ -53,6 +53,10 @@ void GetThreeFromOne(char aa, string &AAA)
 	{
 	map<char, string>::const_iterator p = g_aa2AAA.find(aa);
 	if (p == g_aa2AAA.end())
-		Die("Unknown one-letter code '%c'", aa);
-	AAA = p->second;
+		{
+//		Die("Unknown one-letter code '%c'", aa);
+		AAA = "UNK";
+		}
+	else
+		AAA = p->second;
 	}

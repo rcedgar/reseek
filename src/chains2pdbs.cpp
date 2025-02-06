@@ -8,6 +8,12 @@ void PDBChain::ToPDB(const string &FileName) const
 	if (FileName == "")
 		return;
 	FILE *f = CreateStdioFile(FileName);
+	ToPDB(f);
+	CloseStdioFile(f);
+	}
+
+void PDBChain::ToPDB(FILE *f, bool TruncateAtZ) const
+	{
 	const uint L = GetSeqLength();
 	for (uint i = 0; i < L; ++i)
 		{
@@ -30,15 +36,17 @@ void PDBChain::ToPDB(const string &FileName) const
 		fprintf(f, "%8.3f", m_Xs[i]);	// 31 - 38        Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
 		fprintf(f, "%8.3f", m_Ys[i]);	// 39 - 46        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
 		fprintf(f, "%8.3f", m_Zs[i]);	// 47 - 57        Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
-		fprintf(f, "%6.2f", 1.0);		// 55 - 60        Real(6.2)     occupancy    Occupancy.
-		fprintf(f, "%6.2f", 0.0);		// 61 - 66        Real(6.2)     tempFactor   Temperature  factor.
-		fprintf(f, "          ");		// 67 - 76
-		fprintf(f, " C");				// 77 - 78        LString(2)    element      Element symbol, right-justified.
-		fprintf(f, "  ");				// 79 - 80        LString(2)    charge       Charge on the atom.
+		if (!TruncateAtZ)
+			{
+			fprintf(f, "%6.2f", 1.0);		// 55 - 60        Real(6.2)     occupancy    Occupancy.
+			fprintf(f, "%6.2f", 0.0);		// 61 - 66        Real(6.2)     tempFactor   Temperature  factor.
+			fprintf(f, "          ");		// 67 - 76
+			fprintf(f, " C");				// 77 - 78        LString(2)    element      Element symbol, right-justified.
+			fprintf(f, "  ");				// 79 - 80        LString(2)    charge       Charge on the atom.
+			}
 
 		fprintf(f, "\n");
 		}
-	CloseStdioFile(f);
 	}
 
 void cmd_chains2pdbs()

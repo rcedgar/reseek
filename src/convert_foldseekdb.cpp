@@ -1,5 +1,6 @@
 #include "myutils.h"
 
+void LogCoords16(const char *mem, uint chainLength);
 float *GetCoordsFromMem(const char *mem, uint chainLength, uint entryLength);
 
 /***
@@ -108,8 +109,8 @@ static void VerifyLookup(const string &Prefix,
 		const string &ExpectedLabel = Fields2[0];
 
 		if (Label != ExpectedLabel)
-			Die("Label %u mismatch %s, %s",
-				Idx, Label.c_str(), Labels[Idx].c_str());
+			Die("Label %u mismatch '%s', '%s'",
+				Idx, ExpectedLabel.c_str(), Labels[Idx].c_str());
 		++Idx;
 		}
 	CloseStdioFile(f);
@@ -157,20 +158,27 @@ void cmd_convert_foldseekdb()
 	vector<string> Labels;
 	vector<string> SeqsAA;
 	vector<string> Seqs3Di;
+	Progress("Read labels\n");
 	ReadNulTerminatedSeqs(Prefix + "_h", Labels);
 	const uint SeqCount = SIZE(Labels);
 
+	Progress("Read aa seqs\n");
 	ReadNulTerminatedSeqs(Prefix, SeqsAA);
 	const uint SeqCountAA = SIZE(SeqsAA);
 	if (SeqCountAA != SeqCount) Die("%u labels, %u aa seqs", SeqCount, SeqCountAA);
 
+	Progress("Read 3Di seqs\n");
 	ReadNulTerminatedSeqs(Prefix + "_ss", Seqs3Di);
 	const uint SeqCount3Di = SIZE(Seqs3Di);
 	if (SeqCountAA != SeqCount) Die("%u labels, %u 3Di seqs", SeqCount, SeqCount3Di);
 
+	Progress("Check lookup\n");
 	VerifyLookup(Prefix, ".lookup", Labels);
+
+	Progress("Check source\n");
 	VerifyLookup(Prefix, ".source", Labels);
 
+	Progress("Read CA coords\n");
 	const string CAFN = Prefix + "_ca";
 	uint64 Size64;
 	byte *Data = ReadAllStdioFile64(CAFN, Size64);
@@ -178,14 +186,9 @@ void cmd_convert_foldseekdb()
 	if (uint64_t(Size32) != Size64)
 		Die("_ca file too big");
 
-	//const float *xyzs = GetCoordsFromMem((const char *) Data, 664, 3992);
-	//for (uint i = 0; i < 664; ++i)
-	//	{
-	//	Log("%7.1f  %7.1f  %7.1f\n", xyzs[i], xyzs[664 + i], xyzs[2*664 + i]);
-	//	}
-
 	vector<uint> Offsets_coords;
 	vector<uint> Lengths_coords;
+	Progress("Read CA index\n");
 	ReadIndex(Prefix + "_ca.index", Offsets_coords, Lengths_coords);
 	const uint SeqCount2 = SIZE(Offsets_coords);
 	asserta(SIZE(Lengths_coords) == SeqCount2);
@@ -205,6 +208,7 @@ void cmd_convert_foldseekdb()
 	FILE *fcal = CreateStdioFile(opt_cal);
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
+		ProgressStep(SeqIdx, SeqCount, "Write output files");
 		const string &Label = Labels[SeqIdx];
 		const string &SeqAA = SeqsAA[SeqIdx];
 		const string &Seq3Di = Seqs3Di[SeqIdx];
@@ -224,12 +228,28 @@ void cmd_convert_foldseekdb()
 			uint CoordsLength = Lengths_coords[SeqIdx];
 			const char *mem = (const char *) (Data + CoordsOffset);
 			float *Coords = GetCoordsFromMem(mem, Laa, CoordsLength);
+		////////////////////////////////////////////
+		//	char *mem2 = CoordsToMem(Coords, Laa);
+		//	if (mem2 == 0)
+		//		Warning("Overflow");
+		//	else
+		//		{
+		//		float *Coords2 = GetCoordsFromMem(mem, Laa, CoordsLength);
+		//		for (uint i = 0; i < Laa; ++i)
+		//			{
+		//			double dx = fabs(Coords[i] - Coords2[i]);
+		//			double dy = fabs(Coords[Laa+i] - Coords2[Laa+i]);
+		//			double dz = fabs(Coords[2*Laa+i] - Coords2[2*Laa+i]);
+		//			asserta(dx < 0.2);
+		//			asserta(dy < 0.2);
+		//			asserta(dz < 0.2);
+		//			}
+		//		}
+		////////////////////////////////////////////
 			fprintf(fcal, ">%s\n", Label.c_str());
 			for (uint i = 0; i < Laa; ++i)
-				{
-				fprintf(fcal, "%.1f\t%.1f\t%.1f\n",
-						Coords[i], Coords[Laa+i], Coords[2*Laa+i]);
-				}
+				fprintf(fcal, "%c	%.1f\t%.1f\t%.1f\n",
+						SeqAA[i], Coords[i], Coords[Laa+i], Coords[2*Laa+i]);
 			if ((void *) Coords != (void *) mem)
 				myfree((void *) Coords);
 			}

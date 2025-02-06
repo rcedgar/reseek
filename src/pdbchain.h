@@ -53,6 +53,7 @@ public:
 	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const;
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
+	void ToPDB(FILE *f, bool TruncateAtZ = false) const;
 	void ToPDB(const string &FileName) const;
 	void GetXFormChain_tR(
 	  const vector<double> &t,
