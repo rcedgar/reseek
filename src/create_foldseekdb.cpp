@@ -22,6 +22,7 @@ void cmd_create_foldseekdb()
 
 	asserta(optset_output);
 	asserta(optset_3di);
+	const uint DupeCount = (optset_n ? opt_n : 1);
 
 	const string Prefix = string(opt_output);
 
@@ -63,51 +64,19 @@ void cmd_create_foldseekdb()
 		if (Chain == 0)
 			break;
 
-		string Label = Chain->m_Label.c_str();
-		TruncateAtFirstWhiteSpace(Label);
+		string RawLabel = Chain->m_Label.c_str();
+		TruncateAtFirstWhiteSpace(RawLabel);
 
 		string Seq3Di;
-		bool Found = SS.GetSeqByLabel(Label, Seq3Di, false);
+		bool Found = SS.GetSeqByLabel(RawLabel, Seq3Di, false);
 		if (!Found)
-			Die("Missing 3Di sequence >%s", Label.c_str());
+			Die("Missing 3Di sequence >%s", RawLabel.c_str());
 		const uint SeqLen3Di = SIZE(Seq3Di);
-
 		const string &Seq = Chain->m_Seq.c_str();
-
 		const uint SeqLen = Chain->GetSeqLength();
-		const uint LabelLen = SIZE(Label);
-
 		if (SeqLen != SeqLen3Di)
 			Die("Seqence length mismatch, aa=%u 3Di=%u >%s",
-				SeqLen, SeqLen3Di, Label.c_str());
-
-		WriteStdioFile(fLabels, Label.c_str(), LabelLen);
-		WriteStdioFile(fLabels, nl_null, 2);
-
-		WriteStdioFile(fSeqs, Seq.c_str(), SeqLen);
-		WriteStdioFile(fSeqs, nl_null, 2);
-
-		WriteStdioFile(fSeqs3Di, Seq3Di.c_str(), SeqLen);
-		WriteStdioFile(fSeqs3Di, nl_null, 2);
-
-		fprintf(fSeqsLookup, "%u\t%s\t%u\n",
-				Idx, Label.c_str(), Idx);
-
-		fprintf(fSource, "%u\t%s\n",
-				Idx, Label.c_str());
-
-		fprintf(fSeqsIndex, "%u\t%llu\t%u\n",
-				Idx, SeqOffset, SeqLen+2);
-
-		fprintf(fSeqs3DiIndex, "%u\t%llu\t%u\n",
-				Idx, SeqOffset, SeqLen+2);
-
-		fprintf(fLabelsIndex, "%u\t%llu\t%u\n",
-				Idx, LabelOffset, LabelLen+2);
-
-		SeqOffset += SeqLen + 2;
-		LabelOffset += LabelLen + 2;
-
+				SeqLen, SeqLen3Di, RawLabel.c_str());
 		float *Coords = myalloc(float, 3*SeqLen);
 
 		for (uint i = 0; i < SeqLen; ++i)
@@ -123,28 +92,69 @@ void cmd_create_foldseekdb()
 
 		uint membytes;
 		char *mem = CoordsToMem(Coords, SeqLen, membytes);
-		if (mem == 0)
+
+		for (uint DupeIdx = 0; DupeIdx < DupeCount; ++DupeIdx)
 			{
-			uint floatbytes = 3*SeqLen*sizeof(float);
-			Log("Overflow %s\n", Label.c_str());
-			fprintf(fCAIndex, "%u\t%llu\t%u\n",
-					Idx, CAOffset, floatbytes+2);
-			WriteStdioFile(fCA, Coords, floatbytes);
-			WriteStdioFile(fCA, nl_null, 2);
-			CAOffset += floatbytes + 2;
-			}
-		else
-			{
-			fprintf(fCAIndex, "%u\t%llu\t%u\n",
-					Idx, CAOffset, membytes+2);
-			WriteStdioFile(fCA, mem, membytes);
-			WriteStdioFile(fCA, nl_null, 2);
-			CAOffset += membytes + 2;
+			string Label = RawLabel;
+			if (DupeIdx > 0)
+				{
+				string Tmp;
+				Ps(Tmp, "DUPE%u_", DupeIdx);
+				Label = Tmp + Label;
+				}
+
+			const uint LabelLen = SIZE(Label);
+			WriteStdioFile(fLabels, Label.c_str(), LabelLen);
+			WriteStdioFile(fLabels, nl_null, 2);
+
+			WriteStdioFile(fSeqs, Seq.c_str(), SeqLen);
+			WriteStdioFile(fSeqs, nl_null, 2);
+
+			WriteStdioFile(fSeqs3Di, Seq3Di.c_str(), SeqLen);
+			WriteStdioFile(fSeqs3Di, nl_null, 2);
+
+			fprintf(fSeqsLookup, "%u\t%s\t%u\n",
+					Idx, Label.c_str(), Idx);
+
+			fprintf(fSource, "%u\t%s\n",
+					Idx, Label.c_str());
+
+			fprintf(fSeqsIndex, "%u\t%llu\t%u\n",
+					Idx, SeqOffset, SeqLen+2);
+
+			fprintf(fSeqs3DiIndex, "%u\t%llu\t%u\n",
+					Idx, SeqOffset, SeqLen+2);
+
+			fprintf(fLabelsIndex, "%u\t%llu\t%u\n",
+					Idx, LabelOffset, LabelLen+2);
+
+			SeqOffset += SeqLen + 2;
+			LabelOffset += LabelLen + 2;
+
+			if (mem == 0)
+				{
+				uint floatbytes = 3*SeqLen*sizeof(float);
+				Log("Overflow %s\n", Label.c_str());
+				fprintf(fCAIndex, "%u\t%llu\t%u\n",
+						Idx, CAOffset, floatbytes+2);
+				WriteStdioFile(fCA, Coords, floatbytes);
+				WriteStdioFile(fCA, nl_null, 2);
+				CAOffset += floatbytes + 2;
+				}
+			else
+				{
+				fprintf(fCAIndex, "%u\t%llu\t%u\n",
+						Idx, CAOffset, membytes+2);
+				WriteStdioFile(fCA, mem, membytes);
+				WriteStdioFile(fCA, nl_null, 2);
+				CAOffset += membytes + 2;
+				}
+			++Idx;
 			}
 
 		myfree(Coords);
+		myfree(mem);
 		delete Chain;
-		++Idx;
 		}
 
 	CloseStdioFile(fLabels);
