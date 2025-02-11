@@ -157,7 +157,7 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 
 // Project onto common X axis (Sensitivity=TPR) 
 //  with N+1 ticks
-void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
+void SCOP40Bench::WriteCVE(FILE *f, uint N)
 	{
 	if (f == 0)
 		return;
@@ -208,14 +208,15 @@ void SCOP40Bench::WriteSensVsErr(FILE *f, uint N)
 			LastEPQ = EPQ;
 		}
 
-	fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
+	//fprintf(f, "Mode\tBin\tScore\tSens=TPR\tEPQ\n");
 	for (uint Bin = 0; Bin <= N; ++Bin)
 		{
-		fprintf(f, "%s", m_Level.c_str());
-		fprintf(f, "\t%u", Bin);
-		fprintf(f, "\t%.3g", BinScores[Bin]);
-		fprintf(f, "\t%.3f", Bin*SensStep);
+		float TPR = Bin*SensStep;
+		//fprintf(f, "%s", m_Level.c_str());
+		//fprintf(f, "\t%u", Bin);
+		fprintf(f, "%.3f", TPR);
 		fprintf(f, "\t%.3g", EPQs[Bin]);
+		fprintf(f, "\t%.3g", BinScores[Bin]);
 		fprintf(f, "\n");
 		}
 	}

@@ -600,12 +600,12 @@ void SCOP40Bench::WriteOutput()
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt_maxfpr;
-	FILE *fSVE = CreateStdioFile(opt_sens_vs_err);
+	FILE *fCVE = CreateStdioFile(opt_cve);
 	if (optset_benchlevel)
 		{
 		m_Level = opt_benchlevel;
 		SetStats(MaxFPR);
-		WriteSensVsErr(fSVE, 100);
+		WriteCVE(fCVE, 100);
 		WriteSummary();
 		}
 	else
@@ -616,11 +616,11 @@ void SCOP40Bench::WriteOutput()
 			{
 			m_Level = Modes[Modei];
 			SetStats(MaxFPR);
-			WriteSensVsErr(fSVE, 100);
+			WriteCVE(fCVE, 100);
 			WriteSummary();
 			}
 		}
-	CloseStdioFile(fSVE);
+	CloseStdioFile(fCVE);
 	}
 
 void SCOP40Bench::LogSens1FPReport_Dom(uint DomIdx) const
