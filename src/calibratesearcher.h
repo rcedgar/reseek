@@ -23,6 +23,7 @@ public:
 	double m_NormalMean = 0;
 	double m_NormalSigma = 0;
 
+	double m_GumbelScale = 0;
 	double m_GumbelMu = 0;
 	double m_GumbelBeta = 0;
 

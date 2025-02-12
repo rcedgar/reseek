@@ -42,6 +42,8 @@ void cmd_binner()
 		}
 
 	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fAccum = CreateStdioFile(opt_accum);
+	FILE *fAccumRev = CreateStdioFile(opt_accumrev);
 	QuartsFloat QF;
 	GetQuartsFloat(Values, QF);
 	QF.LogMe();
@@ -52,11 +54,15 @@ void cmd_binner()
 		{
 		Binner<float> B(Values, Bins);
 		B.ToTsv(fOut);
+		B.AccumToTsv(fAccum);
+		B.AccumToTsvReverse(fAccumRev);
 		}
 	else
 		{
 		Binner<float> B(Values, Bins, MinValue, MaxValue);
 		B.ToTsv(fOut);
+		B.AccumToTsv(fAccum);
+		B.AccumToTsvReverse(fAccumRev);
 		}
 	CloseStdioFile(fOut);
 	}

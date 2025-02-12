@@ -127,6 +127,8 @@ STR_OPT(lookup)
 STR_OPT(filesdir)
 STR_OPT(pdboutdir)
 STR_OPT(pdbcaoutdir)
+STR_OPT(accum)
+STR_OPT(accumrev)
 
 STR_OPT(fw_name)
 STR_OPT(psm_fw)

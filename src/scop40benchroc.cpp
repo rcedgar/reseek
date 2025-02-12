@@ -773,6 +773,10 @@ void cmd_scop40bench_tsv()
 	{
 	asserta(optset_lookup);
 	SCOP40Bench SB;
+	if (opt_scores_are_not_evalues)
+		SB.m_ScoresAreEvalues = false;
+	else
+		SB.m_ScoresAreEvalues = true;
 	SB.ReadLookup(opt_lookup);
 	SB.ReadHits(g_Arg1);
 	float MaxFPR = 0.01f;

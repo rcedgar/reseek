@@ -133,9 +133,9 @@ void CalibrateSearcher::FitGumbel()
 	{
 	void fit_gumbel(double x0, double dx,
 	  const vector<double> &ys,
-	  double &Mu, double &Beta);
+	  double &Scale, double &Mu, double &Beta);
 
-	fit_gumbel(m_x0, m_dx, m_ys, m_GumbelMu, m_GumbelBeta);
+	fit_gumbel(m_x0, m_dx, m_ys, m_GumbelScale, m_GumbelMu, m_GumbelBeta);
 
 	Log("Gumbel: Mu %.3g, Beta %.3g\n",
 	  m_GumbelMu, m_GumbelBeta);

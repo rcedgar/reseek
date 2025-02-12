@@ -41,7 +41,7 @@ void cmd_test_gumbel()
 #endif // 0
 
 static double GetRMSE(double x0, double dx, const vector<double> &ys,
-  double Mu, double Beta)
+  double Scale, double Mu, double Beta)
 	{
 	asserta(Beta > 0);
 	const uint N = SIZE(ys);
@@ -50,7 +50,7 @@ static double GetRMSE(double x0, double dx, const vector<double> &ys,
 	for (uint i = 0; i < N; ++i)
 		{
 		double y = ys[i];
-		double yfit = gumbel(Mu, Beta, x);
+		double yfit = Scale*gumbel(Mu, Beta, x);
 		if (isnan(yfit))
 			Die("gumbel(Mu=%.3g, Beta=%.3g, x=%.3g) = nan", Mu, Beta, x);
 		double e = y*fabs((yfit - y));
@@ -111,8 +111,16 @@ For perfect gumbel:
 	beta = (mean - mu)/lambda
 ***/
 void fit_gumbel(double x0, double dx,
-  const vector<double> &ys, double &Mu, double &Beta)
+  const vector<double> &ys, double &Scale, double &Mu, double &Beta)
 	{
+	Warning("this may not work well / at all for some input");
+// Normalize input so that sum over y = 1
+	double Sum = 0;
+	const uint N = SIZE(ys);
+	for (uint i = 0; i < N; ++i)
+		Sum += ys[i];
+	asserta(feq(Sum, 1));
+
 	const double lambda = 0.5772156649;
 	const uint MAXITERS = 100;
 	const double mean = getmean(x0, dx, ys);
@@ -124,23 +132,52 @@ void fit_gumbel(double x0, double dx,
 	if (Beta < 0.1)
 		Beta = 0.1;
 	double dBeta = Beta/4;
+	Scale = 1.0;
+	double dScale = 0.1;
 	uint StalledIters = 0;
 	uint Iter = 0;
 	for (;;)
 		{
 		if (++Iter > MAXITERS)
 			break;
-		double RMSE = GetRMSE(x0, dx, ys, Mu, Beta);
+		double RMSE = GetRMSE(x0, dx, ys, Scale, Mu, Beta);
 		double MuPlus = Mu + dMu;
 
 		double MuMinus = Mu - dMu;
 		if (MuMinus < 0.1)
 			MuMinus = 0.1;
 
-		double RMSE_MuPlus = GetRMSE(x0, dx, ys, MuPlus, Beta);
-		double RMSE_MuMinus = GetRMSE(x0, dx, ys, MuMinus, Beta);
+		double ScalePlus = Scale + dScale;
+		double ScaleMinus = Scale - dScale;
+		if (ScaleMinus < 0.1)
+			ScaleMinus = 0.1;
 
-		if (RMSE <= RMSE_MuPlus && RMSE <= RMSE_MuMinus)
+		double RMSE_ScalePlus = GetRMSE(x0, dx, ys, ScalePlus, Mu, Beta);
+		double RMSE_ScaleMinus = GetRMSE(x0, dx, ys, ScaleMinus, Mu, Beta);
+		if (RMSE <= RMSE_ScalePlus &&
+			RMSE <= RMSE_ScaleMinus)
+			{
+			++StalledIters;
+			dScale /= 2;
+			}
+		else if (RMSE_ScalePlus <= RMSE_ScaleMinus)
+			{
+			StalledIters = 0;
+			RMSE = RMSE_ScalePlus;
+			Scale = ScalePlus;
+			}
+		else
+			{
+			asserta(RMSE_ScaleMinus <= RMSE_ScalePlus);
+			StalledIters = 0;
+			RMSE = RMSE_ScaleMinus;
+			}
+
+		double RMSE_MuPlus = GetRMSE(x0, dx, ys, Scale, MuPlus, Beta);
+		double RMSE_MuMinus = GetRMSE(x0, dx, ys, Scale, MuMinus, Beta);
+
+		if (RMSE <= RMSE_MuPlus &&
+			RMSE <= RMSE_MuMinus)
 			{
 			++StalledIters;
 			dMu /= 2;
@@ -163,8 +200,8 @@ void fit_gumbel(double x0, double dx,
 		double BetaMinus = Beta - dBeta;
 		if (BetaMinus < 0.01)
 			BetaMinus = 0.01;
-		double RMSE_BetaPlus = GetRMSE(x0, dx, ys, Mu, BetaPlus);
-		double RMSE_BetaMinus = GetRMSE(x0, dx, ys, Mu, BetaMinus);
+		double RMSE_BetaPlus = GetRMSE(x0, dx, ys, Mu, Scale, BetaPlus);
+		double RMSE_BetaMinus = GetRMSE(x0, dx, ys, Mu, Scale, BetaMinus);
 
 		if (RMSE <= RMSE_BetaPlus && RMSE <= RMSE_BetaMinus)
 			{
@@ -207,19 +244,21 @@ void cmd_test_gumbel()
 		x += dx;
 		}
 
-	double FitMu, FitBeta;
-	fit_gumbel(x0, dx, ys, FitMu, FitBeta);
-	ProgressLog("FitMu %.3g, FitBeta %.3g\n", FitMu, FitBeta);
+	double FitScale, FitMu, FitBeta;
+	fit_gumbel(x0, dx, ys, FitScale, FitMu, FitBeta);
+	ProgressLog("FitScale %.3g, FitMu %.3g, FitBeta %.3g\n",
+				FitScale, FitMu, FitBeta);
 	}
 
 void cmd_fit_gumbel()
 	{
+	Warning("this may not work well / at all for some input");
 	vector<string> Lines;
 	vector<string> Fields;
 	ReadLinesFromFile(g_Arg1, Lines);
 	vector<double> xs;
 	vector<double> ys;
-	const uint N = SIZE(Lines);
+	const uint N = SIZE(Lines)-1;
 
 	const string &Line = Lines[0];
 	Split(Line, Fields, '\t');
@@ -227,27 +266,43 @@ void cmd_fit_gumbel()
 	double x0 = StrToFloat(Fields[0]);
 	double dx = StrToFloat(Fields[1]);
 
-	for (uint i = 1; i < N; ++i)
+	double Sum = 0;
+	for (uint i = 1; i <= N; ++i)
 		{
 		const string &Line = Lines[i];
 		double y = StrToFloat(Line);
+		Sum += y;
 		ys.push_back(y);
 		}
 
-	double FitMu, FitBeta;
-	fit_gumbel(x0, dx, ys, FitMu, FitBeta);
+// Normalize input so that sum over y = 1
+	vector<double> normalized_ys;
+	for (uint i = 0; i < N; ++i)
+		normalized_ys.push_back(ys[i]/Sum);
+
+	double FitScale, FitMu, FitBeta;
+	fit_gumbel(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
+
+//	double RMSE1 = GetRMSE(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
+//
+//#pragma warning("TODO")
+//	FitMu *= 1.3;
+//	double RMSE2 = GetRMSE(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
+//	ProgressLog("RMSE %.3g %.3g\n", RMSE1, RMSE2);
+
 	ProgressLog("FitMu %.3g, FitBeta %.3g\n", FitMu, FitBeta);
 	if (!optset_output) 
 		return;
 
 	FILE *fOut = CreateStdioFile(opt_output);
-	fprintf(fOut, "x\ty\tfity\n");
+	fprintf(fOut, "x\ty\tnorm_y\tfity\n");
 	double x = x0;
 	for (uint i = 0; i < N; ++i)
 		{
 		double y = ys[i];
-		double fity = gumbel(FitMu, FitBeta, x);
-		fprintf(fOut, "%.3g\t%.3g\t%.3g\n", x, y, fity);
+		double normalized_y = normalized_ys[i];
+		double fity = FitScale*gumbel(FitMu, FitBeta, x);
+		fprintf(fOut, "%.3g\t%.3g\t%.3g\t%.3g\n", x, y, normalized_y, fity);
 		x += dx;
 		}
 	CloseStdioFile(fOut);
