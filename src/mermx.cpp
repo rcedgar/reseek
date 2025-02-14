@@ -97,6 +97,24 @@ short MerMx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
+int16_t MerMx::GetSelfScore6mer(uint Kmer) const
+	{
+	assert(Kmer < m_AS_pow[6]);
+
+	uint First3mer = Kmer/m_AS_pow[3];
+	uint Second3mer = Kmer%m_AS_pow[3];
+
+	assert(First3mer < m_AS_pow[3]);
+	assert(Second3mer < m_AS_pow[3]);
+
+	int FirstScore = m_Mx3[First3mer][First3mer];
+	int SecondScore = m_Mx3[Second3mer][Second3mer];
+	int Score = FirstScore + SecondScore;
+	int16_t Score16 = int16_t(Score);
+	assert(int(Score16) == Score);
+	return Score16;
+	}
+
 short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
@@ -556,4 +574,13 @@ uint MerMx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers
 	if (Trace)
 		Log("\n");
 	return n;
+	}
+
+int16_t *MerMx::BuildSelfScores_6mers() const
+	{
+	const uint AS6 = m_AS_pow[6];
+	int16_t *SelfScores = myalloc(int16_t, AS6);
+	for (uint Kmer = 0; Kmer < AS6; ++Kmer)
+		SelfScores[Kmer] = GetSelfScore6mer(Kmer);
+	return SelfScores;
 	}

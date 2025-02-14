@@ -52,6 +52,8 @@ After Pass 2:
 	uint32_t m_Size = 0;
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
+	int16_t *m_KmerSelfScores = 0;
+	int m_MinKmerSelfScore = 0;
 
 public:
 	void FromSeqDB(const SeqDB &Input);

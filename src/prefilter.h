@@ -9,8 +9,8 @@
 #include "diag.h"
 
 ///////////////////////////////////////////////////////////
-// For each query sequence, build a list of at most maxseqs
-// Target sequences sorted by decreasing diagonal score.
+// For one target sequence build a list of query sequences
+// with 2-kmer diagonals and their scores.
 ///////////////////////////////////////////////////////////
 
 class Prefilter
@@ -68,6 +68,8 @@ public:
 						  vector<uint> &QSeqIdxs,
 						  vector<int> &DiagScores);
 	int FindHSP(const byte *Q, uint QL, int Diag) const;
+	int FindHSP2(const byte *Q, uint QL, int Diag,
+				 int &Lo, int &Len) const;
 	void Search_TargetKmers();
 	void Search_TargetKmerNeighborhood(uint Kmer);
 	void Search_Kmer(uint Kmer);
@@ -77,5 +79,6 @@ public:
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
 	void GetResults(vector<uint> &QSeqIdxs,
 					vector<int> &DiagScores) const;
+	void LogDiag(uint QSeqIdx, uint16_t Diag) const;
 	void Reset();
 	};

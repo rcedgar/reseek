@@ -105,9 +105,14 @@ void ThreeDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const byte *Seq, uin
 		Kmer = Kmer*20 + Letter;
 		Kmer %= m_DictSize;
 		assert(Kmer < m_DictSize);
+		asserta(m_KmerSelfScores != 0);
+		if (m_KmerSelfScores != 0 &&
+			m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+			continue;
 
 	// Pass 1, m_Finger[Kmer+1] is count
 		m_Finger[Kmer+1] += 1;
+		++m_Size;
 #if DEBUG
 		m_KmerToCount1[Kmer] += 1;
 #endif
@@ -115,7 +120,7 @@ void ThreeDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const byte *Seq, uin
 		Log("[%4u] %08x %s\n", SeqPos-4, Kmer, KmerToStr(Kmer, Tmp));
 #endif
 		}
-	m_Size += L - (m_k-1);
+	//m_Size += L - (m_k-1);
 	}
 
 void ThreeDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const byte *Seq, uint L)
@@ -142,6 +147,10 @@ void ThreeDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const byte *Seq, uin
 		Kmer = Kmer*20 + Letter;
 		Kmer %= m_DictSize;
 		assert(Kmer < m_DictSize);
+		if (m_KmerSelfScores != 0 &&
+			m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+			continue;
+
 		uint DataOffset = m_Finger[Kmer+1];
 		uint KmerStartPos = SeqPos - (m_k-1);
 		Put(DataOffset, SeqIdx, KmerStartPos);

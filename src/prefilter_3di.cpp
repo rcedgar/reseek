@@ -8,10 +8,7 @@ extern int8_t threedi_substmx[20][20];
 static const uint k = 6;
 static const uint ALPHABET_SIZE = 20;
 static const uint DICT_SIZE = 64000000;	// 20^6
-
-// Below zero should be included
-// TODO: tune this parameter
-static const int MIN_DIAG_SCORE = -99;
+static const int MIN_KMER_SELF_SCORE = 78;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
@@ -46,6 +43,52 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	return B;
 	}
 
+//////////////////////////////////////////////
+// 	FindHSP plus "traceback", i.e. returns
+// 	start position and length of HSP.
+//////////////////////////////////////////////
+int Prefilter::FindHSP2(const byte *QSeq, uint QL,
+						int Diag, int &Lo, int &Len) const
+	{
+	diag dg(QL, m_TL);
+	int i = dg.getmini(Diag);
+	int j = dg.getminj(Diag);
+	int n = dg.getlen(Diag);
+
+	int B = 0;
+	int F = 0;
+	int CurrLen = 0;
+	Lo = 0;
+	Len = 0;
+	int SuffixLo = 0;
+	for (int k = 0; k < n; ++k)
+		{
+		assert(i < int(QL));
+		assert(j < int(m_TL));
+		byte q = QSeq[i++];
+		byte t = m_TSeq[j++];
+		assert(q < ALPHABET_SIZE);
+		assert(t < ALPHABET_SIZE);
+		short Score = threedi_substmx[q][t];
+		F += Score;
+		if (F > B)
+			{
+			B = F;
+			Lo = SuffixLo;
+			Len = ++CurrLen;
+			}
+		else if (F > 0)
+			++CurrLen;
+		else
+			{
+			F = 0;
+			SuffixLo = k+1;
+			CurrLen = 0;
+			}
+		}
+	return B;
+	}
+
 void Prefilter::SetQDB(const SeqDB &QDB)
 	{
 	m_QDB = &QDB;
@@ -56,7 +99,7 @@ void Prefilter::SetQDB(const SeqDB &QDB)
 
 	for (uint i = 0; i < m_QSeqCount; ++i)
 		{
-		m_QSeqIdxToBestDiagScore[i] = MIN_DIAG_SCORE;
+		m_QSeqIdxToBestDiagScore[i] = INT_MIN;
 		m_QSeqIdxsWithTwoHitDiag[i] = UINT_MAX;
 		}
 
@@ -110,8 +153,6 @@ void Prefilter::Search_TargetSeq(const byte *TSeq, uint TL,
 void Prefilter::Search_TargetKmerNeighborhood(uint Kmer)
 	{
 // Construct high-scoring neighborhood
-	string Tmp;//@@
-	Log("Kmer=%s\n", m_ScoreMx->KmerToStr(Kmer, Tmp));//@@
 	const uint HSKmerCount =
 		m_ScoreMx->GetHighScoring6mers(Kmer, m_KmerNeighborMinScore,
 									   m_NeighborKmers);
@@ -138,6 +179,8 @@ void Prefilter::Search_Kmer(uint Kmer)
 		diag dg(QL, m_TL);
 		uint16_t Diag = dg.getd(QSeqPos, m_TSeqPos);
 		m_DiagBag.Add(QSeqIdx, Diag);
+
+		LogDiag(QSeqIdx, Diag);//@@
 		}
 	}
 
@@ -168,7 +211,7 @@ void Prefilter::GetResults(vector<uint> &QSeqIdxs,
 void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	int BestDiagScoreT = m_QSeqIdxToBestDiagScore[QSeqIdx];
-	if (BestDiagScoreT == 0)
+	if (BestDiagScoreT == INT_MIN)
 		{
 		m_QSeqIdxsWithTwoHitDiag[m_NrQueriesWithTwoHitDiag++] = QSeqIdx;
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
@@ -203,18 +246,31 @@ void Prefilter::Reset()
 	for (uint HitIdx = 0; HitIdx < m_NrQueriesWithTwoHitDiag; ++HitIdx)
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[HitIdx];
-		m_QSeqIdxToBestDiagScore[QSeqIdx] = MIN_DIAG_SCORE;
+		m_QSeqIdxToBestDiagScore[QSeqIdx] = INT_MIN;
 		}
 #if DEBUG
 	{
 	for (uint SeqIdx = 0; SeqIdx < m_QSeqCount; ++SeqIdx)
 		{
-		assert(m_QSeqIdxToBestDiagScore[SeqIdx] == 0);
+		assert(m_QSeqIdxToBestDiagScore[SeqIdx] == INT_MIN);
 		}
 	}
 #endif
 	m_NrQueriesWithTwoHitDiag = 0;
 	m_DiagBag.Reset();
+	}
+
+void Prefilter::LogDiag(uint QSeqIdx, uint16_t Diag) const
+	{
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	int Score = FindHSP(QSeq, QL, Diag);
+	int Lo, Len;
+	int Score2 = FindHSP2(QSeq, QL, Diag, Lo, Len);
+	const string &QLabel = m_QDB->GetLabel(QSeqIdx);
+	Log("LogDiag(%s, %u) lo %d, len %d, score %d\n",
+		QLabel.c_str(), Diag, Lo, Len, Score);
+	asserta(Score2 == Score);
 	}
 
 void cmd_prefilter_3di()
@@ -235,15 +291,17 @@ void cmd_prefilter_3di()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
+	const MerMx &ScoreMx = Get3DiMerMx();
+	asserta(ScoreMx.m_k == k);
+
 	ThreeDex QKmerIndex;
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
+	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_SELF_SCORE;
 	QKmerIndex.FromSeqDB(QDB);
 	QKmerIndex.Validate();
 	QKmerIndex.LogStats();
 	asserta(QKmerIndex.m_k == k);
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
-
-	const MerMx &ScoreMx = Get3DiMerMx();
-	asserta(ScoreMx.m_k == k);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
 	Prefilter Pref;
@@ -256,9 +314,27 @@ void cmd_prefilter_3di()
 	for (uint TSeqIdx = 0; TSeqIdx < TSeqCount; ++TSeqIdx)
 		{
 		const byte *TSeq = TDB.GetByteSeq(TSeqIdx);
+		const string &TLabel = TDB.GetLabel(TSeqIdx);
 		uint TL = TDB.GetSeqLength(TSeqIdx);
 		Pref.Search_TargetSeq(TSeq, TL, QSeqIdxs, DiagScores);
-		brk(1);
+
+		if (fOut != 0)
+			{
+			const uint n = SIZE(QSeqIdxs);
+			asserta(SIZE(DiagScores) == n);
+			for (uint i = 0; i < n; ++i)
+				{
+				uint QSeqIdx = QSeqIdxs[i];
+				int DiagScore = DiagScores[i];
+
+				const string &QLabel = QDB.GetLabel(QSeqIdx);
+
+				fprintf(fOut, "%s", TLabel.c_str());
+				fprintf(fOut, "\t%d", DiagScore);
+				fprintf(fOut, "\t%s", QLabel.c_str());
+				fprintf(fOut, "\n");
+				}
+			}
 		}
 
 	CloseStdioFile(fOut);

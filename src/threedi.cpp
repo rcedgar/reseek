@@ -4,6 +4,8 @@
 #include "mermx.h"
 #include <chrono>
 
+const MerMx &Get3DiMerMx();
+
 int8_t threedi_substmx[20][20] = {
 { 24, -12, 4,8, 12, -8, -8, -29, -12, -12, -41, -20, -4, 4, -16, -29, -20, -25, 0, -8 }, // i=0
 { -12, 24, -8, -33, -20, -16, -16, -49, -53, 4, -57, 0,0, 4, -4, 0, -33, 4, -29, -37 }, // i=1
@@ -147,6 +149,8 @@ ticks: std::chrono::high_resolution_clock::now() /auto elapsed = t1 - t0;
 
 static void Test()
 	{
+	const MerMx &MM = Get3DiMerMx();
+
 	int scmin = threedi_substmx[0][0];
 	int scmax = threedi_substmx[0][0];
 	int scmaxd = threedi_substmx[0][0];
@@ -165,6 +169,8 @@ static void Test()
 	ProgressLog("min %d, max %d, maxd %d, avg %.1f\n",
 				scmin, scmax, scmaxd, scsum/400);
 
+	const int16_t *SelfScores = MM.BuildSelfScores_6mers();
+
 	s_dict_size = myipow(20, 6);
 	asserta(s_dict_size == 64000000);
 	vector<float> kmer_self_scores;
@@ -172,6 +178,7 @@ static void Test()
 		{
 		ProgressStep(kmer, s_dict_size, "self scores");
 		int self_score = get_kmer_self_score(kmer);
+		asserta(SelfScores[kmer] == self_score);
 		kmer_self_scores.push_back(float(self_score));
 		}
 	QuartsFloat QF;
@@ -236,8 +243,8 @@ const MerMx &Get3DiMerMx()
 
 void cmd_threedi()
 	{
-	//Test();
-	//return;
+	Test();
+	return;
 
 	short **MxPtrs = myalloc(short *, 20);
 	for (uint i = 0; i < 20; ++i)
