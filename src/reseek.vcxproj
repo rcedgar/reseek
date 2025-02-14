@@ -330,6 +330,7 @@
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_debug.cpp" />
     <ClCompile Include="pdb.cpp" />
+    <ClCompile Include="prefilter_3di.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -397,6 +398,7 @@
     <ClCompile Include="test_para_cal.cpp" />
     <ClCompile Include="test_para_path.cpp" />
     <ClCompile Include="test_xdrop.cpp" />
+    <ClCompile Include="threedex.cpp" />
     <ClCompile Include="threedi.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="trained_features.cpp" />
@@ -492,6 +494,7 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="prefilter.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="scalarparams.h" />
@@ -500,6 +503,7 @@
     <ClInclude Include="spher.h" />
     <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
+    <ClInclude Include="threedex.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="tracebit.h" />

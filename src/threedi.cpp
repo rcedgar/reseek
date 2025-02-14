@@ -4,7 +4,7 @@
 #include "mermx.h"
 #include <chrono>
 
-static int8_t threedi_substmx[20][20] = {
+int8_t threedi_substmx[20][20] = {
 { 24, -12, 4,8, 12, -8, -8, -29, -12, -12, -41, -20, -4, 4, -16, -29, -20, -25, 0, -8 }, // i=0
 { -12, 24, -8, -33, -20, -16, -16, -49, -53, 4, -57, 0,0, 4, -4, 0, -33, 4, -29, -37 }, // i=1
 {  4, -8, 16, -12, 0,4, 4, -12, -20, -16, -20, -8, 4, -4, -4, -16, -8, -12, -8, -8 }, // i=2
@@ -212,6 +212,26 @@ static void TestNbr(MerMx &MM, const string &sKmer, uint FSn, uint FSTicks)
 	ProgressLog("%s cticks=%u,%u, n=%u,%u\n",
 				sKmer.c_str(), cticks, FSTicks, n, FSn);
 	asserta(n == n_Brute);
+	}
+
+static MerMx *s_ptrMM3Di = 0;
+
+const MerMx &Get3DiMerMx()
+	{
+	if (s_ptrMM3Di != 0)
+		return *s_ptrMM3Di;
+	s_ptrMM3Di = new MerMx;
+
+	short **MxPtrs = myalloc(short *, 20);
+	for (uint i = 0; i < 20; ++i)
+		{
+		short *Row = myalloc(short, 20);
+		for (uint j = 0; j < 20; ++j)
+			Row[j] = threedi_substmx[i][j];
+		MxPtrs[i] = Row;
+		}
+	(*s_ptrMM3Di).Init(MxPtrs, 6, 20, 3);
+	return *s_ptrMM3Di;
 	}
 
 void cmd_threedi()

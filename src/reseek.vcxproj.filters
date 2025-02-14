@@ -524,6 +524,12 @@
     <ClCompile Include="mymalloc_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="prefilter_3di.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="threedex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -809,6 +815,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="myallocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="threedex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -81,5 +81,7 @@ C(hsptest)
 C(hspspeedtest)
 C(train_diags_scoredist)
 C(testmu5mers)
+C(prefilter_3di)
+C(threedex)
 
 #undef C

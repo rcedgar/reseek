@@ -67,6 +67,23 @@ const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	return m_Seqs[SeqIndex];
 	}
 
+void SeqDB::ToLetters(const byte *CharToLetter)
+	{
+	const uint SeqCount = GetSeqCount();
+	for (uint Idx = 0; Idx < SeqCount; ++Idx)
+		{
+		string &s = m_Seqs[Idx];
+		const uint L = SIZE(s);
+		for (uint i = 0; i < L; ++i)
+			s[i] = CharToLetter[s[i]];
+		}
+	}
+
+const byte *SeqDB::GetByteSeq(uint SeqIndex) const
+	{
+	return (const byte *) GetSeq(SeqIndex).c_str();
+	}
+
 void SeqDB::GetSeq_StripGaps(unsigned SeqIndex, string& Seq, bool ToUpper) const
 	{
 	Seq.clear();

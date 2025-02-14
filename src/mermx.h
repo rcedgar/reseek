@@ -52,6 +52,10 @@ public:
 	short GetScore2merPair(uint Kmer_i, uint Kmer_j) const;
 	short GetScore3merPair(uint Kmer_i, uint Kmer_j) const;
 	void KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const;
+	const char *KmerToStr(uint Kmer, string &s) const
+		{
+		return KmerToStr(Kmer, m_k, s);
+		}
 	const char *KmerToStr(uint Kmer, uint k, string &s) const;
 	uint StrToKmer(const string &s) const;
 	void LogMe() const;
