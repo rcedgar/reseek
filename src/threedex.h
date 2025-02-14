@@ -76,6 +76,7 @@ public:
 		assert(Kmer < m_DictSize);
 		return m_Finger[Kmer];
 		}
+	void LogMe() const;
 
 #if DEBUG
 	void CheckAfterPass1() const;

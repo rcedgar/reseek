@@ -16,8 +16,6 @@
 class Prefilter
 	{
 public:
-	int m_KmerNeighborMinScore = 78;
-
 ///////////////////////////////////////////////////
 // Query DB is typically smaller, indexed in memory
 // Sequences are integers 0..19 not ASCII chars
@@ -30,6 +28,7 @@ public:
 // These are 3Di 6-mers
 //////////////////////////////////////
 	const ThreeDex *m_QKmerIndex = 0;
+	const int16_t *m_KmerSelfScores = 0;
 
 ////////////////////////////////////////////
 //  ScoreMx is the 3Di substitution matrix
@@ -58,21 +57,21 @@ public:
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
 
-	const byte *m_TSeq = 0;			// current Target sequence
-	uint m_TL = UINT_MAX;			// length of m_TSeq
-	uint m_TSeqPos = UINT_MAX;		// position of Target k-mer
+	const byte *m_TSeq = 0;		// current Target sequence
+	string m_TLabel;			// current Target label
+	uint m_TL = UINT_MAX;		// length of m_TSeq
 
 public:
 	void SetQDB(const SeqDB &QDB);
-	void Search_TargetSeq(const byte *TSeq, uint TL,
+	void Search_TargetSeq(const string &TLabel, const byte *TSeq, uint TL,
 						  vector<uint> &QSeqIdxs,
 						  vector<int> &DiagScores);
 	int FindHSP(const byte *Q, uint QL, int Diag) const;
 	int FindHSP2(const byte *Q, uint QL, int Diag,
 				 int &Lo, int &Len) const;
 	void Search_TargetKmers();
-	void Search_TargetKmerNeighborhood(uint Kmer);
-	void Search_Kmer(uint Kmer);
+	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
+	void Search_Kmer(uint Kmer, uint TPos);
 	void FindTwoHitDiags();
 	void ExtendTwoHitDiagsToHSPs();
 	int ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);

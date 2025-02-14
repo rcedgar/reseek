@@ -274,13 +274,26 @@ void ThreeDex::Validate() const
 		ValidateKmer(Kmer);
 	}
 
+void ThreeDex::LogMe() const
+	{
+	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
+		{
+		if (GetRowSize(Kmer) == 0)
+			continue;
+		LogIndexKmer(Kmer);
+		}
+	}
+
 void ThreeDex::LogIndexKmer(uint Kmer) const
 	{
 	uint n = GetRowSize(Kmer);
 	string Tmp;
 	uint DataOffset = m_Finger[Kmer];
-	Log("LogIndexKmer(%08x) %s size=%u DO=%u",
-		Kmer, KmerToStr(Kmer, Tmp), n, DataOffset);
+	int Self = -1;
+	if (m_KmerSelfScores != 0)
+		Self = m_KmerSelfScores[Kmer];
+	Log("LogIndexKmer(%08x) %s size=%u self=%5d | ",
+		Kmer, KmerToStr(Kmer, Tmp), n, Self);
 	for (uint i = 0; i < n; ++i)
 		{
 		uint32_t SeqIdx;
