@@ -8,6 +8,10 @@
 #include "seqdb.h"
 #include "diag.h"
 
+#define TRACE_PAIR		0
+#define Q_TRACE_LABEL	"1hhs_A-cyst.pdb"
+#define T_TRACE_LABEL	"5ccv_A-flav.pdb"
+
 ///////////////////////////////////////////////////////////
 // For one target sequence build a list of query sequences
 // with 2-kmer diagonals and their scores.
@@ -15,6 +19,13 @@
 
 class Prefilter
 	{
+#if TRACE_PAIR
+public:
+	uint m_Trace_QIdx = UINT_MAX;
+	uint m_Trace_TIdx = UINT_MAX;
+	bool DoTrace(uint QIdx) const { return QIdx == m_Trace_QIdx && m_TSeqIdx == m_Trace_TIdx; }
+#endif
+
 public:
 ///////////////////////////////////////////////////
 // Query DB is typically smaller, indexed in memory
@@ -22,7 +33,7 @@ public:
 ///////////////////////////////////////////////////
 	const SeqDB *m_QDB = 0;
 	uint m_QSeqCount = UINT_MAX;
-	vector<vector<int8_t> > *m_BiasVecs8;
+	vector<vector<int8_t> > *m_BiasVecs8 = 0;
 
 //////////////////////////////////////
 // Index of k-mers in the Query.
@@ -58,20 +69,24 @@ public:
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
 
-	const byte *m_TSeq = 0;		// current Target sequence
-	string m_TLabel;			// current Target label
-	uint m_TL = UINT_MAX;		// length of m_TSeq
+//////////////////////////////////////////////////////
+// Current Target sequence
+//////////////////////////////////////////////////////
+	uint m_TSeqIdx = UINT_MAX;
+	const byte *m_TSeq = 0;
+	string m_TLabel;
+	uint m_TL = UINT_MAX;
 
 public:
 	void SetQDB(const SeqDB &QDB);
-	void Search_TargetSeq(const string &TLabel, const byte *TSeq, uint TL,
-						  vector<uint> &QSeqIdxs,
+	void SetTarget(uint TSeqIdx, const string &TLabel,
+				   const byte *TSeq, uint TL);
+	void Search_TargetSeq(vector<uint> &QSeqIdxs,
 						  vector<int> &DiagScores);
-	int FindHSP_Biased(const byte *QSeq, uint QL,
+	int FindHSP_Biased(uint QSeqIdx,
 					   const vector<int8_t> &BiasVec8, int Diag) const;
-	int FindHSP(const byte *QSeq, uint QL, int Diag) const;
-	int FindHSP2(const byte *QSeq, uint QL, int Diag,
-				 int &Lo, int &Len) const;
+	int FindHSP(uint QSeqIdx, int Diag) const;
+	int FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const;
 	void Search_TargetKmers();
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
 	void Search_Kmer(uint Kmer, uint TPos);

@@ -14,11 +14,15 @@ static const int MIN_KMER_PAIR_SCORE = 78;
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
 //////////////////////////////////////////////
-int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
+int Prefilter::FindHSP(uint QSeqIdx, int Diag) const
 	{
-	asserta(Diag >= 0);
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 
-	Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);//@@
+	asserta(Diag >= 0);
+#if TRACE_PAIR
+	if (DoTrace(QSeqIdx)) Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
+#endif
 
 	diag dg(QL, m_TL);
 	int i = dg.getmini(Diag);
@@ -37,7 +41,9 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 		assert(t < ALPHABET_SIZE);
 		short Score = threedi_substmx2[q][t];
 		F += Score;
-		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);//@@
+#if TRACE_PAIR
+		if (DoTrace(QSeqIdx)) Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
+#endif
 		if (F > B)
 			B = F;
 		else if (F < 0)
@@ -46,13 +52,17 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	return B;
 	}
 
-int Prefilter::FindHSP_Biased(const byte *QSeq, uint QL,
+int Prefilter::FindHSP_Biased(uint QSeqIdx,
 							  const vector<int8_t> &BiasVec8, int Diag) const
 	{
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+
 	asserta(Diag >= 0);
 	asserta(SIZE(BiasVec8) == QL);
-
-	Log("FindHSP_Biased(QL=%u, Diag=%d)\n", QL, Diag);//@@
+#if TRACE_PAIR
+	if (DoTrace(QSeqIdx)) Log("FindHSP_Biased(QL=%u, Diag=%d)\n", QL, Diag);
+#endif
 
 	diag dg(QL, m_TL);
 	int i = dg.getmini(Diag);
@@ -65,18 +75,24 @@ int Prefilter::FindHSP_Biased(const byte *QSeq, uint QL,
 		{
 		assert(i < int(QL));
 		assert(j < int(m_TL));
+		int8_t Bias = BiasVec8[i];
 		byte q = QSeq[i++];
 		byte t = m_TSeq[j++];
 		assert(q < ALPHABET_SIZE);
 		assert(t < ALPHABET_SIZE);
-		short Score = threedi_substmx2[q][t] + BiasVec8[i];
+		short Score = threedi_substmx2[q][t] + Bias;
 		F += Score;
-		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);//@@
+#if TRACE_PAIR
+		if (DoTrace(QSeqIdx)) Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
+#endif
 		if (F > B)
 			B = F;
 		else if (F < 0)
 			F = 0;
 		}
+#if TRACE_PAIR
+	if (DoTrace(QSeqIdx)) Log("FindHSP_Biased(QL=%u, Diag=%d)=%d\n", QL, Diag, B);
+#endif
 	return B;
 	}
 
@@ -84,9 +100,12 @@ int Prefilter::FindHSP_Biased(const byte *QSeq, uint QL,
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
 //////////////////////////////////////////////
-int Prefilter::FindHSP2(const byte *QSeq, uint QL,
+int Prefilter::FindHSP2(uint QSeqIdx,
 						int Diag, int &Lo, int &Len) const
 	{
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+
 	diag dg(QL, m_TL);
 	int i = dg.getmini(Diag);
 	int j = dg.getminj(Diag);
@@ -169,16 +188,11 @@ void Prefilter::Search_TargetKmers()
 		}
 	}
 
-void Prefilter::Search_TargetSeq(const string &TLabel,const byte *TSeq, uint TL,
-								 vector<uint> &QSeqIdxs, vector<int> &DiagScores)
+void Prefilter::Search_TargetSeq(vector<uint> &QSeqIdxs, vector<int> &DiagScores)
 
 	{
 	QSeqIdxs.clear();
 	DiagScores.clear();
-
-	m_TLabel = TLabel;
-	m_TSeq = TSeq;
-	m_TL = TL;
 
 	Search_TargetKmers();
 	FindTwoHitDiags();
@@ -239,10 +253,10 @@ void Prefilter::GetResults(vector<uint> &QSeqIdxs,
 	{
 	QSeqIdxs.clear();
 	DiagScores.clear();
-	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
+ 	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
-		int DiagScore = m_QSeqIdxToBestDiagScore[i];
+		int DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
 
 		QSeqIdxs.push_back(QSeqIdx);
 		DiagScores.push_back(DiagScore);
@@ -256,9 +270,19 @@ void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 		{
 		m_QSeqIdxsWithTwoHitDiag[m_NrQueriesWithTwoHitDiag++] = QSeqIdx;
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
+#if TRACE_PAIR
+		if (DoTrace(QSeqIdx)) Log("AddTwoHitDiag(TSeqIdx=%u, QSeqIdx=%u, Diag=%u, DiagScore=%d) (first)\n",
+								  m_TSeqIdx, QSeqIdx, Diag, DiagScore);
+#endif
 		}
 	else if (DiagScore > m_QSeqIdxToBestDiagScore[QSeqIdx])
+		{
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
+#if TRACE_PAIR
+		if (DoTrace(QSeqIdx)) Log("AddTwoHitDiag(TSeqIdx=%u, QSeqIdx=%u, Diag=%u, DiagScore=%d) (better)\n",
+								  m_TSeqIdx, QSeqIdx, Diag, DiagScore);
+#endif
+		}
 	}
 
 void Prefilter::ExtendTwoHitDiagsToHSPs()
@@ -282,7 +306,7 @@ int Prefilter::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	assert(m_BiasVecs8 != 0);
 	assert(QSeqIdx < SIZE(*m_BiasVecs8));
 	const vector<int8_t> &BiasVec8 = (*m_BiasVecs8)[QSeqIdx];
-	int DiagScore = FindHSP_Biased(QSeq, QL, BiasVec8, Diag);
+	int DiagScore = FindHSP_Biased(QSeqIdx, BiasVec8, Diag);
 	return DiagScore;
 	}
 
@@ -305,69 +329,30 @@ void Prefilter::Reset()
 	m_DiagBag.Reset();
 	}
 
+void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
+	const byte *TSeq, uint TL)
+	{
+	m_TSeqIdx = TSeqIdx;
+	m_TLabel = TLabel;
+	m_TSeq = TSeq;
+	m_TL = TL;
+	}
+
 void Prefilter::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	uint QL = m_QDB->GetSeqLength(QSeqIdx);
-	int Score = FindHSP(QSeq, QL, Diag);
+	int Score = FindHSP(QSeqIdx, Diag);
 	int Lo, Len;
-	int Score2 = FindHSP2(QSeq, QL, Diag, Lo, Len);
+	int Score2 = FindHSP2(QSeqIdx, Diag, Lo, Len);
 	const string &QLabel = m_QDB->GetLabel(QSeqIdx);
 	Log("LogDiag(%s, %u) lo %d, len %d, score %d\n",
 		QLabel.c_str(), Diag, Lo, Len, Score);
 	asserta(Score2 == Score);
 	}
-
-void cmd_prefilter_3di()
-	{
-	const string &Query3Di_FN = g_Arg1;
-	const string &DB3Di_FN = opt_db;
-
-	FILE *fOut = CreateStdioFile(opt_output);
-	
-	SeqDB QDB;
-	SeqDB TDB;
-
-	QDB.FromFasta(Query3Di_FN);
-	TDB.FromFasta(DB3Di_FN);
-
-	QDB.ToLetters(g_CharToLetterAmino);
-	TDB.ToLetters(g_CharToLetterAmino);
-	const uint QSeqCount = QDB.GetSeqCount();
-	const uint TSeqCount = TDB.GetSeqCount();
-
-	const MerMx &ScoreMx = Get3DiMerMx();
-	asserta(ScoreMx.m_k == k);
-
-	ThreeDex QKmerIndex;
-	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
-	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
-	QKmerIndex.FromSeqDB(QDB);
-	QKmerIndex.Validate();
-	QKmerIndex.LogStats();
-	asserta(QKmerIndex.m_k == k);
-	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
-	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
-
-	vector<vector<int8_t> > BiasVecs8(QSeqCount);
-	vector<float> BiasVec;
-	const float Scale = 0.15f;
-	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
-		{
-		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
-		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
-		uint QL = QDB.GetSeqLength(QSeqIdx);
-		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, Scale, BiasVec, BiasVec8);
-		}
-
-	Prefilter Pref;
-	Pref.m_ScoreMx = &ScoreMx;
-	Pref.m_QKmerIndex = &QKmerIndex;
-	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
-	Pref.SetQDB(QDB);
-	Pref.m_BiasVecs8 = &BiasVecs8;
-
 #if 0
+static void Test()
+	{
 	//QSeqIdx=1 diag=149
 	//QSeqIdx=0 diag=136
 	int Diag0_1 = 149;
@@ -420,16 +405,75 @@ void cmd_prefilter_3di()
 	int Score1_0 = Pref.FindHSP(QSeq0, QL0, Diag1_0);
 	Log("Score1_0 = %d\n", Score0_1);
 	Die("TODO");
+	}
+#endif
+
+void cmd_prefilter_3di()
+	{
+	const string &Query3Di_FN = g_Arg1;
+	const string &DB3Di_FN = opt_db;
+
+	FILE *fOut = CreateStdioFile(opt_output);
+	
+	SeqDB QDB;
+	SeqDB TDB;
+
+	QDB.FromFasta(Query3Di_FN);
+	TDB.FromFasta(DB3Di_FN);
+
+	QDB.ToLetters(g_CharToLetterAmino);
+	TDB.ToLetters(g_CharToLetterAmino);
+	const uint QSeqCount = QDB.GetSeqCount();
+	const uint TSeqCount = TDB.GetSeqCount();
+
+	const MerMx &ScoreMx = Get3DiMerMx();
+	asserta(ScoreMx.m_k == k);
+
+	ThreeDex QKmerIndex;
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
+	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
+	QKmerIndex.FromSeqDB(QDB);
+	QKmerIndex.Validate();
+	QKmerIndex.LogStats();
+	asserta(QKmerIndex.m_k == k);
+	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
+	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
+
+	vector<vector<int8_t> > BiasVecs8(QSeqCount);
+	vector<float> BiasVec;
+	const float Scale = 0.15f;
+	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
+		{
+		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
+		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
+		uint QL = QDB.GetSeqLength(QSeqIdx);
+		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, Scale, BiasVec, BiasVec8);
+		}
+
+	Prefilter Pref;
+	Pref.m_ScoreMx = &ScoreMx;
+	Pref.m_QKmerIndex = &QKmerIndex;
+	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
+	Pref.SetQDB(QDB);
+	Pref.m_BiasVecs8 = &BiasVecs8;
+
+#if TRACE_PAIR
+	QDB.SetLabelToIndex();
+	TDB.SetLabelToIndex();
+	Pref.m_Trace_QIdx = QDB.GetSeqIndex(Q_TRACE_LABEL);
+	Pref.m_Trace_TIdx = TDB.GetSeqIndex(T_TRACE_LABEL);
 #endif
 
 	vector<uint> QSeqIdxs;
 	vector<int> DiagScores;
 	for (uint TSeqIdx = 0; TSeqIdx < TSeqCount; ++TSeqIdx)
 		{
+		Pref.m_TSeqIdx = TSeqIdx;
 		const byte *TSeq = TDB.GetByteSeq(TSeqIdx);
 		const string &TLabel = TDB.GetLabel(TSeqIdx);
 		uint TL = TDB.GetSeqLength(TSeqIdx);
-		Pref.Search_TargetSeq(TLabel, TSeq, TL, QSeqIdxs, DiagScores);
+		Pref.SetTarget(TSeqIdx, TLabel, TSeq, TL);
+		Pref.Search_TargetSeq(QSeqIdxs, DiagScores);
 
 		if (fOut != 0)
 			{
