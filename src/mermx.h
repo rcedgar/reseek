@@ -18,6 +18,7 @@ public:
 	const byte *m_LetterToChar = 0;
 
 // AS x AS scoring matrix m_Mx[Letter_i][Letter_j]
+	// TODO: more efficient with int8_t?
 	const short * const *m_Mx = 0;
 
 // AS2 x AS2 scoring matrix m_Mx2[Kmer_i][Kmer_j]
@@ -75,4 +76,6 @@ public:
 	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
 	int16_t *BuildSelfScores_6mers() const;
+	void CalcLocalBiasCorrection(const byte *Seq, uint L, float Scale,
+								 vector<float> &BiasVec) const;
 	};

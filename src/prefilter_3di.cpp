@@ -3,7 +3,6 @@
 
 const MerMx &Get3DiMerMx();
 
-//extern int8_t threedi_substmx[20][20];
 extern int8_t threedi_substmx2[20][20];
 
 static const uint k = 6;
@@ -18,6 +17,8 @@ static const int MIN_KMER_PAIR_SCORE = 78;
 int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	{
 	asserta(Diag >= 0);
+
+	Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
 
 	diag dg(QL, m_TL);
 	int i = dg.getmini(Diag);
@@ -36,6 +37,7 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 		assert(t < ALPHABET_SIZE);
 		short Score = threedi_substmx2[q][t];
 		F += Score;
+		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
 		if (F > B)
 			B = F;
 		else if (F < 0)
@@ -129,7 +131,7 @@ void Prefilter::Search_TargetKmers()
 		assert(Letter < ALPHABET_SIZE);
 		Kmer = Kmer*ALPHABET_SIZE + Letter;
 		Kmer %= DICT_SIZE;
-		Search_TargetKmerNeighborhood(Kmer, i-5);
+		Search_TargetKmerNeighborhood(Kmer, i-(k-1));
 		}
 	}
 
@@ -156,9 +158,6 @@ void Prefilter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	assert(Kmer < DICT_SIZE);
 	if (m_KmerSelfScores[Kmer] < MIN_KMER_PAIR_SCORE)
 		return;
-	string Tmp;//@@
-	Log("Search_TargetKmerNeighborhood(%s) %u %s\n",
-		m_TLabel.c_str(), TPos, m_QKmerIndex->KmerToStr(Kmer, Tmp));
 
 // Construct high-scoring neighborhood
 	const uint HSKmerCount =
@@ -178,8 +177,6 @@ void Prefilter::Search_Kmer(uint Kmer, uint TPos)
 	if (RowSize == 0)
 		return;
 	uint DataOffset = m_QKmerIndex->GetRowStart(Kmer);
-	string Tmp;//@@
-	Log("  SearchKmer(%s) [%u]", m_QKmerIndex->KmerToStr(Kmer, Tmp), RowSize);//@@
 	for (uint ColIdx = 0; ColIdx < RowSize; ++ColIdx)
 		{
 		uint32_t QSeqIdx;
@@ -191,13 +188,7 @@ void Prefilter::Search_Kmer(uint Kmer, uint TPos)
 		diag dg(QL, m_TL);
 		uint16_t Diag = dg.getd(QSeqPos, TPos);
 		m_DiagBag.Add(QSeqIdx, Diag);
-
-		{//@@
-		const string &QLabel = m_QDB->GetLabel(QSeqIdx);
-		Log("  %s(%u/%u)", QLabel.c_str(), QSeqPos, Diag);
-		}//@@
 		}
-	Log("\n");//@@
 	}
 
 void Prefilter::FindTwoHitDiags()
@@ -226,7 +217,6 @@ void Prefilter::GetResults(vector<uint> &QSeqIdxs,
 
 void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
-	Log("AddTwoHitDiag(%u, %u, %d)\n", QSeqIdx, Diag, DiagScore);//@@
 	int BestDiagScoreT = m_QSeqIdxToBestDiagScore[QSeqIdx];
 	if (BestDiagScoreT == INT_MIN)
 		{
@@ -245,14 +235,8 @@ void Prefilter::ExtendTwoHitDiagsToHSPs()
 		{
 		uint32_t QSeqIdx = m_DiagBag.m_DupeSeqIdxs[i];
 		uint16_t Diag = m_DiagBag.m_DupeDiags[i];
-		brk(QSeqIdx == 0 && Diag == 141);
 		int DiagScore = ExtendTwoHitDiagToHSP(QSeqIdx, Diag);
 		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
-
-		{//@@
-		const string &QLabel = m_QDB->GetLabel(QSeqIdx);
-		Log("  Two-hit %s diag=%u score=%d\n", QLabel.c_str(), Diag, DiagScore);
-		}//@@
 		}
 	}
 
@@ -261,6 +245,7 @@ int Prefilter::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 	int DiagScore = FindHSP(QSeq, QL, Diag);
+	if (DiagScore == 96) Log("QSeqIdx=%u diag=%d\n", QSeqIdx, Diag);//@@
 	return DiagScore;
 	}
 
@@ -327,13 +312,63 @@ void cmd_prefilter_3di()
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
-	QKmerIndex.LogMe();//@@
-
 	Prefilter Pref;
 	Pref.m_ScoreMx = &ScoreMx;
 	Pref.m_QKmerIndex = &QKmerIndex;
 	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
 	Pref.SetQDB(QDB);
+
+#if 1
+	//QSeqIdx=1 diag=149
+	//QSeqIdx=0 diag=136
+	int Diag0_1 = 149;
+	int Diag1_0 = 136;
+
+	const byte *QSeq0 = QDB.GetByteSeq(0);
+	const byte *QSeq1 = QDB.GetByteSeq(1);
+
+	uint QL0 = QDB.GetSeqLength(0);
+	uint QL1 = QDB.GetSeqLength(1);
+
+	const byte *TSeq0 = TDB.GetByteSeq(0);
+	const byte *TSeq1 = TDB.GetByteSeq(1);
+
+	uint TL0 = TDB.GetSeqLength(0);
+	uint TL1 = TDB.GetSeqLength(1);
+
+	const string &TLabel0 = TDB.GetLabel(0);
+	const string &TLabel1 = TDB.GetLabel(1);
+
+	vector<float> BiasVec;
+	const float Scale = 0.15f;
+	ScoreMx.CalcLocalBiasCorrection(TSeq0, TL0, Scale, BiasVec);
+	asserta(SIZE(BiasVec) == TL0);
+	Log("Bias >%s(%u)", TLabel0.c_str(), TL0);
+	for (uint i = 0; i < TL0; ++i)
+		Log(" %u=%.3g\n", i, BiasVec[i]);
+	Log("\n");
+
+	ScoreMx.CalcLocalBiasCorrection(TSeq1, TL1, Scale, BiasVec);
+	asserta(SIZE(BiasVec) == TL1);
+	Log("Bias >%s(%u)", TLabel1.c_str(), TL1);
+	for (uint i = 0; i < TL1; ++i)
+		Log(" %u=%.3g\n", i, BiasVec[i]);
+	Log("\n");
+	Die("TODO");
+
+	Pref.m_TLabel = TLabel0;
+	Pref.m_TSeq = TSeq0;
+	Pref.m_TL = TL0;
+	int Score0_1 = Pref.FindHSP(QSeq1, QL1, Diag0_1);
+	Log("Score0_1 = %d\n", Score0_1);
+
+	Pref.m_TLabel = TLabel1;
+	Pref.m_TSeq = TSeq1;
+	Pref.m_TL = TL1;
+	int Score1_0 = Pref.FindHSP(QSeq0, QL0, Diag1_0);
+	Log("Score1_0 = %d\n", Score0_1);
+	Die("TODO");
+#endif
 
 	vector<uint> QSeqIdxs;
 	vector<int> DiagScores;
@@ -341,17 +376,8 @@ void cmd_prefilter_3di()
 		{
 		const byte *TSeq = TDB.GetByteSeq(TSeqIdx);
 		const string &TLabel = TDB.GetLabel(TSeqIdx);
-		Log("T>%s\n", TLabel.c_str());
 		uint TL = TDB.GetSeqLength(TSeqIdx);
 		Pref.Search_TargetSeq(TLabel, TSeq, TL, QSeqIdxs, DiagScores);
-
-		
-		{//@@
-		diag ddd(TL, TL);
-		int Diag = ddd.getd(0, 0);
-		int Score = Pref.FindHSP(TSeq, TL, Diag);
-		Log("FindHSP diag %d score %d >%s\n", Diag, Score, TLabel.c_str());
-		}//@@
 
 		if (fOut != 0)
 			{
