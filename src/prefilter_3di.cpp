@@ -18,7 +18,7 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	{
 	asserta(Diag >= 0);
 
-	Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
+	Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);//@@
 
 	diag dg(QL, m_TL);
 	int i = dg.getmini(Diag);
@@ -37,7 +37,41 @@ int Prefilter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 		assert(t < ALPHABET_SIZE);
 		short Score = threedi_substmx2[q][t];
 		F += Score;
-		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
+		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);//@@
+		if (F > B)
+			B = F;
+		else if (F < 0)
+			F = 0;
+		}
+	return B;
+	}
+
+int Prefilter::FindHSP_Biased(const byte *QSeq, uint QL,
+							  const vector<int8_t> &BiasVec8, int Diag) const
+	{
+	asserta(Diag >= 0);
+	asserta(SIZE(BiasVec8) == QL);
+
+	Log("FindHSP_Biased(QL=%u, Diag=%d)\n", QL, Diag);//@@
+
+	diag dg(QL, m_TL);
+	int i = dg.getmini(Diag);
+	int j = dg.getminj(Diag);
+	int n = dg.getlen(Diag);
+
+	int B = 0;
+	int F = 0;
+	for (int k = 0; k < n; ++k)
+		{
+		assert(i < int(QL));
+		assert(j < int(m_TL));
+		byte q = QSeq[i++];
+		byte t = m_TSeq[j++];
+		assert(q < ALPHABET_SIZE);
+		assert(t < ALPHABET_SIZE);
+		short Score = threedi_substmx2[q][t] + BiasVec8[i];
+		F += Score;
+		Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);//@@
 		if (F > B)
 			B = F;
 		else if (F < 0)
@@ -244,8 +278,11 @@ int Prefilter::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
-	int DiagScore = FindHSP(QSeq, QL, Diag);
-	if (DiagScore == 96) Log("QSeqIdx=%u diag=%d\n", QSeqIdx, Diag);//@@
+	//int DiagScore = FindHSP(QSeq, QL, Diag);
+	assert(m_BiasVecs8 != 0);
+	assert(QSeqIdx < SIZE(*m_BiasVecs8));
+	const vector<int8_t> &BiasVec8 = (*m_BiasVecs8)[QSeqIdx];
+	int DiagScore = FindHSP_Biased(QSeq, QL, BiasVec8, Diag);
 	return DiagScore;
 	}
 
@@ -312,13 +349,25 @@ void cmd_prefilter_3di()
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
+	vector<vector<int8_t> > BiasVecs8(QSeqCount);
+	vector<float> BiasVec;
+	const float Scale = 0.15f;
+	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
+		{
+		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
+		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
+		uint QL = QDB.GetSeqLength(QSeqIdx);
+		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, Scale, BiasVec, BiasVec8);
+		}
+
 	Prefilter Pref;
 	Pref.m_ScoreMx = &ScoreMx;
 	Pref.m_QKmerIndex = &QKmerIndex;
 	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
 	Pref.SetQDB(QDB);
+	Pref.m_BiasVecs8 = &BiasVecs8;
 
-#if 1
+#if 0
 	//QSeqIdx=1 diag=149
 	//QSeqIdx=0 diag=136
 	int Diag0_1 = 149;
@@ -340,19 +389,22 @@ void cmd_prefilter_3di()
 	const string &TLabel1 = TDB.GetLabel(1);
 
 	vector<float> BiasVec;
+	vector<int8_t> BiasVec8;
 	const float Scale = 0.15f;
-	ScoreMx.CalcLocalBiasCorrection(TSeq0, TL0, Scale, BiasVec);
+	ScoreMx.CalcLocalBiasCorrection(TSeq0, TL0, Scale, BiasVec, BiasVec8);
 	asserta(SIZE(BiasVec) == TL0);
+	asserta(SIZE(BiasVec8) == TL0);
 	Log("Bias >%s(%u)", TLabel0.c_str(), TL0);
 	for (uint i = 0; i < TL0; ++i)
-		Log(" %u=%.3g\n", i, BiasVec[i]);
+		Log(" %u=%.3g %d\n", i, BiasVec[i], BiasVec8[i]);
 	Log("\n");
 
-	ScoreMx.CalcLocalBiasCorrection(TSeq1, TL1, Scale, BiasVec);
+	ScoreMx.CalcLocalBiasCorrection(TSeq1, TL1, Scale, BiasVec, BiasVec8);
 	asserta(SIZE(BiasVec) == TL1);
+	asserta(SIZE(BiasVec8) == TL1);
 	Log("Bias >%s(%u)", TLabel1.c_str(), TL1);
 	for (uint i = 0; i < TL1; ++i)
-		Log(" %u=%.3g\n", i, BiasVec[i]);
+		Log(" %u=%.3g %d\n", i, BiasVec[i], BiasVec8[i]);
 	Log("\n");
 	Die("TODO");
 

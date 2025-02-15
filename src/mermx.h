@@ -77,5 +77,6 @@ public:
 								   bool Trace = false) const;
 	int16_t *BuildSelfScores_6mers() const;
 	void CalcLocalBiasCorrection(const byte *Seq, uint L, float Scale,
-								 vector<float> &BiasVec) const;
+								 vector<float> &BiasVec,
+								 vector<int8_t> &BiasVec8) const;
 	};

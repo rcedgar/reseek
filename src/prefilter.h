@@ -22,6 +22,7 @@ public:
 ///////////////////////////////////////////////////
 	const SeqDB *m_QDB = 0;
 	uint m_QSeqCount = UINT_MAX;
+	vector<vector<int8_t> > *m_BiasVecs8;
 
 //////////////////////////////////////
 // Index of k-mers in the Query.
@@ -66,8 +67,10 @@ public:
 	void Search_TargetSeq(const string &TLabel, const byte *TSeq, uint TL,
 						  vector<uint> &QSeqIdxs,
 						  vector<int> &DiagScores);
-	int FindHSP(const byte *Q, uint QL, int Diag) const;
-	int FindHSP2(const byte *Q, uint QL, int Diag,
+	int FindHSP_Biased(const byte *QSeq, uint QL,
+					   const vector<int8_t> &BiasVec8, int Diag) const;
+	int FindHSP(const byte *QSeq, uint QL, int Diag) const;
+	int FindHSP2(const byte *QSeq, uint QL, int Diag,
 				 int &Lo, int &Len) const;
 	void Search_TargetKmers();
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
