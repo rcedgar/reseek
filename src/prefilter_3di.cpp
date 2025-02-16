@@ -155,7 +155,7 @@ void Prefilter::SetQDB(const SeqDB &QDB)
 
 	for (uint i = 0; i < m_QSeqCount; ++i)
 		{
-		m_QSeqIdxToBestDiagScore[i] = INT_MIN;
+		m_QSeqIdxToBestDiagScore[i] = 0;
 		m_QSeqIdxsWithTwoHitDiag[i] = UINT_MAX;
 		}
 
@@ -265,8 +265,11 @@ void Prefilter::GetResults(vector<uint> &QSeqIdxs,
 
 void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
+	if (DiagScore <= 0)
+		return;
+
 	int BestDiagScoreT = m_QSeqIdxToBestDiagScore[QSeqIdx];
-	if (BestDiagScoreT == INT_MIN)
+	if (BestDiagScoreT == 0)
 		{
 		m_QSeqIdxsWithTwoHitDiag[m_NrQueriesWithTwoHitDiag++] = QSeqIdx;
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
@@ -315,13 +318,13 @@ void Prefilter::Reset()
 	for (uint HitIdx = 0; HitIdx < m_NrQueriesWithTwoHitDiag; ++HitIdx)
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[HitIdx];
-		m_QSeqIdxToBestDiagScore[QSeqIdx] = INT_MIN;
+		m_QSeqIdxToBestDiagScore[QSeqIdx] = 0;
 		}
 #if DEBUG
 	{
 	for (uint SeqIdx = 0; SeqIdx < m_QSeqCount; ++SeqIdx)
 		{
-		assert(m_QSeqIdxToBestDiagScore[SeqIdx] == INT_MIN);
+		assert(m_QSeqIdxToBestDiagScore[SeqIdx] == 0);
 		}
 	}
 #endif
