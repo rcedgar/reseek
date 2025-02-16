@@ -8,9 +8,10 @@
 #include "seqdb.h"
 #include "diag.h"
 
+#define	TRACE			1
 #define TRACE_PAIR		0
-#define Q_TRACE_LABEL	"1hhs_A-cyst.pdb"
-#define T_TRACE_LABEL	"5ccv_A-flav.pdb"
+//#define Q_TRACE_LABEL	"1hhs_A-cyst.pdb"
+//#define T_TRACE_LABEL	"5ccv_A-flav.pdb"
 
 ///////////////////////////////////////////////////////////
 // For one target sequence build a list of query sequences
@@ -19,11 +20,18 @@
 
 class Prefilter
 	{
-#if TRACE_PAIR
+#if TRACE
 public:
 	uint m_Trace_QIdx = UINT_MAX;
 	uint m_Trace_TIdx = UINT_MAX;
-	bool DoTrace(uint QIdx) const { return QIdx == m_Trace_QIdx && m_TSeqIdx == m_Trace_TIdx; }
+	uint m_TBaseKmer = UINT_MAX;
+	bool DoTrace(uint QIdx) const
+		{ 
+#if TRACE_PAIR
+		return QIdx == m_Trace_QIdx && m_TSeqIdx == m_Trace_TIdx;
+#endif
+		return true;
+		}
 #endif
 
 public:
@@ -83,8 +91,8 @@ public:
 				   const byte *TSeq, uint TL);
 	void Search_TargetSeq(vector<uint> &QSeqIdxs,
 						  vector<int> &DiagScores);
-	int FindHSP_Biased(uint QSeqIdx,
-					   const vector<int8_t> &BiasVec8, int Diag) const;
+	int FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
+							  uint QLo, uint Tlo) const;
 	int FindHSP(uint QSeqIdx, int Diag) const;
 	int FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const;
 	void Search_TargetKmers();

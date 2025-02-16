@@ -3,12 +3,24 @@
 class SeqDB;
 
 // 3Di 6-mer index
+
+///////////////////////////////////////////////////
+// Spaced seed pattern
+// lib/mmseqs/src/prefiltering/QueryMatcher.cpp:257
+// pattern=0 1 3 5 8 9
+// 0123456789
+// 11x1x1xx11
+///////////////////////////////////////////////////
+
 class ThreeDex
 	{
 public:
 	static const uint32_t m_DictSize = 20*20*20*20*20*20;
 	static const uint32_t m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
-	static const uint32_t m_k = 6;
+	static const char m_Pattern[11];
+	static const byte m_Offsets[6];
+	static const uint32_t m_k = 6;	// number of 1s in pattern
+	static const uint32_t m_K = 10;	// pattern length
 
 /***
 Finger index.
@@ -55,21 +67,31 @@ After Pass 2:
 	int16_t *m_KmerSelfScores = 0;
 	int m_MinKmerSelfScore = 0;
 
+// Current sequence
+	const char *m_Label = 0;
+	const byte *m_Seq = 0;
+	uint m_L = UINT_MAX;
+	uint m_SeqIdx = UINT_MAX;
+	vector<uint> m_Kmers;
+
 public:
 	void FromSeqDB(const SeqDB &Input);
 	const char *KmerToStr(uint Kmer, string &s) const;
 	uint StrToKmer(const string &s) const;
 	uint StrToKmer(const char *s) const;
 	uint BytesToKmer(const byte *s) const;
+	uint SeqBytesToKmer(const byte *Seq, uint Pos, bool SelfScoreMask) const;
 	void Alloc_Pass1();
 	void AdjustFinger();
 	void Alloc_Pass2();
-	void AddSeq_Pass1(uint SeqIdx, const char *Label, const byte *Seq, uint L);
-	void AddSeq_Pass2(uint SeqIdx, const char *Label, const byte *Seq, uint L);
+	void SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L);
+	void AddSeq_Pass1();
+	void AddSeq_Pass2();
 	void LogStats() const;
 	void Validate() const;
 	void ValidateKmer(uint Kmer) const;
-	uint GetSeqKmer(uint SeqIdx, uint SeqPos) const;
+	uint GetSeqKmer(const byte *Seq, uint SeqPos,
+					bool SelfScoreMask) const;
 	void LogIndexKmer(uint Kmer) const;
 	const uint32_t GetRowStart(uint Kmer) const
 		{
@@ -77,6 +99,7 @@ public:
 		return m_Finger[Kmer];
 		}
 	void LogMe() const;
+	void LogSeq() const;
 
 #if DEBUG
 	void CheckAfterPass1() const;
@@ -114,4 +137,6 @@ public:
 		SeqIdx = *(uint32_t *) ptr;
 		SeqPos = *(uint16_t *) (ptr + 4);
 		}
+
+	void GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const;
 	};

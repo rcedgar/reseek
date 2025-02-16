@@ -4,6 +4,8 @@
 #include "seqdb.h"
 #include "quarts.h"
 
+#define TRACE	0
+
 /***
 32 bits 2^5, 64 bits 2^6
 5 bits per aa letter
@@ -11,7 +13,26 @@
 8 bits per char
 ***/
 
-#define TRACE	0
+const char ThreeDex::m_Pattern[11] = "1101010011";
+const byte ThreeDex::m_Offsets[6] = { 0, 1, 3, 5, 8, 9 };
+
+static bool ValidatePattern()
+	{
+	asserta(strlen(ThreeDex::m_Pattern) == ThreeDex::m_K);
+	uint ones = 0;
+	uint k = 0;
+	for (uint i = 0; i < ThreeDex::m_K; ++i)
+		if (ThreeDex::m_Pattern[i] == '1')
+			{
+			++ones;
+			asserta(ThreeDex::m_Offsets[k++] == i);
+			}
+	asserta(ThreeDex::m_k == ones);
+	asserta(ThreeDex::m_DictSize == myipow(20, 6));
+	return true;
+	}
+
+static bool s_ValidatePatternDone = ValidatePattern();
 
 uint ThreeDex::StrToKmer(const string &s) const
 	{
@@ -48,9 +69,22 @@ uint ThreeDex::BytesToKmer(const byte *s) const
 
 const char *ThreeDex::KmerToStr(uint Kmer, string &s) const
 	{
-	s.clear();
-	for (uint i = 0; i < m_k; ++i)
+	if (Kmer == UINT_MAX)
 		{
+		s.clear();
+		for (uint i = 0; i < m_K; ++i)
+			s += '*';
+		return s.c_str();
+		}
+
+	s.clear();
+	for (uint i = 0; i < m_K; ++i)
+		{
+		if (m_Pattern[m_K-i-1] == '0')
+			{
+			s.push_back('_');
+			continue;
+			}
 		byte Letter = Kmer%20;
 		s.push_back(g_LetterToCharAmino[Letter]);
 		Kmer /= 20;
@@ -81,34 +115,35 @@ void ThreeDex::Alloc_Pass2()
 #endif
 	}
 
-void ThreeDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const byte *Seq, uint L)
+void ThreeDex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
+	{
+	m_SeqIdx = SeqIdx;
+	m_Label = Label;
+	m_Seq = Seq;
+	m_L = L;
+	GetKmers(Seq, L, m_Kmers);
+#if TRACE
+	LogSeq();
+#endif
+	}
+
+void ThreeDex::AddSeq_Pass1()
 	{
 #if TRACE
-	Log("AddSeq_Pass1(%s) L=%u\n", Label, L);
-	SeqToFasta(g_fLog, Label, Seq, L);
 	string Tmp;
+	Log("AddSeq_Pass1(%s) L=%u\n", m_Label, m_L);
 #endif
-	if (L < m_k)
-		return;
-	uint Kmer = 0;
-	for (uint SeqPos = 0; SeqPos < m_k-1; ++SeqPos)
+	const uint KmerCount = SIZE(m_Kmers);
+	for (uint i = 0; i < KmerCount; ++i)
 		{
-		byte Letter = Seq[SeqPos];
-		assert(Letter < 20);
-		Kmer = Kmer*20 + Letter;
-		}
-
-	for (uint SeqPos = m_k-1; SeqPos < L; ++SeqPos)
-		{
-		byte Letter = Seq[SeqPos];
-		assert(Letter < 20);
-		Kmer = Kmer*20 + Letter;
-		Kmer %= m_DictSize;
-		assert(Kmer < m_DictSize);
-		asserta(m_KmerSelfScores != 0);
-		if (m_KmerSelfScores != 0 &&
-			m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+		uint Kmer = m_Kmers[i];
+		if (Kmer == UINT_MAX)
+			{
+#if TRACE
+			Log("[%4u] ***\n", i);
+#endif
 			continue;
+			}
 
 	// Pass 1, m_Finger[Kmer+1] is count
 		m_Finger[Kmer+1] += 1;
@@ -117,43 +152,33 @@ void ThreeDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const byte *Seq, uin
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
-		Log("[%4u] %08x %s\n", SeqPos-4, Kmer, KmerToStr(Kmer, Tmp));
+		Log("[%4u] %08x %s", i, Kmer, KmerToStr(Kmer, Tmp));
+		if (m_KmerSelfScores != 0)
+			Log(" self=%d", m_KmerSelfScores[Kmer]);
+		Log("\n");
 #endif
 		}
-	//m_Size += L - (m_k-1);
 	}
 
-void ThreeDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const byte *Seq, uint L)
+void ThreeDex::AddSeq_Pass2()
 	{
 #if TRACE
-	Log("AddSeq_Pass2(%s) L=%u\n", Label, L);
-	SeqToFasta(g_fLog, Label, Seq, L);
 	string Tmp;
+	Log("AddSeq_Pass2(%s) L=%u\n", m_Label, m_L);
 #endif
-	if (L < m_k)
-		return;
-	uint Kmer = 0;
-	for (uint SeqPos = 0; SeqPos < m_k-1; ++SeqPos)
+	const uint KmerCount = SIZE(m_Kmers);
+	for (uint i = 0; i < KmerCount; ++i)
 		{
-		byte Letter = Seq[SeqPos];
-		assert(Letter < 20);
-		Kmer = Kmer*20 + Letter;
-		}
-
-	for (uint SeqPos = m_k-1; SeqPos < L; ++SeqPos)
-		{
-		byte Letter = Seq[SeqPos];
-		assert(Letter < 20);
-		Kmer = Kmer*20 + Letter;
-		Kmer %= m_DictSize;
-		assert(Kmer < m_DictSize);
-		if (m_KmerSelfScores != 0 &&
-			m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+		uint Kmer = m_Kmers[i];
+		if (Kmer == UINT_MAX)
+			{
+#if TRACE
+			Log("[%4u] %08x %s --LOW\n", i, Kmer, KmerToStr(Kmer, Tmp));
+#endif
 			continue;
-
+			}
 		uint DataOffset = m_Finger[Kmer+1];
-		uint KmerStartPos = SeqPos - (m_k-1);
-		Put(DataOffset, SeqIdx, KmerStartPos);
+		Put(DataOffset, m_SeqIdx, i);
 		m_Finger[Kmer+1] += 1;
 #if DEBUG
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
@@ -161,7 +186,7 @@ void ThreeDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const byte *Seq, uin
 #endif
 #if TRACE
 		Log("[%4u] %08x %s DO=%u\n",
-			KmerStartPos, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
+			i, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
 #endif
 		}
 	}
@@ -274,6 +299,19 @@ void ThreeDex::Validate() const
 		ValidateKmer(Kmer);
 	}
 
+void ThreeDex::LogSeq() const
+	{
+	Log(">%s(%u)\n", m_Label, m_L);
+	for (uint i = 0; i < m_L; ++i)
+		{
+		if (i > 0 && i%80 == 0)
+			Log("\n");
+		byte c = g_LetterToCharAmino[m_Seq[i]];
+		Log("%c", c);
+		}
+	Log("\n");
+	}
+
 void ThreeDex::LogMe() const
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
@@ -315,15 +353,22 @@ void ThreeDex::ValidateKmer(uint Kmer) const
 		uint32_t SeqIdx;
 		uint16_t SeqPos;
 		Get(DataOffset, SeqIdx, SeqPos);
-		uint Check_Kmer = GetSeqKmer(SeqIdx, SeqPos);
-		asserta(Check_Kmer == Kmer);
+		const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
+		uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
+		if (Check_Kmer != Kmer)
+			{
+			string Tmp;
+			Log("ValidateKmer(%u=%s)\n", Kmer, KmerToStr(Kmer, Tmp));
+			Log("GetSeqKmer(SeqIdx=%u, SeqPos=%u) %u=%s\n",
+				SeqIdx, SeqPos, Check_Kmer, KmerToStr(Check_Kmer, Tmp));
+			Die("ValidateKmer");
+			}
 		}
 	}
 
-uint ThreeDex::GetSeqKmer(uint SeqIdx, uint SeqPos) const
+uint ThreeDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	{
-	const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
-	uint Kmer = BytesToKmer(Seq + SeqPos);
+	uint Kmer = SeqBytesToKmer(Seq, SeqPos, SelfScoreMask);
 	return Kmer;
 	}
 
@@ -333,15 +378,14 @@ void ThreeDex::FromSeqDB(const SeqDB &Input)
 	const uint SeqCount = Input.GetSeqCount();
 
 	Alloc_Pass1();
-	uint SumL4 = 0;
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "ThreeDex pass 1");
+		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
-		AddSeq_Pass1(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq, L);
-		if (L >= m_k)
-			SumL4 += L - (m_k-1);
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass1();
 		}
 #if DEBUG
 	CheckAfterPass1();
@@ -356,9 +400,11 @@ void ThreeDex::FromSeqDB(const SeqDB &Input)
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "ThreeDex pass 2");
+		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
-		AddSeq_Pass2(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq, L);
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass2();
 		}
 #if DEBUG
 	CheckAfterPass2();
@@ -378,6 +424,39 @@ void ThreeDex::FromSeqDB(const SeqDB &Input)
 		}
 	}
 #endif
+	}
+
+uint ThreeDex::SeqBytesToKmer(const byte *Seq, uint Pos, bool SelfScoreMask) const
+	{
+	uint Kmer = 0;
+	for (uint i = 0; i < m_k; ++i)
+		{
+		byte Letter = Seq[Pos + m_Offsets[i]];
+		Kmer = Kmer*20 + Letter;
+		}
+	if (SelfScoreMask && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+		Kmer = UINT_MAX;
+	return Kmer;
+	}
+
+void ThreeDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
+	{
+	Kmers.reserve(L);
+	Kmers.clear();
+	for (uint KmerStartPos = 0; KmerStartPos + m_K <= L; ++KmerStartPos)
+		{
+		uint Kmer = 0;
+		for (uint i = 0; i < m_k; ++i)
+			{
+			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
+			Kmer = Kmer*20 + Letter;
+			}
+		asserta(Kmer == GetSeqKmer(Seq, KmerStartPos, false));
+		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+			Kmers.push_back(UINT_MAX);
+		else
+			Kmers.push_back(Kmer%m_DictSize);
+		}
 	}
 
 void cmd_threedex()
