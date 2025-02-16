@@ -214,7 +214,10 @@ void ThreeDex::LogStats() const
 	Q.LogMe();
 	Log("Total = %u (%s)\n", Sum, IntToStr(Sum));
 	string s;
-	Log("Max kmer %s\n", KmerToStr(MaxKmer, s));
+	Log("Max kmer %s", KmerToStr(MaxKmer, s));
+	if (m_KmerSelfScores != 0)
+		Log(" (self=%d)", m_KmerSelfScores[MaxKmer]);
+	Log("\n");
 	}
 
 #if DEBUG

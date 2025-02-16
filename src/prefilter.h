@@ -8,7 +8,7 @@
 #include "seqdb.h"
 #include "diag.h"
 
-#define	TRACE			1
+#define	TRACE			0
 #define TRACE_PAIR		0
 //#define Q_TRACE_LABEL	"1hhs_A-cyst.pdb"
 //#define T_TRACE_LABEL	"5ccv_A-flav.pdb"
@@ -84,6 +84,7 @@ public:
 	const byte *m_TSeq = 0;
 	string m_TLabel;
 	uint m_TL = UINT_MAX;
+	vector<uint> m_TKmers;
 
 public:
 	void SetQDB(const SeqDB &QDB);
@@ -105,5 +106,9 @@ public:
 	void GetResults(vector<uint> &QSeqIdxs,
 					vector<int> &DiagScores) const;
 	void LogDiag(uint QSeqIdx, uint16_t Diag) const;
+	const char *KmerToStr(uint Kmer, string &s) const
+		{
+		return m_QKmerIndex->KmerToStr(Kmer, s);
+		}
 	void Reset();
 	};

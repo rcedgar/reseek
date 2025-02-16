@@ -170,23 +170,31 @@ void Prefilter::Search_TargetKmers()
 	if (m_TL < 2*k)
 		return;
 
-// Initialize k-mer scan of TSeq
-	uint Kmer = 0;
-	for (uint i = 0; i < k-1; ++i)
-		{
-		byte Letter = m_TSeq[i];
-		assert(Letter < ALPHABET_SIZE);
-		Kmer = Kmer*ALPHABET_SIZE + Letter;
-		}
+//// Initialize k-mer scan of TSeq
+//	uint Kmer = 0;
+//	for (uint i = 0; i < k-1; ++i)
+//		{
+//		byte Letter = m_TSeq[i];
+//		assert(Letter < ALPHABET_SIZE);
+//		Kmer = Kmer*ALPHABET_SIZE + Letter;
+//		}
+//
+//// Iterate through k-mers in TSeq
+//	for (uint i = k-1; i < m_TL; ++i)
+//		{
+//		byte Letter = m_TSeq[i];
+//		assert(Letter < ALPHABET_SIZE);
+//		Kmer = Kmer*ALPHABET_SIZE + Letter;
+//		Kmer %= DICT_SIZE;
+//		Search_TargetKmerNeighborhood(Kmer, i-(k-1));
+//		}
 
-// Iterate through k-mers in TSeq
-	for (uint i = k-1; i < m_TL; ++i)
+	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
+	const uint NK = SIZE(m_TKmers);
+	for (uint i = 0; i < NK; ++i)
 		{
-		byte Letter = m_TSeq[i];
-		assert(Letter < ALPHABET_SIZE);
-		Kmer = Kmer*ALPHABET_SIZE + Letter;
-		Kmer %= DICT_SIZE;
-		Search_TargetKmerNeighborhood(Kmer, i-(k-1));
+		uint Kmer = m_TKmers[i];
+		Search_TargetKmerNeighborhood(Kmer, i);
 		}
 	}
 
@@ -205,18 +213,23 @@ void Prefilter::Search_TargetSeq(vector<uint> &QSeqIdxs, vector<int> &DiagScores
 
 void Prefilter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	{
+	if (Kmer == UINT_MAX)
+		return;
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
 	assert(Kmer < DICT_SIZE);
-	if (m_KmerSelfScores[Kmer] < MIN_KMER_PAIR_SCORE)
-		return;
+	assert(m_KmerSelfScores[Kmer] >= MIN_KMER_PAIR_SCORE);
 
 // Construct high-scoring neighborhood
 	const uint HSKmerCount =
 		m_ScoreMx->GetHighScoring6mers(Kmer, MIN_KMER_PAIR_SCORE,
 									   m_NeighborKmers);
-
+#if TRACE
+	string Tmp;
+	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s %u nbrs\n",
+		TPos, KmerToStr(Kmer, Tmp), HSKmerCount);
+#endif
 	for (uint HSKmerIdx = 0; HSKmerIdx < HSKmerCount; ++HSKmerIdx)
 		{
 		uint HSKmer = m_NeighborKmers[HSKmerIdx];
