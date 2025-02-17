@@ -85,6 +85,8 @@ public:
 	string m_TLabel;
 	uint m_TL = UINT_MAX;
 	vector<uint> m_TKmers;
+	vector<float> m_TBiasVec;
+	vector<int8_t> m_TBiasVec8;
 
 public:
 	void SetQDB(const SeqDB &QDB);
@@ -110,5 +112,6 @@ public:
 		{
 		return m_QKmerIndex->KmerToStr(Kmer, s);
 		}
+	short GetTargetBiasCorrection(uint TPos) const;
 	void Reset();
 	};

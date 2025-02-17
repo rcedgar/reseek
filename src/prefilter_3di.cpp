@@ -170,25 +170,6 @@ void Prefilter::Search_TargetKmers()
 	if (m_TL < 2*k)
 		return;
 
-//// Initialize k-mer scan of TSeq
-//	uint Kmer = 0;
-//	for (uint i = 0; i < k-1; ++i)
-//		{
-//		byte Letter = m_TSeq[i];
-//		assert(Letter < ALPHABET_SIZE);
-//		Kmer = Kmer*ALPHABET_SIZE + Letter;
-//		}
-//
-//// Iterate through k-mers in TSeq
-//	for (uint i = k-1; i < m_TL; ++i)
-//		{
-//		byte Letter = m_TSeq[i];
-//		assert(Letter < ALPHABET_SIZE);
-//		Kmer = Kmer*ALPHABET_SIZE + Letter;
-//		Kmer %= DICT_SIZE;
-//		Search_TargetKmerNeighborhood(Kmer, i-(k-1));
-//		}
-
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
 	for (uint i = 0; i < NK; ++i)
@@ -218,17 +199,18 @@ void Prefilter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
+	short Bias = GetTargetBiasCorrection(TPos);
 	assert(Kmer < DICT_SIZE);
 	assert(m_KmerSelfScores[Kmer] >= MIN_KMER_PAIR_SCORE);
 
 // Construct high-scoring neighborhood
+	short MinKmerScore = MIN_KMER_PAIR_SCORE - Bias;
 	const uint HSKmerCount =
-		m_ScoreMx->GetHighScoring6mers(Kmer, MIN_KMER_PAIR_SCORE,
-									   m_NeighborKmers);
+		m_ScoreMx->GetHighScoring6mers(Kmer, MinKmerScore, m_NeighborKmers);
 #if TRACE
 	string Tmp;
-	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s %u nbrs\n",
-		TPos, KmerToStr(Kmer, Tmp), HSKmerCount);
+	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s bias=%d minscore=%d |nbrs|=%d\n",
+		TPos, KmerToStr(Kmer, Tmp), Bias, MinKmerScore, HSKmerCount);
 #endif
 	for (uint HSKmerIdx = 0; HSKmerIdx < HSKmerCount; ++HSKmerIdx)
 		{
@@ -362,6 +344,18 @@ void Prefilter::Reset()
 	m_DiagBag.Reset();
 	}
 
+// lib/mmseqs/src/prefiltering/QueryMatcher.cpp:257
+short Prefilter::GetTargetBiasCorrection(uint TPos) const
+	{
+	const byte *Offsets = ThreeDex::m_Offsets;
+	const uint k = ThreeDex::m_k;
+	float FloatBias = 0;
+	for (uint i = 0; i < k; ++i)
+		FloatBias += m_TBiasVec[TPos + Offsets[i]];
+	short ShortBias = short(FloatBias < 0 ? FloatBias - 0.5 : FloatBias + 0.5);
+	return ShortBias;
+	}
+
 void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
 	const byte *TSeq, uint TL)
 	{
@@ -369,6 +363,28 @@ void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
+#pragma warning("TODO scale")
+	m_ScoreMx->CalcLocalBiasCorrection(TSeq, TL, 0.15f, m_TBiasVec, m_TBiasVec8);
+
+#if TRACE
+	Log("\n");
+	Log("SetTarget(%u) >%s\n", TSeqIdx, TLabel.c_str());
+	for (uint i = 0; i < TL; ++i)
+		{
+		if (i > 0 && i%80 == 0)
+			Log("\n");
+		Log("%c", g_LetterToCharAmino[TSeq[i]]);
+		}
+	Log("\n");
+	Log("Bias ");
+	for (uint i = 0; i < TL; ++i)
+		{
+		if (i > 0 && i%80 == 0)
+			Log("\n");
+		Log(" %.3g", m_TBiasVec[i]);
+		}
+	Log("\n");
+#endif
 	}
 
 void Prefilter::LogDiag(uint QSeqIdx, uint16_t Diag) const
