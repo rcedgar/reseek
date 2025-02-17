@@ -331,6 +331,7 @@
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_debug.cpp" />
     <ClCompile Include="pdb.cpp" />
+    <ClCompile Include="prefilter.cpp" />
     <ClCompile Include="prefilter_3di.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />

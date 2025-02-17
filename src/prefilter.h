@@ -8,6 +8,16 @@
 #include "seqdb.h"
 #include "diag.h"
 
+const MerMx &Get3DiMerMx();
+
+extern int8_t threedi_substmx2[20][20];
+
+static const uint k = 6;
+static const uint ALPHABET_SIZE = 20;
+static const uint DICT_SIZE = 64000000;	// 20^6
+static const int MIN_KMER_PAIR_SCORE = 78;
+static const float TBIAS_SCALE = 0.15f;
+
 #define	TRACE			0
 
 ///////////////////////////////////////////////////////////
@@ -17,6 +27,9 @@
 
 class Prefilter
 	{
+private:
+	static mutex m_Lock;
+
 #if TRACE
 public:
 	uint m_Trace_QIdx = UINT_MAX;
@@ -55,8 +68,8 @@ public:
 // Accumulating results for current target sequence
 ///////////////////////////////////////////////////
 	uint m_NrQueriesWithTwoHitDiag = UINT_MAX;
-	uint *m_QSeqIdxsWithTwoHitDiag = 0;
-	int *m_QSeqIdxToBestDiagScore = 0;
+	uint16_t *m_QSeqIdxsWithTwoHitDiag = 0;
+	uint16_t *m_QSeqIdxToBestDiagScore = 0;
 
 // High-scoring k-mers in the neighborhood
 // of the current Target k-mer
@@ -84,10 +97,11 @@ public:
 
 public:
 	void SetQDB(const SeqDB &QDB);
+	void Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
+				const byte *TSeq, uint TL);
 	void SetTarget(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL);
-	void Search_TargetSeq(vector<uint> &QSeqIdxs,
-						  vector<int> &DiagScores);
+	void Search_TargetSeq();
 	int FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
 							  uint QLo, uint Tlo) const;
 	int FindHSP(uint QSeqIdx, int Diag) const;
@@ -100,7 +114,7 @@ public:
 	int ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
 	void GetResults(vector<uint> &QSeqIdxs,
-					vector<int> &DiagScores) const;
+					vector<uint16_t> &DiagScores) const;
 	void LogDiag(uint QSeqIdx, uint16_t Diag) const;
 	const char *KmerToStr(uint Kmer, string &s) const
 		{
