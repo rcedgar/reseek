@@ -7,6 +7,7 @@
 #include "diaghsp.h"
 #include "seqdb.h"
 #include "diag.h"
+#include "rankedscoresbag.h"
 
 const MerMx &Get3DiMerMx();
 
@@ -17,6 +18,7 @@ static const uint ALPHABET_SIZE = 20;
 static const uint DICT_SIZE = 64000000;	// 20^6
 static const int MIN_KMER_PAIR_SCORE = 78;
 static const float TBIAS_SCALE = 0.15f;
+static const uint RSB_SIZE = 1000;
 
 #define	TRACE			0
 
@@ -27,8 +29,9 @@ static const float TBIAS_SCALE = 0.15f;
 
 class Prefilter
 	{
-private:
+public:
 	static mutex m_Lock;
+	static RankedScoresBag m_RSB;
 
 #if TRACE
 public:

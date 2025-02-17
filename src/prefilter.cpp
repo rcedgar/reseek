@@ -2,6 +2,7 @@
 #include "prefilter.h"
 
 mutex Prefilter::m_Lock;
+RankedScoresBag Prefilter::m_RSB;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
@@ -395,6 +396,13 @@ void Prefilter::Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
 	{
 	SetTarget(TSeqIdx, TLabel, TSeq, TL);
 	Search_TargetSeq();
+
+	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
+		{
+		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
+		uint16_t DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
+		m_RSB.AddScore(QSeqIdx, m_TSeqIdx, DiagScore);
+		}
 
 	if (fTsv == 0)
 		return;

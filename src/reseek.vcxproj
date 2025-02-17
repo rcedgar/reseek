@@ -351,6 +351,7 @@
     <ClCompile Include="parasail_cigar.cpp" />
     <ClCompile Include="parasail_mu.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
+    <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="readhits.cpp" />
     <ClCompile Include="runquery.cpp" />
     <ClCompile Include="runself.cpp" />
@@ -500,6 +501,7 @@
     <ClInclude Include="prefilter.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
+    <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqinfo.h" />

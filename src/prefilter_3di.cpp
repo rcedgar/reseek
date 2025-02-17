@@ -9,6 +9,7 @@ static const SeqDB *s_ptrTDB = 0;
 static const vector<vector<int8_t> > *s_ptrBiasVecs8;
 static const ThreeDex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
+static FILE *s_fTsv2 = 0;
 static time_t s_TimeLastProgress;
 
 static void ThreadBody(uint ThreadIndex)
@@ -28,7 +29,7 @@ static void ThreadBody(uint ThreadIndex)
 		uint TSeqIdx = s_NextTIdx;
 		if (s_NextTIdx < TSeqCount)
 			++s_NextTIdx;
-		if (TSeqIdx > 0 && TSeqIdx%100 == 0 && TSeqIdx + 1 < TSeqCount)
+		if (TSeqIdx > 0 && TSeqIdx + 1 < TSeqCount)
 			{
 			time_t now = time(0);
 			if (now > s_TimeLastProgress)
@@ -43,7 +44,7 @@ static void ThreadBody(uint ThreadIndex)
 		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
 		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
 		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
-		Pref.Search(s_fTsv, TSeqIdx, TLabel, TSeq, TL);
+		Pref.Search(s_fTsv2, TSeqIdx, TLabel, TSeq, TL);
 		}
 	}
 
@@ -52,7 +53,7 @@ void cmd_prefilter_3di()
 	const string &Query3Di_FN = g_Arg1;
 	const string &DB3Di_FN = opt_db;
 
-	s_fTsv = CreateStdioFile(opt_output);
+	s_fTsv2 = CreateStdioFile(opt_output2);
 	
 	SeqDB QDB;
 	SeqDB TDB;
@@ -64,6 +65,9 @@ void cmd_prefilter_3di()
 	TDB.ToLetters(g_CharToLetterAmino);
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
+
+	Prefilter::m_RSB.m_B = RSB_SIZE;
+	Prefilter::m_RSB.Init(QSeqCount);
 
 	const MerMx &ScoreMx = Get3DiMerMx();
 	asserta(ScoreMx.m_k == k);
@@ -113,5 +117,24 @@ void cmd_prefilter_3di()
 
 	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
 
+	CloseStdioFile(s_fTsv2);
+
+	{
+	FILE *fTsv = CreateStdioFile(opt_output);
+	Prefilter::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
+	}
+
+	if (optset_output3)
+		{
+		vector<string> QLabels;
+		vector<string> TLabels;
+		for (uint i = 0; i < QSeqCount; ++i)
+			QLabels.push_back(QDB.GetLabel(i));
+		for (uint i = 0; i < TSeqCount; ++i)
+			TLabels.push_back(TDB.GetLabel(i));
+		FILE *fTsv = CreateStdioFile(opt_output3);
+		Prefilter::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+		CloseStdioFile(s_fTsv);
+		}
 	}
