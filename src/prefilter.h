@@ -48,7 +48,7 @@ public:
 ///////////////////////////////////////////////////
 	const SeqDB *m_QDB = 0;
 	uint m_QSeqCount = UINT_MAX;
-	vector<vector<int8_t> > *m_BiasVecs8 = 0;
+	const vector<vector<int8_t> > *m_BiasVecs8 = 0;
 
 //////////////////////////////////////
 // Index of k-mers in the Query.

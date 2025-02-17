@@ -1,12 +1,58 @@
 #include "myutils.h"
 #include "prefilter.h"
 
+static uint s_NextTIdx = 0;
+static mutex m_NextTIdxLock;
+static const MerMx *s_ptrScoreMx;
+static const SeqDB *s_ptrQDB = 0;
+static const SeqDB *s_ptrTDB = 0;
+static const vector<vector<int8_t> > *s_ptrBiasVecs8;
+static const ThreeDex *s_ptrQKmerIndex = 0;
+static FILE *s_fTsv = 0;
+static time_t s_TimeLastProgress;
+
+static void ThreadBody(uint ThreadIndex)
+	{
+	const uint TSeqCount = s_ptrTDB->GetSeqCount();
+
+	Prefilter Pref;
+	Pref.m_ScoreMx = s_ptrScoreMx;
+	Pref.m_QKmerIndex = s_ptrQKmerIndex;
+	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
+	Pref.SetQDB(*s_ptrQDB);
+	Pref.m_BiasVecs8 = s_ptrBiasVecs8;
+
+	for (;;)
+		{
+		m_NextTIdxLock.lock();
+		uint TSeqIdx = s_NextTIdx;
+		if (s_NextTIdx < TSeqCount)
+			++s_NextTIdx;
+		if (TSeqIdx > 0 && TSeqIdx%100 == 0 && TSeqIdx + 1 < TSeqCount)
+			{
+			time_t now = time(0);
+			if (now > s_TimeLastProgress)
+				ProgressStep(TSeqIdx, TSeqCount, "Filtering");
+			s_TimeLastProgress = now;
+			}
+		m_NextTIdxLock.unlock();
+		if (TSeqIdx == TSeqCount)
+			return;
+
+		Pref.m_TSeqIdx = TSeqIdx;
+		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
+		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
+		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
+		Pref.Search(s_fTsv, TSeqIdx, TLabel, TSeq, TL);
+		}
+	}
+
 void cmd_prefilter_3di()
 	{
 	const string &Query3Di_FN = g_Arg1;
 	const string &DB3Di_FN = opt_db;
 
-	FILE *fOut = CreateStdioFile(opt_output);
+	s_fTsv = CreateStdioFile(opt_output);
 	
 	SeqDB QDB;
 	SeqDB TDB;
@@ -44,23 +90,28 @@ void cmd_prefilter_3di()
 		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, Scale, BiasVec, BiasVec8);
 		}
 
-	Prefilter Pref;
-	Pref.m_ScoreMx = &ScoreMx;
-	Pref.m_QKmerIndex = &QKmerIndex;
-	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
-	Pref.SetQDB(QDB);
-	Pref.m_BiasVecs8 = &BiasVecs8;
+	s_ptrQDB = &QDB;
+	s_ptrTDB = &TDB;
+	s_ptrScoreMx = &ScoreMx;
+	s_ptrQKmerIndex = &QKmerIndex;
+	s_ptrBiasVecs8 = &BiasVecs8;
 
-	vector<uint> QSeqIdxs;
-	vector<int> DiagScores;
-	for (uint TSeqIdx = 0; TSeqIdx < TSeqCount; ++TSeqIdx)
+	ProgressStep(0, TSeqCount, "Filtering");
+	s_TimeLastProgress = time(0);
+
+	vector<thread *> ts;
+	uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		Pref.m_TSeqIdx = TSeqIdx;
-		const byte *TSeq = TDB.GetByteSeq(TSeqIdx);
-		const string &TLabel = TDB.GetLabel(TSeqIdx);
-		uint TL = TDB.GetSeqLength(TSeqIdx);
-		Pref.Search(fOut, TSeqIdx, TLabel, TSeq, TL);
+		thread *t = new thread(ThreadBody, ThreadIndex);
+		ts.push_back(t);
 		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
 
-	CloseStdioFile(fOut);
+	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
+
+	CloseStdioFile(s_fTsv);
 	}
