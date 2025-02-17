@@ -586,7 +586,7 @@ int16_t *MerMx::BuildSelfScores_6mers() const
 	}
 
 // lib/mmseqs/src/commons/SubstitutionMatrix.cpp:100 calcLocalAaBiasCorrection
-void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, float Scale,
+void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
 									vector<float> &BiasVec,
 									vector<int8_t> &BiasVec8) const
 	{
@@ -598,7 +598,7 @@ void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, float Scale,
 	BiasVec.reserve(L);
 	BiasVec8.reserve(L);
 
-	const int W = 40;
+	//const int W = BIAS_WINDOW;
 	const int N = int(L);
 	for (int i = 0; i < N; ++i)
 		{

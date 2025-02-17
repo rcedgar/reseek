@@ -16,9 +16,12 @@ extern int8_t threedi_substmx2[20][20];
 static const uint k = 6;
 static const uint ALPHABET_SIZE = 20;
 static const uint DICT_SIZE = 64000000;	// 20^6
+static const uint RSB_SIZE = 1200;
+
 static const int MIN_KMER_PAIR_SCORE = 78;
-static const float TBIAS_SCALE = 0.15f;
-static const uint RSB_SIZE = 1000;
+static const int BIAS_WINDOW = 30; // 40
+static const float TBIAS_SCALE = 0; // 0.15f;
+static const float QBIAS_SCALE = 0.15f;
 
 #define	TRACE			0
 

@@ -85,13 +85,12 @@ void cmd_prefilter_3di()
 
 	vector<vector<int8_t> > BiasVecs8(QSeqCount);
 	vector<float> BiasVec;
-	const float Scale = 0.15f;
 	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
 		{
 		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
 		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
 		uint QL = QDB.GetSeqLength(QSeqIdx);
-		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, Scale, BiasVec, BiasVec8);
+		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, BIAS_WINDOW, QBIAS_SCALE, BiasVec, BiasVec8);
 		}
 
 	s_ptrQDB = &QDB;

@@ -76,7 +76,7 @@ public:
 	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
 	int16_t *BuildSelfScores_6mers() const;
-	void CalcLocalBiasCorrection(const byte *Seq, uint L, float Scale,
+	void CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
 								 vector<float> &BiasVec,
 								 vector<int8_t> &BiasVec8) const;
 	};
