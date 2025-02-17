@@ -9,6 +9,7 @@ static const uint k = 6;
 static const uint ALPHABET_SIZE = 20;
 static const uint DICT_SIZE = 64000000;	// 20^6
 static const int MIN_KMER_PAIR_SCORE = 78;
+static const float TBIAS_SCALE = 0.15f;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
@@ -363,12 +364,11 @@ void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
-#pragma warning("TODO scale")
-	m_ScoreMx->CalcLocalBiasCorrection(TSeq, TL, 0.15f, m_TBiasVec, m_TBiasVec8);
+	m_ScoreMx->CalcLocalBiasCorrection(TSeq, TL, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
 
 #if TRACE
 	Log("\n");
-	Log("SetTarget(%u) >%s\n", TSeqIdx, TLabel.c_str());
+	Log("SetTarget(%u) >%s L=%u\n", TSeqIdx, TLabel.c_str(), TL);
 	for (uint i = 0; i < TL; ++i)
 		{
 		if (i > 0 && i%80 == 0)
@@ -482,8 +482,9 @@ void cmd_prefilter_3di()
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
 	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
 	QKmerIndex.FromSeqDB(QDB);
-	QKmerIndex.Validate();//@@@@@@@@@
-	QKmerIndex.LogStats();//@@@@@@@@@
+#if DEBUG
+	QKmerIndex.Validate();
+#endif
 	asserta(QKmerIndex.m_k == k);
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
@@ -505,13 +506,6 @@ void cmd_prefilter_3di()
 	Pref.m_KmerSelfScores = QKmerIndex.m_KmerSelfScores;
 	Pref.SetQDB(QDB);
 	Pref.m_BiasVecs8 = &BiasVecs8;
-
-#if TRACE_PAIR
-	QDB.SetLabelToIndex();
-	TDB.SetLabelToIndex();
-	Pref.m_Trace_QIdx = QDB.GetSeqIndex(Q_TRACE_LABEL);
-	Pref.m_Trace_TIdx = TDB.GetSeqIndex(T_TRACE_LABEL);
-#endif
 
 	vector<uint> QSeqIdxs;
 	vector<int> DiagScores;

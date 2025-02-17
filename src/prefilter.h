@@ -9,9 +9,6 @@
 #include "diag.h"
 
 #define	TRACE			0
-#define TRACE_PAIR		0
-//#define Q_TRACE_LABEL	"1hhs_A-cyst.pdb"
-//#define T_TRACE_LABEL	"5ccv_A-flav.pdb"
 
 ///////////////////////////////////////////////////////////
 // For one target sequence build a list of query sequences
@@ -27,9 +24,6 @@ public:
 	uint m_TBaseKmer = UINT_MAX;
 	bool DoTrace(uint QIdx) const
 		{ 
-#if TRACE_PAIR
-		return QIdx == m_Trace_QIdx && m_TSeqIdx == m_Trace_TIdx;
-#endif
 		return true;
 		}
 #endif
