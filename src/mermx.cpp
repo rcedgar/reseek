@@ -585,6 +585,15 @@ int16_t *MerMx::BuildSelfScores_6mers() const
 	return SelfScores;
 	}
 
+int16_t *MerMx::BuildSelfScores_5mers() const
+	{
+	const uint AS5 = m_AS_pow[5];
+	int16_t *SelfScores = myalloc(int16_t, AS5);
+	for (uint Kmer = 0; Kmer < AS5; ++Kmer)
+		SelfScores[Kmer] = GetSelfScore6mer(Kmer);
+	return SelfScores;
+	}
+
 // lib/mmseqs/src/commons/SubstitutionMatrix.cpp:100 calcLocalAaBiasCorrection
 void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
 									vector<float> &BiasVec,

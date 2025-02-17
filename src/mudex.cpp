@@ -4,6 +4,13 @@
 #include "seqdb.h"
 #include "quarts.h"
 
+const char MuDex::m_Pattern[6] = "11111";
+const byte MuDex::m_Offsets[5] = { 0, 1, 2, 3, 4, };
+const uint32_t MuDex::m_DictSize = 36*36*36*36*36;
+const uint32_t MuDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
+const uint32_t MuDex::m_k = 5;
+const uint32_t MuDex::m_K = 5;
+
 /***
 32 bits 2^5, 64 bits 2^6
 5 bits per aa letter
@@ -17,6 +24,19 @@ uint MuDex::StrToKmer(const string &s) const
 	{
 	assert(SIZE(s) == m_k);
 	return StrToKmer(s.c_str());
+	}
+
+uint MuDex::BytesToKmer(const byte *s) const
+	{
+	uint Kmer = 0;
+	for (uint i = 0; i < m_k; ++i)
+		{
+		Kmer *= 36;
+		byte Letter = s[i];
+		asserta(Letter < 36);
+		Kmer += Letter;
+		}
+	return Kmer;
 	}
 
 uint MuDex::StrToKmer(const char *s) const
@@ -271,21 +291,17 @@ void MuDex::ValidateKmer(uint Kmer) const
 		uint32_t SeqIdx;
 		uint16_t SeqPos;
 		Get(DataOffset, SeqIdx, SeqPos);
-		uint Check_Kmer = GetSeqKmer(SeqIdx, SeqPos);
+		const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
+		uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
 		asserta(Check_Kmer == Kmer);
 		}
 	}
 
-uint MuDex::GetSeqKmer(uint SeqIdx, uint SeqPos) const
+uint MuDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	{
-	const string &strSeq = m_SeqDB->GetSeq(SeqIdx);
-#if DEBUG
-	{
-	const uint L = SIZE(strSeq);
-	asserta(SeqPos + m_k <= L);
-	}
-#endif
-	uint Kmer = StrToKmer(strSeq.c_str() + SeqPos);
+	uint Kmer = BytesToKmer(Seq + SeqPos);
+	if (SelfScoreMask && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+		Kmer = UINT_MAX;
 	return Kmer;
 	}
 
@@ -340,6 +356,57 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 		}
 	}
 #endif
+	}
+
+uint MuDex::GetRowSize(uint Kmer) const
+	{
+	assert(Kmer < m_DictSize);
+	uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
+	assert(m_Finger[Kmer] + n <= m_Size);
+	return n;
+	}
+
+void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
+	{
+	uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
+	*(uint32_t *) ptr = SeqIdx;
+	*(uint16_t *) (ptr + 4) = SeqPos;
+#if DEBUG
+	{
+	uint32_t Check_SeqIdx;
+	uint16_t Check_SeqPos;
+	Get(DataOffset, Check_SeqIdx, Check_SeqPos);
+	assert(Check_SeqIdx == SeqIdx);
+	assert(Check_SeqPos == SeqPos);
+	}
+#endif
+	}
+
+void MuDex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
+	{
+	const uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
+	SeqIdx = *(uint32_t *) ptr;
+	SeqPos = *(uint16_t *) (ptr + 4);
+	}
+
+void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
+	{
+	Kmers.reserve(L);
+	Kmers.clear();
+	for (uint KmerStartPos = 0; KmerStartPos + m_K <= L; ++KmerStartPos)
+		{
+		uint Kmer = 0;
+		for (uint i = 0; i < m_k; ++i)
+			{
+			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
+			Kmer = Kmer*20 + Letter;
+			}
+		asserta(Kmer == GetSeqKmer(Seq, KmerStartPos, false));
+		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+			Kmers.push_back(UINT_MAX);
+		else
+			Kmers.push_back(Kmer%m_DictSize);
+		}
 	}
 
 void cmd_mudex()

@@ -1,14 +1,14 @@
 #include "myutils.h"
-#include "prefilter.h"
+#include "prefilter3di.h"
 
-mutex Prefilter::m_Lock;
-RankedScoresBag Prefilter::m_RSB;
+mutex Prefilter3Di::m_Lock;
+RankedScoresBag Prefilter3Di::m_RSB;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
 //////////////////////////////////////////////
-int Prefilter::FindHSP(uint QSeqIdx, int Diag) const
+int Prefilter3Di::FindHSP(uint QSeqIdx, int Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -46,7 +46,7 @@ int Prefilter::FindHSP(uint QSeqIdx, int Diag) const
 	return B;
 	}
 
-int Prefilter::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
+int Prefilter3Di::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
 							  uint Qlo, uint Tlo) const
 	{
 	const byte *TSeq = m_TSeq + Tlo;
@@ -96,7 +96,7 @@ int Prefilter::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
 //////////////////////////////////////////////
-int Prefilter::FindHSP2(uint QSeqIdx,
+int Prefilter3Di::FindHSP2(uint QSeqIdx,
 						int Diag, int &Lo, int &Len) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
@@ -141,7 +141,7 @@ int Prefilter::FindHSP2(uint QSeqIdx,
 	return B;
 	}
 
-void Prefilter::SetQDB(const SeqDB &QDB)
+void Prefilter3Di::SetQDB(const SeqDB &QDB)
 	{
 	m_QDB = &QDB;
 	m_QSeqCount = QDB.GetSeqCount();
@@ -159,7 +159,7 @@ void Prefilter::SetQDB(const SeqDB &QDB)
 	m_NrQueriesWithTwoHitDiag = 0;
 	}
 
-void Prefilter::Search_TargetKmers()
+void Prefilter3Di::Search_TargetKmers()
 	{
 	if (m_TL < 2*k)
 		return;
@@ -173,7 +173,7 @@ void Prefilter::Search_TargetKmers()
 		}
 	}
 
-void Prefilter::Search_TargetSeq()
+void Prefilter3Di::Search_TargetSeq()
 	{
 	Reset();
 	Search_TargetKmers();
@@ -181,7 +181,7 @@ void Prefilter::Search_TargetSeq()
 	ExtendTwoHitDiagsToHSPs();
 	}
 
-void Prefilter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
+void Prefilter3Di::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	{
 	if (Kmer == UINT_MAX)
 		return;
@@ -208,7 +208,7 @@ void Prefilter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 		}
 	}
 
-void Prefilter::Search_Kmer(uint Kmer, uint TPos)
+void Prefilter3Di::Search_Kmer(uint Kmer, uint TPos)
 	{
 	uint RowSize = m_QKmerIndex->GetRowSize(Kmer);
 	if (RowSize == 0)
@@ -238,7 +238,7 @@ void Prefilter::Search_Kmer(uint Kmer, uint TPos)
 		}
 	}
 
-void Prefilter::FindTwoHitDiags()
+void Prefilter3Di::FindTwoHitDiags()
 	{
 	m_DiagBag.ClearDupes();
 	m_DiagBag.SetDupes();
@@ -247,7 +247,7 @@ void Prefilter::FindTwoHitDiags()
 #endif
 	}
 
-void Prefilter::GetResults(vector<uint> &QSeqIdxs,
+void Prefilter3Di::GetResults(vector<uint> &QSeqIdxs,
 						   vector<uint16_t> &DiagScores) const
 	{
 	QSeqIdxs.clear();
@@ -263,7 +263,7 @@ void Prefilter::GetResults(vector<uint> &QSeqIdxs,
 		}
 	}
 
-void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
+void Prefilter3Di::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
 		return;
@@ -290,7 +290,7 @@ void Prefilter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 		}
 	}
 
-void Prefilter::ExtendTwoHitDiagsToHSPs()
+void Prefilter3Di::ExtendTwoHitDiagsToHSPs()
 	{
 	uint DupeCount = m_DiagBag.m_DupeCount;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -303,7 +303,7 @@ void Prefilter::ExtendTwoHitDiagsToHSPs()
 		}
 	}
 
-int Prefilter::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
+int Prefilter3Di::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -317,7 +317,7 @@ int Prefilter::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	return DiagScore;
 	}
 
-void Prefilter::Reset()
+void Prefilter3Di::Reset()
 	{
 	for (uint HitIdx = 0; HitIdx < m_NrQueriesWithTwoHitDiag; ++HitIdx)
 		{
@@ -337,7 +337,7 @@ void Prefilter::Reset()
 	}
 
 // lib/mmseqs/src/prefiltering/QueryMatcher.cpp:257
-short Prefilter::GetTargetBiasCorrection(uint TPos) const
+short Prefilter3Di::GetTargetBiasCorrection(uint TPos) const
 	{
 	const byte *Offsets = ThreeDex::m_Offsets;
 	const uint k = ThreeDex::m_k;
@@ -348,7 +348,7 @@ short Prefilter::GetTargetBiasCorrection(uint TPos) const
 	return ShortBias;
 	}
 
-void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
+void Prefilter3Di::SetTarget(uint TSeqIdx, const string &TLabel,
 	const byte *TSeq, uint TL)
 	{
 	m_TSeqIdx = TSeqIdx;
@@ -378,7 +378,7 @@ void Prefilter::SetTarget(uint TSeqIdx, const string &TLabel,
 #endif
 	}
 
-void Prefilter::LogDiag(uint QSeqIdx, uint16_t Diag) const
+void Prefilter3Di::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -391,7 +391,7 @@ void Prefilter::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	asserta(Score2 == Score);
 	}
 
-void Prefilter::Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
+void Prefilter3Di::Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL)
 	{
 	SetTarget(TSeqIdx, TLabel, TSeq, TL);

@@ -293,6 +293,7 @@
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
     <ClCompile Include="cluster.cpp" />
+    <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="cmprof.cpp" />
     <ClCompile Include="cmprof_train.cpp" />
     <ClCompile Include="convert.cpp" />
@@ -331,8 +332,9 @@
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_debug.cpp" />
     <ClCompile Include="pdb.cpp" />
-    <ClCompile Include="prefilter.cpp" />
-    <ClCompile Include="prefilter_3di.cpp" />
+    <ClCompile Include="prefilter3di.cpp" />
+    <ClCompile Include="cmd_prefilter3di.cpp" />
+    <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="profileloader.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -498,7 +500,8 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
-    <ClInclude Include="prefilter.h" />
+    <ClInclude Include="prefilter3di.h" />
+    <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />

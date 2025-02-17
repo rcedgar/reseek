@@ -524,7 +524,7 @@
     <ClCompile Include="mymalloc_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="prefilter_3di.cpp">
+    <ClCompile Include="cmd_prefilter3di.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="threedex.cpp">
@@ -533,10 +533,16 @@
     <ClCompile Include="idiag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="prefilter.cpp">
+    <ClCompile Include="prefilter3di.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rankedscoresbag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="prefiltermu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd_prefiltermu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -829,13 +835,16 @@
     <ClInclude Include="threedex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prefilter.h">
+    <ClInclude Include="prefilter3di.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="idiag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rankedscoresbag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

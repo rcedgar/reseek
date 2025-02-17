@@ -1,12 +1,33 @@
 #include "myutils.h"
 #include "dss.h"
 #include "mumx.h"
+#include "mermx.h"
 
 static int8_t intround(float f)
 	{
 	int i = int(round(f));
 	asserta(i >= INT8_MIN && i <= INT8_MAX);
 	return int8_t(i);
+	}
+
+static MerMx *s_ptrMuMerMx = 0;
+
+const MerMx &GetMuMerMx()
+	{
+	if (s_ptrMuMerMx != 0)
+		return *s_ptrMuMerMx;
+	s_ptrMuMerMx = new MerMx;
+
+	short **MxPtrs = myalloc(short *, 20);
+	for (uint i = 0; i < 20; ++i)
+		{
+		short *Row = myalloc(short, 20);
+		for (uint j = 0; j < 20; ++j)
+			Row[j] = Mu_S_ij_i8[i][j];
+		MxPtrs[i] = Row;
+		}
+	(*s_ptrMuMerMx).Init(MxPtrs, 5, 36, 2);
+	return *s_ptrMuMerMx;
 	}
 
 void cmd_combomx()

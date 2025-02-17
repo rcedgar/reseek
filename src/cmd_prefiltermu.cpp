@@ -1,5 +1,5 @@
 #include "myutils.h"
-#include "prefilter.h"
+#include "prefiltermu.h"
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -7,7 +7,7 @@ static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const SeqDB *s_ptrTDB = 0;
 static const vector<vector<int8_t> > *s_ptrBiasVecs8;
-static const ThreeDex *s_ptrQKmerIndex = 0;
+static const MuDex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static FILE *s_fTsv2 = 0;
 static time_t s_TimeLastProgress;
@@ -16,7 +16,7 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	const uint TSeqCount = s_ptrTDB->GetSeqCount();
 
-	Prefilter Pref;
+	PrefilterMu Pref;
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
@@ -48,7 +48,7 @@ static void ThreadBody(uint ThreadIndex)
 		}
 	}
 
-void cmd_prefilter_3di()
+void cmd_prefilter_mu()
 	{
 	const string &Query3Di_FN = g_Arg1;
 	const string &DB3Di_FN = opt_db;
@@ -66,14 +66,14 @@ void cmd_prefilter_3di()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	Prefilter::m_RSB.m_B = RSB_SIZE;
-	Prefilter::m_RSB.Init(QSeqCount);
+	PrefilterMu::m_RSB.m_B = RSB_SIZE;
+	PrefilterMu::m_RSB.Init(QSeqCount);
 
-	const MerMx &ScoreMx = Get3DiMerMx();
+	const MerMx &ScoreMx = GetMuMerMx();
 	asserta(ScoreMx.m_k == k);
 
-	ThreeDex QKmerIndex;
-	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
+	MuDex QKmerIndex;
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_5mers();
 	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG
@@ -120,7 +120,7 @@ void cmd_prefilter_3di()
 
 	{
 	FILE *fTsv = CreateStdioFile(opt_output);
-	Prefilter::m_RSB.ToTsv(fTsv);
+	PrefilterMu::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
 	}
 
@@ -133,7 +133,7 @@ void cmd_prefilter_3di()
 		for (uint i = 0; i < TSeqCount; ++i)
 			TLabels.push_back(TDB.GetLabel(i));
 		FILE *fTsv = CreateStdioFile(opt_output3);
-		Prefilter::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
 		}
 	}

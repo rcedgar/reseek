@@ -15,6 +15,10 @@
 
 const char ThreeDex::m_Pattern[11] = "1101010011";
 const byte ThreeDex::m_Offsets[6] = { 0, 1, 3, 5, 8, 9 };
+const uint32_t ThreeDex::m_k = 6;	// number of 1s in pattern
+const uint32_t ThreeDex::m_K = 10;	// pattern length
+const uint32_t ThreeDex::m_DictSize = 20*20*20*20*20*20;
+const uint32_t ThreeDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 static bool ValidatePattern()
 	{

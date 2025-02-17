@@ -15,12 +15,12 @@ class SeqDB;
 class ThreeDex
 	{
 public:
-	static const uint32_t m_DictSize = 20*20*20*20*20*20;
-	static const uint32_t m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
+	static const uint32_t m_DictSize;
+	static const uint32_t m_ItemSize;
 	static const char m_Pattern[11];
 	static const byte m_Offsets[6];
-	static const uint32_t m_k = 6;	// number of 1s in pattern
-	static const uint32_t m_K = 10;	// pattern length
+	static const uint32_t m_k;	// number of 1s in pattern
+	static const uint32_t m_K;	// pattern length
 
 /***
 Finger index.
