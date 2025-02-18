@@ -1,8 +1,11 @@
 #include "myutils.h"
 #include "alpha.h"
 #include "mudex.h"
+#include "mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
+
+const MerMx &GetMuMerMx();
 
 const char MuDex::m_Pattern[6] = "11111";
 const byte MuDex::m_Offsets[5] = { 0, 1, 2, 3, 4, };
@@ -20,6 +23,18 @@ const uint32_t MuDex::m_K = 5;
 
 #define TRACE	0
 
+void MuDex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
+	{
+	m_SeqIdx = SeqIdx;
+	m_Label = Label;
+	m_Seq = Seq;
+	m_L = L;
+	GetKmers(Seq, L, m_Kmers);
+#if TRACE
+	LogSeq();
+#endif
+	}
+
 uint MuDex::StrToKmer(const string &s) const
 	{
 	assert(SIZE(s) == m_k);
@@ -29,12 +44,10 @@ uint MuDex::StrToKmer(const string &s) const
 uint MuDex::BytesToKmer(const byte *s) const
 	{
 	uint Kmer = 0;
-	for (uint i = 0; i < m_k; ++i)
+	for (uint i = 0; i < m_K; ++i)
 		{
-		Kmer *= 36;
-		byte Letter = s[i];
-		asserta(Letter < 36);
-		Kmer += Letter;
+		byte Letter = s[m_Offsets[i]];
+		Kmer = Kmer*36 + Letter;
 		}
 	return Kmer;
 	}
@@ -88,70 +101,58 @@ void MuDex::Alloc_Pass2()
 #endif
 	}
 
-void MuDex::AddSeq_Pass1(uint SeqIdx, const char *Label, const char *Seq, uint L)
+void  MuDex::AddSeq_Pass1()
 	{
 #if TRACE
-	Log("AddSeq_Pass1(%s) L=%u\n", Label, L);
-	SeqToFasta(g_fLog, Label, Seq, L);
 	string Tmp;
+	Log("AddSeq_Pass1(%s) L=%u\n", m_Label, m_L);
 #endif
-	if (L < m_k)
-		return;
-	uint Kmer = 0;
-	for (uint SeqPos = 0; SeqPos < m_k-1; ++SeqPos)
+	const uint KmerCount = SIZE(m_Kmers);
+	for (uint i = 0; i < KmerCount; ++i)
 		{
-		byte Letter = g_CharToLetterMu[Seq[SeqPos]];
-		assert(Letter < 36);
-		Kmer = Kmer*36 + Letter;
-		}
-
-	for (uint SeqPos = m_k-1; SeqPos < L; ++SeqPos)
-		{
-		byte Letter = g_CharToLetterMu[Seq[SeqPos]];
-		assert(Letter < 36);
-		Kmer = Kmer*36 + Letter;
-		Kmer %= m_DictSize;
-		assert(Kmer < m_DictSize);
+		uint Kmer = m_Kmers[i];
+		if (Kmer == UINT_MAX)
+			{
+#if TRACE
+			Log("[%4u] ***\n", i);
+#endif
+			continue;
+			}
 
 	// Pass 1, m_Finger[Kmer+1] is count
 		m_Finger[Kmer+1] += 1;
+		++m_Size;
 #if DEBUG
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
-		Log("[%4u] %08x %s\n", SeqPos-4, Kmer, KmerToStr(Kmer, Tmp));
+		Log("[%4u] %08x %s", i, Kmer, KmerToStr(Kmer, Tmp));
+		if (m_KmerSelfScores != 0)
+			Log(" self=%d", m_KmerSelfScores[Kmer]);
+		Log("\n");
 #endif
 		}
-	m_Size += L - (m_k-1);
 	}
 
-void MuDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const char *Seq, uint L)
+void  MuDex::AddSeq_Pass2()
 	{
 #if TRACE
-	Log("AddSeq_Pass2(%s) L=%u\n", Label, L);
-	SeqToFasta(g_fLog, Label, Seq, L);
 	string Tmp;
+	Log("AddSeq_Pass2(%s) L=%u\n", m_Label, m_L);
 #endif
-	if (L < m_k)
-		return;
-	uint Kmer = 0;
-	for (uint SeqPos = 0; SeqPos < m_k-1; ++SeqPos)
+	const uint KmerCount = SIZE(m_Kmers);
+	for (uint i = 0; i < KmerCount; ++i)
 		{
-		byte Letter = g_CharToLetterMu[Seq[SeqPos]];
-		assert(Letter < 36);
-		Kmer = Kmer*36 + Letter;
-		}
-
-	for (uint SeqPos = m_k-1; SeqPos < L; ++SeqPos)
-		{
-		byte Letter = g_CharToLetterMu[Seq[SeqPos]];
-		assert(Letter < 36);
-		Kmer = Kmer*36 + Letter;
-		Kmer %= m_DictSize;
-		assert(Kmer < m_DictSize);
+		uint Kmer = m_Kmers[i];
+		if (Kmer == UINT_MAX)
+			{
+#if TRACE
+			Log("[%4u] %08x %s --LOW\n", i, Kmer, KmerToStr(Kmer, Tmp));
+#endif
+			continue;
+			}
 		uint DataOffset = m_Finger[Kmer+1];
-		uint KmerStartPos = SeqPos - (m_k-1);
-		Put(DataOffset, SeqIdx, KmerStartPos);
+		Put(DataOffset, m_SeqIdx, i);
 		m_Finger[Kmer+1] += 1;
 #if DEBUG
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
@@ -159,7 +160,7 @@ void MuDex::AddSeq_Pass2(uint SeqIdx, const char *Label, const char *Seq, uint L
 #endif
 #if TRACE
 		Log("[%4u] %08x %s DO=%u\n",
-			KmerStartPos, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
+			i, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
 #endif
 		}
 	}
@@ -311,15 +312,14 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 	const uint SeqCount = Input.GetSeqCount();
 
 	Alloc_Pass1();
-	uint SumL4 = 0;
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "MuDex pass 1");
-		const string &Seq = Input.GetSeq(SeqIdx);
-		const uint L = SIZE(Seq);
-		AddSeq_Pass1(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
-		if (L >= m_k)
-			SumL4 += L - (m_k-1);
+		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
+		const byte *Seq = Input.GetByteSeq(SeqIdx);
+		const uint L = Input.GetSeqLength(SeqIdx);
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass1();
 		}
 #if DEBUG
 	CheckAfterPass1();
@@ -333,10 +333,12 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 	Alloc_Pass2();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
-		ProgressStep(SeqIdx, SeqCount, "MuDex pass 2");
-		const string &Seq = Input.GetSeq(SeqIdx);
-		const uint L = SIZE(Seq);
-		AddSeq_Pass2(SeqIdx, Input.GetLabel(SeqIdx).c_str(), Seq.c_str(), L);
+		ProgressStep(SeqIdx, SeqCount, "ThreeDex pass 2");
+		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
+		const byte *Seq = Input.GetByteSeq(SeqIdx);
+		const uint L = Input.GetSeqLength(SeqIdx);
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass2();
 		}
 #if DEBUG
 	CheckAfterPass2();
@@ -399,9 +401,12 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		for (uint i = 0; i < m_k; ++i)
 			{
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
-			Kmer = Kmer*20 + Letter;
+			Kmer = Kmer*36 + Letter;
 			}
-		asserta(Kmer == GetSeqKmer(Seq, KmerStartPos, false));
+#if DEBUG
+		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
+		asserta(CheckKmer == Kmer);
+#endif
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else
@@ -413,9 +418,14 @@ void cmd_mudex()
 	{
 	SeqDB Input;
 	Input.FromFasta(g_Arg1);
+	Input.ToLetters(g_CharToLetterMu);
+
+	const MerMx &ScoreMx = GetMuMerMx();
+	asserta(ScoreMx.m_k == 5);
 
 	MuDex MD;
 	MD.FromSeqDB(Input);
+	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
 	MD.LogIndexKmer(0);
 	MD.LogIndexKmer(0x01733125);
 	MD.LogIndexKmer(0x01bdf141);

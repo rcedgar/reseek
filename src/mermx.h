@@ -77,7 +77,12 @@ public:
 								   bool Trace = false) const;
 	int16_t *BuildSelfScores_6mers() const;
 	int16_t *BuildSelfScores_5mers() const;
-	void CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
-								 vector<float> &BiasVec,
-								 vector<int8_t> &BiasVec8) const;
 	};
+
+void CalcLocalBiasCorrection_3Di(const byte *Seq, uint L, int W, float Scale,
+								vector<float> &BiasVec,
+								vector<int8_t> &BiasVec8);
+
+void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
+								vector<float> &BiasVec,
+								vector<int8_t> &BiasVec8);

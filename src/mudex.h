@@ -58,6 +58,13 @@ After Pass 2:
 	int16_t *m_KmerSelfScores = 0;
 	int m_MinKmerSelfScore = 0;
 
+// Current sequence
+	const char *m_Label = 0;
+	const byte *m_Seq = 0;
+	uint m_L = UINT_MAX;
+	uint m_SeqIdx = UINT_MAX;
+	vector<uint> m_Kmers;
+
 public:
 	void FromSeqDB(const SeqDB &Input);
 	const char *KmerToStr(uint Kmer, string &s) const;
@@ -67,8 +74,9 @@ public:
 	void Alloc_Pass1();
 	void AdjustFinger();
 	void Alloc_Pass2();
-	void AddSeq_Pass1(uint SeqIdx, const char *Label, const char *Seq, uint L);
-	void AddSeq_Pass2(uint SeqIdx, const char *Label, const char *Seq, uint L);
+	void SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L);
+	void AddSeq_Pass1();
+	void AddSeq_Pass2();
 	void LogStats() const;
 	void Validate() const;
 	void ValidateKmer(uint Kmer) const;

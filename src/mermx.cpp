@@ -594,10 +594,9 @@ int16_t *MerMx::BuildSelfScores_5mers() const
 	return SelfScores;
 	}
 
-// lib/mmseqs/src/commons/SubstitutionMatrix.cpp:100 calcLocalAaBiasCorrection
-void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
+void CalcLocalBiasCorrection_3Di(const byte *Seq, uint L, int W, float Scale,
 									vector<float> &BiasVec,
-									vector<int8_t> &BiasVec8) const
+									vector<int8_t> &BiasVec8)
 	{
 	extern int8_t threedi_substmx[20][20];
 	extern float threedi_letter_freqs[20];
@@ -632,4 +631,15 @@ void MerMx::CalcLocalBiasCorrection(const byte *Seq, uint L, int W, float Scale,
 		BiasVec.push_back(Bias);
 		BiasVec8.push_back(Bias8);
 		}
+	}
+
+void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
+									vector<float> &BiasVec,
+									vector<int8_t> &BiasVec8)
+	{
+	BiasVec.clear();
+	BiasVec.reserve(L);
+	BiasVec8.reserve(L);
+	BiasVec.resize(L);
+	BiasVec8.resize(L);
 	}

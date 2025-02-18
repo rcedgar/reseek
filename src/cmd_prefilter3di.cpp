@@ -90,7 +90,7 @@ void cmd_prefilter_3di()
 		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
 		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
 		uint QL = QDB.GetSeqLength(QSeqIdx);
-		ScoreMx.CalcLocalBiasCorrection(QSeq, QL, BIAS_WINDOW, QBIAS_SCALE, BiasVec, BiasVec8);
+		CalcLocalBiasCorrection_3Di(QSeq, QL, BIAS_WINDOW, QBIAS_SCALE, BiasVec, BiasVec8);
 		}
 
 	s_ptrQDB = &QDB;

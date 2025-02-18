@@ -355,7 +355,7 @@ void Prefilter3Di::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
-	m_ScoreMx->CalcLocalBiasCorrection(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
+	CalcLocalBiasCorrection_3Di(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
 
 #if TRACE
 	Log("\n");
