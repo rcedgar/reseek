@@ -425,7 +425,7 @@ void cmd_mudex()
 
 	MuDex MD;
 	MD.FromSeqDB(Input);
-	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
+	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_5mers();
 	MD.LogIndexKmer(0);
 	MD.LogIndexKmer(0x01733125);
 	MD.LogIndexKmer(0x01bdf141);
@@ -433,4 +433,14 @@ void cmd_mudex()
 	MD.LogStats();
 	MD.Validate();
 	ProgressLog("Validate OK\n");
+
+	vector<uint> v;
+	for (uint i = 0; i < MuDex::m_DictSize; ++i)
+		{
+		uint score = MD.m_KmerSelfScores[i];
+		v.push_back(score);
+		}
+	Quarts Q;
+	GetQuarts(v, Q);
+	Q.LogMe();
 	}

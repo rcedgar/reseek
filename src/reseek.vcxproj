@@ -311,6 +311,7 @@
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="evalue_report.cpp" />
     <ClCompile Include="explore1.cpp" />
+    <ClCompile Include="foldseek_bias.cpp" />
     <ClCompile Include="getchains.cpp" />
     <ClCompile Include="idiag.cpp" />
     <ClCompile Include="lddt.cpp" />

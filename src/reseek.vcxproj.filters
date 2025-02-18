@@ -545,6 +545,9 @@
     <ClCompile Include="cmd_prefiltermu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="foldseek_bias.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

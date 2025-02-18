@@ -18,11 +18,11 @@ const MerMx &GetMuMerMx()
 		return *s_ptrMuMerMx;
 	s_ptrMuMerMx = new MerMx;
 
-	short **MxPtrs = myalloc(short *, 20);
-	for (uint i = 0; i < 20; ++i)
+	short **MxPtrs = myalloc(short *, 36);
+	for (uint i = 0; i < 36; ++i)
 		{
-		short *Row = myalloc(short, 20);
-		for (uint j = 0; j < 20; ++j)
+		short *Row = myalloc(short, 36);
+		for (uint j = 0; j < 36; ++j)
 			Row[j] = Mu_S_ij_i8[i][j];
 		MxPtrs[i] = Row;
 		}

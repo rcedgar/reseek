@@ -61,8 +61,8 @@ void cmd_prefilter_mu()
 	QDB.FromFasta(Query3Di_FN);
 	TDB.FromFasta(DB3Di_FN);
 
-	QDB.ToLetters(g_CharToLetterAmino);
-	TDB.ToLetters(g_CharToLetterAmino);
+	QDB.ToLetters(g_CharToLetterMu);
+	TDB.ToLetters(g_CharToLetterMu);
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 

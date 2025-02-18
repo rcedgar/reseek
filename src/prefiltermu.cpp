@@ -195,7 +195,7 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 // Construct high-scoring neighborhood
 	short MinKmerScore = MIN_KMER_PAIR_SCORE - Bias;
 	const uint HSKmerCount =
-		m_ScoreMx->GetHighScoring6mers(Kmer, MinKmerScore, m_NeighborKmers);
+		m_ScoreMx->GetHighScoring5mers(Kmer, MinKmerScore, m_NeighborKmers);
 #if TRACE
 	string Tmp;
 	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s bias=%d minscore=%d |nbrs|=%d\n",
