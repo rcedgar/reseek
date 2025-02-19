@@ -82,6 +82,7 @@ public:
 	int16_t *BuildSelfScores6mers() const;
 	int16_t *BuildSelfScores5mers() const;
 	int16_t *BuildSelfScores_Kmers() const;
+	uint8_t GetKmerMaxLetterCount(uint Kmer);
 	};
 
 

@@ -91,6 +91,10 @@ public:
 	string m_TLabel;
 	uint m_TL = UINT_MAX;
 	vector<uint> m_TKmers;
+#if KMER_SORT
+	vector<uint> m_TKmerSizes;
+	vector<uint> m_TKmerSizeOrder;
+#endif
 #if USE_BIAS
 	vector<float> m_TBiasVec;
 	vector<int8_t> m_TBiasVec8;

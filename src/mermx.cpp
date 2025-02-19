@@ -137,6 +137,30 @@ int16_t MerMx::GetSelfScoreKmer(uint Kmer) const
 		Score16 += m_Mx[Letter][Letter];
 		Kmer /= m_AS;
 		}
+#if KMER_COMPLEXITY
+// SCOP40
+//Max letters [1] = 237643 (12.6%)
+//Max letters [2] = 1023722 (54.4%)
+//Max letters [3] = 463046 (24.6%)
+//Max letters [4] = 112057 (6.0%)
+//Max letters [5] = 44543 (2.4%)
+
+// Dictionary
+//Max letters [1] = 45239040 (74.8%)
+//Max letters [2] = 14779800 (24.4%)
+//Max letters [3] = 441000 (0.7%)
+//Max letters [4] = 6300 (0.0%)
+//Max letters [5] = 36 (0.0%)
+	uint8_t n = GetKmerMaxLetterCount(Kmer);
+	if (n == 1)
+		Score += 16;
+	else if (n == 2)
+		Score += 8;
+	else if (n == 4)
+		Score16 -= 8;
+	else if (n == 5)
+		Score16 -= 16;
+#endif
 	return Score16;
 	}
 

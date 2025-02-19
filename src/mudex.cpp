@@ -5,6 +5,7 @@
 #include "seqdb.h"
 #include "quarts.h"
 #include "prefiltermuparams.h"
+#include "binner.h"
 
 const MerMx &GetMuMerMx(uint k);
 
@@ -64,6 +65,23 @@ uint MuDex::StrToKmer(const char *s) const
 		Kmer += Letter;
 		}
 	return Kmer;
+	}
+
+uint MuDex::GetKmerMaxLetterCount(uint Kmer)
+	{
+	uint8_t KmerLetterCounts[36];
+	memset((void *) KmerLetterCounts, 0, 36);
+	for (uint i = 0; i < m_k; ++i)
+		{
+		byte Letter = Kmer%36;
+		KmerLetterCounts[Letter] += 1;
+		Kmer /= 36;
+		}
+
+	uint8_t maxn = 1;
+	for (uint Letter = 0; Letter < 36; ++Letter)
+		maxn = max(maxn, KmerLetterCounts[Letter]);
+	return maxn;
 	}
 
 const char *MuDex::KmerToStr(uint Kmer, string &s) const
@@ -391,6 +409,40 @@ void MuDex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 	SeqPos = *(uint16_t *) (ptr + 4);
 	}
 
+void MuDex::GetKmersAndSizes(const byte *Seq, uint L,
+							 vector<uint> &Kmers, vector<uint> &Sizes) const
+	{
+	Kmers.reserve(L);
+	Sizes.reserve(L);
+	Kmers.clear();
+	Sizes.clear();
+	for (uint KmerStartPos = 0; KmerStartPos + m_K <= L; ++KmerStartPos)
+		{
+		uint Kmer = 0;
+		for (uint i = 0; i < m_k; ++i)
+			{
+			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
+			Kmer = Kmer*36 + Letter;
+			}
+#if DEBUG
+		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
+		asserta(CheckKmer == Kmer);
+#endif
+		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
+			{
+			Kmers.push_back(UINT_MAX);
+			Sizes.push_back(UINT_MAX);
+			}
+		else
+			{
+			Kmer = Kmer%m_DictSize;
+			uint Size = GetRowSize(Kmer);
+			Kmers.push_back(Kmer);
+			Sizes.push_back(Kmer);
+			}
+		}
+	}
+
 void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 	{
 	Kmers.reserve(L);
@@ -420,8 +472,8 @@ void cmd_mudex()
 	Input.FromFasta(g_Arg1);
 	Input.ToLetters(g_CharToLetterMu);
 
-	const MerMx &ScoreMx = GetMuMerMx(4);
-	asserta(ScoreMx.m_k == 4);
+	const MerMx &ScoreMx = GetMuMerMx(k);
+	asserta(ScoreMx.m_k == k);
 
 	MuDex MD;
 	MD.FromSeqDB(Input);
@@ -438,5 +490,39 @@ void cmd_mudex()
 		}
 	Quarts Q;
 	GetQuarts(v, Q);
+// k=5 SelfScores: 
+// N=60466176, Min=20, LoQ=43, Med=47, HiQ=51, Max=75, Avg=47.3611
+	Log("SelfScores: ");
 	Q.LogMe();
+
+	vector<uint> Counts(6);
+	uint Total = 0;
+	for (uint Kmer = 0; Kmer < MuDex::m_DictSize; ++Kmer)
+		{
+		uint n = MD.GetKmerMaxLetterCount(Kmer);
+		uint Size = MD.GetRowSize(Kmer);
+		Total += Size;
+		Counts[n] += Size;
+		}
+
+// SCOP40
+//Max letters [1] = 237643 (12.6%)
+//Max letters [2] = 1023722 (54.4%)
+//Max letters [3] = 463046 (24.6%)
+//Max letters [4] = 112057 (6.0%)
+//Max letters [5] = 44543 (2.4%)
+
+// Dictionary
+//Max letters [1] = 45239040 (74.8%)
+//Max letters [2] = 14779800 (24.4%)
+//Max letters [3] = 441000 (0.7%)
+//Max letters [4] = 6300 (0.0%)
+//Max letters [5] = 36 (0.0%)
+	for (uint i = 1; i <= 5; ++i)
+		{
+		uint n = Counts[i];
+		double Pct = GetPct(n, Total);
+		ProgressLog("Max letters [%u] = %u (%.1f%%)\n",
+					i, n, Pct);
+		}
 	}

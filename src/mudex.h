@@ -42,7 +42,6 @@ After Pass 2:
 
 	Size(Kmer)
 		= m_Finger[Kmer+1] - m_Finger[Kmer]
-
 ***/
 #if DEBUG
 	vector<uint> m_KmerToCount1;
@@ -91,6 +90,9 @@ public:
 	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos);
 	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const;
 	void GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const;
+	void GetKmersAndSizes(const byte *Seq, uint L,
+						  vector<uint> &Kmers, vector<uint> &Sizes) const;
+	uint GetKmerMaxLetterCount(uint Kmer);
 
 #if DEBUG
 	void CheckAfterPass1() const;
