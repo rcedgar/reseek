@@ -9,6 +9,8 @@
 #include "sort.h"
 #include "mudex.h"
 #include "parasail.h"
+
+#if 0
 extern parasail_matrix_t parasail_combo_matrix;
 extern int8_t IntScoreMx_Mu[36][36];
 static const int X = 12;
@@ -565,9 +567,12 @@ uint MuFilter(const DSSParams &Params,
 	ProgressLog("Mu filter %u secs\n", uint(t1 - t0));
 	return s_TargetCount;
 	}
+#endif // 0
 
 void cmd_mufilter()
 	{
+	Die("Obsolete");
+#if 0
 	asserta(optset_db);
 	const string &QueryFN = g_Arg1;			// Mu FASTA
 	const string &DBFN = string(opt_db);	// Mu FASTA
@@ -588,4 +593,5 @@ void cmd_mufilter()
 	MuQueryDB.FromFasta(QueryFN);
 
 	MuFilter(Params, MuQueryDB, FSS, opt_output);
+#endif
 	}

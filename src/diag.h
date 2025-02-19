@@ -13,6 +13,12 @@ public:
 		m_LT = LT;
 		}
 
+	int get_reseekd(int d) const
+		{
+	// reseekd = i - j
+		return m_LQ - d - 1;
+		}
+
 	int getd(int i, int j) const
 		{
 		return (m_LQ + j) - i - 1;

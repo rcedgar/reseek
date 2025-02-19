@@ -28,6 +28,8 @@ SEPQ0.1=0.2161 SEPQ1=0.3341 SEPQ10=0.4516 S1FP=0.3691 N1FP=167859 area=9.69
 ***/
 void cmd_mukmerfilter()
 	{
+	Die("Obsolete");
+#if 0
 	opt_fast = true;
 	optset_fast = true;
 	DSSParams Params;
@@ -144,4 +146,5 @@ void cmd_mukmerfilter()
 		myfree(Order);
 		}
 	CloseStdioFile(fOut);
+#endif
 	}

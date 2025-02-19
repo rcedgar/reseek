@@ -277,11 +277,17 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
+    <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="composition_bias.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
+    <ClCompile Include="diaghsp.cpp" />
+    <ClCompile Include="duper.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="prefiltermu.cpp" />
+    <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
@@ -414,6 +420,7 @@
     <ClCompile Include="train_features.cpp" />
     <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
+    <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="valuetoint.cpp" />
     <ClCompile Include="one2three.cpp" />
@@ -456,6 +463,8 @@
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
+    <ClInclude Include="diaghsp.h" />
+    <ClInclude Include="duper.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
@@ -499,8 +508,11 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="prefiltermu.h" />
+    <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
+    <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="search.h" />
@@ -513,6 +525,7 @@
     <ClInclude Include="tracebit.h" />
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
+    <ClInclude Include="twohitdiag.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />

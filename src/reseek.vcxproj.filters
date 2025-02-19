@@ -539,6 +539,30 @@
     <ClCompile Include="foldseek_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="create_foldseekdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cmd_prefiltermu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="prefiltermu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="diaghsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rankedscoresbag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="twohitdiag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="duper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="composition_bias.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -819,6 +843,24 @@
     </ClInclude>
     <ClInclude Include="search.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermuparams.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermu.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diaghsp.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rankedscoresbag.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="twohitdiag.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="duper.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

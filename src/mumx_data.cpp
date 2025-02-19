@@ -118,10 +118,6 @@ int8_t Mu_S_ij_i8[36][36] = {
 {-14,-11, -6,-14,-15, -8,-12,-10, -6,-11, -5, -3, -9, -8, -2, -7, -4,  0, -8, -3,  0, -6, -6,  0, -4, -1,  2, -5,  0,  3, -2, -1,  5,  0,  3,  6, }, // 35
 };
 
-static void FreeMe();
-
-static short **Mu_S_ij_short_data;
-
 const short * const *Build_Mu_S_ij_short()
 	{
 	short **Mx = myalloc(short *, 36);
@@ -131,18 +127,7 @@ const short * const *Build_Mu_S_ij_short()
 		for (uint j = 0; j < 36; ++j)
 			Mx[i][j] = Mu_S_ij_i8[i][j];
 		}
-	atexit(FreeMe);
-	Mu_S_ij_short_data = Mx;
 	return Mx;
 	}
 
 const short * const *Mu_S_ij_short = Build_Mu_S_ij_short();
-
-static void FreeMe()
-	{
-	if (Mu_S_ij_short_data == 0)
-		return;
-	for (uint i = 0; i < 36; ++i)
-		myfree(Mu_S_ij_short_data[i]);
-	myfree(Mu_S_ij_short_data);
-	}

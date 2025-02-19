@@ -64,6 +64,24 @@ unsigned SeqDB::AddSeq(const string& Label, const string& Seq)
 	return SeqIndex;
 	}
 
+void SeqDB::ToLetters(const byte *CharToLetter)
+	{
+	const uint SeqCount = GetSeqCount();
+	for (uint Idx = 0; Idx < SeqCount; ++Idx)
+		{
+		string &s = m_Seqs[Idx];
+		const uint L = SIZE(s);
+		for (uint i = 0; i < L; ++i)
+			s[i] = CharToLetter[s[i]];
+		}
+	}
+
+const byte *SeqDB::GetByteSeq(unsigned SeqIndex) const
+	{
+	assert(SeqIndex < SIZE(m_Seqs));
+	return (const byte *) m_Seqs[SeqIndex].c_str();
+	}
+
 const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Seqs));

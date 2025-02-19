@@ -18,6 +18,7 @@ public:
 	const byte *m_LetterToChar = 0;
 
 // AS x AS scoring matrix m_Mx[Letter_i][Letter_j]
+	// TODO: more efficient with int8_t?
 	const short * const *m_Mx = 0;
 
 // AS2 x AS2 scoring matrix m_Mx2[Kmer_i][Kmer_j]
@@ -51,7 +52,14 @@ public:
 	int GetScoreKmerPair(uint Kmer_i, uint Kmer_j) const;
 	short GetScore2merPair(uint Kmer_i, uint Kmer_j) const;
 	short GetScore3merPair(uint Kmer_i, uint Kmer_j) const;
+	int16_t GetSelfScore6mer(uint Kmer) const;
+	int16_t GetSelfScore5mer(uint Kmer) const;
+	int16_t GetSelfScoreKmer(uint Kmer) const;
 	void KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const;
+	const char *KmerToStr(uint Kmer, string &s) const
+		{
+		return KmerToStr(Kmer, m_k, s);
+		}
 	const char *KmerToStr(uint Kmer, uint k, string &s) const;
 	uint StrToKmer(const string &s) const;
 	void LogMe() const;
@@ -63,10 +71,23 @@ public:
 //   against another s-mer
 	short GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const;
 
+	uint GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const;
+	uint GetHighScoring4mers(uint Kmer, short MinScore, uint *Kmers) const;
 	uint GetHighScoring5mers(uint Kmer, short MinScore, uint *Kmers) const;
 	uint GetHighScoring6mers(uint Kmer, short MinScore, uint *Kmers) const;
 	uint GetHighScoring5mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
 	uint GetHighScoring6mers_Brute(uint Kmer, short MinScore, uint *Kmers,
 								   bool Trace = false) const;
+	int16_t *BuildSelfScores6mers() const;
+	int16_t *BuildSelfScores5mers() const;
+	int16_t *BuildSelfScores_Kmers() const;
 	};
+
+void CalcLocalBiasCorrection_3Di(const byte *Seq, uint L, int W, float Scale,
+								vector<float> &BiasVec,
+								vector<int8_t> &BiasVec8);
+
+void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
+								vector<float> &BiasVec,
+								vector<int8_t> &BiasVec8);

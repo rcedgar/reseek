@@ -59,7 +59,6 @@ static void Search_NoMuFilter()
 	CloseOutputFiles();
 	}
 
-
 void cmd_search()
 	{
 	if (!optset_db)
@@ -107,11 +106,13 @@ void cmd_search()
 	if (optset_evalue)
 		MaxEvalue = (float) opt_evalue;
 
+	Die("TODO -- MuFilter");
+#if 0
 	uint DBSize = MuFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 	if (optset_dbsize)
 		DBSize = uint(opt_dbsize);
 	Params.m_DBSize = float(DBSize);
-
+#endif
 	PostMuFilter(Params, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
 
 	if (!opt_keeptmp)

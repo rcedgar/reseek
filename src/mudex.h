@@ -2,13 +2,15 @@
 
 class SeqDB;
 
-// Mu k-mer index
+// Mu 5-mer index
 class MuDex
 	{
 public:
-	static const uint32_t m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
-	static uint32_t m_DictSize; // 36*36*36*36*36;
-	static uint32_t m_k; // 5;
+	static const uint32_t m_DictSize;
+	static const uint32_t m_ItemSize;
+	static const uint32_t m_k;
+	static const uint32_t m_K;
+	static const uint8_t *m_Offsets;
 
 /***
 Finger index.
@@ -52,66 +54,47 @@ After Pass 2:
 	uint32_t m_Size = 0;
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
+	int16_t *m_KmerSelfScores = 0;
+	int m_MinKmerSelfScore = 0;
 
-public:
-	static void Set_k(uint k);
+// Current sequence
+	const char *m_Label = 0;
+	const byte *m_Seq = 0;
+	uint m_L = UINT_MAX;
+	uint m_SeqIdx = UINT_MAX;
+	vector<uint> m_Kmers;
 
 public:
 	void FromSeqDB(const SeqDB &Input);
 	const char *KmerToStr(uint Kmer, string &s) const;
 	uint StrToKmer(const string &s) const;
+	uint BytesToKmer(const byte *s) const;
 	uint StrToKmer(const char *s) const;
 	void Alloc_Pass1();
 	void AdjustFinger();
 	void Alloc_Pass2();
-	void AddSeq_Pass1(uint SeqIdx, const char *Label, const char *Seq, uint L);
-	void AddSeq_Pass2(uint SeqIdx, const char *Label, const char *Seq, uint L);
+	void SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L);
+	void AddSeq_Pass1();
+	void AddSeq_Pass2();
 	void LogStats() const;
 	void Validate() const;
 	void ValidateKmer(uint Kmer) const;
-	uint GetSeqKmer(uint SeqIdx, uint SeqPos) const;
+	uint GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const;
 	void LogIndexKmer(uint Kmer) const;
-	const uint32_t GetDataOffset(uint Kmer) const { return m_Finger[Kmer]; }
 	const uint32_t GetRowStart(uint Kmer) const
 		{
 		assert(Kmer < m_DictSize);
 		return m_Finger[Kmer];
 		}
 
+	uint GetRowSize(uint Kmer) const;
+	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos);
+	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const;
+	void GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const;
+
 #if DEBUG
 	void CheckAfterPass1() const;
 	void CheckAfterAdjust() const;
 	void CheckAfterPass2() const;
 #endif
-
-	uint GetRowSize(uint Kmer) const
-		{
-		assert(Kmer < m_DictSize);
-		uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
-		assert(m_Finger[Kmer] + n <= m_Size);
-		return n;
-		}
-
-	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
-		{
-		uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
-		*(uint32_t *) ptr = SeqIdx;
-		*(uint16_t *) (ptr + 4) = SeqPos;
-#if DEBUG
-		{
-		uint32_t Check_SeqIdx;
-		uint16_t Check_SeqPos;
-		Get(DataOffset, Check_SeqIdx, Check_SeqPos);
-		assert(Check_SeqIdx == SeqIdx);
-		assert(Check_SeqPos == SeqPos);
-		}
-#endif
-		}
-
-	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
-		{
-		const uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
-		SeqIdx = *(uint32_t *) ptr;
-		SeqPos = *(uint16_t *) (ptr + 4);
-		}
 	};
