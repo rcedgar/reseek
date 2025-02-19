@@ -16,3 +16,5 @@ static const int MIN_KMER_PAIR_SCORE = 36;
 static const int BIAS_WINDOW = 30; // 40
 static const float TBIAS_SCALE = 0; // 0.15f;
 static const float QBIAS_SCALE = 0; // 0.15f;
+
+#define	USE_BIAS	0

@@ -46,6 +46,7 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 	return B;
 	}
 
+#if USE_BIAS
 int PrefilterMu::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
 							  uint Qlo, uint Tlo) const
 	{
@@ -91,6 +92,7 @@ int PrefilterMu::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
 #endif
 	return B;
 	}
+#endif
 
 //////////////////////////////////////////////
 // 	FindHSP plus "traceback", i.e. returns
@@ -185,14 +187,17 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	short Bias = GetTargetBiasCorrection(TPos);
 	assert(Kmer < DICT_SIZE);
 	assert(m_KmerSelfScores[Kmer] >= MIN_KMER_PAIR_SCORE);
+	short MinKmerScore = MIN_KMER_PAIR_SCORE;
 
 // Construct high-scoring neighborhood
-	short MinKmerScore = MIN_KMER_PAIR_SCORE - Bias;
+#if USE_BIAS
+	short MinKmerScore -= GetTargetBiasCorrection(TPos);;
+#endif
 	const uint HSKmerCount =
 		m_ScoreMx->GetHighScoringKmers(Kmer, MinKmerScore, m_NeighborKmers);
+
 #if TRACE
 	string Tmp;
 	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s bias=%d minscore=%d |nbrs|=%d\n",
@@ -304,6 +309,7 @@ int PrefilterMu::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+#if USE_BIAS
 	assert(m_BiasVecs8 != 0);
 	assert(QSeqIdx < SIZE(*m_BiasVecs8));
 	const vector<int8_t> &BiasVec8 = (*m_BiasVecs8)[QSeqIdx];
@@ -311,6 +317,9 @@ int PrefilterMu::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	uint Qlo = dg.getmini(Diag);
 	uint Tlo = dg.getminj(Diag);
 	int DiagScore = FindHSP_Biased(QSeqIdx, BiasVec8, Qlo, Tlo);
+#else
+	int DiagScore = FindHSP(QSeqIdx, Diag);
+#endif
 	return DiagScore;
 	}
 
@@ -333,6 +342,7 @@ void PrefilterMu::Reset()
 	m_DiagBag.Reset();
 	}
 
+#if USE_BIAS
 // lib/mmseqs/src/prefiltering/QueryMatcher.cpp:257
 short PrefilterMu::GetTargetBiasCorrection(uint TPos) const
 	{
@@ -344,6 +354,7 @@ short PrefilterMu::GetTargetBiasCorrection(uint TPos) const
 	short ShortBias = short(FloatBias < 0 ? FloatBias - 0.5 : FloatBias + 0.5);
 	return ShortBias;
 	}
+#endif
 
 void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
 	const byte *TSeq, uint TL)
@@ -352,7 +363,9 @@ void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
+#if USE_BIAS
 	CalcLocalBiasCorrection_Mu(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
+#endif
 
 #if TRACE
 	Log("\n");

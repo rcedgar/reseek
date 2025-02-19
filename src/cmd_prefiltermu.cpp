@@ -7,11 +7,14 @@ static mutex m_NextTIdxLock;
 static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const SeqDB *s_ptrTDB = 0;
-static const vector<vector<int8_t> > *s_ptrBiasVecs8;
 static const MuDex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static FILE *s_fTsv2 = 0;
 static time_t s_TimeLastProgress;
+
+#if USE_BIAS
+static const vector<vector<int8_t> > *s_ptrBiasVecs8;
+#endif
 
 static void ThreadBody(uint ThreadIndex)
 	{
@@ -22,7 +25,9 @@ static void ThreadBody(uint ThreadIndex)
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
 	Pref.SetQDB(*s_ptrQDB);
+#if USE_BIAS
 	Pref.m_BiasVecs8 = s_ptrBiasVecs8;
+#endif
 
 	for (;;)
 		{
@@ -86,6 +91,7 @@ void cmd_prefilter_mu()
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
+#if USE_BIAS
 	vector<vector<int8_t> > BiasVecs8(QSeqCount);
 	vector<float> BiasVec;
 	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
@@ -95,12 +101,15 @@ void cmd_prefilter_mu()
 		uint QL = QDB.GetSeqLength(QSeqIdx);
 		CalcLocalBiasCorrection_Mu(QSeq, QL, BIAS_WINDOW, QBIAS_SCALE, BiasVec, BiasVec8);
 		}
+#endif
 
 	s_ptrQDB = &QDB;
 	s_ptrTDB = &TDB;
 	s_ptrScoreMx = &ScoreMx;
 	s_ptrQKmerIndex = &QKmerIndex;
+#if USE_BIAS
 	s_ptrBiasVecs8 = &BiasVecs8;
+#endif
 
 	ProgressStep(0, TSeqCount, "Filtering");
 	time_t t_start = time(0);
@@ -123,9 +132,7 @@ void cmd_prefilter_mu()
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
 	double SeqsPerSec = double(TSeqCount)/filter_secs;
-	double SeqsPerSecPerThread = SeqsPerSec*ThreadCount;
 	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
-	ProgressLog("Seqs/sec/thread  %s\n", FloatToStr(SeqsPerSecPerThread));
 
 	{
 	FILE *fTsv = CreateStdioFile(opt_output);

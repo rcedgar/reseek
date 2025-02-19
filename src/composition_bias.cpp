@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "prefiltermuparams.h"
 
 #if 0
 void CalcLocalBiasCorrection_3Di(const byte *Seq, uint L, int W, float Scale,
@@ -41,6 +42,7 @@ void CalcLocalBiasCorrection_3Di(const byte *Seq, uint L, int W, float Scale,
 	}
 #endif
 
+#if USE_BIAS
 void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
 									vector<float> &BiasVec,
 									vector<int8_t> &BiasVec8)
@@ -51,3 +53,4 @@ void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
 	BiasVec.resize(L);
 	BiasVec8.resize(L);
 	}
+#endif
