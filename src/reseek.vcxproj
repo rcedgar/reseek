@@ -479,6 +479,7 @@
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
     <ClInclude Include="mudex.h" />
+    <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="pdbfilescanner.h" />

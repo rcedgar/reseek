@@ -248,7 +248,7 @@ static void Test()
 	ProgressLog("min %d, max %d, maxd %d, avg %.1f\n",
 				scmin, scmax, scmaxd, scsum/400);
 
-	const int16_t *SelfScores = MM.BuildSelfScores_6mers();
+	const int16_t *SelfScores = MM.BuildSelfScores6mers();
 
 	s_dict_size = myipow(20, 6);
 	asserta(s_dict_size == 64000000);

@@ -161,9 +161,6 @@ void PrefilterMu::SetQDB(const SeqDB &QDB)
 
 void PrefilterMu::Search_TargetKmers()
 	{
-	if (m_TL < 2*k)
-		return;
-
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
 	for (uint i = 0; i < NK; ++i)
@@ -195,7 +192,7 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 // Construct high-scoring neighborhood
 	short MinKmerScore = MIN_KMER_PAIR_SCORE - Bias;
 	const uint HSKmerCount =
-		m_ScoreMx->GetHighScoring5mers(Kmer, MinKmerScore, m_NeighborKmers);
+		m_ScoreMx->GetHighScoringKmers(Kmer, MinKmerScore, m_NeighborKmers);
 #if TRACE
 	string Tmp;
 	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s bias=%d minscore=%d |nbrs|=%d\n",
@@ -355,7 +352,7 @@ void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
-	CalcLocalBiasCorrection_3Di(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
+	CalcLocalBiasCorrection_Mu(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
 
 #if TRACE
 	Log("\n");

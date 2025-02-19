@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "prefiltermu.h"
+#include "prefiltermuparams.h"
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -50,6 +51,8 @@ static void ThreadBody(uint ThreadIndex)
 
 void cmd_prefilter_mu()
 	{
+	const uint k = MuDex::m_k;
+
 	const string &Query3Di_FN = g_Arg1;
 	const string &DB3Di_FN = opt_db;
 
@@ -69,11 +72,11 @@ void cmd_prefilter_mu()
 	PrefilterMu::m_RSB.m_B = RSB_SIZE;
 	PrefilterMu::m_RSB.Init(QSeqCount);
 
-	const MerMx &ScoreMx = GetMuMerMx();
+	const MerMx &ScoreMx = GetMuMerMx(k);
 	asserta(ScoreMx.m_k == k);
 
 	MuDex QKmerIndex;
-	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_5mers();
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG

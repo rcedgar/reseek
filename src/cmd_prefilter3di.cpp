@@ -73,7 +73,7 @@ void cmd_prefilter_3di()
 	asserta(ScoreMx.m_k == k);
 
 	ThreeDex QKmerIndex;
-	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_6mers();
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores6mers();
 	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG

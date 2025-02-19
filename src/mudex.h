@@ -10,8 +10,7 @@ public:
 	static const uint32_t m_ItemSize;
 	static const uint32_t m_k;
 	static const uint32_t m_K;
-	static const char m_Pattern[6];
-	static const byte m_Offsets[5];
+	static const uint8_t *m_Offsets;
 
 /***
 Finger index.

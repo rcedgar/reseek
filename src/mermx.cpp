@@ -118,7 +118,20 @@ int16_t MerMx::GetSelfScore6mer(uint Kmer) const
 int16_t MerMx::GetSelfScore5mer(uint Kmer) const
 	{
 	int16_t Score16 = 0;
-	for (uint i = 0; i < 5; ++i)
+	assert(m_k == 5);
+	for (uint i = 0; i < m_k; ++i)
+		{
+		uint Letter = Kmer%m_AS;
+		Score16 += m_Mx[Letter][Letter];
+		Kmer /= m_AS;
+		}
+	return Score16;
+	}
+
+int16_t MerMx::GetSelfScoreKmer(uint Kmer) const
+	{
+	int16_t Score16 = 0;
+	for (uint i = 0; i < m_k; ++i)
 		{
 		uint Letter = Kmer%m_AS;
 		Score16 += m_Mx[Letter][Letter];
@@ -402,7 +415,12 @@ uint MerMx::GetSubmer(uint a_Kmer, uint pos, uint s) const
 short MerMx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
 	{
 	uint Smer = GetSubmer(Kmer, pos, s);
-	if (s == 2)
+	if (s == 1)
+		{
+		assert(Smer < m_AS);
+		return m_Scores1[Smer][0];
+		}
+	else if (s == 2)
 		{
 		assert(Smer < m_AS2);
 		return m_Scores2[Smer][0];
@@ -541,6 +559,47 @@ uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) con
 	return n;
 	}
 
+uint MerMx::GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const
+	{
+	switch (m_k)
+		{
+	case 4: return GetHighScoring4mers(Kmer, MinScore, Kmers);
+	case 5: return GetHighScoring5mers(Kmer, MinScore, Kmers);
+	case 6: return GetHighScoring6mers(Kmer, MinScore, Kmers);
+		}
+	asserta(false);
+	return UINT_MAX;
+	}
+
+uint MerMx::GetHighScoring4mers(uint Fourmera, short MinScore, uint *Fourmers) const
+	{
+	const uint First_2mera = GetSubmer(Fourmera, 0, 2);
+	const uint Second_2mera = GetSubmer(Fourmera, 2, 2);
+	const short MaxScoreSecond_2mer = GetMaxPairScoreSubmer(Fourmera, 2, 2);
+	const short MinScoreFirstThreemer = MinScore - MaxScoreSecond_2mer;
+	uint n = 0;
+	const uint First_mul = m_AS_pow[2];
+	const short *Row1 = m_Scores2[First_2mera];
+	for (uint i = 0; i < m_AS2; ++i)
+		{
+		short Score_First2merab = Row1[2*i];
+		if (Score_First2merab < MinScoreFirstThreemer)
+			break;
+		const uint First_2merb = Row1[2*i+1];
+		const short MinScore_Second2mer = MinScore - Score_First2merab;
+		const short *Row2 = m_Scores2[Second_2mera];
+		for (uint j = 0; j < m_AS2; ++j)
+			{
+			short Score_Second2merab = Row2[2*j];
+			if (Score_Second2merab < MinScore_Second2mer)
+				break;
+			uint Second_2merb = Row2[2*j+1];
+			uint ThisFourmer = First_2merb*First_mul + Second_2merb;
+			Fourmers[n++] = ThisFourmer;
+			}
+		}
+	return n;
+	}
 
 uint MerMx::GetHighScoring5mers_Brute(uint Fivemer, short MinScore, uint *Fivemers,
 									  bool Trace) const
@@ -588,7 +647,7 @@ uint MerMx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers
 	return n;
 	}
 
-int16_t *MerMx::BuildSelfScores_6mers() const
+int16_t *MerMx::BuildSelfScores6mers() const
 	{
 	const uint AS6 = m_AS_pow[6];
 	int16_t *SelfScores = myalloc(int16_t, AS6);
@@ -597,11 +656,20 @@ int16_t *MerMx::BuildSelfScores_6mers() const
 	return SelfScores;
 	}
 
-int16_t *MerMx::BuildSelfScores_5mers() const
+int16_t *MerMx::BuildSelfScores5mers() const
 	{
 	const uint AS5 = m_AS_pow[5];
 	int16_t *SelfScores = myalloc(int16_t, AS5);
 	for (uint Kmer = 0; Kmer < AS5; ++Kmer)
 		SelfScores[Kmer] = GetSelfScore5mer(Kmer);
+	return SelfScores;
+	}
+
+int16_t *MerMx::BuildSelfScores_Kmers() const
+	{
+	const uint ASk = m_AS_pow[m_k];
+	int16_t *SelfScores = myalloc(int16_t, ASk);
+	for (uint Kmer = 0; Kmer < ASk; ++Kmer)
+		SelfScores[Kmer] = GetSelfScoreKmer(Kmer);
 	return SelfScores;
 	}

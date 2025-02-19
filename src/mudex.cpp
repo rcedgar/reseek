@@ -4,15 +4,14 @@
 #include "mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
+#include "prefiltermuparams.h"
 
-const MerMx &GetMuMerMx();
+const MerMx &GetMuMerMx(uint k);
 
-const char MuDex::m_Pattern[6] = "11111";
-const byte MuDex::m_Offsets[5] = { 0, 1, 2, 3, 4, };
+const uint8_t *MuDex::m_Offsets = s_Offsets;
 const uint32_t MuDex::m_DictSize = 36*36*36*36*36;
-const uint32_t MuDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
-const uint32_t MuDex::m_k = 5;
-const uint32_t MuDex::m_K = 5;
+const uint32_t MuDex::m_k = k;
+const uint32_t MuDex::m_K = K;
 
 /***
 32 bits 2^5, 64 bits 2^6
@@ -20,6 +19,7 @@ const uint32_t MuDex::m_K = 5;
 6 bits per Mu letter
 8 bits per char
 ***/
+const uint32_t MuDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 #define TRACE	0
 
@@ -44,7 +44,7 @@ uint MuDex::StrToKmer(const string &s) const
 uint MuDex::BytesToKmer(const byte *s) const
 	{
 	uint Kmer = 0;
-	for (uint i = 0; i < m_K; ++i)
+	for (uint i = 0; i < m_k; ++i)
 		{
 		byte Letter = s[m_Offsets[i]];
 		Kmer = Kmer*36 + Letter;
@@ -420,16 +420,12 @@ void cmd_mudex()
 	Input.FromFasta(g_Arg1);
 	Input.ToLetters(g_CharToLetterMu);
 
-	const MerMx &ScoreMx = GetMuMerMx();
-	asserta(ScoreMx.m_k == 5);
+	const MerMx &ScoreMx = GetMuMerMx(4);
+	asserta(ScoreMx.m_k == 4);
 
 	MuDex MD;
 	MD.FromSeqDB(Input);
-	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_5mers();
-	MD.LogIndexKmer(0);
-	MD.LogIndexKmer(0x01733125);
-	MD.LogIndexKmer(0x01bdf141);
-	MD.LogIndexKmer(0x01710931);
+	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	MD.LogStats();
 	MD.Validate();
 	ProgressLog("Validate OK\n");
