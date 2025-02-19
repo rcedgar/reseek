@@ -7,10 +7,10 @@ static const uint8_t s_Offsets[] = { 0, 1, 2, 5, 6 };
 
 static const uint8_t *s_ptrOffsets = s_Offsets;
 static const uint DICT_SIZE = 60466176;	// 36^5
-static const uint RSB_SIZE = 2000;
+static const uint RSB_SIZE = 1500;
 static const uint ALPHABET_SIZE = 36;
 
-static const int MIN_KMER_PAIR_SCORE = 32;
+static const int MIN_KMER_PAIR_SCORE = 36;
 
 // Not used
 static const int BIAS_WINDOW = 30; // 40

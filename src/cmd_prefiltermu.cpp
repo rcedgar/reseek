@@ -103,7 +103,8 @@ void cmd_prefilter_mu()
 	s_ptrBiasVecs8 = &BiasVecs8;
 
 	ProgressStep(0, TSeqCount, "Filtering");
-	s_TimeLastProgress = time(0);
+	time_t t_start = time(0);
+	s_TimeLastProgress = t_start;
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
@@ -116,10 +117,15 @@ void cmd_prefilter_mu()
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-
 	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
-
 	CloseStdioFile(s_fTsv2);
+
+	time_t t_end = time(0);
+	uint filter_secs = uint(t_end - t_start);
+	double SeqsPerSec = double(TSeqCount)/filter_secs;
+	double SeqsPerSecPerThread = SeqsPerSec*ThreadCount;
+	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
+	ProgressLog("Seqs/sec/thread  %s\n", FloatToStr(SeqsPerSecPerThread));
 
 	{
 	FILE *fTsv = CreateStdioFile(opt_output);
