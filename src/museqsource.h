@@ -14,6 +14,7 @@ public:
 	const DSSParams *m_Params = 0;
 	const PDBChain *m_Chain = 0;
 	DSS m_DSS;
+	bool m_ASCII = true;
 
 public:
 	virtual bool GetIsNucleo() { return false; }

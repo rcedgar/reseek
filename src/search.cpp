@@ -6,6 +6,11 @@
 #include "search.h"
 #include "output.h"
 
+uint MuPreFilter(const DSSParams &Params,
+			  SeqDB &QueryDB,
+			  MuSeqSource &FSS,
+			  const string &OutputFN);
+
 void SelfSearch()
 	{
 	const string &QFN = g_Arg1;
@@ -82,7 +87,7 @@ void cmd_search()
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
 	const string &PatternStr = Params.m_PatternStr;
-	asserta(PatternStr == "111");
+	//asserta(PatternStr == "1110011");
 
 	string MuFilterTsvFN;
 	GetTmpFileName(MuFilterTsvFN);
@@ -106,13 +111,10 @@ void cmd_search()
 	if (optset_evalue)
 		MaxEvalue = (float) opt_evalue;
 
-	Die("TODO -- MuFilter");
-#if 0
-	uint DBSize = MuFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
+	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 	if (optset_dbsize)
 		DBSize = uint(opt_dbsize);
 	Params.m_DBSize = float(DBSize);
-#endif
 	PostMuFilter(Params, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
 
 	if (!opt_keeptmp)

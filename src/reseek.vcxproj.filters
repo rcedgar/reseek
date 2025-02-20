@@ -563,6 +563,9 @@
     <ClCompile Include="composition_bias.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="muprefilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

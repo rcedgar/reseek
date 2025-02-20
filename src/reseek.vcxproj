@@ -286,6 +286,7 @@
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />

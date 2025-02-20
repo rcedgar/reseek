@@ -65,6 +65,8 @@ void DSSParams::SetNamedParams(const string &Name)
 		m_MinFwdScore = 7.0f;
 		m_Omega = 29;
 		m_OmegaFwd = 29;
+#pragma warning("TODO")
+		//m_PatternStr = "1110011";
 		m_PatternStr = "111";
 		//m_MKFL = 400;
 		//m_MKF_X1 = 8;

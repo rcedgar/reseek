@@ -2,16 +2,16 @@
 #include "dssparams.h"
 #include "prefiltermu.h"
 #include "prefiltermuparams.h"
+#include "museqsource.h"
+#include "seqinfo.h"
 
-static uint s_NextTIdx = 0;
-static mutex m_NextTIdxLock;
+static mutex s_NextLock;
 static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
-static const SeqDB *s_ptrTDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
-static FILE *s_fTsv = 0;
-static FILE *s_fTsv2 = 0;
 static time_t s_TimeLastProgress;
+static MuSeqSource *s_SS;
+static uint s_DBSize = 0;
 
 #if USE_BIAS
 static const vector<vector<int8_t> > *s_ptrBiasVecs8;
@@ -19,8 +19,7 @@ static const vector<vector<int8_t> > *s_ptrBiasVecs8;
 
 static void ThreadBody(uint ThreadIndex)
 	{
-	const uint TSeqCount = s_ptrTDB->GetSeqCount();
-
+	ObjMgr OM;
 	PrefilterMu Pref;
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
@@ -32,48 +31,51 @@ static void ThreadBody(uint ThreadIndex)
 
 	for (;;)
 		{
-		m_NextTIdxLock.lock();
-		uint TSeqIdx = s_NextTIdx;
-		if (s_NextTIdx < TSeqCount)
-			++s_NextTIdx;
-		if (TSeqIdx > 0 && TSeqIdx + 1 < TSeqCount)
+		s_NextLock.lock();
+		uint TSeqIdx = s_DBSize;
+		SeqInfo *SI = OM.GetSeqInfo();
+		bool Ok = s_SS->GetNext(SI);
+		if (Ok)
+			++s_DBSize;
+		if (s_DBSize%100 == 0)
 			{
 			time_t now = time(0);
 			if (now > s_TimeLastProgress)
-				ProgressStep(TSeqIdx, TSeqCount, "Filtering");
+				Progress("Filtering %s    \r", IntToStr(s_DBSize));
 			s_TimeLastProgress = now;
 			}
-		m_NextTIdxLock.unlock();
-		if (TSeqIdx == TSeqCount)
+		s_NextLock.unlock();
+		if (!Ok)
+			{
+			OM.Down(SI);
 			return;
+			}
+		if (SI->m_L == 0)
+			{
+			OM.Down(SI);
+			continue;
+			}
 
-		Pref.m_TSeqIdx = TSeqIdx;
-		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
-		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
-		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
-		Pref.Search(s_fTsv2, TSeqIdx, TLabel, TSeq, TL);
+		const byte *TSeq = SI->m_Seq;
+		const string &TLabel = string(SI->m_Label);
+		uint TL = SI->m_L;
+		Pref.Search(0, TSeqIdx, TLabel, TSeq, TL);
+		OM.Down(SI);
 		}
 	}
 
-void cmd_prefilter_mu()
+uint MuPreFilter(const DSSParams &Params,
+			  SeqDB &QDB,
+			  MuSeqSource &FSS,
+			  const string &OutputFN)
 	{
+	s_SS = &FSS;
+	s_SS->m_ASCII = false;
+
 	const uint k = MuDex::m_k;
 
-	const string &Query3Di_FN = g_Arg1;
-	const string &DB3Di_FN = opt_db;
-
-	s_fTsv2 = CreateStdioFile(opt_output2);
-	
-	SeqDB QDB;
-	SeqDB TDB;
-
-	QDB.FromFasta(Query3Di_FN);
-	TDB.FromFasta(DB3Di_FN);
-
 	QDB.ToLetters(g_CharToLetterMu);
-	TDB.ToLetters(g_CharToLetterMu);
 	const uint QSeqCount = QDB.GetSeqCount();
-	const uint TSeqCount = TDB.GetSeqCount();
 
 	PrefilterMu::m_RSB.m_B = RSB_SIZE;
 	PrefilterMu::m_RSB.Init(QSeqCount);
@@ -105,14 +107,13 @@ void cmd_prefilter_mu()
 #endif
 
 	s_ptrQDB = &QDB;
-	s_ptrTDB = &TDB;
 	s_ptrScoreMx = &ScoreMx;
 	s_ptrQKmerIndex = &QKmerIndex;
 #if USE_BIAS
 	s_ptrBiasVecs8 = &BiasVecs8;
 #endif
 
-	ProgressStep(0, TSeqCount, "Filtering");
+	Progress("Filtering\r");
 	time_t t_start = time(0);
 	s_TimeLastProgress = t_start;
 
@@ -127,30 +128,10 @@ void cmd_prefilter_mu()
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
-	CloseStdioFile(s_fTsv2);
+	Progress("Filtering done       \n");
 
-	time_t t_end = time(0);
-	uint filter_secs = uint(t_end - t_start);
-	double SeqsPerSec = double(TSeqCount)/filter_secs;
-	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
-
-	{
-	FILE *fTsv = CreateStdioFile(opt_output);
+	FILE *fTsv = CreateStdioFile(OutputFN);
 	PrefilterMu::m_RSB.ToTsv(fTsv);
-	CloseStdioFile(s_fTsv);
-	}
-
-	if (optset_output3)
-		{
-		vector<string> QLabels;
-		vector<string> TLabels;
-		for (uint i = 0; i < QSeqCount; ++i)
-			QLabels.push_back(QDB.GetLabel(i));
-		for (uint i = 0; i < TSeqCount; ++i)
-			TLabels.push_back(TDB.GetLabel(i));
-		FILE *fTsv = CreateStdioFile(opt_output3);
-		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
-		CloseStdioFile(s_fTsv);
-		}
+	CloseStdioFile(fTsv);
+	return s_DBSize;
 	}
