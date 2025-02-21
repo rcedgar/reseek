@@ -31,12 +31,12 @@ static void TraceAln1(const DSSParams &Params,
 	D.Init(Q);
 	D.GetProfile(ProfileQ);
 	D.GetMuLetters(MuLettersQ);
-	D.GetMuKmers(MuLettersQ, MuKmersQ);
+	D.GetMuKmers(MuLettersQ, MuKmersQ, Params.m_MKFPatternStr);
 
 	D.Init(T);
 	D.GetProfile(ProfileT);
 	D.GetMuLetters(MuLettersT);
-	D.GetMuKmers(MuLettersT, MuKmersT);
+	D.GetMuKmers(MuLettersT, MuKmersT, Params.m_MKFPatternStr);
 
 	float SelfRevScoreQ = GetSelfRevScore(DA, D, Q, ProfileQ, &MuLettersQ, &MuKmersQ);
 	float SelfRevScoreT = GetSelfRevScore(DA, D, T, ProfileT, &MuLettersT, &MuKmersT);
@@ -74,7 +74,7 @@ void cmd_tracealn()
 	ReadChains(opt_db, Ts);
 
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 
 	const uint NQ = SIZE(Qs);
 	const uint NT = SIZE(Ts);

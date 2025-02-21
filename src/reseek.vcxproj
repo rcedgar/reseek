@@ -277,8 +277,8 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
+    <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
-    <ClCompile Include="composition_bias.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
@@ -295,7 +295,6 @@
     <ClCompile Include="calibrate.cpp" />
     <ClCompile Include="calibrate2.cpp" />
     <ClCompile Include="calibrate3.cpp" />
-    <ClCompile Include="calibrate4.cpp" />
     <ClCompile Include="calibrate5.cpp" />
     <ClCompile Include="calibrate5a.cpp" />
     <ClCompile Include="calibrate7.cpp" />
@@ -331,7 +330,6 @@
     <ClCompile Include="lddt_msa_foldmason.cpp" />
     <ClCompile Include="lddt_muscle.cpp" />
     <ClCompile Include="mudex.cpp" />
-    <ClCompile Include="mufilter.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="mermx.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />
@@ -386,8 +384,6 @@
     <ClCompile Include="getbins.cpp" />
     <ClCompile Include="jiggle.cpp" />
     <ClCompile Include="kabsch.cpp" />
-    <ClCompile Include="kmer_eval.cpp" />
-    <ClCompile Include="kmer_eval2.cpp" />
     <ClCompile Include="logaln.cpp" />
     <ClCompile Include="logodds.cpp" />
     <ClCompile Include="mergefwdback.cpp" />
@@ -399,7 +395,6 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
-    <ClCompile Include="seedtrainer.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />
@@ -419,7 +414,6 @@
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_features.cpp" />
-    <ClCompile Include="train_seeds_scoredist.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />

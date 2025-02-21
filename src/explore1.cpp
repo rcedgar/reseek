@@ -57,7 +57,7 @@ void cmd_explore1()
 	SCOP40Bench SB;
 	asserta(optset_benchlevel);
 	DSSParams Params;
-	Params.SetFromCmdLine(SB.GetDBSize());
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
 

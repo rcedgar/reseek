@@ -5,6 +5,7 @@
 #define KMER_COMPLEXITY	0
 
 // pattern=1110011
+static const char *prefiltermu_pattern = "1110011";
 static const uint k = 5;
 static const uint K = 7;
 static const uint8_t s_Offsets[] = { 0, 1, 2, 5, 6 };

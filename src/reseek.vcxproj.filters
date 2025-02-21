@@ -155,12 +155,6 @@
     <ClCompile Include="scop40benchroc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kmer_eval.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="kmer_eval2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="xdropfwd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -261,9 +255,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="calibratesearcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="train_features.cpp">
@@ -446,12 +437,6 @@
     <ClCompile Include="pdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="seedtrainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="train_seeds_scoredist.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="test_chrono_ticks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -489,9 +474,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="chains2pdbs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mufilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mukmerfilter2.cpp">
@@ -560,10 +542,10 @@
     <ClCompile Include="duper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="composition_bias.cpp">
+    <ClCompile Include="muprefilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="muprefilter.cpp">
+    <ClCompile Include="cca.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

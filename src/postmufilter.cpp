@@ -71,8 +71,10 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 
 		D.GetProfile(*ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
-		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers);
-		float QSelfRevScore = GetSelfRevScore(DASelfRev, D, QChain, *ptrQProfile, ptrQMuLetters, ptrQMuKmers);
+		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
+		float QSelfRevScore = 
+			GetSelfRevScore(DASelfRev, D, QChain,
+							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
 		uint16_t *HT = MKF.CreateEmptyHashTable();
 		MKF.SetHashTable(*ptrQMuKmers, HT);
@@ -150,7 +152,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		D.Init(DBChain);
 		D.GetProfile(DBProfile);
 		D.GetMuLetters(DBMuLetters);
-		D.GetMuKmers(DBMuLetters, DBMuKmers);
+		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
 
 		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
@@ -290,7 +292,7 @@ void cmd_postmufilter()
 
 	DSSParams Params;
 	asserta(optset_dbsize);
-	Params.SetFromCmdLine((uint) opt_dbsize);
+	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
 
 	PostMuFilter(Params,
 				 opt_filin,

@@ -14,7 +14,7 @@ void cmd_convert2mu()
 		MinChainLength = opt_minchainlength;
 
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 	MuSeqSource MSS;
 	MSS.Open(g_Arg1, Params);
 

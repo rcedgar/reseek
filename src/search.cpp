@@ -19,7 +19,7 @@ void SelfSearch()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
@@ -43,18 +43,10 @@ static void Search_NoMuFilter()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
-
-	if (optset_dbsize)
-		Params.m_DBSize = (float) opt_dbsize;
-	else
-		{
-		Warning("-dbsize not set, defaulting to effective size 10,000 chains");
-		Params.m_DBSize = 10000;
-		}
 	DBS.Setup();
 
 	OpenOutputFiles();
@@ -85,9 +77,9 @@ void cmd_search()
 		Die(".bca format required for -db");
 
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
-	const string &PatternStr = Params.m_PatternStr;
-	//asserta(PatternStr == "1110011");
+	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	const string &PatternStr = Params.m_MuPrefPatternStr;
+	asserta(PatternStr == "1110011");
 
 	string MuFilterTsvFN;
 	GetTmpFileName(MuFilterTsvFN);
@@ -114,8 +106,10 @@ void cmd_search()
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 	if (optset_dbsize)
 		DBSize = uint(opt_dbsize);
-	Params.m_DBSize = float(DBSize);
-	PostMuFilter(Params, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
+
+	DSSParams Params2;
+	Params2.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
+	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
 
 	if (!opt_keeptmp)
 		DeleteStdioFile(MuFilterTsvFN);

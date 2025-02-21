@@ -6,7 +6,7 @@ double GetPNN(uint Idx, double TS);
 void cmd_evalue_report()
 	{
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 
 	const float LoTS = 0;
 	const float HiTS = 1.55f;

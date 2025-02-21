@@ -30,7 +30,7 @@ const MerMx &GetMuMerMx(uint k)
 	return *s_ptrMuMerMx;
 	}
 
-void cmd_combomx()
+void cmd_musubstmx()
 	{
 	FILE *f = CreateStdioFile(g_Arg1);
 
@@ -47,7 +47,6 @@ void cmd_combomx()
 
 	DSS D;
 	DSSParams Params;
-	Params.SetMuFeatures(Fs);
 	D.SetParams(Params);
 	uint AS = D.GetAlphaSize(FEATURE_Mu);
 	vector<vector<float> > MuMx(AS);
@@ -117,7 +116,7 @@ void cmd_combomx()
 
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "static const int parasail_combo_[%u*%u] = {\n", AS, AS);
+	fprintf(f, "static const int parasail_mu_[%u*%u] = {\n", AS, AS);
 	int MinScore = INT_MAX;
 	int MaxScore = INT_MIN;
 	for (uint i = 0; i < AS; ++i)
@@ -143,7 +142,7 @@ void cmd_combomx()
 		}
 
 	fprintf(f, "\n");
-	fprintf(f, "static const int parasail_combo_map[256] = {");
+	fprintf(f, "static const int parasail_mu_map[256] = {");
 	for (uint i = 0; i < 256; ++i)
 		{
 		fprintf(f, " %2d,", imap[i]);
@@ -155,10 +154,10 @@ void cmd_combomx()
 	fprintf(f, "};\n");
 
 	fprintf(f, "\n");
-	fprintf(f, "static const parasail_matrix_t parasail_combo = {\n");
-	fprintf(f, "	\"combo\",\n");
-	fprintf(f, "	parasail_combo_,\n");
-	fprintf(f, "	parasail_combo_map,\n");
+	fprintf(f, "static const parasail_matrix_t parasail_mu = {\n");
+	fprintf(f, "	\"mu\",\n");
+	fprintf(f, "	parasail_mu_,\n");
+	fprintf(f, "	parasail_mu_map,\n");
 	fprintf(f, "	%u,\n", AS);
 	fprintf(f, "	%d,\n", MaxScore);
 	fprintf(f, "	%d,\n", MinScore);

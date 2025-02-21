@@ -889,7 +889,7 @@ void DSSAligner::CalcEvalue()
 		Qual = 1/(1 + x/2);
 		}
 
-	float E_scop = expf(logE)/11211;
+	float E_scop = expf(logE)/SCOP40_DBSIZE;
 	float E = E_scop*DBSize;
 	m_QualityA = Qual;
 	m_QualityB = Qual;

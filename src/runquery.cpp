@@ -36,7 +36,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
-		D.GetMuKmers(MuLetters1, MuKmers1);
+		D.GetMuKmers(MuLetters1, MuKmers1, m_Params->m_MKFPatternStr);
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);

@@ -600,26 +600,13 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
-	ProgressLog(" S1FP=%.4f", SensFirstFP);
-	ProgressLog(" N1FP=%u", nt_firstfp);
 	ProgressLog(" Area=%.4f", m_Area);
 	if (Secs != UINT_MAX)
+		{
 		ProgressLog(" secs=%u", Secs);
-	ProgressLog(" level=%s", m_Level.c_str());
-	if (optset_sensitive)
-		ProgressLog(" sensitive");
-	ProgressLog(" [%s]\n", g_GitVer);
-
-	//Log(" mufil=%u/%u (%.1f)%%",
-	//	MuFilterDiscardCount, MuFilterInputCount,
-	//	GetPct(MuFilterDiscardCount, MuFilterInputCount));
-	//Log(" sat=%u", DSSAligner::m_ParasailSaturateCount);
-	Log(" qp cache hits %u, misses %u",
-	  m_QPCacheHits.load(), m_QPCacheMisses.load());
-	Log("\n");
-
-	Log("NT %u NF %u NI %u considered %u ignored %u\n",
-	  m_NT, m_NF, m_NI, m_ConsideredHitCount, m_IgnoredHitCount);
+		ProgressLog(" [%s]", g_GitVer);
+		}
+	ProgressLog("\n");
 	}
 
 void SCOP40Bench::WriteSortedHits(const string &FN) const
@@ -795,7 +782,7 @@ void cmd_scop40bench()
 		}
 
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
 	SCOP40Bench SB;
 	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);

@@ -95,7 +95,7 @@ void MuKmerFilter::Validate() const
 
 void MuKmerFilter::SetParams(const DSSParams &Params)
 	{
-	uint k = GetPatternOnes(Params.m_PatternStr);
+	uint k = GetPatternOnes(Params.m_MKFPatternStr);
 	asserta(k >= 1 && k < 6);
 	m_DictSize = myipow(36, k);
 	m_Params = &Params;

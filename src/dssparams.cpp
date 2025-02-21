@@ -2,54 +2,60 @@
 #include "dssparams.h"
 #include "dss.h"
 #include "sort.h"
+#include "prefiltermuparams.h"
 
-vector<FEATURE> DSSParams::m_MuFeatures;
-vector<uint> DSSParams::m_MuAlphaSizes;
-uint DSSParams::m_MuAlphaSize = UINT_MAX;
-
-void DSSParams::SetMuFeatures(const vector<FEATURE> &Fs)
+const FEATURE DSSParams::m_MuFeatures[m_MuFeatureCount] =
 	{
-	m_MuAlphaSizes.clear();
-	m_MuFeatures = Fs;
-	m_MuAlphaSize = 1;
-	for (uint i = 0; i < SIZE(Fs); ++i)
-		{
-		uint AS = DSS::GetAlphaSize(Fs[i]);
-		m_MuAlphaSizes.push_back(AS);
-		m_MuAlphaSize *= AS;
-		}
+	FEATURE_SS3,
+	FEATURE_NENSS3,
+	FEATURE_RENDist4
+	};
+const uint DSSParams::m_MuAlphaSizes[m_MuFeatureCount] = {3, 3, 4};
+uint const DSSParams::m_MuAlphaSize = 36;
+
+static ALGO_MODE GetAlgoModeFromCommandLine()
+	{
+	if (optset_fast)
+		return AM_Fast;
+	else if (optset_sensitive)
+		return AM_Sensitive;
+	else if (optset_verysensitive)
+		return AM_VerySensitive;
+	Die("Must set -fast, -sensitive or -verysensitive");
+	return AM_Invalid;
 	}
 
-void DSSParams::SetFromCmdLine(uint DBSize)
+static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	{
-	int i = int(optset_fast) + int(optset_sensitive) + int(optset_verysensitive);
-	if (i != 1)
-		Die("Must specify -fast -sensitive or -verysensitive");
+	switch (DM)
+		{
+	case DM_AlwaysFast:				return AM_Fast;
+	case DM_AlwaysSensitive:		return AM_Sensitive;
+	case DM_UseCommandLineOption:	return GetAlgoModeFromCommandLine();
+		}
+	asserta(false);
+	return AM_Invalid;
+	}
 
-	if (optset_dbsize)
-		m_DBSize = (float) opt_dbsize;
+void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
+	{
+	SetDefaults();
+
+	ALGO_MODE AM = GetAlgoMode(DM);
+
+	if (DBSize == UINT_MAX)
+		{
+		if (optset_dbsize)
+			m_DBSize = (float) opt_dbsize;
+		else
+			m_DBSize = SCOP40_DBSIZE;
+		}
 	else
 		m_DBSize = (float) DBSize;
 
-	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt_evalue_a);
-	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt_evalue_b);
-
-	vector<FEATURE> MuFeatures;
-	MuFeatures.push_back(FEATURE_SS3);
-	MuFeatures.push_back(FEATURE_NENSS3);
-	MuFeatures.push_back(FEATURE_RENDist4);
-	DSSParams::SetMuFeatures(MuFeatures);
-
-	if (optset_namedparams)
-		SetNamedParams(opt_namedparams);
-	else if (optset_params)
-		FromParamStr(opt_params);
-	else if (optset_paramsf)
-		FromTsv(opt_paramsf);
-	else
-		SetNamedParams("defaults");
-	if (optset_fast)
+	switch (AM)
 		{
+	case AM_Fast:
 		m_Omega = 22;
 		m_OmegaFwd = 50;
 		m_MKFL = 500;
@@ -57,9 +63,9 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
-		}
-	else if (optset_sensitive)
-		{
+		break;
+
+	case AM_Sensitive:
 		m_Omega = 12;
 		m_OmegaFwd = 20;
 		m_MKFL = 600;
@@ -67,9 +73,9 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
-		}
-	else if (optset_verysensitive) 
-		{
+		break;
+
+	case AM_VerySensitive:
 		m_Omega = 0;
 		m_OmegaFwd = 0;
 		m_MKFL = 99999;
@@ -77,7 +83,18 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 		m_MKF_X2 = 99999;
 		m_MKF_MinHSPScore = 0;
 		m_MKF_MinMegaHSPScore = -99999;
+		break;
+
+	default:
+		asserta(false);
 		}
+
+	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt_evalue_a);
+	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt_evalue_b);
+	m_MKFPatternStr = "111";
+	m_MuPrefPatternStr = string(prefiltermu_pattern);
+
+	asserta(!optset_pattern);
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega;  }
 	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; }
@@ -86,7 +103,6 @@ void DSSParams::SetFromCmdLine(uint DBSize)
 	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); }
 	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; }
 	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; }
-	if (optset_pattern) { m_PatternStr = string(opt_pattern); }
 	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; }
 	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt_minmegahsp); }
 	if (optset_xdrop1) { m_MKF_X1 = int(opt_xdrop1); }
@@ -261,7 +277,8 @@ DSSParams::~DSSParams()
 
 void DSSParams::InitScoreMxs()
 	{
-	asserta(m_ScoreMxs == 0);
+	if (m_ScoreMxs != 0)
+		return;
 	uint FeatureCount = GetFeatureCount();
 	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
 	for (uint i = 0; i < FEATURE_COUNT; ++i)

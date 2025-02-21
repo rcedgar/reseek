@@ -3,7 +3,7 @@
 #include "cigar.h"
 
 extern int8_t IntScoreMx_Mu[36][36];
-extern parasail_matrix_t parasail_combo_matrix;
+extern parasail_matrix_t parasail_mu_matrix;
 
 static char GetMuChar(byte Letter)
 	{
@@ -105,7 +105,7 @@ static void Test1()
 	const char *s2 = (const char *) S2.data();
 	
 	const parasail_profile_t* profile1 = 
-	  parasail_profile_create_avx_256_8(s1, s1Len, &parasail_combo_matrix);
+	  parasail_profile_create_avx_256_8(s1, s1Len, &parasail_mu_matrix);
 	
 	parasail_result_t *result1 =
 	  parasail_sw_striped_profile_avx2_256_8(profile1, s2, s2Len, open, ext);
@@ -115,7 +115,7 @@ static void Test1()
 
 	const parasail_result_extra_trace_t *trace = result2->trace;
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(result2, s1, s1Len, s2, s2Len,
-	  &parasail_combo_matrix, 1, 0);
+	  &parasail_mu_matrix, 1, 0);
 	char *cig_str = parasail_cigar_decode(cig);
 	string Path;
 	ExpandParaCigar(cig_str, Path);
@@ -182,7 +182,7 @@ int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
 	const char *ptrT = (const char *) T.data();
 
 	parasail_profile_t *QP = 
-	  parasail_profile_create_avx_256_8(ptrQ, QL, &parasail_combo_matrix);
+	  parasail_profile_create_avx_256_8(ptrQ, QL, &parasail_mu_matrix);
 
 	parasail_result_t *result =
 	  parasail_sw_trace_striped_profile_avx2_256_8(QP, ptrT, TL, GapOpen, GapExt);
@@ -194,7 +194,7 @@ int ParasailAlign(const vector<byte> &Q, const vector<byte> &T,
 		}
 
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
-	  result, ptrQ, QL, ptrT, TL, &parasail_combo_matrix, 1, 0);
+	  result, ptrQ, QL, ptrT, TL, &parasail_mu_matrix, 1, 0);
 
 	char *cig_str = parasail_cigar_decode(cig);
 	ExpandParaCigar(cig_str, Path);
@@ -244,7 +244,7 @@ static void Test2(bool Trace)
 	const char *s2 = (const char *) S2.data();
 	
 	parasail_profile_t* profile1 = 
-	  parasail_profile_create_avx_256_8(s1, s1Len, &parasail_combo_matrix);
+	  parasail_profile_create_avx_256_8(s1, s1Len, &parasail_mu_matrix);
 	
 	parasail_result_t *result1 =
 	  parasail_sw_striped_profile_avx2_256_8(profile1, s2, s2Len, open, ext);
@@ -254,7 +254,7 @@ static void Test2(bool Trace)
 
 	const parasail_result_extra_trace_t *trace = result2->trace;
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(result2, s1, s1Len, s2, s2Len,
-	  &parasail_combo_matrix, 1, 0);
+	  &parasail_mu_matrix, 1, 0);
 	char *cig_str = parasail_cigar_decode(cig);
 	string Path;
 	ExpandParaCigar(cig_str, Path);

@@ -7,14 +7,14 @@ char GetFeatureChar(byte Letter, uint AlphaSize);
 void cmd_mu_mapping()
 	{
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 
 	DSS D;
 	D.SetParams(Params);
 	//void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	//uint GetMuLetter(const vector<uint> &Letters) const;
 	uint AS = Params.m_MuAlphaSize;
-	const uint N = SIZE(Params.m_MuFeatures);
+	const uint N = Params.m_MuFeatureCount;
 	Log("Mu");
 	for (uint i = 0; i < N; ++i)
 		Log("\t%s", FeatureToStr(Params.m_MuFeatures[i]));

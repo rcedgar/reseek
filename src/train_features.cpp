@@ -193,7 +193,7 @@ void cmd_train_features()
 	optset_fast = true;
 	opt_fast = true;
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 	int8_t MaxAbsi8 = 20;
 	if (optset_maxi8)
 		{

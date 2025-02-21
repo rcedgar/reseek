@@ -33,7 +33,7 @@ void cmd_mukmerfilter()
 	opt_fast = true;
 	optset_fast = true;
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.Set(10000);
 	MuDex::Set_k(3);
 	MuDex MD;
 	asserta(optset_output);

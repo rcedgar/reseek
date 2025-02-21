@@ -2,9 +2,27 @@
 #include "pdbchain.h"
 #include "seqdb.h"
 #include "quarts.h"
+#include "alpha.h"
 
-void GetColPosVecs(const string &Row,
-  vector<uint> &ColToPos, vector<uint> &PosToCol);
+static void GetColPosVecs(const string &Row,
+  vector<uint> &ColToPos, vector<uint> &PosToCol)
+	{
+	ColToPos.clear();
+	PosToCol.clear();
+	const uint ColCount = SIZE(Row);
+	uint Pos = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		if (isgap(Row[Col]))
+			ColToPos.push_back(UINT_MAX);
+		else
+			{
+			PosToCol.push_back(Col);
+			ColToPos.push_back(Pos);
+			++Pos;
+			}
+		}
+	}
 
 static char GetMeanSymbol(double d)
 	{

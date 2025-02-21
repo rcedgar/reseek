@@ -11,7 +11,7 @@ Author jeffrey.daily@gmail.com
 Copyright (c) 2015 Battelle Memorial Institute.
 ***/
 
-static const int parasail_combo_map[256] = {
+static const int parasail_mu_map[256] = {
 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -20,7 +20,7 @@ static const int parasail_combo_map[256] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
 
-static const int parasail_combo_[36*36] = {
+static const int parasail_mu_[36*36] = {
  3,-1, 1, 1,-3,-1, 2,-2, 0, 1,-3,-1,-1,-5,-3, 0,-4,-2, 0,-4,-2,-2,-6,-4,-1,-5,-3,-1,-5,-3,-3,-7,-5,-2,-6,-4,  // 0
 -1, 4, 2,-3, 1,-1,-2, 2, 0,-3, 2, 0,-5, 0,-2,-4, 0,-2,-4, 1,-1,-6,-1,-3,-5,-1,-3,-5, 0,-2,-7,-2,-4,-6,-2,-4,  // 1
  1, 2, 3,-1,-1, 0, 0, 0, 1,-1, 0, 1,-3,-2,-1,-2,-2,-1,-2,-1, 0,-4,-3,-2,-3,-3,-2,-3,-2,-1,-5,-4,-3,-4,-4,-3,  // 2
@@ -59,10 +59,10 @@ static const int parasail_combo_[36*36] = {
 -4,-4,-3,-4,-3,-2,-3,-3,-2,-3,-2,-1,-2,-2,-1,-2,-1, 0,-2,-2,-1,-2,-1, 0,-1, 0, 1,-1, 0, 1,-1, 0, 1, 0, 1, 2,  // 35
 };
 
-parasail_matrix_t parasail_combo_matrix = {
-	"combo",  // name
-	parasail_combo_,  // matrix
-	parasail_combo_map,  // mapper
+parasail_matrix_t parasail_mu_matrix = {
+	"mu",  // name
+	parasail_mu_,  // matrix
+	parasail_mu_map,  // mapper
 	36,  // size
 	4, // max
 	-7,  // min
@@ -102,7 +102,7 @@ float DSSAligner::AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 		const char *SeqA = (const char *) m_MuLettersA->data();
 		const char *SeqB = (const char *) m_MuLettersB->data();
 		parasail_cigar_t* cig = parasail_result_get_cigar_extra(
-		  result, SeqA, LA, SeqB, LB, &parasail_combo_matrix, 1, 0);
+		  result, SeqA, LA, SeqB, LB, &parasail_mu_matrix, 1, 0);
 
 		char *cig_str = parasail_cigar_decode(cig);
 		ExpandParaCigar_reverseDI(cig_str, Path);
@@ -169,14 +169,14 @@ void DSSAligner::SetMuQP_Para()
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	const char *A = (const char *) m_MuLettersA->data();
 	const uint LA = SIZE(*m_MuLettersA);
-	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_combo_matrix);
+	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_mu_matrix);
 
 	m_MuRevA.clear();
 	m_MuRevA.reserve(LA);
 	for (uint i = 0; i < LA; ++i)
 		m_MuRevA.push_back((*m_MuLettersA)[LA-i-1]);
 	const char *AR = (const char *) m_MuRevA.data();
-	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_combo_matrix);
+	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_mu_matrix);
 	EndTimer(SetMuQP_Para);
 	}
 

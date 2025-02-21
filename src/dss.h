@@ -43,9 +43,6 @@ public:
 	vector<double> m_NDs;
 	vector<double> m_NXs;
 
-	uint m_PatternAlphaSize1 = UINT_MAX;
-	uint m_PatternAlphaSize = UINT_MAX;
-
 private:
 	const DSSParams *m_Params = 0;
 
@@ -92,9 +89,7 @@ public:
 	void GetMuLetters(vector<byte> &Letters);
 	void GetAaLetters(vector<byte> &Letters);
 	void GetMuKmers(const vector<byte> &MuLetters,
-	  vector<uint> &Kmers);
-	void GetAaKmers(const vector<byte> &AaLetters,
-	  vector<uint> &Kmers);
+	  vector<uint> &Kmers, const string &PatternStr);
 	void GetMuLetters(vector<uint> &Letters);
 	void SetDensity_ScaledValues();
 	double GetDensity(uint Pos) const;

@@ -160,7 +160,7 @@ void cmd_alignpair()
 	optset_sensitive = true;
 	opt_sensitive = true;
 	DSSParams Params;
-	Params.SetFromCmdLine(10000);
+	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
 	Params.m_UsePara = false;
 	Params.m_Omega = 0;
 

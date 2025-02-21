@@ -589,7 +589,7 @@ uint DSS::Get_AA4(uint Pos)
 void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	{
 	Letters.clear();
-	uint n = SIZE(m_Params->m_MuFeatures);
+	uint n = m_Params->m_MuFeatureCount;
 	if (MuLetter == UINT_MAX)
 		{
 		for (uint i = 0; i < n; ++i)
@@ -610,7 +610,7 @@ void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 
 uint DSS::GetMuLetter(const vector<uint> &Letters) const
 	{
-	uint n = SIZE(m_Params->m_MuFeatures);
+	const uint n = DSSParams::m_MuFeatureCount;
 	asserta(SIZE(Letters) == n);
 	uint MuLetter = 0;
 	uint m = 1;
@@ -630,7 +630,7 @@ uint DSS::Get_Mu(uint Pos)
 	{
 	uint MuLetter = 0;
 	uint m = 1;
-	for (uint i = 0; i < SIZE(m_Params->m_MuFeatures); ++i)
+	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
 		{
 		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
 		if (Letter == UINT_MAX)
@@ -651,42 +651,15 @@ void DSS::GetMuLetters(vector<uint> &Letters)
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		uint Letter = GetFeature(FEATURE_Mu, Pos);
-		asserta(Letter < m_PatternAlphaSize1 || Letter == UINT_MAX);
+		asserta(Letter < DSSParams::m_MuAlphaSize || Letter == UINT_MAX);
 		Letters.push_back(Letter);
 		}
 	}
 
-void DSS::GetAaKmers(const vector<byte> &Letters,
-  vector<uint> &Kmers)
-	{
-	Kmers.clear();
-	const string PatternStr = m_Params->m_PatternStr;
-	const uint PatternLength = SIZE(PatternStr);
-	const uint L = SIZE(Letters);
-	Kmers.reserve(L);
-	for (uint Pos = 0; Pos + PatternLength <= L; ++Pos)
-		{
-		uint Kmer = 0;
-		for (uint j = 0; j < PatternLength; ++j)
-			{
-			if (PatternStr[j] == '1')
-				{
-				asserta(Pos + j < SIZE(Letters));
-				uint Letter = Letters[Pos + j];
-				assert(Letter < 20);
-				Kmer = Kmer*20 + Letter;
-				}
-			}
-		if (Kmer != UINT_MAX)
-			Kmers.push_back(Kmer);
-		}
-	}
-
 void DSS::GetMuKmers(const vector<byte> &Letters,
-  vector<uint> &Kmers)
+  vector<uint> &Kmers, const string &PatternStr)
 	{
 	Kmers.clear();
-	const string PatternStr = m_Params->m_PatternStr;
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
 	Kmers.reserve(L);
@@ -699,16 +672,10 @@ void DSS::GetMuKmers(const vector<byte> &Letters,
 				{
 				asserta(Pos + j < SIZE(Letters));
 				uint Letter = Letters[Pos + j];
-				//if (Letter == UINT_MAX)
-				//	{
-				//	Kmer = UINT_MAX;
-				//	break;
-				//	}
 				assert(Letter < 36);
-				Kmer = Kmer*m_PatternAlphaSize1 + Letter;
+				Kmer = Kmer*36 + Letter;
 				}
 			}
-		//if (Kmer != UINT_MAX)
 		assert(Kmer != UINT_MAX);
 		Kmers.push_back(Kmer);
 		}
@@ -831,10 +798,6 @@ uint DSS::GetAlphaSize(FEATURE F)
 void DSS::SetParams(const DSSParams &Params)
 	{
 	m_Params = &Params;
-	const uint AS = GetAlphaSize(FEATURE_Mu);
-	m_PatternAlphaSize1 = AS;
-	uint PatternOnes = GetPatternOnes(m_Params->m_PatternStr);
-	m_PatternAlphaSize = myipow(AS, PatternOnes);
 	}
 
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
