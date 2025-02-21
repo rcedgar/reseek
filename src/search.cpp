@@ -88,13 +88,7 @@ void cmd_search()
 	MuSeqSource QSS;
 	MuSeqSource DBSS;
 	QSS.Open(QueryFN, Params);
-	if (optset_input2)
-		{
-		Progress("open %s\n", opt_input2);
-		DBSS.OpenFasta(opt_input2);
-		}
-	else
-		DBSS.Open(DBFN, Params);
+	DBSS.Open(DBFN, Params);
 
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
@@ -104,8 +98,6 @@ void cmd_search()
 		MaxEvalue = (float) opt_evalue;
 
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
-	if (optset_dbsize)
-		DBSize = uint(opt_dbsize);
 
 	DSSParams Params2;
 	Params2.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);

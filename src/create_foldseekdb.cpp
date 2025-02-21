@@ -120,13 +120,13 @@ void cmd_create_foldseekdb()
 					Idx, Label.c_str());
 
 			fprintf(fSeqsIndex, "%u\t%llu\t%u\n",
-					Idx, SeqOffset, SeqLen+2);
+					Idx, (unsigned long long) SeqOffset, SeqLen+2);
 
 			fprintf(fSeqs3DiIndex, "%u\t%llu\t%u\n",
-					Idx, SeqOffset, SeqLen+2);
+					Idx, (unsigned long long) SeqOffset, SeqLen+2);
 
 			fprintf(fLabelsIndex, "%u\t%llu\t%u\n",
-					Idx, LabelOffset, LabelLen+2);
+					Idx, (unsigned long long) LabelOffset, LabelLen+2);
 
 			SeqOffset += SeqLen + 2;
 			LabelOffset += LabelLen + 2;
@@ -136,7 +136,7 @@ void cmd_create_foldseekdb()
 				uint floatbytes = 3*SeqLen*sizeof(float);
 				Log("Overflow %s\n", Label.c_str());
 				fprintf(fCAIndex, "%u\t%llu\t%u\n",
-						Idx, CAOffset, floatbytes+2);
+						Idx, (unsigned long long) CAOffset, floatbytes+2);
 				WriteStdioFile(fCA, Coords, floatbytes);
 				WriteStdioFile(fCA, nl_null, 2);
 				CAOffset += floatbytes + 2;
@@ -144,7 +144,7 @@ void cmd_create_foldseekdb()
 			else
 				{
 				fprintf(fCAIndex, "%u\t%llu\t%u\n",
-						Idx, CAOffset, membytes+2);
+						Idx, (unsigned long long) CAOffset, membytes+2);
 				WriteStdioFile(fCA, mem, membytes);
 				WriteStdioFile(fCA, nl_null, 2);
 				CAOffset += membytes + 2;
