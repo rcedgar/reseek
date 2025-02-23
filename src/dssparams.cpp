@@ -13,7 +13,7 @@ const FEATURE DSSParams::m_MuFeatures[m_MuFeatureCount] =
 const uint DSSParams::m_MuAlphaSizes[m_MuFeatureCount] = {3, 3, 4};
 uint const DSSParams::m_MuAlphaSize = 36;
 
-static ALGO_MODE GetAlgoModeFromCommandLine()
+static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
 	if (optset_fast)
 		return AM_Fast;
@@ -21,8 +21,9 @@ static ALGO_MODE GetAlgoModeFromCommandLine()
 		return AM_Sensitive;
 	else if (optset_verysensitive)
 		return AM_VerySensitive;
-	Die("Must set -fast, -sensitive or -verysensitive");
-	return AM_Invalid;
+	if (DefaultMode == AM_Invalid)
+		Die("Must set -fast, -sensitive or -verysensitive");
+	return DefaultMode;
 	}
 
 static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
@@ -31,7 +32,9 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 		{
 	case DM_AlwaysFast:				return AM_Fast;
 	case DM_AlwaysSensitive:		return AM_Sensitive;
-	case DM_UseCommandLineOption:	return GetAlgoModeFromCommandLine();
+	case DM_UseCommandLineOption:	return GetAlgoModeFromCommandLine(AM_Invalid);
+	case DM_DefaultFast:			return GetAlgoModeFromCommandLine(AM_Fast);
+	case DM_DefaultSensitive:		return GetAlgoModeFromCommandLine(AM_Sensitive);
 		}
 	asserta(false);
 	return AM_Invalid;

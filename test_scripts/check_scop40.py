@@ -10,6 +10,8 @@ sc = scop40.Scop40('e', "sf2", "../test_data/dom_scopid.tsv")
 def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 	global errors
 
+	name = tsv_fn.split('/')[-1].split('.')[0]
+
 	qfldnr = 1
 	tfldnr = 2
 	scorefldnr = 3
@@ -36,6 +38,7 @@ def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 	s = "SEPQ0.1=%.4f(%+.4f)" % (sepq0_1, d0_1)
 	s += " SEPQ1=%.4f(%+.4f)" % (sepq1, d1)
 	s += " SEPQ10=%.4f(%+.4f)" % (sepq10, d10)
+	s += " " + name
 	print(s)
 
 # SEPQ0.1=0.2107 SEPQ1=0.3144 SEPQ10=0.3882 S1FP=0.3350 N1FP=152340 area=7.14 fast
