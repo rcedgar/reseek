@@ -280,6 +280,7 @@
     <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
+    <ClCompile Include="coords.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="duper.cpp" />
@@ -457,6 +458,7 @@
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
+    <ClInclude Include="coords.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="duper.h" />

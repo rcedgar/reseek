@@ -73,5 +73,7 @@ C(create_foldseekdb)
 C(prefilter_mu)
 C(mudex)
 C(cca)
+C(test_coords)
+C(pdb2angles)
 
 #undef C

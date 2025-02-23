@@ -296,8 +296,8 @@ inline bool feq(double x, double y)
 	return true;
 	}
 
-#define asserteq(x, y)	assert(feq(x, y))
-#define assertaeq(x, y)	asserta(feq(x, y))
+#define assertfeq(x, y)	assert(feq(x, y))
+#define assertafeq(x, y)	asserta(feq(x, y))
 
 #define	zero_array(a, n)	memset(a, 0, (n)*sizeof(a[0]))
 #define	memset_zero(a, n)	zero_array((a), (n))
