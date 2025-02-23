@@ -288,6 +288,7 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
@@ -483,6 +484,7 @@
     <ClInclude Include="museqsource.h" />
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
+    <ClInclude Include="mypi.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="pdbfilescanner.h" />

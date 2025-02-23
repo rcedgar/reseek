@@ -1,10 +1,12 @@
 #pragma once
 
+#include "mypi.h"
+
 double dot(const double a[3], const double b[3]);
 void transform(const double t[3], const double u[3][3],
   const double x[3], double x_transformed[3]);
 
-static const double PI = 3.1415926535;
+//static const double PI = 3.1415926535;
 static const int X = 0;
 static const int Y = 1;
 static const int Z = 2;

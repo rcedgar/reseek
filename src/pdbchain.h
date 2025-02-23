@@ -3,6 +3,7 @@
 
 #include "myutils.h"
 #include "features.h"
+#include "coords.h"
 //#include "objcounter.h"
 
 class DSS;
@@ -77,6 +78,13 @@ public:
 	void Reverse();
 	void Flip();
 	void GetReverse(PDBChain &Rev) const;
+	void GetCoords(uint i, coords &v) const
+		{
+		assert(i < SIZE(m_Xs));
+		v.x = m_Xs[i];
+		v.y = m_Ys[i];
+		v.z = m_Zs[i];
+		}
 
 public:
 	static bool IsATOMLine(const string &Line);

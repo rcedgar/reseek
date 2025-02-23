@@ -1,7 +1,17 @@
 #pragma once
 
-static const float PI = 3.1415926535f;
+#include "mypi.h"
 static const float PI_plus_epsilon = 3.142f;
+
+static float degrees(float radians)
+	{
+	return radians*180.0f/PI;
+	}
+
+static float radians(float degrees)
+	{
+	return degrees*PI/180.0f;
+	}
 
 class coords
 	{
@@ -102,22 +112,20 @@ public:
 		}
 
 public:
-	static float degrees(float radians)
-		{
-		return radians*180.0f/PI;
-		}
-
-	static float radians(float degrees)
-		{
-		return degrees*PI/180.0f;
-		}
-
 	static coords &cross(const coords &A, const coords &B,
 						 coords &result)
 		{
 		result.x = A.y*B.z - A.z*B.y;
 		result.y = A.z*B.x - A.x*B.z;
 		result.z = A.x*B.y - A.y*B.x;
+#if DEBUG
+		{
+		float angleAr = angle_radians(A, result);
+		float angleBr = angle_radians(B, result);
+		asserta(feq(angleAr, PI/2));
+		asserta(feq(angleBr, PI/2));
+		}
+#endif
 		return result;
 		}
 
@@ -125,7 +133,7 @@ public:
 		{
 		float xx = A.x*B.x;
 		float yy = A.y*B.y;
-		float zz = A.y*B.z;
+		float zz = A.z*B.z;
 		return xx + yy + zz;
 		}
 
@@ -147,15 +155,15 @@ public:
 	static void add(const coords &A, const coords &B, coords &result)
 		{
 		result.x = A.x + B.x;
-		result.x = A.x + B.x;
-		result.x = A.x + B.x;
+		result.y = A.y + B.y;
+		result.z = A.z + B.z;
 		}
 
 	static void sub(const coords &A, const coords &B, coords &result)
 		{
 		result.x = A.x - B.x;
-		result.x = A.x - B.x;
-		result.x = A.x - B.x;
+		result.y = A.y - B.y;
+		result.z = A.z - B.z;
 		}
 
 	static void normalize(const coords &A, coords &result)
