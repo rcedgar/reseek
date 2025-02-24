@@ -75,5 +75,6 @@ C(mudex)
 C(cca)
 C(test_coords)
 C(pdb2angles)
+C(squeeze)
 
 #undef C
