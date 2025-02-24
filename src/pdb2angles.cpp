@@ -33,7 +33,7 @@ void calculate_theta_phi(const coords &A, const coords &B,
 	}
 
 void calculate_D(const coords &A, const coords &B, const coords &C,
-				 float &theta_radians, float &phi_radians,
+				 float theta_radians, float phi_radians,
 				 coords &D)
 	{
 	coords ab, bc;

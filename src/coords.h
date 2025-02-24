@@ -104,11 +104,36 @@ public:
 		return result;
 		}
 
-	void logme(const char *name = "")
+	void assert_valid() const
+		{
+		assert(x != FLT_MAX);
+		assert(y != FLT_MAX);
+		assert(z != FLT_MAX);
+		}
+
+	void asserta_valid() const
+		{
+		asserta(x != FLT_MAX);
+		asserta(y != FLT_MAX);
+		asserta(z != FLT_MAX);
+		}
+
+	void invalidate()
+		{
+		x = FLT_MAX;
+		y = FLT_MAX;
+		z = FLT_MAX;
+		}
+
+	void logme(const char *name = "", bool nl = true) const
 		{
 		if (*name != 0)
-			Log("%s = ", name);
-		Log(" x=%.3g y= %.3g z=%.3g\n", x, y, z);
+			Log(" %s:", name);
+		if (x == FLT_MAX) Log(" x=*"); else Log(" x=%.3g", x);
+		if (y == FLT_MAX) Log(" y=*"); else Log(" y=%.3g", y);
+		if (z == FLT_MAX) Log(" z=*"); else Log(" z=%.3g", z);
+		if (nl)
+			Log("\n");
 		}
 
 public:

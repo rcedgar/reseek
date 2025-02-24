@@ -1,10 +1,21 @@
 #include "myutils.h"
-#include "squeezer.h"
+#include "squeezer_null.h"
+#include "squeezer_int16.h"
+#include "squeezer_tor.h"
 #include "chainreader2.h"
 
-/////////////////////////////////////////////
-// Base class
-/////////////////////////////////////////////
+Squeezer *Squeezer::NewSqueezer(const string &Name)
+	{
+	if (Name == "null")
+		return new Squeezer_null;
+	else if (Name == "int16")
+		return new Squeezer_int16;
+	else if (Name == "tor")
+		return new Squeezer_tor;
+	Die("NewSqueezer(%s)\n", Name.c_str());
+	return 0;
+	}
+
 void Squeezer::Clear()
 	{
 	const uint L = SIZE(m_Deltas);
@@ -16,19 +27,25 @@ void Squeezer::Clear()
 void Squeezer::EncodeChain(const PDBChain &Chain)
 	{
 	Clear();
+	SqueezeState *State = NewState();
 	m_Chain = &Chain;
 	const uint L = Chain.GetSeqLength();
 	for (uint i = 0; i < L; ++i)
 		{
-		SqueezeDelta *Delta = EncodePos(i);
+		//Log("\n");
+		//Log(" ========== %u =========\n", i);
+		SqueezeDelta *Delta = EncodePos(*State, i);
+		//Delta->LogMe();
 		m_Deltas.push_back(Delta);
+		UpdateState(*State, *Delta);
+		//State->LogMe();
 		}
+	delete State;
 	}
 
 void Squeezer::DecodeChain(PDBChain &Chain)
 	{
-	InitDecode();
-	m_NextDecodePos = 0;
+	SqueezeState *State = NewState();
 	const uint L = SIZE(m_Deltas);
 	Chain.m_Xs.reserve(L);
 	Chain.m_Ys.reserve(L);
@@ -41,19 +58,31 @@ void Squeezer::DecodeChain(PDBChain &Chain)
 	coords D;
 	for (uint i = 0; i < L; ++i)
 		{
-		DecodeNext(D);
+		const SqueezeDelta *Delta = m_Deltas[i];
+		DecodePos(*State, *Delta, i, D);
 		Chain.m_Xs.push_back(D.x);
 		Chain.m_Ys.push_back(D.y);
 		Chain.m_Zs.push_back(D.z);
-		++m_NextDecodePos;
+
+		UpdateState(*State, *Delta);
 		}
+	delete State;
+	}
+
+uint Squeezer::GetBytes() const
+	{
+	const uint L = SIZE(m_Deltas);
+	uint Bytes = 0;
+	for (uint i = 0; i < L; ++i)
+		Bytes += m_Deltas[i]->GetBytes();
+	return Bytes;
 	}
 
 void cmd_squeeze()
 	{
 	ChainReader2 CR;
 	CR.Open(g_Arg1);
-	Squeezer_int16 S;
+	Squeezer &S = *Squeezer::NewSqueezer("tor");
 	for (;;)
 		{
 		PDBChain *ptrChain = CR.GetNext();
@@ -97,8 +126,12 @@ void cmd_squeeze()
 			Log("  > %3.1f", e);
 			Log("\n");
 			}
-		Log("%s >%s avge %.3g maxe %.3g\n",
-			S.m_Name.c_str(), Chain.m_Label.c_str(), sume/L, maxe);
+		uint Bytes = S.GetBytes();
+		Log("%s >%s avge %.3g maxe %.3g bytes %u\n",
+			S.m_Name.c_str(),
+			Chain.m_Label.c_str(),
+			sume/L, maxe,
+			Bytes);
 
 		delete ptrChain;
 		}
