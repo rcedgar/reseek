@@ -125,7 +125,12 @@ public:
 		z = FLT_MAX;
 		}
 
-	void logme(const char *name = "", bool nl = true) const
+	bool isvalid() const
+		{
+		return x != FLT_MAX && y != FLT_MAX && z != FLT_MAX;
+		}
+
+	void logme(const char *name = "", bool nl = false) const
 		{
 		if (*name != 0)
 			Log(" %s:", name);

@@ -520,11 +520,9 @@
     <ClInclude Include="search.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />
+    <ClInclude Include="squeezealgos.h" />
+    <ClInclude Include="squeezeops.h" />
     <ClInclude Include="squeezer.h" />
-    <ClInclude Include="squeezer_int16.h" />
-    <ClInclude Include="squeezer_null.h" />
-    <ClInclude Include="squeezer_tor.h" />
-    <ClInclude Include="squeezer_tor2.h" />
     <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
