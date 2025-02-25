@@ -527,8 +527,6 @@ void cmd_squeeze()
 	vector<string> Algos;
 #define a(x)	Algos.push_back(#x);
 #include "squeezealgos.h"
-	//Algos.clear();
-	//Algos.push_back("ICv");
 	const uint AlgoCount = SIZE(Algos);
 
 	Squeezer S;
