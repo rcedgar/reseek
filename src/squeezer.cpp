@@ -3,8 +3,14 @@
 #include "chainreader2.h"
 #include "mypi.h"
 
-// theta	 25 .. 100 deg.		0.4363323 .. 1.745329 radians.
-// phi	   -180 .. 180 deg.		-PI .. +PI
+// reseek -squeeze 1hhs.pdb -log squeeze.log
+// [d0985e4]
+//
+//      IC   avge  0.000121   maxe    0.0804   bytes  3984 (100.0%) IC/664
+//     ICd   avge  0.000121   maxe    0.0804   bytes  3984 (100.0%) IC/4 ICd/660
+//     ICv   avge   0.00015   maxe    0.0994   bytes  2441 ( 61.3%) IC/266 ICv/398
+//     tor   avge   0.00015   maxe    0.0994   bytes  5316 (133.4%) set_coords/3 IC/4 tor/657
+//    tor2   avge   0.00015   maxe    0.0999   bytes  1792 ( 45.0%) IC/4 ICd/112 tor2/548
 
 static const float MIN_THETA = 0.436f;
 static const float MAX_THETA = 1.746f;
@@ -537,19 +543,27 @@ void cmd_squeeze()
 			break;
 		const PDBChain &Chain = *ptrChain;
 		LogCADists(Chain);
+		uint BytesIC = UINT_MAX;
 		for (uint ia = 0; ia < AlgoCount; ++ia)
 			{
 			S.m_Algo = Algos[ia];
 			if (S.m_Algo == "undefined")
 				continue;
+			if (S.m_Algo == "null")
+				continue;
 			S.EncodeChain(Chain);
 			uint Bytes = S.GetBits()/8;
+			if (S.m_Algo == "IC")
+				BytesIC = Bytes;
+
 			float avge, maxe;
 			S.GetErr(avge, maxe);
 			Log("%8.8s", S.m_Algo.c_str());
 			Log("   avge %9.3g", avge);
 			Log("   maxe %9.3g", maxe);
 			Log("   bytes %5u", Bytes);
+			if (BytesIC != UINT_MAX)
+				Log(" (%5.1f%%)", GetPct(Bytes, BytesIC));
 			S.LogOpCounts();
 			Log("\n");
 			}
