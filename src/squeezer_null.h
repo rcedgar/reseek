@@ -33,7 +33,6 @@ public:
 
 	virtual void DecodePos(const SqueezeState &State,
 							const SqueezeDelta &Delta,
-							uint i,
 							coords &D) const
 		{
 		const SqueezeDelta_null &Delta_null =
@@ -47,8 +46,4 @@ public:
 		m_Chain->GetCoords(i, Delta->m_TrueD);
 		return Delta;
 		}
-
-	virtual void UpdateState(
-		SqueezeState &State,
-		const SqueezeDelta &Delta) const {}
 	};

@@ -70,29 +70,16 @@ float Squeezer_tor2::i2phi(int8_t iphi)
 	return phi;
 	}
 
-void Squeezer_tor2::InitDecode(SqueezeState *State) const
-	{
-	SqueezeState_tor2 *State_tor2 = (SqueezeState_tor2 *) State;
-	State_tor2->m_A.invalidate();
-	State_tor2->m_B.invalidate();
-	State_tor2->m_C.invalidate();
-	State_tor2->m_ResetCount = 0;
-	}
-
 void Squeezer_tor2::DecodePos(const SqueezeState &State,
 						const SqueezeDelta &Delta,
-						uint i,
 						coords &D) const
 	{
-	SqueezeState_tor2 &State_tor2 = (SqueezeState_tor2 &) State;
-	const SqueezeDelta_tor2 &Delta_tor2 =
-		(const SqueezeDelta_tor2 &) Delta;
-	DecodePos_tor2(State_tor2, Delta_tor2, i, D);
+	const SqueezeDelta_tor2 &Delta_tor2 = (const SqueezeDelta_tor2 &) Delta;
+	DecodePos_tor2(State, Delta_tor2, D);
 	}
 
-void Squeezer_tor2::DecodePos_tor2(const SqueezeState_tor2 &State_tor2,
+void Squeezer_tor2::DecodePos_tor2(const SqueezeState &State_tor2,
 						const SqueezeDelta_tor2 &Delta_tor2,
-						uint i,
 						coords &D) const
 	{
 	if (Delta_tor2.m_tor2d == TOR2D_tor)
@@ -111,6 +98,17 @@ void Squeezer_tor2::DecodePos_tor2(const SqueezeState_tor2 &State_tor2,
 					D);
 		}
 
+	else if (Delta_tor2.m_tor2d == TOR2D_fix_coords)
+		{
+		int16_t icx = PDBChain::CoordToIC(State_tor2.m_C.x) + Delta_tor2.m_fix_x;
+		int16_t icy = PDBChain::CoordToIC(State_tor2.m_C.y) + Delta_tor2.m_fix_y;
+		int16_t icz = PDBChain::CoordToIC(State_tor2.m_C.z) + Delta_tor2.m_fix_z;
+
+		D.x = PDBChain::ICToCoord(icx);
+		D.y = PDBChain::ICToCoord(icy);
+		D.z = PDBChain::ICToCoord(icz);
+		}
+
 	else if (Delta_tor2.m_tor2d == TOR2D_set_coords)
 		{
 		D.x = PDBChain::ICToCoord(Delta_tor2.m_ix);
@@ -122,33 +120,8 @@ void Squeezer_tor2::DecodePos_tor2(const SqueezeState_tor2 &State_tor2,
 		asserta(false);
 	}
 
-SqueezeDelta *Squeezer_tor2::EncodePos(const SqueezeState &State, uint i) const
-	{
-	const SqueezeState_tor2 &State_tor2 = (const SqueezeState_tor2 &) State;
-	SqueezeState_tor2 BeforeState;
-	BeforeState = State_tor2;
-
-	SqueezeDelta_tor2 *Delta_tor2 = EncodePos_tor2(State_tor2, i);
-
-#if DEBUG
-	coords D;
-	DecodePos_tor2(State_tor2, *Delta_tor2, i, D);
-	coords TrueD;
-	GetTrueD(i, TrueD);
-	float e = GetErr(D, TrueD);
-	Log("[%3u]", i);
-	Log("  %.1f (%.1f)", D.x, TrueD.x);
-	Log(",  %.1f (%.1f)", D.y, TrueD.y);
-	Log(",  %.1f (%.1f)", D.z, TrueD.z);
-	Log(" e=%.3g", e);
-	Log(" resets=%u", State_tor2.m_ResetCount);
-	Log("\n");
-#endif
-	return Delta_tor2;
-	}
-
-SqueezeDelta_tor2 *Squeezer_tor2::EncodePos_tor2(
-	const SqueezeState_tor2 &State_tor2, uint i) const
+SqueezeDelta *Squeezer_tor2::EncodePos(
+	const SqueezeState &State, uint i) const
 	{
 	SqueezeDelta_tor2 *Delta_tor2 = new SqueezeDelta_tor2;
 	coords TrueD;
@@ -163,22 +136,22 @@ SqueezeDelta_tor2 *Squeezer_tor2::EncodePos_tor2(
 		}
 
 	float theta_rad, phi_rad;
-	State_tor2.m_A.assert_valid();
-	State_tor2.m_B.assert_valid();
-	State_tor2.m_C.assert_valid();
+	State.m_A.assert_valid();
+	State.m_B.assert_valid();
+	State.m_C.assert_valid();
 	calculate_theta_phi(
-		State_tor2.m_A,
-		State_tor2.m_B,
-		State_tor2.m_C,
+		State.m_A,
+		State.m_B,
+		State.m_C,
 		TrueD,
 		theta_rad,
 		phi_rad);
 
 	coords D2;
 	calculate_D(
-		State_tor2.m_A,
-		State_tor2.m_B,
-		State_tor2.m_C,
+		State.m_A,
+		State.m_B,
+		State.m_C,
 		theta_rad,
 		phi_rad,
 		D2);
@@ -192,53 +165,37 @@ SqueezeDelta_tor2 *Squeezer_tor2::EncodePos_tor2(
 		}
 	else
 		{
-		Delta_tor2->m_tor2d = TOR2D_set_coords;
-		Delta_tor2->m_ix = PDBChain::CoordToIC(TrueD.x);
-		Delta_tor2->m_iy = PDBChain::CoordToIC(TrueD.y);
-		Delta_tor2->m_iz = PDBChain::CoordToIC(TrueD.z);
+		int16_t icx = PDBChain::CoordToIC(State.m_C.x);
+		int16_t icy = PDBChain::CoordToIC(State.m_C.y);
+		int16_t icz = PDBChain::CoordToIC(State.m_C.z);
+
+		int16_t idx = PDBChain::CoordToIC(TrueD.x);
+		int16_t idy = PDBChain::CoordToIC(TrueD.y);
+		int16_t idz = PDBChain::CoordToIC(TrueD.z);
+
+		int fix_x = idx - icx;
+		int fix_y = idy - icy;
+		int fix_z = idz - icz;
+
+		bool FixOk = true;
+		FixOk = FixOk && (fix_x >= INT8_MIN && fix_x <= INT8_MAX);
+		FixOk = FixOk && (fix_y >= INT8_MIN && fix_y <= INT8_MAX);
+		FixOk = FixOk && (fix_z >= INT8_MIN && fix_z <= INT8_MAX);
+		if (FixOk)
+			{
+			Delta_tor2->m_fix_x = int8_t(fix_x);
+			Delta_tor2->m_fix_y = int8_t(fix_y);
+			Delta_tor2->m_fix_z = int8_t(fix_z);
+			Delta_tor2->m_tor2d = TOR2D_fix_coords;
+			}
+		else
+			{
+			Delta_tor2->m_ix = PDBChain::CoordToIC(TrueD.x);
+			Delta_tor2->m_iy = PDBChain::CoordToIC(TrueD.y);
+			Delta_tor2->m_iz = PDBChain::CoordToIC(TrueD.z);
+			Delta_tor2->m_tor2d = TOR2D_set_coords;
+			}
 		}
 
 	return Delta_tor2;
-	}
-
-void Squeezer_tor2::UpdateState(SqueezeState &State,
-					   const SqueezeDelta &Delta) const
-	{
-	SqueezeState_tor2 &State_tor2 = (SqueezeState_tor2 &) State;
-	const SqueezeDelta_tor2 &Delta_tor2 = (SqueezeDelta_tor2 &) Delta;
-	UpdateState_tor2(State_tor2, Delta_tor2);
-	}
-
-void Squeezer_tor2::UpdateState_tor2(SqueezeState_tor2 &State_tor2,
-					   const SqueezeDelta_tor2 &Delta_tor2) const
-	{
-
-	if (Delta_tor2.m_tor2d == TOR2D_tor)
-		{
-		coords D;
-		float theta_rad = i2theta(Delta_tor2.m_itheta);
-		float phi_rad = i2theta(Delta_tor2.m_iphi);
-		calculate_D(
-			State_tor2.m_A,
-			State_tor2.m_B,
-			State_tor2.m_C,
-			theta_rad,
-			phi_rad,
-			D);
-
-		State_tor2.m_A = State_tor2.m_B;
-		State_tor2.m_B = State_tor2.m_C;
-		State_tor2.m_C = D;
-		}
-	else if (Delta_tor2.m_tor2d == TOR2D_set_coords)
-		{
-		State_tor2.m_A = State_tor2.m_B;
-		State_tor2.m_B = State_tor2.m_C;
-
-		State_tor2.m_C.x = PDBChain::ICToCoord(Delta_tor2.m_ix);
-		State_tor2.m_C.y = PDBChain::ICToCoord(Delta_tor2.m_iy);
-		State_tor2.m_C.z = PDBChain::ICToCoord(Delta_tor2.m_iz);
-
-		State_tor2.m_ResetCount++;
-		}
 	}

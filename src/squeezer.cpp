@@ -62,7 +62,7 @@ void Squeezer::DecodeChain(PDBChain &Chain)
 	for (uint i = 0; i < L; ++i)
 		{
 		const SqueezeDelta *Delta = m_Deltas[i];
-		DecodePos(*State, *Delta, i, D);
+		DecodePos(*State, *Delta, D);
 		Chain.m_Xs.push_back(D.x);
 		Chain.m_Ys.push_back(D.y);
 		Chain.m_Zs.push_back(D.z);
@@ -139,4 +139,14 @@ void cmd_squeeze()
 
 		delete ptrChain;
 		}
+	}
+
+void Squeezer::UpdateState(SqueezeState &State, const SqueezeDelta &Delta) const
+	{
+	coords D;
+	DecodePos(State, Delta, D);
+
+	State.m_A = State.m_B;
+	State.m_B = State.m_C;
+	State.m_C = D;
 	}

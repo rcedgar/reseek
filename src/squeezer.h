@@ -15,8 +15,26 @@ public:
 class SqueezeState
 	{
 public:
-	virtual void LogMe() const { Die("Not implemented"); }
-	virtual void LogStats() const {}
+	coords m_A;
+	coords m_B;
+	coords m_C;
+
+public:
+	SqueezeState()
+		{
+		m_A.invalidate();
+		m_B.invalidate();
+		m_C.invalidate();
+		}
+
+	void LogMe() const
+		{
+		Log("State: ");
+		m_A.logme("A", false);
+		m_B.logme("B", false);
+		m_C.logme("C", false);
+		Log("\n");
+		}
 	};
 
 class Squeezer
@@ -32,19 +50,17 @@ public:
 		const SqueezeState &State,
 		uint i) const = 0;
 
-	virtual SqueezeState *NewState() const = 0;
-
 	virtual void DecodePos(
 		const SqueezeState &State,
 		const SqueezeDelta &Delta,
-		uint i,
 		coords &D) const = 0;
 
-	virtual void UpdateState(
-		SqueezeState &State,
-		const SqueezeDelta &Delta) const = 0;
-
 public:
+	SqueezeState *NewState() const
+		{
+		return new SqueezeState;
+		}
+
 	void GetTrueD(uint i, coords &TrueD) const
 		{
 		m_Chain->GetCoords(i, TrueD);
@@ -60,6 +76,7 @@ public:
 	void EncodeChain(const PDBChain &Chain);
 	void DecodeChain(PDBChain &Chain);
 	uint GetBytes() const;
+	void UpdateState(SqueezeState &State, const SqueezeDelta &Delta) const;
 
 public:
 	static Squeezer *NewSqueezer(const string &Name);

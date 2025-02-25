@@ -37,7 +37,6 @@ public:
 
 	virtual void DecodePos(const SqueezeState &State,
 							const SqueezeDelta &Delta,
-							uint i,
 							coords &D) const
 		{
 		const SqueezeDelta_int16 &Delta_int16 =
@@ -57,8 +56,4 @@ public:
 		Delta_int16->m_z16 = PDBChain::CoordToIC(TrueD.z);
 		return Delta_int16;
 		}
-
-	virtual void UpdateState(
-		SqueezeState &State,
-		const SqueezeDelta &Delta) const {}
 	};

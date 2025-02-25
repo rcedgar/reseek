@@ -15,6 +15,7 @@ enum TOR2D
 	TOR2D_undefined,
 	TOR2D_tor,
 	TOR2D_set_coords,
+	TOR2D_fix_coords,
 	};
 
 class SqueezeDelta_tor2 : public SqueezeDelta
@@ -32,6 +33,9 @@ public:
 	int16_t m_ix = INT16_MAX;
 	int16_t m_iy = INT16_MAX;
 	int16_t m_iz = INT16_MAX;
+	int8_t m_fix_x = INT8_MAX;
+	int8_t m_fix_y = INT8_MAX;
+	int8_t m_fix_z = INT8_MAX;
 
 public:
 	virtual uint GetBytes() const
@@ -39,7 +43,8 @@ public:
 		switch (m_tor2d)
 			{
 		case TOR2D_tor:			return 2*sizeof(int8_t);
-		case TOR2D_set_coords: return 3*sizeof(int16_t);
+		case TOR2D_set_coords:	return 3*sizeof(int16_t);
+		case TOR2D_fix_coords:	return 3*sizeof(int8_t);
 			}
 		Die("SqueezeDelta_tor2::GetBytes m_tor2d=%d", m_tor2d);
 		return 0;
@@ -48,36 +53,6 @@ public:
 	virtual void LogMe() const
 		{
 		Die("TODO");
-		}
-	};
-
-class SqueezeState_tor2 : public SqueezeState
-	{
-public:
-	coords m_A;
-	coords m_B;
-	coords m_C;
-	uint m_ResetCount;
-
-	SqueezeState_tor2()
-		{
-		m_A.invalidate();
-		m_B.invalidate();
-		m_C.invalidate();
-		m_ResetCount = 0;
-		}
-
-	void LogStats() const
-		{
-		Log("Resets %u\n", m_ResetCount);
-		}
-
-	virtual void LogMe() const
-		{
-		Log("S_tor2 ");
-		m_A.logme("A", false);
-		m_B.logme("B", false);
-		m_C.logme("C", false);
 		}
 	};
 
@@ -90,35 +65,18 @@ public:
 		}
 
 public:
-	virtual SqueezeState *NewState() const
-		{
-		return new SqueezeState_tor2;
-		}
-
-	virtual void InitDecode(SqueezeState *State) const;
-
 	virtual void DecodePos(const SqueezeState &State,
 						   const SqueezeDelta &Delta,
-						   uint i,
 						   coords &D) const;
 
 
 	virtual SqueezeDelta *EncodePos(const SqueezeState &State,
 									uint i) const;
 
-	virtual void UpdateState(SqueezeState &State,
-						   const SqueezeDelta &Delta) const;
-
 public:
-	void DecodePos_tor2(const SqueezeState_tor2 &State,
+	void DecodePos_tor2(const SqueezeState &State,
 						   const SqueezeDelta_tor2 &Delta,
-						   uint i,
 						   coords &D) const;
-	SqueezeDelta_tor2 *EncodePos_tor2(const SqueezeState_tor2 &State_tor2,
-									uint i) const;
-
-	void UpdateState_tor2(SqueezeState_tor2 &State_tor2,
-						   const SqueezeDelta_tor2 &Delta_tor2) const;
 
 public:
 	static float i2phi(int8_t iphi);

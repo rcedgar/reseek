@@ -4,29 +4,17 @@
 // theta 25 .. 100 deg.
 // phi -180 .. 180 deg.
 
-void Squeezer_tor::InitDecode(SqueezeState *State) const
-	{
-	SqueezeState_tor *State_tor = (SqueezeState_tor *) State;
-	State_tor->m_A.invalidate();
-	State_tor->m_B.invalidate();
-	State_tor->m_C.invalidate();
-	State_tor->m_ResetCount = 0;
-	}
-
 void Squeezer_tor::DecodePos(const SqueezeState &State,
 						const SqueezeDelta &Delta,
-						uint i,
 						coords &D) const
 	{
-	SqueezeState_tor &State_tor = (SqueezeState_tor &) State;
 	const SqueezeDelta_tor &Delta_tor =
 		(const SqueezeDelta_tor &) Delta;
-	DecodePos_tor(State_tor, Delta_tor, i, D);
+	DecodePos_tor(State, Delta_tor, D);
 	}
 
-void Squeezer_tor::DecodePos_tor(const SqueezeState_tor &State_tor,
+void Squeezer_tor::DecodePos_tor(const SqueezeState &State_tor,
 						const SqueezeDelta_tor &Delta_tor,
-						uint i,
 						coords &D) const
 	{
 	if (Delta_tor.m_tord == TORD_tor)
@@ -53,33 +41,8 @@ void Squeezer_tor::DecodePos_tor(const SqueezeState_tor &State_tor,
 		asserta(false);
 	}
 
-SqueezeDelta *Squeezer_tor::EncodePos(const SqueezeState &State, uint i) const
-	{
-	const SqueezeState_tor &State_tor = (const SqueezeState_tor &) State;
-	SqueezeState_tor BeforeState;
-	BeforeState = State_tor;
-
-	SqueezeDelta_tor *Delta_tor = EncodePos_tor(State_tor, i);
-
-#if DEBUG
-	coords D;
-	DecodePos_tor(State_tor, *Delta_tor, i, D);
-	coords TrueD;
-	GetTrueD(i, TrueD);
-	float e = GetErr(D, TrueD);
-	Log("[%3u]", i);
-	Log("  %.1f (%.1f)", D.x, TrueD.x);
-	Log(",  %.1f (%.1f)", D.y, TrueD.y);
-	Log(",  %.1f (%.1f)", D.z, TrueD.z);
-	Log(" e=%.3g", e);
-	Log(" resets=%u", State_tor.m_ResetCount);
-	Log("\n");
-#endif
-	return Delta_tor;
-	}
-
-SqueezeDelta_tor *Squeezer_tor::EncodePos_tor(
-	const SqueezeState_tor &State_tor, uint i) const
+SqueezeDelta *Squeezer_tor::EncodePos(
+	const SqueezeState &State, uint i) const
 	{
 	SqueezeDelta_tor *Delta_tor = new SqueezeDelta_tor;
 	coords TrueD;
@@ -94,22 +57,22 @@ SqueezeDelta_tor *Squeezer_tor::EncodePos_tor(
 		}
 
 	float theta_rad, phi_rad;
-	State_tor.m_A.assert_valid();
-	State_tor.m_B.assert_valid();
-	State_tor.m_C.assert_valid();
+	State.m_A.assert_valid();
+	State.m_B.assert_valid();
+	State.m_C.assert_valid();
 	calculate_theta_phi(
-		State_tor.m_A,
-		State_tor.m_B,
-		State_tor.m_C,
+		State.m_A,
+		State.m_B,
+		State.m_C,
 		TrueD,
 		theta_rad,
 		phi_rad);
 
 	coords D2;
 	calculate_D(
-		State_tor.m_A,
-		State_tor.m_B,
-		State_tor.m_C,
+		State.m_A,
+		State.m_B,
+		State.m_C,
 		theta_rad,
 		phi_rad,
 		D2);
@@ -130,44 +93,4 @@ SqueezeDelta_tor *Squeezer_tor::EncodePos_tor(
 		}
 
 	return Delta_tor;
-	}
-
-void Squeezer_tor::UpdateState(SqueezeState &State,
-					   const SqueezeDelta &Delta) const
-	{
-	SqueezeState_tor &State_tor = (SqueezeState_tor &) State;
-	const SqueezeDelta_tor &Delta_tor = (SqueezeDelta_tor &) Delta;
-	UpdateState_tor(State_tor, Delta_tor);
-	}
-
-void Squeezer_tor::UpdateState_tor(SqueezeState_tor &State_tor,
-					   const SqueezeDelta_tor &Delta_tor) const
-	{
-
-	if (Delta_tor.m_tord == TORD_tor)
-		{
-		coords D;
-		calculate_D(
-			State_tor.m_A,
-			State_tor.m_B,
-			State_tor.m_C,
-			Delta_tor.m_theta_rad,
-			Delta_tor.m_phi_rad,
-			D);
-
-		State_tor.m_A = State_tor.m_B;
-		State_tor.m_B = State_tor.m_C;
-		State_tor.m_C = D;
-		}
-	else if (Delta_tor.m_tord == TORD_set_coords)
-		{
-		State_tor.m_A = State_tor.m_B;
-		State_tor.m_B = State_tor.m_C;
-
-		State_tor.m_C.x = Delta_tor.m_x;
-		State_tor.m_C.y = Delta_tor.m_y;
-		State_tor.m_C.z = Delta_tor.m_z;
-
-		State_tor.m_ResetCount++;
-		}
 	}

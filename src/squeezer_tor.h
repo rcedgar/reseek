@@ -57,36 +57,6 @@ public:
 		}
 	};
 
-class SqueezeState_tor : public SqueezeState
-	{
-public:
-	coords m_A;
-	coords m_B;
-	coords m_C;
-	uint m_ResetCount;
-
-	SqueezeState_tor()
-		{
-		m_A.invalidate();
-		m_B.invalidate();
-		m_C.invalidate();
-		m_ResetCount = 0;
-		}
-
-	void LogStats() const
-		{
-		Log("Resets %u\n", m_ResetCount);
-		}
-
-	virtual void LogMe() const
-		{
-		Log("S_tor ");
-		m_A.logme("A", false);
-		m_B.logme("B", false);
-		m_C.logme("C", false);
-		}
-	};
-
 class Squeezer_tor : public Squeezer
 	{
 public:
@@ -96,33 +66,16 @@ public:
 		}
 
 public:
-	virtual SqueezeState *NewState() const
-		{
-		return new SqueezeState_tor;
-		}
-
-	virtual void InitDecode(SqueezeState *State) const;
-
 	virtual void DecodePos(const SqueezeState &State,
 						   const SqueezeDelta &Delta,
-						   uint i,
 						   coords &D) const;
 
 
 	virtual SqueezeDelta *EncodePos(const SqueezeState &State,
 									uint i) const;
 
-	virtual void UpdateState(SqueezeState &State,
-						   const SqueezeDelta &Delta) const;
-
 public:
-	void DecodePos_tor(const SqueezeState_tor &State,
+	void DecodePos_tor(const SqueezeState &State,
 						   const SqueezeDelta_tor &Delta,
-						   uint i,
 						   coords &D) const;
-	SqueezeDelta_tor *EncodePos_tor(const SqueezeState_tor &State_tor,
-									uint i) const;
-
-	void UpdateState_tor(SqueezeState_tor &State_tor,
-						   const SqueezeDelta_tor &Delta_tor) const;
 	};
