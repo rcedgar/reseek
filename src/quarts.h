@@ -124,7 +124,7 @@ struct QuartsFloat
 
 	void LogMe() const
 		{
-		Log("N=u", N);
+		Log("N=%u", N);
 		Log(", Min=%.3g", Min);
 		Log(", LoQ=%.3g", LoQ);
 		Log(", Med=%.3g", Med);

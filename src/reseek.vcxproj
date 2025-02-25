@@ -399,6 +399,7 @@
     <ClCompile Include="scop40benchroc.cpp" />
     <ClCompile Include="squeezer.cpp" />
     <ClCompile Include="squeezer_tor.cpp" />
+    <ClCompile Include="squeezer_tor2.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />
@@ -523,6 +524,7 @@
     <ClInclude Include="squeezer_int16.h" />
     <ClInclude Include="squeezer_null.h" />
     <ClInclude Include="squeezer_tor.h" />
+    <ClInclude Include="squeezer_tor2.h" />
     <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />

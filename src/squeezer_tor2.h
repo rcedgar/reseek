@@ -10,54 +10,48 @@ void calculate_D(const coords &A, const coords &B, const coords &C,
 				 float theta_radians, float phi_radians,
 				 coords &D);
 
-enum TORD
+enum TOR2D
 	{
-	TORD_undefined,
-	TORD_tor,
-	TORD_set_coords,
+	TOR2D_undefined,
+	TOR2D_tor,
+	TOR2D_set_coords,
 	};
 
-class SqueezeDelta_tor : public SqueezeDelta
+class SqueezeDelta_tor2 : public SqueezeDelta
 	{
 public:
-	SqueezeDelta_tor()
+	SqueezeDelta_tor2()
 		{
-		m_Name = "tor";
+		m_Name = "tor2";
 		}
 
 public:
-	TORD m_tord = TORD_undefined;
-	float m_theta_rad = FLT_MAX;
-	float m_phi_rad = FLT_MAX;
-	float m_x = FLT_MAX;
-	float m_y = FLT_MAX;
-	float m_z = FLT_MAX;
+	TOR2D m_tor2d = TOR2D_undefined;
+	int8_t m_itheta = INT8_MAX;
+	int8_t m_iphi = INT8_MAX;
+	int16_t m_ix = INT16_MAX;
+	int16_t m_iy = INT16_MAX;
+	int16_t m_iz = INT16_MAX;
 
 public:
 	virtual uint GetBytes() const
 		{
-		switch (m_tord)
+		switch (m_tor2d)
 			{
-		case TORD_tor:	return 2*sizeof(float);
-		case TORD_set_coords: return 3*sizeof(float);
+		case TOR2D_tor:			return 2*sizeof(int8_t);
+		case TOR2D_set_coords: return 3*sizeof(int16_t);
 			}
-		Die("SqueezeDelta_tor::GetBytes m_tord=%d", m_tord);
+		Die("SqueezeDelta_tor2::GetBytes m_tor2d=%d", m_tor2d);
 		return 0;
 		}
 
 	virtual void LogMe() const
 		{
-		Log("D_tor(%d)", int(m_tord));
-		switch (m_tord)
-			{
-		case TORD_tor: Log(" theta=%.1f, phi=%.1f\n", degrees(m_theta_rad), degrees(m_phi_rad)); return;
-		case TORD_set_coords: Log(" SET x=%.1f y=%.1f z=%.1f\n", m_x, m_y, m_z); return;
-			}
-		Die("bad");
+		Die("TODO");
 		}
 	};
 
-class SqueezeState_tor : public SqueezeState
+class SqueezeState_tor2 : public SqueezeState
 	{
 public:
 	coords m_A;
@@ -65,7 +59,7 @@ public:
 	coords m_C;
 	uint m_ResetCount;
 
-	SqueezeState_tor()
+	SqueezeState_tor2()
 		{
 		m_A.invalidate();
 		m_B.invalidate();
@@ -80,25 +74,25 @@ public:
 
 	virtual void LogMe() const
 		{
-		Log("S_tor ");
+		Log("S_tor2 ");
 		m_A.logme("A", false);
 		m_B.logme("B", false);
 		m_C.logme("C", false);
 		}
 	};
 
-class Squeezer_tor : public Squeezer
+class Squeezer_tor2 : public Squeezer
 	{
 public:
-	Squeezer_tor()
+	Squeezer_tor2()
 		{
-		m_Name = "tor";
+		m_Name = "tor2";
 		}
 
 public:
 	virtual SqueezeState *NewState() const
 		{
-		return new SqueezeState_tor;
+		return new SqueezeState_tor2;
 		}
 
 	virtual void InitDecode(SqueezeState *State) const;
@@ -116,13 +110,20 @@ public:
 						   const SqueezeDelta &Delta) const;
 
 public:
-	void DecodePos_tor(const SqueezeState_tor &State,
-						   const SqueezeDelta_tor &Delta,
+	void DecodePos_tor2(const SqueezeState_tor2 &State,
+						   const SqueezeDelta_tor2 &Delta,
 						   uint i,
 						   coords &D) const;
-	SqueezeDelta_tor *EncodePos_tor(const SqueezeState_tor &State_tor,
+	SqueezeDelta_tor2 *EncodePos_tor2(const SqueezeState_tor2 &State_tor2,
 									uint i) const;
 
-	void UpdateState_tor(SqueezeState_tor &State_tor,
-						   const SqueezeDelta_tor &Delta_tor) const;
+	void UpdateState_tor2(SqueezeState_tor2 &State_tor2,
+						   const SqueezeDelta_tor2 &Delta_tor2) const;
+
+public:
+	static float i2phi(int8_t iphi);
+	static float i2theta(int8_t itheta);
+	static int8_t phi2i(float phi);
+	static int8_t theta2i(float theta);
+	static void test_cvt();
 	};

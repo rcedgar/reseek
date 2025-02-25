@@ -2,6 +2,7 @@
 #include "squeezer_null.h"
 #include "squeezer_int16.h"
 #include "squeezer_tor.h"
+#include "squeezer_tor2.h"
 #include "chainreader2.h"
 
 Squeezer *Squeezer::NewSqueezer(const string &Name)
@@ -12,6 +13,8 @@ Squeezer *Squeezer::NewSqueezer(const string &Name)
 		return new Squeezer_int16;
 	else if (Name == "tor")
 		return new Squeezer_tor;
+	else if (Name == "tor2")
+		return new Squeezer_tor2;
 	Die("NewSqueezer(%s)\n", Name.c_str());
 	return 0;
 	}
@@ -82,7 +85,7 @@ void cmd_squeeze()
 	{
 	ChainReader2 CR;
 	CR.Open(g_Arg1);
-	Squeezer &S = *Squeezer::NewSqueezer("tor");
+	Squeezer &S = *Squeezer::NewSqueezer("tor2");
 	for (;;)
 		{
 		PDBChain *ptrChain = CR.GetNext();
@@ -127,9 +130,10 @@ void cmd_squeeze()
 			Log("\n");
 			}
 		uint Bytes = S.GetBytes();
-		Log("%s >%s avge %.3g maxe %.3g bytes %u\n",
+		Log("%s >%s(%u) avge %.3g maxe %.3g bytes %u\n",
 			S.m_Name.c_str(),
 			Chain.m_Label.c_str(),
+			L,
 			sume/L, maxe,
 			Bytes);
 

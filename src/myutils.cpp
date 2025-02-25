@@ -1113,6 +1113,7 @@ double StrToFloat(const char *s)
 	double d = strtod(s, &p);
 	if (*p != 0)
 		Die("Invalid floating-point number '%s'", s);
+	asserta(!isnan(d));
 	return d;
 	}
 

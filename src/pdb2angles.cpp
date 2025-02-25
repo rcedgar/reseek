@@ -143,7 +143,8 @@ void cmd_pdb2angles()
 	CR.Open(g_Arg1);
 	FILE *fOut = CreateStdioFile(opt_output);
 
-	Log("aa	X	X'	eX	Y	Y'	eY	Z	Z'	eZ	dCD	e	theta	phi\n");
+	if (fOut != 0)
+		fprintf(fOut, "aa	X	X'	eX	Y	Y'	eY	Z	Z'	eZ	dCD	e	theta	phi\n");
 	for (;;)
 		{
 		PDBChain *Chain = CR.GetNext();

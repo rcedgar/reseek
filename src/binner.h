@@ -183,6 +183,8 @@ public:
 
 	void AccumToTsv(FILE *f, const string &Msg = "") const
 		{
+		if (f == 0)
+			return;
 		vector<uint> AccumBins;
 		GetAccumBins(AccumBins);
 		asserta(SIZE(AccumBins) == m_BinCount);
@@ -204,6 +206,8 @@ public:
 
 	void AccumToTsvReverse(FILE *f, const string &Msg = "") const
 		{
+		if (f == 0)
+			return;
 		vector<uint> AccumBins;
 		GetAccumBinsReverse(AccumBins);
 		asserta(SIZE(AccumBins) == m_BinCount);

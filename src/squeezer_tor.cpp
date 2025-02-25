@@ -1,6 +1,9 @@
 #include "myutils.h"
 #include "squeezer_tor.h"
 
+// theta 25 .. 100 deg.
+// phi -180 .. 180 deg.
+
 void Squeezer_tor::InitDecode(SqueezeState *State) const
 	{
 	SqueezeState_tor *State_tor = (SqueezeState_tor *) State;
@@ -41,15 +44,11 @@ void Squeezer_tor::DecodePos_tor(const SqueezeState_tor &State_tor,
 
 	else if (Delta_tor.m_tord == TORD_set_coords)
 		{
-		D.x = Delta_tor.m_dx;
-		D.y = Delta_tor.m_dy;
-		D.z = Delta_tor.m_dz;
+		D.x = Delta_tor.m_x;
+		D.y = Delta_tor.m_y;
+		D.z = Delta_tor.m_z;
 		}
 
-	else if (Delta_tor.m_tord == TORD_delta_coords)
-		{
-		asserta(false);
-		}
 	else
 		asserta(false);
 	}
@@ -88,9 +87,9 @@ SqueezeDelta_tor *Squeezer_tor::EncodePos_tor(
 	if (i < 3)
 		{
 		Delta_tor->m_tord = TORD_set_coords;
-		Delta_tor->m_dx = TrueD.x;
-		Delta_tor->m_dy = TrueD.y;
-		Delta_tor->m_dz = TrueD.z;
+		Delta_tor->m_x = TrueD.x;
+		Delta_tor->m_y = TrueD.y;
+		Delta_tor->m_z = TrueD.z;
 		return Delta_tor;
 		}
 
@@ -125,9 +124,9 @@ SqueezeDelta_tor *Squeezer_tor::EncodePos_tor(
 	else
 		{
 		Delta_tor->m_tord = TORD_set_coords;
-		Delta_tor->m_dx = TrueD.x;
-		Delta_tor->m_dy = TrueD.y;
-		Delta_tor->m_dz = TrueD.z;
+		Delta_tor->m_x = TrueD.x;
+		Delta_tor->m_y = TrueD.y;
+		Delta_tor->m_z = TrueD.z;
 		}
 
 	return Delta_tor;
@@ -165,9 +164,9 @@ void Squeezer_tor::UpdateState_tor(SqueezeState_tor &State_tor,
 		State_tor.m_A = State_tor.m_B;
 		State_tor.m_B = State_tor.m_C;
 
-		State_tor.m_C.x = Delta_tor.m_dx;
-		State_tor.m_C.y = Delta_tor.m_dy;
-		State_tor.m_C.z = Delta_tor.m_dz;
+		State_tor.m_C.x = Delta_tor.m_x;
+		State_tor.m_C.y = Delta_tor.m_y;
+		State_tor.m_C.z = Delta_tor.m_z;
 
 		State_tor.m_ResetCount++;
 		}
