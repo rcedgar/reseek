@@ -4,16 +4,6 @@
 #include <Windows.h>
 typedef unsigned __int64 TICKS;
 
-//#pragma warning(disable:4035)
-//inline TICKS GetClockTicks()
-//	{
-//	_asm
-//		{
-//		_emit	0x0f
-//		_emit	0x31
-//		}
-//	}
-
 #define	GetClockTicks	__rdtsc
 
 #elif __GNUC__

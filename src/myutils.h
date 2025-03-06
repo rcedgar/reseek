@@ -390,6 +390,7 @@ void GetTmpFileName(string &FN);
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);
+double GetTicksPerSec();
 
 #ifdef _MSC_VER
 #define brk(x)       if (x) __debugbreak()

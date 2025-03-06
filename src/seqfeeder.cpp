@@ -44,14 +44,23 @@ void SeqFeeder::ThreadBody()
 				}
 			}
 		if (!Any)
+			{
+#if SEQ_FEEDER_STATS
+			++m_FillWaitCount;
+			TICKS t1 = GetClockTicks();
+#endif
 			std::this_thread::sleep_for(FillWaitTime);
+#if SEQ_FEEDER_STATS
+			TICKS t2 = GetClockTicks();
+			m_FillWaitTicks += t2 - t1;
+#endif
+			}
 		}
 	}
 
-SeqFeeder::SeqFeeder(uint ThreadCount, SeqSource &SS)
+void SeqFeeder::Start(uint ThreadCount)
 	{
 	m_ThreadCount = ThreadCount;
-	m_SS = &SS;
 	m_EOF = false;
 
 	m_SILists.resize(ThreadCount);
@@ -99,6 +108,57 @@ SeqInfo *SeqFeeder::GetSI(uint ThreadIndex)
 		if (m_EOF)
 			return 0;
 
+#if SEQ_FEEDER_STATS
+		++m_GetWaitCount;
+		TICKS t1 = GetClockTicks();
+#endif
 		std::this_thread::sleep_for(GetWaitTime);
+#if SEQ_FEEDER_STATS
+		TICKS t2 = GetClockTicks();
+		m_StatsLock.lock();
+		m_GetWaitTicks += t2 - t1;
+		m_StatsLock.unlock();
+#endif
 		}
 	}
+
+#if SEQ_FEEDER_STATS
+void SeqFeeder::Stats() const
+	{
+	double TicksPerSec = GetTicksPerSec();
+
+	TICKS ListBlockedTicks = 0;
+	TICKS OMBlockedTicks = 0;
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		{
+		const mymutex &ListLock = *m_ListLocks[ThreadIndex];
+		const mymutex &OMLock = *m_OMLocks[ThreadIndex];
+
+		ListBlockedTicks += ListLock.m_blocked_ticks;
+		OMBlockedTicks += OMLock.m_blocked_ticks;
+		}
+
+	ProgressPrefix(false);
+	ProgressLog("\n");
+	ProgressLog("%.3g ticks/sec\n", TicksPerSec);
+	ProgressLog("Fill waits %u, %.3g ticks, %.3g secs\n", 
+				m_FillWaitCount,
+				double(m_FillWaitTicks),
+				double(m_FillWaitTicks/TicksPerSec));
+
+	ProgressLog("Get waits %u, %.3g ticks, %.3g secs\n", 
+				m_GetWaitCount,
+				double(m_GetWaitTicks),
+				double(m_GetWaitTicks/TicksPerSec));
+
+	ProgressLog("Lists blocked %.3g ticks, %.3g secs\n", 
+				double(ListBlockedTicks),
+				double(ListBlockedTicks/TicksPerSec));
+
+	ProgressLog("OMs blocked %.3g ticks, %.3g secs\n", 
+				double(OMBlockedTicks),
+				double(OMBlockedTicks/TicksPerSec));
+
+	ProgressPrefix(true);
+	}
+#endif

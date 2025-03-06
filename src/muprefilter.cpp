@@ -5,17 +5,21 @@
 #include "museqsource.h"
 #include "seqinfo.h"
 #include "mymutex.h"
+
+#define USE_SEQ_FEEDER 0
+
+#if USE_SEQ_FEEDER
 #include "seqfeeder.h"
+static SeqFeeder *s_SF;
+#endif
 
 static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
 static time_t s_TimeLastProgress;
 static uint s_DBSize = 0;
-static SeqFeeder *s_SF;
-
 static MuSeqSource *s_SS;
-static bool s_MuSeqSourceEOF = false;
+static mutex s_ProgressLock;
 
 static void ThreadBody_Filter(uint ThreadIndex)
 	{
@@ -24,15 +28,25 @@ static void ThreadBody_Filter(uint ThreadIndex)
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
 	Pref.SetQDB(*s_ptrQDB);
+#if !USE_SEQ_FEEDER
+	ObjMgr OM;
+#endif
 
 	for (;;)
 		{
+#if USE_SEQ_FEEDER
 		SeqInfo *SI = s_SF->GetSI(ThreadIndex);
 		if (SI == 0)
 			return;
+#else
+		SeqInfo *SI = OM.GetSeqInfo();
+		bool Ok = s_SS->GetNext(SI);
+		if (!Ok)
+			return;
+#endif
 
 		uint TSeqIdx = s_DBSize;
-		++s_DBSize;
+		s_ProgressLock.lock();
 		if (s_DBSize%100 == 0)
 			{
 			time_t now = time(0);
@@ -40,10 +54,16 @@ static void ThreadBody_Filter(uint ThreadIndex)
 				Progress("Filtering %s    \r", IntToStr(s_DBSize));
 			s_TimeLastProgress = now;
 			}
+		++s_DBSize;
+		s_ProgressLock.unlock();
 
 		if (SI->m_L == 0)
 			{
+#if USE_SEQ_FEEDER
 			s_SF->Down(ThreadIndex, SI);
+#else
+			OM.Down(SI);
+#endif
 			continue;
 			}
 
@@ -51,7 +71,11 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		const string &TLabel = string(SI->m_Label);
 		uint TL = SI->m_L;
 		Pref.Search(0, TSeqIdx, TLabel, TSeq, TL);
+#if USE_SEQ_FEEDER
 		s_SF->Down(ThreadIndex, SI);
+#else
+		OM.Down(SI);
+#endif
 		}
 	}
 
@@ -94,7 +118,13 @@ uint MuPreFilter(const DSSParams &Params,
 	s_TimeLastProgress = t_start;
 
 	uint ThreadCount = GetRequestedThreadCount();
-	s_SF = new SeqFeeder(ThreadCount, FSS);
+#if USE_SEQ_FEEDER
+	s_SF = new SeqFeeder;
+	s_SF->m_SS = &FSS;
+	s_SF->Start(ThreadCount);
+#else
+	s_SS = &FSS;
+#endif
 
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
@@ -107,6 +137,9 @@ uint MuPreFilter(const DSSParams &Params,
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	Progress("Filtering done %s      \n", IntToStr(s_DBSize));
+#if SEQ_FEEDER_STATS
+	s_SF->Stats();
+#endif
 
 	FILE *fTsv = CreateStdioFile(OutputFN);
 	PrefilterMu::m_RSB.ToTsv(fTsv);

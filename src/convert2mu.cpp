@@ -16,7 +16,13 @@ void cmd_convert2mu()
 	DSSParams Params;
 	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 	MuSeqSource MSS;
-	MSS.Open(g_Arg1, Params);
+	MSS.OpenChains(g_Arg1, Params);
+
+	if (optset_output)
+		{
+		opt_fasta = opt_output;
+		optset_fasta = true;
+		}
 
 	FILE *fFasta = CreateStdioFile(opt_fasta);
 

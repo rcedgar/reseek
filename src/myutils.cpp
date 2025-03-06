@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <float.h>
 #include <mutex>
+#include "getticks.h"
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
@@ -2473,4 +2474,19 @@ void GetTmpFileName(string &FN)
 #endif
 	uint u = GetUniqueInt();
 	Ps(FN, "%s/rce.%x.tmp", TmpDir, u);
+	}
+
+static TICKS s_ticks0 = GetClockTicks();
+static time_t s_secs0 = time(0);
+
+double GetTicksPerSec()
+	{
+	TICKS ticks_now = GetClockTicks();
+	time_t secs_now = time(0);
+	double secs_elapsed = double(secs_now - s_secs0);
+	if (secs_elapsed == 0)
+		secs_elapsed = 1;
+	double TicksElapsed = double(ticks_now - s_ticks0);
+	double TicksPerSec = TicksElapsed/secs_elapsed;
+	return TicksPerSec;
 	}

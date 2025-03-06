@@ -87,8 +87,13 @@ void cmd_search()
 
 	MuSeqSource QSS;
 	MuSeqSource DBSS;
-	QSS.Open(QueryFN, Params);
-	DBSS.Open(DBFN, Params);
+
+	QSS.OpenChains(QueryFN, Params);
+
+	if (optset_input2)
+		DBSS.OpenFasta(opt_input2);
+	else
+		DBSS.OpenChains(DBFN, Params);
 
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);

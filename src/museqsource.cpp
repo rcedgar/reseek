@@ -19,7 +19,15 @@ MuSeqSource::~MuSeqSource()
 bool MuSeqSource::GetNextLo(SeqInfo *SI)
 	{
 	if (m_IsFasta)
-		return m_FSS.GetNext(SI);
+		{
+		bool Ok = m_FSS.GetNext(SI);
+		if (!Ok)
+			return false;
+		byte *Seq = SI->m_SeqBuffer;
+		for (uint i = 0; i < SI->m_L; ++i)
+			Seq[i] = g_CharToLetterMu[Seq[i]];
+		return true;
+		}
 
 	if (m_Chain != 0)
 		delete m_Chain;
@@ -64,7 +72,7 @@ void MuSeqSource::OpenFasta(const string &FileName)
 	m_FSS.Open(FileName);
 	}
 
-void MuSeqSource::Open(const string &FileName, const DSSParams &Params)
+void MuSeqSource::OpenChains(const string &FileName, const DSSParams &Params)
 	{
 	m_IsFasta = false;
 	m_Params = &Params;
