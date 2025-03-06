@@ -47,54 +47,6 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 	return B;
 	}
 
-#if USE_BIAS
-int PrefilterMu::FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
-							  uint Qlo, uint Tlo) const
-	{
-	const byte *TSeq = m_TSeq + Tlo;
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx) + Qlo;
-	const int8_t *QBias = BiasVec8.data() + Qlo;
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
-
-	asserta(SIZE(BiasVec8) == QL);
-#if TRACE
-	if (DoTrace(QSeqIdx)) Log("FindHSP_Biased(Qlo=%u, Tlo=%u)\n", Qlo, Tlo);
-#endif
-
-	int nq = QL - Qlo;
-	int nt = m_TL - Tlo;
-	int n = min(nq, nt);
-	uint i = Qlo;
-	uint j = Tlo;
-
-	int B = 0;
-	int F = 0;
-	for (int k = 0; k < n; ++k)
-		{
-		assert(i < int(QL));
-		assert(j < int(m_TL));
-		int8_t Bias = *QBias++;
-		byte q = *QSeq++;
-		byte t = *TSeq++;
-		assert(q < ALPHABET_SIZE);
-		assert(t < ALPHABET_SIZE);
-		short Score = Mu_S_ij_i8[q][t] + Bias;
-		F += Score;
-#if TRACE
-		if (DoTrace(QSeqIdx)) Log(" k=%u F=%d B=%d score=%d\n", k, F, B, Score);
-#endif
-		if (F > B)
-			B = F;
-		else if (F < 0)
-			F = 0;
-		}
-#if TRACE
-	if (DoTrace(QSeqIdx)) Log("FindHSP_Biased(Qlo=%u, Tlo=%u)=%d\n", Qlo, Tlo, B);
-#endif
-	return B;
-	}
-#endif
-
 //////////////////////////////////////////////
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
@@ -210,9 +162,6 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	short MinKmerScore = MIN_KMER_PAIR_SCORE;
 
 // Construct high-scoring neighborhood
-#if USE_BIAS
-	short MinKmerScore -= GetTargetBiasCorrection(TPos);;
-#endif
 	const uint HSKmerCount =
 		m_ScoreMx->GetHighScoringKmers(Kmer, MinKmerScore, m_NeighborKmers);
 
@@ -327,17 +276,7 @@ int PrefilterMu::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
-#if USE_BIAS
-	assert(m_BiasVecs8 != 0);
-	assert(QSeqIdx < SIZE(*m_BiasVecs8));
-	const vector<int8_t> &BiasVec8 = (*m_BiasVecs8)[QSeqIdx];
-	diag dg(QL, m_TL);
-	uint Qlo = dg.getmini(Diag);
-	uint Tlo = dg.getminj(Diag);
-	int DiagScore = FindHSP_Biased(QSeqIdx, BiasVec8, Qlo, Tlo);
-#else
 	int DiagScore = FindHSP(QSeqIdx, Diag);
-#endif
 	return DiagScore;
 	}
 
@@ -360,20 +299,6 @@ void PrefilterMu::Reset()
 	m_DiagBag.Reset();
 	}
 
-#if USE_BIAS
-// lib/mmseqs/src/prefiltering/QueryMatcher.cpp:257
-short PrefilterMu::GetTargetBiasCorrection(uint TPos) const
-	{
-	const byte *Offsets = MuDex::m_Offsets;
-	const uint k = MuDex::m_k;
-	float FloatBias = 0;
-	for (uint i = 0; i < k; ++i)
-		FloatBias += m_TBiasVec[TPos + Offsets[i]];
-	short ShortBias = short(FloatBias < 0 ? FloatBias - 0.5 : FloatBias + 0.5);
-	return ShortBias;
-	}
-#endif
-
 void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
 	const byte *TSeq, uint TL)
 	{
@@ -381,9 +306,6 @@ void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
 	m_TLabel = TLabel;
 	m_TSeq = TSeq;
 	m_TL = TL;
-#if USE_BIAS
-	CalcLocalBiasCorrection_Mu(TSeq, TL, BIAS_WINDOW, TBIAS_SCALE, m_TBiasVec, m_TBiasVec8);
-#endif
 
 #if TRACE
 	Log("\n");

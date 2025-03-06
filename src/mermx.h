@@ -84,10 +84,3 @@ public:
 	int16_t *BuildSelfScores_Kmers() const;
 	uint8_t GetKmerMaxLetterCount(uint Kmer);
 	};
-
-
-#if USE_BIAS
-void CalcLocalBiasCorrection_Mu(const byte *Seq, uint L, int W, float Scale,
-								vector<float> &BiasVec,
-								vector<int8_t> &BiasVec8);
-#endif

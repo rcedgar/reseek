@@ -45,9 +45,6 @@ public:
 ///////////////////////////////////////////////////
 	const SeqDB *m_QDB = 0;
 	uint m_QSeqCount = UINT_MAX;
-#if USE_BIAS
-	const vector<vector<int8_t> > *m_BiasVecs8 = 0;
-#endif
 
 //////////////////////////////////////
 // Index of k-mers in the Query.
@@ -95,10 +92,6 @@ public:
 	vector<uint> m_TKmerSizes;
 	vector<uint> m_TKmerSizeOrder;
 #endif
-#if USE_BIAS
-	vector<float> m_TBiasVec;
-	vector<int8_t> m_TBiasVec8;
-#endif
 
 public:
 	void SetQDB(const SeqDB &QDB);
@@ -107,10 +100,6 @@ public:
 	void SetTarget(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL);
 	void Search_TargetSeq();
-#if USE_BIAS
-	int FindHSP_Biased(uint QSeqIdx, const vector<int8_t> &BiasVec8,
-							  uint QLo, uint Tlo) const;
-#endif
 	int FindHSP(uint QSeqIdx, int Diag) const;
 	int FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const;
 	void Search_TargetKmers();

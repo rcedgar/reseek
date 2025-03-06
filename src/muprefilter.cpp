@@ -13,11 +13,14 @@ static time_t s_TimeLastProgress;
 static MuSeqSource *s_SS;
 static uint s_DBSize = 0;
 
-#if USE_BIAS
-static const vector<vector<int8_t> > *s_ptrBiasVecs8;
-#endif
+static void ThreadBody_MuSeqSource()
+	{
+	for (;;)
+		{
+		}
+	}
 
-static void ThreadBody(uint ThreadIndex)
+static void ThreadBody_Filter(uint ThreadIndex)
 	{
 	ObjMgr OM;
 	PrefilterMu Pref;
@@ -25,9 +28,6 @@ static void ThreadBody(uint ThreadIndex)
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
 	Pref.SetQDB(*s_ptrQDB);
-#if USE_BIAS
-	Pref.m_BiasVecs8 = s_ptrBiasVecs8;
-#endif
 
 	for (;;)
 		{
@@ -94,24 +94,9 @@ uint MuPreFilter(const DSSParams &Params,
 	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
-#if USE_BIAS
-	vector<vector<int8_t> > BiasVecs8(QSeqCount);
-	vector<float> BiasVec;
-	for (uint QSeqIdx = 0; QSeqIdx < QSeqCount; ++QSeqIdx)
-		{
-		vector<int8_t> &BiasVec8 = BiasVecs8[QSeqIdx];
-		const byte *QSeq = QDB.GetByteSeq(QSeqIdx);
-		uint QL = QDB.GetSeqLength(QSeqIdx);
-		CalcLocalBiasCorrection_Mu(QSeq, QL, BIAS_WINDOW, QBIAS_SCALE, BiasVec, BiasVec8);
-		}
-#endif
-
 	s_ptrQDB = &QDB;
 	s_ptrScoreMx = &ScoreMx;
 	s_ptrQKmerIndex = &QKmerIndex;
-#if USE_BIAS
-	s_ptrBiasVecs8 = &BiasVecs8;
-#endif
 
 	Progress("Filtering\r");
 	time_t t_start = time(0);
@@ -121,14 +106,14 @@ uint MuPreFilter(const DSSParams &Params,
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		thread *t = new thread(ThreadBody, ThreadIndex);
+		thread *t = new thread(ThreadBody_Filter, ThreadIndex);
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-	Progress("Filtering done       \n");
+	Progress("Filtering done %s      \n", IntToStr(s_DBSize));
 
 	FILE *fTsv = CreateStdioFile(OutputFN);
 	PrefilterMu::m_RSB.ToTsv(fTsv);

@@ -1,6 +1,5 @@
 #pragma once
 
-#define	USE_BIAS		0
 #define	KMER_SORT		0
 #define KMER_COMPLEXITY	0
 
@@ -21,10 +20,4 @@ static const int MIN_KMER_PAIR_SCORE = 0;
 #define QUERY_COUNT_MULTIPLIER	5000	// something wrong here, too slow
 #else
 static const int MIN_KMER_PAIR_SCORE = 36;
-#endif
-
-#if USE_BIAS
-static const int BIAS_WINDOW = 30; // 40
-static const float TBIAS_SCALE = 0; // 0.15f;
-static const float QBIAS_SCALE = 0; // 0.15f;
 #endif

@@ -548,6 +548,9 @@
     <ClCompile Include="cca.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mymutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -846,6 +849,9 @@
     </ClInclude>
     <ClInclude Include="duper.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymutex.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
