@@ -551,6 +551,9 @@
     <ClCompile Include="mymutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="seqfeeder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -851,6 +854,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="mymutex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="seqfeeder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

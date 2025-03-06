@@ -4,25 +4,21 @@
 #include "prefiltermuparams.h"
 #include "museqsource.h"
 #include "seqinfo.h"
+#include "mymutex.h"
+#include "seqfeeder.h"
 
-static mutex s_NextLock;
 static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
 static time_t s_TimeLastProgress;
-static MuSeqSource *s_SS;
 static uint s_DBSize = 0;
+static SeqFeeder *s_SF;
 
-static void ThreadBody_MuSeqSource()
-	{
-	for (;;)
-		{
-		}
-	}
+static MuSeqSource *s_SS;
+static bool s_MuSeqSourceEOF = false;
 
 static void ThreadBody_Filter(uint ThreadIndex)
 	{
-	ObjMgr OM;
 	PrefilterMu Pref;
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
@@ -31,12 +27,12 @@ static void ThreadBody_Filter(uint ThreadIndex)
 
 	for (;;)
 		{
-		s_NextLock.lock();
+		SeqInfo *SI = s_SF->GetSI(ThreadIndex);
+		if (SI == 0)
+			return;
+
 		uint TSeqIdx = s_DBSize;
-		SeqInfo *SI = OM.GetSeqInfo();
-		bool Ok = s_SS->GetNext(SI);
-		if (Ok)
-			++s_DBSize;
+		++s_DBSize;
 		if (s_DBSize%100 == 0)
 			{
 			time_t now = time(0);
@@ -44,15 +40,10 @@ static void ThreadBody_Filter(uint ThreadIndex)
 				Progress("Filtering %s    \r", IntToStr(s_DBSize));
 			s_TimeLastProgress = now;
 			}
-		s_NextLock.unlock();
-		if (!Ok)
-			{
-			OM.Down(SI);
-			return;
-			}
+
 		if (SI->m_L == 0)
 			{
-			OM.Down(SI);
+			s_SF->Down(ThreadIndex, SI);
 			continue;
 			}
 
@@ -60,7 +51,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		const string &TLabel = string(SI->m_Label);
 		uint TL = SI->m_L;
 		Pref.Search(0, TSeqIdx, TLabel, TSeq, TL);
-		OM.Down(SI);
+		s_SF->Down(ThreadIndex, SI);
 		}
 	}
 
@@ -102,8 +93,10 @@ uint MuPreFilter(const DSSParams &Params,
 	time_t t_start = time(0);
 	s_TimeLastProgress = t_start;
 
-	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
+	s_SF = new SeqFeeder(ThreadCount, FSS);
+
+	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		thread *t = new thread(ThreadBody_Filter, ThreadIndex);

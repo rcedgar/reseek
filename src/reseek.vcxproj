@@ -396,6 +396,7 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
+    <ClCompile Include="seqfeeder.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />
@@ -513,6 +514,7 @@
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="search.h" />
+    <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />
     <ClInclude Include="sweeper.h" />
