@@ -188,12 +188,17 @@ void RankedScoresBag::ToTsv(FILE *f)
 		return;
 
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
+		{
+		ProgressStep(QueryIdx, m_QueryCount, "Truncate prefilter vecs");
 		TruncateVecs(QueryIdx);
+		}
 
 	map<uint, vector<uint> > TargetIdxToQueryIdxs;
 	vector<uint> TargetIdxs;
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
+		ProgressStep(QueryIdx, m_QueryCount, "Write prefilter tmp tsv");
+
 		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
 		const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
 		const uint n = SIZE(ScoreVec);

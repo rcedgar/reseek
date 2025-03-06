@@ -90,8 +90,8 @@ void cmd_search()
 
 	QSS.OpenChains(QueryFN, Params);
 
-	if (optset_input2)
-		DBSS.OpenFasta(opt_input2);
+	if (optset_dbmu)
+		DBSS.OpenFasta(opt_dbmu);
 	else
 		DBSS.OpenChains(DBFN, Params);
 

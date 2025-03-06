@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include "mymutex.h"
 #include "objmgr.h"
 #include "seqinfo.h"

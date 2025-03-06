@@ -106,6 +106,7 @@ STR_OPT(weightstr)
 STR_OPT(columns)
 STR_OPT(lddtmuw_jalview)
 STR_OPT(lddtmuw_pymol)
+STR_OPT(dbmu)
 
 STR_OPT(log)
 STR_OPT(input)
