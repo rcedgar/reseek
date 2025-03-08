@@ -4,7 +4,6 @@
 #include "mermx.h"
 #include "mudex.h"
 #include "twohitdiag.h"
-#include "diaghsp.h"
 #include "seqdb.h"
 #include "diag.h"
 #include "rankedscoresbag.h"

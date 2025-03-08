@@ -7,7 +7,6 @@
 #include <atomic>
 #include <map>
 #include <mutex>
-#include "mukmerfilter.h"
 
 class ChainReader2;
 

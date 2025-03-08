@@ -3,6 +3,7 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
+#include "dss.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,

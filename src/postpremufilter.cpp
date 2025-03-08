@@ -2,15 +2,6 @@
 #include "dssaligner.h"
 #include "chainreader2.h"
 
-/***
-[c300a5f] Add bags to postmufilter but not used, 
-[36f6da1] Single-theaded bags
-[32f9f25] Multi-threaded query indexing
-[8143e24] Multi-threaded scanning
-[b5ee61c] MuSeqSource + [Post]MuFilter => functions
-	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152301 area=7.14
-***/
-
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
 					  const vector<byte> *ptrMuLetters,
@@ -271,10 +262,10 @@ void PostMuFilter(const DSSParams &Params,
 	CloseStdioFile(s_fTsv);
 	CloseStdioFile(s_fTsv2);
 	time_t t1 = time(0);
-	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
+	Progress("Alignments %u secs\n", uint(t1 - t0));
 	}
 
-void cmd_postmufilter()
+void cmd_postmuprefilter()
 	{
 	const string &QueryCAFN = g_Arg1;
 	const string &HitsFN = opt(output);

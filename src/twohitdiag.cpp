@@ -5,7 +5,6 @@
 #include "mudex.h"
 #include "mermx.h"
 #include "alpha.h"
-#include "diaghsp.h"
 #include "diag.h"
 
 #define LOGDIAGALNS	0
