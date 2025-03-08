@@ -97,7 +97,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	m_MKFPatternStr = "111";
 	m_MuPrefPatternStr = string(prefiltermu_pattern);
 
-	asserta(!optset_pattern);
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt_omega;  }
 	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; }

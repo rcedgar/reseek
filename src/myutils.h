@@ -356,10 +356,10 @@ void GetCmdLine(string &s);
 #define oc(optname)	(opt_##optname)
 #define os(optname)	(string(opt_##optname))
 
-#define FLAG_OPT(Name)						extern bool opt_##Name; extern bool optset_##Name;
-#define UNS_OPT(Name, Default, Min, Max)	extern unsigned opt_##Name; extern bool optset_##Name;
-#define FLT_OPT(Name, Default, Min, Max)	extern double opt_##Name; extern bool optset_##Name;
-#define STR_OPT(Name)						extern const char *opt_##Name; extern bool optset_##Name;
+#define FLAG_OPT(Name)	extern bool opt_##Name; extern bool optset_##Name; extern bool optused_##Name;
+#define UNS_OPT(Name)	extern unsigned opt_##Name; extern bool optset_##Name; extern bool optused_##Name;
+#define FLT_OPT(Name)	extern double opt_##Name; extern bool optset_##Name; extern bool optused_##Name;
+#define STR_OPT(Name)	extern const char *opt_##Name; extern bool optset_##Name; extern bool optused_##Name;
 #include "myopts.h"
 
 extern FILE *g_fLog;
