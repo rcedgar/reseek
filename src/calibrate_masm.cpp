@@ -67,16 +67,16 @@ static void FitBins(const string &Label,
 
 void cmd_calibrate_masm()
 	{
-	if (optset_log2) g_DoLog2 = opt_log2;
-	if (optset_minscore) g_MinScore = float(opt_minscore);
-	if (optset_maxscore) g_MaxScore = float(opt_maxscore);
-	if (optset_bins) g_BinCount = opt_bins;
+	if (optset_log2) g_DoLog2 = opt(log2);
+	if (optset_minscore) g_MinScore = float(opt(minscore));
+	if (optset_maxscore) g_MaxScore = float(opt(maxscore));
+	if (optset_bins) g_BinCount = opt(bins);
 
 	string Line;
 	vector<string> Fields;
 	FILE *fIn = OpenStdioFile(g_Arg1);
-	FILE *fOut = CreateStdioFile(opt_output);
-	FILE *fOut2 = CreateStdioFile(opt_output2);
+	FILE *fOut = CreateStdioFile(opt(output));
+	FILE *fOut2 = CreateStdioFile(opt(output2));
 
 	bool HdrDone = false;
 	while (ReadLineStdioFile(fIn, Line))

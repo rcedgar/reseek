@@ -10,17 +10,17 @@ void cmd_binner()
 	uint FieldNr = 0;
 	if (optset_fieldnr)
 		{
-		asserta(opt_fieldnr > 0);
-		FieldNr = opt_fieldnr - 1;
+		asserta(opt(fieldnr) > 0);
+		FieldNr = opt(fieldnr) - 1;
 		}
 	if (optset_bins)
-		Bins = opt_bins;
+		Bins = opt(bins);
 	float MinValue = -FLT_MAX;
 	float MaxValue = FLT_MAX;
 	if (optset_minval)
-		MinValue = float(opt_minval);
+		MinValue = float(opt(minval));
 	if (optset_maxval)
-		MaxValue = float(opt_maxval);
+		MaxValue = float(opt(maxval));
 	asserta(MinValue < MaxValue);
 
 	vector<float> Values;
@@ -31,7 +31,7 @@ void cmd_binner()
 		Split(Line, Fields, '\t');
 		asserta(SIZE(Fields) > FieldNr);
 		float v = StrToFloatf(Fields[FieldNr]);
-		if (opt_log10)
+		if (opt(log10))
 			{
 			if (v < 1e-20)
 				v = -20;
@@ -41,9 +41,9 @@ void cmd_binner()
 		Values.push_back(v);
 		}
 
-	FILE *fOut = CreateStdioFile(opt_output);
-	FILE *fAccum = CreateStdioFile(opt_accum);
-	FILE *fAccumRev = CreateStdioFile(opt_accumrev);
+	FILE *fOut = CreateStdioFile(opt(output));
+	FILE *fAccum = CreateStdioFile(opt(accum));
+	FILE *fAccumRev = CreateStdioFile(opt(accumrev));
 	QuartsFloat QF;
 	GetQuartsFloat(Values, QF);
 	QF.LogMe();

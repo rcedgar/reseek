@@ -5,8 +5,8 @@
 
 void cmd_cmprof_train()
 	{
-	const string &ChainFN = opt_cmprof_train;
-	const string &MSAFN = opt_input;
+	const string &ChainFN = opt(cmprof_train);
+	const string &MSAFN = opt(input);
 
 	SeqDB MSA;
 	MSA.FromFasta(MSAFN, true);
@@ -38,5 +38,5 @@ void cmd_cmprof_train()
 	if (NotFoundCount > 0)
 		Warning("%u sequences not found", NotFoundCount);
 	Prof.FinalizeTrain();
-	Prof.ToFile(opt_output);
+	Prof.ToFile(opt(output));
 	}

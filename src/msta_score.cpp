@@ -7,7 +7,7 @@ void cmd_msta_score()
 	{
 	asserta(optset_input);
 
-	const bool DoCore = opt_core;
+	const bool DoCore = opt(core);
 
 	string Name;
 	GetStemName(g_Arg1, Name);
@@ -15,11 +15,11 @@ void cmd_msta_score()
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 
-	FILE* fOut = CreateStdioFile(opt_output);
-	const bool MissingSeqOk = opt_missingtestseqok;
+	FILE* fOut = CreateStdioFile(opt(output));
+	const bool MissingSeqOk = opt(missingtestseqok);
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");

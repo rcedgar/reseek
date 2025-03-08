@@ -199,7 +199,7 @@ static void SmoothS3(string &S3)
 void cmd_msta_lddtmuw()
 	{
 	asserta(optset_input);
-	if (EndsWith(opt_input, ".mega"))
+	if (EndsWith(opt(input), ".mega"))
 		Die("invalid -input, mega does not contain structures");
 
 	if (optset_lddtmuw_pymol && !optset_label)
@@ -207,7 +207,7 @@ void cmd_msta_lddtmuw()
 
 	uint w = 2;
 	if (optset_window)
-		w = opt_window;
+		w = opt(window);
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
@@ -221,12 +221,12 @@ void cmd_msta_lddtmuw()
 	const bool MissingTestSeqOk = true;
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 	const uint ChainCount = SIZE(DS.m_Chains);
 	if (ChainCount == 0)
-		Die("No structures in %s", opt_input);
+		Die("No structures in %s", opt(input));
 	if (ChainCount == 1)
-		Die("Only one structure in %s", opt_input);
+		Die("Only one structure in %s", opt(input));
 	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");
@@ -244,7 +244,7 @@ void cmd_msta_lddtmuw()
 		GetSSVec(DS.m_Chains, SSVec);
 		vector<string> SSMSA;
 		GetSSMSA(MSA, DS.m_SeqIdxToChainIdx, SSVec, SSMSA);
-		FILE *f = CreateStdioFile(opt_lddtmuw_jalview);
+		FILE *f = CreateStdioFile(opt(lddtmuw_jalview));
 		fprintf(f, "JALVIEW_ANNOTATION\n");
 		fprintf(f, "BAR_GRAPH\tLDDT-muw\t");
 		string S3;
@@ -285,7 +285,7 @@ void cmd_msta_lddtmuw()
 
 	if (optset_label)
 		{
-		const string &Label = string(opt_label);
+		const string &Label = string(opt(label));
 		const uint QuerySeqIdx = MSA.GetSeqIndex(Label);
 		const string &QueryRow = MSA.GetSeq(QuerySeqIdx);
 		asserta(SIZE(QueryRow) == ColCount);
@@ -301,7 +301,7 @@ void cmd_msta_lddtmuw()
 		const uint LQ = SIZE(Bins);
 		if (optset_lddtmuw_pymol)
 			{
-			FILE *f = CreateStdioFile(opt_lddtmuw_pymol);
+			FILE *f = CreateStdioFile(opt(lddtmuw_pymol));
 			uint Start = 0;
 			uint CurrentBin = Bins[0];
 			fprintf(f, "select tmp, all\n");

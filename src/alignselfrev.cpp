@@ -5,7 +5,7 @@
 void cmd_alignselfrev()
 	{
 	const string &QFN = g_Arg1;
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);

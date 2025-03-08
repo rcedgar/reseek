@@ -30,14 +30,14 @@ void cmd_mukmerfilter()
 	{
 	Die("Obsolete");
 #if 0
-	opt_fast = true;
+	opt(fast) = true;
 	optset_fast = true;
 	DSSParams Params;
 	Params.Set(10000);
 	MuDex::Set_k(3);
 	MuDex MD;
 	asserta(optset_output);
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
 	const uint N = SIZE(Chains);

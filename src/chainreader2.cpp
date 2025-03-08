@@ -31,8 +31,8 @@ void ChainReader2::Open(PDBFileScanner &FS)
 	{
 	asserta(m_State == STATE_Closed);
 	m_ptrFS = &FS;
-	m_Trace = opt_trace_chainreader2;
-	m_ptrFS->m_Trace = opt_trace_chainreader2;
+	m_Trace = opt(trace_chainreader2);
+	m_ptrFS->m_Trace = opt(trace_chainreader2);
 	if (m_Trace) Log("ChainReader2::Open()\n");
 	m_State = STATE_PendingFile;
 	m_CRGlobalChainCount = 0;

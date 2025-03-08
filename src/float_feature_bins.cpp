@@ -67,14 +67,14 @@ static void ReportBins(
 void cmd_float_feature_bins()
 	{
 	asserta(optset_feature);
-	g_FeatureIndex = StrToFeatureIndex(opt_feature);
+	g_FeatureIndex = StrToFeatureIndex(opt(feature));
 	const char *FeatureName = FeatureToStr(g_FeatureIndex);
 
 	SeqDB Input;
-	Input.FromFasta(opt_float_feature_bins, true);
+	Input.FromFasta(opt(float_feature_bins), true);
 
 	vector<PDBChain *> Chains;
-	ReadChains(opt_train_cal, Chains);
+	ReadChains(opt(train_cal), Chains);
 	const uint ChainCount = SIZE(Chains);
 	map<string, uint> DomToChainIndex;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
@@ -150,7 +150,7 @@ void cmd_float_feature_bins()
 	  Values[0], Values[K-1]);
 
 	if (optset_alpha_size)
-		ReportBins(Values, Values1, Values2, opt_alpha_size);
+		ReportBins(Values, Values1, Values2, opt(alpha_size));
 	else
 		{
 		ReportBins(Values, Values1, Values2, 3);

@@ -36,7 +36,7 @@ static FEATURE GetFeatureFromCmdLine()
 	string Alpha = "Mu";
 	FEATURE Feat = FEATURE(FEATURE_COUNT);
 	if (optset_alpha)
-		Alpha = opt_alpha;
+		Alpha = opt(alpha);
 	if (Alpha == "NENConf3")
 		Alpha = "NENSS3";
 	else if (Alpha == "RENDist4")
@@ -66,7 +66,7 @@ static FEATURE GetFeatureFromCmdLine()
 #undef F
 
 	if (Feat == FEATURE(FEATURE_COUNT))
-		Die("Invalid -alpha %s", opt_alpha);
+		Die("Invalid -alpha %s", opt(alpha));
 
 	return Feat;
 	}
@@ -113,9 +113,9 @@ static void ThreadBody(uint ThreadIndex)
 		const uint L = ptrChain->GetSeqLength();
 		asserta(L > 0);
 
-		if (opt_reverse)
+		if (opt(reverse))
 			ptrChain->Reverse();
-		if (opt_flip)
+		if (opt(flip))
 			ptrChain->Flip();
 
 		s_LockStats.lock();
@@ -214,7 +214,7 @@ static void ThreadBody(uint ThreadIndex)
 			const vector<string> &Lines = ptrChain->m_Lines;
 			asserta(!Lines.empty());
 			const string &FN = ptrChain->m_Label;
-			string PathN = opt_pdboutdir;
+			string PathN = opt(pdboutdir);
 			Dirize(PathN);
 			PathN += FN;
 			PathN += ".pdb";
@@ -230,7 +230,7 @@ static void ThreadBody(uint ThreadIndex)
 		if (optset_pdbcaoutdir)
 			{
 			string &FN = ptrChain->m_Label;
-			string PathN = opt_pdbcaoutdir;
+			string PathN = opt(pdbcaoutdir);
 			Dirize(PathN);
 			PathN += FN;
 			PathN += ".pdb";
@@ -251,11 +251,11 @@ void cmd_convert()
 	FS.Open(g_Arg1);
 
 	optset_fast = true;
-	opt_fast = true;
+	opt(fast) = true;
 
 	uint MinChainLength = 1;
 	if (optset_minchainlength)
-		MinChainLength = opt_minchainlength;
+		MinChainLength = opt(minchainlength);
 
 	DSSParams Params;
 	//DSS D;
@@ -264,7 +264,7 @@ void cmd_convert()
 	if (optset_feature_fasta)
 		{
 		optset_fast = true;
-		opt_fast = true;
+		opt(fast) = true;
 		Params.SetDSSParams(DM_AlwaysFast, SCOP40_DBSIZE);
 		s_Feat = GetFeatureFromCmdLine();
 		s_ptrParams = &Params;
@@ -273,12 +273,12 @@ void cmd_convert()
 	vector<string> Labels;
 	if (optset_labels)
 		{
-		ReadLinesFromFile(opt_labels, Labels);
+		ReadLinesFromFile(opt(labels), Labels);
 		if (Labels.empty())
-			Die("No labels found in '%s'", opt_labels);
+			Die("No labels found in '%s'", opt(labels));
 		}
 	else if (optset_label)
-		Labels.push_back(opt_label);
+		Labels.push_back(opt(label));
 
 	set<string> LabelSet;
 	for (uint i = 0; i < SIZE(Labels); ++i)
@@ -295,16 +295,16 @@ void cmd_convert()
 	BCAData BCA;
 	if (optset_bca)
 		{
-		BCA.Create(opt_bca);
+		BCA.Create(opt(bca));
 		s_ptrBCA = &BCA;
 		}
 
 	s_ptrFS = &FS;
 
-	s_fCal = CreateStdioFile(opt_cal);
-	s_fFasta = CreateStdioFile(opt_fasta);
-	s_fFeatureFasta = CreateStdioFile(opt_feature_fasta);
-	s_fMultiPDB = CreateStdioFile(opt_multipdb);
+	s_fCal = CreateStdioFile(opt(cal));
+	s_fFasta = CreateStdioFile(opt(fasta));
+	s_fFeatureFasta = CreateStdioFile(opt(feature_fasta));
+	s_fMultiPDB = CreateStdioFile(opt(multipdb));
 
 	s_InputCount = 0;
 	s_Converted = 0;

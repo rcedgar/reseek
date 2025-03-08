@@ -3,7 +3,7 @@
 // Utility functions derived from foldseek source code
 // https://github.com/steineggerlab/foldseek
 // GPL3 license
-// van Kempen M, Kim S, Tumescheit C, Mirdita M, Lee J, Gilchrist CLM, Söding J,
+// van Kempen M, Kim S, Tumescheit C, Mirdita M, Lee J, Gilchrist CLM, Soding J,
 // and Steinegger M. Fast and accurate protein structure search with Foldseek.
 // Nature Biotechnology (2023)
 // doi:10.1038/s41587-023-01773-0

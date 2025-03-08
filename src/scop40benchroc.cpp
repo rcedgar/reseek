@@ -599,7 +599,7 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 	asserta(!m_SFToIdx.empty());
 	asserta(!m_DomIdxToSFIdx.empty());
 
-	uint ScoreFieldNr = (optset_scorefieldnr ? opt_scorefieldnr-1 : 2);
+	uint ScoreFieldNr = (optset_scorefieldnr ? opt(scorefieldnr)-1 : 2);
 
 	char SplitChar = '\t';
 	if (EndsWith(FileName, "dalialn"))
@@ -682,14 +682,14 @@ void cmd_scop40bit2tsv()
 	{
 	asserta(optset_output);
 	asserta(optset_lookup || optset_input);
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
 	if (optset_lookup)
-		SB.ReadLookup(opt_lookup);
+		SB.ReadLookup(opt(lookup));
 	else
 		{
-		SB.LoadDB(opt_input);
+		SB.LoadDB(opt(input));
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.m_Level = "sf";
@@ -707,7 +707,7 @@ void cmd_scop40bit2tsv()
 		float Score = SB.m_Scores[i];
 		if (optset_tsv_topn)
 			{
-			if (i >= opt_tsv_topn)
+			if (i >= opt(tsv_topn))
 				break;
 			Log("%s(%u)", Dom1, DomIdx1);
 			Log("  %s(%u)", Dom2, DomIdx2);
@@ -761,9 +761,9 @@ void cmd_scop40tsv2bit()
 	{
 	SCOP40Bench SB;
 	asserta(optset_input);
-	SB.LoadDB(opt_input);
+	SB.LoadDB(opt(input));
 	SB.LoadHitsFromTsv(g_Arg1);
-	SB.WriteBit(opt_output);
+	SB.WriteBit(opt(output));
 	uint HitCount = SB.GetHitCount();
 	uint Sens1FP = SB.GetSens1stFP();
 	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens1FP);
@@ -773,15 +773,15 @@ void cmd_scop40bench_tsv()
 	{
 	asserta(optset_lookup);
 	SCOP40Bench SB;
-	if (opt_scores_are_not_evalues)
+	if (opt(scores_are_not_evalues))
 		SB.m_ScoresAreEvalues = false;
 	else
 		SB.m_ScoresAreEvalues = true;
-	SB.ReadLookup(opt_lookup);
+	SB.ReadLookup(opt(lookup));
 	SB.ReadHits(g_Arg1);
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
+		MaxFPR = (float) opt(maxfpr);
 	SB.WriteOutput();
 	}
 
@@ -791,10 +791,10 @@ void cmd_scop40bit_roc()
 	SCOP40Bench SB;
 	SB.ReadBit(g_Arg1);
 	if (optset_lookup)
-		SB.ReadLookup(opt_lookup);
+		SB.ReadLookup(opt(lookup));
 	else
 		{
-		SB.LoadDB(opt_input);
+		SB.LoadDB(opt(input));
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.WriteOutput();

@@ -49,7 +49,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	if (DBSize == UINT_MAX)
 		{
 		if (optset_dbsize)
-			m_DBSize = (float) opt_dbsize;
+			m_DBSize = (float) opt(dbsize);
 		else
 			m_DBSize = SCOP40_DBSIZE;
 		}
@@ -92,28 +92,28 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 		asserta(false);
 		}
 
-	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt_evalue_a);
-	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt_evalue_b);
+	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt(evalue_a));
+	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt(evalue_b));
 	m_MKFPatternStr = "111";
 	m_MuPrefPatternStr = string(prefiltermu_pattern);
 
 	const int MINUS = -1; // for visual emphasis here
-	if (optset_omega) { m_Omega = (float) opt_omega;  }
-	if (optset_omegafwd) { m_OmegaFwd = (float) opt_omegafwd; }
-	if (optset_minfwdscore) { m_MinFwdScore = float(opt_minfwdscore); }
-	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt_gapopen); }
-	if (optset_gapopen) { m_GapExt = MINUS*float(opt_gapext); }
-	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt_para_mugapopen; }
-	if (optset_para_mugapext) { m_ParaMuGapExt = opt_para_mugapext; }
-	if (optset_minhsp) { m_MKF_MinHSPScore = opt_minhsp; }
-	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt_minmegahsp); }
-	if (optset_xdrop1) { m_MKF_X1 = int(opt_xdrop1); }
-	if (optset_xdrop2) { m_MKF_X2 = int(opt_xdrop2); }
-	if (optset_mkfl) { m_MKFL = int(opt_mkfl); }
+	if (optset_omega) { m_Omega = (float) opt(omega);  }
+	if (optset_omegafwd) { m_OmegaFwd = (float) opt(omegafwd); }
+	if (optset_minfwdscore) { m_MinFwdScore = float(opt(minfwdscore)); }
+	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt(gapopen)); }
+	if (optset_gapopen) { m_GapExt = MINUS*float(opt(gapext)); }
+	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt(para_mugapopen); }
+	if (optset_para_mugapext) { m_ParaMuGapExt = opt(para_mugapext); }
+	if (optset_minhsp) { m_MKF_MinHSPScore = opt(minhsp); }
+	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt(minmegahsp)); }
+	if (optset_xdrop1) { m_MKF_X1 = int(opt(xdrop1)); }
+	if (optset_xdrop2) { m_MKF_X2 = int(opt(xdrop2)); }
+	if (optset_mkfl) { m_MKFL = int(opt(mkfl)); }
 
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
-		  opt_gapopen, opt_gapext);
+		  opt(gapopen), opt(gapext));
 
 	InitScoreMxs();
 	}
@@ -341,7 +341,7 @@ float DSSParams::GetEvalue(float TestStatistic) const
 		return 99999;
 	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
 
-	if (opt_gum)
+	if (opt(gum))
 		return GetEvalueGumbel(TestStatistic,
 		  m_Evalue_Gumbel_mu, m_Evalue_Gumbel_beta);
 

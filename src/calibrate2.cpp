@@ -78,13 +78,13 @@ void cmd_calibrate2()
 	
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
+		MaxFPR = (float) opt(maxfpr);
 
 	OpenOutputFiles();
 
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;
-	if (opt_scores_are_not_evalues)
+	if (opt(scores_are_not_evalues))
 		SB.m_ScoresAreEvalues = false;	SB.RunSelf();
 	SB.SetTFs();
 	SB.SetStats(MaxFPR, true);
@@ -127,7 +127,7 @@ void cmd_calibrate2()
 
 	if (optset_output)
 		{
-		FILE *f = CreateStdioFile(opt_output);
+		FILE *f = CreateStdioFile(opt(output));
 		fprintf(f, "TS\tP\tMinusLogP\tMinusLogP_fit\tP_fit\n");
 		for (uint i = 0; i < M; ++i)
 			{

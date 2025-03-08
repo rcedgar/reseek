@@ -362,6 +362,11 @@ void GetCmdLine(string &s);
 #define STR_OPT(Name)	extern const char *opt_##Name; extern bool optset_##Name; extern bool optused_##Name;
 #include "myopts.h"
 
+#define sopt(Name)			(optused_##Name = true, opt_##Name.c_str())
+#define opt(Name)			(optused_##Name = true, opt_##Name)
+#define default_opt(Name, Value)	if (!optset_##Name) { opt_##Name = Value; optset_##Name = true; }
+#define set_opt(Name, Value)		{ opt_##Name = Value; optset_##Name = true; }
+
 extern FILE *g_fLog;
 
 unsigned GetRequestedThreadCount();

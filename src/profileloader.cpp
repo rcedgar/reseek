@@ -82,7 +82,7 @@ void ProfileLoader::Load(
 	{
 	m_MinChainLength = 1;
 	if (optset_minchainlength)
-		m_MinChainLength = opt_minchainlength;
+		m_MinChainLength = opt(minchainlength);
 
 	m_Params = &Params;
 	m_CR = &CR;

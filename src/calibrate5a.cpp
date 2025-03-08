@@ -18,7 +18,7 @@ static void FitBins(const string &Label,
 	asserta(SIZE(AccumRevBins) == g_BinCount);
 	const uint N = AccumRevBins[0];
 	const uint Max_n = N/2;
-	const uint Min_n = opt_k;
+	const uint Min_n = opt(k);
 	const float BinSize = (g_MaxScore - g_MinScore)/g_BinCount;
 	vector<uint> ns;
 	vector<float> xs;
@@ -66,11 +66,11 @@ static void FitBins(const string &Label,
 
 void cmd_calibrate5a()
 	{
-	g_MinScore = (float) opt_minscore;
-	g_MaxScore = (float) opt_maxscore;
-	g_BinCount = opt_n;
+	g_MinScore = (float) opt(minscore);
+	g_MaxScore = (float) opt(maxscore);
+	g_BinCount = opt(n);
 	FILE *fIn = OpenStdioFile(g_Arg1);
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	asserta(fOut != 0);
 
 	string Line;

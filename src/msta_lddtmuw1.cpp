@@ -146,13 +146,13 @@ void cmd_msta_lddtmuw1()
 
 	uint w = 2;
 	if (optset_window)
-		w = opt_window;
+		w = opt(window);
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 	MSA.SetLabelToIndex();
 	const uint ColCount = MSA.GetColCount();
-	const string &Label = string(opt_label);
+	const string &Label = string(opt(label));
 	const uint QuerySeqIdx = MSA.GetSeqIndex(Label);
 	const string &QueryRow = MSA.GetSeq(QuerySeqIdx);
 	string QuerySeq;
@@ -163,7 +163,7 @@ void cmd_msta_lddtmuw1()
 			QuerySeq += toupper(c);
 		}
 
-	//FILE *fOut = CreateStdioFile(opt_output);
+	//FILE *fOut = CreateStdioFile(opt(output));
 
 	string Name;
 	GetStemName(g_Arg1, Name);
@@ -172,7 +172,7 @@ void cmd_msta_lddtmuw1()
 	const bool MissingTestSeqOk = true;
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");

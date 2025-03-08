@@ -7,19 +7,19 @@ void cmd_lddt_msas()
 	{
 	asserta(optset_input);
 	asserta(optset_testdir);
-	FILE* fOut = CreateStdioFile(opt_output);
-	const bool MissingSeqOk = opt_missingtestseqok;
+	FILE* fOut = CreateStdioFile(opt(output));
+	const bool MissingSeqOk = opt(missingtestseqok);
 
-	string TestDir = string(opt_testdir);
+	string TestDir = string(opt(testdir));
 	Dirize(TestDir);
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 
 	vector<string> Accs;
 	ReadLinesFromFile(g_Arg1, Accs);
 
-	const bool DoCore = opt_core;
+	const bool DoCore = opt(core);
 
 	const uint N = SIZE(Accs);
 	double Sum_Z = 0;

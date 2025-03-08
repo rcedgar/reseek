@@ -89,9 +89,9 @@ public:
 void cmd_calibrate5()
 	{
 	const string &QFN = g_Arg1;
-	const string &DBFN = opt_db;
+	const string &DBFN = opt(db);
 
-	opt_verysensitive = true;
+	opt(verysensitive) = true;
 	optset_verysensitive = true;
 
 	C5_Searcher DBS;
@@ -107,5 +107,5 @@ void cmd_calibrate5()
 	ChainReader2 QCR;
 	QCR.Open(QFN);
 	DBS.RunQuery(QCR);
-	DBS.WriteVecs(opt_calib_output5a, opt_calib_output5b);
+	DBS.WriteVecs(opt(calib_output5a), opt(calib_output5b));
 	}

@@ -106,7 +106,7 @@ double GetNNP(const vector<double> &x)
 void cmd_testmodel2()
 	{
 	ReadNN(g_Arg1);
-	FILE *f = OpenStdioFile(opt_input);
+	FILE *f = OpenStdioFile(opt(input));
 	string Line;
 	vector<string> Fields;
 	for (;;)

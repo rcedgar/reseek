@@ -203,9 +203,9 @@ void cmd_convert_foldseekdb()
 		Die("_ca file size %u, LastOffset + LastLength = %u",
 			Size32, LastOffset + LastLength);
 
-	FILE *faa = CreateStdioFile(opt_fasta);
-	FILE *f3Di = CreateStdioFile(opt_3di);
-	FILE *fcal = CreateStdioFile(opt_cal);
+	FILE *faa = CreateStdioFile(opt(fasta));
+	FILE *f3Di = CreateStdioFile(opt(3di));
+	FILE *fcal = CreateStdioFile(opt(cal));
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "Write output files");

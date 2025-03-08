@@ -7,11 +7,11 @@
 void cmd_convert2mu()
 	{
 	optset_fast = true;
-	opt_fast = true;
+	opt(fast) = true;
 
 	uint MinChainLength = 1;
 	if (optset_minchainlength)
-		MinChainLength = opt_minchainlength;
+		MinChainLength = opt(minchainlength);
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
@@ -20,11 +20,11 @@ void cmd_convert2mu()
 
 	if (optset_output)
 		{
-		opt_fasta = opt_output;
+		opt(fasta) = opt(output);
 		optset_fasta = true;
 		}
 
-	FILE *fFasta = CreateStdioFile(opt_fasta);
+	FILE *fFasta = CreateStdioFile(opt(fasta));
 
 	ObjMgr OM;
 	uint n = 0;

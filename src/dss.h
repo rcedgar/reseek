@@ -60,9 +60,9 @@ public:
 		m_NDs.clear();
 		m_NXs.clear();
 
-		if (optset_nbrw) m_NEN_w = opt_nbrw;
-		if (optset_densw) m_Density_w = opt_densw;
-		if (optset_ssdensw) m_SSDensity_w = opt_ssdensw;
+		if (optset_nbrw) m_NEN_w = opt(nbrw);
+		if (optset_densw) m_Density_w = opt(densw);
+		if (optset_ssdensw) m_SSDensity_w = opt(ssdensw);
 		}
 
 	void SetParams(const DSSParams &Params);

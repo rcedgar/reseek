@@ -217,7 +217,7 @@ void PostMuFilter(const DSSParams &Params,
 		}
 
 	s_fTsv = CreateStdioFile(HitsFN);
-	s_fTsv2 = CreateStdioFile(opt_output2);
+	s_fTsv2 = CreateStdioFile(opt(output2));
 	s_MaxEvalue = MaxEvalue;
 
 	vector<PDBChain *> QChains;
@@ -277,25 +277,25 @@ void PostMuFilter(const DSSParams &Params,
 void cmd_postmufilter()
 	{
 	const string &QueryCAFN = g_Arg1;
-	const string &HitsFN = opt_output;
+	const string &HitsFN = opt(output);
 
 	asserta(optset_db);
-	const string &DBCAFN = opt_db;
+	const string &DBCAFN = opt(db);
 
 	asserta(optset_filin);
-	const string &MuFilterTsvFN = opt_filin;
+	const string &MuFilterTsvFN = opt(filin);
 
-	s_fTsv = CreateStdioFile(opt_output);
+	s_fTsv = CreateStdioFile(opt(output));
 	float MaxEvalue = 10;
 	if (optset_evalue)
-		MaxEvalue = (float) opt_evalue;
+		MaxEvalue = (float) opt(evalue);
 
 	DSSParams Params;
 	asserta(optset_dbsize);
 	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
 
 	PostMuFilter(Params,
-				 opt_filin,
+				 opt(filin),
 				 QueryCAFN,
 				 DBCAFN,
 				 MaxEvalue,

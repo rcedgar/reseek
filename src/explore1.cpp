@@ -63,18 +63,18 @@ void cmd_explore1()
 
 	Params.m_DBSize = (float) SB.GetDBChainCount();
 	SB.Setup();
-	SB.m_Level = opt_benchlevel;
+	SB.m_Level = opt(benchlevel);
 
 	Sweeper S;
 	S.m_SB = &SB;
 	if (optset_fev)
 		{
-		S.m_fFev = CreateStdioFile(opt_fev);
+		S.m_fFev = CreateStdioFile(opt(fev));
 		setbuf(S.m_fFev, 0);
 		}
 
 	asserta(optset_params);
-	Split(opt_params, S.m_ParamNames, '_');
+	Split(opt(params), S.m_ParamNames, '_');
 
 	const uint N = SIZE(S.m_ParamNames);
 	vector<float> Values;

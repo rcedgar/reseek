@@ -26,7 +26,7 @@ void SelfSearch()
 	DBS.Setup();
 	Params.m_DBSize = (float) DBS.GetDBSize();
 	if (optset_dbsize)
-		Params.m_DBSize = (float) opt_dbsize;
+		Params.m_DBSize = (float) opt(dbsize);
 
 	OpenOutputFiles();
 	DBS.RunSelf();
@@ -39,7 +39,7 @@ static void Search_NoMuFilter()
 		Die("-db required");
 
 	const string &QFN = g_Arg1;
-	const string &DBFN = opt_db;
+	const string &DBFN = opt(db);
 
 	DBSearcher DBS;
 	DSSParams Params;
@@ -71,7 +71,7 @@ void cmd_search()
 		}
 
 	const string &QueryFN = g_Arg1;
-	const string &DBFN = string(opt_db);
+	const string &DBFN = string(opt(db));
 
 	if (!EndsWith(DBFN, ".bca"))
 		Die(".bca format required for -db");
@@ -91,7 +91,7 @@ void cmd_search()
 	QSS.OpenChains(QueryFN, Params);
 
 	if (optset_dbmu)
-		DBSS.OpenFasta(opt_dbmu);
+		DBSS.OpenFasta(opt(dbmu));
 	else
 		DBSS.OpenChains(DBFN, Params);
 
@@ -100,14 +100,14 @@ void cmd_search()
 
 	float MaxEvalue = 10;
 	if (optset_evalue)
-		MaxEvalue = (float) opt_evalue;
+		MaxEvalue = (float) opt(evalue);
 
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 
 	DSSParams Params2;
 	Params2.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
-	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
+	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt(output));
 
-	if (!opt_keeptmp)
+	if (!opt(keeptmp))
 		DeleteStdioFile(MuFilterTsvFN);
 	}

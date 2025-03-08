@@ -253,7 +253,7 @@ void CMProf::SetMSA(const SeqDB &MSA)
 		Die("MSA must have > 2 sequences");
 	const uint ColCount = MSA.GetColCount();
 
-	double MaxGapPct = (optset_maxgappct ? opt_maxgappct/100.0 : 50);
+	double MaxGapPct = (optset_maxgappct ? opt(maxgappct)/100.0 : 50);
 	double MaxGapFract = MaxGapPct/100.0;
 	uint MinLetters = uint((1 - MaxGapFract)*SeqCount + 1);
 	if (MinLetters < 2)

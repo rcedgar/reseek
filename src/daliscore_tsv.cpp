@@ -30,7 +30,7 @@ void cmd_daliscore_tsv()
 	const string &TsvFN = g_Arg1;
 
 	PDBFileScanner FS;
-	FS.Open(opt_input);
+	FS.Open(opt(input));
 	ChainReader2 CR;
 	CR.Open(FS);
 
@@ -47,7 +47,7 @@ void cmd_daliscore_tsv()
 		}
 
 	FILE *fIn = OpenStdioFile(TsvFN);
-	FILE* fOut = CreateStdioFile(opt_output);
+	FILE* fOut = CreateStdioFile(opt(output));
 
 	string Line;
 	vector<string> Fields;

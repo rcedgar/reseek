@@ -22,10 +22,10 @@ void cmd_pdb2mega()
 		Die("-output not set");
 
 	optset_fast = true;
-	opt_fast = true;
+	opt(fast) = true;
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
-	if (opt_reverse)
+	if (opt(reverse))
 		ReverseChains(Chains);
 
 	const uint ChainCount = SIZE(Chains);
@@ -39,7 +39,7 @@ void cmd_pdb2mega()
 	asserta(FeatureCount > 0);
 	asserta(Params.m_Features[0] == FEATURE_AA);
 
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	fprintf(fOut, "mega\t%u\t%u\t%.4g\t%.4g\n",
 	  FeatureCount, ChainCount, -Params.m_GapOpen, -Params.m_GapExt);

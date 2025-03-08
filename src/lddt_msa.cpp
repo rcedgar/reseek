@@ -6,19 +6,19 @@
 void cmd_lddt_msa()
 	{
 	asserta(optset_input);
-	const bool MissingTestSeqOk = opt_missingtestseqok;
+	const bool MissingTestSeqOk = opt(missingtestseqok);
 
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	string Name;
 	GetStemName(g_Arg1, Name);
 
-	bool DoCore = opt_core;
+	bool DoCore = opt(core);
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 	bool Ok = DS.SetMSA(Name, MSA, DoCore, MissingTestSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");

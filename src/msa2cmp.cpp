@@ -58,9 +58,9 @@ void cmd_msa2cmp()
 	Input.FromFasta(g_Arg1, false);
 
 	vector<PDBChain *> Chains;
-	ReadChains(opt_input, Chains);
+	ReadChains(opt(input), Chains);
 
-	FILE *fTsv = CreateStdioFile(opt_output);
+	FILE *fTsv = CreateStdioFile(opt(output));
 
 	map<string, uint> LabelToChainIdx;
 	const uint ChainCount = SIZE(Chains);
@@ -92,7 +92,7 @@ void cmd_msa2cmp()
 		}
 	double MaxGapFract = 0.2;
 	if (optset_maxgappct)
-		MaxGapFract = opt_maxgappct/100.0;
+		MaxGapFract = opt(maxgappct)/100.0;
 	const uint MSAColCount = MSA.GetColCount();
 	vector<uint> ProfColToMSACol;
 	uint GappyCount = 0;

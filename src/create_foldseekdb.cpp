@@ -18,16 +18,16 @@ void cmd_create_foldseekdb()
 	{
 	uint MinChainLength = 1;
 	if (optset_minchainlength)
-		MinChainLength = opt_minchainlength;
+		MinChainLength = opt(minchainlength);
 
 	asserta(optset_output);
 	asserta(optset_3di);
-	const uint DupeCount = (optset_n ? opt_n : 1);
+	const uint DupeCount = (optset_n ? opt(n) : 1);
 
-	const string Prefix = string(opt_output);
+	const string Prefix = string(opt(output));
 
 	SeqDB SS;
-	SS.FromFasta(opt_3di);
+	SS.FromFasta(opt(3di));
 	const uint SeqCount = SS.GetSeqCount();
 	for (uint i = 0; i < SeqCount; ++i)
 		TruncateAtFirstWhiteSpace(SS.m_Labels[i]);

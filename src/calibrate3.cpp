@@ -247,13 +247,13 @@ void cmd_calibrate3()
 	const string &DBFN = g_Arg1;
 
 	optset_sensitive = true;
-	opt_sensitive = true;
+	opt(sensitive) = true;
 
 	optset_minchainlength = true;
-	opt_minchainlength = 1;
+	opt(minchainlength) = 1;
 
 	optset_evalue = true;
-	opt_evalue = 10;
+	opt(evalue) = 10;
 
 	const uint BIN_COUNT = 16;
 	const float MIN_TS = 0.0f;
@@ -274,8 +274,8 @@ void cmd_calibrate3()
 	DSSAligner::Stats();
 	DBS.m_Level = string("sf");
 
-	DBS.WriteTSBins(opt_calib_output, BIN_COUNT, MIN_TS, MAX_TS);
-	DBS.WriteTP_FP_TSBins(opt_calib_output2, BIN_COUNT, MIN_TS, MAX_TS);
+	DBS.WriteTSBins(opt(calib_output), BIN_COUNT, MIN_TS, MAX_TS);
+	DBS.WriteTP_FP_TSBins(opt(calib_output2), BIN_COUNT, MIN_TS, MAX_TS);
 
 	if (!optset_calib_output3)
 		return;
@@ -340,7 +340,7 @@ void cmd_calibrate3()
 		Log("TSBin %2u  TPs %u FPs %u\n", TSBin, NTP, NFP);
 		}
 
-	FILE *f = CreateStdioFile(opt_calib_output3);
+	FILE *f = CreateStdioFile(opt(calib_output3));
 	fprintf(f, "Label");
 	fprintf(f, "\tT");
 	fprintf(f, "\tTS");

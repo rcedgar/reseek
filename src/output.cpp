@@ -7,9 +7,9 @@ FILE *g_fFasta2;
 
 void OpenOutputFiles()
 	{
-	g_fTsv = CreateStdioFile(opt_output);
-	g_fAln = CreateStdioFile(opt_aln);
-	g_fFasta2 = CreateStdioFile(opt_fasta2);
+	g_fTsv = CreateStdioFile(opt(output));
+	g_fAln = CreateStdioFile(opt(aln));
+	g_fFasta2 = CreateStdioFile(opt(fasta2));
 	}
 
 void CloseOutputFiles()

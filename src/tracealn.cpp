@@ -71,7 +71,7 @@ void cmd_tracealn()
 	asserta(optset_db);
 	vector<PDBChain *> Qs, Ts;
 	ReadChains(g_Arg1, Qs);
-	ReadChains(opt_db, Ts);
+	ReadChains(opt(db), Ts);
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);

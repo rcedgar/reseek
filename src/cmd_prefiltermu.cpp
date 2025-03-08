@@ -53,9 +53,9 @@ void cmd_prefilter_mu()
 	const uint k = MuDex::m_k;
 
 	const string &Query3Di_FN = g_Arg1;
-	const string &DB3Di_FN = opt_db;
+	const string &DB3Di_FN = opt(db);
 
-	s_fTsv2 = CreateStdioFile(opt_output2);
+	s_fTsv2 = CreateStdioFile(opt(output2));
 	
 	SeqDB QDB;
 	SeqDB TDB;
@@ -114,7 +114,7 @@ void cmd_prefilter_mu()
 	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
 
 	{
-	FILE *fTsv = CreateStdioFile(opt_output);
+	FILE *fTsv = CreateStdioFile(opt(output));
 	PrefilterMu::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
 	}
@@ -127,7 +127,7 @@ void cmd_prefilter_mu()
 			QLabels.push_back(QDB.GetLabel(i));
 		for (uint i = 0; i < TSeqCount; ++i)
 			TLabels.push_back(TDB.GetLabel(i));
-		FILE *fTsv = CreateStdioFile(opt_output3);
+		FILE *fTsv = CreateStdioFile(opt(output3));
 		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
 		}

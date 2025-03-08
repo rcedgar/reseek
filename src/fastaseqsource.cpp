@@ -27,7 +27,7 @@ bool FASTASeqSource::GetNextLo(SeqInfo *SI)
 	if (m_LR.m_EOF)
 		return false;
 
-	bool TruncLabels = opt_trunclabels;
+	bool TruncLabels = opt(trunclabels);
 // Outer for loop just to allow skipping of empty sequences
 	for (;;)
 		{

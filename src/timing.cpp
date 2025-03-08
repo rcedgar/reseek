@@ -190,7 +190,7 @@ static void LogTimers(const GlobalTimingData &GTD,
 			CTicks -= TD.Calls*GTD.TimerOverheadTicks;
 		double TicksPerCall = TD.Calls == 0.0 ? 0.0 : CTicks/TD.Calls;
 
-		if (pct >= opt_min_timer_pct)
+		if (pct >= opt(min_timer_pct))
 			{
 			TotalPctShown += pct;
 

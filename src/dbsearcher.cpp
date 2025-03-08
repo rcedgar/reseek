@@ -70,7 +70,7 @@ void DBSearcher::InitEmpty()
 void DBSearcher::Setup()
 	{
 	if (optset_evalue)
-		m_MaxEvalue = (float) opt_evalue;
+		m_MaxEvalue = (float) opt(evalue);
 	else 
 		{
 		if (optset_verysensitive)
@@ -103,10 +103,10 @@ void DBSearcher::Setup()
 		}
 
 #if SLOPE_CALIB
-	LoadCalibratedSlopes(opt_slopes);
+	LoadCalibratedSlopes(opt(slopes));
 #endif
 #if GUMBEL_CALIB
-	LoadGumbelCalib(opt_gumin);
+	LoadGumbelCalib(opt(gumin));
 #endif
 	OnSetup();
 	}
@@ -254,13 +254,13 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	{
-	if (!opt_scores_are_not_evalues && DA.GetEvalue(Up) > m_MaxEvalue)
+	if (!opt(scores_are_not_evalues) && DA.GetEvalue(Up) > m_MaxEvalue)
 		return;
 	m_Lock.lock();
 	++m_HitCount;
 	DA.ToTsv(g_fTsv, Up);
 	DA.ToAln(g_fAln, Up);
-	DA.ToFasta2(g_fFasta2, opt_unaligned, Up);
+	DA.ToFasta2(g_fFasta2, opt(unaligned), Up);
 	OnAln(DA, Up);
 	m_Lock.unlock();
 	}

@@ -90,7 +90,7 @@ void ReadLinesFromGzipFile(const string &FileName, vector<string> &Lines)
 void cmd_gunzip()
 	{
 	const string &InputFileName = g_Arg1;
-	const string &OutputFileName = opt_output;
+	const string &OutputFileName = opt(output);
 
 	FILE *fIn = OpenGzipFile(InputFileName);
 	FILE *fOut = CreateStdioFile(OutputFileName);
@@ -120,7 +120,7 @@ void cmd_gunzip_lines()
 	if (!optset_output)
 		return;
 
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	for (uint i = 0; i < SIZE(Lines); ++i)
 		{
 		fputs(Lines[i].c_str(), fOut);

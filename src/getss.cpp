@@ -61,7 +61,7 @@ void PDBChain::GetSS(string &SS) const
 
 void cmd_pdb2ss()
 	{
-	const string &QueryFN = opt_pdb2ss;
+	const string &QueryFN = opt(pdb2ss);
 
 	vector<PDBChain *> Qs;
 	ReadChains(QueryFN, Qs);

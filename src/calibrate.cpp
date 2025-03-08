@@ -11,10 +11,10 @@
 void cmd_calibrate()
 	{
 	optset_sensitive = true;
-	opt_sensitive = true;
+	opt(sensitive) = true;
 
 	optset_minchainlength = true;
-	opt_minchainlength = 1;
+	opt(minchainlength) = 1;
 
 	const string &QFN = g_Arg1;
 	const string &DBFN = g_Arg1;
@@ -31,7 +31,7 @@ void cmd_calibrate()
 	QCR.Open(QFN);
 	DBS.RunQuery(QCR);
 
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	DSSAligner::Stats();
 	DBS.ScanAll();
 	DBS.SetAllBins();

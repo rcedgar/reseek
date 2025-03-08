@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 	{
 	MyCmdLine(argc, argv);
 	LogProgramInfoAndCmdLine();
-	if (!opt_quiet)
+	if (!opt(quiet))
 		{
 		PrintProgramInfo(stdout);
 		PrintCopyright(stdout);
@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 		ProgressPrefix(true);
 		}
 	if (optset_myalloc_summary_secs)
-		mymalloc_set_summary_secs(opt_myalloc_summary_secs);
+		mymalloc_set_summary_secs(opt(myalloc_summary_secs));
 	if (optset_myalloc_dump_secs)
-		mymalloc_set_dump_secs(opt_myalloc_dump_secs);
+		mymalloc_set_dump_secs(opt(myalloc_dump_secs));
 	if (optset_myalloc_trace)
 		mymalloc_trace(true);
 

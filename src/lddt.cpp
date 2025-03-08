@@ -82,11 +82,11 @@ void cmd_test()
 	SeqDB MSA;
 	MSA.FromFasta(g_Arg1, true);
 
-	FILE* fOut = CreateStdioFile(opt_output);
-	const bool MissingSeqOk = opt_missingtestseqok;
+	FILE* fOut = CreateStdioFile(opt(output));
+	const bool MissingSeqOk = opt(missingtestseqok);
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 	bool Ok = DS.SetMSA(Name, MSA, false, MissingSeqOk);
 	if (!Ok)
 		Die("SetMSA failed");

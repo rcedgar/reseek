@@ -14,7 +14,7 @@ void InitGapStr()
 	{
 	asserta(optset_gapstr);
 	vector<string> Fields;
-	Split(opt_gapstr, Fields, '_');
+	Split(opt(gapstr), Fields, '_');
 	asserta(SIZE(Fields) == 4);
 	s_Open = StrToFloatf(Fields[0]);
 	s_Ext = StrToFloatf(Fields[1]);

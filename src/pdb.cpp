@@ -20,14 +20,14 @@ static bool LabelAlreadyHasChain(const string &Label,
 
 void ChainizeLabel(string &Label, const string &_ChainStr)
 	{
-	if (opt_nochainchar)
+	if (opt(nochainchar))
 		return;
 	string ChainStr = _ChainStr;
 	if (ChainStr == "" || ChainStr == " ")
 		ChainStr = '_';
 	if (LabelAlreadyHasChain(Label, _ChainStr))
 		return;
-	Label += (optset_chainsep ? string(opt_chainsep) : "_");
+	Label += (optset_chainsep ? string(opt(chainsep)) : "_");
 	Label += ChainStr;
 	}
 

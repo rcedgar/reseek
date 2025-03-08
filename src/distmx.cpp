@@ -46,7 +46,7 @@ void cmd_distmx()
 
 	if (!optset_fast && !optset_sensitive && !optset_verysensitive)
 		{
-		opt_fast = true;
+		opt(fast) = true;
 		optset_fast = true;
 		}
 
@@ -57,7 +57,7 @@ void cmd_distmx()
 	DBS.LoadDB(DBFN);
 
 	Params.m_DBSize = (float) DBS.GetDBSize();
-	DBS.m_fDistMx = CreateStdioFile(opt_output);
+	DBS.m_fDistMx = CreateStdioFile(opt(output));
 	DBS.Setup();
 	DBS.RunSelf();
 	ProgressLog("maxts %.3f\n", DBS.m_MaxTS);

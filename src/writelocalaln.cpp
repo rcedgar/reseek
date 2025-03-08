@@ -66,7 +66,7 @@ void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
 	{
 	unsigned BLOCK_SIZE = 80;
 	if (optset_rowlen)
-		BLOCK_SIZE = opt_rowlen;
+		BLOCK_SIZE = opt(rowlen);
 	uint ColLo = 0;
 	uint ColHi = (unsigned) strlen(Path) - 1;
 

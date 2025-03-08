@@ -7,19 +7,19 @@ void cmd_daliscore_msas()
 	{
 	asserta(optset_input);
 	asserta(optset_testdir);
-	FILE* fOut = CreateStdioFile(opt_output);
-	const bool MissingSeqOk = !opt_missingtestseqok;
+	FILE* fOut = CreateStdioFile(opt(output));
+	const bool MissingSeqOk = !opt(missingtestseqok);
 
-	string TestDir = string(opt_testdir);
+	string TestDir = string(opt(testdir));
 	Dirize(TestDir);
 
 	DALIScorer DS;
-	DS.LoadChains(opt_input);
+	DS.LoadChains(opt(input));
 
 	vector<string> FNs;
 	ReadLinesFromFile(g_Arg1, FNs);
 
-	const bool DoCore = opt_core;
+	const bool DoCore = opt(core);
 
 	const uint N = SIZE(FNs);
 	double SumZ = 0;

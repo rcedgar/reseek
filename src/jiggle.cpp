@@ -41,7 +41,7 @@ void cmd_jiggle()
 	Die("TODO");
 
 	//asserta(optset_tsv);
-	//Sweeper::m_ftsv = CreateStdioFile(opt_tsv);
+	//Sweeper::m_ftsv = CreateStdioFile(opt(tsv));
 	//setbuf(Sweeper::m_ftsv, 0);
 
 	//const string &CalFN = g_Arg1;

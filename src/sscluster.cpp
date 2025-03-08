@@ -171,14 +171,14 @@ static uint Assign(uint N, uint K, uint M,
 void cmd_sscluster()
 	{
 	Trainer Tr;
-	Tr.Init(g_Arg1, opt_train_cal);
+	Tr.Init(g_Arg1, opt(train_cal));
 
 	vector<PDBChain *> Chains = Tr.m_Chains;
 	const uint ChainCount = SIZE(Chains);
 	vector<vector<double> > vs;
-	const uint N = optset_n ? opt_n : 100000;
+	const uint N = optset_n ? opt(n) : 100000;
 	asserta(optset_k);
-	K = opt_k;
+	K = opt(k);
 	vector<char> sss;
 	const double MAXD = 16;
 
@@ -198,7 +198,7 @@ void cmd_sscluster()
 				}
 			++m;
 			}
-	if (string(opt_myss3) == "Y")
+	if (string(opt(myss3)) == "Y")
 		{
 		ivalues.push_back(-3);
 		jvalues.push_back(3);
@@ -212,7 +212,7 @@ void cmd_sscluster()
 
 	M = SIZE(ivalues);
 
-	FILE *ftsv = CreateStdioFile(opt_output);
+	FILE *ftsv = CreateStdioFile(opt(output));
 	map<string, uint> DomToChainIndex;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
@@ -311,7 +311,7 @@ void cmd_sscluster()
 
 	Log("=========================================================\n");
 	double TopPct = GetPct(Sizes[Order[0]], N);
-	Log("Seed %u K=%u\n", opt_randseed, K);
+	Log("Seed %u K=%u\n", opt(randseed), K);
 	Log("Sizes");
 	for (uint k = 0; k < K; ++k)
 		Log(" %.1f", GetPct(Sizes[Order[k]], N));
@@ -366,6 +366,6 @@ void cmd_sscluster()
 	vector<vector<double> > ScoreMx;
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	ProgressLog("K=%u myss3=%s M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
-	  K, opt_myss3, M, N, opt_randseed, TopPct, ExpectedScore);
+	  K, opt(myss3), M, N, opt(randseed), TopPct, ExpectedScore);
 	LO.MxToSrc(g_fLog, "Conf", ScoreMx);
 	}

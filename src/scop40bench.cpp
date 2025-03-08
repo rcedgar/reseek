@@ -132,10 +132,10 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 void SCOP40Bench::OnSetup()
 	{
 	if (optset_benchlevel)
-		m_Level = opt_benchlevel;
+		m_Level = opt(benchlevel);
 
 	m_QuerySelf = true;
-	if (opt_scores_are_not_evalues)
+	if (opt(scores_are_not_evalues))
 		m_ScoresAreEvalues = false;
 	else
 		m_ScoresAreEvalues = true;
@@ -306,7 +306,7 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	uint ChainIndexB = iterB->second;
 	if (ChainIndexA == ChainIndexB)
 		return;
-	if (opt_global)
+	if (opt(global))
 		{
 		if (Up)
 			StoreScore(ChainIndexA, ChainIndexB, DA.m_GlobalScore);
@@ -555,7 +555,7 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	WriteStdioFile(f, &HitCount, sizeof(HitCount));
 	WriteStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
-	if (opt_writebitts)
+	if (opt(writebitts))
 		WriteStdioFile(f, m_TSs.data(), HitCount*sizeof(float));
 	else
 		WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
@@ -574,7 +574,7 @@ void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
 	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);
 
-	ROCStepsToTsv(opt_roc, m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
+	ROCStepsToTsv(opt(roc), m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
 	  m_SmoothTPRs, m_SmoothFPRs);
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
@@ -661,15 +661,15 @@ void SCOP40Bench::WriteOutput()
 	ProgressLog("\n");
 	float MaxFPR = 0.01f;
 	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
-	FILE *fCVE = CreateStdioFile(opt_cve);
+		MaxFPR = (float) opt(maxfpr);
+	FILE *fCVE = CreateStdioFile(opt(cve));
 	m_Level = "sf";
 	if (optset_benchlevel)
-		m_Level = opt_benchlevel;
+		m_Level = opt(benchlevel);
 	SetStats(MaxFPR);
 	WriteCVE(fCVE, 100);
-	WriteCurve(opt_curve);
-	WriteSortedHits(opt_sortedhits);
+	WriteCurve(opt(curve));
+	WriteSortedHits(opt(sortedhits));
 	WriteSummary();
 	CloseStdioFile(fCVE);
 	}
@@ -794,26 +794,26 @@ void cmd_scop40bench()
 	
 	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
-		MaxFPR = (float) opt_maxfpr;
+		MaxFPR = (float) opt(maxfpr);
 
 	OpenOutputFiles();
 
 	ResetTimers();
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;
-	if (opt_scores_are_not_evalues)
+	if (opt(scores_are_not_evalues))
 		SB.m_ScoresAreEvalues = false;
 	SB.RunSelf();
 	ProgressLog("%u / %u mu filter discards\n",
 				DSSAligner::m_MuFilterDiscardCount.load(),
 				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
-	SB.WriteBit(opt_savebit);
+	SB.WriteBit(opt(savebit));
 	//SB.LogFirstFewDoms();
 	//SB.LogFirstFewHits();
 	if (optset_sens1fp_report)
 		{
-		FILE *f = CreateStdioFile(opt_sens1fp_report);
+		FILE *f = CreateStdioFile(opt(sens1fp_report));
 		SB.WriteSens1FPReport(f);
 		CloseStdioFile(f);
 		}

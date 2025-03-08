@@ -431,9 +431,9 @@ uint MuFilter(const DSSParams &Params,
 	{
 	time_t t0 = time(0);
 	if (optset_mun)
-		MU_FILTER_KEEPN = opt_mun;
+		MU_FILTER_KEEPN = opt(mun);
 	if (optset_muhsp)
-		MIN_HSP_SCORE = opt_muhsp;
+		MIN_HSP_SCORE = opt(muhsp);
 	Log("MU_FILTER_KEEPN=%u\n", MU_FILTER_KEEPN);
 	Log("MIN_HSP_SCORE=%.1f\n", MIN_HSP_SCORE);
 	const string &PatternStr = Params.m_PatternStr;
@@ -575,14 +575,14 @@ void cmd_mufilter()
 #if 0
 	asserta(optset_db);
 	const string &QueryFN = g_Arg1;			// Mu FASTA
-	const string &DBFN = string(opt_db);	// Mu FASTA
+	const string &DBFN = string(opt(db));	// Mu FASTA
 	FASTASeqSource FSS;
 	FSS.Open(DBFN);
 	asserta(!optset_output2);
 
 	if (!optset_output)
 		Die("-output option required");
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	DSSParams Params;
 	Params.SetFromCmdLine(10000);
@@ -592,6 +592,6 @@ void cmd_mufilter()
 	SeqDB MuQueryDB;
 	MuQueryDB.FromFasta(QueryFN);
 
-	MuFilter(Params, MuQueryDB, FSS, opt_output);
+	MuFilter(Params, MuQueryDB, FSS, opt(output));
 #endif
 	}

@@ -3,7 +3,7 @@
 
 void PDBFileScanner::Open(const string &Path)
 	{
-	m_Trace = opt_trace_filescanner;
+	m_Trace = opt(trace_filescanner);
 	if (m_Trace) Log("PDBFileScanner::Open(%s)\n", Path.c_str());
 	m_RootFileName = Path;
 	m_CurrentFileName.clear();
@@ -123,7 +123,7 @@ bool PDBFileScanner::GetNext(string &FN)
 				string Path = Paths[i];
 				if (optset_filesdir)
 					{
-					string FilesDir = opt_filesdir;
+					string FilesDir = opt(filesdir);
 					Dirize(FilesDir);
 					Path = FilesDir + Path;
 					}
@@ -142,7 +142,7 @@ void cmd_scan_files()
 	string FN;
 	if (!optset_output)
 		Die("-output required");
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	time_t lastt = time(0);
 	while (FS.GetNext(FN))

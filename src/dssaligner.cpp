@@ -101,7 +101,7 @@ DSSAligner::DSSAligner()
 	if (optset_columns)
 		{
 		vector<string> Fields;
-		Split(string(opt_columns), Fields, '+');
+		Split(string(opt(columns)), Fields, '+');
 		const uint n = SIZE(Fields);
 		if (n == 0)
 			Die("Empty -columns option");
@@ -262,7 +262,7 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 			{
 			float ColScore = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
 			Sum += ColScore;
-			if (opt_tracedpscorepath)
+			if (opt(tracedpscorepath))
 				Log("M  %5u  %5u  %10.3g  %10.3g\n",
 				  PosA, PosB, ColScore, Sum);
 			++PosA;
@@ -274,14 +274,14 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 			if (Col != 0 && Path[Col-1] == 'D')
 				{
 				Sum += Ext;
-				if (opt_tracedpscorepath)
+				if (opt(tracedpscorepath))
 					Log("De %5u  %5u  %10.3g  %10.3g\n",
 					  PosA, PosB, Ext, Sum);
 				}
 			else
 				{
 				Sum += Open;
-				if (opt_tracedpscorepath)
+				if (opt(tracedpscorepath))
 					Log("Do %5u  %5u  %10.3g  %10.3g\n",
 					  PosA, PosB, Open, Sum);
 				}
@@ -292,14 +292,14 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 			if (Col != 0 && Path[Col-1] == 'I')
 				{
 				Sum += Ext;
-				if (opt_tracedpscorepath)
+				if (opt(tracedpscorepath))
 					Log("Ie %5u  %5u  %10.3g  %10.3g\n",
 					  PosA, PosB, Ext, Sum);
 				}
 			else
 				{
 				Sum += Open;
-				if (opt_tracedpscorepath)
+				if (opt(tracedpscorepath))
 					Log("Io %5u  %5u  %10.3g  %10.3g\n",
 					  PosA, PosB, Open, Sum);
 				}
@@ -310,7 +310,7 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 			asserta(false);
 			}
 		}
-	if (opt_tracedpscorepath)
+	if (opt(tracedpscorepath))
 		Log("Total score %.3g\n", Sum);
 	return Sum;
 	}
@@ -778,8 +778,8 @@ void DSSAligner::AlignQueryTarget()
 	{
 	if (optset_label1 && optset_label2)
 		{
-		const string Label1 = string(opt_label1);
-		const string Label2 = string(opt_label2);
+		const string Label1 = string(opt(label1));
+		const string Label2 = string(opt(label2));
 		bool DoTrace = (m_ChainA->m_Label == Label1 && m_ChainB->m_Label == Label2) ||
 			(m_ChainA->m_Label == Label2 && m_ChainB->m_Label == Label1);
 		if (DoTrace)
@@ -1010,7 +1010,7 @@ void DSSAligner::ToTsv(FILE *f, bool Up)
 	{
 	if (f == 0)
 		return;
-	if (opt_noself && m_ChainA->m_Label == m_ChainB->m_Label)
+	if (opt(noself) && m_ChainA->m_Label == m_ChainB->m_Label)
 		return;
 
 	m_OutputLock.lock();

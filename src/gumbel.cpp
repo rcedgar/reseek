@@ -294,7 +294,7 @@ void cmd_fit_gumbel()
 	if (!optset_output) 
 		return;
 
-	FILE *fOut = CreateStdioFile(opt_output);
+	FILE *fOut = CreateStdioFile(opt(output));
 	fprintf(fOut, "x\ty\tnorm_y\tfity\n");
 	double x = x0;
 	for (uint i = 0; i < N; ++i)

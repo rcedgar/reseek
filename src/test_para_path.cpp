@@ -195,6 +195,6 @@ void cmd_test_para_path()
 	D.SetParams(Params);
 
 	Trainer Tr;
-	Tr.Init(g_Arg1, opt_train_cal);
+	Tr.Init(g_Arg1, opt(train_cal));
 	Tr.Scan(OnPair, 0);
 	}

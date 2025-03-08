@@ -160,7 +160,7 @@ const char *SFasta::GetNextSeq()
 			{
 			if (m_TooLongCount > 0)
 				Warning("%u long sequences (-maxseqlength %u, longest %u) discarded from %s",
-				  m_TooLongCount, opt_maxseqlength, m_LongestLength, m_FileName.c_str());
+				  m_TooLongCount, opt(maxseqlength), m_LongestLength, m_FileName.c_str());
 
 			if (!m_BadCharToCount.empty())
 				{
@@ -189,7 +189,7 @@ const char *SFasta::GetNextSeq()
 				}
 			return 0;
 			}
-		if (m_SeqLength > opt_maxseqlength && opt_maxseqlength != 0)
+		if (m_SeqLength > opt(maxseqlength) && opt(maxseqlength) != 0)
 			{
 			if (m_LongestLength == 0 || m_SeqLength > m_LongestLength)
 				m_LongestLength = m_SeqLength;
@@ -227,7 +227,7 @@ const char *SFasta::GetNextSeqLo()
 		}
 	asserta(ptr != 0);
 
-	if (opt_trunclabels)
+	if (opt(trunclabels))
 		{
 		for (char *p = m_Label; *p; ++p)
 			if (isspace(*p))
@@ -311,7 +311,7 @@ void SFasta::Open(const string &FileName)
 	Clear();
 	m_FileName = FileName;
 	m_File = OpenStdioFile(FileName);
-	m_BufferSize = opt_sfasta_buff_bytes;
+	m_BufferSize = opt(sfasta_buff_bytes);
 	//m_Buffer = myalloc<char>(m_BufferSize);
 	m_Buffer = myalloc(char, m_BufferSize);
 	m_FileSize = GetStdioFileSize64(m_File);
@@ -404,7 +404,7 @@ void SFasta::FillCache()
 			{
 	// Entire buffer is one sequence which may be truncated.
 			Die("Sequence too long (pos=%u, bytes=%u, -sfasta_buff_bytes %u)",
-			  (unsigned) m_FilePos, BytesToRead, opt_sfasta_buff_bytes);
+			  (unsigned) m_FilePos, BytesToRead, opt(sfasta_buff_bytes));
 			}
 		}
 
@@ -437,9 +437,9 @@ unsigned SFasta::GetPctDoneX10() const
 void TestSFasta()
 	{
 	SFasta SF;
-	SF.Open(opt_input);
+	SF.Open(opt(input));
 
-	if (opt_verbose)
+	if (opt(verbose))
 		{
 		Log("  Index   Length  Label\n");
 		Log("-------  -------  -----\n");
@@ -460,7 +460,7 @@ void TestSFasta()
 		++SeqCount;
 		LetterCount += L;
 
-		if (opt_verbose)
+		if (opt(verbose))
 			{
 			Log(">%7u  %7u  '%s'\n", Index, L, Label);
 			Log("+%7.7s  %7.7s  \"%*.*s\"\n", "", "", L, L, Seq);

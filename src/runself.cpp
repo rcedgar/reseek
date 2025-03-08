@@ -35,7 +35,7 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 			DA.SetQuery(Chain1, ptrProfile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore1);
 			}
 
-		if (opt_noself && ChainIndex1 == ChainIndex2)
+		if (opt(noself) && ChainIndex1 == ChainIndex2)
 			continue;
 
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
@@ -44,7 +44,7 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
-		if (opt_global)
+		if (opt(global))
 			{
 			DA.AlignQueryTarget_Global();
 			if (!DA.m_GlobalPath.empty())

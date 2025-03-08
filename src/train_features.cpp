@@ -191,13 +191,13 @@ static void WriteLO(FILE *f, const string &strName, const LogOdds &LO)
 void cmd_train_features()
 	{
 	optset_fast = true;
-	opt_fast = true;
+	opt(fast) = true;
 	DSSParams Params;
 	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 	int8_t MaxAbsi8 = 20;
 	if (optset_maxi8)
 		{
-		uint Max = opt_maxi8;
+		uint Max = opt(maxi8);
 		MaxAbsi8 = uint8_t(Max);
 		asserta(uint(MaxAbsi8) == Max);
 		}
@@ -213,17 +213,17 @@ void cmd_train_features()
 			}
 		}
 	else
-		Split(opt_features, FeatureNames, '_');
+		Split(opt(features), FeatureNames, '_');
 
 	vector<PDBChain *> Chains;
-	ReadChains(opt_train_cal, Chains);
+	ReadChains(opt(train_cal), Chains);
 
 	SeqDB Input;
 	Input.FromFasta(g_Arg1, true);
 
 	const uint N = SIZE(FeatureNames);
-	FILE *fOut = CreateStdioFile(opt_output);
-	FILE *fOut2 = CreateStdioFile(opt_output2);
+	FILE *fOut = CreateStdioFile(opt(output));
+	FILE *fOut2 = CreateStdioFile(opt(output2));
 	LogOdds LO;
 	for (uint i = 0; i < N; ++i)
 		{

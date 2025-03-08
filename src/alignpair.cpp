@@ -9,7 +9,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<byte> *ptrMuLetters,
 					  const vector<uint> *ptrMuKmers)
 	{
-	if (opt_selfrev0)
+	if (opt(selfrev0))
 		return 0;
 	PDBChain RevChain;
 	Chain.GetReverse(RevChain);
@@ -107,7 +107,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
 	float Score = FLT_MAX;
-	if (opt_global)
+	if (opt(global))
 		{
 		DA.AlignQueryTarget_Global();
 		Score = DA.m_GlobalScore;
@@ -121,7 +121,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 		{
 		if (optset_aln)
 			{
-			FILE *f = CreateStdioFile(opt_aln);
+			FILE *f = CreateStdioFile(opt(aln));
 			DA.ToAln(f, true);
 			CloseStdioFile(f);
 			}
@@ -135,7 +135,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 
 		if (optset_output)
 			{
-			FILE *f = CreateStdioFile(opt_output);
+			FILE *f = CreateStdioFile(opt(output));
 			for (uint i = 0; i < SIZE(LinesQ); ++i)
 				fprintf(f, "%s\n", LinesQ[i].c_str());
 			CloseStdioFile(f);
@@ -150,7 +150,7 @@ void cmd_alignpair()
 		Die("Must specify -input2");
 
 	const string &QFN = g_Arg1;
-	const string &TFN = opt_input2;
+	const string &TFN = opt(input2);
 
 	vector<PDBChain *> ChainsQ;
 	vector<PDBChain *> ChainsT;
@@ -158,7 +158,7 @@ void cmd_alignpair()
 	ReadChains_SaveLines(TFN, ChainsT);
 
 	optset_sensitive = true;
-	opt_sensitive = true;
+	opt(sensitive) = true;
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
 	Params.m_UsePara = false;

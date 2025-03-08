@@ -29,9 +29,9 @@ public:
 void cmd_calibrate7()
 	{
 	const string &QFN = g_Arg1;
-	const string &DBFN = opt_db;
+	const string &DBFN = opt(db);
 
-	opt_verysensitive = true;
+	opt(verysensitive) = true;
 	optset_verysensitive = true;
 
 	C7_Searcher DBS;
@@ -48,7 +48,7 @@ void cmd_calibrate7()
 	QCR.Open(QFN);
 	DBS.RunQuery(QCR);
 
-	FILE *f = CreateStdioFile(opt_output);
+	FILE *f = CreateStdioFile(opt(output));
 	QuartsFloat QF;
 	GetQuartsFloat(DBS.m_TSVec, QF);
 	QF.LogMe();

@@ -6,7 +6,7 @@ const int SIZE_32 = 32;
 /***
 https://samtools.github.io/hts-specs/SAMv1.pdf
  
-6. CIGAR: CIGAR string. The CIGAR operations are given in the following table (set ‘*’ if unavailable):
+6. CIGAR: CIGAR string. The CIGAR operations are given in the following table (set '*' if unavailable):
 
 Op BAM	Description Consumes query Consumes reference
 M	0	alignment match (can be a sequence match or mismatch) yes yes

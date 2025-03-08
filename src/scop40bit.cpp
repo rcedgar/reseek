@@ -10,7 +10,7 @@ void cmd_scop40bit()
 	asserta(optset_output);
 
 	SCOP40Bench SB;
-	SB.ReadLookup(opt_lookup);
+	SB.ReadLookup(opt(lookup));
 	SB.ReadHits(FN);
-	SB.WriteBit(opt_output);
+	SB.WriteBit(opt(output));
 	}
