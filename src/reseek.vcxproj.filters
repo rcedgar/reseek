@@ -29,9 +29,6 @@
     <ClCompile Include="seqdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="blosum62.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="objmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="readchains.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="blosum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sw.cpp">
@@ -111,9 +105,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sweeper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="derepper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="murmurhash.cpp">
@@ -162,9 +153,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="msa2cmp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="b62.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dbsearcher.cpp">
@@ -740,6 +728,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="twohitdiag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

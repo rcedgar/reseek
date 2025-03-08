@@ -274,7 +274,6 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="alpha.cpp" />
-    <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
@@ -290,8 +289,6 @@
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
-    <ClCompile Include="blosum.cpp" />
-    <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="calibrate.cpp" />
     <ClCompile Include="calibrate2.cpp" />
     <ClCompile Include="calibrate3.cpp" />
@@ -366,7 +363,6 @@
     <ClCompile Include="mumx_data.cpp" />
     <ClCompile Include="dali.cpp" />
     <ClCompile Include="dbsearcher.cpp" />
-    <ClCompile Include="derepper.cpp" />
     <ClCompile Include="dss.cpp" />
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
@@ -450,6 +446,7 @@
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
     <ClInclude Include="museqsource.h" />
+    <ClInclude Include="mx.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
     <ClInclude Include="output.h" />
