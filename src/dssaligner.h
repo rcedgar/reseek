@@ -41,8 +41,6 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	//Mx<float> m_SM;
-
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
 	string m_Path;
@@ -54,8 +52,6 @@ public:
 	float m_EvalueB = FLT_MAX;
 	float m_QualityA = FLT_MAX;
 	float m_QualityB = FLT_MAX;
-	float m_TestStatisticA = FLT_MAX;
-	float m_TestStatisticB = FLT_MAX;
 	float m_NewTestStatisticA = FLT_MAX;
 	float m_NewTestStatisticB = FLT_MAX;
 
@@ -82,7 +78,6 @@ public:
 
 public:
 	static mutex m_OutputLock;
-	//static mutex m_StatsLock;
 
 public:
 	static atomic<uint> m_AlnCount;
@@ -159,7 +154,6 @@ public:
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
-	void CalcEvalue_AAOnly();
 	void SetSMx_QRev();
 	void SetSMx_NoRev(const DSSParams &Params,
 					  const vector<vector<byte> > &ProfileA,
@@ -193,9 +187,7 @@ public:
 	uint GetLo(bool Top) const { return Top ? m_LoA : m_LoB; }
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
-	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
-	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 

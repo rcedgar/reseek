@@ -60,8 +60,6 @@ public:
 	float m_Evalue_a = 4.0f;
 	float m_Evalue_b = -43.0f;
 
-	bool m_AAOnly = false;
-
 	uint m_MKFL = UINT_MAX;
 	int m_MKF_X1 = INT_MAX;
 	int m_MKF_X2 = INT_MAX;
@@ -115,9 +113,6 @@ public:
 	void InitScoreMxs();
 	void ApplyWeights();
 	float GetEvalue(float TS) const;
-	float GetEvalueSlope(float TS, float m, float b) const;
-	float GetEvalueGumbel(float TS, float mu, float beta) const;
-	float GetEvalueOldLinear(float TS) const;
 	};
 
 uint GetPatternOnes(const string &Pattern);

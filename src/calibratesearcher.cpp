@@ -40,7 +40,7 @@ void CalibrateSearcher::OnSetup()
 //   stored in memory while queries are not).
 void CalibrateSearcher::OnAln(DSSAligner &DA, bool Up)
 	{
-	float TS = DA.GetTestStatistic(!Up);
+	float TS = DA.GetNewTestStatistic(!Up);
 	if (TS <= 0)
 		return;
 	const string &LabelB = DA.GetLabel(!Up);

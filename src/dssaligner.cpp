@@ -814,34 +814,8 @@ void DSSAligner::AlignQueryTarget()
 	Align_NoAccel();
 	}
 
-void DSSAligner::CalcEvalue_AAOnly()
-	{
-	static const float Log2 = logf(2);
-	static const float GappedLambda = 0.267f;
-	static const float LogGappedK = logf(0.0410f);
-
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-	const float DBSize = m_Params->m_DBSize;
-
-	float Score = m_AlnFwdScore;
-	float BitScore = (Score*GappedLambda - LogGappedK)/Log2;
-	float NM_A = float(LA)*float(DBSize);
-	float NM_B = float(LB)*float(DBSize);
-	m_QualityA = 0;
-	m_QualityB = 0;
-	m_EvalueA = NM_A/powf(2, BitScore);
-	m_EvalueB = NM_B/powf(2, BitScore);
-	}
-
 void DSSAligner::CalcEvalue()
 	{
-	if (m_Params->m_AAOnly)
-		{
-		CalcEvalue_AAOnly();
-		return;
-		}
-
 // Threshold enables small speedup by avoiding LDDT and self-rev
 	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
 		return;
@@ -909,8 +883,6 @@ void DSSAligner::ClearAlign()
 	m_Gaps = UINT_MAX;
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
-	m_TestStatisticA = -FLT_MAX;
-	m_TestStatisticB = -FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;

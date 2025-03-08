@@ -36,7 +36,7 @@ public:
 		asserta(iter != m_DBLabelToChainIdx.end());
 		uint ChainIndexA = iter->second;
 		m_DPVec[ChainIndexA].push_back(DA.m_AlnFwdScore);
-		m_TSVec[ChainIndexA].push_back(DA.m_TestStatisticB);
+		m_TSVec[ChainIndexA].push_back(DA.m_NewTestStatisticB);
 		}
 
 	void WriteVecs(const string &FN1, const string &FN2) const
