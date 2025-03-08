@@ -428,7 +428,7 @@
     <ClCompile Include="create_foldseekdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_muprefiltercpp">
+    <ClCompile Include="cmd_muprefilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="muprefilter.cpp">

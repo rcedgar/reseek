@@ -276,7 +276,7 @@
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
-    <ClCompile Include="cmd_muprefiltercpp" />
+    <ClCompile Include="cmd_muprefilter.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
