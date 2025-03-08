@@ -16,16 +16,9 @@ mutex DSSAligner::m_OutputLock;
 
 //uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
 //  const int8_t *B, uint LB);
-void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);
 float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path);
-//float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
-//  uint &Besti, uint &Bestj);
-//float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
-//  uint &Besti, uint &Bestj);
-//int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
-//  uint &Besti, uint &Bestj);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
 	uint LA, const byte *B, uint LB);
@@ -37,22 +30,6 @@ atomic<uint> DSSAligner::m_SWCount;
 atomic<uint> DSSAligner::m_MuFilterInputCount;
 atomic<uint> DSSAligner::m_MuFilterDiscardCount;
 atomic<uint> DSSAligner::m_ParasailSaturateCount;
-
-uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
-	{
-	set<uint> SetQ;
-	set<uint> SetR;
-	for (uint i = 0; i < SIZE(KmersQ); ++i)
-		SetQ.insert(KmersQ[i]);
-	for (uint i = 0; i < SIZE(KmersR); ++i)
-		SetR.insert(KmersR[i]);
-	uint U = 0;
-	for (set<uint>::const_iterator iter = SetQ.begin();
-	  iter != SetQ.end(); ++iter)
-		if (SetR.find(*iter) != SetR.end())
-			++U;
-	return U;
-	}
 
 void InvertPath(const string &Path, string &InvPath)
 	{
@@ -136,185 +113,6 @@ DSSAligner::DSSAligner()
 		}
 	}
 
-int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
-  const vector<byte> &MuLettersB, uint LoA, uint LoB,
-  const string &Path) const
-	{
-	uint Sum = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	const int Open = -m_Params->m_ParaMuGapOpen;
-	const int Ext = -m_Params->m_ParaMuGapExt;
-	const float FwdMatchScore = m_Params->m_FwdMatchScore;
-	const uint ColCount = SIZE(Path);
-	extern int8_t IntScoreMx_Mu[36][36];
- 
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < SIZE(MuLettersA));
-			asserta(PosB < SIZE(MuLettersB));
-			byte a = MuLettersA[PosA];
-			byte b = MuLettersB[PosB];
-			Sum += IntScoreMx_Mu[a][b];
-			++PosA;
-			++PosB;
-			break;
-			}
-
-		case 'D':
-			if (Col != 0 && Path[Col-1] == 'D')
-				Sum += Ext;
-			else
-				Sum += Open;
-			++PosA;
-			break;
-
-		case 'I':
-			if (Col != 0 && Path[Col-1] == 'I')
-				Sum += Ext;
-			else
-				Sum += Open;
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	return Sum;
-	}
-
-float DSSAligner::GetMuDPScorePath(const vector<byte> &LettersA,
-	const vector<byte> &LettersB, uint LoA, uint LoB,
-	float GapOpen, float GapExt, const string &Path) const
-	{
-	asserta(GapOpen <= 0);
-	asserta(GapExt <= 0);
-	float Sum = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	const uint ColCount = SIZE(Path);
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < SIZE(LettersA));
-			asserta(PosB < SIZE(LettersB));
-			uint LetterA = LettersA[PosA];
-			uint LetterB = LettersB[PosB];
-			asserta(LetterA < 36);
-			asserta(LetterB < 36);
-			extern float ScoreMx_Mu[36][36];
-			Sum += ScoreMx_Mu[LetterA][LetterB];
-			++PosA;
-			++PosB;
-			break;
-			}
-
-		case 'D':
-			if (Col != 0 && Path[Col-1] == 'D')
-				Sum += GapExt;
-			else
-				Sum += GapOpen;
-			++PosA;
-			break;
-
-		case 'I':
-			if (Col != 0 && Path[Col-1] == 'I')
-				Sum += GapExt;
-			else
-				Sum += GapOpen;
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	return Sum;
-	}
-
-// GetDPScorePath calculates AlnScore which is optimized by SWFast.
-float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
-  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
-  const string &Path) const
-	{
-	float Sum = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	const float Open = m_Params->m_GapOpen;
-	const float Ext = m_Params->m_GapExt;
-	const uint ColCount = SIZE(Path);
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			float ColScore = GetScorePosPair(ProfileA, ProfileB, PosA, PosB);
-			Sum += ColScore;
-			if (opt(tracedpscorepath))
-				Log("M  %5u  %5u  %10.3g  %10.3g\n",
-				  PosA, PosB, ColScore, Sum);
-			++PosA;
-			++PosB;
-			break;
-			}
-
-		case 'D':
-			if (Col != 0 && Path[Col-1] == 'D')
-				{
-				Sum += Ext;
-				if (opt(tracedpscorepath))
-					Log("De %5u  %5u  %10.3g  %10.3g\n",
-					  PosA, PosB, Ext, Sum);
-				}
-			else
-				{
-				Sum += Open;
-				if (opt(tracedpscorepath))
-					Log("Do %5u  %5u  %10.3g  %10.3g\n",
-					  PosA, PosB, Open, Sum);
-				}
-			++PosA;
-			break;
-
-		case 'I':
-			if (Col != 0 && Path[Col-1] == 'I')
-				{
-				Sum += Ext;
-				if (opt(tracedpscorepath))
-					Log("Ie %5u  %5u  %10.3g  %10.3g\n",
-					  PosA, PosB, Ext, Sum);
-				}
-			else
-				{
-				Sum += Open;
-				if (opt(tracedpscorepath))
-					Log("Io %5u  %5u  %10.3g  %10.3g\n",
-					  PosA, PosB, Open, Sum);
-				}
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	if (opt(tracedpscorepath))
-		Log("Total score %.3g\n", Sum);
-	return Sum;
-	}
-
 float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const
 	{
@@ -344,89 +142,6 @@ float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	return MatchScore;
 	}
 
-float DSSAligner::GetScoreSegPair(const vector<vector<byte> > &ProfileA,
-  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const
-	{
-	float Score = 0;
-	for (uint i = 0; i < n; ++i)
-		Score += GetScorePosPair(ProfileA, ProfileB, PosA+i, PosB+i);
-	return Score;
-	}
-
-void DSSAligner::SetSMx_QRev()
-	{
-	//const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	uint LA = m_ChainA->GetSeqLength();
-	if (LA > 500)
-		LA = 500;//FIXME
-
-	//Mx<float> &SMx = m_SMx;
-	//m_SMx.Alloc(LA, LA, __FILE__, __LINE__);
-	AllocSMxData(LA, LA);
-	StartTimer(SetSMx_QRev);
-	float **Sim = GetSMxData();
-
-	const uint FeatureCount = m_Params->GetFeatureCount();
-	asserta(SIZE((*m_ProfileA)) == FeatureCount);
-
-// Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
-	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
-	//const vector<byte> &ProfRowA = (*m_ProfileA)[0];
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte ia = (*m_ProfileA)[0][PosA];
-		float *SimRow = Sim[PosA];
-		const float *ScoreMxRow = ScoreMx0[ia];
-
-		for (uint PosB = 0; PosB < LA; ++PosB)
-			{
-			byte ib = (*m_ProfileA)[0][LA-1-PosB];
-			assert(ia < AlphaSize0 && ib < AlphaSize0);
-			float MatchScore = ScoreMxRow[ib];
-			SimRow[PosB] = MatchScore;
-			}
-		}
-
-	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
-		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
-		//const vector<byte> &ProfRowA = (*m_ProfileA)[FeatureIdx];
-		for (uint PosA = 0; PosA < LA; ++PosA)
-			{
-			byte ia = (*m_ProfileA)[FeatureIdx][PosA];
-			float *SimRow = Sim[PosA];
-			const float *ScoreMxRow = ScoreMx[ia];
-
-			for (uint PosB = 0; PosB < LA; ++PosB)
-				{
-				byte ib = (*m_ProfileA)[FeatureIdx][LA-1-PosB];
-				float MatchScore = 0;
-				assert(ia < AlphaSize && ib < AlphaSize);
-				MatchScore = ScoreMxRow[ib];
-				SimRow[PosB] += MatchScore;
-				}
-			}
-		}
-#if DEBUG
-	{
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		for (uint PosB = 0; PosB < LA; ++PosB)
-			{
-			float MatchScore = Sim[PosA][PosB];
-			float MatchScore2 = GetScorePosPair(*m_ProfileA, *m_ProfileA, PosA, LA-1-PosB);
-			asserta(feq(MatchScore2, MatchScore));
-			}
-		}
-	}
-#endif
-	EndTimer(SetSMx_QRev);
-	}
-
 void DSSAligner::SetMuQP()
 	{
 	StartTimer(SetMuQP);
@@ -449,28 +164,6 @@ void DSSAligner::SetMuQP()
 		m_ProfMuRev[LA-PosA-1] = MuMxRow;
 		}
 	EndTimer(SetMuQP);
-	}
-
-void DSSAligner::SetMuQPi()
-	{
-	const vector<byte> &MuLettersA = *m_MuLettersA;
-	uint LA = SIZE(MuLettersA);
-	uint n = SIZE(m_ProfMui);
-	if (LA > n)
-		{
-		m_ProfMui.resize(LA);
-		m_ProfMuRevi.resize(LA);
-		}
-	const uint AS = 36;
-	asserta(AS == 36);
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte LetterA = MuLettersA[PosA];
-		asserta(LetterA < AS);
-		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
-		m_ProfMui[PosA] = MuMxRow;
-		m_ProfMuRevi[LA-PosA-1] = MuMxRow;
-		}
 	}
 
 float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
@@ -611,36 +304,10 @@ bool DSSAligner::MuFilter()
 	float MCS = m_Params->m_Omega;
 	if (MCS <= 0)
 		return true;
-	float MuScore = GetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	float MuScore = GetMuScore();
 	if (MuScore < MCS)
 		return false;
 	return true;
-	}
-
-void DSSAligner::Align_MuFilter(
-  const PDBChain &ChainA, const PDBChain &ChainB,
-  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
-  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
-  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB)
-	{
-	SetQuery(ChainA, &ProfileA, &MuLettersA, &MuKmersA, FLT_MAX);
-	SetTarget(ChainB, &ProfileB, &MuLettersB, &MuKmersB, FLT_MAX);
-
-	//m_EvalueA = FLT_MAX;
-	//m_EvalueB = FLT_MAX;
-	//m_Path.clear();
-	ClearAlign();
-
-	++m_AlnCount;
-
-	bool MuFilterOk = MuFilter();
-	++m_MuFilterInputCount;
-	if (!MuFilterOk)
-		{
-		++m_MuFilterDiscardCount;
-		return;
-		}
-	Align_NoAccel();
 	}
 
 void DSSAligner::SetParams(const DSSParams &Params)
@@ -909,24 +576,6 @@ void DSSAligner::Align_NoAccel()
 	CalcEvalue();
 	}
 
-void DSSAligner::Align_QRev()
-	{
-	ClearAlign();
-	SetSMx_QRev();
-	m_AlnFwdScore = 0;
-	return;//FIXME
-	uint LA = m_ChainA->GetSeqLength();
-	if (LA > 500)
-		LA = 500;//FIXME
-
-	StartTimer(SWFwd);
-	uint Leni, Lenj;
-	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LA,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
-	  m_LoA, m_LoB, Leni, Lenj, m_Path);
-	EndTimer(SWFwd);
-	}
-
 void DSSAligner::ToAln(FILE *f, bool Up) const
 	{
 	if (f == 0)
@@ -1041,25 +690,6 @@ void DSSAligner::Stats()
 	Log(" xfil %.1f%%\n",
 				GetPct(m_XDropDiscardCount, m_XDropAlnCount+1));
 	MuKmerFilter::Stats();
-	}
-
-uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const
-	{
-	set<uint> Set1;
-	for (uint i = 0; i < SIZE(Kmers1); ++i)
-		{
-		uint Kmer = Kmers1[i];
-		if (Kmer != UINT_MAX)
-			Set1.insert(Kmer);
-		}
-	uint U = 0;
-	for (uint i = 0; i < SIZE(Kmers2); ++i)
-		{
-		uint Kmer = Kmers2[i];
-		if (Kmer != UINT_MAX && Set1.find(Kmer) != Set1.end())
-			++U;
-		}
-	return U;
 	}
 
 void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const

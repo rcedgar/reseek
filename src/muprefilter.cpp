@@ -116,25 +116,8 @@ void MuPrefilter::SetQDB(const SeqDB &QDB)
 
 void MuPrefilter::Search_TargetKmers()
 	{
-#if KMER_SORT
-	m_QKmerIndex->GetKmersAndSizes(m_TSeq, m_TL, m_TKmers, m_TKmerSizes);
-	const uint NK = SIZE(m_TKmers);
-	m_TKmerSizeOrder.resize(NK);
-	QuickSortOrder(m_TKmerSizes.data(), NK, m_TKmerSizeOrder.data());
-	const uint QueryCount = m_QDB->GetSeqCount();
-	uint MaxTotalSize = QUERY_COUNT_MULTIPLIER*QueryCount;
-	uint SumSize = 0;
-	for (uint k = 0; k < NK; ++k)
-		{
-		uint i = m_TKmerSizeOrder[k];
-		SumSize += m_TKmerSizes[i];
-		if (SumSize > MaxTotalSize)
-			m_TKmers[i] = UINT_MAX;
-		}
-#else
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
-#endif
 	for (uint i = 0; i < NK; ++i)
 		{
 		uint Kmer = m_TKmers[i];

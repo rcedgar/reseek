@@ -8,13 +8,6 @@
 #include "mukmerfilter.h"
 #include <mutex>
 
-#define SCORE_DIST	0
-
-#if SCORE_DIST
-#include "binner.h"
-#define SCORE_BINS	100
-#endif
-
 class DSSAligner
 	{
 private:
@@ -31,8 +24,6 @@ public:
 	const vector<uint> *m_MuKmersB = 0;
 	vector<const float *> m_ProfMu;
 	vector<const float *> m_ProfMuRev;
-	vector<const int8_t *> m_ProfMui;
-	vector<const int8_t *> m_ProfMuRevi;
 	vector<byte> m_MuRevA;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
@@ -87,9 +78,6 @@ public:
 	static atomic<uint> m_ParasailSaturateCount;
 	static atomic<uint> m_XDropAlnCount;
 	static atomic<uint> m_XDropDiscardCount;
-#if SCORE_DIST
-	static vector<float> m_TSs;
-#endif
 
 public:
 	DSSAligner();
@@ -119,49 +107,23 @@ public:
 	void AlignQueryTarget();
 	void AlignQueryTarget_Global();
 	void AlignQueryTarget_Trace();
-	void Align_Test(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
-	void Align_MuFilter(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
-	  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void AlignMKF();
 	void PostAlignMKF();
 	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
 	void Align_NoAccel();
-	void Align_QRev();
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignMuQP_Para();
 	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
 	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
-	//float AlignMu_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
-	  const string &Path) const;
-	float GetMuDPScorePath(const vector<byte> &LettersA,
-	  const vector<byte> &LettersB, uint LoA, uint LoB,
-	  float GapOpen, float GapExt, const string &Path) const;
-	int GetMuDPScorePathInt(const vector<byte> &MuLettersA,
-	  const vector<byte> &MuLettersB, uint LoA, uint LoB,
-	  const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
-	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
-	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
-	void SetSMx_QRev();
 	void SetSMx_NoRev(const DSSParams &Params,
 					  const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB);
 	void SetMuQP();
-	void SetMuQPi();
 	void SetMuQP_Para();
-	//void SetSMx_Mu();
 	void AllocDProw(uint LB);
 	const float * const *GetSMxData() const;
 	float **GetSMxData();
@@ -213,8 +175,5 @@ public:
 
 public:
 	static void Stats();
-#if SCORE_DIST
-	static void ReportScoreDist();
-#endif
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	};

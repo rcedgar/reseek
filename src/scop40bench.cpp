@@ -817,7 +817,4 @@ void cmd_scop40bench()
 		SB.WriteSens1FPReport(f);
 		CloseStdioFile(f);
 		}
-#if SCORE_DIST
-	DSSAligner::ReportScoreDist();
-#endif
 	}

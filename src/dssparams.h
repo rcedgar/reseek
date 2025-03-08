@@ -38,7 +38,7 @@ public:
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
 	string m_MKFPatternStr = "";
-	string m_MuPrefPatternStr = "";
+	string m_MuPrefilterPatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_OwnScoreMxs = false;
 
@@ -48,17 +48,8 @@ public:
 	int m_ParaMuGapOpen = 2;
 	int m_ParaMuGapExt = 1;
 
-	float m_Evalue_old_linear_Slope = -6.6f;
-	float m_Evalue_linear_Intercept = 6.1f;
-
-	float m_Evalue_Gumbel_mu = 2.5f;
-	float m_Evalue_Gumbel_beta = 0.613f;
-
 	float m_Evalue_linear_m = 20.5f;
 	float m_Evalue_linear_b = 2.9f;
-
-	float m_Evalue_a = 4.0f;
-	float m_Evalue_b = -43.0f;
 
 	uint m_MKFL = UINT_MAX;
 	int m_MKF_X1 = INT_MAX;
@@ -87,7 +78,7 @@ public:
 		m_MinFwdScore = FLT_MAX;
 		m_Omega = FLT_MAX;
 		m_MKFPatternStr = "";
-		m_MuPrefPatternStr = "";
+		m_MuPrefilterPatternStr = "";
 		}
 
 	void SetDefaults();

@@ -13,7 +13,7 @@ void DSSParams::FromParamStr(const string &Str)
 	m_MinFwdScore = 0;
 	m_Omega = 0;
 	m_MKFPatternStr = "*";
-	m_MuPrefPatternStr = "*";
+	m_MuPrefilterPatternStr = "*";
 
 	const uint N = SIZE(Fields);
 	for (uint i = 0; i < N; ++i)
@@ -48,6 +48,6 @@ void DSSParams::SetDefaults()
 	m_MinFwdScore = 7.0f;
 	m_Omega = 29;
 	m_OmegaFwd = 29;
-	m_MuPrefPatternStr = "1110011";
+	m_MuPrefilterPatternStr = "1110011";
 	m_MKFPatternStr = "111";
 	}

@@ -92,10 +92,8 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 		asserta(false);
 		}
 
-	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt(evalue_a));
-	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt(evalue_b));
 	m_MKFPatternStr = "111";
-	m_MuPrefPatternStr = string(prefiltermu_pattern);
+	m_MuPrefilterPatternStr = string(muprefilter_pattern);
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt(omega);  }
