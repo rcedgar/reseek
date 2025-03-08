@@ -58,7 +58,7 @@ C(convert2mu)
 C(binner)
 C(convert_foldseekdb)
 C(create_foldseekdb)
-C(prefilter_mu)
+C(muprefilter)
 C(mudex)
 C(cca)
 

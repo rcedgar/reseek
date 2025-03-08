@@ -2,7 +2,7 @@
 #include "dssparams.h"
 #include "dss.h"
 #include "sort.h"
-#include "prefiltermuparams.h"
+#include "muprefilter_params.h"
 
 const FEATURE DSSParams::m_MuFeatures[m_MuFeatureCount] =
 	{

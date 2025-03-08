@@ -7,7 +7,7 @@
 #include "seqdb.h"
 #include "diag.h"
 #include "rankedscoresbag.h"
-#include "prefiltermuparams.h"
+#include "muprefilter_params.h"
 
 const MerMx &GetMuMerMx(uint k);
 
@@ -20,7 +20,7 @@ extern int8_t Mu_S_ij_i8[36][36];
 // with 2-kmer diagonals and their scores.
 ///////////////////////////////////////////////////////////
 
-class PrefilterMu
+class MuPrefilter
 	{
 public:
 	static mutex m_Lock;

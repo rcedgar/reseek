@@ -4,7 +4,7 @@
 #include "mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
-#include "prefiltermuparams.h"
+#include "muprefilter_params.h"
 #include "binner.h"
 
 const MerMx &GetMuMerMx(uint k);

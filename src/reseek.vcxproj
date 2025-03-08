@@ -276,7 +276,7 @@
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
-    <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="cmd_muprefiltercpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
@@ -284,9 +284,9 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
-    <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />
-    <ClCompile Include="prefiltermu.cpp" />
+    <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="calibrate.cpp" />
@@ -467,8 +467,8 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
-    <ClInclude Include="prefiltermu.h" />
-    <ClInclude Include="prefiltermuparams.h" />
+    <ClInclude Include="muprefilter.h" />
+    <ClInclude Include="muprefilter_params.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />

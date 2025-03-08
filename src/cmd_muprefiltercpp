@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "dssparams.h"
-#include "prefiltermu.h"
-#include "prefiltermuparams.h"
+#include "muprefilter.h"
+#include "muprefilter_params.h"
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -17,7 +17,7 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	const uint TSeqCount = s_ptrTDB->GetSeqCount();
 
-	PrefilterMu Pref;
+	MuPrefilter Pref;
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
@@ -48,7 +48,7 @@ static void ThreadBody(uint ThreadIndex)
 		}
 	}
 
-void cmd_prefilter_mu()
+void cmd_muprefilter()
 	{
 	const uint k = MuDex::m_k;
 
@@ -68,8 +68,8 @@ void cmd_prefilter_mu()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	PrefilterMu::m_RSB.m_B = RSB_SIZE;
-	PrefilterMu::m_RSB.Init(QSeqCount);
+	MuPrefilter::m_RSB.m_B = RSB_SIZE;
+	MuPrefilter::m_RSB.Init(QSeqCount);
 
 	const MerMx &ScoreMx = GetMuMerMx(k);
 	asserta(ScoreMx.m_k == k);
@@ -115,7 +115,7 @@ void cmd_prefilter_mu()
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));
-	PrefilterMu::m_RSB.ToTsv(fTsv);
+	MuPrefilter::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
 	}
 
@@ -128,7 +128,7 @@ void cmd_prefilter_mu()
 		for (uint i = 0; i < TSeqCount; ++i)
 			TLabels.push_back(TDB.GetLabel(i));
 		FILE *fTsv = CreateStdioFile(opt(output3));
-		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+		MuPrefilter::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
 		}
 	}

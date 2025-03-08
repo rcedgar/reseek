@@ -428,10 +428,10 @@
     <ClCompile Include="create_foldseekdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_prefiltermu.cpp">
+    <ClCompile Include="cmd_muprefiltercpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="prefiltermu.cpp">
+    <ClCompile Include="muprefilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rankedscoresbag.cpp">
@@ -440,7 +440,7 @@
     <ClCompile Include="duper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="muprefilter.cpp">
+    <ClCompile Include="muprefilter_threads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cca.cpp">
@@ -718,10 +718,10 @@
     <ClInclude Include="mukmerfilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prefiltermu.h">
+    <ClInclude Include="muprefilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prefiltermuparams.h">
+    <ClInclude Include="muprefilter_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rankedscoresbag.h">
