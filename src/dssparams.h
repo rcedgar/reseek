@@ -33,7 +33,7 @@ public:
 
 	float m_GapOpen = FLT_MAX;
 	float m_GapExt = FLT_MAX;
-	float m_FwdMatchScore = FLT_MAX;
+	//float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
@@ -47,9 +47,6 @@ public:
 	bool m_UsePara = true;
 	int m_ParaMuGapOpen = 2;
 	int m_ParaMuGapExt = 1;
-
-	float m_Evalue_linear_m = 20.5f;
-	float m_Evalue_linear_b = 2.9f;
 
 	uint m_MKFL = UINT_MAX;
 	int m_MKF_X1 = INT_MAX;
@@ -74,7 +71,6 @@ public:
 
 		m_GapOpen = FLT_MAX;
 		m_GapExt = FLT_MAX;
-		m_FwdMatchScore = FLT_MAX;
 		m_MinFwdScore = FLT_MAX;
 		m_Omega = FLT_MAX;
 		m_MKFPatternStr = "";
@@ -103,7 +99,6 @@ public:
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();
-	float GetEvalue(float TS) const;
 	};
 
 uint GetPatternOnes(const string &Pattern);

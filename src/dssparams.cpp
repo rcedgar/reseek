@@ -63,7 +63,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 		m_OmegaFwd = 50;
 		m_MKFL = 500;
 		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
+		//m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
 		break;
@@ -73,7 +73,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 		m_OmegaFwd = 20;
 		m_MKFL = 600;
 		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
 		break;
@@ -301,20 +300,6 @@ void DSSParams::InitScoreMxs()
 		}
 	ApplyWeights();
 	m_OwnScoreMxs = true;
-	}
-
-float DSSParams::GetEvalue(float TestStatistic) const
-	{
-	if (TestStatistic <= 0)
-		return 99999;
-	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-
-	float PredMinusLogP = m_Evalue_linear_m*TestStatistic + m_Evalue_linear_b;
-	float P = expf(-PredMinusLogP);
-	float Evalue = P*m_DBSize;
-	if (Evalue > 1)
-		Evalue = log10f(Evalue) + 1;
-	return Evalue;
 	}
 
 void DSSParams::ApplyWeights()

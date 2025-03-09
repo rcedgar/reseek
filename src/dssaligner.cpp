@@ -297,7 +297,7 @@ float DSSAligner::GetMuScore()
 	return MuScore;
 	}
 
-bool DSSAligner::MuFilter()
+bool DSSAligner::MuDPFilter()
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
@@ -411,7 +411,7 @@ void DSSAligner::AlignQueryTarget_Trace()
 		{
 		Log("Omega > 0\n");
 		++m_MuFilterInputCount;
-		bool MuFilterOk = MuFilter();
+		bool MuFilterOk = MuDPFilter();
 		Log("MuFilterOk=%c\n", tof(MuFilterOk));
 		if (!MuFilterOk)
 			{
@@ -470,7 +470,7 @@ void DSSAligner::AlignQueryTarget()
 	if (m_Params->m_Omega > 0)
 		{
 		++m_MuFilterInputCount;
-		bool MuFilterOk = MuFilter();
+		bool MuFilterOk = MuDPFilter();
 		if (!MuFilterOk)
 			{
 			++m_MuFilterDiscardCount;

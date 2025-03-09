@@ -4,7 +4,7 @@
 
 P(GapOpen);
 P(GapExt);
-P(FwdMatchScore);
+//P(FwdMatchScore);
 P(MinFwdScore);
 P(Omega);
 

@@ -63,7 +63,7 @@ static void TraceAln1(const DSSParams &Params,
 		}
 	Log("Omega=%.1f\n", Params.m_Omega);
 	Log("DoMuFilter=%c\n", tof(Params.m_Omega>0));
-	Log("MuFilterOk=%c\n", tof(DA.MuFilter()));
+	Log("MuFilterOk=%c\n", tof(DA.MuDPFilter()));
 	}
 
 void cmd_tracealn()

@@ -102,7 +102,7 @@ public:
 	bool DoMKF() const;
 
 	float GetMuScore();
-	bool MuFilter();
+	bool MuDPFilter();
 	void ClearAlign();
 	void AlignQueryTarget();
 	void AlignQueryTarget_Global();

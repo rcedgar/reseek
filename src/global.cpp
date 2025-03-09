@@ -12,7 +12,7 @@ void DSSAligner::AlignQueryTarget_Global()
 	if (m_Params->m_Omega > 0)
 		{
 		++m_MuFilterInputCount;
-		bool MuFilterOk = MuFilter();
+		bool MuFilterOk = MuDPFilter();
 		if (!MuFilterOk)
 			{
 			MuAccept = false;
