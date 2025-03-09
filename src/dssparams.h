@@ -2,9 +2,6 @@
 
 #include "features.h"
 
-#define SLOPE_CALIB		0
-#define GUMBEL_CALIB	0
-
 const uint SCOP40_DBSIZE = 11211;
 
 enum ALGO_MODE
@@ -33,7 +30,6 @@ public:
 
 	float m_GapOpen = FLT_MAX;
 	float m_GapExt = FLT_MAX;
-	//float m_FwdMatchScore = FLT_MAX;
 	float m_MinFwdScore = FLT_MAX;
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
