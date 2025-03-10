@@ -33,18 +33,26 @@
 #include "myutils.h"
 
 bool IsDirectory(const string& PathName)
-{
-	std::error_code ec;
-	bool IsDir = std::filesystem::is_directory(PathName);
-	return IsDir;
-}
+	{
+	struct stat s;
+	int rc = stat(PathName.c_str(), &s);
+	if (rc != 0)
+		return false;
+	if (s.st_mode & S_IFDIR)
+		return true;
+	return false;
+	}
 
 bool IsRegularFile(const string& PathName)
-{
-	std::error_code ec;
-	bool IsFile = std::filesystem::is_regular_file(PathName);
-	return IsFile;
-}
+	{
+	struct stat s;
+	int rc = stat(PathName.c_str(), &s);
+	if (rc != 0)
+		return false;
+	if (s.st_mode & S_IFREG)
+		return true;
+	return false;
+	}
 
 const int SIZE_16 = 16;
 const int SIZE_32 = 32;

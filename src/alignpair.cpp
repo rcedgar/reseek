@@ -2,7 +2,7 @@
 #include "chainreader2.h"
 #include "dssaligner.h"
 #include "pdbchain.h"
-#include "abcxyz.h"
+#include "xyz.h"
 #include "dss.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
@@ -43,14 +43,14 @@ static void ReadChains_SaveLines(const string &FileName,
 		}
 	}
 
-static void XformLine(const double t[3],
-  const double u[3][3], string &Line)
+static void XformLine(const float t[3],
+  const float u[3][3], string &Line)
 	{
 	float x, y, z;
 	PDBChain::GetXYZFromATOMLine(Line, x, y, z);
 
-	double Pt[3];
-	double XPt[3];
+	float Pt[3];
+	float XPt[3];
 
 	Pt[0] = x;
 	Pt[1] = y;
@@ -63,8 +63,8 @@ static void XformLine(const double t[3],
 	PDBChain::SetXYZInATOMLine(Line, x, y, z, Line);
 	}
 
-static void XformLines(const double t[3],
-  const double u[3][3], vector<string> &Lines)
+static void XformLines(const float t[3],
+  const float u[3][3], vector<string> &Lines)
 	{
 	const uint N = SIZE(Lines);
 	for (uint i = 0; i < N; ++i)
@@ -127,8 +127,8 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 			CloseStdioFile(f);
 			}
 
-		double t[3];
-		double u[3][3];
+		float t[3];
+		float u[3][3];
 		DA.GetKabsch(t, u, true);
 
 		vector<string> LinesQ = ChainQ->m_Lines;

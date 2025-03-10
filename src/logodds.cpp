@@ -90,25 +90,25 @@ uint LogOdds::GetTrueTotal() const
 	return Total;
 	}
 
-void LogOdds::GetBackgroundFreqs(vector<double> &Freqs) const
+void LogOdds::GetBackgroundFreqs(vector<float> &Freqs) const
 	{
 	Freqs.clear();
 	uint Total = 0;
 	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
 		Total += m_BackgroundCounts[Letter];
 
-	double T = float(Total);
-	double SumFreq = 0;
+	float T = float(Total);
+	float SumFreq = 0;
 	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
 		{
-		double Freq = m_BackgroundCounts[Letter]/T;
+		float Freq = m_BackgroundCounts[Letter]/T;
 		Freqs.push_back(Freq);
 		SumFreq += Freq;
 		}
 	asserta(feq(SumFreq, 1.0));
 	}
 
-void LogOdds::GetTrueFreqMx(vector<vector<double> > &Mx) const
+void LogOdds::GetTrueFreqMx(vector<vector<float> > &Mx) const
 	{
 	Mx.clear();
 	Mx.resize(m_AlphaSize);
@@ -116,15 +116,15 @@ void LogOdds::GetTrueFreqMx(vector<vector<double> > &Mx) const
 		Mx[Letter].resize(m_AlphaSize);
 
 	uint Total = GetTrueTotal();
-	double T = double(Total);
+	float T = float(Total);
 	uint SumCount = 0;
-	double SumFreq = 0;
+	float SumFreq = 0;
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
 		{
 		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
 			{
 			uint Count = m_TrueCountMx[Letter1][Letter2];
-			double Freq = Count/T;
+			float Freq = Count/T;
 			Mx[Letter1][Letter2] = Freq;
 			SumCount += Count;
 			SumFreq += Freq;
@@ -134,30 +134,30 @@ void LogOdds::GetTrueFreqMx(vector<vector<double> > &Mx) const
 	asserta(feq(SumFreq, 1.0));
 	}
 
-double LogOdds::GetLogOddsMx(vector<vector<double> > &Mx) const
+float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	{
 	Mx.clear();
 	Mx.resize(m_AlphaSize);
-	vector<double> BackgroundFreqs;
+	vector<float> BackgroundFreqs;
 	GetBackgroundFreqs(BackgroundFreqs);
-	vector<vector<double> > FreqMx;
+	vector<vector<float> > FreqMx;
 	GetTrueFreqMx(FreqMx);
 	uint Total = GetTrueTotal();
-	double SumFreq = 0;
-	double ExpectedScore = 0;
+	float SumFreq = 0;
+	float ExpectedScore = 0;
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
 		{
 		Mx[Letter1].resize(m_AlphaSize);
-		double f1 = BackgroundFreqs[Letter1];
+		float f1 = BackgroundFreqs[Letter1];
 		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
 			{
-			double f2 = BackgroundFreqs[Letter2];
-			double ObsFreq = FreqMx[Letter1][Letter2];
-			double ExpectedFreq = double(f1*f2);
+			float f2 = BackgroundFreqs[Letter2];
+			float ObsFreq = FreqMx[Letter1][Letter2];
+			float ExpectedFreq = float(f1*f2);
 			if (ObsFreq == 0 || ExpectedFreq == 0)
 				continue;
-			double Ratio = ObsFreq/ExpectedFreq;
-			double Score = log(Ratio);
+			float Ratio = ObsFreq/ExpectedFreq;
+			float Score = log(Ratio);
 			Mx[Letter1][Letter2] = Score;
 			ExpectedScore += ObsFreq*Score;
 			SumFreq += ObsFreq;
@@ -167,12 +167,12 @@ double LogOdds::GetLogOddsMx(vector<vector<double> > &Mx) const
 	return ExpectedScore;
 	}
 
-void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
+void LogOdds::GetLogOddsMxInt8(vector<vector<float> > &Mxd,
   vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const
 	{
 	Mxi.clear();
 	Mxi.resize(m_AlphaSize);
-	double MaxAbs = 0;
+	float MaxAbs = 0;
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
 		for (uint Letter2 = Letter1; Letter2 < m_AlphaSize; ++Letter2)
 			MaxAbs = max(MaxAbs, fabs(Mxd[Letter1][Letter2]));
@@ -182,7 +182,7 @@ void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
 		Mxi[Letter1].resize(m_AlphaSize);
 		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
 			{
-			double d = Mxd[Letter1][Letter2];
+			float d = Mxd[Letter1][Letter2];
 			int8_t i8 = FloatToInt8((float) d, (float) MaxAbs, MaxAbsi);
 			Mxi[Letter1][Letter2] = i8;
 			}
@@ -190,12 +190,12 @@ void LogOdds::GetLogOddsMxInt8(vector<vector<double> > &Mxd,
 	}
 
 void LogOdds::VecToSrc(FILE *f, const string &Name, 
-  const vector<double> &v) const
+  const vector<float> &v) const
 	{
 	if (f == 0)
 		return;
 	asserta(SIZE(v) == m_AlphaSize);
-	fprintf(f, "static double %s[%u] = {\n",
+	fprintf(f, "static float %s[%u] = {\n",
 	  Name.c_str(), m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		fprintf(f, "\t%.4g, // %u\n", v[i], i);
@@ -203,7 +203,7 @@ void LogOdds::VecToSrc(FILE *f, const string &Name,
 	}
 
 void LogOdds::MxToSrc(FILE *f, const string &Name, 
-  const vector<vector<double> > &Mx) const
+  const vector<vector<float> > &Mx) const
 	{
 	if (f == 0)
 		return;
@@ -211,7 +211,7 @@ void LogOdds::MxToSrc(FILE *f, const string &Name,
 
 	fprintf(f, "\n");
 	fprintf(f, "const uint AlphaSize_%s = %u;\n", Name.c_str(), m_AlphaSize);
-	fprintf(f, "static double ScoreMx_%s[%u][%u] = {\n",
+	fprintf(f, "static float ScoreMx_%s[%u][%u] = {\n",
 	  Name.c_str(), m_AlphaSize, m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
@@ -229,7 +229,7 @@ void LogOdds::MxToSrc(FILE *f, const string &Name,
 	}
 
 void LogOdds::MxToSrc2(FILE *f, const string &Name, 
-  const vector<vector<double> > &Mx, uint EffAlphaSize) const
+  const vector<vector<float> > &Mx, uint EffAlphaSize) const
 	{
 	if (f == 0)
 		return;

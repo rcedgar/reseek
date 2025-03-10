@@ -4,16 +4,10 @@
 void DSSParams::FromParamStr(const string &Str)
 	{
 	Clear();
+	SetDefaults();
+
 	vector<string> Fields;
 	Split(Str, Fields, '_');
-
-	m_GapOpen = -1.5f;
-	m_GapExt = -0.42f;
-	//m_FwdMatchScore = 0;
-	m_MinFwdScore = 0;
-	m_Omega = 0;
-	m_MKFPatternStr = "*";
-	m_MuPrefilterPatternStr = "*";
 
 	const uint N = SIZE(Fields);
 	for (uint i = 0; i < N; ++i)

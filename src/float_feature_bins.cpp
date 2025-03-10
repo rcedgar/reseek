@@ -9,19 +9,19 @@
 static uint g_FeatureIndex = UINT_MAX;
 
 static void ReportBins(
-  const vector<double> &Values, 
-  const vector<double> &Values1,
-  const vector<double> &Values2,
+  const vector<float> &Values, 
+  const vector<float> &Values1,
+  const vector<float> &Values2,
   uint AlphaSize)
 	{
 	const char *FeatureName = FeatureToStr(g_FeatureIndex);
 	const uint K = SIZE(Values);
 	asserta(K > 0);
-	vector<double> Ts;
+	vector<float> Ts;
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
 		{
 		uint k = ((i+1)*K)/AlphaSize;
-		double t = Values[k];
+		float t = Values[k];
 		Ts.push_back(t);
 		}
 
@@ -31,8 +31,8 @@ static void ReportBins(
 	asserta(SIZE(Values2) == PairCount);
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
-		double Value1 = Values1[PairIndex];
-		double Value2 = Values2[PairIndex];
+		float Value1 = Values1[PairIndex];
+		float Value2 = Values2[PairIndex];
 		uint i1 = DSS::ValueToInt(Ts, Value1);
 		uint i2 = DSS::ValueToInt(Ts, Value2);
 		LO.AddBackgroundLetter(i1);
@@ -40,8 +40,8 @@ static void ReportBins(
 		LO.AddTruePair(i1, i2);
 		}
 
-	vector<vector<double> > ScoreMx;
-	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
+	vector<vector<float> > ScoreMx;
+	float ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	ProgressLog("%s: AlphaSize %u, ExpectedScore %.4g\n",
 	  FeatureName, AlphaSize, ExpectedScore);
 
@@ -91,9 +91,9 @@ void cmd_float_feature_bins()
 	uint LetterPairCount = 0;
 	DSS QX;
 	DSS RX;
-	vector<double> Values;
-	vector<double> Values1;
-	vector<double> Values2;
+	vector<float> Values;
+	vector<float> Values1;
+	vector<float> Values2;
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
 		ProgressStep(PairIndex, PairCount, "Processing");
@@ -127,8 +127,8 @@ void cmd_float_feature_bins()
 			char r = RRow[Col];
 			if (!isgap(q) && !isgap(r))
 				{
-				double ValueQ = QX.GetFloatFeature(g_FeatureIndex, QPos);
-				double ValueR = RX.GetFloatFeature(g_FeatureIndex, RPos);
+				float ValueQ = QX.GetFloatFeature(g_FeatureIndex, QPos);
+				float ValueR = RX.GetFloatFeature(g_FeatureIndex, RPos);
 				if (ValueQ == DBL_MAX || ValueR == DBL_MAX)
 					continue;
 				Values.push_back(ValueQ);

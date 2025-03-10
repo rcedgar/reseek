@@ -101,6 +101,8 @@ void DBSearcher::Setup()
 		XDPMem *Mem = new XDPMem;
 		m_Mems.push_back(Mem);
 		}
+
+	OnSetup();
 	}
 
 void DBSearcher::LoadDB(const string &DBFN)

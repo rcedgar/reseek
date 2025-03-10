@@ -270,7 +270,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="abcxyz.cpp" />
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="alpha.cpp" />
@@ -283,10 +282,13 @@
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="hj.cpp" />
+    <ClCompile Include="hj_scop40.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="calibrate.cpp" />
@@ -415,6 +417,7 @@
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="xdrophsp.cpp" />
+    <ClCompile Include="xyz.cpp" />
     <ClCompile Include="zscorer.cpp" />
     <ClCompile Include="zutil.c" />
     <ClInclude Include="bcadata.h" />
@@ -428,6 +431,7 @@
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="kabsch.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
@@ -469,6 +473,7 @@
     <ClInclude Include="parasail.h" />
     <ClInclude Include="muprefilter.h" />
     <ClInclude Include="muprefilter_params.h" />
+    <ClInclude Include="peaker.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />
@@ -487,13 +492,14 @@
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />
+    <ClInclude Include="varspec.h" />
     <ClInclude Include="xdpmem.h" />
+    <ClInclude Include="xyz.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />
     <ClInclude Include="zutil.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="abcxyz.h" />
     <ClInclude Include="alpha.h" />
     <ClInclude Include="cmds.h" />
     <ClInclude Include="fastaseqsource.h" />

@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "abcxyz.h"
+#include "xyz.h"
 
 void PDBChain::FromCal(const string &FileName)
 	{

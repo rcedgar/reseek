@@ -527,7 +527,8 @@ void Peaker::CleanQueue()
 	asserta(m_QueueDir != "/");
 	asserta(m_QueueDir != ".");
 	vector<string> FNs;
-	mylistdir(m_QueueDir, FNs);
+	vector<bool> IsSubDirs;
+	mylistdir(m_QueueDir, FNs, IsSubDirs);
 	const uint n = SIZE(FNs);
 	for (uint i = 0; i < n; ++i)
 		{

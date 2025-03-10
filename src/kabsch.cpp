@@ -18,31 +18,31 @@ rms   - sum of w*(ux+t-y)**2 over all atom pairs             (output)
 u     - u(i,j) is   rotation  matrix for best superposition  (output)
 t     - t(i)   is translation vector for best superposition  (output)
 **************************************************************************/
-double Kabsch(
-  const double * const *x, 
-  const double * const *y, int n,
-  double t[3], double u[3][3])
+float Kabsch(
+  const float * const *x, 
+  const float * const *y, int n,
+  float t[3], float u[3][3])
 	{
 	int i, j, m, m1, l, k;
-	double e0, rms1, d, h, g;
-	double cth, sth, sqrth, p, det, sigma;
-	double xc[3], yc[3];
-	double a[3][3], b[3][3], r[3][3], e[3], rr[6], ss[6];
-	double sqrt3 = 1.73205080756888, tol = 0.01;
+	float e0, rms1, d, h, g;
+	float cth, sth, sqrth, p, det, sigma;
+	float xc[3], yc[3];
+	float a[3][3], b[3][3], r[3][3], e[3], rr[6], ss[6];
+	float sqrt3 = 1.73205080756888f, tol = 0.01f;
 	int ip[] = { 0, 1, 3, 1, 2, 4, 3, 4, 5 };
 	int ip2312[] = { 1, 2, 0, 1 };
 	asserta(n > 0);
 
 	int a_failed = 0, b_failed = 0;
-	double epsilon = 0.00000001;
+	float epsilon = 0.00000001f;
 
 	//initializtation
-	double rms = 0;
+	float rms = 0;
 	rms1 = 0;
 	e0 = 0;
-	double c1[3], c2[3];
-	double s1[3], s2[3];
-	double sx[3], sy[3], sz[3];
+	float c1[3], c2[3];
+	float s1[3], s2[3];
+	float sx[3], sy[3], sz[3];
 	for (i = 0; i < 3; i++)
 		{
 		s1[i] = 0.0;
@@ -125,9 +125,9 @@ double Kabsch(
 			}
 		}
 
-	double spur = (rr[0] + rr[2] + rr[5]) / 3.0;
-	double cof = (((((rr[2] * rr[5] - rr[4] * rr[4]) + rr[0] * rr[5])\
-		- rr[3] * rr[3]) + rr[0] * rr[2]) - rr[1] * rr[1]) / 3.0;
+	float spur = (rr[0] + rr[2] + rr[5]) / 3.0f;
+	float cof = (((((rr[2] * rr[5] - rr[4] * rr[4]) + rr[0] * rr[5])\
+		- rr[3] * rr[3]) + rr[0] * rr[2]) - rr[1] * rr[1]) / 3.0f;
 	det = det * det;
 
 	for (i = 0; i < 3; i++) e[i] = spur;
@@ -136,14 +136,14 @@ double Kabsch(
 		{
 		d = spur * spur;
 		h = d - cof;
-		g = (spur * cof - det) / 2.0 - spur * h;
+		g = (spur * cof - det) / 2.0f - spur * h;
 
 		if (h > 0)
 			{
 			sqrth = sqrt(h);
 			d = h * h * h - g * g;
 			if (d < 0.0) d = 0.0;
-			d = atan2(sqrt(d), -g) / 3.0;
+			d = atan2(sqrt(d), -g) / 3.0f;
 			cth = sqrth * cos(d);
 			sth = sqrth * sqrt3 * sin(d);
 			e[0] = (spur + cth) + cth;
@@ -187,7 +187,7 @@ double Kabsch(
 
 
 					//if( d > 0.0 ) d = 1.0 / sqrt(d);
-					if (d > epsilon) d = 1.0 / sqrt(d);
+					if (d > epsilon) d = 1.0f / sqrtf(d);
 					else d = 0.0;
 					for (i = 0; i < 3; i++) a[i][l] = a[i][l] * d;
 					}//for l
@@ -231,7 +231,7 @@ double Kabsch(
 					}//if p<=tol
 				else
 					{
-					p = 1.0 / sqrt(p);
+					p = 1.0f / sqrtf(p);
 					for (i = 0; i < 3; i++) a[i][m1] = a[i][m1] * p;
 					}//else p<=tol  
 				if (a_failed != 1)
@@ -255,7 +255,7 @@ double Kabsch(
 					d = d + b[i][l] * b[i][l];
 					}
 				//if( d > 0 ) d = 1.0 / sqrt(d);
-				if (d > epsilon) d = 1.0 / sqrt(d);
+				if (d > epsilon) d = 1.0f / sqrtf(d);
 				else d = 0.0;
 				for (i = 0; i < 3; i++) b[i][l] = b[i][l] * d;
 				}
@@ -290,7 +290,7 @@ double Kabsch(
 				}//if( p <= tol )
 			else
 				{
-				p = 1.0 / sqrt(p);
+				p = 1.0f / sqrtf(p);
 				for (i = 0; i < 3; i++) b[i][1] = b[i][1] * p;
 				}
 			if (b_failed != 1)
@@ -327,13 +327,13 @@ double Kabsch(
 	return rms;
 	}
 
-double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
+float Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
   uint LoA, uint LoB, const string &Path,
-  double t[3], double u[3][3])
+  float t[3], float u[3][3])
 	{
 	uint ColCount = SIZE(Path);
-	double **x = myalloc(double *, ColCount);
-	double **y = myalloc(double *, ColCount);
+	float **x = myalloc(float *, ColCount);
+	float **y = myalloc(float *, ColCount);
 	uint M = 0;
 	uint PosA = LoA;
 	uint PosB = LoB;
@@ -343,10 +343,10 @@ double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 			{
 		case 'M':
 			{
-			x[M] = myalloc(double, 3);
-			y[M] = myalloc(double, 3);
-			vector<double> PtA;
-			vector<double> PtB;
+			x[M] = myalloc(float, 3);
+			y[M] = myalloc(float, 3);
+			vector<float> PtA;
+			vector<float> PtB;
 			ChainA.GetPt(PosA, PtA);
 			ChainB.GetPt(PosB, PtB);
 			x[M][0] = PtA[0];
@@ -373,7 +373,7 @@ double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 			asserta(false);
 			}
 		}
-	double RMS = Kabsch(x, y, M, t, u);
+	float RMS = Kabsch(x, y, M, t, u);
 	for (uint i = 0; i < M; ++i)
 		{
 		myfree(x[i]);
@@ -385,35 +385,35 @@ double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 	return RMS/M;
 	}
 
-#include "abcxyz.h"
+#include "xyz.h"
 
-static void Test(const double t_in[3],
-  const double u_in[3][3], uint n)
+static void Test(const float t_in[3],
+  const float u_in[3][3], uint n)
 	{
 	Log("t_in = %.1f %.1f %.1f\n", t_in[0], t_in[1], t_in[2]);
 	Log("uin0 = %7.3f %7.3f %7.3f\n", u_in[0][0], u_in[0][1], u_in[0][2]);
 	Log("uin1 = %7.3f %7.3f %7.3f\n", u_in[1][0], u_in[1][1], u_in[1][2]);
 	Log("uin2 = %7.3f %7.3f %7.3f\n", u_in[2][0], u_in[2][1], u_in[2][2]);
 
-	double **x = myalloc(double *, n);
-	double **y = myalloc(double *, n);
+	float **x = myalloc(float *, n);
+	float **y = myalloc(float *, n);
 
 	for (uint i = 0; i < n; ++i)
 		{
-		x[i] = myalloc(double, 3);
-		y[i] = myalloc(double, 3);
+		x[i] = myalloc(float, 3);
+		y[i] = myalloc(float, 3);
 
-		x[i][0] = randu32()%10;
-		x[i][1] = randu32()%10;
-		x[i][2] = randu32()%10;
+		x[i][0] = float(randu32()%10);
+		x[i][1] = float(randu32()%10);
+		x[i][2] = float(randu32()%10);
 
 		transform(t_in, u_in, x[i], y[i]);
 		}
 
-	double t[3];
-	double u[3][3];
+	float t[3];
+	float u[3][3];
 
-	double rms = Kabsch(x, y, n, t, u);
+	float rms = Kabsch(x, y, n, t, u);
 
 	Log(" rms = %.2f\n", rms);
 	Log("   t = %.1f %.1f %.1f\n", t[0], t[1], t[2]);
@@ -427,7 +427,7 @@ static void Test(const double t_in[3],
 	Log("\n");
 	for (uint i = 0; i < n; ++i)
 		{
-		double x_transformed[3];
+		float x_transformed[3];
 		transform(t, u, x[i], x_transformed);
 
 		Log("(%8.1f,  %8.1f,  %8.1f)", x[i][0], x[i][1], x[i][2]);
@@ -440,8 +440,8 @@ static void Test(const double t_in[3],
 #if 0
 void cmd_test()
 	{
-	double t[3] = { 1, 2, 3 };
-	double u[3][3] =
+	float t[3] = { 1, 2, 3 };
+	float u[3][3] =
 		{
 		{ 1, 0, 0 },
 		{ 0, 1, 0 },
@@ -450,9 +450,9 @@ void cmd_test()
 
 // https://en.wikipedia.org/wiki/Rotation_matrix
 
-	double theta = 1;
-	double c = cos(theta);
-	double s = sin(theta);
+	float theta = 1;
+	float c = cos(theta);
+	float s = sin(theta);
 
 	u[0][0] = 1;		u[0][1] = 0;		u[0][1] = 0;
 	u[1][0] = 0;		u[1][1] = c;		u[1][1] = -s;

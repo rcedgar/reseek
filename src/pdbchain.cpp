@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
-#include "abcxyz.h"
+#include "xyz.h"
 
 void GetThreeFromOne(char aa, string &AAA);
 
@@ -274,18 +274,6 @@ void PDBChain::GetPt(uint Pos, vector<float> &Pt) const
 	Pt[Z] = m_Zs[Pos];
 	}
 
-void PDBChain::GetPt(uint Pos, vector<double> &Pt) const
-	{
-	assert(Pos < SIZE(m_Xs));
-	assert(Pos < SIZE(m_Ys));
-	assert(Pos < SIZE(m_Zs));
-
-	Resize3(Pt);
-	Pt[X] = m_Xs[Pos];
-	Pt[Y] = m_Ys[Pos];
-	Pt[Z] = m_Zs[Pos];
-	}
-
 void PDBChain::SetPt(uint Pos, const vector<float> &Pt)
 	{
 	assert(Pos < SIZE(m_Xs));
@@ -367,37 +355,6 @@ void PDBChain::GetXFormChain_tR(
 		float x = XPt[X];
 		float y = XPt[Y];
 		float z = XPt[Z];
-
-		XChain.m_Xs.push_back(x);
-		XChain.m_Ys.push_back(y);
-		XChain.m_Zs.push_back(z);
-		}
-	}
-
-void PDBChain::GetXFormChain_tR(
-  const vector<double> &t,
-  const vector<vector<double> > &R,
-  PDBChain &XChain) const
-	{
-	XChain.Clear();
-	XChain.m_Label = m_Label;
-	XChain.m_Seq = m_Seq;
-
-	const uint N = SIZE(m_Seq);
-	asserta(SIZE(m_Xs) == N);
-	asserta(SIZE(m_Ys) == N);
-	asserta(SIZE(m_Zs) == N);
-
-	vector<double> Pt(3);
-	vector<double> XPt(3);
-	for (uint Pos = 0; Pos < N; ++Pos)
-		{
-		GetPt(Pos, Pt);
-		XFormPt(Pt, t, R, XPt);
-
-		float x = (float) XPt[X];
-		float y = (float) XPt[Y];
-		float z = (float) XPt[Z];
 
 		XChain.m_Xs.push_back(x);
 		XChain.m_Ys.push_back(y);

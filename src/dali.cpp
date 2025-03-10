@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "abcxyz.h"
+#include "xyz.h"
 #include <map>
 
 float g_DALI_D = 20.0f;

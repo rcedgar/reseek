@@ -1,11 +1,8 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "abcxyz.h"
+#include "xyz.h"
 #include "dssaligner.h"
 
-double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
-  uint LoA, uint LoB, const string &Path,
-  double t[3], double u[3][3]);
 void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
   const string &LabelB, const byte *B,
   uint Loi, uint Loj, const char *Path);

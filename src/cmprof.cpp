@@ -2,24 +2,24 @@
 #include "cmprof.h"
 #include "alpha.h"
 
-double GetNormal(double Mu, double Sigma, double x)
+float GetNormal(float Mu, float Sigma, float x)
 	{
-	static double TWOPI = (2.0*3.1415926535);
-	static double FACTOR = 1.0/sqrt(TWOPI);
+	static float TWOPI = (2.0f*3.1415926535f);
+	static float FACTOR = 1.0f/sqrtf(TWOPI);
 
-	double a = (x - Mu)/Sigma;
-	double y = (FACTOR/Sigma)*exp(-0.5*a*a);
+	float a = (x - Mu)/Sigma;
+	float y = (FACTOR/Sigma)*exp(-0.5f*a*a);
 	return y;
 	}
 
 void CMProf::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
-  vector<vector<double> > &DistMx)
+  vector<vector<float> > &DistMx)
 	{
 	DistMx.clear();
 	const uint N = SIZE(PosVec);
 	DistMx.resize(N);
 	for (uint i = 0; i < N; ++i)
-		DistMx[i].resize(N, DBL_MAX);
+		DistMx[i].resize(N, FLT_MAX);
 
 	for (uint i = 0; i < N; ++i)
 		{
@@ -32,7 +32,7 @@ void CMProf::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
 			uint Posj = PosVec[j];
 			if (Posj == UINT_MAX)
 				continue;
-			double d = Chain.GetDist(Posi, Posj);
+			float d = Chain.GetDist(Posi, Posj);
 			DistMx[i][j] = d;
 			DistMx[j][i] = d;
 			}
@@ -40,7 +40,7 @@ void CMProf::GetDistMx(const PDBChain &Chain, const vector<uint> &PosVec,
 	}
 
 void CMProf::MxToFile(FILE *f, const string &Name,
-  const vector<vector<double> > &Mx) const
+  const vector<vector<float> > &Mx) const
 	{
 	if (f == 0)
 		return;
@@ -52,7 +52,7 @@ void CMProf::MxToFile(FILE *f, const string &Name,
 		fprintf(f, "%s\t%u", Name.c_str(), i);
 		for (uint j = 0; j <= i; ++j)
 			{
-			double x = Mx[i][j];
+			float x = Mx[i][j];
 			if (i == j)
 				asserta(x == 0);
 			asserta(Mx[j][i] == Mx[i][j]);
@@ -80,11 +80,11 @@ void CMProf::ToFile(const string &FileName) const
 	}
 
 void CMProf::MxFromFile(FILE *f, string &Name, uint CoreColCount,
-  vector<vector<double> > &Mx)
+  vector<vector<float> > &Mx)
 	{
 	Mx.resize(CoreColCount);
 	for (uint i = 0; i < CoreColCount; ++i)
-		Mx[i].resize(CoreColCount, DBL_MAX);
+		Mx[i].resize(CoreColCount, FLT_MAX);
 
 	string Line;
 	vector<string> Fields;
@@ -103,7 +103,7 @@ void CMProf::MxFromFile(FILE *f, string &Name, uint CoreColCount,
 
 		for (uint j = 0; j <= i; ++j)
 			{
-			double Value = StrToFloat(Fields[j+2]);
+			float Value = (float) StrToFloat(Fields[j+2]);
 			if (i == j)
 				asserta(Value == 0);
 			Mx[i][j] = Value;
@@ -166,7 +166,7 @@ bool CMProf::TrainChain(const PDBChain &Q)
 				PosVec.push_back(Pos++);
 			}
 		}
-	vector<vector<double> > DistMx;
+	vector<vector<float> > DistMx;
 	GetDistMx(Q, PosVec, DistMx);
 
 	m_DistMxVec.push_back(DistMx);
@@ -184,8 +184,8 @@ void CMProf::FinalizeTrain()
 	m_StdDevs.resize(CoreColCount);
 	for (uint i = 0; i < CoreColCount; ++i)
 		{
-		m_MeanDistMx[i].resize(CoreColCount, DBL_MAX);
-		m_StdDevs[i].resize(CoreColCount, DBL_MAX);
+		m_MeanDistMx[i].resize(CoreColCount, FLT_MAX);
+		m_StdDevs[i].resize(CoreColCount, FLT_MAX);
 		}
 
 	for (uint i = 0; i < CoreColCount; ++i)
@@ -194,7 +194,7 @@ void CMProf::FinalizeTrain()
 		m_StdDevs[i][i] = 0;
 		for (uint j = 0; j < i; ++j)
 			{
-			double Mean, StdDev;
+			float Mean, StdDev;
 			GetMeanStdDev(i, j, Mean, StdDev);
 
 			m_MeanDistMx[i][j] = Mean;
@@ -207,20 +207,20 @@ void CMProf::FinalizeTrain()
 	}
 
 void CMProf::GetMeanStdDev(uint i, uint j,
-  double &Mean, double &StdDev) const
+  float &Mean, float &StdDev) const
 	{
-	Mean = DBL_MAX;
-	StdDev = DBL_MAX;
+	Mean = FLT_MAX;
+	StdDev = FLT_MAX;
 	const uint N = SIZE(m_DistMxVec);
 	asserta(N > 0);
-	double Sum = 0;
+	float Sum = 0;
 	uint n = 0;
 	for (uint k = 0; k < N; ++k)
 		{
 		asserta(i < SIZE(m_DistMxVec[k]));
 		asserta(j < SIZE(m_DistMxVec[k][i]));
-		double d = m_DistMxVec[k][i][j];
-		if (d == DBL_MAX)
+		float d = m_DistMxVec[k][i][j];
+		if (d == FLT_MAX)
 			continue;
 		++n;
 		Sum += d;
@@ -228,15 +228,15 @@ void CMProf::GetMeanStdDev(uint i, uint j,
 	if (n == 0)
 		return;
 
-	Mean = (n == 0 ? 0 : double(Sum)/n);
+	Mean = (n == 0 ? 0 : float(Sum)/n);
 
-	double Sumd2 = 0;
+	float Sumd2 = 0;
 	for (uint k = 0; k < N; ++k)
 		{
-		double d = m_DistMxVec[k][i][j];
-		if (d == DBL_MAX)
+		float d = m_DistMxVec[k][i][j];
+		if (d == FLT_MAX)
 			continue;
-		double d2 = (d - Mean)*(d - Mean);
+		float d2 = (d - Mean)*(d - Mean);
 		Sumd2 += d2;
 		}
 	StdDev = sqrt(Sumd2/n);
@@ -253,8 +253,8 @@ void CMProf::SetMSA(const SeqDB &MSA)
 		Die("MSA must have > 2 sequences");
 	const uint ColCount = MSA.GetColCount();
 
-	double MaxGapPct = (optset_maxgappct ? opt(maxgappct)/100.0 : 50);
-	double MaxGapFract = MaxGapPct/100.0;
+	float MaxGapPct = float(optset_maxgappct ? opt(maxgappct)/100 : 50);
+	float MaxGapFract = MaxGapPct/100.0f;
 	uint MinLetters = uint((1 - MaxGapFract)*SeqCount + 1);
 	if (MinLetters < 2)
 		MinLetters = 2;

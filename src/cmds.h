@@ -61,5 +61,6 @@ C(create_foldseekdb)
 C(muprefilter)
 C(mudex)
 C(cca)
+C(hj_scop40)
 
 #undef C

@@ -56,17 +56,12 @@ public:
 	void ToPDB(FILE *f, bool TruncateAtZ = false) const;
 	void ToPDB(const string &FileName) const;
 	void GetXFormChain_tR(
-	  const vector<double> &t,
-	  const vector<vector<double> > &R,
-	  PDBChain &XChain) const;
-	void GetXFormChain_tR(
 	  const vector<float> &t,
 	  const vector<vector<float> > &R,
 	  PDBChain &XChain) const;
 	void LogMe(bool WithCoords = false) const;
 	void GetXYZ(uint Pos, float &x, float &y, float &z) const;
 	void GetPt(uint Pos, vector<float> &Pt) const;
-	void GetPt(uint Pos, vector<double> &Pt) const;
 	void SetPt(uint Pos, const vector<float> &Pt);
 	float GetDist(uint Pos1, uint Pos2) const;
 	float GetDist2(uint Pos1, uint Pos2) const;

@@ -8,6 +8,7 @@
 #include "mumx.h"
 #include "cigar.h"
 #include "parasail.h"
+#include "kabsch.h"
 #include <thread>
 #include <set>
 #include <mutex>
@@ -921,19 +922,15 @@ float DSSAligner::GetPctId() const
 	return N == 0 ? 0 : (n*100.0f)/N;
 	}
 
-float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
+float DSSAligner::GetKabsch(float t[3], float u[3][3], bool Up) const
 	{
-	double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
-		uint LoA, uint LoB, const string &Path,
-		double t[3], double u[3][3]);
-
 	if (Up)
-		return (float) Kabsch(*m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, t, u);
+		return Kabsch(*m_ChainA, *m_ChainB, m_LoA, m_LoB, m_Path, t, u);
 	else
 		{
 		string Path;
 		InvertPath(m_Path, Path);
-		return (float) Kabsch(*m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, t, u);
+		return Kabsch(*m_ChainB, *m_ChainA, m_LoB, m_LoA, Path, t, u);
 		}
 	}
 

@@ -765,15 +765,7 @@ void SCOP40Bench::WriteSens1FPReport(FILE *f) const
 
 void cmd_scop40bench()
 	{
-	string CalFN;
-	if (g_Arg1 == ".")
-#ifdef _MSC_VER
-		CalFN = "c:/src/reseek_scop40/reseek_db/scop40_family.cal";
-#else
-		CalFN = "/c/src/reseek_scop40/reseek_db/scop40_family.cal";
-#endif
-	else
-		CalFN = g_Arg1;
+	const string CalFN = g_Arg1;
 
 	if (optset_global)
 		{

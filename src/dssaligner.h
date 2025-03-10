@@ -155,7 +155,7 @@ public:
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
 
-	float GetKabsch(double t[3], double u[3][3], bool Up) const;
+	float GetKabsch(float t[3], float u[3][3], bool Up) const;
 
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;

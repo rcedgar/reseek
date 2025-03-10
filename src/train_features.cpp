@@ -122,13 +122,13 @@ static void WriteLOInt8(FILE *f, const string &strName, const LogOdds &LO, int8_
 		return;
 	const char *Name = strName.c_str();
 
-	vector<double> Freqs;
-	vector<vector<double> > PairFreqs;
-	vector<vector<double> > LogOddsScores;
+	vector<float> Freqs;
+	vector<vector<float> > PairFreqs;
+	vector<vector<float> > LogOddsScores;
 	const uint AS = LO.m_AlphaSize;
 	LO.GetBackgroundFreqs(Freqs);
 	LO.GetTrueFreqMx(PairFreqs);
-	double ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
+	float ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
 
 	vector<vector<int8_t> > LogOddsScoresi;
 	LO.GetLogOddsMxInt8(LogOddsScores, LogOddsScoresi, MaxAbsi8);
@@ -151,13 +151,13 @@ static void WriteLO(FILE *f, const string &strName, const LogOdds &LO)
 		return;
 	const char *Name = strName.c_str();
 
-	vector<double> Freqs;
-	vector<vector<double> > PairFreqs;
-	vector<vector<double> > LogOddsScores;
+	vector<float> Freqs;
+	vector<vector<float> > PairFreqs;
+	vector<vector<float> > LogOddsScores;
 	const uint AS = LO.m_AlphaSize;
 	LO.GetBackgroundFreqs(Freqs);
 	LO.GetTrueFreqMx(PairFreqs);
-	double ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
+	float ExpectedScore = LO.GetLogOddsMx(LogOddsScores);
 
 	fprintf(f, "FEATURE\t%s\t%u\t%.3f\n", Name, AS, ExpectedScore);
 	asserta(SIZE(Freqs) == AS);

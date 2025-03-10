@@ -6,25 +6,25 @@ public:
 	uint m_AlphaSize = 0;
 	vector<uint> m_BackgroundCounts;
 	vector<vector<uint> > m_TrueCountMx;
-	vector<double> m_Freqs;
-	vector<double> m_FreqMx;
+	vector<float> m_Freqs;
+	vector<float> m_FreqMx;
 
 public:
 	void Init(uint AlphaSize);
 	void AddBackgroundLetter(uint Letter);
 	void AddTruePair(uint Letter1, uint Letter2);
-	void GetBackgroundFreqs(vector<double> &Freqs) const;
-	void GetTrueFreqMx(vector<vector<double> > &Mx) const;
-	double GetLogOddsMx(vector<vector<double> > &Mx) const;
-	void GetLogOddsMxInt8(vector<vector<double> > &Mxd,
+	void GetBackgroundFreqs(vector<float> &Freqs) const;
+	void GetTrueFreqMx(vector<vector<float> > &Mx) const;
+	float GetLogOddsMx(vector<vector<float> > &Mx) const;
+	void GetLogOddsMxInt8(vector<vector<float> > &Mxd,
 	  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const;
 	uint GetTrueTotal() const;
 	void MxToSrc(FILE *f, const string &Name, 
-	  const vector<vector<double> > &Mx) const;
+	  const vector<vector<float> > &Mx) const;
 	void MxToSrc2(FILE *f, const string &Name, 
-	  const vector<vector<double> > &Mx, uint EffAlphaSize) const;
+	  const vector<vector<float> > &Mx, uint EffAlphaSize) const;
 	void VecToSrc(FILE *f, const string &Name, 
-	  const vector<double> &v) const;
+	  const vector<float> &v) const;
 	void GetSymbol(uint Letter, string &s) const;
 	};
 

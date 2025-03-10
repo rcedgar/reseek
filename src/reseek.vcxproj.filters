@@ -53,9 +53,6 @@
     <ClCompile Include="quarts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="abcxyz.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pdbchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -458,6 +455,18 @@
     <ClCompile Include="swgaplessprofb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="peaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hj_scop40.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xyz.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -497,9 +506,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="quarts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="abcxyz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pdbchain.h">
@@ -731,6 +737,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="peaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="varspec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xyz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kabsch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
