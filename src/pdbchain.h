@@ -1,6 +1,9 @@
 #ifndef pdbchain_h
 #define pdbchain_h
 
+// More memory, no speed advantage
+#define CACHE_DIST_MAX	0
+
 #include "myutils.h"
 #include "features.h"
 #include "flatmx.h"
@@ -17,7 +20,9 @@ public:
 	vector<float> m_Zs;
 	uint m_Idx = UINT_MAX;
 	vector<string> m_Lines;
+#if CACHE_DIST_MAX
 	FlatMx<float> *m_DistMx = 0;
+#endif
 
 //#if _MSC_VER && DEBUG
 //	void *operator new(size_t n)
@@ -39,7 +44,9 @@ public:
 		m_Ys.clear();
 		m_Zs.clear();
 		m_Lines.clear();
+#if CACHE_DIST_MAX
 		if (m_DistMx != 0) delete m_DistMx;
+#endif
 		}
 
 	uint GetSeqLength() const;
@@ -64,7 +71,6 @@ public:
 	void GetPt(uint Pos, vector<float> &Pt) const;
 	void SetPt(uint Pos, const vector<float> &Pt);
 	float GetDist(uint Pos1, uint Pos2) const;
-	float GetDist2(uint Pos1, uint Pos2) const;
 	void GetSS(string &SS) const;
 	void GetICs(vector<uint16_t> &ICs) const;
 	void CoordsFromICs(const vector<uint16_t> &ICs);
@@ -72,8 +78,10 @@ public:
 	void Reverse();
 	void Flip();
 	void GetReverse(PDBChain &Rev) const;
+#if CACHE_DIST_MAX
 	void SetDistMx();
 	void ClearDistMx();
+#endif
 
 public:
 	static bool IsATOMLine(const string &Line);

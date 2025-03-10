@@ -34,6 +34,9 @@ bool MuSeqSource::GetNextLo(SeqInfo *SI)
 	m_Chain = m_CR.GetNext();
 	if (m_Chain == 0)
 		return false;
+#if CACHE_DIST_MAX
+	m_Chain->SetDistMx();
+#endif
 	m_DSS.Init(*m_Chain);
 	const uint L = m_Chain->GetSeqLength();
 	const uint AlphaSize = m_DSS.GetAlphaSize(FEATURE_Mu);

@@ -195,7 +195,7 @@ void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	uint L = GetSeqLength(ChainIdx);
 	uint64 SeqOffset = GetSeqOffset(ChainIdx);
 	char *Seq = myalloc(char, L+1);
-	m_ReadLock.lock();
+	m_ReadLock.mylock();
 	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, Seq, L);
 	if (nL != L)
 		{
@@ -215,7 +215,7 @@ void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	uint16_t *ICs = myalloc(uint16_t, 3*L);
 	uint64 BytesToRead = 6*L;
 	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L, ICs, BytesToRead);
-	m_ReadLock.unlock();
+	m_ReadLock.myunlock();
 	if (nIC != BytesToRead)
 		{
 		Log("FN=%s\n", m_FN.c_str());

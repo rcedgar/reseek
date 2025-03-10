@@ -297,33 +297,18 @@ void PDBChain::GetXYZ(uint Pos, float &x, float &y, float &z) const
 
 float PDBChain::GetDist(uint Pos1, uint Pos2) const
 	{
+#if CACHE_DIST_MAX
+	assert(m_DistMx != 0);
+	float d = m_DistMx->Get(Pos1, Pos2);
+	return d;
+#else
 	float x1, y1, z1;
 	float x2, y2, z2;
 	GetXYZ(Pos1, x1, y1, z1);
 	GetXYZ(Pos2, x2, y2, z2);
 	float d = GetDist3D(x1, y1, z1, x2, y2, z2);
 	return d;
-	}
-
-float PDBChain::GetDist2(uint Pos1, uint Pos2) const
-	{
-	float x1 = m_Xs[Pos1];
-	float y1 = m_Ys[Pos1];
-	float z1 = m_Zs[Pos1];
-
-	float x2 = m_Xs[Pos2];
-	float y2 = m_Ys[Pos2];
-	float z2 = m_Zs[Pos2];
-
-	float dx = x1 - x2;
-	float dy = y1 - y2;
-	float dz = z1 - z2;
-
-	float d = GetDist(Pos1, Pos2);
-
-	float d2 = dx*dx + dy*dy + dz*dz;
-	asserta(feq(d*d, d2));
-	return d2;
+#endif
 	}
 
 uint PDBChain::GetSeqLength() const
@@ -440,6 +425,9 @@ void PDBChain::GetReverse(PDBChain &Rev) const
 	Rev = *this;
 	Rev.Reverse();
 	Rev.m_Label += ".rev";
+#if CACHE_DIST_MAX
+	Rev.m_DistMx = 0;
+#endif
 	}
 
 void PDBChain::Flip()
@@ -453,8 +441,11 @@ void PDBChain::Flip()
 		}
 	}
 
+#if CACHE_DIST_MAX
 void PDBChain::ClearDistMx()
 	{
+	if (m_DistMx == 0)
+		return;
 	delete m_DistMx;
 	m_DistMx = 0;
 	}
@@ -488,3 +479,4 @@ void PDBChain::SetDistMx()
 			}
 		}
 	}
+#endif // CACHE_DIST_MAX

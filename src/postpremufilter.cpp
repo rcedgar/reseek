@@ -2,11 +2,6 @@
 #include "dssaligner.h"
 #include "chainreader2.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 static mutex s_IndexQueryLock;
 static mutex s_ScanLock;
 static uint s_QueryIdx;
@@ -53,7 +48,10 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		if (ThreadIndex == 0)
 			ProgressStep(QueryIdx, s_QueryCount, "Index query");
 
-		const PDBChain &QChain = *QChains[QueryIdx];
+		PDBChain &QChain = *QChains[QueryIdx];
+#if CACHE_DIST_MAX
+		QChain.SetDistMx();
+#endif
 		D.Init(QChain);
 
 		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
@@ -64,11 +62,12 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
 		float QSelfRevScore = 
-			GetSelfRevScore(DASelfRev, D, QChain,
+			GetSelfRevScore(DASelfRev, Params, QChain,
 							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
 		uint16_t *HT = MKF.CreateEmptyHashTable();
 		MKF.SetHashTable(*ptrQMuKmers, HT);
+		//QChain.ClearDistMx();
 
 		ChainBag *ptrCBQ = new ChainBag;
 		ptrCBQ->m_ptrChain = &QChain;
@@ -87,6 +86,8 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		//DASelfRev.m_MKF.ForceZero();
 		DASelfRev.m_ProfPara = 0;
 		DASelfRev.m_ProfParaRev = 0;
+		//QChain.ClearDistMx();//@@
+		//QChain.m_DistMxDie = true;
 		}
 	}
 
@@ -139,13 +140,15 @@ static void ThreadBody_Scan(uint ThreadIndex)
 
 		PDBChain DBChain;
 		DB.ReadChain(TargetIdx, DBChain);
-
+#if CACHE_DIST_MAX
+		DBChain.SetDistMx();
+#endif
 		D.Init(DBChain);
 		D.GetProfile(DBProfile);
 		D.GetMuLetters(DBMuLetters);
 		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
 
-		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
+		float DBSelfRevScore = GetSelfRevScore(DASelfRev, Params, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
 		DASelfRev.UnsetQuery();
 
@@ -178,6 +181,9 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			++s_ScannedCount;
 			s_ScanLock.unlock();
 			}
+#if CACHE_DIST_MAX
+		DBChain.ClearDistMx();
+#endif
 		}
 	}
 

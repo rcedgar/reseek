@@ -10,6 +10,7 @@
 const uint WILDCARD = 0;
 
 class PDBChain;
+class DSSAligner;
 
 // Discrete Structure States
 class DSS
@@ -42,13 +43,9 @@ public:
 
 	vector<uint> m_SSE_Mids;
 	vector<char> m_SSE_cs;
-	vector<float> m_NUs;
-	vector<float> m_NDs;
-	vector<float> m_NXs;
-
+#if CACHE_DIST_MAX
 	const FlatMx<float> *m_DistMx = 0;
-
-private:
+#endif
 	const DSSParams *m_Params = 0;
 
 public:
@@ -61,16 +58,11 @@ public:
 		m_RENs.clear();
 		m_SSE_Mids.clear();
 		m_SSE_cs.clear();
-		m_NUs.clear();
-		m_NDs.clear();
-		m_NXs.clear();
 
-		if (optset_nbrw) m_NEN_w = opt(nbrw);
-		if (optset_densw) m_Density_w = opt(densw);
-		if (optset_ssdensw) m_SSDensity_w = opt(ssdensw);
-
+#if CACHE_DIST_MAX
 		asserta(Chain.m_DistMx != 0);
 		m_DistMx = Chain.m_DistMx;
+#endif
 		}
 
 	void SetParams(const DSSParams &Params);
@@ -111,15 +103,17 @@ public:
 	void GetSSEs(uint MinLength, vector<uint> &Los,
 	  vector<uint> &Lengths, vector<char> &cs) const;
 	void SetSSEs();
-	void Get_NU_ND(uint Pos, float &NU, float &ND) const;
-	void Set_NU_ND_Vecs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	uint GetMuLetter(const vector<uint> &Letters) const;
 
 	float GetDist(uint i, uint j) const
 		{
+#if CACHE_DIST_MAX
 		assert(m_DistMx != 0);
 		return m_DistMx->Get(i, j);
+#else
+		return m_Chain->GetDist(i, j);
+#endif
 		}
 
 public:
@@ -129,3 +123,10 @@ public:
 	  float Value);
 	static uint GetAlphaSize(FEATURE F);
 	};
+
+float GetSelfRevScore(DSSAligner &DA,
+	const DSSParams &Params,
+	const PDBChain &Chain,
+	const vector<vector<byte> > &Profile,
+	const vector<byte> *ptrMuLetters,
+	const vector<uint> *ptrMuKmers);

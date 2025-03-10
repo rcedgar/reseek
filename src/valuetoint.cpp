@@ -163,22 +163,22 @@ BIN_T(DstNxtHlx, 14, 28.82);
 	return 15;
 	}
 
-uint DSS::ValueToInt_NX(float Value) const
-	{
-BIN_T(NX, 0, 20.65);
-BIN_T(NX, 1, 23.54);
-BIN_T(NX, 2, 25.62);
-BIN_T(NX, 3, 27.43);
-BIN_T(NX, 4, 29.14);
-BIN_T(NX, 5, 30.76);
-BIN_T(NX, 6, 32.3);
-BIN_T(NX, 7, 33.78);
-BIN_T(NX, 8, 35.22);
-BIN_T(NX, 9, 36.61);
-BIN_T(NX, 10, 37.96);
-BIN_T(NX, 11, 39.34);
-BIN_T(NX, 12, 40.77);
-BIN_T(NX, 13, 42.39);
-BIN_T(NX, 14, 44.47);
-	return 15;
-	}
+//uint DSS::ValueToInt_NX(float Value) const
+//	{
+//BIN_T(NX, 0, 20.65);
+//BIN_T(NX, 1, 23.54);
+//BIN_T(NX, 2, 25.62);
+//BIN_T(NX, 3, 27.43);
+//BIN_T(NX, 4, 29.14);
+//BIN_T(NX, 5, 30.76);
+//BIN_T(NX, 6, 32.3);
+//BIN_T(NX, 7, 33.78);
+//BIN_T(NX, 8, 35.22);
+//BIN_T(NX, 9, 36.61);
+//BIN_T(NX, 10, 37.96);
+//BIN_T(NX, 11, 39.34);
+//BIN_T(NX, 12, 40.77);
+//BIN_T(NX, 13, 42.39);
+//BIN_T(NX, 14, 44.47);
+//	return 15;
+//	}

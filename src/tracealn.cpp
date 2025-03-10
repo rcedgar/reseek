@@ -2,11 +2,6 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 static void TraceAln1(const DSSParams &Params,
 					  const PDBChain &Q, const PDBChain &T)
 	{
@@ -38,8 +33,8 @@ static void TraceAln1(const DSSParams &Params,
 	D.GetMuLetters(MuLettersT);
 	D.GetMuKmers(MuLettersT, MuKmersT, Params.m_MKFPatternStr);
 
-	float SelfRevScoreQ = GetSelfRevScore(DA, D, Q, ProfileQ, &MuLettersQ, &MuKmersQ);
-	float SelfRevScoreT = GetSelfRevScore(DA, D, T, ProfileT, &MuLettersT, &MuKmersT);
+	float SelfRevScoreQ = GetSelfRevScore(DA, Params, Q, ProfileQ, &MuLettersQ, &MuKmersQ);
+	float SelfRevScoreT = GetSelfRevScore(DA, Params, T, ProfileT, &MuLettersT, &MuKmersT);
 	Log("SelfRevScoreQ=%.1f\n", SelfRevScoreQ);
 	Log("SelfRevScoreT=%.1f\n", SelfRevScoreT);
 

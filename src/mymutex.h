@@ -13,6 +13,11 @@ public:
 	uint m_nrcalls = 0;
 	TICKS m_blocked_ticks = 0;
 
+private:
+	void lock();
+	void unlock();
+	bool try_lock();
+
 public:
 	void mylock()
 		{

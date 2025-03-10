@@ -1,5 +1,11 @@
 #pragma once
 
+#define BCA_MYMUTEX	1
+
+#if BCA_MYMUTEX
+#include "mymutex.h"
+#endif
+
 class PDBChain;
 
 // Binary C-alpha
@@ -15,7 +21,11 @@ public:
 	bool m_Reading = false;
 	uint64 m_SeqLengthsPos64 = UINT64_MAX;
 	uint64 m_LabelDataSize64 = UINT64_MAX;
+#if BCA_MYMUTEX
+	mutable mymutex m_ReadLock;
+#else
 	mutable mutex m_ReadLock;
+#endif
 
 public:
 	void Clear();

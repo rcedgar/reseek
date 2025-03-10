@@ -243,97 +243,85 @@ float DSS::GetDensity(uint Pos) const
 	return D;
 	}
 
-void DSS::Get_NU_ND(uint Pos, float &NU, float &ND) const
-	{
-	NU = 0;
-	ND = 0;
-	const PDBChain &Chain = *m_Chain;
-	const uint L = SIZE(Chain.m_Seq);
-	if (Pos == 0 || Pos+1 >= L)
-		{
-		NU = FLT_MAX;
-		ND = FLT_MAX;
-		return;
-		}
-
-	vector<float> PtPrevCA;
-	vector<float> PtNextCA;
-	vector<float> PtCA;
-	vector<float> PtCB;
-	Chain.GetPt(Pos-1, PtPrevCA);
-	Chain.GetPt(Pos, PtCA);
-	Chain.GetPt(Pos+1, PtNextCA);
-
-	vector<float> d1;
-	vector<float> d2;
-	Sub_Vecs(PtCA, PtPrevCA, d1);
-	Sub_Vecs(PtCA, PtNextCA, d2);
-
-	vector<float> VecPAB;
-	Add_Vecs(d1, d2, VecPAB);
-	NormalizeVec(VecPAB);
-
-	vector<float> Pt2;
-	vector<float> Vec12;
-	//const int W = 50;
-	//const float RADIUS = 20.0;
-	int iLo = int(Pos) - m_NUDX_W;
-	if (iLo < 0)
-		iLo = 0;
-	int iHi = int(Pos) + m_NUDX_W;
-	if (iHi >= int(L))
-		iHi = int(L)-1;
-	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
-		{
-		if (Pos2 + 3 >= Pos && Pos2 <= Pos + 3)
-			continue;
-		float Dist = GetDist(Pos, Pos2);
-		float DistFactor = exp(-Dist/m_NU_ND_Radius);
-		Chain.GetPt(Pos2, Pt2);
-		Sub_Vecs(Pt2, PtCA, Vec12);
-		float Theta = GetTheta_Vecs(VecPAB, Vec12);
-		float Deg = degrees(Theta);
-		if (Deg < 90)
-			NU += DistFactor;
-		else
-			ND += DistFactor;
-		}
-	}
-
-void DSS::Set_NU_ND_Vecs()
-	{
-	if (!m_NUs.empty())
-		return;
-	const uint L = GetSeqLength();
-	m_NUs.reserve(L);
-	m_NDs.reserve(L);
-	m_NXs.reserve(L);
-	for (uint Pos = 0; Pos < L; ++Pos)
-		{
-		float NU, ND;
-		Get_NU_ND(Pos, NU, ND);
-		m_NUs.push_back(NU);
-		m_NDs.push_back(ND);
-		m_NXs.push_back(NU+ND);
-		}
-	}
-
-float DSS::GetFloat_NX(uint Pos)
-	{
-	Set_NU_ND_Vecs();
-	return m_NXs[Pos];
-	}
-
-//float DSS::GetFloat_NU(uint Pos)
+//void DSS::Get_NU_ND(uint Pos, float &NU, float &ND) const
 //	{
-//	Set_NU_ND_Vecs();
-//	return m_NUs[Pos];
+//	NU = 0;
+//	ND = 0;
+//	const PDBChain &Chain = *m_Chain;
+//	const uint L = SIZE(Chain.m_Seq);
+//	if (Pos == 0 || Pos+1 >= L)
+//		{
+//		NU = FLT_MAX;
+//		ND = FLT_MAX;
+//		return;
+//		}
+//
+//	vector<float> PtPrevCA;
+//	vector<float> PtNextCA;
+//	vector<float> PtCA;
+//	vector<float> PtCB;
+//	Chain.GetPt(Pos-1, PtPrevCA);
+//	Chain.GetPt(Pos, PtCA);
+//	Chain.GetPt(Pos+1, PtNextCA);
+//
+//	vector<float> d1;
+//	vector<float> d2;
+//	Sub_Vecs(PtCA, PtPrevCA, d1);
+//	Sub_Vecs(PtCA, PtNextCA, d2);
+//
+//	vector<float> VecPAB;
+//	Add_Vecs(d1, d2, VecPAB);
+//	NormalizeVec(VecPAB);
+//
+//	vector<float> Pt2;
+//	vector<float> Vec12;
+//	//const int W = 50;
+//	//const float RADIUS = 20.0;
+//	int iLo = int(Pos) - m_NUDX_W;
+//	if (iLo < 0)
+//		iLo = 0;
+//	int iHi = int(Pos) + m_NUDX_W;
+//	if (iHi >= int(L))
+//		iHi = int(L)-1;
+//	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
+//		{
+//		if (Pos2 + 3 >= Pos && Pos2 <= Pos + 3)
+//			continue;
+//		float Dist = GetDist(Pos, Pos2);
+//		float DistFactor = exp(-Dist/m_NU_ND_Radius);
+//		Chain.GetPt(Pos2, Pt2);
+//		Sub_Vecs(Pt2, PtCA, Vec12);
+//		float Theta = GetTheta_Vecs(VecPAB, Vec12);
+//		float Deg = degrees(Theta);
+//		if (Deg < 90)
+//			NU += DistFactor;
+//		else
+//			ND += DistFactor;
+//		}
+//	}
+
+//void DSS::Set_NU_ND_Vecs()
+//	{
+//	if (!m_NUs.empty())
+//		return;
+//	const uint L = GetSeqLength();
+//	m_NUs.reserve(L);
+//	m_NDs.reserve(L);
+//	m_NXs.reserve(L);
+//	for (uint Pos = 0; Pos < L; ++Pos)
+//		{
+//		float NU, ND;
+//		Get_NU_ND(Pos, NU, ND);
+//		m_NUs.push_back(NU);
+//		m_NDs.push_back(ND);
+//		m_NXs.push_back(NU+ND);
+//		}
 //	}
 //
-//float DSS::GetFloat_ND(uint Pos)
+//float DSS::GetFloat_NX(uint Pos)
 //	{
 //	Set_NU_ND_Vecs();
-//	return m_NDs[Pos];
+//	return m_NXs[Pos];
 //	}
 
 float DSS::GetSSDensity(uint Pos, char c)
@@ -821,7 +809,7 @@ uint DSS::GetAlphaSize(FEATURE F)
 	case FEATURE_StrandDens:
 	case FEATURE_DstNxtHlx:
 	case FEATURE_DstPrvHlx:
-	case FEATURE_NX:
+	//case FEATURE_NX:
 	case FEATURE_PMDist:
 		return 16;
 
