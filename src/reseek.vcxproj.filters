@@ -86,7 +86,7 @@
     <ClCompile Include="trainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="myss.cpp">
+    <ClCompile Include="conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="valuetoint.cpp">

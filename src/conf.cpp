@@ -187,6 +187,42 @@ uint DSS::Get_NENConf(uint Pos)
 	return Letter;
 	}
 
+uint DSS::Get_PlusNENConf(uint Pos)
+	{
+	SetNENs();
+	vector<double> v;
+	uint NEN = GetPlusNEN(Pos);
+	if (NEN == UINT_MAX)
+		return WILDCARD;
+
+	Getv(*m_Chain, NEN, v);
+	if (v.empty())
+		return WILDCARD;
+
+	uint Letter = GetConfLetter(v);
+	if (Letter == UINT_MAX)
+		return WILDCARD;
+	return Letter;
+	}
+
+uint DSS::Get_MinusNENConf(uint Pos)
+	{
+	SetNENs();
+	vector<double> v;
+	uint NEN = GetMinusNEN(Pos);
+	if (NEN == UINT_MAX)
+		return WILDCARD;
+
+	Getv(*m_Chain, NEN, v);
+	if (v.empty())
+		return WILDCARD;
+
+	uint Letter = GetConfLetter(v);
+	if (Letter == UINT_MAX)
+		return WILDCARD;
+	return Letter;
+	}
+
 uint DSS::Get_RENConf(uint Pos)
 	{
 	SetNENs();

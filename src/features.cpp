@@ -69,6 +69,3 @@ void cmd_feature_stats()
 		ProgressLog("\n");
 		}
 	}
-
-extern float **g_ScoreMxs2[FEATURE_COUNT];
-extern uint g_AlphaSizes2[FEATURE_COUNT];

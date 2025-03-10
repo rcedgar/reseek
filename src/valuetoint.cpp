@@ -163,22 +163,62 @@ BIN_T(DstNxtHlx, 14, 28.82);
 	return 15;
 	}
 
-//uint DSS::ValueToInt_NX(float Value) const
-//	{
-//BIN_T(NX, 0, 20.65);
-//BIN_T(NX, 1, 23.54);
-//BIN_T(NX, 2, 25.62);
-//BIN_T(NX, 3, 27.43);
-//BIN_T(NX, 4, 29.14);
-//BIN_T(NX, 5, 30.76);
-//BIN_T(NX, 6, 32.3);
-//BIN_T(NX, 7, 33.78);
-//BIN_T(NX, 8, 35.22);
-//BIN_T(NX, 9, 36.61);
-//BIN_T(NX, 10, 37.96);
-//BIN_T(NX, 11, 39.34);
-//BIN_T(NX, 12, 40.77);
-//BIN_T(NX, 13, 42.39);
-//BIN_T(NX, 14, 44.47);
-//	return 15;
-//	}
+uint DSS::ValueToInt_PlusNENDist(float Value) const
+	{
+BIN_T(PlusNENDist, 0, 4.633);
+BIN_T(PlusNENDist, 1, 4.937);
+BIN_T(PlusNENDist, 2, 5.292);
+BIN_T(PlusNENDist, 3, 5.924);
+BIN_T(PlusNENDist, 4, 6.701);
+BIN_T(PlusNENDist, 5, 7.436);
+BIN_T(PlusNENDist, 6, 8.17);
+BIN_T(PlusNENDist, 7, 8.861);
+BIN_T(PlusNENDist, 8, 9.48);
+BIN_T(PlusNENDist, 9, 10);
+BIN_T(PlusNENDist, 10, 10.11);
+BIN_T(PlusNENDist, 11, 11.05);
+BIN_T(PlusNENDist, 12, 12.47);
+BIN_T(PlusNENDist, 13, 14.69);
+BIN_T(PlusNENDist, 14, 18.8);
+	return 15;
+	}
+
+uint DSS::ValueToInt_MinusNENDist(float Value) const
+	{
+BIN_T(MinusNENDist, 0, 4.634);
+BIN_T(MinusNENDist, 1, 4.92);
+BIN_T(MinusNENDist, 2, 5.244);
+BIN_T(MinusNENDist, 3, 5.788);
+BIN_T(MinusNENDist, 4, 6.613);
+BIN_T(MinusNENDist, 5, 7.348);
+BIN_T(MinusNENDist, 6, 8.027);
+BIN_T(MinusNENDist, 7, 8.698);
+BIN_T(MinusNENDist, 8, 9.33);
+BIN_T(MinusNENDist, 9, 9.964);
+BIN_T(MinusNENDist, 10, 10);
+BIN_T(MinusNENDist, 11, 10.76);
+BIN_T(MinusNENDist, 12, 12.02);
+BIN_T(MinusNENDist, 13, 14.14);
+BIN_T(MinusNENDist, 14, 18.33);
+	return 15;
+	}
+
+uint DSS::ValueToInt_DiffNENDist(float Value) const
+	{
+BIN_T(DiffNENDist, 0, -10);
+BIN_T(DiffNENDist, 1, -6.277);
+BIN_T(DiffNENDist, 2, -4.342);
+BIN_T(DiffNENDist, 3, -2.889);
+BIN_T(DiffNENDist, 4, -1.519);
+BIN_T(DiffNENDist, 5, -0.4359);
+BIN_T(DiffNENDist, 6, 0);
+BIN_T(DiffNENDist, 7, 0.1911);
+BIN_T(DiffNENDist, 8, 1.121);
+BIN_T(DiffNENDist, 9, 2.368);
+BIN_T(DiffNENDist, 10, 3.693);
+BIN_T(DiffNENDist, 11, 4.978);
+BIN_T(DiffNENDist, 12, 7.068);
+BIN_T(DiffNENDist, 13, 10);
+BIN_T(DiffNENDist, 14, 10.28);
+	return 15;
+	}

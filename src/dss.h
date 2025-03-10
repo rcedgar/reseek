@@ -58,6 +58,8 @@ public:
 		m_RENs.clear();
 		m_SSE_Mids.clear();
 		m_SSE_cs.clear();
+		m_PlusNENs.clear();
+		m_MinusNENs.clear();
 
 #if CACHE_DIST_MAX
 		asserta(Chain.m_DistMx != 0);
@@ -94,10 +96,17 @@ public:
 	void SetDensity_ScaledValues();
 	float GetDensity(uint Pos) const;
 	float GetSSDensity(uint Pos, char c);
+
 	uint GetNEN(uint Pos);
 	uint GetREN(uint Pos);
-	uint CalcNEN(uint Pos) const;
+	uint GetPlusNEN(uint Pos);
+	uint GetMinusNEN(uint Pos);
+
 	uint CalcREN(uint Pos, uint NEN) const;
+	uint CalcNEN(uint Pos) const;
+	uint CalcPlusNEN(uint Pos) const;
+	uint CalcMinusNEN(uint Pos) const;
+
 	void SetNENs();
 	void SetSS();
 	void GetSSEs(uint MinLength, vector<uint> &Los,

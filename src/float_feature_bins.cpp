@@ -97,11 +97,15 @@ void cmd_float_feature_bins()
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
 		ProgressStep(PairIndex, PairCount, "Processing");
-		const string &QLabel = Input.GetLabel(2*PairIndex);
-		const string &RLabel = Input.GetLabel(2*PairIndex+1);
+		string QLabel = Input.GetLabel(2*PairIndex);
+		string RLabel = Input.GetLabel(2*PairIndex+1);
+
+		TruncateAtFirstWhiteSpace(QLabel);
+		TruncateAtFirstWhiteSpace(RLabel);
+
 		vector<string> Fields;
 		Split(QLabel, Fields, '/');
-		asserta(SIZE(Fields) == 4);
+		asserta(SIZE(Fields) == 2);
 		const string &QDom = Fields[0];
 
 		string RDom;

@@ -376,7 +376,7 @@
     <ClCompile Include="mergefwdback.cpp" />
     <ClCompile Include="msa2cmp.cpp" />
     <ClCompile Include="murmurhash.cpp" />
-    <ClCompile Include="myss.cpp" />
+    <ClCompile Include="conf.cpp" />
     <ClCompile Include="namedparams.cpp" />
     <ClCompile Include="prettyaln.cpp" />
     <ClCompile Include="scalar_sweep.cpp" />
