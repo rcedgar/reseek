@@ -751,6 +751,9 @@
     <ClInclude Include="kabsch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="flatmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">

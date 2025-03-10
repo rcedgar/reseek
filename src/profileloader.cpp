@@ -52,10 +52,12 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		vector<uint> *MuKmers = m_MuLetters == 0 ? 0 : new vector<uint>;
 		float SelfRevScore = FLT_MAX;
 
+		Chain->SetDistMx();
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
 		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers, m_Params->m_MKFPatternStr);
+		Chain->ClearDistMx();
 		if (m_SelfRevScores != 0) SelfRevScore =
 			GetSelfRevScore(DA, D, *Chain, *ptrProfile, MuLetters, MuKmers);
 

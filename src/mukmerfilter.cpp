@@ -192,7 +192,7 @@ void MuKmerFilter::ResetQ()
 		}
 #if DEBUG
 	{
-	Validate();
+	// Validate(); // very slow
 	for (uint Kmer = 0; Kmer < m_DictSize*HASHW; ++Kmer)
 		asserta(m_ptrKmerHashTableQ[Kmer] == 0xffff);
 	}
@@ -242,7 +242,8 @@ void MuKmerFilter::SetQ(const string &LabelQ,
 	else
 		ResetQ();
 
-#if DEBUG
+#if 0 // DEBUG
+// very slow
 	Validate();
 #endif
 	m_LabelQ = LabelQ;
@@ -268,7 +269,8 @@ void MuKmerFilter::SetQ(const string &LabelQ,
 	//		}
 	//	}
 	SetHashTable(*m_ptrMuKmersQ, m_ptrKmerHashTableQ);
-#if DEBUG
+#if 0 // DEBUG
+// very slow
 	Validate();
 #endif
 	EndTimer(MuKmerSetQ);

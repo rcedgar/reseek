@@ -452,3 +452,39 @@ void PDBChain::Flip()
 		m_Zs[i] = -m_Zs[i];
 		}
 	}
+
+void PDBChain::ClearDistMx()
+	{
+	delete m_DistMx;
+	m_DistMx = 0;
+	}
+
+void PDBChain::SetDistMx()
+	{
+	if (m_DistMx != 0)
+		return;
+	const uint L = GetSeqLength();
+	m_DistMx = new FlatMx<float>(L, L);
+	for (uint i = 0; i < L; ++i)
+		{
+		float x_i = m_Xs[i];
+		float y_i = m_Ys[i];
+		float z_i = m_Zs[i];
+
+		m_DistMx->Set(i, i, 0);
+		for (uint j = 1; j < L; ++j)
+			{
+			float x_j = m_Xs[j];
+			float y_j = m_Ys[j];
+			float z_j = m_Zs[j];
+		
+			float dx = x_i - x_j;
+			float dy = y_i - y_j;
+			float dz = z_i - z_j;
+			float d = sqrtf(dx*dx + dy*dy + dz*dz);
+
+			m_DistMx->Set(i, j, d);
+			m_DistMx->Set(j, i, d);
+			}
+		}
+	}

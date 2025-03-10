@@ -15,6 +15,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 	PDBChain RevChain;
 	Chain.GetReverse(RevChain);
 	vector<vector<byte> > RevProfile;
+	RevChain.SetDistMx();
 	D.Init(RevChain);
 	D.GetProfile(RevProfile);
 
@@ -22,6 +23,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 
 	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 	DA.AlignQueryTarget();
+	D.m_DistMx = 0;
 	return DA.m_AlnFwdScore;
 	}
 

@@ -431,6 +431,7 @@
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="flatmx.h" />
     <ClInclude Include="kabsch.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />

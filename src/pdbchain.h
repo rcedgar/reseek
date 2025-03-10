@@ -3,7 +3,7 @@
 
 #include "myutils.h"
 #include "features.h"
-//#include "objcounter.h"
+#include "flatmx.h"
 
 class DSS;
 
@@ -17,18 +17,17 @@ public:
 	vector<float> m_Zs;
 	uint m_Idx = UINT_MAX;
 	vector<string> m_Lines;
+	FlatMx<float> *m_DistMx = 0;
 
-	//OBJCOUNTER(PDBChain);
-
-#if _MSC_VER && DEBUG
-	void *operator new(size_t n)
-		{
-		void *p = _malloc_dbg(n, _CLIENT_BLOCK|(1<<16), __FILE__, __LINE__);
-		return p;
-		}
-
-	void operator delete(void *p) { _free_dbg(p, _CLIENT_BLOCK|(1<<16)); }
-#endif // DEBUG
+//#if _MSC_VER && DEBUG
+//	void *operator new(size_t n)
+//		{
+//		void *p = _malloc_dbg(n, _CLIENT_BLOCK|(1<<16), __FILE__, __LINE__);
+//		return p;
+//		}
+//
+//	void operator delete(void *p) { _free_dbg(p, _CLIENT_BLOCK|(1<<16)); }
+//#endif // DEBUG
 
 public:
 	~PDBChain() { Clear(); }
@@ -40,6 +39,7 @@ public:
 		m_Ys.clear();
 		m_Zs.clear();
 		m_Lines.clear();
+		if (m_DistMx != 0) delete m_DistMx;
 		}
 
 	uint GetSeqLength() const;
@@ -72,6 +72,8 @@ public:
 	void Reverse();
 	void Flip();
 	void GetReverse(PDBChain &Rev) const;
+	void SetDistMx();
+	void ClearDistMx();
 
 public:
 	static bool IsATOMLine(const string &Line);
