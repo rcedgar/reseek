@@ -40,10 +40,10 @@ void cmd_musubstmx()
 	Fs.push_back(FEATURE_RENDist4);
 	const uint NF = SIZE(Fs);
 
-	vector<float **> ScoreMxs;
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
+	vector<const float * const *> ScoreMxs;
+	ScoreMxs.push_back(GetScoreMx(FEATURE_SS3));
+	ScoreMxs.push_back(GetScoreMx(FEATURE_NENSS3));
+	ScoreMxs.push_back(GetScoreMx(FEATURE_RENDist4));
 
 	DSS D;
 	DSSParams Params;

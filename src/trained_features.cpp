@@ -502,10 +502,30 @@ static double NormDens_S_ij[16][16] = {
    {    -0.8663,     -2.197,     -2.952,     -3.317,     -3.513,     -3.409,     -3.067,     -2.858,     -2.404,     -1.999,     -1.572,    -0.9662,     -0.423,     0.3147,      1.291,      2.277, }, // 15
  };
 
-float **g_ScoreMxs2[FEATURE_COUNT];
-float **g_FreqMxs2[FEATURE_COUNT];
-float *g_FreqVecs2[FEATURE_COUNT];
-uint g_AlphaSizes2[FEATURE_COUNT];
+static float **g_ScoreMxs2[FEATURE_COUNT];
+static float **g_FreqMxs2[FEATURE_COUNT];
+static float *g_FreqVecs2[FEATURE_COUNT];
+static uint g_AlphaSizes2[FEATURE_COUNT];
+
+const float *GetFreqVec(FEATURE F)
+	{
+	return g_FreqVecs2[F];
+	}
+
+const float * const *GetFreqMx(FEATURE F)
+	{
+	return g_FreqMxs2[F];
+	}
+
+const float * const *GetScoreMx(FEATURE F)
+	{
+	return g_ScoreMxs2[F];
+	}
+
+uint GetAlphaSize(FEATURE F)
+	{
+	return g_AlphaSizes2[F];
+	}
 
 static void FreeMe();
 

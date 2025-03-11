@@ -830,7 +830,8 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 #define F(x)	case FEATURE_##x: \
 		{ \
 		float Value = GetFloat_##x(Pos); \
-		return ValueToInt_##x(Value); \
+		uint AS = 16; \
+		return ValueToInt_##x(Value, AS); \
 		}
 #include "floatfeatures.h"
 #undef F

@@ -83,7 +83,7 @@ public:
 #include "floatfeatures.h"
 #undef F
 
-#define F(x)	uint ValueToInt_##x(float Value) const;
+#define F(x)	uint ValueToInt_##x(float Value, uint AS) const;
 #include "floatfeatures.h"
 #undef F
 
@@ -139,3 +139,9 @@ float GetSelfRevScore(DSSAligner &DA,
 	const vector<vector<byte> > &Profile,
 	const vector<byte> *ptrMuLetters,
 	const vector<uint> *ptrMuKmers);
+
+//extern float **g_ScoreMxs2[FEATURE_COUNT];
+const float *GetFreqVec(FEATURE F);
+const float * const *GetFreqMx(FEATURE F);
+const float * const *GetScoreMx(FEATURE F);
+uint GetAlphaSize(FEATURE F);
