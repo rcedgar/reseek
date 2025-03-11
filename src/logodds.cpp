@@ -167,6 +167,35 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	return ExpectedScore;
 	}
 
+float LogOdds::GetExpectedScore() const
+	{
+	vector<float> BackgroundFreqs;
+	GetBackgroundFreqs(BackgroundFreqs);
+	vector<vector<float> > FreqMx;
+	GetTrueFreqMx(FreqMx);
+	uint Total = GetTrueTotal();
+	float SumFreq = 0;
+	float ExpectedScore = 0;
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		{
+		float f1 = BackgroundFreqs[Letter1];
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			float f2 = BackgroundFreqs[Letter2];
+			float ObsFreq = FreqMx[Letter1][Letter2];
+			float ExpectedFreq = float(f1*f2);
+			if (ObsFreq == 0 || ExpectedFreq == 0)
+				continue;
+			float Ratio = ObsFreq/ExpectedFreq;
+			float Score = log(Ratio);
+			ExpectedScore += ObsFreq*Score;
+			SumFreq += ObsFreq;
+			}
+		}
+	asserta(feq(SumFreq, 1.0));
+	return ExpectedScore;
+	}
+
 void LogOdds::GetLogOddsMxInt8(vector<vector<float> > &Mxd,
   vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const
 	{

@@ -7,14 +7,6 @@
 #include "xdpmem.h"
 #include "flatmx.h"
 
-enum ULVAL			// Undefined letter value
-	{
-	ULV_Invalid,
-	ULV_Zero,		// Set to zero
-	ULV_MaxFreq,	// Set to most common letter
-	ULV_Wildcard,	// Dedicated letter
-	};
-
 class PDBChain;
 class DSSAligner;
 
@@ -36,7 +28,6 @@ public:
 	int m_SSDensity_W = 50;
 	int m_SSDensity_w = 8;
 	float m_Density_Radius = 20.0;
-	//float m_NU_ND_Radius = 20.0;
 	int m_NEN_W = 100;
 	int m_NEN_w = 12;
 	int m_NUDX_W = 50;
@@ -122,8 +113,6 @@ public:
 	void SetSSEs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	uint GetMuLetter(const vector<uint> &Letters) const;
-	uint GetMaxFreqLetter(FEATURE F) const;
-	ULVAL GetULVAL(FEATURE F) const;
 
 	float GetDist(uint i, uint j) const
 		{
@@ -136,10 +125,13 @@ public:
 		}
 
 public:
+	static void Condense(const vector<float> &Values, uint AlphaSize,
+						 float &MinValue, float &MedValue,
+						 float &MaxValue, float &UndefFreq,
+						 vector<float> &BinTs);
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
-	static uint ValueToInt(const vector<float> &Ts,
-	  float Value);
+	static uint ValueToInt(const vector<float> &Ts, float Value);
 	static uint GetAlphaSize(FEATURE F);
 	};
 

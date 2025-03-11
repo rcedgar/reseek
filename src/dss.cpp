@@ -809,16 +809,7 @@ uint DSS::GetFeature(FEATURE Feature, uint Pos)
 	{
 	uint Letter = GetFeatureLo(Feature, Pos);
 	if (Letter == UINT_MAX)
-		{
-		ULVAL ULV = GetULVAL(Feature);
-		switch (ULV)
-			{
-		case ULV_Zero:		return 0;
-		case ULV_MaxFreq:	GetMaxFreqLetter(Feature);
-		case ULV_Wildcard:	return GetAlphaSize(Feature);
-		default:			asserta(false);
-			}
-		}
+		return 0;
 	assert(Letter < GetAlphaSize(Feature));
 	return Letter;
 	}
@@ -861,15 +852,6 @@ uint DSS::GetFeatureLo(FEATURE F, uint Pos)
 	return UINT_MAX;
 	}
 
-uint DSS::ValueToInt(const vector<float> &Ts, float Value)
-	{
-	const uint N = SIZE(Ts);
-	for (uint i = 0; i < N; ++i)
-		if (Value <= Ts[i])
-			return i;
-	return N;
-	}
-
 float DSS::GetFloat_DstPrvHlx(uint Pos)
 	{
 	SetSSEs();
@@ -902,15 +884,4 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		return Dist;
 		}
 	return 0;
-	}
-
-uint DSS::GetMaxFreqLetter(FEATURE F) const
-	{
-	Die("TODO");
-	return 0;
-	}
-
-ULVAL DSS::GetULVAL(FEATURE F) const
-	{
-	return ULV_Zero;
 	}

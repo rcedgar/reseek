@@ -276,9 +276,11 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_muprefilter.cpp" />
+    <ClCompile Include="condense.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
+    <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
@@ -369,7 +371,6 @@
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
     <ClCompile Include="features.cpp" />
-    <ClCompile Include="float_feature_bins.cpp" />
     <ClCompile Include="jiggle.cpp" />
     <ClCompile Include="kabsch.cpp" />
     <ClCompile Include="logodds.cpp" />
@@ -389,7 +390,6 @@
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="train_feature.cpp" />
-    <ClCompile Include="train_features.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
@@ -432,6 +432,7 @@
     <ClInclude Include="cmprof.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="featuretrainer.h" />
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="kabsch.h" />
     <ClInclude Include="mudex.h" />

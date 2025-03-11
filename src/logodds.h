@@ -26,6 +26,7 @@ public:
 	void VecToSrc(FILE *f, const string &Name, 
 	  const vector<float> &v) const;
 	void GetSymbol(uint Letter, string &s) const;
+	float GetExpectedScore() const;
 	};
 
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi);

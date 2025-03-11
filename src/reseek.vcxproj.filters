@@ -77,9 +77,6 @@
     <ClCompile Include="features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="float_feature_bins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sscluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -192,9 +189,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="calibratesearcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="train_features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trained_features.cpp">
@@ -468,6 +462,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="train_feature.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="condense.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="featuretrainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -755,6 +755,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flatmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="featuretrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
