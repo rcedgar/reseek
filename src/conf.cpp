@@ -3,6 +3,7 @@
 #include "dss.h"
 
 /***
+reseek
   -sscluster d:/a/res/dave_grant/scop40/scop40.tm0.6_0.8.fa2
   -train_cal d:/int/scop40/out/domains_scop.cal 
   -myss3 Y 
@@ -12,6 +13,7 @@
   -log k16.seed6.ss3Y 
 ***/
 
+static uint UNDEF_LETTER = UINT_MAX;
 const uint M = 9;
 const uint K = 16;
 static vector<int> ivalues;
@@ -128,7 +130,7 @@ static uint GetConfLetter(const vector<double> &v)
 	{
 	asserta(SIZE(v) == M);
 	double MinDist = DBL_MAX;
-	uint BestCluster = WILDCARD;
+	uint BestCluster = UINT_MAX;
 	for (uint k = 0; k < K; ++k)
 		{
 		double d = GetDist(v, Means[k]);
@@ -138,6 +140,7 @@ static uint GetConfLetter(const vector<double> &v)
 			MinDist = d;
 			}
 		}
+	asserta(BestCluster != UINT_MAX);
 	return BestCluster;
 	}
 
@@ -164,7 +167,7 @@ uint DSS::Get_Conf(uint Pos)
 	vector<double> v;
 	Getv(*m_Chain, Pos, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEF_LETTER;
 	uint Letter = GetConfLetter(v);
 	return Letter;
 	}
@@ -175,15 +178,14 @@ uint DSS::Get_NENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	uint Letter = GetConfLetter(v);
-	if (Letter == UINT_MAX)
-		return WILDCARD;
+	asserta(Letter < 16);
 	return Letter;
 	}
 
@@ -193,15 +195,14 @@ uint DSS::Get_PlusNENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetPlusNEN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	uint Letter = GetConfLetter(v);
-	if (Letter == UINT_MAX)
-		return WILDCARD;
+	asserta(Letter < 16);
 	return Letter;
 	}
 
@@ -211,15 +212,14 @@ uint DSS::Get_MinusNENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetMinusNEN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	uint Letter = GetConfLetter(v);
-	if (Letter == UINT_MAX)
-		return WILDCARD;
+	asserta(Letter < 16);
 	return Letter;
 	}
 
@@ -229,15 +229,13 @@ uint DSS::Get_RENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEF_LETTER;
 
 	uint Letter = GetConfLetter(v);
-	if (Letter == UINT_MAX)
-		return WILDCARD;
 	asserta(Letter < 16);
 	return Letter;
 	}

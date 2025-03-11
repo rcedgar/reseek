@@ -32,7 +32,7 @@ uint DSS::Get_NENSS3(uint Pos)
 	SetSS();
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return 2;
 	char c = m_SS[NEN];
 	switch (c)
 		{
@@ -41,7 +41,7 @@ uint DSS::Get_NENSS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return WILDCARD;
+	return 2;
 	}
 
 uint DSS::Get_RENSS3(uint Pos)
@@ -49,7 +49,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	SetSS();
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return 2;
 	char c = m_SS[NEN];
 	switch (c)
 		{
@@ -58,7 +58,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return WILDCARD;
+	return 2;
 	}
 
 uint DSS::Get_SS3(uint Pos)
@@ -72,7 +72,7 @@ uint DSS::Get_SS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return WILDCARD;
+	return 2;
 	}
 
 void DSS::GetSSEs(uint MinLength, vector<uint> &Los,
@@ -534,7 +534,7 @@ uint DSS::Get_NormDens4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NormDens, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -543,7 +543,7 @@ uint DSS::Get_NENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NENDist, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -552,7 +552,7 @@ uint DSS::Get_RENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_RENDist, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -569,7 +569,7 @@ uint DSS::Get_AA3(uint Pos)
 		return 1;
 	if (strchr("CFILMVWY", c) != 0)
 		return 2;
-	return WILDCARD;
+	return 0;
 	}
 
 // AHPST,CFILMVWY,DEKNQR,G
@@ -586,7 +586,7 @@ uint DSS::Get_AA4(uint Pos)
 		return 2;
 	if (strchr("DEKNQR", c) != 0)
 		return 3;
-	return WILDCARD;
+	return 0;
 	}
 
 void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
@@ -807,21 +807,40 @@ void DSS::SetParams(const DSSParams &Params)
 
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
 	{
-	return GetFeature(uint(Feature), Pos);
+	uint Letter = GetFeatureLo(Feature, Pos);
+	if (Letter == UINT_MAX)
+		{
+		ULVAL ULV = GetULVAL(Feature);
+		switch (ULV)
+			{
+		case ULV_Zero:		return 0;
+		case ULV_MaxFreq:	GetMaxFreqLetter(Feature);
+		case ULV_Wildcard:	return GetAlphaSize(Feature);
+		default:			asserta(false);
+			}
+		}
+	assert(Letter < GetAlphaSize(Feature));
+	return Letter;
 	}
 
 uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 	{
-	switch (FeatureIndex)
+	uint Letter = GetFeature(FEATURE(FeatureIndex), Pos);
+	return Letter;
+	}
+
+uint DSS::GetFeatureLo(FEATURE F, uint Pos)
+	{
+	switch (F)
 		{
-		case FEATURE_AA:
-			{
-			char AminoChar = m_Chain->m_Seq[Pos];
-			uint AminoLetter = g_CharToLetterAmino[AminoChar];
-			if (AminoLetter >= 20)
-				return WILDCARD;
-			return AminoLetter;
-			}
+	case FEATURE_AA:
+		{
+		char AminoChar = m_Chain->m_Seq[Pos];
+		uint AminoLetter = g_CharToLetterAmino[AminoChar];
+		if (AminoLetter >= 20)
+			return 0;
+		return AminoLetter;
+		}
 
 #define F(x)	case FEATURE_##x: return Get_##x(Pos);
 #include "intfeatures.h"
@@ -830,8 +849,7 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 #define F(x)	case FEATURE_##x: \
 		{ \
 		float Value = GetFloat_##x(Pos); \
-		uint AS = 16; \
-		return ValueToInt_##x(Value, AS); \
+		return ValueToInt_##x(Value); \
 		}
 #include "floatfeatures.h"
 #undef F
@@ -884,4 +902,15 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		return Dist;
 		}
 	return 0;
+	}
+
+uint DSS::GetMaxFreqLetter(FEATURE F) const
+	{
+	Die("TODO");
+	return 0;
+	}
+
+ULVAL DSS::GetULVAL(FEATURE F) const
+	{
+	return ULV_Zero;
 	}

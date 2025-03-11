@@ -3,9 +3,8 @@
 
 #define BIN_T(Feat, Idx, t)	if (Value < t) return Idx;
 
-uint DSS::ValueToInt_NENDist(float Value, uint AS) const
+uint DSS::ValueToInt_NENDist(float Value) const
 	{
-	asserta(AS == 16);
 	if (Value < 4.417) return 0;
 	if (Value < 4.647) return 1;
 	if (Value < 4.841) return 2;
@@ -24,9 +23,8 @@ uint DSS::ValueToInt_NENDist(float Value, uint AS) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_RENDist(float Value, uint AS) const
+uint DSS::ValueToInt_RENDist(float Value) const
 	{
-	asserta(AS == 16);
 	if (Value < 6) return 0;
 	if (Value < 7) return 1;
 	if (Value < 8) return 2;
@@ -45,9 +43,8 @@ uint DSS::ValueToInt_RENDist(float Value, uint AS) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_DstNxtHlx(float Value, uint AS) const
+uint DSS::ValueToInt_DstNxtHlx(float Value) const
 	{
-	asserta(AS == 16);
 	if (Value < 6) return 0;
 	if (Value < 7) return 1;
 	if (Value < 8) return 2;
@@ -66,9 +63,8 @@ uint DSS::ValueToInt_DstNxtHlx(float Value, uint AS) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_StrandDens(float Value, uint AS) const
+uint DSS::ValueToInt_StrandDens(float Value) const
 	{
-	asserta(AS == 16);
 	if (Value < 0.02212) return 0;
 	if (Value < 0.07567) return 1;
 	if (Value < 0.1134) return 2;
@@ -87,9 +83,8 @@ uint DSS::ValueToInt_StrandDens(float Value, uint AS) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_NormDens(float Value, uint AS) const
+uint DSS::ValueToInt_NormDens(float Value) const
 	{
-	asserta(AS == 16);
 	if (Value < 0.241) return 0;
 	if (Value < 0.3399) return 1;
 	if (Value < 0.4115) return 2;
@@ -108,9 +103,8 @@ uint DSS::ValueToInt_NormDens(float Value, uint AS) const
 	return 15;
 	}
 
-uint DSS::ValueToInt_HelixDens(float Value, uint AS) const
+uint DSS::ValueToInt_HelixDens(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(HelixDens, 0, 0.03015);
 BIN_T(HelixDens, 1, 0.06112);
 BIN_T(HelixDens, 2, 0.1127);
@@ -129,9 +123,8 @@ BIN_T(HelixDens, 14, 0.6343);
 	return 15;
 	}
 
-uint DSS::ValueToInt_PMDist(float Value, uint AS) const
+uint DSS::ValueToInt_PMDist(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(PMDist, 0, 9.994);
 BIN_T(PMDist, 1, 12.06);
 BIN_T(PMDist, 2, 13.65);
@@ -150,9 +143,8 @@ BIN_T(PMDist, 14, 32.77);
 	return 15;
 	}
 
-uint DSS::ValueToInt_DstPrvHlx(float Value, uint AS) const
+uint DSS::ValueToInt_DstPrvHlx(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(DstNxtHlx, 0, 0);
 BIN_T(DstNxtHlx, 1, 6);
 BIN_T(DstNxtHlx, 2, 7);
@@ -171,9 +163,8 @@ BIN_T(DstNxtHlx, 14, 28.82);
 	return 15;
 	}
 
-uint DSS::ValueToInt_PlusNENDist(float Value, uint AS) const
+uint DSS::ValueToInt_PlusNENDist(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(PlusNENDist, 0, 4.633);
 BIN_T(PlusNENDist, 1, 4.937);
 BIN_T(PlusNENDist, 2, 5.292);
@@ -192,9 +183,8 @@ BIN_T(PlusNENDist, 14, 18.8);
 	return 15;
 	}
 
-uint DSS::ValueToInt_MinusNENDist(float Value, uint AS) const
+uint DSS::ValueToInt_MinusNENDist(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(MinusNENDist, 0, 4.634);
 BIN_T(MinusNENDist, 1, 4.92);
 BIN_T(MinusNENDist, 2, 5.244);
@@ -213,9 +203,8 @@ BIN_T(MinusNENDist, 14, 18.33);
 	return 15;
 	}
 
-uint DSS::ValueToInt_DiffNENDist(float Value, uint AS) const
+uint DSS::ValueToInt_DiffNENDist(float Value) const
 	{
-	asserta(AS == 16);
 BIN_T(DiffNENDist, 0, -10);
 BIN_T(DiffNENDist, 1, -6.277);
 BIN_T(DiffNENDist, 2, -4.342);

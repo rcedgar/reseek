@@ -467,6 +467,9 @@
     <ClCompile Include="xyz.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="train_feature.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

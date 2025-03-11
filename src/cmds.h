@@ -3,6 +3,7 @@
 #endif
 
 C(pdb2ss)
+C(train_feature)
 C(train_features)
 C(float_feature_bins)
 C(sscluster)

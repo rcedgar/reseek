@@ -7,7 +7,13 @@
 #include "xdpmem.h"
 #include "flatmx.h"
 
-const uint WILDCARD = 0;
+enum ULVAL			// Undefined letter value
+	{
+	ULV_Invalid,
+	ULV_Zero,		// Set to zero
+	ULV_MaxFreq,	// Set to most common letter
+	ULV_Wildcard,	// Dedicated letter
+	};
 
 class PDBChain;
 class DSSAligner;
@@ -18,7 +24,6 @@ class DSS
 public:
 	const PDBChain *m_Chain = 0;
 	uint m_L = 0;
-
 	vector<float> m_Density_ScaledValues;
 	vector<uint> m_NENs;
 	vector<uint> m_RENs;
@@ -31,7 +36,7 @@ public:
 	int m_SSDensity_W = 50;
 	int m_SSDensity_w = 8;
 	float m_Density_Radius = 20.0;
-	float m_NU_ND_Radius = 20.0;
+	//float m_NU_ND_Radius = 20.0;
 	int m_NEN_W = 100;
 	int m_NEN_w = 12;
 	int m_NUDX_W = 50;
@@ -73,6 +78,9 @@ public:
 
 	uint GetFeature(uint FeatureIndex, uint Pos);
 	uint GetFeature(FEATURE Feature, uint Pos);
+	uint GetFeatureLo(FEATURE Feature, uint Pos);
+
+// Return FLT_MAX if undefined
 	float GetFloatFeature(uint FeatureIndex, uint Pos);
 
 #define F(x)	uint Get_##x(uint Pos);
@@ -83,7 +91,7 @@ public:
 #include "floatfeatures.h"
 #undef F
 
-#define F(x)	uint ValueToInt_##x(float Value, uint AS) const;
+#define F(x)	uint ValueToInt_##x(float Value) const;
 #include "floatfeatures.h"
 #undef F
 
@@ -114,6 +122,8 @@ public:
 	void SetSSEs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	uint GetMuLetter(const vector<uint> &Letters) const;
+	uint GetMaxFreqLetter(FEATURE F) const;
+	ULVAL GetULVAL(FEATURE F) const;
 
 	float GetDist(uint i, uint j) const
 		{
@@ -140,7 +150,6 @@ float GetSelfRevScore(DSSAligner &DA,
 	const vector<byte> *ptrMuLetters,
 	const vector<uint> *ptrMuKmers);
 
-//extern float **g_ScoreMxs2[FEATURE_COUNT];
 const float *GetFreqVec(FEATURE F);
 const float * const *GetFreqMx(FEATURE F);
 const float * const *GetScoreMx(FEATURE F);

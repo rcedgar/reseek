@@ -388,6 +388,7 @@
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
+    <ClCompile Include="train_feature.cpp" />
     <ClCompile Include="train_features.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />

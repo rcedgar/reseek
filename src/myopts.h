@@ -63,6 +63,7 @@ STR_OPT(savebit)
 STR_OPT(aln)
 STR_OPT(filin)
 STR_OPT(hjspec)
+STR_OPT(alpha_sizes)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
