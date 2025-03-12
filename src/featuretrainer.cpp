@@ -55,14 +55,17 @@ void FeatureTrainer::SetFeature(FEATURE F)
 
 void FeatureTrainer::SetAlphaSize(uint AS)
 	{
-	asserta(!m_FloatValues.empty());
 
 	m_AS = AS;
 	m_LO.Init(AS);
 
+	if (m_IsInt)
+		return;
+
+	asserta(!m_FloatValues.empty());
 	DSS::Condense(m_FloatValues, m_AS, 
-				  m_MinValue, m_MedValue, m_MaxValue,
-				  m_UndefFreq, m_BinTs);
+					m_MinValue, m_MedValue, m_MaxValue,
+					m_UndefFreq, m_BinTs);
 	}
 
 void FeatureTrainer::SetFloatValues()
@@ -252,3 +255,73 @@ void FeatureTrainer::WriteSummary(FILE *f) const
 	fprintf(f, "\n");
 	}
 
+void FeatureTrainer::WriteTsvHdr(FILE *f, uint ASCount) const
+	{
+	if (f == 0)
+		return;
+
+	fprintf(f, "feature=%s", m_FeatureName);
+	fprintf(f, "\tNAS=%u", ASCount);
+	fprintf(f, "\ttype=%s", m_IsInt ? "int" : "float");
+	if(!m_IsInt)
+		{
+		fprintf(f, "\tmin=%.3g", m_MinValue);
+		fprintf(f, "\tmed=%.3g", m_MedValue);
+		fprintf(f, "\tmax=%.3g", m_MaxValue);
+		fprintf(f, "\tundefpct=%.1f", m_UndefFreq*100);
+		}
+	fprintf(f, "\n");
+	}
+
+void FeatureTrainer::ToTsv(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	float ES = m_LO.GetExpectedScore();
+	fprintf(f, "feature=%s", m_FeatureName);
+	fprintf(f, "\tAS=%u", m_AS);
+	fprintf(f, "\tES=%.3f", ES);
+	fprintf(f, "\n");
+	
+	vector<float> Freqs;
+	m_LO.GetBackgroundFreqs(Freqs);
+	asserta(SIZE(Freqs) == m_AS);
+	for (uint Letter = 0; Letter < m_AS; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tfreq=%.3g", Freqs[Letter]);
+		fprintf(f, "\n");
+		}
+
+	vector<vector<float> > JointFreqs;
+	m_LO.GetTrueFreqMx(JointFreqs);
+	asserta(SIZE(JointFreqs) == m_AS);
+	for (uint Letter = 0; Letter < m_AS; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tjointfreqs=");
+		for(uint Letter2 = 0; Letter2 < m_AS; ++Letter2)
+			{
+			if (Letter2 > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.3g", JointFreqs[Letter][Letter2]);
+			}
+		fprintf(f, "\n");
+		}
+
+	vector<vector<float> > ScoreMx;
+	m_LO.GetLogOddsMx(ScoreMx);
+	asserta(SIZE(ScoreMx) == m_AS);
+	for (uint Letter = 0; Letter < m_AS; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tscores=");
+		for(uint Letter2 = 0; Letter2 < m_AS; ++Letter2)
+			{
+			if (Letter2 > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.4f", ScoreMx[Letter][Letter2]);
+			}
+		fprintf(f, "\n");
+		}
+	}

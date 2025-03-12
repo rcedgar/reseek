@@ -37,6 +37,8 @@ public:
 	void Init(const string &ChainsFN, const string &AlnsFN);
 	void Train();
 	void WriteSummary(FILE *f) const;
+	void WriteTsvHdr(FILE *f, uint ASCount) const;
+	void ToTsv(FILE *f) const;
 
 private:
 	void SetLabelToChainIndex();

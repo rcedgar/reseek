@@ -524,6 +524,15 @@ const float * const *GetScoreMx(FEATURE F)
 
 uint GetAlphaSize(FEATURE F)
 	{
+	switch (F)
+		{
+	case FEATURE_Conf:
+	case FEATURE_NENConf:
+	case FEATURE_RENConf:
+	case FEATURE_PlusNENConf:
+	case FEATURE_MinusNENConf:
+		return 16;
+		}
 	return g_AlphaSizes2[F];
 	}
 

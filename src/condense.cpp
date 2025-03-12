@@ -60,7 +60,12 @@ void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
 		uint k = ((i+1)*K)/BinCount;
 		float t = SortedValues[k];
 		if (i > 0)
-			asserta(t > SortedValues[i-1]);
+			{
+			if (t == SortedValues[i-1])
+				Warning("Condense tie for bin thresholds %u,%u at %.3g",
+						i-1, i, t);
+			asserta(t >= SortedValues[i-1]);
+			}
 		BinTs.push_back(t);
 		}
 	asserta(SIZE(BinTs) + 2 == AlphaSize);

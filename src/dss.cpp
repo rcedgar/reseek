@@ -394,7 +394,7 @@ float DSS::GetFloat_MinusNENDist(uint Pos)
 	{
 	uint NEN = GetMinusNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return FLT_MAX;
 	float d = GetDist(Pos, NEN);
 	return d;
 	}
@@ -403,7 +403,7 @@ float DSS::GetFloat_PlusNENDist(uint Pos)
 	{
 	uint NEN = GetPlusNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return FLT_MAX;
 	float d = GetDist(Pos, NEN);
 	return d;
 	}
@@ -412,10 +412,10 @@ float DSS::GetFloat_DiffNENDist(uint Pos)
 	{
 	uint NEN = GetPlusNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return FLT_MAX;
 	uint REN = GetMinusNEN(Pos);
 	if (REN == UINT_MAX)
-		return 0;
+		return FLT_MAX;
 	float d_plus = GetDist(Pos, NEN);
 	float d_minus = GetDist(Pos, REN);
 	float diff = d_plus - d_minus;
@@ -500,7 +500,7 @@ float DSS::GetFloat_NENDist(uint Pos)
 	{
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return FLT_MAX;
 	float d = GetDist(Pos, NEN);
 	return d;
 	}
@@ -510,7 +510,7 @@ float DSS::GetFloat_PMDist(uint Pos)
 	int iPos = (int) Pos;
 	int L = (int) GetSeqLength();
 	if (L < 8)
-		return 0;
+		return FLT_MAX;
 	int Pos1 = iPos - m_PMDelta;
 	int Pos2 = iPos + m_PMDelta;
 	if (Pos1 < 0)
@@ -525,7 +525,7 @@ float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return FLT_MAX;
 	float d = GetDist(Pos, NEN);
 	return d;
 	}
@@ -866,7 +866,7 @@ float DSS::GetFloat_DstPrvHlx(uint Pos)
 		float Dist = GetDist(Pos, Mid);
 		return Dist;
 		}
-	return 0;
+	return FLT_MAX;
 	}
 
 float DSS::GetFloat_DstNxtHlx(uint Pos)
@@ -883,5 +883,5 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		float Dist = GetDist(Pos, Mid);
 		return Dist;
 		}
-	return 0;
+	return FLT_MAX;
 	}

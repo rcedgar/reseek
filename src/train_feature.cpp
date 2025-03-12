@@ -6,6 +6,7 @@ void cmd_train_feature()
 	asserta(optset_feature);
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
+	FILE *fOut = CreateStdioFile(opt(output));
 
 	const string &AlnsFN = g_Arg1;
 	const string &ChainsFN = opt(db);
@@ -45,12 +46,17 @@ void cmd_train_feature()
 	FT.Init(ChainsFN, AlnsFN);
 	FT.SetFeature(F);
 
-	for(uint i = 0; i < SIZE(AlphaSizes); ++i)
+	const uint ASCount = SIZE(AlphaSizes);
+	for(uint i = 0; i < ASCount; ++i)
 		{
 		uint AS = AlphaSizes[i];
 		FT.SetAlphaSize(AS);
 		FT.Train();
 		FT.WriteSummary(g_fLog);
 		FT.WriteSummary(stderr);
+		if (i == 0)
+			FT.WriteTsvHdr(fOut, ASCount);
+		FT.ToTsv(fOut);
 		}
+	CloseStdioFile(fOut);
 	}
