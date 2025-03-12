@@ -163,7 +163,8 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 			SumFreq += ObsFreq;
 			}
 		}
-	asserta(feq(SumFreq, 1.0));
+	if (!feq(SumFreq, 1.0))
+		Die("LogOdds::GetLogOddsMx: SumFreq=%.6f", SumFreq);
 	return ExpectedScore;
 	}
 

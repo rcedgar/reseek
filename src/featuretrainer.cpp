@@ -268,7 +268,7 @@ void FeatureTrainer::WriteTsvHdr(FILE *f, uint ASCount) const
 		fprintf(f, "\tmin=%.3g", m_MinValue);
 		fprintf(f, "\tmed=%.3g", m_MedValue);
 		fprintf(f, "\tmax=%.3g", m_MaxValue);
-		fprintf(f, "\tundefpct=%.1f", m_UndefFreq*100);
+		fprintf(f, "\tundef=%.4f", m_UndefFreq);
 		}
 	fprintf(f, "\n");
 	}

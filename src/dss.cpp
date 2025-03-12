@@ -316,7 +316,6 @@ uint DSS::CalcREN(uint Pos, uint NEN) const
 	return MinPos;
 	}
 
-
 uint DSS::CalcNEN(uint Pos) const
 	{
 	const uint L = GetSeqLength();

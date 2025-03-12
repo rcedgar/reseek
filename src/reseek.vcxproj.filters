@@ -272,9 +272,6 @@
     <ClCompile Include="daliscore_msas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cluster.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="distmx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -468,6 +465,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="featuretrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kmeans.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sscluster2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -758,6 +761,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="featuretrainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kmeans.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

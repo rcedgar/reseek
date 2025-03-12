@@ -128,9 +128,13 @@ static void GetMeans(uint N, uint K, uint M,
 	for (uint k = 0; k < K; ++k)
 		{
 		uint Count = Counts[k];
-		asserta(Count > 0);
 		for (uint j = 0; j < M; ++j)
-			Means[k][j] = Sums[k][j]/Count;
+			{
+			if(Count == 0)
+				Means[k][j] = 0;
+			else
+				Means[k][j] = Sums[k][j]/Count;
+			}
 		}
 	}
 
@@ -171,7 +175,7 @@ static uint Assign(uint N, uint K, uint M,
 void cmd_sscluster()
 	{
 	Trainer Tr;
-	Tr.Init(g_Arg1, opt(train_cal));
+	Tr.Init(g_Arg1, opt(db));
 
 	vector<PDBChain *> Chains = Tr.m_Chains;
 	const uint ChainCount = SIZE(Chains);
@@ -180,7 +184,6 @@ void cmd_sscluster()
 	asserta(optset_k);
 	K = opt(k);
 	vector<char> sss;
-	const float MAXD = 16;
 
 	uint m = 0;
 	for (int i = -2; i <= 2; ++i)

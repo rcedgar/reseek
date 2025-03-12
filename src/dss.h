@@ -29,8 +29,7 @@ public:
 	int m_SSDensity_w = 8;
 	float m_Density_Radius = 20.0;
 	int m_NEN_W = 100;
-	int m_NEN_w = 12;
-	int m_NUDX_W = 50;
+	int m_NEN_w = 8;
 	float m_SSDensity_epsilon = 1;
 	uint m_SSE_MinLength = 8;
 	uint m_SSE_Margin = 8;

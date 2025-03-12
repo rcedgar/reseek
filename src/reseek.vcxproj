@@ -286,6 +286,7 @@
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hj_scop40.cpp" />
+    <ClCompile Include="kmeans.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />
@@ -307,7 +308,6 @@
     <ClCompile Include="chains2pdbs.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
-    <ClCompile Include="cluster.cpp" />
     <ClCompile Include="cmprof.cpp" />
     <ClCompile Include="cmprof_train.cpp" />
     <ClCompile Include="convert.cpp" />
@@ -383,6 +383,7 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
+    <ClCompile Include="sscluster2.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="timing.cpp" />
@@ -435,6 +436,7 @@
     <ClInclude Include="featuretrainer.h" />
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="kabsch.h" />
+    <ClInclude Include="kmeans.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
