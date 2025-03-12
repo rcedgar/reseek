@@ -282,3 +282,73 @@ void LogOdds::MxToSrc2(FILE *f, const string &Name,
 	fprintf(f, "SCOREMX%u_END(%s)\n",
 	  EffAlphaSize, Name.c_str());
 	}
+
+void LogOdds::WriteFeatureFreqs(FILE *f) const
+	{
+	vector<float> Freqs;
+	GetBackgroundFreqs(Freqs);
+	asserta(SIZE(Freqs) == m_AlphaSize);
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tfreq=%.3g", Freqs[Letter]);
+		fprintf(f, "\n");
+		}
+	}
+
+void LogOdds::WriteFeatureJointFreqs(FILE *f) const
+	{
+	vector<vector<float> > JointFreqs;
+	GetTrueFreqMx(JointFreqs);
+	asserta(SIZE(JointFreqs) == m_AlphaSize);
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tjointfreqs=");
+		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			if (Letter2 > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.3g", JointFreqs[Letter][Letter2]);
+			}
+		fprintf(f, "\n");
+		}
+	}
+
+void LogOdds::WriteFeatureScoreMx(FILE *f) const
+	{
+	vector<vector<float> > ScoreMx;
+	GetLogOddsMx(ScoreMx);
+	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		fprintf(f, "letter=%u", Letter);
+		fprintf(f, "\tscores=");
+		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			if (Letter2 > 0)
+				fprintf(f, ",");
+			fprintf(f, "%.4f", ScoreMx[Letter][Letter2]);
+			}
+		fprintf(f, "\n");
+		}
+	}
+
+void LogOdds::WriteFeatureHdr(FILE *f, const string &Name) const
+	{
+	float ES = GetExpectedScore();
+	fprintf(f, "feature=%s", Name.c_str());
+	fprintf(f, "\tAS=%u", m_AlphaSize);
+	fprintf(f, "\tES=%.3f", ES);
+	fprintf(f, "\n");
+	}
+
+void LogOdds::WriteFeature(FILE *f, const string &Name) const
+	{
+	if(f == 0)
+		return;
+	WriteFeatureHdr(f, Name);
+	WriteFeatureFreqs(f);
+	WriteFeatureJointFreqs(f);
+	WriteFeatureScoreMx(f);
+	}

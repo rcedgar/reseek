@@ -14,7 +14,7 @@ float KMeans::GetEuclideanDist(const vector<float> &v1, const vector<float> &v2)
 	return sqrt(Sum2);
 	}
 
-uint KMeans::GetBestFitClusterIdx(const vector<float> &v) const
+uint KMeans::GetBestFitClusterIdx(const vector<float> &v, float *ptrMinDist) const
 	{
 	asserta(SIZE(v) == m_M);
 	float MinDist = FLT_MAX;
@@ -28,6 +28,8 @@ uint KMeans::GetBestFitClusterIdx(const vector<float> &v) const
 			MinDist = d;
 			}
 		}
+	if (ptrMinDist != 0)
+		*ptrMinDist = MinDist;
 	return BestCluster;
 	}
 
@@ -69,8 +71,9 @@ void KMeans::SetCentroidsGivenCurrentClusterAssignments()
 		}
 	}
 
-uint KMeans::AssignClustersGivenCurrentCentroids()
+uint KMeans::AssignClustersGivenCurrentCentroids(float &TotalDist)
 	{
+	TotalDist = 0;
 	m_Sizes.clear();
 	m_Sizes.resize(m_K, 0);
 	uint ChangeCount = 0;
@@ -80,7 +83,9 @@ uint KMeans::AssignClustersGivenCurrentCentroids()
 		{
 		const vector<float> &v = vs[i];
 		uint OldCluster = m_ClusterIdxs[i];
-		uint NewCluster = GetBestFitClusterIdx(v);
+		float d = 0;
+		uint NewCluster = GetBestFitClusterIdx(v, &d);
+		TotalDist += d;
 		m_Sizes[NewCluster] += 1;
 		if (NewCluster != OldCluster)
 			{
@@ -110,17 +115,33 @@ void KMeans::Run(const vector<vector<float> > &vs, uint K, uint MaxIters)
 		m_ClusterIdxs.push_back(randu32()%K);
 
 	m_MinChangeCount = UINT_MAX;
+	m_MinTotalDist = FLT_MAX;
+	float TotalDist0 = FLT_MAX;
 	for (uint Iter = 0; Iter < MaxIters; ++Iter)
 		{
 		SetCentroidsGivenCurrentClusterAssignments();
-		uint ChangeCount = AssignClustersGivenCurrentCentroids();
+
+		float TotalDist = 0;
+		uint ChangeCount = AssignClustersGivenCurrentCentroids(TotalDist);
+		if (Iter == 0)
+			{
+			TotalDist0 = TotalDist;
+			if (TotalDist0 == 0)
+				TotalDist0 = 1;
+			}
+		m_MinTotalDist = min(m_MinTotalDist, TotalDist);
 		if(ChangeCount < m_MinChangeCount)
 			{
 			m_MinChangeCount = ChangeCount;
 			m_BestCentroids = m_Centroids;
 			}
-		ProgressLog("Iter %u, %u changes\n", Iter, ChangeCount);
+		double Err = TotalDist/TotalDist0;
 		if (ChangeCount == 0)
+			{
+			Progress("Iter %5u   changes %7u  err %.3g\n", Iter, ChangeCount, Err);
 			break;
+			}
+		Progress("Iter %5u   changes %7u  err %.3g\r", Iter, ChangeCount, Err);
+		Log("Iter %u, %u changes, err %.3g\n", Iter, ChangeCount, Err);
 		}
 	}

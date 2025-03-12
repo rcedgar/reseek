@@ -12,6 +12,7 @@ public:
 	const vector<vector<float> > *m_ptrvs = 0;
 	KMEANS_GET_DIST_FUNC *m_GetDist = GetEuclideanDist;
 	uint m_MinChangeCount = UINT_MAX;
+	float m_MinTotalDist = FLT_MAX;
 
 // Vectors of size N
 	vector<uint> m_ClusterIdxs;
@@ -27,8 +28,8 @@ public:
 public:
 	void Run(const vector<vector<float> > &vs, uint K, uint MaxIters);
 	void SetCentroidsGivenCurrentClusterAssignments();
-	uint GetBestFitClusterIdx(const vector<float> &v) const;
-	uint AssignClustersGivenCurrentCentroids();
+	uint GetBestFitClusterIdx(const vector<float> &v, float *ptrMinDist = 0) const;
+	uint AssignClustersGivenCurrentCentroids(float &TotalDist);
 
 public:
 	static float GetEuclideanDist(

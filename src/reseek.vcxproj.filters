@@ -470,7 +470,7 @@
     <ClCompile Include="kmeans.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sscluster2.cpp">
+    <ClCompile Include="train_conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

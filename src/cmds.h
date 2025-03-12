@@ -5,7 +5,6 @@
 C(pdb2ss)
 C(train_feature)
 C(sscluster)
-C(sscluster2)
 C(scop40bench)
 C(explore1)
 C(jiggle)
@@ -61,5 +60,6 @@ C(muprefilter)
 C(mudex)
 C(cca)
 C(hj_scop40)
+C(train_conf)
 
 #undef C

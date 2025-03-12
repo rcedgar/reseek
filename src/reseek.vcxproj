@@ -383,7 +383,7 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
-    <ClCompile Include="sscluster2.cpp" />
+    <ClCompile Include="train_conf.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="timing.cpp" />

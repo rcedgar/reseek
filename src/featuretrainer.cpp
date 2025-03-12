@@ -275,53 +275,5 @@ void FeatureTrainer::WriteTsvHdr(FILE *f, uint ASCount) const
 
 void FeatureTrainer::ToTsv(FILE *f) const
 	{
-	if (f == 0)
-		return;
-	float ES = m_LO.GetExpectedScore();
-	fprintf(f, "feature=%s", m_FeatureName);
-	fprintf(f, "\tAS=%u", m_AS);
-	fprintf(f, "\tES=%.3f", ES);
-	fprintf(f, "\n");
-	
-	vector<float> Freqs;
-	m_LO.GetBackgroundFreqs(Freqs);
-	asserta(SIZE(Freqs) == m_AS);
-	for (uint Letter = 0; Letter < m_AS; ++Letter)
-		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tfreq=%.3g", Freqs[Letter]);
-		fprintf(f, "\n");
-		}
-
-	vector<vector<float> > JointFreqs;
-	m_LO.GetTrueFreqMx(JointFreqs);
-	asserta(SIZE(JointFreqs) == m_AS);
-	for (uint Letter = 0; Letter < m_AS; ++Letter)
-		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tjointfreqs=");
-		for(uint Letter2 = 0; Letter2 < m_AS; ++Letter2)
-			{
-			if (Letter2 > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.3g", JointFreqs[Letter][Letter2]);
-			}
-		fprintf(f, "\n");
-		}
-
-	vector<vector<float> > ScoreMx;
-	m_LO.GetLogOddsMx(ScoreMx);
-	asserta(SIZE(ScoreMx) == m_AS);
-	for (uint Letter = 0; Letter < m_AS; ++Letter)
-		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tscores=");
-		for(uint Letter2 = 0; Letter2 < m_AS; ++Letter2)
-			{
-			if (Letter2 > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.4f", ScoreMx[Letter][Letter2]);
-			}
-		fprintf(f, "\n");
-		}
+	m_LO.WriteFeature(f, m_FeatureName);
 	}
