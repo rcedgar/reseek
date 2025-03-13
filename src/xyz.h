@@ -4,7 +4,9 @@ float dot(const float a[3], const float b[3]);
 void transform(const float t[3], const float u[3][3],
   const float x[3], float x_transformed[3]);
 
-static const float PI = 3.1415926535f;
+// static const float PI = 3.1415926535f;
+#include "coords.h"
+#include "mypi.h"
 static const int X = 0;
 static const int Y = 1;
 static const int Z = 2;
@@ -246,7 +248,7 @@ static inline float GetTheta_Mxij(const vector<vector<float> > &Mx,
 	return theta;
 	}
 
-static inline float degrees(float Radians) { return Radians*180.0f/PI; }
+//static inline float degrees(float Radians) { return Radians*180.0f/PI; }
 
 static inline float degrees_0_to_360(float Radians)
 	{

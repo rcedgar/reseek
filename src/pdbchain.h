@@ -7,6 +7,7 @@
 #include "myutils.h"
 #include "features.h"
 #include "flatmx.h"
+#include "coords.h"
 
 class DSS;
 
@@ -78,6 +79,14 @@ public:
 	void Reverse();
 	void Flip();
 	void GetReverse(PDBChain &Rev) const;
+	void GetCoords(uint i, coords &v) const
+		{
+		assert(i < SIZE(m_Xs));
+		v.x = m_Xs[i];
+		v.y = m_Ys[i];
+		v.z = m_Zs[i];
+		}
+
 #if CACHE_DIST_MAX
 	void SetDistMx();
 	void ClearDistMx();

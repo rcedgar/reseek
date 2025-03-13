@@ -278,6 +278,7 @@
     <ClCompile Include="cmd_muprefilter.cpp" />
     <ClCompile Include="condense.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
+    <ClCompile Include="coords.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="featuretrainer.cpp" />
@@ -291,6 +292,7 @@
     <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
@@ -383,6 +385,10 @@
     <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
+    <ClCompile Include="squeezer.cpp" />
+    <ClCompile Include="squeezer_tor.cpp" />
+    <ClCompile Include="squeezer_tor2.cpp" />
+    <ClCompile Include="train_angles.cpp" />
     <ClCompile Include="train_conf.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
@@ -431,6 +437,7 @@
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
+    <ClInclude Include="coords.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="duper.h" />
     <ClInclude Include="featuretrainer.h" />
@@ -458,6 +465,7 @@
     <ClInclude Include="mx.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
+    <ClInclude Include="mypi.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="floatfeatures.h" />
@@ -486,6 +494,9 @@
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="seqinfo.h" />
+    <ClInclude Include="squeezealgos.h" />
+    <ClInclude Include="squeezeops.h" />
+    <ClInclude Include="squeezer.h" />
     <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />

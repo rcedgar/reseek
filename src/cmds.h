@@ -61,5 +61,8 @@ C(mudex)
 C(cca)
 C(hj_scop40)
 C(train_conf)
+C(train_angles)
+C(pdb2angles)
+C(squeeze)
 
 #undef C
