@@ -30,6 +30,7 @@ public:
 	void SetCentroidsGivenCurrentClusterAssignments();
 	uint GetBestFitClusterIdx(const vector<float> &v, float *ptrMinDist = 0) const;
 	uint AssignClustersGivenCurrentCentroids(float &TotalDist);
+	void WriteCentroids(FILE *f) const;
 
 public:
 	static float GetEuclideanDist(

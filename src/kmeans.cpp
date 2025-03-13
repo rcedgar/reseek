@@ -145,3 +145,24 @@ void KMeans::Run(const vector<vector<float> > &vs, uint K, uint MaxIters)
 		Log("Iter %u, %u changes, err %.3g\n", Iter, ChangeCount, Err);
 		}
 	}
+
+void KMeans::WriteCentroids(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	string CmdLine;
+	GetCmdLine(CmdLine);
+	fprintf(f, "# %s\n", CmdLine.c_str());
+	fprintf(f, "# [%s]\n", g_GitVer);
+	fprintf(f, "K=%u", m_K);
+	fprintf(f, "\tM=%u", m_M);
+	fprintf(f, "\n");
+	for(uint k = 0; k < m_K; ++k)
+		{
+		fprintf(f, "k=%u", k);
+		fprintf(f, "\tsize=%u", m_Sizes[k]);
+		for(uint j = 0; j < m_M; ++j)
+			fprintf(f, "\t%.6g", m_Centroids[k][j]);
+		fprintf(f, "\n");
+		}
+	}

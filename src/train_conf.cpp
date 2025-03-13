@@ -195,4 +195,8 @@ void cmd_train_conf()
 	FILE *fOut = CreateStdioFile(opt(output));
 	LO.WriteFeature(fOut, FeatureName);
 	CloseStdioFile(fOut);
+
+	FILE *fOut2 = CreateStdioFile(opt(output2));
+	KM.WriteCentroids(fOut2);
+	CloseStdioFile(fOut2);
 	}
