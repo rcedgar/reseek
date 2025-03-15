@@ -128,7 +128,7 @@ float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
 		asserta(PosB < SIZE(ProfileB[FeatureIdx]));
 		//float w = m_Params->m_Weights[FeatureIdx];
 		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = GetAlphaSize(F); // g_AlphaSizes2[F];
+		uint AlphaSize = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		//float **ScoreMx = g_ScoreMxs2[F];
 		float **ScoreMx = m_Params->m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
@@ -179,7 +179,7 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 
 // Special case first feature because = not += and
 	FEATURE F0 = m_Params->m_Features[0];
-	uint AlphaSize0 = GetAlphaSize(F0); // g_AlphaSizes2[F0];
+	uint AlphaSize0 = DSS::GetAlphaSize(F0); // g_AlphaSizes2[F0];
 	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
 	const vector<byte> &ProfRowA = ProfileA[0];
 	const vector<byte> &ProfRowB = ProfileB[0];
@@ -187,7 +187,7 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
 		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = GetAlphaSize(F); // g_AlphaSizes2[F];
+		uint AlphaSize = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		float **ScoreMx = m_Params->m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
@@ -232,7 +232,7 @@ void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
 
 // Special case first feature because = not += and
 	FEATURE F0 = m_Params->m_Features[0];
-	uint AlphaSize0 = GetAlphaSize(F0); // g_AlphaSizes2[F0];
+	uint AlphaSize0 = DSS::GetAlphaSize(F0); // g_AlphaSizes2[F0];
 	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
 	const vector<byte> &ProfRowA = ProfileA[0];
 	const vector<byte> &ProfRowB = ProfileB[0];
@@ -255,7 +255,7 @@ void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
 	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
 		FEATURE F = m_Params->m_Features[FeatureIdx];
-		uint AlphaSize = GetAlphaSize(F); // g_AlphaSizes2[F];
+		uint AlphaSize = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		float **ScoreMx = m_Params->m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];

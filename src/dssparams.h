@@ -81,6 +81,9 @@ public:
 		m_Weights.push_back(float(w));
 		}
 
+	void LoadFeatures(const vector<string> &FNs,
+					  const vector<float> &Weights);
+
 	void FromParamStr(const string &ParamStr);
 	void NormalizeWeights();
 	uint GetFeatureCount() const;

@@ -131,6 +131,16 @@ public:
 	static uint SSCharToInt3(char c);
 	static uint ValueToInt(const vector<float> &Ts, float Value);
 	static uint GetAlphaSize(FEATURE F);
+	static void SetAlphaSize(FEATURE F, uint AS);
+
+	static const float *GetFreqVec(FEATURE F);
+	static const float * const *GetFreqMx(FEATURE F);
+	static const float * const *GetScoreMx(FEATURE F);
+
+	static void SetFeature(FEATURE F,
+						   const vector<float> &Freqs,
+						   const vector<vector<float> > &FreqMx,
+						   const vector<vector<float> > &ScoreMx);
 	};
 
 float GetSelfRevScore(DSSAligner &DA,
@@ -139,8 +149,3 @@ float GetSelfRevScore(DSSAligner &DA,
 	const vector<vector<byte> > &Profile,
 	const vector<byte> *ptrMuLetters,
 	const vector<uint> *ptrMuKmers);
-
-const float *GetFreqVec(FEATURE F);
-const float * const *GetFreqMx(FEATURE F);
-const float * const *GetScoreMx(FEATURE F);
-uint GetAlphaSize(FEATURE F);

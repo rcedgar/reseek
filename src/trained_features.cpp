@@ -2,6 +2,9 @@
 #include "features.h"
 #include "dss.h"
 
+static void FreeFeature(FEATURE F);
+static void AllocFeature(FEATURE F, uint AS);
+
 //////////////////////////////////
 // AA ES=0.3350
 //////////////////////////////////
@@ -507,33 +510,91 @@ static float **g_FreqMxs2[FEATURE_COUNT];
 static float *g_FreqVecs2[FEATURE_COUNT];
 static uint g_AlphaSizes2[FEATURE_COUNT];
 
-const float *GetFreqVec(FEATURE F)
+static void AllocFeature(FEATURE F, uint AS)
+	{
+	g_AlphaSizes2[F] = AS;
+	g_FreqMxs2[F] = myalloc(float *, AS);
+	g_ScoreMxs2[F] = myalloc(float *, AS);
+	g_FreqVecs2[F] = myalloc(float, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		g_FreqMxs2[F][i] = myalloc(float, AS);
+		g_ScoreMxs2[F][i] = myalloc(float, AS);
+		}
+	}
+
+static void FreeFeature(FEATURE F)
+	{
+	if (g_ScoreMxs2[F] != 0)
+		{
+		uint AS = g_AlphaSizes2[F];
+		for (uint i = 0; i < AS; ++i)
+			myfree(g_ScoreMxs2[F][i]);
+		myfree(g_ScoreMxs2[F]);
+		}
+	if (g_FreqMxs2[F] != 0)
+		{
+		uint AS = g_AlphaSizes2[F];
+		for (uint i = 0; i < AS; ++i)
+			myfree(g_FreqMxs2[F][i]);
+		myfree(g_FreqMxs2[F]);
+		}
+	if (g_FreqVecs2[F] != 0)
+		myfree(g_FreqVecs2[F]);
+	}
+
+static void FreeMe()
+	{
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		FreeFeature(FEATURE(F));
+	}
+
+void DSS::SetFeature(FEATURE F,
+		const vector<float> &Freqs,
+		const vector<vector<float> > &FreqMx,
+		const vector<vector<float> > &ScoreMx)
+	{
+	FreeFeature(F);
+	asserta(uint(F) < FEATURE_COUNT);
+	uint AS = SIZE(Freqs);
+	asserta(SIZE(FreqMx) == AS);
+	asserta(SIZE(ScoreMx) == AS);
+	g_AlphaSizes2[uint(F)] = AS;
+	AllocFeature(F, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		g_FreqVecs2[F][i] = Freqs[i];
+
+		asserta(SIZE(FreqMx[i]) == AS);
+		asserta(SIZE(ScoreMx[i]) == AS);
+
+		for (uint j = 0; j < AS; ++j)
+			{
+			(*g_FreqMxs2)[i][j] = FreqMx[i][j];
+			(*g_ScoreMxs2)[i][j] = ScoreMx[i][j];
+			}
+		}
+	}
+
+const float *DSS::GetFreqVec(FEATURE F)
 	{
 	return g_FreqVecs2[F];
 	}
 
-const float * const *GetFreqMx(FEATURE F)
+const float * const *DSS::GetFreqMx(FEATURE F)
 	{
 	return g_FreqMxs2[F];
 	}
 
-const float * const *GetScoreMx(FEATURE F)
+const float * const *DSS::GetScoreMx(FEATURE F)
 	{
 	return g_ScoreMxs2[F];
 	}
 
-uint GetAlphaSize(FEATURE F)
+uint DSS::GetAlphaSize(FEATURE F)
 	{
-	switch (F)
-		{
-	case FEATURE_Conf:
-	case FEATURE_NENConf:
-	case FEATURE_RENConf:
-	case FEATURE_PlusNENConf:
-	case FEATURE_MinusNENConf:
-		return 16;
-		}
-	return g_AlphaSizes2[F];
+	asserta(uint(F) < FEATURE_COUNT);
+	return g_AlphaSizes2[uint(F)];
 	}
 
 static void FreeMe();
@@ -541,130 +602,95 @@ static void FreeMe();
 static bool Init()
 	{
 	atexit(FreeMe);
-	asserta(DSS::GetAlphaSize(FEATURE_AA) == 20);
-	asserta(DSS::GetAlphaSize(FEATURE_NENDist) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_Conf) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_NENConf) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_RENDist) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_DstNxtHlx) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_StrandDens) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_NormDens) == 16);
 
-	g_AlphaSizes2[FEATURE_AA] = 20;
-	g_AlphaSizes2[FEATURE_NENDist] = 16;
-	g_AlphaSizes2[FEATURE_Conf] = 16;
-	g_AlphaSizes2[FEATURE_NENConf] = 16;
-	g_AlphaSizes2[FEATURE_RENDist] = 16;
-	g_AlphaSizes2[FEATURE_DstNxtHlx] = 16;
-	g_AlphaSizes2[FEATURE_StrandDens] = 16;
-	g_AlphaSizes2[FEATURE_NormDens] = 16;
+	AllocFeature(FEATURE_AA, 20);
+	AllocFeature(FEATURE_NENDist, 16);
+	AllocFeature(FEATURE_Conf, 16);
+	AllocFeature(FEATURE_NENConf, 16);
+	AllocFeature(FEATURE_RENDist, 16);
+	AllocFeature(FEATURE_DstNxtHlx, 16);
+	AllocFeature(FEATURE_StrandDens, 16);
+	AllocFeature(FEATURE_NormDens, 16);
 
-	g_FreqMxs2[FEATURE_AA] = myalloc(float *, 20);
-	g_ScoreMxs2[FEATURE_AA] = myalloc(float *, 20);
-	g_FreqVecs2[FEATURE_AA] = myalloc(float, 20);
+	g_AlphaSizes2[FEATURE_SS3] = 3;
+	g_AlphaSizes2[FEATURE_NENSS3] = 3;
+	g_AlphaSizes2[FEATURE_RENSS3] = 3;
+	g_AlphaSizes2[FEATURE_AA3] = 3;
+
+	g_AlphaSizes2[FEATURE_SS] = 4;
+	g_AlphaSizes2[FEATURE_NENSS] = 4;
+	g_AlphaSizes2[FEATURE_RENSS] = 4;
+	g_AlphaSizes2[FEATURE_NormDens4] = 4;
+	g_AlphaSizes2[FEATURE_NENDist4] = 4;
+	g_AlphaSizes2[FEATURE_RENDist4] = 4;
+	g_AlphaSizes2[FEATURE_AA4] = 4;
+
 	for (uint i = 0; i < 20; ++i)
 		{
 		g_FreqVecs2[FEATURE_AA][i] = (float) AA_f_i[i];
-		g_FreqMxs2[FEATURE_AA][i] = myalloc(float, 20);
-		g_ScoreMxs2[FEATURE_AA][i] = myalloc(float, 20);
 		for (uint j = 0; j < 20; ++j)
 			{
 			g_FreqMxs2[FEATURE_AA][i][j] = (float) AA_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_AA][i][j] = (float) AA_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_NENDist] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_NENDist] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_NENDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_NENDist][i] = (float) NENDist_f_i[i];
-		g_FreqMxs2[FEATURE_NENDist][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_NENDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_NENDist][i][j] = (float) NENDist_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_NENDist][i][j] = (float) NENDist_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_Conf] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_Conf] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_Conf] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_Conf][i] = (float) Conf_f_i[i];
-		g_FreqMxs2[FEATURE_Conf][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_Conf][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_Conf][i][j] = (float) Conf_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_Conf][i][j] = (float) Conf_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_NENConf] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_NENConf] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_NENConf] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_NENConf][i] = (float) NENConf_f_i[i];
-		g_FreqMxs2[FEATURE_NENConf][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_NENConf][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_NENConf][i][j] = (float) NENConf_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_NENConf][i][j] = (float) NENConf_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_RENDist] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_RENDist] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_RENDist] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_RENDist][i] = (float) RENDist_f_i[i];
-		g_FreqMxs2[FEATURE_RENDist][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_RENDist][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_RENDist][i][j] = (float) RENDist_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_RENDist][i][j] = (float) RENDist_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_DstNxtHlx] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_DstNxtHlx] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_DstNxtHlx] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_DstNxtHlx][i] = (float) DstNxtHlx_f_i[i];
-		g_FreqMxs2[FEATURE_DstNxtHlx][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_DstNxtHlx][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_DstNxtHlx][i][j] = (float) DstNxtHlx_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_DstNxtHlx][i][j] = (float) DstNxtHlx_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_StrandDens] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_StrandDens] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_StrandDens] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_StrandDens][i] = (float) StrandDens_f_i[i];
-		g_FreqMxs2[FEATURE_StrandDens][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_StrandDens][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_StrandDens][i][j] = (float) StrandDens_f_ij[i][j];
 			g_ScoreMxs2[FEATURE_StrandDens][i][j] = (float) StrandDens_S_ij[i][j];
 			}
 		}
-	g_FreqMxs2[FEATURE_NormDens] = myalloc(float *, 16);
-	g_ScoreMxs2[FEATURE_NormDens] = myalloc(float *, 16);
-	g_FreqVecs2[FEATURE_NormDens] = myalloc(float, 16);
 	for (uint i = 0; i < 16; ++i)
 		{
 		g_FreqVecs2[FEATURE_NormDens][i] = (float) NormDens_f_i[i];
-		g_FreqMxs2[FEATURE_NormDens][i] = myalloc(float, 16);
-		g_ScoreMxs2[FEATURE_NormDens][i] = myalloc(float, 16);
 		for (uint j = 0; j < 16; ++j)
 			{
 			g_FreqMxs2[FEATURE_NormDens][i][j] = (float) NormDens_f_ij[i][j];
@@ -674,26 +700,3 @@ static bool Init()
 	return true;
 	}
 static bool InitDone = Init();
-
-static void FreeMe()
-	{
-	for (uint F = 0; F < FEATURE_COUNT; ++F)
-		{
-		if (g_ScoreMxs2[F] != 0)
-			{
-			uint AS = g_AlphaSizes2[F];
-			for (uint i = 0; i < AS; ++i)
-				myfree(g_ScoreMxs2[F][i]);
-			myfree(g_ScoreMxs2[F]);
-			}
-		if (g_FreqMxs2[F] != 0)
-			{
-			uint AS = g_AlphaSizes2[F];
-			for (uint i = 0; i < AS; ++i)
-				myfree(g_FreqMxs2[F][i]);
-			myfree(g_FreqMxs2[F]);
-			}
-		if (g_FreqVecs2[F] != 0)
-			myfree(g_FreqVecs2[F]);
-		}
-	}

@@ -1,48 +1,34 @@
 #include "myutils.h"
 #include "dssparams.h"
+#include "dss.h"
 #include "featuretrainer.h"
 
-void FeatureTrainer::FromTsv(const string &FN)
+void DSSParams::LoadFeatures(const vector<string> &FNs,
+							 const vector<float> &Weights)
 	{
-	FILE *f = OpenStdioFile(FN);
+	m_Features.clear();
+	m_Weights.clear();
 
-	string FeatureName;
-	ReadStringValue(f, "feature", FeatureName);
-	m_FeatureName = mystrsave(FeatureName.c_str());
-	m_F = StrToFeature(FeatureName.c_str());
-
-	string Type;
-	ReadStringValue(f, "type", Type);
-	if (Type == "int")
-		m_IsInt = true;
-	else if (Type == "float")
-		m_IsInt = false;
-	else
-		Die("Bad feature type '%s'", Type.c_str());
-
-	if (!m_IsInt)
-		{
-		m_MinValue = ReadFloatValue(f, "min");
-		m_MedValue = ReadFloatValue(f, "med");
-		m_MaxValue = ReadFloatValue(f, "max");
-		m_UndefFreq = ReadFloatValue(f, "undef");
-		}
-
-	LogOdds::FromTsv(f);
-
-	m_BinTs.clear();
-	if (!m_IsInt)
-		{
-		for (uint i = 0; i + 2 < m_AlphaSize; ++i)
-			m_BinTs.push_back(ReadFloatValue(f, "bint", i));
-		}
-
-	CloseStdioFile(f);
-	}
-
-void cmd_test()
-	{
+	const uint N = SIZE(FNs);
+	asserta(SIZE(Weights) == N);
 	FeatureTrainer FT;
-	FT.FromTsv(g_Arg1);
-	FT.ToTsv(opt(output));
+	vector<float> Freqs;
+	vector<vector<float> > FreqMx;
+	vector<vector<float> > ScoreMx;
+	for (uint i = 0; i < N ; ++i)
+		{
+		const string &FN = FNs[i];
+		float w = Weights[i];
+		FEATURE F = StrToFeature(FN.c_str());
+		FT.FromTsv(FN);
+
+		FT.GetFreqs(Freqs);
+		FT.GetFreqMx(FreqMx);
+		FT.GetLogOddsMx(ScoreMx);
+
+		DSS::SetFeature(F, Freqs, FreqMx, ScoreMx);
+
+		m_Features.push_back(F);
+		m_Weights.push_back(w);
+		}
 	}

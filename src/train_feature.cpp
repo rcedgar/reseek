@@ -15,7 +15,7 @@ void cmd_train_feature()
 	bool IsInt = FeatureIsInt(F);
 	if (IsInt)
 		{
-		uint AS = GetAlphaSize(F);
+		uint AS = DSS::GetAlphaSize(F);
 		asserta(AS != 0 && AS != UINT_MAX);
 		AlphaSizes.push_back(AS);
 		}

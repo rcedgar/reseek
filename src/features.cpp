@@ -62,8 +62,8 @@ void cmd_feature_stats()
 	for (uint iF = 0; iF < FEATURE_COUNT; ++iF)
 		{
 		FEATURE F = FEATURE(iF);
-		uint AS = GetAlphaSize(F); // g_AlphaSizes2[F];
-		const float * const *Mx = GetScoreMx(F);
+		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
+		const float * const *Mx = DSS::GetScoreMx(F);
 		ProgressLog("[%2u]  %s",
 		  F, FeatureToStr(F));
 		if (Mx == 0)
