@@ -4,9 +4,9 @@
 void cmd_train_feature()
 	{
 	asserta(optset_feature);
+
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
-	FILE *fOut = CreateStdioFile(opt(output));
 
 	const string &AlnsFN = g_Arg1;
 	const string &ChainsFN = opt(db);
@@ -43,7 +43,7 @@ void cmd_train_feature()
 	asserta(!AlphaSizes.empty());
 
 	FeatureTrainer FT;
-	FT.Init(ChainsFN, AlnsFN);
+	FT.SetInput(ChainsFN, AlnsFN);
 	FT.SetFeature(F);
 
 	const uint ASCount = SIZE(AlphaSizes);
@@ -54,9 +54,11 @@ void cmd_train_feature()
 		FT.Train();
 		FT.WriteSummary(g_fLog);
 		FT.WriteSummary(stderr);
-		if (i == 0)
-			FT.WriteTsvHdr(fOut, ASCount);
-		FT.ToTsv(fOut);
+
+		string OutputFN;
+		Ps(OutputFN, "%s.%u.tsv", FeatureName.c_str(), AS);
+		if (optset_output)
+			OutputFN = string(opt(output)) + "." + OutputFN;
+		FT.ToTsv(OutputFN);
 		}
-	CloseStdioFile(fOut);
 	}

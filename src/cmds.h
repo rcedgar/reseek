@@ -2,6 +2,7 @@
 #error "C not defined"
 #endif
 
+C(test)
 C(pdb2ss)
 C(train_feature)
 C(sscluster)

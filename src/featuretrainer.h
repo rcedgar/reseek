@@ -6,7 +6,8 @@
 #include "dss.h"
 #include "logodds.h"
 
-class FeatureTrainer
+// FeatureTrainer and Trainer should be merged
+class FeatureTrainer : public LogOdds
 	{
 public:
 	FEATURE m_F = FEATURE(-1);
@@ -22,10 +23,7 @@ public:
 	float m_MedValue = -FLT_MAX;
 	float m_MaxValue = -FLT_MAX;
 	float m_UndefFreq = -FLT_MAX;
-	vector<float> m_BackgroundFreqs;
 	map<string, uint> m_LabelToChainIndex;
-	LogOdds m_LO;
-	uint m_AS = 0;
 	vector<float> m_BinTs;
 	DSS m_D;
 	DSS m_DQ;
@@ -34,16 +32,14 @@ public:
 public:
 	void SetFeature(FEATURE F);
 	void SetAlphaSize(uint AS);
-	void Init(const string &ChainsFN, const string &AlnsFN);
+	void SetInput(const string &ChainsFN, const string &AlnsFN);
 	void Train();
 	void WriteSummary(FILE *f) const;
-	void WriteTsvHdr(FILE *f, uint ASCount) const;
-	void ToTsv(FILE *f) const;
+	void ToTsv(const string &FN) const;
+	void FromTsv(const string &FN);
 
 private:
 	void SetLabelToChainIndex();
 	void SetFloatValues();
-	void SetBackgroundFreqs();
-	void SetJointFreqs();
 	void SetJointFreqsPair(uint PairIndex);
 	};

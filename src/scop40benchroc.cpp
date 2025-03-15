@@ -799,7 +799,7 @@ void cmd_scop40bit_roc()
 		}
 	SB.WriteOutput();
 	}
-
+#if 0
 void cmd_test()
 	{
 	vector<float> TPRs;
@@ -826,3 +826,4 @@ void cmd_test()
 	ProgressLog("A = %.4g, correct = %.4g\n", A, CorrectA);
 	Log("");
 	}
+#endif

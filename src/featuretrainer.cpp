@@ -20,7 +20,7 @@ static void TruncLabel(string &Label)
 	Label.resize(n);
 	}
 
-void FeatureTrainer::Init(const string &ChainsFN, const string &AlnsFN)
+void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 	{
 // Params
 	optset_fast = true;
@@ -55,15 +55,14 @@ void FeatureTrainer::SetFeature(FEATURE F)
 
 void FeatureTrainer::SetAlphaSize(uint AS)
 	{
-
-	m_AS = AS;
-	m_LO.Init(AS);
+	m_AlphaSize = AS;
+	Init(AS);
 
 	if (m_IsInt)
 		return;
 
 	asserta(!m_FloatValues.empty());
-	DSS::Condense(m_FloatValues, m_AS, 
+	DSS::Condense(m_FloatValues, m_AlphaSize, 
 					m_MinValue, m_MedValue, m_MaxValue,
 					m_UndefFreq, m_BinTs);
 	}
@@ -118,32 +117,6 @@ void FeatureTrainer::SetLabelToChainIndex()
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		const string &Label = Chain.m_Label;
 		m_LabelToChainIndex[Label] = ChainIndex;
-		}
-	}
-
-void FeatureTrainer::SetBackgroundFreqs()
-	{
-	const uint ChainCount = SIZE(m_Chains);
-	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
-		{
-		ProgressStep(ChainIndex, ChainCount, "Background frequencies %s(%u)",
-					 m_FeatureName, m_AS);
-
-		const PDBChain &Chain = *m_Chains[ChainIndex];
-		m_D.Init(Chain);
-		const uint L = Chain.GetSeqLength();
-		for (uint Pos = 0; Pos < L; ++Pos)
-			{
-			uint Letter = UINT_MAX;
-			if (m_IsInt)
-				Letter = m_D.GetFeature(m_F, Pos);
-			else
-				{
-				float Value = m_D.GetFloatFeature(m_F, Pos);
-				Letter = DSS::ValueToInt(m_BinTs, Value);
-				}
-			m_LO.AddBackgroundLetter(Letter);
-			}
 		}
 	}
 
@@ -206,7 +179,7 @@ void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
 				LetterQ = DSS::ValueToInt(m_BinTs, ValueQ);
 				LetterR = DSS::ValueToInt(m_BinTs, ValueR);
 				}
-			m_LO.AddTruePair(LetterQ, LetterR);
+			AddPair(LetterQ, LetterR);
 			}
 		if (!isgap(q))
 			++QPos;
@@ -215,7 +188,7 @@ void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
 		}
 	}
 
-void FeatureTrainer::SetJointFreqs()
+void FeatureTrainer::Train()
 	{
 	const uint SeqCount = m_Alns.GetSeqCount();
 	asserta(SeqCount > 0);
@@ -225,22 +198,17 @@ void FeatureTrainer::SetJointFreqs()
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
 		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u)",
-					 m_FeatureName, m_AS);
+					 m_FeatureName, m_AlphaSize);
 		SetJointFreqsPair(PairIndex);
 		}
-	}
-void FeatureTrainer::Train()
-	{
-	SetBackgroundFreqs();
-	SetJointFreqs();
 	}
 
 void FeatureTrainer::WriteSummary(FILE *f) const
 	{
 	if (f == 0)
 		return;
-	float ES = m_LO.GetExpectedScore();
-	fprintf(f, "%s(%u)", m_FeatureName, m_AS);
+	float ES = GetExpectedScore();
+	fprintf(f, "%s(%u)", m_FeatureName, m_AlphaSize);
 	if (m_IsInt)
 		fprintf(f, " integer");
 	else
@@ -255,25 +223,29 @@ void FeatureTrainer::WriteSummary(FILE *f) const
 	fprintf(f, "\n");
 	}
 
-void FeatureTrainer::WriteTsvHdr(FILE *f, uint ASCount) const
+void FeatureTrainer::ToTsv(const string &FN) const
 	{
-	if (f == 0)
+	if (FN == "")
 		return;
 
-	fprintf(f, "feature=%s", m_FeatureName);
-	fprintf(f, "\tNAS=%u", ASCount);
-	fprintf(f, "\ttype=%s", m_IsInt ? "int" : "float");
-	if(!m_IsInt)
+	FILE *f = CreateStdioFile(FN);
+	fprintf(f, "feature\t%s\n", m_FeatureName);
+	fprintf(f, "type\t%s\n", m_IsInt ? "int" : "float");
+	if (!m_IsInt)
 		{
-		fprintf(f, "\tmin=%.3g", m_MinValue);
-		fprintf(f, "\tmed=%.3g", m_MedValue);
-		fprintf(f, "\tmax=%.3g", m_MaxValue);
-		fprintf(f, "\tundef=%.4f", m_UndefFreq);
+		fprintf(f, "min\t%.3g\n", m_MinValue);
+		fprintf(f, "med\t%.3g\n", m_MedValue);
+		fprintf(f, "max\t%.3g\n", m_MaxValue);
+		fprintf(f, "undef\t%.4f\n", m_UndefFreq);
 		}
-	fprintf(f, "\n");
-	}
 
-void FeatureTrainer::ToTsv(FILE *f) const
-	{
-	m_LO.WriteFeature(f, m_FeatureName);
+	LogOdds::ToTsv(f);
+	
+	if (!m_IsInt)
+		{
+		for (uint i = 0; i < SIZE(m_BinTs); ++i)
+			fprintf(f, "bint\t%u\t%.4g\n", i, m_BinTs[i]);
+		}
+
+	CloseStdioFile(f);
 	}

@@ -288,6 +288,7 @@
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hj_scop40.cpp" />
     <ClCompile Include="kmeans.cpp" />
+    <ClCompile Include="loadfeatures.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />

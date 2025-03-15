@@ -183,11 +183,7 @@ void Trainer::TrainLogOdds(
 			AlphaCol(*this, PosQs[Col], PosRs[Col],
 			  LetterQ, LetterR);
 			if (LetterQ < AlphaSize && LetterR < AlphaSize)
-				{
-				LO.AddBackgroundLetter(LetterQ);
-				LO.AddBackgroundLetter(LetterR);
-				LO.AddTruePair(LetterQ, LetterR);
-				}
+				LO.AddPair(LetterQ, LetterR);
 			}
 		}
 	}

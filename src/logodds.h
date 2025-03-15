@@ -6,15 +6,12 @@ public:
 	uint m_AlphaSize = 0;
 	vector<uint> m_BackgroundCounts;
 	vector<vector<uint> > m_TrueCountMx;
-	vector<float> m_Freqs;
-	vector<float> m_FreqMx;
 
 public:
 	void Init(uint AlphaSize);
-	void AddBackgroundLetter(uint Letter);
-	void AddTruePair(uint Letter1, uint Letter2);
-	void GetBackgroundFreqs(vector<float> &Freqs) const;
-	void GetTrueFreqMx(vector<vector<float> > &Mx) const;
+	void AddPair(uint Letter1, uint Letter2);
+	void GetFreqs(vector<float> &Freqs) const;
+	void GetFreqMx(vector<vector<float> > &Mx) const;
 	float GetLogOddsMx(vector<vector<float> > &Mx) const;
 	void GetLogOddsMxInt8(vector<vector<float> > &Mxd,
 	  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const;
@@ -27,11 +24,13 @@ public:
 	  const vector<float> &v) const;
 	void GetSymbol(uint Letter, string &s) const;
 	float GetExpectedScore() const;
-	void WriteFeature(FILE *f, const string &Name) const;
-	void WriteFeatureHdr(FILE *f, const string &Name) const;
-	void WriteFeatureFreqs(FILE *f) const;
-	void WriteFeatureJointFreqs(FILE *f) const;
-	void WriteFeatureScoreMx(FILE *f) const;
+	void ToTsv(FILE *f) const;
+	void FromTsv(FILE *f);
+	void ValidateCounts() const;
+	void ReadStringValue(FILE *f, const string &Name, string &Value);
+	float ReadFloatValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
+	uint ReadIntValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
+	void ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Vec);
 	};
 
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi);

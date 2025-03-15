@@ -193,7 +193,7 @@ void cmd_train_conf()
 	LogSrc(KM);
 
 	FILE *fOut = CreateStdioFile(opt(output));
-	LO.WriteFeature(fOut, FeatureName);
+	LO.ToTsv(fOut);
 	CloseStdioFile(fOut);
 
 	FILE *fOut2 = CreateStdioFile(opt(output2));

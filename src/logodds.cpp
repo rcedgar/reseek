@@ -47,8 +47,6 @@ void LogOdds::Init(uint AlphaSize)
 	asserta(AlphaSize < 4096);
 	m_AlphaSize = AlphaSize;
 	m_TrueCountMx.clear();
-	m_Freqs.clear();
-	m_FreqMx.clear();
 	m_BackgroundCounts.clear();
 	m_BackgroundCounts.resize(m_AlphaSize);
 	m_TrueCountMx.resize(m_AlphaSize);
@@ -56,20 +54,13 @@ void LogOdds::Init(uint AlphaSize)
 		m_TrueCountMx[i].resize(m_AlphaSize);
 	}
 
-void LogOdds::AddBackgroundLetter(uint Letter)
-	{
-	assert(m_AlphaSize > 0);
-	if (Letter >= m_AlphaSize)
-		return;
-	asserta(SIZE(m_BackgroundCounts) == m_AlphaSize);
-	m_BackgroundCounts[Letter] += 1;
-	}
-
-void LogOdds::AddTruePair(uint Letter1, uint Letter2)
+void LogOdds::AddPair(uint Letter1, uint Letter2)
 	{
 	assert(m_AlphaSize > 0);
 	if (Letter1 >= m_AlphaSize || Letter2 >= m_AlphaSize)
 		return;
+	m_BackgroundCounts[Letter1] += 1;
+	m_BackgroundCounts[Letter2] += 1;
 	m_TrueCountMx[Letter1][Letter2] += 1;
 	m_TrueCountMx[Letter2][Letter1] += 1;
 	}
@@ -90,7 +81,7 @@ uint LogOdds::GetTrueTotal() const
 	return Total;
 	}
 
-void LogOdds::GetBackgroundFreqs(vector<float> &Freqs) const
+void LogOdds::GetFreqs(vector<float> &Freqs) const
 	{
 	Freqs.clear();
 	uint Total = 0;
@@ -108,7 +99,7 @@ void LogOdds::GetBackgroundFreqs(vector<float> &Freqs) const
 	asserta(feq(SumFreq, 1.0));
 	}
 
-void LogOdds::GetTrueFreqMx(vector<vector<float> > &Mx) const
+void LogOdds::GetFreqMx(vector<vector<float> > &Mx) const
 	{
 	Mx.clear();
 	Mx.resize(m_AlphaSize);
@@ -139,9 +130,9 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	Mx.clear();
 	Mx.resize(m_AlphaSize);
 	vector<float> BackgroundFreqs;
-	GetBackgroundFreqs(BackgroundFreqs);
+	GetFreqs(BackgroundFreqs);
 	vector<vector<float> > FreqMx;
-	GetTrueFreqMx(FreqMx);
+	GetFreqMx(FreqMx);
 	uint Total = GetTrueTotal();
 	float SumFreq = 0;
 	float ExpectedScore = 0;
@@ -171,9 +162,9 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 float LogOdds::GetExpectedScore() const
 	{
 	vector<float> BackgroundFreqs;
-	GetBackgroundFreqs(BackgroundFreqs);
+	GetFreqs(BackgroundFreqs);
 	vector<vector<float> > FreqMx;
-	GetTrueFreqMx(FreqMx);
+	GetFreqMx(FreqMx);
 	uint Total = GetTrueTotal();
 	float SumFreq = 0;
 	float ExpectedScore = 0;
@@ -283,72 +274,157 @@ void LogOdds::MxToSrc2(FILE *f, const string &Name,
 	  EffAlphaSize, Name.c_str());
 	}
 
-void LogOdds::WriteFeatureFreqs(FILE *f) const
+void LogOdds::ValidateCounts() const
 	{
-	vector<float> Freqs;
-	GetBackgroundFreqs(Freqs);
-	asserta(SIZE(Freqs) == m_AlphaSize);
-	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
-		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tfreq=%.3g", Freqs[Letter]);
-		fprintf(f, "\n");
-		}
-	}
+	asserta(SIZE(m_BackgroundCounts) == m_AlphaSize);
+	asserta(SIZE(m_TrueCountMx) == m_AlphaSize);
 
-void LogOdds::WriteFeatureJointFreqs(FILE *f) const
-	{
-	vector<vector<float> > JointFreqs;
-	GetTrueFreqMx(JointFreqs);
-	asserta(SIZE(JointFreqs) == m_AlphaSize);
-	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+	uint Sum1 = 0;
+	for (uint i = 0; i < SIZE(m_BackgroundCounts); ++i)
+		Sum1 += m_BackgroundCounts[i];
+
+	uint Sum2 = 0;
+	for (uint i = 0; i < SIZE(m_TrueCountMx); ++i)
 		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tjointfreqs=");
-		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+		uint RowSum = 0;
+		asserta(SIZE(m_TrueCountMx[i]) == m_AlphaSize);
+		for (uint j = 0; j < SIZE(m_TrueCountMx[i]); ++j)
 			{
-			if (Letter2 > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.3g", JointFreqs[Letter][Letter2]);
+			RowSum += m_TrueCountMx[i][j];
 			}
-		fprintf(f, "\n");
+		asserta(RowSum == m_BackgroundCounts[i]);
+		Sum2 += RowSum;
 		}
+	asserta(Sum1 == Sum2);
 	}
 
-void LogOdds::WriteFeatureScoreMx(FILE *f) const
+void LogOdds::ToTsv(FILE *f) const
 	{
-	vector<vector<float> > ScoreMx;
-	GetLogOddsMx(ScoreMx);
-	asserta(SIZE(ScoreMx) == m_AlphaSize);
-	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
-		{
-		fprintf(f, "letter=%u", Letter);
-		fprintf(f, "\tscores=");
-		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
-			{
-			if (Letter2 > 0)
-				fprintf(f, ",");
-			fprintf(f, "%.4f", ScoreMx[Letter][Letter2]);
-			}
-		fprintf(f, "\n");
-		}
-	}
-
-void LogOdds::WriteFeatureHdr(FILE *f, const string &Name) const
-	{
-	float ES = GetExpectedScore();
-	fprintf(f, "feature=%s", Name.c_str());
-	fprintf(f, "\tAS=%u", m_AlphaSize);
-	fprintf(f, "\tES=%.3f", ES);
-	fprintf(f, "\n");
-	}
-
-void LogOdds::WriteFeature(FILE *f, const string &Name) const
-	{
-	if(f == 0)
+	if (f == 0)
 		return;
-	WriteFeatureHdr(f, Name);
-	WriteFeatureFreqs(f);
-	WriteFeatureJointFreqs(f);
-	WriteFeatureScoreMx(f);
+
+	ValidateCounts();
+
+	fprintf(f, "alpha_size\t%u\n", m_AlphaSize);
+	fprintf(f, "expected_score\t%.4g\n", GetExpectedScore());
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		fprintf(f, "count\t%u\t%u",
+				Letter, m_BackgroundCounts[Letter]);
+		fprintf(f, "\n");
+		}
+
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		fprintf(f, "pair_counts\t%u", Letter);
+		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			fprintf(f, "\t%u", m_TrueCountMx[Letter][Letter2]);
+			}
+		fprintf(f, "\n");
+		}
+	}
+
+void LogOdds::ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Vec)
+	{
+	Vec.clear();
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	uint Value = UINT_MAX;
+	if (Idx == UINT_MAX)
+		{
+		asserta(SIZE(Fields) == m_AlphaSize + 1);
+		asserta(Fields[0] == Name);
+		for (uint i = 0; i < m_AlphaSize; ++i)
+			Vec.push_back(StrToUint(Fields[i+1]));
+		}
+	else
+		{
+		asserta(SIZE(Fields) == m_AlphaSize + 2);
+		asserta(Fields[0] == Name);
+		asserta(StrToUint(Fields[1]) == Idx);
+		for (uint i = 0; i < m_AlphaSize; ++i)
+			Vec.push_back(StrToUint(Fields[i+2]));
+		}
+	}
+
+uint LogOdds::ReadIntValue(FILE *f, const string &Name, uint Idx)
+	{
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	uint Value = UINT_MAX;
+	if (Idx == UINT_MAX)
+		{
+		asserta(SIZE(Fields) == 2);
+		asserta(Fields[0] == Name);
+		Value = StrToUint(Fields[1]);
+		}
+	else
+		{
+		asserta(SIZE(Fields) == 3);
+		asserta(Fields[0] == Name);
+		asserta(StrToUint(Fields[1]) == Idx);
+		Value = StrToUint(Fields[2]);
+		}
+	return Value;
+	}
+
+void LogOdds::ReadStringValue(FILE *f, const string &Name, string &Value)
+	{
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	asserta(SIZE(Fields) == 2);
+	asserta(Fields[0] == Name);
+	Value = Fields[1];
+	}
+
+float LogOdds::ReadFloatValue(FILE *f, const string &Name, uint Idx)
+	{
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	float Value = FLT_MAX;
+	if (Idx == UINT_MAX)
+		{
+		asserta(SIZE(Fields) == 2);
+		asserta(Fields[0] == Name);
+		Value = (float) StrToFloat(Fields[1]);
+		}
+	else
+		{
+		asserta(SIZE(Fields) == 3);
+		asserta(Fields[0] == Name);
+		asserta(StrToUint(Fields[1]) == Idx);
+		Value = (float) StrToFloat(Fields[2]);
+		}
+	return Value;
+	}
+
+void LogOdds::FromTsv(FILE *f)
+	{
+	if (f == 0)
+		return;
+
+	m_AlphaSize = ReadIntValue(f, "alpha_size");
+	float ES = ReadFloatValue(f, "expected_score");
+	m_BackgroundCounts.clear();
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		m_BackgroundCounts.push_back(ReadIntValue(f, "count", i));
+
+	m_TrueCountMx.resize(m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		ReadIntVec(f, "pair_counts", i, m_TrueCountMx[i]);
+
+	ValidateCounts();
 	}
