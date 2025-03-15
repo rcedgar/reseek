@@ -56,7 +56,7 @@ void cmd_train_feature()
 		FT.WriteSummary(stderr);
 
 		string OutputFN;
-		Ps(OutputFN, "%s.%u.tsv", FeatureName.c_str(), AS);
+		Ps(OutputFN, "%s.%u", FeatureName.c_str(), AS);
 		if (optset_output)
 			OutputFN = string(opt(output)) + "." + OutputFN;
 		FT.ToTsv(OutputFN);

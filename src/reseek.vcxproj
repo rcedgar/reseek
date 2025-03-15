@@ -293,6 +293,7 @@
     <ClCompile Include="muprefilter_threads.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="new_trained_features.cpp" />
     <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />

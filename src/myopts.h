@@ -65,6 +65,8 @@ STR_OPT(filin)
 STR_OPT(hjspec)
 STR_OPT(alpha_sizes)
 STR_OPT(ulv)
+STR_OPT(fdir)
+STR_OPT(fs)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

@@ -41,9 +41,9 @@ void cmd_musubstmx()
 	const uint NF = SIZE(Fs);
 
 	vector<const float * const *> ScoreMxs;
-	ScoreMxs.push_back(DSS::GetScoreMx(FEATURE_SS3));
-	ScoreMxs.push_back(DSS::GetScoreMx(FEATURE_NENSS3));
-	ScoreMxs.push_back(DSS::GetScoreMx(FEATURE_RENDist4));
+	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_SS3));
+	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_NENSS3));
+	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_RENDist4));
 
 	DSS D;
 	DSSParams Params;

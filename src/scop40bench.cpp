@@ -775,6 +775,7 @@ void cmd_scop40bench()
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+
 	SCOP40Bench SB;
 	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
@@ -801,8 +802,6 @@ void cmd_scop40bench()
 				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
 	SB.WriteBit(opt(savebit));
-	//SB.LogFirstFewDoms();
-	//SB.LogFirstFewHits();
 	if (optset_sens1fp_report)
 		{
 		FILE *f = CreateStdioFile(opt(sens1fp_report));

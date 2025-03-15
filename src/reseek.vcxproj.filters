@@ -473,6 +473,30 @@
     <ClCompile Include="train_conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="coords.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="loadfeatures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pdb2angles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezer_tor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="squeezer_tor2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="train_angles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="new_trained_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -764,6 +788,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kmeans.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="coords.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mypi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="squeezealgos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="squeezeops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="squeezer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

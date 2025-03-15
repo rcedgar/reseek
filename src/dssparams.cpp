@@ -42,7 +42,10 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 
 void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	{
-	SetDefaults();
+	if (optset_fs)
+		LoadNewTrainFeaturesFromCmdLine();
+	else
+		SetDefaults();
 
 	ALGO_MODE AM = GetAlgoMode(DM);
 
@@ -111,8 +114,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
 		  opt(gapopen), opt(gapext));
-
-	InitScoreMxs();
 	}
 
 void DSSParams::FromTsv(const string &FileName)
@@ -274,10 +275,9 @@ DSSParams::~DSSParams()
 	myfree(m_ScoreMxs);
 	}
 
-void DSSParams::InitScoreMxs()
+void DSSParams::SetScoreMxs()
 	{
-	if (m_ScoreMxs != 0)
-		return;
+	asserta(m_ScoreMxs == 0);
 	uint FeatureCount = GetFeatureCount();
 	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
@@ -317,7 +317,8 @@ void DSSParams::ApplyWeights()
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
-			const float * const *MxF = DSS::GetScoreMx(F);
+			const float * const *MxF = m_NewTrain ?
+				DSS::GetNewScoreMx(F) : DSS::GetOldScoreMx(F);
 			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
 				m_ScoreMxs[F][Letter1][Letter2] = w*MxF[Letter1][Letter2]; // g_ScoreMxs2[F][Letter1][Letter2];

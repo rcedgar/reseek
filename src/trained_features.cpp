@@ -549,44 +549,17 @@ static void FreeMe()
 		FreeFeature(FEATURE(F));
 	}
 
-void DSS::SetFeature(FEATURE F,
-		const vector<float> &Freqs,
-		const vector<vector<float> > &FreqMx,
-		const vector<vector<float> > &ScoreMx)
-	{
-	FreeFeature(F);
-	asserta(uint(F) < FEATURE_COUNT);
-	uint AS = SIZE(Freqs);
-	asserta(SIZE(FreqMx) == AS);
-	asserta(SIZE(ScoreMx) == AS);
-	g_AlphaSizes2[uint(F)] = AS;
-	AllocFeature(F, AS);
-	for (uint i = 0; i < AS; ++i)
-		{
-		g_FreqVecs2[F][i] = Freqs[i];
-
-		asserta(SIZE(FreqMx[i]) == AS);
-		asserta(SIZE(ScoreMx[i]) == AS);
-
-		for (uint j = 0; j < AS; ++j)
-			{
-			(*g_FreqMxs2)[i][j] = FreqMx[i][j];
-			(*g_ScoreMxs2)[i][j] = ScoreMx[i][j];
-			}
-		}
-	}
-
-const float *DSS::GetFreqVec(FEATURE F)
+const float *DSS::GetOldFreqVec(FEATURE F)
 	{
 	return g_FreqVecs2[F];
 	}
 
-const float * const *DSS::GetFreqMx(FEATURE F)
+const float * const *DSS::GetOldFreqMx(FEATURE F)
 	{
 	return g_FreqMxs2[F];
 	}
 
-const float * const *DSS::GetScoreMx(FEATURE F)
+const float * const *DSS::GetOldScoreMx(FEATURE F)
 	{
 	return g_ScoreMxs2[F];
 	}
