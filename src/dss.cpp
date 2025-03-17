@@ -27,29 +27,12 @@ uint DSS::Get_SS(uint Pos)
 	return Letter;
 	}
 
-uint DSS::Get_NENSS3(uint Pos)
-	{
-	SetSS();
-	uint NEN = GetNEN(Pos);
-	if (NEN == UINT_MAX)
-		return 2;
-	char c = m_SS[NEN];
-	switch (c)
-		{
-	case 'h': return 0;
-	case 's': return 1;
-	case 't': return 2;
-	case '~': return 2;
-		}
-	return 2;
-	}
-
 uint DSS::Get_RENSS3(uint Pos)
 	{
 	SetSS();
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return 2;
+		return 0;
 	char c = m_SS[NEN];
 	switch (c)
 		{
@@ -58,21 +41,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return 2;
-	}
-
-uint DSS::Get_SS3(uint Pos)
-	{
-	SetSS();
-	char c = m_SS[Pos];
-	switch (c)
-		{
-	case 'h': return 0;
-	case 's': return 1;
-	case 't': return 2;
-	case '~': return 2;
-		}
-	return 2;
+	return 0;
 	}
 
 void DSS::GetSSEs(uint MinLength, vector<uint> &Los,
@@ -628,22 +597,22 @@ uint DSS::GetMuLetter(const vector<uint> &Letters) const
 	return MuLetter;
 	}
 
-uint DSS::Get_Mu(uint Pos)
-	{
-	uint MuLetter = 0;
-	uint m = 1;
-	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
-		{
-		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
-		if (Letter == UINT_MAX)
-			return UINT_MAX;
-		MuLetter = MuLetter + m*Letter;
-		m *= m_Params->m_MuAlphaSizes[i];
-		}
-
-	asserta(MuLetter < m_Params->m_MuAlphaSize);
-	return MuLetter;
-	}
+//uint DSS::Get_Mu(uint Pos)
+//	{
+//	uint MuLetter = 0;
+//	uint m = 1;
+//	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
+//		{
+//		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
+//		if (Letter == UINT_MAX)
+//			return UINT_MAX;
+//		MuLetter = MuLetter + m*Letter;
+//		m *= m_Params->m_MuAlphaSizes[i];
+//		}
+//
+//	asserta(MuLetter < m_Params->m_MuAlphaSize);
+//	return MuLetter;
+//	}
 
 void DSS::GetMuLetters(vector<uint> &Letters)
 	{

@@ -291,6 +291,7 @@
     <ClCompile Include="loadfeatures.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="muprefilter_threads.cpp" />
+    <ClCompile Include="mu_hardcoded.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="new_trained_features.cpp" />

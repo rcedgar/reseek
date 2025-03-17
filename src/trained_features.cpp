@@ -598,6 +598,8 @@ static bool Init()
 	g_AlphaSizes2[FEATURE_RENDist4] = 4;
 	g_AlphaSizes2[FEATURE_AA4] = 4;
 
+	g_AlphaSizes2[FEATURE_Mu] = 36;
+
 	for (uint i = 0; i < 20; ++i)
 		{
 		g_FreqVecs2[FEATURE_AA][i] = (float) AA_f_i[i];
