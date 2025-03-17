@@ -55,11 +55,11 @@ void cmd_pdb2mega()
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
 		  i, FeatureToStr(F), AlphaSize, Params.m_Weights[i]);
 		fprintf(fOut, "freqs");
-		const float *Freqs = DSS::GetOldFreqVec(F); // g_FreqVecs2[F];
+		const float *Freqs = DSS::GetFreqVec(F); // g_FreqVecs2[F];
 		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
 			fprintf(fOut, "\t%.4g", Freqs[Letter]);
 		fprintf(fOut, "\n");
-		const float * const *FreqMx = DSS::GetOldFreqMx(F); // g_FreqMxs2[F];
+		const float * const *FreqMx = DSS::GetFreqMx(F); // g_FreqMxs2[F];
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{
 			fprintf(fOut, "%u", Letter1);

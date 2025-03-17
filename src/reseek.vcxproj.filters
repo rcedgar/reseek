@@ -494,9 +494,6 @@
     <ClCompile Include="train_angles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="new_trained_features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mu_hardcoded.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

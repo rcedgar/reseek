@@ -42,10 +42,9 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 
 void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	{
+	SetDefaults_Other();
 	if (optset_fs)
-		LoadNewTrainFeaturesFromCmdLine();
-	else
-		SetDefaults();
+		LoadFeatures();
 
 	ALGO_MODE AM = GetAlgoMode(DM);
 
@@ -277,16 +276,23 @@ DSSParams::~DSSParams()
 
 void DSSParams::SetScoreMxs()
 	{
+	AllocScoreMxs();
+	ApplyWeights();
+	}
+
+void DSSParams::AllocScoreMxs()
+	{
 	asserta(m_ScoreMxs == 0);
 	uint FeatureCount = GetFeatureCount();
 	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
 		m_ScoreMxs[i] = 0;
+
 	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
 		{
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
+		uint AS = DSS::GetAlphaSize(F);
 		asserta(m_ScoreMxs[F] == 0);
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
@@ -317,8 +323,7 @@ void DSSParams::ApplyWeights()
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
-			const float * const *MxF = m_NewTrain ?
-				DSS::GetNewScoreMx(F) : DSS::GetOldScoreMx(F);
+			const float * const *MxF =  DSS::GetScoreMx(F);
 			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
 				m_ScoreMxs[F][Letter1][Letter2] = w*MxF[Letter1][Letter2]; // g_ScoreMxs2[F][Letter1][Letter2];

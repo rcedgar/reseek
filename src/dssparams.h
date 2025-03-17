@@ -25,16 +25,12 @@ enum DECIDE_MODE
 class DSSParams
 	{
 public:
+	~DSSParams();
+
+public:
 // Active features
 	vector<FEATURE> m_Features;
 	vector<float> m_Weights;
-	bool m_NewTrain = false;
-
-// m_ScoreMxs[] size FEATURE_COUNT
-	float ***m_ScoreMxs = 0;
-
-// Support copy of m_ScoreMxs ptr without copying data
-	bool m_OwnScoreMxs = false;
 
 	float m_GapOpen = FLT_MAX;
 	float m_GapExt = FLT_MAX;
@@ -55,15 +51,14 @@ public:
 	int m_MKF_X2 = INT_MAX;
 	int m_MKF_MinHSPScore = INT_MAX;
 	float m_MKF_MinMegaHSPScore = FLT_MAX;
+	float ***m_ScoreMxs = 0;
+	bool m_OwnScoreMxs = false;
 
 public:
 	static const uint m_MuFeatureCount = 3;
 	static const FEATURE m_MuFeatures[m_MuFeatureCount];
 	static const uint m_MuAlphaSizes[3];
 	static const uint m_MuAlphaSize;
-
-public:
-	~DSSParams();
 
 public:
 	void Clear()
@@ -89,8 +84,8 @@ public:
 		m_Weights.push_back(float(w));
 		}
 
-	void LoadNewTrainFeaturesFromCmdLine();
-	FEATURE LoadNewTrainFeature(const string &FN);
+	void LoadFeatures();
+	FEATURE LoadFeature(const string &FN);
 
 	void FromParamStr(const string &ParamStr);
 	void NormalizeWeights();
@@ -105,6 +100,7 @@ public:
 	void ToFev(FILE *f, bool nl) const;
 	void FromTsv(const string &FileName);
 	void SetScoreMxs();
+	void AllocScoreMxs();
 	void ApplyWeights();
 	};
 

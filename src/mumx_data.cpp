@@ -1,7 +1,10 @@
 #include "myutils.h"
 
+// [b031913]
 // reseek -train_feature ../traindata/train.fa2 -db ../data/scop40.bca -feature Mu -alpha_size 36 -wildcard no
-// reseek -musubstmx Mu.36 -output musubstmx.txt -log musubstmx.log [0cd02b5]
+// reseek -musubstmx Mu.36 -output musubstmx.txt -log musubstmx.log 
+
+// Not active, used only by DSSAligner::SetMuQP() if !m_Params->m_UsePara
 float ScoreMx_Mu[36][36] = {
   {  2.61f, -2.66f,  0.15f,  1.34f, -5.51f, -2.43f,  1.66f, -4.78f, -1.73f,  1.66f, -3.47f, -0.44f,  0.30f, -5.42f, -2.50f,  0.80f, -4.26f, -1.81f,  0.36f, -3.25f, -1.65f, -0.88f, -5.02f, -3.52f, -0.45f, -4.50f, -2.67f, -0.68f, -2.42f, -2.00f, -1.84f, -3.90f, -3.28f, -1.30f, -3.46f, -2.64f,  }, // 0
   { -2.66f,  4.02f,  2.09f, -3.53f,  0.73f,  0.11f, -2.78f,  1.46f,  0.47f, -3.57f,  3.00f,  0.63f, -4.43f,  0.20f, -0.48f, -4.11f,  1.28f, -0.37f, -3.44f,  1.81f, -0.45f, -4.67f, -0.47f, -1.58f, -3.67f,  0.37f, -1.24f, -2.51f,  0.73f, -1.30f, -3.70f, -1.90f, -2.33f, -2.48f, -1.09f, -1.97f,  }, // 1
@@ -41,9 +44,7 @@ float ScoreMx_Mu[36][36] = {
   { -2.64f, -1.97f, -1.52f, -3.24f, -3.21f, -1.86f, -2.64f, -2.39f, -1.50f, -2.61f, -1.64f, -0.99f, -2.75f, -2.75f, -1.28f, -2.22f, -1.29f, -0.64f, -1.96f, -0.68f, -0.15f, -1.74f, -1.71f, -0.26f, -1.25f, -0.37f,  0.37f, -0.62f,  0.56f,  1.02f, -0.39f, -0.29f,  1.18f,  0.27f,  0.86f,  1.69f,  }, // 35
 };
 
-// Used by k-mer filter (X-drop), also inactive alternative to parasail
-// reseek -train_feature ../traindata/train.fa2 -db ../data/scop40.bca -feature Mu -alpha_size 36 -wildcard no
-// reseek -musubstmx Mu.36 -output musubstmx.txt -log musubstmx.log [0cd02b5]
+// Used by k-mer filter (X-drop)
 int8_t IntScoreMx_Mu[36][36] = {
   {  3, -3,  0,  1, -6, -2,  2, -5, -2,  2, -3,  0,  0, -5, -2,  1, -4, -2,  0, -3, -2, -1, -5, -4,  0, -4, -3, -1, -2, -2, -2, -4, -3, -1, -3, -3,  }, // 0
   { -3,  4,  2, -4,  1,  0, -3,  1,  0, -4,  3,  1, -4,  0,  0, -4,  1,  0, -3,  2,  0, -5,  0, -2, -4,  0, -1, -3,  1, -1, -4, -2, -2, -2, -1, -2,  }, // 1
@@ -84,8 +85,6 @@ int8_t IntScoreMx_Mu[36][36] = {
 };
 
 // Used by prefilter
-// reseek -train_feature ../traindata/train.fa2 -db ../data/scop40.bca -feature Mu -alpha_size 36 -wildcard no
-// reseek -musubstmx Mu.36 -output musubstmx.txt -log musubstmx.log [0cd02b5]
 int8_t Mu_S_ij_i8[36][36] = {
   {  8, -8,  0,  4,-17, -7,  5,-14, -5,  5,-10, -1,  1,-16, -7,  2,-13, -5,  1,-10, -5, -3,-15,-11, -1,-13, -8, -2, -7, -6, -6,-12,-10, -4,-10, -8,  }, // 0
   { -8, 12,  6,-11,  2,  0, -8,  4,  1,-11,  9,  2,-13,  1, -1,-12,  4, -1,-10,  5, -1,-14, -1, -5,-11,  1, -4, -8,  2, -4,-11, -6, -7, -7, -3, -6,  }, // 1

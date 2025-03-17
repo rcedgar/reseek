@@ -133,15 +133,11 @@ public:
 	static uint ValueToInt(const vector<float> &Ts, float Value);
 	static uint GetAlphaSize(FEATURE F);
 
-	static const float *GetOldFreqVec(FEATURE F);
-	static const float * const *GetOldFreqMx(FEATURE F);
-	static const float * const *GetOldScoreMx(FEATURE F);
+	static const float *GetFreqVec(FEATURE F);
+	static const float * const *GetFreqMx(FEATURE F);
+	static const float * const *GetScoreMx(FEATURE F);
 
-	static const float *GetNewFreqVec(FEATURE F);
-	static const float * const *GetNewFreqMx(FEATURE F);
-	static const float * const *GetNewScoreMx(FEATURE F);
-
-	static void SetNewTrainFeature(FEATURE F,
+	static void SetFeature(FEATURE F, bool Wildcard,
 		const vector<float> &Freqs,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,

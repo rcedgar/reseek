@@ -3,7 +3,7 @@
 #include "dss.h"
 #include "featuretrainer.h"
 
-FEATURE DSSParams::LoadNewTrainFeature(const string &FN)
+FEATURE DSSParams::LoadFeature(const string &FN)
 	{
 	FeatureTrainer FT;
 	vector<float> Freqs;
@@ -13,12 +13,15 @@ FEATURE DSSParams::LoadNewTrainFeature(const string &FN)
 	FT.GetFreqs(Freqs);
 	FT.GetFreqMx(FreqMx);
 	FT.GetLogOddsMx(ScoreMx);
-	DSS::SetNewTrainFeature(FT.m_F, Freqs, FreqMx, ScoreMx, FT.m_BinTs);
+	DSS::SetFeature(FT.m_F, FT.m_Wildcard,
+							Freqs, FreqMx, ScoreMx, FT.m_BinTs);
 	return FT.m_F;
 	}
 
-void DSSParams::LoadNewTrainFeaturesFromCmdLine()
+void DSSParams::LoadFeatures()
 	{
+	asserta(optset_fdir && optset_fs);
+
 	Clear();
 	SetDefaults_Other();
 
@@ -42,10 +45,10 @@ void DSSParams::LoadNewTrainFeaturesFromCmdLine()
 		asserta(SIZE(Fields2) == 2);
 		const string &FN = Fields2[0];
 		string Path = FDir + FN;
-		FEATURE F = LoadNewTrainFeature(Path);
+		FEATURE F = LoadFeature(Path);
 		double w = StrToFloat(Fields2[1]);
 		AddFeature(F, w);
 		ProgressLog("%s : %.3g\n", Path.c_str(), w);
 		}
-	m_NewTrain = true;
+	SetScoreMxs();
 	}
