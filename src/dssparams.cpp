@@ -62,8 +62,8 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	switch (AM)
 		{
 	case AM_Fast:
-		m_Omega = 22;
-		m_OmegaFwd = 50;
+		m_Omega = 20;
+		m_OmegaFwd = 45;
 		m_MKFL = 500;
 		m_MKF_X1 = 8;
 		//m_MKF_X2 = 8;
