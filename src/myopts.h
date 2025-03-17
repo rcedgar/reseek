@@ -67,6 +67,7 @@ STR_OPT(alpha_sizes)
 STR_OPT(ulv)
 STR_OPT(fdir)
 STR_OPT(fs)
+STR_OPT(wildcard)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

@@ -428,3 +428,44 @@ void LogOdds::FromTsv(FILE *f)
 
 	ValidateCounts();
 	}
+
+void LogOdds::GetExpectedScores(vector<float> &ExpectedScores) const
+	{
+	vector<vector<float> > ScoreMx;
+	vector<float> Freqs;
+	GetFreqs(Freqs);
+	GetLogOddsMx(ScoreMx);
+
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		float ExpectedScore = 0;
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			float Freq = Freqs[Letter];
+			float Score = ScoreMx[Letter][Letter2];
+			ExpectedScore += Freq*Score;
+			}
+		ExpectedScores.push_back(ExpectedScore);
+		}
+	}
+
+uint LogOdds::GetBestDefaultLetter(uint WildcardLetter) const
+	{
+	vector<float> ExpectedScores;
+	GetExpectedScores(ExpectedScores);
+	asserta(SIZE(ExpectedScores) == m_AlphaSize);
+	uint BestLetter = UINT_MAX;
+	float BestExpectedScore = -FLT_MAX;
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		if (Letter == WildcardLetter)
+			continue;
+		float ES = ExpectedScores[Letter];
+		if (ES > BestExpectedScore)
+			{
+			BestLetter = Letter;
+			BestExpectedScore = ES;
+			}
+		}
+	return BestLetter;
+	}

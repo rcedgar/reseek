@@ -23,6 +23,7 @@ uint DSS::ValueToInt(const vector<float> &Ts, float Value)
 	}
 
 void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
+				   bool Wildcard,
 				   float &MinValue, float &MedValue, float &MaxValue, float &UndefFreq,
 				   vector<float> &BinTs)
 	{
@@ -53,10 +54,9 @@ void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
 	asserta(FirstValue != -FLT_MAX);
 	asserta(LastValue != FLT_MAX);
 
-	uint BinCount = AlphaSize - 1;
+	uint BinCount = (Wildcard ? AlphaSize - 1 : AlphaSize);
 	for (uint i = 0; i + 1 < BinCount; ++i)
 		{
-		//uint k = ((i+1)*K)/(BinCount + 1);
 		uint k = ((i+1)*K)/BinCount;
 		float t = SortedValues[k];
 		if (i > 0)
@@ -68,5 +68,5 @@ void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
 			}
 		BinTs.push_back(t);
 		}
-	asserta(SIZE(BinTs) + 2 == AlphaSize);
+	asserta(SIZE(BinTs) + 1 == BinCount);
 	}

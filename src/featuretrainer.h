@@ -28,12 +28,14 @@ public:
 	DSS m_D;
 	DSS m_DQ;
 	DSS m_DR;
+	bool m_Wildcard = false;
+	uint m_BestDefaultLetter = UINT_MAX;
 
 public:
 	void SetFeature(FEATURE F);
 	void SetAlphaSize(uint AS);
 	void SetInput(const string &ChainsFN, const string &AlnsFN);
-	void Train();
+	void Train(bool Wildcard);
 	void WriteSummary(FILE *f) const;
 	void ToTsv(const string &FN) const;
 	void FromTsv(const string &FN);

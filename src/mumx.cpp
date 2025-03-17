@@ -2,6 +2,7 @@
 #include "dss.h"
 #include "mumx.h"
 #include "mermx.h"
+#include "featuretrainer.h"
 
 static int8_t intround(float f)
 	{
@@ -32,48 +33,55 @@ const MerMx &GetMuMerMx(uint k)
 
 void cmd_musubstmx()
 	{
-	FILE *f = CreateStdioFile(g_Arg1);
+	FeatureTrainer FT;
+	FT.FromTsv(g_Arg1);
+	const uint AS = FT.m_AlphaSize;
 
-	vector<FEATURE> Fs;
-	Fs.push_back(FEATURE_SS3);
-	Fs.push_back(FEATURE_NENSS3);
-	Fs.push_back(FEATURE_RENDist4);
-	const uint NF = SIZE(Fs);
+	vector<vector<float> > MuMx;
+	FT.GetLogOddsMx(MuMx);
 
-	vector<const float * const *> ScoreMxs;
-	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_SS3));
-	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_NENSS3));
-	ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_RENDist4));
+	FILE *f = CreateStdioFile(opt(output));
 
-	DSS D;
-	DSSParams Params;
-	D.SetParams(Params);
-	uint AS = D.GetAlphaSize(FEATURE_Mu);
-	vector<vector<float> > MuMx(AS);
-	for (uint i = 0; i < AS; ++i)
-		{
-		MuMx[i].resize(AS);
+	//vector<FEATURE> Fs;
+	//Fs.push_back(FEATURE_SS3);
+	//Fs.push_back(FEATURE_NENSS3);
+	//Fs.push_back(FEATURE_RENDist4);
+	//const uint NF = SIZE(Fs);
 
-		vector<uint> Lettersi;
-		D.GetMuLetters(i, Lettersi);
-		asserta(SIZE(Lettersi) == NF);
+	//vector<const float * const *> ScoreMxs;
+	//ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_SS3));
+	//ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_NENSS3));
+	//ScoreMxs.push_back(DSS::GetOldScoreMx(FEATURE_RENDist4));
 
-		for (uint j = 0; j < AS; ++j)
-			{
-			vector<uint> Lettersj;
-			D.GetMuLetters(j, Lettersj);
-			asserta(SIZE(Lettersj) == NF);
+	//DSS D;
+	//DSSParams Params;
+	//D.SetParams(Params);
+	//uint AS = D.GetAlphaSize(FEATURE_Mu);
+	//vector<vector<float> > MuMx(AS);
+	//for (uint i = 0; i < AS; ++i)
+	//	{
+	//	MuMx[i].resize(AS);
 
-			float Score = 0;
-			for (uint k = 0; k < NF; ++k)
-				{
-				uint Letteri = Lettersi[k];
-				uint Letterj = Lettersj[k];
-				Score += ScoreMxs[k][Letteri][Letterj];
-				}
-			MuMx[i][j] = Score;
-			}
-		}
+	//	vector<uint> Lettersi;
+	//	D.GetMuLetters(i, Lettersi);
+	//	asserta(SIZE(Lettersi) == NF);
+
+	//	for (uint j = 0; j < AS; ++j)
+	//		{
+	//		vector<uint> Lettersj;
+	//		D.GetMuLetters(j, Lettersj);
+	//		asserta(SIZE(Lettersj) == NF);
+
+	//		float Score = 0;
+	//		for (uint k = 0; k < NF; ++k)
+	//			{
+	//			uint Letteri = Lettersi[k];
+	//			uint Letterj = Lettersj[k];
+	//			Score += ScoreMxs[k][Letteri][Letterj];
+	//			}
+	//		MuMx[i][j] = Score;
+	//		}
+	//	}
 
 	fprintf(f, "\n");
 	fprintf(f, "float ScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);

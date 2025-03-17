@@ -4,12 +4,23 @@
 void cmd_train_feature()
 	{
 	asserta(optset_feature);
+	asserta(optset_wildcard);
+	asserta(!optset_output);
 
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
 
 	const string &AlnsFN = g_Arg1;
 	const string &ChainsFN = opt(db);
+
+	const string strWildcard = opt(wildcard);
+	bool Wildcard = false;
+	if (strWildcard == "yes")
+		Wildcard = true;
+	else if (strWildcard == "no")
+		Wildcard = false;
+	else
+		Die("Bad -wildcard");
 
 	vector<uint> AlphaSizes;
 	bool IsInt = FeatureIsInt(F);
@@ -51,14 +62,20 @@ void cmd_train_feature()
 		{
 		uint AS = AlphaSizes[i];
 		FT.SetAlphaSize(AS);
-		FT.Train();
+		FT.Train(Wildcard);
 		FT.WriteSummary(g_fLog);
 		FT.WriteSummary(stderr);
 
 		string OutputFN;
 		Ps(OutputFN, "%s.%u", FeatureName.c_str(), AS);
-		if (optset_output)
-			OutputFN = string(opt(output)) + "." + OutputFN;
 		FT.ToTsv(OutputFN);
+
+		vector<float> ExpectedScores;
+		FT.GetExpectedScores(ExpectedScores);
+		Log("\n");
+		Log("%s(%u) expected scores\n", FeatureName.c_str(), AS);
+		asserta(SIZE(ExpectedScores) == AS);
+		for (uint i = 0; i < AS; ++i)
+			Log("%2u = %.3g\n", i, ExpectedScores[i]);
 		}
 	}

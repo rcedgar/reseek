@@ -516,15 +516,6 @@ uint DSS::Get_NENDist4(uint Pos)
 	return ND/4;
 	}
 
-uint DSS::Get_RENDist4(uint Pos)
-	{
-	uint ND = GetFeature(FEATURE_RENDist, Pos);
-	if (ND == UINT_MAX)
-		return 0;
-	asserta(ND < 16);
-	return ND/4;
-	}
-
 // ADEHKNPQRST,CFILMVWY,G
 uint DSS::Get_AA3(uint Pos)
 	{

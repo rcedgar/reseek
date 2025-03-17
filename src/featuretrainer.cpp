@@ -62,7 +62,7 @@ void FeatureTrainer::SetAlphaSize(uint AS)
 		return;
 
 	asserta(!m_FloatValues.empty());
-	DSS::Condense(m_FloatValues, m_AlphaSize, 
+	DSS::Condense(m_FloatValues, m_AlphaSize, m_Wildcard,
 					m_MinValue, m_MedValue, m_MaxValue,
 					m_UndefFreq, m_BinTs);
 	}
@@ -188,8 +188,9 @@ void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
 		}
 	}
 
-void FeatureTrainer::Train()
+void FeatureTrainer::Train(bool Wildcard)
 	{
+	m_Wildcard = Wildcard;
 	const uint SeqCount = m_Alns.GetSeqCount();
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
@@ -201,6 +202,7 @@ void FeatureTrainer::Train()
 					 m_FeatureName, m_AlphaSize);
 		SetJointFreqsPair(PairIndex);
 		}
+	m_BestDefaultLetter = GetBestDefaultLetter(UINT_MAX);
 	}
 
 void FeatureTrainer::WriteSummary(FILE *f) const
@@ -208,7 +210,7 @@ void FeatureTrainer::WriteSummary(FILE *f) const
 	if (f == 0)
 		return;
 	float ES = GetExpectedScore();
-	fprintf(f, "%s(%u)", m_FeatureName, m_AlphaSize);
+	fprintf(f, "%s(%u) wc=%c", m_FeatureName, m_AlphaSize, yon(m_Wildcard));
 	if (m_IsInt)
 		fprintf(f, " integer");
 	else
@@ -231,6 +233,7 @@ void FeatureTrainer::ToTsv(const string &FN) const
 	FILE *f = CreateStdioFile(FN);
 	fprintf(f, "feature\t%s\n", m_FeatureName);
 	fprintf(f, "type\t%s\n", m_IsInt ? "int" : "float");
+	fprintf(f, "wildcard\t%s\n", m_Wildcard ? "yes" : "no");
 	if (!m_IsInt)
 		{
 		fprintf(f, "min\t%.3g\n", m_MinValue);
@@ -238,6 +241,8 @@ void FeatureTrainer::ToTsv(const string &FN) const
 		fprintf(f, "max\t%.3g\n", m_MaxValue);
 		fprintf(f, "undef\t%.4f\n", m_UndefFreq);
 		}
+	if (!m_Wildcard)
+		fprintf(f, "default_letter\t%u\n", m_BestDefaultLetter);
 
 	LogOdds::ToTsv(f);
 	
@@ -268,6 +273,15 @@ void FeatureTrainer::FromTsv(const string &FN)
 	else
 		Die("Bad feature type '%s'", Type.c_str());
 
+	string strWildcard;
+	ReadStringValue(f, "wildcard", strWildcard);
+	if (strWildcard == "yes")
+		m_Wildcard = true;
+	else if (strWildcard == "no")
+		m_Wildcard = false;
+	else
+		Die("Bad wildcard value '%s'", strWildcard.c_str());
+
 	if (!m_IsInt)
 		{
 		m_MinValue = ReadFloatValue(f, "min");
@@ -276,13 +290,22 @@ void FeatureTrainer::FromTsv(const string &FN)
 		m_UndefFreq = ReadFloatValue(f, "undef");
 		}
 
+	m_BestDefaultLetter = UINT_MAX;
+	if (!m_Wildcard)
+		m_BestDefaultLetter = ReadIntValue(f, "default_letter", UINT_MAX);
+
 	LogOdds::FromTsv(f);
 
 	m_BinTs.clear();
 	if (!m_IsInt)
 		{
-		for (uint i = 0; i + 2 < m_AlphaSize; ++i)
+		uint BinCount = (m_Wildcard ? m_AlphaSize - 1 : m_AlphaSize);
+		for (uint i = 0; i + 1 < BinCount; ++i)
 			m_BinTs.push_back(ReadFloatValue(f, "bint", i));
+
+		string Line;
+		bool Ok = ReadLineStdioFile(f, Line);
+		asserta(!Ok);
 		}
 
 	CloseStdioFile(f);

@@ -124,6 +124,7 @@ public:
 
 public:
 	static void Condense(const vector<float> &Values, uint AlphaSize,
+						 bool Wildcard,
 						 float &MinValue, float &MedValue,
 						 float &MaxValue, float &UndefFreq,
 						 vector<float> &BinTs);

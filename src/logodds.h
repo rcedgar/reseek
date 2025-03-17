@@ -31,6 +31,8 @@ public:
 	float ReadFloatValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
 	uint ReadIntValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
 	void ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Vec);
+	void GetExpectedScores(vector<float> &ExpectedScores) const;
+	uint GetBestDefaultLetter(uint WildcardLetter) const;
 	};
 
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi);
