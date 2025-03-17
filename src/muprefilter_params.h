@@ -12,4 +12,5 @@ static const uint RSB_SIZE = 1500;
 static const uint ALPHABET_SIZE = 36;
 
 // N=1679616, Min=16, LoQ=34, Med=38, HiQ=41, Max=60, Avg=37.8889
-static const int MIN_KMER_PAIR_SCORE = 36;
+//static const int MIN_KMER_PAIR_SCORE = 36;
+static const int MIN_KMER_PAIR_SCORE = 29;
