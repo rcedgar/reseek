@@ -20,6 +20,8 @@ static const int parasail_mu_map[256] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
 
+// reseek -train_feature ../traindata/train.fa2 -db ../data/scop40.bca -feature Mu -alpha_size 36 -wildcard no
+// reseek.exe -musubstmx Mu.36 -output musubstmx.txt -log musubstmx.log [f9e61d1]+1
 static const int parasail_mu_[36*36] = {
  3,-1, 1, 1,-3,-1, 2,-2, 0, 1,-3,-1,-1,-5,-3, 0,-4,-2, 0,-4,-2,-2,-6,-4,-1,-5,-3,-1,-5,-3,-3,-7,-5,-2,-6,-4,  // 0
 -1, 4, 2,-3, 1,-1,-2, 2, 0,-3, 2, 0,-5, 0,-2,-4, 0,-2,-4, 1,-1,-6,-1,-3,-5,-1,-3,-5, 0,-2,-7,-2,-4,-6,-2,-4,  // 1
