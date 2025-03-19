@@ -69,7 +69,9 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_cigar:
 		{
 		string CIGAR;
-		PathToCIGAR(m_Path.c_str(), CIGAR, Up);
+		uint QLo = GetLo(Up);
+		uint TLo = GetLo(!Up);
+		LocalPathToCIGAR(m_Path.c_str(), QLo, TLo, CIGAR, Up);
 		fputs(CIGAR.c_str(), f);
 		break;
 		}

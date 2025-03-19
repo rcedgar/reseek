@@ -217,10 +217,24 @@ const char *CIGARToPath(const string &CIGAR, string &Path)
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
-		asserta(Op == 'M' || Op == 'D' || Op == 'I');
 		uint OpLength = OpLengths[i];
-		for (uint j = 0; j < OpLength; ++j)
-			Path += Op;
+		if (Op == 'M' || Op == 'D' || Op == 'I')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += Op;
+			}
+		else if (Op == 'S')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += 'I';
+			}
+		else if (Op == 'T')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += 'D';
+			}
+		else
+			Die("Bad op in CIGAR '%c'", Op);
 		}
 	return Path.c_str();
 	}

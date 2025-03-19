@@ -15,6 +15,8 @@ uint const DSSParams::m_MuAlphaSize = 36;
 
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
+	int sum = int(opt(fast)) + int(opt(sensitive)) + int(opt(verysensitive));
+	if (sum != 1) Die("Must set exactly one of -fast, -sensitive or -verysensitive");
 	if (optset_fast)
 		return AM_Fast;
 	else if (optset_sensitive)

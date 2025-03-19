@@ -65,5 +65,6 @@ C(train_conf)
 C(train_angles)
 C(pdb2angles)
 C(squeeze)
+C(scop40bench_pre)
 
 #undef C

@@ -13,7 +13,6 @@
 #include <set>
 
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
-uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR);
 
 bool Scop40_IsTP_SF(const string &Label1, const string &Label2)
 	{
@@ -315,10 +314,20 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 		return;
 		}
 
-	if (Up)
-		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+	if (opt(benchfwdscore))
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_AlnFwdScore);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_AlnFwdScore);
+		}
 	else
-		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+		}
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()

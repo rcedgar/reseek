@@ -114,6 +114,61 @@ DSSAligner::DSSAligner()
 		}
 	}
 
+float DSSAligner::GetDPScoreGivenPath(const vector<vector<byte> > &Profile1,
+	const vector<vector<byte> > &Profile2, const string &Path) const
+	{
+	const uint ColCount = SIZE(Path);
+	const uint L1 = SIZE(Profile1[0]);
+	const uint L2 = SIZE(Profile2[0]);
+	uint Pos1 = 0;
+	uint Pos2 = 0;
+	bool InGap = false;
+	float GapOpen = m_Params->m_GapOpen;
+	float GapExt = m_Params->m_GapExt;
+	asserta(GapOpen < 0);
+	asserta(GapExt < 0);
+	float Score = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		switch (c)
+			{
+		case 'M':
+			Score += GetScorePosPair(Profile1, Profile2, Pos1++, Pos2++);
+			InGap = false;
+			break;
+
+		case 'D':
+			if (InGap)
+				Score += GapExt;
+			else
+				{
+				Score += GapOpen;
+				InGap = true;
+				}
+			++Pos1;
+			break;
+
+		case 'I':
+			if (InGap)
+				Score += GapExt;
+			else
+				{
+				Score += GapOpen;
+				InGap = true;
+				}
+			++Pos2;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	asserta(Pos1 == L1);
+	asserta(Pos2 == L2);
+	return Score;
+	}
+
 float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const
 	{
@@ -440,6 +495,85 @@ void DSSAligner::AlignQueryTarget_Trace()
 	else
 		Log("EvalueA=%.1f\n", E);
 	Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
+	}
+
+// RCE 'D'/'I' convention is reverse of CIGAR
+static char Fix(char c)
+	{
+	if (c == 'M')
+		return 'M';
+	else if (c == 'D')
+		return 'I';
+	else if (c == 'I')
+		return 'D';
+	asserta(false);
+	return 0;
+	}
+
+void DSSAligner::GetCIGAR(string &CIGAR) const
+	{
+	CIGAR.clear();
+	const uint ColCount = SIZE(m_Path);
+	if (ColCount == 0)
+		return;
+
+	char LastC = m_Path[0];
+	uint n = 1;
+
+	if (m_LoA > 0)
+		Psa(CIGAR, "%uS", m_LoA);
+	if (m_LoB > 0)
+		Psa(CIGAR, "%uT", m_LoB);
+
+	for (uint i = 1; ; ++i)
+		{
+		char c = m_Path[i];
+		if (c == 0)
+			break;
+
+		if (c == LastC)
+			{
+			++n;
+			continue;
+			}
+		else
+			{
+			assert(n > 0);
+			Psa(CIGAR, "%u%c", n, Fix(LastC));
+			LastC = c;
+			n = 1;
+			}
+		}
+	if (n > 0)
+		Psa(CIGAR, "%u%c", n, Fix(LastC));
+	else
+		asserta(false);
+
+	void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+	uint nm, nd, ni;
+	GetPathCounts(m_Path, nm, nd, ni);
+	uint na = m_LoA + nm + nd;
+	uint nb = m_LoB + nm + ni;
+	uint LA = m_ChainA->GetSeqLength();
+	uint LB = m_ChainB->GetSeqLength();
+	asserta(na <= LA);
+	asserta(nb <= LB);
+	if (na < LA)
+		Psa(CIGAR, "%uS", LA - na);
+	if (nb < LB)
+		Psa(CIGAR, "%uT", LB - nb);
+	}
+
+void DSSAligner::ValidatePath() const
+	{
+	if (m_Path.empty())
+		return;
+	uint M, D, I;
+	GetPathCounts(m_Path, M, D, I);
+	uint LA = m_ChainA->GetSeqLength();
+	uint LB = m_ChainB->GetSeqLength();
+	asserta(m_LoA + M + D <= LA);
+	asserta(m_LoB + M + I <= LB);
 	}
 
 void DSSAligner::AlignQueryTarget()

@@ -129,6 +129,9 @@ public:
 	float **GetSMxData();
 	void AllocSMxData(uint LA, uint LB);
 	void FreeSMxData();
+	float GetDPScoreGivenPath(const vector<vector<byte> > &Profile1,
+							  const vector<vector<byte> > &Profile2,
+							  const string &Path) const;
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
@@ -172,6 +175,8 @@ public:
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
+	void ValidatePath() const;
+	void GetCIGAR(string &CIGAR) const;
 
 public:
 	static void Stats();
