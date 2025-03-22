@@ -2,7 +2,21 @@
 #include "peaker.h"
 #include <time.h>
 
-// test change
+/***
+dy=0.01
+mindy=0.001
+sigfig=4
+latin=yes
+var=AA	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
+var=NENDist	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
+var=Conf	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
+var=NENConf	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
+var=RENDist	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
+var=DstNxtHlx	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
+var=NormDens	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
+var=gapopen	min=0	max=3	min=0.5	max=3	bins=8	delta=0.05
+var=gapext	min=0	max=3	min=0.1	max=0.3	bins=8	delta=0.05
+***/
 
 FILE *Peaker::m_fTsv = 0;
 
@@ -49,6 +63,20 @@ const char *Peaker::GetVarName(uint VarIdx) const
 	{
 	const VarSpec &Spec = GetVarSpec(VarIdx);
 	return Spec.m_Name.c_str();
+	}
+
+const string &Peaker::GetVarNameStr(uint VarIdx) const
+	{
+	const VarSpec &Spec = GetVarSpec(VarIdx);
+	return Spec.m_Name;
+	}
+
+void Peaker::GetVarNames(vector<string> &Names) const
+	{
+	Names.clear();
+	const uint VarCount = GetVarCount();
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		Names.push_back(GetVarNameStr(VarIdx));
 	}
 
 // xv are equivalent if all diffs are <= VarSpec.MinDelta
@@ -259,7 +287,7 @@ const char *Peaker::VarToStr(double x, uint VarIdx, string &s) const
 double Peaker::Calc(const vector<double> &xv)
 	{
 	asserta(m_EvalFunc != 0);
-	double y = (*m_EvalFunc)(xv);
+	double y = (*m_EvalFunc)(*this, xv);
 	return y;
 	}
 
@@ -326,6 +354,16 @@ void Peaker::LogPair(uint xIdx1, uint xIdx2) const
 		}
 	Log(" %u changes\n", ChangeCount);
 	}
+
+/***
+dy=3200
+mindy=300
+cool=0.8
+sigfig=4
+latin=20
+var=adsw        min=0   max=1   mind=0.01       maxd=0.1        bins=8
+var=lddtw       min=0   max=1   mind=0.01       maxd=0.1        bins=8
+***/
 
 void Peaker::Init(const vector<string> &SpecLines,
   PTR_EVAL_FUNC EF)

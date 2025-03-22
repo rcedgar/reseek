@@ -508,6 +508,7 @@
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="twohitdiag.h" />
+    <ClInclude Include="undef_binning.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />

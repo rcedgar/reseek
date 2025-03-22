@@ -754,7 +754,7 @@ uint DSS::GetFeatureLo(FEATURE F, uint Pos)
 #define F(x)	case FEATURE_##x: \
 		{ \
 		float Value = GetFloat_##x(Pos); \
-		return ValueToInt_##x(Value); \
+		Die("TODO " #x); \
 		}
 #include "floatfeatures.h"
 #undef F

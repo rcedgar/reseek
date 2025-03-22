@@ -1,6 +1,8 @@
 #include "myutils.h"
 #include "dss.h"
 
+#if 0
+
 #define BIN_T(Feat, Idx, t)	if (Value < t) return Idx;
 
 uint DSS::ValueToInt_NENDist(float Value) const
@@ -222,3 +224,5 @@ BIN_T(DiffNENDist, 13, 10);
 BIN_T(DiffNENDist, 14, 10.28);
 	return 15;
 	}
+
+#endif // 0

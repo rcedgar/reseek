@@ -2,7 +2,9 @@
 
 #include "varspec.h"
 
-typedef double (*PTR_EVAL_FUNC)(const vector<double> &xv);
+class Peaker;
+
+typedef double (*PTR_EVAL_FUNC)(const Peaker &P, const vector<double> &xv);
 
 class Peaker
 	{
@@ -92,6 +94,8 @@ public:
 	const char *VarsToStr(const vector<double> &xv, string &s) const;
 	const char *VarToStr(double x, uint VarIdx, string &s) const;
 	const char *GetVarName(uint VarIdx) const;
+	const string &GetVarNameStr(uint VarIdx) const;
+	void GetVarNames(vector<string> &Names) const;
 	bool Cmp_xs(const vector<double> &xs1, const vector<double> &xs2) const;
 	uint Find_xs(const vector<double> &xv) const;
 	uint Add_xv(const vector<double> &xv);

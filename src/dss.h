@@ -6,6 +6,7 @@
 #include "dssparams.h"
 #include "xdpmem.h"
 #include "flatmx.h"
+#include "undef_binning.h"
 
 class PDBChain;
 class DSSAligner;
@@ -123,15 +124,31 @@ public:
 		}
 
 public:
+	static uint GetAlphaSize(FEATURE F);
 	static void Condense(const vector<float> &Values, uint AlphaSize,
-						 bool Wildcard,
-						 float &MinValue, float &MedValue,
-						 float &MaxValue, float &UndefFreq,
-						 vector<float> &BinTs);
+						 UNDEF_BINNING UB, uint BestDefaultLetter, uint &DefaultLetter,
+						 float &MinValue, float &MedValue, float &MaxValue,
+						 float &UndefFreq, vector<float> &BinTs);
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
-	static uint ValueToInt(const vector<float> &Ts, float Value);
-	static uint GetAlphaSize(FEATURE F);
+
+	static uint ValueToInt(float Value, UNDEF_BINNING UB, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
+
+	static uint ValueToInt_Never(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
+
+	static uint ValueToInt_OnlyZero(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
+
+	static uint ValueToInt_ZeroOverload(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
+
+	static uint ValueToInt_Default(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
+
+	static uint ValueToInt_Ignore(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter);
 
 	static const float *GetFreqVec(FEATURE F);
 	static const float * const *GetFreqMx(FEATURE F);
@@ -142,6 +159,9 @@ public:
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
 		const vector<float> &BinTs);
+
+	static uint GetIntValue(FEATURE F, float Value);
+	static uint GetBinThresholdCount(uint AlphaSize, UNDEF_BINNING UB);
 	};
 
 float GetSelfRevScore(DSSAligner &DA,

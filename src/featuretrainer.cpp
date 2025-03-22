@@ -2,6 +2,32 @@
 #include "featuretrainer.h"
 #include "alpha.h"
 
+UNDEF_BINNING StrToUB(const string &s)
+	{
+	if (s == "never") return UB_NeverUndefined;
+	if (s == "onlyzero") return UB_UndefinedIsOnlyZero;
+	if (s == "zeroov") return UB_UndefinedIsZeroOverload;
+	if (s == "default") return UB_UndefinedIsDefaultLetter;
+	if (s == "int") return UB_IntFeatureNoBinning;
+	if (s == "ignore") return UB_IgnoreUndefined;
+	if (s == "include") return UB_IncludeUndefined;
+	Die("StrToUB(%s)", s.c_str());
+	return UB_Invalid;
+	}
+
+const char *UBToStr(UNDEF_BINNING UB)
+	{
+	if (UB == UB_NeverUndefined) return "never";
+	if (UB == UB_UndefinedIsOnlyZero) return "onlyzero";
+	if (UB == UB_UndefinedIsZeroOverload) return "zeroov";
+	if (UB == UB_UndefinedIsDefaultLetter) return "default";
+	if (UB == UB_IntFeatureNoBinning) return "int";
+	if (UB == UB_IgnoreUndefined) return "ignore";
+	if (UB == UB_IncludeUndefined) return "include";
+	asserta(false);
+	return "*ERROR*";
+	}
+
 static uint GetUngappedLength(const string &Row)
 	{
 	const uint ColCount = SIZE(Row);
@@ -53,18 +79,24 @@ void FeatureTrainer::SetFeature(FEATURE F)
 		SetFloatValues();
 	}
 
-void FeatureTrainer::SetAlphaSize(uint AS)
+void FeatureTrainer::SetAlphaSize(uint AS, UNDEF_BINNING UB,
+								  uint DefaultLetter)
 	{
 	m_AlphaSize = AS;
+	m_UB = UB;
 	Init(AS);
 
 	if (m_IsInt)
 		return;
 
+	if (UB == UB_UndefinedIsDefaultLetter)
+		m_BestDefaultLetter = DefaultLetter;
+
 	asserta(!m_FloatValues.empty());
-	DSS::Condense(m_FloatValues, m_AlphaSize, m_Wildcard,
-					m_MinValue, m_MedValue, m_MaxValue,
-					m_UndefFreq, m_BinTs);
+	DSS::Condense(m_FloatValues, m_AlphaSize,
+				  m_UB, DefaultLetter, m_BestDefaultLetter,
+				  m_MinValue, m_MedValue, m_MaxValue,
+				  m_UndefFreq, m_BinTs);
 	}
 
 void FeatureTrainer::SetFloatValues()
@@ -87,8 +119,8 @@ void FeatureTrainer::SetFloatValues()
 		{
 		uint N = SIZE(m_FloatValues);
 		double Pct = GetPct(UndefCount, N);
-		ProgressStep(ChainIndex, ChainCount, "Values %s (%.2f%% undefined)",
-					 m_FeatureName, Pct);
+		ProgressStep(ChainIndex, ChainCount, "Values %s (%.2f%% undefined) %s",
+					 m_FeatureName, Pct, UBToStr(m_UB));
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
@@ -96,7 +128,11 @@ void FeatureTrainer::SetFloatValues()
 			{
 			float Value = D.GetFloatFeature(m_F, Pos);
 			if (Value == FLT_MAX)
+				{
+				if (m_UB == UB_IgnoreUndefined)
+					continue;
 				++UndefCount;
+				}
 			else
 				{
 				m_MinValue = min(m_MinValue, Value);
@@ -120,7 +156,7 @@ void FeatureTrainer::SetLabelToChainIndex()
 		}
 	}
 
-void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
+void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 	{
 	string QLabel = m_Alns.GetLabel(2*PairIndex);
 	string RLabel = m_Alns.GetLabel(2*PairIndex+1);
@@ -170,16 +206,24 @@ void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
 				{
 				LetterQ = m_DQ.GetFeature(m_F, QPos);
 				LetterR = m_DR.GetFeature(m_F, RPos);
+				AddPair(LetterQ, LetterR);
 				}
 			else
 				{
 				float ValueQ = m_DQ.GetFloatFeature(m_F, QPos);
 				float ValueR = m_DR.GetFloatFeature(m_F, RPos);
+				bool IgnoreQ = (m_UB == UB_IgnoreUndefined && ValueQ == FLT_MAX);
+				bool IgnoreR = (m_UB == UB_IgnoreUndefined && ValueR == FLT_MAX);
 
-				LetterQ = DSS::ValueToInt(m_BinTs, ValueQ);
-				LetterR = DSS::ValueToInt(m_BinTs, ValueR);
+				if (!IgnoreQ && !IgnoreR)
+					{
+					LetterQ = DSS::ValueToInt(ValueQ, m_UB, m_AlphaSize,
+											  m_BinTs, m_BestDefaultLetter);
+					LetterR = DSS::ValueToInt(ValueR, m_UB, m_AlphaSize,
+											  m_BinTs, m_BestDefaultLetter);
+					AddPair(LetterQ, LetterR);
+					}
 				}
-			AddPair(LetterQ, LetterR);
 			}
 		if (!isgap(q))
 			++QPos;
@@ -188,21 +232,25 @@ void FeatureTrainer::SetJointFreqsPair(uint PairIndex)
 		}
 	}
 
-void FeatureTrainer::Train(bool Wildcard)
+void FeatureTrainer::AddValue(float Value)
 	{
-	m_Wildcard = Wildcard;
+	m_FloatValues.push_back(Value);
+	}
+
+void FeatureTrainer::Train()
+	{
 	const uint SeqCount = m_Alns.GetSeqCount();
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
 	const uint PairCount = SeqCount/2;
-	uint LetterPairCount = 0;
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
-		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u)",
-					 m_FeatureName, m_AlphaSize);
-		SetJointFreqsPair(PairIndex);
+		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u) %s",
+					 m_FeatureName, m_AlphaSize, UBToStr(m_UB));
+		UpdateJointCounts(PairIndex);
 		}
-	m_BestDefaultLetter = GetBestDefaultLetter(UINT_MAX);
+	if (m_UB != UB_UndefinedIsDefaultLetter)
+		m_BestDefaultLetter = GetBestDefaultLetter(UINT_MAX);
 	}
 
 void FeatureTrainer::WriteSummary(FILE *f) const
@@ -210,7 +258,9 @@ void FeatureTrainer::WriteSummary(FILE *f) const
 	if (f == 0)
 		return;
 	float ES = GetExpectedScore();
-	fprintf(f, "%s(%u) wc=%c", m_FeatureName, m_AlphaSize, yon(m_Wildcard));
+	fprintf(f, "%s(%u) undef=%s", m_FeatureName, m_AlphaSize, UBToStr(m_UB));
+	if (m_UB == UB_UndefinedIsDefaultLetter)
+		fprintf(f, "(%u)", m_BestDefaultLetter);
 	if (m_IsInt)
 		fprintf(f, " integer");
 	else
@@ -225,6 +275,66 @@ void FeatureTrainer::WriteSummary(FILE *f) const
 	fprintf(f, "\n");
 	}
 
+void FeatureTrainer::BinTsToSrc(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	if (m_IsInt)
+		return;
+	if (m_BinTs.empty())
+		return;
+	const uint N = SIZE(m_BinTs);
+	fprintf(f, "\nuint DSS::ValueToInt_%s(double Value) const\n", m_FeatureName);
+	fprintf(f, "	{\n");
+	for (uint i = 0 ; i < N; ++i)
+		fprintf(f, "	if (Value < %.4g) return %u;\n", m_BinTs[i], i);
+	fprintf(f, "	return %u;\n", N);
+	fprintf(f, "	}\n");
+	}
+
+void FeatureTrainer::FreqsToSrc(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	vector<float> Freqs;
+	GetFreqs(Freqs);
+	asserta(SIZE(Freqs) == m_AlphaSize);
+
+	fprintf(f, "\nstatic double %s_f_i[%u] = {\n",
+			m_FeatureName, m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		fprintf(f, "	%.4f,\n", Freqs[i]);
+	fprintf(f, "};\n");
+	}
+
+void FeatureTrainer::ScoreMxToSrc(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	vector<vector<float> > ScoreMx;
+	GetLogOddsMx(ScoreMx);
+	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	fprintf(f, "\nstatic double %s_S_i[%u][%u] = {\n",
+			m_FeatureName, m_AlphaSize, m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		fprintf(f, "	{");
+		for (uint j = 0; j < m_AlphaSize; ++j)
+			fprintf(f, " %11.4g,", ScoreMx[i][j]);
+		fprintf(f, " }, // %u\n", i);
+		}
+	fprintf(f, "};\n");
+	}
+
+void FeatureTrainer::ToSrc(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	BinTsToSrc(f);
+	FreqsToSrc(f);
+	ScoreMxToSrc(f);
+	}
+
 void FeatureTrainer::ToTsv(const string &FN) const
 	{
 	if (FN == "")
@@ -233,7 +343,7 @@ void FeatureTrainer::ToTsv(const string &FN) const
 	FILE *f = CreateStdioFile(FN);
 	fprintf(f, "feature\t%s\n", m_FeatureName);
 	fprintf(f, "type\t%s\n", m_IsInt ? "int" : "float");
-	fprintf(f, "wildcard\t%s\n", m_Wildcard ? "yes" : "no");
+	fprintf(f, "undef_binning\t%s\n", UBToStr(m_UB));
 	if (!m_IsInt)
 		{
 		fprintf(f, "min\t%.3g\n", m_MinValue);
@@ -241,7 +351,7 @@ void FeatureTrainer::ToTsv(const string &FN) const
 		fprintf(f, "max\t%.3g\n", m_MaxValue);
 		fprintf(f, "undef\t%.4f\n", m_UndefFreq);
 		}
-	if (!m_Wildcard)
+	if (m_UB == UB_UndefinedIsDefaultLetter)
 		fprintf(f, "default_letter\t%u\n", m_BestDefaultLetter);
 
 	LogOdds::ToTsv(f);
@@ -273,14 +383,9 @@ void FeatureTrainer::FromTsv(const string &FN)
 	else
 		Die("Bad feature type '%s'", Type.c_str());
 
-	string strWildcard;
-	ReadStringValue(f, "wildcard", strWildcard);
-	if (strWildcard == "yes")
-		m_Wildcard = true;
-	else if (strWildcard == "no")
-		m_Wildcard = false;
-	else
-		Die("Bad wildcard value '%s'", strWildcard.c_str());
+	string strUB;
+	ReadStringValue(f, "undef_binning", strUB);
+	m_UB = StrToUB(strUB.c_str());
 
 	if (!m_IsInt)
 		{
@@ -291,7 +396,7 @@ void FeatureTrainer::FromTsv(const string &FN)
 		}
 
 	m_BestDefaultLetter = UINT_MAX;
-	if (!m_Wildcard)
+	if (m_UB == UB_UndefinedIsDefaultLetter)
 		m_BestDefaultLetter = ReadIntValue(f, "default_letter", UINT_MAX);
 
 	LogOdds::FromTsv(f);
@@ -299,8 +404,9 @@ void FeatureTrainer::FromTsv(const string &FN)
 	m_BinTs.clear();
 	if (!m_IsInt)
 		{
-		uint BinCount = (m_Wildcard ? m_AlphaSize - 1 : m_AlphaSize);
-		for (uint i = 0; i + 1 < BinCount; ++i)
+		uint BinThresholdCount =
+			DSS::GetBinThresholdCount(m_AlphaSize, m_UB);
+		for (uint i = 0; i < BinThresholdCount; ++i)
 			m_BinTs.push_back(ReadFloatValue(f, "bint", i));
 
 		string Line;

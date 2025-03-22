@@ -13,8 +13,8 @@ FEATURE DSSParams::LoadFeature(const string &FN)
 	FT.GetFreqs(Freqs);
 	FT.GetFreqMx(FreqMx);
 	FT.GetLogOddsMx(ScoreMx);
-	DSS::SetFeature(FT.m_F, FT.m_Wildcard,
-							Freqs, FreqMx, ScoreMx, FT.m_BinTs);
+	DSS::SetFeature(FT.m_F, FT.m_UB, Freqs, FreqMx,
+					ScoreMx, FT.m_BinTs);
 	return FT.m_F;
 	}
 

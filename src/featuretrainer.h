@@ -5,6 +5,7 @@
 #include "seqdb.h"
 #include "dss.h"
 #include "logodds.h"
+#include "undef_binning.h"
 
 // FeatureTrainer and Trainer should be merged
 class FeatureTrainer : public LogOdds
@@ -28,20 +29,26 @@ public:
 	DSS m_D;
 	DSS m_DQ;
 	DSS m_DR;
-	bool m_Wildcard = false;
+	UNDEF_BINNING m_UB = UB_Invalid;
 	uint m_BestDefaultLetter = UINT_MAX;
 
 public:
 	void SetFeature(FEATURE F);
-	void SetAlphaSize(uint AS);
+	void SetAlphaSize(uint AS, UNDEF_BINNING UB, uint DefaultLetter);
 	void SetInput(const string &ChainsFN, const string &AlnsFN);
-	void Train(bool Wildcard);
+	void Train();
 	void WriteSummary(FILE *f) const;
 	void ToTsv(const string &FN) const;
 	void FromTsv(const string &FN);
+	void ToSrc(FILE *f) const;
+	void BinTsToSrc(FILE *f) const;
+	void FreqsToSrc(FILE *f) const;
+	void ScoreMxToSrc(FILE *f) const;
 
 private:
 	void SetLabelToChainIndex();
 	void SetFloatValues();
-	void SetJointFreqsPair(uint PairIndex);
+	void UpdateJointCounts(uint PairIndex);
+	void AddValue(float Value);
+	void TrainBinning();
 	};

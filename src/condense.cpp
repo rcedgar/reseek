@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "undef_binning.h"
 #include "dss.h"
 
 /***
@@ -11,21 +12,124 @@ Letter 0 is undefined.
 That leaves AS-1 defined letters separated by AS-2 thresholds.
 ***/
 
-uint DSS::ValueToInt(const vector<float> &Ts, float Value)
+uint DSS::GetBinThresholdCount(uint AlphaSize, UNDEF_BINNING UB)
 	{
+	switch (UB)
+		{
+	case UB_NeverUndefined:				return AlphaSize - 1;
+	case UB_UndefinedIsDefaultLetter:	return AlphaSize - 1;
+	case UB_IgnoreUndefined:			return AlphaSize - 1;
+	case UB_UndefinedIsZeroOverload:	return AlphaSize - 1;
+	case UB_UndefinedIsOnlyZero:		return AlphaSize - 2;
+		}
+	Die("GetBinThresholdCount(%u, %s)", AlphaSize, UBToStr(UB));
+	return UINT_MAX;
+	}
+
+uint DSS::ValueToInt(float Value, UNDEF_BINNING UB, uint AlphaSize,
+					 const vector<float> &Ts, uint DefaultLetter)
+	{
+	uint Letter = UINT_MAX;
+	switch (UB)
+		{
+	case UB_NeverUndefined:
+		Letter = ValueToInt_Never(Value, AlphaSize, Ts, DefaultLetter);
+		break;
+
+	case UB_UndefinedIsOnlyZero:
+		Letter = ValueToInt_OnlyZero(Value, AlphaSize, Ts, DefaultLetter);
+		break;
+
+	case UB_UndefinedIsZeroOverload:
+		Letter = ValueToInt_ZeroOverload(Value, AlphaSize, Ts, DefaultLetter);
+		break;
+
+	case UB_UndefinedIsDefaultLetter:
+		Letter = ValueToInt_Default(Value, AlphaSize, Ts, DefaultLetter);
+		break;
+
+	case UB_IgnoreUndefined:
+		Letter = ValueToInt_Ignore(Value, AlphaSize, Ts, DefaultLetter);
+		break;
+
+	default:
+		asserta(false);
+		}
+
+	asserta(Letter < AlphaSize);
+	return Letter;
+	}
+
+uint DSS::ValueToInt_Never(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter)
+	{
+	asserta(Value != FLT_MAX);
+	asserta(DefaultLetter == UINT_MAX);
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return AlphaSize - 1;
+	}
+
+uint DSS::ValueToInt_Ignore(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter)
+	{
+	asserta(Value != FLT_MAX);
+	asserta(DefaultLetter == UINT_MAX);
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return AlphaSize - 1;
+	}
+
+uint DSS::ValueToInt_OnlyZero(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter)
+	{
+	asserta(DefaultLetter == 0);
 	if (Value == FLT_MAX)
 		return 0;
-	const uint N = SIZE(Ts);
-	for (uint i = 0; i < N; ++i)
+
+	asserta(SIZE(Ts) + 2 == AlphaSize);
+	for (uint i = 0; i + 2 < AlphaSize; ++i)
 		if (Value <= Ts[i])
-			return i+1;
-	return N+1;
+			return i + 1;
+	return AlphaSize - 1;
+	}
+
+uint DSS::ValueToInt_Default(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter)
+	{
+	asserta(DefaultLetter < AlphaSize);
+	if (Value == FLT_MAX)
+		return DefaultLetter;
+
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return AlphaSize - 1;
+	}
+
+uint DSS::ValueToInt_ZeroOverload(float Value, uint AlphaSize,
+						   const vector<float> &Ts, uint DefaultLetter)
+	{
+	asserta(DefaultLetter == 0);
+	if (Value == FLT_MAX)
+		return 0;
+
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return AlphaSize - 1;
 	}
 
 void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
-				   bool Wildcard,
-				   float &MinValue, float &MedValue, float &MaxValue, float &UndefFreq,
-				   vector<float> &BinTs)
+				   UNDEF_BINNING UB, uint BestDefaultLetter, uint &DefaultLetter,
+				   float &MinValue, float &MedValue, float &MaxValue,
+				   float &UndefFreq, vector<float> &BinTs)
 	{
 	BinTs.clear();
 	vector<float> SortedValues;
@@ -35,7 +139,11 @@ void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
 		{
 		float Value = UnsortedValues[i];
 		if (Value == FLT_MAX)
+			{
 			++UndefCount;
+			if (UB == UB_NeverUndefined)
+				Die("Undefined");
+			}
 		else
 			SortedValues.push_back(Value);
 		}
@@ -54,8 +162,31 @@ void DSS::Condense(const vector<float> &UnsortedValues, uint AlphaSize,
 	asserta(FirstValue != -FLT_MAX);
 	asserta(LastValue != FLT_MAX);
 
-	uint BinCount = (Wildcard ? AlphaSize - 1 : AlphaSize);
-	for (uint i = 0; i + 1 < BinCount; ++i)
+	DefaultLetter = UINT_MAX;
+	switch (UB)
+		{
+	case UB_IgnoreUndefined:
+	case UB_NeverUndefined:
+		DefaultLetter = UINT_MAX;
+		break;
+
+	case UB_UndefinedIsOnlyZero:
+	case UB_UndefinedIsZeroOverload:
+		DefaultLetter = 0;
+		break;
+
+	case UB_UndefinedIsDefaultLetter:
+		asserta(BestDefaultLetter != UINT_MAX);
+		DefaultLetter = BestDefaultLetter;
+		break;
+
+	default:
+		asserta(false);
+		}
+
+	uint BinThresholdCount = GetBinThresholdCount(AlphaSize, UB);
+	uint BinCount = BinThresholdCount + 1;
+	for (uint i = 0; i < BinThresholdCount; ++i)
 		{
 		uint k = ((i+1)*K)/BinCount;
 		float t = SortedValues[k];

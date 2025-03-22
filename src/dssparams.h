@@ -54,6 +54,12 @@ public:
 	float ***m_ScoreMxs = 0;
 	bool m_OwnScoreMxs = false;
 
+// TS params
+	float m_dpw = 1.7f;
+	float m_lddtw = 0.13f;
+	float m_ladd = 250.0f;
+	float m_revtsw = 2.0f;
+
 public:
 	static const uint m_MuFeatureCount = 3;
 	static const FEATURE m_MuFeatures[m_MuFeatureCount];

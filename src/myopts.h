@@ -67,7 +67,7 @@ STR_OPT(alpha_sizes)
 STR_OPT(ulv)
 STR_OPT(fdir)
 STR_OPT(fs)
-STR_OPT(wildcard)
+STR_OPT(undef_binning)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -140,6 +140,7 @@ FLAG_OPT(log10)
 FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(benchfwdscore)
+FLAG_OPT(benchts)
 
 #undef FLAG_OPT
 #undef UNS_OPT

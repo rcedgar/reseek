@@ -14,7 +14,6 @@ static float *s_BinTs[FEATURE_COUNT];
 static uint s_AlphaSizes[FEATURE_COUNT];
 static bool s_Wildcards[FEATURE_COUNT];
 
-
 static bool Init()
 	{
 	s_AlphaSizes[FEATURE_AA] = 20;
@@ -23,6 +22,7 @@ static bool Init()
 	s_AlphaSizes[FEATURE_RENConf] = 16;
 	s_AlphaSizes[FEATURE_PlusNENConf] = 16;
 	s_AlphaSizes[FEATURE_MinusNENConf] = 16;
+	s_AlphaSizes[FEATURE_Mu] = 36;
 	return true;
 	};
 static bool s_InitDone = Init();
@@ -132,4 +132,12 @@ const float * const *DSS::GetFreqMx(FEATURE F)
 const float * const *DSS::GetScoreMx(FEATURE F)
 	{
 	return s_ScoreMxs[F];
+	}
+
+uint DSS::GetIntValue(FEATURE F, float Value)
+	{
+	Die("TODO");
+	assert(F < FEATURE_COUNT);
+	//uint i = ValueToInt(s_BinTs[F], s_AlphaSizes[F], Value);
+	return 0;
 	}
