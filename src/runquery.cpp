@@ -21,7 +21,6 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	vector<uint> MuKmers1;
 
 	DSS D;
-	D.SetParams(*m_Params);
 
 	for (;;)
 		{
@@ -29,7 +28,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		if (Chain1 == 0)
 			return;
 		D.Init(*Chain1);
-		D.GetProfile(Profile1);
+		D.GetProfile(*m_Params, Profile1);
 		D.GetMuLetters(MuLetters1);
 		D.GetMuKmers(MuLetters1, MuKmers1, m_Params->m_MKFPatternStr);
 

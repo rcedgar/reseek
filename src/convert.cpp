@@ -75,10 +75,7 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	DSS *ptrD = 0;
 	if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
-		{
 		ptrD = new DSS;
-		ptrD->SetParams(*s_ptrParams);
-		}
 
 	ChainReader2 CR;
 	CR.Open(*s_ptrFS);

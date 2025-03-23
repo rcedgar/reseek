@@ -752,9 +752,10 @@ void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	const string &LabelA = GetLabel(Up);
 	const string &LabelB = GetLabel(!Up);
 	float Evalue = GetEvalue(Up);
+	float TS = GetNewTestStatistic(Up);
 	float PctId = GetPctId();
 	string LabelAx = LabelA;
-	Psa(LabelAx, " E=%.3g Id=%.1f%%", Evalue, PctId);
+	Psa(LabelAx, "|E=%.3g|Id=%.1f%%|TS=%.04f", Evalue, PctId);
 	LabelAx += " (";
 	LabelAx += LabelB;
 	LabelAx += ")";

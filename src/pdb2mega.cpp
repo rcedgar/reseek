@@ -86,7 +86,6 @@ void cmd_pdb2mega()
 		}
 
 	DSS D;
-	D.SetParams(Params);
 	vector<vector<byte> > Profile;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
@@ -97,7 +96,7 @@ void cmd_pdb2mega()
 		fprintf(fOut, "chain\t%u\t%s\t%u\n", ChainIndex, Label, L);
 
 		D.Init(Chain);
-		D.GetProfile(Profile);
+		D.GetProfile(Params, Profile);
 		asserta(SIZE(Profile) == FeatureCount);
 		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 			asserta(SIZE(Profile[FeatureIdx]) == L);

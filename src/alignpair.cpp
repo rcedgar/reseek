@@ -21,9 +21,8 @@ float GetSelfRevScore(DSSAligner &DA, const DSSParams &Params,
 #if CACHE_DIST_MAX
 	RevChain.SetDistMx();
 #endif
-	D.m_Params = &Params;
 	D.Init(RevChain);
-	D.GetProfile(RevProfile);
+	D.GetProfile(Params, RevProfile);
 
 	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 
@@ -98,7 +97,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	uint BestChainIndexQ = UINT_MAX;
 	uint BestChainIndexT = UINT_MAX;
 	D.Init(*ChainQ);
-	D.GetProfile(ProfileQ);
+	D.GetProfile(Params, ProfileQ);
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
@@ -108,7 +107,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	vector<uint> MuKmersT;
 
 	D.Init(*ChainT);
-	D.GetProfile(ProfileT);
+	D.GetProfile(Params, ProfileT);
 
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
@@ -179,8 +178,6 @@ void cmd_alignpair()
 	DA.SetParams(Params);
 
 	DSS D;
-	D.SetParams(Params);
-
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);
 	if (ChainCountQ == 0) Die("No chains found in %s", QFN.c_str());

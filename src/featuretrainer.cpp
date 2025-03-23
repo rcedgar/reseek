@@ -41,9 +41,11 @@ static uint GetUngappedLength(const string &Row)
 static void TruncLabel(string &Label)
 	{
 	size_t n = Label.find(' ');
-	if (n == string::npos || n == 0)
-		return;
-	Label.resize(n);
+	if (n != string::npos)
+		Label.resize(n);
+	n = Label.find('|');
+	if (n != string::npos)
+		Label.resize(n);
 	}
 
 void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
@@ -68,6 +70,18 @@ void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 	m_Alns.FromFasta(AlnsFN, true);
 	}
 
+void FeatureTrainer::SetOptionsFromCmdLine()
+	{
+	m_MinAQ = 0;
+	m_MaxAQ = 1;
+	m_MinPctId = 0;
+	m_MaxPctId = 100;
+	if (optset_minaq) m_MinAQ = (float) opt(minaq);
+	if (optset_maxaq) m_MaxAQ = (float) opt(maxaq);
+	if (optset_minpctid) m_MinPctId = (float) opt(minpctid);
+	if (optset_maxpctid) m_MaxPctId = (float) opt(maxpctid);
+	}
+
 void FeatureTrainer::SetFeature(FEATURE F)
 	{
 	asserta(!m_Chains.empty());
@@ -77,6 +91,38 @@ void FeatureTrainer::SetFeature(FEATURE F)
 	m_IsInt = FeatureIsInt(F);
 	if (!m_IsInt)
 		SetFloatValues();
+	}
+
+void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain)
+	{
+	m_D.Init(Chain);
+	const uint L = Chain.GetSeqLength();
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		uint Letter = UINT_MAX;
+		if (m_IsInt)
+			Letter = m_D.GetFeature(m_F, Pos);
+		else
+			{
+			float Value = m_D.GetFloatFeature(m_F, Pos);
+			if (Value == FLT_MAX && m_UB == UB_IgnoreUndefined)
+				continue;
+			Letter = DSS::ValueToInt(Value, m_UB, m_AlphaSize,
+									 m_BinTs, m_BestDefaultLetter);
+			}
+		AddUnalignedLetter(Letter);
+		}
+	}
+
+void FeatureTrainer::SetUnalignedBackground()
+	{
+	const uint ChainCount = SIZE(m_Chains);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "Unaligned background");
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		SetUnalignedBackgroundChain(Chain);
+		}
 	}
 
 void FeatureTrainer::SetAlphaSize(uint AS, UNDEF_BINNING UB,
@@ -112,7 +158,6 @@ void FeatureTrainer::SetFloatValues()
 	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
 
 	DSS D;
-	D.SetParams(Params);
 
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
@@ -156,9 +201,77 @@ void FeatureTrainer::SetLabelToChainIndex()
 		}
 	}
 
+// >d1gaia_/a.102.1.1|E=0.908|Id=21.3%|TS=0.1274|AQ=0.6715|d3p2ca_/a.102.1.8
+float FeatureTrainer::GetPctIdFromLabel(const string &Label) const
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '|');
+	for (uint i = 0; i < SIZE(Fields); ++i)
+		{
+		const string &Field = Fields[i];
+		if (StartsWith(Field, "Id="))
+			{
+			vector<string> Fields2;
+			Split(Field, Fields2, '=');
+			asserta(SIZE(Fields2) == 2);
+			string sPctId = Fields2[1];
+			if (EndsWith(sPctId, "%"))
+				sPctId = sPctId.substr(0, sPctId.size()-1);
+			float PctId = (float) StrToFloat(sPctId);
+			asserta(PctId > 0 && PctId <= 100);
+			return PctId;
+			}
+		}
+	Die("Id= not found in >%s", Label.c_str());
+	return FLT_MAX;
+	}
+
+float FeatureTrainer::GetAQFromLabel(const string &Label) const
+	{
+	vector<string> Fields;
+	Split(Label, Fields, '|');
+	for (uint i = 0; i < SIZE(Fields); ++i)
+		{
+		const string &Field = Fields[i];
+		if (StartsWith(Field, "AQ="))
+			{
+			vector<string> Fields2;
+			Split(Field, Fields2, '=');
+			asserta(SIZE(Fields2) == 2);
+			string sAQ = Fields2[1];
+			float AQ = (float) StrToFloat(sAQ);
+			asserta(AQ >= 0 && AQ <= 1);
+			return AQ;
+			}
+		}
+	Die("AQ= not found in >%s", Label.c_str());
+	return FLT_MAX;
+	}
+
+bool FeatureTrainer::IncludePair(const string &QLabel) const
+	{
+	if (m_MinPctId > 0 || m_MaxPctId < 100)
+		{
+		float PctId = GetPctIdFromLabel(QLabel);
+		return PctId >= m_MinPctId && PctId <= m_MaxPctId;
+		}
+	if (m_MinAQ > 0 || m_MaxAQ < 100)
+		{
+		float AQ = GetAQFromLabel(QLabel);
+		return AQ >= m_MinAQ && AQ <= m_MaxAQ;
+		}
+	return true;
+	}
+
 void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 	{
 	string QLabel = m_Alns.GetLabel(2*PairIndex);
+	if (!IncludePair(QLabel))
+		{
+		++m_ExcludedPairCount;
+		return;
+		}
+
 	string RLabel = m_Alns.GetLabel(2*PairIndex+1);
 	TruncLabel(QLabel);
 	TruncLabel(RLabel);
@@ -175,6 +288,13 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 	const PDBChain &QChain = *m_Chains[QChainIndex];
 	const PDBChain &RChain = *m_Chains[RChainIndex];
 
+	string QLabel2 = QChain.m_Label;
+	string RLabel2 = RChain.m_Label;
+	TruncLabel(QLabel2);
+	TruncLabel(RLabel2);
+	asserta(QLabel2 == QLabel);
+	asserta(RLabel2 == RLabel);
+
 	uint QL = QChain.GetSeqLength();
 	uint RL = RChain.GetSeqLength();
 
@@ -186,6 +306,16 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 
 	uint QL2 = GetUngappedLength(QRow);
 	uint RL2 = GetUngappedLength(RRow);
+	if (QL2 != QL || RL2 != RL)
+		{
+		Log("\n");
+		Log("Q>%s\n", QChain.m_Label.c_str());
+		Log("R>%s\n", RChain.m_Label.c_str());
+		Log("Q: %s\n", QRow.c_str());
+		Log("T: %s\n", RRow.c_str());
+		Die("QL_row %u, QL %u, RL_row %u, RL %u",
+			QL2, QL, RL2, RL);
+		}
 	asserta(QL2 == QL);
 	asserta(RL2 == RL);
 
@@ -243,14 +373,18 @@ void FeatureTrainer::Train()
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
 	const uint PairCount = SeqCount/2;
+	m_ExcludedPairCount = 0;
 	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
 		{
 		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u) %s",
 					 m_FeatureName, m_AlphaSize, UBToStr(m_UB));
 		UpdateJointCounts(PairIndex);
 		}
+	if (m_UseUnalignedBackground)
+		SetUnalignedBackground();
 	if (m_UB != UB_UndefinedIsDefaultLetter)
 		m_BestDefaultLetter = GetBestDefaultLetter(UINT_MAX);
+	ProgressLog("%u excluded alns\n", m_ExcludedPairCount);
 	}
 
 void FeatureTrainer::WriteSummary(FILE *f) const

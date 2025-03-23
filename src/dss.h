@@ -41,7 +41,7 @@ public:
 #if CACHE_DIST_MAX
 	const FlatMx<float> *m_DistMx = 0;
 #endif
-	const DSSParams *m_Params = 0;
+	//const DSSParams *m_Params = 0;
 
 public:
 	void Init(const PDBChain &Chain)
@@ -61,8 +61,6 @@ public:
 		m_DistMx = Chain.m_DistMx;
 #endif
 		}
-
-	void SetParams(const DSSParams &Params);
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }
 
@@ -85,7 +83,8 @@ public:
 #include "floatfeatures.h"
 #undef F
 
-	void GetProfile(vector<vector<byte> > &Profile);
+	void GetProfile(const DSSParams &Params,
+					vector<vector<byte> > &Profile);
 	void GetMuLetters(vector<byte> &Letters);
 	void GetAaLetters(vector<byte> &Letters);
 	void GetMuKmers(const vector<byte> &MuLetters,

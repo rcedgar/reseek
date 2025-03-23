@@ -5,10 +5,14 @@ class LogOdds
 public:
 	uint m_AlphaSize = 0;
 	vector<uint> m_BackgroundCounts;
+	vector<uint> m_BackgroundCountsUnaligned;
 	vector<vector<uint> > m_TrueCountMx;
+	bool m_UseUnalignedBackground = true;
 
 public:
 	void Init(uint AlphaSize);
+	void AddUnalignedLetter(uint Letter);
+	uint GetBackgroundCount(uint Letter) const;
 	void AddPair(uint Letter1, uint Letter2);
 	void GetFreqs(vector<float> &Freqs) const;
 	void GetFreqMx(vector<vector<float> > &Mx) const;

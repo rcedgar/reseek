@@ -16,7 +16,6 @@ void cmd_alignselfrev()
 	DA.SetParams(Params);
 
 	DSS D;
-	D.SetParams(Params);
 
 	vector<vector<byte> > Profile;
 	vector<vector<byte> > RevProfile;
@@ -35,10 +34,10 @@ void cmd_alignselfrev()
 		Rev.Reverse();
 
 		D.Init(*Chain);
-		D.GetProfile(Profile);
+		D.GetProfile(Params, Profile);
 
 		D.Init(Rev);
-		D.GetProfile(RevProfile);
+		D.GetProfile(Params, RevProfile);
 
 		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
 		DA.SetTarget(Rev, &RevProfile, 0, 0, FLT_MAX);

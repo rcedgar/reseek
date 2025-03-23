@@ -11,7 +11,6 @@ static void TraceAln1(const DSSParams &Params,
 
 	DSS D;
 	DSSAligner DA;
-	D.SetParams(Params);
 	DA.SetParams(Params);
 
 	vector<vector<byte> > ProfileQ;
@@ -24,12 +23,12 @@ static void TraceAln1(const DSSParams &Params,
 	vector<uint> MuKmersT;
 
 	D.Init(Q);
-	D.GetProfile(ProfileQ);
+	D.GetProfile(Params, ProfileQ);
 	D.GetMuLetters(MuLettersQ);
 	D.GetMuKmers(MuLettersQ, MuKmersQ, Params.m_MKFPatternStr);
 
 	D.Init(T);
-	D.GetProfile(ProfileT);
+	D.GetProfile(Params, ProfileT);
 	D.GetMuLetters(MuLettersT);
 	D.GetMuKmers(MuLettersT, MuKmersT, Params.m_MKFPatternStr);
 

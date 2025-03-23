@@ -137,7 +137,7 @@ const float * const *DSS::GetScoreMx(FEATURE F)
 uint DSS::GetIntValue(FEATURE F, float Value)
 	{
 	Die("TODO");
-	assert(F < FEATURE_COUNT);
+	assert(uint(F) < FEATURE_COUNT);
 	//uint i = ValueToInt(s_BinTs[F], s_AlphaSizes[F], Value);
 	return 0;
 	}

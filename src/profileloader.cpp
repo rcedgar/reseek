@@ -12,8 +12,6 @@ void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 void ProfileLoader::ThreadBody(uint ThreadIndex)
 	{
 	DSS D;
-	D.SetParams(*m_Params);
-
 	DSSAligner DA;
 	DSSParams DA_Params = *m_Params;
 	DA_Params.m_OwnScoreMxs = false;
@@ -50,7 +48,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		Chain->SetDistMx();
 #endif
 		D.Init(*Chain);
-		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
+		if (m_Profiles != 0) D.GetProfile(*m_Params, *ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
 		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers, m_Params->m_MKFPatternStr);
 #if CACHE_DIST_MAX

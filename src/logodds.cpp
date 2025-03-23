@@ -48,10 +48,20 @@ void LogOdds::Init(uint AlphaSize)
 	m_AlphaSize = AlphaSize;
 	m_TrueCountMx.clear();
 	m_BackgroundCounts.clear();
+	m_BackgroundCountsUnaligned.clear();
 	m_BackgroundCounts.resize(m_AlphaSize);
+	m_BackgroundCountsUnaligned.resize(m_AlphaSize);
 	m_TrueCountMx.resize(m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		m_TrueCountMx[i].resize(m_AlphaSize);
+	}
+
+void LogOdds::AddUnalignedLetter(uint Letter)
+	{
+	if (Letter == UINT_MAX)
+		return;
+	asserta(Letter < m_AlphaSize);
+	m_BackgroundCountsUnaligned[Letter] += 1;
 	}
 
 void LogOdds::AddPair(uint Letter1, uint Letter2)
@@ -81,18 +91,27 @@ uint LogOdds::GetTrueTotal() const
 	return Total;
 	}
 
+uint LogOdds::GetBackgroundCount(uint Letter) const
+	{
+	asserta(Letter < m_AlphaSize);
+	if (m_UseUnalignedBackground)
+		return m_BackgroundCountsUnaligned[Letter];
+	else
+		return m_BackgroundCounts[Letter];
+	}
+
 void LogOdds::GetFreqs(vector<float> &Freqs) const
 	{
 	Freqs.clear();
 	uint Total = 0;
 	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
-		Total += m_BackgroundCounts[Letter];
+		Total += GetBackgroundCount(Letter);
 
 	float T = float(Total);
 	float SumFreq = 0;
 	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
 		{
-		float Freq = m_BackgroundCounts[Letter]/T;
+		float Freq = GetBackgroundCount(Letter)/T;
 		Freqs.push_back(Freq);
 		SumFreq += Freq;
 		}

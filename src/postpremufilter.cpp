@@ -23,7 +23,6 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
 	MKF.SetParams(Params);
@@ -58,7 +57,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		vector<byte> *ptrQMuLetters = new vector<byte>;
 		vector<uint> *ptrQMuKmers = new vector<uint>;
 
-		D.GetProfile(*ptrQProfile);
+		D.GetProfile(Params, *ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
 		float QSelfRevScore = 
@@ -96,7 +95,6 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
 	MKF.SetParams(Params);
@@ -144,7 +142,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		DBChain.SetDistMx();
 #endif
 		D.Init(DBChain);
-		D.GetProfile(DBProfile);
+		D.GetProfile(Params, DBProfile);
 		D.GetMuLetters(DBMuLetters);
 		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
 
@@ -223,7 +221,6 @@ void PostMuFilter(const DSSParams &Params,
 
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 
 	vector<ChainBag *> ChainBagsQ;

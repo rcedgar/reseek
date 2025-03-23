@@ -551,7 +551,7 @@ uint DSS::Get_AA4(uint Pos)
 void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	{
 	Letters.clear();
-	uint n = m_Params->m_MuFeatureCount;
+	uint n = DSSParams::m_MuFeatureCount;
 	if (MuLetter == UINT_MAX)
 		{
 		for (uint i = 0; i < n; ++i)
@@ -563,7 +563,7 @@ void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	uint m = 1;
 	for (uint i = 0; i < n; ++i)
 		{
-		uint m = m_Params->m_MuAlphaSizes[i];
+		uint m = DSSParams::m_MuAlphaSizes[i];
 		uint Letter = CL%m;
 		Letters.push_back(Letter);
 		CL /= m;
@@ -582,9 +582,9 @@ uint DSS::GetMuLetter(const vector<uint> &Letters) const
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
 		MuLetter = MuLetter + m*Letter;
-		m *= m_Params->m_MuAlphaSizes[i];
+		m *= DSSParams::m_MuAlphaSizes[i];
 		}
-	asserta(MuLetter < m_Params->m_MuAlphaSize);
+	asserta(MuLetter < DSSParams::m_MuAlphaSize);
 	return MuLetter;
 	}
 
@@ -675,18 +675,18 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		}
 	}
 
-void DSS::GetProfile(vector<vector<byte> > &Profile)
+void DSS::GetProfile(const DSSParams &Params, vector<vector<byte> > &Profile)
 	{
 	Profile.clear();
 	const uint L = GetSeqLength();
 	const string &Seq = m_Chain->m_Seq;
-	const uint FeatureCount = m_Params->GetFeatureCount();
+	const uint FeatureCount = Params.GetFeatureCount();
 	Profile.reserve(FeatureCount);
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		vector<byte> ProfRow;
 		ProfRow.reserve(L);
-		FEATURE Feature = m_Params->m_Features[i];
+		FEATURE Feature = Params.m_Features[i];
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			uint Letter = GetFeature(Feature, Pos);
@@ -712,11 +712,6 @@ float DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
 		}
 	asserta(false);
 	return FLT_MAX;
-	}
-
-void DSS::SetParams(const DSSParams &Params)
-	{
-	m_Params = &Params;
 	}
 
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
