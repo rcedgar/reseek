@@ -42,7 +42,7 @@ bool PDBChain::FromPDBLines(const string &Label,
 	uint ResidueCount = 0;
 	int CurrentResidueNumber = INT_MAX;
 	vector<string> ATOMLines;
-	string ChainStr;
+	m_ChainStr.clear();
 	for (uint LineNr = 0; LineNr < N; ++LineNr)
 		{
 		const string &Line = Lines[LineNr];
@@ -51,14 +51,12 @@ bool PDBChain::FromPDBLines(const string &Label,
 			break;
 		const size_t L = Line.size();
 
-		char LineChainChar = Line[21];
-		string LineChainStr;
-		LineChainStr.push_back(LineChainChar);
-		if (ChainStr == "")
-			ChainStr = LineChainStr;
-		else if (ChainStr != LineChainStr)
-			Die("PDBChain::FromPDBLines() two chains %s, %s",
-			  ChainStr.c_str(), LineChainStr.c_str());
+		char ChainId = Line[21];
+		if (m_ChainStr.empty())
+			m_ChainStr += ChainId;
+		else if (m_ChainStr[0] != ChainId)
+			Die("PDBChain::FromPDBLines() two chains %c, %c",
+			  m_ChainStr[0], ChainId);
 
 		char aa;
 		float X, Y, Z;
@@ -72,7 +70,8 @@ bool PDBChain::FromPDBLines(const string &Label,
 		m_Zs.push_back(Z);
 		}
 
-	ChainizeLabel(m_Label, ChainStr);
+	m_HasChainStr = true;
+	ChainizeLabel(m_Label, m_ChainStr);
 	bool Ok = (SIZE(m_Xs) > 0);
 	return Ok;
 	}

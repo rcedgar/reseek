@@ -200,22 +200,19 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 				}
 			else if (Line == "loop_")
 				PS = PS_AtLoop;
-			else if (StartsWith(Line, "ATOM "))
+		// Special case for HTATM MSE, convert to ATOM MET
+			else if (StartsWith(Line, "ATOM ") || StartsWith(Line, "HETATM"))
 				{
 				PS = PS_InATOMs;
 				ATOMLines.push_back(Line);
 				}
-			else if (StartsWith(Line, "HETATM"))
-				PS = PS_InATOMs;
 			break;
 			}
 
 		case PS_InATOMs:
 			{
-			if (StartsWith(Line, "ATOM "))
+			if (StartsWith(Line, "ATOM ") || StartsWith(Line, "HETATM"))
 				ATOMLines.push_back(Line);
-			else if (StartsWith(Line, "HETATM"))
-				continue;
 			else
 				PS = PS_Finished;
 			break;
@@ -288,12 +285,28 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 			string Label = BaseLabel;
 			ChainizeLabel(Label, ChainStr);
 			Chain->m_Label = Label;
+			Chain->m_ChainStr = ChainStr;
+			Chain->m_HasChainStr = true;
 			CurrentChainStr = ChainStr;
 			}
 
-		const string &aa_Fld = Fields[aa_FldIdx];
+		string &aa_Fld = Fields[aa_FldIdx];
 		if (SIZE(aa_Fld) != 3)
 			continue;
+
+	// Special case for HTATM
+	// MSE -> MET
+	// MLY -> LYS
+		if (Fields[0] == "HETATM")
+			{
+			if (aa_Fld == "MSE")
+				aa_Fld = "MET";
+			else if (aa_Fld == "MLY")
+				aa_Fld = "LYS";
+			else
+				continue;
+			}
+
 		float X = StrToFloatf(Fields[X_FldIdx]);
 		float Y = StrToFloatf(Fields[Y_FldIdx]);
 		float Z = StrToFloatf(Fields[Z_FldIdx]);

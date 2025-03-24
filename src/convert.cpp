@@ -31,6 +31,13 @@ static mutex s_LockBCA;
 static set<string> *s_ptrLabelSet;
 static uint s_LabelSetSize;
 
+static void FixFN(string &FN)
+	{
+	for (uint i = 0; i < SIZE(FN); ++i)
+		if (FN[i] == '?')
+			FN[i] = '_';
+	}
+
 static FEATURE GetFeatureFromCmdLine()
 	{
 	string Alpha = "Mu";
@@ -209,17 +216,22 @@ static void ThreadBody(uint ThreadIndex)
 		if (optset_pdboutdir)
 			{
 			const vector<string> &Lines = ptrChain->m_Lines;
-			asserta(!Lines.empty());
-			const string &FN = ptrChain->m_Label;
+			string FN = ptrChain->m_Label;
+			FixFN(FN);
 			string PathN = opt(pdboutdir);
 			Dirize(PathN);
 			PathN += FN;
 			PathN += ".pdb";
 			FILE *fOut = CreateStdioFile(PathN);
-			for (uint i = 0; i < SIZE(Lines); ++i)
+			if (Lines.empty())
+				ptrChain->ToPDB(fOut);
+			else
 				{
-				fputs(Lines[i].c_str(), fOut);
-				fputc('\n', fOut);
+				for (uint i = 0; i < SIZE(Lines); ++i)
+					{
+					fputs(Lines[i].c_str(), fOut);
+					fputc('\n', fOut);
+					}
 				}
 			CloseStdioFile(fOut);
 			}

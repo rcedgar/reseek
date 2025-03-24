@@ -31,11 +31,13 @@ public:
 	map<string, uint> m_LabelToChainIndex;
 	vector<float> m_BinTs;
 	DSS m_D;
-	DSS m_DQ;
-	DSS m_DR;
+	//DSS m_DQ;
+	//DSS m_DR;
 	UNDEF_BINNING m_UB = UB_Invalid;
 	uint m_BestDefaultLetter = UINT_MAX;
 	uint m_ExcludedPairCount = UINT_MAX;
+	mutex m_Lock;
+	uint m_Counter = UINT_MAX;
 
 public:
 	void SetFeature(FEATURE F);

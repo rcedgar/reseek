@@ -15,6 +15,11 @@ class PDBChain
 	{
 public:
 	string m_Label;
+
+// CIF allows chain strings
+// PDB must be single char
+	bool m_HasChainStr = false;
+	string m_ChainStr;
 	string m_Seq;
 	vector<float> m_Xs;
 	vector<float> m_Ys;

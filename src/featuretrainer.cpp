@@ -298,8 +298,10 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 	uint QL = QChain.GetSeqLength();
 	uint RL = RChain.GetSeqLength();
 
-	m_DQ.Init(QChain);
-	m_DR.Init(RChain);
+	DSS DQ;
+	DSS DR;
+	DQ.Init(QChain);
+	DR.Init(RChain);
 
 	const string &QRow = m_Alns.GetSeq(2*PairIndex);
 	const string &RRow = m_Alns.GetSeq(2*PairIndex+1);
@@ -334,14 +336,16 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 			uint LetterR = UINT_MAX;
 			if (m_IsInt)
 				{
-				LetterQ = m_DQ.GetFeature(m_F, QPos);
-				LetterR = m_DR.GetFeature(m_F, RPos);
+				LetterQ = DQ.GetFeature(m_F, QPos);
+				LetterR = DR.GetFeature(m_F, RPos);
+				m_Lock.lock();
 				AddPair(LetterQ, LetterR);
+				m_Lock.unlock();
 				}
 			else
 				{
-				float ValueQ = m_DQ.GetFloatFeature(m_F, QPos);
-				float ValueR = m_DR.GetFloatFeature(m_F, RPos);
+				float ValueQ = DQ.GetFloatFeature(m_F, QPos);
+				float ValueR = DR.GetFloatFeature(m_F, RPos);
 				bool IgnoreQ = (m_UB == UB_IgnoreUndefined && ValueQ == FLT_MAX);
 				bool IgnoreR = (m_UB == UB_IgnoreUndefined && ValueR == FLT_MAX);
 
@@ -351,7 +355,9 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 											  m_BinTs, m_BestDefaultLetter);
 					LetterR = DSS::ValueToInt(ValueR, m_UB, m_AlphaSize,
 											  m_BinTs, m_BestDefaultLetter);
+					m_Lock.lock();
 					AddPair(LetterQ, LetterR);
+					m_Lock.unlock();
 					}
 				}
 			}
@@ -374,9 +380,14 @@ void FeatureTrainer::Train()
 	asserta(SeqCount%2 == 0);
 	const uint PairCount = SeqCount/2;
 	m_ExcludedPairCount = 0;
-	for (uint PairIndex = 0; PairIndex < PairCount; ++PairIndex)
+	m_Counter = 0;
+//#pragma omp parallel for
+	for (int PairIndex = 0; PairIndex < int(PairCount); ++PairIndex)
 		{
-		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u) %s",
+		m_Lock.lock();
+		uint Count = m_Counter++;
+		m_Lock.unlock();
+		ProgressStep(Count, PairCount, "Joint frequencies %s(%u) %s",
 					 m_FeatureName, m_AlphaSize, UBToStr(m_UB));
 		UpdateJointCounts(PairIndex);
 		}

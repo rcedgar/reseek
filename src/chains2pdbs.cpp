@@ -14,6 +14,9 @@ void PDBChain::ToPDB(const string &FileName) const
 
 void PDBChain::ToPDB(FILE *f, bool TruncateAtZ) const
 	{
+	string ChainStr = "A";
+	if (m_HasChainStr)
+		ChainStr = m_ChainStr;
 	const uint L = GetSeqLength();
 	for (uint i = 0; i < L; ++i)
 		{
@@ -29,7 +32,7 @@ void PDBChain::ToPDB(FILE *f, bool TruncateAtZ) const
 		fprintf(f, " ");				// 17             Character     altLoc       Alternate location indicator.
 		fprintf(f, "%3.3s", AAA);		// 18 - 20        Residue name  resName      Residue name.
 		fprintf(f, " ");				// 21
-		fprintf(f, "%c", 'A');			// 22             Character     chainID      Chain identifier.
+		fprintf(f, "%c", ChainStr[0]);	// 22             Character     chainID      Chain identifier.
 		fprintf(f, "%4u", i+1);			// 23 - 26        Integer       resSeq       Residue sequence number.
 		fprintf(f, " ");				// 27             AChar         iCode        Code for insertion of residues.
 		fprintf(f, "   ");				// 28 - 30

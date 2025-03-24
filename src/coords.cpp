@@ -50,6 +50,5 @@ void cmd_test_coords()
 	coords zaxis;
 	coords::cross(xaxis, yaxis, zaxis);
 	zaxis.logme();
-	brk(1);
 	}
 
