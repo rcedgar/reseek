@@ -168,10 +168,4 @@ void cmd_scop40bench_pre()
 				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
 	SB.WriteBit(opt(savebit));
-	if (optset_sens1fp_report)
-		{
-		FILE *f = CreateStdioFile(opt(sens1fp_report));
-		SB.WriteSens1FPReport(f);
-		CloseStdioFile(f);
-		}
 	}

@@ -39,14 +39,14 @@ public:
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
 
-	vector<float> m_DomIdxToScoreLastTP;
-	vector<float> m_DomIdxToScoreFirstFP;
-	vector<uint> m_DomIdxToHitIdxLastTP;
-	vector<uint> m_DomIdxToHitIdxFirstFP;
-	vector<vector<uint> > m_DomIdxToHitIdxs;
-	vector<uint> m_DomIdxToL;
-	vector<uint> m_DomIdxToSens1FP;
-	//vector<uint> m_DomIdxToTP1Count;
+	//vector<float> m_DomIdxToScoreLastTP;
+	//vector<float> m_DomIdxToScoreFirstFP;
+	//vector<uint> m_DomIdxToHitIdxLastTP;
+	//vector<uint> m_DomIdxToHitIdxFirstFP;
+	//vector<vector<uint> > m_DomIdxToHitIdxs;
+	//vector<uint> m_DomIdxToL;
+	//vector<uint> m_DomIdxToSens1FP;
+	////vector<uint> m_DomIdxToTP1Count;
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
@@ -67,7 +67,6 @@ public:
 	uint m_nt_epq0_1 = UINT_MAX;
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
-	uint m_nt_firstfp = UINT_MAX;
 
 	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;
@@ -104,12 +103,12 @@ public:
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
 	const vector<vector<byte> > &GetProfileByDomIdx(uint DomIdx) const;
 
-	void ScanDomHits();
-	void SetDomIdxToHitIdxs();
+	//void ScanDomHits();
+	//void SetDomIdxToHitIdxs();
 	void SetSFIdxToDomIdxs();
-	void SetDomIdxToL();
-	uint GetSens1stFP();
-	void GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2);
+	//void SetDomIdxToL();
+	//uint GetSens1stFP();
+	//void GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2);
 	void ReadHits(const string &FN);
 	void WriteBit(const string &FileName) const;
 	void ReadBit(const string &FileName);
@@ -164,8 +163,6 @@ public:
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteSummary();
 	void WriteOutput();
-	void WriteSens1FPReport(FILE *f) const;
-	void LogSens1FPReport_Dom(uint DomIdx) const;
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
 	void WriteCurve(const string &FN) const;

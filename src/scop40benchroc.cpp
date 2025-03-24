@@ -693,11 +693,10 @@ void cmd_scop40bit2tsv()
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.m_Level = "sf";
-	uint Sens = SB.GetSens1stFP();
 	//SB.LogFirstFewDoms();
 	//SB.LogFirstFewHits();
 	const uint HitCount = SB.GetHitCount();
-	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
+	//ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
 	for (uint i = 0; i < HitCount; ++i)
 		{
 		uint DomIdx1 = SB.m_DomIdx1s[i];
@@ -765,8 +764,7 @@ void cmd_scop40tsv2bit()
 	SB.LoadHitsFromTsv(g_Arg1);
 	SB.WriteBit(opt(output));
 	uint HitCount = SB.GetHitCount();
-	uint Sens1FP = SB.GetSens1stFP();
-	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens1FP);
+	ProgressLog("%u hits\n", HitCount);
 	}
 
 void cmd_scop40bench_tsv()

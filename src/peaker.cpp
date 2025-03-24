@@ -320,6 +320,7 @@ double Peaker::Evaluate(uint xIdx, bool UnsetOk)
 			{
 			ProgressLogSummary();
 			m_LastProgress_t = now;
+			ProgressLog("[%.6g/%+.3g] %.64s\n", y, dy, VarsStr.c_str());
 			}
 		}
 	++m_EvalIdx;

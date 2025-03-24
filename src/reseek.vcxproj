@@ -324,7 +324,6 @@
     <ClCompile Include="daliscore_msas.cpp" />
     <ClCompile Include="daliscore_tsv.cpp" />
     <ClCompile Include="distmx.cpp" />
-    <ClCompile Include="explore1.cpp" />
     <ClCompile Include="getchains.cpp" />
     <ClCompile Include="lddt.cpp" />
     <ClCompile Include="lddt_foldmason.cpp" />
@@ -376,7 +375,6 @@
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
     <ClCompile Include="features.cpp" />
-    <ClCompile Include="jiggle.cpp" />
     <ClCompile Include="kabsch.cpp" />
     <ClCompile Include="logodds.cpp" />
     <ClCompile Include="mergefwdback.cpp" />
@@ -385,7 +383,6 @@
     <ClCompile Include="conf.cpp" />
     <ClCompile Include="namedparams.cpp" />
     <ClCompile Include="prettyaln.cpp" />
-    <ClCompile Include="scalar_sweep.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
     <ClCompile Include="squeezer.cpp" />
@@ -393,7 +390,6 @@
     <ClCompile Include="squeezer_tor2.cpp" />
     <ClCompile Include="train_angles.cpp" />
     <ClCompile Include="train_conf.cpp" />
-    <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
@@ -500,7 +496,6 @@
     <ClInclude Include="squeezealgos.h" />
     <ClInclude Include="squeezeops.h" />
     <ClInclude Include="squeezer.h" />
-    <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
