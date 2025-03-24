@@ -438,8 +438,13 @@ void LogOdds::FromTsv(FILE *f)
 	m_AlphaSize = ReadIntValue(f, "alpha_size");
 	float ES = ReadFloatValue(f, "expected_score");
 	m_BackgroundCounts.clear();
+	m_BackgroundCountsUnaligned.clear();
 	for (uint i = 0; i < m_AlphaSize; ++i)
-		m_BackgroundCounts.push_back(ReadIntValue(f, "count", i));
+		{
+		uint n = ReadIntValue(f, "count", i);
+		m_BackgroundCounts.push_back(n);
+		m_BackgroundCountsUnaligned.push_back(n);
+		}
 
 	m_TrueCountMx.resize(m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)

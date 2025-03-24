@@ -42,12 +42,14 @@ static double EvalScop40(const Peaker &P, const vector<double> &xv)
 #include "featurelist.h"
 		}
 	s_Params.NormalizeWeights();
-	//s_Params.LoadFeatures();
 
 	s_SB.ClearHits();
 	s_SB.m_Level = "sf";
 	s_SB.m_ScoresAreEvalues = false;
-	s_SB.RunPrealigned(opt(input2));
+	if (optset_input2)
+		s_SB.RunPrealigned(opt(input2));
+	else
+		s_SB.RunSelf();
 	s_SB.SetStats(MaxFPR);
 	return s_SB.m_Area;
 	}

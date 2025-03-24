@@ -20,35 +20,32 @@ FEATURE DSSParams::LoadFeature(const string &FN)
 
 void DSSParams::LoadFeatures()
 	{
-	asserta(optset_fdir && optset_fs);
+	asserta(optset_feature_spec);
 
 	Clear();
 	SetDefaults_Other();
 
-	string FDir = opt(fdir);
-	if (FDir == "")
-		FDir = ".";
-	Dirize(FDir);
-
-	const string &fs = opt(fs);
+	vector<string> Lines;
 	vector<string> Fields;
-	Split(fs, Fields, '_');
+	ReadLinesFromFile(opt(feature_spec), Lines);
+	const uint N = SIZE(Lines);
 
 	vector<string> FNs;
 	vector<float> Weights;
-	const uint N = SIZE(Fields);
 	for (uint i = 0; i < N; ++i)
 		{
+		Split(Lines[i], Fields, '\t');
+		asserta(SIZE(Fields) == 2);
 		const string &Field = Fields[i];
-		vector<string> Fields2;
-		Split(Field, Fields2, ':');
-		asserta(SIZE(Fields2) == 2);
-		const string &FN = Fields2[0];
-		string Path = FDir + FN;
+
+		string Path = Fields[0];
+		double w = StrToFloat(Fields[1]);
+
 		FEATURE F = LoadFeature(Path);
-		double w = StrToFloat(Fields2[1]);
 		AddFeature(F, w);
 		ProgressLog("%s : %.3g\n", Path.c_str(), w);
 		}
+	ProgressLog("gapopen: %.3g\n", -m_GapOpen);
+	ProgressLog("gapext: %.3g\n", -m_GapExt);
 	SetScoreMxs();
 	}

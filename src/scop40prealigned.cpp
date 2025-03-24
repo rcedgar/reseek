@@ -100,6 +100,7 @@ void SCOP40Bench::ThreadBodyPrealigned(uint ThreadIndex)
 		float NewDPScore = DA.GetDPScoreGivenPath(Profile1, Profile2, Path);
 		s_OutpuLock.lock();
 		StoreScore(ChainIdx1, ChainIdx2, NewDPScore);
+		StoreScore(ChainIdx2, ChainIdx1, NewDPScore);
 		s_OutpuLock.unlock();
 
 		if (s_fOut != 0)

@@ -13,7 +13,6 @@ public:
 
 public:
 	vector<const VarSpec *> m_VarSpecs;
-	double m_Target_dy = DBL_MAX;
 	double m_Min_dy = DBL_MAX;
 	double m_Max_dy = DBL_MAX;
 	double m_Min_Height = DBL_MAX;
@@ -47,6 +46,7 @@ public:
 // Hooke-Jeeves parameters
 	uint m_HJ_MaxExtendIters = 100;
 	uint m_HJ_MaxIters = 100;
+	time_t m_LastProgress_t = 0;
 
 // Hooke-Jeeves state
 	uint m_HJ_Direction = UINT_MAX;	// current axis
@@ -55,7 +55,6 @@ public:
 	void Clear()
 		{
 		m_VarSpecs.clear();
-		m_Target_dy = DBL_MAX;
 		m_Min_dy = DBL_MAX;
 		m_Max_dy = DBL_MAX;
 		m_Min_Height = DBL_MAX;

@@ -225,7 +225,7 @@ void SCOP40Bench::SetTFs()
 	uint SFCount = SIZE(m_SFs);
 	for (uint i = 0; i < HitCount; ++i)
 		{
-		ProgressStep(i, HitCount, "Set TFs");
+		//ProgressStep(i, HitCount, "Set TFs");
 		uint DomIdx1 = m_DomIdx1s[i];
 		uint DomIdx2 = m_DomIdx2s[i];
 		int T = IsT(DomIdx1, DomIdx2);
@@ -424,7 +424,7 @@ bool SCOP40Bench::SmoothROCSteps(const vector<float> &Scores,
 	asserta(SIZE(NFPs) >= n);
 	if (n < 2*N)
 		return false;
-	Progress("SmoothSteps\n");
+	//Progress("SmoothSteps\n");
 	const uint HitCount = GetHitCount();
 	for (uint Bin = 0; Bin < N; ++Bin)
 		{
@@ -463,8 +463,8 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 		return;
 
 	asserta(SIZE(m_TFs) == HitCount);
-	Progress("Sort scores UseTS=%c m_ScoresAreEvalues=%c\n",
-	  tof(UseTS), tof(m_ScoresAreEvalues));
+	//Progress("Sort scores UseTS=%c m_ScoresAreEvalues=%c\n",
+	//  tof(UseTS), tof(m_ScoresAreEvalues));
 	if (UseTS)
 		SetTSOrder();
 	else
@@ -475,7 +475,7 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	float CurrentScore = (UseTS ? m_TSs[Order[0]] : m_Scores[Order[0]]);
 	uint NTP = 0;
 	uint NFP = 0;
-	Progress("ROC Steps\n");
+	//Progress("ROC Steps\n");
 	for (uint k = 0; k < HitCount; ++k)
 		{
 		uint i = Order[k];

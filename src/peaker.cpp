@@ -2,22 +2,6 @@
 #include "peaker.h"
 #include <time.h>
 
-/***
-dy=0.01
-mindy=0.001
-sigfig=4
-latin=yes
-var=AA	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
-var=NENDist	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
-var=Conf	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
-var=NENConf	min=0	max=1	min=0.001	max=0.5	bins=8	delta=0.05
-var=RENDist	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
-var=DstNxtHlx	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
-var=NormDens	min=0	max=1	min=0.001	max=0.2	bins=8	delta=0.05
-var=gapopen	min=0	max=3	min=0.5	max=3	bins=8	delta=0.05
-var=gapext	min=0	max=3	min=0.1	max=0.3	bins=8	delta=0.05
-***/
-
 FILE *Peaker::m_fTsv = 0;
 
 double Peaker::rr(double lo, double hi) const
@@ -329,6 +313,15 @@ double Peaker::Evaluate(uint xIdx, bool UnsetOk)
 		m_LastImprovedEvalIdx = m_EvalIdx;
 		ProgressLogSummary();
 		}
+	else
+		{
+		time_t now = time(0);
+		if (now > m_LastProgress_t)
+			{
+			ProgressLogSummary();
+			m_LastProgress_t = now;
+			}
+		}
 	++m_EvalIdx;
 	if (m_fTsv != 0)
 		fprintf(m_fTsv, "%.6g\t%s\n", y, VarsStr.c_str());
@@ -354,16 +347,6 @@ void Peaker::LogPair(uint xIdx1, uint xIdx2) const
 		}
 	Log(" %u changes\n", ChangeCount);
 	}
-
-/***
-dy=3200
-mindy=300
-cool=0.8
-sigfig=4
-latin=20
-var=adsw        min=0   max=1   mind=0.01       maxd=0.1        bins=8
-var=lddtw       min=0   max=1   mind=0.01       maxd=0.1        bins=8
-***/
 
 void Peaker::Init(const vector<string> &SpecLines,
   PTR_EVAL_FUNC EF)
@@ -409,9 +392,7 @@ void Peaker::Init(const vector<string> &SpecLines,
 			asserta(SIZE(Values) == 1);
 			const string &Name = Names[0];
 			const string &Value = Values[0];
-			if (Name == "dy")
-				m_Target_dy = StrToFloat(Value);
-			else if (Name == "cmd")
+			if (Name == "cmd")
 				m_Cmd = Value;
 			else if (Name == "mindy")
 				m_Min_dy = StrToFloat(Value);
@@ -451,7 +432,6 @@ void Peaker::LogState() const
 	Log("#%u", m_EvalIdx);
 	Log(", last+ %u", m_LastImprovedEvalIdx);
 	Log(", cache %u", m_EvaluateCacheHits);
-	Log(", target dy=%.3g", m_Target_dy);
 	Log("\n");
 	Log("       Var       Delta        Best\n");
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
