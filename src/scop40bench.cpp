@@ -315,10 +315,27 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 		return;
 		}
 
-	if (Up)
-		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+	if (opt(benchfwdscore))
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_AlnFwdScore);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_AlnFwdScore);
+		}
+	else if (opt(benchts))
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_NewTestStatisticA);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_NewTestStatisticB);
+		}
 	else
-		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+		{
+		if (Up)
+			StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+		else
+			StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+		}
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()

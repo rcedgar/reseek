@@ -8,16 +8,16 @@ https://samtools.github.io/hts-specs/SAMv1.pdf
  
 6. CIGAR: CIGAR string. The CIGAR operations are given in the following table (set '*' if unavailable):
 
-Op BAM	Description Consumes query Consumes reference
-M	0	alignment match (can be a sequence match or mismatch) yes yes
-I	1	insertion to the reference yes no
-D	2	deletion from the reference no yes
-N	3	skipped region from the reference no yes
-S	4	soft clipping (clipped sequences present in SEQ) yes no
-H	5	hard clipping (clipped sequences NOT present in SEQ) no no
-P	6	padding (silent deletion from padded reference) no no
-=	7	sequence match yes yes
-X	8	sequence mismatch yes yes
+Op BAM	Description												Consumes query reference
+M	0	alignment match (can be a sequence match or mismatch)	yes yes
+I	1	insertion to the reference								yes no
+D	2	deletion from the reference								no yes
+N	3	skipped region from the reference						no yes
+S	4	soft clipping (clipped sequences present in SEQ)		yes no
+H	5	hard clipping (clipped sequences NOT present in SEQ)	no no
+P	6	padding (silent deletion from padded reference)			no no
+=	7	sequence match											yes yes
+X	8	sequence mismatch										yes yes
 
 (*) "Consumes query" and "consumes reference" indicate whether the CIGAR operation causes the
 	  alignment to step along the query sequence and the reference sequence respectively.
@@ -33,7 +33,7 @@ X	8	sequence mismatch yes yes
 //   T is used for number of clipped letters at start
 //   in the reference.
 void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
-  string &CIGAR, bool FlipDI)
+	uint QL, uint RL, string &CIGAR, bool FlipDI)
 	{
 	CIGAR.clear();
 	char LastC = *Path;
@@ -56,6 +56,7 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 		char c = Path[i];
 		if (c == 0)
 			break;
+
 		if (FlipDI)
 			{
 			if (c == 'D')
@@ -63,6 +64,7 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 			else if (c == 'I')
 				c = 'D';
 			}
+
 		if (c == LastC)
 			{
 			++n;
@@ -88,6 +90,24 @@ void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
 		else if (LastC == 'I')
 			LastC = 'D';
 		snprintf(Tmp,  SIZE_32, "%u%c", n, LastC);
+		CIGAR += string(Tmp);
+		}
+
+	void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+	uint nm, nd, ni;
+	GetPathCounts(Path, nm, nd, ni);
+	uint nq = LoQ + nm + nd;
+	uint nr = LoR + nm + ni;
+	asserta(nq <= QL);
+	asserta(nr <= RL);
+	if (nq < QL)
+		{
+		snprintf(Tmp, SIZE_32, "%uS", QL - nq);
+		CIGAR += string(Tmp);
+		}
+	if (nr < RL)
+		{
+		snprintf(Tmp, SIZE_32, "%uT", RL - nr);
 		CIGAR += string(Tmp);
 		}
 	}
@@ -217,10 +237,24 @@ const char *CIGARToPath(const string &CIGAR, string &Path)
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
-		asserta(Op == 'M' || Op == 'D' || Op == 'I');
 		uint OpLength = OpLengths[i];
-		for (uint j = 0; j < OpLength; ++j)
-			Path += Op;
+		if (Op == 'M' || Op == 'D' || Op == 'I')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += Op;
+			}
+		else if (Op == 'S')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += 'I';
+			}
+		else if (Op == 'T')
+			{
+			for (uint j = 0; j < OpLength; ++j)
+				Path += 'D';
+			}
+		else
+			Die("Bad op in CIGAR '%c'", Op);
 		}
 	return Path.c_str();
 	}

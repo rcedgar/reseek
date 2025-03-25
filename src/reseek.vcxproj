@@ -22,7 +22,7 @@
     <ProjectGuid>{D30DAE74-D358-4329-B815-47360BA541D9}</ProjectGuid>
     <RootNamespace>reseek</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <ProjectName>reseek</ProjectName>
+    <ProjectName>reseek25</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -282,14 +282,19 @@
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
+    <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="hj.cpp" />
+    <ClCompile Include="hj_scop40.cpp" />
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="mymutex.cpp" />
+    <ClCompile Include="peaker.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
+    <ClCompile Include="scop40prealigned.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
@@ -506,6 +511,7 @@
     <ClInclude Include="objtype.h" />
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
+    <ClInclude Include="peaker.h" />
     <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="primes.h" />
@@ -528,6 +534,7 @@
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />
+    <ClInclude Include="varspec.h" />
     <ClInclude Include="xdpmem.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />

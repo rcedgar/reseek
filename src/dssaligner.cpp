@@ -774,6 +774,85 @@ void DSSAligner::AlignQueryTarget_Trace()
 	Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
 	}
 
+// RCE 'D'/'I' convention is reverse of CIGAR
+static char Fix(char c)
+	{
+	if (c == 'M')
+		return 'M';
+	else if (c == 'D')
+		return 'I';
+	else if (c == 'I')
+		return 'D';
+	asserta(false);
+	return 0;
+	}
+
+void DSSAligner::GetCIGAR(string &CIGAR) const
+	{
+	CIGAR.clear();
+	const uint ColCount = SIZE(m_Path);
+	if (ColCount == 0)
+		return;
+
+	char LastC = m_Path[0];
+	uint n = 1;
+
+	if (m_LoA > 0)
+		Psa(CIGAR, "%uS", m_LoA);
+	if (m_LoB > 0)
+		Psa(CIGAR, "%uT", m_LoB);
+
+	for (uint i = 1; ; ++i)
+		{
+		char c = m_Path[i];
+		if (c == 0)
+			break;
+
+		if (c == LastC)
+			{
+			++n;
+			continue;
+			}
+		else
+			{
+			assert(n > 0);
+			Psa(CIGAR, "%u%c", n, Fix(LastC));
+			LastC = c;
+			n = 1;
+			}
+		}
+	if (n > 0)
+		Psa(CIGAR, "%u%c", n, Fix(LastC));
+	else
+		asserta(false);
+
+	void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+	uint nm, nd, ni;
+	GetPathCounts(m_Path, nm, nd, ni);
+	uint na = m_LoA + nm + nd;
+	uint nb = m_LoB + nm + ni;
+	uint LA = m_ChainA->GetSeqLength();
+	uint LB = m_ChainB->GetSeqLength();
+	asserta(na <= LA);
+	asserta(nb <= LB);
+	if (na < LA)
+		Psa(CIGAR, "%uS", LA - na);
+	if (nb < LB)
+		Psa(CIGAR, "%uT", LB - nb);
+	}
+
+void DSSAligner::ValidatePath() const
+	{
+	if (m_Path.empty())
+		return;
+	uint M, D, I;
+	GetPathCounts(m_Path, M, D, I);
+	uint LA = m_ChainA->GetSeqLength();
+	uint LB = m_ChainB->GetSeqLength();
+	asserta(m_LoA + M + D <= LA);
+	asserta(m_LoB + M + I <= LB);
+	}
+
 void DSSAligner::AlignQueryTarget()
 	{
 	if (optset_label1 && optset_label2)
@@ -812,6 +891,9 @@ void DSSAligner::AlignQueryTarget()
 		}
 
 	Align_NoAccel();
+#if DEBUG
+	ValidatePath();
+#endif
 	}
 
 void DSSAligner::CalcEvalue_AAOnly()
@@ -975,7 +1057,6 @@ void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	{
 	if (f == 0)
 		return;
-
 	const bool Up = !aUp;
 	string RowA, RowB;
 	if (Up)
@@ -993,11 +1074,12 @@ void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	const string &LabelB = GetLabel(!Up);
 	float Evalue = GetEvalue(Up);
 	float PctId = GetPctId();
+	float TS = GetNewTestStatistic(Up);
+	float AQ = GetAQ(Up);
 	string LabelAx = LabelA;
-	Psa(LabelAx, " E=%.3g Id=%.1f%%", Evalue, PctId);
-	LabelAx += " (";
+	Psa(LabelAx, "|E=%.3g|Id=%.1f%%|TS=%.4f|AQ=%.4f", Evalue, PctId, TS, AQ);
+	LabelAx += "|";
 	LabelAx += LabelB;
-	LabelAx += ")";
 
 	m_OutputLock.lock();
 	SeqToFasta(f, LabelAx.c_str(), RowA);
@@ -1012,7 +1094,6 @@ void DSSAligner::ToTsv(FILE *f, bool Up)
 		return;
 	if (opt(noself) && m_ChainA->m_Label == m_ChainB->m_Label)
 		return;
-
 	m_OutputLock.lock();
 	const uint n = SIZE(m_UFs);
 	asserta(n > 0);
@@ -1450,4 +1531,59 @@ void DSSAligner::FreeSMxData()
 	m_SMx_BufferSize = 0;
 	m_SMx_Rows = 0;
 	m_SMx_Cols = 0;
+	}
+
+float DSSAligner::GetDPScoreGivenPath(const vector<vector<byte> > &Profile1,
+	const vector<vector<byte> > &Profile2, const string &Path) const
+	{
+	const uint ColCount = SIZE(Path);
+	const uint L1 = SIZE(Profile1[0]);
+	const uint L2 = SIZE(Profile2[0]);
+	uint Pos1 = 0;
+	uint Pos2 = 0;
+	bool InGap = false;
+	float GapOpen = m_Params->m_GapOpen;
+	float GapExt = m_Params->m_GapExt;
+	asserta(GapOpen < 0);
+	asserta(GapExt < 0);
+	float Score = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		switch (c)
+			{
+		case 'M':
+			Score += GetScorePosPair(Profile1, Profile2, Pos1++, Pos2++);
+			InGap = false;
+			break;
+
+		case 'D':
+			if (InGap)
+				Score += GapExt;
+			else
+				{
+				Score += GapOpen;
+				InGap = true;
+				}
+			++Pos1;
+			break;
+
+		case 'I':
+			if (InGap)
+				Score += GapExt;
+			else
+				{
+				Score += GapOpen;
+				InGap = true;
+				}
+			++Pos2;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	asserta(Pos1 == L1);
+	asserta(Pos2 == L2);
+	return Score;
 	}

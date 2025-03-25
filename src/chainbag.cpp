@@ -57,7 +57,9 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
 	  m_Params->m_GapOpen, m_Params->m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
-
+#if DEBUG
+	ValidatePath();
+#endif
 	CalcEvalue();
 	}
 

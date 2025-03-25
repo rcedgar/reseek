@@ -235,3 +235,49 @@ void cmd_train_features()
 	CloseStdioFile(fOut);
 	CloseStdioFile(fOut2);
 	}
+
+void cmd_recalc_es()
+	{
+	extern float **g_ScoreMxs2[FEATURE_COUNT];
+	extern float **g_FreqMxs2[FEATURE_COUNT];
+	extern float *g_FreqVecs2[FEATURE_COUNT];
+	extern uint g_AlphaSizes2[FEATURE_COUNT];
+
+	vector<FEATURE> Fs;
+	Fs.push_back(FEATURE_AA);
+	Fs.push_back(FEATURE_NENDist);
+	Fs.push_back(FEATURE_Conf);
+	Fs.push_back(FEATURE_NENConf);
+	Fs.push_back(FEATURE_RENDist);
+	Fs.push_back(FEATURE_DstNxtHlx);
+	Fs.push_back(FEATURE_StrandDens);
+	Fs.push_back(FEATURE_NormDens);
+
+	for (uint i = 0; i < SIZE(Fs); ++i)
+		{
+		FEATURE F = Fs[i];
+		float *BackgroundFreqs = g_FreqVecs2[F];
+		float **FreqMx = g_FreqMxs2[F];
+		uint AS = g_AlphaSizes2[F];
+		double SumFreq = 0;
+		double ExpectedScore = 0;
+		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
+			{
+			double f1 = BackgroundFreqs[Letter1];
+			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
+				{
+				double f2 = BackgroundFreqs[Letter2];
+				double ObsFreq = FreqMx[Letter1][Letter2];
+				double ExpectedFreq = double(f1*f2);
+				if (ObsFreq == 0 || ExpectedFreq == 0)
+					continue;
+				double Ratio = ObsFreq/ExpectedFreq;
+				double Score = log(Ratio);
+				ExpectedScore += ObsFreq*Score;
+				SumFreq += ObsFreq;
+				}
+			}
+		asserta(feq(SumFreq, 1));
+		ProgressLog("%7.4f  %s\n", ExpectedScore, FeatureToStr(F));
+		}
+	}

@@ -630,6 +630,8 @@ uint DSS::Get_Mu(uint Pos)
 	{
 	uint MuLetter = 0;
 	uint m = 1;
+	uint NEN = GetNEN(Pos);
+	uint REN = GetREN(Pos);
 	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
 		{
 		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
@@ -638,7 +640,6 @@ uint DSS::Get_Mu(uint Pos)
 		MuLetter = MuLetter + m*Letter;
 		m *= m_Params->m_MuAlphaSizes[i];
 		}
-
 	asserta(MuLetter < m_Params->m_MuAlphaSize);
 	return MuLetter;
 	}

@@ -218,6 +218,10 @@ public:
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
+	void ValidatePath() const;
+	void GetCIGAR(string &CIGAR) const;
+	float GetDPScoreGivenPath(const vector<vector<byte> > &Profile1,
+	  const vector<vector<byte> > &Profile2, const string &Path) const;
 
 public:
 	static void Stats();

@@ -165,6 +165,8 @@ public:
 	void LogFirstFewHits() const;
 	void WriteCurve(const string &FN) const;
 	void WriteSortedHits(const string &FN) const;
+	void ThreadBodyPrealigned(uint ThreadIndex);
+	void RunPrealigned(const string &TsvFN);
 
 public:
 	static float GetArea(const vector<float> &TPRs,
@@ -175,4 +177,5 @@ public:
 	static void GetDomFromLabel(const string &Label, string &Dom);
 	static void GetDomSFFromLabel(const string &Label, string &Dom, string &SF);
 	static bool IsTP_SF(const string &Label1, const string &Label2);
+	static void StaticThreadBodyPreAligned(uint ThreadIndex, SCOP40Bench *ptrSB);
 	};

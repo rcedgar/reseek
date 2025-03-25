@@ -51,7 +51,10 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 				{
 				BaseOnAln(DA, true);
 				if (ChainIndex1 != ChainIndex2)
-					BaseOnAln(DA, false);
+					{
+					if (!opt(nodown))
+						BaseOnAln(DA, false);
+					}
 				}
 			}
 		else
@@ -61,7 +64,10 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 				{
 				BaseOnAln(DA, true);
 				if (ChainIndex1 != ChainIndex2)
-					BaseOnAln(DA, false);
+					{
+					if (!opt(nodown))
+						BaseOnAln(DA, false);
+					}
 				}
 			}
 		PrevChainIndex1 = ChainIndex1;

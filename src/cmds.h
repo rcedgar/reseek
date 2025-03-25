@@ -73,5 +73,8 @@ C(create_foldseekdb)
 C(prefilter_mu)
 C(mudex)
 C(cca)
+C(hj_scop40)
+C(recalc_es)
+C(dump_features)
 
 #undef C

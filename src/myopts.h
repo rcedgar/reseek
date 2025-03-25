@@ -62,6 +62,7 @@ STR_OPT(accumrev)
 STR_OPT(savebit)
 STR_OPT(aln)
 STR_OPT(filin)
+STR_OPT(hjspec)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -139,6 +140,9 @@ FLAG_OPT(keeptmp)
 FLAG_OPT(log10)
 FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
+FLAG_OPT(benchfwdscore)
+FLAG_OPT(benchts)
+FLAG_OPT(nodown)
 
 #undef FLAG_OPT
 #undef UNS_OPT

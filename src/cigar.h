@@ -1,7 +1,7 @@
 #pragma once
 
-void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR, string &CIGAR,
-  bool FlipDI);
+void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR,
+	uint QL, uint RL, string &CIGAR, bool FlipDI);
 void PathToCIGAR(const char *Path, string &CIGAR, bool FlipDI = false);
 void CIGARGetOps(const string &CIGAR, string &Ops, vector<uint> &Lengths);
 const char *LocalCIGARToPath(const string &CIGAR, string &Path,
