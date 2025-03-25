@@ -95,8 +95,8 @@ void cmd_pdb2mega()
 		const char *Label = Chain.m_Label.c_str();
 		fprintf(fOut, "chain\t%u\t%s\t%u\n", ChainIndex, Label, L);
 
-		D.Init(Chain);
-		D.GetProfile(Params, Profile);
+		D.Init(Chain, Params);
+		D.GetProfile(Profile);
 		asserta(SIZE(Profile) == FeatureCount);
 		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 			asserta(SIZE(Profile[FeatureIdx]) == L);

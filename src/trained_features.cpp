@@ -10,9 +10,10 @@ static void AllocFeature(FEATURE F, uint AS);
 static float **s_ScoreMxs[FEATURE_COUNT];
 static float **s_FreqMxs[FEATURE_COUNT];
 static float *s_FreqVecs[FEATURE_COUNT];
-static float *s_BinTs[FEATURE_COUNT];
 static uint s_AlphaSizes[FEATURE_COUNT];
-static bool s_Wildcards[FEATURE_COUNT];
+static uint s_DefaultLetters[FEATURE_COUNT];
+static UNDEF_BINNING s_UBs[FEATURE_COUNT];
+static vector<vector<float> > s_BinTs;
 
 static bool Init()
 	{
@@ -23,6 +24,8 @@ static bool Init()
 	s_AlphaSizes[FEATURE_PlusNENConf] = 16;
 	s_AlphaSizes[FEATURE_MinusNENConf] = 16;
 	s_AlphaSizes[FEATURE_Mu] = 36;
+
+	s_BinTs.resize(FEATURE_COUNT);
 	return true;
 	};
 static bool s_InitDone = Init();
@@ -33,7 +36,6 @@ static void AllocFeature(FEATURE F, uint AS)
 	s_FreqMxs[F] = myalloc(float *, AS);
 	s_ScoreMxs[F] = myalloc(float *, AS);
 	s_FreqVecs[F] = myalloc(float, AS);
-	s_BinTs[F] = myalloc(float, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		s_FreqMxs[F][i] = myalloc(float, AS);
@@ -69,11 +71,29 @@ static void FreeMe()
 
 uint DSS::GetAlphaSize(FEATURE F)
 	{
-	asserta(uint(F) < FEATURE_COUNT);
+	assert(uint(F) < FEATURE_COUNT);
 	return s_AlphaSizes[uint(F)];
 	}
 
-void DSS::SetFeature(FEATURE F, bool Wildcard,
+uint DSS::GetDefaultLetter(FEATURE F)
+	{
+	assert(uint(F) < FEATURE_COUNT);
+	return s_DefaultLetters[uint(F)];
+	}
+
+UNDEF_BINNING DSS::GetUB(FEATURE F)
+	{
+	assert(uint(F) < FEATURE_COUNT);
+	return s_UBs[uint(F)];
+	}
+
+const vector<float> &DSS::GetBinTs(FEATURE F)
+	{
+	assert(uint(F) < FEATURE_COUNT);
+	return s_BinTs[uint(F)];
+	}
+
+void DSS::SetFeature(FEATURE F, UNDEF_BINNING UB,
 		const vector<float> &Freqs,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
@@ -84,7 +104,7 @@ void DSS::SetFeature(FEATURE F, bool Wildcard,
 	asserta(SIZE(FreqMx) == AS);
 	asserta(SIZE(ScoreMx) == AS);
 	s_AlphaSizes[F] = AS;
-	s_Wildcards[F] = Wildcard;
+	s_UBs[F] = UB;
 	AllocFeature(F, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
@@ -106,11 +126,9 @@ void DSS::SetFeature(FEATURE F, bool Wildcard,
 		asserta(BinTs.empty());
 	else
 		{
-		if (Wildcard)
-			asserta(SIZE(BinTs) + 2 == AS);
-		else
-			asserta(SIZE(BinTs) + 1 == AS);
-
+		uint n = GetBinThresholdCount(AS, UB);
+		asserta(SIZE(BinTs) == n);
+		s_BinTs[F].resize(n);
 		if (!BinTs.empty())
 			{
 			for (uint i = 0; i < SIZE(BinTs); ++i)
@@ -134,10 +152,14 @@ const float * const *DSS::GetScoreMx(FEATURE F)
 	return s_ScoreMxs[F];
 	}
 
-uint DSS::GetIntValue(FEATURE F, float Value)
+uint DSS::ValueToInt_Feature(FEATURE F, float Value)
 	{
-	Die("TODO");
 	assert(uint(F) < FEATURE_COUNT);
-	//uint i = ValueToInt(s_BinTs[F], s_AlphaSizes[F], Value);
-	return 0;
+	uint AS = s_AlphaSizes[F];
+	assert(AS > 0);
+	UNDEF_BINNING UB = s_UBs[F];
+	const vector<float> &BinTs = s_BinTs[F];
+	uint DefaultLetter = s_DefaultLetters[F];
+	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
+	return Letter;
 	}

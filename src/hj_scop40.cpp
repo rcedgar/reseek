@@ -44,7 +44,6 @@ static double EvalScop40(const Peaker &P, const vector<double> &xv)
 	s_Params.NormalizeWeights();
 
 	s_SB.ClearHits();
-	s_SB.m_Level = "sf";
 	s_SB.m_ScoresAreEvalues = false;
 	if (optset_input2)
 		s_SB.RunPrealigned(opt(input2));

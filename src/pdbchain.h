@@ -1,13 +1,11 @@
 #ifndef pdbchain_h
 #define pdbchain_h
 
-// More memory, no speed advantage
-#define CACHE_DIST_MAX	0
-
 #include "myutils.h"
 #include "features.h"
 #include "flatmx.h"
 #include "coords.h"
+#include "dssparams.h"
 
 class DSS;
 
@@ -26,9 +24,6 @@ public:
 	vector<float> m_Zs;
 	uint m_Idx = UINT_MAX;
 	vector<string> m_Lines;
-#if CACHE_DIST_MAX
-	FlatMx<float> *m_DistMx = 0;
-#endif
 
 //#if _MSC_VER && DEBUG
 //	void *operator new(size_t n)
@@ -50,9 +45,6 @@ public:
 		m_Ys.clear();
 		m_Zs.clear();
 		m_Lines.clear();
-#if CACHE_DIST_MAX
-		if (m_DistMx != 0) delete m_DistMx;
-#endif
 		}
 
 	uint GetSeqLength() const;
@@ -63,7 +55,7 @@ public:
 	void ToCal(FILE *f) const;
 	void ToFasta(const string &FileName) const;
 	void ToFasta(FILE *f) const;
-	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const;
+	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat, const DSSParams &Params) const;
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void ToPDB(FILE *f, bool TruncateAtZ = false) const;
@@ -91,11 +83,6 @@ public:
 		v.y = m_Ys[i];
 		v.z = m_Zs[i];
 		}
-
-#if CACHE_DIST_MAX
-	void SetDistMx();
-	void ClearDistMx();
-#endif
 
 public:
 	static bool IsATOMLine(const string &Line);

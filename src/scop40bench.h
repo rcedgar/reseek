@@ -22,13 +22,9 @@ public:
 	vector<string> m_SFs;
 	map<string, uint> m_SFToIdx;
 
-	vector<string> m_Folds;
-	map<string, uint> m_FoldToIdx;
-
 // Per-chain vectors [ChainIdx]
 	vector<uint> m_DomIdxs;
 	vector<uint> m_DomIdxToSFIdx;
-	vector<uint> m_DomIdxToFoldIdx;
 
 	bool m_ScoresAreEvalues = true;
 
@@ -39,14 +35,6 @@ public:
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
 
-	//vector<float> m_DomIdxToScoreLastTP;
-	//vector<float> m_DomIdxToScoreFirstFP;
-	//vector<uint> m_DomIdxToHitIdxLastTP;
-	//vector<uint> m_DomIdxToHitIdxFirstFP;
-	//vector<vector<uint> > m_DomIdxToHitIdxs;
-	//vector<uint> m_DomIdxToL;
-	//vector<uint> m_DomIdxToSens1FP;
-	////vector<uint> m_DomIdxToTP1Count;
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
@@ -63,12 +51,10 @@ public:
 	vector<uint> m_SmoothNFPs;
 	uint m_NT = UINT_MAX;
 	uint m_NF = UINT_MAX;
-	uint m_NI = UINT_MAX;
 	uint m_nt_epq0_1 = UINT_MAX;
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
 
-	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
@@ -95,7 +81,6 @@ public:
 	uint GetHitCount() const { return SIZE(m_Scores); }
 	uint GetDomCount() const { return SIZE(m_DomIdxToSFIdx); }
 	uint GetSFCount() const { return SIZE(m_SFs); }
-	uint GetFoldCount() const { return SIZE(m_Folds); }
 	void AddDom(const string &Dom, const string &Fold, const string &SF,
 	  uint ChainIndex = UINT_MAX);
 	void BuildDomSFIndexesFromDBChainLabels();
@@ -103,12 +88,7 @@ public:
 	const PDBChain &GetChainByDomIdx(uint DomIdx) const;
 	const vector<vector<byte> > &GetProfileByDomIdx(uint DomIdx) const;
 
-	//void ScanDomHits();
-	//void SetDomIdxToHitIdxs();
 	void SetSFIdxToDomIdxs();
-	//void SetDomIdxToL();
-	//uint GetSens1stFP();
-	//void GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2);
 	void ReadHits(const string &FN);
 	void WriteBit(const string &FileName) const;
 	void ReadBit(const string &FileName);

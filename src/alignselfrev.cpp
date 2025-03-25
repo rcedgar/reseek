@@ -33,11 +33,11 @@ void cmd_alignselfrev()
 		PDBChain Rev = *Chain;
 		Rev.Reverse();
 
-		D.Init(*Chain);
-		D.GetProfile(Params, Profile);
+		D.Init(*Chain, Params);
+		D.GetProfile(Profile);
 
-		D.Init(Rev);
-		D.GetProfile(Params, RevProfile);
+		D.Init(Rev, Params);
+		D.GetProfile(RevProfile);
 
 		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
 		DA.SetTarget(Rev, &RevProfile, 0, 0, FLT_MAX);

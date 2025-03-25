@@ -675,8 +675,9 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		}
 	}
 
-void DSS::GetProfile(const DSSParams &Params, vector<vector<byte> > &Profile)
+void DSS::GetProfile(vector<vector<byte> > &Profile)
 	{
+	const DSSParams &Params = *m_Params;
 	Profile.clear();
 	const uint L = GetSeqLength();
 	const string &Seq = m_Chain->m_Seq;
@@ -749,7 +750,12 @@ uint DSS::GetFeatureLo(FEATURE F, uint Pos)
 #define F(x)	case FEATURE_##x: \
 		{ \
 		float Value = GetFloat_##x(Pos); \
-		Die("TODO " #x); \
+		UNDEF_BINNING UB = DSS::GetUB(FEATURE_##x); \
+		uint AS = DSS::GetAlphaSize(FEATURE_##x); \
+		uint DefaultLetter = DSS::GetDefaultLetter(FEATURE_##x); \
+		const vector<float> &BinTs = GetBinTs(FEATURE_##x); \
+		uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter); \
+		return Letter; \
 		}
 #include "floatfeatures.h"
 #undef F

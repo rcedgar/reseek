@@ -95,7 +95,7 @@ void FeatureTrainer::SetFeature(FEATURE F)
 
 void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain)
 	{
-	m_D.Init(Chain);
+	m_D.Init(Chain, m_Params);
 	const uint L = Chain.GetSeqLength();
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
@@ -167,7 +167,7 @@ void FeatureTrainer::SetFloatValues()
 		ProgressStep(ChainIndex, ChainCount, "Values %s (%.2f%% undefined) %s",
 					 m_FeatureName, Pct, UBToStr(m_UB));
 		const PDBChain &Chain = *m_Chains[ChainIndex];
-		D.Init(Chain);
+		D.Init(Chain, m_Params);
 		const uint L = Chain.GetSeqLength();
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
@@ -300,8 +300,8 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 
 	DSS DQ;
 	DSS DR;
-	DQ.Init(QChain);
-	DR.Init(RChain);
+	DQ.Init(QChain, m_Params);
+	DR.Init(RChain, m_Params);
 
 	const string &QRow = m_Alns.GetSeq(2*PairIndex);
 	const string &RRow = m_Alns.GetSeq(2*PairIndex+1);

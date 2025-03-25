@@ -18,19 +18,13 @@ float GetSelfRevScore(DSSAligner &DA, const DSSParams &Params,
 	PDBChain RevChain;
 	Chain.GetReverse(RevChain);
 	vector<vector<byte> > RevProfile;
-#if CACHE_DIST_MAX
-	RevChain.SetDistMx();
-#endif
-	D.Init(RevChain);
-	D.GetProfile(Params, RevProfile);
+	D.Init(RevChain, Params);
+	D.GetProfile(RevProfile);
 
 	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 
 	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 	DA.AlignQueryTarget();
-#if CACHE_DIST_MAX
-	D.m_DistMx = 0;
-#endif
 	return DA.m_AlnFwdScore;
 	}
 
@@ -96,8 +90,8 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;
 	uint BestChainIndexT = UINT_MAX;
-	D.Init(*ChainQ);
-	D.GetProfile(Params, ProfileQ);
+	D.Init(*ChainQ, Params);
+	D.GetProfile(ProfileQ);
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
@@ -106,8 +100,8 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
 
-	D.Init(*ChainT);
-	D.GetProfile(Params, ProfileT);
+	D.Init(*ChainT, Params);
+	D.GetProfile(ProfileT);
 
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);

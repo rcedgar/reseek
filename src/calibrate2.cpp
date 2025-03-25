@@ -53,8 +53,6 @@ void LinearFit(const vector<float> &xs, const vector<float> &ys,
 
 void cmd_calibrate2()
 	{
-	asserta(optset_benchlevel);
-
 	string CalFN;
 	if (g_Arg1 == ".")
 #ifdef _MSC_VER

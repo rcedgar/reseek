@@ -51,8 +51,14 @@ public:
 	int m_MKF_X2 = INT_MAX;
 	int m_MKF_MinHSPScore = INT_MAX;
 	float m_MKF_MinMegaHSPScore = FLT_MAX;
-	float ***m_ScoreMxs = 0;
+
+// DSSParams has its own score matrices with weights applied
+// Other alphabet
 	bool m_OwnScoreMxs = false;
+	float ***m_ScoreMxs = 0;
+	//uint *m_AlphaSizes = 0;
+	//uint *m_DefaultLetters = 0;
+	//UNDEF_BINNING *m_UBs = 0;
 
 // TS params
 	float m_dpw = 1.7f;

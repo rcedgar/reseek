@@ -47,6 +47,8 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	SetDefaults_Other();
 	if (optset_feature_spec)
 		LoadFeatures();
+	else
+		SetDefaults_Features();
 
 	ALGO_MODE AM = GetAlgoMode(DM);
 
@@ -322,11 +324,10 @@ void DSSParams::ApplyWeights()
 		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		if (AS == 0)
 			Die("Feature %s not supported", FeatureToStr(F));
-		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
 			const float * const *MxF =  DSS::GetScoreMx(F);
-			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
+			asserta(MxF != 0);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
 				m_ScoreMxs[F][Letter1][Letter2] = w*MxF[Letter1][Letter2]; // g_ScoreMxs2[F][Letter1][Letter2];
 			}

@@ -107,11 +107,12 @@ void PDBChain::LogMe(bool WithCoords) const
 		}
 	}
 
-void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const
+void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat,
+							  const DSSParams &Params) const
 	{
 	if (f == 0)
 		return;
-	D.Init(*this);
+	D.Init(*this, Params);
 	const uint L = GetSeqLength();
 	const uint AlphaSize = D.GetAlphaSize(Feat);
 	string Seq;
@@ -297,18 +298,12 @@ void PDBChain::GetXYZ(uint Pos, float &x, float &y, float &z) const
 
 float PDBChain::GetDist(uint Pos1, uint Pos2) const
 	{
-#if CACHE_DIST_MAX
-	assert(m_DistMx != 0);
-	float d = m_DistMx->Get(Pos1, Pos2);
-	return d;
-#else
 	float x1, y1, z1;
 	float x2, y2, z2;
 	GetXYZ(Pos1, x1, y1, z1);
 	GetXYZ(Pos2, x2, y2, z2);
 	float d = GetDist3D(x1, y1, z1, x2, y2, z2);
 	return d;
-#endif
 	}
 
 uint PDBChain::GetSeqLength() const
@@ -425,9 +420,6 @@ void PDBChain::GetReverse(PDBChain &Rev) const
 	Rev = *this;
 	Rev.Reverse();
 	Rev.m_Label += ".rev";
-#if CACHE_DIST_MAX
-	Rev.m_DistMx = 0;
-#endif
 	}
 
 void PDBChain::Flip()
@@ -440,43 +432,3 @@ void PDBChain::Flip()
 		m_Zs[i] = -m_Zs[i];
 		}
 	}
-
-#if CACHE_DIST_MAX
-void PDBChain::ClearDistMx()
-	{
-	if (m_DistMx == 0)
-		return;
-	delete m_DistMx;
-	m_DistMx = 0;
-	}
-
-void PDBChain::SetDistMx()
-	{
-	if (m_DistMx != 0)
-		return;
-	const uint L = GetSeqLength();
-	m_DistMx = new FlatMx<float>(L, L);
-	for (uint i = 0; i < L; ++i)
-		{
-		float x_i = m_Xs[i];
-		float y_i = m_Ys[i];
-		float z_i = m_Zs[i];
-
-		m_DistMx->Set(i, i, 0);
-		for (uint j = 1; j < L; ++j)
-			{
-			float x_j = m_Xs[j];
-			float y_j = m_Ys[j];
-			float z_j = m_Zs[j];
-		
-			float dx = x_i - x_j;
-			float dy = y_i - y_j;
-			float dz = z_i - z_j;
-			float d = sqrtf(dx*dx + dy*dy + dz*dz);
-
-			m_DistMx->Set(i, j, d);
-			m_DistMx->Set(j, i, d);
-			}
-		}
-	}
-#endif // CACHE_DIST_MAX

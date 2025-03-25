@@ -48,16 +48,13 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 			ProgressStep(QueryIdx, s_QueryCount, "Index query");
 
 		PDBChain &QChain = *QChains[QueryIdx];
-#if CACHE_DIST_MAX
-		QChain.SetDistMx();
-#endif
-		D.Init(QChain);
+		D.Init(QChain, Params);
 
 		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
 		vector<byte> *ptrQMuLetters = new vector<byte>;
 		vector<uint> *ptrQMuKmers = new vector<uint>;
 
-		D.GetProfile(Params, *ptrQProfile);
+		D.GetProfile(*ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
 		float QSelfRevScore = 
@@ -138,11 +135,8 @@ static void ThreadBody_Scan(uint ThreadIndex)
 
 		PDBChain DBChain;
 		DB.ReadChain(TargetIdx, DBChain);
-#if CACHE_DIST_MAX
-		DBChain.SetDistMx();
-#endif
-		D.Init(DBChain);
-		D.GetProfile(Params, DBProfile);
+		D.Init(DBChain, Params);
+		D.GetProfile(DBProfile);
 		D.GetMuLetters(DBMuLetters);
 		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
 
@@ -179,9 +173,6 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			++s_ScannedCount;
 			s_ScanLock.unlock();
 			}
-#if CACHE_DIST_MAX
-		DBChain.ClearDistMx();
-#endif
 		}
 	}
 

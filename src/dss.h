@@ -38,13 +38,12 @@ public:
 
 	vector<uint> m_SSE_Mids;
 	vector<char> m_SSE_cs;
-#if CACHE_DIST_MAX
-	const FlatMx<float> *m_DistMx = 0;
-#endif
-	//const DSSParams *m_Params = 0;
+
+private:
+	const DSSParams *m_Params = 0;
 
 public:
-	void Init(const PDBChain &Chain)
+	void Init(const PDBChain &Chain, const DSSParams &Params)
 		{
 		m_Chain = &Chain;
 		m_Density_ScaledValues.clear();
@@ -55,11 +54,7 @@ public:
 		m_SSE_cs.clear();
 		m_PlusNENs.clear();
 		m_MinusNENs.clear();
-
-#if CACHE_DIST_MAX
-		asserta(Chain.m_DistMx != 0);
-		m_DistMx = Chain.m_DistMx;
-#endif
+		m_Params = &Params;
 		}
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }
@@ -83,8 +78,7 @@ public:
 #include "floatfeatures.h"
 #undef F
 
-	void GetProfile(const DSSParams &Params,
-					vector<vector<byte> > &Profile);
+	void GetProfile(vector<vector<byte> > &Profile);
 	void GetMuLetters(vector<byte> &Letters);
 	void GetAaLetters(vector<byte> &Letters);
 	void GetMuKmers(const vector<byte> &MuLetters,
@@ -114,22 +108,18 @@ public:
 
 	float GetDist(uint i, uint j) const
 		{
-#if CACHE_DIST_MAX
-		assert(m_DistMx != 0);
-		return m_DistMx->Get(i, j);
-#else
 		return m_Chain->GetDist(i, j);
-#endif
 		}
 
 public:
-	static uint GetAlphaSize(FEATURE F);
 	static void Condense(const vector<float> &Values, uint AlphaSize,
 						 UNDEF_BINNING UB, uint BestDefaultLetter, uint &DefaultLetter,
 						 float &MinValue, float &MedValue, float &MaxValue,
 						 float &UndefFreq, vector<float> &BinTs);
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
+
+	static uint ValueToInt_Feature(FEATURE F, float Value);
 
 	static uint ValueToInt(float Value, UNDEF_BINNING UB, uint AlphaSize,
 						   const vector<float> &Ts, uint DefaultLetter);
@@ -153,14 +143,18 @@ public:
 	static const float * const *GetFreqMx(FEATURE F);
 	static const float * const *GetScoreMx(FEATURE F);
 
-	static void SetFeature(FEATURE F, bool Wildcard,
+	static void SetFeature(FEATURE F, UNDEF_BINNING UB,
 		const vector<float> &Freqs,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
 		const vector<float> &BinTs);
 
-	static uint GetIntValue(FEATURE F, float Value);
 	static uint GetBinThresholdCount(uint AlphaSize, UNDEF_BINNING UB);
+
+	static uint GetAlphaSize(FEATURE F);
+	static uint GetDefaultLetter(FEATURE F);
+	static UNDEF_BINNING GetUB(FEATURE F);
+	static const vector<float> &GetBinTs(FEATURE F);
 	};
 
 float GetSelfRevScore(DSSAligner &DA,

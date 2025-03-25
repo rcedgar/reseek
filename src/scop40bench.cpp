@@ -130,15 +130,13 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 
 void SCOP40Bench::OnSetup()
 	{
-	if (optset_benchlevel)
-		m_Level = opt(benchlevel);
-
 	m_QuerySelf = true;
 	if (opt(scores_are_not_evalues))
 		m_ScoresAreEvalues = false;
 	else
 		m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromDBChainLabels();
+	SetSFIdxToDomIdxs();
 	}
 
 void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,
@@ -154,15 +152,6 @@ void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF
 	else
 		SFIdx = m_SFToIdx[SF];
 
-	uint FoldIdx = UINT_MAX;
-	if (m_FoldToIdx.find(Fold) == m_FoldToIdx.end())
-		{
-		FoldIdx = SIZE(m_Folds);
-		m_Folds.push_back(Fold);
-		m_FoldToIdx[Fold] = FoldIdx;
-		}
-	else
-		FoldIdx = m_FoldToIdx[Fold];
  
 	uint DomIdx = UINT_MAX;
 	if (m_DomToIdx.find(Dom) != m_DomToIdx.end())
@@ -174,7 +163,6 @@ void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF
 	m_Doms.push_back(Dom + "/" + SF);
 	m_DomToIdx[Dom] = DomIdx;
 	m_DomIdxToSFIdx.push_back(SFIdx);
-	m_DomIdxToFoldIdx.push_back(FoldIdx);
 
 	m_DomIdxs.push_back(DomIdx);
 	m_DomToChainIdx[Dom] = ChainIndex;
@@ -232,7 +220,6 @@ void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 
 	asserta(SIZE(m_DomIdxs) == ChainCount);
 	asserta(SIZE(m_DomIdxToSFIdx) == ChainCount);
-	asserta(SIZE(m_DomIdxToFoldIdx) == ChainCount);
 	}
 
 void SCOP40Bench::LogFirstFewDoms() const
@@ -676,9 +663,6 @@ void SCOP40Bench::WriteOutput()
 	if (optset_maxfpr)
 		MaxFPR = (float) opt(maxfpr);
 	FILE *fCVE = CreateStdioFile(opt(cve));
-	m_Level = "sf";
-	if (optset_benchlevel)
-		m_Level = opt(benchlevel);
 	SetStats(MaxFPR);
 	WriteCVE(fCVE, 100);
 	WriteCurve(opt(curve));

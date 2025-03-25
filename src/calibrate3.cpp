@@ -272,7 +272,6 @@ void cmd_calibrate3()
 	DBS.Setup();
 	DBS.RunSelf();
 	DSSAligner::Stats();
-	DBS.m_Level = string("sf");
 
 	DBS.WriteTSBins(opt(calib_output), BIN_COUNT, MIN_TS, MAX_TS);
 	DBS.WriteTP_FP_TSBins(opt(calib_output2), BIN_COUNT, MIN_TS, MAX_TS);

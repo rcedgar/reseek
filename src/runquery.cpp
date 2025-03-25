@@ -27,8 +27,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		PDBChain *Chain1 = ptrQueryCR->GetNext();
 		if (Chain1 == 0)
 			return;
-		D.Init(*Chain1);
-		D.GetProfile(*m_Params, Profile1);
+		D.Init(*Chain1, *m_Params);
+		D.GetProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
 		D.GetMuKmers(MuLetters1, MuKmers1, m_Params->m_MKFPatternStr);
 

@@ -41,6 +41,8 @@ void DSSParams::SetDefaults()
 
 void DSSParams::SetDefaults_Features()
 	{
+	Die("Default features not supported");
+
 	m_Features.clear();
 	m_Weights.clear();
 

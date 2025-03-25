@@ -34,9 +34,14 @@ void DSSParams::LoadFeatures()
 	vector<float> Weights;
 	for (uint i = 0; i < N; ++i)
 		{
-		Split(Lines[i], Fields, '\t');
+		string &Line = Lines[i];
+		StripWhiteSpace(Line);
+		if (Line == "")
+			continue;
+		if (StartsWith(Line, "#"))
+			continue;
+		Split(Line, Fields, '\t');
 		asserta(SIZE(Fields) == 2);
-		const string &Field = Fields[i];
 
 		string Path = Fields[0];
 		double w = StrToFloat(Fields[1]);

@@ -22,13 +22,13 @@ static void TraceAln1(const DSSParams &Params,
 	vector<uint> MuKmersQ;
 	vector<uint> MuKmersT;
 
-	D.Init(Q);
-	D.GetProfile(Params, ProfileQ);
+	D.Init(Q, Params);
+	D.GetProfile(ProfileQ);
 	D.GetMuLetters(MuLettersQ);
 	D.GetMuKmers(MuLettersQ, MuKmersQ, Params.m_MKFPatternStr);
 
-	D.Init(T);
-	D.GetProfile(Params, ProfileT);
+	D.Init(T, Params);
+	D.GetProfile(ProfileT);
 	D.GetMuLetters(MuLettersT);
 	D.GetMuKmers(MuLettersT, MuKmersT, Params.m_MKFPatternStr);
 

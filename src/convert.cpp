@@ -189,7 +189,7 @@ static void ThreadBody(uint ThreadIndex)
 		if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
 			{
 			DSS &D = *ptrD;
-			D.Init(*ptrChain);
+			D.Init(*ptrChain, *s_ptrParams);
 			const uint L = ptrChain->GetSeqLength();
 			const uint AlphaSize = D.GetAlphaSize(s_Feat);
 			string Seq;

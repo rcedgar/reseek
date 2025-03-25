@@ -180,39 +180,10 @@ int SCOP40Bench::IsT(uint DomIdx1, uint DomIdx2) const
 	uint SFIdx1 = m_DomIdxToSFIdx[DomIdx1];
 	uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
 
-	assert(DomIdx1 < SIZE(m_DomIdxToFoldIdx));
-	assert(DomIdx2 < SIZE(m_DomIdxToFoldIdx));
-	uint FoldIdx1 = m_DomIdxToFoldIdx[DomIdx1];
-	uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
-
-	if (m_Level == "sf")
-		{
-		if (SFIdx1 == SFIdx2)
-			return 1;
-		else
-			return 0;
-		}
-	if (m_Level == "fold")
-		{
-		if (FoldIdx1 == FoldIdx2)
-			return 1;
-		else
-			return 0;
-		}
-	if (m_Level == "ignore")
-		{
-		if (FoldIdx1 == FoldIdx2)
-			{
-			if (SFIdx1 == SFIdx2)
-				return 1;
-			else
-				return -1;
-			}
-		else
-			return 0;
-		}
-	Die("IsT(), SCOP40Bench::m_Level='%s'", m_Level.c_str());
-	return INT_MAX;
+	if (SFIdx1 == SFIdx2)
+		return 1;
+	else
+		return 0;
 	}
 
 void SCOP40Bench::SetTFs()
@@ -516,17 +487,7 @@ void SCOP40Bench::SetNXs()
 	{
 	m_NT = 0;
 	m_NF = 0;
-	m_NI = 0;
 	const uint DomCount = GetDomCount();
-	const uint FoldCount = GetFoldCount();
-	vector<vector<uint> > FoldToDoms(FoldCount);
-	asserta(SIZE(m_DomIdxToFoldIdx) == DomCount);
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
-		asserta(FoldIdx < FoldCount);
-		FoldToDoms[FoldIdx].push_back(DomIdx);
-		}
 
 	uint NonSelfPairCount = DomCount*DomCount - DomCount;
 
@@ -534,42 +495,23 @@ void SCOP40Bench::SetNXs()
 	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
 		{
 		uint SFIdx = m_DomIdxToSFIdx[DomIdx];
-		uint FoldIdx = m_DomIdxToFoldIdx[DomIdx];
-		const vector<uint> &FoldDoms = FoldToDoms[FoldIdx];
+		const vector<uint> &SFDoms = m_SFIdxToDomIdxs[SFIdx];
 		bool Found = false;
-		for (uint i = 0; i < SIZE(FoldDoms); ++i)
+		for (uint i = 0; i < SIZE(SFDoms); ++i)
 			{
-			uint DomIdx2 = FoldDoms[i];
+			uint DomIdx2 = SFDoms[i];
 			if (DomIdx2 == DomIdx)
 				{
 				Found = true;
 				continue;
 				}
 			uint SFIdx2 = m_DomIdxToSFIdx[DomIdx2];
-			uint FoldIdx2 = m_DomIdxToFoldIdx[DomIdx2];
-			if (m_Level == "sf")
-				{
-				if (SFIdx2 == SFIdx)
-					++m_NT;
-				}
-			else if (m_Level == "fold")
-				{
-				if (FoldIdx2 == FoldIdx)
-					++m_NT;
-				}
-			else if (m_Level == "ignore")
-				{
-				if (SFIdx2 == SFIdx)
-					++m_NT;
-				else
-					++m_NI;
-				}
-			else
-				asserta(false);
+			if (SFIdx2 == SFIdx)
+				++m_NT;
 			}
 		asserta(Found);
 		}
-	m_NF = NonSelfPairCount - m_NT - m_NI;
+	m_NF = NonSelfPairCount - m_NT;
 	}
 
 void SCOP40Bench::ReadBit(const string &FileName)
@@ -692,11 +634,7 @@ void cmd_scop40bit2tsv()
 		SB.LoadDB(opt(input));
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
-	SB.m_Level = "sf";
-	//SB.LogFirstFewDoms();
-	//SB.LogFirstFewHits();
 	const uint HitCount = SB.GetHitCount();
-	//ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
 	for (uint i = 0; i < HitCount; ++i)
 		{
 		uint DomIdx1 = SB.m_DomIdx1s[i];
