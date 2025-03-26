@@ -8,6 +8,9 @@ void cmd_train_feature()
 	asserta(optset_output);
 	asserta(!optset_alpha_sizes);
 
+	optset_nofeatures = true;
+	opt_nofeatures = true;
+
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
 
