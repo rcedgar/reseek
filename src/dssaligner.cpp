@@ -731,7 +731,7 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 		}
 	}
 
-void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
+void DSSAligner::ToFasta2(FILE *f, bool aUp) const
 	{
 	if (f == 0)
 		return;
@@ -740,13 +740,13 @@ void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	string RowA, RowB;
 	if (Up)
 		{
-		GetRow_A(RowA, Global);
-		GetRow_B(RowB, Global);
+		GetRow_A(RowA);
+		GetRow_B(RowB);
 		}
 	else
 		{
-		GetRow_B(RowA, Global);
-		GetRow_A(RowB, Global);
+		GetRow_B(RowA);
+		GetRow_A(RowB);
 		}
 
 	const string &LabelA = GetLabel(Up);
@@ -832,25 +832,25 @@ void DSSAligner::Stats()
 	MuKmerFilter::Stats();
 	}
 
-void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const
+void DSSAligner::GetRow(bool Up, bool Top, string &Row) const
 	{
 	if (Up)
 		{
 		if (Top)
-			GetRow_A(Row, Global);
+			GetRow_A(Row);
 		else
-			GetRow_B(Row, Global);
+			GetRow_B(Row);
 		}
 	else
 		{
 		if (Top)
-			GetRow_B(Row, Global);
+			GetRow_B(Row);
 		else
-			GetRow_A(Row, Global);
+			GetRow_A(Row);
 		}
 	}
 
-void DSSAligner::GetRow_A(string &Row, bool Global) const
+void DSSAligner::GetRow_A(string &Row) const
 	{
 	Row.clear();
 	const string &SeqA = m_ChainA->m_Seq;
@@ -858,13 +858,10 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
-	if (Global)
-		{
-		for (uint i = m_LoA; i < m_LoB; ++i)
-			Row += '.';
-		for (uint i = 0; i < m_LoA; ++i)
-			Row += tolower(SeqA[i]);
-		}
+	for (uint i = m_LoA; i < m_LoB; ++i)
+		Row += '.';
+	for (uint i = 0; i < m_LoA; ++i)
+		Row += tolower(SeqA[i]);
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -897,19 +894,16 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 			asserta(false);
 			}
 		}
-	if (Global)
+	while (PosA < LA)
 		{
-		while (PosA < LA)
-			{
-			Row += tolower(SeqA[PosA++]);
-			++PosB;
-			}
-		while (PosB++ < LB)
-			Row += '.';
+		Row += tolower(SeqA[PosA++]);
+		++PosB;
 		}
+	while (PosB++ < LB)
+		Row += '.';
 	}
 
-void DSSAligner::GetRow_B(string &Row, bool Global) const
+void DSSAligner::GetRow_B(string &Row) const
 	{
 	Row.clear();
 	const string &SeqA = m_ChainA->m_Seq;
@@ -917,13 +911,10 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
-	if (Global)
-		{
-		for (uint i = m_LoB; i < m_LoA; ++i)
-			Row += '.';
-		for (uint i = 0; i < m_LoB; ++i)
-			Row += tolower(SeqB[i]);
-		}
+	for (uint i = m_LoB; i < m_LoA; ++i)
+		Row += '.';
+	for (uint i = 0; i < m_LoB; ++i)
+		Row += tolower(SeqB[i]);
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -959,16 +950,13 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 			asserta(false);
 			}
 		}
-	if (Global)
+	while (PosB < LB)
 		{
-		while (PosB < LB)
-			{
-			Row += tolower(SeqB[PosB++]);
-			++PosA;
-			}
-		while (PosA++ < LA)
-			Row += '.';
+		Row += tolower(SeqB[PosB++]);
+		++PosA;
 		}
+	while (PosA++ < LA)
+		Row += '.';
 	}
 
 void DSSAligner::GetPosABs(vector<uint> &PosAs,

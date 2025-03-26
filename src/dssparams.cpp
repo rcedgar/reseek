@@ -45,7 +45,9 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 	{
 	SetDefaults_Other();
-	if (optset_feature_spec)
+	if (optset_nofeatures)
+		;
+	else if (optset_feature_spec)
 		LoadFeatures();
 	else
 		SetDefaults_Features();

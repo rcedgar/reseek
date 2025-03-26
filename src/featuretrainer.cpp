@@ -38,12 +38,23 @@ static uint GetUngappedLength(const string &Row)
 	return L;
 	}
 
+// d1a0rp__P
+// 012345678
 static void TruncLabel(string &Label)
 	{
+	//size_t k = Label.size();
+	//if (k == 9 && Label[7] == '_' && isupper(Label[8]))
+	//	{
+	//	Label.resize(7);
+	//	return;
+	//	}
 	size_t n = Label.find(' ');
 	if (n != string::npos)
 		Label.resize(n);
 	n = Label.find('|');
+	if (n != string::npos)
+		Label.resize(n);
+	n = Label.find('/');
 	if (n != string::npos)
 		Label.resize(n);
 	}

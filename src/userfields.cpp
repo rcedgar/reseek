@@ -79,7 +79,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_qrow:
 		{
 		string Row;
-		GetRow(Up, true, false, Row);
+		GetRow(Up, true, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}
@@ -87,23 +87,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_trow:
 		{
 		string Row;
-		GetRow(Up, false, false, Row);
-		fputs(Row.c_str(), f);
-		break;
-		}
-
-	case UF_qrowg:
-		{
-		string Row;
-		GetRow(Up, true, true, Row);
-		fputs(Row.c_str(), f);
-		break;
-		}
-
-	case UF_trowg:
-		{
-		string Row;
-		GetRow(Up, false, true, Row);
+		GetRow(Up, false, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}

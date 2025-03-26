@@ -126,7 +126,6 @@ FLAG_OPT(writebitts)
 FLAG_OPT(trace_chainreader2)
 FLAG_OPT(trace_filescanner)
 FLAG_OPT(global)
-FLAG_OPT(full_rows)
 FLAG_OPT(missingtestseqok)
 FLAG_OPT(mixedcasecolok)
 FLAG_OPT(core)
@@ -142,6 +141,7 @@ FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(benchfwdscore)
 FLAG_OPT(benchts)
+FLAG_OPT(nofeatures)
 
 #undef FLAG_OPT
 #undef UNS_OPT

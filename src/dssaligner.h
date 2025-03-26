@@ -136,7 +136,7 @@ public:
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
 	void ToTsv(FILE *f, bool Up);
-	void ToFasta2(FILE *f, bool Global, bool Up) const;
+	void ToFasta2(FILE *f, bool Up) const;
 	void ToAln(FILE *f, bool Up) const;
 	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
@@ -156,12 +156,12 @@ public:
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
-	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
+	void GetRow(bool Up, bool Top, string &Row) const;
 
 	float GetKabsch(float t[3], float u[3][3], bool Up) const;
 
-	void GetRow_A(string &Row, bool Global) const;
-	void GetRow_B(string &Row, bool Global) const;
+	void GetRow_A(string &Row) const;
+	void GetRow_B(string &Row) const;
 
 	float XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 				   uint &Loi_out, uint &Loj_out,
