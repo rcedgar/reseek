@@ -255,7 +255,7 @@ bool FeatureTrainer::IncludePair(const string &QLabel) const
 		float PctId = GetPctIdFromLabel(QLabel);
 		return PctId >= m_MinPctId && PctId <= m_MaxPctId;
 		}
-	if (m_MinAQ > 0 || m_MaxAQ < 100)
+	if (m_MinAQ > 0 || m_MaxAQ < 1)
 		{
 		float AQ = GetAQFromLabel(QLabel);
 		return AQ >= m_MinAQ && AQ <= m_MaxAQ;
