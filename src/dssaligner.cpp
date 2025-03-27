@@ -1077,7 +1077,7 @@ void DSSAligner::ToFasta2(FILE *f, bool Global, bool aUp) const
 	float TS = GetNewTestStatistic(Up);
 	float AQ = GetAQ(Up);
 	string LabelAx = LabelA;
-	Psa(LabelAx, "|E=%.3g|Id=%.1f%%|TS=%.4f|AQ=%.4f", Evalue, PctId, TS, AQ);
+	Psa(LabelAx, "|E=%.3g|Id=%.1f%%|TS=%.4f|AQ=%.1f|DP=%.4f", Evalue, PctId, TS, AQ, m_AlnFwdScore);
 	LabelAx += "|";
 	LabelAx += LabelB;
 
