@@ -297,6 +297,7 @@
     <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
+    <ClCompile Include="scop40benchreal.cpp" />
     <ClCompile Include="scop40prealigned.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="calibrate.cpp" />

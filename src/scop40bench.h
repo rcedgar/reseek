@@ -3,6 +3,7 @@
 #include "dbsearcher.h"
 #include "dssaligner.h"
 #include "xdpmem.h"
+#include "seqdb.h"
 #include <map>
 #include <mutex>
 
@@ -64,7 +65,12 @@ public:
 	vector<float> m_CurveLog10EPQs;
 	float m_Area = FLT_MAX;
 
-	SeqDB *m_PreAligned = 0;
+	vector<uint> m_RealChainIdxs1;
+	vector<uint> m_RealChainIdxs2;
+	vector<bool> m_RealTs;
+	vector<float> m_RealDPs;
+	uint m_RealNT = UINT_MAX;
+	uint m_RealNF = UINT_MAX;
 
 public:
 	virtual void OnSetup();
@@ -73,6 +79,8 @@ public:
 public:
 	void ReadLookup(const string &FileName);
 	void RunPrealigned(const string &TsvFN);
+	void SetupRealign(const string &Fa2FN);
+	void RunRealign();
 	void ClearHits();
 	float GetVeryBadScore() const;
 	float GetVeryGoodScore() const;
@@ -148,6 +156,8 @@ public:
 	void WriteCurve(const string &FN) const;
 	void WriteSortedHits(const string &FN) const;
 	void ThreadBodyPrealigned(uint ThreadIndex);
+	void ThreadBodyRealign(uint ThreadIndex);
+	void AnalyzeRealign();
 
 public:
 	static float GetArea(const vector<float> &TPRs,
@@ -156,7 +166,9 @@ public:
 	  string &Cls, string &Fold, string &SF, string &Fmy,
 	  bool MissingOk = false);
 	static void GetDomFromLabel(const string &Label, string &Dom);
+	static void GetSFFromScopid(const string &Scopid, string &SF);
 	static void GetDomSFFromLabel(const string &Label, string &Dom, string &SF);
 	static bool IsTP_SF(const string &Label1, const string &Label2);
 	static void StaticThreadBodyPreAligned(uint ThreadIndex, SCOP40Bench *ptrDBS);
+	static void StaticThreadBodyRealign(uint ThreadIndex, SCOP40Bench *ptrDBS);
 	};

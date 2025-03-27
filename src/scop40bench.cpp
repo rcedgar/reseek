@@ -24,6 +24,14 @@ bool Scop40_IsTP_SF(const string &Label1, const string &Label2)
 	return t;
 	}
 
+void SCOP40Bench::GetSFFromScopid(const string &Scopid, string &SF)
+	{
+	vector<string> Fields;
+	Split(Scopid, Fields, '.');
+	asserta(SIZE(Fields) == 4);
+	SF = Fields[0] + "." + Fields[1] + "." + Fields[2];
+	}
+
 void SCOP40Bench::GetDomSFFromLabel(const string &Label,
 									string &Dom, string &SF)
 	{

@@ -715,6 +715,22 @@ void DSSAligner::Align_NoAccel()
 	CalcEvalue();
 	}
 
+void DSSAligner::Align_SWOnly()
+	{
+	ClearAlign();
+	SetSMx_NoRev(*m_Params, *m_ProfileA, *m_ProfileB);
+
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	StartTimer(SWFwd);
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	EndTimer(SWFwd);
+	}
+
 void DSSAligner::ToAln(FILE *f, bool Up) const
 	{
 	if (f == 0)
