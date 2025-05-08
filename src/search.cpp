@@ -6,6 +6,8 @@
 #include "search.h"
 #include "output.h"
 
+#pragma warning("TODO: -dbsize option fails with -fast")
+
 uint MuPreFilter(const DSSParams &Params,
 			  SeqDB &QueryDB,
 			  MuSeqSource &FSS,

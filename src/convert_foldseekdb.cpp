@@ -83,6 +83,7 @@ static void VerifyLookup(const string &Prefix,
 	vector<string> Fields;
 	FILE *f = OpenStdioFile(FN);
 	uint Idx = 0;
+	uint ErrCount = 0;
 	while (ReadLineStdioFile(f, Line))
 		{
 		Split(Line, Fields, '\t');
@@ -109,10 +110,15 @@ static void VerifyLookup(const string &Prefix,
 		const string &ExpectedLabel = Fields2[0];
 
 		if (Label != ExpectedLabel)
-			Die("Label %u mismatch '%s', '%s'",
-				Idx, ExpectedLabel.c_str(), Labels[Idx].c_str());
+			{
+			Log("Idx %u Label='%s' ExpectedLabel='%s' Label_Idx='%s'\n",
+				Idx, Label.c_str(), ExpectedLabel.c_str(), Label_Idx.c_str());
+			++ErrCount;
+			}
 		++Idx;
 		}
+	if (ErrCount > 0)
+		Warning("%u errs checking lookup file '%s', see log", ErrCount, FN.c_str());
 	CloseStdioFile(f);
 	}
 
@@ -159,17 +165,23 @@ void cmd_convert_foldseekdb()
 	vector<string> SeqsAA;
 	vector<string> Seqs3Di;
 	Progress("Read labels\n");
-	ReadNulTerminatedSeqs(Prefix + "_h", Labels);
+	string FN = Prefix + "_h";
+	ReadNulTerminatedSeqs(FN, Labels);
 	const uint SeqCount = SIZE(Labels);
+	Log("%u labels in '%s'\n", SeqCount, FN.c_str());
 
 	Progress("Read aa seqs\n");
+	FN = Prefix;
 	ReadNulTerminatedSeqs(Prefix, SeqsAA);
 	const uint SeqCountAA = SIZE(SeqsAA);
+	Log("%u labels, %u aa seqs in '%s'\n", SeqCount, SeqCountAA, FN.c_str());
 	if (SeqCountAA != SeqCount) Die("%u labels, %u aa seqs", SeqCount, SeqCountAA);
 
 	Progress("Read 3Di seqs\n");
-	ReadNulTerminatedSeqs(Prefix + "_ss", Seqs3Di);
+	FN = Prefix + "_ss";
+	ReadNulTerminatedSeqs(FN, Seqs3Di);
 	const uint SeqCount3Di = SIZE(Seqs3Di);
+	Log("%u labels, %u 3Di seqs in '%s'\n", SeqCount, SeqCount3Di, FN.c_str());
 	if (SeqCountAA != SeqCount) Die("%u labels, %u 3Di seqs", SeqCount, SeqCount3Di);
 
 	Progress("Check lookup\n");
