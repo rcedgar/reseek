@@ -845,6 +845,8 @@ void DSSAligner::CalcEvalue()
 // Threshold enables small speedup by avoiding LDDT and self-rev
 	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
 		return;
+	if (optset_maxfwdscore && m_AlnFwdScore > opt_maxfwdscore)
+		return;
 
 	StartTimer(CalcEvalue)
 	float LDDT = GetLDDT();
@@ -1127,6 +1129,24 @@ void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const
 		}
 	}
 
+void DSSAligner::GetRowSS(bool Up, bool Top, string &Row) const
+	{
+	if (Up)
+		{
+		if (Top)
+			GetRowSS_A(Row);
+		else
+			GetRowSS_B(Row);
+		}
+	else
+		{
+		if (Top)
+			GetRowSS_B(Row);
+		else
+			GetRowSS_A(Row);
+		}
+	}
+
 void DSSAligner::GetRow_A(string &Row, bool Global) const
 	{
 	Row.clear();
@@ -1184,6 +1204,61 @@ void DSSAligner::GetRow_A(string &Row, bool Global) const
 		while (PosB++ < LB)
 			Row += '.';
 		}
+	}
+
+void DSSAligner::GetRowSS_A(string &Row) const
+	{
+	Row.clear();
+	string SeqA;
+	string SeqB;
+	m_ChainA->GetSS(SeqA);
+	m_ChainB->GetSS(SeqB);
+	const uint LA = SIZE(SeqA);
+	const uint LB = SIZE(SeqB);
+	const uint ColCount = SIZE(m_Path);
+	for (uint i = m_LoA; i < m_LoB; ++i)
+		Row += '.';
+	for (uint i = 0; i < m_LoA; ++i)
+		Row += tolower(SeqA[i]);
+	uint PosA = m_LoA;
+	uint PosB = m_LoB;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = m_Path[Col];
+		switch (c)
+			{
+		case 'M':
+			{
+			asserta(PosA <= m_HiA);
+			asserta(PosB <= m_HiB);
+			Row += SeqA[PosA++];
+			++PosB;
+			break;
+			}
+
+		case 'D':
+			{
+			asserta(PosA <= m_HiA);
+			Row += SeqA[PosA++];
+			break;
+			}
+
+		case 'I':
+			Row += '-';
+			++PosB;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+	while (PosA < LA)
+		{
+		Row += tolower(SeqA[PosA++]);
+		++PosB;
+		}
+	while (PosB++ < LB)
+		Row += '.';
 	}
 
 void DSSAligner::GetRow_B(string &Row, bool Global) const
@@ -1246,6 +1321,64 @@ void DSSAligner::GetRow_B(string &Row, bool Global) const
 		while (PosA++ < LA)
 			Row += '.';
 		}
+	}
+
+void DSSAligner::GetRowSS_B(string &Row) const
+	{
+	Row.clear();
+	string SeqA;
+	string SeqB;
+	m_ChainA->GetSS(SeqA);
+	m_ChainB->GetSS(SeqB);
+	const uint LA = SIZE(SeqA);
+	const uint LB = SIZE(SeqB);
+	const uint ColCount = SIZE(m_Path);
+	for (uint i = m_LoB; i < m_LoA; ++i)
+		Row += '.';
+	for (uint i = 0; i < m_LoB; ++i)
+		Row += tolower(SeqB[i]);
+	uint PosA = m_LoA;
+	uint PosB = m_LoB;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = m_Path[Col];
+		switch (c)
+			{
+		case 'M':
+			{
+			asserta(PosA <= m_HiA);
+			asserta(PosB <= m_HiB);
+			++PosA;
+			Row += SeqB[PosB++];
+			break;
+			}
+
+		case 'D':
+			{
+			++PosA;
+			asserta(PosA <= m_HiA);
+			Row += '-';
+			break;
+			}
+
+		case 'I':
+			{
+			asserta(PosB <= m_HiB);
+			Row += SeqB[PosB++];
+			break;
+			}
+
+		default:
+			asserta(false);
+			}
+		}
+	while (PosB < LB)
+		{
+		Row += tolower(SeqB[PosB++]);
+		++PosA;
+		}
+	while (PosA++ < LA)
+		Row += '.';
 	}
 
 void DSSAligner::GetPosABs(vector<uint> &PosAs,

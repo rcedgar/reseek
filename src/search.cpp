@@ -19,7 +19,7 @@ void SelfSearch()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption, UINT_MAX);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
@@ -43,10 +43,13 @@ static void Search_NoMuFilter()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption, UINT_MAX);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
+	Params.m_DBSize = (float) DBS.GetDBSize();
+	if (optset_dbsize)
+		Params.m_DBSize = (float) opt_dbsize;
 	DBS.Setup();
 
 	OpenOutputFiles();
@@ -77,7 +80,16 @@ void cmd_search()
 		Die(".bca format required for -db");
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption, UINT_MAX);
+	if (optset_dbsize)
+		Params.m_DBSize = (float) opt_dbsize;
+	else
+		{
+		Warning("DB size not known with -fast, defaulting to SCOP40 (11,211)");
+		Params.m_DBSize = SCOP40_DBSIZE;
+		}
+	Log("dbsize=%.3g\n", Params.m_DBSize);
+
 	const string &PatternStr = Params.m_MuPrefPatternStr;
 	asserta(PatternStr == "1110011");
 
@@ -105,7 +117,11 @@ void cmd_search()
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 
 	DSSParams Params2;
-	Params2.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
+	Params2.SetDSSParams(DM_AlwaysSensitive, UINT_MAX);
+	if (optset_dbsize)
+		Params.m_DBSize = (float) opt_dbsize;
+	else
+		Params.m_DBSize = SCOP40_DBSIZE;
 	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt_output);
 
 	if (!opt_keeptmp)

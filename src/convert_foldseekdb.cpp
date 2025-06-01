@@ -20,6 +20,15 @@ float *GetCoordsFromMem(const char *mem, uint chainLength, uint entryLength);
 -rwxrwxrwx 1 bob bob    492 Feb  2 18:23 hiqual_ss.index	# index to 3Di
 ***/
 
+static void Strippdb(const string &s, string &t)
+	{
+	size_t n = s.find(".pdb");
+	if (n == string::npos)
+		t = s;
+	else
+		t = s.substr(0, n);
+	}
+
 static void CheckDBType(const string &Prefix,
 						const string &Suffix,
 						uint32_t ExpectedType)
@@ -108,9 +117,16 @@ static void VerifyLookup(const string &Prefix,
 		Split(Label_Idx, Fields2, 0);
 		const string &ExpectedLabel = Fields2[0];
 
-		if (Label != ExpectedLabel)
-			Die("Label %u mismatch '%s', '%s'",
-				Idx, ExpectedLabel.c_str(), Labels[Idx].c_str());
+		string Label_nopdb;
+		string ExpectedLabel_nopdb;
+		string Labelsidx_nopdb;
+		Strippdb(Label, Label_nopdb);
+		Strippdb(ExpectedLabel, ExpectedLabel_nopdb);
+		Strippdb(Labels[Idx], Labelsidx_nopdb);
+
+		if (Label_nopdb != ExpectedLabel_nopdb)
+			Die("Label %u mismatch '%s', '%s', '%s'",
+				Idx, Label_nopdb.c_str(), ExpectedLabel_nopdb.c_str(), Labelsidx_nopdb.c_str());
 		++Idx;
 		}
 	CloseStdioFile(f);

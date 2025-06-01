@@ -200,11 +200,14 @@ public:
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
+	void GetRowSS(bool Up, bool Top, string &Row) const;
 
 	float GetKabsch(double t[3], double u[3][3], bool Up) const;
 
 	void GetRow_A(string &Row, bool Global) const;
 	void GetRow_B(string &Row, bool Global) const;
+	void GetRowSS_A(string &Row) const;
+	void GetRowSS_B(string &Row) const;
 
 	float XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 				   uint &Loi_out, uint &Loj_out,
