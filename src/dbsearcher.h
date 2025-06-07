@@ -50,6 +50,7 @@ public:
 	uint m_SWAlignCount = 0;
 	uint m_UFilterCount = 0;
 	float m_MaxEvalue = 10;
+	float m_MinTS = -999;
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t m_LastProgress = 0;
@@ -68,6 +69,7 @@ public:
 #endif
 
 public:
+	bool Reject(DSSAligner &DA, bool Up) const;
 	void Setup();
 	void InitEmpty();
 	void LoadDB(const string &DBFN);

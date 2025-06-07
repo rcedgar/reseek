@@ -79,6 +79,11 @@ void DBSearcher::Setup()
 			m_MaxEvalue = 10;
 		}
 
+	if (optset_mints)
+		m_MinTS = (float) opt_mints;
+	else
+		m_MinTS = -999.0f;
+
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);
 	asserta(ThreadCount != UINT_MAX);
@@ -252,9 +257,22 @@ void DBSearcher::LoadDB(const string &DBFN)
 	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
 	}
 
+bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
+	{
+	bool Evalue_ok = true;
+	bool TS_ok = true;
+	if (!opt_scores_are_not_evalues && DA.GetEvalue(Up) > m_MaxEvalue)
+		Evalue_ok = false;
+	if (optset_mints && DA.GetNewTestStatistic(Up) < opt_mints)
+		TS_ok = false;
+	if (Evalue_ok || TS_ok)
+		return false;
+	return true;
+	}
+
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	{
-	if (!opt_scores_are_not_evalues && DA.GetEvalue(Up) > m_MaxEvalue)
+	if (Reject(DA, Up))
 		return;
 	m_Lock.lock();
 	++m_HitCount;
