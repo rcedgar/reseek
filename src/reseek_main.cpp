@@ -25,12 +25,15 @@ int main(int argc, char **argv)
 	if (n > 2)
 		{
 		g_Arg1 = g_Argv[2];
-		ShortCmdLine += " " + g_Argv[2];
+		ShortCmdLine += " " + string(GetBaseName(g_Argv[2].c_str()));
 		}
 	if (n > 1)
 		{
 		ProgressPrefix(false);
-		Progress("[%s]\n", ShortCmdLine.c_str() + 1);
+		Progress("[%s", ShortCmdLine.c_str() + 1);
+		if (optset_db)
+			Progress(" %s", string(GetBaseName(opt_db)));
+		Progress("]\n");
 		ProgressPrefix(true);
 		}
 	if (optset_myalloc_summary_secs)
