@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		ProgressPrefix(false);
 		Progress("[%s", ShortCmdLine.c_str() + 1);
 		if (optset_db)
-			Progress(" %s", string(GetBaseName(opt_db)));
+			Progress(" %s", GetBaseName(opt_db));
 		Progress("]\n");
 		ProgressPrefix(true);
 		}
