@@ -112,7 +112,7 @@ PDBChain *ChainReader2::GetNext()
 			if (EndsWith(Chain->m_Label, "A"))
 				{
 				uint n = SIZE(Chain->m_Label);
-				Chain->m_Label[n-1] = 0;
+				Chain->m_Label.resize(n-1);
 				}
 			}
 
