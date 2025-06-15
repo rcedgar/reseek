@@ -106,6 +106,16 @@ PDBChain *ChainReader2::GetNext()
 			delete Chain;
 			continue;
 			}
+
+		if (opt_delete_chaina)
+			{
+			if (EndsWith(Chain->m_Label, "A"))
+				{
+				uint n = SIZE(Chain->m_Label);
+				Chain->m_Label[n-1] = 0;
+				}
+			}
+
 		m_CRGlobalLock.lock();
 		Chain->m_Idx = m_CRGlobalChainCount++;
 		m_CRGlobalLock.unlock();

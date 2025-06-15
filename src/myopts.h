@@ -333,6 +333,7 @@ FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(keeptmp)
 FLAG_OPT(log10)
+FLAG_OPT(delete_chaina)
 
 #undef FLAG_OPT
 #undef UNS_OPT
