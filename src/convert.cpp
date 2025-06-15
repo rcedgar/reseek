@@ -113,6 +113,14 @@ static void ThreadBody(uint ThreadIndex)
 		const uint L = ptrChain->GetSeqLength();
 		asserta(L > 0);
 
+		if (optset_sample_step)
+			{
+			if (randu32()%opt_sample_step != 0)
+				{
+				delete ptrChain;
+				continue;
+				}
+			}
 		if (opt_reverse)
 			ptrChain->Reverse();
 		if (opt_flip)
