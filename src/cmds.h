@@ -64,5 +64,6 @@ C(pdb2angles)
 C(squeeze)
 C(scop40bench_pre)
 C(scop40bench_real)
+C(bayes_report)
 
 #undef C

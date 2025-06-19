@@ -297,6 +297,7 @@
     <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
+    <ClCompile Include="reseek_calibrate.cpp" />
     <ClCompile Include="scop40benchreal.cpp" />
     <ClCompile Include="scop40prealigned.cpp" />
     <ClCompile Include="search.cpp" />
@@ -490,6 +491,7 @@
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />
+    <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="search.h" />

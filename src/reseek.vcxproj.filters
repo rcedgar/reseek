@@ -491,6 +491,9 @@
     <ClCompile Include="scop40benchreal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="reseek_calibrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -798,6 +801,9 @@
     </ClInclude>
     <ClInclude Include="undef_binning.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reseek_calibrate.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
