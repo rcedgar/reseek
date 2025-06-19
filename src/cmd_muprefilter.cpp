@@ -68,6 +68,7 @@ void cmd_muprefilter()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
+#pragma warning("TODO: Make RSB_SIZE a command-line option")
 	MuPrefilter::m_RSB.m_B = RSB_SIZE;
 	MuPrefilter::m_RSB.Init(QSeqCount);
 

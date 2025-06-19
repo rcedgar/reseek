@@ -53,7 +53,7 @@ public:
 	const int16_t *m_KmerSelfScores = 0;
 
 ////////////////////////////////////////////
-//  ScoreMx is the 3Di substitution matrix
+//  ScoreMx is the Mu substitution matrix
 //  with support for enumerating k-mers in
 //  the high-scoring neighborhood of a k-mer
 ////////////////////////////////////////////

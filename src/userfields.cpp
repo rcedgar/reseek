@@ -92,6 +92,22 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 		break;
 		}
 
+	case UF_qrowss:
+		{
+		string Row;
+		GetRowSS(Up, true, Row);
+		fputs(Row.c_str(), f);
+		break;
+		}
+
+	case UF_trowss:
+		{
+		string Row;
+		GetRowSS(Up, false, Row);
+		fputs(Row.c_str(), f);
+		break;
+		}
+
 	case UF_dpscore:
 		{
 		fprintf(f, "%.4g", m_AlnFwdScore);
