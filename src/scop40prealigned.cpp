@@ -3,6 +3,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 #include "cigar.h"
+#include "statsig.h"
 
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 
@@ -147,7 +148,7 @@ void cmd_scop40bench_pre()
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	Params.m_DBSize = (float) SB.GetDBSize();
+	StatSig::SetDBSize(SB.GetDBSize());
 
 	SB.Setup();
 	

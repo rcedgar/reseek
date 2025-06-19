@@ -2,6 +2,7 @@
 #include "scop40bench.h"
 #include "binner.h"
 #include "output.h"
+#include "statsig.h"
 
 /***
 * Calibrate distribution of FP errors on all-vs-all SCOP40 by
@@ -70,7 +71,7 @@ void cmd_calibrate2()
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	Params.m_DBSize = (float) SB.GetDBSize();
+	StatSig::SetDBSize(SB.GetDBSize());
 
 	SB.Setup();
 	

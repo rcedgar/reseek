@@ -3,6 +3,7 @@
 #include "dbsearcher.h"
 #include "quarts.h"
 #include "binner.h"
+#include "statsig.h"
 
 // Min=-0.127, LoQ=-0.0482, Med=-0.0254, HiQ=-0.00619, Max=0.15, Avg=-0.0145
 // Measure binned TS distribution of database vs. reversed database.
@@ -41,7 +42,7 @@ void cmd_calibrate7()
 
 	DBS.LoadDB(DBFN);
 
-	Params.m_DBSize = (float) DBS.GetDBSize();
+	StatSig::SetDBSize(DBS.GetDBSize());
 	DBS.Setup();
 
 	ChainReader2 QCR;

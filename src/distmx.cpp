@@ -8,6 +8,7 @@
 #include "timing.h"
 #include "sort.h"
 #include "distmxsearcher.h"
+#include "statsig.h"
 
 void DistMxSearcher::OnSetup()
 	{
@@ -56,7 +57,7 @@ void cmd_distmx()
 	DBS.m_Params = &Params;
 	DBS.LoadDB(DBFN);
 
-	Params.m_DBSize = (float) DBS.GetDBSize();
+	StatSig::SetDBSize(DBS.GetDBSize());
 	DBS.m_fDistMx = CreateStdioFile(opt(output));
 	DBS.Setup();
 	DBS.RunSelf();

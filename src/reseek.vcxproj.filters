@@ -491,7 +491,7 @@
     <ClCompile Include="scop40benchreal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="reseek_calibrate.cpp">
+    <ClCompile Include="statsig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -802,8 +802,11 @@
     <ClInclude Include="undef_binning.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="statsig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="reseek_calibrate.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

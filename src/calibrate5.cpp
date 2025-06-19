@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chainreader2.h"
 #include "dbsearcher.h"
+#include "statsig.h"
 
 /***
 * Calibrate DB following similar method to MASM in src/scop40s.
@@ -101,7 +102,7 @@ void cmd_calibrate5()
 
 	DBS.LoadDB(DBFN);
 
-	Params.m_DBSize = (float) DBS.GetDBSize();
+	StatSig::SetDBSize(DBS.GetDBSize());
 	DBS.Setup();
 
 	ChainReader2 QCR;

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "dssaligner.h"
 #include "pdbchain.h"
+#include "statsig.h"
 
 static void TraceAln1(const DSSParams &Params,
 					  const PDBChain &Q, const PDBChain &T)
@@ -47,7 +48,7 @@ static void TraceAln1(const DSSParams &Params,
 		Log("EvalueA=%.3g\n", E);
 	else
 		Log("EvalueA=%.1f\n", E);
-	Log("DBSize=%.0f\n", Params.m_DBSize);
+	Log("DBSize=%.0f\n", StatSig::m_DBSize);
 	Log("AlnFwdScore=%.3g\n", DA.m_AlnFwdScore);
 	Log("DoMKF=%c\n", tof(DoMKF));
 	if (DoMKF)

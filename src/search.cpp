@@ -5,6 +5,7 @@
 #include "dbsearcher.h"
 #include "search.h"
 #include "output.h"
+#include "statsig.h"
 
 #pragma warning("TODO: -dbsize option fails with -fast")
 
@@ -26,9 +27,7 @@ void SelfSearch()
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	Params.m_DBSize = (float) DBS.GetDBSize();
-	if (optset_dbsize)
-		Params.m_DBSize = (float) opt(dbsize);
+	StatSig::SetDBSize(DBS.GetDBSize());
 
 	OpenOutputFiles();
 	DBS.RunSelf();

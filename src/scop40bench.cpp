@@ -7,6 +7,7 @@
 #include "timing.h"
 #include "sort.h"
 #include "output.h"
+#include "statsig.h"
 #include <algorithm>
 #include <random>
 #include <thread>
@@ -697,7 +698,7 @@ void cmd_scop40bench()
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	Params.m_DBSize = (float) SB.GetDBSize();
+	StatSig::SetDBSize(SB.GetDBSize());
 
 	SB.Setup();
 	

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "scop40bench.h"
 #include "peaker.h"
+#include "statsig.h"
 
 static DSSParams s_Params;
 static SCOP40Bench s_SB;
@@ -61,7 +62,7 @@ void cmd_hj_scop40()
 	s_Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
 	s_SB.m_Params = &s_Params;
 	s_SB.LoadDB(g_Arg1);
-	s_Params.m_DBSize = (float) s_SB.GetDBSize();
+	StatSig::SetDBSize(s_SB.GetDBSize());
 	s_SB.m_QuerySelf = true;
 	s_SB.m_ScoresAreEvalues = true;
 	s_SB.Setup();

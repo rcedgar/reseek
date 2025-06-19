@@ -54,16 +54,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
 
 	ALGO_MODE AM = GetAlgoMode(DM);
 
-	if (DBSize == UINT_MAX)
-		{
-		if (optset_dbsize)
-			m_DBSize = (float) opt(dbsize);
-		else
-			m_DBSize = SCOP40_DBSIZE;
-		}
-	else
-		m_DBSize = (float) DBSize;
-
 	switch (AM)
 		{
 	case AM_Fast:

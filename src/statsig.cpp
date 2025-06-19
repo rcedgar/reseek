@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "statsig.h"
 
 #define	fast	0
 #define	sensitive 1
@@ -9,6 +10,10 @@
 #define pdb		2
 #define afdb50	3
 #define scop40c	4
+
+uint StatSig::m_DBSize = UINT_MAX;
+SEARCH_MODE StatSig::m_Mode = SM_undefined;
+CALIBRATION_REF StatSig::m_Ref = REF_undefined;
 
 static const char *searchdb2str(int searchdb)
 	{
@@ -265,6 +270,33 @@ double get_Bayesian_Evalue(double ts, uint dbsize, int mode, int refdb)
 	else
 		Die("get_Bayesian_Evalue(ts=%.3g, dbsize=%u, mode=%d)\n",
 		  ts, dbsize, mode);
+	return E;
+	}
+
+double StatSig::GetEvalue(double TS)
+	{
+	asserta(m_DBSize != DBL_MAX);
+	asserta(m_Mode != SM_undefined);
+	asserta(m_Ref != REF_undefined);
+
+	int mode = -1;
+	switch (StatSig::m_Mode)
+		{
+	case SM_fast: mode = 0; break;
+	case SM_sensitive : mode = 1; break;
+	case SM_verysensitive : mode = 2; break;
+	default: asserta(false);
+		}
+
+	int refdb = -1;
+	switch (StatSig::m_Ref)
+		{
+	case REF_SCOP40: refdb = 0; break;
+	case REF_SCOP40c: refdb = 1; break;
+	default: asserta(false);
+		}
+
+	double E = get_Bayesian_Evalue(TS, StatSig::m_DBSize, mode, refdb);
 	return E;
 	}
 

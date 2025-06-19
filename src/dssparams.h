@@ -40,8 +40,6 @@ public:
 	string m_MKFPatternStr = "";
 	string m_MuPrefilterPatternStr = "";
 
-	float m_DBSize = 10000;
-
 	bool m_UsePara = true;
 	int m_ParaMuGapOpen = 2;
 	int m_ParaMuGapExt = 1;
@@ -53,12 +51,8 @@ public:
 	float m_MKF_MinMegaHSPScore = FLT_MAX;
 
 // DSSParams has its own score matrices with weights applied
-// Other alphabet
 	bool m_OwnScoreMxs = false;
 	float ***m_ScoreMxs = 0;
-	//uint *m_AlphaSizes = 0;
-	//uint *m_DefaultLetters = 0;
-	//UNDEF_BINNING *m_UBs = 0;
 
 // TS params
 	float m_dpw = 1.7f;

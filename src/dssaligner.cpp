@@ -9,6 +9,7 @@
 #include "cigar.h"
 #include "parasail.h"
 #include "kabsch.h"
+#include "statsig.h"
 #include <thread>
 #include <set>
 #include <mutex>
@@ -622,6 +623,13 @@ void DSSAligner::CalcEvalue()
 	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
 		return;
 
+	uint M, D, I;
+	GetPathCounts(m_Path, M, D, I);
+	m_HiA = m_LoA + M + D - 1;
+	m_HiB = m_LoB + M + I - 1;
+	m_Ids = M;
+	m_Gaps = D + I;
+
 	StartTimer(CalcEvalue)
 	float LDDT = GetLDDT();
 	float RevDPScore = 0;
@@ -634,10 +642,6 @@ void DSSAligner::CalcEvalue()
 	const uint LB = m_ChainB->GetSeqLength();
 	float L = float(LA + LB)/2;
 
-	//const float dpw = 1.7f;
-	//const float lddtw = 0.13f;
-	//const float ladd = 250.0f;
-	//const float revtsw = 2.0f;
 	const float dpw = m_Params->m_dpw;
 	const float lddtw = m_Params->m_lddtw;
 	const float ladd = m_Params->m_ladd;
@@ -648,33 +652,14 @@ void DSSAligner::CalcEvalue()
 
 	m_NewTestStatisticB = m_NewTestStatisticA;
 
-	uint M, D, I;
-	GetPathCounts(m_Path, M, D, I);
-	m_HiA = m_LoA + M + D - 1;
-	m_HiB = m_LoB + M + I - 1;
-	m_Ids = M;
-	m_Gaps = D + I;
+	float E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
+	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
 
-	const float a = 5.0f;
-	const float b = -40.0f;
-	float logE = a + b*m_NewTestStatisticA;
-	float DBSize = m_Params->m_DBSize;
-
-	float Qual = 0;
-	if (logE < -20)
-		Qual = 1;
-	else
-		{
-		float x = powf(10, logE/10);
-		Qual = 1/(1 + x/2);
-		}
-
-	float E_scop = expf(logE)/SCOP40_DBSIZE;
-	float E = E_scop*DBSize;
 	m_QualityA = Qual;
 	m_QualityB = Qual;
 	m_EvalueA = E;
 	m_EvalueB = E;
+
 	EndTimer(CalcEvalue)
 	}
 

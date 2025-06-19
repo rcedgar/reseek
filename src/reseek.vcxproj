@@ -297,7 +297,7 @@
     <ClCompile Include="pdb2angles.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
-    <ClCompile Include="reseek_calibrate.cpp" />
+    <ClCompile Include="statsig.cpp" />
     <ClCompile Include="scop40benchreal.cpp" />
     <ClCompile Include="scop40prealigned.cpp" />
     <ClCompile Include="search.cpp" />
@@ -499,6 +499,7 @@
     <ClInclude Include="squeezealgos.h" />
     <ClInclude Include="squeezeops.h" />
     <ClInclude Include="squeezer.h" />
+    <ClInclude Include="statsig.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
