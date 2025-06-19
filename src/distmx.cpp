@@ -52,11 +52,10 @@ void cmd_distmx()
 
 	DistMxSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	DBS.m_Params = &Params;
 	DBS.LoadDB(DBFN);
 
-	Params.m_DBSize = (float) DBS.GetDBSize();
 	DBS.m_fDistMx = CreateStdioFile(opt(output));
 	DBS.Setup();
 	DBS.RunSelf();

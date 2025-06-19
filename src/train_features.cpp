@@ -5,6 +5,7 @@
 #include "dss.h"
 #include "logodds.h"
 #include "scop40bench.h"
+#include "statsig.h"
 
 static uint GetUngappedLength(const string &Row)
 	{
@@ -193,7 +194,7 @@ void cmd_train_features()
 	optset_fast = true;
 	opt(fast) = true;
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	int8_t MaxAbsi8 = 20;
 	if (optset_maxi8)
 		{

@@ -5,6 +5,7 @@
 #include "dbsearcher.h"
 #include "search.h"
 #include "output.h"
+#include "statsig.h"
 
 uint MuPreFilter(const DSSParams &Params,
 			  SeqDB &QueryDB,
@@ -19,14 +20,12 @@ void SelfSearch()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	Params.m_DBSize = (float) DBS.GetDBSize();
-	if (optset_dbsize)
-		Params.m_DBSize = (float) opt(dbsize);
+	StatSig::SetDBSize(DBS.GetDBSize());
 
 	OpenOutputFiles();
 	DBS.RunSelf();
@@ -43,11 +42,12 @@ static void Search_NoMuFilter()
 
 	DBSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
+	StatSig::SetDBSize(DBS.GetDBChainCount());
 
 	OpenOutputFiles();
 	ChainReader2 CR;
@@ -64,6 +64,15 @@ void cmd_search()
 		return;
 		}
 
+	if (optset_fast)
+		StatSig::SetMode(SM_fast);
+	else if (optset_sensitive)
+		StatSig::SetMode(SM_sensitive);
+	else if (optset_verysensitive)
+		StatSig::SetMode(SM_verysensitive);
+	else
+		Die("Unknown search mode");
+
 	if (!optset_fast)
 		{
 		Search_NoMuFilter();
@@ -77,7 +86,7 @@ void cmd_search()
 		Die(".bca format required for -db");
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption);
 	const string &PatternStr = Params.m_MuPrefPatternStr;
 	asserta(PatternStr == "1110011");
 
@@ -103,9 +112,10 @@ void cmd_search()
 		MaxEvalue = (float) opt(evalue);
 
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
+	StatSig::SetDBSize(DBSize);
 
 	DSSParams Params2;
-	Params2.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
+	Params2.SetDSSParams(DM_AlwaysSensitive);
 	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt(output));
 
 	if (!opt(keeptmp))

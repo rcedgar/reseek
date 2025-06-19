@@ -265,7 +265,7 @@ void cmd_calibrate3()
 
 	CalibrateSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(DBFN);

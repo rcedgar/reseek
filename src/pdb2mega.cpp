@@ -34,7 +34,7 @@ void cmd_pdb2mega()
 	ProgressLog("%u chains\n", ChainCount);
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, ChainCount);
+	Params.SetDSSParams(DM_DefaultFast);
 	const uint FeatureCount = Params.GetFeatureCount();
 	asserta(FeatureCount > 0);
 	asserta(Params.m_Features[0] == FEATURE_AA);

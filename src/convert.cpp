@@ -265,7 +265,7 @@ void cmd_convert()
 		{
 		optset_fast = true;
 		opt(fast) = true;
-		Params.SetDSSParams(DM_AlwaysFast, SCOP40_DBSIZE);
+		Params.SetDSSParams(DM_AlwaysFast);
 		s_Feat = GetFeatureFromCmdLine();
 		s_ptrParams = &Params;
 		}

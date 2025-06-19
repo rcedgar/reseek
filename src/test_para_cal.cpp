@@ -12,7 +12,7 @@ void cmd_test_para_cal()
 	const PDBChain &Chain2 = *Chains[1];
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 
 	DSS D;
 	D.SetParams(Params);

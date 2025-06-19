@@ -40,21 +40,11 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	return AM_Invalid;
 	}
 
-void DSSParams::SetDSSParams(DECIDE_MODE DM, uint DBSize)
+void DSSParams::SetDSSParams(DECIDE_MODE DM)
 	{
 	SetDefaults();
 
 	ALGO_MODE AM = GetAlgoMode(DM);
-
-	if (DBSize == UINT_MAX)
-		{
-		if (optset_dbsize)
-			m_DBSize = (float) opt(dbsize);
-		else
-			m_DBSize = SCOP40_DBSIZE;
-		}
-	else
-		m_DBSize = (float) DBSize;
 
 	switch (AM)
 		{
@@ -305,49 +295,49 @@ void DSSParams::InitScoreMxs()
 	m_OwnScoreMxs = true;
 	}
 
-float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const
-	{
-	double gumbel_cdf(double mu, double beta, double x);
-	double x = -log(TS);
-	//double P = gumbel_cdf(2.5, 0.613, x);
-	double P = gumbel_cdf(mu, beta, x);
-	float Evalue = float(P*m_DBSize);
-	return Evalue;
-	}
-
-float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
-	{
-	float PredMinusLogP = m*TestStatistic + b;
-	float P = expf(-PredMinusLogP);
-	float Evalue = P*m_DBSize;
-	if (Evalue > 1)
-		Evalue = log10f(Evalue) + 1;
-	return Evalue;
-	}
-
-float DSSParams::GetEvalueOldLinear(float TestStatistic) const
-	{
-	const float Slope = m_Evalue_old_linear_Slope;
-	const float Intercept = m_Evalue_linear_Intercept;
-	float logNF = Slope*TestStatistic + Intercept;
-	float NF = powf(10, logNF);
-	float Evalue = NF*m_DBSize/1e8f;
-	return Evalue;
-	}
-
-float DSSParams::GetEvalue(float TestStatistic) const
-	{
-	if (TestStatistic <= 0)
-		return 99999;
-	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-
-	if (opt(gum))
-		return GetEvalueGumbel(TestStatistic,
-		  m_Evalue_Gumbel_mu, m_Evalue_Gumbel_beta);
-
-	return GetEvalueSlope(TestStatistic,
-	  m_Evalue_linear_m, m_Evalue_linear_b);
-	}
+//float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const
+//	{
+//	double gumbel_cdf(double mu, double beta, double x);
+//	double x = -log(TS);
+//	//double P = gumbel_cdf(2.5, 0.613, x);
+//	double P = gumbel_cdf(mu, beta, x);
+//	float Evalue = float(P*m_DBSize);
+//	return Evalue;
+//	}
+//
+//float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
+//	{
+//	float PredMinusLogP = m*TestStatistic + b;
+//	float P = expf(-PredMinusLogP);
+//	float Evalue = P*m_DBSize;
+//	if (Evalue > 1)
+//		Evalue = log10f(Evalue) + 1;
+//	return Evalue;
+//	}
+//
+//float DSSParams::GetEvalueOldLinear(float TestStatistic) const
+//	{
+//	const float Slope = m_Evalue_old_linear_Slope;
+//	const float Intercept = m_Evalue_linear_Intercept;
+//	float logNF = Slope*TestStatistic + Intercept;
+//	float NF = powf(10, logNF);
+//	float Evalue = NF*m_DBSize/1e8f;
+//	return Evalue;
+//	}
+//
+//float DSSParams::GetEvalue(float TestStatistic) const
+//	{
+//	if (TestStatistic <= 0)
+//		return 99999;
+//	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
+//
+//	if (opt(gum))
+//		return GetEvalueGumbel(TestStatistic,
+//		  m_Evalue_Gumbel_mu, m_Evalue_Gumbel_beta);
+//
+//	return GetEvalueSlope(TestStatistic,
+//	  m_Evalue_linear_m, m_Evalue_linear_b);
+//	}
 
 void DSSParams::ApplyWeights()
 	{

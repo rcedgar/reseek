@@ -8,7 +8,7 @@ void cmd_alignselfrev()
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_AlwaysSensitive);
 	Params.m_UsePara = false;
 	Params.m_Omega = 0;
 

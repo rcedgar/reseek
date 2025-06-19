@@ -66,13 +66,12 @@ void cmd_calibrate2()
 		CalFN = g_Arg1;
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	SCOP40Bench SB;
 	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	Params.m_DBSize = (float) SB.GetDBSize();
 
 	SB.Setup();
 	

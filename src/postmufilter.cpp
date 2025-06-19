@@ -292,7 +292,7 @@ void cmd_postmufilter()
 
 	DSSParams Params;
 	asserta(optset_dbsize);
-	Params.SetDSSParams(DM_AlwaysSensitive, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_AlwaysSensitive);
 
 	PostMuFilter(Params,
 				 opt(filin),

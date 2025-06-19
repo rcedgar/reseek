@@ -7,6 +7,7 @@
 #include "timing.h"
 #include "sort.h"
 #include "output.h"
+#include "statsig.h"
 #include <algorithm>
 #include <random>
 #include <thread>
@@ -782,13 +783,13 @@ void cmd_scop40bench()
 		}
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_UseCommandLineOption);
 	SCOP40Bench SB;
 	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	Params.m_DBSize = (float) SB.GetDBSize();
+	StatSig::SetDBSize(SB.GetDBSize());
 
 	SB.Setup();
 	

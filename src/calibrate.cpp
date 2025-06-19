@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chainreader2.h"
 #include "calibratesearcher.h"
+#include "statsig.h"
 
 /***
 * Calibrate distribution of FP errors on one_per_sf or one_per_fold.
@@ -21,7 +22,8 @@ void cmd_calibrate()
 
 	CalibrateSearcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
+	StatSig::SetDBSize(SCOP40_DBSIZE);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(DBFN);

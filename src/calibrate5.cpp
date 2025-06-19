@@ -96,12 +96,10 @@ void cmd_calibrate5()
 
 	C5_Searcher DBS;
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(DBFN);
-
-	Params.m_DBSize = (float) DBS.GetDBSize();
 	DBS.Setup();
 
 	ChainReader2 QCR;

@@ -5,8 +5,6 @@
 #define SLOPE_CALIB		0
 #define GUMBEL_CALIB	0
 
-const uint SCOP40_DBSIZE = 11211;
-
 enum ALGO_MODE
 	{
 	AM_Invalid,
@@ -41,8 +39,6 @@ public:
 	string m_MuPrefPatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_OwnScoreMxs = false;
-
-	float m_DBSize = 10000;
 
 	bool m_UsePara = true;
 	int m_ParaMuGapOpen = 2;
@@ -107,17 +103,17 @@ public:
 	void SetIntParam(const string &Name, int Value);
 	float GetParam(const string &Name) const;
 	int GetIntParam(const string &Name) const;
-	void SetDSSParams(DECIDE_MODE DM, uint DBSize);
+	void SetDSSParams(DECIDE_MODE DM);
 	uint GetFeatureIdx(FEATURE F) const;
 	uint GetFeatureIdx_NoError(FEATURE F) const;
 	void ToFev(FILE *f, bool nl) const;
 	void FromTsv(const string &FileName);
 	void InitScoreMxs();
 	void ApplyWeights();
-	float GetEvalue(float TS) const;
-	float GetEvalueSlope(float TS, float m, float b) const;
-	float GetEvalueGumbel(float TS, float mu, float beta) const;
-	float GetEvalueOldLinear(float TS) const;
+	//float GetEvalue(float TS) const;
+	//float GetEvalueSlope(float TS, float m, float b) const;
+	//float GetEvalueGumbel(float TS, float mu, float beta) const;
+	//float GetEvalueOldLinear(float TS) const;
 	};
 
 uint GetPatternOnes(const string &Pattern);

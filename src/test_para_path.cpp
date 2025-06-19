@@ -190,7 +190,7 @@ void DSSAligner::Align_Test(
 void cmd_test_para_path()
 	{
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 	DA.SetParams(Params);
 	D.SetParams(Params);
 

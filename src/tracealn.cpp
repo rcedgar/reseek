@@ -53,7 +53,6 @@ static void TraceAln1(const DSSParams &Params,
 		Log("EvalueA=%.3g\n", E);
 	else
 		Log("EvalueA=%.1f\n", E);
-	Log("DBSize=%.0f\n", Params.m_DBSize);
 	Log("AlnFwdScore=%.3g\n", DA.m_AlnFwdScore);
 	Log("DoMKF=%c\n", tof(DoMKF));
 	if (DoMKF)
@@ -74,7 +73,7 @@ void cmd_tracealn()
 	ReadChains(opt(db), Ts);
 
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 
 	const uint NQ = SIZE(Qs);
 	const uint NT = SIZE(Ts);

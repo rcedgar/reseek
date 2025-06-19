@@ -321,7 +321,6 @@
     <ClCompile Include="deflate.c" />
     <ClCompile Include="diag.cpp" />
     <ClCompile Include="distmx.cpp" />
-    <ClCompile Include="evalue_report.cpp" />
     <ClCompile Include="explore1.cpp" />
     <ClCompile Include="getchains.cpp" />
     <ClCompile Include="lddt.cpp" />
@@ -397,6 +396,7 @@
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
     <ClCompile Include="seqfeeder.cpp" />
+    <ClCompile Include="statsig.cpp" />
     <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="swfastpinop.cpp" />
     <ClCompile Include="swfastpinopgapless.cpp" />
@@ -511,12 +511,14 @@
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />
+    <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="search.h" />
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />
+    <ClInclude Include="statsig.h" />
     <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />

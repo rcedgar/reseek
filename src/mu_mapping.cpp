@@ -7,7 +7,7 @@ char GetFeatureChar(byte Letter, uint AlphaSize);
 void cmd_mu_mapping()
 	{
 	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast, SCOP40_DBSIZE);
+	Params.SetDSSParams(DM_DefaultFast);
 
 	DSS D;
 	D.SetParams(Params);
