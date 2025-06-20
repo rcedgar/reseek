@@ -65,8 +65,8 @@ def check_default(fn):
     global errors
     for line in open(fn):
         flds = line[:-1].split('\t')
-        if len(flds) != 4:
-            print("%s: ERROR %s not four flds" % (sys.argv[0], fn))
+        if len(flds) != 5:
+            print("%s: ERROR %s not five flds" % (sys.argv[0], fn))
             errors += 1
             return
         try:

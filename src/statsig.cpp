@@ -281,7 +281,6 @@ double get_Bayesian_Pvalue(double ts, int refdb)
 
 double StatSig::GetPvalue(double TS)
 	{
-	asserta(m_DBSize != DBL_MAX);
 	asserta(m_Ref != REF_undefined);
 
 	int refdb = -1;

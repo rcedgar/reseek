@@ -879,8 +879,10 @@ void DSSAligner::CalcEvalue()
 	m_NewTestStatisticB = m_NewTestStatisticA;
 
 	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);
-	float E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
 	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
+	float E = FLT_MAX;
+	if (StatSig::m_DBSize != UINT_MAX)
+		E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
 
 	m_QualityA = Qual;
 	m_QualityB = Qual;
