@@ -3,7 +3,6 @@
 #include "seqdb.h"
 #include "museqsource.h"
 #include "dbsearcher.h"
-#include "search.h"
 #include "output.h"
 #include "statsig.h"
 
@@ -11,6 +10,12 @@ uint MuPreFilter(const DSSParams &Params,
 			  SeqDB &QueryDB,
 			  MuSeqSource &FSS,
 			  const string &OutputFN);
+
+void PostMuFilter(const DSSParams &Params,
+				  const string &MuFilterTsvFN,
+				  const string &QueryCAFN,
+				  const string &DBBCAFN,
+				  const string &HitsFN);
 
 void SelfSearch()
 	{
@@ -107,16 +112,12 @@ void cmd_search()
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
 
-	float MaxEvalue = 10;
-	if (optset_evalue)
-		MaxEvalue = (float) opt(evalue);
-
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 	StatSig::SetDBSize(DBSize);
 
 	DSSParams Params2;
 	Params2.SetDSSParams(DM_AlwaysSensitive);
-	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, MaxEvalue, opt(output));
+	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
 	if (!opt(keeptmp))
 		DeleteStdioFile(MuFilterTsvFN);

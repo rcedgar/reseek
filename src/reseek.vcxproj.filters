@@ -365,9 +365,6 @@
     <ClCompile Include="testmodel2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="evalue_report.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mu_mapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -552,6 +549,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="seqfeeder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="statsig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -832,9 +832,6 @@
     <ClInclude Include="output.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="search.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="prefiltermuparams.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -857,6 +854,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="seqfeeder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reseek_calibrate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="statsig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

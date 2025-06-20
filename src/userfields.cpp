@@ -45,7 +45,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	if (f == 0)
 		return;
 
-	const bool Up = !aUp;
+	const bool Up = (optset_fast ? aUp : !aUp);
 
 	string TmpStr;
 	switch (UF)

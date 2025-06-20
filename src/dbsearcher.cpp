@@ -37,7 +37,10 @@ void DBSearcher::RunStats() const
 	double PairsPerSecPerThread = PairsPerSec/ThreadCount;
 	ProgressLog("\n");
 	ProgressLog("%10.10s  Search time\n", SecsToHHMMSS(Secs));
-	ProgressLog("%10.10s  Hits (max E-value %.3g)\n", IntToStr(m_HitCount), m_MaxEvalue);
+	if (m_MaxEvalue == DBL_MAX)
+		ProgressLog("%10.10s  Hits\n", IntToStr(m_HitCount), m_MaxEvalue);
+	else
+		ProgressLog("%10.10s  Hits (max E-value %.3g)\n", IntToStr(m_HitCount), m_MaxEvalue);
 	if (m_ProcessedQueryCount < 100)
 		return;
 	ProgressLog("%10.10s  DB chains\n", IntToStr(m_ProcessedQueryCount));
@@ -74,7 +77,7 @@ void DBSearcher::Setup()
 	else 
 		{
 		if (optset_verysensitive)
-			m_MaxEvalue = 1e6;
+			m_MaxEvalue = DBL_MAX;
 		else
 			m_MaxEvalue = 10;
 		}

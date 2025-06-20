@@ -514,7 +514,6 @@
     <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
-    <ClInclude Include="search.h" />
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="spher.h" />

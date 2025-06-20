@@ -28,7 +28,7 @@ static uint s_LineIdx;
 static uint s_LineCount;
 static uint s_ScannedCount;
 static LineReader2 *s_ptrLR;
-static float s_MaxEvalue = 10;
+static double s_MaxEvalue = 10;
 static FILE *s_fTsv;
 static FILE *s_fTsv2;
 
@@ -195,9 +195,11 @@ void PostMuFilter(const DSSParams &Params,
 				  const string &MuFilterTsvFN,
 				  const string &QueryCAFN,
 				  const string &DBBCAFN,
-				  float MaxEvalue,
 				  const string &HitsFN)
 	{
+	if (optset_evalue)
+		s_MaxEvalue = opt_evalue;
+
 	time_t t0 = time(0);
 	LineReader2 LR;
 	LR.Open(MuFilterTsvFN);
@@ -218,7 +220,6 @@ void PostMuFilter(const DSSParams &Params,
 
 	s_fTsv = CreateStdioFile(HitsFN);
 	s_fTsv2 = CreateStdioFile(opt(output2));
-	s_MaxEvalue = MaxEvalue;
 
 	vector<PDBChain *> QChains;
 	ReadChains(QueryCAFN, QChains);
@@ -286,9 +287,6 @@ void cmd_postmufilter()
 	const string &MuFilterTsvFN = opt(filin);
 
 	s_fTsv = CreateStdioFile(opt(output));
-	float MaxEvalue = 10;
-	if (optset_evalue)
-		MaxEvalue = (float) opt(evalue);
 
 	DSSParams Params;
 	asserta(optset_dbsize);
@@ -298,6 +296,5 @@ void cmd_postmufilter()
 				 opt(filin),
 				 QueryCAFN,
 				 DBCAFN,
-				 MaxEvalue,
 				 HitsFN);
 	}
