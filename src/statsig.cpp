@@ -13,7 +13,7 @@
 
 uint StatSig::m_DBSize = UINT_MAX;
 SEARCH_MODE StatSig::m_Mode = SM_undefined;
-CALIBRATION_REF StatSig::m_Ref = REF_SCOP40c;
+CALIBRATION_REF StatSig::m_Ref = REF_SCOP40;
 
 static const char *searchdb2str(int searchdb)
 	{
@@ -235,7 +235,7 @@ static double get_PF(int mode, uint dbsize)
 	}
 
 /***
-C:\src\null_model\py\reseek_calibrate.py
+C:\src\null_model\py\reseek_calibrate_v2.py
 
 def estimate_evalue(ts, mode, searchdb, refdb):
 	D = dbname2size.dbname2size[searchdb]
@@ -265,7 +265,7 @@ double get_Bayesian_Evalue(double ts, uint dbsize, int mode, int refdb)
 	else if (mode == fast)
 		{
 		double C_prefilter = get_C_prefilter(ts, refdb, dbsize);
-		E = dbsize*h*PF*P*C_prefilter;
+		E = dbsize*h*PF*C_prefilter;
 		}
 	else
 		Die("get_Bayesian_Evalue(ts=%.3g, dbsize=%u, mode=%d)\n",
@@ -300,7 +300,7 @@ double StatSig::GetEvalue(double TS)
 	return E;
 	}
 
-static void print_table(FILE *f, const char *title, bool show_scop40, bool show_scop40c,
+static void print_table(FILE *f, bool tsv, const char *title, bool show_scop40, bool show_scop40c,
 						bool show_modes[3])
 	{
 	bool show_fast = show_modes[0];
@@ -310,68 +310,96 @@ static void print_table(FILE *f, const char *title, bool show_scop40, bool show_
 	asserta(show_fast || show_sensitive || show_verysensitive);
 
 	fprintf(f, "\n\n");
-	fprintf(f, "%s\n", title);
-	fprintf(f, "%4.4s", "TS");
-	if (show_scop40)
-		fprintf(f, "  %10.10s", "P-value");
-	if (show_scop40c)
-		fprintf(f, "  %10.10s", "P-value/c");
-	fprintf(f, " |");
+	if (tsv)
+		fprintf(f, "%s", "TS");
+	else
+		{
+		fprintf(f, "%s\n", title);
+		fprintf(f, "%4.4s", "TS");
+		}
+
+	if (tsv)
+		{
+		if (show_scop40)
+			fprintf(f, "\t%s", "P-value");
+		if (show_scop40c)
+			fprintf(f, "\t%s", "P-value/c");
+		}
+	else
+		{
+		if (show_scop40)
+			fprintf(f, "  %10.10s", "P-value");
+		if (show_scop40c)
+			fprintf(f, "  %10.10s", "P-value/c");
+		fprintf(f, " |");
+		}
+
 	for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
 		{
 		const string name = searchdb2str(searchdb);
+		const char *fmt = (tsv ? "\t%s" : "  %10.10s");
 		if (show_scop40 && show_fast)
-			fprintf(f, "  %10.10s", (name + "/F").c_str());
+			fprintf(f, fmt, (name + "/F").c_str());
 		if (show_scop40c && show_fast)
-			fprintf(f, "  %10.10s", (name + "/Fc").c_str());
+			fprintf(f, fmt, (name + "/Fc").c_str());
 		if (show_scop40 && show_sensitive)
-			fprintf(f, "  %10.10s", (name + "/S").c_str());
+			fprintf(f, fmt, (name + "/S").c_str());
 		if (show_scop40c && show_sensitive)
-			fprintf(f, "  %10.10s", (name + "/Sc").c_str());
+			fprintf(f, fmt, (name + "/Sc").c_str());
 		if (show_scop40 && show_verysensitive)
-			fprintf(f, "  %10.10s", (name + "/V").c_str());
+			fprintf(f, fmt, (name + "/V").c_str());
 		if (show_scop40c && show_verysensitive)
-			fprintf(f, "  %10.10s", (name + "/Vc").c_str());
-		fprintf(f, " |");
+			fprintf(f, fmt, (name + "/Vc").c_str());
+		if (!tsv)
+			fprintf(f, " |");
 		}
 	fprintf(f, "\n");
 
-	fprintf(f, "%4.4s", "----");
-	if (show_scop40)
-		fprintf(f, "  %10.10s", "----------");
-	if (show_scop40c)
-		fprintf(f, "  %10.10s", "----------");
-	fprintf(f, " |");
-	for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
+	if (!tsv)
 		{
-		const string name = searchdb2str(searchdb);
-		if (show_scop40 && show_fast)
+		fprintf(f, "%4.4s", "----");
+		if (show_scop40)
 			fprintf(f, "  %10.10s", "----------");
-		if (show_scop40c && show_fast)
-			fprintf(f, "  %10.10s", "----------");
-		if (show_scop40 && show_sensitive)
-			fprintf(f, "  %10.10s", "----------");
-		if (show_scop40c && show_sensitive)
-			fprintf(f, "  %10.10s", "----------");
-		if (show_scop40 && show_verysensitive)
-			fprintf(f, "  %10.10s", "----------");
-		if (show_scop40c && show_verysensitive)
+		if (show_scop40c)
 			fprintf(f, "  %10.10s", "----------");
 		fprintf(f, " |");
+		for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
+			{
+			const string name = searchdb2str(searchdb);
+			if (show_scop40 && show_fast)
+				fprintf(f, "  %10.10s", "----------");
+			if (show_scop40c && show_fast)
+				fprintf(f, "  %10.10s", "----------");
+			if (show_scop40 && show_sensitive)
+				fprintf(f, "  %10.10s", "----------");
+			if (show_scop40c && show_sensitive)
+				fprintf(f, "  %10.10s", "----------");
+			if (show_scop40 && show_verysensitive)
+				fprintf(f, "  %10.10s", "----------");
+			if (show_scop40c && show_verysensitive)
+				fprintf(f, "  %10.10s", "----------");
+			fprintf(f, " |");
+			}
+		fprintf(f, "\n");
 		}
-	fprintf(f, "\n");
 
-	for (uint binidx = 0; binidx < 16; ++binidx)
+	for (uint binidx = 1; binidx < 16; ++binidx)
 		{
 		double ts = binidx*0.05;
-		fprintf(f, "%4.2f", ts);
+		if (tsv)
+			fprintf(f, "%4.2f", ts);
+		else
+			fprintf(f, "%.2f", ts);
 		double P_scop40 = get_Pvalue(ts, scop40);
 		double P_scop40c = get_Pvalue(ts, scop40c);
+		const char *efmt = (tsv ? "\t%.3e" : "  %10.3e");
+		const char *sfmt = (tsv ? "\t%s" : "  %10.10s");
 		if (show_scop40)
-			fprintf(f, "  %10.3e", P_scop40);
+			fprintf(f, efmt, P_scop40);
 		if (show_scop40c)
-			fprintf(f, "  %10.3e", P_scop40c);
-		fprintf(f, " |");
+			fprintf(f, efmt, P_scop40c);
+		if (!tsv)
+			fprintf(f, " |");
 
 		// style: 0=everything, 1=fast only, 2=sensitive only
 		for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
@@ -385,20 +413,21 @@ static void print_table(FILE *f, const char *title, bool show_scop40, bool show_
 					{
 					double E_scop40 = get_Bayesian_Evalue(ts, dbsize, mode, scop40);
 					if (E_scop40 > 10)
-						fprintf(f, "  %10.10s", ">10");
+						fprintf(f, sfmt, ">10");
 					else
-						fprintf(f, "  %10.3e", E_scop40);
+						fprintf(f, efmt, E_scop40);
 					}
 				if (show_scop40c)
 					{
 					double E_scop40c = get_Bayesian_Evalue(ts, dbsize, mode, scop40c);
 					if (E_scop40c > 10)
-						fprintf(f, "  %10.3s", ">10");
+						fprintf(f, sfmt, ">10");
 					else
-						fprintf(f, "  %10.3e", E_scop40c);
+						fprintf(f, efmt, E_scop40c);
 					}
 				}
-			fprintf(f, " |");
+			if (!tsv)
+				fprintf(f, " |");
 			}
 		fprintf(f, "\n");
 		}
@@ -436,11 +465,13 @@ void cmd_bayes_report()
 	bool sensitive_only[3] = { false, true, false };
 	bool verysensitive_only[3] = { false, false, true };
 
-	print_table(f, "All, F=fast, S=sensitive, V=verysensitive", true, true, all_modes);
-	print_table(f, "fast, SCOP40 (/X) and SCOP40c (/Xc) reference, F=fast, S=sensitive, V=verysensitive", true, true, fast_only);
-	print_table(f, "sensitive, SCOP40 and SCOP40c reference, F=fast, S=sensitive, V=verysensitive", true, true, sensitive_only);
-	print_table(f, "verysensitive, SCOP40 (/X) and SCOP40c (/Xc) reference, F=fast, S=sensitive, V=verysensitive", true, true, verysensitive_only);
-	print_table(f, "SCOP40 reference, F=fast, S=sensitive, V=verysensitive", true, false, all_modes);
-	print_table(f, "SCOP40c reference, F=fast, S=sensitive, V=verysensitive", false, true, all_modes);
+	print_table(f, false, "All, F=fast, S=sensitive, V=verysensitive", true, true, all_modes);
+	print_table(f, false, "fast, SCOP40 (/X) and SCOP40c (/Xc) reference, F=fast, S=sensitive, V=verysensitive", true, true, fast_only);
+	print_table(f, false, "sensitive, SCOP40 and SCOP40c reference, F=fast, S=sensitive, V=verysensitive", true, true, sensitive_only);
+	print_table(f, false, "verysensitive, SCOP40 (/X) and SCOP40c (/Xc) reference, F=fast, S=sensitive, V=verysensitive", true, true, verysensitive_only);
+	print_table(f, false, "SCOP40 reference, F=fast, S=sensitive, V=verysensitive", true, false, all_modes);
+	print_table(f, false, "SCOP40c reference, F=fast, S=sensitive, V=verysensitive", false, true, all_modes);
+
+	print_table(f, true, "TSV", true, true, all_modes);
 	CloseStdioFile(f);
 	}
