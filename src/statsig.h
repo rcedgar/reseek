@@ -25,17 +25,34 @@ public:
 	static CALIBRATION_REF m_Ref;
 
 public:
-	static void SetMode(SEARCH_MODE Mode)
+	static void Init(uint DBSize)
 		{
-		m_Mode = Mode;
-		}
-
-	static void SetDBSize(uint DBSize)
-		{
+		m_Mode = GetSearchModeFromCmdLine();
 		if (optset_dbsize)
 			m_DBSize = opt(dbsize);
 		else
 			m_DBSize = DBSize;
+		}
+
+	static void InitSensitive(uint DBSize)
+		{
+		m_Mode = SM_sensitive;
+		if (optset_dbsize)
+			m_DBSize = opt(dbsize);
+		else
+			m_DBSize = DBSize;
+		}
+
+	static SEARCH_MODE GetSearchModeFromCmdLine()
+		{
+		if (optset_fast)
+			return SM_fast;
+		else if (optset_sensitive)
+			return SM_sensitive;
+		else if (optset_verysensitive)
+			return SM_verysensitive;
+		Die("Unknown search mode");
+		return SM_undefined;
 		}
 
 	static double GetQual(double TS)

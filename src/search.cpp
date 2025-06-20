@@ -30,7 +30,7 @@ void SelfSearch()
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	StatSig::SetDBSize(DBS.GetDBSize());
+	StatSig::Init(DBS.GetDBChainCount());
 
 	OpenOutputFiles();
 	DBS.RunSelf();
@@ -52,7 +52,7 @@ static void Search_NoMuFilter()
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	StatSig::SetDBSize(DBS.GetDBChainCount());
+	StatSig::Init(DBS.GetDBChainCount());
 
 	OpenOutputFiles();
 	ChainReader2 CR;
@@ -68,15 +68,6 @@ void cmd_search()
 		SelfSearch();
 		return;
 		}
-
-	if (optset_fast)
-		StatSig::SetMode(SM_fast);
-	else if (optset_sensitive)
-		StatSig::SetMode(SM_sensitive);
-	else if (optset_verysensitive)
-		StatSig::SetMode(SM_verysensitive);
-	else
-		Die("Unknown search mode");
 
 	if (!optset_fast)
 		{
@@ -113,7 +104,7 @@ void cmd_search()
 	MuQueryDB.FromSS(QSS);
 
 	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
-	StatSig::SetDBSize(DBSize);
+	StatSig::Init(DBSize);
 
 	DSSParams Params2;
 	Params2.SetDSSParams(DM_AlwaysSensitive);
