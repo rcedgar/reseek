@@ -134,6 +134,7 @@ DSSAligner::DSSAligner()
 		m_UFs.push_back(UF_query);
 		m_UFs.push_back(UF_target);
 		m_UFs.push_back(UF_evalue);
+		m_UFs.push_back(UF_pvalue);
 		}
 	}
 
@@ -877,11 +878,14 @@ void DSSAligner::CalcEvalue()
 
 	m_NewTestStatisticB = m_NewTestStatisticA;
 
+	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);
 	float E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
 	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
 
 	m_QualityA = Qual;
 	m_QualityB = Qual;
+	m_PvalueA = Pval;
+	m_PvalueB = Pval;
 	m_EvalueA = E;
 	m_EvalueB = E;
 	EndTimer(CalcEvalue)
@@ -896,6 +900,8 @@ void DSSAligner::ClearAlign()
 	m_HiB = UINT_MAX;
 	m_Ids = UINT_MAX;
 	m_Gaps = UINT_MAX;
+	m_PvalueA = FLT_MAX;
+	m_PvalueB = FLT_MAX;
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
 	m_TestStatisticA = -FLT_MAX;

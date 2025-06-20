@@ -29,6 +29,7 @@ static uint s_LineCount;
 static uint s_ScannedCount;
 static LineReader2 *s_ptrLR;
 static double s_MaxEvalue = 10;
+static double s_MinPvalue = 1;
 static FILE *s_fTsv;
 static FILE *s_fTsv2;
 
@@ -174,7 +175,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
 			TheDA.AlignBags(CBQ, CBT);
-			if (TheDA.m_EvalueA <= s_MaxEvalue)
+			if (TheDA.m_EvalueA <= s_MaxEvalue || TheDA.m_PvalueA >= s_MinPvalue)
 				TheDA.ToTsv(s_fTsv, true);
 			s_ScanLock.lock();
 			if (s_fTsv2)
@@ -198,7 +199,14 @@ void PostMuFilter(const DSSParams &Params,
 				  const string &HitsFN)
 	{
 	if (optset_evalue)
-		s_MaxEvalue = opt_evalue;
+		s_MaxEvalue = opt(evalue);
+	if (optset_pvalue)
+		{
+		double p = opt(pvalue);
+		if (p < 0 || p > 1)
+			Die("Invalid pvalue, must be in range 0 to 1");
+		s_MinPvalue = p;
+		}
 
 	time_t t0 = time(0);
 	LineReader2 LR;

@@ -273,6 +273,29 @@ double get_Bayesian_Evalue(double ts, uint dbsize, int mode, int refdb)
 	return E;
 	}
 
+double get_Bayesian_Pvalue(double ts, int refdb)
+	{
+	double P = get_Pvalue(ts, refdb);
+	return P;
+	}
+
+double StatSig::GetPvalue(double TS)
+	{
+	asserta(m_DBSize != DBL_MAX);
+	asserta(m_Ref != REF_undefined);
+
+	int refdb = -1;
+	switch (StatSig::m_Ref)
+		{
+	case REF_SCOP40: refdb = 0; break;
+	case REF_SCOP40c: refdb = 4; break;
+	default: asserta(false);
+		}
+
+	double P = get_Bayesian_Pvalue(TS, refdb);
+	return P;
+	}
+
 double StatSig::GetEvalue(double TS)
 	{
 	asserta(m_DBSize != DBL_MAX);

@@ -4,6 +4,7 @@
 
 x(query)
 x(target)
+x(pvalue)
 x(evalue)
 x(qlo)
 x(qhi)

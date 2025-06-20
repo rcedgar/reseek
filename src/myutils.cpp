@@ -1356,7 +1356,7 @@ void Pr(FILE *f, const char *Format, ...)
 
 void Progress(const char *Format, ...)
 	{
-	if (opt_quiet)
+	if (opt(quiet))
 		return;
 
 	string Str;
@@ -1585,7 +1585,7 @@ static void ProgressStepHook(time_t Now)
 
 void ProgressCallback(unsigned i, unsigned N)
 	{
-	if (opt_quiet)
+	if (opt(quiet))
 		return;
 
 	if (i == 0)
@@ -1644,7 +1644,7 @@ void ProgressCallback(unsigned i, unsigned N)
 
 void ProgressStep(size_t i, size_t N, const char *Format, ...)
 	{
-	if (opt_quiet)
+	if (opt(quiet))
 		return;
 
 	if (i == 0)
@@ -1900,16 +1900,16 @@ void MyCmdLine(int argc, char **argv)
 		}
 
 #if	TIMING
-	if (opt_threads > 1)
+	if (opt(threads) > 1)
 		Die("--threads > 1 && TIMING");
 #endif
 
-	if (opt_compilerinfo)
+	if (opt(compilerinfo))
 		{
 		CompilerInfo();
 		exit(0);
 		}
-	SetLogFileName(opt_log);
+	SetLogFileName(opt(log));
 	}
 
 static unsigned GetStructPack()
@@ -2238,7 +2238,7 @@ void InitRand()
 // Do this first to avoid recursion
 	g_InitRandDone = true;
 
-	unsigned Seed = (optset_randseed ? opt_randseed : (unsigned) (time(0)*getpid()));
+	unsigned Seed = (optset_randseed ? opt(randseed) : (unsigned) (time(0)*getpid()));
 	Log("RandSeed=%u\n", Seed);
 	SLCG_srand(Seed);
 
@@ -2309,7 +2309,7 @@ unsigned GetRequestedThreadCount()
 	unsigned CoreCount = GetCPUCoreCount();
 	bool MsgDone = false;
 	if (optset_threads)
-		N = opt_threads;
+		N = opt(threads);
 	else
 		N = CoreCount;
 	if (N == 0)

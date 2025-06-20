@@ -50,6 +50,8 @@ public:
 	uint m_LoB = UINT_MAX;
 	uint m_HiA = UINT_MAX;
 	uint m_HiB = UINT_MAX;
+	float m_PvalueA = FLT_MAX;
+	float m_PvalueB = FLT_MAX;
 	float m_EvalueA = FLT_MAX;
 	float m_EvalueB = FLT_MAX;
 	float m_QualityA = FLT_MAX;
@@ -197,6 +199,7 @@ public:
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
 	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
+	float GetPvalue(bool Top) const { return Top ? m_PvalueA : m_PvalueB; }
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;

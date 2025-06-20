@@ -33,7 +33,7 @@ public:
 	static void SetDBSize(uint DBSize)
 		{
 		if (optset_dbsize)
-			m_DBSize = opt_dbsize;
+			m_DBSize = opt(dbsize);
 		else
 			m_DBSize = DBSize;
 		}
@@ -56,4 +56,5 @@ public:
 		}
 
 	static double GetEvalue(double TS);
+	static double GetPvalue(double TS);
 	};
