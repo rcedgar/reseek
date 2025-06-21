@@ -85,6 +85,8 @@ public:
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
 	  vector<byte> *ptrMuLetters);
 
+	bool Reject(DSSAligner &DA, bool Up) const;
+
 #if SLOPE_CALIB
 // Slope calibrated runtime
 	void LoadCalibratedSlopes(const string &FN);
