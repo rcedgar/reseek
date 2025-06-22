@@ -29,7 +29,6 @@ static const char *searchdb2str(int searchdb)
 	}
 
 static vector<int> dbsizes;
-static vector<double> hitrates_fast;
 static vector<double> hitrates_sensitive;
 static vector<double> C_prefilter_ms_scop40;
 static vector<double> C_prefilter_ms_scop40c;
@@ -44,17 +43,6 @@ static void add_dbsize(int searchdb, int n)
 	{
 	assert(searchdb == dbsizes.size());
 	dbsizes.push_back(n);
-	}
-
-static void add_hitrate(int mode, int refdb, double h)
-	{
-	if (mode == fast)
-		hitrates_fast.push_back(h);
-	else if (mode == sensitive)
-		hitrates_sensitive.push_back(h);
-	else
-		Die("add_hitrate(mode=%d, refdb=%d, h=%.3g)",
-		  mode, refdb, h);
 	}
 
 static void add_C_score_F_mc(int refdb, double m, double c)
@@ -95,7 +83,6 @@ static void add_prefilter_mc(int searchdb, int refdb, double m, double c)
 	}
 
 #define dbsize(searchdb, size) add_dbsize(searchdb, size);
-#define hitrate(mode, refdb, h) add_hitrate(mode, refdb, h);
 #define C_score_F_mc(refdb, m, c) add_C_score_F_mc(refdb, m, c);
 #define prefilter_mc(searchdb, refdb, m, c) add_prefilter_mc(searchdb, refdb, m, c);
 
@@ -162,19 +149,6 @@ double interpolate(int query_x, const std::vector<int>& V, const std::vector<dou
 
     // Perform linear interpolation: y = y1 + (y2 - y1) * ((x - x1) / (x2 - x1))
     return y1 + (y2 - y1) * ((static_cast<double>(query_x) - x1) / (x2 - x1));
-	}
-
-static double get_hitrate(int mode, uint dbsize)
-	{
-	if (mode == fast)
-		return interpolate(dbsize, dbsizes, hitrates_fast);
-	else if (mode == sensitive)
-		return interpolate(dbsize, dbsizes, hitrates_sensitive);
-	else if (mode == verysensitive)
-		return 1;
-	else
-		Die("get_hitrate(mode=%d, dbsize=%u)", mode, dbsize);
-	return 0;
 	}
 
 static double get_Pvalue(double ts, int refdb)
@@ -246,9 +220,9 @@ def estimate_evalue(ts, mode, searchdb, refdb):
 	if mode == "fast":
 		CDF_prefilter_m, CDF_prefilter_c = get_CDF_prefilter_mc(searchdb, refdb)
 		CDF_prefilter = get_loglin_CDF_prefilter(ts, CDF_prefilter_m, CDF_prefilter_c)
-		evalue = D*h*PF*CDF_prefilter
+		evalue = D*P_FP_and_TS_ge*PF*CDF_prefilter
 	elif mode == "sensitive":
-		evalue = D*h*PF*C_score_F
+		evalue = D*P_FP_and_TS_ge*PF*C_score_F
 	else:
 		assert False, "mode=" + mode
 	return evalue
@@ -256,16 +230,16 @@ def estimate_evalue(ts, mode, searchdb, refdb):
 
 double get_Bayesian_Evalue(double ts, uint dbsize, int mode, int refdb)
 	{
+	const double P_FP_and_TS_ge = 0.0063;
 	double E = DBL_MAX;
 	double P = get_Pvalue(ts, refdb);
-	double h = get_hitrate(mode, dbsize);
 	double PF = get_PF(mode, dbsize);
 	if (mode == sensitive || mode == verysensitive)
-		E = dbsize*h*PF*P;
+		E = dbsize*P_FP_and_TS_ge*PF*P;
 	else if (mode == fast)
 		{
 		double C_prefilter = get_C_prefilter(ts, refdb, dbsize);
-		E = dbsize*h*PF*C_prefilter;
+		E = dbsize*P_FP_and_TS_ge*PF*C_prefilter;
 		}
 	else
 		Die("get_Bayesian_Evalue(ts=%.3g, dbsize=%u, mode=%d)\n",
@@ -455,32 +429,9 @@ static void print_table(FILE *f, bool tsv, const char *title, bool show_scop40, 
 		}
 	}
 
-static void print_hitrates(FILE *f)
-	{
-	fprintf(f, "Hit-rate (h)\n");
-	fprintf(f, "%9.9s", "Mode");
-	for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
-		fprintf(f, "  %8.8s", searchdb2str(searchdb));
-	fprintf(f, "\n");
-	for (int mode = 0; mode < 2; ++mode)
-		{
-		fprintf(f, "%9.9s", mode == 0 ? "fast" : "sensitive");
-		for (int searchdb = 0; searchdb < dbsizes.size(); ++searchdb)
-			{
-			int dbsize = dbsizes[searchdb];
-				{
-				double h = get_hitrate(mode, dbsize);
-				fprintf(f, "  %8.3g", h);
-				}
-			}
-		fprintf(f, "\n");
-		}
-	}
-
 void cmd_bayes_report()
 	{
 	FILE *f = CreateStdioFile(g_Arg1);
-	print_hitrates(f);
 
 	bool all_modes[3] = { true, true, true };
 	bool fast_only[3] = { true, false, false };
