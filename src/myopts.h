@@ -93,6 +93,7 @@ UNS_OPT(bins)
 UNS_OPT(rowlen)
 UNS_OPT(myalloc_summary_secs)
 UNS_OPT(myalloc_dump_secs)
+UNS_OPT(rsb_size)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

@@ -93,6 +93,8 @@ uint MuPreFilter(const DSSParams &Params,
 	const uint QSeqCount = QDB.GetSeqCount();
 
 	PrefilterMu::m_RSB.m_B = RSB_SIZE;
+	if (optset_rsb_size)
+		PrefilterMu::m_RSB.m_B = opt_rsb_size;
 	PrefilterMu::m_RSB.Init(QSeqCount);
 
 	const MerMx &ScoreMx = GetMuMerMx(k);
