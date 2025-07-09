@@ -554,6 +554,9 @@
     <ClCompile Include="statsig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mmseqs_index_dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

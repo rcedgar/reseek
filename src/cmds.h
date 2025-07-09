@@ -73,5 +73,6 @@ C(prefilter_mu)
 C(mudex)
 C(cca)
 C(bayes_report)
+C(mmseqs_index_dump)
 
 #undef C
