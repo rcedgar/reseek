@@ -24,6 +24,7 @@ echo STARTED `date` >> $log
 
 ./convert.bash
 ./align.bash
+./alignpair.bash
 ./columns.bash
 ./search.bash
 ./scop40.bash
