@@ -32,6 +32,7 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 		{
 	case DM_AlwaysFast:				return AM_Fast;
 	case DM_AlwaysSensitive:		return AM_Sensitive;
+	case DM_AlwaysVerysensitive:	return AM_VerySensitive;
 	case DM_UseCommandLineOption:	return GetAlgoModeFromCommandLine(AM_Invalid);
 	case DM_DefaultFast:			return GetAlgoModeFromCommandLine(AM_Fast);
 	case DM_DefaultSensitive:		return GetAlgoModeFromCommandLine(AM_Sensitive);

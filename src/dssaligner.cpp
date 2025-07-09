@@ -708,6 +708,10 @@ bool DSSAligner::DoMKF() const
 		return false;
 	if (m_MuKmersA == 0 || m_MuKmersB == 0)
 		return false;
+	if (m_MuLettersA->empty() || m_MuLettersB->empty())
+		return false;
+	if (m_MuKmersA->empty() || m_MuKmersB->empty())
+		return false;
 	uint LA = m_ChainA->GetSeqLength();
 	uint LB = m_ChainB->GetSeqLength();
 	if (LA >= m_Params->m_MKFL)

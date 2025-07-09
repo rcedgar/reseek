@@ -18,6 +18,7 @@ enum DECIDE_MODE
 	DM_Invalid,
 	DM_AlwaysFast,
 	DM_AlwaysSensitive,
+	DM_AlwaysVerysensitive,
 	DM_DefaultFast,
 	DM_DefaultSensitive,
 	DM_UseCommandLineOption
