@@ -48,14 +48,15 @@ Output options for -search
                  #   tl      Target length
                  #   pctid   Percent identity of alignment
                  #   cigar   CIGAR string
-                 #   evalue  You can guess this one
+                 #   pvalue  P-value according to log-linear null model
+                 #   evalue  E-value according to log-linear null model
                  #   aq      AQ (aln. qual., 0 to 1, >0.5 suggests homology)
                  #   qrow    Aligned query sequence with gaps (local)
                  #   trow    Aligned target sequence with gaps (local)
                  #   qrowg   Aligned query sequence with gaps (global)
                  #   trowg   Aligned target sequence with gaps (global)
                  #   std     query+target+qlo+qhi+ql+tlo+thi+tl+pctid+evalue
-                 # default aq+query+target+evalue
+                 # default aq+query+target+evalue+pvalue
 
 Search and alignment options
   -fast, -sensitive or -verysensitive     # Required
