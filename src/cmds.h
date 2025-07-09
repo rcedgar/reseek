@@ -65,5 +65,6 @@ C(squeeze)
 C(scop40bench_pre)
 C(scop40bench_real)
 C(bayes_report)
+C(mmseqs_index_dump)
 
 #undef C

@@ -1,2 +1,55 @@
-*.bash eol=lf
-*.py eol=lf
+# Default to auto-detection for text files. This ensures Git handles binaries correctly
+# and attempts to normalize other text files based on the platform's default.
+
+# To install:
+#	(*) copy this .gitattributes file
+#	(*) git add .
+#	(*) git commit -m "Added .gitattributes"
+# According to Gemini, this is all that is needed to fix existing text files.
+
+* text=auto eol=lf
+
+# Explicitly set Linux line endings (LF) for common text file types.
+# This ensures consistency regardless of the platform where the file is edited.
+*.bash text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+*.log text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.go text eol=lf
+*.py text eol=lf
+*.java text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.cs text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf
+*.pl text eol=lf
+*.rb text eol=lf
+*.php text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+*.editorconfig text eol=lf
+*.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Explicitly set Windows line endings (CRLF) for Visual Studio project and solution files.
+# These files often have tools that expect CRLF and can cause issues with LF.
+*.csproj text eol=crlf
+*.vbproj text eol=crlf
+*.vcxproj text eol=crlf
+*.sln text eol=crlf
