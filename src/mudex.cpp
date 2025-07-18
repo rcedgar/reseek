@@ -391,14 +391,14 @@ void MuDex::SetRowSizes()
 		}
 	}
 
-uint MuDex::GetRowSize(uint Kmer) const
-	{
-	assert(Kmer < m_DictSize);
-	//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
-	uint n = m_RowSizes[Kmer];
-	assert(m_Finger[Kmer] + n <= m_Size);
-	return n;
-	}
+//uint MuDex::GetRowSize(uint Kmer) const
+//	{
+//	assert(Kmer < m_DictSize);
+//	//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
+//	uint n = m_RowSizes[Kmer];
+//	assert(m_Finger[Kmer] + n <= m_Size);
+//	return n;
+//	}
 
 void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	{

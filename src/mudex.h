@@ -88,7 +88,15 @@ public:
 		return m_Finger[Kmer];
 		}
 
-	uint GetRowSize(uint Kmer) const;
+	inline uint GetRowSize(uint Kmer) const
+		{
+		assert(Kmer < m_DictSize);
+		//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
+		uint n = m_RowSizes[Kmer];
+		assert(m_Finger[Kmer] + n <= m_Size);
+		return n;
+		}
+
 	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos);
 	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const;
 	void GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const;
