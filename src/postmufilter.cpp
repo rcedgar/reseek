@@ -29,7 +29,8 @@ static uint s_LineCount;
 static uint s_ScannedCount;
 static LineReader2 *s_ptrLR;
 static double s_MaxEvalue = 10;
-static double s_MinPvalue = 1;
+static double s_MaxPvalue = -1;
+static double s_MinTS = 9e9;
 static FILE *s_fTsv;
 static FILE *s_fTsv2;
 
@@ -98,6 +99,17 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		DASelfRev.m_ProfPara = 0;
 		DASelfRev.m_ProfParaRev = 0;
 		}
+	}
+
+static bool Accept(const DSSAligner &DA)
+	{
+	if (DA.m_EvalueA <= s_MaxEvalue)
+		return true;
+	if (DA.m_PvalueA <= s_MaxPvalue)
+		return true;
+	if (DA.m_NewTestStatisticA >= s_MinTS)
+		return true;
+	return false;
 	}
 
 static void ThreadBody_Scan(uint ThreadIndex)
@@ -175,7 +187,9 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
 			TheDA.AlignBags(CBQ, CBT);
-			if (TheDA.m_EvalueA <= s_MaxEvalue || TheDA.m_PvalueA >= s_MinPvalue)
+			//if (TheDA.m_EvalueA <= s_MaxEvalue || TheDA.m_PvalueA <= s_MaxPvalue)
+			//	TheDA.ToTsv(s_fTsv, true);
+			if (Accept(TheDA))
 				TheDA.ToTsv(s_fTsv, true);
 			s_ScanLock.lock();
 			if (s_fTsv2)
@@ -200,13 +214,12 @@ void PostMuFilter(const DSSParams &Params,
 	{
 	if (optset_evalue)
 		s_MaxEvalue = opt(evalue);
+	else if (optset_verysensitive)
+		s_MaxEvalue = 9e9;
 	if (optset_pvalue)
-		{
-		double p = opt(pvalue);
-		if (p < 0 || p > 1)
-			Die("Invalid pvalue, must be in range 0 to 1");
-		s_MinPvalue = p;
-		}
+		s_MaxPvalue = opt(pvalue);
+	if (optset_mints)
+		s_MinTS = opt(mints);
 
 	time_t t0 = time(0);
 	LineReader2 LR;

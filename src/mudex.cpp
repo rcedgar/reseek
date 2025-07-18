@@ -378,6 +378,18 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 #endif
 	}
 
+void MuDex::SetRowSizes()
+	{
+	m_RowSizes = myalloc(int16_t, m_DictSize);
+	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
+		{
+		uint32_t RowSize32 = m_Finger[Kmer+1] - m_Finger[Kmer];
+		uint16_t RowSize = uint16_t(RowSize32);
+		assert(uint32_t(RowSize) == RowSize32);
+		m_RowSizes[Kmer] = RowSize;
+		}
+	}
+
 uint MuDex::GetRowSize(uint Kmer) const
 	{
 	assert(Kmer < m_DictSize);

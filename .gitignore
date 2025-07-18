@@ -18,8 +18,7 @@ enc_temp_folder/
 .DSStore
 .swp
 Makefiled
-tmp/
-tmp
+tmp*
 test_output/
 github_releases/
 

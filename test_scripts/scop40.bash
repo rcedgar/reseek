@@ -19,6 +19,13 @@ $reseek \
 $reseek \
 	-search scop40.bca \
 	-db scop40.bca \
+	-output scop40-verysensitive.tsv \
+	-verysensitive \
+	-log scop40-verysensitive.log
+
+$reseek \
+	-search scop40.bca \
+	-db scop40.bca \
 	-output scop40-evalue1.tsv \
 	-fast \
 	-evalue 1 \

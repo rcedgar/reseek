@@ -54,6 +54,7 @@ After Pass 2:
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
 	int16_t *m_KmerSelfScores = 0;
+	int16_t *m_RowSizes = 0;
 	int m_MinKmerSelfScore = 0;
 
 // Current sequence
@@ -72,6 +73,7 @@ public:
 	void Alloc_Pass1();
 	void AdjustFinger();
 	void Alloc_Pass2();
+	void SetRowSizes();
 	void SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L);
 	void AddSeq_Pass1();
 	void AddSeq_Pass2();

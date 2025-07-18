@@ -77,6 +77,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 		m_MKF_X2 = 99999;
 		m_MKF_MinHSPScore = 0;
 		m_MKF_MinMegaHSPScore = -99999;
+		m_MinFwdScore = 0;
 		break;
 
 	default:
