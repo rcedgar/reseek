@@ -144,6 +144,18 @@ static void ThreadBody(uint ThreadIndex)
 			continue;
 			}
 
+		if (optset_subsample)
+			{
+			s_LockStats.lock();
+			uint n = s_InputCount;
+			s_LockStats.unlock();
+			if (n%opt(subsample) != 0)
+				{
+				delete ptrChain;
+				continue;
+				}
+			}
+
 		s_LockStats.lock();
 		++s_OutputCount;
 		if (s_ptrLabelSet != 0)

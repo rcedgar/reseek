@@ -358,6 +358,7 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 		SetSeq(SeqIdx, Label, Seq, L);
 		AddSeq_Pass2();
 		}
+	SetRowSizes();
 #if DEBUG
 	CheckAfterPass2();
 #endif
@@ -380,7 +381,7 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 
 void MuDex::SetRowSizes()
 	{
-	m_RowSizes = myalloc(int16_t, m_DictSize);
+	m_RowSizes = myalloc(uint16_t, m_DictSize);
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
 		uint32_t RowSize32 = m_Finger[Kmer+1] - m_Finger[Kmer];
@@ -393,7 +394,8 @@ void MuDex::SetRowSizes()
 uint MuDex::GetRowSize(uint Kmer) const
 	{
 	assert(Kmer < m_DictSize);
-	uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
+	//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
+	uint n = m_RowSizes[Kmer];
 	assert(m_Finger[Kmer] + n <= m_Size);
 	return n;
 	}

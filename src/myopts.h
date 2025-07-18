@@ -94,6 +94,7 @@ UNS_OPT(rowlen)
 UNS_OPT(myalloc_summary_secs)
 UNS_OPT(myalloc_dump_secs)
 UNS_OPT(rsb_size)
+UNS_OPT(subsample)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

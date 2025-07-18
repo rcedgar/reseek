@@ -54,7 +54,7 @@ After Pass 2:
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
 	int16_t *m_KmerSelfScores = 0;
-	int16_t *m_RowSizes = 0;
+	uint16_t *m_RowSizes = 0;
 	int m_MinKmerSelfScore = 0;
 
 // Current sequence
