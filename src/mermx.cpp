@@ -498,6 +498,7 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 	const short *Row_AB = m_Scores2[AB];
 	const uint ABmul = m_AS_pow[3];
 	const uint CDmul = m_AS_pow[1];
+	const short *Row_CD = m_Scores2[CD];
 	uint n = 0;
 	for (uint Idx_ab = 0; Idx_ab < m_AS2; ++Idx_ab)
 		{
@@ -507,8 +508,8 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 		assert(Score_AB_ab + MaxScore_CDE_cde >= MinScore);
 
 		uint ab = Row_AB[2*Idx_ab+1];
+		const uint ABmul_ab = ABmul*ab;
 
-		const short *Row_CD = m_Scores2[CD];
 		const short MinScore_CD_cd = MinScore - Score_AB_ab - MaxScore_E_e;
 		for (uint Idx_cd = 0; Idx_cd < m_AS2; ++Idx_cd)
 			{
@@ -517,16 +518,22 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 				break;
 			assert(Score_AB_ab + Score_CD_cd + MaxScore_E_e >= MinScore);
 			uint cd = Row_CD[2*Idx_cd+1];
+			const uint CDmul_cd = CDmul*cd;
+			const uint ABmul_ab_plus_CDmul_cd = ABmul_ab + CDmul_cd;
 			const short MinScore_E_e = MinScore - Score_AB_ab - Score_CD_cd;
+			const short *Scores1E = m_Scores1[E];
 			for (uint Idx_e = 0; Idx_e < m_AS; ++Idx_e)
 				{
-				short Score_E_e = m_Scores1[E][2*Idx_e];
+				//short Score_E_e = m_Scores1[E][2*Idx_e];
+				short Score_E_e = Scores1E[2*Idx_e];
 				if (Score_E_e < MinScore_E_e)
 					break;
 				assert(Score_AB_ab + Score_CD_cd + Score_E_e >= MinScore);
 
-				uint e = m_Scores1[E][2*Idx_e+1];
-				uint abcde = ABmul*ab + CDmul*cd + e;
+				//uint e = m_Scores1[E][2*Idx_e+1];
+				uint e = Scores1E[2*Idx_e+1];
+				// uint abcde = ABmul*ab + CDmul*cd + e;
+				uint abcde = ABmul_ab_plus_CDmul_cd + e;
 #if 0
 				{
 				string Tmp;
