@@ -26,7 +26,6 @@ public:
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;
-	//uint64 GetICsOffset(uint64 ChainIdx) const;
 	uint GetSeqLength(uint64 ChainIdx) const;
 
 private:

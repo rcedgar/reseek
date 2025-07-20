@@ -74,5 +74,6 @@ C(mudex)
 C(cca)
 C(bayes_report)
 C(mmseqs_index_dump)
+C(split)
 
 #undef C

@@ -18,7 +18,7 @@ static uint s_Converted;
 static uint s_Shortest;
 static uint s_InputCount;
 static uint s_OutputCount;
-static uint MinChainLength;
+static uint s_MinChainLength;
 static BCAData *s_ptrBCA = 0;
 static const DSSParams *s_ptrParams = 0;
 static FEATURE s_Feat;
@@ -96,7 +96,7 @@ static void ThreadBody(uint ThreadIndex)
 			else if (s_TooShort > 0)
 				Progress("%s chains, %.1f%% too short (min %u, shortest %u)",
 				  IntToStr(s_Converted), GetPct(s_TooShort, s_Converted),
-				  MinChainLength, s_Shortest);
+				  s_MinChainLength, s_Shortest);
 			else
 				Progress("%s chains", IntToStr(s_Converted));
 			uint ne = ChainReader2::m_CRGlobalFormatErrors;
@@ -135,7 +135,7 @@ static void ThreadBody(uint ThreadIndex)
 				}
 			}
 
-		if (L < MinChainLength)
+		if (L < s_MinChainLength)
 			{
 			s_LockStats.lock();
 			++s_TooShort;
@@ -265,9 +265,9 @@ void cmd_convert()
 	optset_fast = true;
 	opt(fast) = true;
 
-	uint MinChainLength = 1;
+	s_MinChainLength = 1;
 	if (optset_minchainlength)
-		MinChainLength = opt(minchainlength);
+		s_MinChainLength = opt(minchainlength);
 
 	DSSParams Params;
 	//DSS D;
@@ -344,7 +344,7 @@ void cmd_convert()
 		  GetPct(s_OutputCount, s_InputCount));
 		if (s_TooShort > 0)
 			ProgressLogPrefix("%u too short (%s, %.1f%%) min length %u\n",
-			  s_TooShort, IntToStr(s_TooShort), GetPct(s_TooShort, s_InputCount), MinChainLength);
+			  s_TooShort, IntToStr(s_TooShort), GetPct(s_TooShort, s_InputCount), s_MinChainLength);
 		}
 	else
 		{
@@ -352,7 +352,7 @@ void cmd_convert()
 		ProgressLogPrefix("%u converted\n", s_InputCount);
 		if (s_TooShort > 0)
 			ProgressLogPrefix("%u too short (%.1f%%), min length %u, shortest %u\n",
-			  s_TooShort, GetPct(s_TooShort, s_InputCount), MinChainLength, s_Shortest);
+			  s_TooShort, GetPct(s_TooShort, s_InputCount), s_MinChainLength, s_Shortest);
 		}
 	uint ne = ChainReader2::m_CRGlobalFormatErrors;
 	if (ne > 0)

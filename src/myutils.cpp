@@ -2499,3 +2499,12 @@ void CheckUsedOpts(bool LogAll)
 #define STR_OPT(Name)	CheckUsedOpt(optset_##Name, optused_##Name, #Name);
 #include "myopts.h"
 	}
+
+uint Replace(string &s, const string &from, const string &to)
+	{
+	size_t n = s.find(from);
+	if (n == string::npos)
+		return 0;
+	s = s.replace(n, from.size(), to);
+	return 1;
+	}
