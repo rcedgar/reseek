@@ -290,6 +290,7 @@
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
+    <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />

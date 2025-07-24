@@ -560,6 +560,9 @@
     <ClCompile Include="split.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="prepare_query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -2,6 +2,7 @@
 #include "dbsearcher.h"
 #include "scop40bench.h"
 #include "binner.h"
+#include "statsig.h"
 #include "timing.h"
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
@@ -99,6 +100,7 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf()
 	{
+	StatSig::InitSensitive(GetDBChainCount());
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->SetParams(*m_Params);
 
