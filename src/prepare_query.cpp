@@ -57,6 +57,7 @@ void cmd_prepare_query()
 	Pf(fOut, "inchains=%u;", InputChainCount);
 	const double MinPctId = 90;
 	const uint MinLen = (optset_minchainlength ? opt(minchainlength) : 30);
+	const uint MaxChains = (optset_minchainlength ? opt(n) : 4);
 	vector<PDBChain *> OutputChains;
 
 	set<uint> DeletedChainIdxs;
@@ -95,8 +96,16 @@ void cmd_prepare_query()
 			continue;
 		OutputChains.push_back(InputChains[i]);
 		}
+	uint Discarded = 0;
+	uint OutputChainCount = SIZE(OutputChains);
+	if (OutputChainCount > MaxChains)
+		{
+		Discarded = OutputChainCount - MaxChains;
+		OutputChainCount = MaxChains;
+		OutputChains.resize(MaxChains);
+		}
 
-	const uint OutputChainCount = SIZE(OutputChains);
+	Pf(fOut, "discarded=%u;", Discarded);
 	Pf(fOut, "outchains=%u;", OutputChainCount);
 
 	CloseStdioFile(fOut);
