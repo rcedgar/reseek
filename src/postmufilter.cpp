@@ -32,6 +32,7 @@ static double s_MaxEvalue = 10;
 static double s_MaxPvalue = -1;
 static double s_MinTS = 9e9;
 static FILE *s_fTsv;
+static FILE *s_fAln;
 static FILE *s_fTsv2;
 
 static void ThreadBody_IndexQuery(uint ThreadIndex)
@@ -190,7 +191,10 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			//if (TheDA.m_EvalueA <= s_MaxEvalue || TheDA.m_PvalueA <= s_MaxPvalue)
 			//	TheDA.ToTsv(s_fTsv, true);
 			if (Accept(TheDA))
+				{
 				TheDA.ToTsv(s_fTsv, true);
+				TheDA.ToAln(s_fAln, true);
+				}
 			s_ScanLock.lock();
 			if (s_fTsv2)
 				{
@@ -239,6 +243,7 @@ void PostMuFilter(const DSSParams &Params,
 		return;
 		}
 
+	s_fAln = CreateStdioFile(opt(aln));
 	s_fTsv = CreateStdioFile(HitsFN);
 	s_fTsv2 = CreateStdioFile(opt(output2));
 
@@ -290,6 +295,7 @@ void PostMuFilter(const DSSParams &Params,
 	Ok = LR.ReadLine(Line);
 	asserta(!Ok);
 	LR.Close();
+	CloseStdioFile(s_fAln);
 	CloseStdioFile(s_fTsv);
 	CloseStdioFile(s_fTsv2);
 	time_t t1 = time(0);

@@ -1394,6 +1394,10 @@ void DSSAligner::PostAlignMKF()
 	m_XDropScore = XDropHSP(HSPLoA, HSPLoB, Len,
 							m_LoA, m_LoB, m_HiA, m_HiB);
 	m_AlnFwdScore = m_XDropScore;
+
+	//void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);//@@TODO
+	//LogAln(m_ChainA->m_Seq.c_str(), m_ChainB->m_Seq.c_str(), m_XDropPath.c_str(), SIZE(m_XDropPath));
+
 	m_Path = m_XDropPath;
 	uint nM, nD, nI;
 	GetPathCounts(m_Path, nM, nD, nI);

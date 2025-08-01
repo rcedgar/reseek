@@ -49,12 +49,16 @@ void cmd_prepare_query()
 	{
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysFast);
+	asserta(optset_bca);
+	BCAData BCA;
+	if (optset_bca)
+		BCA.Create(opt(bca));
+
 
 	FILE *fOut = CreateStdioFile(opt(output));
 	vector<PDBChain *> InputChains;
 	ReadChains(g_Arg1, InputChains);
 	const uint InputChainCount = SIZE(InputChains);
-	Pf(fOut, "inchains=%u;", InputChainCount);
 	const double MinPctId = 90;
 	const uint MinLen = (optset_minchainlength ? opt(minchainlength) : 30);
 	const uint MaxChains = (optset_minchainlength ? opt(n) : 4);
@@ -62,6 +66,7 @@ void cmd_prepare_query()
 
 	set<uint> DeletedChainIdxs;
 	uint TooShort = 0;
+	uint NrQueries = 0;
 	for (uint i = 0; i < InputChainCount; ++i)
 		{
 		if (DeletedChainIdxs.find(i) != DeletedChainIdxs.end())
@@ -69,12 +74,23 @@ void cmd_prepare_query()
 		const PDBChain &Chain_i = *InputChains[i];
 		const string &Label_i = Chain_i.m_Label;
 		const string &Seq_i = Chain_i.m_Seq;
-		if (SIZE(Seq_i) < MinLen)
+		uint L = SIZE(Seq_i);
+		Pf(fOut, "%u\t%s\t%u", i, Label_i.c_str(), L);
+		if (L < MinLen)
 			{
+			Pf(fOut, "\tshort\n", L);
 			++TooShort;
 			continue;
 			}
-		for (uint j = i+1; j < InputChainCount; ++j)
+
+		bool del = false;
+		if (NrQueries >= MaxChains)
+			{
+			del = true;
+			Pf(fOut, "\ttoomany\n");
+			continue;
+			}
+		for (uint j = 0; j < i; ++j)
 			{
 			if (DeletedChainIdxs.find(j) != DeletedChainIdxs.end())
 				continue;
@@ -84,29 +100,24 @@ void cmd_prepare_query()
 			if (SIZE(Seq_j) < MinLen)
 				continue;
 			double PctId = GetPctId(Seq_i, Seq_j);
-			Log("%s %s %.1f\n", Label_i.c_str(), Label_j.c_str(), PctId);
 			if (PctId >= MinPctId)
-				DeletedChainIdxs.insert(j);
+				{
+				Pf(fOut, "\t%.1f%%%u\n", PctId, j);
+				DeletedChainIdxs.insert(i);
+				del = true;
+				break;
+				}
+			}
+		if (!del)
+			{
+			OutputChains.push_back(InputChains[i]);
+			++NrQueries;
+			Pf(fOut, "\tquery\n");
 			}
 		}
-	Pf(fOut, "tooshort=%u;", TooShort);
-	for (uint i = 0; i < InputChainCount; ++i)
-		{
-		if (DeletedChainIdxs.find(i) != DeletedChainIdxs.end())
-			continue;
-		OutputChains.push_back(InputChains[i]);
-		}
-	uint Discarded = 0;
 	uint OutputChainCount = SIZE(OutputChains);
-	if (OutputChainCount > MaxChains)
-		{
-		Discarded = OutputChainCount - MaxChains;
-		OutputChainCount = MaxChains;
-		OutputChains.resize(MaxChains);
-		}
-
-	Pf(fOut, "discarded=%u;", Discarded);
-	Pf(fOut, "outchains=%u;", OutputChainCount);
-
+	for (uint i = 0; i < OutputChainCount; ++i)
+		BCA.WriteChain(*OutputChains[i]);
+	BCA.Close();
 	CloseStdioFile(fOut);
 	}

@@ -70,7 +70,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore);
 			DA.AlignQueryTarget();
 			if (!DA.m_Path.empty())
-				BaseOnAln(DA, true);
+				BaseOnAln(DA, false);
 			++m_ProcessedPairCount;
 			}
 		DA.UnsetQuery();
