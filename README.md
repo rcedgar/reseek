@@ -5,7 +5,7 @@ compared to state-of-the-art methods including [DALI](https://onlinelibrary.wile
 
 ### Online structure search
 
-Search a protein structure against [PDB](https://www.rcsb.org/), [BFVD](https://bfvd.foldseek.com/) or [AFDB](https://www.alphafold.ebi.ac.uk/) with typical results in 2 to 5 minutes.
+Search a protein structure against AFDB, PDB or BFVD with typical results in 2 to 5 minutes.
 
 [https://reseek.online](https://reseek.online)
 
@@ -17,7 +17,7 @@ Reseek also provides a much more accurate estimate of statistical significance (
 
 ### YouTube talk describing the algorithm
 
-Reseek is based on sequence alignment where each residue in the protein backbone is represented by a letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct states. This talk explains how it works.
+Reseek is based on sequence alignment where each residue in the protein backbone is represented by a letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct structure states. This talk explains how it works.
 
 [<img src="https://drive5.com/reseek/youtube_snip.gif" width="150">](https://www.youtube.com/watch?v=BzIgqdm9xDs)
 
