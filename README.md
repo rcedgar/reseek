@@ -1,22 +1,32 @@
-![Reseek](http://drive5.com/images/reseek_logo.jpg)
+![Reseek](http://drive5.com/images/reseek_logo2.jpg)
 
 [Reseek](http://drive5.com/reseek) is a protein structure search and alignment algorithm which improves sensitivity in protein homolog detection
-compared to state-of-the-art methods including DALI, TM-align and Foldseek with similar speed to Foldseek.
+compared to state-of-the-art methods including [DALI](https://onlinelibrary.wiley.com/doi/full/10.1002/pro.3749), [TM-align](https://academic.oup.com/nar/article-abstract/33/7/2302/2401364) and [Foldseek](https://www.biorxiv.org/content/10.1101/2022.02.07.479398.abstract) with similar speed to Foldseek.
 
-Reseek is based on sequence alignment where each residue in the protein backbone is represented by a 
-letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct states.
+### Online structure search
 
-Method sensitivity was measured on the SCOP40 benchmark using superfamily as the truth standard, focusing
-on the regime with false-positive error rates <10 per query, corresponding to E<10 for an ideal E-value.
+Search a protein structure against [PDB](https://www.rcsb.org/), [BFVD](https://bfvd.foldseek.com/) or [AFDB](https://www.alphafold.ebi.ac.uk/) with typical results in 2 to 5 minutes.
+
+[https://reseek.online](https://reseek.online)
+
+### Reseek achieves highest accuracy in homolog detection and _E_-values
+
+On the [SCOP40 benchmark test](https://www.pnas.org/doi/abs/10.1073/pnas.95.11.6073) (see results later below), Reseek has substantially higher ability to discriminate homologs compared to previous algorithms including [DALI](https://onlinelibrary.wiley.com/doi/full/10.1002/pro.3749), [TM-align](https://academic.oup.com/nar/article-abstract/33/7/2302/2401364) and [Foldseek](https://www.biorxiv.org/content/10.1101/2022.02.07.479398.abstract). This means that Reseek is better at sorting true homologs ahead of false positives. 
+
+Reseek also provides a much more accurate estimate of statistical significance (_E_-value), enabling users to set a cutoff based on an acceptable number of false positives for a given search, while DALI and Foldseek often over-estimate significance by 5 to 6 orders of magnitude (references below).
+
+### YouTube talk describing the algorithm
+
+Reseek is based on sequence alignment where each residue in the protein backbone is represented by a letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct states. This talk explains how it works.
 
 [<img src="https://drive5.com/reseek/youtube_snip.gif" width="150">](https://www.youtube.com/watch?v=BzIgqdm9xDs)
-![Reseek](https://drive5.com/images/reseek_readme.jpg)
 
 ### Command line
 <pre>
-  -search        # Alignment (e.g. DB search, pairwise, all-vs-all)
-  -convert       # Convert file formats (e.g. create DB)
-  -alignpair     # Pair-wise alignment and superposition
+Common commands
+    -search        # Alignment (e.g. DB search, pairwise, all-vs-all)
+    -convert       # Convert file formats (e.g. create DB)
+    -alignpair     # Pair-wise alignment and superposition
 
 Search against database
     reseek -search STRUCTS -db STRUCTS -output hits.txt
@@ -114,12 +124,18 @@ warning: Using 'dlopen' in statically linked applications requires
 
 [https://drive5.com/reseek](https://drive5.com/reseek)
 
-### Reference
-
-Edgar RC. Protein structure alignment by Reseek improves sensitivity to remote homologs. Bioinformatics. 2024 Nov;40(11):btae687. 
-[https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215](https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215)
-
-
 ### SCOP40 benchmark code and results
+Method sensitivity was measured on the SCOP40 benchmark using superfamily as
+the truth standard, focusing on the regime with false-positive error
+rates <10 per query, corresponding to E<10 for an ideal E-value.
 
 https://github.com/rcedgar/reseek_bench
+
+![Reseek](https://drive5.com/images/reseek_readme.jpg)
+
+### References
+
+Edgar RC. "Protein structure alignment by Reseek improves sensitivity to remote homologs" (_Bioinformatics_ 2024) Nov;40(11):btae687. 
+[https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215](https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215)
+
+Edgar RC. and Sahakyan S. "Protein structure alignment significance is often exaggerated" (_bioRxiv_ 2025) [https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1](https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1)
