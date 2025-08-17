@@ -243,5 +243,5 @@ void cmd_bca_stats()
 	for (uint i = 0; i < ChainCount; ++i)
 		SumL += BCA.m_SeqLengths[i];
 	ProgressLog("%10u  Residues\n", SumL);
-	ProgressLog("%10u  Label data bytes\n", (uint) BCA.m_LabelDataSize64);
+	ProgressLog("%.0f  Label data bytes\n", (double) BCA.m_LabelDataSize64);
 	}
