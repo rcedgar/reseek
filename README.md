@@ -7,7 +7,12 @@ compared to state-of-the-art methods including [DALI](https://onlinelibrary.wile
 
 Search a protein structure against AFDB, PDB or BFVD with typical results in 2 to 5 minutes.
 
+<span style="background-color:lightyellow">
+<hr>
+
 [https://reseek.online](https://reseek.online)
+<hr>
+</span>
 
 ### Reseek achieves highest accuracy in homolog detection and _E_-values
 
