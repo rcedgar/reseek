@@ -118,7 +118,7 @@ cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
 #### Build from source on Windows
 Load `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
 
-#### Static link warning
+#### Ignore static link warning
 Don't worry about a warning something like this, it's expected:
 <pre>
 warning: Using 'dlopen' in statically linked applications requires
@@ -131,7 +131,7 @@ warning: Using 'dlopen' in statically linked applications requires
 ### SCOP40 benchmark code and results
 Method sensitivity was measured on the SCOP40 benchmark using superfamily as
 the truth standard, focusing on the regime with false-positive error
-rates <10 per query, corresponding to E<10 for an ideal E-value.
+rates <10 per query, corresponding to E<10 for an ideal _E_-value.
 
 https://github.com/rcedgar/reseek_bench
 
