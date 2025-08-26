@@ -76,5 +76,6 @@ C(bayes_report)
 C(mmseqs_index_dump)
 C(split)
 C(prepare_query)
+C(shuffle)
 
 #undef C

@@ -563,6 +563,9 @@
     <ClCompile Include="prepare_query.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shuffle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
