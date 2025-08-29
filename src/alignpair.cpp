@@ -140,6 +140,25 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 				fprintf(f, "%s\n", LinesQ[i].c_str());
 			CloseStdioFile(f);
 			}
+		if (optset_output2)
+			{
+			FILE *f = CreateStdioFile(opt(output2));
+			for (uint i = 0; i < SIZE(LinesQ); ++i)
+				{
+				string Line = LinesQ[i];
+				Line[21] = 'A';
+				fprintf(f, "%s\n", Line.c_str());
+				}
+
+			const vector<string> &LinesT = ChainT->m_Lines;
+			for (uint i = 0; i < SIZE(LinesT); ++i)
+				{
+				string Line = LinesT[i];
+				Line[21] = 'B';
+				fprintf(f, "%s\n", Line.c_str());
+				}
+			CloseStdioFile(f);
+			}
 		}
 	return Score;
 	}
