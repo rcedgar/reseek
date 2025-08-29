@@ -146,7 +146,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 			for (uint i = 0; i < SIZE(LinesQ); ++i)
 				{
 				string Line = LinesQ[i];
-				Line[21] = 'A';
+				Line[21] = '1';
 				fprintf(f, "%s\n", Line.c_str());
 				}
 
@@ -154,7 +154,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 			for (uint i = 0; i < SIZE(LinesT); ++i)
 				{
 				string Line = LinesT[i];
-				Line[21] = 'B';
+				Line[21] = '2';
 				fprintf(f, "%s\n", Line.c_str());
 				}
 			CloseStdioFile(f);
