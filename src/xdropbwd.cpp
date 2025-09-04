@@ -25,7 +25,6 @@ float RevSubFn(void *UserData, uint RevPosA, uint RevPosB)
 	return Score;
 	}
 
-#pragma warning("TODO uint *ptrSegLoA, uint *ptrSegLoB")
 float XDropBwd(XDPMem &Mem,
   float X, float Open, float Ext, 
   fn_SubstScore SubFn, void *UserData, 
@@ -44,7 +43,6 @@ float XDropBwd(XDPMem &Mem,
 	RD.ptrSubFn = SubFn;
 
 	uint SegLoA, SegLoB;
-#pragma warning("TODO")
 	float Score = XDropFwd(Mem, X, Open, Ext, RevSubFn, &RD,
 	  0, HiA+1, 0, HiB+1, &SegLoA, &SegLoB, Path);
 	reverse(Path.begin(), Path.end());

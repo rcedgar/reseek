@@ -220,6 +220,8 @@ public:
 	const DSSParams &GetParams() const { return *m_Params; }
 	void AlignBags(const ChainBag &BagA,
 				   const ChainBag &BagB);
+	void AlignBagsMKF(const ChainBag &BagA,
+				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
 

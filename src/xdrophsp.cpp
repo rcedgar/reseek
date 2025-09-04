@@ -65,20 +65,20 @@ float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 
 	uint LoA = Loi_in + Len/2;
 	uint LoB = Loj_in + Len/2;
-#if 1 // Find highest-scoring 8mer
-	{
-	uint m = 8;
-	asserta(Len > m);
+
+// Find highest-scoring 8mer
+	const uint K = 8;
+	asserta(Len > K);
 
 	float *v = myalloc(float, Len);
 	for (uint Col = 0; Col < Len; ++Col)
 		v[Col] = StaticSubstScore((void *) this, Loi_in + Col, Loj_in + Col);
 
 	float BestMerScore = 0;
-	for (uint MerStart = 0; MerStart + m <= Len; ++MerStart)
+	for (uint MerStart = 0; MerStart + K <= Len; ++MerStart)
 		{
 		float MerScore = 0;
-		for (uint k = 0; k < m; ++k)
+		for (uint k = 0; k < K; ++k)
 			MerScore += v[MerStart+k];
 		if (MerScore > BestMerScore)
 			{
@@ -88,10 +88,14 @@ float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 			}
 		}
 	myfree(v);
-	}
-#endif
 
-	asserta(LoA > 0 && LoB > 0);
+	//asserta(LoA > 0 && LoB > 0);
+	uint MinLo = min(LoA, LoB);
+	if (MinLo < K/2)
+		{
+		LoA += K/2;
+		LoB += K/2;
+		}
 
 	string FwdPath, BwdPath;
 	uint FwdSegLoA, FwdSegLoB;
@@ -137,7 +141,7 @@ float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 		   BwdPath.c_str(), SIZE(BwdPath));
 
 	Log("\nMerged:\n");
-	LogAln(m_ChainA->m_Seq.c_str(), m_ChainB->m_Seq.c_str(),
+	LogAln(m_ChainA->m_Seq.c_str() + Loi_out, m_ChainB->m_Seq.c_str() + Loj_out,
 		   m_XDropPath.c_str(), SIZE(m_XDropPath));
 	}
 #endif

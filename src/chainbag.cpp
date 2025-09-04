@@ -20,6 +20,27 @@ bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 	return false;
 	}
 
+// Unconditionally align by MLF
+void DSSAligner::AlignBagsMKF(const ChainBag &BagA,
+							  const ChainBag &BagB)
+	{
+	ClearAlign();
+
+	m_ChainA = BagA.m_ptrChain;
+	m_ChainB = BagB.m_ptrChain;
+
+	m_ProfileA = BagA.m_ptrProfile;
+	m_ProfileB = BagB.m_ptrProfile;
+
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+
+	m_MKF.m_DA = this;
+	m_MKF.SetBagQ(BagA);
+	m_MKF.AlignBag(BagB);
+	PostAlignMKF();
+	}
+
 void DSSAligner::AlignBags(const ChainBag &BagA,
 						   const ChainBag &BagB)
 	{

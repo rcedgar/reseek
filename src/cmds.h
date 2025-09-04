@@ -76,5 +76,6 @@ C(split)
 C(prepare_query)
 C(shuffle)
 C(align_bag)
+C(align_bags)
 
 #undef C
