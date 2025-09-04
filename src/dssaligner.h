@@ -138,6 +138,7 @@ public:
 	void AlignMKF();
 	void PostAlignMKF();
 	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
+	void LogHSP(uint Lo_i, uint Lo_j, uint Len) const;
 	void Align_NoAccel();
 	void Align_QRev();
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);

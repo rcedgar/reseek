@@ -5,6 +5,8 @@
 #include "pathinfo.h"
 #include "swtrace.h"
 
+void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+
 static void TraceBack(XDPMem &Mem, uint Besti, uint Bestj, string &Path)
 	{
 	Path.clear();
@@ -64,12 +66,17 @@ static void TraceBack(XDPMem &Mem, uint Besti, uint Bestj, string &Path)
 #endif
 	}
 
+// After traceback start of path is *ptrSegLoA,*ptrSegLoB
+// may be different from LoA,LoB
 float XDropFwd(XDPMem &Mem,
   float X, float Open, float Ext, 
   fn_SubstScore SubFn, void *UserData,
   uint LoA, uint aLA, uint LoB, uint aLB,
+  uint *ptrSegLoA, uint *ptrSegLoB,
   string &Path)
 	{
+	*ptrSegLoA = UINT_MAX;
+	*ptrSegLoB = UINT_MAX;
 	asserta(LoA < aLA);
 	asserta(LoB < aLB);
 	uint LA = aLA - LoA;
@@ -339,5 +346,41 @@ float XDropFwd(XDPMem &Mem,
 		return 0.0f;
 
 	TraceBack(Mem, Besti, Bestj, Path);
+	uint nM, nD, nI;
+	GetPathCounts(Path, nM, nD, nI);
+	uint Loi = LoA + Besti - nM - nD;
+	uint Loj = LoB + Bestj - nM - nI;
+	*ptrSegLoA = Loi;
+	*ptrSegLoB = Loj;
+
+#if DEBUG
+	{
+	const uint ColCount = SIZE(Path);
+	uint PosA = Loi;
+	uint PosB = Loj;
+	float Score2 = 0;
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		switch (c)
+			{
+		case 'M': 
+			Score2 += SubFn(UserData, PosA, PosB);
+			++PosA;
+			++PosB;
+			break;
+
+		case 'D':
+			++PosA;
+			break;
+
+		case 'I':
+			++PosB;
+			break;
+			}
+		}
+	asserta(Score2 + 0.1 >= BestScore);
+	}
+#endif
 	return BestScore;
 	}

@@ -5,6 +5,7 @@
 #include "chainbag.h"
 
 const uint HASHW = 4;
+class DSSAligner;
 
 class MuKmerFilter
 	{
@@ -16,9 +17,11 @@ private:
 	const vector<uint> *m_ptrMuKmersQ = 0;
 	uint16_t *m_ptrKmerHashTableQ = 0;
 
+	const ChainBag *m_ptrBagT = 0;
 	const vector<byte> *m_ptrMuLettersT = 0;
 
 public:
+	const DSSAligner *m_DA = 0;
 	string m_LabelQ;
 	uint m_DictSize = 0;
 	vector<int> m_MuKmerHSPLois;
@@ -87,6 +90,7 @@ public:
 	void ChainHSPs();
 	uint GetQL() const { return SIZE(*m_ptrMuLettersQ); };
 	uint GetTL() const { return SIZE(*m_ptrMuLettersT); };
+	void LogHSP(uint i) const;
 #if DEBUG
 	void Validate() const;
 	void Dump(FILE *f, const char *Msg) const;

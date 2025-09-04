@@ -475,6 +475,19 @@ void DSSAligner::SetMuQPi()
 		}
 	}
 
+void DSSAligner::LogHSP(uint Lo_i, uint Lo_j, uint Len) const
+	{
+	const char *SeqA = m_ChainA->m_Seq.c_str();
+	const char *SeqB = m_ChainB->m_Seq.c_str();
+	Log("\nDSSAligner::LogHSP(Loi=%u, Loj=%u, Len=%u)\n", Lo_i, Lo_j, Len);
+	for (uint Col = 0; Col < Len; ++Col)
+		Log("%c", SeqA[Lo_i+Col]);
+	Log("\n");
+	for (uint Col = 0; Col < Len; ++Col)
+		Log("%c", SeqB[Lo_j+Col]);
+	Log("\n");
+	}
+
 float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	{
 	StartTimer(GetMegaHSPScore);
@@ -1358,6 +1371,7 @@ float DSSAligner::GetKabsch(double t[3], double u[3][3], bool Up) const
 void DSSAligner::AlignMKF()
 	{
 	ClearAlign();
+	m_MKF.m_DA = this;
 	m_MKF.Align(*m_MuLettersB, *m_MuKmersB);
 	PostAlignMKF();
 	}
@@ -1391,12 +1405,12 @@ void DSSAligner::PostAlignMKF()
 	uint HSPLoA = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
 	uint HSPLoB = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
 	uint Len = (uint) m_MKF.m_ChainHSPLens[BestMegaIdx];
+#if TRACE_XDROP
+	LogHSP(HSPLoA, HSPLoB, Len);
+#endif
 	m_XDropScore = XDropHSP(HSPLoA, HSPLoB, Len,
 							m_LoA, m_LoB, m_HiA, m_HiB);
 	m_AlnFwdScore = m_XDropScore;
-
-	//void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);//@@TODO
-	//LogAln(m_ChainA->m_Seq.c_str(), m_ChainB->m_Seq.c_str(), m_XDropPath.c_str(), SIZE(m_XDropPath));
 
 	m_Path = m_XDropPath;
 	uint nM, nD, nI;

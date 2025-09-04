@@ -149,9 +149,6 @@
     <ClCompile Include="scalar_sweep.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jiggle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="scop40benchroc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -348,9 +345,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="daliscore_msas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="runthreads.cpp">
@@ -564,6 +558,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="shuffle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="align_bag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

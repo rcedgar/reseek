@@ -122,16 +122,18 @@ static void Test(const string &A, const string &B)
 
 	string FwdPath;
 	Log("______________________________Fwd________________________\n");
+	uint FwdSegLoA, FwdSegLoB;
 	float FwdScore = XDropFwd(Mem, X, Open, Ext, SubFn, 0,
-	  MidPosA+1, LA, MidPosB+1, LB, FwdPath);
+	  MidPosA+1, LA, MidPosB+1, LB, &FwdSegLoA, &FwdSegLoB, FwdPath);
 	ProgressLog("FwdScore = %.3g Path = (%u,%u) %s\n",
 	  FwdScore, MidPosA+1, MidPosB+1, FwdPath.c_str());
 	LogAln(A, B, MidPosA, MidPosB, SubFn, Open, Ext, FwdPath);
 
 	Log("______________________________Bwd________________________\n");
 	string BwdPath;
+	uint BwdSegLoA, BwdSegLoB;
 	float BwdScore = XDropBwd(Mem, X, Open, Ext, SubFn, 0,
-	  MidPosA, LA, MidPosB, LB, BwdPath);
+	  MidPosA, LA, MidPosB, LB, &BwdSegLoA, &BwdSegLoB, BwdPath);
 	ProgressLog("BwdScore = %.3g (%u,%u) Path = %s\n",
 	  BwdScore, MidPosA, MidPosB, BwdPath.c_str());
 	uint LoLoA = MidPosA+1;

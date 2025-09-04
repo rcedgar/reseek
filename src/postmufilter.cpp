@@ -188,8 +188,6 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
 			TheDA.AlignBags(CBQ, CBT);
-			//if (TheDA.m_EvalueA <= s_MaxEvalue || TheDA.m_PvalueA <= s_MaxPvalue)
-			//	TheDA.ToTsv(s_fTsv, true);
 			if (Accept(TheDA))
 				{
 				TheDA.ToTsv(s_fTsv, true);

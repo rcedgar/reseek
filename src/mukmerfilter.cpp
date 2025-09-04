@@ -3,6 +3,7 @@
 #include "chainer.h"
 #include "mukmerfilter.h"
 #include "mudex.h"
+#include "alpha.h"
 #include "timing.h"
 
 extern int8_t IntScoreMx_Mu[36][36];
@@ -306,6 +307,7 @@ int MuKmerFilter::GetMaxHSPScore(const vector<byte> &MuLettersT,
 
 void MuKmerFilter::AlignBag(const ChainBag &BagT)
 	{
+	m_ptrBagT = &BagT;
 	asserta(BagT.m_ptrMuLetters != 0);
 	asserta(BagT.m_ptrMuKmers != 0);
 	Align(*BagT.m_ptrMuLetters, *BagT.m_ptrMuKmers);
@@ -451,6 +453,14 @@ void MuKmerFilter::ChainHSPs()
 			m_ChainHi_j = max(Hij, m_ChainHi_j);
 			}
 		}
+#if TRACE_XDROP
+	{
+	uint M = SIZE(m_MuKmerHSPLois);
+	Log("m_ChainCount=%u\n", M);
+	for (uint Idx = 0; Idx < M; ++Idx)
+		LogHSP(Idx);
+	}
+#endif
 	}
 
 void MuKmerFilter::Stats()
@@ -486,4 +496,48 @@ void MuKmerFilter::SetBagQ(const ChainBag &BagQ)
 	asserta(m_ptrMuLettersQ != 0);
 	asserta(m_ptrMuKmersQ != 0);
 	asserta(m_ptrKmerHashTableQ != 0);
+	}
+
+void MuKmerFilter::LogHSP(uint Idx) const
+	{
+	asserta(Idx < SIZE(m_MuKmerHSPLois));
+	int Loi = m_MuKmerHSPLois[Idx];
+	int Loj = m_MuKmerHSPLojs[Idx];
+	int Len = m_MuKmerHSPLens[Idx];
+	int Score = m_MuKmerHSPScores[Idx];
+	const byte *MuLettersQ = m_ptrMuLettersQ->data();
+	const byte *MuLettersT = m_ptrMuLettersT->data();
+
+	const char *SeqQ = m_DA->m_ChainA->m_Seq.c_str();
+	const char *SeqT = m_DA->m_ChainB->m_Seq.c_str();
+
+	int Score2 = 0;
+	for (int Col = 0; Col < Len; ++Col)
+		{
+		byte q = MuLettersQ[Loi+Col];
+		byte t = MuLettersT[Loj+Col];
+		Score2 += IntScoreMx_Mu[q][t];
+		}
+	asserta(Score2 == Score);
+
+	Log("\nMuKmerFilter::LogHSP(%u) Loi=%u Loj=%u Len=%u Score=%d\n",
+		Idx, Loi, Loj, Len, Score);
+
+	Log("Q/mu ");
+	for (int Col = 0; Col < Len; ++Col)
+		Log("%c", g_LetterToCharMu[MuLettersQ[Loi+Col]]);
+	Log("\n");
+	Log("T/mu ");
+	for (int Col = 0; Col < Len; ++Col)
+		Log("%c", g_LetterToCharMu[MuLettersT[Loj+Col]]);
+	Log("\n");
+
+	Log("Q/aa ");
+	for (int Col = 0; Col < Len; ++Col)
+		Log("%c", SeqQ[Loi+Col]);
+	Log("\n");
+	Log("T/aa ");
+	for (int Col = 0; Col < Len; ++Col)
+		Log("%c", SeqT[Loj+Col]);
+	Log("\n");
 	}

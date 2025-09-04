@@ -36,6 +36,7 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 
 	if (DoMKF_Bags(BagA, BagB))
 		{
+		m_MKF.m_DA = this;
 		m_MKF.SetBagQ(BagA);
 		m_MKF.AlignBag(BagB);
 		PostAlignMKF();

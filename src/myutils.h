@@ -404,4 +404,6 @@ double GetTicksPerSec();
 
 #include "mymalloc.h"
 
+#define TRACE_XDROP	1	//@@TODO
+
 #endif	// myutils_h

@@ -116,12 +116,14 @@ float XDropFwd(XDPMem &Mem,
   float X, float Open, float Ext, 
   fn_SubstScore SubFn, void *UserData,
   uint LoA, uint aLA, uint LoB, uint aLB,
+  uint *ptrSegLoA, uint *ptrSegLoB,
   string &Path);
 
 float XDropBwd(XDPMem &Mem,
   float X, float Open, float Ext, 
   fn_SubstScore SubFn, void *UserData, 
   uint HiA, uint LA, uint HiB, uint LB,
+  uint *ptrSegLoA, uint *ptrSegLoB,
   string &Path);
 
 void MergeFwdBwd(uint LA, uint LB,

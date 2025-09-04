@@ -283,13 +283,6 @@ void cmd_fit_gumbel()
 	double FitScale, FitMu, FitBeta;
 	fit_gumbel(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
 
-//	double RMSE1 = GetRMSE(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
-//
-//#pragma warning("TODO")
-//	FitMu *= 1.3;
-//	double RMSE2 = GetRMSE(x0, dx, normalized_ys, FitScale, FitMu, FitBeta);
-//	ProgressLog("RMSE %.3g %.3g\n", RMSE1, RMSE2);
-
 	ProgressLog("FitMu %.3g, FitBeta %.3g\n", FitMu, FitBeta);
 	if (!optset_output) 
 		return;
