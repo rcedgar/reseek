@@ -293,6 +293,7 @@
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
+    <ClCompile Include="cif2pdb.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="blosum62.cpp" />
@@ -459,6 +460,7 @@
     <ClInclude Include="chainbag.h" />
     <ClInclude Include="chainer.h" />
     <ClInclude Include="chainreader2.h" />
+    <ClInclude Include="cif.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />

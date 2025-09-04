@@ -77,5 +77,6 @@ C(prepare_query)
 C(shuffle)
 C(align_bag)
 C(align_bags)
+C(cif2pdb)
 
 #undef C

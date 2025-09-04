@@ -527,9 +527,6 @@
     <ClCompile Include="rankedscoresbag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="twohitdiag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="duper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -561,6 +558,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="align_bag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cif2pdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="twohitdiag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -841,24 +844,6 @@
     <ClInclude Include="output.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prefiltermuparams.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="prefiltermu.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="diaghsp.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="rankedscoresbag.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="twohitdiag.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="duper.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="mymutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -869,6 +854,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="statsig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diaghsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="duper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermuparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rankedscoresbag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="twohitdiag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cif.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

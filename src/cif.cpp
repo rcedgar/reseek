@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "pdbchain.h"
 #include "chainreader2.h"
+#include "cif.h"
 #include <map>
 
 void ChainizeLabel(string &Label, const string &ChainStr);
@@ -38,13 +39,13 @@ _atom_site.id
 _atom_site.type_symbol
     The atom type.
 _atom_site.auth_asym_id
-    This data item is an author defined alternative to the value of _atom_site.label_asym_id. This item holds the PDB chain identifier.
+    alternative to _atom_site.label_asym_id. This item holds the PDB chain identifier.
 _atom_site.auth_atom_id
-    This data item is an author defined alternative to the value of _atom_site.label_atom_id. This item holds the PDB atom name.
+    alternative to _atom_site.label_atom_id. This item holds the PDB atom name.
 _atom_site.auth_comp_id
-    This data item is an author defined alternative to the value of _atom_site.label_comp_id. This item holds the PDB 3-letter-code residue names
+    alternative to _atom_site.label_comp_id. This item holds the PDB 3-letter-code residue names
 _atom_site.auth_seq_id
-    This data item is an author defined alternative to the value of _atom_site.label_seq_id. This item holds the 1-based PDB residue number.
+    alternative to _atom_site.label_seq_id. This item holds the 1-based PDB residue number.
 _atom_site.pdbx_PDB_ins_code
     This data item corresponds to the PDB insertion code. 
 _atom_site.pdbx_PDB_model_num
@@ -121,19 +122,9 @@ uint ChainReader2::GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const str
 	return Idx;
 	}
 
-enum PARSER_STATE
-	{
-	PS_WaitingForLoop,
-	PS_AtLoop,
-	PS_InFieldList,
-	PS_InATOMs,
-	PS_Finished,
-	};
-
 void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
   vector<PDBChain *> &Chains, const string &FallbackLabel)
 	{
-	set<string> Seqs;
 	Chains.clear();
 	string TmpBaseLabel = FallbackLabel;
 	const string &Line0 = Lines[0];
@@ -153,7 +144,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	string CurrentChainStr;
 	PDBChain *Chain = 0;
 	const uint N = SIZE(Lines);
-	PARSER_STATE PS = PS_WaitingForLoop;
+	CIF_PARSER_STATE PS = PS_WaitingForLoop;
 	vector<string> FieldList;
 	vector<string> ATOMLines;
 	for (uint i = 0; i < N; ++i)
@@ -200,22 +191,20 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 				}
 			else if (Line == "loop_")
 				PS = PS_AtLoop;
-			else if (StartsWith(Line, "ATOM "))
+			else if (StartsWith(Line, "ATOM ") ||
+					 StartsWith(Line, "HETATM"))
 				{
 				PS = PS_InATOMs;
 				ATOMLines.push_back(Line);
 				}
-			else if (StartsWith(Line, "HETATM"))
-				PS = PS_InATOMs;
 			break;
 			}
 
 		case PS_InATOMs:
 			{
-			if (StartsWith(Line, "ATOM "))
+			if (StartsWith(Line, "ATOM ") ||
+				StartsWith(Line, "HETATM"))
 				ATOMLines.push_back(Line);
-			else if (StartsWith(Line, "HETATM"))
-				continue;
 			else
 				PS = PS_Finished;
 			break;
