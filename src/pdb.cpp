@@ -93,7 +93,7 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 			EndOfChainFound = true;
 		if (IsATOMLine_PDB(Line))
 			{
-			if (Line.size() < 57)
+			if (Line.size() < 54)
 				continue;
 			char ChainChar = Line[21];
 			if (ChainChar != CurrChainChar)
