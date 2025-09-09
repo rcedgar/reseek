@@ -1,5 +1,9 @@
 #pragma once
 
+#include "mermx.h"
+
+#define DEBUG_CHECKS	0
+
 class SeqDB;
 
 // Mu 5-mer index
@@ -43,7 +47,7 @@ After Pass 2:
 	Size(Kmer)
 		= m_Finger[Kmer+1] - m_Finger[Kmer]
 ***/
-#if DEBUG
+#if DEBUG_CHECKS
 	vector<uint> m_KmerToCount1;
 	vector<uint> m_KmerToCount2;
 	vector<uint> m_KmerToDataStart;
@@ -54,7 +58,7 @@ After Pass 2:
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
 	int16_t *m_KmerSelfScores = 0;
-	uint16_t *m_RowSizes = 0;
+	uint32_t *m_RowSizes = 0;
 	int m_MinKmerSelfScore = 0;
 
 // Current sequence
@@ -63,6 +67,11 @@ After Pass 2:
 	uint m_L = UINT_MAX;
 	uint m_SeqIdx = UINT_MAX;
 	vector<uint> m_Kmers;
+
+	bool m_AddNeighborhood = false;
+	const MerMx *m_ptrScoreMx = 0;
+	short m_MinKmerScore = INT16_MAX;
+	uint *m_NeighborKmers = 0;
 
 public:
 	void FromSeqDB(const SeqDB &Input);
@@ -93,7 +102,7 @@ public:
 		assert(Kmer < m_DictSize);
 		//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
 		uint n = m_RowSizes[Kmer];
-		assert(m_Finger[Kmer] + n <= m_Size);
+		asserta(m_Finger[Kmer] + n <= m_Size);
 		return n;
 		}
 
@@ -104,7 +113,7 @@ public:
 						  vector<uint> &Kmers, vector<uint> &Sizes) const;
 	uint GetKmerMaxLetterCount(uint Kmer);
 
-#if DEBUG
+#if DEBUG_CHECKS
 	void CheckAfterPass1() const;
 	void CheckAfterAdjust() const;
 	void CheckAfterPass2() const;

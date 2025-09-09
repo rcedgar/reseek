@@ -30,6 +30,8 @@ void *mymalloc(unsigned n, unsigned bytes);
 #define mymalloc_write_state(fn)	0
 #define mymalloc_trace(on)	0
 void *mymalloc(unsigned n, unsigned bytes);
+void *mymalloc64(uint64_t n, uint64_t bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t))
+#define myalloc64(t, n)	(t *) mymalloc64((n), sizeof(t))
 
 #endif

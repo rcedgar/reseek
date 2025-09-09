@@ -52,7 +52,7 @@ void cmd_prefilter_mu()
 	{
 	const uint k = MuDex::m_k;
 
-	const string &Query3Di_FN = g_Arg1;
+	const string &QueryMu_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
 
 	s_fTsv2 = CreateStdioFile(opt(output2));
@@ -60,7 +60,7 @@ void cmd_prefilter_mu()
 	SeqDB QDB;
 	SeqDB TDB;
 
-	QDB.FromFasta(Query3Di_FN);
+	QDB.FromFasta(QueryMu_FN);
 	TDB.FromFasta(DB3Di_FN);
 
 	QDB.ToLetters(g_CharToLetterMu);

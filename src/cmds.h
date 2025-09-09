@@ -78,5 +78,6 @@ C(shuffle)
 C(align_bag)
 C(align_bags)
 C(cif2pdb)
+C(kmrnbh)
 
 #undef C

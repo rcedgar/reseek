@@ -110,7 +110,11 @@ void PrefilterMu::SetQDB(const SeqDB &QDB)
 		m_QSeqIdxsWithTwoHitDiag[i] = UINT16_MAX;
 		}
 
-	m_NeighborKmers = myalloc(uint, DICT_SIZE);
+	bool TargetNeighborhood = !g_QueryNeighborhood;
+	if (TargetNeighborhood)
+		m_NeighborKmers = myalloc(uint, MAX_HOOD_SIZE);
+	else
+		m_NeighborKmers = 0;
 	m_NrQueriesWithTwoHitDiag = 0;
 	}
 
@@ -135,10 +139,23 @@ void PrefilterMu::Search_TargetKmers()
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
 #endif
-	for (uint i = 0; i < NK; ++i)
+	if (g_QueryNeighborhood)
 		{
-		uint Kmer = m_TKmers[i];
-		Search_TargetKmerNeighborhood(Kmer, i);
+		for (uint TPos = 0; TPos < NK; ++TPos)
+			{
+			uint Kmer = m_TKmers[TPos];
+			if (Kmer != UINT_MAX)
+				Search_Kmer(Kmer, TPos);
+			}
+		}
+	else
+		{
+		for (uint TPos = 0; TPos < NK; ++TPos)
+			{
+			uint Kmer = m_TKmers[TPos];
+			if (Kmer != UINT_MAX)
+				Search_TargetKmerNeighborhood(Kmer, TPos);
+			}
 		}
 	}
 
@@ -188,11 +205,14 @@ void PrefilterMu::Search_Kmer(uint Kmer, uint TPos)
 		uint32_t QSeqIdx;
 		uint16_t QSeqPos;
 		m_QKmerIndex->Get(DataOffset++, QSeqIdx, QSeqPos);
+		asserta(QSeqIdx < m_QSeqCount);
 		uint QL32 = m_QDB->GetSeqLength(QSeqIdx);
 		asserta(QL32 < UINT16_MAX);
 		uint16_t QL = uint16_t(QL32);
 		diag dg(QL, m_TL);
 		uint16_t Diag = dg.getd(QSeqPos, TPos);
+		if (Diag > m_Mask14)
+			continue;
 #if TRACE
 		{
 		string TKmerStr;

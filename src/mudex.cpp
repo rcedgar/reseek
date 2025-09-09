@@ -10,7 +10,7 @@
 const MerMx &GetMuMerMx(uint k);
 
 const uint8_t *MuDex::m_Offsets = s_Offsets;
-const uint32_t MuDex::m_DictSize = 36*36*36*36*36;
+const uint32_t MuDex::m_DictSize = 36*36*36*36*36; // 60466176 (60.4 M)
 const uint32_t MuDex::m_k = k;
 const uint32_t MuDex::m_K = K;
 
@@ -99,11 +99,14 @@ const char *MuDex::KmerToStr(uint Kmer, string &s) const
 
 void MuDex::Alloc_Pass1()
 	{
+	if (m_AddNeighborhood && m_NeighborKmers == 0)
+		m_NeighborKmers = myalloc(uint, MAX_HOOD_SIZE);
+
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
 	m_Finger = myalloc(uint32_t, m_DictSize + 2);
 	zero_array(m_Finger, m_DictSize+2);
-#if DEBUG
+#if DEBUG_CHECKS
 	m_KmerToCount1.resize(m_DictSize, 0);
 #endif
 	}
@@ -111,9 +114,9 @@ void MuDex::Alloc_Pass1()
 void MuDex::Alloc_Pass2()
 	{
 // 6 bytes for uint32_t:uint16_t (SeqIdx:Pos)
-	const uint Bytes = m_ItemSize*m_Size;
-	m_Data = myalloc(uint8_t, Bytes);
-#if DEBUG
+	const uint64_t Bytes = uint64(m_ItemSize)*m_Size;
+	m_Data = myalloc64(uint8_t, Bytes);
+#if DEBUG_CHECKS
 	m_KmerToCount2.resize(m_DictSize, 0);
 	memset(m_Data, 0xff, Bytes);
 #endif
@@ -138,9 +141,11 @@ void  MuDex::AddSeq_Pass1()
 			}
 
 	// Pass 1, m_Finger[Kmer+1] is count
+		asserta(m_Size < UINT_MAX);
+		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 		++m_Size;
-#if DEBUG
+#if DEBUG_CHECKS
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
@@ -149,10 +154,26 @@ void  MuDex::AddSeq_Pass1()
 			Log(" self=%d", m_KmerSelfScores[Kmer]);
 		Log("\n");
 #endif
+
+		if (m_AddNeighborhood)
+			{
+			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
+			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
+			for (uint i = 0; i < n; ++i)
+				{
+				asserta(m_Size < UINT_MAX);
+				asserta(m_Finger[Kmer+1] < UINT_MAX);
+				m_Finger[Kmer+1] += 1;
+				++m_Size;
+#if DEBUG_CHECKS
+				m_KmerToCount1[Kmer] += 1;
+#endif
+				}
+			}
 		}
 	}
 
-void  MuDex::AddSeq_Pass2()
+void MuDex::AddSeq_Pass2()
 	{
 #if TRACE
 	string Tmp;
@@ -171,8 +192,9 @@ void  MuDex::AddSeq_Pass2()
 			}
 		uint DataOffset = m_Finger[Kmer+1];
 		Put(DataOffset, m_SeqIdx, i);
+		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
-#if DEBUG
+#if DEBUG_CHECKS
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
 		m_KmerToCount2[Kmer] += 1;
 #endif
@@ -180,6 +202,22 @@ void  MuDex::AddSeq_Pass2()
 		Log("[%4u] %08x %s DO=%u\n",
 			i, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
 #endif
+		if (m_AddNeighborhood)
+			{
+			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
+			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
+			for (uint i = 0; i < n; ++i)
+				{
+				uint DataOffset = m_Finger[Kmer+1];
+				Put(DataOffset, m_SeqIdx, i);
+				asserta(m_Finger[Kmer+1] < UINT_MAX);
+				m_Finger[Kmer+1] += 1;
+#if DEBUG_CHECKS
+				assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
+				m_KmerToCount2[Kmer] += 1;
+#endif
+				}
+			}
 		}
 	}
 
@@ -200,7 +238,7 @@ void MuDex::LogStats() const
 	Log("Total = %u (%s)\n", Sum, IntToStr(Sum));
 	}
 
-#if DEBUG
+#if DEBUG_CHECKS
 void MuDex::CheckAfterPass1() const
 	{
 	uint Check_Size = 0;
@@ -266,10 +304,11 @@ void MuDex::AdjustFinger()
 	uint Sum = 0;
 	for (uint Kmer = 0; Kmer <= m_DictSize; ++Kmer)
 		{
-#if DEBUG
+#if DEBUG_CHECKS
 		m_KmerToDataStart.push_back(Sum);
 #endif
 		uint Kmer_Size = m_Finger[Kmer+1];
+		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] = Sum;
 		Sum += Kmer_Size;
 		}
@@ -303,16 +342,31 @@ void MuDex::LogIndexKmer(uint Kmer) const
 
 void MuDex::ValidateKmer(uint Kmer) const
 	{
+	const uint QSeqCount = m_SeqDB->GetSeqCount();
 	uint n = GetRowSize(Kmer);
 	uint DataOffset = m_Finger[Kmer];
+	asserta(DataOffset <= m_Size);
 	for (uint i = 0; i < n; ++i)
 		{
 		uint32_t SeqIdx;
 		uint16_t SeqPos;
 		Get(DataOffset, SeqIdx, SeqPos);
-		const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
-		uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
-		asserta(Check_Kmer == Kmer);
+		if (SeqIdx >= QSeqCount)
+			{
+			Log("m_Size = %s\n", Int64ToStr(m_Size));
+			Log("m_Finger[0x%x] = %u\n", Kmer, m_Finger[Kmer]);
+			Log("i=%u n=%u\n", i, n);
+			Log("QSeqIdx=%u, SeqPos=%u\n", SeqIdx, SeqPos);
+			Die("MuDex::ValidateKmer(Kmer=0x%x)", Kmer);
+			}
+		uint QL = m_SeqDB->GetSeqLength(SeqIdx);
+		asserta(SeqPos < QL);
+		if (!m_AddNeighborhood)
+			{
+			const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
+			uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
+			asserta(Check_Kmer == Kmer);
+			}
 		}
 	}
 
@@ -328,6 +382,8 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 	{
 	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
+	if (m_AddNeighborhood && m_ptrScoreMx == 0)
+		m_ptrScoreMx = &GetMuMerMx(m_k);
 
 	Alloc_Pass1();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
@@ -339,12 +395,12 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 		SetSeq(SeqIdx, Label, Seq, L);
 		AddSeq_Pass1();
 		}
-#if DEBUG
+#if DEBUG_CHECKS
 	CheckAfterPass1();
 #endif
 
 	AdjustFinger();
-#if DEBUG
+#if DEBUG_CHECKS
 	CheckAfterAdjust();
 #endif
 
@@ -359,11 +415,11 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 		AddSeq_Pass2();
 		}
 	SetRowSizes();
-#if DEBUG
+#if DEBUG_CHECKS
 	CheckAfterPass2();
 #endif
 
-#if DEBUG
+#if DEBUG_CHECKS
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
@@ -376,36 +432,32 @@ void MuDex::FromSeqDB(const SeqDB &Input)
 		uint Check_Offset = m_KmerToDataStart[Kmer];
 		}
 	}
+	Validate();
 #endif
 	}
 
 void MuDex::SetRowSizes()
 	{
-	m_RowSizes = myalloc(uint16_t, m_DictSize);
+	//m_RowSizes = myalloc(uint16_t, m_DictSize);
+	m_RowSizes = myalloc(uint32_t, m_DictSize);
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
 		uint32_t RowSize32 = m_Finger[Kmer+1] - m_Finger[Kmer];
-		uint16_t RowSize = uint16_t(RowSize32);
-		assert(uint32_t(RowSize) == RowSize32);
-		m_RowSizes[Kmer] = RowSize;
+		//uint16_t RowSize = uint16_t(RowSize32);
+		//assert(uint32_t(RowSize) == RowSize32);
+		//m_RowSizes[Kmer] = RowSize;
+		m_RowSizes[Kmer] = RowSize32;
 		}
 	}
 
-//uint MuDex::GetRowSize(uint Kmer) const
-//	{
-//	assert(Kmer < m_DictSize);
-//	//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
-//	uint n = m_RowSizes[Kmer];
-//	assert(m_Finger[Kmer] + n <= m_Size);
-//	return n;
-//	}
-
 void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	{
-	uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
+	assert(DataOffset < m_Size);
+	uint64 Bytes64 = uint64(m_ItemSize)*uint64(DataOffset);
+	uint8_t *ptr = m_Data + Bytes64;
 	*(uint32_t *) ptr = SeqIdx;
 	*(uint16_t *) (ptr + 4) = SeqPos;
-#if DEBUG
+#if DEBUG_CHECKS
 	{
 	uint32_t Check_SeqIdx;
 	uint16_t Check_SeqPos;
@@ -418,7 +470,7 @@ void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 
 void MuDex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 	{
-	const uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
+	const uint8_t *ptr = m_Data + m_ItemSize*uint64(DataOffset);
 	SeqIdx = *(uint32_t *) ptr;
 	SeqPos = *(uint16_t *) (ptr + 4);
 	}
@@ -438,7 +490,7 @@ void MuDex::GetKmersAndSizes(const byte *Seq, uint L,
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
 			Kmer = Kmer*36 + Letter;
 			}
-#if DEBUG
+#if DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
@@ -469,7 +521,7 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
 			Kmer = Kmer*36 + Letter;
 			}
-#if DEBUG
+#if DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif

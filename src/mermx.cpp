@@ -2,6 +2,13 @@
 #include "mermx.h"
 #include "alpha.h"
 #include "sort.h"
+#include "prefiltermuparams.h"
+#include "quarts.h"
+
+static mutex g_Lock;
+static int64 g_HoodCallCount;
+
+const MerMx &GetMuMerMx(uint k);
 
 void MerMx::KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const
 	{
@@ -59,6 +66,21 @@ int MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
 		Kmer_j /= m_AS;
 		}
 	return sum;
+	}
+
+uint MerMx::GetMaxLetterCount(uint Kmer) const
+	{
+	uint Counts[36];
+	zero_array(Counts, 36);
+	uint maxn = 0;
+	for (uint i = 0; i < m_k; ++i)
+		{
+		uint code = Kmer%m_AS;
+		uint n = ++(Counts[code]);
+		maxn = max(n, maxn);
+		Kmer /= m_AS;
+		}
+	return maxn;
 	}
 	
 short MerMx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
@@ -557,6 +579,7 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 				}
 			}
 		}
+	asserta(n <= MAX_HOOD_SIZE);
 	return n;
 	}
 
@@ -592,6 +615,9 @@ uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) con
 
 uint MerMx::GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const
 	{
+	g_Lock.lock();
+	++g_HoodCallCount;
+	g_Lock.unlock();
 	switch (m_k)
 		{
 	case 4: return GetHighScoring4mers(Kmer, MinScore, Kmers);
@@ -703,4 +729,90 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
 	for (uint Kmer = 0; Kmer < ASk; ++Kmer)
 		SelfScores[Kmer] = GetSelfScoreKmer(Kmer);
 	return SelfScores;
+	}
+
+void LogHoodCount()
+	{
+	ProgressLog("%s hood calls\n", Int64ToStr(g_HoodCallCount));
+	}
+
+#define LOW_COMPLEXITY 0
+
+/***
+     60.5M  DICT_SIZE
+       92G  Total size of all neighborhoods
+      1.2M  Kmers with low self score (1.9%)
+     41.3k  Max size 'BBBBB' (41293)
+      1521  Mean
+       690  Median
+***/
+void cmd_kmrnbh()
+	{
+	const MerMx &ScoreMx = GetMuMerMx(5);
+	uint *Kmers = myalloc(uint, DICT_SIZE);
+	uint MinScore = MIN_KMER_PAIR_SCORE;
+	uint64 Sumn = 0;
+	uint Maxn = 0;
+	uint MaxKmer = UINT_MAX;
+	const uint N = DICT_SIZE;
+	vector<float> Sizes;
+	Sizes.reserve(DICT_SIZE);
+	uint M = 0;
+	uint LowSelfScore = 0;
+#if LOW_COMPLEXITY
+	uint LowComplexity = 0;
+#endif
+	for (uint Kmer = 0; Kmer < N; ++Kmer)
+		{
+		ProgressStep(Kmer, DICT_SIZE, "Neighborhood");
+#if LOW_COMPLEXITY
+		uint mlc = ScoreMx.GetMaxLetterCount(Kmer);
+		if (mlc >= 3)
+			{
+			++LowComplexity;
+			continue;
+			}
+#endif
+		uint n = ScoreMx.GetHighScoring5mers(Kmer, MinScore, Kmers);
+		if (n == 0)
+			{
+			short SelfScore = ScoreMx.GetScoreKmerPair(Kmer, Kmer);
+			asserta(SelfScore < MIN_KMER_PAIR_SCORE);
+			++LowSelfScore;
+			continue;
+			}
+		++M;
+		if (n > Maxn)
+			{
+			Maxn = n;
+			MaxKmer = Kmer;
+			}
+		Sumn += n;
+		Sizes.push_back(float(n));
+		}
+
+	QuartsFloat Q;
+	GetQuartsFloat(Sizes, Q);
+
+	string TmpStr;
+	ProgressLog("%10.10s  DICT_SIZE\n", IntToStr(DICT_SIZE));
+
+	ProgressLog("%10.10s  Total size of all neighborhoods\n",
+				Int64ToStr(Sumn));
+
+#if LOW_COMPLEXITY
+	ProgressLog("%10.10s  Kmers with low complexity (%.1f%%)\n",
+				IntToStr(LowComplexity), GetPct(LowComplexity, N));
+#endif
+
+	ProgressLog("%10.10s  Kmers with low self score (%.1f%%)\n",
+				IntToStr(LowSelfScore), GetPct(LowSelfScore, N));
+
+	ProgressLog("%10.10s  Max size '%s' (%u)\n", 
+				IntToStr(Maxn),
+				ScoreMx.KmerToStr(MaxKmer, 5, TmpStr),
+				Maxn);
+
+	ProgressLog("%10.10s  Mean\n", IntToStr(uint(Q.Avg)));
+	ProgressLog("%10.10s  Median\n", IntToStr(uint(Q.Med)));
 	}
