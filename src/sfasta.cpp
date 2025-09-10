@@ -311,7 +311,7 @@ void SFasta::Open(const string &FileName)
 	Clear();
 	m_FileName = FileName;
 	m_File = OpenStdioFile(FileName);
-	m_BufferSize = opt(sfasta_buff_bytes);
+	m_BufferSize = 1024*1024;
 	//m_Buffer = myalloc<char>(m_BufferSize);
 	m_Buffer = myalloc(char, m_BufferSize);
 	m_FileSize = GetStdioFileSize64(m_File);

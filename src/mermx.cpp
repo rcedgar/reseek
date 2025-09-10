@@ -731,11 +731,6 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
 	return SelfScores;
 	}
 
-void LogHoodCount()
-	{
-	ProgressLog("%s hood calls\n", Int64ToStr(g_HoodCallCount));
-	}
-
 #define LOW_COMPLEXITY 0
 
 /***

@@ -566,6 +566,9 @@
     <ClCompile Include="twohitdiag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lddt_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

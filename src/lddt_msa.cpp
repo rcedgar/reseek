@@ -3,6 +3,10 @@
 #include "pdbchain.h"
 #include "daliscorer.h"
 
+double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
+  const vector<uint> &PosQs, const vector<uint> &PosTs,
+  bool DaliScorerCompatible);
+
 void cmd_lddt_msa()
 	{
 	asserta(optset_input);

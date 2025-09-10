@@ -287,6 +287,7 @@
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="lddt_bench.cpp" />
     <ClCompile Include="mmseqs_index_dump.cpp" />
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="mymutex.cpp" />

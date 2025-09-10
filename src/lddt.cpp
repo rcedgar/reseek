@@ -1,8 +1,9 @@
 #include "myutils.h"
 #include "pdbchain.h"
 
-static const double g_LDDT_R0 = 15;
-static const double g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
+static const float g_LDDT_R0 = 15;
+static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
+static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
 static const uint g_nr_thresholds = 4;
 
 double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
@@ -13,7 +14,7 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 	if (nr_cols == 0)
 		return 0;
 	asserta(SIZE(PosTs) == nr_cols);
-	double total = 0;
+	float total = 0;
 	uint nr_cols_considered = 0;
 	for (uint coli = 0; coli < nr_cols; ++coli)
 		{
@@ -34,102 +35,94 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 			if (pos1j == UINT_MAX || pos2j == UINT_MAX)
 				continue;
 
-			double d1 = Q.GetDist(pos1i, pos1j);
-			double d2 = T.GetDist(pos2i, pos2j);
-			if (DaliScorerCompatible)
-				{
-				if (d1 > g_LDDT_R0)
-					continue;
-				}
-			else
-				{
-				if (d1 > g_LDDT_R0 && d2 > g_LDDT_R0)
-					continue;
-				}
-
+			float d1 = Q.GetDist(pos1i, pos1j);
+			float d2 = T.GetDist(pos2i, pos2j);
+			if (d1 > g_LDDT_R0 && d2 > g_LDDT_R0)
+				continue;
+			//if (coli == 912)
+			//	Log("coli=%u colj=%u d1=%.1f d2=%.1f\n", coli, colj, d1, d2);//@@
 			for (uint k = 0; k < g_nr_thresholds; ++k)
 				{
-				double t = g_LDDT_thresholds[k];
+				float t = g_LDDT_thresholds[k];
 				nr_considered += 1;
-				double diff = abs(d1 - d2);
+				float diff = abs(d1 - d2);
 				if (diff <= t)
 					nr_preserved += 1;
 				}
 			}
-		double score = 0;
+		float score = 0;
 		if (nr_considered > 0)
-			score = double(nr_preserved)/nr_considered;
+			score = float(nr_preserved)/nr_considered;
 		total += score;
+		//Log("coli %u preserved %u considered %u score %.4f\n",
+		//	coli, nr_preserved, nr_considered, score);//@@
 		}
 
 	if (nr_cols_considered == 0)
 		return 0;
-	double avg = total/nr_cols_considered;
+	float avg = total/nr_cols_considered;
 	return avg;
 	}
 
-#if 0
-#include "seqdb.h"
-#include "daliscorer.h"
-
-void cmd_test()
+double GetLDDT_mu_fast(const PDBChain &Q, const PDBChain &T,
+  const vector<uint> &PosQs, const vector<uint> &PosTs)
 	{
-	asserta(optset_input);
-
-	string Name;
-	GetStemName(g_Arg1, Name);
-
-	SeqDB MSA;
-	MSA.FromFasta(g_Arg1, true);
-
-	FILE* fOut = CreateStdioFile(opt(output));
-	const bool MissingSeqOk = opt(missingtestseqok);
-
-	DALIScorer DS;
-	DS.LoadChains(opt(input));
-	bool Ok = DS.SetMSA(Name, MSA, false, MissingSeqOk);
-	if (!Ok)
-		Die("SetMSA failed");
-
-	const uint SeqCount = MSA.GetSeqCount();
-	double Sum_Z = 0;
-	double Sum_Z15 = 0;
-	double Sum_LDDT_mu = 0;
-	double Sum_LDDT_fm = 0;
-
-	uint PairCount = 0;
-	for (uint SeqIdx1 = 0; SeqIdx1 < SeqCount; ++SeqIdx1)
+	const uint nr_cols = SIZE(PosQs);
+	if (nr_cols == 0)
+		return 0;
+	asserta(SIZE(PosTs) == nr_cols);
+	uint *nr_considered_vec = myalloc(uint, nr_cols);
+	uint *nr_preserved_vec = myalloc(uint, nr_cols);
+	zero_array(nr_considered_vec, nr_cols);
+	zero_array(nr_preserved_vec, nr_cols);
+	for (uint coli = 0; coli < nr_cols; ++coli)
 		{
-		const uint ChainIdx1 = DS.m_SeqIdxToChainIdx[SeqIdx1];
-		const char *Label1 = MSA.GetLabel(SeqIdx1).c_str();
-		const vector<uint> &ColToPos1 = DS.m_ColToPosVec[SeqIdx1];
-		for (uint SeqIdx2 = SeqIdx1 + 1; SeqIdx2 < SeqCount; ++SeqIdx2)
+		uint pos1i = PosQs[coli];
+		uint pos2i = PosTs[coli];
+		assert(pos1i != UINT_MAX);
+		assert(pos2i != UINT_MAX);
+
+		for (uint colj = coli + 1; colj < nr_cols; ++colj)
 			{
-			const uint ChainIdx2 = DS.m_SeqIdxToChainIdx[SeqIdx2];
-			const vector<uint> &ColToPos2 = DS.m_ColToPosVec[SeqIdx2];
-			const char *Label2 = MSA.GetLabel(SeqIdx2).c_str();
-			if (ChainIdx1 == UINT_MAX || ChainIdx2 == UINT_MAX)
-				{
-				Log("%s\t%s\tERROR_structure_not_found\n", Label1, Label2);
+			uint pos1j = PosQs[colj];
+			uint pos2j = PosTs[colj];
+			assert(pos1j != UINT_MAX);
+			assert(pos2j != UINT_MAX);
+
+			float d1_squared = Q.GetDist2(pos1i, pos1j);
+			float d2_squared = T.GetDist2(pos2i, pos2j);
+			if (d1_squared > g_LDDT_R0_squared && d2_squared > g_LDDT_R0_squared)
 				continue;
+
+			float d1 = sqrtf(d1_squared);
+			float d2 = sqrtf(d2_squared);
+			for (uint k = 0; k < g_nr_thresholds; ++k)
+				{
+				float t = g_LDDT_thresholds[k];
+				float diff = abs(d1 - d2);
+				if (diff <= t)
+					{
+					nr_preserved_vec[coli] += 1;
+					nr_preserved_vec[colj] += 1;
+					}
 				}
-			++PairCount;
-
-			double LDDT_mu = DS.GetLDDTChainPair_muscle(
-			  ChainIdx1, ChainIdx2, ColToPos1, ColToPos2);
-
-			const PDBChain &Chain1 = *DS.m_Chains[ChainIdx1];
-			const PDBChain &Chain2 = *DS.m_Chains[ChainIdx2];
-			double LDDT_mu2 = GetLDDT_mu(
-			  Chain1, Chain2, ColToPos1, ColToPos2, true);
-			double LDDT_mu3 = GetLDDT_mu(
-			  Chain1, Chain2, ColToPos1, ColToPos2, false);
-
-			Log("label1=%s\tlabel2=%s\tLDDT_mu=%.4f\tLDDT_mu2=%.4f\tLDDT_mu3=%.4f\n",
-			  Label1, Label2, LDDT_mu, LDDT_mu2, LDDT_mu3);
-			
-			asserta(feq(LDDT_mu, LDDT_mu2));
+			nr_considered_vec[coli] += g_nr_thresholds;
+			nr_considered_vec[colj] += g_nr_thresholds;
 			}
 		}
+
+	float total = 0;
+	for (uint col = 0; col < nr_cols; ++col)
+		{
+		float score = 0;
+		uint nr_preserved = nr_preserved_vec[col];
+		uint nr_considered = nr_considered_vec[col];
+		if (nr_considered > 0)
+			score = float(nr_preserved)/nr_considered;
+		total += score;
+		}
+	myfree(nr_considered_vec);
+	myfree(nr_preserved_vec);
+	float avg = total/nr_cols;
+	return avg;
 	}
-#endif // 0

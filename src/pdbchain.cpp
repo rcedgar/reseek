@@ -331,10 +331,7 @@ float PDBChain::GetDist2(uint Pos1, uint Pos2) const
 	float dy = y1 - y2;
 	float dz = z1 - z2;
 
-	float d = GetDist(Pos1, Pos2);
-
 	float d2 = dx*dx + dy*dy + dz*dz;
-	asserta(feq(d*d, d2));
 	return d2;
 	}
 

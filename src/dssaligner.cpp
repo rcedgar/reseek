@@ -1295,14 +1295,13 @@ void DSSAligner::GetPosABs(vector<uint> &PosAs,
 
 float DSSAligner::GetLDDT() const
 	{
-	double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
-	  const vector<uint> &PosQs, const vector<uint> &PosTs,
-	  bool DaliScorerCompatible);
+	double GetLDDT_mu_fast(const PDBChain &Q, const PDBChain &T,
+	  const vector<uint> &PosQs, const vector<uint> &PosTs);
 	vector<uint> PosAs;
 	vector<uint> PosBs;
 	GetPosABs(PosAs, PosBs);
 	double LDDT = 
-	  GetLDDT_mu(*m_ChainA, *m_ChainB, PosAs, PosBs, false);
+	  GetLDDT_mu_fast(*m_ChainA, *m_ChainB, PosAs, PosBs);
 	return (float) LDDT;
 	}
 
