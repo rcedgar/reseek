@@ -39,8 +39,6 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 			float d2 = T.GetDist(pos2i, pos2j);
 			if (d1 > g_LDDT_R0 && d2 > g_LDDT_R0)
 				continue;
-			//if (coli == 912)
-			//	Log("coli=%u colj=%u d1=%.1f d2=%.1f\n", coli, colj, d1, d2);//@@
 			for (uint k = 0; k < g_nr_thresholds; ++k)
 				{
 				float t = g_LDDT_thresholds[k];
@@ -54,8 +52,6 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 		if (nr_considered > 0)
 			score = float(nr_preserved)/nr_considered;
 		total += score;
-		//Log("coli %u preserved %u considered %u score %.4f\n",
-		//	coli, nr_preserved, nr_considered, score);//@@
 		}
 
 	if (nr_cols_considered == 0)
