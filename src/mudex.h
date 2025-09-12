@@ -102,7 +102,7 @@ public:
 		assert(Kmer < m_DictSize);
 		//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
 		uint n = m_RowSizes[Kmer];
-		asserta(m_Finger[Kmer] + n <= m_Size);
+		assert(m_Finger[Kmer] + n <= m_Size);
 		return n;
 		}
 

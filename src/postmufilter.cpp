@@ -47,7 +47,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
 	vector<PDBChain *> &QChains = *s_ptrQChains;
 
-	if (ThreadIndex == 0)
+	if(ThreadIndex == 0 && s_QueryCount > 1)
 		ProgressStep(0, s_QueryCount, "Index query");
 	for (;;)
 		{
@@ -57,7 +57,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 
 		if (QueryIdx >= s_QueryCount)
 			{
-			if (ThreadIndex == 0)
+			if (ThreadIndex == 0 && s_QueryCount > 1)
 				ProgressStep(s_QueryCount-1, s_QueryCount, "Index query");
 			return;
 			}

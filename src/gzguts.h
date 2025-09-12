@@ -7,7 +7,12 @@
 // FOLLOWING THREE DELARATIONS ADDED BY ROBERT EDGAR
 // to suppress implicit declarations warnings from gcc
 long lseek();
+#if _MSC_VER
 int read();
+#else
+#include <stddef.h>
+size_t read();
+#endif
 int close();
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++
 

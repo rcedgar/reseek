@@ -1,5 +1,5 @@
 #ifndef MY_VERSION
-#define MY_VERSION	"2.7"
+#define MY_VERSION	"2.8"
 #endif
 
 #define C(x)	STR_OPT(x)
@@ -143,6 +143,8 @@ FLAG_OPT(keeptmp)
 FLAG_OPT(log10)
 FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
+FLAG_OPT(idxq)
+FLAG_OPT(idxt)
 
 #undef FLAG_OPT
 #undef UNS_OPT

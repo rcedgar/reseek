@@ -5,4 +5,4 @@ curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/$commit/vcxpro
 
 mkdir -p ../bin
 
-python3 ./vcxproj_make.py --debug -binary reseekd
+python3 ./vcxproj_make.py --profile --binary reseekp

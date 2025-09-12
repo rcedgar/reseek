@@ -65,6 +65,12 @@ uint MuPreFilter(const DSSParams &Params,
 			  MuSeqSource &FSS,
 			  const string &OutputFN)
 	{
+	if (opt(idxq))
+		g_QueryNeighborhood = true;
+	else if (opt(idxt))
+		g_QueryNeighborhood = false;
+	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
+
 	s_SS = &FSS;
 	s_SS->m_ASCII = false;
 

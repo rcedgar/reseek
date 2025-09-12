@@ -6,7 +6,7 @@ void *mymalloc(unsigned n, unsigned bytes1)
 	if (size_t(uint32(tot)) != tot)
 		{
 		fprintf(stderr, "\n\nmymalloc(%u, %u) overflow\n\n", n, bytes1);
-		brk(1);
+		dbrk(1);
 		exit(1);
 		}
 	void *p = malloc(tot);
@@ -15,7 +15,7 @@ void *mymalloc(unsigned n, unsigned bytes1)
 		double b = GetMemUseBytes();
 		fprintf(stderr, "\n\nOut of memory mymalloc(%u, %u), curr %.3g bytes\n\n",
 		  n, bytes1, b);
-		brk(1);
+		dbrk(1);
 		exit(1);
 		}
 	return p;
@@ -28,7 +28,7 @@ void *mymalloc64(uint64_t n, uint64_t bytes1)
 		{
 		fprintf(stderr, "\n\nmymalloc64(%.3g, %.3g) overflow\n\n",
 				double(n), double(bytes1));
-		brk(1);
+		dbrk(1);
 		exit(1);
 		}
 	void *p = malloc(tot);
@@ -37,7 +37,7 @@ void *mymalloc64(uint64_t n, uint64_t bytes1)
 		double b = GetMemUseBytes();
 		fprintf(stderr, "\n\nOut of memory mymalloc64(%.3g, %.3g), curr %.3g bytes\n\n",
 		  double(n), double(bytes1), b);
-		brk(1);
+		dbrk(1);
 		exit(1);
 		}
 	return p;
