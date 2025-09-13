@@ -129,13 +129,13 @@ void  MuDex::AddSeq_Pass1()
 	Log("AddSeq_Pass1(%s) L=%u\n", m_Label, m_L);
 #endif
 	const uint KmerCount = SIZE(m_Kmers);
-	for (uint i = 0; i < KmerCount; ++i)
+	for (uint SeqPos = 0; SeqPos < KmerCount; ++SeqPos)
 		{
-		uint Kmer = m_Kmers[i];
+		uint Kmer = m_Kmers[SeqPos];
 		if (Kmer == UINT_MAX)
 			{
 #if TRACE
-			Log("[%4u] ***\n", i);
+			Log("[%4u] ***\n", SeqPos);
 #endif
 			continue;
 			}
@@ -149,7 +149,7 @@ void  MuDex::AddSeq_Pass1()
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
-		Log("[%4u] %08x %s", i, Kmer, KmerToStr(Kmer, Tmp));
+		Log("[%4u] %08x %s", SeqPos, Kmer, KmerToStr(Kmer, Tmp));
 		if (m_KmerSelfScores != 0)
 			Log(" self=%d", m_KmerSelfScores[Kmer]);
 		Log("\n");
@@ -159,14 +159,16 @@ void  MuDex::AddSeq_Pass1()
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
 			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
-			for (uint i = 0; i < n; ++i)
+			for (uint j = 0; j < n; ++j)
 				{
+				uint NeighborKmer = m_NeighborKmers[j];
+				asserta(NeighborKmer < DICT_SIZE);
 				asserta(m_Size < UINT_MAX);
-				asserta(m_Finger[Kmer+1] < UINT_MAX);
-				m_Finger[Kmer+1] += 1;
+				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
+				m_Finger[NeighborKmer+1] += 1;
 				++m_Size;
 #if DEBUG_CHECKS
-				m_KmerToCount1[Kmer] += 1;
+				m_KmerToCount1[NeighborKmer] += 1;
 #endif
 				}
 			}
@@ -180,18 +182,18 @@ void MuDex::AddSeq_Pass2()
 	Log("AddSeq_Pass2(%s) L=%u\n", m_Label, m_L);
 #endif
 	const uint KmerCount = SIZE(m_Kmers);
-	for (uint i = 0; i < KmerCount; ++i)
+	for (uint SeqPos = 0; SeqPos < KmerCount; ++SeqPos)
 		{
-		uint Kmer = m_Kmers[i];
+		uint Kmer = m_Kmers[SeqPos];
 		if (Kmer == UINT_MAX)
 			{
 #if TRACE
-			Log("[%4u] %08x %s --LOW\n", i, Kmer, KmerToStr(Kmer, Tmp));
+			Log("[%4u] %08x %s --LOW\n", SeqPos, Kmer, KmerToStr(Kmer, Tmp));
 #endif
 			continue;
 			}
 		uint DataOffset = m_Finger[Kmer+1];
-		Put(DataOffset, m_SeqIdx, i);
+		Put(DataOffset, m_SeqIdx, SeqPos);
 		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 #if DEBUG_CHECKS
@@ -200,21 +202,24 @@ void MuDex::AddSeq_Pass2()
 #endif
 #if TRACE
 		Log("[%4u] %08x %s DO=%u\n",
-			i, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
+			SeqPos, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
 #endif
 		if (m_AddNeighborhood)
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
 			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
-			for (uint i = 0; i < n; ++i)
+			for (uint j = 0; j < n; ++j)
 				{
-				uint DataOffset = m_Finger[Kmer+1];
-				Put(DataOffset, m_SeqIdx, i);
-				asserta(m_Finger[Kmer+1] < UINT_MAX);
-				m_Finger[Kmer+1] += 1;
+				uint NeighborKmer = m_NeighborKmers[j];
+				asserta(NeighborKmer < DICT_SIZE);
+				uint DataOffset = m_Finger[NeighborKmer+1];
+				Put(DataOffset, m_SeqIdx, SeqPos);
+				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
+				m_Finger[NeighborKmer+1] += 1;
 #if DEBUG_CHECKS
-				assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
-				m_KmerToCount2[Kmer] += 1;
+				assert(m_KmerToDataStart[NeighborKmer] + 
+					   m_KmerToCount2[NeighborKmer] == DataOffset);
+				m_KmerToCount2[NeighborKmer] += 1;
 #endif
 				}
 			}

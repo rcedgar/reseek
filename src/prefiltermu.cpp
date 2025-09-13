@@ -15,7 +15,7 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 
 	asserta(Diag >= 0);
-#if TRACE
+#if 0 // TRACE
 	if (DoTrace(QSeqIdx)) Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
 #endif
 
@@ -36,7 +36,7 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 		assert(t < ALPHABET_SIZE);
 		short Score = Mu_S_ij_i8[q][t];
 		F += Score;
-#if TRACE
+#if 0 // TRACE
 		if (DoTrace(QSeqIdx)) Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
 #endif
 		if (F > B)
@@ -143,9 +143,14 @@ void PrefilterMu::Search_TargetKmers()
 		{
 		for (uint TPos = 0; TPos < NK; ++TPos)
 			{
-			uint Kmer = m_TKmers[TPos];
-			if (Kmer != UINT_MAX)
-				Search_Kmer(Kmer, TPos);
+			uint TKmer = m_TKmers[TPos];
+			if (TKmer != UINT_MAX)
+				{
+#if TRACE
+				m_TBaseKmer = TKmer;
+#endif
+				Search_TargetKmer(TKmer, TPos);
+				}
 			}
 		}
 	else
@@ -159,12 +164,22 @@ void PrefilterMu::Search_TargetKmers()
 		}
 	}
 
-void PrefilterMu::Search_TargetSeq()
+void PrefilterMu::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
+				   const byte *TSeq, uint TL)
 	{
+	m_TSeqIdx = TSeqIdx;
+	m_TLabel = TLabel;
+	m_TSeq = TSeq;
+	m_TL = TL;
+
 	Reset();
 	Search_TargetKmers();
 	FindTwoHitDiags();
 	ExtendTwoHitDiagsToHSPs();
+//#if TRACE
+//	LogTargetKmers();
+//	LogQueryKmers(0);
+//#endif
 	}
 
 void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
@@ -184,22 +199,30 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 
 #if TRACE
 	string Tmp;
-	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s bias=%d minscore=%d |nbrs|=%d\n",
-		TPos, KmerToStr(Kmer, Tmp), Bias, MinKmerScore, HSKmerCount);
+	Log("Search_TargetKmerNeighborhood TPos=%u Kmer=%s minscore=%d |nbrs|=%d\n",
+		TPos, KmerToStr(Kmer, Tmp), MinKmerScore, HSKmerCount);
 #endif
 	for (uint HSKmerIdx = 0; HSKmerIdx < HSKmerCount; ++HSKmerIdx)
 		{
 		uint HSKmer = m_NeighborKmers[HSKmerIdx];
-		Search_Kmer(HSKmer, TPos);
+		Search_TargetKmer(HSKmer, TPos);
 		}
 	}
 
-void PrefilterMu::Search_Kmer(uint Kmer, uint TPos)
+void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
 	{
-	uint RowSize = m_QKmerIndex->GetRowSize(Kmer);
+	uint RowSize = m_QKmerIndex->GetRowSize(TKmer);
+#if TRACE
+	{
+	string KmerStr;
+	m_QKmerIndex->KmerToStr(m_TBaseKmer, KmerStr);
+	Log("Search_TargetKmer(TPos=%u, TKmer=%s) RowSize=%u\n",
+		TPos, KmerStr.c_str(), RowSize);
+	}
+#endif
 	if (RowSize == 0)
 		return;
-	uint DataOffset = m_QKmerIndex->GetRowStart(Kmer);
+	uint DataOffset = m_QKmerIndex->GetRowStart(TKmer);
 	for (uint ColIdx = 0; ColIdx < RowSize; ++ColIdx)
 		{
 		uint32_t QSeqIdx;
@@ -211,18 +234,24 @@ void PrefilterMu::Search_Kmer(uint Kmer, uint TPos)
 		uint16_t QL = uint16_t(QL32);
 		diag dg(QL, m_TL);
 		uint16_t Diag = dg.getd(QSeqPos, TPos);
-		if (Diag > m_Mask14)
-			continue;
 #if TRACE
 		{
 		string TKmerStr;
 		string QKmerStr;
+		uint QKmer = GetQKmer(QSeqIdx, QSeqPos);
 		m_QKmerIndex->KmerToStr(m_TBaseKmer, TKmerStr);
-		m_QKmerIndex->KmerToStr(Kmer, QKmerStr);
-		if (DoTrace(QSeqIdx)) Log("m_DiagBag(QSeqIdx=%u, Diag=%u) Q%u=%s T%u=%s\n",
-								  QSeqIdx, Diag, QSeqPos, QKmerStr.c_str(), TPos, TKmerStr.c_str());
+		m_QKmerIndex->KmerToStr(QKmer, QKmerStr);
+		const MerMx &MM = GetMuMerMx(k);
+		int KmerPairScore = MM.GetScoreKmerPair(TKmer, QKmer);
+
+		Log("@K@  [%4u] %5s  [%4u] %5s  /%5u/  %+3d\n",
+			QSeqPos, QKmerStr.c_str(),
+			TPos, TKmerStr.c_str(),
+			Diag, KmerPairScore);
 		}
 #endif
+		if (Diag > m_Mask14)
+			continue;
 		m_DiagBag.Add(QSeqIdx, Diag);
 		}
 	}
@@ -297,6 +326,9 @@ int PrefilterMu::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 	int DiagScore = FindHSP(QSeqIdx, Diag);
+#if TRACE
+	LogDiag(QSeqIdx, Diag);
+#endif
 	return DiagScore;
 	}
 
@@ -319,53 +351,34 @@ void PrefilterMu::Reset()
 	m_DiagBag.Reset();
 	}
 
-void PrefilterMu::SetTarget(uint TSeqIdx, const string &TLabel,
-	const byte *TSeq, uint TL)
-	{
-	m_TSeqIdx = TSeqIdx;
-	m_TLabel = TLabel;
-	m_TSeq = TSeq;
-	m_TL = TL;
-
-#if TRACE
-	Log("\n");
-	Log("SetTarget(%u) >%s L=%u\n", TSeqIdx, TLabel.c_str(), TL);
-	for (uint i = 0; i < TL; ++i)
-		{
-		if (i > 0 && i%80 == 0)
-			Log("\n");
-		Log("%c", g_LetterToCharAmino[TSeq[i]]);
-		}
-	Log("\n");
-	Log("Bias ");
-	for (uint i = 0; i < TL; ++i)
-		{
-		if (i > 0 && i%80 == 0)
-			Log("\n");
-		Log(" %.3g", m_TBiasVec[i]);
-		}
-	Log("\n");
-#endif
-	}
-
 void PrefilterMu::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	string QSeq_ascii;
+	for (uint i = 0; i < QL; ++i)
+		QSeq_ascii += g_LetterToCharMu[QSeq[i]];
 	int Score = FindHSP(QSeqIdx, Diag);
 	int Lo, Len;
 	int Score2 = FindHSP2(QSeqIdx, Diag, Lo, Len);
 	const string &QLabel = m_QDB->GetLabel(QSeqIdx);
 	Log("LogDiag(%s, %u) lo %d, len %d, score %d\n",
 		QLabel.c_str(), Diag, Lo, Len, Score);
+	diag dg(QL, m_TL);
+	int ilo = dg.getmini(Diag) + Lo;
+	int jlo = dg.getminj(Diag) + Lo;
+	string TSeq_ascii;
+	for (uint i = 0; i < m_TL; ++i)
+		TSeq_ascii += g_LetterToCharMu[m_TSeq[i]];
+	Log(" Q %*.*s\n", Len, Len, QSeq_ascii.c_str() + ilo);
+	Log(" T %*.*s\n", Len, Len, TSeq_ascii.c_str() + jlo);
 	asserta(Score2 == Score);
 	}
 
-void PrefilterMu::Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
+void PrefilterMu::Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL)
 	{
-	SetTarget(TSeqIdx, TLabel, TSeq, TL);
-	Search_TargetSeq();
+	Search_TargetSeq(TSeqIdx, TLabel, TSeq, TL);
 
 	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
 		{
@@ -373,21 +386,41 @@ void PrefilterMu::Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
 		uint16_t DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
 		m_RSB.AddScore(QSeqIdx, m_TSeqIdx, DiagScore);
 		}
+	}
 
-	if (fTsv == 0)
-		return;
+uint PrefilterMu::GetQKmer(uint QSeqIdx, uint QPos) const
+	{
+	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
+	uint Kmer = m_QKmerIndex->BytesToKmer(Q + QPos);
+	return Kmer;
+	}
 
- 	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
+void PrefilterMu::LogQueryKmers(uint QSeqIdx) const
+	{
+	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	Log("\n");
+	Log("PrefilterMu::LogQueryKmers() QL=%u >%s\n", 
+		QL, m_QDB->GetLabel(QSeqIdx).c_str());
+	for (uint PosQ = 0; PosQ + k <= QL; ++PosQ)
 		{
-		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
-		uint16_t DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
-		const string &QLabel = m_QDB->GetLabel(QSeqIdx);
+		uint Kmer = m_QKmerIndex->BytesToKmer(Q + PosQ);
+		string tmp;
+		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
+		Log("[%4u]  %08x  %s\n", PosQ, Kmer, KmerStr);
+		}
+	}
 
-		m_Lock.lock();
-		fprintf(fTsv, "%s", m_TLabel.c_str());
-		fprintf(fTsv, "\t%s", QLabel.c_str());
-		fprintf(fTsv, "\t%d", DiagScore);
-		fprintf(fTsv, "\n");
-		m_Lock.unlock();
+void PrefilterMu::LogTargetKmers() const
+	{
+	Log("\n");
+	Log("PrefilterMu::LogTargetKmers() TL=%u >%s\n", 
+		m_TL, m_TLabel);
+	for (uint PosT = 0; PosT + k <= m_TL; ++PosT)
+		{
+		uint Kmer = m_QKmerIndex->BytesToKmer(m_TSeq + PosT);
+		string tmp;
+		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
+		Log("[%4u]  %08x  %s\n", PosT, Kmer, KmerStr);
 		}
 	}

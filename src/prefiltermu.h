@@ -95,16 +95,17 @@ public:
 
 public:
 	void SetQDB(const SeqDB &QDB);
-	void Search(FILE *fTsv, uint TSeqIdx, const string &TLabel,
+	void Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL);
-	void SetTarget(uint TSeqIdx, const string &TLabel,
+	//void SetTarget(uint TSeqIdx, const string &TLabel,
+	//			   const byte *TSeq, uint TL);
+	void Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL);
-	void Search_TargetSeq();
 	int FindHSP(uint QSeqIdx, int Diag) const;
 	int FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const;
 	void Search_TargetKmers();
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
-	void Search_Kmer(uint Kmer, uint TPos);
+	void Search_TargetKmer(uint Kmer, uint TPos);
 	void FindTwoHitDiags();
 	void ExtendTwoHitDiagsToHSPs();
 	int ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
@@ -117,4 +118,7 @@ public:
 		return m_QKmerIndex->KmerToStr(Kmer, s);
 		}
 	void Reset();
+	void LogQueryKmers(uint QSeqIdx) const;
+	uint GetQKmer(uint QSeqIdx, uint QPos) const;
+	void LogTargetKmers() const;
 	};

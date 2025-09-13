@@ -85,3 +85,5 @@ public:
 	uint8_t GetKmerMaxLetterCount(uint Kmer);
 	uint GetMaxLetterCount(uint Kmer) const;
 	};
+
+const MerMx &GetMuMerMx(uint k);

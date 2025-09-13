@@ -10,7 +10,6 @@ static const SeqDB *s_ptrQDB = 0;
 static const SeqDB *s_ptrTDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
-static FILE *s_fTsv2 = 0;
 static time_t s_TimeLastProgress;
 
 static void ThreadBody(uint ThreadIndex)
@@ -44,7 +43,7 @@ static void ThreadBody(uint ThreadIndex)
 		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
 		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
 		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
-		Pref.Search(s_fTsv2, TSeqIdx, TLabel, TSeq, TL);
+		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
 		}
 	}
 
@@ -55,8 +54,6 @@ void cmd_prefilter_mu()
 	const string &QueryMu_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
 
-	s_fTsv2 = CreateStdioFile(opt(output2));
-	
 	SeqDB QDB;
 	SeqDB TDB;
 
@@ -108,7 +105,6 @@ void cmd_prefilter_mu()
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
-	CloseStdioFile(s_fTsv2);
 
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);

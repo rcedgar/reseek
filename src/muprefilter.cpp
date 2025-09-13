@@ -55,7 +55,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		const byte *TSeq = SI->m_Seq;
 		const string &TLabel = string(SI->m_Label);
 		uint TL = SI->m_L;
-		Pref.Search(0, TSeqIdx, TLabel, TSeq, TL);
+		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
 		OM.Down(SI);
 		}
 	}
