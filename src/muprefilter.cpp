@@ -21,6 +21,7 @@ bool g_QueryNeighborhood = true;
 static void ThreadBody_Filter(uint ThreadIndex)
 	{
 	PrefilterMu Pref;
+	Pref.m_OneHitDiag = opt(onehitdiag);
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;

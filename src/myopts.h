@@ -145,6 +145,7 @@ FLAG_OPT(myalloc_trace)
 FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(idxq)
 FLAG_OPT(idxt)
+FLAG_OPT(onehitdiag)
 
 #undef FLAG_OPT
 #undef UNS_OPT

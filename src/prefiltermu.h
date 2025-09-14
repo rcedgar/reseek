@@ -79,6 +79,8 @@ public:
 //  finds two-hit diagonals.
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
+	bool m_OneHitDiag = false;
+	set<uint32_t> m_OneHitDiags;
 
 //////////////////////////////////////////////////////
 // Current Target sequence
@@ -97,8 +99,6 @@ public:
 	void SetQDB(const SeqDB &QDB);
 	void Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL);
-	//void SetTarget(uint TSeqIdx, const string &TLabel,
-	//			   const byte *TSeq, uint TL);
 	void Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL);
 	int FindHSP(uint QSeqIdx, int Diag) const;
@@ -107,8 +107,9 @@ public:
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
 	void Search_TargetKmer(uint Kmer, uint TPos);
 	void FindTwoHitDiags();
+	void ExtendOneHitDiagsToHSPs();
 	void ExtendTwoHitDiagsToHSPs();
-	int ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
+	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
 	void GetResults(vector<uint> &QSeqIdxs,
 					vector<uint16_t> &DiagScores) const;
@@ -121,4 +122,5 @@ public:
 	void LogQueryKmers(uint QSeqIdx) const;
 	uint GetQKmer(uint QSeqIdx, uint QPos) const;
 	void LogTargetKmers() const;
+	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
 	};

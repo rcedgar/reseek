@@ -174,8 +174,13 @@ void PrefilterMu::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 
 	Reset();
 	Search_TargetKmers();
-	FindTwoHitDiags();
-	ExtendTwoHitDiagsToHSPs();
+	if (m_OneHitDiag)
+		ExtendOneHitDiagsToHSPs();
+	else
+		{
+		FindTwoHitDiags();
+		ExtendTwoHitDiagsToHSPs();
+		}
 	}
 
 void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
@@ -248,7 +253,10 @@ void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
 #endif
 		if (Diag > m_Mask14)
 			continue;
-		m_DiagBag.Add(QSeqIdx, Diag);
+		if (m_OneHitDiag)
+			OneHitDiagAdd(QSeqIdx, Diag);
+		else
+			m_DiagBag.Add(QSeqIdx, Diag);
 		}
 	}
 	
@@ -312,12 +320,12 @@ void PrefilterMu::ExtendTwoHitDiagsToHSPs()
 		{
 		uint32_t QSeqIdx = m_DiagBag.m_DupeSeqIdxs[i];
 		uint16_t Diag = m_DiagBag.m_DupeDiags[i];
-		int DiagScore = ExtendTwoHitDiagToHSP(QSeqIdx, Diag);
+		int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
 		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
 		}
 	}
 
-int PrefilterMu::ExtendTwoHitDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
+int PrefilterMu::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -418,5 +426,26 @@ void PrefilterMu::LogTargetKmers() const
 		string tmp;
 		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
 		Log("[%4u]  %08x  %s\n", PosT, Kmer, KmerStr);
+		}
+	}
+
+void PrefilterMu::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
+	{
+	uint32_t SeqIdx16 = (SeqIdx & 0xffff);
+	asserta(SeqIdx16 == SeqIdx);
+	uint32_t pair = (SeqIdx16 << 16) | (uint32_t(Diag));
+	m_OneHitDiags.insert(pair);
+	}
+
+void PrefilterMu::ExtendOneHitDiagsToHSPs()
+	{
+	for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
+		 iter != m_OneHitDiags.end(); ++iter)
+		{
+		uint32_t pair = *iter;
+		uint32_t QSeqIdx = (pair >> 16);
+		uint16_t Diag = uint16_t(pair & 0xffff);
+		int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
+		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
 		}
 	}
