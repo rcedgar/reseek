@@ -176,10 +176,6 @@ void PrefilterMu::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 	Search_TargetKmers();
 	FindTwoHitDiags();
 	ExtendTwoHitDiagsToHSPs();
-//#if TRACE
-//	LogTargetKmers();
-//	LogQueryKmers(0);
-//#endif
 	}
 
 void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
@@ -255,7 +251,7 @@ void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
 		m_DiagBag.Add(QSeqIdx, Diag);
 		}
 	}
-
+	
 void PrefilterMu::FindTwoHitDiags()
 	{
 	m_DiagBag.ClearDupes();
