@@ -14,6 +14,7 @@ static const uint DICT_SIZE = 60466176;	// 36^5
 static const uint MAX_HOOD_SIZE = 41293; // empirical cmd_kmrnbh()
 static const uint RSB_SIZE = 1500;
 static const uint ALPHABET_SIZE = 36;
+static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
 
 // N=1679616, Min=16, LoQ=34, Med=38, HiQ=41, Max=60, Avg=37.8889
 #if KMER_SORT

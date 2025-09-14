@@ -66,10 +66,18 @@ uint MuPreFilter(const DSSParams &Params,
 			  MuSeqSource &FSS,
 			  const string &OutputFN)
 	{
+	const uint QSeqCount = QDB.GetSeqCount();
 	if (opt(idxq))
 		g_QueryNeighborhood = true;
 	else if (opt(idxt))
 		g_QueryNeighborhood = false;
+	else
+		{
+		if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
+			g_QueryNeighborhood = true;
+		else
+			g_QueryNeighborhood = false;
+		}
 	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
 
 	s_SS = &FSS;
@@ -78,7 +86,6 @@ uint MuPreFilter(const DSSParams &Params,
 	const uint k = MuDex::m_k;
 
 	QDB.ToLetters(g_CharToLetterMu);
-	const uint QSeqCount = QDB.GetSeqCount();
 
 	PrefilterMu::m_RSB.m_B = RSB_SIZE;
 	if (optset_rsb_size)
