@@ -322,12 +322,17 @@ extern string g_ShortCmdLine;
 const char *MemBytesToStr(double Bytes);
 static inline const char *MemBytesToStr(uint64 Bytes) { return MemBytesToStr((double) Bytes); }
 static inline const char *MemBytesToStr(uint32 Bytes) { return MemBytesToStr((double) Bytes); }
+unsigned StrToUint(const char *s);
+unsigned StrToUint_err(const char *s);
 unsigned StrToUint(const string &s);
+unsigned StrToUint_err(const string &s);
 int StrToInt(const string &s);
 double StrToMemBytes(const string &s);
 double StrToFloat(const string &s);
 float StrToFloatf(const string &s);
+float StrToFloatf_err(const string &s);
 double StrToFloat(const char *s);
+double StrToFloat_err(const char *s);
 const char *GetElapsedTimeStr(string &s);
 const char *GetMaxRAMStr(string &s);
 

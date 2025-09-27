@@ -1083,6 +1083,20 @@ int StrToInt(const char *s)
 	return i;
 	}
 
+unsigned StrToUint_err(const char *s)
+	{
+	if (!IsUintStr(s))
+		return UINT_MAX;
+	unsigned n = 0;
+	while (char c = *s++)
+		{
+		if (!isdigit(c))
+			return n;
+		n = n*10 + (c - '0');
+		}
+	return n;
+	}
+
 unsigned StrToUint(const char *s)
 	{
 	if (!IsUintStr(s))
@@ -1102,10 +1116,24 @@ unsigned StrToUint(const string &s)
 	return StrToUint(s.c_str());
 	}
 
+unsigned StrToUint_err(const string &s)
+	{
+	return StrToUint_err(s.c_str());
+	}
+
 int StrToInt(const string &s)
 	{
 	asserta(s.size() > 0);
 	return StrToInt(s.c_str());
+	}
+
+double StrToFloat_err(const char *s)
+	{
+	char *p;
+	double d = strtod(s, &p);
+	if (*p != 0)
+		return DBL_MAX;
+	return d;
 	}
 
 double StrToFloat(const char *s)
@@ -1120,6 +1148,14 @@ double StrToFloat(const char *s)
 double StrToFloat(const string &s)
 	{
 	return StrToFloat(s.c_str());
+	}
+
+float StrToFloatf_err(const string &s)
+	{
+	double flt = StrToFloat_err(s.c_str());
+	if (flt == DBL_MAX)
+		return FLT_MAX;
+	return float(flt);
 	}
 
 float StrToFloatf(const string &s)

@@ -212,12 +212,16 @@ void ReadCIF(const vector<string> &Lines,
 		const string &aa_Fld = Fields[aa_FldIdx];
 		if (SIZE(aa_Fld) != 3)
 			continue;
-		uint AtomNr = StrToUint(Fields[AtomNr_FldIdx]);
-		uint ResNr = StrToUint(Fields[ResNr_FldIdx]);
-		float X = StrToFloatf(Fields[X_FldIdx]);
-		float Y = StrToFloatf(Fields[Y_FldIdx]);
-		float Z = StrToFloatf(Fields[Z_FldIdx]);
-	//	char aa = GetOneFromThree(aa_Fld);
+		uint AtomNr = StrToUint_err(Fields[AtomNr_FldIdx]);
+		uint ResNr = StrToUint_err(Fields[ResNr_FldIdx]);
+		float X = StrToFloatf_err(Fields[X_FldIdx]);
+		float Y = StrToFloatf_err(Fields[Y_FldIdx]);
+		float Z = StrToFloatf_err(Fields[Z_FldIdx]);
+		if (AtomNr == UINT_MAX ||
+			ResNr == UINT_MAX ||
+			X == FLT_MAX ||
+			Y == FLT_MAX)
+			continue;
 
 		string ATOM = "ATOM";
 		if (StartsWith(Line, "HETATM"))
