@@ -392,7 +392,7 @@ class Scop40:
 			tp = self.tps[i]
 			q = qs[i].split('/')[0]
 			tp = self.tps[i]
-			if tp and (self.dom2score_firstfp[q] is None or \
+			if tp and (self.dom2score_firstfp.get(q) is None or \
 				self.score1_is_better(score, self.dom2score_firstfp[q])):
 				self.nrtps_to_firstfp += 1
 		self.sens_to_firstfp = float(self.nrtps_to_firstfp)/self.NT

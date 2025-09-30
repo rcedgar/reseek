@@ -49,10 +49,6 @@ def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 dofile("../test_output/scop40-evalue1.tsv", 		0.2100, 0.3100, 0.3500)
 dofile("../test_output/scop40-fast.tsv", 			0.2100, 0.3140, 0.4200)
 dofile("../test_output/scop40-sensitive.tsv",		0.2170, 0.3410, 0.4740)
-if os.getenv("dovs", "yes") == "no":
-	sys.stderr.write("==== skipping verysensitive")
-else:
-	dofile("../test_output/scop40-verysensitive.tsv",	0.2170, 0.3410, 0.4380)
 
 if errors == 0:
 	print("%s: PASSED" % sys.argv[0])

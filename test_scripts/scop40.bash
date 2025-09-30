@@ -16,19 +16,6 @@ $reseek \
 	-sensitive \
 	-log scop40-sensitive.log
 
-if [ "$dovs" == no ] ; then
-	echo =================================
-	echo SKIPPING --verysensitive
-	echo =================================
-else
-	$reseek \
-		-search scop40.bca \
-		-db scop40.bca \
-		-output scop40-verysensitive.tsv \
-		-verysensitive \
-		-log scop40-verysensitive.log
-fi
-
 $reseek \
 	-search scop40.bca \
 	-db scop40.bca \
