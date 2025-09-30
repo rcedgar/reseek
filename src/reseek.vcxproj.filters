@@ -29,16 +29,7 @@
     <ClCompile Include="seqdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sort.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="blosum62.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="seqinfo.cpp">
@@ -72,12 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="readchains.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="blosum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="spher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sw.cpp">
@@ -122,15 +107,6 @@
     <ClCompile Include="scop40bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="swgapless.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sweeper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="derepper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="murmurhash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -143,9 +119,6 @@
     <ClCompile Include="dssaligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scalar_sweep.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="scop40benchroc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,9 +126,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xdropbwd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_xdrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="prettyaln.cpp">
@@ -179,25 +149,10 @@
     <ClCompile Include="mumx_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="swgaplessint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="msa2cmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="swgaplessprof.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="b62.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dbsearcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swfastpinop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swfastpinopgapless.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="swgaplessprofb.cpp">
@@ -212,22 +167,10 @@
     <ClCompile Include="parasail_mu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="explore1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_para.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="parasail.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parasail_cigar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_para_path.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_para_cal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="scop40bit.cpp">
@@ -251,9 +194,6 @@
     <ClCompile Include="calibratesearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="train_features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="trained_features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -275,16 +215,10 @@
     <ClCompile Include="crc32.c">
       <Filter>Source Files C</Filter>
     </ClCompile>
-    <ClCompile Include="deflate.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
     <ClCompile Include="gzlib.c">
       <Filter>Source Files C</Filter>
     </ClCompile>
     <ClCompile Include="gzread.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="infback.c">
       <Filter>Source Files C</Filter>
     </ClCompile>
     <ClCompile Include="inflate.c">
@@ -323,9 +257,6 @@
     <ClCompile Include="bcadata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="md5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="profileloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -344,16 +275,7 @@
     <ClCompile Include="daliscore_msas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="runthreads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="distmx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testmodel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testmodel2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mu_mapping.cpp">
@@ -425,16 +347,10 @@
     <ClCompile Include="pdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_chrono_ticks.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mermx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="prime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="diag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mukmerfilter.cpp">
@@ -450,9 +366,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xdrophsp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objcounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mymalloc_dbg.cpp">
@@ -518,9 +431,6 @@
     <ClCompile Include="prefiltermu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="diaghsp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rankedscoresbag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -536,22 +446,13 @@
     <ClCompile Include="mymutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="seqfeeder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="statsig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mmseqs_index_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="split.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="prepare_query.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shuffle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="align_bag.cpp">
@@ -564,6 +465,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lddt_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="objmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -616,9 +520,6 @@
     <ClInclude Include="cmds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="best.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dssp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -629,9 +530,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pathinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="spher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="features.h">
@@ -656,15 +554,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scop40bench.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sweeper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="megacluster.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="derepper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="murmur.h">
@@ -734,9 +623,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scalarparams.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calibratesearcher2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chainreader2.h">
@@ -820,9 +706,6 @@
     <ClInclude Include="mymalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="myallocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="objcounter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -839,9 +722,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mymutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="seqfeeder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="reseek_calibrate.h">
