@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "scop40bench.h"
 #include "features.h"
@@ -39,3 +40,4 @@ void cmd_scalar_sweep()
 		}
 	CloseStdioFile(ftsv);
 	}
+#endif

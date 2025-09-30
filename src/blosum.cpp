@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "alpha.h"
 
@@ -75,3 +76,4 @@ double g_AAFreqs[20] =
         0.01320, // W
         0.03210, // Y
         }; // Sum = 0.99870
+#endif

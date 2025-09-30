@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 #include "scop40bench.h"
@@ -16,3 +17,4 @@ public:
 	vector<uint32_t> m_AllBins;
 	vector<uint32_t> m_AllAccum;
 	};
+#endif

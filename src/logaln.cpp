@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "alpha.h"
 
-extern double g_Blosum62[20][20];
+extern float **g_SubstMx;
 
 void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount)
 	{
@@ -33,11 +33,9 @@ void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount)
 			{
 			byte a = A[pa];
 			byte b = B[pb];
-			byte Lettera = g_CharToLetterAmino[a];
-			byte Letterb = g_CharToLetterAmino[b];
 			if (toupper(a) == toupper(b))
 				Log("|");
-			else if (g_Blosum62[Lettera][Letterb] > 0.0f)
+			else if (g_SubstMx[a][b] > 0.0f)
 				Log("+");
 			else
 				Log(" ");

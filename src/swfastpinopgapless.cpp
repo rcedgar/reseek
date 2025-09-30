@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "mx.h"
 #include "tracebit.h"
@@ -45,3 +46,4 @@ uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
 	myfree(Mrow_);
 	return BestScore;
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "getticks.h"
 #include <chrono>
@@ -38,3 +39,4 @@ void cmd_test_chrono_ticks()
 
     Log("Sum=%.3g\n", Sum);
 	}
+#endif

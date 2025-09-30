@@ -1,3 +1,4 @@
+#if 0 // @@ DELETE
 #include "myutils.h"
 #include "mx.h"
 
@@ -14,3 +15,4 @@ void LogMxAllocCounts(const char *s)
 				g_MxNetAllocCount2.load());
 	}
 #endif // 0
+#endif

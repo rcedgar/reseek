@@ -1,3 +1,4 @@
+#if 0 // @@ DELETE
 #include "myutils.h"
 #include "sweeper.h"
 #include "sort.h"
@@ -56,3 +57,4 @@ uint Sweeper::Run(const DSSParams &Params, const string &Why)
 
 	return Score;
 	}
+#endif

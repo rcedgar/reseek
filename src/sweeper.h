@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 #include "scop40bench.h"
@@ -17,3 +18,4 @@ public:
 	  float Delta, float Z, uint MaxTries);
 	bool Explore1i(DSSParams &Params, uint Idx, bool Plus, uint MaxTries);
 	};
+#endif

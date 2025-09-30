@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "xdpmem.h"
 
@@ -185,3 +186,4 @@ void cmd_test_xdrop()
 	Test("DVLGYLRFLTKGERQANLNF",
 		 "WVLGLINSRFLTKGERQANLNF");
 	}
+#endif

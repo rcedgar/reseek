@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dssaligner.h"
@@ -41,3 +42,4 @@ void cmd_test_para_cal()
 	  Lo1, Lo2, Path);
 	Log("%.1f (%d) %u, %u %s\n", Score, Score2, Lo1, Lo2, Path.c_str());
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "derepper.h"
 #include "murmur.h"
@@ -182,3 +183,4 @@ void cmd_test_derep()
 		uint Size = SIZE(D.m_ClusterToMemberIdxs[Cluster]);
 		}
 	}
+#endif

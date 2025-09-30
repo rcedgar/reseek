@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "mx.h"
 #include "xdpmem.h"
@@ -246,3 +247,4 @@ void cmd_testsw()
 	Test2("QVE", "SEQVENCE");
 	}
 #endif // 0
+#endif

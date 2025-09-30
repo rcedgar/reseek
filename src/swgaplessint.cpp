@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "mx.h"
 #include "xdpmem.h"
@@ -57,3 +58,4 @@ int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
 	
 	return BestScore;
 	}
+#endif

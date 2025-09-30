@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "diag.h"
 
@@ -64,3 +65,4 @@ void cmd_diagtest()
 	DiagTest(123, 456);
 	DiagTest(1, 1);
 	}
+#endif

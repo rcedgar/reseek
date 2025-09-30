@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 class Derepper
@@ -31,3 +32,4 @@ public:
 	void LogMe() const;
 	void GetSizeOrder(vector<uint> &Order) const;
 	};
+#endif

@@ -20,9 +20,6 @@
     <ClCompile Include="myutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="alpha2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="alpha.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -622,9 +619,6 @@
     <ClInclude Include="best.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dssp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -737,9 +731,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="binner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fasterf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scalarparams.h">

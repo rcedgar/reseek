@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "sort.h"
 #include <algorithm>
@@ -169,3 +170,4 @@ void SortAscending(const vector<float> &Values, vector<unsigned> &Order)
 	sort(Order.begin(), Order.end(), CV);
 	EndTimer(Sort);
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
@@ -177,3 +178,4 @@ static void Old_FindCavity(const PDBChain &Chain)
 		}
 	}
 #endif // 0
+#endif

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 
 static vector<vector<double> > linear_one_weight(2);
@@ -155,3 +156,4 @@ d1w36b2/c.37.1.19  1  0.0224  0.998  0.0098       0  0.00245        0  0.00245  
 		}
 	CloseStdioFile(f);
 	}
+#endif

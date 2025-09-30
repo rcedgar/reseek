@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "seqfeeder.h"
 
@@ -161,4 +162,5 @@ void SeqFeeder::Stats() const
 
 	ProgressPrefix(true);
 	}
+#endif
 #endif

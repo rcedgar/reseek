@@ -1,3 +1,4 @@
+#if 0 // @@ DELETE
 #include "myutils.h"
 #include "diaghsp.h"
 #include "diag.h"
@@ -467,3 +468,4 @@ void cmd_hspspeedtest()
 		ProgressLog("Method %d, %.0f ticks\n", Method, double(t2 - t1));
 		}
 	}
+#endif

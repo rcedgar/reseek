@@ -275,7 +275,6 @@
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="alpha.cpp" />
-    <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="b62.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
@@ -482,7 +481,6 @@
     <ClInclude Include="dssaligner.h" />
     <ClInclude Include="dssp.h" />
     <ClInclude Include="dssparams.h" />
-    <ClInclude Include="fasterf.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
@@ -493,7 +491,6 @@
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="pdbfilescanner.h" />
-    <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
     <ClInclude Include="getticks.h" />
     <ClInclude Include="gzguts.h" />

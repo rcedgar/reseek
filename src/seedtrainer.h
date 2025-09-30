@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 #include "trainer.h"
@@ -40,3 +41,4 @@ public:
 	};
 
 bool Scop40_IsTP_SF(const string &Label1, const string &Label2);
+#endif

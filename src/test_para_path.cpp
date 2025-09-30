@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "dssaligner.h"
 #include "xdpmem.h"
@@ -198,3 +199,4 @@ void cmd_test_para_path()
 	Tr.Init(g_Arg1, opt(train_cal));
 	Tr.Scan(OnPair, 0);
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 
 static const uint feature_count = 34;
@@ -142,3 +143,4 @@ void cmd_testmodel()
 		Log("\n");
 		}
 	}
+#endif

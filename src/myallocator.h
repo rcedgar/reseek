@@ -1,5 +1,5 @@
+#if 0 // @@ DELETE
 #pragma once
-#if 0
 // Modified from original here:
 // https://learn.microsoft.com/en-us/cpp/standard-library/allocators?view=msvc-170
 

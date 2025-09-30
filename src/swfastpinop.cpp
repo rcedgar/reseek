@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "mx.h"
 #include "tracebit.h"
@@ -78,3 +79,4 @@ uint SWFastPinop(XDPMem &Mem,
 	myfree(Drow_);
 	return BestScore;
 	}
+#endif

@@ -202,7 +202,6 @@ float ViterbiFastMem(XDPMem &Mem, const char *A, uint LA,
 	void SetBLOSUM62();
 	SetBLOSUM62();
 
-
 	Mem.Clear();
 	Mem.Alloc(LA+32, LB+32);
 	

@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 void CartToSpher(double x, double y, double z,
@@ -8,3 +9,4 @@ void CartToSpher(const vector<double> &Pt,
 
 void SpherToCart(double r, double theta, double phi,
   double &x, double &y, double &z);
+#endif

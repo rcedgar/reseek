@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "pdbchain.h"
 #include "bcadata.h"
@@ -24,3 +25,4 @@ void cmd_shuffle()
 		}
 	BCA.Close();
 	}
+#endif

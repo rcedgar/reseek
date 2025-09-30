@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "mx.h"
 #include "alpha.h"
@@ -164,3 +165,4 @@ void cmd_testsw()
 	Test2("SEQVENCE", "QVE");
 	Test2("QVE", "SEQVENCE");
 	}
+#endif

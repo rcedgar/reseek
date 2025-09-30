@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #if 1 // _MSC_VER
 /* deflate.c -- compress data using the deflation algorithm
  * Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
@@ -2163,3 +2164,4 @@ local block_state deflate_huff(s, flush)
     return block_done;
 }
 #endif // _MSC_VER
+#endif

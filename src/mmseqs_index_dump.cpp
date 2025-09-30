@@ -1,3 +1,4 @@
+#if 0 // @@ DELETE
 #include "myutils.h"
 
 /***
@@ -94,3 +95,4 @@ void cmd_mmseqs_index_dump()
 	ProgressLog("%u records, %u hits, %u non-printing bytes\n",
 				recnr, hitcount, nonprint);
 	}
+#endif

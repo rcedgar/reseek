@@ -1,3 +1,4 @@
+#if 0 // @@ DELETE
 #include "myutils.h"
 #include "sweeper.h"
 #include "sort.h"
@@ -148,3 +149,4 @@ void cmd_explore1()
 			ProgressLog("%s %.6g => %.6g\n", Name.c_str(), FirstValue, Value);
 		}
 	}
+#endif

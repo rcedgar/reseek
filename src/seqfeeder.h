@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 #include <list>
@@ -45,3 +46,4 @@ public:
 public:
 	static void Static_ThreadBody(SeqFeeder *SF);
 	};
+#endif

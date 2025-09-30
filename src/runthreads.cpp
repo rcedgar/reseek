@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 //#include "runthreads.h"
 
@@ -15,3 +16,4 @@ void RunThreads(fn_thread_body Body, void *ptrUserData)
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	}
+#endif

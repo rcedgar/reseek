@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 static inline void Best5(float v, float w, float x, float y, float z,
@@ -91,3 +92,4 @@ static inline void Best2(float x, float y, char cx, char cy,
 		BestChar = cy;
 		}
 	}
+#endif

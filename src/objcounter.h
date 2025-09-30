@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #pragma once
 
 extern mutex g_ObjCounter_Lock;
@@ -18,3 +19,4 @@ void ObjCounter_LogReport();
 		{ \
 		ObjCounter_Delete(p, #Name); \
 		}
+#endif
