@@ -407,9 +407,6 @@
     <ClCompile Include="tracebackbitmem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="global.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="binner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -701,9 +698,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mymalloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="objcounter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mudex.h">

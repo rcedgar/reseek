@@ -37,17 +37,17 @@ def split_cigar(cigar):
             n = n*10 + int(c)
         else:
             op = c
-            if not op in "MDI":
+            if not op in "STMDI":
                 errors += 1
                 print("%s: ERROR bad cigar #3 %s" % (sys.argv[0], cigar))
-                return
+                return None, None
             ops.append(op)
             ns.append(n)
             n = 0
-    if not op in "MDI":
+    if not op in "STMDI":
         errors += 1
         print("%s: ERROR bad cigar #4 " % (sys.argv[0], cigar))
-        return
+        return None, None
     ops.append(op)
     ns.append(n)
     assert len(ops) == len(ns)
@@ -55,10 +55,15 @@ def split_cigar(cigar):
 
 def cigar2path(cigar):
     ns, ops = split_cigar(cigar)
+    if ns is None or ops is None:
+        return
     path = ""
     N = len(ns)
     for i in range(N):
-        path += ops[i]*ns[i]
+        op = ops[i]
+        if op == 'S' or op == 'T':
+            continue
+        path += op*ns[i]
     return path
 
 def check_default(fn):
@@ -114,13 +119,14 @@ def check_local_row(fn, labelfld, lofld, hifld, cigarfld, op, rowfld):
                 seg += c
         if seg != chainseg:
             errors += 1
-            print(seg)
-            print(chainseg)
+            print("    line=" + line[:-1])
             print("     seg=" + seg)
             print("chainseg=" + chainseg)
             print("%s: ERROR %s %s seg mismatch #1" % (sys.argv[0], fn, label))
             return
         path = cigar2path(cigar)
+        if path is None:
+            continue
         cols = len(path)
         rowlen = len(row)
         if cols != rowlen:

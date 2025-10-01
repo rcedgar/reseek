@@ -114,6 +114,7 @@ DSSAligner::DSSAligner()
 		m_UFs.push_back(UF_query);
 		m_UFs.push_back(UF_target);
 		m_UFs.push_back(UF_evalue);
+		m_UFs.push_back(UF_pvalue);
 		}
 	}
 
@@ -430,11 +431,11 @@ bool DSSAligner::DoMKF() const
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return false;
-	if ((*m_MuLettersA).size() == 0 || (*m_MuLettersB).size())
+	if ((*m_MuLettersA).size() == 0 || (*m_MuLettersB).size() == 0)
 		return false;
 	if (m_MuKmersA == 0 || m_MuKmersB == 0)
 		return false;
-	if ((*m_MuKmersA).size() == 0 || (*m_MuKmersB).size())
+	if ((*m_MuKmersA).size() == 0 || (*m_MuKmersB).size() == 0)
 		return false;
 	uint LA = m_ChainA->GetSeqLength();
 	uint LB = m_ChainB->GetSeqLength();
@@ -887,10 +888,12 @@ void DSSAligner::GetRow_A(string &Row) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
+#if 0 // global
 	for (uint i = m_LoA; i < m_LoB; ++i)
 		Row += '.';
 	for (uint i = 0; i < m_LoA; ++i)
 		Row += tolower(SeqA[i]);
+#endif
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -923,6 +926,7 @@ void DSSAligner::GetRow_A(string &Row) const
 			asserta(false);
 			}
 		}
+#if 0 // global
 	while (PosA < LA)
 		{
 		Row += tolower(SeqA[PosA++]);
@@ -930,6 +934,7 @@ void DSSAligner::GetRow_A(string &Row) const
 		}
 	while (PosB++ < LB)
 		Row += '.';
+#endif
 	}
 
 void DSSAligner::GetRowSS_A(string &Row) const
@@ -942,10 +947,12 @@ void DSSAligner::GetRowSS_A(string &Row) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
+#if 0 // global
 	for (uint i = m_LoA; i < m_LoB; ++i)
 		Row += '.';
 	for (uint i = 0; i < m_LoA; ++i)
 		Row += tolower(SeqA[i]);
+#endif
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -978,6 +985,7 @@ void DSSAligner::GetRowSS_A(string &Row) const
 			asserta(false);
 			}
 		}
+#if 0 // global
 	while (PosA < LA)
 		{
 		Row += tolower(SeqA[PosA++]);
@@ -985,6 +993,7 @@ void DSSAligner::GetRowSS_A(string &Row) const
 		}
 	while (PosB++ < LB)
 		Row += '.';
+#endif
 	}
 
 void DSSAligner::GetRow_B(string &Row) const
@@ -995,10 +1004,12 @@ void DSSAligner::GetRow_B(string &Row) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
+#if 0 // global
 	for (uint i = m_LoB; i < m_LoA; ++i)
 		Row += '.';
 	for (uint i = 0; i < m_LoB; ++i)
 		Row += tolower(SeqB[i]);
+#endif
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -1034,6 +1045,7 @@ void DSSAligner::GetRow_B(string &Row) const
 			asserta(false);
 			}
 		}
+#if 0 // global
 	while (PosB < LB)
 		{
 		Row += tolower(SeqB[PosB++]);
@@ -1041,6 +1053,7 @@ void DSSAligner::GetRow_B(string &Row) const
 		}
 	while (PosA++ < LA)
 		Row += '.';
+#endif
 	}
 
 void DSSAligner::GetRowSS_B(string &Row) const
@@ -1053,10 +1066,12 @@ void DSSAligner::GetRowSS_B(string &Row) const
 	const uint LA = SIZE(SeqA);
 	const uint LB = SIZE(SeqB);
 	const uint ColCount = SIZE(m_Path);
+#if 0 // global
 	for (uint i = m_LoB; i < m_LoA; ++i)
 		Row += '.';
 	for (uint i = 0; i < m_LoB; ++i)
 		Row += tolower(SeqB[i]);
+#endif
 	uint PosA = m_LoA;
 	uint PosB = m_LoB;
 	for (uint Col = 0; Col < ColCount; ++Col)
@@ -1092,6 +1107,7 @@ void DSSAligner::GetRowSS_B(string &Row) const
 			asserta(false);
 			}
 		}
+#if 0 // global
 	while (PosB < LB)
 		{
 		Row += tolower(SeqB[PosB++]);
@@ -1099,6 +1115,7 @@ void DSSAligner::GetRowSS_B(string &Row) const
 		}
 	while (PosA++ < LA)
 		Row += '.';
+#endif
 	}
 
 void DSSAligner::GetPosABs(vector<uint> &PosAs,

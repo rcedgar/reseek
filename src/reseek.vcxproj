@@ -282,7 +282,6 @@
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
-    <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="lddt_bench.cpp" />
     <ClCompile Include="muprefilter.cpp" />
@@ -452,7 +451,6 @@
     <ClInclude Include="museqsource.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
-    <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="floatfeatures.h" />
