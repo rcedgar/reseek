@@ -137,38 +137,6 @@ def check_local_row(fn, labelfld, lofld, hifld, cigarfld, op, rowfld):
             
     print("ok check_local_row " + fn)       
 
-def check_global_row(fn, labelfld, lofld, hifld, lenfld, rowfld):
-    global errors
-    for line in open(fn):
-        try:
-            flds = line[:-1].split('\t')
-            label = flds[labelfld]
-            lo = int(flds[lofld])
-            hi = int(flds[hifld])
-            l = int(flds[lenfld])
-            row = flds[rowfld]
-            chain = chains[label]
-        except:
-            errors += 1
-            print("%s: ERROR %s exception in check_global_row" % (sys.argv[0], fn))
-            return
-        seq = ""
-        for c in row:
-            if c != '.' and c != '-':
-                seq += c.upper()
-        if seq != chain:
-            print("  seq=" + seq)
-            print("chain=" + chain)
-            errors += 1
-            print("%s: ERROR %s %s seg mismatch #2" % (sys.argv[0], fn, label))
-            return
-        if len(seq) != l:
-            errors += 1
-            print("%s: ERROR %s %s len mismatch #3" % (sys.argv[0], fn, label))
-            return
-            
-    print("ok check_global_row " + fn)       
-
 d = "../test_output/"
 check_default(d + "columns_default.tsv")
 check_default(d + "columns_same_as_default.tsv")
@@ -177,8 +145,5 @@ check_default(d + "columns_same_as_default.tsv")
 #	-columns query+target+qlo+qhi+ql+tlo+thi+tl+cigar+qrow+trow
 check_local_row(d + "columns_local_rows.tsv", 0, 2, 3, 8, 'D', 9)
 check_local_row(d + "columns_local_rows.tsv", 1, 5, 6, 8, 'I', 10)
-
-check_global_row(d + "columns_global_rows.tsv", 0, 2, 3, 4, 9)
-check_global_row(d + "columns_global_rows.tsv", 1, 5, 6, 7, 10)
 
 exit(1 if errors > 0 else 0)

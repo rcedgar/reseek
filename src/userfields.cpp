@@ -18,8 +18,6 @@ USERFIELD StrToUF(const string &Str)
 
 static const char *EvalueToStr(double E, string &s)
 	{
-	if (E > 10)
-		E = 99;
 	if (E > 1)
 		Ps(s, "%.1f", E);
 	else if (E > 0.001)
@@ -47,7 +45,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	if (f == 0)
 		return;
 
-	const bool Up = (optset_fast ? aUp : !aUp);
+	const bool Up = !aUp;
 
 	string TmpStr;
 	switch (UF)
@@ -63,8 +61,8 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;
 	case UF_thi:	fprintf(f, "%u", GetHi(!Up) + 1); break;
 	case UF_pctid:	fprintf(f, "%.1f", GetPctId()); break;
-	case UF_ts:		fprintf(f, "%.3g", GetTestStatistic(Up)); break;
-	case UF_newts:	fprintf(f, "%.3g", GetNewTestStatistic(Up)); break;
+	case UF_ts:		fprintf(f, "%.3g", GetNewTestStatistic(Up)); break;
+	//case UF_newts:	fprintf(f, "%.3g", GetNewTestStatistic(Up)); break;
 	case UF_raw:	fprintf(f, "%.3g", m_AlnFwdScore); break;
 	case UF_ids:	fprintf(f, "%u", m_Ids); break;
 	case UF_gaps:	fprintf(f, "%u", m_Gaps); break;
@@ -72,7 +70,9 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_cigar:
 		{
 		string CIGAR;
-		PathToCIGAR(m_Path.c_str(), CIGAR, Up);
+		uint QLo = GetLo(Up);
+		uint TLo = GetLo(!Up);
+		LocalPathToCIGAR(m_Path.c_str(), QLo, TLo, CIGAR, Up);
 		fputs(CIGAR.c_str(), f);
 		break;
 		}
@@ -80,7 +80,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_qrow:
 		{
 		string Row;
-		GetRow(Up, true, false, Row);
+		GetRow(Up, true, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}
@@ -88,23 +88,23 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_trow:
 		{
 		string Row;
-		GetRow(Up, false, false, Row);
+		GetRow(Up, false, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}
 
-	case UF_qrowg:
+	case UF_qrowss:
 		{
 		string Row;
-		GetRow(Up, true, true, Row);
+		GetRowSS(Up, true, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}
 
-	case UF_trowg:
+	case UF_trowss:
 		{
 		string Row;
-		GetRow(Up, false, true, Row);
+		GetRowSS(Up, false, Row);
 		fputs(Row.c_str(), f);
 		break;
 		}

@@ -389,7 +389,6 @@
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="swgaplessprofb.cpp" />
     <ClCompile Include="timing.cpp" />
-    <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="trees.c" />

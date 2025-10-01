@@ -8,13 +8,6 @@
 #include "mukmerfilter.h"
 #include <mutex>
 
-#define SCORE_DIST	0
-
-#if SCORE_DIST
-#include "binner.h"
-#define SCORE_BINS	100
-#endif
-
 class DSSAligner
 	{
 private:
@@ -31,8 +24,6 @@ public:
 	const vector<uint> *m_MuKmersB = 0;
 	vector<const float *> m_ProfMu;
 	vector<const float *> m_ProfMuRev;
-	vector<const int8_t *> m_ProfMui;
-	vector<const int8_t *> m_ProfMuRevi;
 	vector<byte> m_MuRevA;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
@@ -41,8 +32,6 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	//Mx<float> m_SM;
-
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
 	string m_Path;
@@ -56,8 +45,6 @@ public:
 	float m_EvalueB = FLT_MAX;
 	float m_QualityA = FLT_MAX;
 	float m_QualityB = FLT_MAX;
-	float m_TestStatisticA = FLT_MAX;
-	float m_TestStatisticB = FLT_MAX;
 	float m_NewTestStatisticA = FLT_MAX;
 	float m_NewTestStatisticB = FLT_MAX;
 
@@ -84,7 +71,6 @@ public:
 
 public:
 	static mutex m_OutputLock;
-	//static mutex m_StatsLock;
 
 public:
 	static atomic<uint> m_AlnCount;
@@ -94,9 +80,6 @@ public:
 	static atomic<uint> m_ParasailSaturateCount;
 	static atomic<uint> m_XDropAlnCount;
 	static atomic<uint> m_XDropDiscardCount;
-#if SCORE_DIST
-	static vector<float> m_TSs;
-#endif
 
 public:
 	DSSAligner();
@@ -121,66 +104,42 @@ public:
 	bool DoMKF() const;
 
 	float GetMuScore();
-	bool MuFilter();
+	bool MuDPFilter();
 	void ClearAlign();
 	void AlignQueryTarget();
-	void AlignQueryTarget_Global();
+	//void AlignQueryTarget_Global();
 	void AlignQueryTarget_Trace();
-	void Align_Test(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
-	void Align_MuFilter(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
-	  const vector<byte> &MuLettersB,const vector<uint> &MuKmersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void AlignMKF();
 	void PostAlignMKF();
 	float GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len);
-	void LogHSP(uint Lo_i, uint Lo_j, uint Len) const;
 	void Align_NoAccel();
-	void Align_QRev();
+	void Align_SWOnly();
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignMuQP_Para();
 	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
 	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
-	//float AlignMu_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
-	  const string &Path) const;
-	float GetMuDPScorePath(const vector<byte> &LettersA,
-	  const vector<byte> &LettersB, uint LoA, uint LoB,
-	  float GapOpen, float GapExt, const string &Path) const;
-	int GetMuDPScorePathInt(const vector<byte> &MuLettersA,
-	  const vector<byte> &MuLettersB, uint LoA, uint LoB,
-	  const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
-	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
-	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB, uint n) const;
-	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
-	void CalcEvalue_AAOnly();
-	void SetSMx_QRev();
 	void SetSMx_NoRev(const DSSParams &Params,
 					  const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB);
 	void SetMuQP();
-	void SetMuQPi();
 	void SetMuQP_Para();
-	//void SetSMx_Mu();
 	void AllocDProw(uint LB);
 	const float * const *GetSMxData() const;
 	float **GetSMxData();
 	void AllocSMxData(uint LA, uint LB);
 	void FreeSMxData();
+	float GetDPScoreGivenPath(const vector<vector<byte> > &Profile1,
+							  const vector<vector<byte> > &Profile2,
+							  const string &Path) const;
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
 	void ToTsv(FILE *f, bool Up);
-	void ToFasta2(FILE *f, bool Global, bool Up) const;
+	void ToFasta2(FILE *f, bool Up) const;
 	void ToAln(FILE *f, bool Up) const;
 	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
@@ -196,19 +155,20 @@ public:
 	uint GetLo(bool Top) const { return Top ? m_LoA : m_LoB; }
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
-	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
-	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 	float GetPvalue(bool Top) const { return Top ? m_PvalueA : m_PvalueB; }
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
 
-	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
+	void GetRow(bool Up, bool Top, string &Row) const;
+	void GetRowSS(bool Up, bool Top, string &Row) const;
 
-	float GetKabsch(double t[3], double u[3][3], bool Up) const;
+	float GetKabsch(float t[3], float u[3][3], bool Up) const;
 
-	void GetRow_A(string &Row, bool Global) const;
-	void GetRow_B(string &Row, bool Global) const;
+	void GetRow_A(string &Row) const;
+	void GetRow_B(string &Row) const;
+	void GetRowSS_A(string &Row) const;
+	void GetRowSS_B(string &Row) const;
 
 	float XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 				   uint &Loi_out, uint &Loj_out,
@@ -224,11 +184,10 @@ public:
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
+	void ValidatePath() const;
+	void GetCIGAR(string &CIGAR) const;
 
 public:
 	static void Stats();
-#if SCORE_DIST
-	static void ReportScoreDist();
-#endif
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	};

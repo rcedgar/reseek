@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "dssaligner.h"
 
@@ -31,3 +32,4 @@ void DSSAligner::AlignQueryTarget_Global()
 	m_LoB = 0;
 	m_Path = m_GlobalPath;
 	}
+#endif

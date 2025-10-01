@@ -386,9 +386,6 @@
     <ClCompile Include="postmufilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tracealn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="chainbag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
