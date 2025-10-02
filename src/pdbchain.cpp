@@ -107,11 +107,12 @@ void PDBChain::LogMe(bool WithCoords) const
 		}
 	}
 
-void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const
+void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat,
+	const DSSParams &Params) const
 	{
 	if (f == 0)
 		return;
-	D.Init(*this);
+	D.Init(*this, Params);
 	const uint L = GetSeqLength();
 	const uint AlphaSize = D.GetAlphaSize(Feat);
 	string Seq;
@@ -192,6 +193,8 @@ static float GetFloatFromString(const string &s, uint Pos, uint n)
 	string t = s.substr(Pos, n);
 	StripWhiteSpace(t);
 	float Value = (float) StrToFloat(t);
+	if (isnan(Value))
+		Value = 0;
 	return Value;
 	}
 

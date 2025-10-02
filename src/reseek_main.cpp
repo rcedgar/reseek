@@ -2,7 +2,6 @@
 #include "dss.h"
 #include "timing.h"
 
-int g_Frame = 0;
 string g_Arg1;
 
 //void cmd_test() {}

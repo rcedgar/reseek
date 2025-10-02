@@ -5,7 +5,7 @@
 
 double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
   uint LoA, uint LoB, const string &Path,
-  double t[3], double u[3][3]);
+  float t[3], float u[3][3]);
 void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
   const string &LabelB, const byte *B,
   uint Loi, uint Loj, const char *Path);

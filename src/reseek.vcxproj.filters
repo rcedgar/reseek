@@ -80,16 +80,13 @@
     <ClCompile Include="features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="float_feature_bins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sscluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="myss.cpp">
+    <ClCompile Include="conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="valuetoint.cpp">
@@ -464,6 +461,21 @@
     <ClCompile Include="objmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="loadfeatures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="featuretrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="getselfrevscore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="condense.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mu_hardcoded.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -740,6 +752,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="featuretrainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="undef_binning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flatmx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

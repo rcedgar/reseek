@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
-#include "abcxyz.h"
+//#include "xyz.h"
 #include "alpha.h"
 #include "dss.h"
 
@@ -27,29 +27,12 @@ uint DSS::Get_SS(uint Pos)
 	return Letter;
 	}
 
-uint DSS::Get_NENSS3(uint Pos)
-	{
-	SetSS();
-	uint NEN = GetNEN(Pos);
-	if (NEN == UINT_MAX)
-		return WILDCARD;
-	char c = m_SS[NEN];
-	switch (c)
-		{
-	case 'h': return 0;
-	case 's': return 1;
-	case 't': return 2;
-	case '~': return 2;
-		}
-	return WILDCARD;
-	}
-
 uint DSS::Get_RENSS3(uint Pos)
 	{
 	SetSS();
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	char c = m_SS[NEN];
 	switch (c)
 		{
@@ -58,21 +41,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return WILDCARD;
-	}
-
-uint DSS::Get_SS3(uint Pos)
-	{
-	SetSS();
-	char c = m_SS[Pos];
-	switch (c)
-		{
-	case 'h': return 0;
-	case 's': return 1;
-	case 't': return 2;
-	case '~': return 2;
-		}
-	return WILDCARD;
+	return 0;
 	}
 
 void DSS::GetSSEs(uint MinLength, vector<uint> &Los,
@@ -154,74 +123,69 @@ void DSS::SetSSEs()
 		}
 	}
 
-double DSS::GetFloat_NormDens(uint Pos)
+float DSS::GetFloat_NormDens(uint Pos)
 	{
 	SetDensity_ScaledValues();
 	asserta(Pos < SIZE(m_Density_ScaledValues));
 	return m_Density_ScaledValues[Pos];
 	}
 
-double DSS::GetFloat_HelixDens(uint Pos)
+float DSS::GetFloat_HelixDens(uint Pos)
 	{
 	return GetSSDensity(Pos, 'h');
 	}
 
-double DSS::GetFloat_StrandDens(uint Pos)
+float DSS::GetFloat_StrandDens(uint Pos)
 	{
 	return GetSSDensity(Pos, 's');
 	}
-
-//double DSS::GetFloat_LoopDens(uint Pos)
-//	{
-//	return GetSSDensity(Pos, '~');
-//	}
 
 void DSS::SetDensity_ScaledValues()
 	{
 	if (!m_Density_ScaledValues.empty())
 		return;
 	const uint L = GetSeqLength();
-	vector<double> Values;
+	vector<float> Values;
 	m_Density_ScaledValues.reserve(L);
 	Values.reserve(L);
-	double MinValue = 999;
-	double MaxValue = 0;
+	float MinValue = 999;
+	float MaxValue = 0;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		double D = GetDensity(Pos);
+		float D = GetDensity(Pos);
 		Values.push_back(D);
-		if (D != DBL_MAX)
+		if (D != FLT_MAX)
 			{
 			MinValue = min(MinValue, D);
 			MaxValue = max(MaxValue, D);
 			}
 		}
 
-	double Range = (MaxValue - MinValue);
+	float Range = (MaxValue - MinValue);
 	if (Range < 1)
 		Range = 1;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		double Value = Values[Pos];
-		if (Value == DBL_MAX)
+		float Value = Values[Pos];
+		if (Value == FLT_MAX)
 			{
-			m_Density_ScaledValues.push_back(DBL_MAX);
+			m_Density_ScaledValues.push_back(FLT_MAX);
 			continue;
 			}
-		double ScaledValue = (Value - MinValue)/Range;
+		float ScaledValue = (Value - MinValue)/Range;
 		asserta(ScaledValue >= 0 && ScaledValue <= 1);
 		m_Density_ScaledValues.push_back(ScaledValue);
 		}
 	}
 
-double DSS::GetDensity(uint Pos) const
+float DSS::GetDensity(uint Pos) const
 	{
 	const PDBChain &Chain = *m_Chain;
 	const uint L = SIZE(Chain.m_Seq);
 	if (Pos == 0 || Pos+1 >= L)
-		return DBL_MAX;
+		return FLT_MAX;
 
-	vector<double> PtCA;
+	vector<float> PtCA;
 	Chain.GetPt(Pos, PtCA);
 
 	int iLo = int(Pos) - m_Density_W;
@@ -230,121 +194,28 @@ double DSS::GetDensity(uint Pos) const
 	int iHi = int(Pos) + m_Density_W;
 	if (iHi >= int(L))
 		iHi = int(L)-1;
-	double D = 0;
-	vector<double> Pt2;
+	float D = 0;
+	vector<float> Pt2;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_Density_w >= Pos && Pos2 <= Pos + m_Density_w)
 			continue;
-		double Dist = Chain.GetDist(Pos, Pos2);
-		double DistFactor = exp(-Dist/m_Density_Radius);
+		float Dist = GetDist(Pos, Pos2);
+		float DistFactor = exp(-Dist/m_Density_Radius);
 		D += DistFactor;
 		}
 	return D;
 	}
 
-void DSS::Get_NU_ND(uint Pos, double &NU, double &ND) const
-	{
-	NU = 0;
-	ND = 0;
-	const PDBChain &Chain = *m_Chain;
-	const uint L = SIZE(Chain.m_Seq);
-	if (Pos == 0 || Pos+1 >= L)
-		{
-		NU = DBL_MAX;
-		ND = DBL_MAX;
-		return;
-		}
-
-	vector<double> PtPrevCA;
-	vector<double> PtNextCA;
-	vector<double> PtCA;
-	vector<double> PtCB;
-	Chain.GetPt(Pos-1, PtPrevCA);
-	Chain.GetPt(Pos, PtCA);
-	Chain.GetPt(Pos+1, PtNextCA);
-
-	vector<double> d1;
-	vector<double> d2;
-	Sub_Vecs(PtCA, PtPrevCA, d1);
-	Sub_Vecs(PtCA, PtNextCA, d2);
-
-	vector<double> VecPAB;
-	Add_Vecs(d1, d2, VecPAB);
-	NormalizeVec(VecPAB);
-
-	vector<double> Pt2;
-	vector<double> Vec12;
-	//const int W = 50;
-	//const double RADIUS = 20.0;
-	int iLo = int(Pos) - m_NUDX_W;
-	if (iLo < 0)
-		iLo = 0;
-	int iHi = int(Pos) + m_NUDX_W;
-	if (iHi >= int(L))
-		iHi = int(L)-1;
-	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
-		{
-		if (Pos2 + 3 >= Pos && Pos2 <= Pos + 3)
-			continue;
-		double Dist = Chain.GetDist(Pos, Pos2);
-		double DistFactor = exp(-Dist/m_NU_ND_Radius);
-		Chain.GetPt(Pos2, Pt2);
-		Sub_Vecs(Pt2, PtCA, Vec12);
-		double Theta = GetTheta_Vecs(VecPAB, Vec12);
-		double Deg = degrees(Theta);
-		if (Deg < 90)
-			NU += DistFactor;
-		else
-			ND += DistFactor;
-		}
-	}
-
-void DSS::Set_NU_ND_Vecs()
-	{
-	if (!m_NUs.empty())
-		return;
-	const uint L = GetSeqLength();
-	m_NUs.reserve(L);
-	m_NDs.reserve(L);
-	m_NXs.reserve(L);
-	for (uint Pos = 0; Pos < L; ++Pos)
-		{
-		double NU, ND;
-		Get_NU_ND(Pos, NU, ND);
-		m_NUs.push_back(NU);
-		m_NDs.push_back(ND);
-		m_NXs.push_back(NU+ND);
-		}
-	}
-
-double DSS::GetFloat_NX(uint Pos)
-	{
-	Set_NU_ND_Vecs();
-	return m_NXs[Pos];
-	}
-
-//double DSS::GetFloat_NU(uint Pos)
-//	{
-//	Set_NU_ND_Vecs();
-//	return m_NUs[Pos];
-//	}
-//
-//double DSS::GetFloat_ND(uint Pos)
-//	{
-//	Set_NU_ND_Vecs();
-//	return m_NDs[Pos];
-//	}
-
-double DSS::GetSSDensity(uint Pos, char c)
+float DSS::GetSSDensity(uint Pos, char c)
 	{
 	SetSS();
 	const PDBChain &Chain = *m_Chain;
 	const uint L = SIZE(Chain.m_Seq);
 	if (Pos == 0 || Pos+1 >= L)
-		return DBL_MAX;
+		return FLT_MAX;
 
-	vector<double> PtCA;
+	vector<float> PtCA;
 	Chain.GetPt(Pos, PtCA);
 
 	int iLo = int(Pos) - m_SSDensity_W;
@@ -353,21 +224,21 @@ double DSS::GetSSDensity(uint Pos, char c)
 	int iHi = int(Pos) + m_SSDensity_W;
 	if (iHi >= int(L))
 		iHi = int(L)-1;
-	double D = 0;
-	double Dc = 0;
-	vector<double> Pt2;
+	float D = 0;
+	float Dc = 0;
+	vector<float> Pt2;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_SSDensity_w >= Pos && Pos2 <= Pos + m_SSDensity_w)
 			continue;
 		char c2 = m_SS[Pos2];
-		double Dist = Chain.GetDist(Pos, Pos2);
-		double DistFactor = exp(-Dist/m_Density_Radius);
+		float Dist = GetDist(Pos, Pos2);
+		float DistFactor = exp(-Dist/m_Density_Radius);
 		D += DistFactor;
 		if (c2 == c)
 			Dc += DistFactor;
 		}
-	double r = Dc/(D + m_SSDensity_epsilon);
+	float r = Dc/(D + m_SSDensity_epsilon);
 	return r;
 	}
 
@@ -398,13 +269,13 @@ uint DSS::CalcREN(uint Pos, uint NEN) const
 	if (iLo == INT_MAX || iHi == INT_MAX)
 		return UINT_MAX;
 
-	double MinDist = 999;
+	float MinDist = 999;
 	uint MinPos = UINT_MAX;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
 			continue;
-		double Dist = m_Chain->GetDist(Pos, Pos2);
+		float Dist = GetDist(Pos, Pos2);
 		if (Dist < MinDist)
 			{
 			MinDist = Dist;
@@ -423,13 +294,13 @@ uint DSS::CalcNEN(uint Pos) const
 	int iHi = int(Pos) + m_NEN_W;
 	if (iHi >= int(L))
 		iHi = int(L)-1;
-	double MinDist = 999;
+	float MinDist = 999;
 	uint MinPos = UINT_MAX;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
 			continue;
-		double Dist = m_Chain->GetDist(Pos, Pos2);
+		float Dist = GetDist(Pos, Pos2);
 		if (Dist < MinDist)
 			{
 			MinDist = Dist;
@@ -437,6 +308,86 @@ uint DSS::CalcNEN(uint Pos) const
 			}
 		}
 	return MinPos;
+	}
+
+uint DSS::CalcPlusNEN(uint Pos) const
+	{
+	const uint L = GetSeqLength();
+	int iLo = int(Pos) + m_NEN_w;
+	int iHi = int(Pos) + m_NEN_W;
+	if (iHi >= int(L))
+		iHi = int(L)-1;
+	float MinDist = 999;
+	uint MinPos = UINT_MAX;
+	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
+		{
+		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
+			continue;
+		float Dist = GetDist(Pos, Pos2);
+		if (Dist < MinDist)
+			{
+			MinDist = Dist;
+			MinPos = Pos2;
+			}
+		}
+	return MinPos;
+	}
+
+uint DSS::CalcMinusNEN(uint Pos) const
+	{
+	const uint L = GetSeqLength();
+	int iLo = int(Pos) - m_NEN_W;
+	int iHi = int(Pos) - m_NEN_w;
+	if (iHi < 0)
+		return UINT_MAX;
+	if (iLo < 0)
+		iLo = 0;
+	float MinDist = 999;
+	uint MinPos = UINT_MAX;
+	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
+		{
+		if (Pos2 + m_NEN_w >= Pos && Pos2 <= Pos + m_NEN_w)
+			continue;
+		float Dist = GetDist(Pos, Pos2);
+		if (Dist < MinDist)
+			{
+			MinDist = Dist;
+			MinPos = Pos2;
+			}
+		}
+	return MinPos;
+	}
+
+float DSS::GetFloat_MinusNENDist(uint Pos)
+	{
+	uint NEN = GetMinusNEN(Pos);
+	if (NEN == UINT_MAX)
+		return FLT_MAX;
+	float d = GetDist(Pos, NEN);
+	return d;
+	}
+
+float DSS::GetFloat_PlusNENDist(uint Pos)
+	{
+	uint NEN = GetPlusNEN(Pos);
+	if (NEN == UINT_MAX)
+		return FLT_MAX;
+	float d = GetDist(Pos, NEN);
+	return d;
+	}
+
+float DSS::GetFloat_DiffNENDist(uint Pos)
+	{
+	uint NEN = GetPlusNEN(Pos);
+	if (NEN == UINT_MAX)
+		return FLT_MAX;
+	uint REN = GetMinusNEN(Pos);
+	if (REN == UINT_MAX)
+		return FLT_MAX;
+	float d_plus = GetDist(Pos, NEN);
+	float d_minus = GetDist(Pos, REN);
+	float diff = d_plus - d_minus;
+	return diff;
 	}
 
 uint DSS::GetNEN(uint Pos)
@@ -453,6 +404,20 @@ uint DSS::GetREN(uint Pos)
 	return m_RENs[Pos];
 	}
 
+uint DSS::GetPlusNEN(uint Pos)
+	{
+	SetNENs();
+	asserta(Pos < SIZE(m_PlusNENs));
+	return m_PlusNENs[Pos];
+	}
+
+uint DSS::GetMinusNEN(uint Pos)
+	{
+	SetNENs();
+	asserta(Pos < SIZE(m_MinusNENs));
+	return m_MinusNENs[Pos];
+	}
+
 void DSS::SetNENs()
 	{
 	if (!m_NENs.empty())
@@ -460,12 +425,18 @@ void DSS::SetNENs()
 	const uint L = GetSeqLength();
 	m_NENs.reserve(L);
 	m_RENs.reserve(L);
+	m_PlusNENs.reserve(L);
+	m_MinusNENs.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		uint NEN = CalcNEN(Pos);
 		uint REN = CalcREN(Pos, NEN);
+		uint PlusNEN = CalcPlusNEN(Pos);
+		uint MinusNEN = CalcMinusNEN(Pos);
 		m_NENs.push_back(NEN);
 		m_RENs.push_back(REN);
+		m_PlusNENs.push_back(PlusNEN);
+		m_MinusNENs.push_back(MinusNEN);
 		}
 	}
 
@@ -493,37 +464,37 @@ uint DSS::Get_RENSS(uint Pos)
 	return SSCharToInt(c);
 	}
 
-double DSS::GetFloat_NENDist(uint Pos)
+float DSS::GetFloat_NENDist(uint Pos)
 	{
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
-	double d = m_Chain->GetDist(Pos, NEN);
+		return FLT_MAX;
+	float d = GetDist(Pos, NEN);
 	return d;
 	}
 
-double DSS::GetFloat_PMDist(uint Pos)
+float DSS::GetFloat_PMDist(uint Pos)
 	{
 	int iPos = (int) Pos;
 	int L = (int) GetSeqLength();
 	if (L < 8)
-		return 0;
+		return FLT_MAX;
 	int Pos1 = iPos - m_PMDelta;
 	int Pos2 = iPos + m_PMDelta;
 	if (Pos1 < 0)
 		Pos1 = 0;
 	if (Pos2 >= L)
 		Pos2 = L - 1;
-	double d = m_Chain->GetDist(uint(Pos1), uint(Pos2));
+	float d = GetDist(uint(Pos1), uint(Pos2));
 	return d;
 	}
 
-double DSS::GetFloat_RENDist(uint Pos)
+float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
-	double d = m_Chain->GetDist(Pos, NEN);
+		return FLT_MAX;
+	float d = GetDist(Pos, NEN);
 	return d;
 	}
 
@@ -531,7 +502,7 @@ uint DSS::Get_NormDens4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NormDens, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -540,16 +511,7 @@ uint DSS::Get_NENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NENDist, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
-	asserta(ND < 16);
-	return ND/4;
-	}
-
-uint DSS::Get_RENDist4(uint Pos)
-	{
-	uint ND = GetFeature(FEATURE_RENDist, Pos);
-	if (ND == UINT_MAX)
-		return WILDCARD;
+		return 0;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -566,7 +528,7 @@ uint DSS::Get_AA3(uint Pos)
 		return 1;
 	if (strchr("CFILMVWY", c) != 0)
 		return 2;
-	return WILDCARD;
+	return 0;
 	}
 
 // AHPST,CFILMVWY,DEKNQR,G
@@ -583,13 +545,13 @@ uint DSS::Get_AA4(uint Pos)
 		return 2;
 	if (strchr("DEKNQR", c) != 0)
 		return 3;
-	return WILDCARD;
+	return 0;
 	}
 
 void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	{
 	Letters.clear();
-	uint n = m_Params->m_MuFeatureCount;
+	uint n = DSSParams::m_MuFeatureCount;
 	if (MuLetter == UINT_MAX)
 		{
 		for (uint i = 0; i < n; ++i)
@@ -601,7 +563,7 @@ void DSS::GetMuLetters(uint MuLetter, vector<uint> &Letters) const
 	uint m = 1;
 	for (uint i = 0; i < n; ++i)
 		{
-		uint m = m_Params->m_MuAlphaSizes[i];
+		uint m = DSSParams::m_MuAlphaSizes[i];
 		uint Letter = CL%m;
 		Letters.push_back(Letter);
 		CL /= m;
@@ -620,28 +582,28 @@ uint DSS::GetMuLetter(const vector<uint> &Letters) const
 		if (Letter == UINT_MAX)
 			return UINT_MAX;
 		MuLetter = MuLetter + m*Letter;
-		m *= m_Params->m_MuAlphaSizes[i];
+		m *= DSSParams::m_MuAlphaSizes[i];
 		}
-	asserta(MuLetter < m_Params->m_MuAlphaSize);
+	asserta(MuLetter < DSSParams::m_MuAlphaSize);
 	return MuLetter;
 	}
 
-uint DSS::Get_Mu(uint Pos)
-	{
-	uint MuLetter = 0;
-	uint m = 1;
-	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
-		{
-		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
-		if (Letter == UINT_MAX)
-			return UINT_MAX;
-		MuLetter = MuLetter + m*Letter;
-		m *= m_Params->m_MuAlphaSizes[i];
-		}
-
-	asserta(MuLetter < m_Params->m_MuAlphaSize);
-	return MuLetter;
-	}
+//uint DSS::Get_Mu(uint Pos)
+//	{
+//	uint MuLetter = 0;
+//	uint m = 1;
+//	for (uint i = 0; i < DSSParams::m_MuFeatureCount; ++i)
+//		{
+//		uint Letter = GetFeature(m_Params->m_MuFeatures[i], Pos);
+//		if (Letter == UINT_MAX)
+//			return UINT_MAX;
+//		MuLetter = MuLetter + m*Letter;
+//		m *= m_Params->m_MuAlphaSizes[i];
+//		}
+//
+//	asserta(MuLetter < m_Params->m_MuAlphaSize);
+//	return MuLetter;
+//	}
 
 void DSS::GetMuLetters(vector<uint> &Letters)
 	{
@@ -715,16 +677,17 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 
 void DSS::GetProfile(vector<vector<byte> > &Profile)
 	{
+	const DSSParams &Params = *m_Params;
 	Profile.clear();
 	const uint L = GetSeqLength();
 	const string &Seq = m_Chain->m_Seq;
-	const uint FeatureCount = m_Params->GetFeatureCount();
+	const uint FeatureCount = Params.GetFeatureCount();
 	Profile.reserve(FeatureCount);
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		vector<byte> ProfRow;
 		ProfRow.reserve(L);
-		FEATURE Feature = m_Params->m_Features[i];
+		FEATURE Feature = Params.m_Features[i];
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			uint Letter = GetFeature(Feature, Pos);
@@ -740,7 +703,7 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 		}
 	}
 
-double DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
+float DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
 	{
 	switch (FeatureIndex)
 		{
@@ -749,74 +712,36 @@ double DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
 #undef F
 		}
 	asserta(false);
-	return DBL_MAX;
-	}
-
-uint DSS::GetAlphaSize(FEATURE F)
-	{
-	switch (F)
-		{
-	case FEATURE_AA:
-		return 20;
-
-	case FEATURE_SS:
-	case FEATURE_NENSS:
-	case FEATURE_RENSS:
-	case FEATURE_NormDens4:
-	case FEATURE_NENDist4:
-	case FEATURE_RENDist4:
-	case FEATURE_AA4:
-		return 4;
-
-	case FEATURE_SS3:
-	case FEATURE_NENSS3:
-	case FEATURE_RENSS3:
-	case FEATURE_AA3:
-		return 3;
-
-	case FEATURE_Conf:
-	case FEATURE_NENConf:
-	case FEATURE_RENConf:
-	case FEATURE_NormDens:
-	case FEATURE_NENDist:
-	case FEATURE_RENDist:
-	case FEATURE_HelixDens:
-	case FEATURE_StrandDens:
-	case FEATURE_DstNxtHlx:
-	case FEATURE_DstPrvHlx:
-	case FEATURE_NX:
-	case FEATURE_PMDist:
-		return 16;
-
-	case FEATURE_Mu:
-		return DSSParams::m_MuAlphaSize;
-		}
-	Die("GetAlphaSize(%s)", FeatureToStr(F));
-	return UINT_MAX;
-	}
-
-void DSS::SetParams(const DSSParams &Params)
-	{
-	m_Params = &Params;
+	return FLT_MAX;
 	}
 
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
 	{
-	return GetFeature(uint(Feature), Pos);
+	uint Letter = GetFeatureLo(Feature, Pos);
+	if (Letter == UINT_MAX)
+		return 0;
+	assert(Letter < GetAlphaSize(Feature));
+	return Letter;
 	}
 
 uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 	{
-	switch (FeatureIndex)
+	uint Letter = GetFeature(FEATURE(FeatureIndex), Pos);
+	return Letter;
+	}
+
+uint DSS::GetFeatureLo(FEATURE F, uint Pos)
+	{
+	switch (F)
 		{
-		case FEATURE_AA:
-			{
-			char AminoChar = m_Chain->m_Seq[Pos];
-			uint AminoLetter = g_CharToLetterAmino[AminoChar];
-			if (AminoLetter >= 20)
-				return WILDCARD;
-			return AminoLetter;
-			}
+	case FEATURE_AA:
+		{
+		char AminoChar = m_Chain->m_Seq[Pos];
+		uint AminoLetter = g_CharToLetterAmino[AminoChar];
+		if (AminoLetter >= 20)
+			return 0;
+		return AminoLetter;
+		}
 
 #define F(x)	case FEATURE_##x: return Get_##x(Pos);
 #include "intfeatures.h"
@@ -824,8 +749,13 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 
 #define F(x)	case FEATURE_##x: \
 		{ \
-		double Value = GetFloat_##x(Pos); \
-		return ValueToInt_##x(Value); \
+		float Value = GetFloat_##x(Pos); \
+		UNDEF_BINNING UB = DSS::GetUB(FEATURE_##x); \
+		uint AS = DSS::GetAlphaSize(FEATURE_##x); \
+		uint DefaultLetter = DSS::GetDefaultLetter(FEATURE_##x); \
+		const vector<float> &BinTs = GetBinTs(FEATURE_##x); \
+		uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter); \
+		return Letter; \
 		}
 #include "floatfeatures.h"
 #undef F
@@ -837,16 +767,7 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 	return UINT_MAX;
 	}
 
-uint DSS::ValueToInt(const vector<double> &Ts, double Value)
-	{
-	const uint N = SIZE(Ts);
-	for (uint i = 0; i < N; ++i)
-		if (Value <= Ts[i])
-			return i;
-	return N;
-	}
-
-double DSS::GetFloat_DstPrvHlx(uint Pos)
+float DSS::GetFloat_DstPrvHlx(uint Pos)
 	{
 	SetSSEs();
 	const uint SSECount = SIZE(m_SSE_Mids);
@@ -857,13 +778,13 @@ double DSS::GetFloat_DstPrvHlx(uint Pos)
 		uint Mid = m_SSE_Mids[i];
 		if (Mid + m_SSE_Margin >= Pos)
 			continue;
-		double Dist = m_Chain->GetDist(Pos, Mid);
+		float Dist = GetDist(Pos, Mid);
 		return Dist;
 		}
-	return 0;
+	return FLT_MAX;
 	}
 
-double DSS::GetFloat_DstNxtHlx(uint Pos)
+float DSS::GetFloat_DstNxtHlx(uint Pos)
 	{
 	SetSSEs();
 	const uint SSECount = SIZE(m_SSE_Mids);
@@ -874,8 +795,8 @@ double DSS::GetFloat_DstNxtHlx(uint Pos)
 		uint Mid = m_SSE_Mids[i];
 		if (Mid <= Pos + m_SSE_Margin)
 			continue;
-		double Dist = m_Chain->GetDist(Pos, Mid);
+		float Dist = GetDist(Pos, Mid);
 		return Dist;
 		}
-	return 0;
+	return FLT_MAX;
 	}

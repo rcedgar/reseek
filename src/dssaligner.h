@@ -191,3 +191,10 @@ public:
 	static void Stats();
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	};
+
+float GetSelfRevScore(DSSAligner &DA,
+	const DSSParams &Params,
+	const PDBChain &Chain,
+	const vector<vector<byte> > &Profile,
+	const vector<byte> *ptrMuLetters,
+	const vector<uint> *ptrMuKmers);

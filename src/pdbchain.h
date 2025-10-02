@@ -6,6 +6,7 @@
 //#include "objcounter.h"
 
 class DSS;
+class DSSParams;
 
 class PDBChain
 	{
@@ -50,7 +51,7 @@ public:
 	void ToCal(FILE *f) const;
 	void ToFasta(const string &FileName) const;
 	void ToFasta(FILE *f) const;
-	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const;
+	void ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat, const DSSParams &Params) const;
 	void ToCalSeg(FILE *f, uint Pos, uint n) const;
 	void ToCal(const string &FileName) const;
 	void ToPDB(FILE *f, bool TruncateAtZ = false) const;

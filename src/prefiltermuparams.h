@@ -16,12 +16,6 @@ static const uint RSB_SIZE = 1500;
 static const uint ALPHABET_SIZE = 36;
 static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
 
-// N=1679616, Min=16, LoQ=34, Med=38, HiQ=41, Max=60, Avg=37.8889
-#if KMER_SORT
-static const int MIN_KMER_PAIR_SCORE = 0;
-#define QUERY_COUNT_MULTIPLIER	5000	// something wrong here, too slow
-#else
 static const int MIN_KMER_PAIR_SCORE = 36;
-#endif
 
 extern bool g_QueryNeighborhood;

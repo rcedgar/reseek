@@ -11,11 +11,6 @@
 	SEPQ0.1=0.2110 SEPQ1=0.3143 SEPQ10=0.3880 S1FP=0.3349 N1FP=152301 area=7.14
 ***/
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 static mutex s_IndexQueryLock;
 static mutex s_ScanLock;
 static uint s_QueryIdx;
@@ -40,7 +35,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
 	MKF.SetParams(Params);
@@ -66,7 +61,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 			ProgressStep(QueryIdx, s_QueryCount, "Index query");
 
 		const PDBChain &QChain = *QChains[QueryIdx];
-		D.Init(QChain);
+		D.Init(QChain, Params);
 
 		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
 		vector<byte> *ptrQMuLetters = new vector<byte>;
@@ -76,7 +71,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
 		float QSelfRevScore = 
-			GetSelfRevScore(DASelfRev, D, QChain,
+			GetSelfRevScore(DASelfRev, Params, QChain,
 							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
 		uint16_t *HT = MKF.CreateEmptyHashTable();
@@ -118,7 +113,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
 	MKF.SetParams(Params);
@@ -163,12 +158,12 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		PDBChain DBChain;
 		DB.ReadChain(TargetIdx, DBChain);
 
-		D.Init(DBChain);
+		D.Init(DBChain, Params);
 		D.GetProfile(DBProfile);
 		D.GetMuLetters(DBMuLetters);
 		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
 
-		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
+		float DBSelfRevScore = GetSelfRevScore(DASelfRev, Params, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
 		DASelfRev.UnsetQuery();
 
@@ -251,7 +246,7 @@ void PostMuFilter(const DSSParams &Params,
 
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	DASelfRev.SetParams(Params);
 
 	vector<ChainBag *> ChainBagsQ;

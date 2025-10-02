@@ -4,11 +4,6 @@
 #include "dssaligner.h"
 #include "profileloader.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 	{
 	PL->ThreadBody(ThreadIndex);
@@ -17,13 +12,11 @@ void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 void ProfileLoader::ThreadBody(uint ThreadIndex)
 	{
 	DSS D;
-	D.SetParams(*m_Params);
-
 	DSSAligner DA;
 	DSSParams DA_Params = *m_Params;
+	DA_Params.m_OwnScoreMxs = false;
 	DA_Params.m_UsePara = false;
 	DA_Params.m_Omega = 0;
-	DA_Params.m_OwnScoreMxs = false;
 
 	DA.SetParams(DA_Params);
 
@@ -51,13 +44,12 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		vector<byte> *MuLetters = m_MuLetters == 0 ? 0 : new vector<byte>;
 		vector<uint> *MuKmers = m_MuLetters == 0 ? 0 : new vector<uint>;
 		float SelfRevScore = FLT_MAX;
-
-		D.Init(*Chain);
+		D.Init(*Chain, *m_Params);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
 		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers, m_Params->m_MKFPatternStr);
 		if (m_SelfRevScores != 0) SelfRevScore =
-			GetSelfRevScore(DA, D, *Chain, *ptrProfile, MuLetters, MuKmers);
+			GetSelfRevScore(DA, DA_Params, *Chain, *ptrProfile, MuLetters, MuKmers);
 
 		m_Lock.lock();
 		Chain->m_Idx = SIZE(*m_Chains);

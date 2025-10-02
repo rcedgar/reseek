@@ -62,6 +62,7 @@ STR_OPT(accumrev)
 STR_OPT(savebit)
 STR_OPT(aln)
 STR_OPT(filin)
+STR_OPT(feature_spec)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -114,6 +115,10 @@ FLT_OPT(mints)
 FLT_OPT(gapopen)
 FLT_OPT(gapext)
 FLT_OPT(minmegahsp)
+FLT_OPT(minaq)
+FLT_OPT(maxaq)
+FLT_OPT(minpctid)
+FLT_OPT(maxpctid)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
@@ -144,6 +149,7 @@ FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(idxq)
 FLAG_OPT(idxt)
 FLAG_OPT(onehitdiag)
+FLAG_OPT(nofeatures)
 
 #undef FLAG_OPT
 #undef UNS_OPT

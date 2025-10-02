@@ -24,25 +24,38 @@ float Kabsch(
   float t[3], float u[3][3])
 	{
 	int i, j, m, m1, l, k;
-	float e0, rms1, d, h, g;
-	float cth, sth, sqrth, p, det, sigma;
-	float xc[3], yc[3];
-	float a[3][3], b[3][3], r[3][3], e[3], rr[6], ss[6];
-	float sqrt3 = 1.73205080756888f, tol = 0.01f;
+	double e0, rms1, d, h, g;
+	double cth, sth, sqrth, p, det, sigma;
+	double xc[3], yc[3];
+	double a[3][3], b[3][3], r[3][3], e[3], rr[6], ss[6];
+	double sqrt3 = 1.73205080756888f, tol = 0.01f;
 	int ip[] = { 0, 1, 3, 1, 2, 4, 3, 4, 5 };
 	int ip2312[] = { 1, 2, 0, 1 };
 	asserta(n > 0);
 
+#if DEBUG
+	{
+	for (int i = 0; i < n; ++i)
+		{
+		assert(!isnan(x[i][0]));
+		assert(!isnan(x[i][1]));
+		assert(!isnan(x[i][2]));
+		assert(!isnan(y[i][0]));
+		assert(!isnan(y[i][1]));
+		assert(!isnan(y[i][2]));
+		}
+	}
+#endif
 	int a_failed = 0, b_failed = 0;
-	float epsilon = 0.00000001f;
+	double epsilon = 0.00000001f;
 
 	//initializtation
-	float rms = 0;
+	double rms = 0;
 	rms1 = 0;
 	e0 = 0;
-	float c1[3], c2[3];
-	float s1[3], s2[3];
-	float sx[3], sy[3], sz[3];
+	double c1[3], c2[3];
+	double s1[3], s2[3];
+	double sx[3], sy[3], sz[3];
 	for (i = 0; i < 3; i++)
 		{
 		s1[i] = 0.0;
@@ -125,8 +138,8 @@ float Kabsch(
 			}
 		}
 
-	float spur = (rr[0] + rr[2] + rr[5]) / 3.0f;
-	float cof = (((((rr[2] * rr[5] - rr[4] * rr[4]) + rr[0] * rr[5])\
+	double spur = (rr[0] + rr[2] + rr[5]) / 3.0f;
+	double cof = (((((rr[2] * rr[5] - rr[4] * rr[4]) + rr[0] * rr[5])\
 		- rr[3] * rr[3]) + rr[0] * rr[2]) - rr[1] * rr[1]) / 3.0f;
 	det = det * det;
 
@@ -187,7 +200,7 @@ float Kabsch(
 
 
 					//if( d > 0.0 ) d = 1.0 / sqrt(d);
-					if (d > epsilon) d = 1.0f / sqrtf(d);
+					if (d > epsilon) d = 1.0f / sqrt(d);
 					else d = 0.0;
 					for (i = 0; i < 3; i++) a[i][l] = a[i][l] * d;
 					}//for l
@@ -231,7 +244,7 @@ float Kabsch(
 					}//if p<=tol
 				else
 					{
-					p = 1.0f / sqrtf(p);
+					p = 1.0f / sqrt(p);
 					for (i = 0; i < 3; i++) a[i][m1] = a[i][m1] * p;
 					}//else p<=tol  
 				if (a_failed != 1)
@@ -255,7 +268,7 @@ float Kabsch(
 					d = d + b[i][l] * b[i][l];
 					}
 				//if( d > 0 ) d = 1.0 / sqrt(d);
-				if (d > epsilon) d = 1.0f / sqrtf(d);
+				if (d > epsilon) d = 1.0f / sqrt(d);
 				else d = 0.0;
 				for (i = 0; i < 3; i++) b[i][l] = b[i][l] * d;
 				}
@@ -290,7 +303,7 @@ float Kabsch(
 				}//if( p <= tol )
 			else
 				{
-				p = 1.0f / sqrtf(p);
+				p = 1.0f / sqrt(p);
 				for (i = 0; i < 3; i++) b[i][1] = b[i][1] * p;
 				}
 			if (b_failed != 1)
@@ -301,14 +314,18 @@ float Kabsch(
 				//compute u
 				for (i = 0; i < 3; i++)
 					for (j = 0; j < 3; j++)
-						u[i][j] = b[i][0] * a[j][0] +
-						b[i][1] * a[j][1] + b[i][2] * a[j][2];
+						{
+						u[i][j] = float(b[i][0] * a[j][0] + b[i][1] * a[j][1] + b[i][2] * a[j][2]);
+						assert(!isnan(u[i][j]));
+						}
 				}
 
 			//compute t
 			for (i = 0; i < 3; i++)
-				t[i] = ((yc[i] - u[i][0] * xc[0]) - u[i][1] * xc[1]) -
-				u[i][2] * xc[2];
+				{
+				t[i] = float(((yc[i] - u[i][0] * xc[0]) - u[i][1] * xc[1]) - u[i][2] * xc[2]);
+				assert(!isnan(t[i]));
+				}
 			}//if(mode!=0 && a_failed!=1)
 		}//spur>0
 	//compute rms
@@ -323,8 +340,21 @@ float Kabsch(
 
 	rms = (e0 - d) - d;
 	if (rms < 0.0) rms = 0.0;
-
-	return rms;
+#if DEBUG
+	assert(!isnan(t[0]));
+	assert(!isnan(t[1]));
+	assert(!isnan(t[2]));
+	assert(!isnan(u[0][0]));
+	assert(!isnan(u[0][1]));
+	assert(!isnan(u[0][2]));
+	assert(!isnan(u[1][0]));
+	assert(!isnan(u[1][1]));
+	assert(!isnan(u[1][2]));
+	assert(!isnan(u[2][0]));
+	assert(!isnan(u[2][1]));
+	assert(!isnan(u[2][2]));
+#endif
+	return float(rms);
 	}
 
 float Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
@@ -333,7 +363,7 @@ float Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 	{
 	uint ColCount = SIZE(Path);
 	float **x = myalloc(float *, ColCount);
-	float **y = myalloc(float *, ColCount);
+	float  **y = myalloc(float  *, ColCount);
 	uint M = 0;
 	uint PosA = LoA;
 	uint PosB = LoB;
@@ -373,7 +403,7 @@ float Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 			asserta(false);
 			}
 		}
-	float RMS = Kabsch(x, y, M, t, u);
+	double RMS = Kabsch(x, y, M, t, u);
 	for (uint i = 0; i < M; ++i)
 		{
 		myfree(x[i]);
@@ -382,39 +412,39 @@ float Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
 	myfree(x);
 	myfree(y);
 	asserta(M > 0);
-	return RMS/M;
+	return float(RMS/M);
 	}
 
 #if 0
 #include "xyz.h"
 
-static void Test(const float t_in[3],
-  const float u_in[3][3], uint n)
+static void Test(const double t_in[3],
+  const double u_in[3][3], uint n)
 	{
 	Log("t_in = %.1f %.1f %.1f\n", t_in[0], t_in[1], t_in[2]);
 	Log("uin0 = %7.3f %7.3f %7.3f\n", u_in[0][0], u_in[0][1], u_in[0][2]);
 	Log("uin1 = %7.3f %7.3f %7.3f\n", u_in[1][0], u_in[1][1], u_in[1][2]);
 	Log("uin2 = %7.3f %7.3f %7.3f\n", u_in[2][0], u_in[2][1], u_in[2][2]);
 
-	float **x = myalloc(float *, n);
-	float **y = myalloc(float *, n);
+	double **x = myalloc(double *, n);
+	double **y = myalloc(double *, n);
 
 	for (uint i = 0; i < n; ++i)
 		{
-		x[i] = myalloc(float, 3);
-		y[i] = myalloc(float, 3);
+		x[i] = myalloc(double, 3);
+		y[i] = myalloc(double, 3);
 
-		x[i][0] = float(randu32()%10);
-		x[i][1] = float(randu32()%10);
-		x[i][2] = float(randu32()%10);
+		x[i][0] = double(randu32()%10);
+		x[i][1] = double(randu32()%10);
+		x[i][2] = double(randu32()%10);
 
 		transform(t_in, u_in, x[i], y[i]);
 		}
 
-	float t[3];
-	float u[3][3];
+	double t[3];
+	double u[3][3];
 
-	float rms = Kabsch(x, y, n, t, u);
+	double rms = Kabsch(x, y, n, t, u);
 
 	Log(" rms = %.2f\n", rms);
 	Log("   t = %.1f %.1f %.1f\n", t[0], t[1], t[2]);
@@ -428,7 +458,7 @@ static void Test(const float t_in[3],
 	Log("\n");
 	for (uint i = 0; i < n; ++i)
 		{
-		float x_transformed[3];
+		double x_transformed[3];
 		transform(t, u, x[i], x_transformed);
 
 		Log("(%8.1f,  %8.1f,  %8.1f)", x[i][0], x[i][1], x[i][2]);
@@ -440,8 +470,8 @@ static void Test(const float t_in[3],
 
 void cmd_test()
 	{
-	float t[3] = { 1, 2, 3 };
-	float u[3][3] =
+	double t[3] = { 1, 2, 3 };
+	double u[3][3] =
 		{
 		{ 1, 0, 0 },
 		{ 0, 1, 0 },
@@ -450,9 +480,9 @@ void cmd_test()
 
 // https://en.wikipedia.org/wiki/Rotation_matrix
 
-	float theta = 1;
-	float c = cos(theta);
-	float s = sin(theta);
+	double theta = 1;
+	double c = cos(theta);
+	double s = sin(theta);
 
 	u[0][0] = 1;		u[0][1] = 0;		u[0][1] = 0;
 	u[1][0] = 0;		u[1][1] = c;		u[1][1] = -s;

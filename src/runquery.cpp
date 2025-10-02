@@ -4,11 +4,6 @@
 #include "timing.h"
 #include "mx.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 void DBSearcher::StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS,
   ChainReader2 *ptrQueryCR)
 	{
@@ -26,14 +21,14 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	vector<uint> MuKmers1;
 
 	DSS D;
-	D.SetParams(*m_Params);
+	//D.SetParams(*m_Params);
 
 	for (;;)
 		{
 		PDBChain *Chain1 = ptrQueryCR->GetNext();
 		if (Chain1 == 0)
 			return;
-		D.Init(*Chain1);
+		D.Init(*Chain1, *m_Params);
 		D.GetProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
 		D.GetMuKmers(MuLetters1, MuKmers1, m_Params->m_MKFPatternStr);
@@ -41,7 +36,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);
 		float SelfRevScore = GetSelfRevScore(
-			DA, D, *Chain1, Profile1, ptrMuLetters1, ptrMuKmers1);
+			DA, *m_Params, *Chain1, Profile1, ptrMuLetters1, ptrMuKmers1);
 		DA.SetQuery(*Chain1, &Profile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore);
 
 		for (uint DBChainIdx = 0; DBChainIdx < DBChainCount; ++DBChainIdx)

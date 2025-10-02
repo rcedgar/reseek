@@ -83,7 +83,7 @@ void cmd_search()
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_UseCommandLineOption);
-	const string &PatternStr = Params.m_MuPrefPatternStr;
+	const string &PatternStr = Params.m_MuPrefilterPatternStr;
 	asserta(PatternStr == "1110011");
 
 	string MuFilterTsvFN;

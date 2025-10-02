@@ -10,7 +10,7 @@ void cmd_mu_mapping()
 	Params.SetDSSParams(DM_DefaultFast);
 
 	DSS D;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	//void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	//uint GetMuLetter(const vector<uint> &Letters) const;
 	uint AS = Params.m_MuAlphaSize;

@@ -3,7 +3,6 @@
 #endif
 
 C(pdb2ss)
-C(float_feature_bins)
 C(sscluster)
 C(test)
 C(scop40bench)

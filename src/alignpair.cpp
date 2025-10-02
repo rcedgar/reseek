@@ -4,26 +4,6 @@
 #include "pdbchain.h"
 #include "abcxyz.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers)
-	{
-	if (opt(selfrev0))
-		return 0;
-	PDBChain RevChain;
-	Chain.GetReverse(RevChain);
-	vector<vector<byte> > RevProfile;
-	D.Init(RevChain);
-	D.GetProfile(RevProfile);
-
-	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
-
-	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
-	DA.AlignQueryTarget();
-	return DA.m_AlnFwdScore;
-	}
-
 static void ReadChains_SaveLines(const string &FileName,
   vector<PDBChain *> &Chains)
 	{
@@ -86,23 +66,23 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	float BestScore = 0;
 	uint BestChainIndexQ = UINT_MAX;
 	uint BestChainIndexT = UINT_MAX;
-	D.Init(*ChainQ);
+	D.Init(*ChainQ, Params);
 	D.GetProfile(ProfileQ);
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
-	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ, 0, 0);
+	float SelfRevScoreQ = GetSelfRevScore(DA, Params, *ChainQ, ProfileQ, 0, 0);
 
 	vector<byte> MuLettersT;
 	vector<uint> MuKmersT;
 
-	D.Init(*ChainT);
+	D.Init(*ChainT, Params);
 	D.GetProfile(ProfileT);
 
 	if (Params.m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
 
-	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT, 0, 0);
+	float SelfRevScoreT = GetSelfRevScore(DA, Params, *ChainT, ProfileT, 0, 0);
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
@@ -180,7 +160,7 @@ void cmd_alignpair()
 	DA.SetParams(Params);
 
 	DSS D;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);

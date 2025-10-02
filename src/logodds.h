@@ -5,27 +5,38 @@ class LogOdds
 public:
 	uint m_AlphaSize = 0;
 	vector<uint> m_BackgroundCounts;
+	vector<uint> m_BackgroundCountsUnaligned;
 	vector<vector<uint> > m_TrueCountMx;
-	vector<double> m_Freqs;
-	vector<double> m_FreqMx;
+	bool m_UseUnalignedBackground = true;
 
 public:
 	void Init(uint AlphaSize);
-	void AddBackgroundLetter(uint Letter);
-	void AddTruePair(uint Letter1, uint Letter2);
-	void GetBackgroundFreqs(vector<double> &Freqs) const;
-	void GetTrueFreqMx(vector<vector<double> > &Mx) const;
-	double GetLogOddsMx(vector<vector<double> > &Mx) const;
-	void GetLogOddsMxInt8(vector<vector<double> > &Mxd,
+	void AddUnalignedLetter(uint Letter);
+	uint GetBackgroundCount(uint Letter) const;
+	void AddPair(uint Letter1, uint Letter2);
+	void GetFreqs(vector<float> &Freqs) const;
+	void GetFreqMx(vector<vector<float> > &Mx) const;
+	float GetLogOddsMx(vector<vector<float> > &Mx) const;
+	void GetLogOddsMxInt8(vector<vector<float> > &Mxd,
 	  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const;
 	uint GetTrueTotal() const;
 	void MxToSrc(FILE *f, const string &Name, 
-	  const vector<vector<double> > &Mx) const;
+	  const vector<vector<float> > &Mx) const;
 	void MxToSrc2(FILE *f, const string &Name, 
-	  const vector<vector<double> > &Mx, uint EffAlphaSize) const;
+	  const vector<vector<float> > &Mx, uint EffAlphaSize) const;
 	void VecToSrc(FILE *f, const string &Name, 
-	  const vector<double> &v) const;
+	  const vector<float> &v) const;
 	void GetSymbol(uint Letter, string &s) const;
+	float GetExpectedScore() const;
+	void ToTsv(FILE *f) const;
+	void FromTsv(FILE *f);
+	void ValidateCounts() const;
+	void ReadStringValue(FILE *f, const string &Name, string &Value);
+	float ReadFloatValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
+	uint ReadIntValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
+	void ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Vec);
+	void GetExpectedScores(vector<float> &ExpectedScores) const;
+	uint GetBestDefaultLetter(uint WildcardLetter) const;
 	};
 
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi);

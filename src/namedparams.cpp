@@ -9,11 +9,10 @@ void DSSParams::FromParamStr(const string &Str)
 
 	m_GapOpen = -1.5f;
 	m_GapExt = -0.42f;
-	m_FwdMatchScore = 0;
 	m_MinFwdScore = 0;
 	m_Omega = 0;
 	m_MKFPatternStr = "*";
-	m_MuPrefPatternStr = "*";
+	m_MuPrefilterPatternStr = "*";
 
 	const uint N = SIZE(Fields);
 	for (uint i = 0; i < N; ++i)
@@ -29,25 +28,31 @@ void DSSParams::FromParamStr(const string &Str)
 		}
 	}
 
+//void DSSParams::SetDefaults()
+//	{
+//	Clear();
+//
+//	AddFeature(FEATURE_AA,			0.398145);
+//	AddFeature(FEATURE_NENDist,		0.129367);
+//	AddFeature(FEATURE_Conf,		0.202354);
+//	AddFeature(FEATURE_NENConf,		0.149383);
+//	AddFeature(FEATURE_RENDist,	0.0937677);
+//	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
+//	AddFeature(FEATURE_StrandDens,	0.0183853);
+//	AddFeature(FEATURE_NormDens,	0.00384384);
+//
+//	m_GapOpen = -0.685533f;
+//	m_GapExt = -0.051881f;
+//	m_MinFwdScore = 7.0f;
+//	m_Omega = 29;
+//	m_OmegaFwd = 29;
+//	m_MuPrefilterPatternStr = "1110011";
+//	m_MKFPatternStr = "111";
+//	}
+
 void DSSParams::SetDefaults()
 	{
 	Clear();
-
-	AddFeature(FEATURE_AA,			0.398145);
-	AddFeature(FEATURE_NENDist,		0.129367);
-	AddFeature(FEATURE_Conf,		0.202354);
-	AddFeature(FEATURE_NENConf,		0.149383);
-	AddFeature(FEATURE_RENDist,	0.0937677);
-	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
-	AddFeature(FEATURE_StrandDens,	0.0183853);
-	AddFeature(FEATURE_NormDens,	0.00384384);
-
-	m_GapOpen = -0.685533f;
-	m_GapExt = -0.051881f;
-	m_FwdMatchScore = 0.1f;
-	m_MinFwdScore = 7.0f;
-	m_Omega = 29;
-	m_OmegaFwd = 29;
-	m_MuPrefPatternStr = "1110011";
-	m_MKFPatternStr = "111";
+	SetDefaults_Features();
+	SetDefaults_Other();
 	}

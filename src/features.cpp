@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "features.h"
+#include "dss.h"
 
 const char *FeatureToStr(uint FeatureIndex)
 	{
@@ -58,10 +59,11 @@ bool FeatureIsInt(uint FeatureIndex)
 
 void cmd_feature_stats()
 	{
-	for (uint F = 0; F < FEATURE_COUNT; ++F)
+	for (uint iF = 0; iF < FEATURE_COUNT; ++iF)
 		{
-		uint AS = g_AlphaSizes2[F];
-		float **Mx = g_ScoreMxs2[F];
+		FEATURE F = FEATURE(iF);
+		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
+		const float * const *Mx = DSS::GetScoreMx(F);
 		ProgressLog("[%2u]  %s",
 		  F, FeatureToStr(F));
 		if (Mx == 0)
@@ -69,6 +71,3 @@ void cmd_feature_stats()
 		ProgressLog("\n");
 		}
 	}
-
-extern float **g_ScoreMxs2[FEATURE_COUNT];
-extern uint g_AlphaSizes2[FEATURE_COUNT];

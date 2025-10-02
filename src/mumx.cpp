@@ -2,8 +2,9 @@
 #include "dss.h"
 #include "mumx.h"
 #include "mermx.h"
+#include "featuretrainer.h"
 
-static int8_t intround(float f)
+static int8_t int8round(float f)
 	{
 	int i = int(round(f));
 	asserta(i >= INT8_MIN && i <= INT8_MAX);
@@ -32,48 +33,14 @@ const MerMx &GetMuMerMx(uint k)
 
 void cmd_musubstmx()
 	{
-	FILE *f = CreateStdioFile(g_Arg1);
+	FeatureTrainer FT;
+	FT.FromTsv(g_Arg1);
+	const uint AS = FT.m_AlphaSize;
 
-	vector<FEATURE> Fs;
-	Fs.push_back(FEATURE_SS3);
-	Fs.push_back(FEATURE_NENSS3);
-	Fs.push_back(FEATURE_RENDist4);
-	const uint NF = SIZE(Fs);
+	vector<vector<float> > MuMx;
+	FT.GetLogOddsMx(MuMx);
 
-	vector<float **> ScoreMxs;
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
-
-	DSS D;
-	DSSParams Params;
-	D.SetParams(Params);
-	uint AS = D.GetAlphaSize(FEATURE_Mu);
-	vector<vector<float> > MuMx(AS);
-	for (uint i = 0; i < AS; ++i)
-		{
-		MuMx[i].resize(AS);
-
-		vector<uint> Lettersi;
-		D.GetMuLetters(i, Lettersi);
-		asserta(SIZE(Lettersi) == NF);
-
-		for (uint j = 0; j < AS; ++j)
-			{
-			vector<uint> Lettersj;
-			D.GetMuLetters(j, Lettersj);
-			asserta(SIZE(Lettersj) == NF);
-
-			float Score = 0;
-			for (uint k = 0; k < NF; ++k)
-				{
-				uint Letteri = Lettersi[k];
-				uint Letterj = Lettersj[k];
-				Score += ScoreMxs[k][Letteri][Letterj];
-				}
-			MuMx[i][j] = Score;
-			}
-		}
+	FILE *f = CreateStdioFile(opt(output));
 
 	fprintf(f, "\n");
 	fprintf(f, "float ScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);
@@ -88,24 +55,24 @@ void cmd_musubstmx()
 
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);
+	fprintf(f, "int8_t IntScoreMx_%s[%u][%u] = {\n", "Mu", AS, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %3d,", intround(MuMx[i][j]));
+			fprintf(f, "%3d,", int8round(MuMx[i][j]));
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
 
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "int IntScoreMx_%s[%u][%u] = {\n", "Mu_x2", AS, AS);
+	fprintf(f, "int8_t int8_t Mu_S_ij_i8[%u][%u] = {\n", AS, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
 		fprintf(f, "  {");
 		for (uint j = 0; j < AS; ++j)
-			fprintf(f, " %3d,", intround(2*MuMx[i][j]));
+			fprintf(f, "%3d,", int8round(3*MuMx[i][j]));
 		fprintf(f, "  }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
@@ -123,7 +90,7 @@ void cmd_musubstmx()
 		{
 		for (uint j = 0; j < AS; ++j)
 			{
-			int Score = intround(MuMx[i][j]);
+			int Score = int8round(MuMx[i][j]);
 			MinScore = min(MinScore, Score);
 			MaxScore = max(MaxScore, Score);
 			fprintf(f, "%2d,", Score);

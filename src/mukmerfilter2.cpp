@@ -4,11 +4,6 @@
 #include "sort.h"
 #include "mudex.h"
 
-float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
 /***
 [0d97074]++
 reseek \

@@ -8,7 +8,7 @@
 #include "scop40bench.h"
 #include "sort.h"
 
-static vector<vector<double> > Means;
+static vector<vector<float> > Means;
 static DSS g_DSSQ;
 static DSS g_DSSR;
 static uint K;
@@ -17,7 +17,7 @@ static vector<int> ivalues;
 static vector<int> jvalues;
 
 static void Getv(const PDBChain &Chain, uint Pos,
-  vector<double> &v)
+  vector<float> &v)
 	{
 	v.clear();
 	const uint L = Chain.GetSeqLength();
@@ -28,35 +28,35 @@ static void Getv(const PDBChain &Chain, uint Pos,
 		{
 		int i = ivalues[m];
 		int j = jvalues[m];
-		double d = Chain.GetDist(Pos+i, Pos+j);
+		float d = Chain.GetDist(Pos+i, Pos+j);
 		v.push_back(d);
 		}
 	asserta(SIZE(v) == M);
 	}
 
-static double GetDist(
-  const vector<double> &v1,
-  const vector<double> &v2)
+static float GetDist(
+  const vector<float> &v1,
+  const vector<float> &v2)
 	{
 	const uint n = SIZE(v1);
 	asserta(SIZE(v2) == n);
-	double Sum2 = 0;
+	float Sum2 = 0;
 	for (uint i = 0; i < n; ++i)
 		{
-		double diff = v1[i] - v2[i];
+		float diff = v1[i] - v2[i];
 		Sum2 += diff*diff;
 		}
 	return sqrt(Sum2);
 	}
 
-static uint GetLetter(const vector<double> &v)
+static uint GetLetter(const vector<float> &v)
 	{
 	asserta(SIZE(v) == M);
-	double MinDist = DBL_MAX;
+	float MinDist = FLT_MAX;
 	uint BestCluster = UINT_MAX;
 	for (uint k = 0; k < K; ++k)
 		{
-		double d = GetDist(v, Means[k]);
+		float d = GetDist(v, Means[k]);
 		if (k == 0 || d < MinDist)
 			{
 			BestCluster = k;
@@ -81,8 +81,8 @@ static void TrainerAlphaCol(
   const Trainer &T, uint PosQ, uint PosR,
   uint &LetterQ, uint &LetterR)
 	{
-	vector<double> vQ;
-	vector<double> vR;
+	vector<float> vQ;
+	vector<float> vR;
 	Getv(*ChainQ, PosQ, vQ);
 	Getv(*ChainR, PosR, vR);
 	if (vQ.empty() || vR.empty())
@@ -97,18 +97,18 @@ static void TrainerAlphaCol(
 	}
 
 static void GetMeans(uint N, uint K, uint M,
-  const vector<vector<double> > &vs,
+  const vector<vector<float> > &vs,
   const vector<uint> &ClusterIdxs,
-  vector<vector<double> > &Means)
+  vector<vector<float> > &Means)
 	{
 	Means.clear();
 	Means.resize(K);
-	vector<vector<double> > Sums(K);
+	vector<vector<float> > Sums(K);
 	vector<uint> Counts(K);
 	for (uint k = 0; k < K; ++k)
 		{
 		Sums[k].resize(M, 0);
-		Means[k].resize(M, DBL_MAX);
+		Means[k].resize(M, FLT_MAX);
 		}
 
 	for (uint i = 0; i < N; ++i)
@@ -116,11 +116,11 @@ static void GetMeans(uint N, uint K, uint M,
 		uint ClusterIdx = ClusterIdxs[i];
 		asserta(ClusterIdx < K);
 		Counts[ClusterIdx] += 1;
-		const vector<double> &v = vs[i];
+		const vector<float> &v = vs[i];
 		asserta(SIZE(v) == M);
 		for (uint j = 0; j < M; ++j)
 			{
-			double x = v[j];
+			float x = v[j];
 			Sums[ClusterIdx][j] += x;
 			}
 		}
@@ -128,15 +128,19 @@ static void GetMeans(uint N, uint K, uint M,
 	for (uint k = 0; k < K; ++k)
 		{
 		uint Count = Counts[k];
-		asserta(Count > 0);
 		for (uint j = 0; j < M; ++j)
-			Means[k][j] = Sums[k][j]/Count;
+			{
+			if(Count == 0)
+				Means[k][j] = 0;
+			else
+				Means[k][j] = Sums[k][j]/Count;
+			}
 		}
 	}
 
 static uint Assign(uint N, uint K, uint M,
-  const vector<vector<double> > &vs,
-  const vector<vector<double> > &Means,
+  const vector<vector<float> > &vs,
+  const vector<vector<float> > &Means,
   vector<uint> &ClusterIdxs,
   vector<uint> &Sizes)
 	{
@@ -145,13 +149,13 @@ static uint Assign(uint N, uint K, uint M,
 	uint ChangeCount = 0;
 	for (uint i = 0; i < N; ++i)
 		{
-		const vector<double> &v = vs[i];
+		const vector<float> &v = vs[i];
 		uint OldCluster = ClusterIdxs[i];
-		double MinDist = DBL_MAX;
+		float MinDist = FLT_MAX;
 		uint BestCluster = UINT_MAX;
 		for (uint k = 0; k < K; ++k)
 			{
-			double d = GetDist(v, Means[k]);
+			float d = GetDist(v, Means[k]);
 			if (k == 0 || d < MinDist)
 				{
 				BestCluster = k;
@@ -171,16 +175,15 @@ static uint Assign(uint N, uint K, uint M,
 void cmd_sscluster()
 	{
 	Trainer Tr;
-	Tr.Init(g_Arg1, opt(train_cal));
+	Tr.Init(g_Arg1, opt(db));
 
 	vector<PDBChain *> Chains = Tr.m_Chains;
 	const uint ChainCount = SIZE(Chains);
-	vector<vector<double> > vs;
+	vector<vector<float> > vs;
 	const uint N = optset_n ? opt(n) : 100000;
 	asserta(optset_k);
 	K = opt(k);
 	vector<char> sss;
-	const double MAXD = 16;
 
 	uint m = 0;
 	for (int i = -2; i <= 2; ++i)
@@ -228,7 +231,7 @@ void cmd_sscluster()
 		const uint L = Chain.GetSeqLength();
 		for (int Pos = 0; Pos < int(L); ++Pos)
 			{
-			vector<double> v;
+			vector<float> v;
 			Getv(Chain, Pos, v);
 			if (v.empty())
 				continue;
@@ -363,8 +366,8 @@ void cmd_sscluster()
 
 	LogOdds LO;
 	Tr.TrainLogOdds(K, TrainerOnPair, TrainerAlphaCol, LO);
-	vector<vector<double> > ScoreMx;
-	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
+	vector<vector<float> > ScoreMx;
+	float ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	ProgressLog("K=%u myss3=%s M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
 	  K, opt(myss3), M, N, opt(randseed), TopPct, ExpectedScore);
 	LO.MxToSrc(g_fLog, "Conf", ScoreMx);

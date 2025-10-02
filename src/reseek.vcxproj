@@ -151,6 +151,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -250,6 +252,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -278,13 +281,18 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="condense.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="duper.cpp" />
+    <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="binner.cpp" />
+    <ClCompile Include="getselfrevscore.cpp" />
     <ClCompile Include="lddt_bench.cpp" />
+    <ClCompile Include="loadfeatures.cpp" />
     <ClCompile Include="muprefilter.cpp" />
+    <ClCompile Include="mu_hardcoded.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="objmgr.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
@@ -371,7 +379,6 @@
     <ClCompile Include="dssaligner.cpp" />
     <ClCompile Include="dssparams.cpp" />
     <ClCompile Include="features.cpp" />
-    <ClCompile Include="float_feature_bins.cpp" />
     <ClCompile Include="getbins.cpp" />
     <ClCompile Include="kabsch.cpp" />
     <ClCompile Include="logaln.cpp" />
@@ -379,7 +386,7 @@
     <ClCompile Include="mergefwdback.cpp" />
     <ClCompile Include="msa2cmp.cpp" />
     <ClCompile Include="murmurhash.cpp" />
-    <ClCompile Include="myss.cpp" />
+    <ClCompile Include="conf.cpp" />
     <ClCompile Include="namedparams.cpp" />
     <ClCompile Include="prettyaln.cpp" />
     <ClCompile Include="scop40bench.cpp" />
@@ -432,6 +439,8 @@
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="featuretrainer.h" />
+    <ClInclude Include="flatmx.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
@@ -487,6 +496,7 @@
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="twohitdiag.h" />
+    <ClInclude Include="undef_binning.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />

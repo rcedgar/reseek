@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "dss.h"
 
+#if 0
 void DSS::GetBins(FEATURE F, vector<float> &Bins)
 	{
 	Bins.clear();
@@ -139,3 +140,4 @@ BIN_T(NX, 14, 44.47);
 #undef BIN_T
 	asserta(SIZE(Bins) + 1 == AlphaSize);
 	}
+#endif

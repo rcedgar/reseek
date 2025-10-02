@@ -2,12 +2,6 @@
 #include "dssaligner.h"
 #include "statsig.h"
 
-extern float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
-					  const vector<vector<byte> > &Profile,
-					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
-
-
 static ChainBag *MakeBag(
 	const DSSParams &Params,
 	MuKmerFilter &MKF,
@@ -15,7 +9,7 @@ static ChainBag *MakeBag(
 	DSS &D,
 	const PDBChain &QChain)
 	{
-	D.Init(QChain);
+	D.Init(QChain, Params);
 
 	vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
 	vector<byte> *ptrQMuLetters = new vector<byte>;
@@ -26,7 +20,7 @@ static ChainBag *MakeBag(
 	D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
 
 	float QSelfRevScore = 
-		GetSelfRevScore(DA_selfrev, D, QChain,
+		GetSelfRevScore(DA_selfrev, Params, QChain,
 				*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
 	uint16_t *HT = MKF.CreateEmptyHashTable();
@@ -78,7 +72,7 @@ void cmd_align_bag()
 	MuKmerFilter MKF;
 	DSSAligner DA;
 	DSSAligner DA_selfrev;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	MKF.SetParams(Params);
 	DA.SetParams(Params);
 	DA_selfrev.SetParams(Params);
@@ -117,7 +111,7 @@ void cmd_align_bags()
 	DSSAligner DA_sw;
 	DSSAligner DA_bag;
 	DSSAligner DA_selfrev;
-	D.SetParams(Params);
+	//D.SetParams(Params);
 	MKF.SetParams(Params);
 	DA_selfrev.SetParams(Params);
 	DA_sw.SetParams(Params);
@@ -131,9 +125,9 @@ void cmd_align_bags()
 		ChainBag &BagA = *MakeBag(Params, MKF, DA_selfrev, D, ChainA);
 
 		vector<vector<byte> > ProfileA;
-		D.Init(ChainA);
+		D.Init(ChainA, Params);
 		D.GetProfile(ProfileA);
-		float SelfRevScoreA = GetSelfRevScore(DA_selfrev, D, ChainA, ProfileA, 0, 0);
+		float SelfRevScoreA = GetSelfRevScore(DA_selfrev, Params, ChainA, ProfileA, 0, 0);
 		DA_sw.SetQuery(ChainA, &ProfileA, 0, 0, SelfRevScoreA);
 
 		for (uint ChainIndexB = ChainIndexA; ChainIndexB < ChainCount; ++ChainIndexB)
@@ -147,9 +141,9 @@ void cmd_align_bags()
 				continue;
 
 			vector<vector<byte> > ProfileB;
-			D.Init(ChainB);
+			D.Init(ChainB, Params);
 			D.GetProfile(ProfileB);
-			float SelfRevScoreB = GetSelfRevScore(DA_selfrev, D, ChainB, ProfileB, 0, 0);
+			float SelfRevScoreB = GetSelfRevScore(DA_selfrev, Params, ChainB, ProfileB, 0, 0);
 
 			DA_sw.SetTarget(ChainB, &ProfileB, 0, 0, SelfRevScoreB);
 			DA_sw.Align_NoAccel();

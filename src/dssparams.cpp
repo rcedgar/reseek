@@ -15,6 +15,8 @@ uint const DSSParams::m_MuAlphaSize = 36;
 
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
+	int sum = int(opt(fast)) + int(opt(sensitive)) + int(opt(verysensitive));
+	if (sum != 1) Die("Must set exactly one of -fast, -sensitive or -verysensitive");
 	if (optset_fast)
 		return AM_Fast;
 	else if (optset_sensitive)
@@ -32,7 +34,6 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 		{
 	case DM_AlwaysFast:				return AM_Fast;
 	case DM_AlwaysSensitive:		return AM_Sensitive;
-	case DM_AlwaysVerysensitive:	return AM_VerySensitive;
 	case DM_UseCommandLineOption:	return GetAlgoModeFromCommandLine(AM_Invalid);
 	case DM_DefaultFast:			return GetAlgoModeFromCommandLine(AM_Fast);
 	case DM_DefaultSensitive:		return GetAlgoModeFromCommandLine(AM_Sensitive);
@@ -43,18 +44,34 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 
 void DSSParams::SetDSSParams(DECIDE_MODE DM)
 	{
-	SetDefaults();
+	SetDefaults_Other();
+	if (optset_nofeatures)
+		;
+	else if (optset_feature_spec)
+		LoadFeatures();
+	else
+		{
+#pragma warning("TODO")
+#ifdef _MSC_VER
+		opt_feature_spec = mystrsave("c:/src/2025-03-25_reseek_dump_load_features_scop40_area0.7643/data/feature_spec.tsv");
+#else 
+		opt_feature_spec = mystrsave("/mnt/c/src/2025-03-25_reseek_dump_load_features_scop40_area0.7643/data/feature_spec.tsv");
+#endif
+		optset_feature_spec = true;
+		//SetDefaults_Features();
+		LoadFeatures();
+		}
 
 	ALGO_MODE AM = GetAlgoMode(DM);
 
 	switch (AM)
 		{
 	case AM_Fast:
-		m_Omega = 22;
-		m_OmegaFwd = 50;
+		m_Omega = 20;
+		m_OmegaFwd = 45;
 		m_MKFL = 500;
 		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
+		//m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
 		break;
@@ -64,7 +81,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 		m_OmegaFwd = 20;
 		m_MKFL = 600;
 		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
 		m_MKF_MinHSPScore = 50;
 		m_MKF_MinMegaHSPScore = -4;
 		break;
@@ -77,17 +93,14 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 		m_MKF_X2 = 99999;
 		m_MKF_MinHSPScore = 0;
 		m_MKF_MinMegaHSPScore = -99999;
-		m_MinFwdScore = 0;
 		break;
 
 	default:
 		asserta(false);
 		}
 
-	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt(evalue_a));
-	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt(evalue_b));
 	m_MKFPatternStr = "111";
-	m_MuPrefPatternStr = string(prefiltermu_pattern);
+	m_MuPrefilterPatternStr = string(prefiltermu_pattern);
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt(omega);  }
@@ -106,8 +119,6 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 	if (m_GapOpen > 0 || m_GapExt > 0)
 		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
 		  opt(gapopen), opt(gapext));
-
-	InitScoreMxs();
 	}
 
 void DSSParams::FromTsv(const string &FileName)
@@ -257,7 +268,7 @@ DSSParams::~DSSParams()
 		{
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = g_AlphaSizes2[F];
+		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
 			asserta(m_ScoreMxs[F][Letter1] != 0);
@@ -269,19 +280,25 @@ DSSParams::~DSSParams()
 	myfree(m_ScoreMxs);
 	}
 
-void DSSParams::InitScoreMxs()
+void DSSParams::SetScoreMxs()
 	{
-	if (m_ScoreMxs != 0)
-		return;
+	AllocScoreMxs();
+	ApplyWeights();
+	}
+
+void DSSParams::AllocScoreMxs()
+	{
+	asserta(m_ScoreMxs == 0);
 	uint FeatureCount = GetFeatureCount();
 	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
 		m_ScoreMxs[i] = 0;
+
 	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
 		{
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = g_AlphaSizes2[F];
+		uint AS = DSS::GetAlphaSize(F);
 		asserta(m_ScoreMxs[F] == 0);
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
@@ -297,50 +314,6 @@ void DSSParams::InitScoreMxs()
 	m_OwnScoreMxs = true;
 	}
 
-//float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const
-//	{
-//	double gumbel_cdf(double mu, double beta, double x);
-//	double x = -log(TS);
-//	//double P = gumbel_cdf(2.5, 0.613, x);
-//	double P = gumbel_cdf(mu, beta, x);
-//	float Evalue = float(P*m_DBSize);
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
-//	{
-//	float PredMinusLogP = m*TestStatistic + b;
-//	float P = expf(-PredMinusLogP);
-//	float Evalue = P*m_DBSize;
-//	if (Evalue > 1)
-//		Evalue = log10f(Evalue) + 1;
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalueOldLinear(float TestStatistic) const
-//	{
-//	const float Slope = m_Evalue_old_linear_Slope;
-//	const float Intercept = m_Evalue_linear_Intercept;
-//	float logNF = Slope*TestStatistic + Intercept;
-//	float NF = powf(10, logNF);
-//	float Evalue = NF*m_DBSize/1e8f;
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalue(float TestStatistic) const
-//	{
-//	if (TestStatistic <= 0)
-//		return 99999;
-//	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-//
-//	if (opt(gum))
-//		return GetEvalueGumbel(TestStatistic,
-//		  m_Evalue_Gumbel_mu, m_Evalue_Gumbel_beta);
-//
-//	return GetEvalueSlope(TestStatistic,
-//	  m_Evalue_linear_m, m_Evalue_linear_b);
-//	}
-
 void DSSParams::ApplyWeights()
 	{
 	asserta(m_ScoreMxs != 0);
@@ -350,15 +323,42 @@ void DSSParams::ApplyWeights()
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
 		float w = m_Weights[Idx];
-		uint AS = g_AlphaSizes2[F];
+		uint AS = DSS::GetAlphaSize(F); // g_AlphaSizes2[F];
 		if (AS == 0)
 			Die("Feature %s not supported", FeatureToStr(F));
-		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
-			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
+			const float * const *MxF =  DSS::GetScoreMx(F);
+			asserta(MxF != 0);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
-				m_ScoreMxs[F][Letter1][Letter2] = w*g_ScoreMxs2[F][Letter1][Letter2];
+				m_ScoreMxs[F][Letter1][Letter2] = w*MxF[Letter1][Letter2]; // g_ScoreMxs2[F][Letter1][Letter2];
 			}
 		}
+	}
+
+void DSSParams::SetDefaults_Features()
+	{
+	Warning("Default features not supported");
+
+	m_Features.clear();
+	m_Weights.clear();
+
+	AddFeature(FEATURE_AA,			0.398145);
+	AddFeature(FEATURE_NENDist,		0.129367);
+	AddFeature(FEATURE_Conf,		0.202354);
+	AddFeature(FEATURE_NENConf,		0.149383);
+	AddFeature(FEATURE_RENDist,		0.0937677);
+	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
+	AddFeature(FEATURE_StrandDens,	0.0183853);
+	AddFeature(FEATURE_NormDens,	0.00384384);
+	SetScoreMxs();
+	}
+
+void DSSParams::SetDefaults_Other()
+	{
+	m_GapOpen = -0.685533f;
+	m_GapExt = -0.051881f;
+	m_MinFwdScore = 7.0f;
+	m_MuPrefilterPatternStr = "1110011";
+	m_MKFPatternStr = "111";
 	}
