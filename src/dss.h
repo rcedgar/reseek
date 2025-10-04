@@ -7,6 +7,7 @@
 #include "xdpmem.h"
 #include "flatmx.h"
 #include "undef_binning.h"
+#include "timing.h"
 
 class PDBChain;
 class DSSAligner;
@@ -45,6 +46,7 @@ private:
 public:
 	void Init(const PDBChain &Chain, const DSSParams &Params)
 		{
+		StartTimer(DSS_Init);
 		m_Chain = &Chain;
 		m_Density_ScaledValues.clear();
 		m_SS.clear();
@@ -55,6 +57,7 @@ public:
 		m_PlusNENs.clear();
 		m_MinusNENs.clear();
 		m_Params = &Params;
+		EndTimer(DSS_Init);
 		}
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }

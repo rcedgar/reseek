@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "chainreader2.h"
+#include "timing.h"
 
 uint ChainReader2::m_CRGlobalChainCount;
 uint ChainReader2::m_CRGlobalFormatErrors;
@@ -89,17 +90,25 @@ PDBChain *ChainReader2::GetFirst(const string &FN)
 
 PDBChain *ChainReader2::GetNext()
 	{
+	StartTimer(ChainReader2_GetNext);
 	for (uint SanityCounter = 0; ; ++SanityCounter)
 		{
 		if (SanityCounter > 100)
 			Warning("Excessive looping in ChainReader2::GetNext()");
 
 		m_CRPerThreadLock.lock();
+		EndTimer(ChainReader2_GetNext);
+		StartTimer(ChainReader2_GetNextLo1);
 		PDBChain *Chain = GetNextLo1();
+		EndTimer(ChainReader2_GetNextLo1);
+		StartTimer(ChainReader2_GetNext);
 		m_CRPerThreadLock.unlock();
 
 		if (Chain == 0)
+			{
+			EndTimer(ChainReader2_GetNext);
 			return 0;
+			}
 
 		if (Chain->GetSeqLength() == 0)
 			{
@@ -109,6 +118,7 @@ PDBChain *ChainReader2::GetNext()
 		m_CRGlobalLock.lock();
 		Chain->m_Idx = m_CRGlobalChainCount++;
 		m_CRGlobalLock.unlock();
+		EndTimer(ChainReader2_GetNext);
 		return Chain;
 		}
 	}

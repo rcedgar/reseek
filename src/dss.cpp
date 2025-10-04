@@ -3,6 +3,9 @@
 //#include "xyz.h"
 #include "alpha.h"
 #include "dss.h"
+#include "timing.h"
+
+static TICKS s_ticks;//@@
 
 uint GetPatternOnes(const string &Str)
 	{
@@ -621,6 +624,7 @@ void DSS::GetMuLetters(vector<uint> &Letters)
 void DSS::GetMuKmers(const vector<byte> &Letters,
   vector<uint> &Kmers, const string &PatternStr)
 	{
+	StartTimer(DSS_GetMuKmers);
 	Kmers.clear();
 	const uint PatternLength = SIZE(PatternStr);
 	const uint L = SIZE(Letters);
@@ -641,6 +645,7 @@ void DSS::GetMuKmers(const vector<byte> &Letters,
 		assert(Kmer != UINT_MAX);
 		Kmers.push_back(Kmer);
 		}
+	EndTimer(DSS_GetMuKmers);
 	}
 
 void DSS::GetAaLetters(vector<byte> &Letters)
@@ -661,6 +666,7 @@ void DSS::GetAaLetters(vector<byte> &Letters)
 
 void DSS::GetMuLetters(vector<byte> &Letters)
 	{
+	StartTimer(DSS_GetMuLetters);
 	Letters.clear();
 	const uint L = GetSeqLength();
 	Letters.reserve(L);
@@ -673,10 +679,13 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		asserta(Letter < 36);
 		Letters.push_back(byte(Letter));
 		}
+	EndTimer(DSS_GetMuLetters);
 	}
 
 void DSS::GetProfile(vector<vector<byte> > &Profile)
 	{
+	TICKS t1 = GetClockTicks();
+	StartTimer(DSS_GetProfile);
 	const DSSParams &Params = *m_Params;
 	Profile.clear();
 	const uint L = GetSeqLength();
@@ -701,6 +710,8 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 			}
 		Profile.push_back(ProfRow);
 		}
+	EndTimer(DSS_GetProfile);
+	s_ticks += (GetClockTicks() - t1);//@@
 	}
 
 float DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
@@ -799,4 +810,10 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		return Dist;
 		}
 	return FLT_MAX;
+	}
+
+void log_profticks()
+	{
+	Log("profticks=%.0f\n", (double) s_ticks);
+	Log("profticks2=%.0f\n", (double) g_PrefixTicksDSS_GetProfile);
 	}

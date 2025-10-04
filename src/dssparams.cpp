@@ -55,7 +55,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 #ifdef _MSC_VER
 		opt_feature_spec = mystrsave("c:/src/2025-03-25_reseek_dump_load_features_scop40_area0.7643/data/feature_spec.tsv");
 #else 
-		opt_feature_spec = mystrsave("/mnt/c/src/2025-03-25_reseek_dump_load_features_scop40_area0.7643/data/feature_spec.tsv");
+		opt_feature_spec = mystrsave("../tmp/feature_spec.tsv");
 #endif
 		optset_feature_spec = true;
 		//SetDefaults_Features();

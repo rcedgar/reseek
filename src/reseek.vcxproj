@@ -248,7 +248,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>

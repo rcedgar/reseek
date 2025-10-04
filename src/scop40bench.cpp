@@ -307,10 +307,6 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	uint ChainIndexB = iterB->second;
 	if (ChainIndexA == ChainIndexB)
 		return;
-	if (Up)
-		StoreScore(ChainIndexA, ChainIndexB, DA.m_GlobalScore);
-	else
-		StoreScore(ChainIndexB, ChainIndexA, DA.m_GlobalScore);
 
 	if (Up)
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
@@ -808,6 +804,10 @@ void cmd_scop40bench()
 		SB.WriteSens1FPReport(f);
 		CloseStdioFile(f);
 		}
+	void log_ngetv();//@@
+	void log_profticks();//@@
+	log_ngetv();//@@
+	log_profticks();//@@
 #if SCORE_DIST
 	DSSAligner::ReportScoreDist();
 #endif

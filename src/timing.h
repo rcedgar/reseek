@@ -1,19 +1,11 @@
 #pragma once
 
 #ifndef TIMING
-#define TIMING				0
+#define TIMING				1
 #endif
-
-#define TIMING_2D			1
-#define TIMING_NEST			1
 
 void InitTiming();
 void LogTiming();
-
-#if	UCHIMES
-#undef TIMING
-#define TIMING	0
-#endif
 
 #if	TIMING
 #include "getticks.h"
@@ -46,105 +38,28 @@ extern unsigned g_Counters[CounterCount];
 #define AddCounter(x, N)	(g_Counters[COUNTER_##x] += (N))
 #define IncCounter(x)		(++(g_Counters[COUNTER_##x]))
 
-#define T(x)						\
-	extern TICKS g_PrefixTicks##x;	\
-	extern TICKS g_TotalTicks##x;
-#include "timers.h"
-
 #define T(x)	extern unsigned g_TimerStartCount##x;
 #include "timers.h"
 
 extern TICKS g_LastTicks;
 extern TIMER g_CurrTimer;
 extern TIMER g_LastTimer;
-extern TICKS g_PrefixTicks2D[TimerCount][TimerCount];
-extern unsigned g_PrefixCounts2D[TimerCount][TimerCount];
+extern TICKS g_Ticks2D[TimerCount][TimerCount];
+extern unsigned g_Counts2D[TimerCount][TimerCount];
 
 void ResetTimers();
 
-// StartTimer
-#define StartTimer_Base(x)	++g_TimerStartCount##x;
 
-#define StartTimer_1D(x)	g_PrefixTicks##x += t - g_LastTicks;
-
-#define StartTimer_SetCurr(x)											\
-	if (g_CurrTimer != TIMER_None)										\
-		Die("StartTimer(" #x "), curr=%s", TimerToStr(g_CurrTimer));	\
-	g_CurrTimer = TIMER_##x;
-
-#define StartTimer_2D(x)												\
-	g_PrefixTicks2D[g_LastTimer][TIMER_##x] += t - g_LastTicks;			\
-	++(g_PrefixCounts2D[g_LastTimer][TIMER_##x]);
-
-// ResumeTimer
-#define ResumeTimer_Base(x) /* empty */
-
-#define ResumeTimer_1D(x)	g_PrefixTicks##x += t - g_LastTicks;
-
-#define ResumeTimer_SetCurr(x)											\
-	if (g_CurrTimer != TIMER_None)										\
-		Die("ResumeTimer(" #x "), curr=%s", TimerToStr(g_CurrTimer));	\
-	g_CurrTimer = TIMER_##x;
-
-#define ResumeTimer_2D(x)												\
-	g_PrefixTicks2D[g_LastTimer][TIMER_##x] += t - g_LastTicks;			\
-	++(g_PrefixCounts2D[g_LastTimer][TIMER_##x]);
-
-// EndTimer
-#define	EndTimer_CheckCurr(x)											\
-	if (g_CurrTimer != TIMER_##x)										\
-		Die("EndTimer(" #x "), curr=%s", TimerToStr(g_CurrTimer));		\
-	g_CurrTimer = TIMER_None;
-
-#define EndTimer_Base(x)												\
-	g_TotalTicks##x += t - g_LastTicks;									\
-	g_LastTimer = TIMER_##x;
-
-// PauseTimer
-#define	PauseTimer_CheckCurr(x)											\
-	if (g_CurrTimer != TIMER_##x)										\
-		Die("PauseTimer(" #x "), curr=%s", TimerToStr(g_CurrTimer));	\
-	g_CurrTimer = TIMER_None;
-
-#define PauseTimer_Base(x)												\
-	g_TotalTicks##x += t - g_LastTicks;									\
-	g_LastTimer = TIMER_##x;
-
-#if	TIMING_NEST && TIMING_2D
-
-#define StartTimer(x)	{ TICKS t = GetClockTicks(); StartTimer_SetCurr(x); StartTimer_Base(x); StartTimer_2D(x); g_LastTicks = t; }
-#define ResumeTimer(x)	{ TICKS t = GetClockTicks(); ResumeTimer_SetCurr(x); ResumeTimer_Base(x); ResumeTimer_2D(x); g_LastTicks = t; }
+#define StartTimer(x)	\
+	{	\
+	TICKS t = GetClockTicks(); \
+	g_CurrTimer = TIMER_##x;	\
+	g_Counts2D[g_LastTimer][TIMER_##x] += 1;	\
+	g_LastTimer = TIMER_##x;	\
+	g_LastTicks = t;	\
+	}
 
 #define EndTimer(x)		{ TICKS t = GetClockTicks(); EndTimer_CheckCurr(x); EndTimer_Base(x); g_LastTicks = t; }
-#define PauseTimer(x)	{ TICKS t = GetClockTicks(); PauseTimer_CheckCurr(x); PauseTimer_Base(x); g_LastTicks = t; }
-
-#elif TIMING_NEST && ! TIMING_2D
-
-#define StartTimer(x)	{ TICKS t = GetClockTicks(); StartTimer_SetCurr(x); StartTimer_Base(x); StartTimer_1D(x); g_LastTicks = t; }
-#define ResumeTimer(x)	{ TICKS t = GetClockTicks(); ResumeTimer_SetCurr(x); ResumeTimer_Base(x); ResumeTimer_1D(x); g_LastTicks = t; }
-
-#define EndTimer(x)		{ TICKS t = GetClockTicks(); EndTimer_CheckCurr(x); EndTimer_Base(x); g_LastTicks = t; }
-#define PauseTimer(x)	{ TICKS t = GetClockTicks(); PauseTimer_CheckCurr(x); PauseTimer_Base(x); g_LastTicks = t; }
-
-#elif ! TIMING_NEST && TIMING_2D
-
-#define StartTimer(x)	{ TICKS t = GetClockTicks(); StartTimer_Base(x); StartTimer_2D(x); g_LastTicks = t; }
-#define ResumeTimer(x)	{ TICKS t = GetClockTicks(); ResumeTimer_Base(x); ResumeTimer_2D(x); g_LastTicks = t; }
-
-#define EndTimer(x)		{ TICKS t = GetClockTicks(); EndTimer_Base(x); g_LastTicks = t; }
-#define PauseTimer(x)	{ TICKS t = GetClockTicks(); PauseTimer_Base(x); g_LastTicks = t; }
-
-#elif ! TIMING_EST && ! TIMING_2D
-
-#define StartTimer(x)	{ TICKS t = GetClockTicks(); StartTimer_Base(x); StartTimer_1D(x); g_LastTicks = t; }
-#define ResumeTimer(x)	{ TICKS t = GetClockTicks(); ResumeTimer_Base(x); g_LastTicks = t; }
-
-#define EndTimer(x)		{ TICKS t = GetClockTicks(); EndTimer_Base(x); StartTimer_1D(x); g_LastTicks = t; }
-#define PauseTimer(x)	{ TICKS t = GetClockTicks(); PauseTimer_Base(x); g_LastTicks = t; }
-
-#else
-#error "Timing defines"
-#endif
 
 struct TimerData
 	{

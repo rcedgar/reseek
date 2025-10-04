@@ -42,6 +42,11 @@ def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 	s += " " + name
 	print(s)
 
+if len(sys.argv) == 2:
+	fn = sys.argv[1]
+	dofile(fn, 0.2170, 0.3410, 0.4740)
+	exit(0)
+
 # SEPQ0.1=0.2107 SEPQ1=0.3144 SEPQ10=0.3882 S1FP=0.3350 N1FP=152340 area=7.14 fast
 # SEPQ0.1=0.2173 SEPQ1=0.3411 SEPQ10=0.4745 S1FP=0.3874 N1FP=176191 area=10.6 sensitive
 # SEPQ0.1=0.2106 SEPQ1=0.2950 SEPQ10=0.2950 S1FP=0.2848 N1FP=129529 area=3.99 evalue1

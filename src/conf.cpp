@@ -20,6 +20,8 @@ static vector<int> ivalues;
 static vector<int> jvalues;
 static vector<vector<double> > Means;
 
+static atomic<uint> s_ngetv;//@@
+
 static void InitLetter(uint Letter, uint Count,
   double x0, double x1, double x2, double x3, double x4,
   double x5, double x6, double x7, double x8)
@@ -147,6 +149,7 @@ static uint GetConfLetter(const vector<double> &v)
 static void Getv(const PDBChain &Chain, uint Pos,
   vector<double> &v)
 	{
+	++s_ngetv;//@@
 	v.clear();
 	const uint L = Chain.GetSeqLength();
 	if (Pos < 3 || Pos + 3 >= int(L))
@@ -238,4 +241,10 @@ uint DSS::Get_RENConf(uint Pos)
 	uint Letter = GetConfLetter(v);
 	asserta(Letter < 16);
 	return Letter;
+	}
+
+void log_ngetv()
+	{
+	uint n = s_ngetv;
+	Log("ngetv=%u\n", n);
 	}

@@ -271,7 +271,8 @@ double StatSig::GetPvalue(double TS)
 
 double StatSig::GetEvalue(double TS)
 	{
-	asserta(m_DBSize != DBL_MAX);
+	if (m_DBSize == UINT_MAX)
+		return -1;
 	asserta(m_Mode != SM_undefined);
 	asserta(m_Ref != REF_undefined);
 

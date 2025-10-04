@@ -32,8 +32,6 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	uint m_AlnDomIdx1 = UINT_MAX;
-	uint m_AlnDomIdx2 = UINT_MAX;
 	string m_Path;
 	uint m_LoA = UINT_MAX;
 	uint m_LoB = UINT_MAX;
@@ -50,7 +48,6 @@ public:
 
 	uint m_Ids = UINT_MAX;
 	uint m_Gaps = UINT_MAX;
-	//float m_AlnDaliScore = FLT_MAX;
 	float m_SelfRevScoreA = FLT_MAX;
 	float m_SelfRevScoreB = FLT_MAX;
 
@@ -65,9 +62,6 @@ public:
 	size_t m_SMx_BufferSize = 0;
 	uint m_SMx_Rows = 0;
 	uint m_SMx_Cols = 0;
-
-	float m_GlobalScore = FLT_MAX;
-	string m_GlobalPath;
 
 public:
 	static mutex m_OutputLock;
@@ -107,7 +101,6 @@ public:
 	bool MuDPFilter();
 	void ClearAlign();
 	void AlignQueryTarget();
-	//void AlignQueryTarget_Global();
 	void AlignQueryTarget_Trace();
 	void AlignMKF();
 	void PostAlignMKF();

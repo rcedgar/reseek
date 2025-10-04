@@ -628,7 +628,10 @@ void DSSAligner::CalcEvalue()
 	{
 // Threshold enables small speedup by avoiding LDDT and self-rev
 	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
+		{
+		ClearAlign();
 		return;
+		}
 
 	uint M, D, I;
 	GetPathCounts(m_Path, M, D, I);
@@ -661,16 +664,14 @@ void DSSAligner::CalcEvalue()
 
 	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);
 	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
-	float E = FLT_MAX;
-	if (StatSig::m_DBSize != UINT_MAX)
-		E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
+	double Ed = StatSig::GetEvalue(m_NewTestStatisticA);
 
 	m_QualityA = Qual;
 	m_QualityB = Qual;
 	m_PvalueA = Pval;
 	m_PvalueB = Pval;
-	m_EvalueA = E;
-	m_EvalueB = E;
+	m_EvalueA = float(Ed);
+	m_EvalueB = float(Ed);
 	EndTimer(CalcEvalue)
 	}
 
@@ -683,14 +684,13 @@ void DSSAligner::ClearAlign()
 	m_HiB = UINT_MAX;
 	m_Ids = UINT_MAX;
 	m_Gaps = UINT_MAX;
+	m_PvalueA = FLT_MAX;
+	m_PvalueB = FLT_MAX;
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;
-
-	m_GlobalScore = -9999;
-	m_GlobalPath.clear();
 	}
 
 void DSSAligner::Align_NoAccel()

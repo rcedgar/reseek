@@ -74,7 +74,7 @@ void ResetTimers()
 #include "timers.h"
 
 	zero_array(g_Counters, CounterCount);
-
+#if TIMING_2D
 	for (unsigned i = 0; i < TimerCount; ++i)
 		{
 		for (unsigned j = 0; j < TimerCount; ++j)
@@ -83,6 +83,7 @@ void ResetTimers()
 			g_PrefixCounts2D[i][j] = 0;
 			}
 		}
+#endif
 	}
 
 static double GetTimerOverheadTicks()
@@ -190,7 +191,8 @@ static void LogTimers(const GlobalTimingData &GTD,
 			CTicks -= TD.Calls*GTD.TimerOverheadTicks;
 		double TicksPerCall = TD.Calls == 0.0 ? 0.0 : CTicks/TD.Calls;
 
-		if (pct >= opt(min_timer_pct))
+//		if (pct >= opt(min_timer_pct))//@@
+		if (pct > 0)
 			{
 			TotalPctShown += pct;
 

@@ -31,6 +31,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 			continue;
 			}
 		time_t Now = time(0);
+		StartTimer(ProfileLoader_Lock);
 		m_Lock.lock();
 		++m_Count;
 		if (Now > m_LastProgress)
@@ -39,11 +40,15 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 			m_LastProgress = Now;
 			}
 		m_Lock.unlock();
+		EndTimer(ProfileLoader_Lock);
 
+		StartTimer(ProfileLoader_New);
 		vector<vector<byte> > *ptrProfile = m_Profiles == 0 ? 0 : new vector<vector<byte> >;
 		vector<byte> *MuLetters = m_MuLetters == 0 ? 0 : new vector<byte>;
 		vector<uint> *MuKmers = m_MuLetters == 0 ? 0 : new vector<uint>;
 		float SelfRevScore = FLT_MAX;
+		EndTimer(ProfileLoader_New);
+
 		D.Init(*Chain, *m_Params);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
@@ -51,6 +56,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_SelfRevScores != 0) SelfRevScore =
 			GetSelfRevScore(DA, DA_Params, *Chain, *ptrProfile, MuLetters, MuKmers);
 
+		StartTimer(ProfileLoader_Lock);
 		m_Lock.lock();
 		Chain->m_Idx = SIZE(*m_Chains);
 		if (m_Chains != 0) m_Chains->push_back(Chain);
@@ -59,6 +65,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		if (m_KmersVec != 0) m_KmersVec->push_back(MuKmers);
 		if (m_SelfRevScores != 0) m_SelfRevScores->push_back(SelfRevScore);
 		m_Lock.unlock();
+		EndTimer(ProfileLoader_Lock);
 		}
 	}
 
