@@ -258,11 +258,11 @@ void DBSearcher::LoadDB(const string &DBFN)
 bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	{
 	bool Evalue_ok = true;
-	bool TS_ok = true;
+	bool TS_ok = false;
 	if (!opt(scores_are_not_evalues) && DA.GetEvalue(Up) > m_MaxEvalue)
 		Evalue_ok = false;
-	if (optset_mints && DA.GetNewTestStatistic(Up) < opt(mints))
-		TS_ok = false;
+	if (optset_mints && DA.GetNewTestStatistic(Up) >= opt(mints))
+		TS_ok = true;
 	if (Evalue_ok || TS_ok)
 		return false;
 	return true;
@@ -270,7 +270,8 @@ bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	{
-	if (Reject(DA, Up))
+	bool Rej = Reject(DA, Up);
+	if (Rej)
 		return;
 	m_Lock.lock();
 	++m_HitCount;

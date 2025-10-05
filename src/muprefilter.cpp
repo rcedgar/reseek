@@ -37,7 +37,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 
 		uint TSeqIdx = s_DBSize;
 		s_ProgressLock.lock();
-		if (s_DBSize%100 == 0)
+		if (s_DBSize == 0 || s_DBSize%100 == 0)
 			{
 			time_t now = time(0);
 			if (now > s_TimeLastProgress)

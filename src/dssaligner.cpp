@@ -652,10 +652,14 @@ void DSSAligner::CalcEvalue()
 	const uint LB = m_ChainB->GetSeqLength();
 	float L = float(LA + LB)/2;
 
-	const float dpw = 1.7f;
-	const float lddtw = 0.13f;
-	const float ladd = 250.0f;
-	const float revtsw = 2.0f;
+	//const float dpw = 1.7f;
+	//const float lddtw = 0.13f;
+	//const float ladd = 250.0f;
+	//const float revtsw = 2.0f;
+	const float dpw = m_Params->m_dpw;
+	const float lddtw = m_Params->m_lddtw;
+	const float ladd = m_Params->m_ladd;
+	const float revtsw = m_Params->m_revtsw;
 
 	m_NewTestStatisticA = lddtw*LDDT;
 	m_NewTestStatisticA += (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
@@ -684,6 +688,8 @@ void DSSAligner::ClearAlign()
 	m_HiB = UINT_MAX;
 	m_Ids = UINT_MAX;
 	m_Gaps = UINT_MAX;
+	m_SelfRevScoreA = FLT_MAX;
+	m_SelfRevScoreB = FLT_MAX;
 	m_PvalueA = FLT_MAX;
 	m_PvalueB = FLT_MAX;
 	m_EvalueA = FLT_MAX;

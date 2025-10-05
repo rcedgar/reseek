@@ -127,7 +127,6 @@ float DSSAligner::AlignMuQP_Para()
 	const float OmegaFwd = m_Params->m_OmegaFwd;
 
 	const char *B = (const char *) m_MuLettersB->data();
-
 	const parasail_profile_t * const restrict profile =
 	  (const parasail_profile_t * const restrict) m_ProfPara;
 	parasail_result_t* result =
@@ -150,7 +149,6 @@ float DSSAligner::AlignMuQP_Para()
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
 	float rev_score = (float) result_rev->score;
-
 	EndTimer(SWPara);
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;

@@ -4,7 +4,7 @@
 
 string g_Arg1;
 
-//void cmd_test() {}
+void cmd_test() {}
 
 int main(int argc, char **argv)
 	{
@@ -15,7 +15,6 @@ int main(int argc, char **argv)
 		PrintProgramInfo(stdout);
 		PrintCopyright(stdout);
 		}
-	InitTiming();
 	uint n = SIZE(g_Argv);
 	asserta(n > 0);
 	string ShortCmdLine;

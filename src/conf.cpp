@@ -20,8 +20,6 @@ static vector<int> ivalues;
 static vector<int> jvalues;
 static vector<vector<double> > Means;
 
-static atomic<uint> s_ngetv;//@@
-
 static void InitLetter(uint Letter, uint Count,
   double x0, double x1, double x2, double x3, double x4,
   double x5, double x6, double x7, double x8)
@@ -130,6 +128,7 @@ static double GetDist(
 
 static uint GetConfLetter(const vector<double> &v)
 	{
+	StartTimer(GetConfLetter);
 	asserta(SIZE(v) == M);
 	double MinDist = DBL_MAX;
 	uint BestCluster = UINT_MAX;
@@ -143,26 +142,36 @@ static uint GetConfLetter(const vector<double> &v)
 			}
 		}
 	asserta(BestCluster != UINT_MAX);
+	EndTimer(GetConfLetter);
 	return BestCluster;
 	}
 
 static void Getv(const PDBChain &Chain, uint Pos,
   vector<double> &v)
 	{
-	++s_ngetv;//@@
+	StartTimer(Getv);
 	v.clear();
+	v.reserve(M);
 	const uint L = Chain.GetSeqLength();
 	if (Pos < 3 || Pos + 3 >= int(L))
+		{
+		EndTimer(Getv);
 		return;
+		}
 
 	for (uint m = 0; m < M; ++m)
 		{
 		int i = ivalues[m];
 		int j = jvalues[m];
+		EndTimer(Getv);
+		StartTimer(GetDist);
 		double d = Chain.GetDist(Pos+i, Pos+j);
+		EndTimer(GetDist);
+		StartTimer(Getv);
 		v.push_back(d);
 		}
 	asserta(SIZE(v) == M);
+	EndTimer(Getv);
 	}
 
 uint DSS::Get_Conf(uint Pos)
@@ -241,10 +250,4 @@ uint DSS::Get_RENConf(uint Pos)
 	uint Letter = GetConfLetter(v);
 	asserta(Letter < 16);
 	return Letter;
-	}
-
-void log_ngetv()
-	{
-	uint n = s_ngetv;
-	Log("ngetv=%u\n", n);
 	}

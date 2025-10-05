@@ -785,7 +785,7 @@ void cmd_scop40bench()
 
 	OpenOutputFiles();
 
-	ResetTimers();
+	//ResetTimers();
 	SB.m_QuerySelf = true;
 	SB.m_ScoresAreEvalues = true;
 	if (opt(scores_are_not_evalues))
@@ -804,10 +804,6 @@ void cmd_scop40bench()
 		SB.WriteSens1FPReport(f);
 		CloseStdioFile(f);
 		}
-	void log_ngetv();//@@
-	void log_profticks();//@@
-	log_ngetv();//@@
-	log_profticks();//@@
 #if SCORE_DIST
 	DSSAligner::ReportScoreDist();
 #endif

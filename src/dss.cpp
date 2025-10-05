@@ -5,8 +5,6 @@
 #include "dss.h"
 #include "timing.h"
 
-static TICKS s_ticks;//@@
-
 uint GetPatternOnes(const string &Str)
 	{
 	uint n = 0;
@@ -684,7 +682,6 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 
 void DSS::GetProfile(vector<vector<byte> > &Profile)
 	{
-	TICKS t1 = GetClockTicks();
 	StartTimer(DSS_GetProfile);
 	const DSSParams &Params = *m_Params;
 	Profile.clear();
@@ -699,7 +696,11 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 		FEATURE Feature = Params.m_Features[i];
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
+			EndTimer(DSS_GetProfile);
+			//StartTimer(DSS_GetFeature);
 			uint Letter = GetFeature(Feature, Pos);
+			//EndTimer(DSS_GetFeature);
+			StartTimer(DSS_GetProfile);
 			if (Letter == UINT_MAX)
 				ProfRow.push_back(31);
 			else
@@ -711,7 +712,6 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 		Profile.push_back(ProfRow);
 		}
 	EndTimer(DSS_GetProfile);
-	s_ticks += (GetClockTicks() - t1);//@@
 	}
 
 float DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
@@ -810,10 +810,4 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		return Dist;
 		}
 	return FLT_MAX;
-	}
-
-void log_profticks()
-	{
-	Log("profticks=%.0f\n", (double) s_ticks);
-	Log("profticks2=%.0f\n", (double) g_PrefixTicksDSS_GetProfile);
 	}

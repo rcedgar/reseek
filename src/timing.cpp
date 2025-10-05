@@ -8,90 +8,39 @@
 #include <Windows.h>	// for IsDebuggerPresent()
 #endif
 
-static unsigned g_LockCalls;
-static TICKS g_TotalLockTicks;
-static time_t t_Start = time(0);
-static time_t t_End;
-static TICKS g_TicksStart = GetClockTicks();
-static TICKS g_TicksEnd;
-
-void IncLockTicks(TICKS t)
-	{
-	++g_LockCalls;
-	g_TotalLockTicks += t;
-	}
-
-void LogLockTicks()
-	{
-	g_TicksEnd = GetClockTicks();
-	t_End = time(0);
-	time_t Secs = t_End - t_Start;
-	if (Secs == 0)
-		Secs = 1;
-
-	TICKS ElapsedTicks = g_TicksEnd - g_TicksStart;
-	double Pct = GetPct((double) g_TotalLockTicks, (double) ElapsedTicks);
-
-	ProgressLog("\n");
-	ProgressLog("%10u  Lock calls\n", g_LockCalls);
-	ProgressLog("%10.0f  Lock ticks (%s)\n", (double) g_TotalLockTicks, FloatToStr(double(g_TotalLockTicks)));
-	ProgressLog("%10.0f  Elapsed ticks (%s)\n", (double) ElapsedTicks, FloatToStr(double(ElapsedTicks)));
-	ProgressLog("%10.1f%%  Pct locks\n", Pct);
-	ProgressLog("\n");
-	}
-
 #if	TIMING
 
 TIMER g_CurrTimer = TIMER_None;
-TIMER g_LastTimer;
-TICKS g_LastTicks;
+TIMER g_LastTimer = TIMER_None;
+TICKS g_LastTicks = GetClockTicks();
+TICKS g_StartTicks = GetClockTicks();
+time_t g_StartTime = time(0);
 
-#if	TIMING_2D
-TICKS g_PrefixTicks2D[TimerCount][TimerCount];
-unsigned g_PrefixCounts2D[TimerCount][TimerCount];
-#else
-#define T(x)							\
-TICKS g_PrefixTicks##x;
-#include "timers.h"
-#endif
-
-unsigned g_Counters[CounterCount];
-
-#define T(x)							\
-	TICKS g_TotalTicks##x;				\
-	unsigned g_TimerStartCount##x;
-#include "timers.h"
-
-static TICKS g_StartTicks;
-static time_t g_StartTime;
+uint g_Counters[CounterCount];
+TICKS g_Ticks1D[TimerCount];
+uint g_Counts1D[TimerCount];
+TICKS g_Ticks2D[TimerCount][TimerCount];
+uint g_Counts2D[TimerCount][TimerCount];
 
 void ResetTimers()
 	{
-#define T(x)	g_TimerStartCount##x = 0;
-#include "timers.h"
-
-#define T(x)	g_TotalTicks##x = 0;
-#include "timers.h"
-
 	zero_array(g_Counters, CounterCount);
-#if TIMING_2D
-	for (unsigned i = 0; i < TimerCount; ++i)
+	for (uint i = 0; i < TimerCount; ++i)
 		{
-		for (unsigned j = 0; j < TimerCount; ++j)
+		for (uint j = 0; j < TimerCount; ++j)
 			{
-			g_PrefixTicks2D[i][j] = 0;
-			g_PrefixCounts2D[i][j] = 0;
+			g_Ticks2D[i][j] = 0;
+			g_Counts2D[i][j] = 0;
 			}
 		}
-#endif
 	}
 
 static double GetTimerOverheadTicks()
 	{
-	const unsigned N = 1000*1000;
+	const uint N = 1000*1000;
 
 	TICKS t1 = GetClockTicks();
-	for (unsigned i = 0; i < N; ++i)
+	for (uint i = 0; i < N; ++i)
 		{
 		StartTimer(GetTimerOverhead);
 		EndTimer(GetTimerOverhead);
@@ -100,14 +49,6 @@ static double GetTimerOverheadTicks()
 
 	double Ticks = double(t2 - t1);
 	return Ticks/N;
-	}
-
-void InitTiming()
-	{
-	g_StartTime = time(0);
-	TICKS Now = GetClockTicks();
-	g_StartTicks = Now;
-	g_LastTicks = Now;
 	}
 
 static const char *CounterToStr(COUNTER c)
@@ -124,7 +65,7 @@ static const char *CounterToStr(COUNTER c)
 static void LogCounters()
 	{
 	bool HdrDone = false;
-	for (unsigned i = 0; i < CounterCount; ++i)
+	for (uint i = 0; i < CounterCount; ++i)
 		{
 		double N = g_Counters[i];
 		if (N == 0)
@@ -152,16 +93,14 @@ const char *TimerToStr(TIMER t)
 static void LogTimers(const GlobalTimingData &GTD,
   const vector<TimerData> &TDs)
 	{
-	const unsigned TDCount = SIZE(TDs);
+	const uint TDCount = SIZE(TDs);
 
 	double TotalTimerCalls = 0.0;
 	double TotalTimerTicks = 0.0;
-	for (unsigned i = 0; i < TDCount; ++i)
+	for (uint i = 0; i < TDCount; ++i)
 		{
 		const TimerData &TD = TDs[i];
 		TotalTimerTicks += TD.Ticks;
-		if (!TD.Is1D && !TD.Is2D)
-			TotalTimerCalls += TD.Calls;
 		}
 
 	double TicksPerSec = GTD.ElapsedTicks/GTD.ElapsedSecs;
@@ -173,10 +112,12 @@ static void LogTimers(const GlobalTimingData &GTD,
 	double TotalPctShown = 0.0;
 	double TotalCPct = 0.0;
 	double TotalSecs = 0.0;
+	double MinPct = opt(min_timer_pct);
 
 	Log("\n");
+	Log("MinPct %.1f%%\n", MinPct);
 	Log("    Pct   TotPct        Ticks        Secs       Calls  Ticks/Call  Timer\n");
-	for (unsigned i = 0; i < TDCount; ++i)
+	for (uint i = 0; i < TDCount; ++i)
 		{
 		const TimerData &TD = TDs[i];
 
@@ -187,22 +128,33 @@ static void LogTimers(const GlobalTimingData &GTD,
 		TotalSecs += Secs;
 
 		double CTicks = TD.Ticks;
-		if (!TD.Is1D && !TD.Is2D)
-			CTicks -= TD.Calls*GTD.TimerOverheadTicks;
+		CTicks -= TD.Calls*GTD.TimerOverheadTicks;
 		double TicksPerCall = TD.Calls == 0.0 ? 0.0 : CTicks/TD.Calls;
 
-//		if (pct >= opt(min_timer_pct))//@@
-		if (pct > 0)
+		if (pct >= MinPct)
 			{
 			TotalPctShown += pct;
+
+			string Name;
+			if (TD.Is2D)
+				{
+				Name = TimerToStr((TIMER) TD.Timer1);
+				Name += " - ";
+				Name += TimerToStr((TIMER) TD.Timer2);
+				}
+			else
+				Name = TimerToStr((TIMER) TD.Timer1);
 
 			Log("%6.1f%%", pct);
 			Log("  %6.1f%%", TotalPct);
 			Log("  %11.4e", TD.Ticks);
 			Log("  %10.10s", FloatToStr(Secs));
 			Log("  %10.10s", FloatToStr(TD.Calls));
-			Log("  %10.10s", TD.Is1D ? "" : FloatToStr(TicksPerCall));
-			Log("  %s", TD.Name.c_str());
+			if (TD.Is2D)
+				Log("  %10.10s", "");
+			else
+				Log("  %10.10s", FloatToStr(TicksPerCall));
+			Log("  %s", Name.c_str());
 			Log("\n");
 			}
 		}
@@ -241,11 +193,7 @@ void LogTiming()
 	TICKS ExitTicks  = GetClockTicks();
 	time_t ExitTime = time(0);
 
-#if	TIMING_2D
-	g_PrefixTicks2D[g_LastTimer][TIMER_ExitTiming] = ExitTicks - g_LastTicks;
-#else
-	g_TotalTicksExitTiming = ExitTicks - g_LastTicks;
-#endif
+	g_Ticks2D[g_LastTimer][TIMER_ExitTiming] = ExitTicks - g_LastTicks;
 
 	GlobalTimingData GTD;
 	double ElapsedSecs = double(ExitTime - g_StartTime);
@@ -256,64 +204,36 @@ void LogTiming()
 	double ElapsedTicks = double(ExitTicks - g_StartTicks);
 
 	vector<TimerData> TDs;
-#define T(x)											\
-	{													\
-	double Ticks = (double) g_TotalTicks##x;			\
-	if (Ticks > 0.0)									\
-		{												\
-		TimerData TD;									\
-		TD.Name = #x;									\
-		TD.Ticks = Ticks;								\
-		TD.Calls = g_TimerStartCount##x;				\
-		TD.Is1D = false;								\
-		TD.Is2D = false;								\
-		TDs.push_back(TD);								\
-		}												\
-	}
-#include "timers.h"
+	for (uint i = 0; i < TimerCount; ++i)
+		{
+		double Ticks = (double) g_Ticks1D[i];
+		if (Ticks > 0.0)
+			{
+			TimerData TD;
+			TD.Timer1 = i;
+			TD.Timer2 = i;
+			TD.Is2D = false;
+			TD.Ticks = double(g_Ticks1D[i]);
+			TD.Calls = g_Counts1D[i];
+			TDs.push_back(TD);
+			}
+		}
 
-#if	TIMING_2D
-
-#define T(x)											\
-	{													\
-	for (unsigned i = 0; i < TimerCount; ++i)			\
-		{												\
-		double Ticks = (double) g_PrefixTicks2D[TIMER_##x][i];\
-		if (Ticks > 0.0)								\
-			{											\
-			TimerData TD;								\
-			TD.Name = string(#x) + string(" - ")		\
-			  + string(TimerToStr((TIMER) i));			\
-			TD.Ticks = Ticks;							\
-			TD.Calls = g_PrefixCounts2D[i][TIMER_##x];	\
-			TD.Is1D = false;							\
-			TD.Is2D = true;								\
-			TDs.push_back(TD);							\
-			}											\
-		}												\
-	}
-#include "timers.h"
-
-#else
-
-#define T(x)											\
-	{													\
-	double Ticks = (double) g_PrefixTicks##x;			\
-	if (Ticks > 0.0)									\
-		{												\
-		TimerData TD;									\
-		TD.Name = "> " #x;								\
-		TD.Ticks = Ticks;								\
-		TD.Calls = g_TimerStartCount##x;				\
-		TD.Is1D = true;									\
-		TD.Is2D = false;								\
-		TDs.push_back(TD);								\
-		}												\
-	}
-#include "timers.h"
-
-#endif
-
+	for (uint i = 0; i < TimerCount; ++i)
+		for (uint j = 0; j < TimerCount; ++j)
+			{
+			double Ticks = (double) g_Ticks2D[i][j];
+			if (Ticks > 0.0)
+				{
+				TimerData TD;
+				TD.Timer1 = i;
+				TD.Timer2 = j;
+				TD.Is2D = true;
+				TD.Ticks = double(g_Ticks2D[i][j]);
+				TD.Calls = g_Counts2D[i][j];
+				TDs.push_back(TD);
+				}
+			}
 	sort(TDs.begin(), TDs.end());
 
 	Log("\n");
@@ -327,27 +247,9 @@ void LogTiming()
 
 	LogCounters();
 	LogTimers(GTD, TDs);
-
-	double TicksPerSec = GTD.ElapsedTicks/GTD.ElapsedSecs;
-
-	bool Any = false;
-#define T(x)	\
-	if (g_STimerTicks##x > 0)	\
-		{ \
-		if (!Any) \
-			{ \
-			Any = true; \
-			Log("\n"); \
-			Log("                          STimer        Ticks  Secs\n"); \
-			} \
-		Log("%32.32s  %11.4g  %s\n", \
-		  #x, \
-		  (double) g_STimerTicks##x, \
-		  SecsToStr(g_STimerTicks##x/TicksPerSec)); \
-		}
 	}
 
-#else
+#else // #if TIMING
 
 void InitTiming()
 	{
@@ -357,4 +259,4 @@ void LogTiming()
 	{
 	}
 
-#endif // TIMING
+#endif // #if IMING

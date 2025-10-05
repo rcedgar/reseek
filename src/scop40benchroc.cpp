@@ -800,7 +800,7 @@ void cmd_scop40bit_roc()
 	SB.WriteOutput();
 	}
 
-void cmd_test()
+void _cmd_test()
 	{
 	vector<float> TPRs;
 	vector<float> Log10EPQs;

@@ -3,6 +3,7 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
+#include "statsig.h"
 
 static void ReadChains_SaveLines(const string &FileName,
   vector<PDBChain *> &Chains)
@@ -140,6 +141,10 @@ void cmd_alignpair()
 	if (!optset_input2)
 		Die("Must specify -input2");
 
+	optset_verysensitive = true;
+	opt_verysensitive = true;
+	StatSig::Init(SCOP40_DBSIZE);
+
 	const string &QFN = g_Arg1;
 	const string &TFN = opt(input2);
 
@@ -160,18 +165,17 @@ void cmd_alignpair()
 	DA.SetParams(Params);
 
 	DSS D;
-	//D.SetParams(Params);
 
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);
 	if (ChainCountQ == 0) Die("No chains found in %s", QFN.c_str());
 	if (ChainCountT == 0) Die("No chains found in %s", TFN.c_str());
 
-	vector<vector<byte> > ProfileQ;
-	vector<vector<byte> > ProfileT;
-
-	vector<byte> MuLettersQ;
-	vector<uint> KmersQ;
+	if (ChainCountQ == 1 && ChainCountT == 1)
+		{
+		AlignPair1(Params, D, DA, ChainsQ[0], ChainsT[0], true);
+		return;
+		}
 
 	float BestScore = -9999;
 	uint BestChainIndexQ = UINT_MAX;
