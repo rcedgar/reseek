@@ -569,6 +569,12 @@
     <ClCompile Include="lddt_bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="featuretrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="condense.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -878,6 +884,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="undef_binning.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flatmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="featuretrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

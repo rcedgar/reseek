@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "pdbchain.h"
 #include "seqdb.h"
@@ -236,3 +237,4 @@ void cmd_train_features()
 	CloseStdioFile(fOut);
 	CloseStdioFile(fOut2);
 	}
+#endif // 0

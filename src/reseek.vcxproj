@@ -280,10 +280,12 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="cca.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="condense.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="duper.cpp" />
+    <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
@@ -468,6 +470,8 @@
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="featuretrainer.h" />
+    <ClInclude Include="flatmx.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
@@ -532,6 +536,7 @@
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="twohitdiag.h" />
+    <ClInclude Include="undef_binning.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />

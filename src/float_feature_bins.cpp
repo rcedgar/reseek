@@ -1,3 +1,4 @@
+#if 0 // @@DELETE
 #include "myutils.h"
 #include "pdbchain.h"
 #include "seqdb.h"
@@ -164,3 +165,4 @@ void cmd_float_feature_bins()
 		ReportBins(Values, Values1, Values2, 32);
 		}
 	}
+#endif // 0

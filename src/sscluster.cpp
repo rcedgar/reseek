@@ -363,7 +363,7 @@ void cmd_sscluster()
 
 	LogOdds LO;
 	Tr.TrainLogOdds(K, TrainerOnPair, TrainerAlphaCol, LO);
-	vector<vector<double> > ScoreMx;
+	vector<vector<float> > ScoreMx;
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
 	ProgressLog("K=%u myss3=%s M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
 	  K, opt(myss3), M, N, opt(randseed), TopPct, ExpectedScore);
