@@ -254,7 +254,7 @@
     <ClCompile Include="calibratesearcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="train_features.cpp">
+    <ClCompile Include="train_features_old.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trained_features.cpp">
@@ -573,6 +573,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="condense.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="loadfeatures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trained_features_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

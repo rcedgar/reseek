@@ -37,7 +37,7 @@ public:
 	float m_Omega = FLT_MAX;
 	float m_OmegaFwd = FLT_MAX;
 	string m_MKFPatternStr = "";
-	string m_MuPrefPatternStr = "";
+	string m_MuPrefilterPatternStr = "";
 	float ***m_ScoreMxs = 0;
 	bool m_OwnScoreMxs = false;
 
@@ -86,16 +86,21 @@ public:
 		m_MinFwdScore = FLT_MAX;
 		m_Omega = FLT_MAX;
 		m_MKFPatternStr = "";
-		m_MuPrefPatternStr = "";
+		m_MuPrefilterPatternStr = "";
 		}
 
 	void SetDefaults();
+	void SetDefaults_Features();
+	void SetDefaults_Other();
 
 	void AddFeature(FEATURE F, double w)
 		{
 		m_Features.push_back(F);
 		m_Weights.push_back(float(w));
 		}
+
+	void LoadFeatures();
+	FEATURE LoadFeature(const string &FN);
 
 	void FromParamStr(const string &ParamStr);
 	void NormalizeWeights();
@@ -109,6 +114,8 @@ public:
 	uint GetFeatureIdx_NoError(FEATURE F) const;
 	void ToFev(FILE *f, bool nl) const;
 	void FromTsv(const string &FileName);
+	void AllocScoreMxs();
+	void SetScoreMxs();
 	void InitScoreMxs();
 	void ApplyWeights();
 	//float GetEvalue(float TS) const;

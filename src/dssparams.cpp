@@ -87,7 +87,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 	m_Evalue_a = 4.0f;		if (optset_evalue_a) m_Evalue_a = float(opt(evalue_a));
 	m_Evalue_b = -43.0f;	if (optset_evalue_b) m_Evalue_b = float(opt(evalue_b));
 	m_MKFPatternStr = "111";
-	m_MuPrefPatternStr = string(prefiltermu_pattern);
+	m_MuPrefilterPatternStr = string(prefiltermu_pattern);
 
 	const int MINUS = -1; // for visual emphasis here
 	if (optset_omega) { m_Omega = (float) opt(omega);  }
@@ -297,49 +297,39 @@ void DSSParams::InitScoreMxs()
 	m_OwnScoreMxs = true;
 	}
 
-//float DSSParams::GetEvalueGumbel(float TS, float mu, float beta) const
-//	{
-//	double gumbel_cdf(double mu, double beta, double x);
-//	double x = -log(TS);
-//	//double P = gumbel_cdf(2.5, 0.613, x);
-//	double P = gumbel_cdf(mu, beta, x);
-//	float Evalue = float(P*m_DBSize);
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalueSlope(float TestStatistic, float m, float b) const
-//	{
-//	float PredMinusLogP = m*TestStatistic + b;
-//	float P = expf(-PredMinusLogP);
-//	float Evalue = P*m_DBSize;
-//	if (Evalue > 1)
-//		Evalue = log10f(Evalue) + 1;
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalueOldLinear(float TestStatistic) const
-//	{
-//	const float Slope = m_Evalue_old_linear_Slope;
-//	const float Intercept = m_Evalue_linear_Intercept;
-//	float logNF = Slope*TestStatistic + Intercept;
-//	float NF = powf(10, logNF);
-//	float Evalue = NF*m_DBSize/1e8f;
-//	return Evalue;
-//	}
-//
-//float DSSParams::GetEvalue(float TestStatistic) const
-//	{
-//	if (TestStatistic <= 0)
-//		return 99999;
-//	asserta(m_DBSize != 0 && m_DBSize != FLT_MAX);
-//
-//	if (opt(gum))
-//		return GetEvalueGumbel(TestStatistic,
-//		  m_Evalue_Gumbel_mu, m_Evalue_Gumbel_beta);
-//
-//	return GetEvalueSlope(TestStatistic,
-//	  m_Evalue_linear_m, m_Evalue_linear_b);
-//	}
+void DSSParams::SetScoreMxs()
+	{
+	AllocScoreMxs();
+	ApplyWeights();
+	}
+
+void DSSParams::AllocScoreMxs()
+	{
+	asserta(m_ScoreMxs == 0);
+	uint FeatureCount = GetFeatureCount();
+	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
+	for (uint i = 0; i < FEATURE_COUNT; ++i)
+		m_ScoreMxs[i] = 0;
+
+	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
+		{
+		FEATURE F = m_Features[Idx];
+		asserta(uint(F) < FEATURE_COUNT);
+		uint AS = DSS::GetAlphaSize(F);
+		asserta(m_ScoreMxs[F] == 0);
+		m_ScoreMxs[F] = myalloc(float *, AS);
+		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
+			{
+			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
+#if DEBUG
+			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
+				m_ScoreMxs[F][Letter1][Letter2] = FLT_MAX;
+#endif
+			}
+		}
+	ApplyWeights();
+	m_OwnScoreMxs = true;
+	}
 
 void DSSParams::ApplyWeights()
 	{

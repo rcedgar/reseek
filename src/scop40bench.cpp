@@ -607,6 +607,10 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" secs=%u", Secs);
 		ProgressLog(" [%s]", g_GitVer);
 		}
+	if (optset_fast)
+		ProgressLog(" -fast");
+	else if (optset_sensitive)
+		ProgressLog(" -sensitive");
 	ProgressLog("\n");
 	}
 

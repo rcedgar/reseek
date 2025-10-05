@@ -290,6 +290,7 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="lddt_bench.cpp" />
+    <ClCompile Include="loadfeatures.cpp" />
     <ClCompile Include="mmseqs_index_dump.cpp" />
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="mymutex.cpp" />
@@ -422,7 +423,8 @@
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
-    <ClCompile Include="train_features.cpp" />
+    <ClCompile Include="trained_features_new.cpp" />
+    <ClCompile Include="train_features_old.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
