@@ -34,6 +34,7 @@ echo STARTED `date` >> $log
 
 ./idxqt_speed.bash
 ./convert.bash
+./convert_mu.bash
 ./align.bash
 ./alignpair.bash
 ./columns.bash
@@ -44,6 +45,7 @@ echo STARTED `date` >> $log
 python3 ./check_idxqt_speed.py >> $log
 python3 ./check_logs.py >> $log
 python3 ./check_convert.py >> $log
+python3 ./check_convert_mu.py >> $log
 python3 ./check_columns.py >> $log
 python3 ./check_scop40.py >> $log
 
