@@ -190,13 +190,6 @@ void cmd_alignpair()
 	DSS D;
 	D.SetParams(Params);
 
-	{//@@
-	float Value = 0;
-	uint Letter_old = D.ValueToInt_NENDist(Value);
-	uint Letter_new = D.ValueToInt_Feature(FEATURE_NENDist, (float) Value);
-	asserta(Letter_old == Letter_new);
-	}
-
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);
 	if (ChainCountQ == 0) Die("No chains found in %s", QFN.c_str());
