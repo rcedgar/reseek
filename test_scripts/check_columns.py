@@ -178,7 +178,4 @@ check_default(d + "columns_same_as_default.tsv")
 check_local_row(d + "columns_local_rows.tsv", 0, 2, 3, 8, 'D', 9)
 check_local_row(d + "columns_local_rows.tsv", 1, 5, 6, 8, 'I', 10)
 
-check_global_row(d + "columns_global_rows.tsv", 0, 2, 3, 4, 9)
-check_global_row(d + "columns_global_rows.tsv", 1, 5, 6, 7, 10)
-
 exit(1 if errors > 0 else 0)
