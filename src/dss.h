@@ -109,7 +109,7 @@ public:
 	void Get_NU_ND(uint Pos, double &NU, double &ND) const;
 	void Set_NU_ND_Vecs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
-	uint GetMuLetter(const vector<uint> &Letters) const;
+	double GetFloat_RENDist_ForMu(uint Pos);
 
 public:
 	static void GetBins(FEATURE F, vector<float> &Bins);

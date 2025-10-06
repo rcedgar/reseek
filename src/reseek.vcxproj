@@ -284,6 +284,7 @@
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
+    <ClCompile Include="dssmu.cpp" />
     <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="featuretrainer.cpp" />
@@ -346,7 +347,6 @@
     <ClCompile Include="msta_scores.cpp" />
     <ClCompile Include="mukmerfilter2.cpp" />
     <ClCompile Include="museqsource.cpp" />
-    <ClCompile Include="mu_mapping.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_dbg.cpp" />

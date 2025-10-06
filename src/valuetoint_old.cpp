@@ -1,6 +1,20 @@
 #include "myutils.h"
 #include "dss.h"
 
+#define	DELETED(x)	uint DSS::ValueToInt_##x(double Value) const { asserta(false); return UINT_MAX; }
+
+DELETED(NENDist)
+DELETED(RENDist)
+DELETED(DstPrvHlx)
+DELETED(DstNxtHlx)
+DELETED(StrandDens)
+DELETED(NormDens)
+DELETED(HelixDens)
+DELETED(PMDist)
+DELETED(NX)
+
+#if 0 // @@DELETE
+
 //////////////////////////////////////////////////////////
 // See also getbins.cpp
 // These bins WERE used for alignments
@@ -205,3 +219,4 @@ BIN_T(NX, 13, 42.39);
 BIN_T(NX, 14, 44.47);
 	return 15;
 	}
+#endif // 0

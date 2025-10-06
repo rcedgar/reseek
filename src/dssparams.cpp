@@ -4,15 +4,6 @@
 #include "sort.h"
 #include "prefiltermuparams.h"
 
-const FEATURE DSSParams::m_MuFeatures[m_MuFeatureCount] =
-	{
-	FEATURE_SS3,
-	FEATURE_NENSS3,
-	FEATURE_RENDist4
-	};
-const uint DSSParams::m_MuAlphaSizes[m_MuFeatureCount] = {3, 3, 4};
-uint const DSSParams::m_MuAlphaSize = 36;
-
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
 	if (optset_fast)

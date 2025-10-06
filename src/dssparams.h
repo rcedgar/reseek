@@ -66,12 +66,6 @@ public:
 	float m_MKF_MinMegaHSPScore = FLT_MAX;
 
 public:
-	static const uint m_MuFeatureCount = 3;
-	static const FEATURE m_MuFeatures[m_MuFeatureCount];
-	static const uint m_MuAlphaSizes[3];
-	static const uint m_MuAlphaSize;
-
-public:
 	~DSSParams();
 
 public:
