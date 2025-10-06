@@ -164,14 +164,14 @@ const float * const *DSS::GetScoreMx(FEATURE F)
 	return s_ScoreMxs[F];
 	}
 
-uint DSS::ValueToInt_Feature(FEATURE F, float Value)
-	{
-	assert(uint(F) < FEATURE_COUNT);
-	uint AS = s_AlphaSizes[F];
-	assert(AS > 0);
-	UNDEF_BINNING UB = s_UBs[F];
-	const vector<float> &BinTs = s_BinTs[F];
-	uint DefaultLetter = s_DefaultLetters[F];
-	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
-	return Letter;
-	}
+//uint DSS::ValueToInt_Feature(FEATURE F, float Value)
+//	{
+//	assert(uint(F) < FEATURE_COUNT);
+//	uint AS = s_AlphaSizes[F];
+//	assert(AS > 0);
+//	UNDEF_BINNING UB = s_UBs[F];
+//	const vector<float> &BinTs = s_BinTs[F];
+//	uint DefaultLetter = s_DefaultLetters[F];
+//	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
+//	return Letter;
+//	}

@@ -429,7 +429,8 @@
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
-    <ClCompile Include="valuetoint.cpp" />
+    <ClCompile Include="valuetoint_new.cpp" />
+    <ClCompile Include="valuetoint_old.cpp" />
     <ClCompile Include="one2three.cpp" />
     <ClCompile Include="fastaseqsource.cpp" />
     <ClCompile Include="fileseqsource.cpp" />

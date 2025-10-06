@@ -47,7 +47,7 @@ BIN_T(HelixDens, 12, 0.4647);
 BIN_T(HelixDens, 13, 0.5258);
 BIN_T(HelixDens, 14, 0.6343);
 
-// Agree with DSS::ValueToInt_NENDist()
+// Agree with DSS::ValueToInt_StrandDens()
 BIN_T(StrandDens, 0, 0.02212);
 BIN_T(StrandDens, 1, 0.07567);
 BIN_T(StrandDens, 2, 0.1134);
@@ -113,6 +113,23 @@ BIN_T(DstNxtHlx, 11, 18);
 BIN_T(DstNxtHlx, 12, 20);
 BIN_T(DstNxtHlx, 13, 24);
 BIN_T(DstNxtHlx, 14, 28);
+
+// NOT IN vartoint.cpp
+BIN_T(DstPrvHlx, 0, 6);
+BIN_T(DstPrvHlx, 1, 7);
+BIN_T(DstPrvHlx, 2, 8);
+BIN_T(DstPrvHlx, 3, 9);
+BIN_T(DstPrvHlx, 4, 10);
+BIN_T(DstPrvHlx, 5, 11);
+BIN_T(DstPrvHlx, 6, 12);
+BIN_T(DstPrvHlx, 7, 13);
+BIN_T(DstPrvHlx, 8, 14);
+BIN_T(DstPrvHlx, 9, 15);
+BIN_T(DstPrvHlx, 10, 16);
+BIN_T(DstPrvHlx, 11, 18);
+BIN_T(DstPrvHlx, 12, 20);
+BIN_T(DstPrvHlx, 13, 24);
+BIN_T(DstPrvHlx, 14, 28);
 
 // Agrees with vartoint.cpp
 BIN_T(PMDist, 0, 9.994);

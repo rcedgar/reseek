@@ -822,10 +822,30 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 #include "intfeatures.h"
 #undef F
 
+//#define F(x)	case FEATURE_##x: \
+//		{ \
+//		double Value = GetFloat_##x(Pos); \
+//		return ValueToInt_##x(Value); \
+//		}
+//#include "floatfeatures.h"
+//#undef F
+
+//#define F(x)	case FEATURE_##x: \
+//		{ \
+//		double Value = GetFloat_##x(Pos); \
+//		uint Letter_old = ValueToInt_##x(Value); \
+//		uint Letter_new = ValueToInt_Feature(FEATURE_##x, (float) Value); \
+//		if (Letter_old != Letter_new) \
+//			Die("%u=%s[%u] value %.8g letters %u %u", \
+//				FeatureIndex, FeatureToStr(FeatureIndex), Pos, Value, Letter_old, Letter_new); \
+//		return Letter_new; \
+//		}
+
 #define F(x)	case FEATURE_##x: \
 		{ \
 		double Value = GetFloat_##x(Pos); \
-		return ValueToInt_##x(Value); \
+		uint Letter_new = ValueToInt_Feature(FEATURE_##x, (float) Value); \
+		return Letter_new; \
 		}
 #include "floatfeatures.h"
 #undef F

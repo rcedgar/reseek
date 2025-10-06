@@ -67,7 +67,7 @@ uint DSS::ValueToInt_Never(float Value, uint AlphaSize,
 	asserta(DefaultLetter == UINT_MAX);
 	asserta(SIZE(Ts) + 1 == AlphaSize);
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		if (Value <= Ts[i])
+		if (Value < Ts[i])
 			return i;
 	return AlphaSize - 1;
 	}
@@ -79,7 +79,7 @@ uint DSS::ValueToInt_Ignore(float Value, uint AlphaSize,
 	asserta(DefaultLetter == UINT_MAX);
 	asserta(SIZE(Ts) + 1 == AlphaSize);
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		if (Value <= Ts[i])
+		if (Value < Ts[i])
 			return i;
 	return AlphaSize - 1;
 	}
@@ -93,7 +93,7 @@ uint DSS::ValueToInt_OnlyZero(float Value, uint AlphaSize,
 
 	asserta(SIZE(Ts) + 2 == AlphaSize);
 	for (uint i = 0; i + 2 < AlphaSize; ++i)
-		if (Value <= Ts[i])
+		if (Value < Ts[i])
 			return i + 1;
 	return AlphaSize - 1;
 	}
@@ -107,7 +107,7 @@ uint DSS::ValueToInt_Default(float Value, uint AlphaSize,
 
 	asserta(SIZE(Ts) + 1 == AlphaSize);
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		if (Value <= Ts[i])
+		if (Value < Ts[i])
 			return i;
 	return AlphaSize - 1;
 	}
@@ -121,7 +121,7 @@ uint DSS::ValueToInt_ZeroOverload(float Value, uint AlphaSize,
 
 	asserta(SIZE(Ts) + 1 == AlphaSize);
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		if (Value <= Ts[i])
+		if (Value < Ts[i])
 			return i;
 	return AlphaSize - 1;
 	}

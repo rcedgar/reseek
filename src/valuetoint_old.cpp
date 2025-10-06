@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////
 // See also getbins.cpp
-// These bins ARE used for alignments
+// These bins WERE used for alignments
 //////////////////////////////////////////////////////////
 
 #define BIN_T(Feat, Idx, t)	if (Value < t) return Idx;
@@ -11,6 +11,7 @@
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_NENDist(double Value) const
 	{
+	asserta(false);
 	if (Value < 4.417) return 0;
 	if (Value < 4.647) return 1;
 	if (Value < 4.841) return 2;
@@ -32,6 +33,7 @@ uint DSS::ValueToInt_NENDist(double Value) const
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_RENDist(double Value) const
 	{
+	asserta(false);
 	if (Value < 6) return 0;
 	if (Value < 7) return 1;
 	if (Value < 8) return 2;
@@ -53,6 +55,7 @@ uint DSS::ValueToInt_RENDist(double Value) const
 // Agrees with DSS::GetBins() after manual update
 uint DSS::ValueToInt_DstNxtHlx(double Value) const
 	{
+	asserta(false);
 	if (Value < 6) return 0;
 	if (Value < 7) return 1;
 	if (Value < 8) return 2;
@@ -74,6 +77,7 @@ uint DSS::ValueToInt_DstNxtHlx(double Value) const
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_StrandDens(double Value) const
 	{
+	asserta(false);
 	if (Value < 0.02212) return 0;
 	if (Value < 0.07567) return 1;
 	if (Value < 0.1134) return 2;
@@ -95,6 +99,7 @@ uint DSS::ValueToInt_StrandDens(double Value) const
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_NormDens(double Value) const
 	{
+	asserta(false);
 	if (Value < 0.241) return 0;
 	if (Value < 0.3399) return 1;
 	if (Value < 0.4115) return 2;
@@ -116,6 +121,7 @@ uint DSS::ValueToInt_NormDens(double Value) const
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_HelixDens(double Value) const
 	{
+	asserta(false);
 BIN_T(HelixDens, 0, 0.03015);
 BIN_T(HelixDens, 1, 0.06112);
 BIN_T(HelixDens, 2, 0.1127);
@@ -137,6 +143,7 @@ BIN_T(HelixDens, 14, 0.6343);
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_PMDist(double Value) const
 	{
+	asserta(false);
 BIN_T(PMDist, 0, 9.994);
 BIN_T(PMDist, 1, 12.06);
 BIN_T(PMDist, 2, 13.65);
@@ -158,6 +165,7 @@ BIN_T(PMDist, 14, 32.77);
 // Not in DSS::GetBins()
 uint DSS::ValueToInt_DstPrvHlx(double Value) const
 	{
+	asserta(false);
 BIN_T(DstPrvHlx, 0, 0);
 BIN_T(DstPrvHlx, 1, 6);
 BIN_T(DstPrvHlx, 2, 7);
@@ -179,6 +187,7 @@ BIN_T(DstPrvHlx, 14, 28.82);
 // Agrees with DSS::GetBins()
 uint DSS::ValueToInt_NX(double Value) const
 	{
+	asserta(false);
 BIN_T(NX, 0, 20.65);
 BIN_T(NX, 1, 23.54);
 BIN_T(NX, 2, 25.62);
