@@ -93,22 +93,6 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 		break;
 		}
 
-	case UF_qrowg:
-		{
-		string Row;
-		GetRow(Up, true, true, Row);
-		fputs(Row.c_str(), f);
-		break;
-		}
-
-	case UF_trowg:
-		{
-		string Row;
-		GetRow(Up, false, true, Row);
-		fputs(Row.c_str(), f);
-		break;
-		}
-
 	case UF_dpscore:
 		{
 		fprintf(f, "%.4g", m_AlnFwdScore);
@@ -136,12 +120,6 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_muchain:
 		{
 		fprintf(f, "%d", m_MKF.m_BestChainScore);
-		break;
-		}
-
-	case UF_gscore:
-		{
-		fprintf(f, "%.1f", m_GlobalScore);
 		break;
 		}
 

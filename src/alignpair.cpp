@@ -106,17 +106,8 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	
 	DA.SetQuery(*ChainQ, &ProfileQ, &MuLettersQ, &MuKmersQ, SelfRevScoreQ);
 	DA.SetTarget(*ChainT, &ProfileT, &MuLettersT, &MuKmersT, SelfRevScoreT);
-	float Score = FLT_MAX;
-	if (opt(global))
-		{
-		DA.AlignQueryTarget_Global();
-		Score = DA.m_GlobalScore;
-		}
-	else
-		{
-		DA.AlignQueryTarget();
-		Score = DA.m_AlnFwdScore;
-		}
+	DA.AlignQueryTarget();
+	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
 		{
 		if (optset_aln)

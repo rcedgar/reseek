@@ -45,25 +45,12 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
-		if (opt(global))
+		DA.AlignQueryTarget();
+		if (!DA.m_Path.empty())
 			{
-			DA.AlignQueryTarget_Global();
-			if (!DA.m_GlobalPath.empty())
-				{
-				BaseOnAln(DA, true);
-				if (ChainIndex1 != ChainIndex2)
-					BaseOnAln(DA, false);
-				}
-			}
-		else
-			{
-			DA.AlignQueryTarget();
-			if (!DA.m_Path.empty())
-				{
-				BaseOnAln(DA, true);
-				if (ChainIndex1 != ChainIndex2)
-					BaseOnAln(DA, false);
-				}
+			BaseOnAln(DA, true);
+			if (ChainIndex1 != ChainIndex2)
+				BaseOnAln(DA, false);
 			}
 		PrevChainIndex1 = ChainIndex1;
 		}

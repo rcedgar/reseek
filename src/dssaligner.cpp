@@ -15,21 +15,11 @@
 
 mutex DSSAligner::m_OutputLock;
 
-uint SWFastPinopGapless(const int8_t * const *AP, uint LA,
-  const int8_t *B, uint LB);
 void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);
 float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path);
-float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
-  uint &Besti, uint &Bestj);
-float SWFastGapless(XDPMem &Mem, const Mx<float> &SMx, uint LA, uint LB,
-  uint &Besti, uint &Bestj);
-int SWFastGapless_Int(XDPMem &Mem, const Mx<int8_t> &SMx, uint LA, uint LB,
-  uint &Besti, uint &Bestj);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
-float SWFastGaplessProfb(float *DProw_, const float * const *ProfA,
-	uint LA, const byte *B, uint LB);
 
 atomic<uint> DSSAligner::m_AlnCount;
 atomic<uint> DSSAligner::m_XDropAlnCount;
@@ -928,9 +918,6 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_AlnFwdScore = 0;
-
-	m_GlobalScore = -9999;
-	m_GlobalPath.clear();
 	}
 
 void DSSAligner::Align_NoAccel()
@@ -1056,40 +1043,9 @@ float DSSAligner::AlignMuQP(const vector<byte> &LettersA,
 	{
 	m_MuLettersA = &LettersA;
 	m_MuLettersB = &LettersB;
-	if (m_Params->m_UsePara)
-		{
-		//SetMuQP_Para();
-		float ScorePara = AlignMuQP_Para();
-		return ScorePara;
-		}
-
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
-	//SetMuQP();
-	AllocDProw(LB);
-	StartTimer(SWFastGaplessProfb);
-	float Scorefb = SWFastGaplessProfb(m_DProw, m_ProfMu.data(), LA, LettersB.data(), LB);
-	EndTimer(SWFastGaplessProfb);
-	return Scorefb;
-	}
-
-float DSSAligner::AlignMu_Int(const vector<byte> &LettersA,
-  const vector<byte> &LettersB)
-	{
-	m_MuLettersA = &LettersA;
-	m_MuLettersB = &LettersB;
-	StartTimer(SetMuQPi);
-	SetMuQPi();
-	EndTimer(SetMuQPi);
-	uint LA = SIZE(LettersA);
-	uint LB = SIZE(LettersB);
-	StartTimer(SWFastGapless_Profi);
-	float FwdScore = (float) SWFastPinopGapless(m_ProfMui.data(), LA,
-	  (const int8_t *) LettersB.data(), LB);
-	float RevScore = (float) SWFastPinopGapless(m_ProfMuRevi.data(), LA,
-		(const int8_t *) LettersB.data(), LB);
-	EndTimer(SWFastGapless_Profi);
-	return (FwdScore - RevScore)/2;
+	asserta(m_Params->m_UsePara);
+	float ScorePara = AlignMuQP_Para();
+	return ScorePara;
 	}
 
 void DSSAligner::Stats()

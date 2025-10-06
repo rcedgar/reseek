@@ -307,14 +307,6 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	uint ChainIndexB = iterB->second;
 	if (ChainIndexA == ChainIndexB)
 		return;
-	if (opt(global))
-		{
-		if (Up)
-			StoreScore(ChainIndexA, ChainIndexB, DA.m_GlobalScore);
-		else
-			StoreScore(ChainIndexB, ChainIndexA, DA.m_GlobalScore);
-		return;
-		}
 
 	if (Up)
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
