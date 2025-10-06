@@ -284,6 +284,7 @@
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
+    <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />

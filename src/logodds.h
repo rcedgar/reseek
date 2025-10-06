@@ -35,6 +35,7 @@ public:
 	float ReadFloatValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
 	uint ReadIntValue(FILE *f, const string &Name, uint Idx = UINT_MAX);
 	void ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Vec);
+	void ReadFloatVec(FILE *f, const string &Name, uint Idx, vector<float> &Vec);
 	void GetExpectedScores(vector<float> &ExpectedScores) const;
 	uint GetBestDefaultLetter(uint WildcardLetter) const;
 	};

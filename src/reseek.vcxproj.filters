@@ -581,6 +581,9 @@
     <ClCompile Include="trained_features_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dump_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -38,6 +38,7 @@ public:
 	uint m_ExcludedPairCount = UINT_MAX;
 	mutex m_Lock;
 	uint m_Counter = UINT_MAX;
+	vector<vector<float> > m_ScoreMx;
 
 public:
 	void SetFeature(FEATURE F);
@@ -52,6 +53,7 @@ public:
 	void BinTsToSrc(FILE *f) const;
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
+	void ScoreMxFromTsv(FILE *f);
 
 private:
 	void SetLabelToChainIndex();

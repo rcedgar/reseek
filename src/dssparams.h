@@ -99,7 +99,7 @@ public:
 		m_Weights.push_back(float(w));
 		}
 
-	void LoadFeatures();
+	void LoadFeatures(const string &FN = "");
 	FEATURE LoadFeature(const string &FN);
 
 	void FromParamStr(const string &ParamStr);

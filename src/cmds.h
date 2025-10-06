@@ -80,5 +80,7 @@ C(align_bag)
 C(align_bags)
 C(cif2pdb)
 C(kmrnbh)
+C(dump_features)
+C(load_features)
 
 #undef C

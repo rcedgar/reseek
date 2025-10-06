@@ -18,16 +18,21 @@ FEATURE DSSParams::LoadFeature(const string &FN)
 	return FT.m_F;
 	}
 
-void DSSParams::LoadFeatures()
+void DSSParams::LoadFeatures(const string &aFN)
 	{
-	asserta(optset_feature_spec);
+	string FN = aFN;
+	if (FN == "")
+		{
+		asserta(optset_feature_spec);
+		FN = (string) opt(feature_spec);
+		}
 
 	Clear();
 	SetDefaults_Other();
 
 	vector<string> Lines;
 	vector<string> Fields;
-	ReadLinesFromFile(opt(feature_spec), Lines);
+	ReadLinesFromFile(FN, Lines);
 	const uint N = SIZE(Lines);
 
 	vector<string> FNs;
@@ -87,4 +92,18 @@ void DSSParams::SetDefaults_Features()
 	AddFeature(FEATURE_StrandDens,	0.0183853);
 	AddFeature(FEATURE_NormDens,	0.00384384);
 	SetScoreMxs();
+	}
+
+void cmd_load_features()
+	{
+	DSSParams Params;
+	Params.LoadFeatures(g_Arg1);
+	uint FeatureCount = Params.GetFeatureCount();
+
+	//string OutPrefix = g_Arg1;
+	//for (uint i = 0; i < FeatureCount; ++i)
+	//	{
+	//	FEATURE F = Params.m_Features[i];
+	//	DumpFeature(OutPrefix, F);
+	//	}
 	}

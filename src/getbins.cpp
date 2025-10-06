@@ -1,6 +1,11 @@
 #include "myutils.h"
 #include "dss.h"
 
+//////////////////////////////////////////////////////////
+// See also valuetoint.cpp
+// These bins are NOT used for alignments
+//////////////////////////////////////////////////////////
+
 void DSS::GetBins(FEATURE F, vector<float> &Bins)
 	{
 	Bins.clear();
@@ -8,6 +13,7 @@ void DSS::GetBins(FEATURE F, vector<float> &Bins)
 
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
 
+// Agree with DSS::ValueToInt_NormDens()
 BIN_T(NormDens, 0, 0.241);
 BIN_T(NormDens, 1, 0.3399);
 BIN_T(NormDens, 2, 0.4115);
@@ -24,6 +30,7 @@ BIN_T(NormDens, 12, 0.8233);
 BIN_T(NormDens, 13, 0.8655);
 BIN_T(NormDens, 14, 0.917);
 
+// Agree with DSS::ValueToInt_HelixDens()
 BIN_T(HelixDens, 0, 0.03015);
 BIN_T(HelixDens, 1, 0.06112);
 BIN_T(HelixDens, 2, 0.1127);
@@ -40,6 +47,7 @@ BIN_T(HelixDens, 12, 0.4647);
 BIN_T(HelixDens, 13, 0.5258);
 BIN_T(HelixDens, 14, 0.6343);
 
+// Agree with DSS::ValueToInt_NENDist()
 BIN_T(StrandDens, 0, 0.02212);
 BIN_T(StrandDens, 1, 0.07567);
 BIN_T(StrandDens, 2, 0.1134);
@@ -56,6 +64,7 @@ BIN_T(StrandDens, 12, 0.3627);
 BIN_T(StrandDens, 13, 0.4111);
 BIN_T(StrandDens, 14, 0.4778);
 
+// Agree with DSS::ValueToInt_NENDist()
 BIN_T(NENDist, 0, 4.417);
 BIN_T(NENDist, 1, 4.647);
 BIN_T(NENDist, 2, 4.841);
@@ -88,22 +97,24 @@ BIN_T(RENDist, 12, 18);
 BIN_T(RENDist, 13, 19);
 BIN_T(RENDist, 14, 20);
 
-BIN_T(DstNxtHlx, 0, 0);
-BIN_T(DstNxtHlx, 1, 6);
-BIN_T(DstNxtHlx, 2, 7);
-BIN_T(DstNxtHlx, 3, 8);
-BIN_T(DstNxtHlx, 4, 9);
-BIN_T(DstNxtHlx, 5, 10.81);
-BIN_T(DstNxtHlx, 6, 12.59);
-BIN_T(DstNxtHlx, 7, 14.01);
-BIN_T(DstNxtHlx, 8, 15.25);
-BIN_T(DstNxtHlx, 9, 16.62);
-BIN_T(DstNxtHlx, 10, 18.21);
-BIN_T(DstNxtHlx, 11, 19.98);
-BIN_T(DstNxtHlx, 12, 22);
-BIN_T(DstNxtHlx, 13, 24.6);
-BIN_T(DstNxtHlx, 14, 28.82);
+// Updated to agree with vartoint.cpp
+BIN_T(DstNxtHlx, 0, 6);
+BIN_T(DstNxtHlx, 1, 7);
+BIN_T(DstNxtHlx, 2, 8);
+BIN_T(DstNxtHlx, 3, 9);
+BIN_T(DstNxtHlx, 4, 10);
+BIN_T(DstNxtHlx, 5, 11);
+BIN_T(DstNxtHlx, 6, 12);
+BIN_T(DstNxtHlx, 7, 13);
+BIN_T(DstNxtHlx, 8, 14);
+BIN_T(DstNxtHlx, 9, 15);
+BIN_T(DstNxtHlx, 10, 16);
+BIN_T(DstNxtHlx, 11, 18);
+BIN_T(DstNxtHlx, 12, 20);
+BIN_T(DstNxtHlx, 13, 24);
+BIN_T(DstNxtHlx, 14, 28);
 
+// Agrees with vartoint.cpp
 BIN_T(PMDist, 0, 9.994);
 BIN_T(PMDist, 1, 12.06);
 BIN_T(PMDist, 2, 13.65);
@@ -120,6 +131,7 @@ BIN_T(PMDist, 12, 26.38);
 BIN_T(PMDist, 13, 28.84);
 BIN_T(PMDist, 14, 32.77);
 
+// Agrees with vartoint.cpp
 BIN_T(NX, 0, 20.65);
 BIN_T(NX, 1, 23.54);
 BIN_T(NX, 2, 25.62);

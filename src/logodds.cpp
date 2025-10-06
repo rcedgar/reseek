@@ -370,6 +370,32 @@ void LogOdds::ReadIntVec(FILE *f, const string &Name, uint Idx, vector<uint> &Ve
 		}
 	}
 
+void LogOdds::ReadFloatVec(FILE *f, const string &Name, uint Idx, vector<float> &Vec)
+	{
+	Vec.clear();
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	uint Value = UINT_MAX;
+	if (Idx == UINT_MAX)
+		{
+		asserta(SIZE(Fields) == m_AlphaSize + 1);
+		asserta(Fields[0] == Name);
+		for (uint i = 0; i < m_AlphaSize; ++i)
+			Vec.push_back((float) StrToFloat(Fields[i+1]));
+		}
+	else
+		{
+		asserta(SIZE(Fields) == m_AlphaSize + 2);
+		asserta(Fields[0] == Name);
+		asserta(StrToUint(Fields[1]) == Idx);
+		for (uint i = 0; i < m_AlphaSize; ++i)
+			Vec.push_back((float) StrToFloat(Fields[i+2]));
+		}
+	}
+
 uint LogOdds::ReadIntValue(FILE *f, const string &Name, uint Idx)
 	{
 	string Line;

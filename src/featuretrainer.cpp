@@ -564,11 +564,18 @@ void FeatureTrainer::FromTsv(const string &FN)
 			DSS::GetBinThresholdCount(m_AlphaSize, m_UB);
 		for (uint i = 0; i < BinThresholdCount; ++i)
 			m_BinTs.push_back(ReadFloatValue(f, "bint", i));
-
-		string Line;
-		bool Ok = ReadLineStdioFile(f, Line);
-		asserta(!Ok);
 		}
+	ScoreMxFromTsv(f);
 
+	string Line;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(!Ok);
 	CloseStdioFile(f);
+	}
+
+void FeatureTrainer::ScoreMxFromTsv(FILE* f)
+	{
+	m_ScoreMx.resize(m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		ReadFloatVec(f, "scoremx", i, m_ScoreMx[i]);
 	}
