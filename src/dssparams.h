@@ -23,81 +23,62 @@ enum DECIDE_MODE
 
 class DSSParams
 	{
-public:
-	vector<FEATURE> m_Features;
-	vector<float> m_Weights;
-
-	float m_GapOpen = FLT_MAX;
-	float m_GapExt = FLT_MAX;
-	float m_FwdMatchScore = FLT_MAX;
-	float m_MinFwdScore = FLT_MAX;
-	float m_Omega = FLT_MAX;
-	float m_OmegaFwd = FLT_MAX;
-	string m_MKFPatternStr = "";
-	string m_MuPrefilterPatternStr = "";
-	float ***m_ScoreMxs = 0;
-	bool m_OwnScoreMxs = false;
-
-	int m_ParaMuGapOpen = 2;
-	int m_ParaMuGapExt = 1;
-
-	uint m_MKFL = UINT_MAX;
-	int m_MKF_X1 = INT_MAX;
-	int m_MKF_X2 = INT_MAX;
-	int m_MKF_MinHSPScore = INT_MAX;
-	float m_MKF_MinMegaHSPScore = FLT_MAX;
+private:
+	DSSParams() { Die("DSSParams()"); }
+	~DSSParams() { Die("~DSSParams()"); }
 
 public:
-	~DSSParams();
+	static bool m_InitDone;
+	static vector<FEATURE> m_Features;
+	static vector<float> m_Weights;
+
+	static float ***m_ScoreMxs;
+	static bool m_OwnScoreMxs;
+
+	static float m_GapOpen;
+	static float m_GapExt;
+	static float m_FwdMatchScore;
+	static float m_MinFwdScore;
+	static float m_Omega;
+	static float m_OmegaFwd;
+	static string m_MKFPatternStr;
+	static string m_MuPrefilterPatternStr;
+
+	static int m_ParaMuGapOpen;
+	static int m_ParaMuGapExt;
+
+	static uint m_MKFL;
+	static int m_MKF_X1;
+	static int m_MKF_X2;
+	static int m_MKF_MinHSPScore;
+	static float m_MKF_MinMegaHSPScore;
 
 public:
-	void Clear()
+	static void Clear();
+	static void SetDefaults();
+	static void SetDefaults_Features();
+	static void SetDefaults_Other();
+	static void Init(DECIDE_MODE DM);
+
+	static uint GetFeatureCount()
 		{
-		m_Features.clear();
-		m_Weights.clear();
-
-		m_GapOpen = FLT_MAX;
-		m_GapExt = FLT_MAX;
-		m_FwdMatchScore = FLT_MAX;
-		m_MinFwdScore = FLT_MAX;
-		m_Omega = FLT_MAX;
-		m_MKFPatternStr = "";
-		m_MuPrefilterPatternStr = "";
+		return SIZE(m_Features);
 		}
 
-	void SetDefaults();
-	void SetDefaults_Features();
-	void SetDefaults_Other();
-
-	void AddFeature(FEATURE F, double w)
+	static void AddFeature(FEATURE F, double w)
 		{
 		m_Features.push_back(F);
 		m_Weights.push_back(float(w));
 		}
 
-	void LoadFeatures(const string &FN = "");
-	FEATURE LoadFeature(const string &FN);
+	static void LoadFeatures(const string &FN);
+	static FEATURE LoadFeature(const string &FN);
 
-	void FromParamStr(const string &ParamStr);
-	void NormalizeWeights();
-	uint GetFeatureCount() const;
-	void SetParam(const string &Name, float Value, bool AppendIfWeight);
-	void SetIntParam(const string &Name, int Value);
-	float GetParam(const string &Name) const;
-	int GetIntParam(const string &Name) const;
-	void SetDSSParams(DECIDE_MODE DM);
-	uint GetFeatureIdx(FEATURE F) const;
-	uint GetFeatureIdx_NoError(FEATURE F) const;
-	void ToFev(FILE *f, bool nl) const;
-	void FromTsv(const string &FileName);
-	void AllocScoreMxs();
-	void SetScoreMxs();
-	void InitScoreMxs();
-	void ApplyWeights();
-	//float GetEvalue(float TS) const;
-	//float GetEvalueSlope(float TS, float m, float b) const;
-	//float GetEvalueGumbel(float TS, float mu, float beta) const;
-	//float GetEvalueOldLinear(float TS) const;
+	static void NormalizeWeights();
+	static void AllocScoreMxs();
+	static void SetScoreMxs();
+	static void InitScoreMxs();
+	static void ApplyWeights();
 	};
 
 uint GetPatternOnes(const string &Pattern);

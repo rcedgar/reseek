@@ -115,14 +115,13 @@ static void DumpOldFeature(const string &OutPrefix, FEATURE F)
 
 void cmd_dump_features()
 	{
-	DSSParams Params;
-	Params.SetDefaults();
-	uint FeatureCount = Params.GetFeatureCount();
+	DSSParams::SetDefaults();
+	uint FeatureCount = DSSParams::GetFeatureCount();
 
 	string OutPrefix = g_Arg1;
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
-		FEATURE F = Params.m_Features[i];
+		FEATURE F = DSSParams::m_Features[i];
 		DumpOldFeature(OutPrefix, F);
 		}
 	}

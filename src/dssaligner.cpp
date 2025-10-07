@@ -648,12 +648,6 @@ void DSSAligner::Align_MuFilter(
 	Align_NoAccel();
 	}
 
-void DSSAligner::SetParams(const DSSParams &Params)
-	{
-	m_Params = &Params;
-	m_MKF.SetParams(Params);
-	}
-
 void DSSAligner::UnsetQuery()
 	{
 	m_MKF.ResetQ();
@@ -818,27 +812,6 @@ void DSSAligner::AlignQueryTarget()
 	Align_NoAccel();
 	}
 
-void DSSAligner::CalcEvalue_AAOnly()
-	{
-	static const float Log2 = logf(2);
-	static const float GappedLambda = 0.267f;
-	static const float LogGappedK = logf(0.0410f);
-
-	const uint LA = m_ChainA->GetSeqLength();
-	const uint LB = m_ChainB->GetSeqLength();
-	asserta(StatSig::m_DBSize != UINT_MAX);
-	const float DBSize = (float) StatSig::m_DBSize;
-
-	float Score = m_AlnFwdScore;
-	float BitScore = (Score*GappedLambda - LogGappedK)/Log2;
-	float NM_A = float(LA)*float(DBSize);
-	float NM_B = float(LB)*float(DBSize);
-	m_QualityA = 0;
-	m_QualityB = 0;
-	m_EvalueA = NM_A/powf(2, BitScore);
-	m_EvalueB = NM_B/powf(2, BitScore);
-	}
-
 void DSSAligner::CalcEvalue()
 	{
 // Threshold enables small speedup by avoiding LDDT and self-rev
@@ -864,7 +837,7 @@ void DSSAligner::CalcEvalue()
 	const uint LB = m_ChainB->GetSeqLength();
 	float L = float(LA + LB)/2;
 
-	const float dpw = 1.7f;
+	const float dpw = 1.7f;//@@TODO
 	const float lddtw = 0.13f;
 	const float ladd = 250.0f;
 	const float revtsw = 2.0f;

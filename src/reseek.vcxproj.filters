@@ -113,9 +113,6 @@
     <ClCompile Include="scop40bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sweeper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dssparams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,9 +141,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="timing.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="namedparams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mumx.cpp">
@@ -255,9 +249,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="runthreads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="distmx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cmprof.cpp">
@@ -524,9 +515,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scop40bench.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sweeper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="megacluster.h">

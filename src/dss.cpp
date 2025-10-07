@@ -660,11 +660,6 @@ uint DSS::GetAlphaSize(FEATURE F)
 	return UINT_MAX;
 	}
 
-void DSS::SetParams(const DSSParams &Params)
-	{
-	m_Params = &Params;
-	}
-
 uint DSS::GetFeature(FEATURE Feature, uint Pos)
 	{
 	return GetFeature(uint(Feature), Pos);

@@ -17,14 +17,8 @@ void ProfileLoader::StaticThreadBody(uint ThreadIndex, ProfileLoader *PL)
 void ProfileLoader::ThreadBody(uint ThreadIndex)
 	{
 	DSS D;
-	D.SetParams(*m_Params);
 
 	DSSAligner DA;
-	DSSParams DA_Params = *m_Params;
-	DA_Params.m_Omega = 0;
-	DA_Params.m_OwnScoreMxs = false;
-
-	DA.SetParams(DA_Params);
 
 	for (;;)
 		{

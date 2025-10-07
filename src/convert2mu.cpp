@@ -13,10 +13,9 @@ void cmd_convert2mu()
 	if (optset_minchainlength)
 		MinChainLength = opt(minchainlength);
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast);
+	DSSParams::Init(DM_DefaultFast);
 	MuSeqSource MSS;
-	MSS.OpenChains(g_Arg1, Params);
+	MSS.OpenChains(g_Arg1);
 
 	if (optset_output)
 		{

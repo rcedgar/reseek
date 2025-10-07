@@ -20,7 +20,6 @@ public:
 	vector<PDBChain *> m_Chains;
 	bool m_IsInt = false;
 	SeqDB m_Alns;
-	DSSParams m_Params;
 	int8_t m_MaxAbsi8 = 20;
 	vector<float> m_FloatValues;
 	vector<uint> m_Letters;

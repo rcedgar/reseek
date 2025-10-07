@@ -72,11 +72,9 @@ void MuSeqSource::OpenFasta(const string &FileName)
 	m_FSS.Open(FileName);
 	}
 
-void MuSeqSource::OpenChains(const string &FileName, const DSSParams &Params)
+void MuSeqSource::OpenChains(const string &FileName)
 	{
 	m_IsFasta = false;
-	m_Params = &Params;
-	m_DSS.SetParams(Params);
 	m_CR.Open(FileName);
 	}
 

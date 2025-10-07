@@ -64,7 +64,7 @@ void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 // Params
 	optset_fast = true;
 	opt(fast) = true;
-	m_Params.SetDSSParams(DM_DefaultFast);
+	DSSParams::Init(DM_DefaultFast);
 	m_MaxAbsi8 = 20;
 	if (optset_maxi8)
 		{
@@ -165,8 +165,7 @@ void FeatureTrainer::SetFloatValues()
 	uint UndefCount = 0;
 	m_FloatValues.clear();
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast);
+	DSSParams::Init(DM_DefaultFast);
 
 	DSS D;
 

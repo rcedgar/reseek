@@ -7,13 +7,11 @@
 #include "statsig.h"
 #include "prefiltermuparams.h"
 
-uint MuPreFilter(const DSSParams &Params,
-			  SeqDB &QueryDB,
+uint MuPreFilter(SeqDB &QueryDB,
 			  MuSeqSource &FSS,
 			  const string &OutputFN);
 
-void PostMuFilter(const DSSParams &Params,
-				  const string &MuFilterTsvFN,
+void PostMuFilter(const string &MuFilterTsvFN,
 				  const string &QueryCAFN,
 				  const string &DBBCAFN,
 				  const string &HitsFN);
@@ -25,9 +23,6 @@ void SelfSearch()
 		Die("-db not used for -selfsearch");
 
 	DBSearcher DBS;
-	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption);
-	DBS.m_Params = &Params;
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
@@ -47,9 +42,7 @@ static void Search_NoMuFilter()
 	const string &DBFN = opt(db);
 
 	DBSearcher DBS;
-	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption);
-	DBS.m_Params = &Params;
+	DSSParams::Init(DM_UseCommandLineOption);
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
@@ -82,8 +75,7 @@ void cmd_search()
 	if (!EndsWith(DBFN, ".bca"))
 		Die(".bca format required for -db");
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption);
+	DSSParams::Init(DM_UseCommandLineOption);
 	const string &PatternStr = prefiltermu_pattern;
 	asserta(PatternStr == "1110011");
 
@@ -94,22 +86,21 @@ void cmd_search()
 	MuSeqSource QSS;
 	MuSeqSource DBSS;
 
-	QSS.OpenChains(QueryFN, Params);
+	QSS.OpenChains(QueryFN);
 
 	if (optset_dbmu)
 		DBSS.OpenFasta(opt(dbmu));
 	else
-		DBSS.OpenChains(DBFN, Params);
+		DBSS.OpenChains(DBFN);
 
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
 
-	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
+	uint DBSize = MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
 	StatSig::Init(DBSize);
 
-	DSSParams Params2;
-	Params2.SetDSSParams(DM_AlwaysSensitive);
-	PostMuFilter(Params2, MuFilterTsvFN, QueryFN, DBFN, opt(output));
+	DSSParams::Init(DM_AlwaysSensitive);
+	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
 	if (!opt(keeptmp))
 		DeleteStdioFile(MuFilterTsvFN);

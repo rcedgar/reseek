@@ -4,6 +4,30 @@
 #include "sort.h"
 #include "prefiltermuparams.h"
 
+bool DSSParams::m_InitDone = false;
+vector<FEATURE> DSSParams::m_Features;
+vector<float> DSSParams::m_Weights;
+
+float DSSParams::m_GapOpen = FLT_MAX;
+float DSSParams::m_GapExt = FLT_MAX;
+float DSSParams::m_FwdMatchScore = FLT_MAX;
+float DSSParams::m_MinFwdScore = FLT_MAX;
+float DSSParams::m_Omega = FLT_MAX;
+float DSSParams::m_OmegaFwd = FLT_MAX;
+string DSSParams::m_MKFPatternStr = "";
+string DSSParams::m_MuPrefilterPatternStr = "";
+float ***DSSParams::m_ScoreMxs = 0;
+bool DSSParams::m_OwnScoreMxs = false;
+
+int DSSParams::m_ParaMuGapOpen = 2;
+int DSSParams::m_ParaMuGapExt = 1;
+
+uint DSSParams::m_MKFL = UINT_MAX;
+int DSSParams::m_MKF_X1 = INT_MAX;
+int DSSParams::m_MKF_X2 = INT_MAX;
+int DSSParams::m_MKF_MinHSPScore = INT_MAX;
+float DSSParams::m_MKF_MinMegaHSPScore = FLT_MAX;
+
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
 	if (optset_fast)
@@ -32,8 +56,9 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	return AM_Invalid;
 	}
 
-void DSSParams::SetDSSParams(DECIDE_MODE DM)
+void DSSParams::Init(DECIDE_MODE DM)
 	{
+	asserta(!m_InitDone);
 	SetDefaults();
 
 	ALGO_MODE AM = GetAlgoMode(DM);
@@ -97,128 +122,7 @@ void DSSParams::SetDSSParams(DECIDE_MODE DM)
 		  opt(gapopen), opt(gapext));
 
 	InitScoreMxs();
-	}
-
-void DSSParams::FromTsv(const string &FileName)
-	{
-	Clear();
-	FILE *f = OpenStdioFile(FileName);
-	string Line;
-	while (ReadLineStdioFile(f, Line))
-		{
-		vector<string> Fields;
-		Split(Line, Fields, '\t');
-		asserta(SIZE(Fields) == 2);
-		const string &Name = Fields[0];
-		float Value = (float) StrToFloat(Fields[1]);
-		SetParam(Name, Value, true);
-		}
-	CloseStdioFile(f);
-	}
-
-void DSSParams::ToFev(FILE *f, bool nl) const
-	{
-	if (f == 0)
-		return;
-	const uint FeatureCount = GetFeatureCount();
-	fprintf(f, "NF=%u", FeatureCount);
-	for (uint i = 0; i < FeatureCount; ++i)
-		{
-		FEATURE F = m_Features[i];
-		fprintf(f, "\t%s=%.6g", FeatureToStr(F), m_Weights[i]);
-		}
-#define P(x)	fprintf(f, "\t%s=%.6g", #x, m_##x);
-#include "scalarparams.h"
-
-	if (nl)
-		fprintf(f, "\n");
-	}
-
-uint DSSParams::GetFeatureCount() const
-	{
-	uint n = SIZE(m_Features);
-	asserta(SIZE(m_Weights) == n);
-	return n;
-	}
-
-float DSSParams::GetParam(const string &Name) const
-	{
-#define P(f)	if (Name == #f) { return m_##f; }
-#include "scalarparams.h"
-
-	for (uint F = 0; F < FEATURE_COUNT; ++F)
-		{
-		if (Name == FeatureToStr(F))
-			{
-			uint Idx = GetFeatureIdx(FEATURE(F));
-			return m_Weights[Idx];
-			}
-		}
-	Die("GetParam(%s)", Name.c_str());
-	return FLT_MAX;
-	}
-
-int DSSParams::GetIntParam(const string &Name) const
-	{
-#define x(f)	if (Name == #f) { return m_##f; }
-	x(ParaMuGapOpen);
-	x(ParaMuGapExt);
-#undef x
-	Die("GetIntParam(%s)", Name.c_str());
-	return INT_MAX;
-	}
-
-void DSSParams::SetIntParam(const string &Name, int Value)
-	{
-#define x(f)	if (Name == #f) { m_##f = Value; return; }
-	x(ParaMuGapOpen);
-	x(ParaMuGapExt);
-#undef x
-	Die("SetParam(%s)", Name.c_str());
-	}
-
-void DSSParams::SetParam(const string &Name, float Value, bool AppendIfWeight)
-	{
-#define P(f)	if (Name == #f) { m_##f = Value; return; }
-#include "scalarparams.h"
-
-	if (AppendIfWeight)
-		{
-		FEATURE F = StrToFeature(Name.c_str());
-		m_Features.push_back(F);
-		m_Weights.push_back(Value);
-		return;
-		}
-	else
-		{
-		for (uint Idx = 0; Idx < SIZE(m_Features); ++Idx)
-			{
-			FEATURE F = m_Features[Idx];
-			if (Name == FeatureToStr(F))
-				{
-				m_Weights[Idx] = Value;
-				return;
-				}
-			}
-		}
-	Die("SetParam(%s)", Name.c_str());
-	}
-
-uint DSSParams::GetFeatureIdx(FEATURE F) const
-	{
-	for (uint Idx = 0; Idx < SIZE(m_Features); ++Idx)
-		if (m_Features[Idx] == F)
-			return Idx;
-	Die("GetFeatureIdx(%u)", F);
-	return UINT_MAX;
-	}
-
-uint DSSParams::GetFeatureIdx_NoError(FEATURE F) const
-	{
-	for (uint Idx = 0; Idx < SIZE(m_Features); ++Idx)
-		if (m_Features[Idx] == F)
-			return Idx;
-	return UINT_MAX;
+	m_InitDone = true;
 	}
 
 void DSSParams::NormalizeWeights()
@@ -235,27 +139,6 @@ void DSSParams::NormalizeWeights()
 		Sum2 += w;
 		}
 	asserta(feq(Sum2, 1.0f));
-	}
-
-DSSParams::~DSSParams()
-	{
-	uint FeatureCount = GetFeatureCount();
-	if (!m_OwnScoreMxs)
-		return;
-	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
-		{
-		FEATURE F = m_Features[Idx];
-		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = g_AlphaSizes2[F];
-		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
-			{
-			asserta(m_ScoreMxs[F][Letter1] != 0);
-			myfree(m_ScoreMxs[F][Letter1]);
-			}
-		asserta(m_ScoreMxs[F] != 0);
-		myfree(m_ScoreMxs[F]);
-		}
-	myfree(m_ScoreMxs);
 	}
 
 void DSSParams::InitScoreMxs()
@@ -340,4 +223,39 @@ void DSSParams::ApplyWeights()
 				m_ScoreMxs[F][Letter1][Letter2] = w*g_ScoreMxs2[F][Letter1][Letter2];
 			}
 		}
+	}
+
+void DSSParams::SetDefaults()
+	{
+	AddFeature(FEATURE_AA,			0.398145);
+	AddFeature(FEATURE_NENDist,		0.129367);
+	AddFeature(FEATURE_Conf,		0.202354);
+	AddFeature(FEATURE_NENConf,		0.149383);
+	AddFeature(FEATURE_RENDist,	0.0937677);
+	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
+	AddFeature(FEATURE_StrandDens,	0.0183853);
+	AddFeature(FEATURE_NormDens,	0.00384384);
+
+	m_GapOpen = -0.685533f;
+	m_GapExt = -0.051881f;
+	m_FwdMatchScore = 0.1f;
+	m_MinFwdScore = 7.0f;
+	m_Omega = 29;
+	m_OmegaFwd = 29;
+	m_MuPrefilterPatternStr = "1110011";
+	m_MKFPatternStr = "111";
+	}
+
+void DSSParams::Clear()
+	{
+	m_Features.clear();
+	m_Weights.clear();
+	m_GapOpen = FLT_MAX;
+	m_GapExt = FLT_MAX;
+	m_FwdMatchScore = FLT_MAX;
+	m_MinFwdScore = FLT_MAX;
+	m_Omega = FLT_MAX;
+	m_OmegaFwd = FLT_MAX;
+	m_MuPrefilterPatternStr = "?";
+	m_MKFPatternStr = "?";
 	}

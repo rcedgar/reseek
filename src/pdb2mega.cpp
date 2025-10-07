@@ -33,27 +33,26 @@ void cmd_pdb2mega()
 		Die("No chains");
 	ProgressLog("%u chains\n", ChainCount);
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast);
-	const uint FeatureCount = Params.GetFeatureCount();
+	DSSParams::Init(DM_DefaultFast);
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	asserta(FeatureCount > 0);
-	asserta(Params.m_Features[0] == FEATURE_AA);
+	asserta(DSSParams::m_Features[0] == FEATURE_AA);
 
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	fprintf(fOut, "mega\t%u\t%u\t%.4g\t%.4g\n",
-	  FeatureCount, ChainCount, -Params.m_GapOpen, -Params.m_GapExt);
+	  FeatureCount, ChainCount, -DSSParams::m_GapOpen, -DSSParams::m_GapExt);
 
 	uint AAFeatureIdx = UINT_MAX;
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
-		FEATURE F = Params.m_Features[i];
+		FEATURE F = DSSParams::m_Features[i];
 		if (F == FEATURE_AA)
 			AAFeatureIdx = i;
 		uint AlphaSize = g_AlphaSizes2[F];
 		asserta(AlphaSize <= 20); // because 'a'+Letter below
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
-		  i, FeatureToStr(F), AlphaSize, Params.m_Weights[i]);
+		  i, FeatureToStr(F), AlphaSize, DSSParams::m_Weights[i]);
 		fprintf(fOut, "freqs");
 		const float *Freqs = g_FreqVecs2[F];
 		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
@@ -70,7 +69,7 @@ void cmd_pdb2mega()
 				}
 			fprintf(fOut, "\n");
 			}
-		float **ScoreMx = Params.m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		fprintf(fOut, "logoddsmx\n");
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{
@@ -86,7 +85,6 @@ void cmd_pdb2mega()
 		}
 
 	DSS D;
-	D.SetParams(Params);
 	vector<vector<byte> > Profile;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{

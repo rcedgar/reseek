@@ -98,7 +98,6 @@ void DBSearcher::Setup()
 	for (uint i = 0; i < ThreadCount; ++i)
 		{
 		DSSAligner *DA = new DSSAligner;
-		DA->SetParams(*m_Params);
 		m_DAs.push_back(DA);
 
 		XDPMem *Mem = new XDPMem;
@@ -127,11 +126,13 @@ void DBSearcher::LoadDB(const string &DBFN)
 bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	{
 	bool Evalue_ok = true;
-	bool TS_ok = true;
-	if (!opt(scores_are_not_evalues) && DA.GetEvalue(Up) > m_MaxEvalue)
+	bool TS_ok = false;
+	float E = DA.GetEvalue(Up);
+	if (!opt(scores_are_not_evalues) && E > m_MaxEvalue)
 		Evalue_ok = false;
-	if (optset_mints && DA.GetNewTestStatistic(Up) < opt(mints))
-		TS_ok = false;
+	float TS = DA.GetNewTestStatistic(Up);
+	if (optset_mints && TS >= opt(mints))
+		TS_ok = true;
 	if (Evalue_ok || TS_ok)
 		return false;
 	return true;

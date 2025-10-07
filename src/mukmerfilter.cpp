@@ -94,14 +94,6 @@ void MuKmerFilter::Validate() const
 	}
 #endif // DEBUG
 
-void MuKmerFilter::SetParams(const DSSParams &Params)
-	{
-	uint k = GetPatternOnes(Params.m_MKFPatternStr);
-	asserta(k >= 1 && k < 6);
-	m_DictSize = myipow(36, k);
-	m_Params = &Params;
-	}
-
 int MuKmerFilter::MuXDrop(int PosQ, int LQ, int PosT, int LT, int X,
 						int &Loi, int &Loj, int &Len) const
 	{
@@ -224,8 +216,11 @@ void MuKmerFilter::SetHashTable(const vector<uint> &Kmers, uint16_t *HT) const
 		}
 	}
 
-uint16_t *MuKmerFilter::CreateEmptyHashTable() const\
+uint16_t *MuKmerFilter::CreateEmptyHashTable()
 	{
+	uint k = GetPatternOnes(DSSParams::m_MKFPatternStr);
+	asserta(k >= 1 && k < 6);
+	m_DictSize = myipow(36, k);
 	uint16_t *HT = myalloc(uint16_t, m_DictSize*HASHW);
 	memset(HT, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
 	return HT;
@@ -283,7 +278,7 @@ int MuKmerFilter::GetMaxHSPScore(const vector<byte> &MuLettersT,
 	const uint KmerCountT = SIZE(MuKmersT);
 	int LQ = int(GetQL());
 	int LT = int(SIZE(MuLettersT));
-	const int X1 = m_Params->m_MKF_X1;
+	const int X1 = DSSParams::m_MKF_X1;
 	int MaxHSPScore = 0;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
@@ -336,8 +331,8 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	m_BestChainScore = 0;
 	m_BestHSPScore = 0;
 	bool FoundHSP = false;
-	const int MinHSPScore = m_Params->m_MKF_MinHSPScore;
-	const int X1 = m_Params->m_MKF_X1;
+	const int MinHSPScore = DSSParams::m_MKF_MinHSPScore;
+	const int X1 = DSSParams::m_MKF_X1;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{
 		uint KmerT = MuKmersT[PosT];

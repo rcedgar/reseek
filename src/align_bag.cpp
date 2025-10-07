@@ -9,7 +9,6 @@ extern float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 
 
 static ChainBag *MakeBag(
-	const DSSParams &Params,
 	MuKmerFilter &MKF,
 	DSSAligner &DA_selfrev,
 	DSS &D,
@@ -23,7 +22,7 @@ static ChainBag *MakeBag(
 
 	D.GetProfile(*ptrQProfile);
 	D.GetMuLetters(*ptrQMuLetters);
-	D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
+	D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
 
 	float QSelfRevScore = 
 		GetSelfRevScore(DA_selfrev, D, QChain,
@@ -61,9 +60,8 @@ void cmd_align_bag()
 
 	optset_sensitive = true;
 	opt(sensitive) = true;
-	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_Omega = 0;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega = 0;
 
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);
@@ -77,13 +75,9 @@ void cmd_align_bag()
 	MuKmerFilter MKF;
 	DSSAligner DA;
 	DSSAligner DA_selfrev;
-	D.SetParams(Params);
-	MKF.SetParams(Params);
-	DA.SetParams(Params);
-	DA_selfrev.SetParams(Params);
 
-	ChainBag &BagA = *MakeBag(Params, MKF, DA_selfrev, D, ChainQ);
-	ChainBag &BagB = *MakeBag(Params, MKF, DA_selfrev, D, ChainT);
+	ChainBag &BagA = *MakeBag(MKF, DA_selfrev, D, ChainQ);
+	ChainBag &BagB = *MakeBag(MKF, DA_selfrev, D, ChainT);
 
 	DA.AlignBagsMKF(BagA, BagB);
 	if (DA.m_Path == "")
@@ -103,9 +97,8 @@ void cmd_align_bags()
 
 	optset_sensitive = true;
 	opt(sensitive) = true;
-	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_Omega = 0;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega = 0;
 	StatSig::InitSensitive(SCOP40_DBSIZE);
 
 	const uint ChainCount = SIZE(Chains);
@@ -115,18 +108,13 @@ void cmd_align_bags()
 	DSSAligner DA_sw;
 	DSSAligner DA_bag;
 	DSSAligner DA_selfrev;
-	D.SetParams(Params);
-	MKF.SetParams(Params);
-	DA_selfrev.SetParams(Params);
-	DA_sw.SetParams(Params);
-	DA_bag.SetParams(Params);
 
 	uint PairCount = ChainCount + ChainCount*(ChainCount-1)/2;
 	uint PairIndex = 0;
 	for (uint ChainIndexA = 0; ChainIndexA < ChainCount; ++ChainIndexA)
 		{
 		const PDBChain &ChainA = *Chains[ChainIndexA];
-		ChainBag &BagA = *MakeBag(Params, MKF, DA_selfrev, D, ChainA);
+		ChainBag &BagA = *MakeBag(MKF, DA_selfrev, D, ChainA);
 
 		vector<vector<byte> > ProfileA;
 		D.Init(ChainA);
@@ -155,7 +143,7 @@ void cmd_align_bags()
 			if (E_sw > 1)
 				continue;
 
-			ChainBag &BagB = *MakeBag(Params, MKF, DA_selfrev, D, ChainB);
+			ChainBag &BagB = *MakeBag(MKF, DA_selfrev, D, ChainB);
 			DA_bag.AlignBagsMKF(BagA, BagB);
 
 			if (f == 0)

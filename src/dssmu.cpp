@@ -180,10 +180,7 @@ uint DSS::Get_Mu(uint Pos)
 
 void cmd_mu_mapping()
 	{
-	DSSParams Params;
-
 	DSS D;
-	D.SetParams(Params);
 	uint AS = s_MuAlphaSize;
 	const uint N = s_MuFeatureCount;
 	Log("Mu");

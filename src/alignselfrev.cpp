@@ -7,15 +7,11 @@ void cmd_alignselfrev()
 	const string &QFN = g_Arg1;
 	FILE *fOut = CreateStdioFile(opt(output));
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_Omega = 0;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega = 0;
 
 	DSSAligner DA;
-	DA.SetParams(Params);
-
 	DSS D;
-	D.SetParams(Params);
 
 	vector<vector<byte> > Profile;
 	vector<vector<byte> > RevProfile;

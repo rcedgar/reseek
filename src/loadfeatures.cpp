@@ -96,9 +96,8 @@ void DSSParams::SetDefaults_Features()
 
 void cmd_load_features()
 	{
-	DSSParams Params;
-	Params.LoadFeatures(g_Arg1);
-	uint FeatureCount = Params.GetFeatureCount();
+	DSSParams::LoadFeatures(g_Arg1);
+	uint FeatureCount = DSSParams::GetFeatureCount();
 
 	//string OutPrefix = g_Arg1;
 	//for (uint i = 0; i < FeatureCount; ++i)

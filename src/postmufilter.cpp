@@ -22,7 +22,6 @@ static uint s_QueryIdx;
 static uint s_QueryCount;
 static vector<PDBChain *> *s_ptrQChains;
 static vector<ChainBag *> *s_ptrChainBagsQ;
-static const DSSParams *s_ptrParams;
 static BCAData *s_ptrDB;
 static uint s_LineIdx;
 static uint s_LineCount;
@@ -37,13 +36,9 @@ static FILE *s_fTsv2;
 
 static void ThreadBody_IndexQuery(uint ThreadIndex)
 	{
-	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
-	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
-	MKF.SetParams(Params);
 	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
 	vector<PDBChain *> &QChains = *s_ptrQChains;
 
@@ -74,7 +69,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 
 		D.GetProfile(*ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
-		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, Params.m_MKFPatternStr);
+		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
 		float QSelfRevScore = 
 			GetSelfRevScore(DASelfRev, D, QChain,
 							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
@@ -115,13 +110,9 @@ static bool Accept(const DSSAligner &DA)
 
 static void ThreadBody_Scan(uint ThreadIndex)
 	{
-	const DSSParams &Params = *s_ptrParams;
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
-	DASelfRev.SetParams(Params);
 	MuKmerFilter MKF;
-	MKF.SetParams(Params);
 	vector<ChainBag *> &ChainBagsQ = *s_ptrChainBagsQ;
 	vector<PDBChain *> &QChains = *s_ptrQChains;
 	const BCAData &DB = *s_ptrDB;
@@ -131,7 +122,6 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	float SelfRevScore = 0;
 	ChainBag CBT;
 	DSSAligner TheDA;
-	TheDA.SetParams(Params);
 	LineReader2 &LR = *s_ptrLR;
 
 	string Line;
@@ -166,7 +156,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		D.Init(DBChain);
 		D.GetProfile(DBProfile);
 		D.GetMuLetters(DBMuLetters);
-		D.GetMuKmers(DBMuLetters, DBMuKmers, Params.m_MKFPatternStr);
+		D.GetMuKmers(DBMuLetters, DBMuKmers, DSSParams::m_MKFPatternStr);
 
 		float DBSelfRevScore = GetSelfRevScore(DASelfRev, D, DBChain, DBProfile,
 										   &DBMuLetters, &DBMuKmers);
@@ -208,8 +198,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	}
 
 // Query & DB need C-alpha
-void PostMuFilter(const DSSParams &Params,
-				  const string &MuFilterTsvFN,
+void PostMuFilter(const string &MuFilterTsvFN,
 				  const string &QueryCAFN,
 				  const string &DBBCAFN,
 				  const string &HitsFN)
@@ -251,15 +240,12 @@ void PostMuFilter(const DSSParams &Params,
 
 	DSS D;
 	DSSAligner DASelfRev;
-	D.SetParams(Params);
-	DASelfRev.SetParams(Params);
 
 	vector<ChainBag *> ChainBagsQ;
 	ChainBagsQ.resize(s_QueryCount, 0);
 
 	s_ptrQChains = &QChains;
 	s_ptrChainBagsQ = &ChainBagsQ;
-	s_ptrParams = &Params;
 
 	uint ThreadCount = GetRequestedThreadCount();
 	vector<thread *> ts;

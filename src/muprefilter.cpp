@@ -61,8 +61,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		}
 	}
 
-uint MuPreFilter(const DSSParams &Params,
-			  SeqDB &QDB,
+uint MuPreFilter(SeqDB &QDB,
 			  MuSeqSource &FSS,
 			  const string &OutputFN)
 	{

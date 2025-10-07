@@ -67,8 +67,6 @@ public:
 		if (optset_ssdensw) m_SSDensity_w = opt(ssdensw);
 		}
 
-	void SetParams(const DSSParams &Params);
-
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }
 
 	uint GetFeature(uint FeatureIndex, uint Pos);

@@ -10,8 +10,6 @@ class DSSAligner;
 class MuKmerFilter
 	{
 private:
-	const DSSParams *m_Params = 0;
-
 	const ChainBag *m_ptrBagQ = 0;
 	const vector<byte> *m_ptrMuLettersQ = 0;
 	const vector<uint> *m_ptrMuKmersQ = 0;
@@ -71,9 +69,8 @@ public:
 		{
 		return m_ptrKmerHashTableQ;
 		}
-	void SetParams(const DSSParams &Params);
 	void ResetQ();
-	uint16_t *CreateEmptyHashTable() const;
+	uint16_t *CreateEmptyHashTable();
 	void InitHashTable(uint16_t *HT) const;
 	void SetHashTable(const vector<uint> &Kmers, uint16_t *HT) const;
 	void SetQ(const string &LabelQ,

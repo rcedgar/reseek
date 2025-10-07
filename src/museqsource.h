@@ -33,6 +33,6 @@ public:
 
 public:
 	void OpenFasta(const string &FileName);
-	void OpenChains(const string &FileName, const DSSParams &Params);
+	void OpenChains(const string &FileName);
 	void Close();
 	};

@@ -778,13 +778,10 @@ void cmd_scop40bench()
 		InitGapStr();
 		}
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_UseCommandLineOption);
+	DSSParams::Init(DM_UseCommandLineOption);
 	SCOP40Bench SB;
-	SB.m_Params = &Params;
 	SB.LoadDB(CalFN);
 
-	asserta(SB.m_Params == &Params);
 	StatSig::Init(SB.GetDBSize());
 
 	SB.Setup();

@@ -87,11 +87,7 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf()
 	{
-	StatSig::InitSensitive(GetDBChainCount());
-	for (uint i = 0; i < SIZE(m_DAs); ++i)
-		m_DAs[i]->SetParams(*m_Params);
-
-	//asserta(!m_Params->m_USort);
+	StatSig::InitSensitive(GetDBChainCount());//@@TODO why sensitive
 
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);

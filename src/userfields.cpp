@@ -18,6 +18,7 @@ USERFIELD StrToUF(const string &Str)
 
 static const char *EvalueToStr(double E, string &s)
 	{
+	asserta(!feq(E, DBL_MAX) && !feq(E, FLT_MAX));//@@
 	if (E > 10)
 		E = 99;
 	if (E > 1)

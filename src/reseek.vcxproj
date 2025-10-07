@@ -312,7 +312,6 @@
     <ClCompile Include="convert2mu.cpp" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="deflate.c" />
-    <ClCompile Include="distmx.cpp" />
     <ClCompile Include="getchains.cpp" />
     <ClCompile Include="lddt.cpp" />
     <ClCompile Include="mudex.cpp" />
@@ -363,7 +362,6 @@
     <ClCompile Include="mergefwdback.cpp" />
     <ClCompile Include="msa2cmp.cpp" />
     <ClCompile Include="myss.cpp" />
-    <ClCompile Include="namedparams.cpp" />
     <ClCompile Include="prettyaln.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
@@ -371,7 +369,6 @@
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="statsig.cpp" />
-    <ClCompile Include="sweeper.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
@@ -477,7 +474,6 @@
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="statsig.h" />
-    <ClInclude Include="sweeper.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />

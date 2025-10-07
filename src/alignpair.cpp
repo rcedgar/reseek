@@ -74,7 +74,7 @@ static void XformLines(const double t[3],
 		}
 	}
 
-static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
+static float AlignPair1(DSS &D, DSSAligner &DA,
   const PDBChain *ChainQ, const PDBChain *ChainT, bool DoOutput)
 	{
 	vector<vector<byte> > ProfileQ;
@@ -88,7 +88,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	uint BestChainIndexT = UINT_MAX;
 	D.Init(*ChainQ);
 	D.GetProfile(ProfileQ);
-	if (Params.m_Omega > 0)
+	if (DSSParams::m_Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
 	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ, 0, 0);
@@ -99,7 +99,7 @@ static float AlignPair1(const DSSParams &Params, DSS &D, DSSAligner &DA,
 	D.Init(*ChainT);
 	D.GetProfile(ProfileT);
 
-	if (Params.m_Omega > 0)
+	if (DSSParams::m_Omega > 0)
 		D.GetMuLetters(MuLettersT);
 
 	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT, 0, 0);
@@ -169,15 +169,11 @@ void cmd_alignpair()
 
 	optset_sensitive = true;
 	opt(sensitive) = true;
-	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_Omega = 0;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega = 0;
 
 	DSSAligner DA;
-	DA.SetParams(Params);
-
 	DSS D;
-	D.SetParams(Params);
 
 	const uint ChainCountQ = SIZE(ChainsQ);
 	const uint ChainCountT = SIZE(ChainsT);
@@ -199,7 +195,7 @@ void cmd_alignpair()
 		for (uint ChainIndexT = 0; ChainIndexT < ChainCountT; ++ChainIndexT)
 			{
 			PDBChain *ChainT = ChainsT[ChainIndexT];
-			float Score = AlignPair1(Params, D, DA, ChainQ, ChainT, false);
+			float Score = AlignPair1(D, DA, ChainQ, ChainT, false);
 			if (Score > BestScore)
 				{
 				BestScore = Score;
@@ -213,5 +209,5 @@ void cmd_alignpair()
 
 	PDBChain *ChainQ = ChainsQ[BestChainIndexQ];
 	PDBChain *ChainT = ChainsT[BestChainIndexT];
-	AlignPair1(Params, D, DA, ChainQ, ChainT, true);
+	AlignPair1(D, DA, ChainQ, ChainT, true);
 	}

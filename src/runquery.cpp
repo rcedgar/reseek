@@ -26,8 +26,6 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 	vector<uint> MuKmers1;
 
 	DSS D;
-	D.SetParams(*m_Params);
-
 	for (;;)
 		{
 		PDBChain *Chain1 = ptrQueryCR->GetNext();
@@ -81,9 +79,6 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 
 void DBSearcher::RunQuery(ChainReader2 &QCR)
 	{
-	for (uint i = 0; i < SIZE(m_DAs); ++i)
-		m_DAs[i]->SetParams(*m_Params);
-
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);
 	m_Secs = UINT_MAX;

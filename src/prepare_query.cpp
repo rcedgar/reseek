@@ -47,8 +47,7 @@ static double GetPctId(const string &Seq_i, const string &Seq_j)
 
 void cmd_prepare_query()
 	{
-	DSSParams Params;
-	Params.SetDSSParams(DM_AlwaysFast);
+	DSSParams::Init(DM_AlwaysFast);
 	asserta(optset_bca);
 	BCAData BCA;
 	if (optset_bca)

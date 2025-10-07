@@ -20,7 +20,6 @@ static uint s_InputCount;
 static uint s_OutputCount;
 static uint s_MinChainLength;
 static BCAData *s_ptrBCA = 0;
-static const DSSParams *s_ptrParams = 0;
 static FEATURE s_Feat;
 static mutex s_LockStats;
 static mutex s_LockCal;
@@ -75,10 +74,7 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	DSS *ptrD = 0;
 	if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
-		{
 		ptrD = new DSS;
-		ptrD->SetParams(*s_ptrParams);
-		}
 
 	ChainReader2 CR;
 	CR.Open(*s_ptrFS);
@@ -269,17 +265,14 @@ void cmd_convert()
 	if (optset_minchainlength)
 		s_MinChainLength = opt(minchainlength);
 
-	DSSParams Params;
-	//DSS D;
 	uint AlphaSize = 0;
 	s_Feat = FEATURE(FEATURE_COUNT);
 	if (optset_feature_fasta)
 		{
 		optset_fast = true;
 		opt(fast) = true;
-		Params.SetDSSParams(DM_AlwaysFast);
+		DSSParams::Init(DM_AlwaysFast);
 		s_Feat = GetFeatureFromCmdLine();
-		s_ptrParams = &Params;
 		}
 
 	vector<string> Labels;

@@ -100,8 +100,6 @@ public:
 	~DSSAligner();
 
 public:
-	void SetParams(const DSSParams &Params);
-
 	void UnsetQuery();
 	void SetQuery(
 	  const PDBChain &Chain,
@@ -158,7 +156,6 @@ public:
 	uint GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) const;
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
-	void CalcEvalue_AAOnly();
 	void SetSMx_QRev();
 	void SetSMx_NoRev(const DSSParams &Params,
 					  const vector<vector<byte> > &ProfileA,

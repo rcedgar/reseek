@@ -7,8 +7,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<byte> *ptrMuLetters,
 					  const vector<uint> *ptrMuKmers);
 
-static void TraceAln1(const DSSParams &Params,
-					  const PDBChain &Q, const PDBChain &T)
+static void TraceAln1(const PDBChain &Q, const PDBChain &T)
 	{
 	Log("\n______________________________________________\n");
 	Log("Q>%s(%u)\n", Q.m_Label.c_str(), Q.GetSeqLength());
@@ -16,8 +15,6 @@ static void TraceAln1(const DSSParams &Params,
 
 	DSS D;
 	DSSAligner DA;
-	D.SetParams(Params);
-	DA.SetParams(Params);
 
 	vector<vector<byte> > ProfileQ;
 	vector<vector<byte> > ProfileT;
@@ -31,12 +28,12 @@ static void TraceAln1(const DSSParams &Params,
 	D.Init(Q);
 	D.GetProfile(ProfileQ);
 	D.GetMuLetters(MuLettersQ);
-	D.GetMuKmers(MuLettersQ, MuKmersQ, Params.m_MKFPatternStr);
+	D.GetMuKmers(MuLettersQ, MuKmersQ, DSSParams::m_MKFPatternStr);
 
 	D.Init(T);
 	D.GetProfile(ProfileT);
 	D.GetMuLetters(MuLettersT);
-	D.GetMuKmers(MuLettersT, MuKmersT, Params.m_MKFPatternStr);
+	D.GetMuKmers(MuLettersT, MuKmersT, DSSParams::m_MKFPatternStr);
 
 	float SelfRevScoreQ = GetSelfRevScore(DA, D, Q, ProfileQ, &MuLettersQ, &MuKmersQ);
 	float SelfRevScoreT = GetSelfRevScore(DA, D, T, ProfileT, &MuLettersT, &MuKmersT);
@@ -60,8 +57,8 @@ static void TraceAln1(const DSSParams &Params,
 		Log("m_MKF.BestChainScore=%d\n", DA.m_MKF.m_BestChainScore);
 		Log("m_XDropScore=%.1f\n", DA.m_XDropScore);
 		}
-	Log("Omega=%.1f\n", Params.m_Omega);
-	Log("DoMuFilter=%c\n", tof(Params.m_Omega>0));
+	Log("Omega=%.1f\n", DSSParams::m_Omega);
+	Log("DoMuFilter=%c\n", tof(DSSParams::m_Omega > 0));
 	Log("MuFilterOk=%c\n", tof(DA.MuFilter()));
 	}
 
@@ -72,8 +69,7 @@ void cmd_tracealn()
 	ReadChains(g_Arg1, Qs);
 	ReadChains(opt(db), Ts);
 
-	DSSParams Params;
-	Params.SetDSSParams(DM_DefaultFast);
+	DSSParams::Init(DM_DefaultFast);
 
 	const uint NQ = SIZE(Qs);
 	const uint NT = SIZE(Ts);
@@ -83,7 +79,7 @@ void cmd_tracealn()
 		for (uint it = 0; it < NT; ++it)
 			{
 			const PDBChain &T = *Ts[it];
-			TraceAln1(Params, Q, T);
+			TraceAln1(Q, T);
 			}
 		}
 	}
