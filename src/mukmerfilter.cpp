@@ -218,9 +218,6 @@ void MuKmerFilter::SetHashTable(const vector<uint> &Kmers, uint16_t *HT) const
 
 uint16_t *MuKmerFilter::CreateEmptyHashTable()
 	{
-	uint k = GetPatternOnes(DSSParams::m_MKFPatternStr);
-	asserta(k >= 1 && k < 6);
-	m_DictSize = myipow(36, k);
 	uint16_t *HT = myalloc(uint16_t, m_DictSize*HASHW);
 	memset(HT, 0xff, m_DictSize*HASHW*sizeof(uint16_t));
 	return HT;

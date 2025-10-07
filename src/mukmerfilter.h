@@ -41,6 +41,13 @@ public:
 	Chainer m_C;
 
 public:
+	MuKmerFilter()
+		{
+		uint k = GetPatternOnes(DSSParams::m_MKFPatternStr);
+		asserta(k >= 1 && k < 6);
+		m_DictSize = myipow(36, k);
+		}
+
 	~MuKmerFilter()
 		{
 		myfree(m_ptrKmerHashTableQ);

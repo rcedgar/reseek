@@ -56,6 +56,12 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	return AM_Invalid;
 	}
 
+void DSSParams::ReInit(DECIDE_MODE DM)
+	{
+	m_InitDone = false;
+	Init(DM);
+	}
+
 void DSSParams::Init(DECIDE_MODE DM)
 	{
 	asserta(!m_InitDone);

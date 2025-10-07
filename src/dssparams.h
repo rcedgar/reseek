@@ -59,6 +59,7 @@ public:
 	static void SetDefaults_Features();
 	static void SetDefaults_Other();
 	static void Init(DECIDE_MODE DM);
+	static void ReInit(DECIDE_MODE DM);
 
 	static uint GetFeatureCount()
 		{

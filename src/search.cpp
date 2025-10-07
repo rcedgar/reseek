@@ -42,7 +42,6 @@ static void Search_NoMuFilter()
 	const string &DBFN = opt(db);
 
 	DBSearcher DBS;
-	DSSParams::Init(DM_UseCommandLineOption);
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
@@ -57,6 +56,7 @@ static void Search_NoMuFilter()
 
 void cmd_search()
 	{
+	DSSParams::Init(DM_UseCommandLineOption);
 	if (!optset_db)
 		{
 		SelfSearch();
@@ -74,10 +74,6 @@ void cmd_search()
 
 	if (!EndsWith(DBFN, ".bca"))
 		Die(".bca format required for -db");
-
-	DSSParams::Init(DM_UseCommandLineOption);
-	const string &PatternStr = prefiltermu_pattern;
-	asserta(PatternStr == "1110011");
 
 	string MuFilterTsvFN;
 	GetTmpFileName(MuFilterTsvFN);
@@ -99,7 +95,7 @@ void cmd_search()
 	uint DBSize = MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
 	StatSig::Init(DBSize);
 
-	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::ReInit(DM_AlwaysSensitive);
 	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
 	if (!opt(keeptmp))
