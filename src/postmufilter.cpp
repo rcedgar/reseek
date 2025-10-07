@@ -299,27 +299,3 @@ void PostMuFilter(const DSSParams &Params,
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
 	}
-
-void cmd_postmufilter()
-	{
-	const string &QueryCAFN = g_Arg1;
-	const string &HitsFN = opt(output);
-
-	asserta(optset_db);
-	const string &DBCAFN = opt(db);
-
-	asserta(optset_filin);
-	const string &MuFilterTsvFN = opt(filin);
-
-	s_fTsv = CreateStdioFile(opt(output));
-
-	DSSParams Params;
-	asserta(optset_dbsize);
-	Params.SetDSSParams(DM_AlwaysSensitive);
-
-	PostMuFilter(Params,
-				 opt(filin),
-				 QueryCAFN,
-				 DBCAFN,
-				 HitsFN);
-	}

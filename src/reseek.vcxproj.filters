@@ -317,9 +317,6 @@
     <ClCompile Include="chains2pdbs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mukmerfilter2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mudex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

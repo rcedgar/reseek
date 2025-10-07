@@ -9,7 +9,6 @@ void cmd_alignselfrev()
 
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_UsePara = false;
 	Params.m_Omega = 0;
 
 	DSSAligner DA;

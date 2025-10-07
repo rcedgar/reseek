@@ -3,8 +3,6 @@
 #endif
 
 C(pdb2ss)
-//C(train_features)
-//C(float_feature_bins)
 C(sscluster)
 C(test)
 C(scop40bench)
@@ -30,9 +28,6 @@ C(alignselfrev)
 C(alignpair)
 C(getchains)
 C(chains2pdbs)
-C(mukmerfilter)
-C(postmufilter)
-C(tracealn)
 C(convert2mu)
 C(binner)
 C(convert_foldseekdb)

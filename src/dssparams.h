@@ -2,9 +2,6 @@
 
 #include "features.h"
 
-#define SLOPE_CALIB		0
-#define GUMBEL_CALIB	0
-
 enum ALGO_MODE
 	{
 	AM_Invalid,
@@ -41,23 +38,8 @@ public:
 	float ***m_ScoreMxs = 0;
 	bool m_OwnScoreMxs = false;
 
-	bool m_UsePara = true;
 	int m_ParaMuGapOpen = 2;
 	int m_ParaMuGapExt = 1;
-
-	float m_Evalue_old_linear_Slope = -6.6f;
-	float m_Evalue_linear_Intercept = 6.1f;
-
-	float m_Evalue_Gumbel_mu = 2.5f;
-	float m_Evalue_Gumbel_beta = 0.613f;
-
-	float m_Evalue_linear_m = 20.5f;
-	float m_Evalue_linear_b = 2.9f;
-
-	float m_Evalue_a = 4.0f;
-	float m_Evalue_b = -43.0f;
-
-	bool m_AAOnly = false;
 
 	uint m_MKFL = UINT_MAX;
 	int m_MKF_X1 = INT_MAX;

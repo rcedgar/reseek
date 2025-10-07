@@ -683,12 +683,7 @@ void DSSAligner::SetQuery(
 	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
 	if (ptrMuLetters != 0 && m_Params->m_Omega > 0)
-		{
-		if (m_Params->m_UsePara)
-			SetMuQP_Para();
-		else
-			SetMuQP();
-		}
+		SetMuQP_Para();
 	}
 
 void DSSAligner::SetTarget(
@@ -846,12 +841,6 @@ void DSSAligner::CalcEvalue_AAOnly()
 
 void DSSAligner::CalcEvalue()
 	{
-	if (m_Params->m_AAOnly)
-		{
-		CalcEvalue_AAOnly();
-		return;
-		}
-
 // Threshold enables small speedup by avoiding LDDT and self-rev
 	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
 		return;
@@ -1043,7 +1032,6 @@ float DSSAligner::AlignMuQP(const vector<byte> &LettersA,
 	{
 	m_MuLettersA = &LettersA;
 	m_MuLettersB = &LettersB;
-	asserta(m_Params->m_UsePara);
 	float ScorePara = AlignMuQP_Para();
 	return ScorePara;
 	}

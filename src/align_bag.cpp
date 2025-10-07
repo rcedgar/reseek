@@ -63,7 +63,6 @@ void cmd_align_bag()
 	opt(sensitive) = true;
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_UsePara = false;
 	Params.m_Omega = 0;
 
 	const uint ChainCountQ = SIZE(ChainsQ);
@@ -106,7 +105,6 @@ void cmd_align_bags()
 	opt(sensitive) = true;
 	DSSParams Params;
 	Params.SetDSSParams(DM_AlwaysSensitive);
-	Params.m_UsePara = false;
 	Params.m_Omega = 0;
 	StatSig::InitSensitive(SCOP40_DBSIZE);
 

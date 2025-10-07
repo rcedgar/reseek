@@ -318,7 +318,6 @@
     <ClCompile Include="mudex.cpp" />
     <ClCompile Include="mukmerfilter.cpp" />
     <ClCompile Include="mermx.cpp" />
-    <ClCompile Include="mukmerfilter2.cpp" />
     <ClCompile Include="museqsource.cpp" />
     <ClCompile Include="alignpair.cpp" />
     <ClCompile Include="mymalloc.cpp" />

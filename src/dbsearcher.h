@@ -54,19 +54,6 @@ public:
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t m_LastProgress = 0;
 
-#if SLOPE_CALIB
-// Calibrated slopes
-//	PredMinusLogP = m*TS + b;
-// ms & bs vectors indexed by ChainIdx
-	vector<float> m_ms;
-	vector<float> m_bs;
-#endif
-
-#if GUMBEL_CALIB
-	vector<float> m_Gumbel_mus;
-	vector<float> m_Gumbel_betas;
-#endif
-
 public:
 	void Setup();
 	void InitEmpty();
@@ -86,17 +73,6 @@ public:
 	  vector<byte> *ptrMuLetters);
 
 	bool Reject(DSSAligner &DA, bool Up) const;
-
-#if SLOPE_CALIB
-// Slope calibrated runtime
-	void LoadCalibratedSlopes(const string &FN);
-	void GetChainSlope(uint ChainIdx, float &m, float &b) const;
-#endif
-
-#if GUMBEL_CALIB
-	void LoadGumbelCalib(const string &FN);
-	void GetChainGumbel(uint ChainIdx, float &mu, float &beta) const;
-#endif
 
 public:
 	virtual void OnSetup() {}
