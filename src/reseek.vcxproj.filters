@@ -101,9 +101,6 @@
     <ClCompile Include="myss.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="valuetoint_old.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="logaln.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

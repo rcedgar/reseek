@@ -20,6 +20,8 @@ FEATURE DSSParams::LoadFeature(const string &FN)
 
 void DSSParams::LoadFeatures(const string &aFN)
 	{
+	Die("LoadFeatures");
+#if 0
 	string FN = aFN;
 	if (FN == "")
 		{
@@ -58,40 +60,7 @@ void DSSParams::LoadFeatures(const string &aFN)
 	ProgressLog("gapopen: %.3g\n", -m_GapOpen);
 	ProgressLog("gapext: %.3g\n", -m_GapExt);
 	SetScoreMxs();
-	}
-
-void DSSParams::SetDefaults_Other()
-	{
-	m_GapOpen = -0.685533f;
-	m_GapExt = -0.051881f;
-	m_MinFwdScore = 7.0f;
-	m_MuPrefilterPatternStr = "1110011";
-	m_MKFPatternStr = "111";
-	}
-
-//void DSSParams::SetDefaults()
-//	{
-//	Clear();
-//	SetDefaults_Features();
-//	SetDefaults_Other();
-//	}
-
-void DSSParams::SetDefaults_Features()
-	{
-	Die("Default features not supported");
-
-	m_Features.clear();
-	m_Weights.clear();
-
-	AddFeature(FEATURE_AA,			0.398145);
-	AddFeature(FEATURE_NENDist,		0.129367);
-	AddFeature(FEATURE_Conf,		0.202354);
-	AddFeature(FEATURE_NENConf,		0.149383);
-	AddFeature(FEATURE_RENDist,		0.0937677);
-	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
-	AddFeature(FEATURE_StrandDens,	0.0183853);
-	AddFeature(FEATURE_NormDens,	0.00384384);
-	SetScoreMxs();
+	#endif
 	}
 
 void cmd_load_features()

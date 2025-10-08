@@ -9,25 +9,27 @@ bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
 
-float DSSParams::m_GapOpen = FLT_MAX;
-float DSSParams::m_GapExt = FLT_MAX;
-float DSSParams::m_FwdMatchScore = FLT_MAX;
 float DSSParams::m_MinFwdScore = FLT_MAX;
 float DSSParams::m_Omega = FLT_MAX;
 float DSSParams::m_OmegaFwd = FLT_MAX;
-string DSSParams::m_MKFPatternStr = "";
-string DSSParams::m_MuPrefilterPatternStr = "";
+string DSSParams::m_MKFPatternStr =  "111";;
 float ***DSSParams::m_ScoreMxs = 0;
-bool DSSParams::m_OwnScoreMxs = false;
-
-int DSSParams::m_ParaMuGapOpen = 2;
-int DSSParams::m_ParaMuGapExt = 1;
 
 uint DSSParams::m_MKFL = UINT_MAX;
 int DSSParams::m_MKF_X1 = INT_MAX;
 int DSSParams::m_MKF_X2 = INT_MAX;
-int DSSParams::m_MKF_MinHSPScore = INT_MAX;
+int DSSParams::m_MKF_MinMuHSPScore = INT_MAX;
 float DSSParams::m_MKF_MinMegaHSPScore = FLT_MAX;
+
+float DSSParams::m_GapOpen = -0.685533f;
+float DSSParams::m_GapExt = -0.051881f;
+int DSSParams::m_ParaMuGapOpen = 2;
+int DSSParams::m_ParaMuGapExt = 1;
+
+float DSSParams::m_dpw = 1.7f;
+float DSSParams::m_lddtw = 0.13f;
+float DSSParams::m_ladd = 250.0f;
+float DSSParams::m_revtsw = 2.0f;
 
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
@@ -57,80 +59,28 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	return AM_Invalid;
 	}
 
-void DSSParams::ReInit(DECIDE_MODE DM)
+void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 	{
-	m_InitDone = false;
-	Clear();
-	Init(DM);
-	}
-
-void DSSParams::Init(DECIDE_MODE DM)
-	{
-	asserta(!m_InitDone);
-	SetDefaults();
-
 	ALGO_MODE AM = GetAlgoMode(DM);
 
-	switch (AM)
-		{
-	case AM_Fast:
-		m_Omega = 22;
-		m_OmegaFwd = 50;
-		m_MKFL = 500;
-		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
-		m_MKF_MinHSPScore = 50;
-		m_MKF_MinMegaHSPScore = -4;
-		break;
-
-	case AM_Sensitive:
-		m_Omega = 12;
-		m_OmegaFwd = 20;
-		m_MKFL = 600;
-		m_MKF_X1 = 8;
-		m_MKF_X2 = 8;
-		m_MKF_MinHSPScore = 50;
-		m_MKF_MinMegaHSPScore = -4;
-		break;
-
-	case AM_VerySensitive:
-		m_Omega = 0;
-		m_OmegaFwd = 0;
-		m_MKFL = 99999;
-		m_MKF_X1 = 99999;
-		m_MKF_X2 = 99999;
-		m_MKF_MinHSPScore = 0;
-		m_MKF_MinMegaHSPScore = -99999;
-		m_MinFwdScore = 0;
-		break;
-
-	default:
-		asserta(false);
+#define X(x, xfast, xsens, xvsens)  \
+	switch (AM)  \
+		{  \
+		case AM_Fast:			m_##x = xfast; break;  \
+		case AM_Sensitive:		m_##x = xsens; break;  \
+		case AM_VerySensitive:	m_##x = xvsens; break;  \
+		default: asserta(false); \
 		}
 
-	m_MKFPatternStr = "111";
-	m_MuPrefilterPatternStr = string(prefiltermu_pattern);
-
-	const int MINUS = -1; // for visual emphasis here
-	if (optset_omega) { m_Omega = (float) opt(omega);  }
-	if (optset_omegafwd) { m_OmegaFwd = (float) opt(omegafwd); }
-	if (optset_minfwdscore) { m_MinFwdScore = float(opt(minfwdscore)); }
-	if (optset_gapopen) { m_GapOpen =  MINUS*float(opt(gapopen)); }
-	if (optset_gapopen) { m_GapExt = MINUS*float(opt(gapext)); }
-	if (optset_para_mugapopen) { m_ParaMuGapOpen = opt(para_mugapopen); }
-	if (optset_para_mugapext) { m_ParaMuGapExt = opt(para_mugapext); }
-	if (optset_minhsp) { m_MKF_MinHSPScore = opt(minhsp); }
-	if (optset_minmegahsp) { m_MKF_MinMegaHSPScore = float(opt(minmegahsp)); }
-	if (optset_xdrop1) { m_MKF_X1 = int(opt(xdrop1)); }
-	if (optset_xdrop2) { m_MKF_X2 = int(opt(xdrop2)); }
-	if (optset_mkfl) { m_MKFL = int(opt(mkfl)); }
-
-	if (m_GapOpen > 0 || m_GapExt > 0)
-		Die("open=%.3g ext=%.3g, gap penalties must be >= 0",
-		  opt(gapopen), opt(gapext));
-
-	InitScoreMxs();
-	m_InitDone = true;
+	X(MinFwdScore,			7.0f,	 7.0f,	0)
+	X(Omega,				22,		12,		0)
+	X(OmegaFwd,				50,		20,		0)
+	X(MKFL,					500,	600,	99999)
+	X(MKF_X1,				8,		8,		99999)
+	X(MKF_X2,				8,		8,		99999)
+	X(MKF_MinMuHSPScore,	50,		50,		0)
+	X(MKF_MinMegaHSPScore,	-4,		-4,		-99999)
+#undef X
 	}
 
 void DSSParams::NormalizeWeights()
@@ -149,7 +99,7 @@ void DSSParams::NormalizeWeights()
 	asserta(feq(Sum2, 1.0f));
 	}
 
-void DSSParams::InitScoreMxs()
+void DSSParams::SetScoreMxsFromFeatures()
 	{
 	if (m_ScoreMxs != 0)
 		return;
@@ -173,13 +123,6 @@ void DSSParams::InitScoreMxs()
 #endif
 			}
 		}
-	ApplyWeights();
-	m_OwnScoreMxs = true;
-	}
-
-void DSSParams::SetScoreMxs()
-	{
-	AllocScoreMxs();
 	ApplyWeights();
 	}
 
@@ -208,7 +151,6 @@ void DSSParams::AllocScoreMxs()
 			}
 		}
 	ApplyWeights();
-	m_OwnScoreMxs = true;
 	}
 
 void DSSParams::ApplyWeights()
@@ -235,7 +177,7 @@ void DSSParams::ApplyWeights()
 	m_ApplyWeightsDone = true;
 	}
 
-void DSSParams::SetDefaults()
+void DSSParams::SetFeatures()
 	{
 	AddFeature(FEATURE_AA,			0.398145);
 	AddFeature(FEATURE_NENDist,		0.129367);
@@ -245,27 +187,11 @@ void DSSParams::SetDefaults()
 	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
 	AddFeature(FEATURE_StrandDens,	0.0183853);
 	AddFeature(FEATURE_NormDens,	0.00384384);
-
-	m_GapOpen = -0.685533f;
-	m_GapExt = -0.051881f;
-	m_FwdMatchScore = 0.1f;
-	m_MinFwdScore = 7.0f;
-	m_Omega = 29;
-	m_OmegaFwd = 29;
-	m_MuPrefilterPatternStr = "1110011";
-	m_MKFPatternStr = "111";
+	SetScoreMxsFromFeatures();
 	}
 
-void DSSParams::Clear()
+void DSSParams::Init(DECIDE_MODE DM)
 	{
-	m_Features.clear();
-	m_Weights.clear();
-	m_GapOpen = FLT_MAX;
-	m_GapExt = FLT_MAX;
-	m_FwdMatchScore = FLT_MAX;
-	m_MinFwdScore = FLT_MAX;
-	m_Omega = FLT_MAX;
-	m_OmegaFwd = FLT_MAX;
-	m_MuPrefilterPatternStr = "?";
-	m_MKFPatternStr = "?";
+	SetFeatures();
+	SetAlgoMode(DM);
 	}

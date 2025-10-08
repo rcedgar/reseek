@@ -138,7 +138,6 @@ int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
 	uint PosB = LoB;
 	const int Open = -DSSParams::m_ParaMuGapOpen;
 	const int Ext = -DSSParams::m_ParaMuGapExt;
-	const float FwdMatchScore = DSSParams::m_FwdMatchScore;
 	const uint ColCount = SIZE(Path);
 	extern int8_t IntScoreMx_Mu[36][36];
  
@@ -839,13 +838,8 @@ void DSSAligner::CalcEvalue()
 	const uint LB = m_ChainB->GetSeqLength();
 	float L = float(LA + LB)/2;
 
-	const float dpw = 1.7f;//@@TODO
-	const float lddtw = 0.13f;
-	const float ladd = 250.0f;
-	const float revtsw = 2.0f;
-
-	m_NewTestStatisticA = lddtw*LDDT;
-	m_NewTestStatisticA += (dpw*m_AlnFwdScore - revtsw*RevDPScore)/(L + ladd);
+	m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
+	m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore - DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
 
 	m_NewTestStatisticB = m_NewTestStatisticA;
 

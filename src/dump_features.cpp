@@ -115,7 +115,7 @@ static void DumpOldFeature(const string &OutPrefix, FEATURE F)
 
 void cmd_dump_features()
 	{
-	DSSParams::SetDefaults();
+	DSSParams::Init(DM_DefaultSensitive);
 	uint FeatureCount = DSSParams::GetFeatureCount();
 
 	string OutPrefix = g_Arg1;

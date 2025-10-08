@@ -330,7 +330,7 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	m_BestChainScore = 0;
 	m_BestHSPScore = 0;
 	bool FoundHSP = false;
-	const int MinHSPScore = DSSParams::m_MKF_MinHSPScore;
+	const int MinHSPScore = DSSParams::m_MKF_MinMuHSPScore;
 	const int X1 = DSSParams::m_MKF_X1;
 	for (uint PosT = 0; PosT < KmerCountT; ++PosT)
 		{

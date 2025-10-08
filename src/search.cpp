@@ -95,7 +95,7 @@ void cmd_search()
 	uint DBSize = MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
 	StatSig::Init(DBSize);
 
-	DSSParams::ReInit(DM_AlwaysSensitive);
+	DSSParams::SetAlgoMode(DM_AlwaysSensitive);
 	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
 	if (!opt(keeptmp))

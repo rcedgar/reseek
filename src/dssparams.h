@@ -34,7 +34,6 @@ public:
 	static vector<float> m_Weights;
 
 	static float ***m_ScoreMxs;
-	static bool m_OwnScoreMxs;
 
 	static float m_GapOpen;
 	static float m_GapExt;
@@ -43,7 +42,6 @@ public:
 	static float m_Omega;
 	static float m_OmegaFwd;
 	static string m_MKFPatternStr;
-	static string m_MuPrefilterPatternStr;
 
 	static int m_ParaMuGapOpen;
 	static int m_ParaMuGapExt;
@@ -51,16 +49,17 @@ public:
 	static uint m_MKFL;
 	static int m_MKF_X1;
 	static int m_MKF_X2;
-	static int m_MKF_MinHSPScore;
+	static int m_MKF_MinMuHSPScore;
 	static float m_MKF_MinMegaHSPScore;
+	static float m_dpw;
+	static float m_lddtw;
+	static float m_ladd;
+	static float m_revtsw;
 
 public:
-	static void Clear();
-	static void SetDefaults();
-	static void SetDefaults_Features();
-	static void SetDefaults_Other();
 	static void Init(DECIDE_MODE DM);
-	static void ReInit(DECIDE_MODE DM);
+	static void SetFeatures();
+	static void SetAlgoMode(DECIDE_MODE DM);
 
 	static uint GetFeatureCount()
 		{
@@ -78,8 +77,7 @@ public:
 
 	static void NormalizeWeights();
 	static void AllocScoreMxs();
-	static void SetScoreMxs();
-	static void InitScoreMxs();
+	static void SetScoreMxsFromFeatures();
 	static void ApplyWeights();
 	};
 
