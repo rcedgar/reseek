@@ -9,6 +9,7 @@
 #include "cigar.h"
 #include "parasail.h"
 #include "statsig.h"
+#include "alncounts.h"
 #include <thread>
 #include <set>
 #include <mutex>
@@ -135,9 +136,9 @@ int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
 	uint Sum = 0;
 	uint PosA = LoA;
 	uint PosB = LoB;
-	const int Open = -m_Params->m_ParaMuGapOpen;
-	const int Ext = -m_Params->m_ParaMuGapExt;
-	const float FwdMatchScore = m_Params->m_FwdMatchScore;
+	const int Open = -DSSParams::m_ParaMuGapOpen;
+	const int Ext = -DSSParams::m_ParaMuGapExt;
+	const float FwdMatchScore = DSSParams::m_FwdMatchScore;
 	const uint ColCount = SIZE(Path);
 	extern int8_t IntScoreMx_Mu[36][36];
  
@@ -242,8 +243,8 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	float Sum = 0;
 	uint PosA = LoA;
 	uint PosB = LoB;
-	const float Open = m_Params->m_GapOpen;
-	const float Ext = m_Params->m_GapExt;
+	const float Open = DSSParams::m_GapOpen;
+	const float Ext = DSSParams::m_GapExt;
 	const uint ColCount = SIZE(Path);
 	for (uint Col = 0; Col < ColCount; ++Col)
 		{
@@ -310,8 +311,7 @@ float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
 float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const
 	{
-	const DSSParams &Params = *m_Params;
-	const uint FeatureCount = Params.GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	asserta(SIZE(ProfileA) == FeatureCount);
 	asserta(SIZE(ProfileB) == FeatureCount);
 	float MatchScore = 0;
@@ -319,11 +319,11 @@ float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
 		{
 		asserta(PosA < SIZE(ProfileA[FeatureIdx]));
 		asserta(PosB < SIZE(ProfileB[FeatureIdx]));
-		//float w = m_Params->m_Weights[FeatureIdx];
-		FEATURE F = m_Params->m_Features[FeatureIdx];
+		//float w = DSSParams::m_Weights[FeatureIdx];
+		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
 		//float **ScoreMx = g_ScoreMxs2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
 		byte ia = ProfRowA[PosA];
@@ -358,13 +358,13 @@ void DSSAligner::SetSMx_QRev()
 	StartTimer(SetSMx_QRev);
 	float **Sim = GetSMxData();
 
-	const uint FeatureCount = m_Params->GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	asserta(SIZE((*m_ProfileA)) == FeatureCount);
 
 // Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
+	FEATURE F0 = DSSParams::m_Features[0];
 	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	float **ScoreMx0 = DSSParams::m_ScoreMxs[F0];
 	//const vector<byte> &ProfRowA = (*m_ProfileA)[0];
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
@@ -383,9 +383,9 @@ void DSSAligner::SetSMx_QRev()
 
 	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
+		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		//const vector<byte> &ProfRowA = (*m_ProfileA)[FeatureIdx];
 		for (uint PosA = 0; PosA < LA; ++PosA)
 			{
@@ -481,25 +481,24 @@ void DSSAligner::LogHSP(uint Lo_i, uint Lo_j, uint Len) const
 float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	{
 	StartTimer(GetMegaHSPScore);
-	const DSSParams &Params = *m_Params;
 	const vector<vector<byte> > &ProfileA = *m_ProfileA;
 	const vector<vector<byte> > &ProfileB = *m_ProfileB;
-	const uint FeatureCount = Params.GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	asserta(SIZE(ProfileA) == FeatureCount);
 	asserta(SIZE(ProfileB) == FeatureCount);
 
 // Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
+	FEATURE F0 = DSSParams::m_Features[0];
 	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	float **ScoreMx0 = DSSParams::m_ScoreMxs[F0];
 	const vector<byte> &ProfRowA = ProfileA[0];
 	const vector<byte> &ProfRowB = ProfileB[0];
 	float Total = 0;
 	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
+		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
 		for (uint k = 0; k < Len; ++k)
@@ -519,8 +518,7 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	return Total;
 	}
 
-void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
-					  const vector<vector<byte> > &ProfileA,
+void DSSAligner::SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB)
 	{
 	//const DSSParams &Params = *m_Params;
@@ -537,14 +535,14 @@ void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
 	StartTimer(SetSMx_NoRev);
 	float **Sim = GetSMxData();
 
-	const uint FeatureCount = Params.GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	asserta(SIZE(ProfileA) == FeatureCount);
 	asserta(SIZE(ProfileB) == FeatureCount);
 
 // Special case first feature because = not += and
-	FEATURE F0 = m_Params->m_Features[0];
+	FEATURE F0 = DSSParams::m_Features[0];
 	uint AlphaSize0 = g_AlphaSizes2[F0];
-	float **ScoreMx0 = m_Params->m_ScoreMxs[F0];
+	float **ScoreMx0 = DSSParams::m_ScoreMxs[F0];
 	const vector<byte> &ProfRowA = ProfileA[0];
 	const vector<byte> &ProfRowB = ProfileB[0];
 	for (uint PosA = 0; PosA < LA; ++PosA)
@@ -565,9 +563,9 @@ void DSSAligner::SetSMx_NoRev(const DSSParams &Params,
 
 	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
+		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
 		for (uint PosA = 0; PosA < LA; ++PosA)
@@ -613,7 +611,7 @@ bool DSSAligner::MuFilter()
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
-	float MCS = m_Params->m_Omega;
+	float MCS = DSSParams::m_Omega;
 	if (MCS <= 0)
 		return true;
 	float MuScore = GetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
@@ -676,7 +674,7 @@ void DSSAligner::SetQuery(
 	m_MuLettersA = ptrMuLetters;
 	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
-	if (ptrMuLetters != 0 && m_Params->m_Omega > 0)
+	if (ptrMuLetters != 0 && DSSParams::m_Omega > 0)
 		SetMuQP_Para();
 	}
 
@@ -706,9 +704,9 @@ bool DSSAligner::DoMKF() const
 		return false;
 	uint LA = m_ChainA->GetSeqLength();
 	uint LB = m_ChainB->GetSeqLength();
-	if (LA >= m_Params->m_MKFL)
+	if (LA >= DSSParams::m_MKFL)
 		return true;
-	if (LB >= m_Params->m_MKFL)
+	if (LB >= DSSParams::m_MKFL)
 		return true;
 	return false;
 	}
@@ -738,7 +736,7 @@ void DSSAligner::AlignQueryTarget_Trace()
 		return;
 		}
 
-	if (m_Params->m_Omega > 0)
+	if (DSSParams::m_Omega > 0)
 		{
 		Log("Omega > 0\n");
 		++m_MuFilterInputCount;
@@ -751,14 +749,14 @@ void DSSAligner::AlignQueryTarget_Trace()
 			}
 		}
 
-	SetSMx_NoRev(*m_Params, *m_ProfileA, *m_ProfileB);
+	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 
 	CalcEvalue();
@@ -774,6 +772,7 @@ void DSSAligner::AlignQueryTarget_Trace()
 
 void DSSAligner::AlignQueryTarget()
 	{
+	incac(alnqts);
 	if (optset_label1 && optset_label2)
 		{
 		const string Label1 = string(opt(label1));
@@ -792,18 +791,21 @@ void DSSAligner::AlignQueryTarget()
 
 	if (DoMKF())
 		{
+		incac(alnmkfs);
 		AlignMKF();
 		return;
 		}
 
 	++m_AlnCount;
 
-	if (m_Params->m_Omega > 0)
+	if (DSSParams::m_Omega > 0)
 		{
+		incac(mufilters);
 		++m_MuFilterInputCount;
 		bool MuFilterOk = MuFilter();
 		if (!MuFilterOk)
 			{
+			incac(mufilterdiscards);
 			++m_MuFilterDiscardCount;
 			return;
 			}
@@ -815,7 +817,7 @@ void DSSAligner::AlignQueryTarget()
 void DSSAligner::CalcEvalue()
 	{
 // Threshold enables small speedup by avoiding LDDT and self-rev
-	if (m_AlnFwdScore < m_Params->m_MinFwdScore)
+	if (m_AlnFwdScore < DSSParams::m_MinFwdScore)
 		return;
 
 	uint M, D, I;
@@ -884,8 +886,9 @@ void DSSAligner::ClearAlign()
 
 void DSSAligner::Align_NoAccel()
 	{
+	incac(alnnoaccels);
 	ClearAlign();
-	SetSMx_NoRev(*m_Params, *m_ProfileA, *m_ProfileB);
+	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -893,7 +896,7 @@ void DSSAligner::Align_NoAccel()
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 	EndTimer(SWFwd);
 
@@ -913,7 +916,7 @@ void DSSAligner::Align_QRev()
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LA,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 	EndTimer(SWFwd);
 	}
@@ -1294,9 +1297,11 @@ void DSSAligner::AlignMKF()
 
 void DSSAligner::PostAlignMKF()
 	{
+	incac(postalignmkfs);
 	if (m_MKF.m_BestChainScore <= 0)
 		return;
 
+	incac(postaligntryxdrops);
 	++m_XDropAlnCount;
 	float MegaHSPTotal = 0;
 	const uint M = SIZE(m_MKF.m_ChainHSPLois);
@@ -1315,9 +1320,16 @@ void DSSAligner::PostAlignMKF()
 			}
 		MegaHSPTotal += MegaScore;
 		}
-	if (MegaHSPTotal < m_Params->m_MKF_MinMegaHSPScore)
+	if (MegaHSPTotal < DSSParams::m_MKF_MinMegaHSPScore)
+		{
+		Log("%s %s %.1f %.1f\n",
+			m_ChainA->m_Label.c_str(), m_ChainB->m_Label.c_str(),
+			MegaHSPTotal, DSSParams::m_MKF_MinMegaHSPScore);//@@
+		incac(postalignlohsps);
 		return;
+		}
 
+	incac(postalignxdrops);
 	uint HSPLoA = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
 	uint HSPLoB = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
 	uint Len = (uint) m_MKF.m_ChainHSPLens[BestMegaIdx];

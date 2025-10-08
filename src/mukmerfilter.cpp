@@ -5,6 +5,7 @@
 #include "mudex.h"
 #include "alpha.h"
 #include "timing.h"
+#include "alncounts.h"
 
 extern int8_t IntScoreMx_Mu[36][36];
 
@@ -308,6 +309,7 @@ void MuKmerFilter::AlignBag(const ChainBag &BagT)
 void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 							 const vector<uint> &MuKmersT)
 	{
+	incac(mkfalns);
 	StartTimer(MuKmerAln);
 	m_C.Clear();
 	//m_ChainT = &ChainT;
@@ -382,6 +384,7 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 
 void MuKmerFilter::ChainHSPs()
 	{
+	incac(mkfchainhsps);
 	m_ChainHSPLois.clear();
 	m_ChainHSPLojs.clear();
 	m_ChainHSPLens.clear();

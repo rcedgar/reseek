@@ -3,7 +3,7 @@
 #include "scop40bench.h"
 #include "binner.h"
 #include "statsig.h"
-#include "timing.h"
+#include "alncounts.h"
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
 	{
@@ -46,7 +46,9 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
 		DA.AlignQueryTarget();
-		if (!DA.m_Path.empty())
+		if (DA.m_Path.empty())
+			incac(emptypaths);
+		else
 			{
 			BaseOnAln(DA, true);
 			if (ChainIndex1 != ChainIndex2)

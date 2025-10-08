@@ -425,6 +425,9 @@
     <ClCompile Include="blosum62.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alncounts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -728,6 +731,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="undef_binning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alncounts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alncounters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

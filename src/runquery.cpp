@@ -3,6 +3,7 @@
 #include "chainreader2.h"
 #include "timing.h"
 #include "mx.h"
+#include "alncounts.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
@@ -34,7 +35,7 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
-		D.GetMuKmers(MuLetters1, MuKmers1, m_Params->m_MKFPatternStr);
+		D.GetMuKmers(MuLetters1, MuKmers1, DSSParams::m_MKFPatternStr);
 
 		const vector<byte> *ptrMuLetters1 = (MuLetters1.empty() ? 0 : &MuLetters1);
 		const vector<uint> *ptrMuKmers1 = (MuKmers1.empty() ? 0 : &MuKmers1);
@@ -67,7 +68,9 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			float SelfRevScore = (m_DBSelfRevScores.empty() ? FLT_MAX : m_DBSelfRevScores[DBChainIdx]);
 			DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore);
 			DA.AlignQueryTarget();
-			if (!DA.m_Path.empty())
+			if (DA.m_Path.empty())
+				incac(emptypaths);
+			else
 				BaseOnAln(DA, false);
 			++m_ProcessedPairCount;
 			}

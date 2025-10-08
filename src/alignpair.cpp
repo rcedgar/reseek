@@ -3,6 +3,7 @@
 #include "dssaligner.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
+#include "alncounts.h"
 
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
@@ -21,6 +22,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 
 	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
 	DA.AlignQueryTarget();
+	incac(selfrevscores);
 	return DA.m_AlnFwdScore;
 	}
 

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "dss.h"
 #include "timing.h"
+#include "alncounts.h"
 
 int g_Frame = 0;
 string g_Arg1;
@@ -16,7 +17,6 @@ int main(int argc, char **argv)
 		PrintProgramInfo(stdout);
 		PrintCopyright(stdout);
 		}
-	InitTiming();
 	uint n = SIZE(g_Argv);
 	asserta(n > 0);
 	string ShortCmdLine;
@@ -58,6 +58,7 @@ int main(int argc, char **argv)
 		mymalloc_print_summary("exit");
 		}
 
+	LogAlnCounts();
 	LogTiming();
 	LogElapsedTimeAndRAM();
 	MyutilsExit();

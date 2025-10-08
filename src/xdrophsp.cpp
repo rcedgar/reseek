@@ -7,18 +7,17 @@ void LogAln(const char *A, const char *B, const char *Path, unsigned ColCount);
 
 float DSSAligner::SubstScore(uint PosA, uint PosB)
 	{
-	const DSSParams &Params = *m_Params;
 	const vector<vector<byte> > &ProfileA = *m_ProfileA;
 	const vector<vector<byte> > &ProfileB = *m_ProfileB;
-	const uint FeatureCount = Params.GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	assert(SIZE(ProfileA) == FeatureCount);
 	assert(SIZE(ProfileB) == FeatureCount);
 	float Total = 0;
 	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
-		FEATURE F = m_Params->m_Features[FeatureIdx];
+		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
-		float **ScoreMx = m_Params->m_ScoreMxs[F];
+		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
 		byte ia = ProfRowA[PosA];
@@ -57,9 +56,9 @@ float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 	Loj_out = UINT_MAX;
 	Hii_out = UINT_MAX;
 	Hij_out = UINT_MAX;
-	const float Open = m_Params->m_GapOpen;
-	const float Ext = m_Params->m_GapExt;
-	const float X = float(m_Params->m_MKF_X2);
+	const float Open = DSSParams::m_GapOpen;
+	const float Ext = DSSParams::m_GapExt;
+	const float X = float(DSSParams::m_MKF_X2);
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 

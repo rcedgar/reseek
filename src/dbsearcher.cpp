@@ -8,6 +8,7 @@
 #include <thread>
 #include "timing.h"
 #include "output.h"
+#include "alncounts.h"
 
 DBSearcher::~DBSearcher()
 	{
@@ -116,11 +117,13 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 	vector<vector<byte> *> *ptrMuLetters = &m_DBMuLettersVec;
 	vector<vector<uint> *> *ptrMuKmersVec = &m_DBMuKmersVec;
-	if (m_Params->m_Omega <= 0)
+	if (DSSParams::m_Omega <= 0)
 		ptrMuLetters = 0;
 
 	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
+
+	setac(targets, SIZE(m_DBChains));
 	}
 
 bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
@@ -141,9 +144,13 @@ bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	{
 	if (Reject(DA, Up))
+		{
+		incac(rejects);
 		return;
+		}
 	m_Lock.lock();
 	++m_HitCount;
+	incac(hits);
 	DA.ToTsv(g_fTsv, Up);
 	DA.ToAln(g_fAln, Up);
 	DA.ToFasta2(g_fFasta2, opt(unaligned), Up);

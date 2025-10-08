@@ -17,9 +17,6 @@
 
 class DSSAligner
 	{
-private:
-	const DSSParams *m_Params = 0;
-
 public:
 	const PDBChain *m_ChainA = 0;
 	const PDBChain *m_ChainB = 0;
@@ -157,8 +154,7 @@ public:
 	void GetPosABs(vector<uint> &PosAs, vector<uint> &PosBs) const;
 	void CalcEvalue();
 	void SetSMx_QRev();
-	void SetSMx_NoRev(const DSSParams &Params,
-					  const vector<vector<byte> > &ProfileA,
+	void SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB);
 	void SetMuQP();
 	void SetMuQPi();
@@ -210,7 +206,6 @@ public:
 	float GetPctId() const;
 	float GetLDDT() const;
 	float SubstScore(uint PosA, uint PosB);
-	const DSSParams &GetParams() const { return *m_Params; }
 	void AlignBags(const ChainBag &BagA,
 				   const ChainBag &BagB);
 	void AlignBagsMKF(const ChainBag &BagA,

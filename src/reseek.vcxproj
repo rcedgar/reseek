@@ -274,6 +274,7 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
+    <ClCompile Include="alncounts.cpp" />
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
@@ -406,6 +407,8 @@
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="xdrophsp.cpp" />
     <ClCompile Include="zutil.c" />
+    <ClInclude Include="alncounters.h" />
+    <ClInclude Include="alncounts.h" />
     <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />

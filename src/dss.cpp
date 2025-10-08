@@ -583,13 +583,13 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 	Profile.clear();
 	const uint L = GetSeqLength();
 	const string &Seq = m_Chain->m_Seq;
-	const uint FeatureCount = m_Params->GetFeatureCount();
+	const uint FeatureCount = DSSParams::GetFeatureCount();
 	Profile.reserve(FeatureCount);
 	for (uint i = 0; i < FeatureCount; ++i)
 		{
 		vector<byte> ProfRow;
 		ProfRow.reserve(L);
-		FEATURE Feature = m_Params->m_Features[i];
+		FEATURE Feature = DSSParams::m_Features[i];
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			uint Letter = GetFeature(Feature, Pos);

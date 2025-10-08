@@ -48,7 +48,7 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 		D.Init(*Chain);
 		if (m_Profiles != 0) D.GetProfile(*ptrProfile);
 		if (m_MuLetters != 0) D.GetMuLetters(*MuLetters);
-		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers, m_Params->m_MKFPatternStr);
+		if (m_MuLetters != 0) D.GetMuKmers(*MuLetters, *MuKmers, DSSParams::m_MKFPatternStr);
 		if (m_SelfRevScores != 0) SelfRevScore =
 			GetSelfRevScore(DA, D, *Chain, *ptrProfile, MuLetters, MuKmers);
 

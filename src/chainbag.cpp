@@ -2,6 +2,7 @@
 #include "chainbag.h"
 #include "dssaligner.h"
 #include "parasail.h"
+#include "alncounts.h"
 
 bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 							const ChainBag &BagB) const
@@ -13,9 +14,9 @@ bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
 
 	uint LA = BagA.m_ptrChain->GetSeqLength();
 	uint LB = BagB.m_ptrChain->GetSeqLength();
-	if (LA >= m_Params->m_MKFL)
+	if (LA >= DSSParams::m_MKFL)
 		return true;
-	if (LB >= m_Params->m_MKFL)
+	if (LB >= DSSParams::m_MKFL)
 		return true;
 	return false;
 	}
@@ -44,6 +45,7 @@ void DSSAligner::AlignBagsMKF(const ChainBag &BagA,
 void DSSAligner::AlignBags(const ChainBag &BagA,
 						   const ChainBag &BagB)
 	{
+	incac(alignbags);
 	ClearAlign();
 
 	m_ChainA = BagA.m_ptrChain;
@@ -64,20 +66,20 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 		return;
 		}
 
-	float Omega = m_Params->m_Omega;
+	float Omega = DSSParams::m_Omega;
 	if (Omega > 0)
 		{
 		float MuScore = AlignMuParaBags(BagA, BagB);
 		if (MuScore < Omega)
 			return;
 		}
-	SetSMx_NoRev(*m_Params, *BagA.m_ptrProfile, *BagB.m_ptrProfile);
+	SetSMx_NoRev(*BagA.m_ptrProfile, *BagB.m_ptrProfile);
 	const uint LA = BagA.m_ptrChain->GetSeqLength();
 	const uint LB = BagB.m_ptrChain->GetSeqLength();
 
 	uint Leni, Lenj;
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
-	  m_Params->m_GapOpen, m_Params->m_GapExt,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
 
 	CalcEvalue();

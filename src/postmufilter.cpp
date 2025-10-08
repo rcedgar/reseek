@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "dssaligner.h"
 #include "chainreader2.h"
+#include "alncounts.h"
 
 /***
 [c300a5f] Add bags to postmufilter but not used, 
@@ -70,6 +71,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		D.GetProfile(*ptrQProfile);
 		D.GetMuLetters(*ptrQMuLetters);
 		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
+		incac(postmuqselfrevs);
 		float QSelfRevScore = 
 			GetSelfRevScore(DASelfRev, D, QChain,
 							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
@@ -174,15 +176,19 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		asserta(FilHitCount + 2 == FieldCount);
 		for (uint FilHitIdx = 0; FilHitIdx < FilHitCount; ++FilHitIdx)
 			{
+			incac(scannedpairs);
 			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
 			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
 			TheDA.AlignBags(CBQ, CBT);
 			if (Accept(TheDA))
 				{
+				incac(scanhits);
 				TheDA.ToTsv(s_fTsv, true);
 				TheDA.ToAln(s_fAln, true);
 				}
+			else
+				incac(scanrejects);
 			s_ScanLock.lock();
 			if (s_fTsv2)
 				{
@@ -237,6 +243,7 @@ void PostMuFilter(const string &MuFilterTsvFN,
 	vector<PDBChain *> QChains;
 	ReadChains(QueryCAFN, QChains);
 	s_QueryCount = SIZE(QChains);
+	setac(queries, s_QueryCount);
 
 	DSS D;
 	DSSAligner DASelfRev;
@@ -264,6 +271,7 @@ void PostMuFilter(const string &MuFilterTsvFN,
 	BCAData DB;
 	DB.Open(DBBCAFN);
 	s_ptrDB = &DB;
+	setac(targets, DB.GetChainCount());
 
 	ts.clear();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)

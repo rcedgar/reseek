@@ -81,8 +81,8 @@ float DSSAligner::AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 
 	uint LA = SIZE(*m_MuLettersA);
 	uint LB = SIZE(*m_MuLettersB);
-	const int Open = m_Params->m_ParaMuGapOpen;
-	const int Ext = m_Params->m_ParaMuGapExt;
+	const int Open = DSSParams::m_ParaMuGapOpen;
+	const int Ext = DSSParams::m_ParaMuGapExt;
 
 	const char *B = (const char *) m_MuLettersB->data();
 
@@ -122,9 +122,9 @@ float DSSAligner::AlignMuQP_Para()
 	StartTimer(SWPara);
 	uint LA = SIZE(*m_MuLettersA);
 	uint LB = SIZE(*m_MuLettersB);
-	const int Open = m_Params->m_ParaMuGapOpen;
-	const int Ext = m_Params->m_ParaMuGapExt;
-	const float OmegaFwd = m_Params->m_OmegaFwd;
+	const int Open = DSSParams::m_ParaMuGapOpen;
+	const int Ext = DSSParams::m_ParaMuGapExt;
+	const float OmegaFwd = DSSParams::m_OmegaFwd;
 
 	const char *B = (const char *) m_MuLettersB->data();
 
@@ -189,9 +189,9 @@ float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
 	uint LB = BagB.m_ptrChain->GetSeqLength();
 	asserta(SIZE(*BagB.m_ptrMuLetters) == LB);
 
-	const int Open = m_Params->m_ParaMuGapOpen;
-	const int Ext = m_Params->m_ParaMuGapExt;
-	const float OmegaFwd = m_Params->m_OmegaFwd;
+	const int Open = DSSParams::m_ParaMuGapOpen;
+	const int Ext = DSSParams::m_ParaMuGapExt;
+	const float OmegaFwd = DSSParams::m_OmegaFwd;
 
 	const char *B = (const char *) BagB.m_ptrMuLetters->data();
 
