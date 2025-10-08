@@ -364,7 +364,6 @@ void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 		ProgressLog("Pos=%llu\n", (unsigned long long) Pos);
 		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);
 		ProgressLog("BytesRead=%llu\n", (unsigned long long) BytesRead);
-		ProgressLog("thread=%s\n", GetCurrentThreadStr(ts));
 		Die("ReadStdioFile64() failed, errno=%d", (int) errno);
 		}
 	}
@@ -2474,15 +2473,6 @@ void Dirize(string &Dir)
 void MyutilsExit()
 	{
 	CloseStdioFile(g_fLog);
-	}
-
-const char *GetCurrentThreadStr(string &s)
-	{
-	auto myid = this_thread::get_id();
-	stringstream ss;
-	ss << myid;
-	s = ss.str();
-	return s.c_str();
 	}
 
 uint GetUniqueInt()

@@ -2,9 +2,7 @@
 #include "dssparams.h"
 #include "dss.h"
 #include "sort.h"
-#include "prefiltermuparams.h"
 
-bool DSSParams::m_InitDone = false;
 bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;

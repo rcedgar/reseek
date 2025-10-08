@@ -28,7 +28,6 @@ private:
 	~DSSParams() { Die("~DSSParams()"); }
 
 public:
-	static bool m_InitDone;
 	static bool m_ApplyWeightsDone;
 	static vector<FEATURE> m_Features;
 	static vector<float> m_Weights;

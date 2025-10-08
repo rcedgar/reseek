@@ -395,7 +395,6 @@ bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
 void MyutilsExit();
-const char *GetCurrentThreadStr(string &s);
 uint GetUniqueInt();
 void GetTmpFileName(string &FN);
 
