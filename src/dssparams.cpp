@@ -5,6 +5,7 @@
 #include "prefiltermuparams.h"
 
 bool DSSParams::m_InitDone = false;
+bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
 
@@ -59,6 +60,7 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 void DSSParams::ReInit(DECIDE_MODE DM)
 	{
 	m_InitDone = false;
+	Clear();
 	Init(DM);
 	}
 
@@ -212,6 +214,7 @@ void DSSParams::AllocScoreMxs()
 void DSSParams::ApplyWeights()
 	{
 	asserta(m_ScoreMxs != 0);
+	asserta(!m_ApplyWeightsDone);
 	uint FeatureCount = GetFeatureCount();
 	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
 		{
@@ -229,6 +232,7 @@ void DSSParams::ApplyWeights()
 				m_ScoreMxs[F][Letter1][Letter2] = w*g_ScoreMxs2[F][Letter1][Letter2];
 			}
 		}
+	m_ApplyWeightsDone = true;
 	}
 
 void DSSParams::SetDefaults()

@@ -1322,9 +1322,6 @@ void DSSAligner::PostAlignMKF()
 		}
 	if (MegaHSPTotal < DSSParams::m_MKF_MinMegaHSPScore)
 		{
-		Log("%s %s %.1f %.1f\n",
-			m_ChainA->m_Label.c_str(), m_ChainB->m_Label.c_str(),
-			MegaHSPTotal, DSSParams::m_MKF_MinMegaHSPScore);//@@
 		incac(postalignlohsps);
 		return;
 		}
