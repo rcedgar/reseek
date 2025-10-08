@@ -46,6 +46,8 @@ public:
 	static int m_ParaMuGapOpen;
 	static int m_ParaMuGapExt;
 
+	static uint m_rsb_size;
+	static int m_PrefilterMinKmerPairScore;
 	static uint m_MKFL;
 	static int m_MKF_X1;
 	static int m_MKF_X2;

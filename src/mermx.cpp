@@ -3,6 +3,7 @@
 #include "alpha.h"
 #include "sort.h"
 #include "prefiltermuparams.h"
+#include "dssparams.h"
 #include "quarts.h"
 
 static mutex g_Lock;
@@ -159,30 +160,6 @@ int16_t MerMx::GetSelfScoreKmer(uint Kmer) const
 		Score16 += m_Mx[Letter][Letter];
 		Kmer /= m_AS;
 		}
-#if KMER_COMPLEXITY
-// SCOP40
-//Max letters [1] = 237643 (12.6%)
-//Max letters [2] = 1023722 (54.4%)
-//Max letters [3] = 463046 (24.6%)
-//Max letters [4] = 112057 (6.0%)
-//Max letters [5] = 44543 (2.4%)
-
-// Dictionary
-//Max letters [1] = 45239040 (74.8%)
-//Max letters [2] = 14779800 (24.4%)
-//Max letters [3] = 441000 (0.7%)
-//Max letters [4] = 6300 (0.0%)
-//Max letters [5] = 36 (0.0%)
-	uint8_t n = GetKmerMaxLetterCount(Kmer);
-	if (n == 1)
-		Score += 16;
-	else if (n == 2)
-		Score += 8;
-	else if (n == 4)
-		Score16 -= 8;
-	else if (n == 5)
-		Score16 -= 16;
-#endif
 	return Score16;
 	}
 
@@ -579,7 +556,7 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 				}
 			}
 		}
-	asserta(n <= MAX_HOOD_SIZE);
+	asserta(n <= PREFILTER_KMER_DICT_SIZE);
 	return n;
 	}
 
@@ -734,7 +711,7 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
 #define LOW_COMPLEXITY 0
 
 /***
-     60.5M  DICT_SIZE
+     60.5M  dict size
        92G  Total size of all neighborhoods
       1.2M  Kmers with low self score (1.9%)
      41.3k  Max size 'BBBBB' (41293)
@@ -744,14 +721,14 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
 void cmd_kmrnbh()
 	{
 	const MerMx &ScoreMx = GetMuMerMx(5);
-	uint *Kmers = myalloc(uint, DICT_SIZE);
-	uint MinScore = MIN_KMER_PAIR_SCORE;
+	uint *Kmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
+	uint MinScore =  DSSParams::m_PrefilterMinKmerPairScore;
 	uint64 Sumn = 0;
 	uint Maxn = 0;
 	uint MaxKmer = UINT_MAX;
-	const uint N = DICT_SIZE;
+	const uint N = PREFILTER_KMER_DICT_SIZE;
 	vector<float> Sizes;
-	Sizes.reserve(DICT_SIZE);
+	Sizes.reserve(PREFILTER_KMER_DICT_SIZE);
 	uint M = 0;
 	uint LowSelfScore = 0;
 #if LOW_COMPLEXITY
@@ -759,7 +736,7 @@ void cmd_kmrnbh()
 #endif
 	for (uint Kmer = 0; Kmer < N; ++Kmer)
 		{
-		ProgressStep(Kmer, DICT_SIZE, "Neighborhood");
+		ProgressStep(Kmer, PREFILTER_KMER_DICT_SIZE, "Neighborhood");
 #if LOW_COMPLEXITY
 		uint mlc = ScoreMx.GetMaxLetterCount(Kmer);
 		if (mlc >= 3)
@@ -772,7 +749,7 @@ void cmd_kmrnbh()
 		if (n == 0)
 			{
 			short SelfScore = ScoreMx.GetScoreKmerPair(Kmer, Kmer);
-			asserta(SelfScore < MIN_KMER_PAIR_SCORE);
+			asserta(SelfScore < DSSParams::m_PrefilterMinKmerPairScore);
 			++LowSelfScore;
 			continue;
 			}
@@ -790,7 +767,7 @@ void cmd_kmrnbh()
 	GetQuartsFloat(Sizes, Q);
 
 	string TmpStr;
-	ProgressLog("%10.10s  DICT_SIZE\n", IntToStr(DICT_SIZE));
+	ProgressLog("%10.10s  PREFILTER_KMER_DICT_SIZE\n", IntToStr(PREFILTER_KMER_DICT_SIZE));
 
 	ProgressLog("%10.10s  Total size of all neighborhoods\n",
 				Int64ToStr(Sumn));

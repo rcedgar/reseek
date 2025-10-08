@@ -5,14 +5,15 @@
 #include "seqdb.h"
 #include "quarts.h"
 #include "prefiltermuparams.h"
+#include "dssparams.h"
 #include "binner.h"
 
 const MerMx &GetMuMerMx(uint k);
 
-const uint8_t *MuDex::m_Offsets = s_Offsets;
-const uint32_t MuDex::m_DictSize = 36*36*36*36*36; // 60466176 (60.4 M)
-const uint32_t MuDex::m_k = k;
-const uint32_t MuDex::m_K = K;
+const uint8_t *MuDex::m_Offsets = PREFILTER_KMER_ONES_OFFSETS;
+const uint32_t MuDex::m_DictSize = PREFILTER_KMER_DICT_SIZE; // 36^5 = 60466176 (60.4 M)
+const uint32_t MuDex::m_k = PREFILTER_KMER_NR_ONES;
+const uint32_t MuDex::m_K = PREFILTER_KMER_WIDTH;
 
 /***
 32 bits 2^5, 64 bits 2^6
@@ -100,7 +101,7 @@ const char *MuDex::KmerToStr(uint Kmer, string &s) const
 void MuDex::Alloc_Pass1()
 	{
 	if (m_AddNeighborhood && m_NeighborKmers == 0)
-		m_NeighborKmers = myalloc(uint, MAX_HOOD_SIZE);
+		m_NeighborKmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
 
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
@@ -158,11 +159,11 @@ void  MuDex::AddSeq_Pass1()
 		if (m_AddNeighborhood)
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
-			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
+			   DSSParams::m_PrefilterMinKmerPairScore, m_NeighborKmers);
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < DICT_SIZE);
+				asserta(NeighborKmer < PREFILTER_KMER_DICT_SIZE);
 				asserta(m_Size < UINT_MAX);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
@@ -207,11 +208,11 @@ void MuDex::AddSeq_Pass2()
 		if (m_AddNeighborhood)
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
-			  MIN_KMER_PAIR_SCORE, m_NeighborKmers);
+			   DSSParams::m_PrefilterMinKmerPairScore, m_NeighborKmers);
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < DICT_SIZE);
+				asserta(NeighborKmer < PREFILTER_KMER_DICT_SIZE);
 				uint DataOffset = m_Finger[NeighborKmer+1];
 				Put(DataOffset, m_SeqIdx, SeqPos);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
@@ -543,8 +544,8 @@ void cmd_mudex()
 	Input.FromFasta(g_Arg1);
 	Input.ToLetters(g_CharToLetterMu);
 
-	const MerMx &ScoreMx = GetMuMerMx(k);
-	asserta(ScoreMx.m_k == k);
+	const MerMx &ScoreMx = GetMuMerMx(PREFILTER_KMER_NR_ONES);
+	asserta(ScoreMx.m_k == PREFILTER_KMER_NR_ONES);
 
 	MuDex MD;
 	MD.FromSeqDB(Input);

@@ -1,27 +1,14 @@
 #pragma once
 
-#define	KMER_SORT		0
-#define KMER_COMPLEXITY	0
-
 // pattern=1110011
 static const char *prefiltermu_pattern = "1110011";
-static const uint k = 5;
-static const uint K = 7;
-static const uint8_t s_Offsets[] = { 0, 1, 2, 5, 6 };
+static const uint PREFILTER_KMER_NR_ONES = 5;
+static const uint PREFILTER_KMER_WIDTH = 7;
+static const uint8_t PREFILTER_KMER_ONES_OFFSETS[] = { 0, 1, 2, 5, 6 };
+static const uint PREFILTER_KMER_DICT_SIZE = 60466176;	// 36^5
+static const uint MAX_PREFILTER_KMER_HOOD_SIZE = 41293; // empirical cmd_kmrnbh()
 
-static const uint8_t *s_ptrOffsets = s_Offsets;
-static const uint DICT_SIZE = 60466176;	// 36^5
-static const uint MAX_HOOD_SIZE = 41293; // empirical cmd_kmrnbh()
-static const uint RSB_SIZE = 1500;
-static const uint ALPHABET_SIZE = 36;
+// Can be overriden with -idxq or -idxt
 static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
-
-// N=1679616, Min=16, LoQ=34, Med=38, HiQ=41, Max=60, Avg=37.8889
-#if KMER_SORT
-static const int MIN_KMER_PAIR_SCORE = 0;
-#define QUERY_COUNT_MULTIPLIER	5000	// something wrong here, too slow
-#else
-static const int MIN_KMER_PAIR_SCORE = 36;
-#endif
 
 extern bool g_QueryNeighborhood;

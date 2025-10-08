@@ -15,6 +15,8 @@ float DSSParams::m_OmegaFwd = FLT_MAX;
 string DSSParams::m_MKFPatternStr =  "111";;
 float ***DSSParams::m_ScoreMxs = 0;
 
+int  DSSParams::m_PrefilterMinKmerPairScore = 36;
+uint DSSParams::m_rsb_size = 1500;
 uint DSSParams::m_MKFL = UINT_MAX;
 int DSSParams::m_MKF_X1 = INT_MAX;
 int DSSParams::m_MKF_X2 = INT_MAX;
@@ -81,6 +83,9 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 	X(MKF_MinMuHSPScore,	50,		50,		0)
 	X(MKF_MinMegaHSPScore,	-4,		-4,		-99999)
 #undef X
+
+	if (optset_rsb_size)
+		m_rsb_size = opt(rsb_size);
 	}
 
 void DSSParams::NormalizeWeights()

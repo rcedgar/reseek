@@ -65,9 +65,7 @@ void cmd_prefilter_mu()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	PrefilterMu::m_RSB.m_B = RSB_SIZE;
-	if (optset_rsb_size)
-		PrefilterMu::m_RSB.m_B = opt_rsb_size;
+	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
 	PrefilterMu::m_RSB.Init(QSeqCount);
 
 	const MerMx &ScoreMx = GetMuMerMx(k);
@@ -75,13 +73,13 @@ void cmd_prefilter_mu()
 
 	MuDex QKmerIndex;
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore = MIN_KMER_PAIR_SCORE;
+	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinKmerPairScore;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG
 	QKmerIndex.Validate();
 #endif
 	asserta(QKmerIndex.m_k == k);
-	asserta(QKmerIndex.m_DictSize == DICT_SIZE);
+	asserta(QKmerIndex.m_DictSize == PREFILTER_KMER_DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
 	s_ptrQDB = &QDB;

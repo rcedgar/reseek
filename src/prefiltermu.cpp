@@ -1,6 +1,9 @@
 #include "myutils.h"
 #include "prefiltermu.h"
+#include "dssparams.h"
 #include "sort.h"
+
+static const uint MU_ALPHABET_SIZE = 36;
 
 mutex PrefilterMu::m_Lock;
 RankedScoresBag PrefilterMu::m_RSB;
@@ -32,8 +35,8 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 		assert(j < int(m_TL));
 		byte q = QSeq[i++];
 		byte t = m_TSeq[j++];
-		assert(q < ALPHABET_SIZE);
-		assert(t < ALPHABET_SIZE);
+		assert(q < MU_ALPHABET_SIZE);
+		assert(t < MU_ALPHABET_SIZE);
 		short Score = Mu_S_ij_i8[q][t];
 		F += Score;
 #if 0 // TRACE
@@ -74,8 +77,8 @@ int PrefilterMu::FindHSP2(uint QSeqIdx,
 		assert(j < int(m_TL));
 		byte q = QSeq[i++];
 		byte t = m_TSeq[j++];
-		assert(q < ALPHABET_SIZE);
-		assert(t < ALPHABET_SIZE);
+		assert(q < MU_ALPHABET_SIZE);
+		assert(t < MU_ALPHABET_SIZE);
 		short Score = Mu_S_ij_i8[q][t];
 		F += Score;
 		if (F > B)
@@ -112,7 +115,7 @@ void PrefilterMu::SetQDB(const SeqDB &QDB)
 
 	bool TargetNeighborhood = !g_QueryNeighborhood;
 	if (TargetNeighborhood)
-		m_NeighborKmers = myalloc(uint, MAX_HOOD_SIZE);
+		m_NeighborKmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
 	else
 		m_NeighborKmers = 0;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -120,25 +123,8 @@ void PrefilterMu::SetQDB(const SeqDB &QDB)
 
 void PrefilterMu::Search_TargetKmers()
 	{
-#if KMER_SORT
-	m_QKmerIndex->GetKmersAndSizes(m_TSeq, m_TL, m_TKmers, m_TKmerSizes);
-	const uint NK = SIZE(m_TKmers);
-	m_TKmerSizeOrder.resize(NK);
-	QuickSortOrder(m_TKmerSizes.data(), NK, m_TKmerSizeOrder.data());
-	const uint QueryCount = m_QDB->GetSeqCount();
-	uint MaxTotalSize = QUERY_COUNT_MULTIPLIER*QueryCount;
-	uint SumSize = 0;
-	for (uint k = 0; k < NK; ++k)
-		{
-		uint i = m_TKmerSizeOrder[k];
-		SumSize += m_TKmerSizes[i];
-		if (SumSize > MaxTotalSize)
-			m_TKmers[i] = UINT_MAX;
-		}
-#else
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
-#endif
 	if (g_QueryNeighborhood)
 		{
 		for (uint TPos = 0; TPos < NK; ++TPos)
@@ -190,9 +176,9 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	assert(Kmer < DICT_SIZE);
-	assert(m_KmerSelfScores[Kmer] >= MIN_KMER_PAIR_SCORE);
-	short MinKmerScore = MIN_KMER_PAIR_SCORE;
+	assert(Kmer < PREFILTER_KMER_DICT_SIZE);
+	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinKmerPairScore);
+	short MinKmerScore =  DSSParams::m_PrefilterMinKmerPairScore;
 
 // Construct high-scoring neighborhood
 	const uint HSKmerCount =
@@ -406,7 +392,7 @@ void PrefilterMu::LogQueryKmers(uint QSeqIdx) const
 	Log("\n");
 	Log("PrefilterMu::LogQueryKmers() QL=%u >%s\n", 
 		QL, m_QDB->GetLabel(QSeqIdx).c_str());
-	for (uint PosQ = 0; PosQ + k <= QL; ++PosQ)
+	for (uint PosQ = 0; PosQ + PREFILTER_KMER_NR_ONES <= QL; ++PosQ)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(Q + PosQ);
 		string tmp;
@@ -420,7 +406,7 @@ void PrefilterMu::LogTargetKmers() const
 	Log("\n");
 	Log("PrefilterMu::LogTargetKmers() TL=%u >%s\n", 
 		m_TL, m_TLabel);
-	for (uint PosT = 0; PosT + k <= m_TL; ++PosT)
+	for (uint PosT = 0; PosT + PREFILTER_KMER_NR_ONES <= m_TL; ++PosT)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(m_TSeq + PosT);
 		string tmp;
