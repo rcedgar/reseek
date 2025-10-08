@@ -47,7 +47,8 @@ def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 # SEPQ0.1=0.2106 SEPQ1=0.2950 SEPQ10=0.2950 S1FP=0.2848 N1FP=129529 area=3.99 evalue1
 
 dofile("../test_output/scop40-evalue1.tsv", 		0.2100, 0.3100, 0.3500)
-dofile("../test_output/scop40-fast.tsv", 			0.2100, 0.3140, 0.4200)
+dofile("../test_output/scop40-fast-idxq.tsv", 		0.2100, 0.3140, 0.4200)
+dofile("../test_output/scop40-fast-idxt.tsv", 		0.2100, 0.3140, 0.4200)
 dofile("../test_output/scop40-sensitive.tsv",		0.2170, 0.3410, 0.4740)
 
 if errors == 0:

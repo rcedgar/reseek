@@ -5,9 +5,18 @@ cd ../test_output
 $reseek \
 	-search scop40.bca \
 	-db scop40.bca \
-	-output scop40-fast.tsv \
+	-output scop40-fast-idxq.tsv \
 	-fast \
-	-log scop40-fast.log
+	-idxq \
+	-log scop40-fast-idxq.log
+
+$reseek \
+	-search scop40.bca \
+	-db scop40.bca \
+	-output scop40-fast-idxt.tsv \
+	-fast \
+	-idxt \
+	-log scop40-fast-idxt.log
 
 $reseek \
 	-search scop40.bca \

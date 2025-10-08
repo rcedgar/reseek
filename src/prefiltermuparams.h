@@ -1,6 +1,5 @@
 #pragma once
 
-// pattern=1110011
 static const char *prefiltermu_pattern = "1110011";
 static const uint PREFILTER_KMER_NR_ONES = 5;
 static const uint PREFILTER_KMER_WIDTH = 7;
