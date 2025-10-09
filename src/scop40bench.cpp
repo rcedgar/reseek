@@ -141,6 +141,13 @@ void SCOP40Bench::OnSetup()
 	else
 		m_ScoresAreEvalues = true;
 	BuildDomSFIndexesFromDBChainLabels();
+
+	m_fa2_tp = 0;
+	m_fa2_fp = 0;
+	if (optset_fasta2_tp)
+		m_fa2_tp = CreateStdioFile(opt(fasta2_tp));
+	if (optset_fasta2_fp)
+		m_fa2_fp = CreateStdioFile(opt(fasta2_fp));
 	}
 
 void SCOP40Bench::AddDom(const string &Dom, const string &Fold, const string &SF,
@@ -295,6 +302,44 @@ float SCOP40Bench::AlignDomPair(uint ThreadIndex,
 	return DA.m_EvalueA;
 	}
 
+void SCOP40Bench::WriteFasta2s(DSSAligner &DA) const
+	{
+	const string &LabelA = DA.m_ChainA->m_Label;
+	const string &LabelB = DA.m_ChainB->m_Label;
+	if (LabelA == LabelB)
+		return;
+
+	bool IsTP = IsTP_SF(LabelA, LabelB);
+	FILE *f = (IsTP ? m_fa2_tp : m_fa2_fp);
+	if (!f)
+		return;
+
+	float TS = DA.m_NewTestStatisticA;
+	if (optset_mints && TS < opt(mints))
+		return;
+	if (optset_maxts && TS > opt(maxts))
+		return;
+
+	string RowA, RowB;
+	DA.GetRow_A(RowA, true);
+	DA.GetRow_B(RowB, true);
+
+	float Evalue = DA.m_EvalueA;
+	float PctId = DA.GetPctId();
+	string LabelAx = LabelA;
+	Psa(LabelAx, " E=%.3g Id=%.1f%% TS=%.4f",
+		Evalue, PctId, TS);
+	LabelAx += " (";
+	LabelAx += LabelB;
+	LabelAx += ")";
+
+	DA.m_OutputLock.lock();
+	SeqToFasta(f, LabelAx.c_str(), RowA);
+	SeqToFasta(f, LabelB, RowB);
+	fputc('\n', f);
+	DA.m_OutputLock.unlock();
+	}
+
 void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	{
 	const string &LabelA = DA.m_ChainA->m_Label;
@@ -309,7 +354,10 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 		return;
 
 	if (Up)
+		{
+		WriteFasta2s(DA);
 		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+		}
 	else
 		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
 	}
@@ -811,6 +859,9 @@ void cmd_scop40bench()
 		SB.WriteSens1FPReport(f);
 		CloseStdioFile(f);
 		}
+	CloseStdioFile(SB.m_fa2_tp);
+	CloseStdioFile(SB.m_fa2_fp);
+	
 #if SCORE_DIST
 	DSSAligner::ReportScoreDist();
 #endif

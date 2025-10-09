@@ -77,6 +77,9 @@ public:
 	vector<float> m_CurveLog10EPQs;
 	float m_Area = FLT_MAX;
 
+	FILE *m_fa2_tp = 0;
+	FILE *m_fa2_fp = 0;
+
 public:
 	virtual void OnSetup();
 	virtual void OnAln(DSSAligner &DA, bool Up);
@@ -112,6 +115,8 @@ public:
 	void LoadHitsFromTsv(const string &FileName);
 	float GetMeanLength(uint SFIdx) const;
 	void StoreScore(uint ChainIdx1, uint ChainIdx2, float Score12);
+
+	void WriteFasta2s(DSSAligner &DA) const;
 
 // ROC analysis
 	void SetStats(float MaxFPR, bool UseTS = false);
