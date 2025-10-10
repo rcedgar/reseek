@@ -608,14 +608,15 @@ void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	SetTFs();
 
 	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, UseTS);
+	ROCStepsToTsv(opt(rocsteps), m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs);
+
 	GetCurve(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 0.01f, 10.0f,
 			 m_CurveScores, m_CurveTPRs, m_CurveEPQs, m_CurveLog10EPQs);
 	m_Area = GetArea(m_CurveTPRs, m_CurveLog10EPQs);
 
 	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
 	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);
-
-	ROCStepsToTsv(opt(roc), m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
+	SmoothROCStepsToTsv(opt(roc), m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
 	  m_SmoothTPRs, m_SmoothFPRs);
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);

@@ -717,20 +717,33 @@ void DSSAligner::AlignQueryTarget_Trace()
 	Log("A>%s(%u)\n", m_ChainA->m_Label.c_str(), m_ChainA->GetSeqLength());
 	Log("B>%s(%u)\n", m_ChainB->m_Label.c_str(), m_ChainB->GetSeqLength());
 
+	void ProfileToLines(const vector<vector<byte> > &Profile,
+		vector<string> &Lines);
+	Log("\n");
+	Log("ProfileA ==>\n");
+	vector<string> Lines;
+	ProfileToLines(*m_ProfileA, Lines);
+	for (uint i = 0; i < SIZE(Lines); ++i)
+		Log("%10.10s  %s\n", FeatureToStr(DSSParams::m_Features[i]), Lines[i].c_str());
+
+	Log("\n");
+	Log("ProfileB ==>\n");
+	ProfileToLines(*m_ProfileB, Lines);
+	for (uint i = 0; i < SIZE(Lines); ++i)
+		Log("%10.10s  %s\n", FeatureToStr(DSSParams::m_Features[i]), Lines[i].c_str());
+
 	ClearAlign();
 
 	if (DoMKF())
 		{
 		Log("DoMKF()=true\n");
 		AlignMKF();
+		Log("m_LoA=%u, m_LoB=%u, m_HiA=%u, m_HiB=%u\n", m_LoA, m_LoB, m_HiA, m_HiB);
 		Log("m_MKF.m_BestChainScore=%d\n", m_MKF.m_BestChainScore);
-		Log("m_XDropScore=%.1f\n", m_XDropScore);
-		Log("AlnFwdScore=%.3g\n", m_AlnFwdScore);
-		float E = m_EvalueA;
-		if (E > 1e5)
-			Log("EvalueA=%.3g\n", E);
-		else
-			Log("EvalueA=%.1f\n", E);
+		Log("m_XDropScore=%.6g, Fwd=%.6g, Bwd=%.6g\n",
+			m_XDropScore, m_XDropScoreFwd, m_XDropScoreBwd);
+		Log("AlnFwdScore=%.6g\n", m_AlnFwdScore);
+		Log("EvalueA=%.6g\n", m_EvalueA);
 		Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
 		return;
 		}
@@ -861,6 +874,7 @@ void DSSAligner::CalcEvalue()
 void DSSAligner::ClearAlign()
 	{
 	m_Path.clear();
+	m_XDropPath.clear();
 	m_LoA = UINT_MAX;
 	m_LoB = UINT_MAX;
 	m_HiA = UINT_MAX;
@@ -871,10 +885,13 @@ void DSSAligner::ClearAlign()
 	m_PvalueB = FLT_MAX;
 	m_EvalueA = FLT_MAX;
 	m_EvalueB = FLT_MAX;
+	m_QualityA = FLT_MAX;
+	m_QualityB = FLT_MAX;
 	m_TestStatisticA = -FLT_MAX;
 	m_TestStatisticB = -FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
+	m_XDropScore = 0;
 	m_AlnFwdScore = 0;
 	}
 

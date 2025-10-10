@@ -157,6 +157,9 @@ public:
 		vector<float> &CurveLog10EPQs) const;
 
 	void ROCStepsToTsv(const string &FileName,
+	   vector<float> &Scores,
+	   vector<uint> &NTPs, vector<uint> &NFPs) const;
+	void SmoothROCStepsToTsv(const string &FileName,
 	   vector<float> &ScoreSteps,
 	   vector<uint> &NTPs, vector<uint> &NFPs,
 	   vector<float> &TPRs, vector<float> &FPRs) const;

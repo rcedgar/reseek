@@ -299,6 +299,25 @@ void SCOP40Bench::SetTSOrder()
 
 void SCOP40Bench::ROCStepsToTsv(const string &FileName,
   vector<float> &Scores, 
+  vector<uint> &NTPs, vector<uint> &NFPs) const
+	{
+	if (FileName.empty())
+		return;
+	const uint N = SIZE(Scores);
+	asserta(SIZE(NTPs) == N);
+	asserta(SIZE(NFPs) == N);
+	float DBSize = (float) SIZE(m_Doms);
+
+	FILE *f = CreateStdioFile(FileName);
+	fprintf(f, "Score\tNTP\tNFP\n");
+	for (uint i = 0; i < N; ++i)
+		fprintf(f, "%.4g\t%u\t%u\n", Scores[i], NTPs[i], NFPs[i]);
+	CloseStdioFile(f);
+	}
+
+
+void SCOP40Bench::SmoothROCStepsToTsv(const string &FileName,
+  vector<float> &Scores, 
   vector<uint> &NTPs, vector<uint> &NFPs,
   vector<float> &TPRs, vector<float> &FPRs) const
 	{
@@ -674,7 +693,7 @@ void SCOP40Bench::ROCToTsv(const string &FileName, float MaxFPR)
 	vector<uint> SmoothNFPs;
 	SmoothROCSteps(Scores, NTPs, NFPs, 100, MaxFPR,
 	  SmoothScores, SmoothNTPs, SmoothNFPs, SmoothTPRs, SmoothFPRs);
-	ROCStepsToTsv(FileName, SmoothScores, NTPs, NFPs,
+	SmoothROCStepsToTsv(FileName, SmoothScores, NTPs, NFPs,
 	  SmoothTPRs, SmoothFPRs);
 	}
 

@@ -35,7 +35,7 @@ public:
 	vector<int> m_ChainHSPLois;
 	vector<int> m_ChainHSPLojs;
 	vector<int> m_ChainHSPLens;
-	vector<float> Scores;
+	//vector<float> Scores;
 
 public:
 	Chainer m_C;

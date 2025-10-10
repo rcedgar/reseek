@@ -123,11 +123,25 @@ void DSS::SetSSEs()
 		}
 	}
 
+/*********************************************
+// This works
 float DSS::GetFloat_NormDens(uint Pos)
 	{
 	SetDensity_ScaledValues();
 	asserta(Pos < SIZE(m_Density_ScaledValues));
 	return (float) m_Density_ScaledValues[Pos];
+	}
+***********************************************/
+
+float DSS::GetFloat_NormDens(uint Pos)
+	{
+	SetDensity_ScaledValues();
+	asserta(Pos < SIZE(m_Density_ScaledValues));
+	double Valued = m_Density_ScaledValues[Pos];
+	float Valuef = m_Density_ScaledValuesf[Pos];
+	if (Valued == DBL_MAX)
+		return (float) Valued;
+	return Valuef;
 	}
 
 float DSS::GetFloat_HelixDens(uint Pos)
@@ -140,46 +154,73 @@ float DSS::GetFloat_StrandDens(uint Pos)
 	return (float) GetSSDensity(Pos, 's');
 	}
 
-//double DSS::GetFloat_LoopDens(uint Pos)
-//	{
-//	return GetSSDensity(Pos, '~');
-//	}
-
 void DSS::SetDensity_ScaledValues()
 	{
 	if (!m_Density_ScaledValues.empty())
 		return;
+	m_Density_ScaledValues.clear();
+	m_Density_ScaledValuesf.clear();
 	const uint L = GetSeqLength();
 	vector<double> Values;
+	vector<float> Valuesf;
 	m_Density_ScaledValues.reserve(L);
+	m_Density_ScaledValuesf.reserve(L);
 	Values.reserve(L);
+	Valuesf.reserve(L);
 	double MinValue = 999;
 	double MaxValue = 0;
+	float MinValuef = 999;
+	float MaxValuef = 0;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		double D = GetDensity(Pos);
 		Values.push_back(D);
+		if (D == DBL_MAX)
+			Valuesf.push_back(FLT_MAX);
+		else
+			Valuesf.push_back(float(D));
 		if (D != DBL_MAX)
 			{
 			MinValue = min(MinValue, D);
 			MaxValue = max(MaxValue, D);
+			MinValuef = min(MinValuef, float(D));
+			MaxValuef = max(MaxValuef, float(D));
 			}
 		}
 
 	double Range = (MaxValue - MinValue);
+	float Rangef = (MaxValuef - MinValuef);
 	if (Range < 1)
 		Range = 1;
+	if (Rangef < 1)
+		Rangef = 1;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		double Value = Values[Pos];
+		float Valuef = Valuesf[Pos];
 		if (Value == DBL_MAX)
 			{
+			asserta(Valuef == FLT_MAX);
 			m_Density_ScaledValues.push_back(DBL_MAX);
+			m_Density_ScaledValuesf.push_back(FLT_MAX);
 			continue;
 			}
 		double ScaledValue = (Value - MinValue)/Range;
 		asserta(ScaledValue >= 0 && ScaledValue <= 1);
 		m_Density_ScaledValues.push_back(ScaledValue);
+
+		float ScaledValuef = (Valuef - MinValuef)/Rangef;
+		asserta(ScaledValuef >= 0 && ScaledValuef <= 1);
+		m_Density_ScaledValuesf.push_back(ScaledValuef);
+		}
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		double Value = Values[Pos];
+		float Valuef = Valuesf[Pos];
+		if (Value == DBL_MAX)
+			asserta(Valuef == FLT_MAX);
+		else
+			asserta(feq(Value, Valuef));
 		}
 	}
 
@@ -190,8 +231,8 @@ double DSS::GetDensity(uint Pos) const
 	if (Pos == 0 || Pos+1 >= L)
 		return DBL_MAX;
 
-	vector<double> PtCA;
-	Chain.GetPt(Pos, PtCA);
+	//vector<double> PtCA;
+	//Chain.GetPt(Pos, PtCA);
 
 	int iLo = int(Pos) - m_Density_W;
 	if (iLo < 0)
@@ -200,7 +241,7 @@ double DSS::GetDensity(uint Pos) const
 	if (iHi >= int(L))
 		iHi = int(L)-1;
 	double D = 0;
-	vector<double> Pt2;
+	//vector<double> Pt2;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_Density_w >= Pos && Pos2 <= Pos + m_Density_w)
@@ -313,8 +354,8 @@ double DSS::GetSSDensity(uint Pos, char c)
 	if (Pos == 0 || Pos+1 >= L)
 		return DBL_MAX;
 
-	vector<double> PtCA;
-	Chain.GetPt(Pos, PtCA);
+	//vector<double> PtCA;
+	//Chain.GetPt(Pos, PtCA);
 
 	int iLo = int(Pos) - m_SSDensity_W;
 	if (iLo < 0)
@@ -324,7 +365,7 @@ double DSS::GetSSDensity(uint Pos, char c)
 		iHi = int(L)-1;
 	double D = 0;
 	double Dc = 0;
-	vector<double> Pt2;
+	//vector<double> Pt2;
 	for (uint Pos2 = uint(iLo); Pos2 <= uint(iHi); ++Pos2)
 		{
 		if (Pos2 + m_SSDensity_w >= Pos && Pos2 <= Pos + m_SSDensity_w)

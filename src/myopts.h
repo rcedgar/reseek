@@ -65,6 +65,7 @@ STR_OPT(accumrev)
 STR_OPT(savebit)
 STR_OPT(aln)
 STR_OPT(filin)
+STR_OPT(rocsteps)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

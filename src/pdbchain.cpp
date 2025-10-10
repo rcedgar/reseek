@@ -2,6 +2,7 @@
 #include "pdbchain.h"
 #include "dss.h"
 #include "abcxyz.h"
+#include "alpha.h"
 
 void GetThreeFromOne(char aa, string &AAA);
 
@@ -72,6 +73,8 @@ char GetFeatureChar(byte Letter, uint AlphaSize)
 	asserta(AlphaSize <= 36);
 	if (Letter == UINT_MAX)
 		return '*';
+	if (AlphaSize == 20)
+		return g_LetterToCharAmino[Letter];
 	if (Letter < 26)
 		return 'A' + Letter;
 	else if (Letter < 36)

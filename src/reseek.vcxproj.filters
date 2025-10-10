@@ -425,6 +425,9 @@
     <ClCompile Include="alncounts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="profiletolines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

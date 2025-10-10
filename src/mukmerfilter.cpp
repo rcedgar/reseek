@@ -312,6 +312,23 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	incac(mkfalns);
 	StartTimer(MuKmerAln);
 	m_C.Clear();
+
+	m_MuKmerHSPLois.clear();
+	m_MuKmerHSPLojs.clear();
+	m_MuKmerHSPLens.clear();
+	m_MuKmerHSPScores.clear();
+
+	m_ChainHSPLois.clear();
+	m_ChainHSPLojs.clear();
+	m_ChainHSPLens.clear();
+
+	m_BestChainScore = 0;
+	m_BestHSPScore = 0;
+	m_ChainLo_i = 0;
+	m_ChainHi_i = 0;
+	m_ChainLo_j = 0;
+	m_ChainHi_j = 0;
+
 	//m_ChainT = &ChainT;
 	m_ptrMuLettersT = &MuLettersT;
 	m_Lock.lock();
@@ -320,15 +337,7 @@ void MuKmerFilter::Align(const vector<byte> &MuLettersT,
 	const uint KmerCountT = SIZE(MuKmersT);
 	int LQ = int(GetQL());
 	int LT = int(GetTL());
-	m_MuKmerHSPLois.clear();
-	m_MuKmerHSPLojs.clear();
-	m_MuKmerHSPLens.clear();
-	m_MuKmerHSPScores.clear();
-	m_ChainHSPLois.clear();
-	m_ChainHSPLojs.clear();
-	m_ChainHSPLens.clear();
-	m_BestChainScore = 0;
-	m_BestHSPScore = 0;
+
 	bool FoundHSP = false;
 	const int MinHSPScore = DSSParams::m_MKF_MinMuHSPScore;
 	const int X1 = DSSParams::m_MKF_X1;

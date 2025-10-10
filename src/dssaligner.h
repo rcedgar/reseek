@@ -35,6 +35,8 @@ public:
 	void *m_ProfParaRev = 0;
 	MuKmerFilter m_MKF;
 	float m_XDropScore = 0;
+	float m_XDropScoreFwd = 0;
+	float m_XDropScoreBwd = 0;
 	string m_XDropPath;
 
 	XDPMem m_Mem;
@@ -203,6 +205,10 @@ public:
 				   uint &Loi_out, uint &Loj_out,
 				   uint &Hii_out, uint &Hij_out);
 
+	float XDropHSP_Trace(uint Loi_in, uint Loj_in, uint Len,
+				   uint &Loi_out, uint &Loj_out,
+				   uint &Hii_out, uint &Hij_out);
+
 	float GetPctId() const;
 	float GetLDDT() const;
 	float SubstScore(uint PosA, uint PosB);
@@ -219,4 +225,5 @@ public:
 	static void ReportScoreDist();
 #endif
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
+	static float StaticSubstScore_Trace(void *UserData_this, uint PosA, uint PosB);
 	};
