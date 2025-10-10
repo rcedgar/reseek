@@ -6,6 +6,7 @@
 #include "cmds.h"
 
 STR_OPT(curve)
+STR_OPT(smooth)
 STR_OPT(param)
 STR_OPT(params)
 STR_OPT(roc)
@@ -141,6 +142,7 @@ FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(idxq)
 FLAG_OPT(idxt)
 FLAG_OPT(onehitdiag)
+FLAG_OPT(eevalue)
 
 #undef FLAG_OPT
 #undef UNS_OPT

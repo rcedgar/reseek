@@ -233,45 +233,6 @@ void SCOP40Bench::SetTFs()
 		}
 	}
 
-//static const vector<float> *s_ptrScores;
-//static const vector<int> *s_ptrTFs;
-//static bool s_ScoresAreEvalues;
-//static bool CompareHitIdxs(uint HitIdx1, uint HitIdx2)
-//	{
-//	const vector<float> &Scores = *s_ptrScores;
-//	const vector<int> &TFs = *s_ptrTFs;
-//	const uint N = SIZE(Scores);
-//	asserta(SIZE(TFs) == N);
-//	asserta(HitIdx1 < N);
-//	asserta(HitIdx2 < N);
-//	float Score1 = Scores[HitIdx1];
-//	float Score2 = Scores[HitIdx2];
-//	if (s_ScoresAreEvalues)
-//		{
-//		if (Score1 < Score2)
-//			return true;
-//		if (Score1 > Score2)
-//			return false;
-//		}
-//	else
-//		{
-//		if (Score1 > Score2)
-//			return true;
-//		if (Score1 < Score2)
-//			return false;
-//		}
-//
-//// FPs should appear before TPs
-//// 1=TP, 0=FP, -1=ignore
-//	int TF1 = TFs[HitIdx1];
-//	int TF2 = TFs[HitIdx2];
-//	if (TF1 == 0 && TF2 != 0)
-//		return true;
-//	if (TF1 != 0 && TF2 == 0)
-//		return false;
-//	return TF1 < TF2;
-//	}
-
 void SCOP40Bench::SetScoreOrder()
 	{
 	const uint HitCount = GetHitCount();
@@ -280,13 +241,6 @@ void SCOP40Bench::SetScoreOrder()
 		QuickSortOrder(m_Scores.data(), HitCount, m_ScoreOrder.data());
 	else
 		QuickSortOrderDesc(m_Scores.data(), HitCount, m_ScoreOrder.data());
-	//s_ptrScores = &m_Scores;
-	//s_ptrTFs = &m_TFs;
-	//s_ScoresAreEvalues = m_ScoresAreEvalues;
-	//m_ScoreOrder.reserve(HitCount);
-	//for (uint i = 0; i < HitCount; ++i)
-	//	m_ScoreOrder.push_back(i);
-	//std::sort(m_ScoreOrder.begin(), m_ScoreOrder.end(), CompareHitIdxs);
 	}
 
 void SCOP40Bench::SetTSOrder()
@@ -298,8 +252,8 @@ void SCOP40Bench::SetTSOrder()
 	}
 
 void SCOP40Bench::ROCStepsToTsv(const string &FileName,
-  vector<float> &Scores, 
-  vector<uint> &NTPs, vector<uint> &NFPs) const
+  const vector<float> &Scores, 
+  const vector<uint> &NTPs, const vector<uint> &NFPs) const
 	{
 	if (FileName.empty())
 		return;
@@ -311,15 +265,15 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 	FILE *f = CreateStdioFile(FileName);
 	fprintf(f, "Score\tNTP\tNFP\n");
 	for (uint i = 0; i < N; ++i)
-		fprintf(f, "%.4g\t%u\t%u\n", Scores[i], NTPs[i], NFPs[i]);
+		fprintf(f, "%.8e\t%u\t%u\n", Scores[i], NTPs[i], NFPs[i]);
 	CloseStdioFile(f);
 	}
 
 
 void SCOP40Bench::SmoothROCStepsToTsv(const string &FileName,
-  vector<float> &Scores, 
-  vector<uint> &NTPs, vector<uint> &NFPs,
-  vector<float> &TPRs, vector<float> &FPRs) const
+  const vector<float> &Scores, 
+  const vector<uint> &NTPs, const vector<uint> &NFPs,
+  const vector<float> &TPRs, const vector<float> &FPRs) const
 	{
 	if (FileName.empty())
 		return;
@@ -798,9 +752,6 @@ void cmd_scop40bench_tsv()
 		SB.m_ScoresAreEvalues = true;
 	SB.ReadLookup(opt(lookup));
 	SB.ReadHits(g_Arg1);
-	float MaxFPR = 0.01f;
-	if (optset_maxfpr)
-		MaxFPR = (float) opt(maxfpr);
 	SB.WriteOutput();
 	}
 

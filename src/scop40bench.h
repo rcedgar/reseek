@@ -157,12 +157,12 @@ public:
 		vector<float> &CurveLog10EPQs) const;
 
 	void ROCStepsToTsv(const string &FileName,
-	   vector<float> &Scores,
-	   vector<uint> &NTPs, vector<uint> &NFPs) const;
+	   const vector<float> &Scores,
+	   const vector<uint> &NTPs, const vector<uint> &NFPs) const;
 	void SmoothROCStepsToTsv(const string &FileName,
-	   vector<float> &ScoreSteps,
-	   vector<uint> &NTPs, vector<uint> &NFPs,
-	   vector<float> &TPRs, vector<float> &FPRs) const;
+	   const vector<float> &ScoreSteps,
+	   const vector<uint> &NTPs, const vector<uint> &NFPs,
+	   const vector<float> &TPRs, const vector<float> &FPRs) const;
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteSummary();
@@ -171,7 +171,9 @@ public:
 	void LogSens1FPReport_Dom(uint DomIdx) const;
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
+	void WriteSteps(const string &FN) const;
 	void WriteCurve(const string &FN) const;
+	void WriteSmooth(const string &FN) const;
 	void WriteSortedHits(const string &FN) const;
 
 public:

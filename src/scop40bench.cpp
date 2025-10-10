@@ -603,12 +603,17 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	CloseStdioFile(f);
 	}
 
+void SCOP40Bench::WriteSmooth(const string &FN) const
+	{
+	SmoothROCStepsToTsv(FN, m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
+	  m_SmoothTPRs, m_SmoothFPRs);
+	}
+
 void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	{
 	SetTFs();
 
 	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, UseTS);
-	ROCStepsToTsv(opt(rocsteps), m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs);
 
 	GetCurve(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 0.01f, 10.0f,
 			 m_CurveScores, m_CurveTPRs, m_CurveEPQs, m_CurveLog10EPQs);
@@ -616,8 +621,6 @@ void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 
 	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
 	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);
-	SmoothROCStepsToTsv(opt(roc), m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
-	  m_SmoothTPRs, m_SmoothFPRs);
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
@@ -678,10 +681,26 @@ void SCOP40Bench::WriteSortedHits(const string &FN) const
 		const string &Dom2 = m_Doms[DomIdx2];
 		fprintf(f, "%s", Dom1.c_str());
 		fprintf(f, "\t%s", Dom2.c_str());
-		fprintf(f, "\t%.3g", Score);
+		fprintf(f, "\t%.8e", Score);
 		fprintf(f, "\t%c", tof(TF));
 		fprintf(f, "\n");
 		}
+	CloseStdioFile(f);
+	}
+
+void SCOP40Bench::WriteSteps(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	const uint n = SIZE(m_ROCStepScores);
+	asserta(SIZE(m_ROCStepNTPs) == n);
+	asserta(SIZE(m_ROCStepNFPs) == n);
+	for (uint i = 0; i < n; ++i)
+		fprintf(f, "%.8e\t%u\t%u\n",
+				m_ROCStepScores[i],
+				m_ROCStepNTPs[i],
+				m_ROCStepNFPs[i]);
 	CloseStdioFile(f);
 	}
 
@@ -714,7 +733,9 @@ void SCOP40Bench::WriteOutput()
 		m_Level = opt(benchlevel);
 	SetStats(MaxFPR);
 	WriteCVE(fCVE, 100);
+	WriteSteps(opt(rocsteps));
 	WriteCurve(opt(curve));
+	WriteSmooth(opt(smooth));
 	WriteSortedHits(opt(sortedhits));
 	WriteSummary();
 	CloseStdioFile(fCVE);
@@ -852,8 +873,6 @@ void cmd_scop40bench()
 				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
 	SB.WriteBit(opt(savebit));
-	//SB.LogFirstFewDoms();
-	//SB.LogFirstFewHits();
 	if (optset_sens1fp_report)
 		{
 		FILE *f = CreateStdioFile(opt(sens1fp_report));

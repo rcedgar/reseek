@@ -18,6 +18,11 @@ USERFIELD StrToUF(const string &Str)
 
 static const char *EvalueToStr(double E, string &s)
 	{
+	if (opt(eevalue))
+		{
+		Ps(s, "%.8e", E);
+		return s.c_str();
+		}
 	if (E > 10)
 		E = 99;
 	if (E > 1)
