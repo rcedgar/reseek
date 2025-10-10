@@ -113,7 +113,6 @@ public:
 	static void GetBins(FEATURE F, vector<float> &Bins);
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
-	static uint ValueToInt(const vector<double> &Ts, double Value);
 	static uint GetAlphaSize(FEATURE F);
 
 public:

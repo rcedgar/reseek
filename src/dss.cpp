@@ -467,8 +467,8 @@ float DSS::GetFloat_NENDist(uint Pos)
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
 		return (float) m_DefaultNENDist;
-	double d = m_Chain->GetDist(Pos, NEN);
-	return (float) d;
+	float d = m_Chain->GetDist(Pos, NEN);
+	return d;
 	}
 
 float DSS::GetFloat_PMDist(uint Pos)
@@ -492,8 +492,8 @@ float DSS::GetFloat_RENDist(uint Pos)
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
 		return (float) m_DefaultNENDist;
-	double d = m_Chain->GetDist(Pos, NEN);
-	return (float) d;
+	float d = m_Chain->GetDist(Pos, NEN);
+	return d;
 	}
 
 uint DSS::Get_NormDens4(uint Pos)
@@ -682,25 +682,6 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 #include "intfeatures.h"
 #undef F
 
-//#define F(x)	case FEATURE_##x: \
-//		{ \
-//		double Value = GetFloat_##x(Pos); \
-//		return ValueToInt_##x(Value); \
-//		}
-//#include "floatfeatures.h"
-//#undef F
-
-//#define F(x)	case FEATURE_##x: \
-//		{ \
-//		double Value = GetFloat_##x(Pos); \
-//		uint Letter_old = ValueToInt_##x(Value); \
-//		uint Letter_new = ValueToInt_Feature(FEATURE_##x, (float) Value); \
-//		if (Letter_old != Letter_new) \
-//			Die("%u=%s[%u] value %.8g letters %u %u", \
-//				FeatureIndex, FeatureToStr(FeatureIndex), Pos, Value, Letter_old, Letter_new); \
-//		return Letter_new; \
-//		}
-
 #define F(x)	case FEATURE_##x: \
 		{ \
 		double Value = GetFloat_##x(Pos); \
@@ -715,15 +696,6 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 		}
 	asserta(false);
 	return UINT_MAX;
-	}
-
-uint DSS::ValueToInt(const vector<double> &Ts, double Value)
-	{
-	const uint N = SIZE(Ts);
-	for (uint i = 0; i < N; ++i)
-		if (Value <= Ts[i])
-			return i;
-	return N;
 	}
 
 float DSS::GetFloat_DstPrvHlx(uint Pos)
@@ -754,8 +726,8 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		uint Mid = m_SSE_Mids[i];
 		if (Mid <= Pos + m_SSE_Margin)
 			continue;
-		double Dist = m_Chain->GetDist(Pos, Mid);
-		return (float) Dist;
+		float Dist = m_Chain->GetDist(Pos, Mid);
+		return Dist;
 		}
 	return 0;
 	}
