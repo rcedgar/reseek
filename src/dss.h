@@ -77,7 +77,7 @@ public:
 #include "intfeatures.h"
 #undef F
 
-#define F(x)	double GetFloat_##x(uint Pos);
+#define F(x)	float GetFloat_##x(uint Pos);
 #include "floatfeatures.h"
 #undef F
 

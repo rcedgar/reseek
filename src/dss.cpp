@@ -123,21 +123,21 @@ void DSS::SetSSEs()
 		}
 	}
 
-double DSS::GetFloat_NormDens(uint Pos)
+float DSS::GetFloat_NormDens(uint Pos)
 	{
 	SetDensity_ScaledValues();
 	asserta(Pos < SIZE(m_Density_ScaledValues));
-	return m_Density_ScaledValues[Pos];
+	return (float) m_Density_ScaledValues[Pos];
 	}
 
-double DSS::GetFloat_HelixDens(uint Pos)
+float DSS::GetFloat_HelixDens(uint Pos)
 	{
-	return GetSSDensity(Pos, 'h');
+	return (float) GetSSDensity(Pos, 'h');
 	}
 
-double DSS::GetFloat_StrandDens(uint Pos)
+float DSS::GetFloat_StrandDens(uint Pos)
 	{
-	return GetSSDensity(Pos, 's');
+	return (float) GetSSDensity(Pos, 's');
 	}
 
 //double DSS::GetFloat_LoopDens(uint Pos)
@@ -287,10 +287,10 @@ void DSS::Set_NU_ND_Vecs()
 		}
 	}
 
-double DSS::GetFloat_NX(uint Pos)
+float DSS::GetFloat_NX(uint Pos)
 	{
 	Set_NU_ND_Vecs();
-	return m_NXs[Pos];
+	return (float) m_NXs[Pos];
 	}
 
 //double DSS::GetFloat_NU(uint Pos)
@@ -462,16 +462,16 @@ uint DSS::Get_RENSS(uint Pos)
 	return SSCharToInt(c);
 	}
 
-double DSS::GetFloat_NENDist(uint Pos)
+float DSS::GetFloat_NENDist(uint Pos)
 	{
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return (float) m_DefaultNENDist;
 	double d = m_Chain->GetDist(Pos, NEN);
-	return d;
+	return (float) d;
 	}
 
-double DSS::GetFloat_PMDist(uint Pos)
+float DSS::GetFloat_PMDist(uint Pos)
 	{
 	int iPos = (int) Pos;
 	int L = (int) GetSeqLength();
@@ -484,16 +484,16 @@ double DSS::GetFloat_PMDist(uint Pos)
 	if (Pos2 >= L)
 		Pos2 = L - 1;
 	double d = m_Chain->GetDist(uint(Pos1), uint(Pos2));
-	return d;
+	return (float) d;
 	}
 
-double DSS::GetFloat_RENDist(uint Pos)
+float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return m_DefaultNENDist;
+		return (float) m_DefaultNENDist;
 	double d = m_Chain->GetDist(Pos, NEN);
-	return d;
+	return (float) d;
 	}
 
 uint DSS::Get_NormDens4(uint Pos)
@@ -726,7 +726,7 @@ uint DSS::ValueToInt(const vector<double> &Ts, double Value)
 	return N;
 	}
 
-double DSS::GetFloat_DstPrvHlx(uint Pos)
+float DSS::GetFloat_DstPrvHlx(uint Pos)
 	{
 	SetSSEs();
 	const uint SSECount = SIZE(m_SSE_Mids);
@@ -738,12 +738,12 @@ double DSS::GetFloat_DstPrvHlx(uint Pos)
 		if (Mid + m_SSE_Margin >= Pos)
 			continue;
 		double Dist = m_Chain->GetDist(Pos, Mid);
-		return Dist;
+		return (float) Dist;
 		}
 	return 0;
 	}
 
-double DSS::GetFloat_DstNxtHlx(uint Pos)
+float DSS::GetFloat_DstNxtHlx(uint Pos)
 	{
 	SetSSEs();
 	const uint SSECount = SIZE(m_SSE_Mids);
@@ -755,7 +755,7 @@ double DSS::GetFloat_DstNxtHlx(uint Pos)
 		if (Mid <= Pos + m_SSE_Margin)
 			continue;
 		double Dist = m_Chain->GetDist(Pos, Mid);
-		return Dist;
+		return (float) Dist;
 		}
 	return 0;
 	}
