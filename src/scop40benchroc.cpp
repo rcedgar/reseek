@@ -76,85 +76,6 @@ float SCOP40Bench::GetArea(const vector<float> &TPRs,
 	return Area;
 	}
 
-void SCOP40Bench::GetSmoothCurve(const vector<float> &TPRs,
-						const vector<float> &Es,
-						float dE,
-						vector<float> &SmoothTPRs,
-						vector<float> &SmoothEs) const
-	{
-	}
-
-void SCOP40Bench::GetCurve(const vector<float> &Scores,
-	const vector<uint> &NTPs,
-	const vector<uint> &NFPs,
-	float MinEPQ, float MaxEPQ,
-	vector<float> &CurveScores,
-	vector<float> &CurveTPRs,
-	vector<float> &CurveEPQs,
-	vector<float> &CurveLog10EPQs) const
-	{
-	CurveScores.clear();
-	CurveTPRs.clear();
-	CurveEPQs.clear();
-	CurveLog10EPQs.clear();
-
-	const uint QueryCount = SIZE(m_Doms);
-	const uint N = SIZE(Scores);
-	const float StartScore = (m_ScoresAreEvalues ? 0 : FLT_MAX);
-	float LastScore = StartScore;
-	float LastTPR = 0;
-	float LastEPQ = 0;
-	float Sum = 0;
-	for (uint i = 0; i < N; ++i)
-		{
-		uint NTP = NTPs[i];
-		uint NFP = NFPs[i];
-
-		float Score = Scores[i];
-		if (m_ScoresAreEvalues)
-			asserta(i == 0 || Score > LastScore);
-		else
-			asserta(Score < LastScore);
-		float TPR = NTP/float(m_NT);
-		float EPQ = NFP/float(QueryCount);
-		if (TPR == LastTPR || EPQ == LastEPQ || EPQ < MinEPQ)
-			{
-			LastScore = Score;
-			LastTPR = TPR;
-			LastEPQ = EPQ;
-			continue;
-			}
-		float Log10EPQ = log10f(EPQ);
-		if (EPQ >= MinEPQ && LastEPQ < MinEPQ)
-			{
-			if (i > 0)
-				{
-				CurveScores.push_back(LastScore);
-				CurveTPRs.push_back(LastTPR);
-				CurveEPQs.push_back(LastEPQ);
-				if (LastEPQ > 0)
-					CurveLog10EPQs.push_back(log10f(LastEPQ));
-				else
-					CurveLog10EPQs.push_back(0);
-				}
-			}
-
-		if (EPQ >= MinEPQ && LastEPQ <= MaxEPQ)
-			{
-			CurveScores.push_back(Score);
-			CurveTPRs.push_back(TPR);
-			CurveEPQs.push_back(EPQ);
-			CurveLog10EPQs.push_back(Log10EPQ);
-			if (LastEPQ >= MaxEPQ)
-				break;
-			}
-
-		LastScore = Score;
-		LastTPR = TPR;
-		LastEPQ = EPQ;
-		}
-	}
-
 float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
   const vector<uint> &NFPs, float EPQThreshold) const
 	{
@@ -269,33 +190,6 @@ void SCOP40Bench::ROCStepsToTsv(const string &FileName,
 	CloseStdioFile(f);
 	}
 
-
-void SCOP40Bench::SmoothROCStepsToTsv(const string &FileName,
-  const vector<float> &Scores, 
-  const vector<uint> &NTPs, const vector<uint> &NFPs,
-  const vector<float> &TPRs, const vector<float> &FPRs) const
-	{
-	if (FileName.empty())
-		return;
-	const uint N = SIZE(Scores);
-	asserta(SIZE(TPRs) == N);
-	asserta(SIZE(FPRs) == N);
-	asserta(SIZE(NTPs) == N);
-	asserta(SIZE(NFPs) == N);
-	float DBSize = (float) SIZE(m_Doms);
-
-	FILE *f = CreateStdioFile(FileName);
-	fprintf(f, "Score\tNTP\tNFP\tTPR\tFPR\tTPQ\tEPQ\n");
-	for (uint i = 0; i < N; ++i)
-		{
-		float TPQ = float((NTPs[i])/DBSize);
-		float EPQ = float(NFPs[i]/DBSize);
-		fprintf(f, "%.4g\t%u\t%u\t%.4g\t%.4g\t%.4g\t%.4g\n",
-		  Scores[i], NTPs[i], NFPs[i], TPRs[i], FPRs[i], TPQ, EPQ);
-		}
-	CloseStdioFile(f);
-	}
-
 // Project onto common X axis (Sensitivity=TPR) 
 //  with N+1 ticks
 void SCOP40Bench::WriteCVE(FILE *f, uint N)
@@ -310,7 +204,8 @@ void SCOP40Bench::WriteCVE(FILE *f, uint N)
 	vector<float> Scores;
 	vector<uint> NTPs;
 	vector<uint> NFPs;
-	GetROCSteps(Scores, NTPs, NFPs);
+	vector<float> NotUsed_Senss, NotUsed_EPQs;
+	GetROCSteps(Scores, NTPs, NFPs, NotUsed_Senss, NotUsed_EPQs);
 	uint DBSize = SIZE(m_Doms);
 	const uint NS = SIZE(Scores);
 	for (uint i = 0; i < NS; ++i)
@@ -363,74 +258,18 @@ void SCOP40Bench::WriteCVE(FILE *f, uint N)
 		}
 	}
 
-bool SCOP40Bench::SmoothROCSteps(const vector<float> &Scores,
-	const vector<uint> &NTPs, const vector<uint> &NFPs,
-	uint N, float MaxFPR, vector<float> &SmoothScores,
-	vector<uint> &SmoothNTPs, vector<uint> &SmoothNFPs,
-	vector<float> &SmoothTPRs, vector<float> &SmoothFPRs) const
-	{
-	SmoothScores.clear();
-	SmoothTPRs.clear();
-	SmoothFPRs.clear();
-	SmoothNTPs.clear();
-	SmoothNFPs.clear();
-
-	const uint NS = SIZE(Scores);
-	if (NS < 100)
-		{
-		Warning("SmoothROCSteps, %u scores", NS);
-		return false;
-		}
-	uint n = NS - 1;
-	for (uint i = 0; i < NS; ++i)
-		{
-		float FPR = NFPs[i]/float(m_NF);
-		if (FPR >= MaxFPR)
-			{
-			n = i;
-			break;
-			}
-		}
-	if (n == 0)
-		return false;
-	asserta(SIZE(NTPs) >= n);
-	asserta(SIZE(NFPs) >= n);
-	if (n < 2*N)
-		return false;
-	Progress("SmoothSteps\n");
-	const uint HitCount = GetHitCount();
-	for (uint Bin = 0; Bin < N; ++Bin)
-		{
-		uint Idx = UINT_MAX;
-		if (Bin == 0)
-			Idx = 0;
-		else if (Bin + 1 == N)
-			Idx = n - 1;
-		else
-			{
-			Idx = (Bin*n)/N;
-			asserta(Idx > 0 && Idx < n - 1);
-			}
-
-		uint NTP = NTPs[Idx];
-		uint NFP = NFPs[Idx];
-
-		SmoothScores.push_back(Scores[Idx]);
-		SmoothTPRs.push_back(NTP/float(m_NT));
-		SmoothFPRs.push_back(NFP/float(m_NF));
-		SmoothNTPs.push_back(NTP);
-		SmoothNFPs.push_back(NFP);
-		}
-	return true;
-	}
-
 void SCOP40Bench::GetROCSteps(vector<float> &Scores,
-  vector<uint> &NTPs, vector<uint> &NFPs, bool UseTS)
+  vector<uint> &NTPs, vector<uint> &NFPs, 
+  vector<float> &Senss, vector<float> &EPQs,
+  bool UseTS)
 	{
-	SetNXs();
 	Scores.clear();
 	NTPs.clear();
 	NFPs.clear();
+	Senss.clear();
+	EPQs.clear();
+
+	SetNXs();
 	const uint HitCount = GetHitCount();
 	if (HitCount == 0)
 		return;
@@ -483,6 +322,23 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 	Scores.push_back(CurrentScore);
 	NTPs.push_back(NTP);
 	NFPs.push_back(NFP);
+
+	const uint StepCount = SIZE(NTPs);
+	asserta(SIZE(NFPs) == StepCount);
+	asserta(SIZE(Scores) == StepCount);
+
+	const uint DBSize = SIZE(m_Doms);
+	for (uint StepIdx = 0; StepIdx < StepCount; ++StepIdx)
+		{
+		uint ntp = NTPs[StepIdx];
+		uint nfp = NFPs[StepIdx];
+
+		float Sens = float(ntp)/m_NT;
+		float EPQ = float(nfp)/DBSize;
+
+		Senss.push_back(Sens);
+		EPQs.push_back(EPQ);
+		}
 	}
 
 void SCOP40Bench::SetNXs()
@@ -630,27 +486,6 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::ROCToTsv(const string &FileName, float MaxFPR)
-	{
-	if (FileName.empty())
-		return;
-	vector<float> Scores;
-	vector<uint> NTPs;
-	vector<uint> NFPs;
-	GetROCSteps(Scores, NTPs, NFPs);
-
-	vector<float> SmoothTPRs;
-	vector<float> SmoothFPRs;
-	vector<float> SmoothScores;
-	vector<float> TPRThresholds;
-	vector<uint> SmoothNTPs;
-	vector<uint> SmoothNFPs;
-	SmoothROCSteps(Scores, NTPs, NFPs, 100, MaxFPR,
-	  SmoothScores, SmoothNTPs, SmoothNFPs, SmoothTPRs, SmoothFPRs);
-	SmoothROCStepsToTsv(FileName, SmoothScores, NTPs, NFPs,
-	  SmoothTPRs, SmoothFPRs);
-	}
-
 void cmd_scop40bit2tsv()
 	{
 	asserta(optset_output);
@@ -666,11 +501,8 @@ void cmd_scop40bit2tsv()
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.m_Level = "sf";
-	uint Sens = SB.GetSens1stFP();
-	//SB.LogFirstFewDoms();
-	//SB.LogFirstFewHits();
 	const uint HitCount = SB.GetHitCount();
-	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens);
+	ProgressLog("%u hits\n", HitCount);
 	for (uint i = 0; i < HitCount; ++i)
 		{
 		uint DomIdx1 = SB.m_DomIdx1s[i];
@@ -738,8 +570,7 @@ void cmd_scop40tsv2bit()
 	SB.LoadHitsFromTsv(g_Arg1);
 	SB.WriteBit(opt(output));
 	uint HitCount = SB.GetHitCount();
-	uint Sens1FP = SB.GetSens1stFP();
-	ProgressLog("%u hits, Sens1FP %u\n", HitCount, Sens1FP);
+	ProgressLog("%u hits\n", HitCount);
 	}
 
 void cmd_scop40bench_tsv()

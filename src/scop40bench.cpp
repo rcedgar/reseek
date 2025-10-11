@@ -393,19 +393,6 @@ void SCOP40Bench::SetDomIdxToL()
 		}
 	}
 
-void SCOP40Bench::SetDomIdxToHitIdxs()
-	{
-	uint DomCount = GetDomCount();
-	uint HitCount = GetHitCount();
-	m_DomIdxToHitIdxs.clear();
-	m_DomIdxToHitIdxs.resize(DomCount);
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		uint DomIdx1 = m_DomIdx1s[HitIdx];
-		m_DomIdxToHitIdxs[DomIdx1].push_back(HitIdx);
-		}
-	}
-
 void SCOP40Bench::ClearHits()
 	{
 	m_Scores.clear();
@@ -469,117 +456,6 @@ float SCOP40Bench::GetMeanLength(uint SFIdx) const
 	return Sum/N;
 	}
 
-void SCOP40Bench::ScanDomHits()
-	{
-	m_ConsideredHitCount = 0;
-	m_IgnoredHitCount = 0;
-	m_DomIdxToScoreLastTP.clear();
-	m_DomIdxToScoreFirstFP.clear();
-	m_DomIdxToHitIdxFirstFP.clear();
-	m_DomIdxToSens1FP.clear();
-
-	const uint DomCount = GetDomCount();
-	const uint HitCount = GetHitCount();
-
-	m_DomIdxToSens1FP.resize(DomCount, 0);
-	m_DomIdxToHitIdxLastTP.resize(DomCount, UINT_MAX);
-	m_DomIdxToHitIdxFirstFP.resize(DomCount, UINT_MAX);
-
-	m_DomIdxToScoreLastTP.resize(DomCount, GetVeryGoodScore());
-	m_DomIdxToScoreFirstFP.resize(DomCount, GetVeryBadScore());
-
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		uint Dom1 = m_DomIdx1s[HitIdx];
-		uint Dom2 = m_DomIdx2s[HitIdx];
-		int T = IsT(Dom1, Dom2);
-		if (T == -1)
-			{
-			++m_IgnoredHitCount;
-			continue;
-			}
-
-		float Score = m_Scores[HitIdx];
-		++m_ConsideredHitCount;
-		if (T == 0)
-			{
-			if (Dom1 != UINT_MAX && 
-				ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
-				{
-				m_DomIdxToScoreFirstFP[Dom1] = Score;
-				m_DomIdxToHitIdxFirstFP[Dom1] = HitIdx;
-				}
-			}
-		}
-
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		uint Dom1 = m_DomIdx1s[HitIdx];
-		uint Dom2 = m_DomIdx2s[HitIdx];
-		int T = IsT(Dom1, Dom2);
-		if (T == -1)
-			continue;
-
-		float Score = m_Scores[HitIdx];
-		if (T == 1)
-			{
-			if (Dom1 != UINT_MAX &&
-				ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
-				{
-				m_DomIdxToSens1FP[Dom1] += 1;
-				if (!ScoreIsBetter(Score, m_DomIdxToScoreLastTP[Dom1]))
-					{
-					m_DomIdxToScoreLastTP[Dom1] = Score;
-					m_DomIdxToHitIdxLastTP[Dom1] = HitIdx;
-					}
-				}
-			}
-		}
-	}
-
-void SCOP40Bench::GetTPs1FP(vector<uint> &Doms1, vector<uint> &Doms2)
-	{
-	Doms1.clear();
-	Doms2.clear();
-	ScanDomHits();
-	const uint HitCount = GetHitCount();
-
-	uint GoodCount = 0;
-	for (uint i = 0; i < HitCount; ++i)
-		{
-		uint Dom1 = m_DomIdx1s[i];
-		uint Dom2 = m_DomIdx2s[i];
-		float Score = m_Scores[i];
-		uint SF1 = m_DomIdxToSFIdx[Dom1];
-		uint SF2 = m_DomIdxToSFIdx[Dom2];
-		if (Dom1 != Dom2 && SF1 == SF2)
-			{
-			Doms1.push_back(Dom1);
-			Doms2.push_back(Dom2);
-			}
-		}
-	}
-
-uint SCOP40Bench::GetSens1stFP()
-	{
-	ScanDomHits();
-	const uint HitCount = GetHitCount();
-
-	uint GoodCount = 0;
-	for (uint i = 0; i < HitCount; ++i)
-		{
-		uint Dom1 = m_DomIdx1s[i];
-		uint Dom2 = m_DomIdx2s[i];
-		if (Dom1 != Dom2 && IsT(Dom1, Dom2) == 1)
-			{
-			float Score = m_Scores[i];
-			if (ScoreIsBetter(Score, m_DomIdxToScoreFirstFP[Dom1]))
-				++GoodCount;
-			}
-		}
-	return GoodCount;
-	}
-
 void SCOP40Bench::WriteBit(const string &FileName) const
 	{
 	if (FileName == "")
@@ -603,29 +479,34 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::WriteSmooth(const string &FN) const
+static float round3sigfig(float x)
 	{
-	SmoothROCStepsToTsv(FN, m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs,
-	  m_SmoothTPRs, m_SmoothFPRs);
+	char s[16];
+	sprintf(s, "%.3g", x);
+	float rounded = (float) atof(s);
+	return rounded;
+	}
+
+void SCOP40Bench::RoundScores()
+	{
+	uint n = SIZE(m_Scores);
+	for (uint i = 0; i < n; ++i)
+		m_Scores[i] = round3sigfig(m_Scores[i]);
 	}
 
 void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	{
 	SetTFs();
+	RoundScores();
 
-	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, UseTS);
+	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs,
+		m_ROCStepSenss, m_ROCStepEPQs, UseTS);
 
-	GetCurve(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 0.01f, 10.0f,
-			 m_CurveScores, m_CurveTPRs, m_CurveEPQs, m_CurveLog10EPQs);
-	m_Area = GetArea(m_CurveTPRs, m_CurveLog10EPQs);
-
-	SmoothROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs, 100, MaxFPR,
-	  m_SmoothScores, m_SmoothNTPs, m_SmoothNFPs, m_SmoothTPRs, m_SmoothFPRs);
+	//m_Area = GetArea(m_CurveTPRs, m_CurveLog10EPQs);
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
 	m_nt_epq10 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 10);
-	m_nt_firstfp = GetSens1stFP();
 	}
 
 void SCOP40Bench::WriteSummary()
@@ -636,8 +517,6 @@ void SCOP40Bench::WriteSummary()
 	uint MuFilterDiscardCount = DSSAligner::m_MuFilterDiscardCount;
 	uint Secs = m_Secs;
 	float AlnsPerThreadPerSec = m_AlnsPerThreadPerSec;
-	uint nt_firstfp = m_nt_firstfp;
-	float SensFirstFP = float(nt_firstfp)/m_NT;
 	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
 	float SensEPQ1 = float(m_nt_epq1)/m_NT;
 	float SensEPQ10 = float(m_nt_epq10)/m_NT;
@@ -645,7 +524,8 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
-	ProgressLog(" Area=%.4f", m_Area);
+	if (m_Area != FLT_MAX)
+		ProgressLog(" Area=%.4f", m_Area);
 	if (Secs != UINT_MAX)
 		{
 		ProgressLog(" secs=%u", Secs);
@@ -655,6 +535,7 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" -fast");
 	else if (optset_sensitive)
 		ProgressLog(" -sensitive");
+	ProgressLog( "%s", g_Arg1.c_str());
 	ProgressLog("\n");
 	}
 
@@ -697,27 +578,12 @@ void SCOP40Bench::WriteSteps(const string &FN) const
 	asserta(SIZE(m_ROCStepNTPs) == n);
 	asserta(SIZE(m_ROCStepNFPs) == n);
 	for (uint i = 0; i < n; ++i)
-		fprintf(f, "%.8e\t%u\t%u\n",
+		fprintf(f, "%.8e\t%u\t%u\t%.4g\t%.4g\n",
 				m_ROCStepScores[i],
 				m_ROCStepNTPs[i],
-				m_ROCStepNFPs[i]);
-	CloseStdioFile(f);
-	}
-
-void SCOP40Bench::WriteCurve(const string &FN) const
-	{
-	if (FN == "")
-		return;
-	FILE *f = CreateStdioFile(FN);
-	const uint n = SIZE(m_CurveScores);
-	asserta(SIZE(m_CurveTPRs) == n);
-	asserta(SIZE(m_CurveEPQs) == n);
-	for (uint i = 0; i < n; ++i)
-		fprintf(f, "%.3g\t%.3g\t%.3g\t%.3g\n",
-				m_CurveTPRs[i],
-				m_CurveEPQs[i],
-				m_CurveLog10EPQs[i],
-				m_CurveScores[i]);
+				m_ROCStepNFPs[i],
+				m_ROCStepSenss[i],
+				m_ROCStepEPQs[i]);
 	CloseStdioFile(f);
 	}
 
@@ -734,100 +600,9 @@ void SCOP40Bench::WriteOutput()
 	SetStats(MaxFPR);
 	WriteCVE(fCVE, 100);
 	WriteSteps(opt(rocsteps));
-	WriteCurve(opt(curve));
-	WriteSmooth(opt(smooth));
 	WriteSortedHits(opt(sortedhits));
 	WriteSummary();
 	CloseStdioFile(fCVE);
-	}
-
-void SCOP40Bench::LogSens1FPReport_Dom(uint DomIdx) const
-	{
-	vector<uint> Dom2s;
-	vector<float> Scores;
-	vector<bool> TFs;
-	const uint HitCount = GetHitCount();
-	for (uint HitIdx = 0; HitIdx < HitCount; ++HitIdx)
-		{
-		uint Dom1 = m_DomIdx1s[HitIdx];
-		if (Dom1 != DomIdx)
-			continue;
-		Dom2s.push_back(m_DomIdx2s[HitIdx]);
-		Scores.push_back(m_Scores[HitIdx]);
-		TFs.push_back(m_TFs[HitIdx]);
-		}
-	const uint N = SIZE(Dom2s);
-	vector<uint> Order(N);
-	QuickSortOrder(Scores.data(), N, Order.data());
-	Log("____________________________________\n");
-	const string &Name = m_Doms[DomIdx];
-	Log("%u:%s\n", DomIdx, Name.c_str());
-	uint nfp = 0;
-	for (uint k = 0; k < N; ++k)
-		{
-		uint i = Order[k];
-		uint Dom2 = Dom2s[i];
-		double Score = Scores[i];
-		bool TF = TFs[i];
-		Log("  [%3u]  %u:%s(%.3g)\n", k, Dom2, m_Doms[Dom2].c_str(), Score);
-		if (!TF)
-			{
-			++nfp;
-			if (nfp == 2)
-				break;
-			}
-		}
-	}
-
-void SCOP40Bench::WriteSens1FPReport(FILE *f) const
-	{
-	if (f == 0)
-		return;
-
-	const uint DomCount = GetDomCount();
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		const string &Name = m_Doms[DomIdx];
-		fprintf(f, "%s", Name.c_str());
-
-		uint HitIdxTP = m_DomIdxToHitIdxLastTP[DomIdx];
-		uint HitIdxFP = m_DomIdxToHitIdxFirstFP[DomIdx];
-		if (HitIdxTP != UINT_MAX)
-			{
-			asserta(m_TFs[HitIdxTP] == 1);
-			float ScoreTP = m_DomIdxToScoreLastTP[DomIdx];
-			uint Dom1TP = m_DomIdx1s[HitIdxTP];
-			uint Dom2TP = m_DomIdx2s[HitIdxTP];
-			asserta(Dom1TP == DomIdx);
-			const string &NameTP = m_Doms[Dom2TP];
-			float Score2TP = m_Scores[HitIdxTP];
-			float TS_TP = m_TSs[HitIdxTP];
-			asserta(Score2TP == ScoreTP);
-			fprintf(f, "\t%s\t%.3g\t%.3g",
-			  NameTP.c_str(), TS_TP, ScoreTP);
-			}
-		else
-			fprintf(f, "\t.\t.\t.");
-
-		if (HitIdxFP != UINT_MAX)
-			{
-			asserta(m_TFs[HitIdxFP] == 0);
-			float ScoreFP = m_DomIdxToScoreFirstFP[DomIdx];
-			uint Dom1FP = m_DomIdx1s[HitIdxFP];
-			uint Dom2FP = m_DomIdx2s[HitIdxFP];
-			const string &NameFP = m_Doms[Dom2FP];
-			float Score2FP = m_Scores[HitIdxFP];
-			float TS_FP = m_TSs[HitIdxFP];
-			asserta(Score2FP == ScoreFP);
-			asserta(Dom1FP == DomIdx);
-			fprintf(f, "\t%s\t%.3g\t%.3g",
-			  NameFP.c_str(), TS_FP, ScoreFP);
-			}
-		else
-			fprintf(f, "\t.\t.\t.");
-		fprintf(f, "\n");
-		}
-	//LogSens1FPReport_Dom(3);
 	}
 
 void cmd_scop40bench()
@@ -846,6 +621,18 @@ void cmd_scop40bench()
 		{
 		void InitGapStr();
 		InitGapStr();
+		}
+
+	if (!optset_evalue)
+		{
+		opt_evalue = 9999;
+		optset_evalue = true;
+		}
+
+	if (!optset_mints)
+		{
+		opt_mints = -99999;
+		optset_mints = true;
 		}
 
 	DSSParams::Init(DM_UseCommandLineOption);
@@ -873,12 +660,6 @@ void cmd_scop40bench()
 				DSSAligner::m_MuFilterInputCount.load());
 	SB.WriteOutput();
 	SB.WriteBit(opt(savebit));
-	if (optset_sens1fp_report)
-		{
-		FILE *f = CreateStdioFile(opt(sens1fp_report));
-		SB.WriteSens1FPReport(f);
-		CloseStdioFile(f);
-		}
 	CloseStdioFile(SB.m_fa2_tp);
 	CloseStdioFile(SB.m_fa2_fp);
 	
