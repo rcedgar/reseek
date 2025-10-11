@@ -67,10 +67,10 @@ public:
 		return SIZE(m_Features);
 		}
 
-	static void AddFeature(FEATURE F, double w)
+	static void AddFeature(FEATURE F, float w)
 		{
 		m_Features.push_back(F);
-		m_Weights.push_back(float(w));
+		m_Weights.push_back(w);
 		}
 
 	static void LoadFeatures(const string &FN);

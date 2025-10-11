@@ -19,7 +19,7 @@ public:
 	const PDBChain *m_Chain = 0;
 	uint m_L = 0;
 
-	vector<double> m_Density_ScaledValues;
+	vector<float> m_Density_ScaledValues;
 	vector<float> m_Density_ScaledValuesf;
 	vector<uint> m_NENs;
 	vector<uint> m_RENs;
@@ -29,22 +29,22 @@ public:
 	int m_Density_w = 3;
 	int m_SSDensity_W = 50;
 	int m_SSDensity_w = 8;
-	double m_Density_Radius = 20.0;
-	double m_NU_ND_Radius = 20.0;
+	float m_Density_Radius = 20.0;
+	float m_NU_ND_Radius = 20.0;
 	int m_NEN_W = 100;
 	int m_NEN_w = 12;
 	int m_NUDX_W = 50;
-	double m_DefaultNENDist = 10.0;
-	double m_SSDensity_epsilon = 1;
+	float m_DefaultNENDist = 10.0;
+	float m_SSDensity_epsilon = 1;
 	uint m_SSE_MinLength = 8;
 	uint m_SSE_Margin = 8;
 	uint m_PMDelta = 8;
 
 	vector<uint> m_SSE_Mids;
 	vector<char> m_SSE_cs;
-	vector<double> m_NUs;
-	vector<double> m_NDs;
-	vector<double> m_NXs;
+	vector<float> m_NUs;
+	vector<float> m_NDs;
+	vector<float> m_NXs;
 
 private:
 	const DSSParams *m_Params = 0;
@@ -73,7 +73,7 @@ public:
 
 	uint GetFeature(uint FeatureIndex, uint Pos);
 	uint GetFeature(FEATURE Feature, uint Pos);
-	double GetFloatFeature(uint FeatureIndex, uint Pos);
+	float GetFloatFeature(uint FeatureIndex, uint Pos);
 
 #define F(x)	uint Get_##x(uint Pos);
 #include "intfeatures.h"
@@ -83,7 +83,7 @@ public:
 #include "floatfeatures.h"
 #undef F
 
-#define F(x)	uint ValueToInt_##x(double Value) const;
+#define F(x)	uint ValueToInt_##x(float Value) const;
 #include "floatfeatures.h"
 #undef F
 
@@ -94,8 +94,8 @@ public:
 	  vector<uint> &Kmers, const string &PatternStr);
 	void GetMuLetters(vector<uint> &Letters);
 	void SetDensity_ScaledValues();
-	double GetDensity(uint Pos) const;
-	double GetSSDensity(uint Pos, char c);
+	float GetDensity(uint Pos) const;
+	float GetSSDensity(uint Pos, char c);
 	uint GetNEN(uint Pos);
 	uint GetREN(uint Pos);
 	uint CalcNEN(uint Pos) const;
@@ -106,10 +106,10 @@ public:
 	void GetSSEs(uint MinLength, vector<uint> &Los,
 	  vector<uint> &Lengths, vector<char> &cs) const;
 	void SetSSEs();
-	void Get_NU_ND(uint Pos, double &NU, double &ND) const;
+	void Get_NU_ND(uint Pos, float &NU, float &ND) const;
 	void Set_NU_ND_Vecs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
-	double GetFloat_RENDist_ForMu(uint Pos);
+	float GetFloat_RENDist_ForMu(uint Pos);
 
 public:
 	static void GetBins(FEATURE F, vector<float> &Bins);

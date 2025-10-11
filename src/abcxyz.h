@@ -54,18 +54,17 @@ void GetTriangleBasis(const vector<vector<double> > &MotifCoords,
 static inline uint GetOtherAxis_i(uint Axis) { return (Axis+1)%3;  }
 static inline uint GetOtherAxis_j(uint Axis) { return (Axis+2)%3;  }
 
-static inline void Resize3(vector<double> &v) { v.resize(3); }
-static inline void Resize3(vector<float> &v) { v.resize(3); }
+template <typename T> void Resize3(vector<T> &v) { v.resize(3); }
 
-static inline void Resize3x3(vector<vector<double> > &Mx)
+template <typename T> void Resize3x3(vector<vector<T> > &Mx)
 	{
 	Mx.resize(3);
 	for (uint i = 0; i < 3; ++i)
 		Mx[i].resize(3);
 	}
 
-static inline void MulVecScalar(const vector<double> &v,
-  double s, vector<double> &r)
+template <typename T> void MulVecScalar(const vector<T> &v,
+  T s, vector<T> &r)
 	{
 	asserta(SIZE(v) == 3);
 	r.resize(3);
@@ -74,9 +73,9 @@ static inline void MulVecScalar(const vector<double> &v,
 	r[2] = v[2]*s;
 	}
 
-static inline double GetDist2(
-  const vector<double> &Pt1,
-  const vector<double> &Pt2)
+template <typename T> T GetDist2(
+  const vector<T> &Pt1,
+  const vector<T> &Pt2)
 	{
 	assert(Pt1.size() == 3);
 	assert(Pt2.size() == 3);
@@ -87,9 +86,9 @@ static inline double GetDist2(
 	return d2;
 	}
 
-static inline double GetDist(
-  const vector<double> &Pt1,
-  const vector<double> &Pt2)
+template <typename T> T GetDist(
+  const vector<T> &Pt1,
+  const vector<T> &Pt2)
 	{
 	assert(Pt1.size() == 3);
 	assert(Pt2.size() == 3);
@@ -164,25 +163,25 @@ static inline double GetDist_Mxij(const vector<vector<double> > &Mx,
 	return d;
 	}
 
-static inline double GetMod_xyz(double x, double y, double z)
+template <typename T> T GetMod_xyz(T x, T y, T z)
 	{
-	double d2 = x*x + y*y + z*z;
-	double Mod = sqrt(d2);
+	T d2 = x*x + y*y + z*z;
+	T Mod = sqrt(d2);
 	return Mod;
 	}
 
-static inline double GetMod_Vec(const vector<double> &v)
+template <typename T> T GetMod_Vec(const vector<T> &v)
 	{
-	double x = v[X];
-	double y = v[Y];
-	double z = v[Z];
-	double Mod = GetMod_xyz(x, y, z);
+	T x = v[X];
+	T y = v[Y];
+	T z = v[Z];
+	T Mod = GetMod_xyz(x, y, z);
 	return Mod;
 	}
 
-static inline void NormalizeVec(vector<double> &v)
+template <typename T> void NormalizeVec(vector<T> &v)
 	{
-	double Mod = GetMod_Vec(v);
+	T Mod = GetMod_Vec(v);
 	assert(Mod > 0);
 	v[X] /= Mod;
 	v[Y] /= Mod;
@@ -190,46 +189,46 @@ static inline void NormalizeVec(vector<double> &v)
 	assert(feq(GetMod_Vec(v), 1));
 	}
 
-static inline double GetMod_Mxi(const vector<vector<double> > &Mx,
+template <typename T> T GetMod_Mxi(const vector<vector<T> > &Mx,
   uint i)
 	{
-	double x = Mx[i][X];
-	double y = Mx[i][Y];
-	double z = Mx[i][Z];
-	double Mod = GetMod_xyz(x, y, z);
+	T x = Mx[i][X];
+	T y = Mx[i][Y];
+	T z = Mx[i][Z];
+	T Mod = GetMod_xyz(x, y, z);
 	return Mod;
 	}
 
-static inline double GetTheta3D(
-  double xi, double yi, double zi,
-  double xj, double yj, double zj)
+template <typename T> T GetTheta3D(
+  T xi, T yi, T zi,
+  T xj, T yj, T zj)
 	{
-	double DotProd = xi*xj + yi*yj + zi*zj;
-	double Modi = GetMod_xyz(xi, yi, zi);
-	double Modj = GetMod_xyz(xj, yj, zj);
+	T DotProd = xi*xj + yi*yj + zi*zj;
+	T Modi = GetMod_xyz(xi, yi, zi);
+	T Modj = GetMod_xyz(xj, yj, zj);
 	if (fabs(Modi*Modj) < 1e-6)
 		return 0;
-	double cos_theta = DotProd/(Modi*Modj);
+	T cos_theta = DotProd/(Modi*Modj);
 	asserta(cos_theta >= -1.02 && cos_theta <= 1.02);
 	if (cos_theta < -1)
 		cos_theta = -1;
 	else if (cos_theta > 1)
 		cos_theta = 1;
-	double theta = acos(cos_theta);
+	T theta = acos(cos_theta);
 	return theta;
 	}
 
-static inline double GetTheta3D(
-  const vector<double> &vi,
-  const vector<double> &vj)
+template <typename T> T GetTheta3D(
+  const vector<T> &vi,
+  const vector<T> &vj)
 	{
 	asserta(SIZE(vi) == 3);
 	asserta(SIZE(vj) == 3);
 	return GetTheta3D(vi[0], vi[1], vi[2], vj[0], vj[1], vj[2]);
 	}
 
-static inline void Sub_Vecs(const vector<double> &vi,
-  const vector<double> &vj, vector<double> &Diff)
+template <typename T> void Sub_Vecs(const vector<T> &vi,
+  const vector<T> &vj, vector<T> &Diff)
 	{
 	Resize3(Diff);
 	Diff[X] = vi[X] - vj[X];
@@ -237,8 +236,8 @@ static inline void Sub_Vecs(const vector<double> &vi,
 	Diff[Z] = vi[Z] - vj[Z];
 	}
 
-static inline void Add_Vecs(const vector<double> &vi,
-  const vector<double> &vj, vector<double> &Sum)
+template <typename T> void Add_Vecs(const vector<T> &vi,
+  const vector<T> &vj, vector<T> &Sum)
 	{
 	Resize3(Sum);
 	Sum[X] = vi[X] + vj[X];
@@ -246,18 +245,18 @@ static inline void Add_Vecs(const vector<double> &vi,
 	Sum[Z] = vi[Z] + vj[Z];
 	}
 
-static inline double GetTheta_Vecs(const vector<double> &vi,
-  const vector<double> &vj)
+template <typename T> T GetTheta_Vecs(const vector<T> &vi,
+  const vector<T> &vj)
 	{
-	double xi = vi[X];
-	double yi = vi[Y];
-	double zi = vi[Z];
+	T xi = vi[X];
+	T yi = vi[Y];
+	T zi = vi[Z];
 
-	double xj = vj[X];
-	double yj = vj[Y];
-	double zj = vj[Z];
+	T xj = vj[X];
+	T yj = vj[Y];
+	T zj = vj[Z];
 
-	double theta = GetTheta3D(xi, yi, zi, xj, yj, zj);
+	T theta = GetTheta3D(xi, yi, zi, xj, yj, zj);
 	return theta;
 	}
 
@@ -268,11 +267,11 @@ static inline double GetTheta_Mxij(const vector<vector<double> > &Mx,
 	return theta;
 	}
 
-static inline double degrees(double Radians) { return Radians*180.0/PI; }
+template <typename T> T degrees(T Radians) { return Radians*180/T(PI); }
 
-static inline double degrees_0_to_360(double Radians)
+template <typename T> T degrees_0_to_360(T Radians)
 	{
-	double Deg = Radians*180.0/PI;
+	T Deg = Radians*180.0/PI;
 	Deg = fmod(Deg, 360);
 	if (Deg < 0)
 		Deg += 360;

@@ -182,14 +182,14 @@ void DSSParams::ApplyWeights()
 
 void DSSParams::SetFeatures()
 	{
-	AddFeature(FEATURE_AA,			0.398145);
-	AddFeature(FEATURE_NENDist,		0.129367);
-	AddFeature(FEATURE_Conf,		0.202354);
-	AddFeature(FEATURE_NENConf,		0.149383);
-	AddFeature(FEATURE_RENDist,	0.0937677);
-	AddFeature(FEATURE_DstNxtHlx,	0.00475462);
-	AddFeature(FEATURE_StrandDens,	0.0183853);
-	AddFeature(FEATURE_NormDens,	0.00384384);
+	AddFeature(FEATURE_AA,			0.398145f);
+	AddFeature(FEATURE_NENDist,		0.129367f);
+	AddFeature(FEATURE_Conf,		0.202354f);
+	AddFeature(FEATURE_NENConf,		0.149383f);
+	AddFeature(FEATURE_RENDist,		0.0937677f);
+	AddFeature(FEATURE_DstNxtHlx,	0.00475462f);
+	AddFeature(FEATURE_StrandDens,	0.0183853f);
+	AddFeature(FEATURE_NormDens,	0.00384384f);
 	SetScoreMxsFromFeatures();
 	}
 

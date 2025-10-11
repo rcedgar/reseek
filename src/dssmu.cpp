@@ -18,7 +18,7 @@ static const FEATURE s_MuFeatures[s_MuFeatureCount] =
 
 static const uint s_MuAlphaSizes[3] = {3, 3, 4};;
 static const uint s_MuAlphaSize = 36;
-static double s_DefaultNENDist = 10.0;
+static float s_DefaultNENDist = 10.0;
 
 static float RENDist_Ts[15] =
 	{
@@ -41,7 +41,7 @@ BIN_T(RENDist, 14, 20)
 #undef BIN_T
 	};
 
-static uint ValueToInt_RENDist_ForMu(double Value)
+static uint ValueToInt_RENDist_ForMu(float Value)
 	{
 	for (uint i = 0; i < 15; ++i)
 		if (Value <= RENDist_Ts[i])
@@ -49,18 +49,18 @@ static uint ValueToInt_RENDist_ForMu(double Value)
 	return 15;
 	}
 
-double DSS::GetFloat_RENDist_ForMu(uint Pos)
+float DSS::GetFloat_RENDist_ForMu(uint Pos)
 	{
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
 		return s_DefaultNENDist;
-	double d = m_Chain->GetDist(Pos, NEN);
+	float d = m_Chain->GetDist(Pos, NEN);
 	return d;
 	}
 
 uint DSS::Get_RENDist4(uint Pos)
 	{
-	double d = GetFloat_RENDist_ForMu(Pos);
+	float d = GetFloat_RENDist_ForMu(Pos);
 	uint ND = ValueToInt_RENDist_ForMu(d);
 	if (ND == 0)
 		return WILDCARD;
