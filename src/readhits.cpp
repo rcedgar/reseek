@@ -104,8 +104,8 @@ void SCOP40Bench::ReadHits(const string &FN)
 		++HitCount;
 		}
 	uint NotFoundCount = SIZE(NotFound);
-	ProgressLog("%u hits, %u bad lines %s, %u unknown domains\n",
-	  HitCount, BadLineCount, Algo.c_str(), NotFoundCount);
+	ProgressLog("%u hits, %u bad lines, %u unknown domains %s\n",
+	  HitCount, BadLineCount, NotFoundCount, FN.c_str());
 	for (set<string>::const_iterator iter = NotFound.begin();
 	  iter != NotFound.end(); ++iter)
 		Log("NOTFOUND %s\n", iter->c_str());

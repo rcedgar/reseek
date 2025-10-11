@@ -51,6 +51,10 @@ public:
 	vector<float> m_ROCStepSenss;
 	vector<float> m_ROCStepEPQs;
 
+	vector<float> m_CVESensVec;
+	vector<float> m_CVEEPQVec;
+	vector<float> m_CVEScoreVec;
+
 	uint m_NT = UINT_MAX;
 	uint m_NF = UINT_MAX;
 	uint m_NI = UINT_MAX;
@@ -62,10 +66,6 @@ public:
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
-	vector<float> m_CurveScores;
-	vector<float> m_CurveTPRs;
-	vector<float> m_CurveEPQs;
-	vector<float> m_CurveLog10EPQs;
 	float m_Area = FLT_MAX;
 
 	FILE *m_fa2_tp = 0;
@@ -112,12 +112,10 @@ public:
 	void SetScoreOrder();
 	void SetTSOrder();
 	
-	void GetROCSteps(vector<float> &ScoreSteps,
-	   vector<uint> &NTPs, vector<uint> &NFPs, 
-	   vector<float> &Senss, vector<float> &EPQs,
-	   bool UseTS = false);
+	void SetROCSteps(bool UseTS = false);
+	void SetCVE();
 
-	void WriteCVE(FILE *f, uint N);
+	void WriteCVE(FILE *f) const;
 
 	uint GetNTPAtEPQThreshold(const vector<uint> &NTPs,
 	  const vector<uint> &NFPs, float EPQ) const;
@@ -128,9 +126,6 @@ public:
 	float GetEvalueAtEPQThreshold(const vector<float> &Evalues,
 	  const vector<uint> &NFPs, float NFP) const;
 
-	void ROCStepsToTsv(const string &FileName,
-	   const vector<float> &Scores,
-	   const vector<uint> &NTPs, const vector<uint> &NFPs) const;
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	void WriteSummary();
@@ -140,10 +135,9 @@ public:
 	void WriteSteps(const string &FN) const;
 	void WriteSortedHits(const string &FN) const;
 	void RoundScores();
+	void SetArea();
 
 public:
-	static float GetArea(const vector<float> &TPRs,
-		const vector<float> &EPQs);
 	static void ParseScopLabel(const string &Label, string &Dom,
 	  string &Cls, string &Fold, string &SF, string &Fmy,
 	  bool MissingOk = false);

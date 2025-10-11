@@ -5,8 +5,6 @@
 #define C(x)	STR_OPT(x)
 #include "cmds.h"
 
-STR_OPT(curve)
-STR_OPT(smooth)
 STR_OPT(param)
 STR_OPT(params)
 STR_OPT(roc)

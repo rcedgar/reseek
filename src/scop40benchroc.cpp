@@ -40,42 +40,6 @@ uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
 	return ntp;
 	}
 
-/***
-
-  EPQ
-   |       |
-   |       |
-E1 ++++++++ 
-   +++++++/ 
-   ++++++/  
-E0 +++++    
-   |        
-    -------------------------- TPR
-	    T0 T1
-
-dArea = (E1 + E0)*(T1 + T0)/4
-***/
-
-float SCOP40Bench::GetArea(const vector<float> &TPRs,
-	const vector<float> &Log10EPQs)
-	{
-	const uint N = SIZE(TPRs);
-	asserta(SIZE(Log10EPQs) == N);
-	float Area = 0;
-	for (uint i = 1; i < N; ++i)
-		{
-		float Ti_1 = TPRs[i-1];
-		float Ti = TPRs[i];
-
-		float Ei_1 = Log10EPQs[i-1];
-		float Ei = Log10EPQs[i];
-
-		float dA = (Ti + Ti_1)*(Ei - Ei_1)/2;
-		Area += dA;
-		}
-	return Area;
-	}
-
 float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
   const vector<uint> &NFPs, float EPQThreshold) const
 	{
@@ -172,102 +136,194 @@ void SCOP40Bench::SetTSOrder()
 	QuickSortOrderDesc(m_TSs.data(), HitCount, m_TSOrder.data());
 	}
 
-void SCOP40Bench::ROCStepsToTsv(const string &FileName,
-  const vector<float> &Scores, 
-  const vector<uint> &NTPs, const vector<uint> &NFPs) const
-	{
-	if (FileName.empty())
-		return;
-	const uint N = SIZE(Scores);
-	asserta(SIZE(NTPs) == N);
-	asserta(SIZE(NFPs) == N);
-	float DBSize = (float) SIZE(m_Doms);
-
-	FILE *f = CreateStdioFile(FileName);
-	fprintf(f, "Score\tNTP\tNFP\n");
-	for (uint i = 0; i < N; ++i)
-		fprintf(f, "%.8e\t%u\t%u\n", Scores[i], NTPs[i], NFPs[i]);
-	CloseStdioFile(f);
-	}
-
 // Project onto common X axis (Sensitivity=TPR) 
 //  with N+1 ticks
-void SCOP40Bench::WriteCVE(FILE *f, uint N)
+void SCOP40Bench::WriteCVE(FILE *f) const
 	{
 	if (f == 0)
 		return;
-	vector<float> EPQs(N+1, -1);
-	vector<float> BinScores(N+1, FLT_MAX);
-	vector<float> BinErrs(N+1, 99);
-	float SensStep = 1.0f/N;
-
-	vector<float> Scores;
-	vector<uint> NTPs;
-	vector<uint> NFPs;
-	vector<float> NotUsed_Senss, NotUsed_EPQs;
-	GetROCSteps(Scores, NTPs, NFPs, NotUsed_Senss, NotUsed_EPQs);
-	uint DBSize = SIZE(m_Doms);
-	const uint NS = SIZE(Scores);
-	for (uint i = 0; i < NS; ++i)
+	const uint N = SIZE(m_CVEEPQVec);
+	asserta(SIZE(m_CVESensVec) == N);
+	asserta(SIZE(m_CVEEPQVec) == N);
+	fprintf(f, "TPR\tEPQ\tScore/E\n");
+	for (uint i= 0; i < N; ++i)
 		{
-		float Score = Scores[i];
-		uint ntp = NTPs[i];
-		uint nfp = NFPs[i];
-		asserta(ntp <= m_NT);
-		uint nfn = m_NT - ntp;
-		asserta(ntp + nfn == m_NT);
-		float Sens = float(ntp)/(ntp + nfn);
-		float Sens2 = float(ntp)/m_NT;
-		asserta(feq(Sens, Sens2));
-	// per query = divided by number of queries = dbsize
-		float EPQ = float(nfp)/DBSize;
-		if (Sens > 1)
-			Die("Sens=%.5g m_NT=%u m_NF=%u ntp=%u nfn=%u Score=%.3g",
-			  Sens, m_NT, m_NF, ntp, nfn, Score);
-		uint Bin = uint(Sens/SensStep);
-		float Err = fabsf(Sens - Bin*SensStep);
-		if (Err < BinErrs[Bin])
-			{
-			asserta(Bin <= N);
-			EPQs[Bin] = EPQ;
-			BinScores[Bin] = Score;
-			}
-		}
-
-	float LastEPQ = 0;
-	for (uint Bin = 0; Bin < N; ++Bin)
-		{
-		float EPQ = EPQs[Bin];
-		if (EPQ < 0)
-			EPQs[Bin] = LastEPQ;
-		else
-			LastEPQ = EPQ;
-		}
-
-	fprintf(f, "=TPR\tEPQ\tScore/E\n");
-	for (uint Bin = 0; Bin <= N; ++Bin)
-		{
-		float TPR = Bin*SensStep;
-		float Score = BinScores[Bin];
-		if (Score == FLT_MAX)
-			break;
-		fprintf(f, "%.3f", TPR);
-		fprintf(f, "\t%.3g", EPQs[Bin]);
-		fprintf(f, "\t%.3g", Score);
+		fprintf(f, "%.3f", m_CVESensVec[i]);
+		fprintf(f, "\t%.3g", m_CVEEPQVec[i]);
+		fprintf(f, "\t%.3g", m_CVEScoreVec[i]);
 		fprintf(f, "\n");
 		}
 	}
 
-void SCOP40Bench::GetROCSteps(vector<float> &Scores,
-  vector<uint> &NTPs, vector<uint> &NFPs, 
-  vector<float> &Senss, vector<float> &EPQs,
-  bool UseTS)
+static float Interp2(float TargetSens,
+	float Sens1, float Sens2,
+	float EPQ1, float EPQ2)
 	{
-	Scores.clear();
-	NTPs.clear();
-	NFPs.clear();
-	Senss.clear();
-	EPQs.clear();
+	asserta(TargetSens != FLT_MAX);
+	asserta(Sens1 != FLT_MAX);
+	asserta(Sens2 != FLT_MAX);
+	asserta(EPQ1 != FLT_MAX);
+	asserta(EPQ2 != FLT_MAX);
+
+	if (EPQ1 == EPQ2)
+		return EPQ1;
+
+	float r = (Sens2 - Sens1)/(EPQ2 - EPQ1);
+	float EPQ = EPQ1 + (TargetSens - Sens1)*r;
+	return EPQ;
+	}
+
+static float Interp(float TargetSens,
+	float PrevSens, float Sens, float NextSens,
+	float PrevEPQ, float EPQ, float NextEPQ)
+	{
+	if (Sens == TargetSens)
+		return EPQ;
+
+	float InterpEPQ = FLT_MAX;
+	if (PrevSens != FLT_MAX && PrevEPQ != FLT_MAX)
+		InterpEPQ = Interp2(TargetSens, PrevSens, Sens, PrevEPQ, EPQ);
+	else if (NextSens != FLT_MAX && NextEPQ != FLT_MAX)
+		InterpEPQ = Interp2(TargetSens, Sens, NextSens, EPQ, NextEPQ);
+	else
+		asserta(false);
+
+	//Log("Interp(TargetSens=%.3g, PrevSens=%.3g, Sens=%.3g, NextSens=%.3g PrevEPQ=%.3g, EPQ=%.3g, NextEPQ=%.3g)=%.3g\n",
+	//  TargetSens, PrevSens, Sens, NextSens, PrevEPQ, EPQ, NextEPQ, InterpEPQ);
+	return InterpEPQ;
+	}
+
+void SCOP40Bench::SetArea()
+	{
+	m_Area = FLT_MAX;
+	const uint N = SIZE(m_CVESensVec);
+	asserta(SIZE(m_CVEEPQVec) == N);
+	asserta(SIZE(m_CVEScoreVec) == N);
+	vector<float> Log10EPQVec;
+	for (uint i = 0; i < N; ++i)
+		{
+		float Sens = m_CVESensVec[i];
+		float EPQ = m_CVEEPQVec[i];
+		asserta(i == 0 || Sens > m_CVESensVec[i-1]);
+		asserta(i == 0 || EPQ >= m_CVEEPQVec[i-1]);
+		asserta(EPQ >= 0.01f);
+		asserta(EPQ <= 10.0f);
+		float Log10EPQ = log10f(EPQ);
+		Log10EPQVec.push_back(Log10EPQ);
+		}
+	float Log10Lo = Log10EPQVec[0];
+	float SensLo = m_CVESensVec[0];
+	m_Area = 0;
+	for (uint i = 0; i + 1 < N; ++i)
+		{
+		float x1 = m_CVESensVec[i] - SensLo;
+		float x2 = m_CVESensVec[i+1] - SensLo;
+		float LogEPQ1 = Log10EPQVec[i];
+		float LogEPQ2 = Log10EPQVec[i+1];
+		asserta(x2 > x1);
+		asserta(LogEPQ2 >= LogEPQ1);
+		m_Area += (x2 + x1)*(LogEPQ2 - LogEPQ1)/2;
+		}
+	}
+
+void SCOP40Bench::SetCVE()
+	{
+	const uint N = 100;
+	const float MinEPQ = 0.01f;
+	const float MaxEPQ = 10.0f;
+
+	m_CVESensVec.clear();
+	m_CVEEPQVec.clear();
+	m_CVEScoreVec.clear();
+
+// First pass to find range IdxLo .. IdxHi
+//   such that MinEpq <= EPQ <= MaxEPQ
+	const uint StepCount = SIZE(m_ROCStepScores);
+	asserta(SIZE(m_ROCStepSenss) == StepCount);
+	asserta(SIZE(m_ROCStepEPQs) == StepCount);
+	uint IdxLo = UINT_MAX;
+	uint IdxHi = UINT_MAX;
+	for (uint Idx = 0; Idx < StepCount; ++Idx)
+		{
+	// Check non-decreasing
+		asserta(Idx == 0 || m_ROCStepSenss[Idx] >= m_ROCStepSenss[Idx-1]);
+		asserta(Idx == 0 || m_ROCStepEPQs[Idx] >= m_ROCStepEPQs[Idx-1]);
+
+		float Sens = m_ROCStepSenss[Idx];
+		float EPQ = m_ROCStepEPQs[Idx];
+		if (IdxLo == UINT_MAX && EPQ >= MinEPQ)
+			IdxLo = Idx;
+		if (Idx > 0 && IdxHi == UINT_MAX && EPQ >= MaxEPQ)
+			{
+			if (EPQ > MaxEPQ)
+				IdxHi = Idx - 1;
+			else
+				IdxHi = Idx;
+			break;
+			}
+		}
+	asserta(IdxLo != UINT_MAX);
+	asserta(IdxHi != UINT_MAX);
+	asserta(IdxLo < IdxHi);
+	asserta(m_ROCStepEPQs[IdxLo] >= MinEPQ);
+	asserta(m_ROCStepEPQs[IdxHi] <= MaxEPQ);
+	const float SensLo = m_ROCStepSenss[IdxLo];
+	const float SensHi = m_ROCStepSenss[IdxHi];
+	asserta(SensHi > SensLo);
+	float dSens = (SensHi - SensLo)/(N - 1);
+	asserta(dSens > 0);
+
+// Second pass to interpolate
+	float CurrSens = SensLo;
+	for (uint Idx = IdxLo; Idx <= IdxHi; ++Idx)
+		{
+		float Sens = m_ROCStepSenss[Idx];
+		float EPQ = m_ROCStepEPQs[Idx];
+		while (Sens >= CurrSens)
+			{
+			float PrevSens = (Idx == 0 ? FLT_MAX : m_ROCStepSenss[Idx-1]);
+			float PrevEPQ = (Idx == 0 ? FLT_MAX : m_ROCStepEPQs[Idx-1]);
+
+			float NextSens = (Idx +1 >= StepCount ? FLT_MAX : m_ROCStepSenss[Idx+1]);
+			float NextEPQ = (Idx +1 >= StepCount ? FLT_MAX : m_ROCStepEPQs[Idx+1]);
+
+			float InterpEPQ = Interp(CurrSens,
+				PrevSens, Sens, NextSens,
+				PrevEPQ, EPQ, NextEPQ);
+
+			m_CVESensVec.push_back(CurrSens);
+			m_CVEEPQVec.push_back(InterpEPQ);
+			m_CVEScoreVec.push_back(m_ROCStepScores[Idx]);
+			CurrSens += dSens;
+			}
+		}
+	while (SIZE(m_CVESensVec) < N)
+		{
+		float PrevSens = m_ROCStepSenss[IdxHi-1];
+		float PrevEPQ = m_ROCStepEPQs[IdxHi-1];
+		float Sens = m_ROCStepSenss[IdxHi];
+		float EPQ = m_ROCStepEPQs[IdxHi];
+		float InterpEPQ = Interp(CurrSens,
+			PrevSens, Sens, FLT_MAX,
+			PrevEPQ, EPQ, FLT_MAX);
+		m_CVESensVec.push_back(CurrSens);
+		m_CVEEPQVec.push_back(InterpEPQ);
+		m_CVEScoreVec.push_back(m_ROCStepScores[IdxHi]);
+		CurrSens += dSens;
+		}
+	asserta(feq(CurrSens, SensHi));
+	asserta(SIZE(m_CVESensVec) == N);
+	asserta(SIZE(m_CVEEPQVec) == N);
+	asserta(SIZE(m_CVEScoreVec) == N);
+	}
+
+void SCOP40Bench::SetROCSteps(bool UseTS)
+	{
+	m_ROCStepScores.clear();
+	m_ROCStepNTPs.clear();
+	m_ROCStepNFPs.clear();
+	m_ROCStepSenss.clear();
+	m_ROCStepEPQs.clear();
 
 	SetNXs();
 	const uint HitCount = GetHitCount();
@@ -309,9 +365,9 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 			continue;
 		if (Score != CurrentScore)
 			{
-			Scores.push_back(CurrentScore);
-			NTPs.push_back(NTP);
-			NFPs.push_back(NFP);
+			m_ROCStepScores.push_back(CurrentScore);
+			m_ROCStepNTPs.push_back(NTP);
+			m_ROCStepNFPs.push_back(NFP);
 			CurrentScore = Score;
 			}
 		if (T == 1)
@@ -319,25 +375,25 @@ void SCOP40Bench::GetROCSteps(vector<float> &Scores,
 		else if (T == 0)
 			++NFP;
 		}
-	Scores.push_back(CurrentScore);
-	NTPs.push_back(NTP);
-	NFPs.push_back(NFP);
+	m_ROCStepScores.push_back(CurrentScore);
+	m_ROCStepNTPs.push_back(NTP);
+	m_ROCStepNFPs.push_back(NFP);
 
-	const uint StepCount = SIZE(NTPs);
-	asserta(SIZE(NFPs) == StepCount);
-	asserta(SIZE(Scores) == StepCount);
+	const uint StepCount = SIZE(m_ROCStepNTPs);
+	asserta(SIZE(m_ROCStepNFPs) == StepCount);
+	asserta(SIZE(m_ROCStepScores) == StepCount);
 
 	const uint DBSize = SIZE(m_Doms);
 	for (uint StepIdx = 0; StepIdx < StepCount; ++StepIdx)
 		{
-		uint ntp = NTPs[StepIdx];
-		uint nfp = NFPs[StepIdx];
+		uint ntp = m_ROCStepNTPs[StepIdx];
+		uint nfp = m_ROCStepNFPs[StepIdx];
 
 		float Sens = float(ntp)/m_NT;
 		float EPQ = float(nfp)/DBSize;
 
-		Senss.push_back(Sens);
-		EPQs.push_back(EPQ);
+		m_ROCStepSenss.push_back(Sens);
+		m_ROCStepEPQs.push_back(EPQ);
 		}
 	}
 
@@ -599,31 +655,4 @@ void cmd_scop40bit_roc()
 		SB.BuildDomSFIndexesFromDBChainLabels();
 		}
 	SB.WriteOutput();
-	}
-
-void cmd_test()
-	{
-	vector<float> TPRs;
-	vector<float> Log10EPQs;
-
-	uint N = 10;
-	//float LoTPR = 0.1f;
-	//float HiTPR = 0.4f;
-	//float LoE = -2.0f;
-	//float HiE = 1.0f;
-	float LoTPR = 1;
-	float HiTPR = 2;
-	float LoE = 1;
-	float HiE = 2;
-	float CorrectA = (HiTPR + LoTPR)*(HiE - LoE)/2;
-	for (uint i = 0; i < N; ++i)
-		{
-		float TPR = LoTPR + i*(HiTPR - LoTPR)/(N-1);
-		float E = LoE + i*(HiE - LoE)/(N-1);
-		TPRs.push_back(TPR);
-		Log10EPQs.push_back(E);
-		}
-	float A = SCOP40Bench::GetArea(TPRs, Log10EPQs);
-	ProgressLog("A = %.4g, correct = %.4g\n", A, CorrectA);
-	Log("");
 	}

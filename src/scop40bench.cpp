@@ -498,11 +498,9 @@ void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
 	{
 	SetTFs();
 	RoundScores();
-
-	GetROCSteps(m_ROCStepScores, m_ROCStepNTPs, m_ROCStepNFPs,
-		m_ROCStepSenss, m_ROCStepEPQs, UseTS);
-
-	//m_Area = GetArea(m_CurveTPRs, m_CurveLog10EPQs);
+	SetROCSteps(UseTS);
+	SetCVE();
+	SetArea();
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
@@ -525,7 +523,7 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
 	if (m_Area != FLT_MAX)
-		ProgressLog(" Area=%.4f", m_Area);
+		ProgressLog(" Area=%.3f", m_Area);
 	if (Secs != UINT_MAX)
 		{
 		ProgressLog(" secs=%u", Secs);
@@ -535,7 +533,7 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" -fast");
 	else if (optset_sensitive)
 		ProgressLog(" -sensitive");
-	ProgressLog( "%s", g_Arg1.c_str());
+	ProgressLog(" %s", g_Arg1.c_str());
 	ProgressLog("\n");
 	}
 
@@ -598,7 +596,7 @@ void SCOP40Bench::WriteOutput()
 	if (optset_benchlevel)
 		m_Level = opt(benchlevel);
 	SetStats(MaxFPR);
-	WriteCVE(fCVE, 100);
+	WriteCVE(fCVE);
 	WriteSteps(opt(rocsteps));
 	WriteSortedHits(opt(sortedhits));
 	WriteSummary();
