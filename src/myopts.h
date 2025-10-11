@@ -107,6 +107,8 @@ FLT_OPT(mints)
 FLT_OPT(maxts)
 FLT_OPT(minpctid)
 FLT_OPT(maxpctid)
+FLT_OPT(gapopen)
+FLT_OPT(gapext)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)

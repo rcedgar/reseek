@@ -519,9 +519,9 @@ void SCOP40Bench::WriteSummary()
 	float SensEPQ1 = float(m_nt_epq1)/m_NT;
 	float SensEPQ10 = float(m_nt_epq10)/m_NT;
 
-	ProgressLog("SEPQ0.1=%.4f", SensEPQ0_1);
-	ProgressLog(" SEPQ1=%.4f", SensEPQ1);
-	ProgressLog(" SEPQ10=%.4f", SensEPQ10);
+	ProgressLog("SEPQ0.1=%.3f", SensEPQ0_1);
+	ProgressLog(" SEPQ1=%.3f", SensEPQ1);
+	ProgressLog(" SEPQ10=%.3f", SensEPQ10);
 	if (m_Area != FLT_MAX)
 		ProgressLog(" Area=%.3f", m_Area);
 	if (Secs != UINT_MAX)

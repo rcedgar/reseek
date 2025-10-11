@@ -197,4 +197,6 @@ void DSSParams::Init(DECIDE_MODE DM)
 	{
 	SetFeatures();
 	SetAlgoMode(DM);
+	if (optset_gapopen) DSSParams::m_GapOpen = (float) opt(gapopen);
+	if (optset_gapext) DSSParams::m_GapExt = (float) opt(gapext);
 	}
