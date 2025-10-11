@@ -32,7 +32,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	SetSS();
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	char c = m_SS[NEN];
 	switch (c)
 		{
@@ -41,7 +41,7 @@ uint DSS::Get_RENSS3(uint Pos)
 	case 't': return 2;
 	case '~': return 2;
 		}
-	return WILDCARD;
+	return UNDEFINED_ZERO_OVERLOAD;
 	}
 
 void DSS::GetSSEs(uint MinLength, vector<uint> &Los,
@@ -541,7 +541,7 @@ uint DSS::Get_NormDens4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NormDens, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -550,7 +550,7 @@ uint DSS::Get_NENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NENDist, Pos);
 	if (ND == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -567,7 +567,7 @@ uint DSS::Get_AA3(uint Pos)
 		return 1;
 	if (strchr("CFILMVWY", c) != 0)
 		return 2;
-	return WILDCARD;
+	return UNDEFINED_ZERO_OVERLOAD;
 	}
 
 // AHPST,CFILMVWY,DEKNQR,G
@@ -584,7 +584,7 @@ uint DSS::Get_AA4(uint Pos)
 		return 2;
 	if (strchr("DEKNQR", c) != 0)
 		return 3;
-	return WILDCARD;
+	return UNDEFINED_ZERO_OVERLOAD;
 	}
 
 void DSS::GetAaLetters(vector<byte> &Letters)
@@ -715,7 +715,7 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 			char AminoChar = m_Chain->m_Seq[Pos];
 			uint AminoLetter = g_CharToLetterAmino[AminoChar];
 			if (AminoLetter >= 20)
-				return WILDCARD;
+				return UNDEFINED_ZERO_OVERLOAD;
 			return AminoLetter;
 			}
 

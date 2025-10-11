@@ -3,7 +3,6 @@
 #include "dss.h"
 
 static uint s_DefaultLetters[FEATURE_COUNT];
-static UNDEF_BINNING s_UBs[FEATURE_COUNT];
 static vector<vector<float> > s_BinTs(FEATURE_COUNT);
 
 static bool IsFloatFeature(FEATURE Feat)
@@ -21,7 +20,6 @@ static bool Init()
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
 		{
 		s_DefaultLetters[i] = 0;
-		s_UBs[i] = UB_UndefinedIsZeroOverload;
 		if (IsFloatFeature((FEATURE) i))
 			{
 			vector<float> Bins;
@@ -32,14 +30,27 @@ static bool Init()
 	}
 static bool InitDone = Init();
 
+static uint ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
+	uint DefaultLetter)
+	{
+	asserta(DefaultLetter < AlphaSize);
+	if (Value == FLT_MAX)
+		return DefaultLetter;
+
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value < Ts[i])
+			return i;
+	return AlphaSize - 1;
+	}
+
 uint DSS::ValueToInt_Feature(FEATURE F, float Value)
 	{
 	assert(uint(F) < FEATURE_COUNT);
 	uint AS = DSS::GetAlphaSize(F);
 	assert(AS > 0);
-	UNDEF_BINNING UB = s_UBs[F];
 	const vector<float> &BinTs = s_BinTs[F];
 	uint DefaultLetter = s_DefaultLetters[F];
-	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
+	uint Letter = ValueToInt(Value, AS, BinTs, DefaultLetter);
 	return Letter;
 	}

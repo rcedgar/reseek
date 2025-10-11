@@ -730,9 +730,6 @@
     <ClInclude Include="featuretrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="undef_binning.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="alncounts.h">
       <Filter>Header Files</Filter>
     </ClInclude>

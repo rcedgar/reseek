@@ -11,8 +11,7 @@ static float **s_ScoreMxs[FEATURE_COUNT];
 static float **s_FreqMxs[FEATURE_COUNT];
 static float *s_FreqVecs[FEATURE_COUNT];
 static uint s_AlphaSizes[FEATURE_COUNT];
-static uint s_DefaultLetters[FEATURE_COUNT];
-static UNDEF_BINNING s_UBs[FEATURE_COUNT];
+static uint s_UndefLetters[FEATURE_COUNT];
 static vector<vector<float> > s_BinTs;
 
 static bool Init()
@@ -90,13 +89,7 @@ uint DSS::Get_MinusNENConf(uint Pos)
 uint DSS::GetDefaultLetter(FEATURE F)
 	{
 	assert(uint(F) < FEATURE_COUNT);
-	return s_DefaultLetters[uint(F)];
-	}
-
-UNDEF_BINNING DSS::GetUB(FEATURE F)
-	{
-	assert(uint(F) < FEATURE_COUNT);
-	return s_UBs[uint(F)];
+	return s_UndefLetters[uint(F)];
 	}
 
 const vector<float> &DSS::GetBinTs(FEATURE F)
@@ -105,18 +98,20 @@ const vector<float> &DSS::GetBinTs(FEATURE F)
 	return s_BinTs[uint(F)];
 	}
 
-void DSS::SetFeature(FEATURE F, UNDEF_BINNING UB,
+void DSS::SetFeature(FEATURE F,
 		const vector<float> &Freqs,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
-		const vector<float> &BinTs)
+		const vector<float> &BinTs,
+		uint UndefLetter)
 	{
+	Die("TODO");
+#if 0
 	asserta(uint(F) < FEATURE_COUNT);
 	uint AS = SIZE(Freqs);
 	asserta(SIZE(FreqMx) == AS);
 	asserta(SIZE(ScoreMx) == AS);
 	s_AlphaSizes[F] = AS;
-	s_UBs[F] = UB;
 	AllocFeature(F, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
@@ -147,6 +142,7 @@ void DSS::SetFeature(FEATURE F, UNDEF_BINNING UB,
 				s_BinTs[F][i] = BinTs[i];
 			}
 		}
+#endif
 	}
 
 const float *DSS::GetFreqVec(FEATURE F)
@@ -171,7 +167,7 @@ const float * const *DSS::GetScoreMx(FEATURE F)
 //	assert(AS > 0);
 //	UNDEF_BINNING UB = s_UBs[F];
 //	const vector<float> &BinTs = s_BinTs[F];
-//	uint DefaultLetter = s_DefaultLetters[F];
+//	uint DefaultLetter = s_UndefLetters[F];
 //	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
 //	return Letter;
 //	}

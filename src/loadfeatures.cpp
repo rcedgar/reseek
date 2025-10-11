@@ -5,17 +5,19 @@
 
 FEATURE DSSParams::LoadFeature(const string &FN)
 	{
-	FeatureTrainer FT;
-	vector<float> Freqs;
-	vector<vector<float> > FreqMx;
-	vector<vector<float> > ScoreMx;
-	FT.FromTsv(FN);
-	FT.GetFreqs(Freqs);
-	FT.GetFreqMx(FreqMx);
-	FT.GetLogOddsMx(ScoreMx);
-	DSS::SetFeature(FT.m_F, FT.m_UB, Freqs, FreqMx,
-					ScoreMx, FT.m_BinTs);
-	return FT.m_F;
+	Die("TODO");
+	//FeatureTrainer FT;
+	//vector<float> Freqs;
+	//vector<vector<float> > FreqMx;
+	//vector<vector<float> > ScoreMx;
+	//FT.FromTsv(FN);
+	//FT.GetFreqs(Freqs);
+	//FT.GetFreqMx(FreqMx);
+	//FT.GetLogOddsMx(ScoreMx);
+	//DSS::SetFeature(FT.m_F, FT.m_UB, Freqs, FreqMx,
+	//				ScoreMx, FT.m_BinTs);
+	//return FT.m_F;
+	return FEATURE_AA;
 	}
 
 void DSSParams::LoadFeatures(const string &aFN)

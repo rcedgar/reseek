@@ -128,7 +128,7 @@ static uint GetConfLetter(const vector<double> &v)
 	{
 	asserta(SIZE(v) == M);
 	double MinDist = DBL_MAX;
-	uint BestCluster = WILDCARD;
+	uint BestCluster = UNDEFINED_ZERO_OVERLOAD;
 	for (uint k = 0; k < K; ++k)
 		{
 		double d = GetDist(v, Means[k]);
@@ -164,7 +164,7 @@ uint DSS::Get_Conf(uint Pos)
 	vector<double> v;
 	Getv(*m_Chain, Pos, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	uint Letter = GetConfLetter(v);
 	return Letter;
 	}
@@ -175,15 +175,15 @@ uint DSS::Get_NENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 
 	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	return Letter;
 	}
 
@@ -193,15 +193,15 @@ uint DSS::Get_RENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 
 	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	asserta(Letter < 16);
 	return Letter;
 	}

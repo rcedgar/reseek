@@ -6,9 +6,8 @@
 #include "dssparams.h"
 #include "xdpmem.h"
 #include "flatmx.h"
-#include "undef_binning.h"
 
-const uint WILDCARD = 0;
+const uint UNDEFINED_ZERO_OVERLOAD = 0;
 
 class PDBChain;
 
@@ -118,44 +117,25 @@ public:
 	static uint GetAlphaSize(FEATURE F);
 
 public:
-	static void Condense(const vector<float> &Values, uint AlphaSize,
-						 UNDEF_BINNING UB, uint BestDefaultLetter, uint &DefaultLetter,
-						 float &MinValue, float &MedValue, float &MaxValue,
-						 float &UndefFreq, vector<float> &BinTs);
+	void Quantize(const vector<float> &Values, uint AlphaSize,
+		bool OverloadUndefined, uint UndefinedLetter, vector<float> &BinTs);
 
 	static uint ValueToInt_Feature(FEATURE F, float Value);
 
-	static uint ValueToInt(float Value, UNDEF_BINNING UB, uint AlphaSize,
+	static uint ValueToInt(float Value, uint AlphaSize,
 						   const vector<float> &Ts, uint DefaultLetter);
 
-	static uint ValueToInt_Never(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
-
-	static uint ValueToInt_OnlyZero(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
-
-	static uint ValueToInt_ZeroOverload(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
-
-	static uint ValueToInt_Default(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
-
-	static uint ValueToInt_Ignore(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
-
-	static const float *GetFreqVec(FEATURE F);
+		static const float *GetFreqVec(FEATURE F);
 	static const float * const *GetFreqMx(FEATURE F);
 	static const float * const *GetScoreMx(FEATURE F);
 
-	static void SetFeature(FEATURE F, UNDEF_BINNING UB,
+	static void SetFeature(FEATURE F,
 		const vector<float> &Freqs,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
-		const vector<float> &BinTs);
-
-	static uint GetBinThresholdCount(uint AlphaSize, UNDEF_BINNING UB);
+		const vector<float> &BinTs,
+		 uint UndefLetter);
 
 	static uint GetDefaultLetter(FEATURE F);
-	static UNDEF_BINNING GetUB(FEATURE F);
 	static const vector<float> &GetBinTs(FEATURE F);
 	};

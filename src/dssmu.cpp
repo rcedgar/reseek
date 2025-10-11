@@ -63,7 +63,7 @@ uint DSS::Get_RENDist4(uint Pos)
 	float d = GetFloat_RENDist_ForMu(Pos);
 	uint ND = ValueToInt_RENDist_ForMu(d);
 	if (ND == 0)
-		return WILDCARD;
+		return UNDEFINED_ZERO_OVERLOAD;
 	asserta(ND < 16);
 	return ND/4;
 	}

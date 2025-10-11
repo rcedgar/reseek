@@ -1,33 +1,7 @@
 #include "myutils.h"
 #include "featuretrainer.h"
 #include "alpha.h"
-
-UNDEF_BINNING StrToUB(const string &s)
-	{
-	if (s == "never") return UB_NeverUndefined;
-	if (s == "onlyzero") return UB_UndefinedIsOnlyZero;
-	if (s == "zeroov") return UB_UndefinedIsZeroOverload;
-	if (s == "default") return UB_UndefinedIsDefaultLetter;
-	if (s == "int") return UB_IntFeatureNoBinning;
-	if (s == "ignore") return UB_IgnoreUndefined;
-	if (s == "include") return UB_IncludeUndefined;
-	Die("StrToUB(%s)", s.c_str());
-	return UB_Invalid;
-	}
-
-const char *UBToStr(UNDEF_BINNING UB)
-	{
-	if (UB == UB_NeverUndefined) return "never";
-	if (UB == UB_UndefinedIsOnlyZero) return "onlyzero";
-	if (UB == UB_UndefinedIsZeroOverload) return "zeroov";
-	if (UB == UB_UndefinedIsDefaultLetter) return "default";
-	if (UB == UB_IntFeatureNoBinning) return "int";
-	if (UB == UB_IgnoreUndefined) return "ignore";
-	if (UB == UB_IncludeUndefined) return "include";
-	asserta(false);
-	return "*ERROR*";
-	}
-
+#if 0
 static uint GetUngappedLength(const string &Row)
 	{
 	const uint ColCount = SIZE(Row);
@@ -578,3 +552,4 @@ void FeatureTrainer::ScoreMxFromTsv(FILE* f)
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		ReadFloatVec(f, "scoremx", i, m_ScoreMx[i]);
 	}
+#endif
