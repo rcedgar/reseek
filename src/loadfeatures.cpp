@@ -5,7 +5,7 @@
 
 FEATURE DSSParams::LoadFeature(const string &FN)
 	{
-	Die("TODO");
+	Die("LoadFeature");
 	//FeatureTrainer FT;
 	//vector<float> Freqs;
 	//vector<vector<float> > FreqMx;

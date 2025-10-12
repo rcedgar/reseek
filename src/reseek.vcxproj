@@ -280,7 +280,7 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
-    <ClCompile Include="condense.cpp" />
+    <ClCompile Include="quantize.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
@@ -376,6 +376,7 @@
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="trained_features_new.cpp" />
+    <ClCompile Include="train_feature.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />

@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "featuretrainer.h"
 #include "alpha.h"
-#if 0
+
 static uint GetUngappedLength(const string &Row)
 	{
 	const uint ColCount = SIZE(Row);
@@ -55,30 +55,18 @@ void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 	m_Alns.FromFasta(AlnsFN, true);
 	}
 
-void FeatureTrainer::SetOptionsFromCmdLine()
-	{
-	m_MinAQ = 0;
-	m_MaxAQ = 1;
-	m_MinPctId = 0;
-	m_MaxPctId = 100;
-	if (optset_minaq) m_MinAQ = (float) opt(minaq);
-	if (optset_maxaq) m_MaxAQ = (float) opt(maxaq);
-	if (optset_minpctid) m_MinPctId = (float) opt(minpctid);
-	if (optset_maxpctid) m_MaxPctId = (float) opt(maxpctid);
-	}
-
-void FeatureTrainer::SetFeature(FEATURE F)
+void FeatureTrainer::SetFeature(FEATURE F, uint AlphaSize)
 	{
 	asserta(!m_Chains.empty());
 	asserta(m_Alns.GetSeqCount() > 0);
 	m_F = F;
 	m_FeatureName = FeatureToStr(F);
 	m_IsInt = FeatureIsInt(F);
-	if (!m_IsInt)
-		SetFloatValues();
+	LogOdds::Init(AlphaSize);
 	}
 
-void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain)
+void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain,
+	uint UndefLetter)
 	{
 	m_D.Init(Chain);
 	const uint L = Chain.GetSeqLength();
@@ -89,88 +77,52 @@ void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain)
 			Letter = m_D.GetFeature(m_F, Pos);
 		else
 			{
-			double Value = m_D.GetFloatFeature(m_F, Pos);
-			if (Value == DBL_MAX && m_UB == UB_IgnoreUndefined)
-				continue;
-			Letter = DSS::ValueToInt((float) Value, m_UB, m_AlphaSize,
-									 m_BinTs, m_BestDefaultLetter);
+			float Value = m_D.GetFloatFeature(m_F, Pos);
+			Letter = DSS::ValueToInt(Value, m_AlphaSize,
+				m_BinTs, UndefLetter);
 			}
 		AddUnalignedLetter(Letter);
 		}
 	}
 
-void FeatureTrainer::SetUnalignedBackground()
+void FeatureTrainer::SetUnalignedBackground(bool IgnoreUndef)
 	{
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Unaligned background");
 		const PDBChain &Chain = *m_Chains[ChainIdx];
-		SetUnalignedBackgroundChain(Chain);
+		SetUnalignedBackgroundChain(Chain, IgnoreUndef);
 		}
 	}
 
-void FeatureTrainer::SetAlphaSize(uint AS, UNDEF_BINNING UB,
-								  uint DefaultLetter)
+void FeatureTrainer::SetFloatValues(bool IgnoreUndef)
 	{
-	m_AlphaSize = AS;
-	m_UB = UB;
-	Init(AS);
-
-	if (m_IsInt)
-		return;
-
-	if (UB == UB_UndefinedIsDefaultLetter)
-		m_BestDefaultLetter = DefaultLetter;
-
-	asserta(!m_FloatValues.empty());
-	DSS::Condense(m_FloatValues, m_AlphaSize,
-				  m_UB, DefaultLetter, m_BestDefaultLetter,
-				  m_MinValue, m_MedValue, m_MaxValue,
-				  m_UndefFreq, m_BinTs);
-	}
-
-void FeatureTrainer::SetFloatValues()
-	{
-	m_MinValue = FLT_MAX;
-	m_MedValue = FLT_MAX;
-	m_MaxValue = -FLT_MAX;
-
-	uint UndefCount = 0;
+	m_UndefCount = 0;
 	m_FloatValues.clear();
 
 	DSSParams::Init(DM_DefaultFast);
-
-	DSS D;
-
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		uint N = SIZE(m_FloatValues);
-		double Pct = GetPct(UndefCount, N);
-		ProgressStep(ChainIndex, ChainCount, "Values %s (%.2f%% undefined) %s",
-					 m_FeatureName, Pct, UBToStr(m_UB));
+		ProgressStep(ChainIndex, ChainCount, "Values %s", m_FeatureName);
 		const PDBChain &Chain = *m_Chains[ChainIndex];
-		D.Init(Chain);
+		m_D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			double Value = D.GetFloatFeature(m_F, Pos);
-			if (Value == DBL_MAX)
+			float Value = m_D.GetFloatFeature(m_F, Pos);
+			if (Value == FLT_MAX)
 				{
-				if (m_UB == UB_IgnoreUndefined)
+				++m_UndefCount;
+				if (IgnoreUndef)
 					continue;
-				++UndefCount;
+				Value = m_BestDefaultValue;
 				}
-			else
-				{
-				m_MinValue = min(m_MinValue, (float) Value);
-				m_MaxValue = max(m_MaxValue, (float) Value);
-				}
-			m_FloatValues.push_back((float) Value);
+			m_FloatValues.push_back(Value);
 			}
 		}
-	m_UndefFreq = float(UndefCount)/float(SIZE(m_FloatValues));
 	}
 
 void FeatureTrainer::SetLabelToChainIndex()
@@ -180,7 +132,8 @@ void FeatureTrainer::SetLabelToChainIndex()
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		const PDBChain &Chain = *m_Chains[ChainIndex];
-		const string &Label = Chain.m_Label;
+		string Label = Chain.m_Label;
+		TruncLabel(Label);
 		m_LabelToChainIndex[Label] = ChainIndex;
 		}
 	}
@@ -232,30 +185,9 @@ float FeatureTrainer::GetAQFromLabel(const string &Label) const
 	return FLT_MAX;
 	}
 
-bool FeatureTrainer::IncludePair(const string &QLabel) const
-	{
-	if (m_MinPctId > 0 || m_MaxPctId < 100)
-		{
-		float PctId = GetPctIdFromLabel(QLabel);
-		return PctId >= m_MinPctId && PctId <= m_MaxPctId;
-		}
-	if (m_MinAQ > 0 || m_MaxAQ < 1)
-		{
-		float AQ = GetAQFromLabel(QLabel);
-		return AQ >= m_MinAQ && AQ <= m_MaxAQ;
-		}
-	return true;
-	}
-
-void FeatureTrainer::UpdateJointCounts(uint PairIndex)
+void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 	{
 	string QLabel = m_Alns.GetLabel(2*PairIndex);
-	if (!IncludePair(QLabel))
-		{
-		++m_ExcludedPairCount;
-		return;
-		}
-
 	string RLabel = m_Alns.GetLabel(2*PairIndex+1);
 	TruncLabel(QLabel);
 	TruncLabel(RLabel);
@@ -328,17 +260,17 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex)
 				}
 			else
 				{
-				float ValueQ = (float) DQ.GetFloatFeature(m_F, QPos);
-				float ValueR = (float) DR.GetFloatFeature(m_F, RPos);
-				bool IgnoreQ = (m_UB == UB_IgnoreUndefined && ValueQ == FLT_MAX);
-				bool IgnoreR = (m_UB == UB_IgnoreUndefined && ValueR == FLT_MAX);
-
+				float ValueQ = DQ.GetFloatFeature(m_F, QPos);
+				float ValueR = DR.GetFloatFeature(m_F, RPos);
+				bool IgnoreQ = (ValueQ == FLT_MAX && IgnoreUndef);
+				bool IgnoreR = (ValueR == FLT_MAX && IgnoreUndef);
 				if (!IgnoreQ && !IgnoreR)
 					{
-					LetterQ = DSS::ValueToInt(ValueQ, m_UB, m_AlphaSize,
-											  m_BinTs, m_BestDefaultLetter);
-					LetterR = DSS::ValueToInt(ValueR, m_UB, m_AlphaSize,
-											  m_BinTs, m_BestDefaultLetter);
+					LetterQ = DSS::ValueToInt(ValueQ, m_AlphaSize,
+												m_BinTs, m_BestDefaultLetter);
+
+					LetterR = DSS::ValueToInt(ValueR, m_AlphaSize,
+												m_BinTs, m_BestDefaultLetter);
 					m_Lock.lock();
 					AddPair(LetterQ, LetterR);
 					m_Lock.unlock();
@@ -357,13 +289,12 @@ void FeatureTrainer::AddValue(float Value)
 	m_FloatValues.push_back(Value);
 	}
 
-void FeatureTrainer::Train()
+void FeatureTrainer::TrainLogOdds(bool IgnoreUndef)
 	{
 	const uint SeqCount = m_Alns.GetSeqCount();
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
 	const uint PairCount = SeqCount/2;
-	m_ExcludedPairCount = 0;
 	m_Counter = 0;
 //#pragma omp parallel for
 	for (int PairIndex = 0; PairIndex < int(PairCount); ++PairIndex)
@@ -371,35 +302,20 @@ void FeatureTrainer::Train()
 		m_Lock.lock();
 		uint Count = m_Counter++;
 		m_Lock.unlock();
-		ProgressStep(Count, PairCount, "Joint frequencies %s(%u) %s",
-					 m_FeatureName, m_AlphaSize, UBToStr(m_UB));
-		UpdateJointCounts(PairIndex);
+		ProgressStep(Count, PairCount, "Joint frequencies %s(%u)",
+					 m_FeatureName, m_AlphaSize);
+		UpdateJointCounts(PairIndex, IgnoreUndef);
 		}
 	if (m_UseUnalignedBackground)
-		SetUnalignedBackground();
-	if (m_UB != UB_UndefinedIsDefaultLetter)
-		m_BestDefaultLetter = GetBestDefaultLetter(UINT_MAX);
-	ProgressLog("%u excluded alns\n", m_ExcludedPairCount);
+		SetUnalignedBackground(IgnoreUndef);
 	}
 
 void FeatureTrainer::WriteSummary(FILE *f) const
 	{
 	if (f == 0)
 		return;
-	float ES = GetExpectedScore();
-	fprintf(f, "%s(%u) undef=%s", m_FeatureName, m_AlphaSize, UBToStr(m_UB));
-	if (m_UB == UB_UndefinedIsDefaultLetter)
-		fprintf(f, "(%u)", m_BestDefaultLetter);
-	if (m_IsInt)
-		fprintf(f, " integer");
-	else
-		{
-		fprintf(f, ", condensed min %.3g, med %.3g, max %.3g, undef %.4f",
-				m_MinValue,
-				m_MedValue,
-				m_MaxValue,
-				m_UndefFreq);
-		}
+	float ES = LogOdds::GetExpectedScore();
+	fprintf(f, "%s(%u)", m_FeatureName, m_AlphaSize);
 	fprintf(f, " ES=%.3f", ES);
 	fprintf(f, "\n");
 	}
@@ -413,7 +329,7 @@ void FeatureTrainer::BinTsToSrc(FILE *f) const
 	if (m_BinTs.empty())
 		return;
 	const uint N = SIZE(m_BinTs);
-	fprintf(f, "\nuint DSS::ValueToInt_%s(double Value) const\n", m_FeatureName);
+	fprintf(f, "\nuint DSS::ValueToInt_%s(float Value) const\n", m_FeatureName);
 	fprintf(f, "	{\n");
 	for (uint i = 0 ; i < N; ++i)
 		fprintf(f, "	if (Value < %.4g) return %u;\n", m_BinTs[i], i);
@@ -429,7 +345,7 @@ void FeatureTrainer::FreqsToSrc(FILE *f) const
 	GetFreqs(Freqs);
 	asserta(SIZE(Freqs) == m_AlphaSize);
 
-	fprintf(f, "\nstatic double %s_f_i[%u] = {\n",
+	fprintf(f, "\nstatic float %s_f_i[%u] = {\n",
 			m_FeatureName, m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		fprintf(f, "	%.4f,\n", Freqs[i]);
@@ -443,7 +359,7 @@ void FeatureTrainer::ScoreMxToSrc(FILE *f) const
 	vector<vector<float> > ScoreMx;
 	GetLogOddsMx(ScoreMx);
 	asserta(SIZE(ScoreMx) == m_AlphaSize);
-	fprintf(f, "\nstatic double %s_S_i[%u][%u] = {\n",
+	fprintf(f, "\nstatic float %s_S_i[%u][%u] = {\n",
 			m_FeatureName, m_AlphaSize, m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
@@ -466,6 +382,7 @@ void FeatureTrainer::ToSrc(FILE *f) const
 
 void FeatureTrainer::ToTsv(const string &FN) const
 	{
+#if 0
 	if (FN == "")
 		return;
 
@@ -492,10 +409,12 @@ void FeatureTrainer::ToTsv(const string &FN) const
 		}
 
 	CloseStdioFile(f);
+#endif
 	}
 
 void FeatureTrainer::FromTsv(const string &FN)
 	{
+#if 0
 	FILE *f = OpenStdioFile(FN);
 
 	string FeatureName;
@@ -544,6 +463,7 @@ void FeatureTrainer::FromTsv(const string &FN)
 	bool Ok = ReadLineStdioFile(f, Line);
 	asserta(!Ok);
 	CloseStdioFile(f);
+#endif
 	}
 
 void FeatureTrainer::ScoreMxFromTsv(FILE* f)
@@ -552,4 +472,28 @@ void FeatureTrainer::ScoreMxFromTsv(FILE* f)
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		ReadFloatVec(f, "scoremx", i, m_ScoreMx[i]);
 	}
-#endif
+
+float FeatureTrainer::GetDefaultValue() const
+	{
+	if (m_BestDefaultLetter == UINT_MAX)
+		return FLT_MAX;
+	asserta(m_BestDefaultLetter < m_AlphaSize);
+	asserta(SIZE(m_BinTs) + 1 == m_AlphaSize);
+	if (m_BestDefaultLetter == m_AlphaSize - 1)
+		return m_BinTs[m_AlphaSize - 2] + 1;
+	float Lo = m_BinTs[m_BestDefaultLetter];
+	float Hi = m_BinTs[m_BestDefaultLetter+1];
+	return (Lo + Hi)/2;
+	}
+
+void FeatureTrainer::TrainQuantization()
+	{
+	SetFloatValues(true);
+	DSS::Quantize(m_FloatValues, m_AlphaSize, FLT_MAX, m_BinTs);
+	TrainLogOdds(true);
+	m_BestDefaultLetter = LogOdds::GetBestDefaultLetter(UINT_MAX);
+	m_BestDefaultValue = GetDefaultValue();
+
+	SetFloatValues(false);
+	DSS::Quantize(m_FloatValues, m_AlphaSize, m_BestDefaultValue, m_BinTs);
+	}

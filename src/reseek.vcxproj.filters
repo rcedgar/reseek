@@ -401,7 +401,7 @@
     <ClCompile Include="featuretrainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="condense.cpp">
+    <ClCompile Include="quantize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="loadfeatures.cpp">
@@ -426,6 +426,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="profiletolines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="train_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -44,5 +44,6 @@ C(cif2pdb)
 C(kmrnbh)
 C(dump_features)
 C(load_features)
+C(train_feature)
 
 #undef C

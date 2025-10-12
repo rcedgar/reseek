@@ -68,12 +68,6 @@ static void FreeMe()
 		FreeFeature(FEATURE(F));
 	}
 
-//uint DSS::GetAlphaSize(FEATURE F)
-//	{
-//	assert(uint(F) < FEATURE_COUNT);
-//	return s_AlphaSizes[uint(F)];
-//	}
-
 uint DSS::Get_PlusNENConf(uint Pos)
 	{
 	Die("Get_PlusNENConf");
@@ -88,12 +82,14 @@ uint DSS::Get_MinusNENConf(uint Pos)
 
 uint DSS::GetDefaultLetter(FEATURE F)
 	{
+	Die("GetDefaultLetter");
 	assert(uint(F) < FEATURE_COUNT);
 	return s_UndefLetters[uint(F)];
 	}
 
 const vector<float> &DSS::GetBinTs(FEATURE F)
 	{
+	Die("GetBinTs");
 	assert(uint(F) < FEATURE_COUNT);
 	return s_BinTs[uint(F)];
 	}
@@ -103,9 +99,9 @@ void DSS::SetFeature(FEATURE F,
 		const vector<vector<float> > &FreqMx,
 		const vector<vector<float> > &ScoreMx,
 		const vector<float> &BinTs,
-		uint UndefLetter)
+		float UndefinedValue)
 	{
-	Die("TODO");
+	Die("SetFeature()");
 #if 0
 	asserta(uint(F) < FEATURE_COUNT);
 	uint AS = SIZE(Freqs);
@@ -147,27 +143,18 @@ void DSS::SetFeature(FEATURE F,
 
 const float *DSS::GetFreqVec(FEATURE F)
 	{
+	Die("GetFreqVec()");
 	return s_FreqVecs[F];
 	}
 
 const float * const *DSS::GetFreqMx(FEATURE F)
 	{
+	Die("GetFreqMx()");
 	return s_FreqMxs[F];
 	}
 
 const float * const *DSS::GetScoreMx(FEATURE F)
 	{
+	Die("GetScoreMx()");
 	return s_ScoreMxs[F];
 	}
-
-//uint DSS::ValueToInt_Feature(FEATURE F, float Value)
-//	{
-//	assert(uint(F) < FEATURE_COUNT);
-//	uint AS = s_AlphaSizes[F];
-//	assert(AS > 0);
-//	UNDEF_BINNING UB = s_UBs[F];
-//	const vector<float> &BinTs = s_BinTs[F];
-//	uint DefaultLetter = s_UndefLetters[F];
-//	uint Letter = ValueToInt(Value, UB, AS, BinTs, DefaultLetter);
-//	return Letter;
-//	}

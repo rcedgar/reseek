@@ -12,37 +12,26 @@ class FeatureTrainer : public LogOdds
 public:
 	FEATURE m_F = FEATURE(-1);
 	const char *m_FeatureName = 0;
-	float m_MinAQ = 0;
-	float m_MaxAQ = 1;
-	float m_MinPctId = 0;
-	float m_MaxPctId = 100;
 	vector<PDBChain *> m_Chains;
 	bool m_IsInt = false;
 	SeqDB m_Alns;
 	int8_t m_MaxAbsi8 = 20;
 	vector<float> m_FloatValues;
+	uint m_UndefCount = 0;
 	vector<uint> m_Letters;
-	float m_MinValue = FLT_MAX;
-	float m_MedValue = -FLT_MAX;
-	float m_MaxValue = -FLT_MAX;
-	float m_UndefFreq = -FLT_MAX;
 	map<string, uint> m_LabelToChainIndex;
 	vector<float> m_BinTs;
 	DSS m_D;
-	//DSS m_DQ;
-	//DSS m_DR;
 	uint m_BestDefaultLetter = UINT_MAX;
-	uint m_ExcludedPairCount = UINT_MAX;
+	float m_BestDefaultValue = FLT_MAX;
 	mutex m_Lock;
 	uint m_Counter = UINT_MAX;
 	vector<vector<float> > m_ScoreMx;
 
 public:
-	void SetFeature(FEATURE F);
-	void SetOptionsFromCmdLine();
-	void SetAlphaSize(uint AS, uint DefaultLetter);
+	void SetFeature(FEATURE F, uint AlphaSize);
 	void SetInput(const string &ChainsFN, const string &AlnsFN);
-	void Train();
+	void TrainLogOdds(bool IgnoreUndef);
 	void WriteSummary(FILE *f) const;
 	void ToTsv(const string &FN) const;
 	void FromTsv(const string &FN);
@@ -51,15 +40,16 @@ public:
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
 	void ScoreMxFromTsv(FILE *f);
+	void TrainQuantization();
+	float GetDefaultValue() const;
 
-private:
 	void SetLabelToChainIndex();
-	void SetFloatValues();
-	void UpdateJointCounts(uint PairIndex);
-	bool IncludePair(const string &QLabel) const;
+	void SetFloatValues(bool IgnoreUndef);
+	void UpdateJointCounts(uint PairIndex, bool IgnoreUndef);
 	void AddValue(float Value);
-	void SetUnalignedBackground();
-	void SetUnalignedBackgroundChain(const PDBChain &Chain);
+	void SetUnalignedBackground(bool IgnoreUndef);
+	void SetUnalignedBackgroundChain(const PDBChain &Chain,
+		uint UndefLetter);
 	float GetPctIdFromLabel(const string &Label) const;
 	float GetAQFromLabel(const string &Label) const;
 	};

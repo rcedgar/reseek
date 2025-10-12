@@ -4,31 +4,17 @@
 /***
 Alphabet has AlphaSize (AS) letters.
 Quantize by AS-1 thresholds
-Undefined value is FLT_MAX
-
-Dedicated undefined letter
---------------------------
-Defined letters are 0..AS-2, undefined is AS-1
-
-AS-2 thresholds in BinTs
-BinTs[AS-2] = MaxValue+1
-	MaxValue => AS-2
-
-Overloaded letter for undefined
--------------------------------
-Defined letters are 0..AS-1, any one letter is overloaded
-
-AS-1 thresholds in BinTs
-BinTs[AS-1] = MaxValue+1
-	MaxValue => AS-1
+Undefined value can be FLT_MAX or in range.
 ***/
 
 uint DSS::ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
 	uint DefaultLetter)
 	{
-	asserta(DefaultLetter < AlphaSize);
 	if (Value == FLT_MAX)
+		{
+		asserta(DefaultLetter < AlphaSize);
 		return DefaultLetter;
+		}
 
 	asserta(SIZE(Ts) + 1 == AlphaSize);
 	for (uint i = 0; i + 1 < AlphaSize; ++i)
@@ -37,21 +23,25 @@ uint DSS::ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
 	return AlphaSize - 1;
 	}
 
+// UndefinedValue=FLT_MAX ignore undefineds
+// Otherwise replace Value=FLT_MAX with UndefinedValue
 void DSS::Quantize(const vector<float> &Values, uint AlphaSize,
-	bool OverloadUndefined, uint UndefinedLetter, vector<float> &BinTs)
+	float UndefValue, vector<float> &BinTs)
 	{
-	asserta(UndefinedLetter < AlphaSize);
 	BinTs.clear();
 
-	const uint N = SIZE(Values);
+	const uint InputValueCount = SIZE(Values);
 	vector<float> SortedValues;
-	SortedValues.reserve(N);
+	SortedValues.reserve(InputValueCount);
 	uint UndefCount = 0;
-	for (uint i = 0; i < N; ++i)
+	for (uint i = 0; i < InputValueCount; ++i)
 		{
 		float Value = Values[i];
-		if (Value != FLT_MAX)
-			SortedValues.push_back(Value); 
+		if (Value == FLT_MAX)
+			Value = UndefValue;
+		if (Value == FLT_MAX)
+			continue;
+		SortedValues.push_back(Value); 
 		}
 	sort(SortedValues.begin(), SortedValues.end());
 	const uint K = SIZE(SortedValues);
