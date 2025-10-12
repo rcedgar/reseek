@@ -16,7 +16,7 @@ public:
 	bool m_IsInt = false;
 	SeqDB m_Alns;
 	int8_t m_MaxAbsi8 = 20;
-	vector<float> m_FloatValues;
+	vector<float> m_SortedFloatValues;
 	uint m_UndefCount = 0;
 	vector<uint> m_Letters;
 	map<string, uint> m_LabelToChainIndex;
@@ -27,6 +27,7 @@ public:
 	mutex m_Lock;
 	uint m_Counter = UINT_MAX;
 	vector<vector<float> > m_ScoreMx;
+	string m_UndefStyle = "ERROR";
 
 public:
 	void SetFeature(FEATURE F, uint AlphaSize);
@@ -40,16 +41,26 @@ public:
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
 	void ScoreMxFromTsv(FILE *f);
-	void TrainQuantization(bool UndefOverlap);
+	void TrainFloat_UndefOverlap();
+	void TrainFloat_UndefDistinct();
+	void TrainInt_UndefOverlap();
+	void TrainInt_UndefDistinct();
 	float GetDefaultValue() const;
+	float GetMaxDefinedValue() const;
 
 	void SetLabelToChainIndex();
-	void SetFloatValues(bool IgnoreUndef);
+	void SetFloatValues(bool IgnoreUndef, float ReplaceUndefValue);
 	void UpdateJointCounts(uint PairIndex, bool IgnoreUndef);
-	void AddValue(float Value);
 	void SetUnalignedBackground(bool IgnoreUndef);
 	void SetUnalignedBackgroundChain(const PDBChain &Chain,
 		uint UndefLetter);
 	float GetPctIdFromLabel(const string &Label) const;
 	float GetAQFromLabel(const string &Label) const;
+
+public:
+	static void Quantize(const vector<float> &Values, uint AlphaSize,
+		vector<float> &BinTs);
+	static void QuantizeUniques(const vector<float> &SortedValues,
+		uint AlphaSize, vector<float> &BinTs);
+
 	};

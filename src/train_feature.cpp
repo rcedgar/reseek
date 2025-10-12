@@ -45,7 +45,26 @@ void cmd_train_feature()
 	FT.m_UseUnalignedBackground = UseUnalignedBackground;
 	FT.SetInput(ChainsFN, AlnsFN);
 	FT.SetFeature(F, AlphaSize);
-	if (!FeatureIsInt(F))
-		FT.TrainQuantization(UndefOverlap);
-	FT.TrainLogOdds(false);
+	if (FeatureIsInt(F))
+		{
+		if (UndefOverlap)
+			FT.TrainInt_UndefOverlap();
+		else
+			FT.TrainInt_UndefDistinct();
+		}
+	else
+		{
+		if (UndefOverlap)
+			FT.TrainFloat_UndefOverlap();
+		else
+			FT.TrainFloat_UndefDistinct();
+		}
+	FT.ToTsv(opt(output));
+	vector<vector<float> > ScoreMx;
+	float ES = FT.GetLogOddsMx(ScoreMx);
+	FILE *f = CreateStdioFile(opt(scoremx));
+	if (f != 0)
+		fprintf(f, "// ES=%.4f\n", ES);
+	FT.MxToSrc(f, FeatureName, ScoreMx);
+	CloseStdioFile(f);
 	}

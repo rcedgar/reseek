@@ -117,9 +117,6 @@ public:
 	static uint GetAlphaSize(FEATURE F);
 
 public:
-	static void Quantize(const vector<float> &Values, uint AlphaSize,
-		float UndefValue, vector<float> &BinTs);
-
 	static uint ValueToInt_Feature(FEATURE F, float Value);
 
 	static uint ValueToInt(float Value, uint AlphaSize,

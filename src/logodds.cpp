@@ -323,13 +323,17 @@ void LogOdds::ToTsv(FILE *f) const
 		return;
 
 	ValidateCounts();
+	vector<float> Freqs;
+	GetFreqs(Freqs);
 
 	fprintf(f, "alpha_size\t%u\n", m_AlphaSize);
 	fprintf(f, "expected_score\t%.4g\n", GetExpectedScore());
 	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
 		{
-		fprintf(f, "count\t%u\t%u",
-				Letter, m_BackgroundCounts[Letter]);
+		uint n = (m_UseUnalignedBackground ?
+			m_BackgroundCountsUnaligned[Letter] :
+			m_BackgroundCounts[Letter]);
+		fprintf(f, "count\t%u\t%u\t%.4f", Letter, n, Freqs[Letter]);
 		fprintf(f, "\n");
 		}
 

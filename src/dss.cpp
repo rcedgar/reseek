@@ -507,7 +507,11 @@ float DSS::GetFloat_NENDist(uint Pos)
 	{
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
 		return (float) m_DefaultNENDist;
+		}
 	float d = m_Chain->GetDist(Pos, NEN);
 	return d;
 	}
@@ -530,10 +534,14 @@ float DSS::GetFloat_PMDist(uint Pos)
 
 float DSS::GetFloat_RENDist(uint Pos)
 	{
-	uint NEN = GetREN(Pos);
-	if (NEN == UINT_MAX)
+	uint REN = GetREN(Pos);
+	if (REN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
 		return (float) m_DefaultNENDist;
-	float d = m_Chain->GetDist(Pos, NEN);
+		}
+	float d = m_Chain->GetDist(Pos, REN);
 	return d;
 	}
 

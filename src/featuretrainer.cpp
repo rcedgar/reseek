@@ -96,16 +96,17 @@ void FeatureTrainer::SetUnalignedBackground(bool IgnoreUndef)
 		}
 	}
 
-void FeatureTrainer::SetFloatValues(bool IgnoreUndef)
+void FeatureTrainer::SetFloatValues(bool IgnoreUndef,
+	float ReplaceUndefValue)
 	{
 	m_UndefCount = 0;
-	m_FloatValues.clear();
+	m_SortedFloatValues.clear();
 
 	DSSParams::Init(DM_DefaultFast);
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
-		uint N = SIZE(m_FloatValues);
+		uint N = SIZE(m_SortedFloatValues);
 		ProgressStep(ChainIndex, ChainCount, "Values %s", m_FeatureName);
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		m_D.Init(Chain);
@@ -118,11 +119,13 @@ void FeatureTrainer::SetFloatValues(bool IgnoreUndef)
 				++m_UndefCount;
 				if (IgnoreUndef)
 					continue;
-				Value = m_BestDefaultValue;
+				Value = ReplaceUndefValue;
 				}
-			m_FloatValues.push_back(Value);
+			m_SortedFloatValues.push_back(Value);
 			}
 		}
+	asserta(SIZE(m_SortedFloatValues) > 100);
+	sort(m_SortedFloatValues.begin(), m_SortedFloatValues.end());
 	}
 
 void FeatureTrainer::SetLabelToChainIndex()
@@ -254,23 +257,65 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 				{
 				LetterQ = DQ.GetFeature(m_F, QPos);
 				LetterR = DR.GetFeature(m_F, RPos);
-				m_Lock.lock();
-				AddPair(LetterQ, LetterR);
-				m_Lock.unlock();
+				
+				if (IgnoreUndef)
+					{
+					asserta(LetterQ < m_AlphaSize || LetterQ == UINT_MAX);
+					asserta(LetterR < m_AlphaSize || LetterR == UINT_MAX);
+					if (LetterQ != UINT_MAX && LetterR != UINT_MAX)
+						{
+						m_Lock.lock();
+						AddPair(LetterQ, LetterR);
+						m_Lock.unlock();
+						}
+					}
+				else
+					{
+					asserta(LetterQ < m_AlphaSize-1 || LetterQ == UINT_MAX);
+					asserta(LetterR < m_AlphaSize-1 || LetterR == UINT_MAX);
+					if (LetterQ == UINT_MAX)
+						LetterQ = m_AlphaSize - 1;
+					if (LetterR == UINT_MAX)
+						LetterR = m_AlphaSize - 1;
+					m_Lock.lock();
+					AddPair(LetterQ, LetterR);
+					m_Lock.unlock();
+					}
 				}
 			else
 				{
 				float ValueQ = DQ.GetFloatFeature(m_F, QPos);
 				float ValueR = DR.GetFloatFeature(m_F, RPos);
-				bool IgnoreQ = (ValueQ == FLT_MAX && IgnoreUndef);
-				bool IgnoreR = (ValueR == FLT_MAX && IgnoreUndef);
-				if (!IgnoreQ && !IgnoreR)
+
+				if (IgnoreUndef)
 					{
+					bool IgnoreQ = (ValueQ == FLT_MAX);
+					bool IgnoreR = (ValueR == FLT_MAX);
+					if (!IgnoreQ && !IgnoreR)
+						{
+						LetterQ = DSS::ValueToInt(ValueQ, m_AlphaSize,
+													m_BinTs, m_BestDefaultLetter);
+
+						LetterR = DSS::ValueToInt(ValueR, m_AlphaSize,
+													m_BinTs, m_BestDefaultLetter);
+						m_Lock.lock();
+						AddPair(LetterQ, LetterR);
+						m_Lock.unlock();
+						}
+					}
+				else
+					{
+					if (ValueQ == FLT_MAX)
+						ValueQ = m_BestDefaultValue;						
+					if (ValueR == FLT_MAX)
+						ValueR = m_BestDefaultValue;						
 					LetterQ = DSS::ValueToInt(ValueQ, m_AlphaSize,
 												m_BinTs, m_BestDefaultLetter);
 
 					LetterR = DSS::ValueToInt(ValueR, m_AlphaSize,
 												m_BinTs, m_BestDefaultLetter);
+					asserta(LetterQ < m_AlphaSize);
+					asserta(LetterR < m_AlphaSize);
 					m_Lock.lock();
 					AddPair(LetterQ, LetterR);
 					m_Lock.unlock();
@@ -282,11 +327,6 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 		if (!isgap(r))
 			++RPos;
 		}
-	}
-
-void FeatureTrainer::AddValue(float Value)
-	{
-	m_FloatValues.push_back(Value);
 	}
 
 void FeatureTrainer::TrainLogOdds(bool IgnoreUndef)
@@ -382,23 +422,32 @@ void FeatureTrainer::ToSrc(FILE *f) const
 
 void FeatureTrainer::ToTsv(const string &FN) const
 	{
-#if 0
 	if (FN == "")
 		return;
 
 	FILE *f = CreateStdioFile(FN);
 	fprintf(f, "feature\t%s\n", m_FeatureName);
 	fprintf(f, "type\t%s\n", m_IsInt ? "int" : "float");
-	fprintf(f, "undef_binning\t%s\n", UBToStr(m_UB));
+	fprintf(f, "undef\t%s\n", m_UndefStyle.c_str());
 	if (!m_IsInt)
 		{
-		fprintf(f, "min\t%.3g\n", m_MinValue);
-		fprintf(f, "med\t%.3g\n", m_MedValue);
-		fprintf(f, "max\t%.3g\n", m_MaxValue);
-		fprintf(f, "undef\t%.4f\n", m_UndefFreq);
+		float MaxValue = GetMaxDefinedValue();
+		const uint N = SIZE(m_SortedFloatValues);
+		fprintf(f, "min\t%.3g\n", m_SortedFloatValues[0]);
+		fprintf(f, "med\t%.3g\n", m_SortedFloatValues[N/2]);
+		fprintf(f, "max\t%.3g\n", MaxValue);
+		fprintf(f, "undef_count\t%u\n", m_UndefCount);
+		fprintf(f, "undef_freq\t%.3g\n", double(m_UndefCount)/N);
 		}
-	if (m_UB == UB_UndefinedIsDefaultLetter)
+	if (m_BestDefaultLetter == UINT_MAX)
+		fprintf(f, "default_letter\t*\n");
+	else
 		fprintf(f, "default_letter\t%u\n", m_BestDefaultLetter);
+
+	if (m_BestDefaultValue == FLT_MAX)
+		fprintf(f, "default_value\t*\n");
+	else
+		fprintf(f, "default_value\t%.3g\n", m_BestDefaultValue);
 
 	LogOdds::ToTsv(f);
 	
@@ -409,7 +458,6 @@ void FeatureTrainer::ToTsv(const string &FN) const
 		}
 
 	CloseStdioFile(f);
-#endif
 	}
 
 void FeatureTrainer::FromTsv(const string &FN)
@@ -473,6 +521,18 @@ void FeatureTrainer::ScoreMxFromTsv(FILE* f)
 		ReadFloatVec(f, "scoremx", i, m_ScoreMx[i]);
 	}
 
+float FeatureTrainer::GetMaxDefinedValue() const
+	{
+	float MaxValue = -FLT_MAX;
+	for (uint i = 0; i < SIZE(m_SortedFloatValues); ++i)
+		{
+		float Value = m_SortedFloatValues[i];
+		if (Value != FLT_MAX)
+			MaxValue = max(Value, MaxValue);
+		}
+	return MaxValue;
+	}
+
 float FeatureTrainer::GetDefaultValue() const
 	{
 	if (m_BestDefaultLetter == UINT_MAX)
@@ -486,14 +546,154 @@ float FeatureTrainer::GetDefaultValue() const
 	return (Lo + Hi)/2;
 	}
 
-void FeatureTrainer::TrainQuantization(bool UndefOverlap)
+// Undefined value overloads a letter
+void FeatureTrainer::TrainInt_UndefOverlap()
 	{
-	SetFloatValues(true);
-	DSS::Quantize(m_FloatValues, m_AlphaSize, FLT_MAX, m_BinTs);
-	TrainLogOdds(true);
-	m_BestDefaultLetter = LogOdds::GetBestDefaultLetter(UINT_MAX);
-	m_BestDefaultValue = GetDefaultValue();
+	m_UndefStyle = "overlap";
 
-	SetFloatValues(false);
-	DSS::Quantize(m_FloatValues, m_AlphaSize, m_BestDefaultValue, m_BinTs);
+	// Construct scoring matrix ignoring undefineds
+	TrainLogOdds(true);
+
+	// Best letter has highest expected score vs other letters
+	m_BestDefaultLetter = LogOdds::GetBestDefaultLetter(UINT_MAX);
+	m_BestDefaultValue = FLT_MAX;
+	}
+
+// Undefined value overloads a letter
+void FeatureTrainer::TrainFloat_UndefOverlap()
+	{
+	m_UndefStyle = "overlap";
+	// Collect only defined values
+	SetFloatValues(true, FLT_MAX);
+
+	// Quantize defined values
+	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
+
+	// Construct scoring matrix ignoring undefineds
+	TrainLogOdds(true);
+
+	// Best letter has highest expected score vs other letters
+	m_BestDefaultLetter = LogOdds::GetBestDefaultLetter(UINT_MAX);
+
+	// Default value is midpoint of bin for m_BestDefaultLetter
+	m_BestDefaultValue = GetDefaultValue();
+	}
+
+// Undefined value has its own letter (value AS-1),
+//   leaving AS-1 other letters for defined values
+void FeatureTrainer::TrainFloat_UndefDistinct()
+	{
+	m_UndefStyle = "distinct";
+
+	// Collect all values
+	SetFloatValues(false, FLT_MAX);
+
+	// Quantize all values, undefineds will get their own bin
+	//   without special-casing
+	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
+	m_BestDefaultLetter = m_AlphaSize - 1;
+	m_BestDefaultValue = FLT_MAX;
+
+	// Train scoring matrix including undefineds
+	TrainLogOdds(false);
+	}
+
+// Undefined value has its own letter (value AS-1),
+//   leaving AS-1 other letters for defined values
+void FeatureTrainer::TrainInt_UndefDistinct()
+	{
+	m_UndefStyle = "distinct";
+
+	m_AlphaSize += 1;
+	// Train scoring matrix including undefineds
+	TrainLogOdds(false);
+
+	m_BestDefaultLetter = m_AlphaSize - 1;
+	m_BestDefaultValue = FLT_MAX;
+	}
+
+void FeatureTrainer::Quantize(const vector<float> &SortedValues,
+	uint AlphaSize, vector<float> &BinTs)
+	{
+	BinTs.clear();
+
+	const uint K = SIZE(SortedValues);
+	asserta(K > 0);
+	float MinValue = SortedValues[0];
+	float MaxValue = SortedValues[K-1];
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		{
+		uint k = ((i+1)*K)/AlphaSize;
+		float t = SortedValues[k];
+		if (i > 0)
+			{
+			if (feq(t, BinTs[i-1]))
+				Log("Quantize tie for bin thresholds %u,%u at %.3g\n",
+						i-1, i, t);
+			QuantizeUniques(SortedValues, AlphaSize, BinTs);
+			asserta(SIZE(BinTs) + 1 == AlphaSize);
+			return;
+			}
+		BinTs.push_back(t);
+		}
+	asserta(SIZE(BinTs) + 1 == AlphaSize);
+	}
+
+void FeatureTrainer::QuantizeUniques(const vector<float> &SortedValues,
+	uint AlphaSize, vector<float> &BinTs)
+	{
+	BinTs.clear();
+	vector<float> UniqueFloatValues;
+	vector<uint> UniqueFloatCounts;
+	
+	const uint N = SIZE(SortedValues);
+	asserta(N > 100);
+	float UniqueValue = SortedValues[0];
+	uint Count = 1;
+	for (uint i = 1; i < N; ++i)
+		{
+		float Value = SortedValues[i];
+		if (Value == UniqueValue)
+			++Count;
+		else
+			{
+			asserta(Value > UniqueValue);
+			UniqueFloatValues.push_back(UniqueValue);
+			UniqueFloatCounts.push_back(Count);
+			UniqueValue = Value;
+			Count = 1;
+			}
+		}
+	UniqueFloatValues.push_back(UniqueValue);
+	UniqueFloatCounts.push_back(Count);
+	uint UniqueValueCount = SIZE(UniqueFloatValues);
+	asserta(SIZE(UniqueFloatCounts) == UniqueValueCount);
+	asserta(UniqueValueCount >= AlphaSize);
+	uint TargetCountPerBin = uint(double(N)/AlphaSize + 0.5);
+	vector<float> TmpValues;
+	for (uint i = 0; i < UniqueValueCount; ++i)
+		{
+		float Value = UniqueFloatValues[i];
+		uint n = min(UniqueFloatCounts[i], TargetCountPerBin/2);
+		for (uint j = 0; j < n; ++j)
+			TmpValues.push_back(Value);
+		}
+
+	const uint K = SIZE(TmpValues);
+	asserta(K > 0);
+	float MinValue = TmpValues[0];
+	float MaxValue = TmpValues[K-1];
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		{
+		uint k = ((i+1)*K)/AlphaSize;
+		float t = TmpValues[k];
+		if (i > 0)
+			{
+			if (feq(t, BinTs[i-1]))
+				Die("QuantizeUniques tie for bin thresholds %u,%u at %.3g\n",
+						i-1, i, t);
+			}
+		BinTs.push_back(t);
+		}
+	asserta(SIZE(BinTs) + 1 == AlphaSize);
 	}
