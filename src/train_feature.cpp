@@ -4,10 +4,27 @@
 void cmd_train_feature()
 	{
 	asserta(optset_feature);
-//	asserta(optset_output);
 
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
+	asserta(optset_unaligned_background);
+	asserta(optset_undef_overlap);
+
+	bool UseUnalignedBackground = false;
+	if (string(opt(unaligned_background)) == "yes")
+		UseUnalignedBackground = true;
+	else if (string(opt(unaligned_background)) == "no")
+		UseUnalignedBackground = false;
+	else
+		Die("Invalid -unaligned_background %s", opt(unaligned_background));
+
+	bool UndefOverlap = false;
+	if (string(opt(undef_overlap)) == "yes")
+		UndefOverlap = true;
+	else if (string(opt(undef_overlap)) == "no")
+		UndefOverlap = false;
+	else
+		Die("Invalid -undef_overlap %s", opt(undef_overlap));
 
 	const string &AlnsFN = g_Arg1;
 	const string &ChainsFN = opt(db);
@@ -25,9 +42,10 @@ void cmd_train_feature()
 		}
 
 	FeatureTrainer FT;
+	FT.m_UseUnalignedBackground = UseUnalignedBackground;
 	FT.SetInput(ChainsFN, AlnsFN);
 	FT.SetFeature(F, AlphaSize);
 	if (!FeatureIsInt(F))
-		FT.TrainQuantization();
+		FT.TrainQuantization(UndefOverlap);
 	FT.TrainLogOdds(false);
 	}

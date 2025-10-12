@@ -40,7 +40,7 @@ public:
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
 	void ScoreMxFromTsv(FILE *f);
-	void TrainQuantization();
+	void TrainQuantization(bool UndefOverlap);
 	float GetDefaultValue() const;
 
 	void SetLabelToChainIndex();

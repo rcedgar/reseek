@@ -486,7 +486,7 @@ float FeatureTrainer::GetDefaultValue() const
 	return (Lo + Hi)/2;
 	}
 
-void FeatureTrainer::TrainQuantization()
+void FeatureTrainer::TrainQuantization(bool UndefOverlap)
 	{
 	SetFloatValues(true);
 	DSS::Quantize(m_FloatValues, m_AlphaSize, FLT_MAX, m_BinTs);

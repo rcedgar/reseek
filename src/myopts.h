@@ -64,6 +64,8 @@ STR_OPT(savebit)
 STR_OPT(aln)
 STR_OPT(filin)
 STR_OPT(rocsteps)
+STR_OPT(unaligned_background)
+STR_OPT(undef_overlap)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -141,7 +143,6 @@ FLAG_OPT(myalloc_exit_state)
 FLAG_OPT(idxq)
 FLAG_OPT(idxt)
 FLAG_OPT(onehitdiag)
-FLAG_OPT(eevalue)
 
 #undef FLAG_OPT
 #undef UNS_OPT
