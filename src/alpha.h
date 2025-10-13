@@ -72,4 +72,14 @@ static inline bool isgap(unsigned char c)
 	return c == '-' || c == '.';
 	}
 
+static inline bool isunaligned(unsigned char c)
+	{
+	return islower(c) || c == '.';
+	}
+
+static inline bool isaligned(unsigned char c)
+	{
+	return isupper(c) || c == '-';
+	}
+
 #endif // alpha_h

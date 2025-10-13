@@ -145,6 +145,7 @@ FLAG_OPT(idxq)
 FLAG_OPT(idxt)
 FLAG_OPT(onehitdiag)
 FLAG_OPT(force_undef)
+FLAG_OPT(retrainov)
 
 #undef FLAG_OPT
 #undef UNS_OPT

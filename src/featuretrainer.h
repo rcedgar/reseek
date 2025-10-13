@@ -21,7 +21,14 @@ public:
 
 	vector<string> m_AlnLabels;
 	vector<string> m_AlnRows;
-	vector<bool> m_TPs;
+	vector<uint> m_AlnChainIdxs;
+	vector<bool> m_AlnTPs;
+	vector<uint> m_GapOpens;
+	vector<bool> m_GapExts;
+	uint m_TPCount = UINT_MAX;
+	uint m_FPCount = UINT_MAX;
+
+	vector<float> m_AlnSubstScores;
 
 	DSS m_D;
 	vector<float> m_SortedFloatValues;
@@ -39,6 +46,8 @@ public:
 public:
 	void ReadChains(const string &ChainsFN);
 	void ReadAlns(const string &AlnsFN, bool TPs);
+	void AddAln(const string &Label1, const string &Row1,
+		const string &Label2, const string &Row2, bool TP);
 	void SetFeature(FEATURE F, uint AlphaSize);
 	void TrainLogOdds(bool IgnoreUndef);
 	void WriteSummary(FILE *f) const;
@@ -49,6 +58,8 @@ public:
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
 	void ScoreMxFromTsv(FILE *f);
+	uint GetUngappedLength(const string &Row) const;
+	void TruncLabel(string &Label);
 	
 	void TrainFloat_UndefOverlap();
 	void TrainFloat_UndefDistinct();
@@ -67,10 +78,16 @@ public:
 	void SetChainLetterSeqs();
 	void SetChainLetterSeqs_Float();
 	void SetChainLetterSeqs_Int();
+	void GetGapCounts(const string &Row1, const string &Row2,
+		uint &Opens, uint &Exts) const;
+	uint GetBestUndefLetter() const;
+
+	void SetAlnSubstScores();
+	float GetAlnSubstScore(uint AlnIdx);
 
 public:
-	static void Quantize(const vector<float> &Values, uint AlphaSize,
+	void Quantize(const vector<float> &Values, uint AlphaSize,
 		vector<float> &BinTs);
-	static void QuantizeUniques(const vector<float> &SortedValues,
+	void QuantizeUniques(const vector<float> &SortedValues,
 		uint AlphaSize, vector<float> &BinTs);
 	};
