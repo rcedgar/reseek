@@ -1,11 +1,6 @@
 #include "myutils.h"
 #include "dss.h"
 
-//////////////////////////////////////////////////////////
-// See also valuetoint.cpp
-// These bins are NOT used for alignments
-//////////////////////////////////////////////////////////
-
 void DSS::GetBins(FEATURE F, vector<float> &Bins)
 	{
 	Bins.clear();

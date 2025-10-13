@@ -4,6 +4,7 @@
 void cmd_train_feature()
 	{
 	asserta(optset_feature);
+	DSSParams::Init(DM_DefaultFast);
 
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());

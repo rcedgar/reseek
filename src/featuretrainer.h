@@ -13,6 +13,8 @@ public:
 	FEATURE m_F = FEATURE(-1);
 	const char *m_FeatureName = 0;
 	vector<PDBChain *> m_Chains;
+	vector<vector<float> > m_ChainFloatSeqVec;
+	vector<vector<uint> > m_ChainLetterSeqVec;
 	bool m_IsInt = false;
 	SeqDB m_Alns;
 	int8_t m_MaxAbsi8 = 20;
@@ -41,6 +43,7 @@ public:
 	void FreqsToSrc(FILE *f) const;
 	void ScoreMxToSrc(FILE *f) const;
 	void ScoreMxFromTsv(FILE *f);
+	
 	void TrainFloat_UndefOverlap();
 	void TrainFloat_UndefDistinct();
 	void TrainInt_UndefOverlap();
@@ -56,11 +59,16 @@ public:
 		uint UndefLetter);
 	float GetPctIdFromLabel(const string &Label) const;
 	float GetAQFromLabel(const string &Label) const;
+	void SetChainFloatSeqs(float ReplaceUndefValue);
+	void SetChainLetterSeqs();
+	void SetChainLetterSeqs_Float();
+	void SetChainLetterSeqs_Int();
 
 public:
 	static void Quantize(const vector<float> &Values, uint AlphaSize,
 		vector<float> &BinTs);
 	static void QuantizeUniques(const vector<float> &SortedValues,
 		uint AlphaSize, vector<float> &BinTs);
-
+	static uint ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
+		uint DefaultLetter);
 	};

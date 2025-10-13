@@ -33,6 +33,22 @@ static void TruncLabel(string &Label)
 		Label.resize(n);
 	}
 
+uint FeatureTrainer::ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
+	uint DefaultLetter)
+	{
+	if (Value == FLT_MAX)
+		{
+		asserta(DefaultLetter < AlphaSize || DefaultLetter == UINT_MAX);
+		return DefaultLetter;
+		}
+
+	asserta(SIZE(Ts) + 1 == AlphaSize);
+	for (uint i = 0; i + 1 < AlphaSize; ++i)
+		if (Value < Ts[i])
+			return i;
+	return AlphaSize - 1;
+	}
+
 void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 	{
 // Params
@@ -96,17 +112,94 @@ void FeatureTrainer::SetUnalignedBackground(bool IgnoreUndef)
 		}
 	}
 
+void FeatureTrainer::SetChainLetterSeqs()
+	{
+	if (m_IsInt)
+		SetChainLetterSeqs_Int();
+	else
+		SetChainLetterSeqs_Float();
+	}
+
+void FeatureTrainer::SetChainLetterSeqs_Int()
+	{
+	m_ChainLetterSeqVec.clear();
+	const uint ChainCount = SIZE(m_Chains);
+	m_ChainLetterSeqVec.resize(ChainCount);
+	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
+		{
+		ProgressStep(ChainIndex, ChainCount, "Letters %s", m_FeatureName);
+		vector<uint> &ChainLetterSeq = m_ChainLetterSeqVec[ChainIndex];
+		const PDBChain &Chain = *m_Chains[ChainIndex];
+		m_D.Init(Chain);
+		const uint L = Chain.GetSeqLength();
+		ChainLetterSeq.reserve(L);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			uint Letter = m_D.GetFeature(m_F, Pos);
+			asserta(Letter < m_AlphaSize);
+			ChainLetterSeq.push_back(Letter);
+			}
+		}
+	}
+
+void FeatureTrainer::SetChainLetterSeqs_Float()
+	{
+	m_ChainLetterSeqVec.clear();
+	const uint ChainCount = SIZE(m_Chains);
+	m_ChainLetterSeqVec.resize(ChainCount);
+	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
+		{
+		ProgressStep(ChainIndex, ChainCount, "Letters %s", m_FeatureName);
+		vector<float> &ChainFloatSeq = m_ChainFloatSeqVec[ChainIndex];
+		vector<uint> &ChainLetterSeq = m_ChainLetterSeqVec[ChainIndex];
+
+		const PDBChain &Chain = *m_Chains[ChainIndex];
+		const uint L = Chain.GetSeqLength();
+		ChainLetterSeq.reserve(L);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			float Value = ChainFloatSeq[Pos];
+			uint Letter = ValueToInt(Value, m_AlphaSize,
+			  m_BinTs, m_BestDefaultLetter);
+			asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
+			ChainLetterSeq.push_back(Letter);
+			}
+		}
+	}
+
+void FeatureTrainer::SetChainFloatSeqs(float ReplaceUndefValue)
+	{
+	m_ChainFloatSeqVec.clear();
+
+	const uint ChainCount = SIZE(m_Chains);
+	m_ChainFloatSeqVec.resize(ChainCount);
+	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
+		{
+		vector<float> &ChainFloatSeq = m_ChainFloatSeqVec[ChainIndex];
+		ProgressStep(ChainIndex, ChainCount, "Values %s", m_FeatureName);
+		const PDBChain &Chain = *m_Chains[ChainIndex];
+		m_D.Init(Chain);
+		const uint L = Chain.GetSeqLength();
+		ChainFloatSeq.reserve(L);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			float Value = m_D.GetFloatFeature(m_F, Pos);
+			if (Value == FLT_MAX)
+				Value = ReplaceUndefValue;
+			ChainFloatSeq.push_back(Value);
+			}
+		}
+	}
+
 void FeatureTrainer::SetFloatValues(bool IgnoreUndef,
 	float ReplaceUndefValue)
 	{
 	m_UndefCount = 0;
 	m_SortedFloatValues.clear();
 
-	DSSParams::Init(DM_DefaultFast);
 	const uint ChainCount = SIZE(m_Chains);
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
-		uint N = SIZE(m_SortedFloatValues);
 		ProgressStep(ChainIndex, ChainCount, "Values %s", m_FeatureName);
 		const PDBChain &Chain = *m_Chains[ChainIndex];
 		m_D.Init(Chain);
@@ -204,6 +297,12 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 	uint QChainIndex = iterq->second;
 	uint RChainIndex = iterr->second;
 
+	asserta(QChainIndex < SIZE(m_ChainLetterSeqVec));
+	asserta(RChainIndex < SIZE(m_ChainLetterSeqVec));
+
+	const vector<uint> &QLetterSeq = m_ChainLetterSeqVec[QChainIndex];
+	const vector<uint> &RLetterSeq = m_ChainLetterSeqVec[RChainIndex];
+
 	const PDBChain &QChain = *m_Chains[QChainIndex];
 	const PDBChain &RChain = *m_Chains[RChainIndex];
 
@@ -216,11 +315,8 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 
 	uint QL = QChain.GetSeqLength();
 	uint RL = RChain.GetSeqLength();
-
-	DSS DQ;
-	DSS DR;
-	DQ.Init(QChain);
-	DR.Init(RChain);
+	asserta(SIZE(QLetterSeq) == QL);
+	asserta(SIZE(RLetterSeq) == RL);
 
 	const string &QRow = m_Alns.GetSeq(2*PairIndex);
 	const string &RRow = m_Alns.GetSeq(2*PairIndex+1);
@@ -251,32 +347,12 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 		char r = RRow[Col];
 		if (!isgap(q) && !isgap(r))
 			{
-			uint LetterQ = UINT_MAX;
-			uint LetterR = UINT_MAX;
-			if (m_IsInt)
+			uint LetterQ = QLetterSeq[QPos];
+			uint LetterR = RLetterSeq[RPos];
+			if (IgnoreUndef)
 				{
-				LetterQ = DQ.GetFeature(m_F, QPos);
-				LetterR = DR.GetFeature(m_F, RPos);
-				
-				if (IgnoreUndef)
+				if (LetterQ != UINT_MAX && LetterR != UINT_MAX)
 					{
-					asserta(LetterQ < m_AlphaSize || LetterQ == UINT_MAX);
-					asserta(LetterR < m_AlphaSize || LetterR == UINT_MAX);
-					if (LetterQ != UINT_MAX && LetterR != UINT_MAX)
-						{
-						m_Lock.lock();
-						AddPair(LetterQ, LetterR);
-						m_Lock.unlock();
-						}
-					}
-				else
-					{
-					asserta(LetterQ < m_AlphaSize-1 || LetterQ == UINT_MAX);
-					asserta(LetterR < m_AlphaSize-1 || LetterR == UINT_MAX);
-					if (LetterQ == UINT_MAX)
-						LetterQ = m_AlphaSize - 1;
-					if (LetterR == UINT_MAX)
-						LetterR = m_AlphaSize - 1;
 					m_Lock.lock();
 					AddPair(LetterQ, LetterR);
 					m_Lock.unlock();
@@ -284,42 +360,11 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 				}
 			else
 				{
-				float ValueQ = DQ.GetFloatFeature(m_F, QPos);
-				float ValueR = DR.GetFloatFeature(m_F, RPos);
-
-				if (IgnoreUndef)
-					{
-					bool IgnoreQ = (ValueQ == FLT_MAX);
-					bool IgnoreR = (ValueR == FLT_MAX);
-					if (!IgnoreQ && !IgnoreR)
-						{
-						LetterQ = DSS::ValueToInt(ValueQ, m_AlphaSize,
-													m_BinTs, m_BestDefaultLetter);
-
-						LetterR = DSS::ValueToInt(ValueR, m_AlphaSize,
-													m_BinTs, m_BestDefaultLetter);
-						m_Lock.lock();
-						AddPair(LetterQ, LetterR);
-						m_Lock.unlock();
-						}
-					}
-				else
-					{
-					if (ValueQ == FLT_MAX)
-						ValueQ = m_BestDefaultValue;						
-					if (ValueR == FLT_MAX)
-						ValueR = m_BestDefaultValue;						
-					LetterQ = DSS::ValueToInt(ValueQ, m_AlphaSize,
-												m_BinTs, m_BestDefaultLetter);
-
-					LetterR = DSS::ValueToInt(ValueR, m_AlphaSize,
-												m_BinTs, m_BestDefaultLetter);
-					asserta(LetterQ < m_AlphaSize);
-					asserta(LetterR < m_AlphaSize);
-					m_Lock.lock();
-					AddPair(LetterQ, LetterR);
-					m_Lock.unlock();
-					}
+				asserta(LetterQ != UINT_MAX);
+				asserta(LetterR != UINT_MAX);
+				m_Lock.lock();
+				AddPair(LetterQ, LetterR);
+				m_Lock.unlock();
 				}
 			}
 		if (!isgap(q))
@@ -563,11 +608,16 @@ void FeatureTrainer::TrainInt_UndefOverlap()
 void FeatureTrainer::TrainFloat_UndefOverlap()
 	{
 	m_UndefStyle = "overlap";
+	m_BestDefaultLetter = UINT_MAX;
+	m_BestDefaultValue = FLT_MAX;
+
 	// Collect only defined values
 	SetFloatValues(true, FLT_MAX);
 
 	// Quantize defined values
 	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
+	SetChainFloatSeqs(FLT_MAX);
+	SetChainLetterSeqs_Float();
 
 	// Construct scoring matrix ignoring undefineds
 	TrainLogOdds(true);
@@ -584,6 +634,8 @@ void FeatureTrainer::TrainFloat_UndefOverlap()
 void FeatureTrainer::TrainFloat_UndefDistinct()
 	{
 	m_UndefStyle = "distinct";
+	m_BestDefaultLetter = m_AlphaSize - 1;
+	m_BestDefaultValue = FLT_MAX;
 
 	// Collect all values
 	SetFloatValues(false, FLT_MAX);
@@ -591,8 +643,8 @@ void FeatureTrainer::TrainFloat_UndefDistinct()
 	// Quantize all values, undefineds will get their own bin
 	//   without special-casing
 	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
-	m_BestDefaultLetter = m_AlphaSize - 1;
-	m_BestDefaultValue = FLT_MAX;
+	SetChainFloatSeqs(FLT_MAX);
+	SetChainLetterSeqs_Float();
 
 	// Train scoring matrix including undefineds
 	TrainLogOdds(false);
