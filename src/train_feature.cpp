@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "featuretrainer.h"
+#include "sort.h"
 
 void cmd_train_feature()
 	{
@@ -23,8 +24,18 @@ void cmd_train_feature()
 		Die("Invalid -unaligned_background %s", opt(unaligned_background));
 
 	bool UndefOverlap = false;
+	bool RetrainOverlap = false;
 	if (string(opt(undef_overlap)) == "yes")
+		{
 		UndefOverlap = true;
+		asserta(optset_retrain_overlap);
+		if (string(opt(retrain_overlap)) == "yes")
+			RetrainOverlap = true;
+		else if (string(opt(retrain_overlap)) == "no")
+			RetrainOverlap = false;
+		else
+			Die("Invalid -retrain_overlap %s", opt(retrain_overlap));
+		}
 	else if (string(opt(undef_overlap)) == "no")
 		UndefOverlap = false;
 	else
@@ -60,7 +71,11 @@ void cmd_train_feature()
 	else
 		{
 		if (UndefOverlap)
+			{
 			FT.TrainFloat_UndefOverlap();
+			if (RetrainOverlap)
+				FT.TrainLogOdds(false);
+			}
 		else
 			FT.TrainFloat_UndefDistinct();
 		}
@@ -89,7 +104,23 @@ void cmd_train_feature()
 	ProgressLog("Best area %.4f, open %.4g, ext %.4g\n",
 		BestArea, BestGapOpen, BestGapExt);
 
-	FT.OptimizeGapPenalties();
+	vector<float> Areas;
+	const int ITERS = 3;
+	for (int Iter = 0; Iter < ITERS; ++Iter)
+		{
+		FT.OptimizeGapPenalties();
+		Areas.push_back(FT.m_Area);
+		}
+
+	vector<uint> Order(ITERS);
+	QuickSortOrder(Areas.data(), ITERS, Order.data());
+	ProgressLog("Areas: ");
+	for (int Iter = 0; Iter < ITERS; ++Iter)
+		{
+		uint k = Order[Iter];
+		ProgressLog(" %.3f", Areas[k]);
+		}
+	ProgressLog("\n");
 
 	FT.ToTsv(opt(output));
 	vector<vector<float> > ScoreMx;

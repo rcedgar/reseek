@@ -705,16 +705,9 @@ void FeatureTrainer::TrainFloat_UndefOverlap()
 	// Default value is midpoint of bin for m_BestDefaultLetter
 	m_BestDefaultValue = GetDefaultValue();
 
-	if (!opt(retrainov))
-		return;
-
-	// Collect all values
 	SetFloatValues(false, m_BestDefaultValue);
 	SetChainFloatSeqs(m_BestDefaultValue);
 	SetChainLetterSeqs_Float();
-
-	// Construct scoring matrix with undefineds
-	TrainLogOdds(false);
 	}
 
 // Undefined value has its own letter (value AS-1),
