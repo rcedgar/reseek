@@ -44,7 +44,8 @@ void cmd_train_feature()
 
 	FeatureTrainer FT;
 	FT.m_UseUnalignedBackground = UseUnalignedBackground;
-	FT.SetInput(ChainsFN, AlnsFN);
+	FT.ReadChains(ChainsFN);
+	FT.ReadAlns(AlnsFN, true);
 	FT.SetFeature(F, AlphaSize);
 	if (FeatureIsInt(F))
 		{

@@ -12,28 +12,34 @@ class FeatureTrainer : public LogOdds
 public:
 	FEATURE m_F = FEATURE(-1);
 	const char *m_FeatureName = 0;
+	bool m_IsInt = false;
+	string m_UndefStyle = "ERROR";
 	vector<PDBChain *> m_Chains;
 	vector<vector<float> > m_ChainFloatSeqVec;
 	vector<vector<uint> > m_ChainLetterSeqVec;
-	bool m_IsInt = false;
-	SeqDB m_Alns;
-	int8_t m_MaxAbsi8 = 20;
-	vector<float> m_SortedFloatValues;
-	uint m_UndefCount = 0;
-	vector<uint> m_Letters;
 	map<string, uint> m_LabelToChainIndex;
-	vector<float> m_BinTs;
+
+	vector<string> m_AlnLabels;
+	vector<string> m_AlnRows;
+	vector<bool> m_TPs;
+
 	DSS m_D;
+	vector<float> m_SortedFloatValues;
+	vector<uint> m_Letters;
+	uint m_UndefCount = 0;
+
+	int8_t m_MaxAbsi8 = 20;
+	vector<float> m_BinTs;
 	uint m_BestDefaultLetter = UINT_MAX;
 	float m_BestDefaultValue = FLT_MAX;
-	mutex m_Lock;
-	uint m_Counter = UINT_MAX;
 	vector<vector<float> > m_ScoreMx;
-	string m_UndefStyle = "ERROR";
+
+	mutex m_Lock;
 
 public:
+	void ReadChains(const string &ChainsFN);
+	void ReadAlns(const string &AlnsFN, bool TPs);
 	void SetFeature(FEATURE F, uint AlphaSize);
-	void SetInput(const string &ChainsFN, const string &AlnsFN);
 	void TrainLogOdds(bool IgnoreUndef);
 	void WriteSummary(FILE *f) const;
 	void ToTsv(const string &FN) const;
@@ -57,8 +63,6 @@ public:
 	void SetUnalignedBackground(bool IgnoreUndef);
 	void SetUnalignedBackgroundChain(const PDBChain &Chain,
 		uint UndefLetter);
-	float GetPctIdFromLabel(const string &Label) const;
-	float GetAQFromLabel(const string &Label) const;
 	void SetChainFloatSeqs(float ReplaceUndefValue);
 	void SetChainLetterSeqs();
 	void SetChainLetterSeqs_Float();
@@ -69,6 +73,4 @@ public:
 		vector<float> &BinTs);
 	static void QuantizeUniques(const vector<float> &SortedValues,
 		uint AlphaSize, vector<float> &BinTs);
-	static uint ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
-		uint DefaultLetter);
 	};

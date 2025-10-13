@@ -119,8 +119,8 @@ public:
 public:
 	static uint ValueToInt_Feature(FEATURE F, float Value);
 
-	static uint ValueToInt(float Value, uint AlphaSize,
-						   const vector<float> &Ts, uint DefaultLetter);
+	//static uint ValueToInt(float Value, uint AlphaSize,
+	//					   const vector<float> &Ts, uint DefaultLetter);
 
 	static const float *GetFreqVec(FEATURE F);
 	static const float * const *GetFreqMx(FEATURE F);

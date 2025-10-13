@@ -739,6 +739,9 @@
     <ClInclude Include="alncounters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="valuetointtpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">

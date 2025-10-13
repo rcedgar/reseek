@@ -1,6 +1,8 @@
 #include "myutils.h"
 #include "featuretrainer.h"
+#include "sfasta.h"
 #include "alpha.h"
+#include "valuetointtpl.h"
 
 static uint GetUngappedLength(const string &Row)
 	{
@@ -12,16 +14,8 @@ static uint GetUngappedLength(const string &Row)
 	return L;
 	}
 
-// d1a0rp__P
-// 012345678
 static void TruncLabel(string &Label)
 	{
-	//size_t k = Label.size();
-	//if (k == 9 && Label[7] == '_' && isupper(Label[8]))
-	//	{
-	//	Label.resize(7);
-	//	return;
-	//	}
 	size_t n = Label.find(' ');
 	if (n != string::npos)
 		Label.resize(n);
@@ -33,29 +27,61 @@ static void TruncLabel(string &Label)
 		Label.resize(n);
 	}
 
-uint FeatureTrainer::ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
-	uint DefaultLetter)
-	{
-	if (Value == FLT_MAX)
-		{
-		asserta(DefaultLetter < AlphaSize || DefaultLetter == UINT_MAX);
-		return DefaultLetter;
-		}
+//uint FeatureTrainer::ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
+//	uint DefaultLetter)
+//	{
+//	if (Value == FLT_MAX)
+//		{
+//		asserta(DefaultLetter < AlphaSize || DefaultLetter == UINT_MAX);
+//		return DefaultLetter;
+//		}
+//
+//	asserta(SIZE(Ts) + 1 == AlphaSize);
+//	for (uint i = 0; i + 1 < AlphaSize; ++i)
+//		if (Value < Ts[i])
+//			return i;
+//	return AlphaSize - 1;
+//	}
 
-	asserta(SIZE(Ts) + 1 == AlphaSize);
-	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		if (Value < Ts[i])
-			return i;
-	return AlphaSize - 1;
+void FeatureTrainer::ReadChains(const string &ChainsFN)
+	{
+	::ReadChains(ChainsFN, m_Chains);
+	SetLabelToChainIndex();
 	}
 
-void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
+void FeatureTrainer::ReadAlns(const string &FN, bool TPs)
 	{
-// Params
-	optset_fast = true;
-	opt(fast) = true;
-	DSSParams::Init(DM_DefaultFast);
-	m_MaxAbsi8 = 20;
+	SFasta SF;
+	SF.Open(FN);
+	SF.m_AllowGaps = true;
+
+	bool Row1 = true;
+	for (;;)
+		{
+		const char* Seq = SF.GetNextSeq();
+		if (Seq == 0)
+			break;
+		const string Label = SF.GetLabel();
+		const unsigned L = SF.GetSeqLength();
+		asserta(L != 0);
+		string s;
+		for (unsigned i = 0; i < L; ++i)
+			s.push_back(Seq[i]);
+		m_AlnLabels.push_back(Label);
+		m_AlnRows.push_back(s);
+		if (!Row1)
+			{
+			m_TPs.push_back(TPs);
+			uint n = SIZE(m_AlnRows);
+			if (SIZE(m_AlnRows[n-1]) != L)
+				Die("Not aligned %s", FN.c_str());
+			}
+		Row1 = !Row1;
+		}
+	}
+
+void FeatureTrainer::SetFeature(FEATURE F, uint AlphaSize)
+	{
 	if (optset_maxi8)
 		{
 		uint Max = opt(maxi8);
@@ -63,18 +89,6 @@ void FeatureTrainer::SetInput(const string &ChainsFN, const string &AlnsFN)
 		asserta(uint(m_MaxAbsi8) == Max);
 		}
 
-// Chains
-	ReadChains(ChainsFN, m_Chains);
-	SetLabelToChainIndex();
-
-// Alignments
-	m_Alns.FromFasta(AlnsFN, true);
-	}
-
-void FeatureTrainer::SetFeature(FEATURE F, uint AlphaSize)
-	{
-	asserta(!m_Chains.empty());
-	asserta(m_Alns.GetSeqCount() > 0);
 	m_F = F;
 	m_FeatureName = FeatureToStr(F);
 	m_IsInt = FeatureIsInt(F);
@@ -94,8 +108,10 @@ void FeatureTrainer::SetUnalignedBackgroundChain(const PDBChain &Chain,
 		else
 			{
 			float Value = m_D.GetFloatFeature(m_F, Pos);
-			Letter = DSS::ValueToInt(Value, m_AlphaSize,
-				m_BinTs, UndefLetter);
+
+			// Allow undefined letters, AddUnalignedLetter will ignore
+			Letter = ValueToIntTpl<true>(
+				Value, m_AlphaSize, m_BinTs, UndefLetter);
 			}
 		AddUnalignedLetter(Letter);
 		}
@@ -159,8 +175,8 @@ void FeatureTrainer::SetChainLetterSeqs_Float()
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			float Value = ChainFloatSeq[Pos];
-			uint Letter = ValueToInt(Value, m_AlphaSize,
-			  m_BinTs, m_BestDefaultLetter);
+			uint Letter = ValueToIntTpl<true>(
+				Value, m_AlphaSize, m_BinTs, m_BestDefaultLetter);
 			asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
 			ChainLetterSeq.push_back(Letter);
 			}
@@ -234,57 +250,21 @@ void FeatureTrainer::SetLabelToChainIndex()
 		}
 	}
 
-// >d1gaia_/a.102.1.1|E=0.908|Id=21.3%|TS=0.1274|AQ=0.6715|d3p2ca_/a.102.1.8
-float FeatureTrainer::GetPctIdFromLabel(const string &Label) const
-	{
-	vector<string> Fields;
-	Split(Label, Fields, '|');
-	for (uint i = 0; i < SIZE(Fields); ++i)
-		{
-		const string &Field = Fields[i];
-		if (StartsWith(Field, "Id="))
-			{
-			vector<string> Fields2;
-			Split(Field, Fields2, '=');
-			asserta(SIZE(Fields2) == 2);
-			string sPctId = Fields2[1];
-			if (EndsWith(sPctId, "%"))
-				sPctId = sPctId.substr(0, sPctId.size()-1);
-			float PctId = (float) StrToFloat(sPctId);
-			asserta(PctId > 0 && PctId <= 100);
-			return PctId;
-			}
-		}
-	Die("Id= not found in >%s", Label.c_str());
-	return FLT_MAX;
-	}
-
-float FeatureTrainer::GetAQFromLabel(const string &Label) const
-	{
-	vector<string> Fields;
-	Split(Label, Fields, '|');
-	for (uint i = 0; i < SIZE(Fields); ++i)
-		{
-		const string &Field = Fields[i];
-		if (StartsWith(Field, "AQ="))
-			{
-			vector<string> Fields2;
-			Split(Field, Fields2, '=');
-			asserta(SIZE(Fields2) == 2);
-			string sAQ = Fields2[1];
-			float AQ = (float) StrToFloat(sAQ);
-			asserta(AQ >= 0 && AQ <= 1);
-			return AQ;
-			}
-		}
-	Die("AQ= not found in >%s", Label.c_str());
-	return FLT_MAX;
-	}
-
 void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 	{
-	string QLabel = m_Alns.GetLabel(2*PairIndex);
-	string RLabel = m_Alns.GetLabel(2*PairIndex+1);
+	asserta(PairIndex < SIZE(m_TPs));
+	if (!m_TPs[PairIndex])
+		return;
+
+	asserta(2*PairIndex+1 < SIZE(m_AlnLabels));
+	asserta(2*PairIndex+1 < SIZE(m_AlnRows));
+
+	string QLabel = m_AlnLabels[2*PairIndex];
+	string RLabel = m_AlnLabels[2*PairIndex+1];
+
+	const string &QRow = m_AlnRows[2*PairIndex];
+	const string &RRow = m_AlnRows[2*PairIndex+1];
+
 	TruncLabel(QLabel);
 	TruncLabel(RLabel);
 
@@ -318,8 +298,6 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 	asserta(SIZE(QLetterSeq) == QL);
 	asserta(SIZE(RLetterSeq) == RL);
 
-	const string &QRow = m_Alns.GetSeq(2*PairIndex);
-	const string &RRow = m_Alns.GetSeq(2*PairIndex+1);
 
 	uint QL2 = GetUngappedLength(QRow);
 	uint RL2 = GetUngappedLength(RRow);
@@ -376,18 +354,14 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 
 void FeatureTrainer::TrainLogOdds(bool IgnoreUndef)
 	{
-	const uint SeqCount = m_Alns.GetSeqCount();
+	const uint SeqCount = SIZE(m_AlnLabels);
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
 	const uint PairCount = SeqCount/2;
-	m_Counter = 0;
 //#pragma omp parallel for
 	for (int PairIndex = 0; PairIndex < int(PairCount); ++PairIndex)
 		{
-		m_Lock.lock();
-		uint Count = m_Counter++;
-		m_Lock.unlock();
-		ProgressStep(Count, PairCount, "Joint frequencies %s(%u)",
+		ProgressStep(PairIndex, PairCount, "Joint frequencies %s(%u)",
 					 m_FeatureName, m_AlphaSize);
 		UpdateJointCounts(PairIndex, IgnoreUndef);
 		}
@@ -662,90 +636,4 @@ void FeatureTrainer::TrainInt_UndefDistinct()
 
 	m_BestDefaultLetter = m_AlphaSize - 1;
 	m_BestDefaultValue = FLT_MAX;
-	}
-
-void FeatureTrainer::Quantize(const vector<float> &SortedValues,
-	uint AlphaSize, vector<float> &BinTs)
-	{
-	BinTs.clear();
-
-	const uint K = SIZE(SortedValues);
-	asserta(K > 0);
-	float MinValue = SortedValues[0];
-	float MaxValue = SortedValues[K-1];
-	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		{
-		uint k = ((i+1)*K)/AlphaSize;
-		float t = SortedValues[k];
-		if (i > 0)
-			{
-			if (feq(t, BinTs[i-1]))
-				Log("Quantize tie for bin thresholds %u,%u at %.3g\n",
-						i-1, i, t);
-			QuantizeUniques(SortedValues, AlphaSize, BinTs);
-			asserta(SIZE(BinTs) + 1 == AlphaSize);
-			return;
-			}
-		BinTs.push_back(t);
-		}
-	asserta(SIZE(BinTs) + 1 == AlphaSize);
-	}
-
-void FeatureTrainer::QuantizeUniques(const vector<float> &SortedValues,
-	uint AlphaSize, vector<float> &BinTs)
-	{
-	BinTs.clear();
-	vector<float> UniqueFloatValues;
-	vector<uint> UniqueFloatCounts;
-	
-	const uint N = SIZE(SortedValues);
-	asserta(N > 100);
-	float UniqueValue = SortedValues[0];
-	uint Count = 1;
-	for (uint i = 1; i < N; ++i)
-		{
-		float Value = SortedValues[i];
-		if (Value == UniqueValue)
-			++Count;
-		else
-			{
-			asserta(Value > UniqueValue);
-			UniqueFloatValues.push_back(UniqueValue);
-			UniqueFloatCounts.push_back(Count);
-			UniqueValue = Value;
-			Count = 1;
-			}
-		}
-	UniqueFloatValues.push_back(UniqueValue);
-	UniqueFloatCounts.push_back(Count);
-	uint UniqueValueCount = SIZE(UniqueFloatValues);
-	asserta(SIZE(UniqueFloatCounts) == UniqueValueCount);
-	asserta(UniqueValueCount >= AlphaSize);
-	uint TargetCountPerBin = uint(double(N)/AlphaSize + 0.5);
-	vector<float> TmpValues;
-	for (uint i = 0; i < UniqueValueCount; ++i)
-		{
-		float Value = UniqueFloatValues[i];
-		uint n = min(UniqueFloatCounts[i], TargetCountPerBin/2);
-		for (uint j = 0; j < n; ++j)
-			TmpValues.push_back(Value);
-		}
-
-	const uint K = SIZE(TmpValues);
-	asserta(K > 0);
-	float MinValue = TmpValues[0];
-	float MaxValue = TmpValues[K-1];
-	for (uint i = 0; i + 1 < AlphaSize; ++i)
-		{
-		uint k = ((i+1)*K)/AlphaSize;
-		float t = TmpValues[k];
-		if (i > 0)
-			{
-			if (feq(t, BinTs[i-1]))
-				Die("QuantizeUniques tie for bin thresholds %u,%u at %.3g\n",
-						i-1, i, t);
-			}
-		BinTs.push_back(t);
-		}
-	asserta(SIZE(BinTs) + 1 == AlphaSize);
 	}

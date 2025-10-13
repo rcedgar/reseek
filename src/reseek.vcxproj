@@ -488,6 +488,7 @@
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />
+    <ClInclude Include="valuetointtpl.h" />
     <ClInclude Include="xdpmem.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />
