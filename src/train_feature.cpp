@@ -65,6 +65,30 @@ void cmd_train_feature()
 			FT.TrainFloat_UndefDistinct();
 		}
 	FT.SetAlnSubstScores();
+
+	float MinGapOpen = -0.2;
+	float MinGapExt = -0.2;
+	float dGapOpen = 0.2;
+	float dGapExt = 0.05;
+	float BestArea = 0;
+	float BestGapOpen = 0;
+	float BestGapExt = 0;
+	for (uint i = 0; i < 10; ++i)
+		for (uint j = 0; j < 10; ++j)
+			{
+			float GapOpen = MinGapOpen + i*dGapOpen;
+			float GapExt = MinGapExt + j*dGapExt;
+			FT.SetAlnScoresAndArea(GapOpen, GapExt);
+			if (FT.m_Area > BestArea)
+				{
+				BestArea = FT.m_Area;
+				BestGapOpen = GapOpen;
+				BestGapExt = GapExt;
+				}
+			}
+	ProgressLog("Best area %.4f, open %.4g, ext %.4g\n",
+		BestArea, BestGapOpen, BestGapExt);
+
 	FT.ToTsv(opt(output));
 	vector<vector<float> > ScoreMx;
 	float ES = FT.GetLogOddsMx(ScoreMx);

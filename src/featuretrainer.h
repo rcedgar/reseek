@@ -23,12 +23,18 @@ public:
 	vector<string> m_AlnRows;
 	vector<uint> m_AlnChainIdxs;
 	vector<bool> m_AlnTPs;
-	vector<uint> m_GapOpens;
-	vector<bool> m_GapExts;
-	uint m_TPCount = UINT_MAX;
-	uint m_FPCount = UINT_MAX;
+	vector<uint> m_AlnOpenCounts;
+	vector<uint> m_AlnExtCounts;
+	uint m_TPCount = 0;
+	uint m_FPCount = 0;
 
 	vector<float> m_AlnSubstScores;
+	vector<float> m_AlnScores;
+
+	vector<float> m_ROCStepScores;
+	vector<float> m_ROCStepTPfs;
+	vector<float> m_ROCStepFPfs;
+	vector<uint> m_ROCOrder;
 
 	DSS m_D;
 	vector<float> m_SortedFloatValues;
@@ -40,6 +46,10 @@ public:
 	uint m_BestDefaultLetter = UINT_MAX;
 	float m_BestDefaultValue = FLT_MAX;
 	vector<vector<float> > m_ScoreMx;
+
+	float m_OpenPenalty = FLT_MAX;
+	float m_ExtPenalty = FLT_MAX;
+	float m_Area = FLT_MAX;
 
 	mutex m_Lock;
 
@@ -67,7 +77,7 @@ public:
 	void TrainInt_UndefDistinct();
 	float GetDefaultValue() const;
 	float GetMaxDefinedValue() const;
-
+		
 	void SetLabelToChainIndex();
 	void SetFloatValues(bool IgnoreUndef, float ReplaceUndefValue);
 	void UpdateJointCounts(uint PairIndex, bool IgnoreUndef);
@@ -84,6 +94,12 @@ public:
 
 	void SetAlnSubstScores();
 	float GetAlnSubstScore(uint AlnIdx);
+	void SetAlnScoresAndArea(float OpenPenalty, float ExtPenalty);
+
+	uint GetAlnCount() const { return SIZE(m_AlnTPs); }
+
+	void LogROCStepsAndArea();
+	void SetArea();
 
 public:
 	void Quantize(const vector<float> &Values, uint AlphaSize,

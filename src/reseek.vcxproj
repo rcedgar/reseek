@@ -473,6 +473,7 @@
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
+    <ClInclude Include="round3sigfig.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqfeeder.h" />

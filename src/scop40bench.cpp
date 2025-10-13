@@ -8,6 +8,7 @@
 #include "sort.h"
 #include "output.h"
 #include "statsig.h"
+#include "round3sigfig.h"
 #include <algorithm>
 #include <random>
 #include <thread>
@@ -477,14 +478,6 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	else
 		WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
 	CloseStdioFile(f);
-	}
-
-static float round3sigfig(float x)
-	{
-	char s[16];
-	sprintf(s, "%.3g", x);
-	float rounded = (float) atof(s);
-	return rounded;
 	}
 
 void SCOP40Bench::RoundScores()

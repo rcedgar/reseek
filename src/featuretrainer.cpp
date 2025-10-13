@@ -3,7 +3,9 @@
 #include "sfasta.h"
 #include "alpha.h"
 #include "valuetointtpl.h"
+#include "round3sigfig.h"
 #include "quarts.h"
+#include "sort.h"
 
 uint FeatureTrainer::GetUngappedLength(const string &Row) const
 	{
@@ -57,6 +59,8 @@ void FeatureTrainer::GetGapCounts(const string &Row1, const string &Row2,
 				++Opens;
 				}
 			}
+		else
+			InGap = false;
 		}
 	}
 
@@ -85,13 +89,14 @@ void FeatureTrainer::AddAln(const string &Label1, const string &Row1,
 	m_AlnChainIdxs.push_back(ChainIdx2);
 	uint Opens, Exts;
 	GetGapCounts(Row1, Row2, Opens, Exts);
-	m_GapOpens.push_back(Opens);
-	m_GapExts.push_back(Exts);
+	m_AlnOpenCounts.push_back(Opens);
+	m_AlnExtCounts.push_back(Exts);
 	m_AlnTPs.push_back(TP);
 	if (TP)
 		++m_TPCount;
 	else
 		++m_FPCount;
+	asserta(SIZE(m_AlnTPs) == m_TPCount + m_FPCount);
 	}
 
 void FeatureTrainer::ReadAlns(const string &FN, bool TP)
@@ -133,8 +138,8 @@ void FeatureTrainer::ReadAlns(const string &FN, bool TP)
 	asserta(N%2 == 0);
 	asserta(SIZE(m_AlnChainIdxs) == N);
 	asserta(SIZE(m_AlnTPs) == N/2);
-	asserta(SIZE(m_GapOpens) == N/2);
-	asserta(SIZE(m_GapExts) == N/2);
+	asserta(SIZE(m_AlnOpenCounts) == N/2);
+	asserta(SIZE(m_AlnExtCounts) == N/2);
 	}
 
 void FeatureTrainer::SetFeature(FEATURE F, uint AlphaSize)
@@ -823,4 +828,148 @@ float FeatureTrainer::GetAlnSubstScore(uint AlnIdx)
 	asserta(QPos == SIZE(QLetterSeq));
 	asserta(RPos == SIZE(RLetterSeq));
 	return Score;
+	}
+
+void FeatureTrainer::SetAlnScoresAndArea(float OpenPenalty, float ExtPenalty)
+	{
+	m_OpenPenalty = OpenPenalty;
+	m_ExtPenalty = ExtPenalty;
+
+	const uint AlnCount = SIZE(m_AlnTPs);
+	asserta(SIZE(m_AlnSubstScores) == AlnCount);
+	asserta(SIZE(m_AlnOpenCounts) == AlnCount);
+	asserta(SIZE(m_AlnExtCounts) == AlnCount);
+	m_AlnScores.clear();
+	m_AlnScores.reserve(AlnCount);
+	for (uint AlnIdx = 0; AlnIdx < AlnCount; ++AlnIdx)
+		{
+		float Score = m_AlnSubstScores[AlnIdx];
+		Score -= m_AlnOpenCounts[AlnIdx]*OpenPenalty;
+		Score -= m_AlnExtCounts[AlnIdx]*ExtPenalty;
+		Score = round3sigfig(Score);
+		m_AlnScores.push_back(Score);
+		}
+	SetArea();
+
+	ProgressLog("Open %8.3g  Ext %8.3g  Area %6.4f\n",
+		m_OpenPenalty, m_ExtPenalty, m_Area);
+	}
+
+void FeatureTrainer::LogROCStepsAndArea()
+	{
+	m_Area = 0;
+	m_ROCStepScores.clear();
+	m_ROCStepTPfs.clear();
+	m_ROCStepFPfs.clear();
+	m_ROCOrder.clear();
+
+	const uint AlnCount = GetAlnCount();
+	asserta(AlnCount == m_TPCount + m_FPCount);
+	asserta(m_TPCount > 0);
+	asserta(m_FPCount > 0);
+
+	m_ROCStepScores.reserve(AlnCount);
+	m_ROCStepTPfs.reserve(AlnCount);
+	m_ROCStepFPfs.reserve(AlnCount);
+
+	m_ROCOrder.resize(AlnCount);
+	QuickSortOrderDesc(m_AlnScores.data(), AlnCount, m_ROCOrder.data());
+
+	uint NTP = 0;
+	uint NFP = 0;
+	float PrevTPf = 0;
+	float PrevFPf = 0;
+	float CurrentScore = m_AlnScores[m_ROCOrder[0]];
+	for (uint k = 0; k < AlnCount; ++k)
+		{
+		uint i = m_ROCOrder[k];
+		float Score = m_AlnScores[i];
+		bool TP = m_AlnTPs[i];
+		if (Score != CurrentScore)
+			{
+			float TPf = float(NTP)/m_TPCount;
+			float FPf = float(NFP)/m_FPCount;
+			m_Area += TPf*(FPf - PrevFPf);
+			m_ROCStepScores.push_back(CurrentScore);
+			m_ROCStepTPfs.push_back(TPf);
+			m_ROCStepFPfs.push_back(FPf);
+			CurrentScore = Score;
+			PrevTPf = TPf;
+			PrevFPf = FPf;
+			}
+		if (TP)
+			++NTP;
+		else
+			++NFP;
+		}
+	asserta(NTP == m_TPCount);
+	asserta(NFP == m_FPCount);
+	asserta(NTP > 0);
+	asserta(NFP > 0);
+
+	float TPf = float(NTP)/m_TPCount;
+	float FPf = float(NFP)/m_FPCount;
+	m_ROCStepScores.push_back(CurrentScore);
+	m_ROCStepTPfs.push_back(TPf);
+	m_ROCStepFPfs.push_back(FPf);
+	m_Area += TPf*(FPf - PrevFPf);
+
+	const uint StepCount = SIZE(m_ROCStepTPfs);
+	asserta(SIZE(m_ROCStepFPfs) == StepCount);
+	asserta(SIZE(m_ROCStepScores) == StepCount);
+
+	Log("\n");
+	Log("SetROCSteps() %u steps\n", StepCount);
+	Log("%8.8s  %10.10s  %10.10s\n", "Score", "NTP", "NFP");
+	for (uint StepIdx = 0; StepIdx < StepCount; ++StepIdx)
+		{
+		float Score = m_ROCStepScores[StepIdx];
+		float TPf = m_ROCStepTPfs[StepIdx];
+		float FPf = m_ROCStepFPfs[StepIdx];
+		Log("%.3g\t%.3g\t%.3g\n", Score, TPf, FPf);
+		}
+	Log("Area = %.3g\n", m_Area);
+	}
+
+void FeatureTrainer::SetArea()
+	{
+	m_Area = 0;
+	const uint AlnCount = GetAlnCount();
+	uint *Order = myalloc(uint, AlnCount);
+	QuickSortOrderDesc(m_AlnScores.data(), AlnCount, Order);
+
+	uint NTP = 0;
+	uint NFP = 0;
+	float PrevTPf = 0;
+	float PrevFPf = 0;
+	float CurrentScore = m_AlnScores[Order[0]];
+	for (uint k = 0; k < AlnCount; ++k)
+		{
+		uint i = Order[k];
+		float Score = m_AlnScores[i];
+		bool TP = m_AlnTPs[i];
+		if (Score != CurrentScore)
+			{
+			float TPf = float(NTP)/m_TPCount;
+			float FPf = float(NFP)/m_FPCount;
+			m_Area += TPf*(FPf - PrevFPf);
+			CurrentScore = Score;
+			PrevTPf = TPf;
+			PrevFPf = FPf;
+			}
+		if (TP)
+			++NTP;
+		else
+			++NFP;
+		}
+	myfree(Order);
+	Order = 0;
+	asserta(NTP == m_TPCount);
+	asserta(NFP == m_FPCount);
+	asserta(NTP > 0);
+	asserta(NFP > 0);
+
+	float TPf = float(NTP)/m_TPCount;
+	float FPf = float(NFP)/m_FPCount;
+	m_Area += TPf*(FPf - PrevFPf);
 	}
