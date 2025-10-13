@@ -5,6 +5,7 @@
 #include "seqdb.h"
 #include "dss.h"
 #include "logodds.h"
+#include "peaker.h"
 
 // FeatureTrainer and Trainer should be merged
 class FeatureTrainer : public LogOdds
@@ -50,6 +51,8 @@ public:
 	float m_OpenPenalty = FLT_MAX;
 	float m_ExtPenalty = FLT_MAX;
 	float m_Area = FLT_MAX;
+
+	Peaker m_Peaker;
 
 	mutex m_Lock;
 
@@ -101,9 +104,13 @@ public:
 	void LogROCStepsAndArea();
 	void SetArea();
 
+	void OptimizeGapPenalties();
+
 public:
 	void Quantize(const vector<float> &Values, uint AlphaSize,
 		vector<float> &BinTs);
 	void QuantizeUniques(const vector<float> &SortedValues,
 		uint AlphaSize, vector<float> &BinTs);
+	
+	static double EvalArea(const vector<double> &xv);
 	};

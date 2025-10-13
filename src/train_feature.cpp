@@ -89,6 +89,8 @@ void cmd_train_feature()
 	ProgressLog("Best area %.4f, open %.4g, ext %.4g\n",
 		BestArea, BestGapOpen, BestGapExt);
 
+	FT.OptimizeGapPenalties();
+
 	FT.ToTsv(opt(output));
 	vector<vector<float> > ScoreMx;
 	float ES = FT.GetLogOddsMx(ScoreMx);

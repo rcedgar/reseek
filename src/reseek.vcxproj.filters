@@ -431,6 +431,12 @@
     <ClCompile Include="train_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="peaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -743,6 +749,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="round3sigfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="peaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="varspec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

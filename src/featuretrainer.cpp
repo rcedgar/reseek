@@ -850,9 +850,6 @@ void FeatureTrainer::SetAlnScoresAndArea(float OpenPenalty, float ExtPenalty)
 		m_AlnScores.push_back(Score);
 		}
 	SetArea();
-
-	ProgressLog("Open %8.3g  Ext %8.3g  Area %6.4f\n",
-		m_OpenPenalty, m_ExtPenalty, m_Area);
 	}
 
 void FeatureTrainer::LogROCStepsAndArea()
@@ -972,4 +969,34 @@ void FeatureTrainer::SetArea()
 	float TPf = float(NTP)/m_TPCount;
 	float FPf = float(NFP)/m_FPCount;
 	m_Area += TPf*(FPf - PrevFPf);
+	}
+
+static FeatureTrainer *s_FT;
+double FeatureTrainer::EvalArea(const vector<double> &xv)
+	{
+	asserta(s_FT != 0);
+	asserta(SIZE(xv) == 2);
+	float OpenPenalty = float(xv[0]);
+	float ExtPenalty = float(xv[1]);
+	s_FT->SetAlnScoresAndArea(OpenPenalty, ExtPenalty);
+	return s_FT->m_Area;
+	}
+
+void FeatureTrainer::OptimizeGapPenalties()
+	{
+	s_FT = this;
+
+	vector<string> SpecLines;
+
+	// y is Area, in range 0 to 1
+	SpecLines.push_back("mindy=0.001");
+	SpecLines.push_back("maxdy=0.1");
+	SpecLines.push_back("minh=0.0005");
+	SpecLines.push_back("latin=no");
+	SpecLines.push_back("sigfig=3");
+	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.2\tbins=32\tinit=1");
+	SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.04\tbins=32\tinit=0.1");
+
+	m_Peaker.Init(SpecLines, EvalArea);
+	m_Peaker.Run();
 	}
