@@ -56,6 +56,19 @@ void LogOdds::Init(uint AlphaSize)
 		m_TrueCountMx[i].resize(m_AlphaSize);
 	}
 
+void LogOdds::ResetCountsToZero()
+	{
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		m_BackgroundCounts[i] = 0;
+		m_BackgroundCountsUnaligned[i] = 0;
+		for (uint j = 0; j < m_AlphaSize; ++j)
+			{
+			m_TrueCountMx[i][j] = 0;
+			}
+		}
+	}
+
 void LogOdds::AddUnalignedLetter(uint Letter)
 	{
 	if (Letter == UINT_MAX)

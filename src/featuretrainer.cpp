@@ -7,6 +7,17 @@
 #include "quarts.h"
 #include "sort.h"
 
+static bool GetRequiredStyleOpt(const string &Style, char c)
+	{
+	if (Style.find(toupper(c)) != string::npos)
+		return true;
+	else if (Style.find(tolower(c)) != string::npos)
+		return false;
+	else
+		Die("-style missing %c", c);
+	return false;
+	}
+
 uint FeatureTrainer::GetUngappedLength(const string &Row) const
 	{
 	const uint ColCount = SIZE(Row);
@@ -190,15 +201,15 @@ void FeatureTrainer::SetUnalignedBackground(bool IgnoreUndef)
 		}
 	}
 
-void FeatureTrainer::SetChainLetterSeqs()
+void FeatureTrainer::SetChainLetterSeqs(uint UndefLetter)
 	{
 	if (m_IsInt)
-		SetChainLetterSeqs_Int();
+		SetChainLetterSeqs_Int(UndefLetter);
 	else
-		SetChainLetterSeqs_Float();
+		SetChainLetterSeqs_Float(UndefLetter);
 	}
 
-void FeatureTrainer::SetChainLetterSeqs_Int()
+void FeatureTrainer::SetChainLetterSeqs_Int(uint UndefLetter)
 	{
 	m_ChainLetterSeqVec.clear();
 	const uint ChainCount = SIZE(m_Chains);
@@ -216,13 +227,13 @@ void FeatureTrainer::SetChainLetterSeqs_Int()
 			uint Letter = m_D.GetFeature(m_F, Pos);
 			asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
 			if (Letter == UINT_MAX)
-				Letter = m_AlphaSize - 1;
+				Letter = UndefLetter;
 			ChainLetterSeq.push_back(Letter);
 			}
 		}
 	}
 
-void FeatureTrainer::SetChainLetterSeqs_Float()
+void FeatureTrainer::SetChainLetterSeqs_Float(uint UndefLetter)
 	{
 	m_ChainLetterSeqVec.clear();
 	const uint ChainCount = SIZE(m_Chains);
@@ -240,9 +251,12 @@ void FeatureTrainer::SetChainLetterSeqs_Float()
 			{
 			float Value = ChainFloatSeq[Pos];
 			uint Letter = ValueToIntTpl<true>(
-				Value, m_AlphaSize, m_BinTs, m_BestDefaultLetter);
+				Value, m_AlphaSize, m_BinTs, UINT_MAX);
 			asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
-			ChainLetterSeq.push_back(Letter);
+			if (Letter == UINT_MAX)
+				ChainLetterSeq.push_back(UndefLetter);
+			else
+				ChainLetterSeq.push_back(Letter);
 			}
 		}
 	}
@@ -274,10 +288,10 @@ void FeatureTrainer::SetChainFloatSeqs(float ReplaceUndefValue)
 void FeatureTrainer::SetFloatValues(bool IgnoreUndef,
 	float ReplaceUndefValue)
 	{
-	m_UndefCount = 0;
 	m_SortedFloatValues.clear();
 
 	const uint ChainCount = SIZE(m_Chains);
+	uint UndefCount = 0;
 	uint ReplaceCount = 0;
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
@@ -290,7 +304,7 @@ void FeatureTrainer::SetFloatValues(bool IgnoreUndef,
 			float Value = m_D.GetFloatFeature(m_F, Pos);
 			if (Value == FLT_MAX)
 				{
-				++m_UndefCount;
+				++UndefCount;
 				if (IgnoreUndef)
 					continue;
 				Value = ReplaceUndefValue;
@@ -334,7 +348,7 @@ void FeatureTrainer::SetFloatValues(bool IgnoreUndef,
 	else
 		Log("%.3g\n", ReplaceUndefValue);
 	Log("%7u  Values\n", N);
-	Log("%7u  Undefined\n", m_UndefCount);
+	Log("%7u  Undefined\n", UndefCount);
 	Log("%7u  Replaced\n", ReplaceCount);
 	Log("%7.2g  Min (%.1f%%)\n", Min, MinPct);
 	Log("%7.2g  Med\n", Med);
@@ -391,6 +405,7 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 				if (LetterQ != UINT_MAX && LetterR != UINT_MAX)
 					{
 					m_Lock.lock();
+					++m_JointLetterPairCount;
 					AddPair(LetterQ, LetterR);
 					m_Lock.unlock();
 					}
@@ -400,6 +415,7 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 				asserta(LetterQ != UINT_MAX);
 				asserta(LetterR != UINT_MAX);
 				m_Lock.lock();
+				++m_JointLetterPairCount;
 				AddPair(LetterQ, LetterR);
 				m_Lock.unlock();
 				}
@@ -415,6 +431,8 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 
 void FeatureTrainer::TrainLogOdds(bool IgnoreUndef)
 	{
+	ResetCountsToZero();
+	m_JointLetterPairCount = 0;
 	const uint SeqCount = SIZE(m_AlnLabels);
 	asserta(SeqCount > 0);
 	asserta(SeqCount%2 == 0);
@@ -510,7 +528,7 @@ void FeatureTrainer::ToTsv(const string &FN) const
 	FILE *f = CreateStdioFile(FN);
 	fprintf(f, "feature\t%s\n", m_FeatureName);
 	fprintf(f, "type\t%s\n", m_IsInt ? "int" : "float");
-	fprintf(f, "undef\t%s\n", m_UndefStyle.c_str());
+	fprintf(f, "undef\t%s\n", m_Style.c_str());
 	if (!m_IsInt)
 		{
 		float MaxValue = GetMaxDefinedValue();
@@ -518,18 +536,9 @@ void FeatureTrainer::ToTsv(const string &FN) const
 		fprintf(f, "min\t%.3g\n", m_SortedFloatValues[0]);
 		fprintf(f, "med\t%.3g\n", m_SortedFloatValues[N/2]);
 		fprintf(f, "max\t%.3g\n", MaxValue);
-		fprintf(f, "undef_count\t%u\n", m_UndefCount);
-		fprintf(f, "undef_freq\t%.3g\n", double(m_UndefCount)/N);
 		}
-	if (m_BestDefaultLetter == UINT_MAX)
-		fprintf(f, "default_letter\t*\n");
-	else
-		fprintf(f, "default_letter\t%u\n", m_BestDefaultLetter);
-
-	if (m_BestDefaultValue == FLT_MAX)
-		fprintf(f, "default_value\t*\n");
-	else
-		fprintf(f, "default_value\t%.3g\n", m_BestDefaultValue);
+	uint BestUndefLetter = GetBestDefaultLetter(UINT_MAX);
+	fprintf(f, "best_undef\t%u\n", BestUndefLetter);
 
 	LogOdds::ToTsv(f);
 	
@@ -615,39 +624,79 @@ float FeatureTrainer::GetMaxDefinedValue() const
 	return MaxValue;
 	}
 
-float FeatureTrainer::GetDefaultValue() const
+float FeatureTrainer::GetMidValue(uint Letter) const
 	{
-	if (m_BestDefaultLetter == UINT_MAX)
+	asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
+	if (Letter == UINT_MAX)
 		{
-		Log("GetDefaultValue()=*\n");
+		Log("GetMidValue(UINT_MAX)=FLT_MAX\n");
 		return FLT_MAX;
 		}
-	asserta(m_BestDefaultLetter < m_AlphaSize);
 	asserta(SIZE(m_BinTs) + 1 == m_AlphaSize);
-	if (m_BestDefaultLetter == m_AlphaSize - 1)
+	if (Letter == m_AlphaSize - 1)
 		return m_BinTs[m_AlphaSize - 2] + 1;
-	float Lo = m_BinTs[m_BestDefaultLetter];
-	float Hi = m_BinTs[m_BestDefaultLetter+1];
+	float Lo = m_BinTs[Letter];
+	float Hi = m_BinTs[Letter+1];
 	float Value = (Lo + Hi)/2;
-	Log("GetDefaultValue()\n");
+	Log("GetMidValue()\n");
 	Log("  Letter=%u Lo=%.3g Hi=%.3g, Value=%.3g\n",
-		m_BestDefaultLetter, Lo, Hi, Value);
+		Letter, Lo, Hi, Value);
 	return Value;
 	}
 
-// Undefined value overloads a letter
-void FeatureTrainer::TrainInt_UndefOverlap()
+void FeatureTrainer::TrainInt_IgnoreUndefs()
 	{
-	m_UndefStyle = "overlap";
-	m_BestDefaultLetter = UINT_MAX;
-	SetChainLetterSeqs_Int();
+	SetChainLetterSeqs_Int(UINT_MAX);
+
+	// Construct scoring matrix ignoring undefineds
+	TrainLogOdds(true);
+	}
+
+// Undefined value overloads a letter
+void FeatureTrainer::TrainInt_UndefOverlap(bool Retrain)
+	{
+	Log("\n");
+	Log("TrainInt_UndefOverlap(Retrain=%c)\n", tof(Retrain));
+	SetChainLetterSeqs_Int(UINT_MAX);
 
 	// Construct scoring matrix ignoring undefineds
 	TrainLogOdds(true);
 
+	if (!Retrain)
+		return;
+
+	uint BestUndefLetterBefore = GetBestUndefLetter();
+	vector<float> BeforeFreqs;
+	GetFreqs(BeforeFreqs);
+
+	uint UndefCountBeforeRetrain = GetUndefChainLetterCount();
+	asserta(UndefCountBeforeRetrain > 0);
+
 	// Best letter has highest expected score vs other letters
-	m_BestDefaultLetter = LogOdds::GetBestDefaultLetter(UINT_MAX);
-	m_BestDefaultValue = FLT_MAX;
+	uint UndefLetter = GetBestUndefLetter();
+	asserta(UndefLetter != UINT_MAX);
+
+	SetChainLetterSeqs_Int(UndefLetter);
+	uint UndefCountAfterRetrain = GetUndefChainLetterCount();
+	uint JNBefore = m_JointLetterPairCount;
+	asserta(UndefCountAfterRetrain == 0);
+	TrainLogOdds(false);
+	uint JNAfter = m_JointLetterPairCount;
+
+	uint BestUndefLetterAfter = GetBestUndefLetter();
+	vector<float> AfterFreqs;
+	GetFreqs(AfterFreqs);
+	Log("\n");
+	Log("Undefs before %u\n", UndefCountBeforeRetrain);
+	Log("JNs before %u, after %u\n", JNBefore, JNAfter);
+	Log("Best letter before %u, after %u\n",
+		BestUndefLetterBefore, BestUndefLetterAfter);
+	Log("Letter   Freq1   Freq2  before/after retrain\n");
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		Log("%6u  %6.4f  %6.4f\n",
+			i, BeforeFreqs[i], AfterFreqs[i]);
+		}
 	}
 
 uint FeatureTrainer::GetBestUndefLetter() const
@@ -682,15 +731,10 @@ uint FeatureTrainer::GetBestUndefLetter() const
 	return BestLetter;
 	}
 
-// Undefined value overloads a letter
-void FeatureTrainer::TrainFloat_UndefOverlap()
+void FeatureTrainer::TrainFloat_IgnoreUndefs()
 	{
 	Log("\n");
-	Log("TrainFloat_UndefOverlap()\n");
-
-	m_UndefStyle = "overlap";
-	m_BestDefaultLetter = UINT_MAX;
-	m_BestDefaultValue = FLT_MAX;
+	Log("TrainFloat_IgnoreUndefs()\n");
 
 	// Collect only defined values
 	SetFloatValues(true, FLT_MAX);
@@ -698,29 +742,73 @@ void FeatureTrainer::TrainFloat_UndefOverlap()
 	// Quantize defined values
 	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
 	SetChainFloatSeqs(FLT_MAX);
-	SetChainLetterSeqs_Float();
+	SetChainLetterSeqs_Float(UINT_MAX);
 
 	// Construct scoring matrix ignoring undefineds
 	TrainLogOdds(true);
+	}
+
+// Undefined value overloads a letter
+void FeatureTrainer::TrainFloat_UndefOverlap(bool Retrain)
+	{
+	Log("\n");
+	Log("TrainFloat_UndefOverlap()\n");
+
+	// Collect only defined values
+	SetFloatValues(true, FLT_MAX);
+
+	// Quantize defined values
+	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
+	SetChainFloatSeqs(FLT_MAX);
+	SetChainLetterSeqs_Float(UINT_MAX);
+
+	// Construct scoring matrix ignoring undefineds
+	TrainLogOdds(true);
+	if (!Retrain)
+		return;
+
+	vector<float> BeforeFreqs;
+	GetFreqs(BeforeFreqs);
+	uint BestUndefLetterBefore = GetBestUndefLetter();
+
+	uint UndefCountBeforeRetrain = GetUndefChainLetterCount();
+	asserta(UndefCountBeforeRetrain > 0);
 
 	// Best letter has highest expected score vs other letters
-	m_BestDefaultLetter = GetBestUndefLetter();
+	uint UndefLetter = GetBestUndefLetter();
+	asserta(UndefLetter != UINT_MAX);
 
 	// Default value is midpoint of bin for m_BestDefaultLetter
-	m_BestDefaultValue = GetDefaultValue();
+	float UndefValue = GetMidValue(UndefLetter);
+	asserta(UndefValue != FLT_MAX);
 
-	SetFloatValues(false, m_BestDefaultValue);
-	SetChainFloatSeqs(m_BestDefaultValue);
-	SetChainLetterSeqs_Float();
+	SetFloatValues(false, UndefValue);
+	SetChainFloatSeqs(UndefValue);
+	SetChainLetterSeqs_Float(UndefLetter);
+	uint UndefCountAfterRetrain = GetUndefChainLetterCount();
+	asserta(UndefCountAfterRetrain == 0);
+	TrainLogOdds(false);
+	uint BestUndefLetterAfter = GetBestUndefLetter();
+	vector<float> AfterFreqs;
+	GetFreqs(AfterFreqs);
+
+	Log("\n");
+	Log("Best letter before %u, after %u\n",
+		BestUndefLetterBefore, BestUndefLetterAfter);
+	Log("Letter   Freq1   Freq2  before/after retrain\n");
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		Log("%6u  %6.4f  %6.4f\n",
+			i, BeforeFreqs[i], AfterFreqs[i]);
+		}
 	}
 
 // Undefined value has its own letter (value AS-1),
 //   leaving AS-1 other letters for defined values
 void FeatureTrainer::TrainFloat_UndefDistinct()
 	{
-	m_UndefStyle = "distinct";
-	m_BestDefaultLetter = m_AlphaSize - 1;
-	m_BestDefaultValue = FLT_MAX;
+	uint UndefLetter = m_AlphaSize - 1;
+	float UndefValue = FLT_MAX;
 
 	// Collect all values
 	SetFloatValues(false, FLT_MAX);
@@ -729,26 +817,10 @@ void FeatureTrainer::TrainFloat_UndefDistinct()
 	//   without special-casing
 	Quantize(m_SortedFloatValues, m_AlphaSize, m_BinTs);
 	SetChainFloatSeqs(FLT_MAX);
-	SetChainLetterSeqs_Float();
+	SetChainLetterSeqs_Float(UndefLetter);
 
 	// Train scoring matrix including undefineds
 	TrainLogOdds(false);
-	}
-
-// Undefined value has its own letter (value AS-1),
-//   leaving AS-1 other letters for defined values
-void FeatureTrainer::TrainInt_UndefDistinct()
-	{
-	m_UndefStyle = "distinct";
-
-	m_AlphaSize += 1;
-	SetChainLetterSeqs_Int();
-
-	// Train scoring matrix including undefineds
-	TrainLogOdds(false);
-
-	m_BestDefaultLetter = m_AlphaSize - 1;
-	m_BestDefaultValue = FLT_MAX;
 	}
 
 void FeatureTrainer::SetAlnSubstScores()
@@ -814,10 +886,11 @@ float FeatureTrainer::GetAlnSubstScore(uint AlnIdx)
 			{
 			uint LetterQ = QLetterSeq[QPos];
 			uint LetterR = RLetterSeq[RPos];
-			asserta(LetterQ != UINT_MAX);
-			asserta(LetterR != UINT_MAX);
-			asserta(SIZE(m_ScoreMx[LetterQ]) == m_AlphaSize);
-			Score += m_ScoreMx[LetterQ][LetterR];
+			if (LetterQ != UINT_MAX && LetterR != UINT_MAX)
+				{
+				asserta(SIZE(m_ScoreMx[LetterQ]) == m_AlphaSize);
+				Score += m_ScoreMx[LetterQ][LetterR];
+				}
 			}
 		if (!isgap(q))
 			++QPos;
@@ -831,9 +904,6 @@ float FeatureTrainer::GetAlnSubstScore(uint AlnIdx)
 
 void FeatureTrainer::SetAlnScoresAndArea(float OpenPenalty, float ExtPenalty)
 	{
-	m_OpenPenalty = OpenPenalty;
-	m_ExtPenalty = ExtPenalty;
-
 	const uint AlnCount = SIZE(m_AlnTPs);
 	asserta(SIZE(m_AlnSubstScores) == AlnCount);
 	asserta(SIZE(m_AlnOpenCounts) == AlnCount);
@@ -981,6 +1051,20 @@ double FeatureTrainer::EvalArea(const vector<double> &xv)
 	return s_FT->m_Area;
 	}
 
+uint FeatureTrainer::GetUndefChainLetterCount() const
+	{
+	uint n = 0;
+	for (uint ChainIdx = 0; ChainIdx < SIZE(m_ChainLetterSeqVec); ++ChainIdx)
+		{
+		const vector<uint> &Letters = m_ChainLetterSeqVec[ChainIdx];
+		uint L = SIZE(Letters);
+		for (uint i = 0; i < L; ++i)
+			if (Letters[i] == UINT_MAX)
+				++n;
+		}
+	return n;
+	}
+
 void FeatureTrainer::OptimizeGapPenalties()
 	{
 	s_FT = this;
@@ -991,11 +1075,45 @@ void FeatureTrainer::OptimizeGapPenalties()
 	SpecLines.push_back("mindy=0.001");
 	SpecLines.push_back("maxdy=0.1");
 	SpecLines.push_back("minh=0.0005");
-	SpecLines.push_back("latin=no");
+	SpecLines.push_back("latin=yes");
 	SpecLines.push_back("sigfig=3");
-	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.2\tbins=32\tinit=1");
-	SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.04\tbins=32\tinit=0.1");
+	SpecLines.push_back("var=open\tmin=-2\tmax=4\tdelta=0.2\tbins=32\tinit=1");
+	SpecLines.push_back("var=ext\tmin=-1\tmax=1\tdelta=0.04\tbins=32\tinit=0.1");
 
 	m_Peaker.Init(SpecLines, EvalArea);
 	m_Peaker.Run();
+	m_Area = (float) m_Peaker.m_Best_y;
+	}
+
+void FeatureTrainer::Train(const string &Style)
+	{
+	m_Style = Style;
+
+	bool IgnoreUndefs = GetRequiredStyleOpt(Style, 'I');
+	m_UseUnalignedBackground = GetRequiredStyleOpt(Style, 'U');
+	bool UndefOverlap = GetRequiredStyleOpt(Style, 'O');
+	bool RetrainOverlap = GetRequiredStyleOpt(Style, 'R');
+
+	Log("Style=%s\n", Style.c_str());
+	Log("IgnoreUndefs=%c\n", tof(IgnoreUndefs));
+	Log("UndefOverlap=%c\n", tof(UndefOverlap));
+	Log("RetrainOverlap=%c\n", tof(RetrainOverlap));
+	Log("m_UseUnalignedBackground=%c\n", tof(m_UseUnalignedBackground));
+
+	if (m_IsInt)
+		{
+		asserta(IgnoreUndefs || UndefOverlap);
+		if (IgnoreUndefs)
+			TrainInt_IgnoreUndefs();
+		else
+			TrainInt_UndefOverlap(RetrainOverlap);
+		}
+	else
+		{
+		asserta(IgnoreUndefs || UndefOverlap);
+		if (IgnoreUndefs)
+			TrainFloat_IgnoreUndefs();
+		else
+			TrainFloat_UndefOverlap(RetrainOverlap);
+		}
 	}

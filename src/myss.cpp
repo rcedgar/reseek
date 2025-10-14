@@ -159,6 +159,16 @@ static void Getv(const PDBChain &Chain, uint Pos,
 	asserta(SIZE(v) == M);
 	}
 
+uint DSS::Get_ConfU(uint Pos)
+	{
+	vector<double> v;
+	Getv(*m_Chain, Pos, v);
+	if (v.empty())
+		return 16;
+	uint Letter = GetConfLetter(v);
+	return Letter;
+	}
+
 uint DSS::Get_Conf(uint Pos)
 	{
 	vector<double> v;

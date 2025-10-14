@@ -14,7 +14,7 @@ public:
 	FEATURE m_F = FEATURE(-1);
 	const char *m_FeatureName = 0;
 	bool m_IsInt = false;
-	string m_UndefStyle = "ERROR";
+	string m_Style = "ERROR";
 	vector<PDBChain *> m_Chains;
 	vector<vector<float> > m_ChainFloatSeqVec;
 	vector<vector<uint> > m_ChainLetterSeqVec;
@@ -40,19 +40,14 @@ public:
 	DSS m_D;
 	vector<float> m_SortedFloatValues;
 	vector<uint> m_Letters;
-	uint m_UndefCount = 0;
 
 	int8_t m_MaxAbsi8 = 20;
 	vector<float> m_BinTs;
-	uint m_BestDefaultLetter = UINT_MAX;
-	float m_BestDefaultValue = FLT_MAX;
 	vector<vector<float> > m_ScoreMx;
 
-	float m_OpenPenalty = FLT_MAX;
-	float m_ExtPenalty = FLT_MAX;
 	float m_Area = FLT_MAX;
-
 	Peaker m_Peaker;
+	uint m_JointLetterPairCount = UINT_MAX;
 
 	mutex m_Lock;
 
@@ -74,11 +69,16 @@ public:
 	uint GetUngappedLength(const string &Row) const;
 	void TruncLabel(string &Label);
 	
-	void TrainFloat_UndefOverlap();
+	void Train(const string &Style);
+
+	void TrainFloat_IgnoreUndefs();
+	void TrainFloat_UndefOverlap(bool Retrain);
 	void TrainFloat_UndefDistinct();
-	void TrainInt_UndefOverlap();
-	void TrainInt_UndefDistinct();
-	float GetDefaultValue() const;
+
+	void TrainInt_IgnoreUndefs();
+	void TrainInt_UndefOverlap(bool Retrain);
+
+	float GetMidValue(uint Letter) const;
 	float GetMaxDefinedValue() const;
 		
 	void SetLabelToChainIndex();
@@ -88,9 +88,9 @@ public:
 	void SetUnalignedBackgroundChain(const PDBChain &Chain,
 		uint UndefLetter);
 	void SetChainFloatSeqs(float ReplaceUndefValue);
-	void SetChainLetterSeqs();
-	void SetChainLetterSeqs_Float();
-	void SetChainLetterSeqs_Int();
+	void SetChainLetterSeqs(uint UndefLetter);
+	void SetChainLetterSeqs_Float(uint UndefLetter);
+	void SetChainLetterSeqs_Int(uint UndefLetter);
 	void GetGapCounts(const string &Row1, const string &Row2,
 		uint &Opens, uint &Exts) const;
 	uint GetBestUndefLetter() const;
@@ -105,11 +105,12 @@ public:
 	void SetArea();
 
 	void OptimizeGapPenalties();
+	uint GetUndefChainLetterCount() const;
 
 public:
-	void Quantize(const vector<float> &Values, uint AlphaSize,
+	static void Quantize(const vector<float> &Values, uint AlphaSize,
 		vector<float> &BinTs);
-	void QuantizeUniques(const vector<float> &SortedValues,
+	static void QuantizeUniques(const vector<float> &SortedValues,
 		uint AlphaSize, vector<float> &BinTs);
 	
 	static double EvalArea(const vector<double> &xv);

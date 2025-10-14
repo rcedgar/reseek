@@ -35,7 +35,7 @@ void FeatureTrainer::Quantize(const vector<float> &SortedValues,
 		{
 		float Value = SortedValues[i];
 		uint Letter = ValueToIntTpl<false>(
-			Value, AlphaSize, BinTs, m_BestDefaultLetter);
+			Value, AlphaSize, BinTs, UINT_MAX);
 		asserta(Letter < AlphaSize);
 		Counts[Letter] += 1;
 		}
@@ -113,7 +113,7 @@ void FeatureTrainer::QuantizeUniques(const vector<float> &SortedValues,
 		{
 		float Value = SortedValues[i];
 		uint Letter = ValueToIntTpl<false>(
-			Value, AlphaSize, BinTs, m_BestDefaultLetter);
+			Value, AlphaSize, BinTs, UINT_MAX);
 		asserta(Letter < AlphaSize);
 		Counts[Letter] += 1;
 		}

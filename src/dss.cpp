@@ -707,6 +707,9 @@ uint DSS::GetAlphaSize(FEATURE F, bool FailOk)
 
 	case FEATURE_Mu:
 		return 36;
+
+	case FEATURE_ConfU:
+		return 17;
 		}
 	if (!FailOk)
 		Die("GetAlphaSize(%s)", FeatureToStr(F));

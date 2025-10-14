@@ -11,6 +11,7 @@ public:
 
 public:
 	void Init(uint AlphaSize);
+	void ResetCountsToZero();
 	void AddUnalignedLetter(uint Letter);
 	uint GetBackgroundCount(uint Letter) const;
 	void AddPair(uint Letter1, uint Letter2);

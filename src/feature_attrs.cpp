@@ -77,7 +77,7 @@ void cmd_feature_attrs()
 	ProgressLog("%16.16s  %2.2s", "Feature", "AS");
 	ProgressLog("  %5.5s     ", "Type");
 	ProgressLog("  %18.18s", "Int forced");
-	ProgressLog("  %18.18s", "Int not forced");
+	//ProgressLog("  %18.18s", "Int not forced");
 	ProgressLog("  %18.18s", "Float forced");
 	ProgressLog("  %18.18s", "Float not forced");
 	ProgressLog("\n");
@@ -106,7 +106,8 @@ void cmd_feature_attrs()
 				ProgressLog("     ");
 
 			ProgressLog("  %8u (%6.2f%%)", UndefIntCountForced, GetPct(UndefIntCountForced, Total));
-			ProgressLog("  %8u (%6.2f%%)", UndefIntCountNotForced, GetPct(UndefIntCountNotForced, Total));
+			asserta(UndefIntCountNotForced == 0);
+			//ProgressLog("  %8u (%6.2f%%)", UndefIntCountNotForced, GetPct(UndefIntCountNotForced, Total));
 			if (!FeatureIsInt(F))
 				{
 				ProgressLog("  %8u (%6.2f%%)", UndefFloatCountForced, GetPct(UndefFloatCountForced, Total));
