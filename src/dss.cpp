@@ -138,10 +138,7 @@ float DSS::GetFloat_NormDens(uint Pos)
 	SetDensity_ScaledValues();
 	asserta(Pos < SIZE(m_Density_ScaledValues));
 	float Valued = m_Density_ScaledValues[Pos];
-	float Valuef = m_Density_ScaledValuesf[Pos];
-	if (Valued == FLT_MAX)
-		return (float) Valued;
-	return Valuef;
+	return Valued;
 	}
 
 float DSS::GetFloat_HelixDens(uint Pos)
@@ -159,14 +156,11 @@ void DSS::SetDensity_ScaledValues()
 	if (!m_Density_ScaledValues.empty())
 		return;
 	m_Density_ScaledValues.clear();
-	m_Density_ScaledValuesf.clear();
 	const uint L = GetSeqLength();
 	vector<float> Values;
 	vector<float> Valuesf;
 	m_Density_ScaledValues.reserve(L);
-	m_Density_ScaledValuesf.reserve(L);
 	Values.reserve(L);
-	Valuesf.reserve(L);
 	float MinValue = 999;
 	float MaxValue = 0;
 	float MinValuef = 999;
@@ -184,7 +178,6 @@ void DSS::SetDensity_ScaledValues()
 			MinValue = min(MinValue, D);
 			MaxValue = max(MaxValue, D);
 			MinValuef = min(MinValuef, float(D));
-			MaxValuef = max(MaxValuef, float(D));
 			}
 		}
 
@@ -202,16 +195,11 @@ void DSS::SetDensity_ScaledValues()
 			{
 			asserta(Valuef == FLT_MAX);
 			m_Density_ScaledValues.push_back(FLT_MAX);
-			m_Density_ScaledValuesf.push_back(FLT_MAX);
 			continue;
 			}
 		float ScaledValue = (Value - MinValue)/Range;
 		asserta(ScaledValue >= 0 && ScaledValue <= 1);
 		m_Density_ScaledValues.push_back(ScaledValue);
-
-		float ScaledValuef = (Valuef - MinValuef)/Rangef;
-		asserta(ScaledValuef >= 0 && ScaledValuef <= 1);
-		m_Density_ScaledValuesf.push_back(ScaledValuef);
 		}
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
@@ -324,7 +312,10 @@ void DSS::Set_NU_ND_Vecs()
 		Get_NU_ND(Pos, NU, ND);
 		m_NUs.push_back(NU);
 		m_NDs.push_back(ND);
-		m_NXs.push_back(NU+ND);
+		if (NU == FLT_MAX || ND == FLT_MAX)
+			m_NXs.push_back(FLT_MAX);
+		else	
+			m_NXs.push_back(NU+ND);
 		}
 	}
 
@@ -565,6 +556,7 @@ uint DSS::Get_NormDens4(uint Pos)
 uint DSS::Get_NENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NENDist, Pos);
+	if (ND == UINT_MAX)
 		{
 		if (opt(force_undef))
 			return UINT_MAX;
@@ -773,6 +765,8 @@ float DSS::GetFloat_DstPrvHlx(uint Pos)
 		float Dist = m_Chain->GetDist(Pos, Mid);
 		return (float) Dist;
 		}
+	if (opt(force_undef))
+		return FLT_MAX;
 	return 0;
 	}
 
@@ -790,5 +784,7 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		float Dist = m_Chain->GetDist(Pos, Mid);
 		return Dist;
 		}
+	if (opt(force_undef))
+		return FLT_MAX;
 	return 0;
 	}

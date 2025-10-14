@@ -6,7 +6,6 @@
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);
 
 static uint GetCounts(FEATURE F, vector<PDBChain *> &Chains,
-	vector<uint> &Counts,
 	uint &UndefIntCountForced, uint &UndefIntCountNotForced,
 	uint &UndefFloatCountForced, uint &UndefFloatCountNotForced)
 	{
@@ -21,8 +20,6 @@ static uint GetCounts(FEATURE F, vector<PDBChain *> &Chains,
 
 	DSS D;
 	const uint ChainCount = SIZE(Chains);
-	Counts.clear();
-	Counts.resize(AS);
 	for (int iForced = 0; iForced < 2; ++iForced)
 		{
 		if (iForced)
@@ -41,12 +38,11 @@ static uint GetCounts(FEATURE F, vector<PDBChain *> &Chains,
 			const PDBChain &Chain = *Chains[ChainIdx];
 			D.Init(Chain);
 			const uint L = Chain.GetSeqLength();
-			Total += L;
+			if (iForced == 0)
+				Total += L;
 			for (uint Pos = 0; Pos < L; ++Pos)
 				{
 				uint Letter = D.GetFeature(F, Pos);
-				if (Letter < AS)
-					Counts[Letter] += 1;
 				if (Letter == UINT_MAX)
 					{
 					if (iForced == 1)
@@ -78,24 +74,45 @@ void cmd_feature_attrs()
 	vector<PDBChain *> Chains;
 	ReadChains(g_Arg1, Chains);
 
-	for (uint F = 0; F < FEATURE_COUNT; ++F)
+	ProgressLog("%16.16s  %2.2s", "Feature", "AS");
+	ProgressLog("  %5.5s     ", "Type");
+	ProgressLog("  %18.18s", "Int forced");
+	ProgressLog("  %18.18s", "Int not forced");
+	ProgressLog("  %18.18s", "Float forced");
+	ProgressLog("  %18.18s", "Float not forced");
+	ProgressLog("\n");
+	for (int iInt = 0; iInt < 2; ++iInt)
 		{
-		uint AS = DSS::GetAlphaSize((FEATURE) F, true);
-		if (AS == UINT_MAX)
-			continue;
-		vector<uint> Counts;
-		uint UndefIntCountForced, UndefIntCountNotForced;
-		uint UndefFloatCountForced, UndefFloatCountNotForced;
-		uint Total = GetCounts((FEATURE) F, Chains, Counts,
-			UndefIntCountForced, UndefIntCountNotForced,
-			UndefFloatCountForced, UndefFloatCountNotForced);
-		asserta(SIZE(Counts) == AS);
-		ProgressLog("%16.16s  %2u", FeatureToStr(F), AS);
-		ProgressLog("  %10u", Total);
-		ProgressLog("  %10u", UndefIntCountForced);
-		ProgressLog("  %10u", UndefIntCountNotForced);
-		ProgressLog("  %10u", UndefFloatCountForced);
-		ProgressLog("  %10u", UndefFloatCountNotForced);
-		ProgressLog("\n");
+		for (uint F = 0; F < FEATURE_COUNT; ++F)
+			{
+			if (iInt && !FeatureIsInt(F))
+				continue;
+			if (!iInt && FeatureIsInt(F))
+				continue;
+				
+			uint AS = DSS::GetAlphaSize((FEATURE) F, true);
+			if (AS == UINT_MAX)
+				continue;
+			uint UndefIntCountForced, UndefIntCountNotForced;
+			uint UndefFloatCountForced, UndefFloatCountNotForced;
+			uint Total = GetCounts((FEATURE) F, Chains,
+				UndefIntCountForced, UndefIntCountNotForced,
+				UndefFloatCountForced, UndefFloatCountNotForced);
+			ProgressLog("%16.16s  %2u", FeatureToStr(F), AS);
+			ProgressLog("  %5.5s", FeatureIsInt(F) ? "Int" : "Float");
+			if (F == FEATURE_SS3 || F == FEATURE_NENSS3 || F == FEATURE_RENDist4)
+				ProgressLog(" (Mu)");
+			else
+				ProgressLog("     ");
+
+			ProgressLog("  %8u (%6.2f%%)", UndefIntCountForced, GetPct(UndefIntCountForced, Total));
+			ProgressLog("  %8u (%6.2f%%)", UndefIntCountNotForced, GetPct(UndefIntCountNotForced, Total));
+			if (!FeatureIsInt(F))
+				{
+				ProgressLog("  %8u (%6.2f%%)", UndefFloatCountForced, GetPct(UndefFloatCountForced, Total));
+				ProgressLog("  %8u (%6.2f%%)", UndefFloatCountNotForced, GetPct(UndefFloatCountNotForced, Total));
+				}
+			ProgressLog("\n");
+			}
 		}
 	}

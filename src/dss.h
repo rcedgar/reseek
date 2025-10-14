@@ -19,7 +19,7 @@ public:
 	uint m_L = 0;
 
 	vector<float> m_Density_ScaledValues;
-	vector<float> m_Density_ScaledValuesf;
+	//vector<float> m_Density_ScaledValuesf;
 	vector<uint> m_NENs;
 	vector<uint> m_RENs;
 	string m_SS;
@@ -53,7 +53,7 @@ public:
 		{
 		m_Chain = &Chain;
 		m_Density_ScaledValues.clear();
-		m_Density_ScaledValuesf.clear();
+		//m_Density_ScaledValuesf.clear();
 		m_SS.clear();
 		m_NENs.clear();
 		m_RENs.clear();
@@ -79,10 +79,6 @@ public:
 #undef F
 
 #define F(x)	float GetFloat_##x(uint Pos);
-#include "floatfeatures.h"
-#undef F
-
-#define F(x)	uint ValueToInt_##x(float Value) const;
 #include "floatfeatures.h"
 #undef F
 

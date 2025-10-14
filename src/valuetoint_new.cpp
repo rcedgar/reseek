@@ -53,6 +53,13 @@ uint DSS::ValueToInt_Feature(FEATURE F, float Value)
 	const vector<float> &BinTs = s_BinTs[F];
 	uint DefaultLetter = s_DefaultLetters[F];
 
+	if (opt(force_undef))//@@TODO remove this for production
+		{
+		uint Letter = ValueToIntTpl<true>(Value, AS, BinTs, UINT_MAX);
+		assert(Letter < AS || Letter == UINT_MAX);
+		return Letter;
+		}
+
 // Require 0 <= Letter < AS to allow vector and matrix lookups
 //	without special-case testing
 	uint Letter = ValueToIntTpl<false>(Value, AS, BinTs, DefaultLetter);

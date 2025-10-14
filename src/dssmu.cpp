@@ -53,7 +53,11 @@ float DSS::GetFloat_RENDist_ForMu(uint Pos)
 	{
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
 		return s_DefaultNENDist;
+		}
 	float d = m_Chain->GetDist(Pos, NEN);
 	return d;
 	}
@@ -63,7 +67,11 @@ uint DSS::Get_RENDist4(uint Pos)
 	float d = GetFloat_RENDist_ForMu(Pos);
 	uint ND = ValueToInt_RENDist_ForMu(d);
 	if (ND == 0)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -73,7 +81,11 @@ uint DSS::Get_NENSS3(uint Pos)
 	SetSS();
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return 0;
+		}
 	char c = m_SS[NEN];
 	switch (c)
 		{
