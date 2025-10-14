@@ -12,34 +12,6 @@ void cmd_train_feature()
 
 	const string FeatureName = string(opt(feature));
 	FEATURE F = StrToFeature(FeatureName.c_str());
-	asserta(optset_unaligned_background);
-	asserta(optset_undef_overlap);
-
-	bool UseUnalignedBackground = false;
-	if (string(opt(unaligned_background)) == "yes")
-		UseUnalignedBackground = true;
-	else if (string(opt(unaligned_background)) == "no")
-		UseUnalignedBackground = false;
-	else
-		Die("Invalid -unaligned_background %s", opt(unaligned_background));
-
-	bool UndefOverlap = false;
-	bool RetrainOverlap = false;
-	if (string(opt(undef_overlap)) == "yes")
-		{
-		UndefOverlap = true;
-		asserta(optset_retrain_overlap);
-		if (string(opt(retrain_overlap)) == "yes")
-			RetrainOverlap = true;
-		else if (string(opt(retrain_overlap)) == "no")
-			RetrainOverlap = false;
-		else
-			Die("Invalid -retrain_overlap %s", opt(retrain_overlap));
-		}
-	else if (string(opt(undef_overlap)) == "no")
-		UndefOverlap = false;
-	else
-		Die("Invalid -undef_overlap %s", opt(undef_overlap));
 
 	DSSParams::Init(DM_DefaultSensitive);
 
@@ -53,6 +25,41 @@ void cmd_train_feature()
 		AlphaSize = opt(alpha_size);
 		}
 
+	bool UseUnalignedBackground = false;
+	if (string(opt(unaligned_background)) == "yes")
+		UseUnalignedBackground = true;
+	else if (string(opt(unaligned_background)) == "no")
+		UseUnalignedBackground = false;
+	else
+		Die("Invalid -unaligned_background %s", opt(unaligned_background));
+
+	bool UndefOverlap = false;
+	bool RetrainOverlap = false;
+	bool HasUndef = false; //////////////////////////
+	if (HasUndef)
+		{
+		if (string(opt(undef_overlap)) == "yes")
+			{
+			UndefOverlap = true;
+			asserta(optset_retrain_overlap);
+			if (string(opt(retrain_overlap)) == "yes")
+				RetrainOverlap = true;
+			else if (string(opt(retrain_overlap)) == "no")
+				RetrainOverlap = false;
+			else
+				Die("Invalid -retrain_overlap %s", opt(retrain_overlap));
+			}
+		else if (string(opt(undef_overlap)) == "no")
+			UndefOverlap = false;
+		else
+			Die("Invalid -undef_overlap %s", opt(undef_overlap));
+		}
+	else
+		{
+		asserta(!optset_undef_overlap);
+		asserta(!optset_retrain_overlap);
+		}
+
 	FeatureTrainer FT;
 	FT.m_UseUnalignedBackground = UseUnalignedBackground;
 	FT.ReadChains(g_Arg1);
@@ -63,7 +70,7 @@ void cmd_train_feature()
 	FT.SetFeature(F, AlphaSize);
 	if (FeatureIsInt(F))
 		{
-		if (UndefOverlap)
+		if (!HasUndef || UndefOverlap)
 			FT.TrainInt_UndefOverlap();
 		else
 			FT.TrainInt_UndefDistinct();
@@ -81,10 +88,10 @@ void cmd_train_feature()
 		}
 	FT.SetAlnSubstScores();
 
-	float MinGapOpen = -0.2;
-	float MinGapExt = -0.2;
-	float dGapOpen = 0.2;
-	float dGapExt = 0.05;
+	float MinGapOpen = -0.2f;
+	float MinGapExt = -0.2f;
+	float dGapOpen = 0.2f;
+	float dGapExt = 0.05f;
 	float BestArea = 0;
 	float BestGapOpen = 0;
 	float BestGapExt = 0;

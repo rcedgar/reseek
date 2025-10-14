@@ -214,7 +214,9 @@ void FeatureTrainer::SetChainLetterSeqs_Int()
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			uint Letter = m_D.GetFeature(m_F, Pos);
-			asserta(Letter < m_AlphaSize);
+			asserta(Letter < m_AlphaSize || Letter == UINT_MAX);
+			if (Letter == UINT_MAX)
+				Letter = m_AlphaSize - 1;
 			ChainLetterSeq.push_back(Letter);
 			}
 		}
@@ -637,6 +639,8 @@ float FeatureTrainer::GetDefaultValue() const
 void FeatureTrainer::TrainInt_UndefOverlap()
 	{
 	m_UndefStyle = "overlap";
+	m_BestDefaultLetter = UINT_MAX;
+	SetChainLetterSeqs_Int();
 
 	// Construct scoring matrix ignoring undefineds
 	TrainLogOdds(true);
@@ -738,6 +742,8 @@ void FeatureTrainer::TrainInt_UndefDistinct()
 	m_UndefStyle = "distinct";
 
 	m_AlphaSize += 1;
+	SetChainLetterSeqs_Int();
+
 	// Train scoring matrix including undefineds
 	TrainLogOdds(false);
 

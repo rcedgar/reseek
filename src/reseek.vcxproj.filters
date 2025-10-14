@@ -437,6 +437,9 @@
     <ClCompile Include="hj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="feature_attrs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

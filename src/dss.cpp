@@ -521,7 +521,11 @@ float DSS::GetFloat_PMDist(uint Pos)
 	int iPos = (int) Pos;
 	int L = (int) GetSeqLength();
 	if (L < 8)
-		return 0;
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	int Pos1 = iPos - m_PMDelta;
 	int Pos2 = iPos + m_PMDelta;
 	if (Pos1 < 0)
@@ -549,7 +553,11 @@ uint DSS::Get_NormDens4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NormDens, Pos);
 	if (ND == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -557,8 +565,11 @@ uint DSS::Get_NormDens4(uint Pos)
 uint DSS::Get_NENDist4(uint Pos)
 	{
 	uint ND = GetFeature(FEATURE_NENDist, Pos);
-	if (ND == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	asserta(ND < 16);
 	return ND/4;
 	}
@@ -666,7 +677,7 @@ float DSS::GetFloatFeature(uint FeatureIndex, uint Pos)
 	return FLT_MAX;
 	}
 
-uint DSS::GetAlphaSize(FEATURE F)
+uint DSS::GetAlphaSize(FEATURE F, bool FailOk)
 	{
 	switch (F)
 		{
@@ -705,7 +716,8 @@ uint DSS::GetAlphaSize(FEATURE F)
 	case FEATURE_Mu:
 		return 36;
 		}
-	Die("GetAlphaSize(%s)", FeatureToStr(F));
+	if (!FailOk)
+		Die("GetAlphaSize(%s)", FeatureToStr(F));
 	return UINT_MAX;
 	}
 

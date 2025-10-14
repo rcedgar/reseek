@@ -45,5 +45,6 @@ C(kmrnbh)
 C(dump_features)
 C(load_features)
 C(train_feature)
+C(feature_attrs)
 
 #undef C

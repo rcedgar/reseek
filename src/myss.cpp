@@ -164,7 +164,11 @@ uint DSS::Get_Conf(uint Pos)
 	vector<double> v;
 	Getv(*m_Chain, Pos, v);
 	if (v.empty())
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	uint Letter = GetConfLetter(v);
 	return Letter;
 	}
@@ -175,15 +179,27 @@ uint DSS::Get_NENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetNEN(Pos);
 	if (NEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 
 	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	return Letter;
 	}
 
@@ -193,15 +209,27 @@ uint DSS::Get_RENConf(uint Pos)
 	vector<double> v;
 	uint NEN = GetREN(Pos);
 	if (NEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 
 	Getv(*m_Chain, NEN, v);
 	if (v.empty())
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 
 	uint Letter = GetConfLetter(v);
 	if (Letter == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return UINT_MAX;
 		return UNDEFINED_ZERO_OVERLOAD;
+		}
 	asserta(Letter < 16);
 	return Letter;
 	}
