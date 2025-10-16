@@ -84,6 +84,11 @@ void LogOdds::AddPair(uint Letter1, uint Letter2)
 		return;
 	m_BackgroundCounts[Letter1] += 1;
 	m_BackgroundCounts[Letter2] += 1;
+
+	// Diagonal does not need special case here
+	// Off-diagonals are double-counted by assuming symmetry
+	// On-diagonals are double-counted by not checking for diagonal
+	// => all counts are doubled, frequencies are correct
 	m_TrueCountMx[Letter1][Letter2] += 1;
 	m_TrueCountMx[Letter2][Letter1] += 1;
 	}

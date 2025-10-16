@@ -440,6 +440,12 @@
     <ClCompile Include="feature_attrs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="featuretrainer2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quantize2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -758,6 +764,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="varspec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="featuretrainer2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

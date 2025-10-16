@@ -280,6 +280,7 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="peaker.cpp" />
@@ -301,6 +302,7 @@
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
+    <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
     <ClCompile Include="search.cpp" />
@@ -428,6 +430,7 @@
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="duper.h" />
     <ClInclude Include="featuretrainer.h" />
+    <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
