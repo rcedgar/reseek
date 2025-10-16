@@ -4,7 +4,6 @@
 #include "pdbchain.h"
 #include "seqdb.h"
 #include "dss.h"
-#include "logodds.h"
 #include "peaker.h"
 
 class FeatureTrainer2
@@ -79,12 +78,25 @@ static void GetIntSeqs(
 static void LogChainIntSeqsStats(const string &Msg,
 	const vector<vector<uint> > &Seqs);
 
+static void GetAlignedLetterCounts(
+	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<string> &Rows,
+	const vector<uint> &RowChainIdxs,
+	bool IgnoreUndef,
+	vector<uint> &Counts);
+
 static void GetAlignedLetterPairCounts(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	bool IgnoreUndef,
 	vector<vector<uint> > &CountMx);
+
+static void GetLetterCounts(
+	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<uint> &ChainIdxs,
+	bool IgnoreUndef,
+	vector<uint> &Counts);
 
 static void GetIntSeqLetterCounts(
 	const vector<vector<uint> > &Seqs,
@@ -99,10 +111,21 @@ static void GetFreqMx(
 	const vector<vector<uint> > &CountMx,
 	vector<vector<float> > &FreqMx);
 
-float GetLogOddsMx(
+static void GetLogOddsMx(
 	const vector<float> &Freqs,
 	const vector<vector<float> > &FreqMx,
 	vector<vector<float> > &ScoreMx);
+
+static float GetExpectedScore(
+	vector<vector<float> > &ScoreMx,
+	const vector<float> &Freqs);
+
+static float GetShannonEntropy(
+	const vector<vector<float> > &FreqMx);
+
+static float GetRelativeEntropy(
+	const vector<vector<float> > &FreqMx,
+	const vector<vector<float> > &ScoreMx);
 
 static void GetGapCounts(
 	const string &Row1,
@@ -124,7 +147,7 @@ static void GetChainIntSeqs_Float(
 	vector<vector<uint> > &IntSeqs,
 	const vector<float> &BinTs,
 	uint &UndefCount);
-	
+
 static void GetAlnSubstScores(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
@@ -152,6 +175,11 @@ static void GetSteps(
 static float CalcArea(
 	const vector<float> &AlnScores,
 	const vector<bool> &TPs);
+
+static void LogFreqVec(
+	const string &Msg,
+	const vector<string> &Names,
+	const vector<vector<float> *> &FreqVec);
 
 static void TrainIntFeatureNoUndefs(
 	FEATURE F,

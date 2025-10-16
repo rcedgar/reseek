@@ -125,7 +125,10 @@ void FeatureTrainer2::AppendAlns(
 		ChainIdxs.push_back(ChainIdx);
 		const unsigned L = SF.GetSeqLength();
 		asserta(L != 0);
-		string Row = string(Seq);
+		string Row;
+		Row.reserve(L);
+		for (uint i = 0; i < L; ++i)
+			Row.push_back(Seq[i]);
 		if (!Row1)
 			asserta(SIZE(Row) == SIZE(Rows.back()));
 		TruncLabel(Label, Label);
@@ -374,6 +377,104 @@ void FeatureTrainer2::ScoreMxToSrc(
 	fprintf(f, "};\n");
 	}
 
+void FeatureTrainer2::GetAlignedLetterCounts(
+	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<string> &Rows,
+	const vector<uint> &RowChainIdxs,
+	bool IgnoreUndef,
+	vector<uint> &Counts)
+	{
+	Counts.clear();
+	Counts.resize(m_AlphaSize);
+
+	const uint RowCount = SIZE(Rows);
+	asserta(SIZE(RowChainIdxs) == RowCount);
+	asserta(RowCount > 0);
+	asserta(RowCount%2 == 0);
+	const uint AlnCount = RowCount/2;
+	for (uint AlnIdx = 0; AlnIdx < AlnCount; ++AlnIdx)
+		{
+		uint RowIdx1 = AlnIdx*2;
+		uint RowIdx2 = RowIdx1 + 1;
+
+		const string &Row1 = Rows[RowIdx1];
+		const string &Row2 = Rows[RowIdx2];
+
+		const uint ChainIdx1 = RowChainIdxs[RowIdx1];
+		const uint ChainIdx2 = RowChainIdxs[RowIdx2];
+
+		const vector<uint> &IntSeq1 = ChainIntSeqs[ChainIdx1];
+		const vector<uint> &IntSeq2 = ChainIntSeqs[ChainIdx2];
+		uint L1 = SIZE(IntSeq1);
+		uint L2 = SIZE(IntSeq2);
+
+		const uint ColCount = SIZE(Row1);
+		asserta(SIZE(Row2) == ColCount);
+
+		uint Pos1 = 0;
+		uint Pos2 = 0;
+		for (uint Col = 0; Col < ColCount; ++Col)
+			{
+			char c1 = Row1[Col];
+			char c2 = Row2[Col];
+
+			if (isupper(c1) && isupper(c2))
+				{
+				uint Letter1 = IntSeq1[Pos1];
+				uint Letter2 = IntSeq2[Pos2];
+				if (Letter1 == UINT_MAX || Letter2 == UINT_MAX)
+					asserta(IgnoreUndef);
+				else
+					{
+					asserta(Letter1 < m_AlphaSize && Letter2 < m_AlphaSize);
+					Counts[Letter1] += 1;
+					Counts[Letter2] += 1;
+					}
+				}
+
+			if (!isgap(c1))
+				++Pos1;
+			if (!isgap(c2))
+				++Pos2;
+			}
+		asserta(Pos1 == L1);
+		asserta(Pos2 == L2);
+		}
+	}
+
+void FeatureTrainer2::GetLetterCounts(
+	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<uint> &ChainIdxs,
+	bool IgnoreUndef,
+	vector<uint> &Counts)
+	{
+	Counts.clear();
+	Counts.resize(m_AlphaSize);
+
+	set<uint> ChainIdxSet;
+	for (uint k = 0; k < SIZE(ChainIdxs); ++k)
+		ChainIdxSet.insert(ChainIdxs[k]);
+
+	for (set<uint>::const_iterator iter = ChainIdxSet.begin();
+		iter != ChainIdxSet.end(); ++iter)
+		{
+		uint ChainIdx = *iter;
+		const vector<uint> &IntSeq = ChainIntSeqs[ChainIdx];
+		uint L = SIZE(IntSeq);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			uint Letter = IntSeq[Pos];
+			if (Letter == UINT_MAX)
+				asserta(IgnoreUndef);
+			else
+				{
+				asserta(Letter < m_AlphaSize);
+				Counts[Letter] += 1;
+				}
+			}
+		}
+	}
+
 void FeatureTrainer2::GetAlignedLetterPairCounts(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
@@ -473,19 +574,76 @@ void FeatureTrainer2::GetIntSeqLetterCounts(
 		}
 	}
 
-float FeatureTrainer2::GetLogOddsMx(
+float FeatureTrainer2::GetRelativeEntropy(
+	const vector<vector<float> > &FreqMx,
+	const vector<vector<float> > &ScoreMx)
+	{
+	asserta(SIZE(FreqMx) == m_AlphaSize);
+	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	float Hrel = 0;
+	float Sumf = 0;
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		{
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			float f = FreqMx[Letter1][Letter2];
+			Hrel += f*ScoreMx[Letter1][Letter2];
+			Sumf += f;
+			}
+		}
+	asserta(feq(Sumf, 1));
+	return Hrel;
+	}
+
+float FeatureTrainer2::GetShannonEntropy(
+	const vector<vector<float> > &FreqMx)
+	{
+	asserta(SIZE(FreqMx) == m_AlphaSize);
+	float H = 0;
+	float Sumf = 0;
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		{
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			float f = FreqMx[Letter1][Letter2];
+			if (f > 0)
+				H -= f*log2(f);
+			Sumf += f;
+			}
+		}
+	asserta(feq(Sumf, 1));
+	return H;
+	}
+
+float FeatureTrainer2::GetExpectedScore(
+	vector<vector<float> > &ScoreMx,
+	const vector<float> &Freqs)
+	{
+	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	asserta(SIZE(Freqs) == m_AlphaSize);
+	float ES = 0;
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		{
+		float f1 = Freqs[Letter1];
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			{
+			float f2 = Freqs[Letter1];
+			ES += f1*f2*ScoreMx[Letter1][Letter2];
+			}
+		}
+	return ES;
+	}
+
+void FeatureTrainer2::GetLogOddsMx(
 	const vector<float> &Freqs,
 	const vector<vector<float> > &FreqMx,
 	vector<vector<float> > &ScoreMx)
 	{
 	ScoreMx.clear();
 	ScoreMx.resize(m_AlphaSize);
-	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
-		ScoreMx[Letter].resize(m_AlphaSize, FLT_MAX);
 	
 	float SumLetterFreqs = 0;
 	float SumPairFreqs = 0;
-	float ExpectedScore = 0;
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
 		{
 		ScoreMx[Letter1].resize(m_AlphaSize);
@@ -502,16 +660,14 @@ float FeatureTrainer2::GetLogOddsMx(
 			else
 				{
 				float Ratio = PairFreq/ExpectedFreq;
-				float Score = log(Ratio);
+				Score = log2(Ratio);
 				}
 			ScoreMx[Letter1][Letter2] = Score;
-			ExpectedScore += PairFreq*Score;
 			SumPairFreqs += PairFreq;
 			}
 		}
 	asserta(feq(SumLetterFreqs, 1));
 	asserta(feq(SumPairFreqs, 1));
-	return ExpectedScore;
 	}
 
 void FeatureTrainer2::GetFreqs(
@@ -758,6 +914,7 @@ float FeatureTrainer2::CalcArea(
 	float TPf = float(NTP)/TPCount;
 	float FPf = float(NFP)/FPCount;
 	Area += TPf*(FPf - PrevFPf)/2;
+	return Area;
 	}
 
 void FeatureTrainer2::GetChainIntSeqs_Int(
@@ -833,6 +990,32 @@ void FeatureTrainer2::GetChainIntSeqs_Float(
 	optset_force_undef = false;
 	}
 
+void FeatureTrainer2::LogFreqVec(
+	const string &Msg,
+	const vector<string> &Names,
+	const vector<vector<float> *> &FreqVec)
+	{
+	Log("%s\n", Msg.c_str());
+	const uint N = SIZE(FreqVec);
+	asserta(SIZE(Names) == N);
+	Log("      ");
+	for (uint i = 0; i < N; ++i)
+		Log("  %6.6s", Names[i].c_str());
+	Log("\n");
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		Log("[%2u] %c", Letter, g_LetterToCharAmino[Letter]);
+		for (uint i = 0; i < N; ++i)
+			{
+			const vector<float> &Freqs = *FreqVec[i];
+			asserta(SIZE(Freqs) == m_AlphaSize);
+			float Freq = Freqs[Letter];
+			Log("  %6.4f", Freq);
+			}
+		Log("\n");
+		}
+	}
+
 void FeatureTrainer2::TrainIntFeatureNoUndefs(
 	FEATURE F,
 	const string &ChainFN,
@@ -857,7 +1040,6 @@ void FeatureTrainer2::TrainIntFeatureNoUndefs(
 	vector<uint> TrainChainIdxs;
 	AppendAlns(TrainFPAlnFN, LabelToChainIdx, false,
 	  TrainRows, TrainLabels, TrainChainIdxs, TrainTPs);
-
 	AppendAlns(TrainTPAlnFN, LabelToChainIdx, true,
 	  TrainRows, TrainLabels, TrainChainIdxs, TrainTPs);
 
@@ -867,12 +1049,47 @@ void FeatureTrainer2::TrainIntFeatureNoUndefs(
 	vector<uint> EvalChainIdxs;
 	AppendAlns(EvalFPAlnFN, LabelToChainIdx, false,
 	  EvalRows, EvalLabels, EvalChainIdxs, EvalTPs);
-
 	AppendAlns(EvalTPAlnFN, LabelToChainIdx, true,
 	  EvalRows, EvalLabels, EvalChainIdxs, EvalTPs);
 
+	vector<uint> TrainAlnLetterCounts;
+	vector<uint> TrainAllLetterCounts;
+	vector<float> TrainAlnLetterFreqs;
+	vector<float> TrainAllLetterFreqs;
+	GetAlignedLetterCounts(ChainIntSeqs, TrainRows,
+	  TrainChainIdxs, false, TrainAlnLetterCounts);
+	GetLetterCounts(ChainIntSeqs, TrainChainIdxs,
+		false, TrainAllLetterCounts);
+	GetFreqs(TrainAlnLetterCounts, TrainAlnLetterFreqs);
+	GetFreqs(TrainAllLetterCounts, TrainAllLetterFreqs);
+
 	vector<vector<uint> > TrainAlnLetterPairCountMx;
+	vector<vector<float> > TrainAlnLetterPairFreqMx;
 	GetAlignedLetterPairCounts(ChainIntSeqs, TrainRows,
 	  TrainChainIdxs, false, TrainAlnLetterPairCountMx);
-	  
+	GetFreqMx(TrainAlnLetterPairCountMx, TrainAlnLetterPairFreqMx);
+
+	vector<vector<float> > ScoreMxAlnBg;
+	vector<vector<float> > ScoreMxAllBg;
+	GetLogOddsMx(TrainAlnLetterFreqs, TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
+	GetLogOddsMx(TrainAllLetterFreqs, TrainAlnLetterPairFreqMx, ScoreMxAllBg);
+
+	vector<string> FreqNames = { "Aln", "All" };
+	vector<vector<float > *> FreqVec = { &TrainAlnLetterFreqs, &TrainAllLetterFreqs };
+	LogFreqVec("", FreqNames, FreqVec);
+
+	Log("\n");
+	Log("// ScoreMxAlnBg\n");
+	ScoreMxToSrc(g_fLog, ScoreMxAlnBg);
+	Log("\n");
+	Log("// ScoreMxAllBg\n");
+	ScoreMxToSrc(g_fLog, ScoreMxAllBg);
+
+	float ESAlnAll = GetExpectedScore(ScoreMxAlnBg, TrainAllLetterFreqs);
+	float ESAllAll = GetExpectedScore(ScoreMxAllBg, TrainAllLetterFreqs);
+	float HAln = GetShannonEntropy(TrainAlnLetterPairFreqMx);
+	float Hrel = GetRelativeEntropy(TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
+	Log("ESAlnAll=%.3g, ESAllAll=%.3g\n", ESAlnAll, ESAllAll);
+	Log("Shannon entropy %.3g\n", HAln);
+	Log("Relative entropy %.3g\n", Hrel);
 	}

@@ -382,6 +382,7 @@
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="trained_features_new.cpp" />
     <ClCompile Include="train_feature.cpp" />
+    <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
