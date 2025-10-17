@@ -427,16 +427,6 @@ void FeatureTrainer::UpdateJointCounts(uint PairIndex, bool IgnoreUndef)
 		}
 	asserta(QPos == SIZE(QLetterSeq));
 	asserta(RPos == SIZE(RLetterSeq));
-	//Log("Joint counts\n");//@@
-	//for (uint i = 0; i < m_AlphaSize; ++i)
-	//	{
-	//	const vector<uint> &Row = m_TrueCountMx[i];
-	//	Log("[%2u] ", i);
-	//	for (uint j = 0; j < m_AlphaSize; ++j)
-	//		Log("%10u", Row[j]);
-	//	Log("\n");
-	//	}
-	//Die("");//@@
 	}
 
 void FeatureTrainer::TrainLogOdds(bool IgnoreUndef)
@@ -874,18 +864,6 @@ void FeatureTrainer::SetAlnSubstScores()
 		Log("FP scores: ");
 		Q.LogMe();
 		}
-	FILE *f = CreateStdioFile("alnscores.tsv");//@@@@@@@
-	for (uint AlnIdx = 0; AlnIdx < AlnCount; ++AlnIdx)
-		{//@@@@@@@@@@@@@@@@@@@@@@
-		uint ChainIdx1 = m_AlnChainIdxs[2*AlnIdx];
-		uint ChainIdx2 = m_AlnChainIdxs[2*AlnIdx+1];
-		fprintf(f, "%s\t%s\t%.6g\t%c\n",
-			m_Chains[ChainIdx1]->m_Label.c_str(),
-			m_Chains[ChainIdx2]->m_Label.c_str(),
-			round3sigfig(m_AlnSubstScores[AlnIdx]),
-			tof(m_AlnTPs[AlnIdx]));
-		}//@@@@@@@@@@@@@@@@@@@@@@
-	CloseStdioFile(f);//@@@@@@@@@@@
 	}
 
 float FeatureTrainer::GetAlnSubstScore(uint AlnIdx)
@@ -931,8 +909,6 @@ float FeatureTrainer::GetAlnSubstScore(uint AlnIdx)
 		}
 	asserta(QPos == SIZE(QLetterSeq));
 	asserta(RPos == SIZE(RLetterSeq));
-	if (AlnIdx < 5)//@@
-		Log("GetAlnSubstScore(%u)=%.3g\n", AlnIdx, Score);//@@
 	return Score;
 	}
 
@@ -1040,7 +1016,7 @@ void FeatureTrainer::SetArea()
 
 	uint NTP = 0;
 	uint NFP = 0;
-	//float PrevTPf = 0;
+	float PrevTPf = 0;
 	float PrevFPf = 0;
 	float CurrentScore = m_AlnScores[Order[0]];
 	for (uint k = 0; k < AlnCount; ++k)
@@ -1052,9 +1028,9 @@ void FeatureTrainer::SetArea()
 			{
 			float TPf = float(NTP)/m_TPCount;
 			float FPf = float(NFP)/m_FPCount;
-			m_Area += TPf*(FPf - PrevFPf);
+			m_Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
 			CurrentScore = Score;
-			//PrevTPf = TPf;
+			PrevTPf = TPf;
 			PrevFPf = FPf;
 			}
 		if (TP)
@@ -1071,7 +1047,7 @@ void FeatureTrainer::SetArea()
 
 	float TPf = float(NTP)/m_TPCount;
 	float FPf = float(NFP)/m_FPCount;
-	m_Area += TPf*(FPf - PrevFPf);
+	m_Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
 	}
 
 static FeatureTrainer *s_FT;

@@ -7,25 +7,6 @@
 #include "quarts.h"
 #include "sort.h"
 
-static float ScoreMx_Conf[16][16] = {
-	{  1.2393, -6.3137, -7.4247, -5.3244, -3.4982, -5.4640, -4.4456, -0.8324, -2.1363, -2.8107, -5.2803,  0.0006, -2.0412, -4.2875, -4.2306, -3.6567},
-	{ -6.3137,  1.5405,  0.8580,  0.3837, -1.4791,  0.4851, -1.8924, -5.2809, -4.1997, -3.1426,  0.5381, -3.4161, -5.4338, -1.1387, -2.5156, -4.3710},
-	{ -7.4247,  0.8580,  1.9506, -1.2560, -2.8325, -0.2713, -3.5757, -7.4744, -6.2666, -5.0881, -1.1766, -5.6923, -6.7618, -3.0443, -4.7181, -7.1453},
-	{ -5.3244,  0.3837, -1.2560,  2.0783,  0.6138,  0.6716, -1.0381, -2.2034, -1.6893, -1.6287, -0.0255, -0.9745, -2.2674,  0.7563,  0.6708, -2.3625},
-	{ -3.4982, -1.4791, -2.8325,  0.6138,  2.3139,  0.6514, -1.2239, -3.2332,  1.1391, -2.5452, -0.9770, -0.0726, -0.7900, -0.4030,  0.3387, -1.9807},
-	{ -5.4640,  0.4851, -0.2713,  0.6716,  0.6514,  2.3105, -1.5730, -4.3206, -1.8865, -3.1361, -0.5157, -1.7197, -3.4370, -0.9122, -0.9873, -3.4545},
-	{ -4.4456, -1.8924, -3.5757, -1.0381, -1.2239, -1.5730,  2.5428, -2.1597,  0.4085,  0.3033,  1.3113, -2.7798, -3.0668,  0.0763, -0.4322, -0.9295},
-	{ -0.8324, -5.2809, -7.4744, -2.2034, -3.2332, -4.3206, -2.1597,  2.7886, -2.0834, -0.7201, -2.9083, -0.8924, -1.6873, -0.8072, -0.1275, -0.1927},
-	{ -2.1363, -4.1997, -6.2666, -1.6893,  1.1391, -1.8865,  0.4085, -2.0834,  2.4276, -0.4129, -1.2313, -0.1312,  0.7039, -1.2204,  0.2023, -0.0368},
-	{ -2.8107, -3.1426, -5.0881, -1.6287, -2.5452, -3.1361,  0.3033, -0.7201, -0.4129,  2.6616, -1.3069, -2.2672, -2.9099,  1.1417, -1.0529,  1.6350},
-	{ -5.2803,  0.5381, -1.1766, -0.0255, -0.9770, -0.5157,  1.3113, -2.9083, -1.2313, -1.3069,  2.3440, -2.8522, -4.2340,  0.0421, -1.1754, -2.2877},
-	{  0.0006, -3.4161, -5.6923, -0.9745, -0.0726, -1.7197, -2.7798, -0.8924, -0.1312, -2.2672, -2.8522,  2.4597,  1.0263, -0.3818,  0.2272, -1.7486},
-	{ -2.0412, -5.4338, -6.7618, -2.2674, -0.7900, -3.4370, -3.0668, -1.6873,  0.7039, -2.9099, -4.2340,  1.0263,  2.8322, -1.5363,  0.8756,  0.2578},
-	{ -4.2875, -1.1387, -3.0443,  0.7563, -0.4030, -0.9122,  0.0763, -0.8072, -1.2204,  1.1417,  0.0421, -0.3818, -1.5363,  2.6540,  0.3376,  0.3106},
-	{ -4.2306, -2.5156, -4.7181,  0.6708,  0.3387, -0.9873, -0.4322, -0.1275,  0.2023, -1.0529, -1.1754,  0.2272,  0.8756,  0.3376,  2.6673,  0.0630},
-	{ -3.6567, -4.3710, -7.1453, -2.3625, -1.9807, -3.4545, -0.9295, -0.1927, -0.0368,  1.6350, -2.2877, -1.7486,  0.2578,  0.3106,  0.0630,  3.0810},
-};
-
 FEATURE FeatureTrainer2::m_F = FEATURE(-1);
 uint FeatureTrainer2::m_AlphaSize = UINT_MAX;
 
@@ -440,10 +421,14 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	bool IgnoreUndef,
-	vector<uint> &Counts)
+	vector<uint> &Counts,
+	uint &LetterCount,
+	uint &UndefCount)
 	{
 	Counts.clear();
 	Counts.resize(m_AlphaSize);
+	LetterCount = 0;
+	UndefCount = 0;
 
 	const uint RowCount = SIZE(Rows);
 	asserta(SIZE(RowChainIdxs) == RowCount);
@@ -480,6 +465,11 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 				{
 				uint Letter1 = IntSeq1[Pos1];
 				uint Letter2 = IntSeq2[Pos2];
+				LetterCount += 2;
+				if (Letter1 == UINT_MAX)
+					++UndefCount;
+				if (Letter2 == UINT_MAX)
+					++UndefCount;
 				if (Letter1 == UINT_MAX || Letter2 == UINT_MAX)
 					asserta(IgnoreUndef);
 				else
@@ -602,26 +592,6 @@ void FeatureTrainer2::GetAlignedLetterPairCounts(
 			}
 		asserta(Pos1 == L1);
 		asserta(Pos2 == L2);
-		//Log("Joint counts\n");//@@
-		//for (uint i = 0; i < m_AlphaSize; ++i)
-		//	{
-		//	const vector<uint> &Row = CountMx[i];
-		//	Log("[%2u] ", i);
-		//	for (uint j = 0; j < m_AlphaSize; ++j)
-		//		Log("%10u", Row[j]);
-		//	Log("\n");
-		//	}
-		//Die("");//@@
-		}
-
-	Log("Joint counts\n");
-	for (uint i = 0; i < m_AlphaSize; ++i)
-		{
-		const vector<uint> &Row = CountMx[i];
-		Log("[%2u] ", i);
-		for (uint j = 0; j < m_AlphaSize; ++j)
-			Log("%10u", Row[j]);
-		Log("\n");
 		}
 	}
 
@@ -876,8 +846,6 @@ void FeatureTrainer2::GetAlnSubstScores(
 		asserta(Pos1 == L1);
 		asserta(Pos2 == L2);
 		SubstScores.push_back(SubstScore);
-		if (AlnIdx < 5)//@@
-			Log("GetAlnSubstScore(%u) = %.3g\n", AlnIdx, SubstScore);//@@
 		}
 	asserta(SIZE(SubstScores) == AlnCount);
 	}
@@ -1203,7 +1171,7 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 	uint UndefCount = 0;
 	uint LetterCount = 0;
 	GetChainIntSeqs_Int(Chains, ChainIntSeqs, LetterCount, UndefCount);
-	Log("%u / %u (%.2f%%) undefined letters in chains\n",
+	ProgressLog("%u / %u (%.2f%%) undefined letters in chains\n",
 		UndefCount, LetterCount, GetPct(UndefCount, LetterCount));
 
 	vector<bool> TrainTPs;
@@ -1222,11 +1190,17 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 
 	vector<uint> TrainTPLetterCounts;
 	vector<float> TrainTPLetterFreqs;
+	uint AlignedLetterCount = 0;
+	uint AlignedLetterUndefCount = 0;
 	GetAlignedLetterCounts(ChainIntSeqs, TPTrainRows,
-	  TPTrainChainIdxs, IgnoreUndef, TrainTPLetterCounts);
+	  TPTrainChainIdxs, IgnoreUndef, TrainTPLetterCounts,
+	  AlignedLetterCount, AlignedLetterUndefCount);
 	GetLetterCounts(ChainIntSeqs, AllTrainChainIdxs,
 		IgnoreUndef, TrainTPLetterCounts);
 	GetFreqs(TrainTPLetterCounts, TrainTPLetterFreqs);
+	ProgressLog("%u / %u  (%.2f%%) aligned letters undefined\n",
+		AlignedLetterUndefCount, AlignedLetterCount, 
+		GetPct(AlignedLetterUndefCount, AlignedLetterCount)); 
 
 	vector<vector<uint> > TrainAlnLetterPairCountMx;
 	vector<vector<float> > TrainAlnLetterPairFreqMx;
@@ -1236,29 +1210,18 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 
 	vector<vector<float> > ScoreMxAlnBg;
 	GetLogOddsMx(TrainTPLetterFreqs, TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
-
-	
-	{//@@
-	for (uint i = 0; i < 16; ++i)
-		for (uint j = 0; j < 16; ++j)
-			ScoreMxAlnBg[i][j] = ScoreMx_Conf[i][j];
-	}//@@
-
 	LogFreqs(TrainTPLetterFreqs);
 
 	Log("\n");
 	Log("// ScoreMxAlnBg\n");
 	ScoreMxToSrc(g_fLog, ScoreMxAlnBg);
-	//Log("\n");
-	//Log("// ScoreMxAllBg\n");
-	//ScoreMxToSrc(g_fLog, ScoreMxAllBg);
 
 	float ES = GetExpectedScore(ScoreMxAlnBg, TrainTPLetterFreqs);
 	float HAln = GetShannonEntropy(TrainAlnLetterPairFreqMx);
 	float Hrel = GetRelativeEntropy(TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
-	Log("ES=%.3g\n", ES);
-	Log("Shannon entropy %.3g\n", HAln);
-	Log("Relative entropy %.3g\n", Hrel);
+	ProgressLog("Expected score %.3g\n", ES);
+	ProgressLog("Shannon entropy %.3g\n", HAln);
+	ProgressLog("Relative entropy %.3g\n", Hrel);
 
 	vector<bool> EvalTPs;
 	vector<string> EvalRows;
@@ -1281,7 +1244,7 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 
 	float OpenPenalty, ExtPenalty, Bias, Area;
 	OptimizeArea(EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec,
-		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, Area);
+		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, Area, 8);
 
 	Log("Area=%.3g, open %.3g, ext %.3g, bias %.3g\n",
 		Area, OpenPenalty, ExtPenalty, Bias);
@@ -1289,71 +1252,17 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 	vector<float> EvalAlnSubstScores3SigFig, EvalAlnScores3SigFig;
 	Round3SigFig(EvalAlnSubstScores, EvalAlnSubstScores3SigFig);
 
-	OpenPenalty = 3.89f;//@@@@@@@@@@@@@@@@@@@
-	ExtPenalty = 0.242f;//@@@@@@@@@@@@@@@@@@@
 	vector<float> EvalAlnScores;
 	GetAlnScores(EvalAlnSubstScores, EvalAlnColCountVec,
 		EvalAlnOpenVec, EvalAlnExtVec, OpenPenalty, ExtPenalty, Bias,
 		EvalAlnScores);
 	Round3SigFig(EvalAlnScores, EvalAlnScores3SigFig);
 	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
-	Log("Area %.3g\n", Area2);
-	{//@@
-	vector<float> StepScores, StepTPfs, StepFPfs;
-	GetSteps(EvalAlnScores3SigFig, EvalTPs, StepScores, StepTPfs, StepFPfs);
-	FILE *f = CreateStdioFile("steps2.tsv");
-	for (uint i = 0; i < SIZE(StepScores); ++i)
-		fprintf(f, "%.3g\t%.3g\t%.3g\n",
-			StepScores[i], StepTPfs[i], StepFPfs[i]);
-	CloseStdioFile(f);
-	return;
-	}//@@
+	Log("Area2 %.3g\n", Area2);
 
 	float Area_SubstScores = CalcArea(EvalAlnSubstScores, EvalTPs);
 	float Area_Gaps = CalcArea(EvalAlnScores, EvalTPs);
 
 	Log("\nQuarts with optimized gaps, area=%.3g:\n", Area_Gaps);
 	LogAlnScoreQuarts(EvalAlnScores, EvalTPs);
-
-
-	{//@@@@@@@@@@@@@
-	Log("\nQuarts 3 sig fig\n");
-	LogAlnScoreQuarts(EvalAlnSubstScores3SigFig, EvalTPs);
-	FILE *f = CreateStdioFile("alnscores2.tsv");
-	uint n = SIZE(EvalAlnScores3SigFig);
-	asserta(SIZE(EvalRowChainIdxs) == 2*n);
-	for (uint i = 0; i < n; ++i)
-		{
-		uint ChainIdx1 = EvalRowChainIdxs[2*i];
-		uint ChainIdx2 = EvalRowChainIdxs[2*i+1];
-		fprintf(f, "%s\t%s\t%.6g\t%c\n",
-			Chains[ChainIdx1]->m_Label.c_str(),
-			Chains[ChainIdx2]->m_Label.c_str(),
-			EvalAlnSubstScores3SigFig[i],
-			tof(EvalTPs[i]));
-		}
-	CloseStdioFile(f);
-	}//@@@@@@@@@@@@@
-
-	//vector<float> StepScores, StepTPfs, StepFPfs;
-	//GetSteps(EvalAlnScores3SigFig, EvalTPs, StepScores, StepTPfs, StepFPfs);
-	//{
-	//FILE *f = CreateStdioFile("steps.tsv");
-	//for (uint i = 0; i < SIZE(StepScores); ++i)
-	//	fprintf(f, "%.3g\t%.3g\t%.3g\n",
-	//		StepScores[i], StepTPfs[i], StepFPfs[i]);
-	//CloseStdioFile(f);
-	//}
-
-	vector<float> SubstStepScores, SubstStepTPfs, SubstStepFPfs;
-	GetSteps(EvalAlnSubstScores3SigFig, EvalTPs, SubstStepScores,
-		SubstStepTPfs, SubstStepFPfs);
-
-	{
-	FILE *f = CreateStdioFile("stepsub2.tsv");
-	for (uint i = 0; i < SIZE(SubstStepScores); ++i)
-		fprintf(f, "%.3g\t%.3g\t%.3g\n",
-			SubstStepScores[i], SubstStepTPfs[i], SubstStepFPfs[i]);
-	CloseStdioFile(f);
-	}
 	}

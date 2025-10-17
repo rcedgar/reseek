@@ -237,14 +237,21 @@ void Peaker::InitDeltas()
 void Peaker::LogDeltas() const
 	{
 	const uint VarCount = GetVarCount();
-	ProgressLog("Deltas: ");
+
+	Log("Deltas: ");
+	if (m_Progress)
+		Progress("Deltas: ");
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		const VarSpec &Spec = GetVarSpec(VarIdx);
 		double InitialDelta = Spec.m_InitialDelta;
-		ProgressLog(" %s(%.3g,%.3g)", GetVarName(VarIdx), InitialDelta, m_Deltas[VarIdx]);
+		Log(" %s(%.3g,%.3g)", GetVarName(VarIdx), InitialDelta, m_Deltas[VarIdx]);
+		if (m_Progress)
+			Progress(" %s(%.3g,%.3g)", GetVarName(VarIdx), InitialDelta, m_Deltas[VarIdx]);
 		}
-	ProgressLog("\n");
+	Log("\n");
+	if (m_Progress)
+		Progress("\n");
 	}
 
 uint Peaker::GetSigFig(uint VarIdx) const
@@ -455,31 +462,52 @@ void Peaker::LogState() const
 
 void Peaker::ProgressLogSummary() const
 	{
-	string &GetProgressPrefixStr(string &s);
-
 	string TmpStr;
-	ProgressLog("%s ", GetElapsedTimeStr(TmpStr));
+	Log("%s ", GetElapsedTimeStr(TmpStr));
+	if (m_Progress)
+		Progress("%s ", GetElapsedTimeStr(TmpStr));
 	if (m_Best_xIdx == UINT_MAX)
 		{
-		ProgressLog(" (no evals)\n");
+		Log(" (no evals)\n");
+		if (m_Progress)
+			Progress(" (no evals)\n");
 		return;
 		}
 
 	if (m_LastImprovedEvalIdx == m_EvalIdx)
-		ProgressLog(">>", m_EvalIdx);
+		{
+		Log(">>", m_EvalIdx);
+		if (m_Progress)
+			Progress(">>", m_EvalIdx);
+		}
 	else
 		{
-		ProgressLog("#%u", m_EvalIdx);
-		ProgressLog(" ~%u", m_EvalIdx - m_LastImprovedEvalIdx);
+		Log("#%u", m_EvalIdx);
+		Log(" ~%u", m_EvalIdx - m_LastImprovedEvalIdx);
+		if (m_Progress)
+			{
+			Progress("#%u", m_EvalIdx);
+			Progress(" ~%u", m_EvalIdx - m_LastImprovedEvalIdx);
+			}
 		}
 	if (m_Msg != "")
-		ProgressLog(" %s", m_Msg.c_str());
+		{
+		Log(" %s", m_Msg.c_str());
+		if (m_Progress)
+			Progress(" %s", m_Msg.c_str());
+		}
 
 	string s;
 	GetBestVarStr(s);
-	ProgressLog(" [%.6g]", m_Best_y);
-	ProgressLog(" %s", s.c_str());
-	ProgressLog("\n");
+	Log(" [%.6g]", m_Best_y);
+	Log(" %s", s.c_str());
+	Log("\n");
+	if (m_Progress)
+		{
+		Progress(" [%.6g]", m_Best_y);
+		Progress(" %s", s.c_str());
+		Progress("\n");
+		}
 	}
 
 void Peaker::GetBestVarStr(string &s) const

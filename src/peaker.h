@@ -26,6 +26,7 @@ public:
 	string m_Msg;
 	string m_Cmd;
 	string m_QueueDir;
+	bool m_Progress = true;
 
 	vector<vector<double> > m_xvs;		// Values tried
 	vector<double> m_ys;				// Results

@@ -38,8 +38,11 @@ double Peaker::HJ_Explore()
 			maxdy = max(maxdy, fabs(y - Saved_Best_y));
 			if (y > BestNew_y)
 				{
-				ProgressLog("HJ_Explore() improved %s%c dy=%.3g\n",
+				Log("HJ_Explore() improved %s%c dy=%.3g\n",
 				  Name, pom(Plus), y - Saved_Best_y);
+				if (m_Progress)
+					Progress("HJ_Explore() improved %s%c dy=%.3g\n",
+					  Name, pom(Plus), y - Saved_Best_y);
 				BestNew_y = y;
 				m_HJ_Plus = Plus;
 				BestNewDirection = VarIdx;
@@ -48,10 +51,19 @@ double Peaker::HJ_Explore()
 		}
 	m_HJ_Direction = BestNewDirection;
 	if (m_HJ_Direction == UINT_MAX)
-		ProgressLog("HJ_Expore(), no improvement found\n");
+		{
+		Log("HJ_Expore(), no improvement found\n");
+		if (m_Progress)
+			Progress("HJ_Expore(), no improvement found\n");
+		}
 	else
-		ProgressLog("HJ_Expore(), new direction %s%c\n",
+		{
+		Log("HJ_Expore(), new direction %s%c\n",
 		  GetVarName(m_HJ_Direction), pom(m_HJ_Plus));
+		if (m_Progress)
+			Progress("HJ_Expore(), new direction %s%c\n",
+			  GetVarName(m_HJ_Direction), pom(m_HJ_Plus));
+		}
 	LogDeltas();
 	return maxdy;
 	}
@@ -71,15 +83,20 @@ void Peaker::HJ_Extend()
 		double Saved_Best_y = m_Best_y;
 		Ps(m_Msg, "HJ_%s%c", GetVarName(VarIdx), pom(m_HJ_Plus));
 		double y = HJ_EvalDelta(m_Best_xIdx, VarIdx, Delta);
-		ProgressLog("HJ_extend() %s%c %u/%u dy=%+.3g\n",
+		Log("HJ_extend() %s%c %u/%u dy=%+.3g\n",
 		  Name, pom(m_HJ_Plus), Iter+1, m_HJ_MaxExtendIters, y - Saved_Best_y);
+		if (m_Progress)
+			Progress("HJ_extend() %s%c %u/%u dy=%+.3g\n",
+			  Name, pom(m_HJ_Plus), Iter+1, m_HJ_MaxExtendIters, y - Saved_Best_y);
 		if (y <= Saved_Best_y)
 			{
 			double dy = Saved_Best_y - y;
 			asserta(dy >= 0);
 			if (Iter == 0 && dy > m_Min_dy)
 				{
-				ProgressLog("HJ_Extend(%s) delta down\n", Name);
+				Log("HJ_Extend(%s) delta down\n", Name);
+				if (m_Progress)
+					Progress("HJ_Extend(%s) delta down\n", Name);
 				m_Deltas[VarIdx] /= ChangeWithNoise();
 				LogDeltas();
 				}
@@ -87,7 +104,9 @@ void Peaker::HJ_Extend()
 			}
 		if (Iter > 0)
 			{
-			ProgressLog("HJ_Extend(%s) delta up\n", Name, Iter+1);
+			Log("HJ_Extend(%s) delta up\n", Name, Iter+1);
+			if (m_Progress)
+				Progress("HJ_Extend(%s) delta up\n", Name, Iter+1);
 			m_Deltas[VarIdx] *= ChangeWithNoise();
 			LogDeltas();
 			}
@@ -134,15 +153,21 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 		{
 		double NewDelta = Delta*ChangeWithNoise();
 		m_Deltas[VarIdx] = NewDelta;
-		ProgressLog("Delta %s adjust up %.3g => %.3g\n",
+		Log("Delta %s adjust up %.3g => %.3g\n",
 		  Name, Delta, NewDelta);
+		if (m_Progress)
+			Progress("Delta %s adjust up %.3g => %.3g\n",
+			  Name, Delta, NewDelta);
 		}
 	else if (dy > m_Max_dy)
 		{
 		double NewDelta = Delta/ChangeWithNoise();
 		m_Deltas[VarIdx] = NewDelta;
-		ProgressLog("Delta %s adjust down %.3g => %.3g\n",
+		Log("Delta %s adjust down %.3g => %.3g\n",
 		  Name, Delta, NewDelta);
+		if (m_Progress)
+			Progress("Delta %s adjust down %.3g => %.3g\n",
+			  Name, Delta, NewDelta);
 		}
 	return y2;
 	}
@@ -160,16 +185,22 @@ void Peaker::HJ_RunHookeJeeves()
 			break;
 			}
 		double Height = HJ_Explore();
-		ProgressLog("HJ height=%.3g\n", Height);
+		Log("HJ height=%.3g\n", Height);
+		if (m_Progress)
+			Progress("HJ height=%.3g\n", Height);
 		LogDeltas();
 		if (Height <= m_Min_Height)
 			{
-			ProgressLog("HJ converged by height\n");
+			Log("HJ converged by height\n");
+			if (m_Progress)
+				Progress("HJ converged by height\n");
 			break;
 			}
 		if (m_HJ_Direction == UINT_MAX)
 			{
-			ProgressLog("HJ converged by no improvement found\n");
+			Log("HJ converged by no improvement found\n");
+			if (m_Progress)
+				Progress("HJ converged by no improvement found\n");
 			break;
 			}
 		HJ_Extend();

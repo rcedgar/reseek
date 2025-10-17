@@ -83,7 +83,9 @@ static void GetAlignedLetterCounts(
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	bool IgnoreUndef,
-	vector<uint> &Counts);
+	vector<uint> &Counts,
+	uint &LetterCount,
+	uint &UndefCount);
 
 static void GetAlignedLetterPairCounts(
 	const vector<vector<uint> > &ChainIntSeqs,
@@ -220,7 +222,8 @@ static void OptimizeArea(
 	float &OpenPenalty,
 	float &ExtPenalty,
 	float &Bias,
-	float &Area);
+	float &Area,
+	uint Iters);
 
 static void TrainIntFeatureNoUndefs(
 	FEATURE F,
