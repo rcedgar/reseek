@@ -28,10 +28,25 @@ void cmd_train_feature2()
 	const string &EvalFPAlnFN = TrainFPAlnFN;
 	vector<vector<float> > ScoreMx;
 	FeatureTrainer2::SetIntFeature(F);
-	//FeatureTrainer2::TrainIntFeatureNoUndefs(F, ChainFN,
-	//	TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
-	//	ScoreMx);
-	FeatureTrainer2::TrainIntFeatureIgnoreUndefs(F, ChainFN,
-		TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
-		ScoreMx);
+	bool UndefsAllowed = true;
+	vector<float> Areas;
+	for (uint ReplaceUndefWithThisLetter = 0; ReplaceUndefWithThisLetter < 16;
+		++ReplaceUndefWithThisLetter)
+		{
+		float BestArea;
+		FeatureTrainer2::TrainIntFeature(F, ChainFN,
+			TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
+			UndefsAllowed, ReplaceUndefWithThisLetter,
+			ScoreMx, BestArea);
+		Areas.push_back(BestArea);
+		}
+
+	Log("\n");
+	vector<uint> Order(AlphaSize);
+	QuickSortOrder(Areas.data(), AlphaSize, Order.data());
+	for (uint k = 0; k < AlphaSize; ++k)
+		{
+		uint Letter = Order[k];
+		Log("[%2u]  %6.4f\n", Letter, Areas[Letter]);
+		}
 	}

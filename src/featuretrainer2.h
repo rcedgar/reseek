@@ -11,6 +11,8 @@ class FeatureTrainer2
 public:
 static FEATURE m_F;
 static uint m_AlphaSize;
+static bool m_UndefsAllowed;
+static uint m_ReplaceUndefWithThisLetter;
 
 static void SetFloatFeature(FEATURE F, uint AlphaSize);
 static void SetIntFeature(FEATURE F);
@@ -19,6 +21,8 @@ static void TruncLabel(string &Label);
 
 static void TruncLabel(const string &Label,
 	string &TruncatedLabel);
+
+static uint FixLetter(uint Letter);
 
 static void AppendAlns(
 	const string &FN,
@@ -82,22 +86,17 @@ static void GetAlignedLetterCounts(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
-	bool IgnoreUndef,
-	vector<uint> &Counts,
-	uint &LetterCount,
-	uint &UndefCount);
+	vector<uint> &Counts);
 
 static void GetAlignedLetterPairCounts(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
-	bool IgnoreUndef,
 	vector<vector<uint> > &CountMx);
 
-static void GetLetterCounts(
+static void GetAllLetterCountsUniqueChains(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<uint> &ChainIdxs,
-	bool IgnoreUndef,
 	vector<uint> &Counts);
 
 static void GetIntSeqLetterCounts(
@@ -172,7 +171,7 @@ static void GetAlnSubstScores(
 	const vector<vector<uint> > &ChainIntSeqs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
-	bool IgnoreUndef,
+	bool UndefsAllowed,
 	uint ReplaceUndefByThisLetter,
 	const vector<vector<float > > &ScoreMx,
 	vector<float> &SubstScores);
@@ -225,21 +224,15 @@ static void OptimizeArea(
 	float &Area,
 	uint Iters);
 
-static void TrainIntFeatureNoUndefs(
+static void TrainIntFeature(
 	FEATURE F,
 	const string &ChainFN,
 	const string &TrainTPAlnFN,
 	const string &TrainFPAlnFN,
 	const string &EvalTPAlnFN,
 	const string &EvalFPAlnFN,
-	vector<vector<float > > &ScoreMx);
-
-static void TrainIntFeatureIgnoreUndefs(
-	FEATURE F,
-	const string &ChainFN,
-	const string &TrainTPAlnFN,
-	const string &TrainFPAlnFN,
-	const string &EvalTPAlnFN,
-	const string &EvalFPAlnFN,
-	vector<vector<float > > &ScoreMx);
+	bool UndefsAllowed,
+	uint ReplaceUndefWithThisLetter,
+	vector<vector<float > > &ScoreMx,
+	float &BestArea);
 };

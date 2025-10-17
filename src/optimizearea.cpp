@@ -14,7 +14,22 @@ static Peaker s_Peaker;
 
 static vector<float> s_AlnScores;
 
-static double EvalArea(const vector<double> &xv)
+static double EvalArea_OpenOnly(const vector<double> &xv)
+	{
+	asserta(SIZE(xv) == 1);
+	float OpenPenalty = float(xv[0]);
+	float ExtPenalty = OpenPenalty*0.1f;
+	float Bias = 0; // float(xv[2]);
+
+	FeatureTrainer2::GetAlnScores(*s_AlnSubstScores, *s_AlnColCountVec,
+		*s_AlnOpenVec, *s_AlnExtVec, OpenPenalty, ExtPenalty, Bias,
+		s_AlnScores);
+
+	float Area = FeatureTrainer2::CalcArea(s_AlnScores, *s_TPs);
+	return Area;
+	}
+
+static double EvalArea_OPenExt(const vector<double> &xv)
 	{
 	asserta(SIZE(xv) == 2);
 	float OpenPenalty = float(xv[0]);
@@ -66,23 +81,32 @@ void FeatureTrainer2::OptimizeArea(
 	SpecLines.push_back("minh=0.0005");
 	SpecLines.push_back("latin=yes");
 	SpecLines.push_back("sigfig=3");
-	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.2\tbins=32\tinit=1");
-	SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.01\tbins=32\tinit=0.1");
+	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.1\tbins=32\tinit=0.5");
+	//SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.01\tbins=32\tinit=0.1");
 	//SpecLines.push_back("var=bias\tmin=-1\tmax=1\tdelta=0.01\tbins=32\tinit=0.0");
 
 	vector<float> Areas;
 	vector<float> Opens;
 	vector<float> Exts;
 	vector<float> Biases;
+
+	vector<double> xv0 = { 0 };
+	float Area0 = (float) EvalArea_OpenOnly(xv0);
+	Areas.push_back(Area0);
+	Opens.push_back(0);
+	Exts.push_back(0);
+	Biases.push_back(0);
+
 	BestArea = 0;
 	for (uint Iter = 0; Iter < Iters; ++Iter)
 		{
 		s_Peaker.m_Progress = false;
-		s_Peaker.Init(SpecLines, EvalArea);
+		s_Peaker.Init(SpecLines, EvalArea_OpenOnly);
 		s_Peaker.Run();
 		const vector<double> &xv = s_Peaker.GetBestParams();
+		asserta(SIZE(xv) == 1);
 		float OpenPenalty = (float) xv[0];
-		float ExtPenalty = (float) xv[1];
+		float ExtPenalty = OpenPenalty*0.1f; // (float) xv[1];
 		float Bias = 0; // (float) xv[2];
 		float Area = (float) s_Peaker.m_Best_y;
 
