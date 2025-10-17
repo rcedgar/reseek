@@ -21,7 +21,7 @@ void cmd_train_feature2()
 		AlphaSize = opt(alpha_size);
 		}
 
-	const string &ChainFN = "c:/src/reseek/test_data/scop40.bca";
+	const string &ChainFN = opt(db); // "c:/src/reseek/test_data/scop40.bca";
 	const string &TrainTPAlnFN = opt(input); // "../big_out/tp.a.mints05.maxts25.fa2";
 	const string &TrainFPAlnFN = opt(input2); // "../big_out/fp.a.mints05.maxts25.fa2";
 	const string &EvalTPAlnFN = TrainTPAlnFN;
