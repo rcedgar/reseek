@@ -978,9 +978,12 @@ float FeatureTrainer2::CalcArea(
 		bool TP = TPs[i];
 		if (Score != CurrentScore)
 			{
+			asserta(Score < CurrentScore);
 			float TPf = float(NTP)/TPCount;
 			float FPf = float(NFP)/FPCount;
-			Area += TPf*(FPf - PrevFPf)/2;
+			Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
+			PrevTPf = TPf;
+			PrevFPf = FPf;
 			}
 		if (TP)
 			++NTP;
@@ -994,7 +997,7 @@ float FeatureTrainer2::CalcArea(
 
 	float TPf = float(NTP)/TPCount;
 	float FPf = float(NFP)/FPCount;
-	Area += TPf*(FPf - PrevFPf)/2;
+	Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
 	return Area;
 	}
 
@@ -1293,6 +1296,8 @@ void FeatureTrainer2::TrainIntFeatureIgnoreUndefs(
 		EvalAlnOpenVec, EvalAlnExtVec, OpenPenalty, ExtPenalty, Bias,
 		EvalAlnScores);
 	Round3SigFig(EvalAlnScores, EvalAlnScores3SigFig);
+	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
+	Log("Area %.3g\n", Area2);
 	{//@@
 	vector<float> StepScores, StepTPfs, StepFPfs;
 	GetSteps(EvalAlnScores3SigFig, EvalTPs, StepScores, StepTPfs, StepFPfs);

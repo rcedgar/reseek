@@ -1040,7 +1040,7 @@ void FeatureTrainer::SetArea()
 
 	uint NTP = 0;
 	uint NFP = 0;
-	float PrevTPf = 0;
+	//float PrevTPf = 0;
 	float PrevFPf = 0;
 	float CurrentScore = m_AlnScores[Order[0]];
 	for (uint k = 0; k < AlnCount; ++k)
@@ -1054,7 +1054,7 @@ void FeatureTrainer::SetArea()
 			float FPf = float(NFP)/m_FPCount;
 			m_Area += TPf*(FPf - PrevFPf);
 			CurrentScore = Score;
-			PrevTPf = TPf;
+			//PrevTPf = TPf;
 			PrevFPf = FPf;
 			}
 		if (TP)
