@@ -34,6 +34,7 @@ void cmd_train_feature()
 	FT.SetFeature(F, AlphaSize);
 	FT.Train(string(opt(style)));
 	FT.SetAlnSubstScores();
+	//return;//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	float MinGapOpen = -0.2f;
 	float MinGapExt = -0.2f;
@@ -48,6 +49,8 @@ void cmd_train_feature()
 			FT.SetAlnScoresAndArea(GapOpen, GapExt);
 			SimpleGridBestArea = max(FT.m_Area, SimpleGridBestArea);
 			}
+	FT.SetAlnScoresAndArea(0, 0);//@@@@@@@@@@
+	FT.LogROCStepsAndArea();
 
 	vector<float> Areas;
 	Areas.push_back(SimpleGridBestArea);

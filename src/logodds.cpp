@@ -169,7 +169,10 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	vector<float> BackgroundFreqs;
 	GetFreqs(BackgroundFreqs);
 	vector<vector<float> > FreqMx;
+	Log("Freqs\n");
 	GetFreqMx(FreqMx);
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		Log("[%2u]  %6.3f\n", Letter1, BackgroundFreqs[Letter1]);
 	uint Total = GetTrueTotal();
 	float SumFreq = 0;
 	float ExpectedScore = 0;

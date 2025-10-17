@@ -111,6 +111,11 @@ static void GetFreqMx(
 	const vector<vector<uint> > &CountMx,
 	vector<vector<float> > &FreqMx);
 
+static void GetFreqDiffs(
+	const vector<float> &Freqs1,
+	const vector<float> &Freqs2,
+	vector<float> &Diffs);
+
 static void GetLogOddsMx(
 	const vector<float> &Freqs,
 	const vector<vector<float> > &FreqMx,
@@ -130,22 +135,35 @@ static float GetRelativeEntropy(
 static void GetGapCounts(
 	const string &Row1,
 	const string &Row2,
+	uint &ColCount,
 	uint &Opens,
 	uint &Exts);
+
+static void GetGapCountVecs(
+	const vector<string> &Rows,
+	vector<uint> &ColCountVec,
+	vector<uint> &OpenVec,
+	vector<uint> &ExtVec);
 
 static void BinTsToTsv(
 	FILE *f,
 	const vector<float> &Ts);
 
+static void Round3SigFig(
+	const vector<float> &InputValues,
+	vector<float> &RoundedValues);
+
 static void GetChainIntSeqs_Int(
 	const vector<PDBChain *> &Chains,
 	vector<vector<uint> > &IntSeqs,
+	uint &LetterCount,
 	uint &UndefCount);
 
 static void GetChainIntSeqs_Float(
 	const vector<PDBChain *> &Chains,
 	vector<vector<uint> > &IntSeqs,
 	const vector<float> &BinTs,
+	uint &LetterCount,
 	uint &UndefCount);
 
 static void GetAlnSubstScores(
@@ -165,6 +183,20 @@ static void QuantizeUniques(
 	const vector<float> &SortedValues,
 	vector<float> &BinTs);
 
+static void GetAlnScores(
+	const vector<float> &AlnSubstScores,
+	const vector<uint> &AlnColCountVec,
+	const vector<uint> &AlnOpenVec,
+	const vector<uint> &AlnExtVec,
+	float OpenPenalty,
+	float ExtPenalty,
+	float Bias,
+	vector<float> &AlnScores);
+
+static void LogAlnScoreQuarts(
+	const vector<float> &AlnScores,
+	const vector<bool> &TPs);
+
 static void GetSteps(
 	const vector<float> &AlnScores,
 	const vector<bool> &TPs,
@@ -176,12 +208,30 @@ static float CalcArea(
 	const vector<float> &AlnScores,
 	const vector<bool> &TPs);
 
-static void LogFreqVec(
-	const string &Msg,
-	const vector<string> &Names,
-	const vector<vector<float> *> &FreqVec);
+static void LogFreqs(
+	const vector<float> &Freqs);
+
+static void OptimizeArea(
+	const vector<float> &EvalAlnSubstScores,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<bool> &EvalTPs,
+	float &OpenPenalty,
+	float &ExtPenalty,
+	float &Bias,
+	float &Area);
 
 static void TrainIntFeatureNoUndefs(
+	FEATURE F,
+	const string &ChainFN,
+	const string &TrainTPAlnFN,
+	const string &TrainFPAlnFN,
+	const string &EvalTPAlnFN,
+	const string &EvalFPAlnFN,
+	vector<vector<float > > &ScoreMx);
+
+static void TrainIntFeatureIgnoreUndefs(
 	FEATURE F,
 	const string &ChainFN,
 	const string &TrainTPAlnFN,

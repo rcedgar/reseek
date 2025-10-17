@@ -118,6 +118,7 @@ public:
 	void RunLatin();
 	double ChangeWithNoise() const;
 	double rr(double lo, double hi) const;
+	const vector<double> &GetBestParams() const;
 
 // Hypercross
 	void HC_RunHyperCross();

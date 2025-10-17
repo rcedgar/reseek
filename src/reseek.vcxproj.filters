@@ -449,6 +449,9 @@
     <ClCompile Include="train_feature2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="optimizearea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

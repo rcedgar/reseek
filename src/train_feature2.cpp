@@ -22,13 +22,16 @@ void cmd_train_feature2()
 		}
 
 	const string &ChainFN = "c:/src/reseek/test_data/scop40.bca";
-	const string &TrainTPAlnFN = "../big_out/tp.a.mints05.maxts25.fa2";
-	const string &TrainFPAlnFN = "../big_out/tp.b.mints05.maxts25.fa2";
+	const string &TrainTPAlnFN = opt(input); // "../big_out/tp.a.mints05.maxts25.fa2";
+	const string &TrainFPAlnFN = opt(input2); // "../big_out/fp.a.mints05.maxts25.fa2";
 	const string &EvalTPAlnFN = TrainTPAlnFN;
 	const string &EvalFPAlnFN = TrainFPAlnFN;
 	vector<vector<float> > ScoreMx;
 	FeatureTrainer2::SetIntFeature(F);
-	FeatureTrainer2::TrainIntFeatureNoUndefs(F, ChainFN,
+	//FeatureTrainer2::TrainIntFeatureNoUndefs(F, ChainFN,
+	//	TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
+	//	ScoreMx);
+	FeatureTrainer2::TrainIntFeatureIgnoreUndefs(F, ChainFN,
 		TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
 		ScoreMx);
 	}

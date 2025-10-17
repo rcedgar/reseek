@@ -283,6 +283,7 @@
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="hj.cpp" />
+    <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="quantize.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />

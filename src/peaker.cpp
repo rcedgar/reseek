@@ -574,6 +574,12 @@ void Peaker::CleanQueue()
 		}
 	}
 
+const vector<double> &Peaker::GetBestParams() const
+	{
+	asserta(m_Best_xIdx < SIZE(m_xvs));
+	return m_xvs[m_Best_xIdx];
+	}
+
 void Peaker::Run()
 	{
 	RunInitialValues();
