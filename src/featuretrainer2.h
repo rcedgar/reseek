@@ -11,8 +11,6 @@ class FeatureTrainer2
 public:
 static FEATURE m_F;
 static uint m_AlphaSize;
-static bool m_UndefsAllowed;
-static uint m_ReplaceUndefWithThisLetter;
 
 static void SetFloatFeature(FEATURE F, uint AlphaSize);
 static void SetIntFeature(FEATURE F);
@@ -22,7 +20,10 @@ static void TruncLabel(string &Label);
 static void TruncLabel(const string &Label,
 	string &TruncatedLabel);
 
-static uint FixLetter(uint Letter);
+static uint FixLetter(
+	uint Letter,
+	bool UndefsAllowed,
+	uint ReplaceUndefWithThisLetter);
 
 static void AppendAlns(
 	const string &FN,
@@ -79,23 +80,29 @@ static void GetIntSeqs(
 	const vector<float> &BinTs, vector<vector<uint> > &Seqs,
 	uint &UndefCount);
 
+static void ReplaceUndefs(
+	const vector<vector<uint> > &ChainIntSeqs,
+	bool UndefsAllowed,
+	uint ReplaceUndefWithThisLetter,
+	vector<vector<uint> > &ChainIntSeqsNoUndefs);
+
 static void LogChainIntSeqsStats(const string &Msg,
 	const vector<vector<uint> > &Seqs);
 
 static void GetAlignedLetterCounts(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	vector<uint> &Counts);
 
 static void GetAlignedLetterPairCounts(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	vector<vector<uint> > &CountMx);
 
 static void GetAllLetterCountsUniqueChains(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<uint> &ChainIdxs,
 	vector<uint> &Counts);
 
@@ -123,8 +130,8 @@ static void GetLogOddsMx(
 	vector<vector<float> > &ScoreMx);
 
 static float GetExpectedScore(
-	vector<vector<float> > &ScoreMx,
-	const vector<float> &Freqs);
+	const vector<float> &Freqs,
+	vector<vector<float> > &ScoreMx);
 
 static float GetShannonEntropy(
 	const vector<vector<float> > &FreqMx);
@@ -168,13 +175,18 @@ static void GetChainIntSeqs_Float(
 	uint &UndefCount);
 
 static void GetAlnSubstScores(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	bool UndefsAllowed,
 	uint ReplaceUndefByThisLetter,
 	const vector<vector<float > > &ScoreMx,
 	vector<float> &SubstScores);
+
+static void ReplaceUndefs(
+	const vector<vector<uint> > &ChainIntSeqs,
+	uint ReplacementLetter,
+	vector<vector<uint> > &ChainIntSeqsNoUndefs);
 
 static void Quantize(
 	const vector<float> &Values,
@@ -224,15 +236,35 @@ static void OptimizeArea(
 	float &Area,
 	uint Iters);
 
+static void TrainLogOddsMx(
+	const vector<uint> &Counts,
+	const vector<vector<uint> > &CountMx,
+	vector<vector<float> > &ScoreMx);
+
+static void LoadEvalAlns(
+	const string &EvalTPAlnFN,
+	const string &EvalFPAlnFN,
+	const map<string, uint> &LabelToChainIdx,
+	vector<vector<uint> > &ChainIntSeqsNoUndefs,
+	const vector<vector<float> > &ScoreMx,
+	vector<string> &EvalRows,
+	vector<string> &EvalLabels,
+	vector<uint> &EvalRowChainIdxs,
+	vector<bool> &EvalTPs,
+	vector<float> &EvalAlnSubstScores,
+	vector<uint> &EvalAlnColCountVec,
+	vector<uint> &EvalAlnOpenVec,
+	vector<uint> &EvalAlnExtVec);
+
 static void TrainIntFeature(
 	FEATURE F,
 	const string &ChainFN,
 	const string &TrainTPAlnFN,
-	const string &TrainFPAlnFN,
 	const string &EvalTPAlnFN,
 	const string &EvalFPAlnFN,
 	bool UndefsAllowed,
 	uint ReplaceUndefWithThisLetter,
+	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
 	float &BestArea);
 };

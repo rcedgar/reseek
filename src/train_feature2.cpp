@@ -30,14 +30,15 @@ void cmd_train_feature2()
 	FeatureTrainer2::SetIntFeature(F);
 	bool UndefsAllowed = true;
 	vector<float> Areas;
+	const string &BgMethod = opt(bgmethod);
 	for (uint ReplaceUndefWithThisLetter = 0; ReplaceUndefWithThisLetter < 16;
 		++ReplaceUndefWithThisLetter)
 		{
 		float BestArea;
 		FeatureTrainer2::TrainIntFeature(F, ChainFN,
-			TrainTPAlnFN, TrainFPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
+			TrainTPAlnFN, EvalTPAlnFN, EvalFPAlnFN,
 			UndefsAllowed, ReplaceUndefWithThisLetter,
-			ScoreMx, BestArea);
+			BgMethod, ScoreMx, BestArea);
 		Areas.push_back(BestArea);
 		}
 

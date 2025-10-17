@@ -9,16 +9,17 @@
 
 FEATURE FeatureTrainer2::m_F = FEATURE(-1);
 uint FeatureTrainer2::m_AlphaSize = UINT_MAX;
-bool FeatureTrainer2::m_UndefsAllowed = false;
-uint FeatureTrainer2::m_ReplaceUndefWithThisLetter = UINT_MAX;
 
-uint FeatureTrainer2::FixLetter(uint Letter)
+uint FeatureTrainer2::FixLetter(
+	uint Letter,
+	bool UndefsAllowed,
+	uint ReplaceUndefWithThisLetter)
 	{
 	if (Letter == UINT_MAX)
 		{
-		if (!m_UndefsAllowed)
+		if (!UndefsAllowed)
 			Die("Undef letter");
-		Letter = m_ReplaceUndefWithThisLetter;
+		Letter = ReplaceUndefWithThisLetter;
 		}
 	asserta(Letter < m_AlphaSize);
 	return Letter;
@@ -430,8 +431,10 @@ void FeatureTrainer2::ScoreMxToSrc(
 	fprintf(f, "};\n");
 	}
 
+// To train with undefs in place:
+//		DiscardUndefs=true, ReplaceUndefWithThisLetter=UINT_MAX
 void FeatureTrainer2::GetAlignedLetterCounts(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndef,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	vector<uint> &Counts)
@@ -455,8 +458,8 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 		const uint ChainIdx1 = RowChainIdxs[RowIdx1];
 		const uint ChainIdx2 = RowChainIdxs[RowIdx2];
 
-		const vector<uint> &IntSeq1 = ChainIntSeqs[ChainIdx1];
-		const vector<uint> &IntSeq2 = ChainIntSeqs[ChainIdx2];
+		const vector<uint> &IntSeq1 = ChainIntSeqsNoUndef[ChainIdx1];
+		const vector<uint> &IntSeq2 = ChainIntSeqsNoUndef[ChainIdx2];
 		uint L1 = SIZE(IntSeq1);
 		uint L2 = SIZE(IntSeq2);
 
@@ -472,9 +475,10 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 
 			if (isupper(c1) && isupper(c2))
 				{
-				uint Letter1 = FixLetter(IntSeq1[Pos1]);
-				uint Letter2 = FixLetter(IntSeq2[Pos2]);
-				asserta(Letter1 < m_AlphaSize && Letter2 < m_AlphaSize);
+				uint Letter1 = IntSeq1[Pos1];
+				uint Letter2 = IntSeq2[Pos2];
+				asserta(Letter1 < m_AlphaSize);
+				asserta(Letter2 < m_AlphaSize);
 				Counts[Letter1] += 1;
 				Counts[Letter2] += 1;
 				}
@@ -489,8 +493,10 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 		}
 	}
 
+// To train with undefs in place:
+//		DiscardUndefs=true, ReplaceUndefWithThisLetter=UINT_MAX
 void FeatureTrainer2::GetAllLetterCountsUniqueChains(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<uint> &ChainIdxs,
 	vector<uint> &Counts)
 	{
@@ -505,11 +511,11 @@ void FeatureTrainer2::GetAllLetterCountsUniqueChains(
 		iter != ChainIdxSet.end(); ++iter)
 		{
 		uint ChainIdx = *iter;
-		const vector<uint> &IntSeq = ChainIntSeqs[ChainIdx];
+		const vector<uint> &IntSeq = ChainIntSeqsNoUndefs[ChainIdx];
 		uint L = SIZE(IntSeq);
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			uint Letter = FixLetter(IntSeq[Pos]);
+			uint Letter = IntSeq[Pos];
 			asserta(Letter < m_AlphaSize);
 			Counts[Letter] += 1;
 			}
@@ -517,7 +523,7 @@ void FeatureTrainer2::GetAllLetterCountsUniqueChains(
 	}
 
 void FeatureTrainer2::GetAlignedLetterPairCounts(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	vector<vector<uint> > &CountMx)
@@ -543,8 +549,8 @@ void FeatureTrainer2::GetAlignedLetterPairCounts(
 		const uint ChainIdx1 = RowChainIdxs[RowIdx1];
 		const uint ChainIdx2 = RowChainIdxs[RowIdx2];
 
-		const vector<uint> &IntSeq1 = ChainIntSeqs[ChainIdx1];
-		const vector<uint> &IntSeq2 = ChainIntSeqs[ChainIdx2];
+		const vector<uint> &IntSeq1 = ChainIntSeqsNoUndefs[ChainIdx1];
+		const vector<uint> &IntSeq2 = ChainIntSeqsNoUndefs[ChainIdx2];
 		uint L1 = SIZE(IntSeq1);
 		uint L2 = SIZE(IntSeq2);
 
@@ -560,8 +566,8 @@ void FeatureTrainer2::GetAlignedLetterPairCounts(
 
 			if (isupper(c1) && isupper(c2))
 				{
-				uint Letter1 = FixLetter(IntSeq1[Pos1]);
-				uint Letter2 = FixLetter(IntSeq2[Pos2]);
+				uint Letter1 = IntSeq1[Pos1];
+				uint Letter2 = IntSeq2[Pos2];
 				asserta(Letter1 < m_AlphaSize && Letter2 < m_AlphaSize);
 
 				// Diagonal does not need special case here
@@ -651,8 +657,8 @@ float FeatureTrainer2::GetShannonEntropy(
 	}
 
 float FeatureTrainer2::GetExpectedScore(
-	vector<vector<float> > &ScoreMx,
-	const vector<float> &Freqs)
+	const vector<float> &Freqs,
+	vector<vector<float> > &ScoreMx)
 	{
 	asserta(SIZE(ScoreMx) == m_AlphaSize);
 	asserta(SIZE(Freqs) == m_AlphaSize);
@@ -764,7 +770,7 @@ void FeatureTrainer2::GetFreqMx(
 	}
 
 void FeatureTrainer2::GetAlnSubstScores(
-	const vector<vector<uint> > &ChainIntSeqs,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
 	bool UndefsAllowed,
@@ -792,8 +798,8 @@ void FeatureTrainer2::GetAlnSubstScores(
 		const uint ChainIdx1 = RowChainIdxs[RowIdx1];
 		const uint ChainIdx2 = RowChainIdxs[RowIdx2];
 
-		const vector<uint> &IntSeq1 = ChainIntSeqs[ChainIdx1];
-		const vector<uint> &IntSeq2 = ChainIntSeqs[ChainIdx2];
+		const vector<uint> &IntSeq1 = ChainIntSeqsNoUndefs[ChainIdx1];
+		const vector<uint> &IntSeq2 = ChainIntSeqsNoUndefs[ChainIdx2];
 		uint L1 = SIZE(IntSeq1);
 		uint L2 = SIZE(IntSeq2);
 
@@ -810,8 +816,8 @@ void FeatureTrainer2::GetAlnSubstScores(
 
 			if (isupper(c1) && isupper(c2))
 				{
-				uint Letter1 = FixLetter(IntSeq1[Pos1]);
-				uint Letter2 = FixLetter(IntSeq2[Pos2]);
+				uint Letter1 = IntSeq1[Pos1];
+				uint Letter2 = IntSeq2[Pos2];
 				asserta(Letter1 < m_AlphaSize && Letter2 < m_AlphaSize);
 				SubstScore += ScoreMx[Letter1][Letter2];
 				}
@@ -1118,105 +1124,162 @@ void FeatureTrainer2::LogAlnScoreQuarts(
 	QF.LogMe();
 	}
 
+void FeatureTrainer2::LoadEvalAlns(
+	const string &EvalTPAlnFN,
+	const string &EvalFPAlnFN,
+	const map<string, uint> &LabelToChainIdx,
+	vector<vector<uint> > &ChainIntSeqsNoUndefs,
+	const vector<vector<float> > &ScoreMx,
+	vector<string> &EvalRows,
+	vector<string> &EvalLabels,
+	vector<uint> &EvalRowChainIdxs,
+	vector<bool> &EvalTPs,
+	vector<float> &EvalAlnSubstScores,
+	vector<uint> &EvalAlnColCountVec,
+	vector<uint> &EvalAlnOpenVec,
+	vector<uint> &EvalAlnExtVec)
+	{
+	AppendAlns(EvalTPAlnFN, LabelToChainIdx, true,
+	  EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs);
+	AppendAlns(EvalFPAlnFN, LabelToChainIdx, false,
+	  EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs);
+	GetGapCountVecs(EvalRows, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
+	GetAlnSubstScores(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		false, UINT_MAX, ScoreMx, EvalAlnSubstScores);
+	}
+
+void FeatureTrainer2::ReplaceUndefs(
+	const vector<vector<uint> > &ChainIntSeqs,
+	uint ReplacementLetter,
+	vector<vector<uint> > &ChainIntSeqsNoUndefs)
+	{
+	const uint N = SIZE(ChainIntSeqs);
+	ChainIntSeqsNoUndefs.clear();
+	ChainIntSeqsNoUndefs.resize(N);
+	for (uint i = 0; i < N; ++i)
+		{
+		const vector<uint> &ChainIntSeq = ChainIntSeqs[i];
+		const uint L = SIZE(ChainIntSeq);
+		vector<uint> &ChainIntSeqNoUndefs = ChainIntSeqsNoUndefs[i];
+		ChainIntSeqNoUndefs.reserve(L);
+		for (uint j = 0; j < L; ++j)
+			{
+			uint Letter = ChainIntSeq[j];
+			if (Letter == UINT_MAX)
+				Letter = ReplacementLetter;
+			asserta(Letter < m_AlphaSize);
+			ChainIntSeqNoUndefs.push_back(Letter);
+			}
+		}
+	}
+
+void FeatureTrainer2::TrainLogOddsMx(
+	const vector<uint> &Counts,
+	const vector<vector<uint> > &CountMx,
+	vector<vector<float> > &ScoreMx)
+	{
+	vector<float> Freqs;
+	GetFreqs(Counts, Freqs);
+
+	vector<vector<float> > FreqMx;
+	GetFreqMx(CountMx, FreqMx);
+
+	GetLogOddsMx(Freqs, FreqMx, ScoreMx);
+
+	Log("\n");
+	Log("// ScoreMxAlnBg\n");
+	ScoreMxToSrc(g_fLog, ScoreMx);
+
+	float ES = GetExpectedScore(Freqs, ScoreMx);
+	float HAln = GetShannonEntropy(FreqMx);
+	float Hrel = GetRelativeEntropy(FreqMx, ScoreMx);
+	ProgressLog("Expected score %.3g\n", ES);
+	ProgressLog("Shannon entropy %.3g\n", HAln);
+	ProgressLog("Relative entropy %.3g\n", Hrel);
+	}
+
 void FeatureTrainer2::TrainIntFeature(
 	FEATURE F,
 	const string &ChainFN,
 	const string &TrainTPAlnFN,
-	const string &TrainFPAlnFN,
 	const string &EvalTPAlnFN,
 	const string &EvalFPAlnFN,
 	bool UndefsAllowed,
 	uint ReplaceUndefWithThisLetter,
+	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
 	float &BestArea)
 	{
 	BestArea = 0;
-	m_UndefsAllowed = UndefsAllowed;
-	m_ReplaceUndefWithThisLetter = ReplaceUndefWithThisLetter;
-	asserta(m_ReplaceUndefWithThisLetter < m_AlphaSize);
+	asserta(ReplaceUndefWithThisLetter < m_AlphaSize);
 
 	vector<PDBChain *> Chains;
 	map<string, uint> LabelToChainIdx;
 	ReadChains(ChainFN, Chains, LabelToChainIdx);
 
-	vector<vector<uint> > ChainIntSeqs;
+	vector<vector<uint> > ChainIntSeqsWithUndefs;
 	uint UndefCount = 0;
 	uint LetterCount = 0;
-	GetChainIntSeqs_Int(Chains, ChainIntSeqs, LetterCount, UndefCount);
+	GetChainIntSeqs_Int(Chains, ChainIntSeqsWithUndefs, LetterCount, UndefCount);
 	ProgressLog("%u / %u (%.2f%%) undefined letters in chains\n",
 		UndefCount, LetterCount, GetPct(UndefCount, LetterCount));
 
-	vector<bool> TrainTPs;
-	vector<string> TrainTPRows;
-	vector<string> TrainTPLabels;
-	vector<uint> TrainTPChainIdxs;
+	vector<vector<uint> > ChainIntSeqsNoUndefs;
+	if (UndefsAllowed)
+		ReplaceUndefs(ChainIntSeqsWithUndefs,
+			ReplaceUndefWithThisLetter, ChainIntSeqsNoUndefs);
+	else
+		ChainIntSeqsNoUndefs = ChainIntSeqsWithUndefs;
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Training alignments (TP only)
+///////////////////////////////////////////////////////////////////////////////////////
+	vector<bool> Trains;
+	vector<string> TrainRows;
+	vector<string> TrainLabels;
+	vector<uint> TrainChainIdxs;
 	AppendAlns(TrainTPAlnFN, LabelToChainIdx, true,
-	  TrainTPRows, TrainTPLabels, TrainTPChainIdxs, TrainTPs);
+	  TrainRows, TrainLabels, TrainChainIdxs, Trains);
 
-	vector<string> AllTrainRows = TrainTPRows;
-	vector<string> AllTrainLabels = TrainTPLabels;
-	vector<uint> AllTrainChainIdxs = TrainTPChainIdxs;
+///////////////////////////////////////////////////////////////////////////////////////
+// Background letter counts
+///////////////////////////////////////////////////////////////////////////////////////
+	vector<uint> TrainLetterCounts;
+	if (BgMethod == "aln")
+		GetAlignedLetterCounts(ChainIntSeqsNoUndefs, TrainRows, TrainChainIdxs,
+			TrainLetterCounts);
+	else if (BgMethod == "uniq")
+		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, TrainChainIdxs,
+			TrainLetterCounts);
+	else
+		Die("BgMethod=%s", BgMethod.c_str());
 
-	AppendAlns(TrainFPAlnFN, LabelToChainIdx, false,
-	  AllTrainRows, AllTrainLabels, AllTrainChainIdxs, TrainTPs);
-
-	vector<uint> TrainTPLetterCounts;
-	vector<float> TrainTPLetterFreqs;
-	uint TrainTPLetterCount = 0;
-	uint TrainTPUndefCount = 0;
-	GetAlignedLetterCounts(ChainIntSeqs, TrainTPRows, TrainTPChainIdxs,
-		TrainTPLetterCounts);
-	GetFreqs(TrainTPLetterCounts, TrainTPLetterFreqs);
-	ProgressLog("%u / %u  (%.2f%%) aligned letters undefined\n",
-		TrainTPUndefCount, TrainTPLetterCount, 
-		GetPct(TrainTPUndefCount, TrainTPLetterCount)); 
-
-	vector<uint> UniqueChainLetterCounts;
-	vector<float> UniqueChainLetterFreqs;
-	uint UniqueChainUndefCount = 0;
-	GetAllLetterCountsUniqueChains(ChainIntSeqs, TrainTPChainIdxs,
-		UniqueChainLetterCounts);
-	GetFreqs(UniqueChainLetterCounts, UniqueChainLetterFreqs);
-	ProgressLog("%u / %u  (%.2f%%) unique chain letters undefined\n",
-		TrainTPUndefCount, TrainTPLetterCount, 
-		GetPct(TrainTPUndefCount, TrainTPLetterCount)); 
-
+///////////////////////////////////////////////////////////////////////////////////////
+// Aligned letter pair counts
+///////////////////////////////////////////////////////////////////////////////////////
 	vector<vector<uint> > TrainAlnLetterPairCountMx;
-	vector<vector<float> > TrainAlnLetterPairFreqMx;
-	GetAlignedLetterPairCounts(ChainIntSeqs, TrainTPRows,
-	  TrainTPChainIdxs, TrainAlnLetterPairCountMx);
-	GetFreqMx(TrainAlnLetterPairCountMx, TrainAlnLetterPairFreqMx);
+	GetAlignedLetterPairCounts(ChainIntSeqsNoUndefs, TrainRows,
+	  TrainChainIdxs, TrainAlnLetterPairCountMx);
 
-	vector<vector<float> > ScoreMxAlnBg;
-	GetLogOddsMx(TrainTPLetterFreqs, TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
-	LogFreqs(TrainTPLetterFreqs);
+///////////////////////////////////////////////////////////////////////////////////////
+// TrainLogOddsMx
+///////////////////////////////////////////////////////////////////////////////////////
+	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
 
-	Log("\n");
-	Log("// ScoreMxAlnBg\n");
-	ScoreMxToSrc(g_fLog, ScoreMxAlnBg);
-
-	float ES = GetExpectedScore(ScoreMxAlnBg, TrainTPLetterFreqs);
-	float HAln = GetShannonEntropy(TrainAlnLetterPairFreqMx);
-	float Hrel = GetRelativeEntropy(TrainAlnLetterPairFreqMx, ScoreMxAlnBg);
-	ProgressLog("Expected score %.3g\n", ES);
-	ProgressLog("Shannon entropy %.3g\n", HAln);
-	ProgressLog("Relative entropy %.3g\n", Hrel);
-
+///////////////////////////////////////////////////////////////////////////////////////
+// Eval alignments (TP and FP)
+///////////////////////////////////////////////////////////////////////////////////////
 	vector<bool> EvalTPs;
 	vector<string> EvalRows;
 	vector<string> EvalLabels;
 	vector<uint> EvalRowChainIdxs;
-	AppendAlns(EvalTPAlnFN, LabelToChainIdx, true,
-	  EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs);
-	AppendAlns(EvalFPAlnFN, LabelToChainIdx, false,
-	  EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs);
-
 	vector<uint> EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec;
-	GetGapCountVecs(EvalRows, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
-
 	vector<float> EvalAlnSubstScores;
-	GetAlnSubstScores(ChainIntSeqs, EvalRows, EvalRowChainIdxs,
-		UndefsAllowed, ReplaceUndefWithThisLetter, ScoreMxAlnBg, EvalAlnSubstScores);
+
+	LoadEvalAlns(EvalTPAlnFN, EvalFPAlnFN, LabelToChainIdx, ChainIntSeqsNoUndefs,
+		ScoreMx, EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
+		EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
+///////////////////////////////////////////////////////////////////////////////////////
 
 	Log("\nQuarts subst. scores only\n");
 	LogAlnScoreQuarts(EvalAlnSubstScores, EvalTPs);

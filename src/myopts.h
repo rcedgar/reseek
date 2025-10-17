@@ -66,6 +66,7 @@ STR_OPT(filin)
 STR_OPT(rocsteps)
 STR_OPT(scoremx)
 STR_OPT(style)
+STR_OPT(bgmethod)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
