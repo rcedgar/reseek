@@ -180,9 +180,15 @@ void cmd_float_feature_dists()
 			uint n = Bins[BinIdx];
 			uint h = uint(n*H + 0.5)/MaxCount;
 			if (BinIdx + 1 == NBINS)
+				{
 				Log("  [**]");
+				Log("  %8.8s", "");
+				}
 			else
+				{
 				Log("  [%2u]", BinIdx);
+				Log("  %8.3g", B.GetBinHi(BinIdx));
+				}
 			Log("  %10u  ", n);
 			for (uint k = 0; k < h; ++k)
 				Log("=");
