@@ -4,6 +4,9 @@
 /***
 Sequester Mu-related parameters and code here,
 unrelated parameter tuning should not change Mu.
+
+SEE ALSO
+mumx_data.cpp
 ***/
 
 char GetFeatureChar(byte Letter, uint AlphaSize);

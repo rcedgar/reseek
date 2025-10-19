@@ -38,7 +38,7 @@ void FeatureTrainer2::Quantize(
 		}
 
 	bool Tie = false;
-	for (uint i = 1; i < m_AlphaSize; ++i)
+	for (uint i = 1; i + 1 < m_AlphaSize; ++i)
 		{
 		if (feq(BinTs[i-1], BinTs[i]))
 			Die("Quantize QS=%d tie bin %u T=%.3g,%.3g\n",

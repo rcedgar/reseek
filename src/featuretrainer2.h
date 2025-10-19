@@ -20,6 +20,7 @@ class FeatureTrainer2
 public:
 static FEATURE m_F;
 static uint m_AlphaSize;
+static string m_BgMethod;
 
 static void SetFloatFeature(FEATURE F, uint AlphaSize);
 static void SetIntFeature(FEATURE F);
@@ -83,12 +84,6 @@ static void GetIntSeqs(
 	uint ReplaceUndefValue,
 	const vector<float> &BinTs, vector<vector<uint> > &Seqs,
 	uint &UndefCount);
-
-static void ReplaceUndefs(
-	const vector<vector<uint> > &ChainIntSeqs,
-	bool UndefsAllowed,
-	uint ReplaceUndefWithThisLetter,
-	vector<vector<uint> > &ChainIntSeqsNoUndefs);
 
 static void LogChainIntSeqsStats(
 	const vector<vector<uint> > &Seqs);
@@ -383,6 +378,10 @@ static void EvalLogOddsMx(
 	const vector<uint> &EvalAlnExtVec,
 	const vector<vector<float> > &ScoreMx,
 	float &BestArea);
+
+static void GetDSSScoreMx(
+	FEATURE F,
+	vector<vector<float> > &ScoreMx);
 
 static void TrainFloatFeature(
 	FEATURE F,

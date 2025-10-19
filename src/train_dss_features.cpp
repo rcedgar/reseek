@@ -2,21 +2,9 @@
 #include "featuretrainer2.h"
 #include "sort.h"
 
-void cmd_train_feature2()
+void cmd_train_dss_features()
 	{
-	const string FeatureName = g_Arg1;
-	FEATURE F = StrToFeature(FeatureName.c_str());
-	DSSParams::Init(DM_DefaultSensitive);
-
-	uint AlphaSize = UINT_MAX;
-	bool IsInt = FeatureIsInt(F);
-	if (IsInt)
-		AlphaSize = DSS::GetAlphaSize(F);
-	else
-		{
-		asserta(optset_alpha_size);
-		AlphaSize = opt(alpha_size);
-		}
+	DSSParams::Init(DM_DefaultFast);
 
 	const string &ChainFN = opt(db); // "c:/src/reseek/test_data/scop40.bca";
 	const string &TrainTPAlnFN = opt(input); // "../big_out/tp.a.mints05.maxts25.fa2";
@@ -54,55 +42,47 @@ void cmd_train_feature2()
 		EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
 
-	vector<vector<float> > ScoreMx;
-	bool UndefsAllowed = true;
-	vector<float> Areas;
-	const string &BgMethod = opt(bgmethod);
-
-	if (opt(dss))
+	for (int iF = 0; iF < FEATURE_COUNT; ++iF)
 		{
-		float BestArea;
-		FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
-			TrainRows, TrainLabels, TrainChainIdxs,
-			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
-			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			BgMethod, ScoreMx, BestArea);
-		return;
-		}
+		FEATURE F = FEATURE(iF);
+		uint AS = DSS::GetAlphaSize((FEATURE) F, true);
+		if (AS == UINT_MAX)
+			continue;
 
-	if (IsInt)
-		{
-		for (uint ReplaceUndefWithThisLetter = 0; ReplaceUndefWithThisLetter < AlphaSize;
-			++ReplaceUndefWithThisLetter)
+		if (FeatureIsInt(F))
+			FeatureTrainer2::SetIntFeature(F);
+		else
 			{
-			float BestArea;
-			FeatureTrainer2::TrainIntFeature(F, Chains, LabelToChainIdx,
+			uint AlphaSize = DSS::GetAlphaSize(F);
+			FeatureTrainer2::SetFloatFeature(F, AlphaSize);
+			}
+
+		float BestArea;
+		vector<vector<float> > ScoreMx;
+
+		extern float **g_ScoreMxs2[FEATURE_COUNT];
+		const float * const *Mx = g_ScoreMxs2[F];
+		if (F == FEATURE_Mu || Mx != 0)
+			{
+			FeatureTrainer2::m_BgMethod = "DSSScoreMx";
+			vector<vector<uint> > ChainIntSeqsNoUndefs;
+			FeatureTrainer2::GetDSSScoreMx(F, ScoreMx);
+			FeatureTrainer2::GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
+			FeatureTrainer2::LogChainIntSeqsStats(ChainIntSeqsNoUndefs);
+			FeatureTrainer2::EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+				EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+				ScoreMx, BestArea);
+			}
+
+		const vector<string> BgMethods = { "aln", "uniqall", "uniqaln" };
+		for (uint BgMethodIdx = 0; BgMethodIdx < SIZE(BgMethods); ++BgMethodIdx)
+			{
+			const string BgMethod = BgMethods[BgMethodIdx];
+			FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				UndefsAllowed, ReplaceUndefWithThisLetter,
 				BgMethod, ScoreMx, BestArea);
-			Areas.push_back(BestArea);
 			}
-
-		Log("\n");
-		vector<uint> Order(AlphaSize);
-		QuickSortOrder(Areas.data(), AlphaSize, Order.data());
-		for (uint k = 0; k < AlphaSize; ++k)
-			{
-			uint Letter = Order[k];
-			Log("[%2u]  %6.4f\n", Letter, Areas[Letter]);
-			}
-		}
-	else
-		{
-		float BestArea;
-		FeatureTrainer2::TrainFloatFeature(
-			F, AlphaSize, Chains, LabelToChainIdx,
-			TrainRows, TrainLabels, TrainChainIdxs,
-			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
-			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			ScoreMx, QS_UndefDistinct, BestArea);
-		Log("BestArea=%.3g\n", BestArea);
 		}
 	}

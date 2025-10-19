@@ -9,6 +9,7 @@
 
 FEATURE FeatureTrainer2::m_F = FEATURE(-1);
 uint FeatureTrainer2::m_AlphaSize = UINT_MAX;
+string FeatureTrainer2::m_BgMethod = "*ERROR*";
 
 void FeatureTrainer2::GetLetterCounts(
 	const vector<uint> &Letters,
@@ -1213,6 +1214,7 @@ void FeatureTrainer2::TrainIntFeature(
 	float &BestArea)
 	{
 	SetIntFeature(F);
+	m_BgMethod = BgMethod;
 	BestArea = 0;
 	asserta(ReplaceUndefWithThisLetter < m_AlphaSize);
 
@@ -1290,9 +1292,6 @@ void FeatureTrainer2::EvalLogOddsMx(
 	GetAlnSubstScores(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		false, UINT_MAX, ScoreMx, EvalAlnSubstScores);
 
-	Log("\nQuarts subst. scores only\n");
-	LogAlnScoreQuarts(EvalAlnSubstScores, EvalTPs);
-
 	vector<float> EvalAlnSubstScores3SigFig, EvalAlnScores3SigFig;
 	Round3SigFig(EvalAlnSubstScores, EvalAlnSubstScores3SigFig);
 
@@ -1303,22 +1302,29 @@ void FeatureTrainer2::EvalLogOddsMx(
 	OptimizeArea(EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec,
 		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, BestArea, 8);
 
-	Log("BestArea=%.3g, open %.3g, ext %.3g, bias %.3g\n",
-		BestArea, OpenPenalty, ExtPenalty, Bias);
-
 	vector<float> EvalAlnScores;
 	GetAlnScores(EvalAlnSubstScores, EvalAlnColCountVec,
 		EvalAlnOpenVec, EvalAlnExtVec, OpenPenalty, ExtPenalty, Bias,
 		EvalAlnScores);
 	Round3SigFig(EvalAlnScores, EvalAlnScores3SigFig);
-	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
-	Log("Area2 %.3g\n", Area2);
 
 	float Area_SubstScores = CalcArea(EvalAlnSubstScores, EvalTPs);
 	float Area_Gaps = CalcArea(EvalAlnScores, EvalTPs);
 
-	Log("\nQuarts with optimized gaps, area=%.3g:\n", Area_Gaps);
+	Log("\n%s/%s: Quarts subst. scores only\n", FeatureToStr(m_F), m_BgMethod.c_str());
+	LogAlnScoreQuarts(EvalAlnSubstScores, EvalTPs);
+
+	Log("\n%s/%s: Quarts with optimized gaps, area=%.3g:\n",
+		FeatureToStr(m_F), m_BgMethod.c_str(), Area_Gaps);
 	LogAlnScoreQuarts(EvalAlnScores, EvalTPs);
+
+	Log("%s/%s: BestArea=%.3g, open %.3g, ext %.3g, bias %.3g\n",
+		FeatureToStr(m_F), m_BgMethod.c_str(), BestArea, 
+		OpenPenalty, ExtPenalty, Bias);
+
+	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
+	asserta(feq(BestArea, Area2));
+	// Log("%s: Area2 %.3g\n", Area2, FeatureToStr(m_F));
 	}
 
 void FeatureTrainer2::TrainDSSFeature(
@@ -1339,6 +1345,7 @@ void FeatureTrainer2::TrainDSSFeature(
 	vector<vector<float > > &ScoreMx,
 	float &BestArea)
 	{
+	m_BgMethod = BgMethod;
 	if (FeatureIsInt(F))
 		SetIntFeature(F);
 	else
@@ -1392,4 +1399,37 @@ void FeatureTrainer2::TrainDSSFeature(
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 		ScoreMx, BestArea);
+	}
+
+void FeatureTrainer2::GetDSSScoreMx(
+	FEATURE F,
+	vector<vector<float> > &ScoreMx)
+	{
+	extern float ScoreMx_Mu[36][36];
+	extern float **g_ScoreMxs2[FEATURE_COUNT];
+	const float * const *Mx = g_ScoreMxs2[F];
+	if (F == FEATURE_Mu)
+		{
+		ScoreMx.clear();
+		ScoreMx.resize(36);
+		for (uint Letter1 = 0; Letter1 < 36; ++Letter1)
+			{
+			ScoreMx[Letter1].resize(36, FLT_MAX);
+			for (uint Letter2 = 0; Letter2 < 36; ++Letter2)
+				ScoreMx[Letter1][Letter2] = ScoreMx_Mu[Letter1][Letter2];
+			}
+		return;
+		}
+
+	if (Mx == 0)
+		Die("GetDSSScoreMx(%s)", FeatureToStr(F));
+	uint AS = DSS::GetAlphaSize(F);
+	ScoreMx.clear();
+	ScoreMx.resize(AS);
+	for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
+		{
+		ScoreMx[Letter1].resize(AS, FLT_MAX);
+		for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
+			ScoreMx[Letter1][Letter2] = Mx[Letter1][Letter2];
+		}
 	}

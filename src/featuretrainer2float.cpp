@@ -165,6 +165,7 @@ void FeatureTrainer2::TrainFloatFeature(
 	QUANTIZE_STYLE QS,
 	float &BestArea)
 	{
+	m_BgMethod = "NONE";
 	SetFloatFeature(F, AlphaSize);
 
 	vector<float> SortedValues;

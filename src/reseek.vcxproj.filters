@@ -455,6 +455,9 @@
     <ClCompile Include="featuretrainer2float.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="train_dss_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
