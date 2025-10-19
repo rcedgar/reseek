@@ -57,6 +57,9 @@ void cmd_train_dss_features()
 			FeatureTrainer2::SetFloatFeature(F, AlphaSize);
 			}
 
+		float BestOpenPenalty;
+		float BestExtPenalty;
+		float BestBias;
 		float BestArea;
 		vector<vector<float> > ScoreMx;
 
@@ -71,7 +74,7 @@ void cmd_train_dss_features()
 			FeatureTrainer2::LogChainIntSeqsStats(ChainIntSeqsNoUndefs);
 			FeatureTrainer2::EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 				EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				ScoreMx, BestArea);
+				ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
 			}
 
 		const vector<string> BgMethods = { "aln", "uniqall", "uniqaln" };
@@ -82,7 +85,7 @@ void cmd_train_dss_features()
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				BgMethod, ScoreMx, BestArea);
+				BgMethod, ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
 			}
 		}
 	}

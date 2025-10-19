@@ -941,6 +941,7 @@ float FeatureTrainer2::CalcArea(
 	float PrevFPf = 0;
 	float CurrentScore = AlnScores[Order[0]];
 	float Area = 0;
+	float CompArea = 0;
 	for (uint k = 0; k < AlnCount; ++k)
 		{
 		uint i = Order[k];
@@ -952,6 +953,7 @@ float FeatureTrainer2::CalcArea(
 			float TPf = float(NTP)/TPCount;
 			float FPf = float(NFP)/FPCount;
 			Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
+			CompArea += (TPf - PrevTPf)*(FPf + PrevFPf)/2;
 			PrevTPf = TPf;
 			PrevFPf = FPf;
 			}
@@ -968,6 +970,30 @@ float FeatureTrainer2::CalcArea(
 	float TPf = float(NTP)/TPCount;
 	float FPf = float(NFP)/FPCount;
 	Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
+	CompArea += (TPf - PrevTPf)*(FPf + PrevFPf)/2;
+	return Area;
+	}
+
+float FeatureTrainer2::CalcStepsArea(
+	vector<float> &StepTPfs,
+	vector<float> &StepFPfs)
+	{
+	const uint StepCount = SIZE(StepTPfs);
+	asserta(SIZE(StepFPfs) == StepCount);
+
+	float Area = 0;
+	float CompArea = 0;
+	for (uint StepIdx = 1; StepIdx < StepCount; ++StepIdx)
+		{
+
+		float PrevTPf = StepTPfs[StepIdx-1];
+		float PrevFPf = StepFPfs[StepIdx-1];
+		float TPf = StepTPfs[StepIdx];
+		float FPf = StepFPfs[StepIdx];
+
+		Area += (PrevTPf + TPf)*(FPf - PrevFPf)/2;
+		CompArea += (TPf - PrevTPf)*(FPf + PrevFPf)/2;
+		}
 	return Area;
 	}
 
@@ -1211,7 +1237,8 @@ void FeatureTrainer2::TrainIntFeature(
 	uint ReplaceUndefWithThisLetter,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
-	float &BestArea)
+	float &BestArea,
+	FILE *fOut)
 	{
 	SetIntFeature(F);
 	m_BgMethod = BgMethod;
@@ -1268,9 +1295,68 @@ void FeatureTrainer2::TrainIntFeature(
 // TrainLogOddsMx
 ///////////////////////////////////////////////////////////////////////////////////////
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
+
+	float BestOpenPenalty, BestExtPenalty, BestBias;
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-		ScoreMx, BestArea);
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+
+	WriteSteps(fOut, ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec, EvalTPs,
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias);
+	}
+
+void FeatureTrainer2::WriteSteps(
+	FILE *f,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs, 
+	const vector<string> &EvalRows, 
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<bool> &EvalTPs,
+	const vector<vector<float> > &ScoreMx,
+	float OpenPenalty,
+	float ExtPenalty,
+	float Bias)
+	{
+	if (f == 0)
+		return;
+
+	vector<float> StepScores, StepTPfs, StepFPfs;
+	vector<float> EvalAlnScores;
+	vector<float> EvalAlnScores3SigFig;
+	vector<float> EvalAlnSubstScores;
+	GetAlnSubstScores(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		false, UINT_MAX, ScoreMx, EvalAlnSubstScores);
+	GetAlnScores(EvalAlnSubstScores, EvalAlnColCountVec,
+		EvalAlnOpenVec, EvalAlnExtVec, OpenPenalty, ExtPenalty, Bias,
+		EvalAlnScores);
+	Round3SigFig(EvalAlnScores, EvalAlnScores3SigFig);
+	GetSteps(EvalAlnScores3SigFig, EvalTPs,
+		StepScores, StepTPfs, StepFPfs);
+	float Area = CalcArea(EvalAlnScores3SigFig, EvalTPs);
+	const uint StepCount = SIZE(StepScores);
+	asserta(SIZE(StepTPfs) == StepCount);
+	asserta(SIZE(StepFPfs) == StepCount);
+	fprintf(f, "feature=%s;", FeatureToStr(m_F));
+	fprintf(f, "bgmethod=%s;", m_BgMethod.c_str());
+	fprintf(f, "size=%u;", m_AlphaSize);
+	fprintf(f, "open=%.3g;", OpenPenalty);
+	fprintf(f, "ext=%.3g;", ExtPenalty);
+	fprintf(f, "bias=%.3g;", Bias);
+	fprintf(f, "area=%.3g;", Area);
+	fprintf(f, "steps=%u;", StepCount);
+	fprintf(f, "\n");
+
+	fprintf(f, "Step\tTPf\tFPf\n");
+	for (uint StepIdx = 0; StepIdx < StepCount; ++StepIdx)
+		{
+		fprintf(f, "%u", StepIdx);
+		fprintf(f, "\t%.3g", StepTPfs[StepIdx]);
+		fprintf(f, "\t%.3g", StepFPfs[StepIdx]);
+		fprintf(f, "\n");
+		}
 	}
 
 void FeatureTrainer2::EvalLogOddsMx(
@@ -1282,6 +1368,9 @@ void FeatureTrainer2::EvalLogOddsMx(
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
 	const vector<vector<float> > &ScoreMx,
+	float &OpenPenalty,
+	float &ExtPenalty,
+	float &Bias,
 	float &BestArea)
 	{
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1298,7 +1387,6 @@ void FeatureTrainer2::EvalLogOddsMx(
 ///////////////////////////////////////////////////////////////////////////////////////
 // Optimize area
 ///////////////////////////////////////////////////////////////////////////////////////
-	float OpenPenalty, ExtPenalty, Bias;
 	OptimizeArea(EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec,
 		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, BestArea, 8);
 
@@ -1324,7 +1412,6 @@ void FeatureTrainer2::EvalLogOddsMx(
 
 	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
 	asserta(feq(BestArea, Area2));
-	// Log("%s: Area2 %.3g\n", Area2, FeatureToStr(m_F));
 	}
 
 void FeatureTrainer2::TrainDSSFeature(
@@ -1343,6 +1430,9 @@ void FeatureTrainer2::TrainDSSFeature(
 	const vector<uint> &EvalAlnExtVec,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
+	float &BestOpenPenalty,
+	float &BestExtPenalty,
+	float &BestBias,
 	float &BestArea)
 	{
 	m_BgMethod = BgMethod;
@@ -1398,7 +1488,7 @@ void FeatureTrainer2::TrainDSSFeature(
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-		ScoreMx, BestArea);
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
 	}
 
 void FeatureTrainer2::GetDSSScoreMx(

@@ -234,6 +234,10 @@ static void GetSteps(
 	vector<float> &StepTPfs,
 	vector<float> &StepFPfs);
 
+static float CalcStepsArea(
+	vector<float> &StepTPfs,
+	vector<float> &StepFPfs);
+
 static float CalcArea(
 	const vector<float> &AlnScores,
 	const vector<bool> &TPs);
@@ -288,7 +292,8 @@ static void TrainIntFeature(
 	uint ReplaceUndefWithThisLetter,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
-	float &BestArea);
+	float &BestArea,
+	FILE *fOut);
 
 static void GetFloatValuesAndSeqs(
 	const vector<PDBChain *> &Chains,
@@ -377,11 +382,28 @@ static void EvalLogOddsMx(
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
 	const vector<vector<float> > &ScoreMx,
+	float &OpenPenalty,
+	float &ExtPenalty,
+	float &Bias,
 	float &BestArea);
 
 static void GetDSSScoreMx(
 	FEATURE F,
 	vector<vector<float> > &ScoreMx);
+
+static void FeatureTrainer2::WriteSteps(
+	FILE *f,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs, 
+	const vector<string> &EvalRows, 
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<bool> &EvalTPs,
+	const vector<vector<float> > &ScoreMx,
+	float OpenPenalty,
+	float ExtPenalty,
+	float Bias);
 
 static void TrainFloatFeature(
 	FEATURE F,
@@ -400,7 +422,8 @@ static void TrainFloatFeature(
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
 	QUANTIZE_STYLE QS,
-	float &BestArea);
+	float &BestArea,
+	FILE *fOut);
 
 static void TrainDSSFeature(
 	FEATURE F,
@@ -418,5 +441,8 @@ static void TrainDSSFeature(
 	const vector<uint> &EvalAlnExtVec,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
+	float &BestOpenPenalty,
+	float &BestExtPenalty,
+	float &BestBias,
 	float &BestArea);
 };

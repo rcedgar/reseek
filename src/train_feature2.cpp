@@ -56,17 +56,18 @@ void cmd_train_feature2()
 
 	vector<vector<float> > ScoreMx;
 	bool UndefsAllowed = true;
+	float BestArea = FLT_MAX;
 	vector<float> Areas;
 	const string &BgMethod = opt(bgmethod);
-
+	float BestOpenPenalty, BestExtPenalty, BestBias;
 	if (opt(dss))
 		{
-		float BestArea;
 		FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
 			TrainRows, TrainLabels, TrainChainIdxs,
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			BgMethod, ScoreMx, BestArea);
+			BgMethod, ScoreMx,
+			BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
 		return;
 		}
 
@@ -75,13 +76,12 @@ void cmd_train_feature2()
 		for (uint ReplaceUndefWithThisLetter = 0; ReplaceUndefWithThisLetter < AlphaSize;
 			++ReplaceUndefWithThisLetter)
 			{
-			float BestArea;
 			FeatureTrainer2::TrainIntFeature(F, Chains, LabelToChainIdx,
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				UndefsAllowed, ReplaceUndefWithThisLetter,
-				BgMethod, ScoreMx, BestArea);
+				BgMethod, ScoreMx, BestArea, 0);
 			Areas.push_back(BestArea);
 			}
 
@@ -93,16 +93,32 @@ void cmd_train_feature2()
 			uint Letter = Order[k];
 			Log("[%2u]  %6.4f\n", Letter, Areas[Letter]);
 			}
+		if (optset_rocsteps)
+			{
+			FILE *fSteps = CreateStdioFile(opt(rocsteps));
+			uint BestLetter = Order[AlphaSize-1];
+			FeatureTrainer2::TrainIntFeature(F, Chains, LabelToChainIdx,
+				TrainRows, TrainLabels, TrainChainIdxs,
+				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
+				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+				UndefsAllowed, BestLetter,
+				BgMethod, ScoreMx, BestArea, fSteps);
+			CloseStdioFile(fSteps);
+			}
 		}
 	else
 		{
+		FILE *fSteps = 0;
+		if (optset_rocsteps)
+			fSteps = CreateStdioFile(opt(rocsteps));
+
 		float BestArea;
 		FeatureTrainer2::TrainFloatFeature(
 			F, AlphaSize, Chains, LabelToChainIdx,
 			TrainRows, TrainLabels, TrainChainIdxs,
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			ScoreMx, QS_UndefDistinct, BestArea);
-		Log("BestArea=%.3g\n", BestArea);
+			ScoreMx, QS_UndefDistinct, BestArea, fSteps);
+		CloseStdioFile(fSteps);
 		}
 	}
