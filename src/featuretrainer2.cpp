@@ -371,13 +371,14 @@ void FeatureTrainer2::LogChainFloatSeqsStats(const string &Msg,
 	Log(", min %.3g, max %.3g\n", Min, Max);
 	}
 
-void FeatureTrainer2::LogChainIntSeqsStats(const string &Msg,
+void FeatureTrainer2::LogChainIntSeqsStats(
 	const vector<vector<uint> > &Seqs)
 	{
 	const uint SeqCount = SIZE(Seqs);
 	asserta(SeqCount > 0);
 	uint N = 0;
 	uint M = 0;
+	vector<uint> Counts(m_AlphaSize);
 	for (uint i = 0; i < SeqCount; ++i)
 		{
 		const vector<uint> &Seq = Seqs[i];
@@ -385,11 +386,20 @@ void FeatureTrainer2::LogChainIntSeqsStats(const string &Msg,
 		N += L;
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			if (Seq[i] == FLT_MAX)
+			uint Letter = Seq[Pos];
+			if (Letter == FLT_MAX)
 				++M;
+			else
+				{
+				asserta(Letter < m_AlphaSize);
+				Counts[Letter] += 1;
+				}
 			}
 		}
-	Log("LogChainIntSeqStats(%s) N=%u, UINT_MAX=%u", Msg.c_str(), N, M);
+	vector<float> Freqs;
+	GetFreqs(Counts, Freqs);
+	LogFreqs(Freqs);
+	Log("LogChainIntSeqStats() N=%u, UINT_MAX=%u", N, M);
 	}
 
 void FeatureTrainer2::BinTsToTsv(
@@ -1341,6 +1351,7 @@ void FeatureTrainer2::TrainDSSFeature(
 
 	vector<vector<uint> > ChainIntSeqsNoUndefs;
 	GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
+	LogChainIntSeqsStats(ChainIntSeqsNoUndefs);
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Background letter counts

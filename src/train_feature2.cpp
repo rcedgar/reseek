@@ -105,8 +105,32 @@ void cmd_train_feature2()
 			TrainRows, TrainLabels, TrainChainIdxs,
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			ScoreMx, BestArea);
-		FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
-		Log("BestArea %.3f\n", BestArea);
+			ScoreMx, QS_UndefOverlapMedian, BestArea);
+		Log("BestArea=%.3g\n", BestArea);
+		return;//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@TODO
+
+		//for (uint ReplaceUndefWithThisLetter = 0; ReplaceUndefWithThisLetter < AlphaSize;
+		//	++ReplaceUndefWithThisLetter)
+		//	{
+		//	float BestArea;
+		//	FeatureTrainer2::TrainFloatFeature(
+		//		F, AlphaSize, Chains, LabelToChainIdx,
+		//		TrainRows, TrainLabels, TrainChainIdxs,
+		//		EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
+		//		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+		//		ScoreMx, ReplaceUndefWithThisLetter, BestArea);
+		//	Areas.push_back(BestArea);
+		//	Log("ReplaceLetter=%u, BestArea %.3f\n",
+		//		ReplaceUndefWithThisLetter, BestArea);
+		//	}
+
+		//Log("\n");
+		//vector<uint> Order(AlphaSize);
+		//QuickSortOrder(Areas.data(), AlphaSize, Order.data());
+		//for (uint k = 0; k < AlphaSize; ++k)
+		//	{
+		//	uint Letter = Order[k];
+		//	Log("[%2u]  %6.4f\n", Letter, Areas[Letter]);
+		//	}
 		}
 	}

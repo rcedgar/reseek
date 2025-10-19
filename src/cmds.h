@@ -47,5 +47,6 @@ C(load_features)
 C(train_feature)
 C(train_feature2)
 C(feature_attrs)
+C(float_feature_dists)
 
 #undef C

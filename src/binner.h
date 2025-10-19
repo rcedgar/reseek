@@ -157,6 +157,13 @@ public:
 		return BinLo;
 		}
 
+	T GetBinHi(uint32_t Bin) const
+		{
+		T BinSize = GetBinSize();
+		T BinHi = m_MinValue + (Bin+1)*BinSize;
+		return BinHi;
+		}
+
 	T GetBinMid(uint32_t Bin) const
 		{
 		T BinSize = GetBinSize();
@@ -285,6 +292,17 @@ public:
 			Sum += n;
 			}
 		return Sum;
+		}
+
+	uint GetMaxCount() const
+		{
+		uint Max = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			uint n = m_Bins[Bin];
+			Max = max(Max, n);
+			}
+		return Max;
 		}
 
 // Cutoff which eliminates the largest TopN values.

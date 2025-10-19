@@ -1,131 +1,173 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
-#include "valuetointtpl.h"
 
 void FeatureTrainer2::Quantize(
-	const vector<float> &SortedValues,
+	const vector<float> &InputSortedValues,
+	QUANTIZE_STYLE QS,
+	vector<float> &BinTs,
+	float &UndefReplaceValue)
+	{
+	UndefReplaceValue = FLT_MAX;
+
+	BinTs.clear();
+	const uint InputCount = SIZE(InputSortedValues);
+	vector<float> SortedValues;
+	SortedValues.reserve(InputCount);
+
+	switch (QS)
+		{
+	case QS_DiscardUndef:
+		Quantize_DiscardUndef(InputSortedValues, BinTs);
+		break;
+
+	case QS_UndefDistinct:
+		Quantize_UndefDistinct(InputSortedValues, BinTs);
+		break;
+
+	case QS_UndefNotSpecialCase:
+		Quantize_UndefNotSpecialCase(InputSortedValues, BinTs);
+		break;
+
+	case QS_UndefOverlapMedian:
+		Quantize_UndefOverlapMedian(InputSortedValues,
+			BinTs, UndefReplaceValue);
+		break;
+
+	default:
+		asserta(false);
+		}
+
+	bool Tie = false;
+	for (uint i = 1; i < m_AlphaSize; ++i)
+		{
+		if (feq(BinTs[i-1], BinTs[i]))
+			Die("Quantize QS=%d tie bin %u T=%.3g,%.3g\n",
+				int(QS), i, BinTs[i-1], BinTs[i]);
+		}
+	}
+
+void FeatureTrainer2::Quantize_DiscardUndef(
+	const vector<float> &InputSortedValues,
 	vector<float> &BinTs)
 	{
 	BinTs.clear();
+	const uint InputCount = SIZE(InputSortedValues);
+	vector<float> SortedValues;
+	SortedValues.reserve(InputCount);
+
+	for (uint i = 0; i < InputCount; ++i)
+		{
+		float Value = InputSortedValues[i];
+		if (Value != FLT_MAX)
+			SortedValues.push_back(Value);
+		}
 
 	const uint K = SIZE(SortedValues);
 	asserta(K > 0);
-	float MinValue = SortedValues[0];
-	float MaxValue = SortedValues[K-1];
 	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
 		{
 		uint k = ((i+1)*K)/m_AlphaSize;
 		float t = SortedValues[k];
-		if (i > 0)
-			{
-			if (feq(t, BinTs[i-1]))
-				{
-				Log("Quantize tie for bin thresholds %u,%u at %.3g\n",
-						i-1, i, t);
-				QuantizeUniques(SortedValues, BinTs);
-				asserta(SIZE(BinTs) + 1 == m_AlphaSize);
-				return;
-				}
-			}
 		BinTs.push_back(t);
 		}
 	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
-
-	vector<uint> Counts(m_AlphaSize);
-	for (uint i = 0; i < K; ++i)
-		{
-		float Value = SortedValues[i];
-		uint Letter = ValueToIntTpl<false>(
-			Value, m_AlphaSize, BinTs, UINT_MAX);
-		asserta(Letter < m_AlphaSize);
-		Counts[Letter] += 1;
-		}
-
-	Log("\n");
-	Log("Quantize() target=%.4f\n", 1.0/m_AlphaSize);
-	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
-		Log("  [%2u]  %8.3g  %10u  %6.4f\n",
-			i, BinTs[i], Counts[i], double(Counts[i])/K);
-
-	Log("  [%2u]            %10u  %6.4f\n",
-		m_AlphaSize-1, Counts[m_AlphaSize-1], double(Counts[m_AlphaSize-1])/K);
 	}
 
-void FeatureTrainer2::QuantizeUniques(
-	const vector<float> &SortedValues,
+void FeatureTrainer2::Quantize_UndefNotSpecialCase(
+	const vector<float> &InputSortedValues,
 	vector<float> &BinTs)
 	{
 	BinTs.clear();
-	vector<float> UniqueFloatValues;
-	vector<uint> UniqueFloatCounts;
-	
-	const uint N = SIZE(SortedValues);
-	asserta(N > 100);
-	float UniqueValue = SortedValues[0];
-	uint Count = 1;
-	for (uint i = 1; i < N; ++i)
-		{
-		float Value = SortedValues[i];
-		if (Value == UniqueValue)
-			++Count;
-		else
-			{
-			asserta(Value > UniqueValue);
-			UniqueFloatValues.push_back(UniqueValue);
-			UniqueFloatCounts.push_back(Count);
-			UniqueValue = Value;
-			Count = 1;
-			}
-		}
-	UniqueFloatValues.push_back(UniqueValue);
-	UniqueFloatCounts.push_back(Count);
-	uint UniqueValueCount = SIZE(UniqueFloatValues);
-	asserta(SIZE(UniqueFloatCounts) == UniqueValueCount);
-	asserta(UniqueValueCount >= m_AlphaSize);
-	uint TargetCountPerBin = uint(double(N)/m_AlphaSize + 0.5);
-	vector<float> TmpValues;
-	for (uint i = 0; i < UniqueValueCount; ++i)
-		{
-		float Value = UniqueFloatValues[i];
-		uint n = min(UniqueFloatCounts[i], TargetCountPerBin/2);
-		for (uint j = 0; j < n; ++j)
-			TmpValues.push_back(Value);
-		}
-
-	const uint K = SIZE(TmpValues);
+	const uint InputCount = SIZE(InputSortedValues);
+	const vector<float> &SortedValues = InputSortedValues;
+	const uint K = SIZE(SortedValues);
 	asserta(K > 0);
-	float MinValue = TmpValues[0];
-	float MaxValue = TmpValues[K-1];
+	asserta(K == InputCount);
 	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
 		{
 		uint k = ((i+1)*K)/m_AlphaSize;
-		float t = TmpValues[k];
-		if (i > 0)
-			{
-			if (feq(t, BinTs[i-1]))
-				Die("QuantizeUniques tie for bin thresholds %u,%u at %.3g\n",
-						i-1, i, t);
-			}
+		float t = SortedValues[k];
 		BinTs.push_back(t);
 		}
 	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
+	}
 
-	vector<uint> Counts(m_AlphaSize);
-	for (uint i = 0; i < N; ++i)
+void FeatureTrainer2::Quantize_UndefDistinct(
+	const vector<float> &InputSortedValues,
+	vector<float> &BinTs)
+	{
+	BinTs.clear();
+	const uint InputCount = SIZE(InputSortedValues);
+	vector<float> SortedValues;
+	SortedValues.reserve(InputCount);
+
+// Discard undefs, they are special-cased
+	for (uint i = 0; i < InputCount; ++i)
 		{
-		float Value = SortedValues[i];
-		uint Letter = ValueToIntTpl<false>(
-			Value, m_AlphaSize, BinTs, UINT_MAX);
-		asserta(Letter < m_AlphaSize);
-		Counts[Letter] += 1;
+		float Value = InputSortedValues[i];
+		if (Value != FLT_MAX)
+			SortedValues.push_back(Value);
 		}
 
-	Log("\n");
-	Log("QuantizeUniques() target=%.4f\n", 1.0/m_AlphaSize);
-	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
-		Log("  [%2u]  %8.3g  %10u  %6.4f\n",
-			i, BinTs[i], Counts[i], double(Counts[i])/K);
+	const uint K = SIZE(SortedValues);
+	asserta(K > 0);
+// Create m_AlphaSize-1 bins (AS-2 thresholds) for defined letters
+	for (uint i = 0; i + 2 < m_AlphaSize; ++i)
+		{
+		uint k = ((i+2)*K)/m_AlphaSize;
+		float t = SortedValues[k];
+		BinTs.push_back(t);
+		}
+	asserta(SIZE(BinTs) + 2 == m_AlphaSize);
 
-	Log("  [%2u]            %10u  %6.4f\n",
-		m_AlphaSize-1, Counts[m_AlphaSize-1], double(Counts[m_AlphaSize-1])/K);
+// Special case bin threshold for undef, Letter=m_AlphaSize-1
+// All values except FLT_MAX will be < this threshold
+// *MUST* use < *NOT* <= in ValueToInt_xxx
+	BinTs.push_back(FLT_MAX);
+	}
+
+void FeatureTrainer2::Quantize_UndefOverlapMedian(
+	const vector<float> &InputSortedValues,
+	vector<float> &BinTs,
+	float &Median)
+	{
+	Median = FLT_MAX;
+	BinTs.clear();
+	const uint InputCount = SIZE(InputSortedValues);
+
+	vector<float> SortedValuesNoUndef;
+	SortedValuesNoUndef.reserve(InputCount);
+
+	for (uint i = 0; i < InputCount; ++i)
+		{
+		float Value = InputSortedValues[i];
+		if (Value != FLT_MAX)
+			SortedValuesNoUndef.push_back(Value);
+		}
+	const uint NoUndefCount = SIZE(SortedValuesNoUndef);
+	asserta(NoUndefCount > 0);
+	Median = SortedValuesNoUndef[NoUndefCount/2];
+
+	vector<float> SortedValues;
+	SortedValues.reserve(InputCount);
+	for (uint i = 0; i < InputCount; ++i)
+		{
+		float Value = InputSortedValues[i];
+		if (Value == FLT_MAX)
+			SortedValues.push_back(Median);
+		else
+			SortedValues.push_back(Value);
+		}
+	sort(SortedValues.begin(), SortedValues.end());
+
+	const uint K = SIZE(SortedValues);
+	asserta(K == InputCount);
+	asserta(K > 0);
+	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
+		{
+		uint k = ((i+1)*K)/m_AlphaSize;
+		float t = SortedValues[k];
+		BinTs.push_back(t);
+		}
+	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
 	}

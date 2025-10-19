@@ -2,6 +2,7 @@
 #include "dssparams.h"
 #include "dss.h"
 #include "pdbchain.h"
+#include "binner.h"
 
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);
 
@@ -67,6 +68,35 @@ static uint GetCounts(FEATURE F, vector<PDBChain *> &Chains,
 	return Total;
 	}
 
+static void GetValues(FEATURE F, const vector<PDBChain *> &Chains,
+	vector<float> &Values, uint &UndefCount)
+	{
+	Values.clear();
+	UndefCount = 0;
+	opt_force_undef = true;
+	optset_force_undef = true;
+	uint AS = DSS::GetAlphaSize(F);
+
+	DSS D;
+	const uint ChainCount = SIZE(Chains);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *Chains[ChainIdx];
+		D.Init(Chain);
+		const uint L = Chain.GetSeqLength();
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			float Value = D.GetFloatFeature(F, Pos);
+			if (Value == FLT_MAX)
+				++UndefCount;
+			else
+				Values.push_back(Value);
+			}
+		}
+	opt_force_undef = false;
+	optset_force_undef = false;
+	}
+
 void cmd_feature_attrs()
 	{
 	DSSParams::Init(DM_DefaultFast);
@@ -114,6 +144,49 @@ void cmd_feature_attrs()
 				ProgressLog("  %8u (%6.2f%%)", UndefFloatCountNotForced, GetPct(UndefFloatCountNotForced, Total));
 				}
 			ProgressLog("\n");
+			}
+		}
+	}
+
+void cmd_float_feature_dists()
+	{
+	DSSParams::Init(DM_DefaultFast);
+
+	vector<PDBChain *> Chains;
+	ReadChains(g_Arg1, Chains);
+
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		{
+		ProgressStep(uint(F), FEATURE_COUNT, FeatureToStr(F));
+		if (FeatureIsInt(F))
+			continue;	
+		uint AS = DSS::GetAlphaSize((FEATURE) F, true);
+		if (AS == UINT_MAX)
+			continue;
+		vector<float> Values;
+		uint UndefCount = UINT_MAX;
+		GetValues((FEATURE) F, Chains, Values, UndefCount);
+		const uint NBINS = 32;
+		Binner B(Values, NBINS-1);
+		vector<uint> Bins = B.GetBins();
+		Bins.push_back(UndefCount);
+		asserta(SIZE(Bins) == NBINS);
+		uint MaxCount = max(B.GetMaxCount(), UndefCount);
+		uint H = 32;
+		Log("\n\n");
+		for (uint BinIdx = 0; BinIdx < NBINS; ++BinIdx)
+			{
+			Log("%s", FeatureToStr(F));
+			uint n = Bins[BinIdx];
+			uint h = uint(n*H + 0.5)/MaxCount;
+			if (BinIdx + 1 == NBINS)
+				Log("  [**]");
+			else
+				Log("  [%2u]", BinIdx);
+			Log("  %10u  ", n);
+			for (uint k = 0; k < h; ++k)
+				Log("=");
+			Log("\n");
 			}
 		}
 	}

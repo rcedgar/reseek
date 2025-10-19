@@ -6,6 +6,15 @@
 #include "dss.h"
 #include "peaker.h"
 
+enum QUANTIZE_STYLE
+	{
+	QS_Invalid,
+	QS_DiscardUndef,
+	QS_UndefDistinct,
+	QS_UndefOverlapMedian,
+	QS_UndefNotSpecialCase,
+	};
+
 class FeatureTrainer2
 	{
 public:
@@ -81,7 +90,7 @@ static void ReplaceUndefs(
 	uint ReplaceUndefWithThisLetter,
 	vector<vector<uint> > &ChainIntSeqsNoUndefs);
 
-static void LogChainIntSeqsStats(const string &Msg,
+static void LogChainIntSeqsStats(
 	const vector<vector<uint> > &Seqs);
 
 static void GetAlignedLetterCounts(
@@ -162,15 +171,10 @@ static void GetChainIntSeqs_Int(
 	uint &LetterCount,
 	uint &UndefCount);
 
-static void FloatSeqsToInt_UndefOverlapLetter(
+static void FloatSeqsToInt(
 	const vector<vector<float> > &FloatSeqs,
 	const vector<float> &BinTs,
-	uint ReplaceFLT_MAXWithThisLetter,
-	vector<vector<uint> > &IntSeqs);
-
-static void FloatSeqsToInt_UndefDistinctLetter(
-	const vector<vector<float> > &FloatSeqs,
-	const vector<float> &BinTs,
+	float UndefReplaceValue,
 	vector<vector<uint> > &IntSeqs);
 
 static void GetChainIntSeqs_DSS(
@@ -193,10 +197,25 @@ static void ReplaceUndefs(
 
 static void Quantize(
 	const vector<float> &Values,
+	QUANTIZE_STYLE QS,
+	vector<float> &BinTs,
+	float &UndefReplaceValue);
+
+static void Quantize_DiscardUndef(
+	const vector<float> &Values,
 	vector<float> &BinTs);
 
-static void QuantizeUniques(
-	const vector<float> &SortedValues,
+static void Quantize_UndefDistinct(
+	const vector<float> &Values,
+	vector<float> &BinTs);
+
+static void Quantize_UndefOverlapMedian(
+	const vector<float> &Values,
+	vector<float> &BinTs,
+	float &Median);
+
+static void Quantize_UndefNotSpecialCase(
+	const vector<float> &Values,
 	vector<float> &BinTs);
 
 static void GetAlnScores(
@@ -287,7 +306,7 @@ static void GetFloatValuesAndSeqs(
 static void ValuesToLetters(
 	const vector<float> &Values,
 	const vector<float> &BinTs,
-	uint ReplaceUndefWithThisLetter,
+	float UndefReplaceValue,
 	vector<uint> &Letters);
 
 static void GetLetterCounts(
@@ -300,11 +319,30 @@ static void LogLetterCountsFreqsAndBinTs(
 	uint UndefCount,
 	const vector<float> &BinTs);
 
+// Special case bin threshold for undef, Letter=m_AlphaSize-1
+// BinTs[AS-1]=FLT_MAX
+// All values except FLT_MAX will be < this threshold
+// *MUST* use < *NOT* <= in ValueToInt_xxx
 static inline uint ValueToInt_UndefDistinctLetter(
-	float Value, uint m_AlphaSize, const vector<float> &Ts)
+	float Value, const vector<float> &Ts)
 	{
 	asserta(SIZE(Ts) + 1 == m_AlphaSize);
 	asserta(Ts[m_AlphaSize-1] == FLT_MAX);
+	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
+		if (Value < Ts[i])
+			return i;
+	return m_AlphaSize - 1;
+	}
+
+// Special case bin threshold for undef, Letter=m_AlphaSize-1
+//		this achieves no special case in ValueToInt_xxx
+// BinTs[AS-1]=FLT_MAX
+// All values except FLT_MAX will be < this threshold
+// *MUST* use < *NOT* <= in ValueToInt_xxx
+static inline uint ValueToInt_UndefNotSpecialCase(
+	float Value, const vector<float> &Ts)
+	{
+	asserta(SIZE(Ts) + 1 == m_AlphaSize);
 	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
 		if (Value < Ts[i])
 			return i;
@@ -362,6 +400,7 @@ static void TrainFloatFeature(
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
+	QUANTIZE_STYLE QS,
 	float &BestArea);
 
 static void TrainDSSFeature(
