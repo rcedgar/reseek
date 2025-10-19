@@ -281,6 +281,7 @@
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
+    <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="optimizearea.cpp" />

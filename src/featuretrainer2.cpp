@@ -10,19 +10,26 @@
 FEATURE FeatureTrainer2::m_F = FEATURE(-1);
 uint FeatureTrainer2::m_AlphaSize = UINT_MAX;
 
-uint FeatureTrainer2::FixLetter(
-	uint Letter,
-	bool UndefsAllowed,
-	uint ReplaceUndefWithThisLetter)
+void FeatureTrainer2::GetLetterCounts(
+	const vector<uint> &Letters,
+	vector<uint> &Counts,
+	uint &UndefCount)
 	{
-	if (Letter == UINT_MAX)
+	Counts.clear();
+	Counts.resize(m_AlphaSize);
+	UndefCount = 0;
+	const uint N = SIZE(Letters);
+	for (uint i = 0; i < N; ++i)
 		{
-		if (!UndefsAllowed)
-			Die("Undef letter");
-		Letter = ReplaceUndefWithThisLetter;
+		uint Letter = Letters[i];
+		if (Letter == UINT_MAX)
+			++UndefCount;
+		else
+			{
+			asserta(Letter < m_AlphaSize);
+			Counts[Letter] += 1;
+			}
 		}
-	asserta(Letter < m_AlphaSize);
-	return Letter;
 	}
 
 void FeatureTrainer2::TruncLabel(string &Label)
@@ -988,22 +995,16 @@ void FeatureTrainer2::GetChainIntSeqs_Int(
 	optset_force_undef = false;
 	}
 
-void FeatureTrainer2::GetChainIntSeqs_Float(
+void FeatureTrainer2::GetChainIntSeqs_DSS(
 	const vector<PDBChain *> &Chains,
-	vector<vector<uint> > &IntSeqs,
-	const vector<float> &BinTs,
-	uint &LetterCount,
-	uint &UndefCount)
+	vector<vector<uint> > &IntSeqs)
 	{
-	asserta(FeatureIsInt(m_F));
 	const uint ChainCount = SIZE(Chains);
 	IntSeqs.clear();
 	IntSeqs.resize(ChainCount);
-	UndefCount = 0;
-	LetterCount = 0;
 	DSS D;
-	opt_force_undef = true;
-	optset_force_undef = true;
+	opt_force_undef = false;
+	optset_force_undef = false;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		const PDBChain &Chain = *Chains[ChainIdx];
@@ -1011,25 +1012,13 @@ void FeatureTrainer2::GetChainIntSeqs_Float(
 		const uint L = Chain.GetSeqLength();
 		vector<uint> &IntSeq = IntSeqs[ChainIdx];
 		IntSeq.reserve(L);
-		LetterCount += L;
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			float Value = D.GetFloatFeature(m_F, Pos);
-			if (Value == FLT_MAX)
-				{
-				++UndefCount;
-				IntSeq.push_back(UINT_MAX);
-				}
-			else
-				{
-				uint Letter = ValueToIntTpl<false>(
-					Value, m_AlphaSize, BinTs, UINT_MAX);
-				IntSeq.push_back(Letter);
-				}
+			uint Letter = D.GetFeature(m_F, Pos);
+			asserta(Letter < m_AlphaSize);
+			IntSeq.push_back(Letter);
 			}
 		}
-	opt_force_undef = false;
-	optset_force_undef = false;
 	}
 
 void FeatureTrainer2::LogFreqs(
@@ -1128,13 +1117,10 @@ void FeatureTrainer2::LoadEvalAlns(
 	const string &EvalTPAlnFN,
 	const string &EvalFPAlnFN,
 	const map<string, uint> &LabelToChainIdx,
-	vector<vector<uint> > &ChainIntSeqsNoUndefs,
-	const vector<vector<float> > &ScoreMx,
 	vector<string> &EvalRows,
 	vector<string> &EvalLabels,
 	vector<uint> &EvalRowChainIdxs,
 	vector<bool> &EvalTPs,
-	vector<float> &EvalAlnSubstScores,
 	vector<uint> &EvalAlnColCountVec,
 	vector<uint> &EvalAlnOpenVec,
 	vector<uint> &EvalAlnExtVec)
@@ -1144,8 +1130,6 @@ void FeatureTrainer2::LoadEvalAlns(
 	AppendAlns(EvalFPAlnFN, LabelToChainIdx, false,
 	  EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs);
 	GetGapCountVecs(EvalRows, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
-	GetAlnSubstScores(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
-		false, UINT_MAX, ScoreMx, EvalAlnSubstScores);
 	}
 
 void FeatureTrainer2::ReplaceUndefs(
@@ -1200,22 +1184,27 @@ void FeatureTrainer2::TrainLogOddsMx(
 
 void FeatureTrainer2::TrainIntFeature(
 	FEATURE F,
-	const string &ChainFN,
-	const string &TrainTPAlnFN,
-	const string &EvalTPAlnFN,
-	const string &EvalFPAlnFN,
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
 	bool UndefsAllowed,
 	uint ReplaceUndefWithThisLetter,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
 	float &BestArea)
 	{
+	SetIntFeature(F);
 	BestArea = 0;
 	asserta(ReplaceUndefWithThisLetter < m_AlphaSize);
-
-	vector<PDBChain *> Chains;
-	map<string, uint> LabelToChainIdx;
-	ReadChains(ChainFN, Chains, LabelToChainIdx);
 
 	vector<vector<uint> > ChainIntSeqsWithUndefs;
 	uint UndefCount = 0;
@@ -1232,25 +1221,27 @@ void FeatureTrainer2::TrainIntFeature(
 		ChainIntSeqsNoUndefs = ChainIntSeqsWithUndefs;
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Training alignments (TP only)
-///////////////////////////////////////////////////////////////////////////////////////
-	vector<bool> Trains;
-	vector<string> TrainRows;
-	vector<string> TrainLabels;
-	vector<uint> TrainChainIdxs;
-	AppendAlns(TrainTPAlnFN, LabelToChainIdx, true,
-	  TrainRows, TrainLabels, TrainChainIdxs, Trains);
-
-///////////////////////////////////////////////////////////////////////////////////////
 // Background letter counts
 ///////////////////////////////////////////////////////////////////////////////////////
 	vector<uint> TrainLetterCounts;
+	// Aligned chains, with multiple counting
 	if (BgMethod == "aln")
 		GetAlignedLetterCounts(ChainIntSeqsNoUndefs, TrainRows, TrainChainIdxs,
 			TrainLetterCounts);
-	else if (BgMethod == "uniq")
+	// Aligned chains, each chain exactly once
+	else if (BgMethod == "uniqaln")
 		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, TrainChainIdxs,
 			TrainLetterCounts);
+	// All chains including Train, Eval and other (if any)
+	else if (BgMethod == "uniqall")
+		{
+		const uint AllChainCount = SIZE(Chains);
+		vector<uint> AllChainIdxs;
+		for (uint i = 0; i < AllChainCount; ++i)
+			AllChainIdxs.push_back(i);
+		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, AllChainIdxs,
+			TrainLetterCounts);
+		}
 	else
 		Die("BgMethod=%s", BgMethod.c_str());
 
@@ -1265,34 +1256,45 @@ void FeatureTrainer2::TrainIntFeature(
 // TrainLogOddsMx
 ///////////////////////////////////////////////////////////////////////////////////////
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
+	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+		ScoreMx, BestArea);
+	}
 
+void FeatureTrainer2::EvalLogOddsMx(
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
+	const vector<string> &EvalRows,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<vector<float> > &ScoreMx,
+	float &BestArea)
+	{
 ///////////////////////////////////////////////////////////////////////////////////////
-// Eval alignments (TP and FP)
+// Prep for Eval
 ///////////////////////////////////////////////////////////////////////////////////////
-	vector<bool> EvalTPs;
-	vector<string> EvalRows;
-	vector<string> EvalLabels;
-	vector<uint> EvalRowChainIdxs;
-	vector<uint> EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec;
+	BestArea = 0;
 	vector<float> EvalAlnSubstScores;
-
-	LoadEvalAlns(EvalTPAlnFN, EvalFPAlnFN, LabelToChainIdx, ChainIntSeqsNoUndefs,
-		ScoreMx, EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
-		EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
-///////////////////////////////////////////////////////////////////////////////////////
+	GetAlnSubstScores(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		false, UINT_MAX, ScoreMx, EvalAlnSubstScores);
 
 	Log("\nQuarts subst. scores only\n");
 	LogAlnScoreQuarts(EvalAlnSubstScores, EvalTPs);
 
+	vector<float> EvalAlnSubstScores3SigFig, EvalAlnScores3SigFig;
+	Round3SigFig(EvalAlnSubstScores, EvalAlnSubstScores3SigFig);
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Optimize area
+///////////////////////////////////////////////////////////////////////////////////////
 	float OpenPenalty, ExtPenalty, Bias;
 	OptimizeArea(EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec,
 		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, BestArea, 8);
 
 	Log("BestArea=%.3g, open %.3g, ext %.3g, bias %.3g\n",
 		BestArea, OpenPenalty, ExtPenalty, Bias);
-
-	vector<float> EvalAlnSubstScores3SigFig, EvalAlnScores3SigFig;
-	Round3SigFig(EvalAlnSubstScores, EvalAlnSubstScores3SigFig);
 
 	vector<float> EvalAlnScores;
 	GetAlnScores(EvalAlnSubstScores, EvalAlnColCountVec,
@@ -1307,4 +1309,76 @@ void FeatureTrainer2::TrainIntFeature(
 
 	Log("\nQuarts with optimized gaps, area=%.3g:\n", Area_Gaps);
 	LogAlnScoreQuarts(EvalAlnScores, EvalTPs);
+	}
+
+void FeatureTrainer2::TrainDSSFeature(
+	FEATURE F,
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const string &BgMethod,
+	vector<vector<float > > &ScoreMx,
+	float &BestArea)
+	{
+	if (FeatureIsInt(F))
+		SetIntFeature(F);
+	else
+		{
+		uint AlphaSize = DSS::GetAlphaSize(F);
+		SetFloatFeature(F, AlphaSize);
+		}
+
+	BestArea = 0;
+
+	vector<vector<uint> > ChainIntSeqsNoUndefs;
+	GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Background letter counts
+///////////////////////////////////////////////////////////////////////////////////////
+	vector<uint> TrainLetterCounts;
+	// Aligned chains, with multiple counting
+	if (BgMethod == "aln")
+		GetAlignedLetterCounts(ChainIntSeqsNoUndefs, TrainRows, TrainChainIdxs,
+			TrainLetterCounts);
+	// Aligned chains, each chain exactly once
+	else if (BgMethod == "uniqaln")
+		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, TrainChainIdxs,
+			TrainLetterCounts);
+	// All chains including Train, Eval and other (if any)
+	else if (BgMethod == "uniqall")
+		{
+		const uint AllChainCount = SIZE(Chains);
+		vector<uint> AllChainIdxs;
+		for (uint i = 0; i < AllChainCount; ++i)
+			AllChainIdxs.push_back(i);
+		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, AllChainIdxs,
+			TrainLetterCounts);
+		}
+	else
+		Die("BgMethod=%s", BgMethod.c_str());
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Aligned letter pair counts
+///////////////////////////////////////////////////////////////////////////////////////
+	vector<vector<uint> > TrainAlnLetterPairCountMx;
+	GetAlignedLetterPairCounts(ChainIntSeqsNoUndefs, TrainRows,
+	  TrainChainIdxs, TrainAlnLetterPairCountMx);
+
+///////////////////////////////////////////////////////////////////////////////////////
+// TrainLogOddsMx
+///////////////////////////////////////////////////////////////////////////////////////
+	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
+	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+		ScoreMx, BestArea);
 	}

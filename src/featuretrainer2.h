@@ -20,11 +20,6 @@ static void TruncLabel(string &Label);
 static void TruncLabel(const string &Label,
 	string &TruncatedLabel);
 
-static uint FixLetter(
-	uint Letter,
-	bool UndefsAllowed,
-	uint ReplaceUndefWithThisLetter);
-
 static void AppendAlns(
 	const string &FN,
 	const map<string, uint> &LabelToChainIdx,
@@ -167,12 +162,20 @@ static void GetChainIntSeqs_Int(
 	uint &LetterCount,
 	uint &UndefCount);
 
-static void GetChainIntSeqs_Float(
-	const vector<PDBChain *> &Chains,
-	vector<vector<uint> > &IntSeqs,
+static void FloatSeqsToInt_UndefOverlapLetter(
+	const vector<vector<float> > &FloatSeqs,
 	const vector<float> &BinTs,
-	uint &LetterCount,
-	uint &UndefCount);
+	uint ReplaceFLT_MAXWithThisLetter,
+	vector<vector<uint> > &IntSeqs);
+
+static void FloatSeqsToInt_UndefDistinctLetter(
+	const vector<vector<float> > &FloatSeqs,
+	const vector<float> &BinTs,
+	vector<vector<uint> > &IntSeqs);
+
+static void GetChainIntSeqs_DSS(
+	const vector<PDBChain *> &Chains,
+	vector<vector<uint> > &IntSeqs);
 
 static void GetAlnSubstScores(
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
@@ -245,25 +248,136 @@ static void LoadEvalAlns(
 	const string &EvalTPAlnFN,
 	const string &EvalFPAlnFN,
 	const map<string, uint> &LabelToChainIdx,
-	vector<vector<uint> > &ChainIntSeqsNoUndefs,
-	const vector<vector<float> > &ScoreMx,
 	vector<string> &EvalRows,
 	vector<string> &EvalLabels,
 	vector<uint> &EvalRowChainIdxs,
 	vector<bool> &EvalTPs,
-	vector<float> &EvalAlnSubstScores,
 	vector<uint> &EvalAlnColCountVec,
 	vector<uint> &EvalAlnOpenVec,
 	vector<uint> &EvalAlnExtVec);
 
 static void TrainIntFeature(
 	FEATURE F,
-	const string &ChainFN,
-	const string &TrainTPAlnFN,
-	const string &EvalTPAlnFN,
-	const string &EvalFPAlnFN,
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
 	bool UndefsAllowed,
 	uint ReplaceUndefWithThisLetter,
+	const string &BgMethod,
+	vector<vector<float > > &ScoreMx,
+	float &BestArea);
+
+static void GetFloatValuesAndSeqs(
+	const vector<PDBChain *> &Chains,
+	bool DiscardUndefsFromValuesButNotSeqs,
+	float ReplaceUndefWithThisValue,
+	vector<float> &SortedValues,
+	vector<vector<float> > &Seqs,
+	uint &UndefCount);
+
+static void ValuesToLetters(
+	const vector<float> &Values,
+	const vector<float> &BinTs,
+	uint ReplaceUndefWithThisLetter,
+	vector<uint> &Letters);
+
+static void GetLetterCounts(
+	const vector<uint> &Letters,
+	vector<uint> &Counts,
+	uint &UndefCount);
+
+static void LogLetterCountsFreqsAndBinTs(
+	const vector<uint> &Counts,
+	uint UndefCount,
+	const vector<float> &BinTs);
+
+static inline uint ValueToInt_UndefDistinctLetter(
+	float Value, uint m_AlphaSize, const vector<float> &Ts)
+	{
+	asserta(SIZE(Ts) + 1 == m_AlphaSize);
+	asserta(Ts[m_AlphaSize-1] == FLT_MAX);
+	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
+		if (Value < Ts[i])
+			return i;
+	return m_AlphaSize - 1;
+	}
+
+static inline uint ValueToInt_UndefOverlapValue(
+	float Value, const vector<float> &Ts, float UndefValue)
+	{
+	asserta(UndefValue < FLT_MAX);
+	if (Value == FLT_MAX)
+		Value = UndefValue;
+	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return m_AlphaSize - 1;
+	}
+
+static inline uint ValueToInt_UndefOverlapLetter(
+	float Value, const vector<float> &Ts, uint UndefLetter)
+	{
+	asserta(UndefLetter < m_AlphaSize);
+	if (Value == FLT_MAX)
+		return UndefLetter;
+	for (uint i = 0; i + 1 < m_AlphaSize; ++i)
+		if (Value <= Ts[i])
+			return i;
+	return m_AlphaSize - 1;
+	}
+
+static void EvalLogOddsMx(
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
+	const vector<string> &EvalRows,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<vector<float> > &ScoreMx,
+	float &BestArea);
+
+static void TrainFloatFeature(
+	FEATURE F,
+	uint AlphaSize,
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	vector<vector<float > > &ScoreMx,
+	float &BestArea);
+
+static void TrainDSSFeature(
+	FEATURE F,
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainChainIdxs,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
 	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
 	float &BestArea);
