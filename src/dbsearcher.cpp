@@ -82,6 +82,10 @@ void DBSearcher::Setup()
 		else
 			m_MaxEvalue = 10;
 		}
+	if (optset_minevalue)
+		m_MinEvalue = opt(minevalue);
+	else
+		m_MinEvalue = -1;
 
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);
@@ -131,6 +135,8 @@ bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	bool Evalue_ok = true;
 	bool TS_ok = false;
 	float E = DA.GetEvalue(Up);
+	if (E < m_MinEvalue)
+		return true;
 	if (!opt(scores_are_not_evalues) && E > m_MaxEvalue)
 		Evalue_ok = false;
 	float TS = DA.GetNewTestStatistic(Up);

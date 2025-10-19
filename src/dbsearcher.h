@@ -49,6 +49,7 @@ public:
 	uint m_XAlignCount = 0;
 	uint m_SWAlignCount = 0;
 	uint m_UFilterCount = 0;
+	double m_MinEvalue = -1;
 	double m_MaxEvalue = 10;
 	uint m_Secs = UINT_MAX;
 	float m_AlnsPerThreadPerSec = FLT_MAX;
