@@ -1263,7 +1263,7 @@ void FeatureTrainer2::TrainIntFeature(
 // Background letter counts
 ///////////////////////////////////////////////////////////////////////////////////////
 	vector<uint> TrainLetterCounts;
-	// Aligned chains, with multiple counting
+	// Aligned letters, with multiple counting
 	if (BgMethod == "aln")
 		GetAlignedLetterCounts(ChainIntSeqsNoUndefs, TrainRows, TrainChainIdxs,
 			TrainLetterCounts);

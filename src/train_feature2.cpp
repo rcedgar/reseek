@@ -18,11 +18,10 @@ void cmd_train_feature2()
 		AlphaSize = opt(alpha_size);
 		}
 
-	const string &ChainFN = opt(db); // "c:/src/reseek/test_data/scop40.bca";
-	const string &TrainTPAlnFN = opt(input); // "../big_out/tp.a.mints05.maxts25.fa2";
-	const string &TrainFPAlnFN = opt(input2); // "../big_out/fp.a.mints05.maxts25.fa2";
-	const string &EvalTPAlnFN = TrainTPAlnFN;
-	const string &EvalFPAlnFN = TrainFPAlnFN;
+	const string &ChainFN = opt(db);			// "c:/src/reseek/test_data/scop40.bca";
+	const string &TrainTPAlnFN = opt(traintps); // "../big_out/tp.a.mints05.maxts25.fa2";
+	const string &EvalTPAlnFN = opt(evaltps);	// "../big_out/tp.a.evalrange.fa2";
+	const string &EvalFPAlnFN = opt(evalfps);	// "../big_out/fp.a.evalrange.fa2";
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Structure chains, must include all Train and Eval chains, may include others
