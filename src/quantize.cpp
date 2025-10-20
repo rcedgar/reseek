@@ -101,7 +101,7 @@ void FeatureTrainer::QuantizeUniques(const vector<float> &SortedValues,
 		if (i > 0)
 			{
 			if (feq(t, BinTs[i-1]))
-				Die("QuantizeUniques tie for bin thresholds %u,%u at %.3g\n",
+				Warning("QuantizeUniques tie for bin thresholds %u,%u at %.3g\n",
 						i-1, i, t);
 			}
 		BinTs.push_back(t);

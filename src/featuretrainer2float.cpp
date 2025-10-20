@@ -163,11 +163,21 @@ void FeatureTrainer2::TrainFloatFeature(
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
 	QUANTIZE_STYLE QS,
+	float UndefReplaceValue,
 	float &BestArea,
 	FILE *fOut)
 	{
-	m_BgMethod = "NONE";
+	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
+	m_FevStr += "type=int;";
+	if (UndefReplaceValue == FLT_MAX)
+		m_FevStr += "undef_value=*;";
+	else
+		Psa(m_FevStr, "undef_value=%.3g;", UndefReplaceValue);
+	m_FevStr += "QS=" + string(QSToStr(QS)) + ";";
+
 	SetFloatFeature(F, AlphaSize);
+	m_QS = QS;
+	m_BS = BS_Float;
 
 	vector<float> SortedValues;
 	vector<vector<float> > FloatSeqs;
@@ -176,8 +186,7 @@ void FeatureTrainer2::TrainFloatFeature(
 		SortedValues, FloatSeqs, UndefCount1);
 
 	vector<float> BinTs;
-	float UndefReplaceValue = FLT_MAX;
-	Quantize(SortedValues, QS, BinTs, UndefReplaceValue);
+	Quantize(SortedValues, BinTs, UndefReplaceValue);
 
 	vector<uint> Letters;
 	ValuesToLetters(SortedValues, BinTs, UndefReplaceValue, Letters);

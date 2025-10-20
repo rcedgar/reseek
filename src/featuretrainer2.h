@@ -11,8 +11,17 @@ enum QUANTIZE_STYLE
 	QS_Invalid,
 	QS_DiscardUndef,
 	QS_UndefDistinct,
-	QS_UndefOverlapMedian,
+	QS_UndefReplaceUser,
 	QS_UndefNotSpecialCase,
+	};
+
+enum BACKGROUND_STYLE
+	{
+	BS_Invalid,
+	BS_DSSScoreMx,
+	BS_AlignedLetters,
+	BS_UniqueChains,
+	BS_Float,
 	};
 
 class FeatureTrainer2
@@ -20,7 +29,55 @@ class FeatureTrainer2
 public:
 static FEATURE m_F;
 static uint m_AlphaSize;
-static string m_BgMethod;
+static BACKGROUND_STYLE m_BS;
+static QUANTIZE_STYLE m_QS;
+static string m_FevStr;
+
+static BACKGROUND_STYLE StrToBS(const string &s)
+	{
+	if (s == "dss") return BS_DSSScoreMx;
+	if (s == "aln") return BS_AlignedLetters;
+	if (s == "uniq") return BS_UniqueChains;
+	if (s == "float") return BS_Float;
+	Die("StrToBS(%s)", s.c_str());
+	return BS_Invalid;
+	}
+
+static QUANTIZE_STYLE StrToQS(const string &s)
+	{
+	if (s == "discard") return QS_DiscardUndef;
+	if (s == "distinct") return QS_UndefDistinct;
+	if (s == "replace") return QS_UndefReplaceUser;
+	if (s == "notspecial") return QS_UndefNotSpecialCase;
+	Die("StrToQS(%s)", s.c_str());
+	return QS_Invalid;
+	}
+
+static const char *BSToStr(BACKGROUND_STYLE BS)
+	{
+	switch (BS)
+		{
+	case BS_DSSScoreMx:	return "DSSScoreMx";
+	case BS_AlignedLetters:	return "AlignedLetters";
+	case BS_UniqueChains:	return "UniqueChains";
+	case BS_Float:	return "Float";
+		}
+	asserta(false);
+	return "BS_ERROR";
+	}
+
+static const char *QSToStr(QUANTIZE_STYLE QS)
+	{
+	switch (QS)
+		{
+	case QS_DiscardUndef:	return "DiscardUndef";
+	case QS_UndefDistinct:	return "UndefDistinct";
+	case QS_UndefReplaceUser:	return "ReplaceUser";
+	case QS_UndefNotSpecialCase:	return "UndefNotSpecialCase";
+		}
+	asserta(false);
+	return "QS_ERROR";
+	}
 
 static void SetFloatFeature(FEATURE F, uint AlphaSize);
 static void SetIntFeature(FEATURE F);
@@ -31,6 +88,7 @@ static void TruncLabel(const string &Label,
 	string &TruncatedLabel);
 
 static void AppendAlns(
+	const string &Name,
 	const string &FN,
 	const map<string, uint> &LabelToChainIdx,
 	bool AlnsAreTPs,
@@ -192,7 +250,6 @@ static void ReplaceUndefs(
 
 static void Quantize(
 	const vector<float> &Values,
-	QUANTIZE_STYLE QS,
 	vector<float> &BinTs,
 	float &UndefReplaceValue);
 
@@ -204,10 +261,10 @@ static void Quantize_UndefDistinct(
 	const vector<float> &Values,
 	vector<float> &BinTs);
 
-static void Quantize_UndefOverlapMedian(
+static void Quantize_UndefReplaceUser(
 	const vector<float> &Values,
 	vector<float> &BinTs,
-	float &Median);
+	float ReplaceValue);
 
 static void Quantize_UndefNotSpecialCase(
 	const vector<float> &Values,
@@ -290,7 +347,7 @@ static void TrainIntFeature(
 	const vector<uint> &EvalAlnExtVec,
 	bool UndefsAllowed,
 	uint ReplaceUndefWithThisLetter,
-	const string &BgMethod,
+	BACKGROUND_STYLE BS,
 	vector<vector<float > > &ScoreMx,
 	float &BestArea,
 	FILE *fOut);
@@ -323,7 +380,7 @@ static void LogLetterCountsFreqsAndBinTs(
 // BinTs[AS-1]=FLT_MAX
 // All values except FLT_MAX will be < this threshold
 // *MUST* use < *NOT* <= in ValueToInt_xxx
-static inline uint ValueToInt_UndefDistinctLetter(
+static uint ValueToInt_UndefDistinctLetter(
 	float Value, const vector<float> &Ts)
 	{
 	asserta(SIZE(Ts) + 1 == m_AlphaSize);
@@ -339,7 +396,7 @@ static inline uint ValueToInt_UndefDistinctLetter(
 // BinTs[AS-1]=FLT_MAX
 // All values except FLT_MAX will be < this threshold
 // *MUST* use < *NOT* <= in ValueToInt_xxx
-static inline uint ValueToInt_UndefNotSpecialCase(
+static uint ValueToInt_UndefNotSpecialCase(
 	float Value, const vector<float> &Ts)
 	{
 	asserta(SIZE(Ts) + 1 == m_AlphaSize);
@@ -349,7 +406,7 @@ static inline uint ValueToInt_UndefNotSpecialCase(
 	return m_AlphaSize - 1;
 	}
 
-static inline uint ValueToInt_UndefOverlapValue(
+static uint ValueToInt_UndefOverlapValue(
 	float Value, const vector<float> &Ts, float UndefValue)
 	{
 	asserta(UndefValue < FLT_MAX);
@@ -361,7 +418,7 @@ static inline uint ValueToInt_UndefOverlapValue(
 	return m_AlphaSize - 1;
 	}
 
-static inline uint ValueToInt_UndefOverlapLetter(
+static uint ValueToInt_UndefOverlapLetter(
 	float Value, const vector<float> &Ts, uint UndefLetter)
 	{
 	asserta(UndefLetter < m_AlphaSize);
@@ -387,11 +444,17 @@ static void EvalLogOddsMx(
 	float &Bias,
 	float &BestArea);
 
+static void GetBackgroundCounts(
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
+	const vector<uint> &TrainChainIdxs,
+	const vector<string> &TrainRows,
+	vector<uint> &LetterCounts);
+
 static void GetDSSScoreMx(
 	FEATURE F,
 	vector<vector<float> > &ScoreMx);
 
-static void FeatureTrainer2::WriteSteps(
+static void WriteSteps(
 	FILE *f,
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs, 
 	const vector<string> &EvalRows, 
@@ -422,6 +485,7 @@ static void TrainFloatFeature(
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
 	QUANTIZE_STYLE QS,
+	float UndefReplaceValue,
 	float &BestArea,
 	FILE *fOut);
 
@@ -439,10 +503,7 @@ static void TrainDSSFeature(
 	const vector<uint> &EvalAlnColCountVec,
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
-	const string &BgMethod,
 	vector<vector<float > > &ScoreMx,
-	float &BestOpenPenalty,
-	float &BestExtPenalty,
-	float &BestBias,
+	BACKGROUND_STYLE BS,
 	float &BestArea);
 };

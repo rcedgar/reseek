@@ -3,18 +3,15 @@
 
 void FeatureTrainer2::Quantize(
 	const vector<float> &InputSortedValues,
-	QUANTIZE_STYLE QS,
 	vector<float> &BinTs,
 	float &UndefReplaceValue)
 	{
-	UndefReplaceValue = FLT_MAX;
-
 	BinTs.clear();
 	const uint InputCount = SIZE(InputSortedValues);
 	vector<float> SortedValues;
 	SortedValues.reserve(InputCount);
 
-	switch (QS)
+	switch (m_QS)
 		{
 	case QS_DiscardUndef:
 		Quantize_DiscardUndef(InputSortedValues, BinTs);
@@ -28,8 +25,8 @@ void FeatureTrainer2::Quantize(
 		Quantize_UndefNotSpecialCase(InputSortedValues, BinTs);
 		break;
 
-	case QS_UndefOverlapMedian:
-		Quantize_UndefOverlapMedian(InputSortedValues,
+	case QS_UndefReplaceUser:
+		Quantize_UndefReplaceUser(InputSortedValues,
 			BinTs, UndefReplaceValue);
 		break;
 
@@ -41,8 +38,8 @@ void FeatureTrainer2::Quantize(
 	for (uint i = 1; i + 1 < m_AlphaSize; ++i)
 		{
 		if (feq(BinTs[i-1], BinTs[i]))
-			Die("Quantize QS=%d tie bin %u T=%.3g,%.3g\n",
-				int(QS), i, BinTs[i-1], BinTs[i]);
+			Warning("Quantize QS=%d tie bin %u T=%.3g,%.3g\n",
+				int(m_QS), i, BinTs[i-1], BinTs[i]);
 		}
 	}
 
@@ -114,7 +111,7 @@ void FeatureTrainer2::Quantize_UndefDistinct(
 // Create m_AlphaSize-1 bins (AS-2 thresholds) for defined letters
 	for (uint i = 0; i + 2 < m_AlphaSize; ++i)
 		{
-		uint k = ((i+2)*K)/m_AlphaSize;
+		uint k = ((i+1)*K)/(m_AlphaSize - 1);
 		float t = SortedValues[k];
 		BinTs.push_back(t);
 		}
@@ -126,27 +123,13 @@ void FeatureTrainer2::Quantize_UndefDistinct(
 	BinTs.push_back(FLT_MAX);
 	}
 
-void FeatureTrainer2::Quantize_UndefOverlapMedian(
+void FeatureTrainer2::Quantize_UndefReplaceUser(
 	const vector<float> &InputSortedValues,
 	vector<float> &BinTs,
-	float &Median)
+	float ReplaceValue)
 	{
-	Median = FLT_MAX;
 	BinTs.clear();
 	const uint InputCount = SIZE(InputSortedValues);
-
-	vector<float> SortedValuesNoUndef;
-	SortedValuesNoUndef.reserve(InputCount);
-
-	for (uint i = 0; i < InputCount; ++i)
-		{
-		float Value = InputSortedValues[i];
-		if (Value != FLT_MAX)
-			SortedValuesNoUndef.push_back(Value);
-		}
-	const uint NoUndefCount = SIZE(SortedValuesNoUndef);
-	asserta(NoUndefCount > 0);
-	Median = SortedValuesNoUndef[NoUndefCount/2];
 
 	vector<float> SortedValues;
 	SortedValues.reserve(InputCount);
@@ -154,7 +137,7 @@ void FeatureTrainer2::Quantize_UndefOverlapMedian(
 		{
 		float Value = InputSortedValues[i];
 		if (Value == FLT_MAX)
-			SortedValues.push_back(Median);
+			SortedValues.push_back(ReplaceValue);
 		else
 			SortedValues.push_back(Value);
 		}

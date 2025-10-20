@@ -26,7 +26,7 @@ void cmd_train_dss_features()
 	vector<string> TrainRows;
 	vector<string> TrainLabels;
 	vector<uint> TrainChainIdxs;
-	FeatureTrainer2::AppendAlns(TrainTPAlnFN, LabelToChainIdx, true,
+	FeatureTrainer2::AppendAlns("traintps", TrainTPAlnFN, LabelToChainIdx, true,
 	  TrainRows, TrainLabels, TrainChainIdxs, TrainsTPs_notused);
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ void cmd_train_dss_features()
 		const float * const *Mx = g_ScoreMxs2[F];
 		if (F == FEATURE_Mu || Mx != 0)
 			{
-			FeatureTrainer2::m_BgMethod = "DSSScoreMx";
+			FeatureTrainer2::m_BS = BS_DSSScoreMx;
 			vector<vector<uint> > ChainIntSeqsNoUndefs;
 			FeatureTrainer2::GetDSSScoreMx(F, ScoreMx);
 			FeatureTrainer2::GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
@@ -77,15 +77,20 @@ void cmd_train_dss_features()
 				ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
 			}
 
-		const vector<string> BgMethods = { "aln", "uniqall", "uniqaln" };
-		for (uint BgMethodIdx = 0; BgMethodIdx < SIZE(BgMethods); ++BgMethodIdx)
+		for (uint BgMethodIdx = 0; BgMethodIdx < 2; ++BgMethodIdx)
 			{
-			const string BgMethod = BgMethods[BgMethodIdx];
+			BACKGROUND_STYLE BS = BS_Invalid;
+			if (BgMethodIdx == 0)
+				BS = BS_AlignedLetters;
+			else if (BgMethodIdx == 1)
+				BS = BS_UniqueChains;
+			else
+				asserta(false);
 			FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				BgMethod, ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+				ScoreMx, BS, BestArea);
 			}
 		}
 	}
