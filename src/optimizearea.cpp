@@ -92,6 +92,7 @@ void FeatureTrainer2::OptimizeArea(
 
 	vector<double> xv0 = { 0 };
 	float Area0 = (float) EvalArea_OpenOnly(xv0);
+	Psa(m_FevStr, "area0=%.3g;", Area0);
 	Areas.push_back(Area0);
 	Opens.push_back(0);
 	Exts.push_back(0);

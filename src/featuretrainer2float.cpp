@@ -168,7 +168,8 @@ void FeatureTrainer2::TrainFloatFeature(
 	FILE *fOut)
 	{
 	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
-	m_FevStr += "type=int;";
+	m_FevStr += "type=float;";
+	Psa(m_FevStr, "AS=%u;", AlphaSize);
 	if (UndefReplaceValue == FLT_MAX)
 		m_FevStr += "undef_value=*;";
 	else

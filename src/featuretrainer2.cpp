@@ -1400,26 +1400,9 @@ void FeatureTrainer2::EvalLogOddsMx(
 	OptimizeArea(EvalAlnSubstScores, EvalAlnColCountVec, EvalAlnOpenVec,
 		EvalAlnExtVec, EvalTPs, OpenPenalty, ExtPenalty, Bias, BestArea, 8);
 
-	vector<float> EvalAlnScores;
-	GetAlnScores(EvalAlnSubstScores, EvalAlnColCountVec,
-		EvalAlnOpenVec, EvalAlnExtVec, OpenPenalty, ExtPenalty, Bias,
-		EvalAlnScores);
-	Round3SigFig(EvalAlnScores, EvalAlnScores3SigFig);
-
-	float Area_SubstScores = CalcArea(EvalAlnSubstScores, EvalTPs);
-	float Area_Gaps = CalcArea(EvalAlnScores, EvalTPs);
-
-	Log("\nQuarts subst. scores only\n");
-	LogAlnScoreQuarts(EvalAlnSubstScores, EvalTPs);
-
-	Log("\nQuarts with optimized gaps, area=%.3g:\n", Area_Gaps);
-	LogAlnScoreQuarts(EvalAlnScores, EvalTPs);
-
-	Log("BestArea=%.3g, open %.3g, ext %.3g, bias %.3g\n",
-		BestArea, OpenPenalty, ExtPenalty, Bias);
-
-	float Area2 = CalcArea(EvalAlnScores3SigFig, EvalTPs);
-	asserta(feq(BestArea, Area2));
+	Psa(m_FevStr, "open=%.3g;", OpenPenalty);
+	Psa(m_FevStr, "ext=%.3g;", ExtPenalty);
+	Psa(m_FevStr, "bias=%.3g;", Bias);
 	Psa(m_FevStr, "area=%.3g;", BestArea);
 	}
 
