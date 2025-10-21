@@ -3,7 +3,7 @@
 #include "dss.h"
 #include "valuetointtpl.h"
 
-static vector<vector<float> > s_BinTs(FEATURE_COUNT);
+static vector<vector<float> > s_BinTsVec(FEATURE_COUNT);
 
 static bool IsFloatFeature(FEATURE Feat)
 	{
@@ -22,7 +22,7 @@ static bool Init()
 		if (IsFloatFeature((FEATURE) i))
 			{
 			vector<float> Bins;
-			DSSParams::GetBins((FEATURE) i, s_BinTs[i]);
+			DSSParams::GetBinTs((FEATURE) i, s_BinTsVec[i]);
 			}
 		}
 	return true;
@@ -34,7 +34,7 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	assert(uint(F) < FEATURE_COUNT);
 	uint AS = DSSParams::GetAlphaSize(F);
 	assert(AS > 0);
-	const vector<float> &BinTs = s_BinTs[F];
+	const vector<float> &BinTs = s_BinTsVec[F];
 
 	if (opt(force_undef))//@@TODO remove this for production
 		{
@@ -48,4 +48,12 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	uint Letter = ValueToIntTpl<false>(Value, AS, BinTs, 0);
 	assert(Letter < AS);
 	return Letter;
+	}
+
+void DSSParams::OverwriteBinTs(FEATURE F,const vector<float> &BinTs)
+	{
+	const uint n = SIZE(BinTs);
+	asserta(uint(F) < SIZE(s_BinTsVec));
+	asserta(SIZE(s_BinTsVec[F]) == n);
+	s_BinTsVec[F] = BinTs;
 	}

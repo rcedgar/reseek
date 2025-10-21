@@ -6,7 +6,6 @@
 bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
-vector<bool> DSSParams::m_FeatureIsLoaded;
 
 float DSSParams::m_MinFwdScore = FLT_MAX;
 float DSSParams::m_Omega = FLT_MAX;
@@ -207,7 +206,6 @@ void DSSParams::CreateWeightedScoreMxs()
 	uint FeatureCount = GetFeatureCount();
 	asserta(SIZE(m_Features) == FeatureCount);
 	asserta(SIZE(m_Weights) == FeatureCount);
-	asserta(SIZE(m_FeatureIsLoaded) == FeatureCount);
 	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
 		{
 		FEATURE F = m_Features[Idx];
@@ -217,15 +215,12 @@ void DSSParams::CreateWeightedScoreMxs()
 		if (AS == 0)
 			Die("Feature %s not supported", FeatureToStr(F));
 		m_ScoreMxs[F] = myalloc(float *, AS);
-		bool Loaded = m_FeatureIsLoaded[F];
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
 			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
 				{
-				float Score = Loaded ? 
-					GetLoadedFeatureScore(F, Letter1, Letter2) :
-					g_ScoreMxs2[F][Letter1][Letter2];
+				float Score = g_ScoreMxs2[F][Letter1][Letter2];
 				m_ScoreMxs[F][Letter1][Letter2] = w*Score;
 				}
 			}

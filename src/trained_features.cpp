@@ -278,3 +278,18 @@ static void FreeMe()
 			}
 		}
 	}
+
+void DSSParams::OverwriteUnweightedScoreMx(FEATURE F,
+	vector<vector<float> > &ScoreMx)
+	{
+	asserta(g_ScoreMxs2[F] != 0);
+	const uint AS = g_AlphaSizes2[F];
+	asserta(SIZE(ScoreMx) == AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		const vector<float> &Row = ScoreMx[i];
+		asserta(SIZE(Row) == AS);
+		for (uint j = 0; j < AS; ++j)
+			g_ScoreMxs2[F][i][j] = ScoreMx[i][j];
+		}
+	}
