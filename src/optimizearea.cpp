@@ -126,6 +126,7 @@ void FeatureTrainer2::OptimizeArea(
 		}
 	vector<uint> Order(Iters);
 	QuickSortOrder(Areas.data(), Iters, Order.data());
+	ProgressLog("%s\n", m_FevStr.c_str());
 	ProgressLog("  Area    Diff    Open     Ext    Bias\n");
 	//   123456  123456  123456  123456  123456
 	for (uint k = 0; k < Iters; ++k)

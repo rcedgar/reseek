@@ -2,9 +2,13 @@
 #include "featuretrainer2.h"
 #include "sort.h"
 
-void cmd_train_dss_features()
+void cmd_train_dss_feature()
 	{
-	DSSParams::Init(DM_DefaultFast);
+	Die("Obsolete use train_feature2 -dss");
+#if 0
+	const string FeatureName = g_Arg1;
+	FEATURE F = StrToFeature(FeatureName.c_str());
+	DSSParams::Init(DM_DefaultSensitive);
 
 	const string &ChainFN = opt(db); // "c:/src/reseek/test_data/scop40.bca";
 	const string &TrainTPAlnFN = opt(traintps); // "../big_out/tp.a.mints05.maxts25.fa2";
@@ -41,55 +45,52 @@ void cmd_train_dss_features()
 		EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
 
-	for (int iF = 0; iF < FEATURE_COUNT; ++iF)
+	uint AS = DSS::GetAlphaSize(F, true);
+	if (AS == UINT_MAX)
+		Die("Not DSS feature %s", FeatureName.c_str());
+
+	if (FeatureIsInt(F))
+		FeatureTrainer2::SetIntFeature(F);
+	else
 		{
-		FEATURE F = FEATURE(iF);
-		uint AS = DSS::GetAlphaSize((FEATURE) F, true);
-		if (AS == UINT_MAX)
-			continue;
-
-		if (FeatureIsInt(F))
-			FeatureTrainer2::SetIntFeature(F);
-		else
-			{
-			uint AlphaSize = DSS::GetAlphaSize(F);
-			FeatureTrainer2::SetFloatFeature(F, AlphaSize);
-			}
-
-		float BestOpenPenalty;
-		float BestExtPenalty;
-		float BestBias;
-		float BestArea;
-		vector<vector<float> > ScoreMx;
-
-		extern float **g_ScoreMxs2[FEATURE_COUNT];
-		const float * const *Mx = g_ScoreMxs2[F];
-		if (F == FEATURE_Mu || Mx != 0)
-			{
-			FeatureTrainer2::m_BS = BS_DSSScoreMx;
-			vector<vector<uint> > ChainIntSeqsNoUndefs;
-			FeatureTrainer2::GetDSSScoreMx(F, ScoreMx);
-			FeatureTrainer2::GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
-			FeatureTrainer2::LogChainIntSeqsStats(ChainIntSeqsNoUndefs);
-			FeatureTrainer2::EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
-				EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
-			}
-
-		for (uint BgMethodIdx = 0; BgMethodIdx < 2; ++BgMethodIdx)
-			{
-			BACKGROUND_STYLE BS = BS_Invalid;
-			if (BgMethodIdx == 0)
-				BS = BS_AlignedLetters;
-			else if (BgMethodIdx == 1)
-				BS = BS_UniqueChains;
-			else
-				asserta(false);
-			FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
-				TrainRows, TrainLabels, TrainChainIdxs,
-				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
-				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				ScoreMx, BS, BestArea);
-			}
+		uint AlphaSize = DSS::GetAlphaSize(F);
+		FeatureTrainer2::SetFloatFeature(F, AlphaSize);
 		}
+
+	float BestOpenPenalty;
+	float BestExtPenalty;
+	float BestBias;
+	float BestArea;
+	vector<vector<float> > ScoreMx;
+
+	extern float **g_ScoreMxs2[FEATURE_COUNT];
+	const float * const *Mx = g_ScoreMxs2[F];
+	if (F == FEATURE_Mu || Mx != 0)
+		{
+		FeatureTrainer2::m_BS = BS_DSSScoreMx;
+		vector<vector<uint> > ChainIntSeqsNoUndefs;
+		FeatureTrainer2::GetDSSScoreMx(F, ScoreMx);
+		FeatureTrainer2::GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
+		FeatureTrainer2::LogChainIntSeqsStats(ChainIntSeqsNoUndefs);
+		FeatureTrainer2::EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+			EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+			ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+		}
+
+	for (uint BgMethodIdx = 0; BgMethodIdx < 2; ++BgMethodIdx)
+		{
+		BACKGROUND_STYLE BS = BS_Invalid;
+		if (BgMethodIdx == 0)
+			BS = BS_AlignedLetters;
+		else if (BgMethodIdx == 1)
+			BS = BS_UniqueChains;
+		else
+			asserta(false);
+		FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
+			TrainRows, TrainLabels, TrainChainIdxs,
+			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
+			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+			ScoreMx, BS, BestArea);
+		}
+#endif
 	}

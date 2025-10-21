@@ -791,3 +791,15 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 		return FLT_MAX;
 	return 0;
 	}
+
+uint DSS::Get_PlusNENConf(uint Pos)
+	{
+	Die("Get_PlusNENConf");
+	return UINT_MAX;
+	}
+
+uint DSS::Get_MinusNENConf(uint Pos)
+	{
+	Die("Get_MinusNENConf");
+	return UINT_MAX;
+	}

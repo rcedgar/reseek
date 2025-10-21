@@ -74,7 +74,10 @@ public:
 		}
 
 	static void LoadFeatures(const string &FN);
-	static FEATURE LoadFeature(const string &FN);
+	static void LoadFeature(const string &FN,
+		FEATURE &F, uint &AlphaSize, float &Weight, 
+		vector<vector<float> > &ScoreMx,
+		vector<float> &BInTs);
 
 	static void NormalizeWeights();
 	static void AllocScoreMxs();

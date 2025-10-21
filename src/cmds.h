@@ -42,12 +42,11 @@ C(align_bag)
 C(align_bags)
 C(cif2pdb)
 C(kmrnbh)
-C(dump_features)
 C(load_features)
 C(train_feature)
 C(train_feature2)
 C(feature_attrs)
 C(float_feature_dists)
-C(train_dss_features)
+C(train_dss_feature)
 
 #undef C

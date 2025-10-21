@@ -291,7 +291,6 @@
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="dssmu.cpp" />
-    <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="duper.cpp" />
     <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
@@ -382,8 +381,7 @@
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
-    <ClCompile Include="trained_features_new.cpp" />
-    <ClCompile Include="train_dss_features.cpp" />
+    <ClCompile Include="train_dss_feature.cpp" />
     <ClCompile Include="train_feature.cpp" />
     <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="trees.c" />

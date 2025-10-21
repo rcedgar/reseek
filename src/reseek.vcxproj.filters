@@ -407,12 +407,6 @@
     <ClCompile Include="loadfeatures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="trained_features_new.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dump_features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="valuetoint_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -455,7 +449,7 @@
     <ClCompile Include="featuretrainer2float.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="train_dss_features.cpp">
+    <ClCompile Include="train_dss_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

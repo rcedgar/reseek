@@ -1428,7 +1428,6 @@ void FeatureTrainer2::TrainDSSFeature(
 	m_FevStr += "dss=yes;";
 	m_FevStr += "BS=" + string(BSToStr(BS)) + ";";
 
-	m_BS = BS;
 	if (FeatureIsInt(F))
 		SetIntFeature(F);
 	else
@@ -1436,6 +1435,8 @@ void FeatureTrainer2::TrainDSSFeature(
 		uint AlphaSize = DSS::GetAlphaSize(F);
 		SetFloatFeature(F, AlphaSize);
 		}
+	m_BS = BS;
+	m_QS = QS_DSS;
 
 	BestArea = 0;
 

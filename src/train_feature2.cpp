@@ -13,6 +13,8 @@ void cmd_train_feature2()
 	const string &EvalTPAlnFN = opt(evaltps);	// "../big_out/tp.a.evalrange.fa2";
 	const string &EvalFPAlnFN = opt(evalfps);	// "../big_out/fp.a.evalrange.fa2";
 
+	FeatureTrainer2::m_FevStr.clear();
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // Structure chains, must include all Train and Eval chains, may include others
 ///////////////////////////////////////////////////////////////////////////////////////

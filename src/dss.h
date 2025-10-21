@@ -115,19 +115,7 @@ public:
 public:
 	static uint ValueToInt_Feature(FEATURE F, float Value);
 
-	//static uint ValueToInt(float Value, uint AlphaSize,
-	//					   const vector<float> &Ts, uint DefaultLetter);
-
-	static const float *GetFreqVec(FEATURE F);
-	static const float * const *GetFreqMx(FEATURE F);
 	static const float * const *GetScoreMx(FEATURE F);
-
-	static void SetFeature(FEATURE F,
-		const vector<float> &Freqs,
-		const vector<vector<float> > &FreqMx,
-		const vector<vector<float> > &ScoreMx,
-		const vector<float> &BinTs,
-		 float UndefinedValue);
 
 	static uint GetDefaultLetter(FEATURE F);
 	static const vector<float> &GetBinTs(FEATURE F);

@@ -13,8 +13,17 @@ static void ReverseChains(vector<PDBChain *> &Chains)
 		}
 	}
 
-extern float **g_FreqMxs2[FEATURE_COUNT];
-extern float *g_FreqVecs2[FEATURE_COUNT];
+static float **GetFreqMx(FEATURE F)
+	{
+	Die("TODO");
+	return 0;
+	}
+
+static const float *GetFreqVec(FEATURE F)
+	{
+	Die("TODO");
+	return 0;
+	}
 
 void cmd_pdb2mega()
 	{
@@ -54,11 +63,11 @@ void cmd_pdb2mega()
 		fprintf(fOut, "%u\t%s\t%u\t%.6g\n",
 		  i, FeatureToStr(F), AlphaSize, DSSParams::m_Weights[i]);
 		fprintf(fOut, "freqs");
-		const float *Freqs = g_FreqVecs2[F];
+		const float *Freqs = GetFreqVec(F);
 		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
 			fprintf(fOut, "\t%.4g", Freqs[Letter]);
 		fprintf(fOut, "\n");
-		const float * const *FreqMx = g_FreqMxs2[F];
+		const float * const *FreqMx = GetFreqMx(F);
 		for (uint Letter1 = 0; Letter1 < AlphaSize; ++Letter1)
 			{
 			fprintf(fOut, "%u", Letter1);

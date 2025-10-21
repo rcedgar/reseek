@@ -13,6 +13,7 @@ enum QUANTIZE_STYLE
 	QS_UndefDistinct,
 	QS_UndefReplaceUser,
 	QS_UndefNotSpecialCase,
+	QS_DSS,
 	};
 
 enum BACKGROUND_STYLE
@@ -74,6 +75,7 @@ static const char *QSToStr(QUANTIZE_STYLE QS)
 	case QS_UndefDistinct:	return "UndefDistinct";
 	case QS_UndefReplaceUser:	return "ReplaceUser";
 	case QS_UndefNotSpecialCase:	return "UndefNotSpecialCase";
+	case QS_DSS:	return "DSS";
 		}
 	asserta(false);
 	return "QS_ERROR";

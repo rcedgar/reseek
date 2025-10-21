@@ -3,37 +3,59 @@
 #include "dss.h"
 #include "featuretrainer.h"
 
-FEATURE DSSParams::LoadFeature(const string &FN)
-	{
-	Die("LoadFeature");
-	//FeatureTrainer FT;
-	//vector<float> Freqs;
-	//vector<vector<float> > FreqMx;
-	//vector<vector<float> > ScoreMx;
-	//FT.FromTsv(FN);
-	//FT.GetFreqs(Freqs);
-	//FT.GetFreqMx(FreqMx);
-	//FT.GetLogOddsMx(ScoreMx);
-	//DSS::SetFeature(FT.m_F, FT.m_UB, Freqs, FreqMx,
-	//				ScoreMx, FT.m_BinTs);
-	//return FT.m_F;
-	return FEATURE_AA;
-	}
+static vector<FEATURE> s_LoadedFeatures;
+static vector<float> s_LoadedWeights(FEATURE_COUNT);
+static vector<vector<float> > s_LoadedBinTs(FEATURE_COUNT);
+static vector<vector<vector<float> > > s_LoadedScoreMxs(FEATURE_COUNT);
 
-void DSSParams::LoadFeatures(const string &aFN)
+void DSSParams::LoadFeature(const string &FN,
+	FEATURE &F, uint &AlphaSize, float &Weight,
+	vector<vector<float> > &ScoreMx, vector<float> &BinTs)
 	{
-	Die("LoadFeatures");
-#if 0
-	string FN = aFN;
-	if (FN == "")
+	ScoreMx.clear();
+	BinTs.clear();
+	ScoreMx.resize(AlphaSize);
+	FILE *f = OpenStdioFile(FN);
+	string Line;
+	vector<string> Fields;
+	bool Ok = ReadLineStdioFile(f, Line);
+	asserta(Ok);
+	Split(Line, Fields, '\t');
+	asserta(SIZE(Fields) == 3);
+	F = StrToFeature(Fields[0].c_str());
+	AlphaSize = StrToUint(Fields[1]);
+	Weight = StrToFloatf(Fields[2]);
+
+	for (uint Letter = 0; Letter < AlphaSize; ++Letter)
 		{
-		asserta(optset_feature_spec);
-		FN = (string) opt(feature_spec);
+		ScoreMx[Letter].resize(AlphaSize, FLT_MAX);
+		bool Ok = ReadLineStdioFile(f, Line);
+		asserta(Ok);
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == AlphaSize+1);
+		asserta(StrToUint(Fields[0]) == Letter);
+		for (uint Letter2 = 0; Letter2 < AlphaSize; ++Letter2)
+			ScoreMx[Letter][Letter2] = StrToFloatf(Fields[Letter2+1]);
 		}
 
-	Clear();
-	SetDefaults_Other();
+	if (!FeatureIsInt(F))
+		{
+		for (uint Letter = 0; Letter < AlphaSize; ++Letter)
+			{
+			bool Ok = ReadLineStdioFile(f, Line);
+			asserta(Ok);
+			Split(Line, Fields, '\t');
+			asserta(SIZE(Fields) == 2);
+			asserta(StrToUint(Fields[0]) == Letter);
+			BinTs.push_back(StrToFloatf(Fields[1].c_str()));
+			}
+		}
 
+	CloseStdioFile(f);
+	}
+
+void DSSParams::LoadFeatures(const string &FN)
+	{
 	vector<string> Lines;
 	vector<string> Fields;
 	ReadLinesFromFile(FN, Lines);
@@ -53,16 +75,26 @@ void DSSParams::LoadFeatures(const string &aFN)
 		asserta(SIZE(Fields) == 2);
 
 		string Path = Fields[0];
-		double w = StrToFloat(Fields[1]);
+		float w = StrToFloatf(Fields[1]);
 
-		FEATURE F = LoadFeature(Path);
+		FEATURE F;
+		vector<vector<float> > ScoreMx;
+		vector<float> BinTs;
+		uint AlphaSize;
+		float Weight;
+		LoadFeature(Path, F, AlphaSize, Weight, ScoreMx, BinTs);
+
+		s_LoadedFeatures.push_back(F);
+		s_LoadedWeights[F] = Weight;
+		s_LoadedBinTs[F] = BinTs;
+		s_LoadedScoreMxs[F] = ScoreMx;
+
 		AddFeature(F, w);
 		ProgressLog("%s : %.3g\n", Path.c_str(), w);
 		}
 	ProgressLog("gapopen: %.3g\n", -m_GapOpen);
 	ProgressLog("gapext: %.3g\n", -m_GapExt);
-	SetScoreMxs();
-	#endif
+//	SetScoreMxs();
 	}
 
 void cmd_load_features()
