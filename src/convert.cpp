@@ -195,7 +195,7 @@ static void ThreadBody(uint ThreadIndex)
 			DSS &D = *ptrD;
 			D.Init(*ptrChain);
 			const uint L = ptrChain->GetSeqLength();
-			const uint AlphaSize = D.GetAlphaSize(s_Feat);
+			const uint AlphaSize = DSSParams::GetAlphaSize(s_Feat);
 			string Seq;
 			for (uint Pos = 0; Pos < L; ++Pos)
 				{

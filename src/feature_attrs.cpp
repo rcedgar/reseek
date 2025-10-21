@@ -16,7 +16,7 @@ static uint GetCounts(FEATURE F, vector<PDBChain *> &Chains,
 	UndefFloatCountForced = 0;
 	UndefFloatCountNotForced = 0;
 
-	uint AS = DSS::GetAlphaSize(F);
+	uint AS = DSSParams::GetAlphaSize(F);
 	bool IsInt = FeatureIsInt(F);
 
 	DSS D;
@@ -75,7 +75,7 @@ static void GetValues(FEATURE F, const vector<PDBChain *> &Chains,
 	UndefCount = 0;
 	opt_force_undef = true;
 	optset_force_undef = true;
-	uint AS = DSS::GetAlphaSize(F);
+	uint AS = DSSParams::GetAlphaSize(F);
 
 	DSS D;
 	const uint ChainCount = SIZE(Chains);
@@ -120,7 +120,7 @@ void cmd_feature_attrs()
 			if (!iInt && FeatureIsInt(F))
 				continue;
 				
-			uint AS = DSS::GetAlphaSize((FEATURE) F, true);
+			uint AS = DSSParams::GetAlphaSize((FEATURE) F, true);
 			if (AS == UINT_MAX)
 				continue;
 			uint UndefIntCountForced, UndefIntCountNotForced;
@@ -160,7 +160,7 @@ void cmd_float_feature_dists()
 		ProgressStep(uint(F), FEATURE_COUNT, FeatureToStr(F));
 		if (FeatureIsInt(F))
 			continue;	
-		uint AS = DSS::GetAlphaSize((FEATURE) F, true);
+		uint AS = DSSParams::GetAlphaSize((FEATURE) F, true);
 		if (AS == UINT_MAX)
 			continue;
 		vector<float> Values;

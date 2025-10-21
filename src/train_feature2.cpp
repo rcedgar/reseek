@@ -63,7 +63,7 @@ void cmd_train_feature2()
 		uint AlphaSize = UINT_MAX;
 		bool IsInt = FeatureIsInt(F);
 		if (IsInt)
-			AlphaSize = DSS::GetAlphaSize(F);
+			AlphaSize = DSSParams::GetAlphaSize(F);
 		else
 			{
 			asserta(optset_alpha_size);

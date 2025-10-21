@@ -189,14 +189,14 @@ static void FreeMe();
 static bool Init()
 	{
 	atexit(FreeMe);
-	asserta(DSS::GetAlphaSize(FEATURE_AA) == 20);
-	asserta(DSS::GetAlphaSize(FEATURE_NENDist) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_Conf) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_NENConf) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_RENDist) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_DstNxtHlx) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_StrandDens) == 16);
-	asserta(DSS::GetAlphaSize(FEATURE_NormDens) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_AA) == 20);
+	asserta(DSSParams::GetAlphaSize(FEATURE_NENDist) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_Conf) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_NENConf) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_RENDist) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_DstNxtHlx) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_StrandDens) == 16);
+	asserta(DSSParams::GetAlphaSize(FEATURE_NormDens) == 16);
 
 	g_AlphaSizes2[FEATURE_AA] = 20;
 	g_AlphaSizes2[FEATURE_NENDist] = 16;

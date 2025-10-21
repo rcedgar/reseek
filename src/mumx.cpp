@@ -46,7 +46,7 @@ void cmd_musubstmx()
 	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
 
 	DSS D;
-	uint AS = D.GetAlphaSize(FEATURE_Mu);
+	uint AS = DSSParams::GetAlphaSize(FEATURE_Mu);
 	vector<vector<float> > MuMx(AS);
 	for (uint i = 0; i < AS; ++i)
 		{

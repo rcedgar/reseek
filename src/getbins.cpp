@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "dss.h"
 
-void DSS::GetBins(FEATURE F, vector<float> &Bins)
+void DSSParams::GetBins(FEATURE F, vector<float> &Bins)
 	{
 	Bins.clear();
 	uint AlphaSize = GetAlphaSize(F);

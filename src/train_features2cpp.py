@@ -121,7 +121,7 @@ K = len(names)
 for k in range(K):
     name = names[k]
     n = ns[k]
-    print("\tasserta(DSS::GetAlphaSize(FEATURE_%s) == %d);" % (name, n))
+    print("\tasserta(DSSParams::GetAlphaSize(FEATURE_%s) == %d);" % (name, n))
 print("")
 
 for k in range(K):

@@ -56,6 +56,21 @@ public:
 	static float m_ladd;
 	static float m_revtsw;
 
+	static int m_Density_W;
+	static int m_Density_w;
+	static int m_SSDensity_W;
+	static int m_SSDensity_w;
+	static float m_Density_Radius;
+	static float m_NU_ND_Radius;
+	static int m_NEN_W;
+	static int m_NEN_w;
+	static int m_NUDX_W;
+	static float m_DefaultNENDist;
+	static float m_SSDensity_epsilon;
+	static uint m_SSE_MinLength;
+	static uint m_SSE_Margin;
+	static uint m_PMDelta;
+
 public:
 	static void Init(DECIDE_MODE DM);
 	static void SetFeatures();
@@ -83,6 +98,8 @@ public:
 	static void SetScoreMxsFromFeatures();
 	static void ApplyWeights();
 
+	static uint GetAlphaSize(FEATURE F, bool FailOk = false);
+	static void GetBins(FEATURE F, vector<float> &Bins);
 	static uint ValueToInt_Feature(FEATURE F, float Value);
 	};
 

@@ -116,7 +116,7 @@ void PDBChain::ToFeatureFasta(FILE *f, DSS &D, FEATURE Feat) const
 		return;
 	D.Init(*this);
 	const uint L = GetSeqLength();
-	const uint AlphaSize = D.GetAlphaSize(Feat);
+	const uint AlphaSize = DSSParams::GetAlphaSize(Feat);
 	string Seq;
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{

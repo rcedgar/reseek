@@ -24,7 +24,7 @@ static bool Init()
 		if (IsFloatFeature((FEATURE) i))
 			{
 			vector<float> Bins;
-			DSS::GetBins((FEATURE) i, s_BinTs[i]);
+			DSSParams::GetBins((FEATURE) i, s_BinTs[i]);
 			}
 		}
 	return true;
@@ -34,7 +34,7 @@ static bool InitDone = Init();
 uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	{
 	assert(uint(F) < FEATURE_COUNT);
-	uint AS = DSS::GetAlphaSize(F);
+	uint AS = DSSParams::GetAlphaSize(F);
 	assert(AS > 0);
 	const vector<float> &BinTs = s_BinTs[F];
 	uint DefaultLetter = s_DefaultLetters[F];

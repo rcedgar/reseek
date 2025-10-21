@@ -24,20 +24,20 @@ public:
 	vector<uint> m_RENs;
 	string m_SS;
 
-	int m_Density_W = 50;
-	int m_Density_w = 3;
-	int m_SSDensity_W = 50;
-	int m_SSDensity_w = 8;
-	float m_Density_Radius = 20.0;
-	float m_NU_ND_Radius = 20.0;
-	int m_NEN_W = 100;
-	int m_NEN_w = 12;
-	int m_NUDX_W = 50;
-	float m_DefaultNENDist = 10.0;
-	float m_SSDensity_epsilon = 1;
-	uint m_SSE_MinLength = 8;
-	uint m_SSE_Margin = 8;
-	uint m_PMDelta = 8;
+	//int m_Density_W = 50;
+	//int m_Density_w = 3;
+	//int m_SSDensity_W = 50;
+	//int m_SSDensity_w = 8;
+	//float m_Density_Radius = 20.0;
+	//float m_NU_ND_Radius = 20.0;
+	//int m_NEN_W = 100;
+	//int m_NEN_w = 12;
+	//int m_NUDX_W = 50;
+	//float m_DefaultNENDist = 10.0;
+	//float m_SSDensity_epsilon = 1;
+	//uint m_SSE_MinLength = 8;
+	//uint m_SSE_Margin = 8;
+	//uint m_PMDelta = 8;
 
 	vector<uint> m_SSE_Mids;
 	vector<char> m_SSE_cs;
@@ -62,10 +62,6 @@ public:
 		m_NUs.clear();
 		m_NDs.clear();
 		m_NXs.clear();
-
-		if (optset_nbrw) m_NEN_w = opt(nbrw);
-		if (optset_densw) m_Density_w = opt(densw);
-		if (optset_ssdensw) m_SSDensity_w = opt(ssdensw);
 		}
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }
@@ -107,8 +103,6 @@ public:
 	float GetFloat_RENDist_ForMu(uint Pos);
 
 public:
-	static void GetBins(FEATURE F, vector<float> &Bins);
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
-	static uint GetAlphaSize(FEATURE F, bool FailOk = false);
 	};

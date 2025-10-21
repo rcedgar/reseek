@@ -31,6 +31,21 @@ float DSSParams::m_lddtw = 0.13f;
 float DSSParams::m_ladd = 250.0f;
 float DSSParams::m_revtsw = 2.0f;
 
+int DSSParams::m_Density_W = 50;
+int DSSParams::m_Density_w = 3;
+int DSSParams::m_SSDensity_W = 50;
+int DSSParams::m_SSDensity_w = 8;
+float DSSParams::m_Density_Radius = 20.0;
+float DSSParams::m_NU_ND_Radius = 20.0;
+int DSSParams::m_NEN_W = 100;
+int DSSParams::m_NEN_w = 12;
+int DSSParams::m_NUDX_W = 50;
+float DSSParams::m_DefaultNENDist = 10.0;
+float DSSParams::m_SSDensity_epsilon = 1;
+uint DSSParams::m_SSE_MinLength = 8;
+uint DSSParams::m_SSE_Margin = 8;
+uint DSSParams::m_PMDelta = 8;
+
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
 	if (optset_fast)
@@ -141,7 +156,7 @@ void DSSParams::AllocScoreMxs()
 		{
 		FEATURE F = m_Features[Idx];
 		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = DSS::GetAlphaSize(F);
+		uint AS = DSSParams::GetAlphaSize(F);
 		asserta(m_ScoreMxs[F] == 0);
 		m_ScoreMxs[F] = myalloc(float *, AS);
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)

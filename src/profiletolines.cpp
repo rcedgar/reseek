@@ -17,7 +17,7 @@ void ProfileToLines(const vector<vector<byte> > &Profile,
 	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
 		FEATURE F = DSSParams::m_Features[FeatureIdx];
-		uint AS = DSS::GetAlphaSize(F);
+		uint AS = DSSParams::GetAlphaSize(F);
 		asserta(SIZE(Profile[FeatureIdx]) == L);
 		string &Line = Lines[FeatureIdx];
 		Line.reserve(L);

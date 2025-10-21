@@ -205,7 +205,7 @@ void cmd_mu_mapping()
 
 	vector<uint> ASs;
 	for (uint i = 0; i < N; ++i)
-		ASs.push_back(DSS::GetAlphaSize(s_MuFeatures[i]));
+		ASs.push_back(DSSParams::GetAlphaSize(s_MuFeatures[i]));
 
 	for (uint Letter = 0; Letter < AS; ++Letter)
 		{

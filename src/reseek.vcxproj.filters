@@ -452,6 +452,9 @@
     <ClCompile Include="train_dss_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="getalphasize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

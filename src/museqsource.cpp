@@ -36,7 +36,7 @@ bool MuSeqSource::GetNextLo(SeqInfo *SI)
 		return false;
 	m_DSS.Init(*m_Chain);
 	const uint L = m_Chain->GetSeqLength();
-	const uint AlphaSize = m_DSS.GetAlphaSize(FEATURE_Mu);
+	const uint AlphaSize = DSSParams::GetAlphaSize(FEATURE_Mu);
 	asserta(AlphaSize == 36);
 	SI->AllocL(L);
 	SI->m_L = L;

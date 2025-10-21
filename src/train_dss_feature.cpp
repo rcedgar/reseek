@@ -45,7 +45,7 @@ void cmd_train_dss_feature()
 		EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
 
-	uint AS = DSS::GetAlphaSize(F, true);
+	uint AS = DSSParams::GetAlphaSize(F, true);
 	if (AS == UINT_MAX)
 		Die("Not DSS feature %s", FeatureName.c_str());
 
@@ -53,7 +53,7 @@ void cmd_train_dss_feature()
 		FeatureTrainer2::SetIntFeature(F);
 	else
 		{
-		uint AlphaSize = DSS::GetAlphaSize(F);
+		uint AlphaSize = DSSParams::GetAlphaSize(F);
 		FeatureTrainer2::SetFloatFeature(F, AlphaSize);
 		}
 

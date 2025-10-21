@@ -227,7 +227,7 @@ void FeatureTrainer2::SetIntFeature(FEATURE F)
 	{
 	asserta(FeatureIsInt(F));
 	m_F = F;
-	m_AlphaSize = DSS::GetAlphaSize(F);
+	m_AlphaSize = DSSParams::GetAlphaSize(F);
 	m_QS = QS_Invalid;
 	m_BS = BS_Invalid;
 	}
@@ -1432,7 +1432,7 @@ void FeatureTrainer2::TrainDSSFeature(
 		SetIntFeature(F);
 	else
 		{
-		uint AlphaSize = DSS::GetAlphaSize(F);
+		uint AlphaSize = DSSParams::GetAlphaSize(F);
 		SetFloatFeature(F, AlphaSize);
 		}
 	m_BS = BS;
@@ -1508,7 +1508,7 @@ void FeatureTrainer2::GetDSSScoreMx(
 
 	if (Mx == 0)
 		Die("GetDSSScoreMx(%s)", FeatureToStr(F));
-	uint AS = DSS::GetAlphaSize(F);
+	uint AS = DSSParams::GetAlphaSize(F);
 	ScoreMx.clear();
 	ScoreMx.resize(AS);
 	for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
