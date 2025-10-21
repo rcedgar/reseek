@@ -3,6 +3,15 @@
 #include "dss.h"
 #include "featuretrainer.h"
 
+/***
+class DSSParams
+	static bool m_ApplyWeightsDone;
+	static vector<FEATURE> m_Features;
+	static vector<float> m_Weights;
+	static float ***m_ScoreMxs;
+
+***/
+
 static vector<FEATURE> s_LoadedFeatures;
 static vector<float> s_LoadedWeights(FEATURE_COUNT);
 static vector<vector<float> > s_LoadedBinTs(FEATURE_COUNT);

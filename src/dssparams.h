@@ -31,7 +31,6 @@ public:
 	static bool m_ApplyWeightsDone;
 	static vector<FEATURE> m_Features;
 	static vector<float> m_Weights;
-
 	static float ***m_ScoreMxs;
 
 	static float m_GapOpen;
@@ -83,6 +82,8 @@ public:
 	static void AllocScoreMxs();
 	static void SetScoreMxsFromFeatures();
 	static void ApplyWeights();
+
+	static uint ValueToInt_Feature(FEATURE F, float Value);
 	};
 
 uint GetPatternOnes(const string &Pattern);

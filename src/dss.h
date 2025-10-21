@@ -111,12 +111,4 @@ public:
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
 	static uint GetAlphaSize(FEATURE F, bool FailOk = false);
-
-public:
-	static uint ValueToInt_Feature(FEATURE F, float Value);
-
-	static const float * const *GetScoreMx(FEATURE F);
-
-	static uint GetDefaultLetter(FEATURE F);
-	static const vector<float> &GetBinTs(FEATURE F);
 	};

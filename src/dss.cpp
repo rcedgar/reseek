@@ -741,7 +741,7 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 #define F(x)	case FEATURE_##x: \
 		{ \
 		float Value = GetFloat_##x(Pos); \
-		uint Letter_new = ValueToInt_Feature(FEATURE_##x, (float) Value); \
+		uint Letter_new = DSSParams::ValueToInt_Feature(FEATURE_##x, (float) Value); \
 		return Letter_new; \
 		}
 #include "floatfeatures.h"

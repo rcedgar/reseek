@@ -31,21 +31,7 @@ static bool Init()
 	}
 static bool InitDone = Init();
 
-//static uint ValueToInt(float Value, uint AlphaSize, const vector<float> &Ts,
-//	uint DefaultLetter)
-//	{
-//	asserta(DefaultLetter < AlphaSize);
-//	if (Value == FLT_MAX)
-//		return DefaultLetter;
-//
-//	asserta(SIZE(Ts) + 1 == AlphaSize);
-//	for (uint i = 0; i + 1 < AlphaSize; ++i)
-//		if (Value < Ts[i])
-//			return i;
-//	return AlphaSize - 1;
-//	}
-
-uint DSS::ValueToInt_Feature(FEATURE F, float Value)
+uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	{
 	assert(uint(F) < FEATURE_COUNT);
 	uint AS = DSS::GetAlphaSize(F);
