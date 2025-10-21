@@ -6,6 +6,7 @@
 bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
+vector<bool> DSSParams::m_FeatureIsLoaded;
 
 float DSSParams::m_MinFwdScore = FLT_MAX;
 float DSSParams::m_Omega = FLT_MAX;
@@ -45,6 +46,55 @@ float DSSParams::m_SSDensity_epsilon = 1;
 uint DSSParams::m_SSE_MinLength = 8;
 uint DSSParams::m_SSE_Margin = 8;
 uint DSSParams::m_PMDelta = 8;
+
+// Used to initialize g_AlphaSizes2, careful of
+//	order dependencies in static bool Init() idiom.
+uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
+	{
+	switch (F)
+		{
+	case FEATURE_AA:
+		return 20;
+
+	case FEATURE_SS:
+	case FEATURE_NENSS:
+	case FEATURE_RENSS:
+	case FEATURE_NormDens4:
+	case FEATURE_NENDist4:
+	case FEATURE_RENDist4:
+	case FEATURE_AA4:
+		return 4;
+
+	case FEATURE_SS3:
+	case FEATURE_NENSS3:
+	case FEATURE_RENSS3:
+	case FEATURE_AA3:
+		return 3;
+
+	case FEATURE_Conf:
+	case FEATURE_NENConf:
+	case FEATURE_RENConf:
+	case FEATURE_NormDens:
+	case FEATURE_NENDist:
+	case FEATURE_RENDist:
+	case FEATURE_HelixDens:
+	case FEATURE_StrandDens:
+	case FEATURE_DstNxtHlx:
+	case FEATURE_DstPrvHlx:
+	case FEATURE_NX:
+	case FEATURE_PMDist:
+		return 16;
+
+	case FEATURE_Mu:
+		return 36;
+
+	case FEATURE_ConfU:
+		return 17;
+		}
+	if (!FailOk)
+		Die("DSSParams::GetAlphaSize(%d)", int(F));
+	return UINT_MAX;
+	}
 
 static ALGO_MODE GetAlgoModeFromCommandLine(ALGO_MODE DefaultMode)
 	{
@@ -119,29 +169,9 @@ void DSSParams::NormalizeWeights()
 
 void DSSParams::SetScoreMxsFromFeatures()
 	{
-	if (m_ScoreMxs != 0)
-		return;
-	uint FeatureCount = GetFeatureCount();
-	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
-	for (uint i = 0; i < FEATURE_COUNT; ++i)
-		m_ScoreMxs[i] = 0;
-	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
-		{
-		FEATURE F = m_Features[Idx];
-		asserta(uint(F) < FEATURE_COUNT);
-		uint AS = g_AlphaSizes2[F];
-		asserta(m_ScoreMxs[F] == 0);
-		m_ScoreMxs[F] = myalloc(float *, AS);
-		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
-			{
-			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
-#if DEBUG
-			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
-				m_ScoreMxs[F][Letter1][Letter2] = FLT_MAX;
-#endif
-			}
-		}
-	ApplyWeights();
+	asserta(m_ScoreMxs == 0);
+	AllocScoreMxs();
+	CreateWeightedScoreMxs();
 	}
 
 void DSSParams::AllocScoreMxs()
@@ -168,14 +198,16 @@ void DSSParams::AllocScoreMxs()
 #endif
 			}
 		}
-	ApplyWeights();
 	}
 
-void DSSParams::ApplyWeights()
+void DSSParams::CreateWeightedScoreMxs()
 	{
 	asserta(m_ScoreMxs != 0);
 	asserta(!m_ApplyWeightsDone);
 	uint FeatureCount = GetFeatureCount();
+	asserta(SIZE(m_Features) == FeatureCount);
+	asserta(SIZE(m_Weights) == FeatureCount);
+	asserta(SIZE(m_FeatureIsLoaded) == FeatureCount);
 	for (uint Idx = 0; Idx < FeatureCount; ++Idx)
 		{
 		FEATURE F = m_Features[Idx];
@@ -185,11 +217,17 @@ void DSSParams::ApplyWeights()
 		if (AS == 0)
 			Die("Feature %s not supported", FeatureToStr(F));
 		m_ScoreMxs[F] = myalloc(float *, AS);
+		bool Loaded = m_FeatureIsLoaded[F];
 		for (uint Letter1 = 0; Letter1 < AS; ++Letter1)
 			{
 			m_ScoreMxs[F][Letter1] = myalloc(float, AS);
 			for (uint Letter2 = 0; Letter2 < AS; ++Letter2)
-				m_ScoreMxs[F][Letter1][Letter2] = w*g_ScoreMxs2[F][Letter1][Letter2];
+				{
+				float Score = Loaded ? 
+					GetLoadedFeatureScore(F, Letter1, Letter2) :
+					g_ScoreMxs2[F][Letter1][Letter2];
+				m_ScoreMxs[F][Letter1][Letter2] = w*Score;
+				}
 			}
 		}
 	m_ApplyWeightsDone = true;

@@ -10,12 +10,27 @@ class DSSParams
 	static vector<float> m_Weights;
 	static float ***m_ScoreMxs;
 
+Converting float value to letter
+getbins.cpp(5)			void DSSParams::GetBins(), slow used only to initialize 
+valuetoint_new.cpp(7)	static vector<vector<float> > s_BinTs(FEATURE_COUNT);
+valuetoint_new.cpp(19):	static bool Init()
+valuetoint_new.cpp(59)	uint DSSParams::ValueToInt_Feature(FEATURE F, float Value);
 ***/
 
 static vector<FEATURE> s_LoadedFeatures;
 static vector<float> s_LoadedWeights(FEATURE_COUNT);
 static vector<vector<float> > s_LoadedBinTs(FEATURE_COUNT);
 static vector<vector<vector<float> > > s_LoadedScoreMxs(FEATURE_COUNT);
+
+float  DSSParams::GetLoadedFeatureScore(FEATURE F, uint Letter1, uint Letter2)
+	{
+	asserta(uint(F) < SIZE(s_LoadedScoreMxs));
+	const vector<vector<float> > &ScoreMx = s_LoadedScoreMxs[F];
+	asserta(Letter1 < SIZE(ScoreMx));
+	const vector<float> &Row = ScoreMx[Letter1];
+	asserta(Letter2 < SIZE(Row));
+	return Row[Letter2];
+	}
 
 void DSSParams::LoadFeature(const string &FN,
 	FEATURE &F, uint &AlphaSize, float &Weight,

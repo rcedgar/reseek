@@ -318,10 +318,8 @@ float DSSAligner::GetScorePosPair(const vector<vector<byte> > &ProfileA,
 		{
 		asserta(PosA < SIZE(ProfileA[FeatureIdx]));
 		asserta(PosB < SIZE(ProfileB[FeatureIdx]));
-		//float w = DSSParams::m_Weights[FeatureIdx];
 		FEATURE F = DSSParams::m_Features[FeatureIdx];
 		uint AlphaSize = g_AlphaSizes2[F];
-		//float **ScoreMx = g_ScoreMxs2[F];
 		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];

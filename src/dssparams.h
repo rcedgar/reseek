@@ -31,6 +31,7 @@ public:
 	static bool m_ApplyWeightsDone;
 	static vector<FEATURE> m_Features;
 	static vector<float> m_Weights;
+	static vector<bool> m_FeatureIsLoaded;
 	static float ***m_ScoreMxs;
 
 	static float m_GapOpen;
@@ -81,10 +82,11 @@ public:
 		return SIZE(m_Features);
 		}
 
-	static void AddFeature(FEATURE F, float w)
+	static void AddFeature(FEATURE F, float w, bool Loaded = false)
 		{
 		m_Features.push_back(F);
 		m_Weights.push_back(w);
+		m_FeatureIsLoaded.push_back(Loaded);
 		}
 
 	static void LoadFeatures(const string &FN);
@@ -96,11 +98,13 @@ public:
 	static void NormalizeWeights();
 	static void AllocScoreMxs();
 	static void SetScoreMxsFromFeatures();
-	static void ApplyWeights();
+	static void CreateWeightedScoreMxs();
 
 	static uint GetAlphaSize(FEATURE F, bool FailOk = false);
 	static void GetBins(FEATURE F, vector<float> &Bins);
 	static uint ValueToInt_Feature(FEATURE F, float Value);
+
+	static float GetLoadedFeatureScore(FEATURE F, uint Letter1, uint Letter2);
 	};
 
 uint GetPatternOnes(const string &Pattern);

@@ -123,16 +123,6 @@ void DSS::SetSSEs()
 		}
 	}
 
-/*********************************************
-// This works
-float DSS::GetFloat_NormDens(uint Pos)
-	{
-	SetDensity_ScaledValues();
-	asserta(Pos < SIZE(m_Density_ScaledValues));
-	return (float) m_Density_ScaledValues[Pos];
-	}
-***********************************************/
-
 float DSS::GetFloat_NormDens(uint Pos)
 	{
 	SetDensity_ScaledValues();

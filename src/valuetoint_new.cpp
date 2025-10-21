@@ -3,7 +3,6 @@
 #include "dss.h"
 #include "valuetointtpl.h"
 
-static uint s_DefaultLetters[FEATURE_COUNT];
 static vector<vector<float> > s_BinTs(FEATURE_COUNT);
 
 static bool IsFloatFeature(FEATURE Feat)
@@ -20,7 +19,6 @@ static bool Init()
 	{
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
 		{
-		s_DefaultLetters[i] = 0;
 		if (IsFloatFeature((FEATURE) i))
 			{
 			vector<float> Bins;
@@ -37,7 +35,6 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	uint AS = DSSParams::GetAlphaSize(F);
 	assert(AS > 0);
 	const vector<float> &BinTs = s_BinTs[F];
-	uint DefaultLetter = s_DefaultLetters[F];
 
 	if (opt(force_undef))//@@TODO remove this for production
 		{
@@ -48,7 +45,7 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 
 // Require 0 <= Letter < AS to allow vector and matrix lookups
 //	without special-case testing
-	uint Letter = ValueToIntTpl<false>(Value, AS, BinTs, DefaultLetter);
+	uint Letter = ValueToIntTpl<false>(Value, AS, BinTs, 0);
 	assert(Letter < AS);
 	return Letter;
 	}
