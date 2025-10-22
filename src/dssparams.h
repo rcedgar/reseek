@@ -73,7 +73,7 @@ public:
 
 public:
 	static void Init(DECIDE_MODE DM);
-	static void SetFeatures();
+	static void SetStandardFeatures();
 	static void SetAlgoMode(DECIDE_MODE DM);
 
 	static uint GetFeatureCount()
@@ -90,7 +90,7 @@ public:
 	static void DumpFeature(FEATURE F, const string &FN);
 
 	static void LoadFeatures(const string &FN);
-	static FEATURE LoadFeature(const string &FN);
+	static FEATURE LoadFeature(const string &FN, float Weight);
 
 	static void NormalizeWeights();
 	static void AllocScoreMxs();

@@ -486,6 +486,7 @@ static void TrainFloatFeature(
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
+	vector<float> &BinTs,
 	QUANTIZE_STYLE QS,
 	float UndefReplaceValue,
 	float &BestArea,
@@ -508,4 +509,10 @@ static void TrainDSSFeature(
 	vector<vector<float > > &ScoreMx,
 	BACKGROUND_STYLE BS,
 	float &BestArea);
+
+static void DumpScoreMx(FILE *f,
+	const vector<vector<float> > &ScoreMx);
+
+static void DumpBinTs(FILE *f,
+	const vector<float> &BinTs);
 };

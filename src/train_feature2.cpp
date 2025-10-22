@@ -13,6 +13,8 @@ void cmd_train_feature2()
 	const string &EvalTPAlnFN = opt(evaltps);	// "../big_out/tp.a.evalrange.fa2";
 	const string &EvalFPAlnFN = opt(evalfps);	// "../big_out/fp.a.evalrange.fa2";
 
+	FILE *fOut = CreateStdioFile(opt(output));
+
 	FeatureTrainer2::m_FevStr.clear();
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +83,7 @@ void cmd_train_feature2()
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				UndefsAllowed, ReplaceUndefWithThisLetter,
 				BS, ScoreMx, BestArea, fSteps);
+			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
 			}
 		else
 			{
@@ -93,13 +96,18 @@ void cmd_train_feature2()
 				asserta(optset_undef_value);
 				UndefReplaceValue = (float) opt(undef_value);
 				}
+
+			vector<float> BinTs;
 			FeatureTrainer2::TrainFloatFeature(
 				F, AlphaSize, Chains, LabelToChainIdx,
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				ScoreMx, QS, UndefReplaceValue, BestArea, fSteps);
+				ScoreMx, BinTs, QS, UndefReplaceValue, BestArea, fSteps);
+			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
+			FeatureTrainer2::DumpBinTs(fOut, BinTs);
 			}
 		}
 	Log("@FEV@ %s\n", FeatureTrainer2::m_FevStr.c_str());
+	CloseStdioFile(fOut);
 	}

@@ -25,7 +25,7 @@ valuetoint_new.cpp(59)	uint DSSParams::ValueToInt_Feature(FEATURE F, float Value
 //static vector<vector<float> > s_LoadedBinTs(FEATURE_COUNT);
 //static vector<vector<vector<float> > > s_LoadedScoreMxs(FEATURE_COUNT);
 
-FEATURE DSSParams::LoadFeature(const string &FN)
+FEATURE DSSParams::LoadFeature(const string &FN, float Weight)
 	{
 	vector<vector<float> > ScoreMx;
 	FILE *f = OpenStdioFile(FN);
@@ -67,6 +67,8 @@ FEATURE DSSParams::LoadFeature(const string &FN)
 		OverwriteBinTs(F, BinTs);
 		}
 	CloseStdioFile(f);
+
+	AddFeature(F, Weight);
 	return F;
 	}
 
@@ -88,15 +90,15 @@ void DSSParams::LoadFeatures(const string &FN)
 		if (StartsWith(Line, "#"))
 			continue;
 		Split(Line, Fields, '\t');
-		asserta(SIZE(Fields) == 1);
+		asserta(SIZE(Fields) == 2);
+		float Weight = StrToFloatf(Fields[1]);
 
 		string Path = Fields[0];
-		FEATURE F = LoadFeature(Path);
+		FEATURE F = LoadFeature(Path, Weight);
 		ProgressLog("%s\n", Path.c_str());
 		}
-	ProgressLog("gapopen: %.3g\n", -m_GapOpen);
-	ProgressLog("gapext: %.3g\n", -m_GapExt);
-//	SetScoreMxs();
+	AllocScoreMxs();
+	CreateWeightedScoreMxs();
 	}
 
 void DSSParams::DumpFeature(FEATURE F, const string &FN)
@@ -131,7 +133,7 @@ void DSSParams::DumpFeature(FEATURE F, const string &FN)
 void cmd_load_features()
 	{
 	DSSParams::LoadFeatures(g_Arg1);
-	DSSParams::SetFeatures();
+//	DSSParams::SetFeatures();
 
 	if (optset_output)
 		{

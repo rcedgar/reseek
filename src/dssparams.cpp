@@ -228,7 +228,7 @@ void DSSParams::CreateWeightedScoreMxs()
 	m_ApplyWeightsDone = true;
 	}
 
-void DSSParams::SetFeatures()
+void DSSParams::SetStandardFeatures()
 	{
 	AddFeature(FEATURE_AA,			0.398145f);
 	AddFeature(FEATURE_NENDist,		0.129367f);
@@ -243,7 +243,10 @@ void DSSParams::SetFeatures()
 
 void DSSParams::Init(DECIDE_MODE DM)
 	{
-	SetFeatures();
+	if (optset_feature_spec)
+		LoadFeatures(opt(feature_spec));
+	else
+		SetStandardFeatures();
 	SetAlgoMode(DM);
 	if (optset_gapopen) DSSParams::m_GapOpen = (float) opt(gapopen);
 	if (optset_gapext) DSSParams::m_GapExt = (float) opt(gapext);

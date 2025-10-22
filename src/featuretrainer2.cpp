@@ -1518,3 +1518,29 @@ void FeatureTrainer2::GetDSSScoreMx(
 			ScoreMx[Letter1][Letter2] = Mx[Letter1][Letter2];
 		}
 	}
+
+void FeatureTrainer2::DumpScoreMx(FILE *f,
+	const vector<vector<float> > &ScoreMx)
+	{
+	if (f == 0)
+		return;
+	fprintf(f, "%s\t%u\n", FeatureToStr(m_F), m_AlphaSize);
+	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		const vector<float> &Row = ScoreMx[i];
+		asserta(SIZE(Row) == m_AlphaSize);
+		fprintf(f, "%u", i);
+		for (uint j = 0; j < m_AlphaSize; ++j)
+			fprintf(f, "\t%.3g", Row[j]);
+		fprintf(f, "\n");
+		}
+	}
+
+void FeatureTrainer2::DumpBinTs(FILE *f,
+	const vector<float> &BinTs)
+	{
+	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
+	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
+		fprintf(f, "%u\t%.3g\n", j, BinTs[j]);
+	}

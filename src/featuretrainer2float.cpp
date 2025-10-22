@@ -162,6 +162,7 @@ void FeatureTrainer2::TrainFloatFeature(
 	const vector<uint> &EvalAlnOpenVec,
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
+	vector<float> &BinTs,
 	QUANTIZE_STYLE QS,
 	float UndefReplaceValue,
 	float &BestArea,
@@ -186,7 +187,6 @@ void FeatureTrainer2::TrainFloatFeature(
 	GetFloatValuesAndSeqs(Chains, false, FLT_MAX,
 		SortedValues, FloatSeqs, UndefCount1);
 
-	vector<float> BinTs;
 	Quantize(SortedValues, BinTs, UndefReplaceValue);
 
 	vector<uint> Letters;

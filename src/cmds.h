@@ -48,6 +48,5 @@ C(train_feature)
 C(train_feature2)
 C(feature_attrs)
 C(float_feature_dists)
-C(train_dss_feature)
 
 #undef C
