@@ -519,8 +519,8 @@ void SCOP40Bench::WriteSummary()
 		ProgressLog(" Area=%.3f", m_Area);
 	if (Secs != UINT_MAX)
 		{
-		ProgressLog(" secs=%u", Secs);
 		ProgressLog(" [%s]", g_GitVer);
+		ProgressLog(" secs=%u", Secs);
 		}
 	if (optset_fast)
 		ProgressLog(" -fast");

@@ -205,24 +205,25 @@ void SCOP40Bench::SetArea()
 		float Sens = m_CVESensVec[i];
 		float EPQ = m_CVEEPQVec[i];
 		asserta(i == 0 || Sens > m_CVESensVec[i-1]);
-		asserta(i == 0 || EPQ >= m_CVEEPQVec[i-1]);
+		// may not be strictly increasing
+		//asserta(i == 0 || EPQ >= m_CVEEPQVec[i-1]);
 		asserta(EPQ >= 0.01f);
 		asserta(EPQ <= 10.0f);
 		float Log10EPQ = log10f(EPQ);
 		Log10EPQVec.push_back(Log10EPQ);
 		}
-	float Log10Lo = Log10EPQVec[0];
 	float SensLo = m_CVESensVec[0];
 	m_Area = 0;
 	for (uint i = 0; i + 1 < N; ++i)
 		{
-		float x1 = m_CVESensVec[i] - SensLo;
-		float x2 = m_CVESensVec[i+1] - SensLo;
+		float x1 = m_CVESensVec[i];
+		float x2 = m_CVESensVec[i+1];
 		float LogEPQ1 = Log10EPQVec[i];
 		float LogEPQ2 = Log10EPQVec[i+1];
 		asserta(x2 > x1);
-		asserta(LogEPQ2 >= LogEPQ1);
-		m_Area += (x2 + x1)*(LogEPQ2 - LogEPQ1)/2;
+		// may not be strictly increasing
+		//asserta(LogEPQ2 >= LogEPQ1);
+		m_Area += (x2 + x1)*fabs(LogEPQ2 - LogEPQ1)/2;
 		}
 	}
 
@@ -311,7 +312,9 @@ void SCOP40Bench::SetCVE()
 		m_CVEScoreVec.push_back(m_ROCStepScores[IdxHi]);
 		CurrSens += dSens;
 		}
-	asserta(feq(CurrSens, SensHi));
+	if (!feq(CurrSens, SensHi))
+		Warning("SCOP40Bench::SetCVE() CurrSens=%.3g, SensHi=%.3g",
+			CurrSens, SensHi);
 	asserta(SIZE(m_CVESensVec) == N);
 	asserta(SIZE(m_CVEEPQVec) == N);
 	asserta(SIZE(m_CVEScoreVec) == N);

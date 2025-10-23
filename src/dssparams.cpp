@@ -3,7 +3,6 @@
 #include "dss.h"
 #include "sort.h"
 
-bool DSSParams::m_ApplyWeightsDone = false;
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
 
@@ -170,6 +169,7 @@ void DSSParams::SetScoreMxsFromFeatures()
 	{
 	asserta(m_ScoreMxs == 0);
 	AllocScoreMxs();
+	NormalizeWeights();
 	CreateWeightedScoreMxs();
 	}
 
@@ -199,10 +199,18 @@ void DSSParams::AllocScoreMxs()
 		}
 	}
 
+void DSSParams::UpdateWeights(const vector<float> &Weights)
+	{
+	asserta(m_ScoreMxs != 0);
+	asserta(SIZE(Weights) == SIZE(m_Weights));
+	m_Weights = Weights;
+	NormalizeWeights();
+	CreateWeightedScoreMxs();
+	}
+
 void DSSParams::CreateWeightedScoreMxs()
 	{
 	asserta(m_ScoreMxs != 0);
-	asserta(!m_ApplyWeightsDone);
 	uint FeatureCount = GetFeatureCount();
 	asserta(SIZE(m_Features) == FeatureCount);
 	asserta(SIZE(m_Weights) == FeatureCount);
@@ -225,7 +233,6 @@ void DSSParams::CreateWeightedScoreMxs()
 				}
 			}
 		}
-	m_ApplyWeightsDone = true;
 	}
 
 void DSSParams::SetStandardFeatures()

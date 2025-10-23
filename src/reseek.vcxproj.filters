@@ -452,6 +452,9 @@
     <ClCompile Include="dump_features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hjmega.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

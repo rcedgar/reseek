@@ -28,7 +28,6 @@ private:
 	~DSSParams() { Die("~DSSParams()"); }
 
 public:
-	static bool m_ApplyWeightsDone;
 	static vector<FEATURE> m_Features;
 	static vector<float> m_Weights;
 	static float ***m_ScoreMxs;
@@ -96,6 +95,7 @@ public:
 	static void AllocScoreMxs();
 	static void SetScoreMxsFromFeatures();
 	static void CreateWeightedScoreMxs();
+	static void UpdateWeights(const vector<float> &Weights);
 
 	static uint GetAlphaSize(FEATURE F, bool FailOk = false);
 	static void GetBinTs(FEATURE F, vector<float> &Bins);
