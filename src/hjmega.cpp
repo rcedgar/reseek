@@ -4,34 +4,57 @@
 #include "peaker.h"
 
 static SCOP40Bench *s_SB;
+static Peaker *s_Peaker;
 
-// SpecLines.push_back("var=AA\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");			// 0
-// SpecLines.push_back("var=NENDist\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");		// 1
-// SpecLines.push_back("var=Conf\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");			// 2
-// SpecLines.push_back("var=NENConf\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");		// 3
-// SpecLines.push_back("var=RENDist\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");		// 4
-// SpecLines.push_back("var=DstNxtHlx\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");	// 5 
-// SpecLines.push_back("var=StrandDens\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");	// 6
-// SpecLines.push_back("var=NormDens\tmin=0\tmax=1\tdelta=0.05\tbins=8\tinit=0.2");		// 7
-// SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.2\tbins=8\tinit=1");			// 8
-// SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.04\tbins=8\tinit=0.1");			// 9
+/***
+mindy=0.001
+maxdy=0.1
+minh=0.0001
+latin=yes
+sigfig=3
+var=AA	min=0	max=1	delta=0.05	bins=64	init=0.40
+var=NENDist	min=0	max=1	delta=0.05	bins=64	init=0.13
+var=Conf	min=0	max=1	delta=0.05	bins=64	init=0.20
+var=NENConf	min=0	max=1	delta=0.05	bins=64	init=0.15
+var=RENDist	min=0	max=1	delta=0.05	bins=64	init=0.10
+var=DstNxtHlx	min=0	max=1	delta=0.05	bins=64	init=0
+var=StrandDens	min=0	max=1	delta=0.05	bins=64	init=0.02
+var=NormDens	min=0	max=1	delta=0.05	bins=64	init=0
+var=open	min=0	max=4	delta=0.2	bins=64	init=0.7
+var=ext	min=0	max=1	delta=0.04	bins=64	init=0.05
+***/
 static double EvalArea(const vector<double> &xv)
 	{
-	asserta(SIZE(xv) == 10);
+	asserta(s_Peaker != 0);
+	const uint VarCount = s_Peaker->GetVarCount();
+	asserta(SIZE(xv) == VarCount);
 
-	float Open = float(xv[8]);
-	float Ext = float(xv[9]);
-	if (Open < 0)
-		Open = 0;
-	if (Ext < 0)
-		Ext = 0;
-	asserta(s_SB != 0);
 	vector<float> Weights;
-	for (uint i = 0; i < 8; ++i)
-		Weights.push_back((float) xv[i]);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		float Value = (float) xv[VarIdx];
+		const string VarName = string(s_Peaker->GetVarName(VarIdx));
+		if (VarName == "open")
+			{
+			if (Value < 0)
+				Value = 0;
+			DSSParams::m_GapOpen = -Value;
+			}
+		else if (VarName == "ext")
+			{
+			if (Value < 0)
+				Value = 0;
+			DSSParams::m_GapExt = -Value;
+			}
+			
+#define F(x)	else if (VarName == string(#x)) { Weights.push_back(Value); }
+#include "featurelist.h"
+
+		else
+			Die("VarName=%s", VarName.c_str());
+		}
+
 	DSSParams::UpdateWeights(Weights);
-	DSSParams::m_GapOpen = -Open;
-	DSSParams::m_GapExt = -Ext;
 	s_SB->ClearHits();
 	s_SB->RunSelf();
 	s_SB->m_Level = "sf";
@@ -41,7 +64,9 @@ static double EvalArea(const vector<double> &xv)
 
 void cmd_hjmega()
 	{
-	string CalFN = g_Arg1;
+	const string SpecFN = g_Arg1;
+	asserta(optset_db);
+	const string &DBFN = opt(db);
 
 	if (!optset_evalue)
 		{
@@ -58,7 +83,7 @@ void cmd_hjmega()
 	DSSParams::Init(DM_UseCommandLineOption);
 
 	s_SB = new SCOP40Bench;
-	s_SB->LoadDB(CalFN);
+	s_SB->LoadDB(DBFN);
 	StatSig::Init(s_SB->GetDBSize());
 	s_SB->Setup();
 	s_SB->m_QuerySelf = true;
@@ -66,32 +91,11 @@ void cmd_hjmega()
 	if (opt(scores_are_not_evalues))
 		s_SB->m_ScoresAreEvalues = false;
 
-	//vector<double> xv;
-	//xv.push_back(0.685533);
-	//xv.push_back(0.051881);
-	//double Area = EvalArea(xv);
-	//ProgressLog("Area=%.3g\n", s_SB->m_Area);
-
 	vector<string> SpecLines;
-
-	// y is Area, in range 0 to 1
-	SpecLines.push_back("mindy=0.001");
-	SpecLines.push_back("maxdy=0.1");
-	SpecLines.push_back("minh=0.0005");
-	SpecLines.push_back("latin=yes");
-	SpecLines.push_back("sigfig=3");
-	SpecLines.push_back("var=AA\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");			// 0
-	SpecLines.push_back("var=NENDist\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");		// 1
-	SpecLines.push_back("var=Conf\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");		// 2
-	SpecLines.push_back("var=NENConf\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");		// 3
-	SpecLines.push_back("var=RENDist\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");		// 4
-	SpecLines.push_back("var=DstNxtHlx\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");	// 5 
-	SpecLines.push_back("var=StrandDens\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");	// 6
-	SpecLines.push_back("var=NormDens\tmin=0\tmax=1\tdelta=0.05\tbins=128\tinit=0.2");	// 7
-	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.2\tbins=128\tinit=2");			// 8
-	SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.04\tbins=128\tinit=0.1");			// 9
+	ReadLinesFromFile(SpecFN, SpecLines);
 
 	Peaker P;
+	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
 	P.Run();
 	}
