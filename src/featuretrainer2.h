@@ -58,9 +58,11 @@ static const char *BSToStr(BACKGROUND_STYLE BS)
 	{
 	switch (BS)
 		{
-	case BS_DSSScoreMx:	return "DSSScoreMx";
 	case BS_AlignedLetters:	return "AlignedLetters";
 	case BS_UniqueChains:	return "UniqueChains";
+
+	// Must set BS=BS_Float if float feature, method hard-coded in 
+	//   FeatureTrainer2::TrainFloatFeature(), similar to UniqueChains
 	case BS_Float:	return "Float";
 		}
 	asserta(false);
@@ -75,6 +77,8 @@ static const char *QSToStr(QUANTIZE_STYLE QS)
 	case QS_UndefDistinct:	return "UndefDistinct";
 	case QS_UndefReplaceUser:	return "ReplaceUser";
 	case QS_UndefNotSpecialCase:	return "UndefNotSpecialCase";
+	
+	// Must set QS=QS_DSS with -dss, feature is already quantized
 	case QS_DSS:	return "DSS";
 		}
 	asserta(false);

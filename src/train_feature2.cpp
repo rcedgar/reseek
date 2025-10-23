@@ -88,7 +88,7 @@ void cmd_train_feature2()
 		else
 			{
 			asserta(BS == BS_Float);
-				asserta(optset_quantize_style);
+			asserta(optset_quantize_style);
 			float UndefReplaceValue = FLT_MAX;
 			QUANTIZE_STYLE QS = FeatureTrainer2::StrToQS(opt(quantize_style));
 			if (QS == QS_UndefReplaceUser)
