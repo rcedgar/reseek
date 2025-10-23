@@ -23,33 +23,50 @@ var=NormDens	min=0	max=1	delta=0.05	bins=64	init=0
 var=open	min=0	max=4	delta=0.2	bins=64	init=0.7
 var=ext	min=0	max=1	delta=0.04	bins=64	init=0.05
 ***/
+	//AddFeature(FEATURE_AA,			0.398145f); // 0
+	//AddFeature(FEATURE_NENDist,		0.129367f);	// 1
+	//AddFeature(FEATURE_Conf,		0.202354f);		// 2
+	//AddFeature(FEATURE_NENConf,		0.149383f);	// 3
+	//AddFeature(FEATURE_RENDist,		0.0937677f);// 4
+	//AddFeature(FEATURE_DstNxtHlx,	0.00475462f);	// 5
+	//AddFeature(FEATURE_StrandDens,	0.0183853f);// 6
+	//AddFeature(FEATURE_NormDens,	0.00384384f);	// 7
+
 static double EvalArea(const vector<double> &xv)
 	{
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 
-	vector<float> Weights;
+	asserta(SIZE(DSSParams::m_Features) == 8);
+	asserta(DSSParams::m_Features[0] == FEATURE_AA);
+	asserta(DSSParams::m_Features[1] == FEATURE_NENDist);
+	asserta(DSSParams::m_Features[2] == FEATURE_Conf);
+	asserta(DSSParams::m_Features[3] == FEATURE_NENConf);
+	asserta(DSSParams::m_Features[4] == FEATURE_RENDist);
+	asserta(DSSParams::m_Features[5] == FEATURE_DstNxtHlx);
+	asserta(DSSParams::m_Features[6] == FEATURE_StrandDens);
+	asserta(DSSParams::m_Features[7] == FEATURE_NormDens);
+
+	vector<float> Weights(8);
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		float Value = (float) xv[VarIdx];
+		if (Value < 0)
+			Value = 0;
 		const string VarName = string(s_Peaker->GetVarName(VarIdx));
 		if (VarName == "open")
-			{
-			if (Value < 0)
-				Value = 0;
 			DSSParams::m_GapOpen = -Value;
-			}
 		else if (VarName == "ext")
-			{
-			if (Value < 0)
-				Value = 0;
 			DSSParams::m_GapExt = -Value;
-			}
-			
-#define F(x)	else if (VarName == string(#x)) { Weights.push_back(Value); }
-#include "featurelist.h"
-
+		else if (VarName == "AA")			Weights[0] = Value;
+		else if (VarName == "NENDist")		Weights[1] = Value;
+		else if (VarName == "Conf")			Weights[2] = Value;
+		else if (VarName == "NENConf")		Weights[3] = Value;
+		else if (VarName == "RENDist")		Weights[4] = Value;
+		else if (VarName == "DstNxtHlx")	Weights[5] = Value;
+		else if (VarName == "StrandDens")	Weights[6] = Value;
+		else if (VarName == "NormDens")		Weights[7] = Value;
 		else
 			Die("VarName=%s", VarName.c_str());
 		}
