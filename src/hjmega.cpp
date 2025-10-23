@@ -91,8 +91,11 @@ void cmd_hjmega()
 	if (opt(scores_are_not_evalues))
 		s_SB->m_ScoresAreEvalues = false;
 
+	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
 	ReadLinesFromFile(SpecFN, SpecLines);
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		Log("%s\n", SpecLines[i].c_str());
 
 	Peaker P;
 	s_Peaker = &P;
