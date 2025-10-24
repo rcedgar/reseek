@@ -57,6 +57,7 @@ static double EvalArea(const vector<double> &xv)
 		const string VarName = string(s_Peaker->GetVarName(VarIdx));
 		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
 		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
+		else if (VarName == "gap")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value; }
 		else if (VarName == "AA")			Weights[0] = Value;
 		else if (VarName == "NENDist")		Weights[1] = Value;
 		else if (VarName == "Conf")			Weights[2] = Value;
@@ -164,6 +165,7 @@ void cmd_evalarea()
 		float Value = StrToFloatf(Fields[1]);
 		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
 		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
+		else if (VarName == "gap")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value; }
 		else if (VarName == "AA")			Weights[0] = Value;
 		else if (VarName == "NENDist")		Weights[1] = Value;
 		else if (VarName == "Conf")			Weights[2] = Value;
