@@ -49,5 +49,6 @@ C(train_feature2)
 C(feature_attrs)
 C(float_feature_dists)
 C(hjmega)
+C(evalarea)
 
 #undef C

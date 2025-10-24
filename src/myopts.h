@@ -150,6 +150,7 @@ FLAG_OPT(idxt)
 FLAG_OPT(onehitdiag)
 FLAG_OPT(force_undef)
 FLAG_OPT(dss)
+FLAG_OPT(initonly)
 
 #undef FLAG_OPT
 #undef UNS_OPT

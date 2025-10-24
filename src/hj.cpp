@@ -35,6 +35,8 @@ double Peaker::HJ_Explore()
 			Ps(m_Msg, "hj_%s%c/%u/%u",
 			  Name, pom(Plus), VarIdx+1, VarCount);
 			double y = HJ_EvalDelta(Saved_Best_xIdx, VarIdx, Plus);
+			if (y == DBL_MAX)
+				continue;
 			maxdy = max(maxdy, fabs(y - Saved_Best_y));
 			if (y > BestNew_y)
 				{
@@ -146,6 +148,8 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 	uint xIdx2 = Add_xv(xv);
 	double y = Evaluate(xIdx);
 	double y2 = Evaluate(xIdx2);
+	if (y == DBL_MAX || y2 == DBL_MAX)
+		return DBL_MAX;
 	double dy = fabs(y2 - y);
 	Log("HJ_EvalDelta %s%c %.3g => %.3g, y %.6g => %.6g (%+.3g)\n",
 	  Name, pom(Plus), Oldx, Newx, y, y2, y2 - y);

@@ -318,6 +318,8 @@ double Peaker::Evaluate(uint xIdx, bool UnsetOk)
 		}
 
 	double y = Calc(xv);
+	if (y == DBL_MAX)
+		return DBL_MAX;
 	m_ys[xIdx] = y;
 	double dy = DBL_MAX;
 	if (m_Best_y == DBL_MAX)

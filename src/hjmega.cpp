@@ -53,12 +53,10 @@ static double EvalArea(const vector<double> &xv)
 		{
 		float Value = (float) xv[VarIdx];
 		if (Value < 0)
-			Value = 0;
+			return DBL_MAX;
 		const string VarName = string(s_Peaker->GetVarName(VarIdx));
-		if (VarName == "open")
-			DSSParams::m_GapOpen = -Value;
-		else if (VarName == "ext")
-			DSSParams::m_GapExt = -Value;
+		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
+		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
 		else if (VarName == "AA")			Weights[0] = Value;
 		else if (VarName == "NENDist")		Weights[1] = Value;
 		else if (VarName == "Conf")			Weights[2] = Value;
@@ -118,4 +116,72 @@ void cmd_hjmega()
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
 	P.Run();
+	}
+
+void cmd_evalarea()
+	{
+	const string SpecFN = g_Arg1;
+	asserta(optset_db);
+	const string &DBFN = opt(db);
+
+	if (!optset_evalue)
+		{
+		opt_evalue = 9999;
+		optset_evalue = true;
+		}
+
+	if (!optset_mints)
+		{
+		opt_mints = -99999;
+		optset_mints = true;
+		}
+
+	DSSParams::Init(DM_UseCommandLineOption);
+
+	s_SB = new SCOP40Bench;
+	s_SB->LoadDB(DBFN);
+	StatSig::Init(s_SB->GetDBSize());
+	s_SB->Setup();
+	s_SB->m_QuerySelf = true;
+	s_SB->m_ScoresAreEvalues = true;
+	if (opt(scores_are_not_evalues))
+		s_SB->m_ScoresAreEvalues = false;
+	vector<float> Weights(8);
+
+	vector<string> SpecLines;
+	vector<string> Fields;
+	ReadLinesFromFile(SpecFN, SpecLines);
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i].c_str();
+		if (StartsWith(Line, "#"))
+			continue;
+		Log("%s\n", Line.c_str());
+		Split(Line, Fields, '=');
+		asserta(SIZE(Fields) == 2);
+		const string &VarName = Fields[0];
+		float Value = StrToFloatf(Fields[1]);
+		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
+		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
+		else if (VarName == "AA")			Weights[0] = Value;
+		else if (VarName == "NENDist")		Weights[1] = Value;
+		else if (VarName == "Conf")			Weights[2] = Value;
+		else if (VarName == "NENConf")		Weights[3] = Value;
+		else if (VarName == "RENDist")		Weights[4] = Value;
+		else if (VarName == "DstNxtHlx")	Weights[5] = Value;
+		else if (VarName == "StrandDens")	Weights[6] = Value;
+		else if (VarName == "NormDens")		Weights[7] = Value;
+		else
+			Die("VarName=%s", VarName.c_str());
+		}
+
+	DSSParams::UpdateWeights(Weights);
+	s_SB->ClearHits();
+	s_SB->RunSelf();
+	s_SB->m_Level = "sf";
+	s_SB->SetStats(0.005f);
+	ProgressLog("spec=%s;", SpecFN.c_str());
+	ProgressLog("db=%s;", DBFN.c_str());
+	ProgressLog("area=%.5g;", s_SB->m_Area);
+	ProgressLog("\n");
 	}
