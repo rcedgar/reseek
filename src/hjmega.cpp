@@ -74,6 +74,7 @@ static double EvalArea(const vector<double> &xv)
 	s_SB->RunSelf();
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
+	s_SB->WriteSummary();
 	return s_SB->m_Area;
 	}
 
