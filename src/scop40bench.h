@@ -9,6 +9,8 @@
 class SCOP40Bench : public DBSearcher
 	{
 public:
+	SBSCORE m_SBS = SBS_Evalue;
+
 	map<string, uint> m_LabelToChainIdx;
 
 	map<string, uint> m_DomToChainIdx;
@@ -28,12 +30,12 @@ public:
 	vector<uint> m_DomIdxToSFIdx;
 	vector<uint> m_DomIdxToFoldIdx;
 
-	bool m_ScoresAreEvalues = true;
+	//bool m_ScoresAreEvalues = true;
 
 // Per hit vectors [HitIdx]
 //   order is arbitrary (multi-threading)
 	vector<float> m_Scores;
-	vector<float> m_TSs;
+	//vector<float> m_TSs;
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
 
@@ -42,7 +44,7 @@ public:
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
-	vector<uint> m_TSOrder;
+	//vector<uint> m_TSOrder;
 	vector<int> m_TFs;
 
 	vector<float> m_ROCStepScores;
@@ -72,7 +74,6 @@ public:
 	FILE *m_fa2_fp = 0;
 
 public:
-	virtual void OnSetup();
 	virtual void OnAln(DSSAligner &DA, bool Up);
 
 public:
@@ -106,13 +107,13 @@ public:
 	void WriteFasta2s(DSSAligner &DA) const;
 
 // ROC analysis
-	void SetStats(float MaxFPR, bool UseTS = false);
+	void SetStats(float MaxFPR);
 	void SetTFs();
 	void SetNXs();
 	void SetScoreOrder();
-	void SetTSOrder();
+	//void SetTSOrder();
 	
-	void SetROCSteps(bool UseTS = false);
+	void SetROCSteps();
 	void SetCVE();
 
 	void WriteCVE(FILE *f) const;
@@ -132,10 +133,14 @@ public:
 	void WriteOutput();
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
-	void WriteSteps(const string &FN) const;
+	void WriteSteps(const string &FN, bool WithHdr = false) const;
 	void WriteSortedHits(const string &FN) const;
 	void RoundScores();
 	void SetArea();
+
+public:
+	virtual bool Reject(DSSAligner &DA, bool Up) const { return false; }
+	virtual void OnSetup();
 
 public:
 	static void ParseScopLabel(const string &Label, string &Dom,
@@ -144,4 +149,16 @@ public:
 	static void GetDomFromLabel(const string &Label, string &Dom);
 	static void GetDomSFFromLabel(const string &Label, string &Dom, string &SF);
 	static bool IsTP_SF(const string &Label1, const string &Label2);
+	static const char *SBSToStr(SBSCORE SBS)
+		{
+		switch (SBS)
+			{
+			case SBS_Evalue:	return "Evalue";
+			case SBS_TS:		return "TS";
+			case SBS_FwdRev:	return "FwdRev";
+			case SBS_OtherAlgoScore:	return "OtherAlgo";
+			}
+		Die("SBSToStr(%d)", int(SBS));
+		return "*ERROR(";
+		}
 	};

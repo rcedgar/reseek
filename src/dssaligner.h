@@ -8,6 +8,15 @@
 #include "mukmerfilter.h"
 #include <mutex>
 
+enum SBSCORE
+	{
+	SBS_Invalid,
+	SBS_Evalue,
+	SBS_TS,
+	SBS_FwdRev,	// FwdScore - w*(RevScoreA + RevScoreB)/2
+	SBS_OtherAlgoScore,	// DALI, TM-Align...
+	};
+
 #define SCORE_DIST	0
 
 #if SCORE_DIST
@@ -189,6 +198,8 @@ public:
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
 	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
+	float GetFwdRev(bool Up) const;
+	float GetSBScore(SBSCORE SBS, bool Up) const;
 	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 	float GetPvalue(bool Top) const { return Top ? m_PvalueA : m_PvalueB; }

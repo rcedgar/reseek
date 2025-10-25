@@ -116,6 +116,7 @@ FLT_OPT(gapopen)
 FLT_OPT(gapext)
 FLT_OPT(gap2)
 FLT_OPT(undef_value)
+FLT_OPT(revtsw)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
@@ -151,6 +152,7 @@ FLAG_OPT(onehitdiag)
 FLAG_OPT(force_undef)
 FLAG_OPT(dss)
 FLAG_OPT(initonly)
+FLAG_OPT(fwdrev)
 
 #undef FLAG_OPT
 #undef UNS_OPT

@@ -73,7 +73,8 @@ public:
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
 	  vector<byte> *ptrMuLetters);
 
-	bool Reject(DSSAligner &DA, bool Up) const;
+public:
+	virtual bool Reject(DSSAligner &DA, bool Up) const;
 
 public:
 	virtual void OnSetup() {}

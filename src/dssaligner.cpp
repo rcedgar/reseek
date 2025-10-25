@@ -1404,3 +1404,23 @@ void DSSAligner::FreeSMxData()
 	m_SMx_Rows = 0;
 	m_SMx_Cols = 0;
 	}
+
+float DSSAligner::GetFwdRev(bool Up) const
+	{
+	asserta(m_SelfRevScoreA != FLT_MAX);
+	asserta(m_SelfRevScoreB != FLT_MAX);
+	const float w = DSSParams::m_revtsw;
+	return m_AlnFwdScore - w*(m_SelfRevScoreA + m_SelfRevScoreB)/2;
+	}
+
+float DSSAligner::GetSBScore(SBSCORE SBS, bool Up) const
+	{
+	switch (SBS)
+		{
+	case SBS_Evalue:	return GetEvalue(Up);
+	case SBS_TS:		return GetNewTestStatistic(Up);
+	case SBS_FwdRev:	return GetFwdRev(Up);
+		}
+	Die("DSSAligner::GetSBScore(%d)", int(SBS));
+	return FLT_MAX;
+	}

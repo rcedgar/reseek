@@ -105,9 +105,6 @@ void cmd_hjmega()
 	StatSig::Init(s_SB->GetDBSize());
 	s_SB->Setup();
 	s_SB->m_QuerySelf = true;
-	s_SB->m_ScoresAreEvalues = true;
-	if (opt(scores_are_not_evalues))
-		s_SB->m_ScoresAreEvalues = false;
 
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
@@ -146,9 +143,6 @@ void cmd_evalarea()
 	StatSig::Init(s_SB->GetDBSize());
 	s_SB->Setup();
 	s_SB->m_QuerySelf = true;
-	s_SB->m_ScoresAreEvalues = true;
-	if (opt(scores_are_not_evalues))
-		s_SB->m_ScoresAreEvalues = false;
 	vector<float> Weights(8);
 
 	vector<string> SpecLines;

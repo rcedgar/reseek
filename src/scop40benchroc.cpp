@@ -122,18 +122,10 @@ void SCOP40Bench::SetScoreOrder()
 	{
 	const uint HitCount = GetHitCount();
 	m_ScoreOrder.resize(HitCount);
-	if (m_ScoresAreEvalues)
+	if (m_SBS == SBS_Evalue)
 		QuickSortOrder(m_Scores.data(), HitCount, m_ScoreOrder.data());
 	else
 		QuickSortOrderDesc(m_Scores.data(), HitCount, m_ScoreOrder.data());
-	}
-
-void SCOP40Bench::SetTSOrder()
-	{
-	const uint HitCount = GetHitCount();
-	asserta(SIZE(m_TSs) == HitCount);
-	m_TSOrder.resize(HitCount);
-	QuickSortOrderDesc(m_TSs.data(), HitCount, m_TSOrder.data());
 	}
 
 // Project onto common X axis (Sensitivity=TPR) 
@@ -246,14 +238,15 @@ void SCOP40Bench::SetCVE()
 	uint IdxHi = UINT_MAX;
 	for (uint Idx = 0; Idx < StepCount; ++Idx)
 		{
-	// Check non-decreasing
-		asserta(Idx == 0 || m_ROCStepSenss[Idx] >= m_ROCStepSenss[Idx-1]);
-		asserta(Idx == 0 || m_ROCStepEPQs[Idx] >= m_ROCStepEPQs[Idx-1]);
-
 		float Sens = m_ROCStepSenss[Idx];
 		float EPQ = m_ROCStepEPQs[Idx];
 		if (IdxLo == UINT_MAX && EPQ >= MinEPQ)
 			IdxLo = Idx;
+
+		// Need this in case EPQ does not exceed MaxEPQ
+		if (EPQ >= MinEPQ && EPQ < MaxEPQ)
+			IdxHi = Idx;
+
 		if (Idx > 0 && IdxHi == UINT_MAX && EPQ >= MaxEPQ)
 			{
 			if (EPQ > MaxEPQ)
@@ -320,7 +313,7 @@ void SCOP40Bench::SetCVE()
 	asserta(SIZE(m_CVEScoreVec) == N);
 	}
 
-void SCOP40Bench::SetROCSteps(bool UseTS)
+void SCOP40Bench::SetROCSteps()
 	{
 	m_ROCStepScores.clear();
 	m_ROCStepNTPs.clear();
@@ -334,16 +327,12 @@ void SCOP40Bench::SetROCSteps(bool UseTS)
 		return;
 
 	asserta(SIZE(m_TFs) == HitCount);
-	Progress("Sort scores UseTS=%c m_ScoresAreEvalues=%c\n",
-	  tof(UseTS), tof(m_ScoresAreEvalues));
-	if (UseTS)
-		SetTSOrder();
-	else
-		SetScoreOrder();
-	const vector<uint> &Order = (UseTS ? m_TSOrder : m_ScoreOrder);
+	Progress("Sort scores SBS=%s\n", SBSToStr(m_SBS));
+	SetScoreOrder();
+	const vector<uint> &Order = m_ScoreOrder;
 	asserta(SIZE(Order) == HitCount);
 
-	float CurrentScore = (UseTS ? m_TSs[Order[0]] : m_Scores[Order[0]]);
+	float CurrentScore = m_Scores[Order[0]];
 	uint NTP = 0;
 	uint NFP = 0;
 	Progress("ROC Steps\n");
@@ -352,7 +341,7 @@ void SCOP40Bench::SetROCSteps(bool UseTS)
 		uint i = Order[k];
 		uint Dom1 = m_DomIdx1s[i];
 		uint Dom2 = m_DomIdx2s[i];
-		float Score = (UseTS ? m_TSs[i] : m_Scores[i]);
+		float Score = m_Scores[i];
 		int T = m_TFs[i];
 		if (k < s_LogTopHits)
 			{
@@ -636,10 +625,6 @@ void cmd_scop40bench_tsv()
 	{
 	asserta(optset_lookup);
 	SCOP40Bench SB;
-	if (opt(scores_are_not_evalues))
-		SB.m_ScoresAreEvalues = false;
-	else
-		SB.m_ScoresAreEvalues = true;
 	SB.ReadLookup(opt(lookup));
 	SB.ReadHits(g_Arg1);
 	SB.WriteOutput();

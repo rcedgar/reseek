@@ -133,14 +133,19 @@ const PDBChain &SCOP40Bench::GetChainByDomIdx(uint DomIdx) const
 
 void SCOP40Bench::OnSetup()
 	{
+	m_MinEvalue = -1;
+	m_MaxEvalue = DBL_MAX;
+
 	if (optset_benchlevel)
 		m_Level = opt(benchlevel);
 
 	m_QuerySelf = true;
+	m_SBS = SBS_Evalue;
 	if (opt(scores_are_not_evalues))
-		m_ScoresAreEvalues = false;
-	else
-		m_ScoresAreEvalues = true;
+		m_SBS = SBS_OtherAlgoScore;
+	else if (opt(fwdrev))
+		m_SBS = SBS_FwdRev;
+
 	BuildDomSFIndexesFromDBChainLabels();
 
 	m_fa2_tp = 0;
@@ -268,10 +273,23 @@ void SCOP40Bench::StoreScore(uint ChainIdx1, uint ChainIdx2, float ScoreAB)
 	{
 	if (ScoreAB == FLT_MAX)
 		return;
-	if (m_ScoresAreEvalues && ScoreAB < 0)
-		return;
-	if (!m_ScoresAreEvalues && ScoreAB <= 0)
-		return;
+
+	//if (m_ScoresAreEvalues && ScoreAB < 0)
+	//	return;
+	//if (!m_ScoresAreEvalues && ScoreAB <= 0)
+	//	return;
+
+	if (m_SBS == SBS_Evalue)
+		{
+		if (ScoreAB < 0)
+			return;
+		}
+	else
+		{
+		if (ScoreAB <= 0)
+			return;
+		}
+
 	uint DomIdx1 = m_DomIdxs[ChainIdx1];
 	uint DomIdx2 = m_DomIdxs[ChainIdx2];
 	m_Scores.push_back(ScoreAB);
@@ -354,13 +372,14 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	if (ChainIndexA == ChainIndexB)
 		return;
 
+	float Score = DA.GetSBScore(m_SBS, Up);
 	if (Up)
 		{
 		WriteFasta2s(DA);
-		StoreScore(ChainIndexA, ChainIndexB, DA.m_EvalueA);
+		StoreScore(ChainIndexA, ChainIndexB, Score);
 		}
 	else
-		StoreScore(ChainIndexB, ChainIndexA, DA.m_EvalueB);
+		StoreScore(ChainIndexB, ChainIndexA, Score);
 	}
 
 void SCOP40Bench::SetSFIdxToDomIdxs()
@@ -403,7 +422,7 @@ void SCOP40Bench::ClearHits()
 
 float SCOP40Bench::GetVeryGoodScore() const
 	{
-	if (m_ScoresAreEvalues)
+	if (m_SBS == SBS_Evalue)
 		return 0;
 	else
 		return 999999.9f;
@@ -411,7 +430,7 @@ float SCOP40Bench::GetVeryGoodScore() const
 
 float SCOP40Bench::GetVeryBadScore() const
 	{
-	if (m_ScoresAreEvalues)
+	if (m_SBS == SBS_Evalue)
 		return 999999.9f;
 	else
 		return -999999.9f;
@@ -426,7 +445,7 @@ bool SCOP40Bench::HitIsBetter(uint HitIdx1, uint HitIdx2) const
 
 bool SCOP40Bench::ScoreIsBetter(float Score1, float Score2) const
 	{
-	if (m_ScoresAreEvalues)
+	if (m_SBS == SBS_Evalue)
 		return Score1 < Score2;
 	else
 		return Score1 > Score2;
@@ -473,10 +492,7 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 	WriteStdioFile(f, &HitCount, sizeof(HitCount));
 	WriteStdioFile(f, m_DomIdx1s.data(), HitCount*sizeof(uint));
 	WriteStdioFile(f, m_DomIdx2s.data(), HitCount*sizeof(uint));
-	if (opt(writebitts))
-		WriteStdioFile(f, m_TSs.data(), HitCount*sizeof(float));
-	else
-		WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
+	WriteStdioFile(f, m_Scores.data(), HitCount*sizeof(float));
 	CloseStdioFile(f);
 	}
 
@@ -487,11 +503,11 @@ void SCOP40Bench::RoundScores()
 		m_Scores[i] = round3sigfig(m_Scores[i]);
 	}
 
-void SCOP40Bench::SetStats(float MaxFPR, bool UseTS)
+void SCOP40Bench::SetStats(float MaxFPR)
 	{
 	SetTFs();
 	RoundScores();
-	SetROCSteps(UseTS);
+	SetROCSteps();
 	SetCVE();
 	SetArea();
 
@@ -560,7 +576,7 @@ void SCOP40Bench::WriteSortedHits(const string &FN) const
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::WriteSteps(const string &FN) const
+void SCOP40Bench::WriteSteps(const string &FN, bool WithHdr) const
 	{
 	if (FN == "")
 		return;
@@ -568,8 +584,17 @@ void SCOP40Bench::WriteSteps(const string &FN) const
 	const uint n = SIZE(m_ROCStepScores);
 	asserta(SIZE(m_ROCStepNTPs) == n);
 	asserta(SIZE(m_ROCStepNFPs) == n);
+	if (WithHdr)
+		{
+		fprintf(f, "score");
+		fprintf(f, "\tntp");
+		fprintf(f, "\tnfp");
+		fprintf(f, "\tsens");
+		fprintf(f, "\tepq");
+		fprintf(f, "\n");
+		}
 	for (uint i = 0; i < n; ++i)
-		fprintf(f, "%.8e\t%u\t%u\t%.4g\t%.4g\n",
+		fprintf(f, "%.8g\t%u\t%u\t%.4g\t%.4g\n",
 				m_ROCStepScores[i],
 				m_ROCStepNTPs[i],
 				m_ROCStepNFPs[i],
@@ -590,7 +615,7 @@ void SCOP40Bench::WriteOutput()
 		m_Level = opt(benchlevel);
 	SetStats(MaxFPR);
 	WriteCVE(fCVE);
-	WriteSteps(opt(rocsteps));
+	WriteSteps(opt(rocsteps), true);
 	WriteSortedHits(opt(sortedhits));
 	WriteSummary();
 	CloseStdioFile(fCVE);
@@ -608,24 +633,6 @@ void cmd_scop40bench()
 	else
 		CalFN = g_Arg1;
 
-	if (optset_global)
-		{
-		void InitGapStr();
-		InitGapStr();
-		}
-
-	if (!optset_evalue)
-		{
-		opt_evalue = 9999;
-		optset_evalue = true;
-		}
-
-	if (!optset_mints)
-		{
-		opt_mints = -99999;
-		optset_mints = true;
-		}
-
 	DSSParams::Init(DM_UseCommandLineOption);
 	SCOP40Bench SB;
 	SB.LoadDB(CalFN);
@@ -642,9 +649,6 @@ void cmd_scop40bench()
 
 	ResetTimers();
 	SB.m_QuerySelf = true;
-	SB.m_ScoresAreEvalues = true;
-	if (opt(scores_are_not_evalues))
-		SB.m_ScoresAreEvalues = false;
 	SB.RunSelf();
 	ProgressLog("%u / %u mu filter discards\n",
 				DSSAligner::m_MuFilterDiscardCount.load(),
