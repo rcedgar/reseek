@@ -58,6 +58,7 @@ static double EvalArea(const vector<double> &xv)
 		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
 		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
 		else if (VarName == "gap")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value; }
+		else if (VarName == "gap2")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value*0.1f; }
 		else if (VarName == "AA")			Weights[0] = Value;
 		else if (VarName == "NENDist")		Weights[1] = Value;
 		else if (VarName == "Conf")			Weights[2] = Value;
@@ -166,6 +167,7 @@ void cmd_evalarea()
 		if (VarName == "open")				DSSParams::m_GapOpen = -Value;
 		else if (VarName == "ext")			DSSParams::m_GapExt = -Value;
 		else if (VarName == "gap")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value; }
+		else if (VarName == "gap2")			{ DSSParams::m_GapOpen = DSSParams::m_GapExt = -Value*0.1f; }
 		else if (VarName == "AA")			Weights[0] = Value;
 		else if (VarName == "NENDist")		Weights[1] = Value;
 		else if (VarName == "Conf")			Weights[2] = Value;
