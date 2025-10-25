@@ -17,19 +17,21 @@ const char *FeatureToStr(FEATURE f)
 	return "?";
 	}
 
-FEATURE StrToFeature(const char *s)
+FEATURE StrToFeature(const char *s, bool ErrOk)
 	{
 #define F(x)	if (!stricmp(s, #x)) return FEATURE_##x;
 #include "featurelist.h"
-	Die("StrToFeature(%s)", s);
+	if (!ErrOk)
+		Die("StrToFeature(%s)", s);
 	return FEATURE(UINT_MAX);
 	}
 
-uint StrToFeatureIndex(const char *s)
+uint StrToFeatureIndex(const char *s, bool ErrOk)
 	{
 #define F(x)	if (!stricmp(s, #x)) return uint(FEATURE_##x);
 #include "featurelist.h"
-	Die("StrToFeatureIndex(%s)", s);
+	if (!ErrOk)
+		Die("StrToFeatureIndex(%s)", s);
 	return UINT_MAX;
 	}
 

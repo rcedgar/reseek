@@ -169,6 +169,8 @@ void DSSParams::SetScoreMxsFromFeatures()
 	{
 	asserta(m_ScoreMxs == 0);
 	AllocScoreMxs();
+	if (optset_params)
+		SetParamsFromStr(opt(params));
 	NormalizeWeights();
 	CreateWeightedScoreMxs();
 	}
@@ -235,6 +237,66 @@ void DSSParams::CreateWeightedScoreMxs()
 		}
 	}
 
+void DSSParams::SetParamStr(const string &Name, const string &StrValue)
+	{
+	FEATURE F = StrToFeature(Name.c_str(), true);
+	float Value = StrToFloatf(StrValue);
+	if (F != UINT_MAX)
+		{
+		const uint FeatureCount = GetFeatureCount();
+		asserta(SIZE(m_Weights) == FeatureCount);
+		for (uint k = 0; k < FeatureCount; ++k)
+			{
+			if (m_Features[k] == F)
+				{
+				m_Weights[k] = Value;
+				return;
+				}
+			}
+		Die("SetParamStr(%s, %s) not active feature",
+			Name.c_str(), StrValue.c_str());
+		}
+	if (Name == "open") { m_GapOpen = -Value; return; }
+	if (Name == "ext") { m_GapExt = -Value; return; }
+	if (Name == "gap") { m_GapOpen = m_GapExt = -Value; return; }
+	if (Name == "gap2") { m_GapOpen = -Value; m_GapExt = -Value*0.1f; }
+
+	Die("SetParamStr(%s, %s) unknown param",
+		Name.c_str(), StrValue.c_str());
+	}
+
+void DSSParams::GetParamStr(string &Str)
+	{
+	Str.clear();
+	const uint FeatureCount = GetFeatureCount();
+	asserta(SIZE(m_Features) == FeatureCount);
+	asserta(SIZE(m_Weights) == FeatureCount);
+	for (uint k = 0; k < FeatureCount; ++k)
+		Psa(Str, "%s=%.3g;",
+			FeatureToStr(m_Features[k]),
+			m_Weights[k]);
+	Psa(Str, "open=%.3g;", -m_GapOpen);
+	Psa(Str, "ext=%.3g;", -m_GapExt);
+	}
+
+void DSSParams::SetParamsFromStr(const string &Str)
+	{
+	vector<string> Fields;
+	Split(Str, Fields, ';');
+	const uint n = SIZE(Fields);
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &NameEqValue = Fields[i];
+		vector<string> Fields2;
+		Split(NameEqValue, Fields2, '=');
+		if (SIZE(Fields2) != 2)
+			Die("Expected name=value in field %u '%s'", i, Str.c_str());
+		const string &Name = Fields2[0];
+		const string &Value = Fields2[1];
+		SetParamStr(Name, Value);
+		}
+	}
+
 void DSSParams::SetStandardFeatures()
 	{
 	AddFeature(FEATURE_AA,			0.398145f);
@@ -245,6 +307,8 @@ void DSSParams::SetStandardFeatures()
 	AddFeature(FEATURE_DstNxtHlx,	0.00475462f);
 	AddFeature(FEATURE_StrandDens,	0.0183853f);
 	AddFeature(FEATURE_NormDens,	0.00384384f);
+	if (optset_params)
+		SetParamsFromStr(opt(params));
 	SetScoreMxsFromFeatures();
 	}
 
@@ -257,4 +321,8 @@ void DSSParams::Init(DECIDE_MODE DM)
 	SetAlgoMode(DM);
 	if (optset_gapopen) DSSParams::m_GapOpen = (float) opt(gapopen);
 	if (optset_gapext) DSSParams::m_GapExt = (float) opt(gapext);
+	if (optset_gap2) { DSSParams::m_GapOpen = DSSParams::m_GapExt = (float) opt(gap2); }
+	string ParamStr;
+	DSSParams::GetParamStr(ParamStr);
+	Log("DSSParams::Init(%d) %s\n", int(DM), ParamStr.c_str());
 	}

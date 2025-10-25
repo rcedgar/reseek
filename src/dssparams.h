@@ -73,7 +73,10 @@ public:
 public:
 	static void Init(DECIDE_MODE DM);
 	static void SetStandardFeatures();
+	static void SetParamStr(const string &Name, const string &Value);
+	static void SetParamsFromStr(const string &Str);
 	static void SetAlgoMode(DECIDE_MODE DM);
+	static void GetParamStr(string &Str);
 
 	static uint GetFeatureCount()
 		{

@@ -5,7 +5,6 @@
 #define C(x)	STR_OPT(x)
 #include "cmds.h"
 
-STR_OPT(param)
 STR_OPT(params)
 STR_OPT(roc)
 STR_OPT(cve)
@@ -115,6 +114,7 @@ FLT_OPT(minpctid)
 FLT_OPT(maxpctid)
 FLT_OPT(gapopen)
 FLT_OPT(gapext)
+FLT_OPT(gap2)
 FLT_OPT(undef_value)
 
 FLAG_OPT(trunclabels)
