@@ -155,7 +155,7 @@ public:
 			{
 			case SBS_Evalue:	return "Evalue";
 			case SBS_TS:		return "TS";
-			case SBS_FwdRev:	return "FwdRev";
+			case SBS_Raw:		return "Raw";
 			case SBS_OtherAlgoScore:	return "OtherAlgo";
 			}
 		Die("SBSToStr(%d)", int(SBS));

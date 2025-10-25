@@ -143,8 +143,8 @@ void SCOP40Bench::OnSetup()
 	m_SBS = SBS_Evalue;
 	if (opt(scores_are_not_evalues))
 		m_SBS = SBS_OtherAlgoScore;
-	else if (opt(fwdrev))
-		m_SBS = SBS_FwdRev;
+	else if (opt(raw))
+		m_SBS = SBS_Raw;
 
 	BuildDomSFIndexesFromDBChainLabels();
 

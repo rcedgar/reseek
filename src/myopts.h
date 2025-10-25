@@ -152,7 +152,7 @@ FLAG_OPT(onehitdiag)
 FLAG_OPT(force_undef)
 FLAG_OPT(dss)
 FLAG_OPT(initonly)
-FLAG_OPT(fwdrev)
+FLAG_OPT(raw)
 
 #undef FLAG_OPT
 #undef UNS_OPT
