@@ -199,11 +199,12 @@ void Peaker::GetLatinHypercube(vector<vector<double> > &xvs)
 	asserta(SIZE(IdxMx) == m_LatinBinCount);
 
 	xvs.resize(m_LatinBinCount);
-	for (uint BinIdx = 0; BinIdx < m_LatinBinCount; ++BinIdx)
+	for (uint k = 0; k < m_LatinBinCount; ++k)
 		{
-		vector<double> &xv = xvs[BinIdx];
+		vector<double> &xv = xvs[k];
 		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 			{
+			uint BinIdx = IdxMx[VarIdx][k];
 			double Value = GetLatinValueByBinIdx(VarIdx, BinIdx, m_LatinBinCount);
 			xv.push_back(Value);
 			}
