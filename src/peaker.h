@@ -122,6 +122,7 @@ public:
 	double GetMinDelta(uint VarIdx) const;
 	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
 	void LatinLoop();
+	void LogLatinBins() const;
 
 // Hypercross
 	void HC_RunHyperCross();

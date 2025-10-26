@@ -169,6 +169,28 @@ uint Peaker::Add_xv(const vector<double> &xv)
 	return xIdx;
 	}
 
+void Peaker::LogLatinBins() const
+	{
+	uint VarCount = GetVarCount();
+	Log("\n");
+	Log("LogLatinBins [%u]\n", m_LatinBinCount);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		const VarSpec &Spec = GetVarSpec(VarIdx);
+		const char *Name = GetVarName(VarIdx);
+		if (Spec.m_Constant)
+			{
+			Log("%s constant %.3g\n", Name, Spec.m_InitialValue);
+			continue;
+			}
+		Log("%s %.3g .. %.3g\n", Name, Spec.m_Min, Spec.m_Max);
+		Log("  ");
+		for (uint BinIdx = 0; BinIdx < m_LatinBinCount; ++BinIdx)
+			Log(" %.3g", GetLatinValueByBinIdx(VarIdx, BinIdx, m_LatinBinCount));
+		Log("\n");
+		}
+	}
+
 double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const
 	{
 	asserta(BinCount > 0);
@@ -178,7 +200,8 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 	asserta(Spec.m_Min != DBL_MAX);
 	asserta(Spec.m_Max != DBL_MAX);
 	asserta(Spec.m_Min < Spec.m_Max);
-	double BinWidth = (Spec.m_Max - Spec.m_Min)/(BinCount - 1);
+	double BinWidth = (Spec.m_Max - Spec.m_Min)/BinCount;
+	asserta(feq(BinWidth*BinCount, Spec.m_Max - Spec.m_Min));
 	double BinLo = Spec.m_Min + BinWidth*BinIdx;
 	const uint M = 3141592;
 	double r = double(randu32()%M)/(M-1);
