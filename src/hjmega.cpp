@@ -46,9 +46,12 @@ void cmd_hjmega()
 		Log("%s\n", SpecLines[i].c_str());
 
 	Peaker P;
+	if (optset_output2)
+		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
 	if (opt(latinloop))
 		P.LatinLoop();
 	P.Run();
+	CloseStdioFile(P.m_fTsv);
 	}
