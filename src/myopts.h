@@ -95,6 +95,7 @@ UNS_OPT(myalloc_dump_secs)
 UNS_OPT(rsb_size)
 UNS_OPT(subsample)
 UNS_OPT(undef_letter)
+UNS_OPT(nested_latin)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

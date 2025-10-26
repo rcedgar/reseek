@@ -86,7 +86,7 @@ public:
 
 public:
 	void Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF);
-
+	void LogSpecs() const;
 	void InitDeltas();
 	void LogDeltas() const;
 	void CleanQueue();
@@ -114,15 +114,17 @@ public:
 	void GetBestVarStr(string &s) const;
 	double GetRounded(double x, uint SigFig) const;
 	void RunInitialValues();
-	void RunLatin();
+	void RunLatin(vector<uint> &Idxs, vector<double> &ys);
 	double IncreaseWithNoise() const;
 	double rr(double lo, double hi) const;
 	const vector<double> &GetBestParams() const;
 	bool VarIsConstant(uint VarIdx) const;
 	double GetMinDelta(uint VarIdx) const;
+	double GetLatinBinWidth(uint VarIdx) const;
 	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
 	void LatinLoop();
 	void LogLatinBins() const;
+	void RunNestedLatin(uint TopN);
 
 // Hypercross
 	void HC_RunHyperCross();

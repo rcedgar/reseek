@@ -53,6 +53,8 @@ void cmd_hjmega()
 	//P.LogLatinBins();
 	if (opt(latinloop))
 		P.LatinLoop();
+	else if (optset_nested_latin)
+		P.RunNestedLatin(opt(nested_latin));
 	P.Run();
 	CloseStdioFile(P.m_fTsv);
 	}

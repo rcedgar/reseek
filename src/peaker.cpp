@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "peaker.h"
+#include "sort.h"
 #include <time.h>
 
 /***
@@ -189,6 +190,18 @@ void Peaker::LogLatinBins() const
 			Log(" %.3g", GetLatinValueByBinIdx(VarIdx, BinIdx, m_LatinBinCount));
 		Log("\n");
 		}
+	}
+
+double Peaker::GetLatinBinWidth(uint VarIdx) const
+	{
+	const VarSpec &Spec = GetVarSpec(VarIdx);
+	if (Spec.m_Constant)
+		return 0;
+	asserta(Spec.m_Min != DBL_MAX);
+	asserta(Spec.m_Max != DBL_MAX);
+	asserta(Spec.m_Min < Spec.m_Max);
+	double BinWidth = (Spec.m_Max - Spec.m_Min)/m_LatinBinCount;
+	return BinWidth;
 	}
 
 double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const
@@ -586,8 +599,10 @@ void Peaker::RunInitialValues()
 	Evaluate(TmpIdx);
 	}
 
-void Peaker::RunLatin()
+void Peaker::RunLatin(vector<uint> &Idxs, vector<double> &ys)
 	{
+	Idxs.clear();
+	ys.clear();
 	if (m_LatinBinCount == 0)
 		return;
 
@@ -617,7 +632,12 @@ void Peaker::RunLatin()
 		const vector<double> &xv = xvs[i];
 		uint uIdx = Add_xv(xv);
 		Log("Latin %u/%u\n", i+1, n);
-		Evaluate(uIdx);
+		double y = Evaluate(uIdx);
+		if (y != DBL_MAX)
+			{
+			ys.push_back(y);
+			Idxs.push_back(uIdx);
+			}
 		}
 	}
 
@@ -656,13 +676,19 @@ const vector<double> &Peaker::GetBestParams() const
 void Peaker::LatinLoop()
 	{
 	for (;;)
-		RunLatin();
+		{
+		vector<uint> Idxs;
+		vector<double> ys;
+		RunLatin(Idxs, ys);
+		}
 	}
 
 void Peaker::Run()
 	{
 	RunInitialValues();
-	RunLatin();
+	vector<uint> Idxs;
+	vector<double> ys;
+	RunLatin(Idxs, ys);
 	HJ_RunHookeJeeves();
 	}
 
@@ -683,5 +709,106 @@ void Peaker::GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
 		Shuffle(BinIdxs);
 		for (uint k = 0; k < BinCount; ++k)
 			IdxMx[k][VarIdx] = BinIdxs[k];
+		}
+	}
+
+void Peaker::LogSpecs() const
+	{
+	const uint VarCount = GetVarCount();
+	Log("%u vars\n", VarCount);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		const VarSpec &Spec = GetVarSpec(VarIdx);
+		Log("var=%s", Spec.m_Name);
+		Log("\tinit=%.3g", Spec.m_InitialValue);
+		if (Spec.m_Constant)
+			Log("\tconstant=yes");
+		else
+			{
+			Log("\tmin=%.3g", Spec.m_Min);
+			Log("\tmax=%.3g", Spec.m_Min);
+			Log("\tsigfig=%u", GetSigFig(VarIdx));
+			}
+		Log("\n");
+		}
+	}
+
+void Peaker::RunNestedLatin(uint TopN)
+	{
+	vector<uint> Idxs;
+	vector<double> ys;
+	RunLatin(Idxs, ys);
+
+	const uint N = min(TopN, SIZE(ys));
+	if (N == 0)
+		return;
+	const uint VarCount = GetVarCount();
+	vector<uint> Order(N);
+	QuickSortOrderDesc(ys.data(), N, Order.data());
+	Log("NESTED_LATIN_TOPS ");
+	for (uint k = 0; k < N; ++k)
+		{
+		uint i = Order[k];
+		Log(" y=%.3g", ys[i]);
+		}
+	Log("\n");
+
+	for (uint k = 0; k < N; ++k)
+		{
+		uint i = Order[k];
+		uint Idx = Idxs[i];
+		const vector<double> &xv = Get_xv(Idx);
+		asserta(SIZE(xv) == VarCount);
+		Log("RUN_NESTED_LATIN %u/%u y=%.3g\n", k+1, N, ys[i]);
+
+		Peaker P;
+		P.m_LatinBinCount = m_LatinBinCount;
+		P.m_Target_dy = m_Target_dy;
+		P.m_Min_dy = m_Min_dy;
+		P.m_Max_dy = m_Max_dy;
+		P.m_Min_Height = m_Min_Height;
+		P.m_SigFig = m_SigFig;
+		P.m_EvalFunc = m_EvalFunc;
+		P.m_Progress = m_Progress;
+		P.m_fTsv = m_fTsv;
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			{
+			double Value = xv[VarIdx];
+			double BinWidth = GetLatinBinWidth(VarIdx);
+			const VarSpec &Spec = GetVarSpec(VarIdx);
+			VarSpec &SubSpec = *new VarSpec;
+			SubSpec = Spec;
+			SubSpec.m_InitialValue = Value;
+			SubSpec.m_Min = Value - BinWidth;
+			if (SubSpec.m_Min < 0)
+				SubSpec.m_Min = 0;
+			SubSpec.m_Max = Value + BinWidth;
+			P.m_VarSpecs.push_back(&SubSpec);
+			}
+
+		vector<uint> SubIdxs;
+		vector<double> Subys;
+		const uint J = SIZE(SubIdxs);
+		asserta(SIZE(Subys) == J);
+		Log("\n");
+		Log("NESTED_LATIN\n");
+		P.LogSpecs();
+		P.RunLatin(SubIdxs, Subys);
+		Log("NESTED_LATIN_BEST %u/%u y=%.3g\n", k+1, P.m_Best_y);
+		for (uint j = 0; j < J; ++j)
+			{
+			double y = Subys[j];
+			if (y == DBL_MAX)
+				continue;
+			uint SubIdx = SubIdxs[j];
+			const vector<double> &xv = P.Get_xv(SubIdx);
+			m_ys.push_back(y);
+			m_xvs.push_back(xv);
+			if (y > m_Best_y)
+				{
+				m_Best_y = y;
+				m_Best_xIdx = SIZE(m_xvs)-1;
+				}
+			}
 		}
 	}
