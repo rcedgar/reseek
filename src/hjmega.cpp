@@ -50,7 +50,7 @@ void cmd_hjmega()
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
-//	P.LogLatinBins();
+	//P.LogLatinBins();
 	if (opt(latinloop))
 		P.LatinLoop();
 	P.Run();
