@@ -34,7 +34,6 @@ public:
 
 	static float m_GapOpen;
 	static float m_GapExt;
-	static float m_FwdMatchScore;
 	static float m_MinFwdScore;
 	static float m_Omega;
 	static float m_OmegaFwd;
@@ -73,8 +72,9 @@ public:
 public:
 	static void Init(DECIDE_MODE DM);
 	static void SetStandardFeatures();
-	static void SetParamStr(const string &Name, const string &Value);
-	static void SetParamsFromStr(const string &Str);
+	static void SetDefaultNonFeatureTunableParams();
+	static void SetTunableParamStr(const string &Name, const string &Value);
+	static void SetTunableParamsFromStr(const string &Str);
 	static void SetAlgoMode(DECIDE_MODE DM);
 	static void GetParamStr(string &Str);
 
