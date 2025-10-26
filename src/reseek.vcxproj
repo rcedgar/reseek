@@ -308,6 +308,7 @@
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
+    <ClCompile Include="scop40benchsubset.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
     <ClCompile Include="chainbag.cpp" />

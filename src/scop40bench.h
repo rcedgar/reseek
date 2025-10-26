@@ -10,6 +10,7 @@ class SCOP40Bench : public DBSearcher
 	{
 public:
 	SBSCORE m_SBS = SBS_Evalue;
+	string m_Level = "sf";
 
 	map<string, uint> m_LabelToChainIdx;
 
@@ -30,12 +31,9 @@ public:
 	vector<uint> m_DomIdxToSFIdx;
 	vector<uint> m_DomIdxToFoldIdx;
 
-	//bool m_ScoresAreEvalues = true;
-
 // Per hit vectors [HitIdx]
 //   order is arbitrary (multi-threading)
 	vector<float> m_Scores;
-	//vector<float> m_TSs;
 	vector<uint> m_DomIdx1s;
 	vector<uint> m_DomIdx2s;
 
@@ -44,7 +42,6 @@ public:
 	vector<vector<uint> > m_SFIdxToDomIdxs;
 	vector<uint> m_SFSizes;
 	vector<uint> m_ScoreOrder;
-	//vector<uint> m_TSOrder;
 	vector<int> m_TFs;
 
 	vector<float> m_ROCStepScores;
@@ -64,7 +61,6 @@ public:
 	uint m_nt_epq1 = UINT_MAX;
 	uint m_nt_epq10 = UINT_MAX;
 
-	string m_Level;
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
@@ -77,8 +73,9 @@ public:
 	virtual void OnAln(DSSAligner &DA, bool Up);
 
 public:
+	void MakeSubset(SCOP40Bench &Subset, uint Pct) const;
 	void ReadLookup(const string &FileName);
-	void ClearHits();
+	void ClearHitsAndResults();
 	float GetVeryBadScore() const;
 	float GetVeryGoodScore() const;
 	bool ScoreIsBetter(float Score1, float Score2) const;

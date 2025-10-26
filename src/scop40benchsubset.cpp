@@ -1,0 +1,34 @@
+#include "myutils.h"
+#include "scop40bench.h"
+
+void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
+	{
+	asserta(Pct > 0 && Pct <= 100);
+	Subset.ClearHitsAndResults();
+
+	vector<uint> ChainIdxs;
+	const uint ChainCount = GetDBChainCount();
+	const uint SubsetChainCount = (ChainCount*Pct)/100;
+	asserta(SubsetChainCount > 0 && SubsetChainCount <= ChainCount);
+	for (uint i = 0; i < ChainCount; ++i)
+		ChainIdxs.push_back(i);
+	Shuffle(ChainIdxs);
+
+// Vectors size=ChainCount indexed by ChainIdx
+#define c(x)	{ \
+	if (SIZE(x) != ChainCount) \
+		Die("SCOP40Bench::MakeSubset() size"); \
+	for (uint i = 0; i < SubsetChainCount; ++i) \
+		Subset.x.push_back(x[i]); \
+	}
+
+	c(m_DBChains);
+	c(m_DBProfiles);
+	c(m_DBMuLettersVec);
+	c(m_DBMuKmersVec);
+	c(m_DBSelfRevScores);
+	c(m_DomIdxs);
+	c(m_DomIdxToSFIdx);
+	c(m_DomIdxToFoldIdx);
+#undef c
+	}

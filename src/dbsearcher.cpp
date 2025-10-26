@@ -22,6 +22,32 @@ DBSearcher::~DBSearcher()
 	delv(m_DBMuKmersVec);
 	}
 
+void DBSearcher::ClearStats()
+	{
+	m_PairIndex = UINT_MAX;
+	m_PairCount = UINT_MAX;
+	m_NextChainIndex1 = UINT_MAX;
+	m_NextChainIndex2 = UINT_MAX;
+	m_NextQueryIdx = UINT_MAX;
+	m_NextDBIdx = UINT_MAX;
+
+	m_ProcessedQueryCount = 0;
+	m_ProcessedPairCount = 0;
+	m_HitCount = 0;
+	m_QPCacheHits = 0;
+	m_QPCacheMisses = 0;
+
+	m_FilterRejects = 0;
+	m_XAlignCount = 0;
+	m_SWAlignCount = 0;
+	m_UFilterCount = 0;
+	m_MinEvalue = -1;
+	m_MaxEvalue = 10;
+	m_Secs = UINT_MAX;
+	m_AlnsPerThreadPerSec = FLT_MAX;
+	m_LastProgress = 0;
+	}
+
 uint DBSearcher::GetDBSize() const
 	{
 	return GetDBChainCount();
@@ -124,7 +150,7 @@ void DBSearcher::LoadDB(const string &DBFN)
 	if (DSSParams::m_Omega <= 0)
 		ptrMuLetters = 0;
 
-	PL.Load(*m_Params, CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
+	PL.Load(CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
 
 	setac(targets, SIZE(m_DBChains));

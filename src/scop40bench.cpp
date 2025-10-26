@@ -413,11 +413,41 @@ void SCOP40Bench::SetDomIdxToL()
 		}
 	}
 
-void SCOP40Bench::ClearHits()
+void SCOP40Bench::ClearHitsAndResults()
 	{
+	DBSearcher::ClearStats();
+
 	m_Scores.clear();
 	m_DomIdx1s.clear();
 	m_DomIdx2s.clear();
+	m_DomIdxToHitIdxs.clear();
+	m_DomIdxToL.clear();
+	m_SFIdxToDomIdxs.clear();
+	m_SFSizes.clear();
+	m_ScoreOrder.clear();
+	m_TFs.clear();
+
+	m_ROCStepScores.clear();
+	m_ROCStepNTPs.clear();
+	m_ROCStepNFPs.clear();
+	m_ROCStepSenss.clear();
+	m_ROCStepEPQs.clear();
+
+	m_CVESensVec.clear();
+	m_CVEEPQVec.clear();
+	m_CVEScoreVec.clear();
+
+	m_NT = UINT_MAX;
+	m_NF = UINT_MAX;
+	m_NI = UINT_MAX;
+	m_nt_epq0_1 = UINT_MAX;
+	m_nt_epq1 = UINT_MAX;
+	m_nt_epq10 = UINT_MAX;
+
+	m_ConsideredHitCount = UINT_MAX;
+	m_IgnoredHitCount = UINT_MAX;
+
+	m_Area = FLT_MAX;
 	}
 
 float SCOP40Bench::GetVeryGoodScore() const
@@ -623,19 +653,10 @@ void SCOP40Bench::WriteOutput()
 
 void cmd_scop40bench()
 	{
-	string CalFN;
-	if (g_Arg1 == ".")
-#ifdef _MSC_VER
-		CalFN = "c:/src/reseek_scop40/reseek_db/scop40_family.cal";
-#else
-		CalFN = "/c/src/reseek_scop40/reseek_db/scop40_family.cal";
-#endif
-	else
-		CalFN = g_Arg1;
-
+	string DBFN = g_Arg1;
 	DSSParams::Init(DM_UseCommandLineOption);
 	SCOP40Bench SB;
-	SB.LoadDB(CalFN);
+	SB.LoadDB(DBFN);
 
 	StatSig::Init(SB.GetDBSize());
 

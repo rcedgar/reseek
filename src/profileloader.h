@@ -8,7 +8,6 @@ class DSSAligner;
 class ProfileLoader
 	{
 public:
-	const DSSParams *m_Params = 0;
 	ChainReader2 *m_CR = 0;
 	vector<PDBChain *> *m_Chains = 0;
 	vector<vector<vector<byte> > *> *m_Profiles = 0;
@@ -22,7 +21,6 @@ public:
 
 public:
 	void Load(
-	  const DSSParams &Params,
 	  ChainReader2 &CR,
 	  vector<PDBChain *> *Chains,
 	  vector<vector<vector<byte> > *> *Profiles,

@@ -18,7 +18,6 @@ public:
 
 public:
 	mutex m_Lock;
-	const DSSParams *m_Params = 0;
 	uint m_ThreadCount = UINT_MAX;
 	vector<DSSAligner *> m_DAs;
 	vector<XDPMem *> m_Mems;
@@ -58,6 +57,7 @@ public:
 public:
 	void Setup();
 	void InitEmpty();
+	void ClearStats();
 	void LoadDB(const string &DBFN);
 	uint GetDBChainCount() const { return SIZE(m_DBChains); }
 

@@ -64,7 +64,6 @@ void ProfileLoader::ThreadBody(uint ThreadIndex)
 	}
 
 void ProfileLoader::Load(
-  const DSSParams &Params,
   ChainReader2 &CR,
   vector<PDBChain *> *Chains,
   vector<vector<vector<byte> > *> *Profiles,
@@ -77,7 +76,6 @@ void ProfileLoader::Load(
 	if (optset_minchainlength)
 		m_MinChainLength = opt(minchainlength);
 
-	m_Params = &Params;
 	m_CR = &CR;
 	m_Chains = Chains;
 	m_Profiles = Profiles;

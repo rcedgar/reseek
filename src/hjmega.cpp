@@ -51,6 +51,7 @@ static double EvalArea(const vector<double> &xv)
 	vector<float> Weights(8);
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
+		Weights[0] = 1; // AA defaults to 1
 		float Value = (float) xv[VarIdx];
 		if (Value < 0)
 			return DBL_MAX;
@@ -72,7 +73,7 @@ static double EvalArea(const vector<double> &xv)
 		}
 
 	DSSParams::UpdateWeights(Weights);
-	s_SB->ClearHits();
+	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf();
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
@@ -145,6 +146,7 @@ void cmd_evalarea()
 	s_SB->m_QuerySelf = true;
 	vector<float> Weights(8);
 
+	Weights[0] = 1; // AA defaults to 1
 	vector<string> SpecLines;
 	vector<string> Fields;
 	ReadLinesFromFile(SpecFN, SpecLines);
@@ -175,7 +177,7 @@ void cmd_evalarea()
 		}
 
 	DSSParams::UpdateWeights(Weights);
-	s_SB->ClearHits();
+	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf();
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
