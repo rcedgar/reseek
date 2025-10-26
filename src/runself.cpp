@@ -87,7 +87,7 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	return true;
 	}
 
-void DBSearcher::RunSelf()
+void DBSearcher::RunSelf(bool ShowStats)
 	{
 	StatSig::InitSensitive(GetDBChainCount());//@@TODO why sensitive
 
@@ -127,5 +127,6 @@ void DBSearcher::RunSelf()
 	if (m_Secs == 0)
 		m_Secs = 1;
 	m_AlnsPerThreadPerSec = float(DSSAligner::m_AlnCount)/(m_Secs*ThreadCount);
-	RunStats();
+	if (ShowStats)
+		RunStats();
 	}

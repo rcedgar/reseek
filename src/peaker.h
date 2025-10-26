@@ -17,7 +17,7 @@ public:
 	double m_Min_Height = DBL_MAX;
 	uint m_DefaultSigFig = 6;
 	uint m_SigFig = UINT_MAX;
-	bool m_DoLatin = false;
+	uint m_LatinBinCount = 0;
 	uint m_EvaluateCacheHits = 0;
 	uint m_RequestIdx = 0;
 	double m_Change = 1.5;
@@ -60,7 +60,7 @@ public:
 		m_Min_Height = DBL_MAX;
 		m_DefaultSigFig = 6;
 		m_SigFig = UINT_MAX;
-		m_DoLatin = false;
+		m_LatinBinCount = 0;
 		m_EvaluateCacheHits = 0;
 		m_RequestIdx = 0;
 		m_EvalFunc = 0;
@@ -104,8 +104,6 @@ public:
 	uint GetVarCount() const { return SIZE(m_VarSpecs); }
 	const VarSpec &GetVarSpec(uint VarIdx) const;
 	void GetLatinHypercube(vector<vector<double> > &xvs);
-	bool GetLatinHypercubeVar(vector<double> &xv,
-	  vector<vector<bool> > &FilledMx, uint VarIdx);
 	double Evaluate(uint xIdx, bool UnsetOk = false);
 	double Calc(const vector<double> &xv);
 	double CalcQueue(const vector<double> &xv);
@@ -117,9 +115,13 @@ public:
 	double GetRounded(double x, uint SigFig) const;
 	void RunInitialValues();
 	void RunLatin();
-	double ChangeWithNoise() const;
+	double IncreaseWithNoise() const;
 	double rr(double lo, double hi) const;
 	const vector<double> &GetBestParams() const;
+	bool VarIsConstant(uint VarIdx) const;
+	double GetMinDelta(uint VarIdx) const;
+	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
+	void LatinLoop();
 
 // Hypercross
 	void HC_RunHyperCross();
@@ -133,4 +135,8 @@ public:
 	double HJ_Explore();
 	void HJ_Extend();
 	double HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus);
+
+public:
+	static void GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
+		vector<vector<uint> > &IdxMx);
 	};

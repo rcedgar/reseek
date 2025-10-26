@@ -7,8 +7,9 @@ public:
 	double m_Min = DBL_MAX;
 	double m_Max = DBL_MAX;
 	double m_InitialDelta = DBL_MAX;
+	double m_MinDelta = DBL_MAX;
 	uint m_SigFig = UINT_MAX;
-	uint m_InitBinCount = UINT_MAX;	// for Latin hypercube
+	bool m_Constant = false;
 	double m_InitialValue = DBL_MAX;
 
 public:

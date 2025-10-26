@@ -74,7 +74,7 @@ public:
 	static void SetStandardFeatures();
 	static void SetDefaultNonFeatureTunableParams();
 	static void SetTunableParamStr(const string &Name, const string &Value);
-	static void SetTunableParamsFromStr(const string &Str);
+	static void SetTunableParamsFromStr(const string &Str, bool DoLog = false);
 	static void SetAlgoMode(DECIDE_MODE DM);
 	static void GetParamStr(string &Str);
 
@@ -96,6 +96,7 @@ public:
 
 	static void NormalizeWeights();
 	static void AllocScoreMxs();
+	static void FreeScoreMxs();
 	static void SetScoreMxsFromFeatures();
 	static void CreateWeightedScoreMxs();
 	static void UpdateWeights(const vector<float> &Weights);

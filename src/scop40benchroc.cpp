@@ -110,7 +110,6 @@ void SCOP40Bench::SetTFs()
 	uint SFCount = SIZE(m_SFs);
 	for (uint i = 0; i < HitCount; ++i)
 		{
-		ProgressStep(i, HitCount, "Set TFs");
 		uint DomIdx1 = m_DomIdx1s[i];
 		uint DomIdx2 = m_DomIdx2s[i];
 		int T = IsT(DomIdx1, DomIdx2);
@@ -327,7 +326,6 @@ void SCOP40Bench::SetROCSteps()
 		return;
 
 	asserta(SIZE(m_TFs) == HitCount);
-	Progress("Sort scores SBS=%s\n", SBSToStr(m_SBS));
 	SetScoreOrder();
 	const vector<uint> &Order = m_ScoreOrder;
 	asserta(SIZE(Order) == HitCount);
@@ -335,7 +333,6 @@ void SCOP40Bench::SetROCSteps()
 	float CurrentScore = m_Scores[Order[0]];
 	uint NTP = 0;
 	uint NFP = 0;
-	Progress("ROC Steps\n");
 	for (uint k = 0; k < HitCount; ++k)
 		{
 		uint i = Order[k];

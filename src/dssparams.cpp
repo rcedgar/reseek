@@ -172,15 +172,42 @@ void DSSParams::NormalizeWeights()
 
 void DSSParams::SetScoreMxsFromFeatures()
 	{
-	asserta(m_ScoreMxs == 0);
 	AllocScoreMxs();
 	NormalizeWeights();
 	CreateWeightedScoreMxs();
 	}
 
+void DSSParams::FreeScoreMxs()
+	{
+	if (m_ScoreMxs == 0)
+		return;
+
+	for (uint i = 0; i < SIZE(m_Features); ++i)
+		{
+		FEATURE F = m_Features[i];
+		if (m_ScoreMxs[F] != 0)
+			{
+			uint AS = GetAlphaSize(F);
+			for (uint j = 0; j < AS; ++j)
+				{
+				asserta(m_ScoreMxs[F][j] != 0);
+				myfree(m_ScoreMxs[F][j]);
+				}
+			myfree(m_ScoreMxs[F]);
+			m_ScoreMxs[F] = 0;
+			}
+		}
+
+	for (uint i = 0; i < FEATURE_COUNT; ++i)
+		asserta(m_ScoreMxs[i] == 0);
+
+	myfree(m_ScoreMxs);
+	}
+
 void DSSParams::AllocScoreMxs()
 	{
-	asserta(m_ScoreMxs == 0);
+	if (m_ScoreMxs != 0)
+		FreeScoreMxs();
 	uint FeatureCount = GetFeatureCount();
 	m_ScoreMxs = myalloc(float **, FEATURE_COUNT);
 	for (uint i = 0; i < FEATURE_COUNT; ++i)
@@ -265,7 +292,7 @@ void DSSParams::SetTunableParamStr(const string &Name, const string &StrValue)
 	if (Name == "open") { m_GapOpen = -Value; return; }
 	if (Name == "ext") { m_GapExt = -Value; return; }
 	if (Name == "gap") { m_GapOpen = m_GapExt = -Value; return; }
-	if (Name == "gap2") { m_GapOpen = -Value; m_GapExt = -Value*0.1f; }
+	if (Name == "gap2") { m_GapOpen = -Value; m_GapExt = -Value*0.1f; return; }
 
 	Die("SetParamStr(%s, %s) unknown param",
 		Name.c_str(), StrValue.c_str());
@@ -290,13 +317,16 @@ void DSSParams::GetParamStr(string &Str)
 		}
 	}
 
-void DSSParams::SetTunableParamsFromStr(const string &Str)
+void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
 	{
-	ProgressLog("SetTunableParamsFromStr()\n");
 	vector<string> Fields;
-	Split(Str, Fields, ';');
-	for (uint i = 0; i < SIZE(Fields); ++i)
-		ProgressLog("  %s\n", Fields[i].c_str());
+	if (DoLog)
+		{
+		Log("SetTunableParamsFromStr()\n");
+		Split(Str, Fields, ';');
+		for (uint i = 0; i < SIZE(Fields); ++i)
+			Log("  %s\n", Fields[i].c_str());
+		}
 
 	SetDefaultNonFeatureTunableParams();
 	m_Features.clear();

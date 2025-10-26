@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "peaker.h"
 
-double Peaker::ChangeWithNoise() const
+double Peaker::IncreaseWithNoise() const
 	{
 	double Noise = rr(0, m_Noise);
 	double Change = DBL_MAX;
@@ -26,6 +26,8 @@ double Peaker::HJ_Explore()
 	double maxdy = 0;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
+		if (VarIsConstant(VarIdx))
+			continue;
 		const char *Name = GetVarName(VarIdx);
 		for (int iPlus = 0; iPlus <= 1; ++iPlus)
 			{
@@ -74,6 +76,7 @@ void Peaker::HJ_Extend()
 	{
 	const uint VarCount = GetVarCount();
 	asserta(m_HJ_Direction < VarCount);
+	asserta(!VarIsConstant(m_HJ_Direction));
 	const uint VarIdx = m_HJ_Direction;
 	const char *Name = GetVarName(VarIdx);
 	for (uint Iter = 0; ; ++Iter)
@@ -85,6 +88,11 @@ void Peaker::HJ_Extend()
 		double Saved_Best_y = m_Best_y;
 		Ps(m_Msg, "HJ_%s%c", GetVarName(VarIdx), pom(m_HJ_Plus));
 		double y = HJ_EvalDelta(m_Best_xIdx, VarIdx, Delta);
+		if (y == DBL_MAX)
+			{
+			Log("HJ_extend(%s), HJ_EvalDelta=DBL_MAX\n", Name);
+			continue;
+			}
 		Log("HJ_extend() %s%c %u/%u dy=%+.3g\n",
 		  Name, pom(m_HJ_Plus), Iter+1, m_HJ_MaxExtendIters, y - Saved_Best_y);
 		if (m_Progress)
@@ -99,7 +107,7 @@ void Peaker::HJ_Extend()
 				Log("HJ_Extend(%s) delta down\n", Name);
 				if (m_Progress)
 					Progress("HJ_Extend(%s) delta down\n", Name);
-				m_Deltas[VarIdx] /= ChangeWithNoise();
+				m_Deltas[VarIdx] /= IncreaseWithNoise();
 				LogDeltas();
 				}
 			return;
@@ -109,7 +117,7 @@ void Peaker::HJ_Extend()
 			Log("HJ_Extend(%s) delta up\n", Name, Iter+1);
 			if (m_Progress)
 				Progress("HJ_Extend(%s) delta up\n", Name, Iter+1);
-			m_Deltas[VarIdx] *= ChangeWithNoise();
+			m_Deltas[VarIdx] *= IncreaseWithNoise();
 			LogDeltas();
 			}
 		}
@@ -118,10 +126,12 @@ void Peaker::HJ_Extend()
 double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 	{
 	double Delta = m_Deltas[VarIdx];
+	asserta(Delta != DBL_MAX);
+	asserta(!isnan(Delta));
+
 	vector<double> xv = Get_xv(xIdx);
 
 	const char *Name = GetVarName(VarIdx);
-	bool Vanished = false;
 	double Oldx = xv[VarIdx];
 	double Newx = DBL_MAX;
 	uint SigFig = GetSigFig(VarIdx);
@@ -129,7 +139,11 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 	for (uint Iter = 0; ; ++Iter)
 		{
 		if (Iter > 100)
-			Die("HJ_EvalDelta rounding vanished");
+			{
+		// Last resort, reset to initial delta
+			m_Deltas[VarIdx] = GetVarSpec(VarIdx).m_InitialDelta;
+			break;
+			}
 
 		Newx = Plus ? Oldx + Delta : Oldx - Delta;
 
@@ -140,9 +154,7 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 			break;
 			}
 
-		Warning("Delta %s vanished, increasing", Name);
-		m_Deltas[VarIdx] *= ChangeWithNoise();
-		Vanished = true;
+		m_Deltas[VarIdx] *= IncreaseWithNoise();
 		}
 
 	uint xIdx2 = Add_xv(xv);
@@ -155,7 +167,10 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 	  Name, pom(Plus), Oldx, Newx, y, y2, y2 - y);
 	if (dy < m_Min_dy)
 		{
-		double NewDelta = Delta*ChangeWithNoise();
+		double NewDelta = Delta*IncreaseWithNoise();
+		double MinDelta = GetMinDelta(VarIdx);
+		if (NewDelta < MinDelta)
+			NewDelta = MinDelta*IncreaseWithNoise();
 		m_Deltas[VarIdx] = NewDelta;
 		Log("Delta %s adjust up %.3g => %.3g\n",
 		  Name, Delta, NewDelta);
@@ -165,7 +180,10 @@ double Peaker::HJ_EvalDelta(uint xIdx, uint VarIdx, bool Plus)
 		}
 	else if (dy > m_Max_dy)
 		{
-		double NewDelta = Delta/ChangeWithNoise();
+		double NewDelta = Delta/IncreaseWithNoise();
+		double MinDelta = GetMinDelta(VarIdx);
+		if (NewDelta < MinDelta)
+			NewDelta = MinDelta*IncreaseWithNoise();
 		m_Deltas[VarIdx] = NewDelta;
 		Log("Delta %s adjust down %.3g => %.3g\n",
 		  Name, Delta, NewDelta);

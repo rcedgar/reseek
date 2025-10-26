@@ -62,7 +62,7 @@ public:
 	uint GetDBChainCount() const { return SIZE(m_DBChains); }
 
 	void RunQuery(ChainReader2 &QCR);
-	void RunSelf();
+	void RunSelf(bool ShowStats = true);
 
 	void ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR);
 	void ThreadBodySelf(uint ThreadIndex);

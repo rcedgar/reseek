@@ -61,14 +61,34 @@ void VarSpec::Init(const vector<string> &Names,
 			m_Max = StrToFloat(Value);
 		else if (Name == "delta")
 			m_InitialDelta = StrToFloat(Value);
+		else if (Name == "mindelta")
+			m_MinDelta = StrToFloat(Value);
 		else if (Name == "sigfig")
 			m_SigFig = StrToUint(Value);
-		else if (Name == "bins")
-			m_InitBinCount = StrToUint(Value);
+		else if (Name == "constant")
+			{
+			if (Value == "yes")
+				m_Constant = true;
+			else if (Value == "no")
+				m_Constant = false;
+			else
+				Die("Invalid constant=%s", Value.c_str());
+			}
 		else
 			Die("var %s spec name '%s'",
 			  m_Name.c_str(), Name.c_str());
 		}
+	asserta(m_InitialValue != DBL_MAX);
+	if (m_Min == DBL_MAX)
+		m_Min = m_InitialValue;
+	if (m_Max == DBL_MAX)
+		m_Max = m_InitialValue;
+	if (m_InitialDelta == DBL_MAX)
+		m_InitialDelta = fabs(m_InitialValue/10);
+	if (m_MinDelta == DBL_MAX)
+		m_MinDelta = m_InitialDelta/10;
+	if (m_SigFig == UINT_MAX)
+		m_SigFig = 3;
 	}
 
 const char *Peaker::GetVarName(uint VarIdx) const
@@ -149,35 +169,44 @@ uint Peaker::Add_xv(const vector<double> &xv)
 	return xIdx;
 	}
 
+double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const
+	{
+	asserta(BinCount > 0);
+	const VarSpec &Spec = GetVarSpec(VarIdx);
+	if (Spec.m_Constant)
+		return Spec.m_InitialValue;
+	asserta(Spec.m_Min != DBL_MAX);
+	asserta(Spec.m_Max != DBL_MAX);
+	asserta(Spec.m_Min < Spec.m_Max);
+	double BinWidth = (Spec.m_Max - Spec.m_Min)/(BinCount - 1);
+	double BinLo = Spec.m_Min + BinWidth*BinIdx;
+	const uint M = 3141592;
+	double r = double(randu32()%M)/(M-1);
+	asserta(r >= 0 && r <= 1);
+	double Value = BinLo + r*BinWidth;
+	return Value;
+	}
+
 void Peaker::GetLatinHypercube(vector<vector<double> > &xvs)
 	{
-	if (!m_DoLatin)
+	xvs.clear();
+	if (m_LatinBinCount == 0)
 		return;
 
 	const uint VarCount = GetVarCount();
-	vector<vector<bool> > FilledMx(VarCount);
-	for (uint i = 0; i < VarCount; ++i)
-		{
-		uint BinCount = m_VarSpecs[i]->m_InitBinCount;
-		FilledMx[i].resize(BinCount, false);
-		}
+	vector<vector<uint> > IdxMx;
+	GetLatinHypercubeIdxs(VarCount, m_LatinBinCount, IdxMx);
+	asserta(SIZE(IdxMx) == m_LatinBinCount);
 
-	for (;;)
+	xvs.resize(m_LatinBinCount);
+	for (uint BinIdx = 0; BinIdx < m_LatinBinCount; ++BinIdx)
 		{
-		bool Done = false;
-		vector<double> xv(VarCount, DBL_MAX);
+		vector<double> &xv = xvs[BinIdx];
 		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 			{
-			bool Ok = GetLatinHypercubeVar(xv, FilledMx, VarIdx);
-			if (!Ok)
-				{
-				Done = true;
-				break;
-				}
+			double Value = GetLatinValueByBinIdx(VarIdx, BinIdx, m_LatinBinCount);
+			xv.push_back(Value);
 			}
-		if (Done)
-			break;
-		xvs.push_back(xv);
 		}
 	}
 
@@ -187,39 +216,14 @@ const VarSpec &Peaker::GetVarSpec(uint VarIdx) const
 	return *m_VarSpecs[VarIdx];
 	}
 
-bool Peaker::GetLatinHypercubeVar(vector<double> &xv,
-  vector<vector<bool> > &FilledMx, uint VarIdx)
+bool Peaker::VarIsConstant(uint VarIdx) const
 	{
-	const VarSpec &Spec = GetVarSpec(VarIdx);
-	uint BinCount = Spec.m_InitBinCount;
-	asserta(BinCount > 0);
-	const double Min = Spec.m_Min;
-	const double Max = Spec.m_Max;
+	return GetVarSpec(VarIdx).m_Constant;
+	}
 
-	asserta(BinCount != UINT_MAX);
-	asserta(Min != DBL_MAX);
-	asserta(Max != DBL_MAX);
-	asserta(Min < Max);
-
-	asserta(VarIdx < SIZE(FilledMx));
-	vector<bool> &Filled = FilledMx[VarIdx];
-	vector<uint> AvailableBins;
-	for (uint Bin = 0; Bin < BinCount; ++Bin)
-		{
-		if (!Filled[Bin])
-			AvailableBins.push_back(Bin);
-		}
-	uint n = SIZE(AvailableBins);
-	if (n == 0)
-		return false;
-
-	uint Bin = AvailableBins[randu32()%n];
-	Filled[Bin] = true;
-	double BinMin = Min + Bin*(Max - Min)/BinCount;
-	double BinMax = Min + (Bin + 1)*(Max - Min)/BinCount;
-	double x = rr(BinMin, BinMax);
-	xv[VarIdx] = x;
-	return true;
+double Peaker::GetMinDelta(uint VarIdx) const
+	{
+	return GetVarSpec(VarIdx).m_MinDelta;
 	}
 
 void Peaker::InitDeltas()
@@ -271,6 +275,8 @@ const char *Peaker::VarsToStr(const vector<double> &xv, string &s,
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		double x = xv[VarIdx];
+		asserta(x != DBL_MAX);
+		asserta(!isnan(x));
 		string Tmp;
 		VarToStr(x, VarIdx, Tmp);
 		if (VarIdx > 0)
@@ -282,6 +288,8 @@ const char *Peaker::VarsToStr(const vector<double> &xv, string &s,
 
 const char *Peaker::VarToStr(double x, uint VarIdx, string &s) const
 	{
+	asserta(x != DBL_MAX);
+	asserta(!isnan(x));
 	uint SigFig = GetSigFig(VarIdx);
 
 	string Fmt;
@@ -339,7 +347,10 @@ double Peaker::Evaluate(uint xIdx, bool UnsetOk)
 		}
 	++m_EvalIdx;
 	if (m_fTsv != 0)
+		{
 		fprintf(m_fTsv, "%.6g\t%s\n", y, VarsStr.c_str());
+		fflush(m_fTsv);
+		}
 	return y;
 	}
 
@@ -418,14 +429,7 @@ void Peaker::Init(const vector<string> &SpecLines,
 			else if (Name == "sigfig")
 				m_SigFig = StrToUint(Value);
 			else if (Name == "latin")
-				{
-				if (Value == "yes")
-					m_DoLatin = true;
-				else if (Value == "no")
-					m_DoLatin = false;
-				else
-					Die("Invalid latin=%s", Value.c_str());
-				}
+				m_LatinBinCount = StrToUint(Value);
 			else if (Name == "hj_iters")
 				m_HJ_MaxIters = StrToUint(Value);
 			else if (Name == "minh")
@@ -560,7 +564,7 @@ void Peaker::RunInitialValues()
 
 void Peaker::RunLatin()
 	{
-	if (!m_DoLatin)
+	if (m_LatinBinCount == 0)
 		return;
 
 	const uint VarCount = GetVarCount();
@@ -568,6 +572,21 @@ void Peaker::RunLatin()
 	GetLatinHypercube(xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
+#if	0
+	{
+	const uint m = GetVarCount();
+	Log("Latin=%u\n", n);
+	for (uint i = 0; i < n; ++i)
+		{
+		Log("[%5u] ", i);
+		const vector<double> &xv = xvs[i];
+		asserta(SIZE(xv) == m);
+		for (uint j = 0; j < m; ++j)
+			Log(" %5.5s=%8.3g", GetVarName(j), xv[j]);
+		Log("\n");
+		}
+	}
+#endif
 	for (uint i = 0; i < n; ++i)
 		{
 		Ps(m_Msg, "Latin%u/%u", i+1, n);
@@ -610,9 +629,35 @@ const vector<double> &Peaker::GetBestParams() const
 	return m_xvs[m_Best_xIdx];
 	}
 
+void Peaker::LatinLoop()
+	{
+	for (;;)
+		RunLatin();
+	}
+
 void Peaker::Run()
 	{
 	RunInitialValues();
 	RunLatin();
 	HJ_RunHookeJeeves();
+	}
+
+void Peaker::GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
+	vector<vector<uint> > &IdxMx)
+	{
+	IdxMx.clear();
+	IdxMx.resize(BinCount);
+
+	for (uint BinIdx = 0; BinIdx < BinCount; ++BinIdx)
+		IdxMx[BinIdx].resize(VarCount, BinIdx);
+
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		vector<uint> BinIdxs;
+		for (uint BinIdx = 0; BinIdx < BinCount; ++BinIdx)
+			BinIdxs.push_back(BinIdx);
+		Shuffle(BinIdxs);
+		for (uint k = 0; k < BinCount; ++k)
+			IdxMx[k][VarIdx] = BinIdxs[k];
+		}
 	}
