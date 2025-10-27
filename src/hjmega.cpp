@@ -22,6 +22,27 @@ static double EvalArea(const vector<double> &xv)
 	return s_SB->m_Area;
 	}
 
+void cmd_evalarea()
+	{
+	const string &DBFN = g_Arg1;
+
+	DSSParams::Init(DM_UseCommandLineOption);
+	string ParamStr;
+	DSSParams::GetParamStr(ParamStr);
+	ProgressLog("ParamStr:%s\n", ParamStr.c_str());
+
+	s_SB = new SCOP40Bench;
+	s_SB->LoadDB(DBFN);
+	StatSig::Init(s_SB->GetDBSize());
+	s_SB->Setup();
+	s_SB->m_QuerySelf = true;
+	s_SB->RunSelf(false);
+	s_SB->m_Level = "sf";
+	s_SB->SetStats(0.005f);
+	s_SB->WriteSummary();
+	ProgressLog("Area=%.4g\n", s_SB->m_Area);
+	}
+
 void cmd_hjmega()
 	{
 	const string SpecFN = g_Arg1;

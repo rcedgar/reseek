@@ -719,14 +719,14 @@ void Peaker::LogSpecs() const
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		const VarSpec &Spec = GetVarSpec(VarIdx);
-		Log("var=%s", Spec.m_Name);
+		Log("var=%s", Spec.m_Name.c_str());
 		Log("\tinit=%.3g", Spec.m_InitialValue);
 		if (Spec.m_Constant)
 			Log("\tconstant=yes");
 		else
 			{
 			Log("\tmin=%.3g", Spec.m_Min);
-			Log("\tmax=%.3g", Spec.m_Min);
+			Log("\tmax=%.3g", Spec.m_Max);
 			Log("\tsigfig=%u", GetSigFig(VarIdx));
 			}
 		Log("\n");
@@ -739,12 +739,13 @@ void Peaker::RunNestedLatin(uint TopN)
 	vector<double> ys;
 	RunLatin(Idxs, ys);
 
-	const uint N = min(TopN, SIZE(ys));
+	const uint NY = SIZE(ys);
+	const uint N = min(TopN, NY);
 	if (N == 0)
 		return;
 	const uint VarCount = GetVarCount();
-	vector<uint> Order(N);
-	QuickSortOrderDesc(ys.data(), N, Order.data());
+	vector<uint> Order(NY);
+	QuickSortOrderDesc(ys.data(), NY, Order.data());
 	Log("NESTED_LATIN_TOPS ");
 	for (uint k = 0; k < N; ++k)
 		{
@@ -794,7 +795,7 @@ void Peaker::RunNestedLatin(uint TopN)
 		Log("NESTED_LATIN\n");
 		P.LogSpecs();
 		P.RunLatin(SubIdxs, Subys);
-		Log("NESTED_LATIN_BEST %u/%u y=%.3g\n", k+1, P.m_Best_y);
+		Log("NESTED_LATIN_BEST %u/%u y=%.3g\n", k+1, N, P.m_Best_y);
 		for (uint j = 0; j < J; ++j)
 			{
 			double y = Subys[j];
