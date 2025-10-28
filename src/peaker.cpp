@@ -43,8 +43,11 @@ double Peaker::rr(double lo, double hi) const
 	}
 
 void VarSpec::Init(const vector<string> &Names,
-  const vector<string> &Values)
+	const vector<string> &Values,
+	uint DefaultSigFig,
+	bool RequireInitialValue)
 	{
+	m_SigFig = DefaultSigFig;
 	const uint N = SIZE(Names);
 	asserta(SIZE(Values) == N);
 	for (uint i = 0; i < N; ++i)
@@ -79,7 +82,8 @@ void VarSpec::Init(const vector<string> &Names,
 			Die("var %s spec name '%s'",
 			  m_Name.c_str(), Name.c_str());
 		}
-	asserta(m_InitialValue != DBL_MAX);
+	if (RequireInitialValue)
+		asserta(m_InitialValue != DBL_MAX);
 	if (m_Min == DBL_MAX)
 		m_Min = m_InitialValue;
 	if (m_Max == DBL_MAX)
@@ -88,8 +92,6 @@ void VarSpec::Init(const vector<string> &Names,
 		m_InitialDelta = fabs(m_InitialValue/10);
 	if (m_MinDelta == DBL_MAX)
 		m_MinDelta = m_InitialDelta/10;
-	if (m_SigFig == UINT_MAX)
-		m_SigFig = 3;
 	}
 
 const char *Peaker::GetVarName(uint VarIdx) const
@@ -98,7 +100,20 @@ const char *Peaker::GetVarName(uint VarIdx) const
 	return Spec.m_Name.c_str();
 	}
 
-// xv are equivalent if all diffs are <= VarSpec.MinDelta
+void Peaker::Round_xs(const vector<double> &xv, vector<double> &Rounded_xv) const
+	{
+	Rounded_xv.clear();
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		double Value = xv[VarIdx];
+		uint SigFig = GetSigFig(VarIdx);
+		double RoundedValue = GetRounded(Value, SigFig);
+		Rounded_xv.push_back(RoundedValue);
+		}
+	}
+
 bool Peaker::Cmp_xs(const vector<double> &xs1, const vector<double> &xs2) const
 	{
 	const uint VarCount = GetVarCount();
@@ -115,28 +130,6 @@ bool Peaker::Cmp_xs(const vector<double> &xs1, const vector<double> &xs2) const
 	return true;
 	}
 
-double Peaker::Get_y(uint xIdx) const
-	{
-	const uint N = SIZE(m_ys);
-	asserta(N == SIZE(m_xvs));
-	asserta(xIdx < N);
-	return m_ys[xIdx];
-	}
-
-const vector<double> &Peaker::Get_xv(uint xIdx) const
-	{
-	asserta(xIdx < SIZE(m_xvs));
-	return m_xvs[xIdx];
-	}
-
-double Peaker::Get_x(uint xIdx, uint VarIdx) const
-	{
-	const vector<double> &xv = Get_xv(xIdx);
-	asserta(VarIdx < SIZE(xv));
-	double x = xv[VarIdx];
-	return x;
-	}
-
 uint Peaker::Find_xs(const vector<double> &xv) const
 	{
 	for (uint xIdx = 0; xIdx < SIZE(m_xvs); ++xIdx)
@@ -146,28 +139,6 @@ uint Peaker::Find_xs(const vector<double> &xv) const
 			return xIdx;
 		}
 	return UINT_MAX;
-	}
-
-uint Peaker::Add_xv(const vector<double> &xv)
-	{
-	uint xIdx = Find_xs(xv);
-	if (xIdx != UINT_MAX)
-		return xIdx;
-	xIdx = SIZE(m_xvs);
-
-	const uint VarCount = GetVarCount();
-	vector<double> Rounded_xv;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		double x = xv[VarIdx];
-		uint SigFig = GetSigFig(VarIdx);
-		double Rounded_x = GetRounded(x, SigFig);
-		Rounded_xv.push_back(Rounded_x);
-		}
-
-	m_xvs.push_back(Rounded_xv);
-	m_ys.push_back(DBL_MAX);
-	return xIdx;
 	}
 
 void Peaker::LogLatinBins() const
@@ -280,19 +251,13 @@ void Peaker::LogDeltas() const
 	const uint VarCount = GetVarCount();
 
 	Log("Deltas: ");
-	if (m_Progress)
-		Progress("Deltas: ");
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		const VarSpec &Spec = GetVarSpec(VarIdx);
 		double InitialDelta = Spec.m_InitialDelta;
 		Log(" %s(%.3g,%.3g)", GetVarName(VarIdx), InitialDelta, m_Deltas[VarIdx]);
-		if (m_Progress)
-			Progress(" %s(%.3g,%.3g)", GetVarName(VarIdx), InitialDelta, m_Deltas[VarIdx]);
 		}
 	Log("\n");
-	if (m_Progress)
-		Progress("\n");
 	}
 
 uint Peaker::GetSigFig(uint VarIdx) const
@@ -300,15 +265,14 @@ uint Peaker::GetSigFig(uint VarIdx) const
 	const VarSpec &Spec = GetVarSpec(VarIdx);
 	if (Spec.m_SigFig != UINT_MAX)
 		return Spec.m_SigFig;
-	if (m_SigFig != UINT_MAX)
-		return m_SigFig;
-	return m_DefaultSigFig;
+	return m_SigFig;
 	}
 
 const char *Peaker::VarsToStr(const vector<double> &xv, string &s,
 							  const string sep) const
 	{
 	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv) == VarCount);
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		double x = xv[VarIdx];
@@ -342,82 +306,97 @@ double Peaker::Calc(const vector<double> &xv)
 	return y;
 	}
 
-double Peaker::Evaluate(uint xIdx, bool UnsetOk)
+void Peaker::GetPeakerPathStr(string &s) const
 	{
-	if (xIdx == UINT_MAX)
+	s.clear();
+	string ParentStr;
+	if (m_Parent != 0)
+		m_Parent->GetPeakerPathStr(ParentStr);
+
+	string WhoAmI;
+	if (m_ptrWhoAmI != 0)
+		WhoAmI = *m_ptrWhoAmI;
+	s = ParentStr + "/" + WhoAmI;
+	}
+
+void Peaker::AppendChildResult(const vector<double> &xv, double y, 
+	const string &childname, const string &why)
+	{
+	m_ys.push_back(y);
+
+	string child_why = childname + ":" + why;
+	m_whys.push_back(child_why);
+
+	if (y != DBL_MAX)
 		{
-		if (UnsetOk)
-			return DBL_MAX;
-		Die("Evaluate(*)");
+		if (m_Best_y == DBL_MAX || y > m_Best_y)
+			{
+			m_Best_y = y;
+			m_Best_xv = xv;
+			m_LastImprovedTime = time(0);
+			}
 		}
-	asserta(xIdx < SIZE(m_ys));
-	asserta(xIdx < SIZE(m_xvs));
-	const vector<double> &xv = m_xvs[xIdx];
-	string VarsStr;
-	VarsToStr(xv, VarsStr);
-	if (m_ys[xIdx] != DBL_MAX)
+	}
+
+double Peaker::Evaluate(const vector<double> &axv, const string &why)
+	{
+	const double Saved_Best_y = m_Best_y;
+	vector<double> xv;
+	Round_xs(axv, xv);
+	uint Idx = Find_xs(xv);
+	double y = DBL_MAX;
+	if (Idx != UINT_MAX)
 		{
-		double y = m_ys[xIdx];
 		++m_EvaluateCacheHits;
-		return y;
+		asserta(Idx < SIZE(m_ys));
+		y = m_ys[Idx];
+		}
+	else
+		y = Calc(xv);
+
+	m_xvs.push_back(xv);
+	m_ys.push_back(y);
+	m_whys.push_back(why);
+
+	if (y != DBL_MAX)
+		{
+		if (m_Best_y == DBL_MAX || y > m_Best_y)
+			{
+			m_Best_y = y;
+			m_Best_xv = xv;
+			m_LastImprovedTime = time(0);
+			m_LastImprovedEvalCount = = SIZE(m_ys);
+			ProgressLog(">>> %.3g .. %.3g (%.3g)\n",
+				Saved_Best_y, y, y - Saved_Best_y);
+			}
 		}
 
-	double y = Calc(xv);
-	if (y == DBL_MAX)
-		return DBL_MAX;
-	m_ys[xIdx] = y;
-	double dy = DBL_MAX;
-	if (m_Best_y == DBL_MAX)
-		dy = fabs(y);
-	else
-		dy = y - m_Best_y;
-	Log("y=%.6g/%+.3g Evaluate(%s)\n", y, dy, VarsStr.c_str());
+	double dy = y - Saved_Best_y;
+	string VarsStr;
+	VarsToStr(xv, VarsStr, ";");
+	string Path;
+	GetPeakerPathStr(Path);
+	ProgressLog("[%.6g](%+.3g) %s %s %s\n",
+		m_Best_y, dy, Path.c_str(), why.c_str(), VarsStr.c_str());
+	string improved;
 	if (dy > 0)
+		improved = "^^";
+	if (m_fTsv != 0 && y != DBL_MAX)
 		{
-		m_Best_xIdx = xIdx;
-		m_Best_y = y;
-		m_Best_ys.push_back(y);
-		m_Best_EvalIdxs.push_back(m_EvalIdx);
-		m_Best_xIdxs.push_back(xIdx);
-		m_LastImprovedEvalIdx = m_EvalIdx;
-		ProgressLogSummary();
-		}
-	++m_EvalIdx;
-	if (m_fTsv != 0)
-		{
-		fprintf(m_fTsv, "%.6g\t%s\n", y, VarsStr.c_str());
+		fprintf(m_fTsv, "%.6g\t%s%s%s\t%s\n",
+			y, Path.c_str(), why.c_str(), improved.c_str(), VarsStr.c_str());
 		fflush(m_fTsv);
 		}
 	return y;
 	}
 
-void Peaker::LogPair(uint xIdx1, uint xIdx2) const
-	{
-	Log("Pair: ");
-	const vector<double> &xv1 = Get_xv(xIdx1);
-	const vector<double> &xv2 = Get_xv(xIdx2);
-	const uint VarCount = GetVarCount();
-	uint ChangeCount = 0;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		double x1 = xv1[VarIdx];
-		double x2 = xv2[VarIdx];
-		if (x1 != x2)
-			{
-			++ChangeCount;
-			Log(" %s %.6g(%+.3g)", GetVarName(VarIdx), x1, x2 - x1);
-			}
-		}
-	Log(" %u changes\n", ChangeCount);
-	}
-
-void Peaker::Init(const vector<string> &SpecLines,
-  PTR_EVAL_FUNC EF)
+void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 	{
 	Clear();
 	m_EvalFunc = EF;
 	vector<string> Fields;
 	const uint LineCount = SIZE(SpecLines);
+	m_SkipInit = false;
 	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
 		{
 		const string &Line = SpecLines[LineIdx];
@@ -446,7 +425,7 @@ void Peaker::Init(const vector<string> &SpecLines,
 		if (Names[0] == "var")
 			{
 			VarSpec *Spec = new VarSpec;
-			Spec->Init(Names, Values);
+			Spec->Init(Names, Values, m_SigFig, !m_SkipInit);
 			m_VarSpecs.push_back(Spec);
 			}
 		else
@@ -473,6 +452,15 @@ void Peaker::Init(const vector<string> &SpecLines,
 				m_Min_Height = StrToFloat(Value);
 			else if (Name == "qdir")
 				m_QueueDir = Value;
+			else if (Name == "skipinit")
+				{
+				if (Value == "yes")
+					m_SkipInit = true;
+				else if (Value == "no")
+					m_SkipInit = false;
+				else
+					Die("Invalid skipinit=%s", Value.c_str());
+				}
 			else
 				Die("Invalid param name '%s'", Name.c_str());
 			}
@@ -481,87 +469,16 @@ void Peaker::Init(const vector<string> &SpecLines,
 
 void Peaker::LogState() const
 	{
-	const uint VarCount = GetVarCount();
-	vector<double> xv;
-	if (m_Best_xIdx != UINT_MAX)
-		xv = Get_xv(m_Best_xIdx);
-
-	Log("\n");
-	Log("#%u", m_EvalIdx);
-	Log(", last+ %u", m_LastImprovedEvalIdx);
-	Log(", cache %u", m_EvaluateCacheHits);
-	Log(", target dy=%.3g", m_Target_dy);
-	Log("\n");
-	Log("       Var       Delta        Best\n");
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		Log("%10.10s", GetVarName(VarIdx));
-		Log("  %10.10s", FloatToStr(m_Deltas[VarIdx]));
-		if (m_Best_xIdx != UINT_MAX)
-			Log("  %10.6g", xv[VarIdx]);
-		Log("\n");
-		}
+	Die("TODO");
 	}
 
-void Peaker::ProgressLogSummary() const
+void Peaker::GetBestVars(vector<double> &xs) const
 	{
-	string TmpStr;
-	Log("%s ", GetElapsedTimeStr(TmpStr));
-	if (m_Progress)
-		Progress("%s ", GetElapsedTimeStr(TmpStr));
-	if (m_Best_xIdx == UINT_MAX)
-		{
-		Log(" (no evals)\n");
-		if (m_Progress)
-			Progress(" (no evals)\n");
-		return;
-		}
-
-	if (m_LastImprovedEvalIdx == m_EvalIdx)
-		{
-		Log(">>", m_EvalIdx);
-		if (m_Progress)
-			Progress(">>", m_EvalIdx);
-		}
-	else
-		{
-		Log("#%u", m_EvalIdx);
-		Log(" ~%u", m_EvalIdx - m_LastImprovedEvalIdx);
-		if (m_Progress)
-			{
-			Progress("#%u", m_EvalIdx);
-			Progress(" ~%u", m_EvalIdx - m_LastImprovedEvalIdx);
-			}
-		}
-	if (m_Msg != "")
-		{
-		Log(" %s", m_Msg.c_str());
-		if (m_Progress)
-			Progress(" %s", m_Msg.c_str());
-		}
-
-	string s;
-	GetBestVarStr(s);
-	Log(" [%.6g]", m_Best_y);
-	Log(" %s", s.c_str());
-	Log("\n");
-	if (m_Progress)
-		{
-		Progress(" [%.6g]", m_Best_y);
-		Progress(" %s", s.c_str());
-		Progress("\n");
-		}
 	}
 
 void Peaker::GetBestVarStr(string &s) const
 	{
-	if (m_Best_xIdx == UINT_MAX)
-		{
-		s = "(none)";
-		return;
-		}
-	const vector<double> &xv = Get_xv(m_Best_xIdx);
-	VarsToStr(xv, s);
+	VarsToStr(m_Best_xv, s);
 	}
 
 double Peaker::GetRounded(double x, uint SigFig) const
@@ -594,20 +511,17 @@ void Peaker::RunInitialValues()
 	if (n < VarCount)
 		Die("Missing %u / %u initial values",
 		  VarCount - n, VarCount);
-	uint TmpIdx = Add_xv(xv);
-	m_Msg = "Inits";
-	Evaluate(TmpIdx);
+	Evaluate(xv, "init");
 	}
 
-void Peaker::RunLatin(vector<uint> &Idxs, vector<double> &ys)
+void Peaker::RunLatin(vector<vector<double> > &xvs, vector<double> &ys)
 	{
-	Idxs.clear();
+	xvs.clear();
 	ys.clear();
 	if (m_LatinBinCount == 0)
 		return;
 
 	const uint VarCount = GetVarCount();
-	vector<vector<double> > xvs;
 	GetLatinHypercube(xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
@@ -628,16 +542,9 @@ void Peaker::RunLatin(vector<uint> &Idxs, vector<double> &ys)
 #endif
 	for (uint i = 0; i < n; ++i)
 		{
-		Ps(m_Msg, "Latin%u/%u", i+1, n);
-		const vector<double> &xv = xvs[i];
-		uint uIdx = Add_xv(xv);
-		Log("Latin %u/%u\n", i+1, n);
-		double y = Evaluate(uIdx);
-		if (y != DBL_MAX)
-			{
-			ys.push_back(y);
-			Idxs.push_back(uIdx);
-			}
+		string why;
+		Ps(why, "latin %u/%u", i+1, n);
+		Evaluate(xvs[i], why);
 		}
 	}
 
@@ -667,28 +574,12 @@ void Peaker::CleanQueue()
 		}
 	}
 
-const vector<double> &Peaker::GetBestParams() const
-	{
-	asserta(m_Best_xIdx < SIZE(m_xvs));
-	return m_xvs[m_Best_xIdx];
-	}
-
-void Peaker::LatinLoop()
-	{
-	for (;;)
-		{
-		vector<uint> Idxs;
-		vector<double> ys;
-		RunLatin(Idxs, ys);
-		}
-	}
-
 void Peaker::Run()
 	{
 	RunInitialValues();
-	vector<uint> Idxs;
+	vector<vector<double> > latin_xvs;
 	vector<double> ys;
-	RunLatin(Idxs, ys);
+	RunLatin(latin_xvs, ys);
 	HJ_RunHookeJeeves();
 	}
 
@@ -710,6 +601,12 @@ void Peaker::GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
 		for (uint k = 0; k < BinCount; ++k)
 			IdxMx[k][VarIdx] = BinIdxs[k];
 		}
+	}
+
+void Peaker::WriteStatusPage(FILE *f) const
+	{
+	if (f == 0)
+		return;
 	}
 
 void Peaker::LogSpecs() const
@@ -735,9 +632,9 @@ void Peaker::LogSpecs() const
 
 void Peaker::RunNestedLatin(uint TopN)
 	{
-	vector<uint> Idxs;
+	vector<vector<double> > latin_xvs;
 	vector<double> ys;
-	RunLatin(Idxs, ys);
+	RunLatin(latin_xvs, ys);
 
 	const uint NY = SIZE(ys);
 	const uint N = min(TopN, NY);
@@ -757,12 +654,12 @@ void Peaker::RunNestedLatin(uint TopN)
 	for (uint k = 0; k < N; ++k)
 		{
 		uint i = Order[k];
-		uint Idx = Idxs[i];
-		const vector<double> &xv = Get_xv(Idx);
+		asserta(i < SIZE(m_xvs));
+		const vector<double> &xv = m_xvs[i];
 		asserta(SIZE(xv) == VarCount);
 		Log("RUN_NESTED_LATIN %u/%u y=%.3g\n", k+1, N, ys[i]);
 
-		Peaker P;
+		Peaker P(this, &string("NestedLatin"));
 		P.m_LatinBinCount = m_LatinBinCount;
 		P.m_Target_dy = m_Target_dy;
 		P.m_Min_dy = m_Min_dy;
@@ -770,7 +667,6 @@ void Peaker::RunNestedLatin(uint TopN)
 		P.m_Min_Height = m_Min_Height;
 		P.m_SigFig = m_SigFig;
 		P.m_EvalFunc = m_EvalFunc;
-		P.m_Progress = m_Progress;
 		P.m_fTsv = m_fTsv;
 		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 			{
@@ -787,29 +683,22 @@ void Peaker::RunNestedLatin(uint TopN)
 			P.m_VarSpecs.push_back(&SubSpec);
 			}
 
-		vector<uint> SubIdxs;
-		vector<double> Subys;
-		const uint J = SIZE(SubIdxs);
-		asserta(SIZE(Subys) == J);
 		Log("\n");
 		Log("NESTED_LATIN\n");
 		P.LogSpecs();
-		P.RunLatin(SubIdxs, Subys);
+		vector<vector<double> > Child_xvs;
+		vector<double> Child_ys;
+		P.RunLatin(Child_xvs, Child_ys);
+		const uint J = SIZE(Child_xvs);
+		asserta(SIZE(P.m_whys) == J);
+		asserta(SIZE(Child_ys) == J);
 		Log("NESTED_LATIN_BEST %u/%u y=%.3g\n", k+1, N, P.m_Best_y);
 		for (uint j = 0; j < J; ++j)
 			{
-			double y = Subys[j];
-			if (y == DBL_MAX)
-				continue;
-			uint SubIdx = SubIdxs[j];
-			const vector<double> &xv = P.Get_xv(SubIdx);
-			m_ys.push_back(y);
-			m_xvs.push_back(xv);
-			if (y > m_Best_y)
-				{
-				m_Best_y = y;
-				m_Best_xIdx = SIZE(m_xvs)-1;
-				}
+			const vector<double> &Child_xv = Child_xvs[j];
+			double y = Child_ys[j];
+			const string &Child_why = P.m_whys[j];
+			AppendChildResult(Child_xv, y, "NestedLatin", Child_why);
 			}
 		}
 	}

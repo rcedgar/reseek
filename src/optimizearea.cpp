@@ -10,7 +10,7 @@ static const vector<uint> *s_AlnExtVec;
 static const vector<bool> *s_TPs;
 uint s_AlnCount;
 static float s_Area;
-static Peaker s_Peaker;
+static Peaker *s_Peaker;
 
 static vector<float> s_AlnScores;
 
@@ -101,15 +101,14 @@ void FeatureTrainer2::OptimizeArea(
 	BestArea = 0;
 	for (uint Iter = 0; Iter < Iters; ++Iter)
 		{
-		s_Peaker.m_Progress = false;
-		s_Peaker.Init(SpecLines, EvalArea_OpenOnly);
-		s_Peaker.Run();
-		const vector<double> &xv = s_Peaker.GetBestParams();
+		s_Peaker->Init(SpecLines, EvalArea_OpenOnly);
+		s_Peaker->Run();
+		const vector<double> &xv = s_Peaker->m_Best_xv;
 		asserta(SIZE(xv) == 1);
 		float OpenPenalty = (float) xv[0];
 		float ExtPenalty = OpenPenalty*0.1f; // (float) xv[1];
 		float Bias = 0; // (float) xv[2];
-		float Area = (float) s_Peaker.m_Best_y;
+		float Area = (float) s_Peaker->m_Best_y;
 
 		Areas.push_back(Area);
 		Opens.push_back(OpenPenalty);

@@ -46,7 +46,7 @@ public:
 	vector<vector<float> > m_ScoreMx;
 
 	float m_Area = FLT_MAX;
-	Peaker m_Peaker;
+	Peaker *m_Peaker = 0;
 	uint m_JointLetterPairCount = UINT_MAX;
 
 	mutex m_Lock;

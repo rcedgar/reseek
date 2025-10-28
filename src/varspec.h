@@ -14,5 +14,7 @@ public:
 
 public:
 	void Init(const vector<string> &Names,
-	  const vector<string> &Values);
+	  const vector<string> &Values,
+	  uint DefaultSigFig,
+	  bool RequireInitialValue);
 	};

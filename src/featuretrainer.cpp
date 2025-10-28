@@ -1090,9 +1090,9 @@ void FeatureTrainer::OptimizeGapPenalties()
 	SpecLines.push_back("var=open\tmin=-2\tmax=4\tdelta=0.2\tbins=32\tinit=1");
 	SpecLines.push_back("var=ext\tmin=-1\tmax=1\tdelta=0.04\tbins=32\tinit=0.1");
 
-	m_Peaker.Init(SpecLines, EvalArea);
-	m_Peaker.Run();
-	m_Area = (float) m_Peaker.m_Best_y;
+	m_Peaker->Init(SpecLines, EvalArea);
+	m_Peaker->Run();
+	m_Area = (float) m_Peaker->m_Best_y;
 	}
 
 void FeatureTrainer::Train(const string &Style)

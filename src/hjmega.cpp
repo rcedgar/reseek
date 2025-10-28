@@ -66,16 +66,11 @@ void cmd_hjmega()
 	for (uint i = 0; i < SIZE(SpecLines); ++i)
 		Log("%s\n", SpecLines[i].c_str());
 
-	Peaker P;
+	Peaker P(0, 0);
 	if (optset_output2)
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
-	//P.LogLatinBins();
-	if (opt(latinloop))
-		P.LatinLoop();
-	else if (optset_nested_latin)
-		P.RunNestedLatin(opt(nested_latin));
 	P.Run();
 	CloseStdioFile(P.m_fTsv);
 	}
