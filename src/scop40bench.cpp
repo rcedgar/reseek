@@ -226,6 +226,9 @@ void SCOP40Bench::ReadLookup(const string &FileName)
 void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 	{
 	const uint ChainCount = GetDBChainCount();
+	m_DomIdxs.clear();
+	m_DomIdxToSFIdx.clear();
+	m_DomIdxToFoldIdx.clear();
 	m_LabelToChainIdx.clear();
 	m_DomIdxToChainIdx.clear();
 	m_DomIdxToChainIdx.resize(ChainCount, UINT_MAX);

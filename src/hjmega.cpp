@@ -60,6 +60,18 @@ void cmd_hjmega()
 	s_SB->Setup();
 	s_SB->m_QuerySelf = true;
 
+	if (optset_subsample)
+		{
+		uint Pct = opt(subsample);
+		SCOP40Bench *Subset = new SCOP40Bench;
+		s_SB->MakeSubset(*Subset, Pct);
+		Subset->Setup();
+		Subset->m_QuerySelf = true;
+		s_SB = Subset;
+		ProgressLog("Subset %u%%, %u chains\n",
+			Pct, Subset->GetDBChainCount());
+		}
+
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
 	ReadLinesFromFile(SpecFN, SpecLines);
@@ -71,6 +83,34 @@ void cmd_hjmega()
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
-	P.Run();
+	//P.Run();
+	if (!P.m_SkipInit)
+		P.RunInitialValues();
+	if (optset_nested_latin)
+		P.RunNestedLatin(opt(nested_latin));
+	else
+		{
+		vector<vector<double> > latin_xvs;
+		vector<double> ys;
+		P.RunLatin(latin_xvs, ys);
+		}
+	P.HJ_RunHookeJeeves();
 	CloseStdioFile(P.m_fTsv);
+
+	string BestVarStr;
+	vector<double> Best_xv;
+	P.GetBestVars(Best_xv);
+	P.VarsToStr(Best_xv, BestVarStr);
+	ProgressLog("FINAL [%.3g] %s\n", P.m_Best_y, BestVarStr.c_str());
+
+	if (optset_input2)
+		{
+		s_SB = new SCOP40Bench;
+		s_SB->LoadDB(opt(input2));
+		StatSig::Init(s_SB->GetDBSize());
+		s_SB->Setup();
+		s_SB->m_QuerySelf = true;
+		double Area = EvalArea(Best_xv);
+		ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
+		}
 	}

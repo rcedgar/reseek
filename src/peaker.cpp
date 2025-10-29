@@ -311,7 +311,11 @@ void Peaker::GetPeakerPathStr(string &s) const
 	s.clear();
 	string ParentStr;
 	if (m_Parent != 0)
+		{
 		m_Parent->GetPeakerPathStr(ParentStr);
+		if (ParentStr == "/")
+			ParentStr = "";
+		}
 
 	string WhoAmI;
 	if (m_ptrWhoAmI != 0)
@@ -322,19 +326,33 @@ void Peaker::GetPeakerPathStr(string &s) const
 void Peaker::AppendChildResult(const vector<double> &xv, double y, 
 	const string &childname, const string &why)
 	{
+	m_xvs.push_back(xv);
 	m_ys.push_back(y);
 
 	string child_why = childname + ":" + why;
 	m_whys.push_back(child_why);
 
+	string improved;
 	if (y != DBL_MAX)
 		{
 		if (m_Best_y == DBL_MAX || y > m_Best_y)
 			{
+			improved = "child>>";
 			m_Best_y = y;
 			m_Best_xv = xv;
 			m_LastImprovedTime = time(0);
 			}
+		}
+	const uint n = SIZE(m_xvs);
+	asserta(SIZE(m_whys) == n);
+	asserta(SIZE(m_ys) == n);
+	if (m_fTsv != 0)
+		{
+		string VarStr;
+		VarsToStr(xv, VarStr);
+		fprintf(m_fTsv, "%.6g\t%s%s\t%s\n",
+			y, improved.c_str(), why.c_str(), VarStr.c_str());
+		fflush(m_fTsv);
 		}
 	}
 
@@ -358,6 +376,9 @@ double Peaker::Evaluate(const vector<double> &axv, const string &why)
 	m_ys.push_back(y);
 	m_whys.push_back(why);
 
+	string Path;
+	GetPeakerPathStr(Path);
+
 	if (y != DBL_MAX)
 		{
 		if (m_Best_y == DBL_MAX || y > m_Best_y)
@@ -365,26 +386,26 @@ double Peaker::Evaluate(const vector<double> &axv, const string &why)
 			m_Best_y = y;
 			m_Best_xv = xv;
 			m_LastImprovedTime = time(0);
-			m_LastImprovedEvalCount = = SIZE(m_ys);
-			ProgressLog(">>> %.3g .. %.3g (%.3g)\n",
-				Saved_Best_y, y, y - Saved_Best_y);
+			m_LastImprovedEvalCount = SIZE(m_ys);
+			ProgressLog(">>>%.2g [%.5g] %s %s\n",
+				y - Saved_Best_y, y, Path.c_str(), why.c_str());
 			}
 		}
 
-	double dy = y - Saved_Best_y;
+	double dy = 0;
+	if (Saved_Best_y != DBL_MAX)
+		dy = y - Saved_Best_y;
 	string VarsStr;
 	VarsToStr(xv, VarsStr, ";");
-	string Path;
-	GetPeakerPathStr(Path);
 	ProgressLog("[%.6g](%+.3g) %s %s %s\n",
 		m_Best_y, dy, Path.c_str(), why.c_str(), VarsStr.c_str());
 	string improved;
 	if (dy > 0)
-		improved = "^^";
+		improved = ">>";
 	if (m_fTsv != 0 && y != DBL_MAX)
 		{
-		fprintf(m_fTsv, "%.6g\t%s%s%s\t%s\n",
-			y, Path.c_str(), why.c_str(), improved.c_str(), VarsStr.c_str());
+		fprintf(m_fTsv, "%.6g\t%s%s:%s\t%s\n",
+			y, improved.c_str(), Path.c_str(), why.c_str(), VarsStr.c_str());
 		fflush(m_fTsv);
 		}
 	return y;
@@ -474,6 +495,7 @@ void Peaker::LogState() const
 
 void Peaker::GetBestVars(vector<double> &xs) const
 	{
+	xs = m_Best_xv;
 	}
 
 void Peaker::GetBestVarStr(string &s) const
@@ -544,8 +566,10 @@ void Peaker::RunLatin(vector<vector<double> > &xvs, vector<double> &ys)
 		{
 		string why;
 		Ps(why, "latin %u/%u", i+1, n);
-		Evaluate(xvs[i], why);
+		double y = Evaluate(xvs[i], why);
+		ys.push_back(y);
 		}
+	asserta(SIZE(xvs) == SIZE(ys));
 	}
 
 void Peaker::CleanQueue()
@@ -632,6 +656,7 @@ void Peaker::LogSpecs() const
 
 void Peaker::RunNestedLatin(uint TopN)
 	{
+	ProgressLog("RunNestedLatin(%u)\n", TopN);
 	vector<vector<double> > latin_xvs;
 	vector<double> ys;
 	RunLatin(latin_xvs, ys);
@@ -650,16 +675,20 @@ void Peaker::RunNestedLatin(uint TopN)
 		Log(" y=%.3g", ys[i]);
 		}
 	Log("\n");
+	const double yseed0 = ys[Order[0]];
 
 	for (uint k = 0; k < N; ++k)
 		{
 		uint i = Order[k];
 		asserta(i < SIZE(m_xvs));
 		const vector<double> &xv = m_xvs[i];
+		double yseed = ys[i];
 		asserta(SIZE(xv) == VarCount);
 		Log("RUN_NESTED_LATIN %u/%u y=%.3g\n", k+1, N, ys[i]);
 
-		Peaker P(this, &string("NestedLatin"));
+		string nest;
+		Ps(nest, "NestedLatin%u", k+1);
+		Peaker P(this, &nest);
 		P.m_LatinBinCount = m_LatinBinCount;
 		P.m_Target_dy = m_Target_dy;
 		P.m_Min_dy = m_Min_dy;
@@ -676,10 +705,10 @@ void Peaker::RunNestedLatin(uint TopN)
 			VarSpec &SubSpec = *new VarSpec;
 			SubSpec = Spec;
 			SubSpec.m_InitialValue = Value;
-			SubSpec.m_Min = Value - BinWidth;
+			SubSpec.m_Min = Value - BinWidth/2;
 			if (SubSpec.m_Min < 0)
 				SubSpec.m_Min = 0;
-			SubSpec.m_Max = Value + BinWidth;
+			SubSpec.m_Max = Value + BinWidth/2;
 			P.m_VarSpecs.push_back(&SubSpec);
 			}
 
@@ -692,13 +721,14 @@ void Peaker::RunNestedLatin(uint TopN)
 		const uint J = SIZE(Child_xvs);
 		asserta(SIZE(P.m_whys) == J);
 		asserta(SIZE(Child_ys) == J);
-		Log("NESTED_LATIN_BEST %u/%u y=%.3g\n", k+1, N, P.m_Best_y);
+		Log("NESTED_LATIN_DONE %u/%u yseed0 %.3g yseed=%.3g best=%.3g J=%u\n",
+			k+1, N, yseed0, yseed, P.m_Best_y, J);
 		for (uint j = 0; j < J; ++j)
 			{
 			const vector<double> &Child_xv = Child_xvs[j];
 			double y = Child_ys[j];
 			const string &Child_why = P.m_whys[j];
-			AppendChildResult(Child_xv, y, "NestedLatin", Child_why);
+			AppendChildResult(Child_xv, y, nest, Child_why);
 			}
 		}
 	}

@@ -35,6 +35,7 @@ public:
 	double m_Best_y = DBL_MAX;
 	vector<double> m_Best_xv;
 	time_t m_LastImprovedTime = 0;
+	uint m_LastImprovedEvalCount = 0;
 
 	vector<double> m_Deltas;
 
@@ -74,6 +75,7 @@ public:
 		m_whys.clear();
 		m_Best_y = DBL_MAX;
 		m_LastImprovedTime = 0;
+		m_LastImprovedEvalCount = 0;
 		m_Best_xv.clear();
 
 		m_Deltas.clear();
@@ -88,7 +90,7 @@ public:
 	void CleanQueue();
 	uint GetSigFig(uint VarIdx) const;
 	const char *VarsToStr(const vector<double> &xv, string &s,
-						  const string sep=",") const;
+						  const string sep=";") const;
 	const char *VarToStr(double x, uint VarIdx, string &s) const;
 	const char *GetVarName(uint VarIdx) const;
 	bool Cmp_xs(const vector<double> &xs1, const vector<double> &xs2) const;
