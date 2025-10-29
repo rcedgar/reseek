@@ -304,6 +304,7 @@ inline bool feq(double x, double y)
 
 void InitRand();
 unsigned randu32();
+double randf(double maxvalue);
 void SplitWhite(const string &Str, vector<string> &Fields);
 void Split(const string &Str, vector<string> &Fields, char Sep = '\t');
 bool EndsWith(const string &s, const string &t);

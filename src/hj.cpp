@@ -1,16 +1,42 @@
 #include "myutils.h"
 #include "peaker.h"
 
-double Peaker::IncreaseWithNoise() const
+double Peaker::GetIncreaseRateFactor(uint Rate)
 	{
-	double Noise = rr(0, m_Noise);
-	double Change = DBL_MAX;
-	if (randu32()%2 == 0)
-		Change = m_Change + Noise;
+	asserta(Rate <= MIN_RATE && Rate <= MAX_RATE);
+	switch (Rate)
+		{
+	case 1:	return 1.05 + randf(0.05);
+	case 2: return 1.10 + randf(0.1);
+	case 3: return 1.30 + randf(0.2);
+	case 4:	return 1.50 + randf(0.3);
+	case 5:	return 2.00 + randf(0.4);
+		}
+	asserta(false);
+	return DBL_MAX;
+	}
+
+double Peaker::GetDecreaseRateFactor(uint Rate)
+	{
+	asserta(Rate <= MIN_RATE && Rate <= MAX_RATE);
+	switch (Rate)
+		{
+	case 1:	return 0.95 - randf(0.05);
+	case 2: return 0.90 - randf(0.05);
+	case 3: return 0.80 - randf(0.1);
+	case 4:	return 0.60 - randf(0.1);
+	case 5:	return 0.50 - randf(0.1);
+		}
+	asserta(false);
+	return DBL_MAX;
+	}
+
+double Peaker::GetRateFactor(uint Rate, bool Plus)
+	{
+	if (Plus)
+		return GetIncreaseRateFactor(Rate);
 	else
-		Change = m_Change - Noise;
-	asserta(Change > 1 && Change < 10);
-	return Change;
+		return GetDecreaseRateFactor(Rate);
 	}
 
 void Peaker::HJ_Explore()
@@ -47,7 +73,6 @@ void Peaker::HJ_Explore()
 	else
 		Log("HJ_Expore(), new direction %s%c\n",
 		  GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
-	LogDeltas();
 	}
 
 void Peaker::HJ_Extend()
@@ -65,108 +90,47 @@ void Peaker::HJ_Extend()
 		double Saved_Best_y = m_Best_y;
 		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus);
 		if (m_Best_y <= Saved_Best_y)
-			{
-			// Decelerate overshoot
-			if (Iter > 1)
-				AdjustDeltaDown(VarIdx);
 			return;
-			}
-		// Accelerate if 2+ iters
-		if (Iter > 0)
-			AdjustDeltaUp(VarIdx);
 		}
 	}
 
-double Peaker::DeltaVar(uint VarIdx, bool Plus, double OldValue)
+void Peaker::DecreaseRate(uint VarIdx)
 	{
-	uint SigFig = GetSigFig(VarIdx);
-	double OldValue_Rounded = GetRounded(OldValue, SigFig);
-	if (OldValue_Rounded <= 0)
-		return 0;
-	double Delta = m_Deltas[VarIdx];
-	asserta(Delta > 0 && Delta != DBL_MAX);
-	if (!feq(OldValue, OldValue_Rounded))
-		Die("DeltaVar(%s) old %.4g rounded %.4g",
-			OldValue, OldValue_Rounded);
-	double NewValue = DBL_MAX;
-	for (uint Iter = 0; Iter < 10; ++Iter)
-		{
-		NewValue = (Plus ? OldValue + Delta : OldValue - Delta);
-		if (NewValue <= 0)
-			{
-			NewValue = 0;
-			break;
-			}
-		NewValue = GetRounded(NewValue, SigFig);
-		if (!feq(OldValue_Rounded, NewValue))
-			break;
-
-		Delta *= IncreaseWithNoise();
-		}
-
-	if (Delta != m_Deltas[VarIdx])
-		{
-		ProgressLog("Rounding increase delta %s %.3g => %3g\n",
-			GetVarName(VarIdx), m_Deltas[VarIdx], Delta);
-		m_Deltas[VarIdx] = Delta;
-		}
-	return NewValue;
+	asserta(VarIdx < SIZE(m_Rates));
+	uint OldRate = m_Rates[VarIdx];
+	if (OldRate <= MIN_RATE)
+		return;
+	m_Rates[VarIdx] = OldRate - 1;
 	}
 
-bool Peaker::AdjustDeltaDown(uint VarIdx)
+void Peaker::IncreaseRate(uint VarIdx)
 	{
-	asserta(VarIdx < SIZE(m_Deltas));
-	double OldDelta = m_Deltas[VarIdx];
-	double NewDelta = OldDelta/IncreaseWithNoise();
-	double MinDelta = GetMinDelta(VarIdx);
-	if (NewDelta < MinDelta)
-		{
-		Log("Adjust delta %s down %.3g undeflow\n",
-			GetVarName(VarIdx), OldDelta);
-		return false;
-		}
-
-	m_Deltas[VarIdx] = NewDelta;
-	Log("Adjust delta %s down %.3g => %.3g\n",
-		GetVarName(VarIdx), OldDelta, NewDelta);
-	return true;
-	}
-
-bool Peaker::AdjustDeltaUp(uint VarIdx)
-	{
-	asserta(VarIdx < SIZE(m_Deltas));
-	double OldDelta = m_Deltas[VarIdx];
-	double NewDelta = OldDelta*IncreaseWithNoise();
-	Log("Adjust delta %s up %.3g => %.3g\n",
-		GetVarName(VarIdx), OldDelta, NewDelta);
-	m_Deltas[VarIdx] = NewDelta;
-	return true;
+	asserta(VarIdx < SIZE(m_Rates));
+	uint OldRate = m_Rates[VarIdx];
+	if (OldRate >= MAX_RATE)
+		return;
+	m_Rates[VarIdx] = OldRate + 1;
 	}
 
 double Peaker::HJ_TryDelta(const string &reason,
-	const vector<double> &Start_xv, uint VarIdx, bool Plus)
+	const vector<string> &Start_xv, uint VarIdx, bool Plus)
 	{
 	const char *VarName = GetVarName(VarIdx);
-	uint Idx = Find_xs(Start_xv);
+	uint Idx = Find_xv(Start_xv);
 	asserta(Idx != UINT_MAX);
 	asserta(Idx < SIZE(m_ys));
 	const double Start_y = m_ys[Idx];
 
-	double Delta = m_Deltas[VarIdx];
-	asserta(Delta != DBL_MAX);
-	asserta(!isnan(Delta));
-
-	vector<double> Try_xv = Start_xv;
-	asserta(VarIdx < SIZE(Try_xv));
-
-	double NewValue = DeltaVar(VarIdx, Plus, Start_xv[VarIdx]);
-	if (feq(NewValue, Try_xv[VarIdx]))
+	string NewValue;
+	DeltaVar(VarIdx, Plus, Start_xv[VarIdx], NewValue);
+	if (NewValue == Start_xv[VarIdx])
 		{
 		ProgressLog("HJ_TryDelta(%s) DeltaVar %s no change\n",
 			reason.c_str(), VarName);
 		return Start_y;
 		}
 
+	vector<string> Try_xv = Start_xv;
 	Try_xv[VarIdx] = NewValue;
 
 	string why;
@@ -177,18 +141,18 @@ double Peaker::HJ_TryDelta(const string &reason,
 	if (Start_y == DBL_MAX)
 		return y;
 
-	double dy = fabs(y - Start_y);
-	if (dy < m_Min_dy)
-		AdjustDeltaUp(VarIdx);
-	else if (dy > m_Max_dy)
-		AdjustDeltaDown(VarIdx);
+	double dy = fabs(Start_y - m_Best_y);
+	if (dy < GetGlobalFloat("mindy", -1))
+		IncreaseRate(VarIdx);
+	else if (dy > GetGlobalFloat("maxdy", DBL_MAX))
+		DecreaseRate(VarIdx);
+
 	return y;
 	}
 
 void Peaker::HJ_RunHookeJeeves()
 	{
-	InitDeltas();
-	asserta(m_Min_Height != DBL_MAX);
+	InitRates();
 	for (uint Iters = 0; ; ++Iters)
 		{
 		if (Iters >= m_HJ_MaxIters)
@@ -199,11 +163,10 @@ void Peaker::HJ_RunHookeJeeves()
 		double Saved_Best_y = m_Best_y;
 		HJ_Explore();
 		double Height = m_Best_y - Saved_Best_y;
+		double MinHeight = GetGlobalFloat("minh", 0.0001);
 		asserta(Height >= 0);
-		ProgressLog("HJ height=%.3g (minh %.3g)\n",
-			Height, m_Min_Height);
-		LogDeltas();
-		if (Height <= m_Min_Height)
+		ProgressLog("HJ height=%.3g (minh %.3g)\n", Height, MinHeight);
+		if (Height <= MinHeight)
 			{
 			ProgressLog("HJ converged by height\n");
 			break;
@@ -215,4 +178,24 @@ void Peaker::HJ_RunHookeJeeves()
 			}
 		HJ_Extend();
 		}
+	}
+
+void Peaker::DeltaVar(uint VarIdx, bool Plus, const string &OldStr, string &NewStr)
+	{
+	NewStr.clear();
+	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
+	double OldValue = VarStrToFloat(VarIdx, OldStr);
+	asserta(VarIdx < SIZE(m_Rates));
+	uint Rate = m_Rates[VarIdx];
+	double Factor = GetRateFactor(Rate, Plus);
+	double NewValue = OldValue*Factor;
+	double z = VarSpecGetFloat(VarIdx, "zero", 0);
+	if (NewValue < z)
+		{
+		NewStr = "0";
+		return;
+		}
+	VarFloatToStr(VarIdx, NewValue, NewStr);
+	if (OldStr != NewStr)
+		return;
 	}

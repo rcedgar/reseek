@@ -2261,6 +2261,14 @@ uint32 RandInt32()
 	return g_X[0];
 	}
 
+double randf(double maxvalue)
+	{
+	const uint M = 3141592;
+	double r = double(randu32()%M)/(M-1);
+	asserta(r >= 0 && r <= 1);
+	return r*maxvalue;
+	}
+
 unsigned randu32()
 	{
 	return (unsigned) RandInt32();

@@ -101,6 +101,8 @@ void FeatureTrainer2::OptimizeArea(
 	BestArea = 0;
 	for (uint Iter = 0; Iter < Iters; ++Iter)
 		{
+		Die("TODO");
+#if 0
 		s_Peaker->Init(SpecLines, EvalArea_OpenOnly);
 		s_Peaker->Run();
 		const vector<double> &xv = s_Peaker->m_Best_xv;
@@ -122,6 +124,7 @@ void FeatureTrainer2::OptimizeArea(
 			BestExtPenalty = ExtPenalty;
 			BestBias = Bias;
 			}
+#endif
 		}
 	vector<uint> Order(Iters);
 	QuickSortOrder(Areas.data(), Iters, Order.data());

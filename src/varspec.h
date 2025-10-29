@@ -1,5 +1,7 @@
 #pragma once
 
+#error "obsolete"
+
 class VarSpec
 	{
 public:

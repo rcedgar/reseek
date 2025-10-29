@@ -6,13 +6,13 @@
 static SCOP40Bench *s_SB;
 static Peaker *s_Peaker;
 
-static double EvalArea(const vector<double> &xv)
+static double EvalArea(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 	string VarsStr;
-	s_Peaker->VarsToStr(xv, VarsStr, ";");
+	s_Peaker->xv2str(xv, VarsStr);
 	DSSParams::SetTunableParamsFromStr(VarsStr);
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
@@ -83,24 +83,23 @@ void cmd_hjmega()
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
-	//P.Run();
-	if (!P.m_SkipInit)
-		P.RunInitialValues();
-	if (optset_nested_latin)
-		P.RunNestedLatin(opt(nested_latin));
-	else
-		{
-		vector<vector<double> > latin_xvs;
-		vector<double> ys;
-		P.RunLatin(latin_xvs, ys);
-		}
-	P.HJ_RunHookeJeeves();
+	Die("TODO");
+	////P.Run();
+	//if (!P.m_SkipInit)
+	//	P.RunInitialValues();
+	//if (optset_nested_latin)
+	//	P.RunNestedLatin(opt(nested_latin));
+	//else
+	//	{
+	//	vector<vector<double> > latin_xvs;
+	//	vector<double> ys;
+	//	P.RunLatin(latin_xvs, ys);
+	//	}
+	//P.HJ_RunHookeJeeves();
 	CloseStdioFile(P.m_fTsv);
 
 	string BestVarStr;
-	vector<double> Best_xv;
-	P.GetBestVars(Best_xv);
-	P.VarsToStr(Best_xv, BestVarStr);
+	P.xv2str(P.m_Best_xv, BestVarStr);
 	ProgressLog("FINAL [%.3g] %s\n", P.m_Best_y, BestVarStr.c_str());
 
 	if (optset_input2)
@@ -110,7 +109,7 @@ void cmd_hjmega()
 		StatSig::Init(s_SB->GetDBSize());
 		s_SB->Setup();
 		s_SB->m_QuerySelf = true;
-		double Area = EvalArea(Best_xv);
+		double Area = EvalArea(P.m_Best_xv);
 		ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
 		}
 	}
