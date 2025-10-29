@@ -78,24 +78,19 @@ void cmd_hjmega()
 	for (uint i = 0; i < SIZE(SpecLines); ++i)
 		Log("%s\n", SpecLines[i].c_str());
 
-	Peaker P(0, 0);
+	Peaker P(0, "");
 	if (optset_output2)
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
 	P.Init(SpecLines, EvalArea);
-	Die("TODO");
-	////P.Run();
-	//if (!P.m_SkipInit)
-	//	P.RunInitialValues();
-	//if (optset_nested_latin)
-	//	P.RunNestedLatin(opt(nested_latin));
-	//else
-	//	{
-	//	vector<vector<double> > latin_xvs;
-	//	vector<double> ys;
-	//	P.RunLatin(latin_xvs, ys);
-	//	}
-	//P.HJ_RunHookeJeeves();
+
+	bool SkipInit = P.GetGlobalBool("skipinit", false);
+	uint Latin = P.GetGlobalInt("latin", 0);
+	if (SkipInit)
+		P.RunInitialValues();
+	if (Latin > 0)
+		P.RunLatin();
+	P.HJ_RunHookeJeeves();
 	CloseStdioFile(P.m_fTsv);
 
 	string BestVarStr;

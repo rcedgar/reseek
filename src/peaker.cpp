@@ -33,7 +33,7 @@ var=lddtMw      min=0   max=1   mind=0.01       maxd=0.2        bins=16
 
 FILE *Peaker::m_fTsv = 0;
 
-const char *Peaker::GetGlobalStr(const string &Name, string &s, const string &Default) const
+void Peaker::GetGlobalStr(const string &Name, string &s, const string &Default) const
 	{
 	return SpecGetStr(m_GlobalSpec, Name, s, Default);
 	}
@@ -48,9 +48,17 @@ uint Peaker::GetGlobalInt(const string &Name, uint Default) const
 	return SpecGetInt(m_GlobalSpec, Name, Default);
 	}
 
-const char *Peaker::VarSpecGetStr(uint VarIdx, const string &Name, string &s, const string &Default) const
+bool Peaker::GetGlobalBool(const string &Name, bool Default) const
 	{
-	return SpecGetStr(GetVarSpec(VarIdx), Name, s, Default);
+	return SpecGetBool(m_GlobalSpec, Name, Default);
+	}
+
+void Peaker::VarSpecGetStr(uint VarIdx, const string &Name,
+	string &s, const string &Default) const
+	{
+	SpecGetStr(GetVarSpec(VarIdx), Name, s, "_missing_");
+	if (s == "_missing_")
+		SpecGetStr(m_GlobalSpec, Name, s, Default);
 	}
 
 double Peaker::VarSpecGetFloat(uint VarIdx, const string &Name, double Default) const
@@ -72,7 +80,7 @@ double Peaker::SpecGetFloat(const string &Spec, const string &Name, double Defau
 	return StrToFloat(s);
 	}
 
-const char *Peaker::SpecGetStr(const string &Spec, const string &Name,
+void Peaker::SpecGetStr(const string &Spec, const string &Name,
 		string &Str, const string &Default)
 	{
 	vector<string> Fields;
@@ -87,11 +95,24 @@ const char *Peaker::SpecGetStr(const string &Spec, const string &Name,
 			Split(Field, Fields2, '=');
 			asserta(SIZE(Fields2) == 2);
 			Str = Fields2[1];
-			return Str.c_str();
+			return;
 			}
 		}
 	Str = Default;
-	return Str.c_str();
+	}
+
+bool Peaker::SpecGetBool(const string &Spec, const string &Name, bool Default)
+	{
+	string s;
+	SpecGetStr(Spec, Name, s, "");
+	if (s == "")
+		return Default;
+	if (s == "yes")
+		return true;
+	else if (s == "no")
+		return false;
+	Die("Peaker::SpecGetBool(%s)", s.c_str());
+	return false;
 	}
 
 uint Peaker::SpecGetInt(const string &Spec, const string &Name, uint Default)
@@ -103,14 +124,13 @@ uint Peaker::SpecGetInt(const string &Spec, const string &Name, uint Default)
 	return StrToUint(s);
 	}
 
-const char *Peaker::xv2str(const vector<string> &xv, string &s) const
+void Peaker::xv2str(const vector<string> &xv, string &s) const
 	{
 	const uint VarCount = GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 	s.clear();
 	for (uint i = 0; i < VarCount; ++i)
 		s += m_VarNames[i] + "=" + xv[i] + ";";
-	return s.c_str();
 	}
 
 double Peaker::rr(double lo, double hi) const
@@ -255,8 +275,9 @@ void Peaker::AppendChildResult(const vector<string> &xv, double y,
 	if (m_fTsv != 0)
 		{
 		string tmp;
+		xv2str(xv, tmp);
 		fprintf(m_fTsv, "%.6g\t%s%s\t%s\n",
-			y, improved.c_str(), why.c_str(), xv2str(xv, tmp));
+			y, improved.c_str(), why.c_str(), tmp.c_str());
 		fflush(m_fTsv);
 		}
 	}
@@ -311,16 +332,18 @@ double Peaker::Evaluate(const vector<string> &xv, const string &why)
 	if (Saved_Best_y != DBL_MAX)
 		dy = y - Saved_Best_y;
 	string tmp;
+	xv2str(xv, tmp);
 	ProgressLog("[%.6g](%+.3g) %s %s %s\n",
-		m_Best_y, dy, Path.c_str(), why.c_str(), xv2str(xv, tmp));
+		m_Best_y, dy, Path.c_str(), why.c_str(), tmp.c_str());
 	string improved;
 	if (dy > 0)
 		improved = ">>";
 	if (m_fTsv != 0 && y != DBL_MAX)
 		{
 		string tmp;
+		xv2str(xv, tmp);
 		fprintf(m_fTsv, "%.6g\t%s%s:%s\t%s\n",
-			y, improved.c_str(), Path.c_str(), why.c_str(), xv2str(xv, tmp));
+			y, improved.c_str(), Path.c_str(), why.c_str(), tmp.c_str());
 		fflush(m_fTsv);
 		}
 	return y;
@@ -328,14 +351,29 @@ double Peaker::Evaluate(const vector<string> &xv, const string &why)
 
 void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 	{
-	Die("TODO");
-	Clear();
+	m_GlobalSpec.clear();
+	m_VarSpecs.clear();
 	m_EvalFunc = EF;
 	vector<string> Fields;
 	const uint LineCount = SIZE(SpecLines);
 	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
 		{
-		;
+		const string &Line = SpecLines[LineIdx];
+		if (Line.empty() || Line[0] == '#')
+			continue;
+		if (StartsWith(Line, "var="))
+			{
+			string Name;
+			SpecGetStr(Line, "var", Name, "");
+			asserta(!Name.empty());
+			m_VarNames.push_back(Name);
+			m_VarSpecs.push_back(Line);
+			}
+		else
+			{
+			asserta(m_GlobalSpec.empty());
+			m_GlobalSpec = Line;
+			}
 		}
 	}
 
@@ -354,13 +392,12 @@ double Peaker::GetRoundedValue(double x, uint SigFig)
 	return Rounded_x;
 	}
 
-const char *Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
+void Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
 	{
 	asserta(SigFig > 1);
 	string Fmt;
 	Ps(Fmt, "%%.%uE", SigFig-1);
 	Ps(Str, Fmt.c_str(), x);
-	return Str.c_str();
 	}
 
 void Peaker::RunInitialValues()
@@ -379,10 +416,8 @@ void Peaker::RunInitialValues()
 	Evaluate(xv, "init");
 	}
 
-void Peaker::RunLatin(vector<vector<string> > &xvs, vector<double> &ys)
+void Peaker::RunLatin()
 	{
-	xvs.clear();
-	ys.clear();
 	uint BinCount = GetGlobalInt("latin", 0);
 	if (BinCount == 0)
 		{
@@ -391,6 +426,7 @@ void Peaker::RunLatin(vector<vector<string> > &xvs, vector<double> &ys)
 		}
 
 	const uint VarCount = GetVarCount();
+	vector<vector<string> > xvs;
 	GetLatinHypercube(xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
@@ -402,7 +438,8 @@ void Peaker::RunLatin(vector<vector<string> > &xvs, vector<double> &ys)
 		{
 		const vector<string> &xv = xvs[i];
 		string tmp;
-		Log("[%5u] %s", i, xv2str(xv, tmp));
+		xv2str(xv, tmp);
+		Log("[%5u] %s", i, tmp.c_str());
 		Log("\n");
 		}
 	}
@@ -411,18 +448,14 @@ void Peaker::RunLatin(vector<vector<string> > &xvs, vector<double> &ys)
 		{
 		string why;
 		Ps(why, "latin%u/%u", i+1, n);
-		double y = Evaluate(xvs[i], why);
-		ys.push_back(y);
+		Evaluate(xvs[i], why);
 		}
-	asserta(SIZE(xvs) == SIZE(ys));
 	}
 
 void Peaker::Run()
 	{
 	RunInitialValues();
-	vector<vector<string> > latin_xvs;
-	vector<double> ys;
-	RunLatin(latin_xvs, ys);
+	RunLatin();
 	HJ_RunHookeJeeves();
 	}
 
@@ -463,10 +496,10 @@ void Peaker::LogSpec() const
 void Peaker::RunNestedLatin(uint TopN)
 	{
 	ProgressLog("RunNestedLatin(%u)\n", TopN);
-	vector<vector<string> > latin_xvs;
-	vector<double> ys;
-	RunLatin(latin_xvs, ys);
+	RunLatin();
 
+	const vector<double> &ys = m_ys;
+	const vector<vector<string> > &xvs = m_xvs;
 	const uint NY = SIZE(ys);
 	const uint N = min(TopN, NY);
 	if (N == 0)
@@ -520,9 +553,9 @@ void Peaker::RunNestedLatin(uint TopN)
 		Log("\n");
 		Log("NESTED_LATIN\n");
 		P.LogSpec();
-		vector<vector<string> > Child_xvs;
-		vector<double> Child_ys;
-		P.RunLatin(Child_xvs, Child_ys);
+		P.RunLatin();
+		const vector<vector<string> > &Child_xvs = P.m_xvs;
+		const vector<double> &Child_ys = P.m_ys;
 		const uint J = SIZE(Child_xvs);
 		asserta(SIZE(P.m_whys) == J);
 		asserta(SIZE(Child_ys) == J);
@@ -543,17 +576,19 @@ double Peaker::VarStrToFloat(uint VarIdx, const string &ValueStr) const
 	return StrToFloat(ValueStr);
 	}
 
-const char *Peaker::VarFloatToStr(uint VarIdx, double Value, string &s) const
+void Peaker::VarFloatToStr(uint VarIdx, double Value, string &Str) const
 	{
-#pragma warning("TODO")
 	asserta(Value != DBL_MAX);
 	asserta(!isnan(Value));
 	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
 
 	string Fmt;
 	Ps(Fmt, "%%.%ug", SigFig);
-	Ps(s, Fmt.c_str(), Value);
-	return s.c_str();
+
+	string TmpStr;
+	Ps(TmpStr, Fmt.c_str(), Value);
+
+	NormalizeVarStr(VarIdx, TmpStr, Str);
 	}
 
 void Peaker::SpecReplaceStr(string &Spec, const string &Name,

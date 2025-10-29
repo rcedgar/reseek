@@ -3,7 +3,7 @@
 
 double Peaker::GetIncreaseRateFactor(uint Rate)
 	{
-	asserta(Rate <= MIN_RATE && Rate <= MAX_RATE);
+	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
 	case 1:	return 1.05 + randf(0.05);
@@ -18,7 +18,7 @@ double Peaker::GetIncreaseRateFactor(uint Rate)
 
 double Peaker::GetDecreaseRateFactor(uint Rate)
 	{
-	asserta(Rate <= MIN_RATE && Rate <= MAX_RATE);
+	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
 	case 1:	return 0.95 - randf(0.05);
@@ -180,22 +180,33 @@ void Peaker::HJ_RunHookeJeeves()
 		}
 	}
 
-void Peaker::DeltaVar(uint VarIdx, bool Plus, const string &OldStr, string &NewStr)
+void Peaker::NormalizeVarStr(uint VarIdx, const string &Str,
+	string &NormalizedStr) const
+	{
+	double Value = StrToFloat(Str);
+	double z = VarSpecGetFloat(VarIdx, "zero", 0);
+	if (Value < z)
+		Value = 0;
+	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
+	GetRoundedStr(Value, SigFig, NormalizedStr);
+	}
+
+void Peaker::DeltaVar(uint VarIdx, bool Plus,
+	const string &OldStr, string &NewStr)
 	{
 	NewStr.clear();
 	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
 	double OldValue = VarStrToFloat(VarIdx, OldStr);
+	if (OldValue == 0)
+		{
+		}
 	asserta(VarIdx < SIZE(m_Rates));
 	uint Rate = m_Rates[VarIdx];
 	double Factor = GetRateFactor(Rate, Plus);
 	double NewValue = OldValue*Factor;
-	double z = VarSpecGetFloat(VarIdx, "zero", 0);
-	if (NewValue < z)
-		{
-		NewStr = "0";
-		return;
-		}
-	VarFloatToStr(VarIdx, NewValue, NewStr);
-	if (OldStr != NewStr)
-		return;
+	string TmpStr;
+	VarFloatToStr(VarIdx, NewValue, TmpStr);
+	if (OldStr == TmpStr)
+		IncFloat(OldStr, Plus, TmpStr);
+	NormalizeVarStr(VarIdx, TmpStr, NewStr);
 	}
