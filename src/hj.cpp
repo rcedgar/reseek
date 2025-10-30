@@ -121,17 +121,18 @@ double Peaker::HJ_TryDelta(const string &reason,
 	asserta(Idx < SIZE(m_ys));
 	const double Start_y = m_ys[Idx];
 
-	string NewValue;
-	DeltaVar(VarIdx, Plus, Start_xv[VarIdx], NewValue);
-	if (NewValue == Start_xv[VarIdx])
+	string NewStr;
+	const string &OldStr = Start_xv[VarIdx];
+	DeltaVar(VarIdx, Plus, OldStr, NewStr);
+	if (NewStr == Start_xv[VarIdx])
 		{
-		ProgressLog("HJ_TryDelta(%s) DeltaVar %s no change\n",
-			reason.c_str(), VarName);
+		ProgressLog("HJ_TryDelta(%s) DeltaVar %s=%s no change (rate %u)\n",
+			reason.c_str(), VarName, OldStr.c_str(), m_Rates[VarIdx]);
 		return Start_y;
 		}
 
 	vector<string> Try_xv = Start_xv;
-	Try_xv[VarIdx] = NewValue;
+	Try_xv[VarIdx] = NewStr;
 
 	string why;
 	Ps(why, "%s%c%s", reason.c_str(), pom(Plus), VarName);
@@ -141,11 +142,29 @@ double Peaker::HJ_TryDelta(const string &reason,
 	if (Start_y == DBL_MAX)
 		return y;
 
-	double dy = fabs(Start_y - m_Best_y);
-	if (dy < GetGlobalFloat("mindy", -1))
+	double dy = fabs(Start_y - y);
+	double targetdy = GetGlobalFloat("targetdy", DBL_MAX);
+	asserta(targetdy != DBL_MAX);
+
+	Log("HJ_TryDelta(%s)", reason.c_str());
+	Log(" %s", VarName);
+	Log(" %s,", OldStr.c_str());
+	Log(" %s", NewStr.c_str());
+	Log(" y %.4g,", Start_y);
+	Log("%.4g", y);
+	Log(" dy %+.3g (target %.3g)", dy, targetdy);
+
+	if (dy < targetdy)
+		{
 		IncreaseRate(VarIdx);
-	else if (dy > GetGlobalFloat("maxdy", DBL_MAX))
+		Log(" ++rate %u", m_Rates[VarIdx]);
+		}
+	else if (dy > targetdy)
+		{
 		DecreaseRate(VarIdx);
+		Log(" --rate %u", m_Rates[VarIdx]);
+		}
+	Log("\n");
 
 	return y;
 	}
@@ -173,8 +192,24 @@ void Peaker::HJ_RunHookeJeeves()
 			}
 		if (m_HJ_Direction == UINT_MAX)
 			{
-			ProgressLog("HJ converged by no improvement found\n");
-			break;
+			const uint VarCount = GetVarCount();
+			bool Any = false;
+			for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+				{
+				uint Rate = m_Rates[VarIdx];
+				if (Rate > MIN_RATE)
+					{
+					m_Rates[VarIdx] = MIN_RATE;
+					Any = true;
+					}
+				}
+			if (Any)
+				ProgressLog("HJ trying minimum rates\n");
+			else
+				{
+				ProgressLog("HJ converged by no improvement found\n");
+				break;
+				}
 			}
 		HJ_Extend();
 		}
@@ -199,14 +234,41 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 	double OldValue = VarStrToFloat(VarIdx, OldStr);
 	if (OldValue == 0)
 		{
+		if (!Plus)
+			{
+			NewStr = OldStr;
+			return;
+			}
+		double MinValue = VarSpecGetFloat(VarIdx, "min", DBL_MAX);
+		string TmpStr;
+		VarFloatToStr(VarIdx, MinValue, TmpStr);
+		NormalizeVarStr(VarIdx, TmpStr, NewStr);
+		return;
 		}
 	asserta(VarIdx < SIZE(m_Rates));
-	uint Rate = m_Rates[VarIdx];
-	double Factor = GetRateFactor(Rate, Plus);
-	double NewValue = OldValue*Factor;
 	string TmpStr;
-	VarFloatToStr(VarIdx, NewValue, TmpStr);
-	if (OldStr == TmpStr)
-		IncFloat(OldStr, Plus, TmpStr);
+
+	// Defensive to avoid infinite loop
+	for (uint CheckCounter = MIN_RATE; CheckCounter < MAX_RATE;
+		++CheckCounter)
+		{
+		uint Rate = m_Rates[VarIdx];
+		double Factor = GetRateFactor(Rate, Plus);
+		double NewValue = OldValue*Factor;
+		VarFloatToStr(VarIdx, NewValue, TmpStr);
+		if (OldStr == TmpStr)
+			{
+			if (m_Rates[VarIdx] > MIN_RATE)
+				{
+				--m_Rates[VarIdx];
+				continue;
+				}
+			else
+				{
+				IncFloat(OldStr, Plus, TmpStr);
+				break;
+				}
+			}
+		}
 	NormalizeVarStr(VarIdx, TmpStr, NewStr);
 	}

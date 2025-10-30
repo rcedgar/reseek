@@ -93,6 +93,8 @@ public:
 	double rr(double lo, double hi) const;
 	bool VarIsConstant(uint VarIdx) const;
 	double GetBinWidth(uint VarIdx) const;
+	void NormalizeWeights(const vector<string> &xv,
+		vector<string> &Normalized_xv) const;
 
 	const string &GetVarSpec(uint VarIdx) const;
 
@@ -101,6 +103,7 @@ public:
 
 	double VarSpecGetFloat(uint VarIdx, const string &Name, double Default) const;
 	uint VarSpecGetInt(uint VarIdx, const string &Name, uint Default) const;
+	bool VarSpecGetBool(uint VarIdx, const string &Name, bool Default) const;
 	void VarSpecGetStr(uint VarIdx, const string &Name, 
 		string &Str, const string &Default) const;
 
@@ -147,5 +150,6 @@ public:
 	static void ParseEStr(const string &EStr, string &Mantissa, string &Exponent);
 	static uint GetSigFig(const string &EStr);
 	static bool AllNines(const string &s);
+	static bool AllZeros(const string &s);
 	static bool OneZeros(const string &s);
 	};

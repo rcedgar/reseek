@@ -86,7 +86,7 @@ void cmd_hjmega()
 
 	bool SkipInit = P.GetGlobalBool("skipinit", false);
 	uint Latin = P.GetGlobalInt("latin", 0);
-	if (SkipInit)
+	if (!SkipInit)
 		P.RunInitialValues();
 	if (Latin > 0)
 		P.RunLatin();

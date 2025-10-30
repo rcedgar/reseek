@@ -56,9 +56,7 @@ bool Peaker::GetGlobalBool(const string &Name, bool Default) const
 void Peaker::VarSpecGetStr(uint VarIdx, const string &Name,
 	string &s, const string &Default) const
 	{
-	SpecGetStr(GetVarSpec(VarIdx), Name, s, "_missing_");
-	if (s == "_missing_")
-		SpecGetStr(m_GlobalSpec, Name, s, Default);
+	SpecGetStr(GetVarSpec(VarIdx), Name, s, Default);
 	}
 
 double Peaker::VarSpecGetFloat(uint VarIdx, const string &Name, double Default) const
@@ -69,6 +67,11 @@ double Peaker::VarSpecGetFloat(uint VarIdx, const string &Name, double Default) 
 uint Peaker::VarSpecGetInt(uint VarIdx, const string &Name, uint Default) const
 	{
 	return SpecGetInt(GetVarSpec(VarIdx), Name, Default);
+	}
+
+bool Peaker::VarSpecGetBool(uint VarIdx, const string &Name, bool Default) const
+	{
+	return SpecGetBool(GetVarSpec(VarIdx), Name, Default);
 	}
 
 double Peaker::SpecGetFloat(const string &Spec, const string &Name, double Default)
@@ -294,8 +297,44 @@ uint Peaker::Find_xv(const vector<string> &xv) const
 	return UINT_MAX;
 	}
 
-double Peaker::Evaluate(const vector<string> &xv, const string &why)
+void Peaker::NormalizeWeights(const vector<string> &xv,
+	vector<string> &Normalized_xv) const
 	{
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+	vector<double> Weights;
+	double SumWeight = 0;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		if (!VarSpecGetBool(VarIdx, "weight", false))
+			continue;
+		double Weight = StrToFloat(xv[VarIdx]);
+		Weights.push_back(Weight);
+		SumWeight += Weight;
+		}
+	Normalized_xv = xv;
+	if (SIZE(Weights) == 0)
+		return;
+	asserta(SumWeight > 0);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		if (!VarSpecGetBool(VarIdx, "weight", false))
+			continue;
+		uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
+		double Weight = StrToFloat(xv[VarIdx]);
+		Weight /= SumWeight;
+		string TmpStr;
+		GetRoundedStr(Weight, SigFig, TmpStr);
+		string NewStr;
+		NormalizeVarStr(VarIdx, TmpStr, NewStr);
+		Normalized_xv[VarIdx] = NewStr;
+		}
+	}
+
+double Peaker::Evaluate(const vector<string> &axv, const string &why)
+	{
+	vector<string> xv;
+	NormalizeWeights(axv, xv);
 	const double Saved_Best_y = m_Best_y;
 	uint Idx = Find_xv(xv);
 	double y = DBL_MAX;
@@ -639,11 +678,15 @@ void Peaker::ParseEStr(const string &EStr, string &Mantissa, string &Exponent)
 		if (c == 'E' || c == 'e')
 			{
 			asserta(!Mantissa.empty());
-			asserta(Mantissa[0] != '0');
 			break;
 			}
 		asserta(isdigit(c));
 		Mantissa += c;
+		}
+	if (Mantissa[0] == '0')
+		{
+		for (uint i = 1; i < SIZE(Mantissa); ++i)
+			asserta(Mantissa[i] == '0');
 		}
 	while (i < n)
 		{
@@ -652,6 +695,18 @@ void Peaker::ParseEStr(const string &EStr, string &Mantissa, string &Exponent)
 		Exponent += c;
 		}
 	asserta(!Exponent.empty());
+	}
+
+// All chars are '0'
+bool Peaker::AllZeros(const string &s)
+	{
+	const uint n = SIZE(s);
+	if (n == 0)
+		return false;
+	for (uint i = 0; i < n; ++i)
+		if (s[i] != '0')
+			return false;
+	return true;
 	}
 
 // All chars are '9'
@@ -736,6 +791,9 @@ void Peaker::IncFloat(const string &OldStr, bool Plus, string &NewStr)
 			NewStr = new_mantissa_str + "E" + new_exponent_str;
 			}
 		}
+	// Cannot inc 0.0E0
+	else if (AllZeros(mantissa_str))
+		NewStr = OldStr;
 	else
 		asserta(false);
 	asserta(!NewStr.empty());
