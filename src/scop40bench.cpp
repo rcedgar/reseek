@@ -450,7 +450,8 @@ void SCOP40Bench::ClearHitsAndResults()
 	m_ConsideredHitCount = UINT_MAX;
 	m_IgnoredHitCount = UINT_MAX;
 
-	m_Area = FLT_MAX;
+	m_Area0 = FLT_MAX;
+	m_Area3 = FLT_MAX;
 	}
 
 float SCOP40Bench::GetVeryGoodScore() const
@@ -542,11 +543,12 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	RoundScores();
 	SetROCSteps();
 	SetCVE();
-	SetArea();
 
 	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
 	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
 	m_nt_epq10 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 10);
+
+	SetArea();
 	}
 
 void SCOP40Bench::WriteSummary()
@@ -564,8 +566,10 @@ void SCOP40Bench::WriteSummary()
 	ProgressLog("SEPQ0.1=%.3f", SensEPQ0_1);
 	ProgressLog(" SEPQ1=%.3f", SensEPQ1);
 	ProgressLog(" SEPQ10=%.3f", SensEPQ10);
-	if (m_Area != FLT_MAX)
-		ProgressLog(" Area=%.3f", m_Area);
+	if (m_Area0 != FLT_MAX)
+		ProgressLog(" Area0=%.3f", m_Area0);
+	if (m_Area3 != FLT_MAX)
+		ProgressLog(" Area3=%.3f", m_Area3);
 	if (Secs != UINT_MAX)
 		{
 		ProgressLog(" [%s]", g_GitVer);

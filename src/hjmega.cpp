@@ -6,7 +6,7 @@
 static SCOP40Bench *s_SB;
 static Peaker *s_Peaker;
 
-static double EvalArea(const vector<string> &xv)
+static double EvalArea0(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
@@ -19,7 +19,23 @@ static double EvalArea(const vector<string> &xv)
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
-	return s_SB->m_Area;
+	return s_SB->m_Area0;
+	}
+
+static double EvalArea3(const vector<string> &xv)
+	{
+	asserta(s_Peaker != 0);
+	const uint VarCount = s_Peaker->GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+	string VarsStr;
+	s_Peaker->xv2str(xv, VarsStr);
+	DSSParams::SetTunableParamsFromStr(VarsStr);
+	s_SB->ClearHitsAndResults();
+	s_SB->RunSelf(false);
+	s_SB->m_Level = "sf";
+	s_SB->SetStats(0.005f);
+	s_SB->WriteSummary();
+	return s_SB->m_Area3;
 	}
 
 void cmd_evalarea()
@@ -40,7 +56,7 @@ void cmd_evalarea()
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
-	ProgressLog("Area=%.4g\n", s_SB->m_Area);
+	ProgressLog("Area0=%.4g, Area3=%.4g\n", s_SB->m_Area0, s_SB->m_Area3);
 	}
 
 void cmd_hjmega()
@@ -82,12 +98,15 @@ void cmd_hjmega()
 	if (optset_output2)
 		P.m_fTsv = CreateStdioFile(opt(output2));
 	s_Peaker = &P;
-	P.Init(SpecLines, EvalArea);
+	P.Init(SpecLines, EvalArea3);
 
-	bool SkipInit = P.GetGlobalBool("skipinit", false);
+	if (!P.m_InitParams.empty())
+		{
+		vector<string> xv;
+		P.str2xv(P.m_InitParams, xv);
+		P.Evaluate(xv, "init");
+		}
 	uint Latin = P.GetGlobalInt("latin", 0);
-	if (!SkipInit)
-		P.RunInitialValues();
 	if (Latin > 0)
 		P.RunLatin();
 	P.HJ_RunHookeJeeves();
@@ -104,7 +123,7 @@ void cmd_hjmega()
 		StatSig::Init(s_SB->GetDBSize());
 		s_SB->Setup();
 		s_SB->m_QuerySelf = true;
-		double Area = EvalArea(P.m_Best_xv);
+		double Area = EvalArea3(P.m_Best_xv);
 		ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
 		}
 	}

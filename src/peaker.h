@@ -14,6 +14,7 @@ public:
 public:
 	string m_SpecFN;
 	vector<string> m_SpecLines;
+	string m_InitParams;
 
 	const Peaker *m_Parent = 0;
 	string m_WhoAmI;
@@ -79,16 +80,14 @@ public:
 	void LogSpec() const;
 	void InitRates();
 	const char *GetVarName(uint VarIdx) const;
+	uint GetVarIdx(const string &Name, bool FailOk = false) const;
 	uint GetVarCount() const { return SIZE(m_VarSpecs); }
 	void GetLatinHypercube(vector<vector<string> > &xvs);
 	double Evaluate(const vector<string> &xv, const string &why);
 	double Calc(const vector<string> &xv);
-	void Run();
 	void LogState() const;
+	void str2xv(const string &xstr, vector<string> &xv) const;
 	void xv2str(const vector<string> &xv, string &xstr) const;
-	void GetBestVarStr(string &s) const;
-	void GetBestVars(vector<double> &xs) const;
-	void RunInitialValues();
 	void RunLatin();
 	double rr(double lo, double hi) const;
 	bool VarIsConstant(uint VarIdx) const;

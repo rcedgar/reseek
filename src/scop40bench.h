@@ -64,7 +64,11 @@ public:
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
 
-	float m_Area = FLT_MAX;
+	// Area from EPQ 0.1 to 10
+	float m_Area0 = FLT_MAX;
+
+	// Area0 + (SEPQ0.1 + SEPQ1 + SEPQ10)/3
+	float m_Area3 = FLT_MAX;
 
 	FILE *m_fa2_tp = 0;
 	FILE *m_fa2_fp = 0;

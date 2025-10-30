@@ -186,7 +186,8 @@ static float Interp(float TargetSens,
 
 void SCOP40Bench::SetArea()
 	{
-	m_Area = FLT_MAX;
+	m_Area0 = FLT_MAX;
+	m_Area3 = FLT_MAX;
 	const uint N = SIZE(m_CVESensVec);
 	asserta(SIZE(m_CVEEPQVec) == N);
 	asserta(SIZE(m_CVEScoreVec) == N);
@@ -204,7 +205,7 @@ void SCOP40Bench::SetArea()
 		Log10EPQVec.push_back(Log10EPQ);
 		}
 	float SensLo = m_CVESensVec[0];
-	m_Area = 0;
+	m_Area0 = 0;
 	for (uint i = 0; i + 1 < N; ++i)
 		{
 		float x1 = m_CVESensVec[i];
@@ -214,8 +215,13 @@ void SCOP40Bench::SetArea()
 		asserta(x2 > x1);
 		// may not be strictly increasing
 		//asserta(LogEPQ2 >= LogEPQ1);
-		m_Area += (x2 + x1)*fabs(LogEPQ2 - LogEPQ1)/2;
+		m_Area0 += (x2 + x1)*fabs(LogEPQ2 - LogEPQ1)/2;
 		}
+
+	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
+	float SensEPQ1 = float(m_nt_epq1)/m_NT;
+	float SensEPQ10 = float(m_nt_epq10)/m_NT;
+	m_Area3 = m_Area0 + (SensEPQ0_1 + SensEPQ1 + SensEPQ10)/3;
 	}
 
 void SCOP40Bench::SetCVE()

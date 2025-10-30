@@ -1092,8 +1092,8 @@ void FeatureTrainer::OptimizeGapPenalties()
 
 	Die("TODO");
 	//m_Peaker->Init(SpecLines, EvalArea);//@@TODO
-	m_Peaker->Run();
-	m_Area = (float) m_Peaker->m_Best_y;
+	//m_Peaker->Run();
+	//m_Area = (float) m_Peaker->m_Best_y;
 	}
 
 void FeatureTrainer::Train(const string &Style)

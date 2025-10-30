@@ -127,6 +127,31 @@ uint Peaker::SpecGetInt(const string &Spec, const string &Name, uint Default)
 	return StrToUint(s);
 	}
 
+void Peaker::str2xv(const string &xstr, vector<string> &xv) const
+	{
+	xv.clear();
+	vector<string> Fields;
+	Split(xstr, Fields, ';');
+	const uint n = SIZE(Fields);
+	const uint VarCount = GetVarCount();
+	xv.resize(VarCount);
+	if (n != VarCount)
+		Die("%u/%u str2xv(%s)", n, VarCount, xstr.c_str());
+	for (uint k = 0; k < VarCount; ++k)
+		{
+		const string &NameEqValue = Fields[k];
+		vector<string> Fields2;
+		Split(NameEqValue, Fields2, '=');
+		if (SIZE(Fields2) != 2)
+			Die("Bad name=value %s str2xv(%s)",
+				NameEqValue.c_str(), xstr.c_str());
+		uint VarIdx = GetVarIdx(Fields2[0]);
+		asserta(VarIdx < SIZE(xv));
+		asserta(xv[VarIdx] == "");
+		xv[VarIdx] = Fields2[1];
+		}
+	}
+
 void Peaker::xv2str(const vector<string> &xv, string &s) const
 	{
 	const uint VarCount = GetVarCount();
@@ -221,6 +246,19 @@ bool Peaker::VarIsConstant(uint VarIdx) const
 	string yes;
 	VarSpecGetStr(VarIdx, "constant", yes, "no");
 	return yes == "yes";
+	}
+
+uint Peaker::GetVarIdx(const string &Name, bool FailOk) const
+	{
+	for (uint Idx = 0; Idx < SIZE(m_VarNames); ++Idx)
+		{
+		if (Name == m_VarNames[Idx])
+			return Idx;
+		}
+	if (FailOk)
+		return UINT_MAX;
+	Die("GetVarIdx(%s)", Name.c_str());
+	return 0;
 	}
 
 void Peaker::InitRates()
@@ -410,8 +448,16 @@ void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 			}
 		else
 			{
-			asserta(m_GlobalSpec.empty());
-			m_GlobalSpec = Line;
+			if (StartsWith(Line, "init="))
+				{
+				asserta(m_InitParams.empty());
+				m_InitParams = Line.substr(5);
+				}
+			else
+				{
+				asserta(EndsWith(Line, ";"));
+				m_GlobalSpec += Line;
+				}
 			}
 		}
 	}
@@ -437,22 +483,6 @@ void Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
 	string Fmt;
 	Ps(Fmt, "%%.%uE", SigFig-1);
 	Ps(Str, Fmt.c_str(), x);
-	}
-
-void Peaker::RunInitialValues()
-	{
-	const uint VarCount = GetVarCount();
-	vector<string> xv;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		double InitialValue = VarSpecGetFloat(VarIdx, "init", DBL_MAX);
-		asserta(InitialValue != DBL_MAX);
-
-		string ValueStr;
-		VarFloatToStr(VarIdx, InitialValue, ValueStr);
-		xv.push_back(ValueStr);
-		}
-	Evaluate(xv, "init");
 	}
 
 void Peaker::RunLatin()
@@ -489,13 +519,6 @@ void Peaker::RunLatin()
 		Ps(why, "latin%u/%u", i+1, n);
 		Evaluate(xvs[i], why);
 		}
-	}
-
-void Peaker::Run()
-	{
-	RunInitialValues();
-	RunLatin();
-	HJ_RunHookeJeeves();
 	}
 
 void Peaker::GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
