@@ -111,6 +111,7 @@ void cmd_hjmega()
 		P.RunLatin();
 	P.HJ_RunHookeJeeves();
 	CloseStdioFile(P.m_fTsv);
+	ProgressLog("Eval cache hits %u\n", P.m_EvaluateCacheHits);
 
 	string BestVarStr;
 	P.xv2str(P.m_Best_xv, BestVarStr);
