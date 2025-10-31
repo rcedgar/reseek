@@ -50,10 +50,10 @@ public:
 	bool m_HJ_ExtendPlus = false;	// +/- direction
 
 public:
-	Peaker(const Peaker *Parent, const string &WhoAmI)
+	Peaker(const Peaker *Parent, const string &Name)
 		{
 		m_Parent = Parent;
-		m_Name = WhoAmI;
+		m_Name = Name;
 		}
 
 public:
@@ -75,7 +75,7 @@ public:
 
 	double Evaluate(const vector<string> &xv, const string &why);
 	double Calc(const vector<string> &xv);
-	void RunLatin();
+	void RunLatin(uint BinCount);
 	void NormalizeWeights(const vector<string> &xv,
 		vector<string> &Normalized_xv) const;
 	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,

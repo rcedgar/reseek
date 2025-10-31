@@ -278,8 +278,11 @@ double Peaker::Calc(const vector<string> &xv)
 void Peaker::GetPeakerPathStr(string &s) const
 	{
 	s.clear();
-	if (m_Parent == 0)
+	if (m_Parent == 0)	
+		{
+		s = m_Name;
 		return;
+		}
 	s = m_Parent->m_Name + "/" + m_Name;
 	}
 
@@ -483,20 +486,20 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	string xss;
 	xv2xss(xv, xss);
 	if (dy > 0)
-		Progress("\n");
-	ProgressLog("%.2g%s[%.6g] %s %s\n",
-		dy,
+		ProgressLog("\n");
+	ProgressLog("%s%.2g[%.6g] %s %s\n",
 		(dy > 0 ? ">>>" : ""),
+		dy,
 		m_Best_y,
 		desc.c_str(),
 		xss.c_str());
 	if (dy > 0)
-		Progress("\n");
+		ProgressLog("\n");
 
 	if (m_fTsv != 0)
 		{
 		fprintf(m_fTsv, "%.6g", y);
-		fprintf(m_fTsv, "\t%s", dy > 0 ? "^" : "_");
+		fprintf(m_fTsv, "\t%s", dy > 0 ? ">>" : "..");
 		fprintf(m_fTsv, "\t%.2g", dy);
 		fprintf(m_fTsv, "\t%s", desc.c_str());
 		fprintf(m_fTsv, "\t%s", xss.c_str());
@@ -582,15 +585,8 @@ void Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
 	Ps(Str, Fmt.c_str(), x);
 	}
 
-void Peaker::RunLatin()
+void Peaker::RunLatin(uint BinCount)
 	{
-	uint BinCount = GetGlobalInt("latin", 0);
-	if (BinCount == 0)
-		{
-		ProgressLog("RunLatin(), no bins\n");
-		return;
-		}
-
 	const uint VarCount = GetVarCount();
 	vector<vector<string> > xvs;
 	GetLatinHypercube(xvs);

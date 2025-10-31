@@ -59,66 +59,37 @@ void cmd_evalarea()
 	ProgressLog("Area0=%.4g, Area3=%.4g\n", s_SB->m_Area0, s_SB->m_Area3);
 	}
 
-void cmd_hjmega()
+static void Optimize(
+	const string &OptName,
+	const vector<string> &SpecLines,
+	SCOP40Bench &SB,
+	uint LatinBinCount,
+	uint HJCount,
+	double &Best_y,
+	vector<string> &Best_xv)
 	{
-	const string SpecFN = g_Arg1;
-	asserta(optset_db);
-	const string &DBFN = opt(db);
-
-	DSSParams::Init(DM_UseCommandLineOption);
-	string ParamStr;
-	DSSParams::GetParamStr(ParamStr);
-	ProgressLog("ParamStr:%s\n", ParamStr.c_str());
-
-	s_SB = new SCOP40Bench;
-	s_SB->LoadDB(DBFN);
-	StatSig::Init(s_SB->GetDBSize());
-	s_SB->Setup();
-	s_SB->m_QuerySelf = true;
-
-	if (optset_subsample)
-		{
-		uint Pct = opt(subsample);
-		SCOP40Bench *Subset = new SCOP40Bench;
-		s_SB->MakeSubset(*Subset, Pct);
-		Subset->Setup();
-		Subset->m_QuerySelf = true;
-		s_SB = Subset;
-		ProgressLog("Subset %u%%, %u chains\n",
-			Pct, Subset->GetDBChainCount());
-		}
-
-	Log("SpecFN=%s\n", SpecFN.c_str());
-	vector<string> SpecLines;
-	ReadLinesFromFile(SpecFN, SpecLines);
-	for (uint i = 0; i < SIZE(SpecLines); ++i)
-		Log("%s\n", SpecLines[i].c_str());
-
-	Peaker P(0, "");
-	if (optset_output2)
-		P.m_fTsv = CreateStdioFile(opt(output2));
-	s_Peaker = &P;
+	Peaker &P = *new Peaker(0, OptName);
 	P.Init(SpecLines, EvalArea3);
+	s_Peaker = &P;
 
-	if (!P.m_InitParams.empty())
-		{
-		vector<string> xv;
-		P.xss2xv(P.m_InitParams, xv);
-		P.Evaluate(xv, "init");
-		}
-	uint Latin = P.GetGlobalInt("latin", 0);
-	if (Latin > 0)
-		P.RunLatin();
+	s_SB = &SB;
+
+	ProgressLog("=========================================\n");
+	ProgressLog("%s latin (%u)\n", OptName.c_str(), LatinBinCount);
+	ProgressLog("=========================================\n");
+	asserta(LatinBinCount > 0);
+	P.RunLatin(LatinBinCount);
 
 	vector<uint> TopEvalIdxs;
 	P.GetTopEvalIdxs(3, TopEvalIdxs);
 	const uint n = SIZE(TopEvalIdxs);
 	if (n == 0)
-		Die("No evals");
+		Die("No evals %s", OptName.c_str());
+
 	for (uint k = 0; k < n; ++k)
 		{
 		ProgressLog("=========================================\n");
-		ProgressLog("               HJ %u/%u\n", k+1, n);
+		ProgressLog("%s HJ %u/%u\n", OptName.c_str(), k+1, n);
 		ProgressLog("=========================================\n");
 
 		uint EvalIdx = TopEvalIdxs[k];
@@ -131,44 +102,93 @@ void cmd_hjmega()
 		Child->HJ_RunHookeJeeves();
 		P.AppendChildResults(*Child);
 		delete Child;
+		ProgressLog("=========================================\n");
+		ProgressLog("%s HJ %u/%u converged\n", OptName.c_str(), k+1, n);
+		ProgressLog("=========================================\n");
 		}
+	Best_y = P.m_Best_y;
+	Best_xv = P.m_Best_xv;
+	ProgressLog("=========================================\n");
+	ProgressLog("%s completed\n", OptName.c_str());
+	ProgressLog("=========================================\n");
+	}
 
-	ProgressLog("Eval cache hits %u\n", P.m_EvaluateCacheHits);
+void cmd_hjmega()
+	{
+	const string SpecFN = g_Arg1;
+	asserta(optset_db);
+	const string &DBFN = opt(db);
 
-	string BestVarStr;
-	P.xv2xss(P.m_Best_xv, BestVarStr);
+	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
-	ProgressLog("\n");
-	ProgressLog("CONVERGED [%.3g] %s\n", P.m_Best_y, BestVarStr.c_str());
-	ProgressLog("\n");
+	DSSParams::Init(DM_UseCommandLineOption);
+	StatSig::Init(SCOP40_DBSIZE);
 
-	P.WriteFinalResults(g_fLog);
+	SCOP40Bench FullSB;
+	FullSB.LoadDB(DBFN);
+	FullSB.Setup();
 
-	if (optset_input2)
+	Log("SpecFN=%s\n", SpecFN.c_str());
+	vector<string> SpecLines;
+	ReadLinesFromFile(SpecFN, SpecLines);
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		Log("%s\n", SpecLines[i].c_str());
+
+	uint SubsetIters = UINT_MAX;
+	uint SubsetPct = UINT_MAX;
+	uint LatinCount = UINT_MAX;
+	uint HJCount = UINT_MAX;
+	string GlobalSpec;
+	{
+	Peaker TmpP(0, "");
+	TmpP.Init(SpecLines, 0);
+	GlobalSpec = TmpP.m_GlobalSpec;
+	}
+
+	SubsetIters = Peaker::SpecGetInt(GlobalSpec, "sub", UINT_MAX);
+	SubsetPct = Peaker::SpecGetInt(GlobalSpec, "subpct", UINT_MAX);
+	LatinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
+	HJCount = Peaker::SpecGetInt(GlobalSpec, "hj", UINT_MAX);
+	asserta(SubsetIters != UINT_MAX);
+	asserta(LatinCount != UINT_MAX);
+	asserta(HJCount != UINT_MAX);
+
+	double Final_y = -1;
+	string Final_xss;
+	for (uint SubsetIter = 1; SubsetIter <= SubsetIters; ++SubsetIter)
 		{
-		s_SB = new SCOP40Bench;
-		s_SB->LoadDB(opt(input2));
-		StatSig::Init(s_SB->GetDBSize());
-		s_SB->Setup();
-		s_SB->m_QuerySelf = true;
+		double Best_y;
+		vector<string> Best_xv;
+		SCOP40Bench *Subset = new SCOP40Bench;
+		FullSB.MakeSubset(*Subset, SubsetPct);
+		Subset->Setup();
+		ProgressLog("Subset %u%%, %u chains\n",
+				SubsetPct, Subset->GetDBChainCount());
+		string OptName;
+		Ps(OptName, "sub%u", SubsetIter);
+		Optimize(OptName, SpecLines, *Subset, LatinCount, HJCount,
+			Best_y, Best_xv);
 
-		vector<uint> TopEvalIdxs;
-		P.GetTopEvalIdxs(3, TopEvalIdxs);
-		const uint n = SIZE(TopEvalIdxs);
-		if (n == 0)
-			Die("No evals");
-		for (uint k = 0; k < n; ++k)
+		s_SB = &FullSB;	
+		string PeakerName;
+		Ps(PeakerName, "full%u", SubsetIter);
+		Peaker Pfull(0, PeakerName);
+		Pfull.Init(SpecLines, EvalArea3);
+		Pfull.Evaluate(Best_xv, PeakerName + "_init");
+		Pfull.HJ_RunHookeJeeves();
+		Pfull.WriteFinalResults(g_fLog);
+
+		if (Pfull.m_Best_y > Final_y)
 			{
-			ProgressLog("=========================================\n");
-			ProgressLog("               FULL %u/%u\n", k+1, n);
-			ProgressLog("=========================================\n");
-
-			uint EvalIdx = TopEvalIdxs[k];
-			const vector<string> &xv = P.m_xvs[EvalIdx];
-			double Area = EvalArea3(xv);
-			ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
+			Final_y = Pfull.m_Best_y;
+			Pfull.xv2xss(Pfull.m_Best_xv, Final_xss);
 			}
+
+		delete Subset;
 		}
 
-	CloseStdioFile(P.m_fTsv);
+	ProgressLog("\n");
+	ProgressLog("FINAL [%.4g] %s\n", Final_y, Final_xss.c_str());
+
+	CloseStdioFile(Peaker::m_fTsv);
 	}
