@@ -61,7 +61,8 @@ void cmd_evalarea()
 
 static void Optimize(
 	const string &OptName,
-	const vector<string> &SpecLines,
+	const string &GlobalSpec,
+	const vector<string> &VarSpecs,
 	SCOP40Bench &SB,
 	uint LatinBinCount,
 	uint HJCount,
@@ -69,7 +70,7 @@ static void Optimize(
 	vector<string> &Best_xv)
 	{
 	Peaker &P = *new Peaker(0, OptName);
-	P.Init(SpecLines, EvalArea3);
+	P.Init(GlobalSpec, VarSpecs, EvalArea3);
 	s_Peaker = &P;
 
 	s_SB = &SB;
@@ -130,25 +131,42 @@ void cmd_hjmega()
 
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
+	vector<string> VarSpecs;
 	ReadLinesFromFile(SpecFN, SpecLines);
 	for (uint i = 0; i < SIZE(SpecLines); ++i)
 		Log("%s\n", SpecLines[i].c_str());
 
-	uint SubsetIters = UINT_MAX;
-	uint SubsetPct = UINT_MAX;
-	uint LatinCount = UINT_MAX;
-	uint HJCount = UINT_MAX;
-	string GlobalSpec;
-	{
-	Peaker TmpP(0, "");
-	TmpP.Init(SpecLines, 0);
-	GlobalSpec = TmpP.m_GlobalSpec;
-	}
+	string GlobalSpecSub;
+	string GlobalSpecAll;
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i];
+		if (Line == "" || StartsWith(Line, "#"))
+			continue;
+		asserta(EndsWith(Line, ";"));
+		if (StartsWith(Line, "var="))
+			{
+			VarSpecs.push_back(Line);
+			continue;
+			}
+		else
+			{
+			if (StartsWith(Line, "ALL"))
+				GlobalSpecAll += Line.substr(3);
+			else if (StartsWith(Line, "SUB"))
+				GlobalSpecSub += Line.substr(3);
+			else
+				{
+				GlobalSpecSub += Line;
+				GlobalSpecAll += Line;
+				}
+			}
+		}
 
-	SubsetIters = Peaker::SpecGetInt(GlobalSpec, "sub", UINT_MAX);
-	SubsetPct = Peaker::SpecGetInt(GlobalSpec, "subpct", UINT_MAX);
-	LatinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
-	HJCount = Peaker::SpecGetInt(GlobalSpec, "hj", UINT_MAX);
+	uint SubsetIters = Peaker::SpecGetInt(GlobalSpecAll, "sub", UINT_MAX);
+	uint SubsetPct = Peaker::SpecGetInt(GlobalSpecAll, "subpct", UINT_MAX);
+	uint LatinCount = Peaker::SpecGetInt(GlobalSpecAll, "latin", UINT_MAX);
+	uint HJCount = Peaker::SpecGetInt(GlobalSpecAll, "hj", UINT_MAX);
 	asserta(SubsetIters != UINT_MAX);
 	asserta(LatinCount != UINT_MAX);
 	asserta(HJCount != UINT_MAX);
@@ -165,14 +183,14 @@ void cmd_hjmega()
 				SubsetPct, Subset->GetDBChainCount());
 		string OptName;
 		Ps(OptName, "sub%u", SubsetIter);
-		Optimize(OptName, SpecLines, *Subset, LatinCount, HJCount,
-			Best_y, Best_xv);
+		Optimize(OptName, GlobalSpecSub, VarSpecs, *Subset,
+			LatinCount, HJCount, Best_y, Best_xv);
 
 		s_SB = &FullSB;	
 		string PeakerName;
-		Ps(PeakerName, "full%u", SubsetIter);
+		Ps(PeakerName, "all%u", SubsetIter);
 		Peaker Pfull(0, PeakerName);
-		Pfull.Init(SpecLines, EvalArea3);
+		Pfull.Init(GlobalSpecAll, VarSpecs, EvalArea3);
 		Pfull.Evaluate(Best_xv, PeakerName + "_init");
 		Pfull.HJ_RunHookeJeeves();
 		Pfull.WriteFinalResults(g_fLog);

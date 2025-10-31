@@ -526,39 +526,22 @@ double Peaker::Evaluate(const vector<string> &axv, const string &why)
 	return y;
 	}
 
-void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
+void Peaker::Init(const string &GlobalSpec,
+	const vector<string> &VarSpecs, PTR_EVAL_FUNC EF)
 	{
-	m_GlobalSpec.clear();
-	m_VarSpecs.clear();
+	m_GlobalSpec = GlobalSpec;
+	m_VarSpecs = VarSpecs;
 	m_EvalFunc = EF;
 	vector<string> Fields;
-	const uint LineCount = SIZE(SpecLines);
-	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
+	const uint VarCount = SIZE(VarSpecs);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		const string &Line = SpecLines[LineIdx];
-		if (Line.empty() || Line[0] == '#')
-			continue;
-		if (StartsWith(Line, "var="))
-			{
-			string Name;
-			SpecGetStr(Line, "var", Name, "");
-			asserta(!Name.empty());
-			m_VarNames.push_back(Name);
-			m_VarSpecs.push_back(Line);
-			}
-		else
-			{
-			if (StartsWith(Line, "init="))
-				{
-				asserta(m_InitParams.empty());
-				m_InitParams = Line.substr(5);
-				}
-			else
-				{
-				asserta(EndsWith(Line, ";"));
-				m_GlobalSpec += Line;
-				}
-			}
+		const string &VarSpec = VarSpecs[VarIdx];
+		asserta(StartsWith(VarSpec, "var="));
+		string Name;
+		SpecGetStr(VarSpec, "var", Name, "");
+		asserta(!Name.empty());
+		m_VarNames.push_back(Name);
 		}
 	}
 

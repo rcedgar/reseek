@@ -57,7 +57,8 @@ public:
 		}
 
 public:
-	void Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF);
+	void Init(const string &GlobalSpec,
+		const vector<string> &VarSpecs, PTR_EVAL_FUNC EF);
 	void WriteFinalResults(FILE *f) const;
 	void WriteStatusPage(FILE *f) const;
 	void LogSpec() const;
