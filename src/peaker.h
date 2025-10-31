@@ -17,10 +17,11 @@ public:
 	string m_InitParams;
 
 	const Peaker *m_Parent = 0;
-	string m_WhoAmI;
+	string m_Name;
 	string m_GlobalSpec;
 	vector<string> m_VarSpecs;
 	vector<string> m_VarNames;
+	vector<uint> m_VarRates;
 	uint m_EvaluateCacheHits = 0;
 	uint m_RequestIdx = 0;
 	PTR_EVAL_FUNC m_EvalFunc = 0;
@@ -30,10 +31,15 @@ public:
 	vector<string> m_whys;				// Reason for Eval
 	double m_Best_y = DBL_MAX;
 	vector<string> m_Best_xv;
+	string m_Best_desc;
 	time_t m_LastImprovedTime = 0;
 	uint m_LastImprovedEvalCount = 0;
 
-	vector<uint> m_Rates;
+	vector<string> m_ChildNames;
+	vector<vector<string> > m_Best_xvs;
+	vector<double> m_Best_ys;
+	vector<string> m_Best_descs;
+
 
 // Hooke-Jeeves parameters
 	uint m_HJ_MaxExtendIters = 100;
@@ -47,82 +53,86 @@ public:
 	Peaker(const Peaker *Parent, const string &WhoAmI)
 		{
 		m_Parent = Parent;
-		m_WhoAmI = WhoAmI;
-		}
-
-	void Clear()
-		{
-		Die("Peaker::Clear()");
-		m_Parent = 0;
-		m_WhoAmI.clear();
-		m_SpecFN.clear();
-		m_SpecLines.clear();
-		m_VarNames.clear();
-		m_VarSpecs.clear();
-		m_EvaluateCacheHits = 0;
-		m_RequestIdx = 0;
-		m_EvalFunc = 0;
-
-		m_xvs.clear();
-		m_ys.clear();
-		m_whys.clear();
-		m_Best_y = DBL_MAX;
-		m_LastImprovedTime = 0;
-		m_LastImprovedEvalCount = 0;
-		m_Best_xv.clear();
-		m_Rates.clear();
+		m_Name = WhoAmI;
 		}
 
 public:
 	void Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF);
-	uint Find_xv(const vector<string> &xv) const;
+	void WriteFinalResults(FILE *f) const;
 	void WriteStatusPage(FILE *f) const;
 	void LogSpec() const;
+	void LogState() const;
 	void InitRates();
-	const char *GetVarName(uint VarIdx) const;
+
+	// Child
+	void GetPeakerPathStr(string &s) const;
+	Peaker *MakeChild(const string &Name) const;
+	void AppendResult(const vector<string> &xv, double y, const string &why);
+	void AppendChildResults(const Peaker &Child);
+
 	uint GetVarIdx(const string &Name, bool FailOk = false) const;
 	uint GetVarCount() const { return SIZE(m_VarSpecs); }
-	void GetLatinHypercube(vector<vector<string> > &xvs);
+
 	double Evaluate(const vector<string> &xv, const string &why);
 	double Calc(const vector<string> &xv);
-	void LogState() const;
-	void str2xv(const string &xstr, vector<string> &xv) const;
-	void xv2str(const vector<string> &xv, string &xstr) const;
 	void RunLatin();
-	double rr(double lo, double hi) const;
-	bool VarIsConstant(uint VarIdx) const;
-	double GetBinWidth(uint VarIdx) const;
 	void NormalizeWeights(const vector<string> &xv,
 		vector<string> &Normalized_xv) const;
+	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,
+		string &NewStr);
+	void ExploreNeighborhood(const vector<string> &Center,
+		double MinDelta, double MaxDelta, uint Iters);
+	void GetNeighborhood(const vector<string> &xv,
+		double MinDelta, double MaxDelta, uint Size,
+		vector<vector<string> > &Neighbors);
+	bool GetRandomNeighbor(const vector<string> &xv,
+		double MinDelta, double MaxDelta,
+		vector<string> &Neighbor) const;
 
-	const string &GetVarSpec(uint VarIdx) const;
+	// Latin
+	void GetLatinHypercube(vector<vector<string> > &xvs) const;
+	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
 
-	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
-	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
-
-	double VarSpecGetFloat(uint VarIdx, const string &Name, double Default) const;
-	uint VarSpecGetInt(uint VarIdx, const string &Name, uint Default) const;
-	bool VarSpecGetBool(uint VarIdx, const string &Name, bool Default) const;
-	void VarSpecGetStr(uint VarIdx, const string &Name, 
-		string &Str, const string &Default) const;
-
+	// Global spec
 	void GetGlobalStr(const string &Name, string &s, const string &Default) const;
 	double GetGlobalFloat(const string &Name, double Default) const;
 	uint GetGlobalInt(const string &Name, uint Default) const;
 	bool GetGlobalBool(const string &Name, bool Default) const;
 
-	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
-	void RunNestedLatin(uint TopN);
-	void GetPeakerPathStr(string &s) const;
-	void AppendChildResult(const vector<string> &xv, double y,
-		const string &childname, const string &why);
+	// Per-var spec
+	const string &GetVarSpec(uint VarIdx) const;
+	double VarSpecGetFloat(uint VarIdx, const string &Name, double Default) const;
+	uint VarSpecGetInt(uint VarIdx, const string &Name, uint Default) const;
+	bool VarSpecGetBool(uint VarIdx, const string &Name, bool Default) const;
+	void VarSpecGetStr(uint VarIdx, const string &Name,
+		string &Str, const string &Default) const;
+
+	const char *GetVarName(uint VarIdx) const;
+	bool VarIsConstant(uint VarIdx) const;
+	double GetBinWidth(uint VarIdx) const;
+
+	// xv vector of strings, xss is semi-colon string
+	void xv2values(const vector<string> &xv, vector<double> &Values) const;
+	void xss2xv(const string &xstr, vector<string> &xv) const;
+	void xv2xss(const vector<string> &xv, string &xstr) const;
+	uint Find_xv(const vector<string> &xv) const;
+
+	// Convert float <-> str for one var
+	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
+	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
+
+	void GetSlider(uint VarIdx, double Value, uint w, string &Slider) const;
+
 	void IncreaseRate(uint VarIdx);
 	void DecreaseRate(uint VarIdx);
 	void NormalizeVarStr(uint VarIdx, const string &Str,
 		string &NormalizedStr) const;
+	double GetEuclideanDist(const vector<string> &xv1,
+		const vector<string> &xv2) const;
+	double GetEuclideanDist(const vector<double> &xv1,
+		const vector<double> &xv2) const;
 
-	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,
-		string &NewStr);
+	void GetTopEvalIdxs(const uint N, vector<uint> &Idxs) const;
 
 // Hooke-Jeeves
 	void HJ_RunHookeJeeves();
@@ -151,4 +161,5 @@ public:
 	static bool AllNines(const string &s);
 	static bool AllZeros(const string &s);
 	static bool OneZeros(const string &s);
+	static double rr(double lo, double hi);
 	};

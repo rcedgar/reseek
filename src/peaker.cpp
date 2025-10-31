@@ -127,7 +127,7 @@ uint Peaker::SpecGetInt(const string &Spec, const string &Name, uint Default)
 	return StrToUint(s);
 	}
 
-void Peaker::str2xv(const string &xstr, vector<string> &xv) const
+void Peaker::xss2xv(const string &xstr, vector<string> &xv) const
 	{
 	xv.clear();
 	vector<string> Fields;
@@ -136,14 +136,14 @@ void Peaker::str2xv(const string &xstr, vector<string> &xv) const
 	const uint VarCount = GetVarCount();
 	xv.resize(VarCount);
 	if (n != VarCount)
-		Die("%u/%u str2xv(%s)", n, VarCount, xstr.c_str());
+		Die("%u/%u xss2xv(%s)", n, VarCount, xstr.c_str());
 	for (uint k = 0; k < VarCount; ++k)
 		{
 		const string &NameEqValue = Fields[k];
 		vector<string> Fields2;
 		Split(NameEqValue, Fields2, '=');
 		if (SIZE(Fields2) != 2)
-			Die("Bad name=value %s str2xv(%s)",
+			Die("Bad name=value %s xss2xv(%s)",
 				NameEqValue.c_str(), xstr.c_str());
 		uint VarIdx = GetVarIdx(Fields2[0]);
 		asserta(VarIdx < SIZE(xv));
@@ -152,7 +152,7 @@ void Peaker::str2xv(const string &xstr, vector<string> &xv) const
 		}
 	}
 
-void Peaker::xv2str(const vector<string> &xv, string &s) const
+void Peaker::xv2xss(const vector<string> &xv, string &s) const
 	{
 	const uint VarCount = GetVarCount();
 	asserta(SIZE(xv) == VarCount);
@@ -161,7 +161,7 @@ void Peaker::xv2str(const vector<string> &xv, string &s) const
 		s += m_VarNames[i] + "=" + xv[i] + ";";
 	}
 
-double Peaker::rr(double lo, double hi) const
+double Peaker::rr(double lo, double hi)
 	{
 	const uint M = 18409199;
 	double r = (randu32()%(M+1))/double(M);
@@ -208,7 +208,7 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 	return Value;
 	}
 
-void Peaker::GetLatinHypercube(vector<vector<string > > &xvs)
+void Peaker::GetLatinHypercube(vector<vector<string > > &xvs) const
 	{
 	xvs.clear();
 	uint BinCount = GetGlobalInt("latin", 0);
@@ -263,9 +263,9 @@ uint Peaker::GetVarIdx(const string &Name, bool FailOk) const
 
 void Peaker::InitRates()
 	{
-	m_Rates.clear();
+	m_VarRates.clear();
 	const uint VarCount = GetVarCount();
-	m_Rates.resize(VarCount, MED_RATE);
+	m_VarRates.resize(VarCount, MED_RATE);
 	}
 
 double Peaker::Calc(const vector<string> &xv)
@@ -278,48 +278,26 @@ double Peaker::Calc(const vector<string> &xv)
 void Peaker::GetPeakerPathStr(string &s) const
 	{
 	s.clear();
-	string ParentStr;
-	if (m_Parent != 0)
-		{
-		m_Parent->GetPeakerPathStr(ParentStr);
-		if (ParentStr == "/")
-			ParentStr = "";
-		}
-
-	string WhoAmI;
-	s = ParentStr + "/" + WhoAmI;
+	if (m_Parent == 0)
+		return;
+	s = m_Parent->m_Name + "/" + m_Name;
 	}
 
-void Peaker::AppendChildResult(const vector<string> &xv, double y, 
-	const string &childname, const string &why)
+void Peaker::AppendChildResults(const Peaker &Child)
 	{
-	m_xvs.push_back(xv);
-	m_ys.push_back(y);
+	const string &childname = Child.m_Name;
+	m_ChildNames.push_back(childname);
+	const uint ChildEvalCount = SIZE(Child.m_xvs);
+	asserta(SIZE(Child.m_ys) == ChildEvalCount);
+	asserta(SIZE(Child.m_whys) == ChildEvalCount);
 
-	string child_why = childname + ":" + why;
-	m_whys.push_back(child_why);
-
-	string improved;
-	if (y != DBL_MAX)
+	for (uint Idx = 0; Idx < ChildEvalCount; ++Idx)
 		{
-		if (m_Best_y == DBL_MAX || y > m_Best_y)
-			{
-			improved = "child>>";
-			m_Best_y = y;
-			m_Best_xv = xv;
-			m_LastImprovedTime = time(0);
-			}
-		}
-	const uint n = SIZE(m_xvs);
-	asserta(SIZE(m_whys) == n);
-	asserta(SIZE(m_ys) == n);
-	if (m_fTsv != 0)
-		{
-		string tmp;
-		xv2str(xv, tmp);
-		fprintf(m_fTsv, "%.6g\t%s%s\t%s\n",
-			y, improved.c_str(), why.c_str(), tmp.c_str());
-		fflush(m_fTsv);
+		const vector<string> &xv = Child.m_xvs[Idx];
+		const double y  = Child.m_ys[Idx];
+		const string &childwhy  = Child.m_whys[Idx];
+		const string &why = childname + ":" + childwhy;
+		AppendResult(xv, y, why);
 		}
 	}
 
@@ -369,11 +347,168 @@ void Peaker::NormalizeWeights(const vector<string> &xv,
 		}
 	}
 
+void Peaker::GetSlider(uint VarIdx, double Value, uint w,
+	string &Slider) const
+	{
+	Slider.clear();
+	Slider.resize(w);
+	double Min = VarSpecGetFloat(VarIdx, "min", 0);
+	double Max = VarSpecGetFloat(VarIdx, "max", 1);
+	double r = (Value - Min)/(Max - Min);
+	if (r < 0)
+		r = 0;
+	if (r > 1)
+		r = 1;
+	uint n = uint(r*w + 0.5);
+	if (n > w)
+		n = w;
+	for (uint i = 0; i < n; ++i)
+		Slider[i] = '|';
+	}
+
+void Peaker::WriteFinalResults(FILE *f) const
+	{
+	if (f == 0)
+		return;
+
+	const uint VarCount = GetVarCount();
+	fprintf(f, "%u evals\n", SIZE(m_ys));
+	fprintf(f, "%u children\n", SIZE(m_ChildNames));
+	for (uint i = 0; i < SIZE(m_ChildNames); ++i)
+		fprintf(f, "[%4u]  %s\n", i+1, m_ChildNames[i].c_str());
+	fprintf(f, "\n");
+
+	fprintf(f, "%4.4s  ", "");
+	fprintf(f, "  %7.7s ", "");
+	fprintf(f, "  %10.10s", "");
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		fprintf(f, "  %-8.8s", GetVarName(VarIdx));
+	fprintf(f, "\n");
+
+	const uint n = SIZE(m_Best_xvs);
+	asserta(SIZE(m_Best_ys) == n);
+	asserta(SIZE(m_Best_descs) == n);
+	for (uint i = 0; i < n; ++i)
+		{
+		vector<double> Values;
+		xv2values(m_Best_xvs[i], Values);
+		asserta(SIZE(Values) == VarCount);
+
+		fprintf(f, "%4u |", i+1);
+		if (i == 0)
+			fprintf(f, "  %7.7s ", "");
+		else
+			{
+			double y_i = m_Best_ys[i];
+			double y_i_1 = m_Best_ys[i-1];
+			double dy = y_i - y_i_1;
+			double Pct = GetPct(dy, y_i_1);
+			fprintf(f, "  %+7.2f%%", Pct);
+			}
+		fprintf(f, "  %10.6g", m_Best_ys[i]);
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			{
+			double Value = Values[VarIdx];
+			fprintf(f, "  %8.4g", Value);
+			}
+		fprintf(f, "  %s", m_Best_descs[i].c_str());
+		fprintf(f, "\n");
+		}
+
+	fprintf(f, "\n");
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		if (VarIdx > 0)
+			fprintf(f, "  ");
+		fprintf(f, "%8.8s", GetVarName(VarIdx));
+		}
+	fprintf(f, "\n");
+
+	for (uint i = 0; i < n; ++i)
+		{
+		vector<double> Values;
+		xv2values(m_Best_xvs[i], Values);
+		asserta(SIZE(Values) == VarCount);
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			{
+			double Value = Values[VarIdx];
+			string Slider;
+			GetSlider(VarIdx, Value, 8, Slider);
+			if (VarIdx > 0)
+				fprintf(f, "  ");
+			fprintf(f, "%-8.8s", Slider.c_str());
+			}
+		fprintf(f, "  %s", m_Best_descs[i].c_str());
+		fprintf(f, "\n");
+		}
+
+	fprintf(f, "\n");
+	string best_xss;
+	xv2xss(m_Best_xv, best_xss);
+	fprintf(f, "FINAL [%.6g] %s\n", m_Best_y, best_xss.c_str());
+	fflush(f);
+	}
+
+void Peaker::AppendResult(const vector<string> &xv, double y,
+	const string &why)
+	{
+	if (y == DBL_MAX)
+		return;
+
+	const double Saved_Best_y = m_Best_y;
+	m_xvs.push_back(xv);
+	m_ys.push_back(y);
+	m_whys.push_back(why);
+
+	string Path;
+	GetPeakerPathStr(Path);
+	string desc = (Path.empty() ? why : Path + ":" + why);
+
+	double dy = 0;
+	if (m_Best_y != DBL_MAX)
+		dy = y - m_Best_y;
+	if (m_Best_y == DBL_MAX || y > m_Best_y)
+		{
+		m_Best_y = y;
+		m_Best_xv = xv;
+		m_Best_desc = desc;
+		m_LastImprovedTime = time(0);
+		m_LastImprovedEvalCount = SIZE(m_ys);
+
+		m_Best_ys.push_back(y);
+		m_Best_xvs.push_back(xv);
+		m_Best_descs.push_back(desc);
+		}
+
+	string xss;
+	xv2xss(xv, xss);
+	if (dy > 0)
+		Progress("\n");
+	ProgressLog("%.2g%s[%.6g] %s %s\n",
+		dy,
+		(dy > 0 ? ">>>" : ""),
+		m_Best_y,
+		desc.c_str(),
+		xss.c_str());
+	if (dy > 0)
+		Progress("\n");
+
+	if (m_fTsv != 0)
+		{
+		fprintf(m_fTsv, "%.6g", y);
+		fprintf(m_fTsv, "\t%s", dy > 0 ? "^" : "_");
+		fprintf(m_fTsv, "\t%.2g", dy);
+		fprintf(m_fTsv, "\t%s", desc.c_str());
+		fprintf(m_fTsv, "\t%s", xss.c_str());
+		fprintf(m_fTsv, "\n");
+		fflush(m_fTsv);
+		}
+	}
+
 double Peaker::Evaluate(const vector<string> &axv, const string &why)
 	{
 	vector<string> xv;
 	NormalizeWeights(axv, xv);
-	const double Saved_Best_y = m_Best_y;
 	uint Idx = Find_xv(xv);
 	double y = DBL_MAX;
 	if (Idx != UINT_MAX)
@@ -384,45 +519,7 @@ double Peaker::Evaluate(const vector<string> &axv, const string &why)
 		}
 	else
 		y = Calc(xv);
-
-	m_xvs.push_back(xv);
-	m_ys.push_back(y);
-	m_whys.push_back(why);
-
-	string Path;
-	GetPeakerPathStr(Path);
-
-	if (y != DBL_MAX)
-		{
-		if (m_Best_y == DBL_MAX || y > m_Best_y)
-			{
-			m_Best_y = y;
-			m_Best_xv = xv;
-			m_LastImprovedTime = time(0);
-			m_LastImprovedEvalCount = SIZE(m_ys);
-			ProgressLog(">>>%.2g [%.5g] %s %s\n",
-				y - Saved_Best_y, y, Path.c_str(), why.c_str());
-			}
-		}
-
-	double dy = 0;
-	if (Saved_Best_y != DBL_MAX)
-		dy = y - Saved_Best_y;
-	string tmp;
-	xv2str(xv, tmp);
-	ProgressLog("[%.6g](%+.3g) %s %s %s\n",
-		m_Best_y, dy, Path.c_str(), why.c_str(), tmp.c_str());
-	string improved;
-	if (dy > 0)
-		improved = ">>";
-	if (m_fTsv != 0 && y != DBL_MAX)
-		{
-		string tmp;
-		xv2str(xv, tmp);
-		fprintf(m_fTsv, "%.6g\t%s%s:%s\t%s\n",
-			y, improved.c_str(), Path.c_str(), why.c_str(), tmp.c_str());
-		fflush(m_fTsv);
-		}
+	AppendResult(xv, y, why);
 	return y;
 	}
 
@@ -507,7 +604,7 @@ void Peaker::RunLatin()
 		{
 		const vector<string> &xv = xvs[i];
 		string tmp;
-		xv2str(xv, tmp);
+		xv2xss(xv, tmp);
 		Log("[%5u] %s", i, tmp.c_str());
 		Log("\n");
 		}
@@ -555,82 +652,15 @@ void Peaker::LogSpec() const
 		Log("%s\n", m_SpecLines[i].c_str());
 	}
 
-void Peaker::RunNestedLatin(uint TopN)
+Peaker *Peaker::MakeChild(const string &Name) const
 	{
-	ProgressLog("RunNestedLatin(%u)\n", TopN);
-	RunLatin();
-
-	const vector<double> &ys = m_ys;
-	const vector<vector<string> > &xvs = m_xvs;
-	const uint NY = SIZE(ys);
-	const uint N = min(TopN, NY);
-	if (N == 0)
-		return;
-	const uint VarCount = GetVarCount();
-	vector<uint> Order(NY);
-	QuickSortOrderDesc(ys.data(), NY, Order.data());
-	Log("NESTED_LATIN_TOPS ");
-	for (uint k = 0; k < N; ++k)
-		{
-		uint i = Order[k];
-		Log(" y=%.3g", ys[i]);
-		}
-	Log("\n");
-	const double yseed0 = ys[Order[0]];
-
-	for (uint k = 0; k < N; ++k)
-		{
-		uint i = Order[k];
-		asserta(i < SIZE(m_xvs));
-		const vector<string> &xv = m_xvs[i];
-		double yseed = ys[i];
-		asserta(SIZE(xv) == VarCount);
-		Log("RUN_NESTED_LATIN %u/%u y=%.3g\n", k+1, N, ys[i]);
-
-		string nest;
-		Ps(nest, "NestedLatin%u", k+1);
-		Peaker P(this, nest);
-		P.m_GlobalSpec = m_GlobalSpec;
-		P.m_EvalFunc = m_EvalFunc;
-		P.m_fTsv = m_fTsv;
-		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-			{
-			const string &VarStr = xv[VarIdx];
-			double BinWidth = GetBinWidth(VarIdx);
-			string NewSpec = GetVarSpec(VarIdx);
-			double CenterValue = VarStrToFloat(VarIdx, VarStr);
-			double NewMin = CenterValue - BinWidth;
-			if (NewMin < 0)
-				NewMin = 0;
-			double NewMax = CenterValue + BinWidth;
-			string NewMinStr, NewMaxStr;
-			VarFloatToStr(VarIdx, NewMin, NewMinStr);
-			VarFloatToStr(VarIdx, NewMax, NewMaxStr);
-			asserta(NewMinStr != NewMaxStr);
-			SpecReplaceStr(NewSpec, "min", NewMinStr);
-			SpecReplaceStr(NewSpec, "max", NewMaxStr);
-			P.m_VarSpecs.push_back(NewSpec);
-			}
-
-		Log("\n");
-		Log("NESTED_LATIN\n");
-		P.LogSpec();
-		P.RunLatin();
-		const vector<vector<string> > &Child_xvs = P.m_xvs;
-		const vector<double> &Child_ys = P.m_ys;
-		const uint J = SIZE(Child_xvs);
-		asserta(SIZE(P.m_whys) == J);
-		asserta(SIZE(Child_ys) == J);
-		Log("NESTED_LATIN_DONE %u/%u yseed0 %.3g yseed=%.3g best=%.3g J=%u\n",
-			k+1, N, yseed0, yseed, P.m_Best_y, J);
-		for (uint j = 0; j < J; ++j)
-			{
-			const vector<string> &Child_xv = Child_xvs[j];
-			double y = Child_ys[j];
-			const string &Child_why = P.m_whys[j];
-			AppendChildResult(Child_xv, y, nest, Child_why);
-			}
-		}
+	Peaker &Child = *new Peaker(this, Name);
+	Child.m_GlobalSpec = m_GlobalSpec;
+	Child.m_EvalFunc = m_EvalFunc;
+	Child.m_VarNames = m_VarNames;
+	Child.m_VarSpecs = m_VarSpecs;
+	Child.m_fTsv = m_fTsv;
+	return &Child;
 	}
 
 double Peaker::VarStrToFloat(uint VarIdx, const string &ValueStr) const
@@ -824,6 +854,134 @@ void Peaker::IncFloat(const string &OldStr, bool Plus, string &NewStr)
 		asserta(StrToFloat(NewStr) > StrToFloat(OldStr));
 	else
 		asserta(StrToFloat(NewStr) < StrToFloat(OldStr));
+	}
+
+void Peaker::xv2values(const vector<string> &xv, vector<double> &Values) const
+	{
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+	Values.clear();
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		Values.push_back(VarStrToFloat(VarIdx, xv[VarIdx]));
+	}
+
+void Peaker::GetTopEvalIdxs(const uint N, vector<uint> &Idxs) const
+	{
+	Idxs.clear();
+	const uint Count = SIZE(m_ys);
+	uint *Order = myalloc(uint, Count);
+
+	QuickSortOrderDesc(m_ys.data(), Count, Order);
+	uint n = min(N, Count);
+	ProgressLog("GetTopEvalIdxs(%u)\n", n);
+	for (uint i = 0; i < n; ++i)
+		{
+		uint Idx = Order[i];
+		Idxs.push_back(Idx);
+		ProgressLog("Top [%2u]  %.3g\n", i+1, m_ys[Idx]);
+		}
+
+	myfree(Order);
+	}
+
+double Peaker::GetEuclideanDist(const vector<string> &xv1,
+	const vector<string> &xv2) const
+	{
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv1) == VarCount && SIZE(xv2) == VarCount);
+	double Sum2 = 0;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		double x1 = VarStrToFloat(VarIdx, xv1[VarIdx]);
+		double x2 = VarStrToFloat(VarIdx, xv2[VarIdx]);
+		double d = x1 - x2;
+		Sum2 += d*d;
+		}
+	return sqrt(Sum2);
+	}
+
+double Peaker::GetEuclideanDist(const vector<double> &xv1,
+	const vector<double> &xv2) const
+	{
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(xv1) == VarCount && SIZE(xv2) == VarCount);
+	double Sum2 = 0;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		double d = xv1[VarIdx] - xv2[VarIdx];
+		Sum2 += d*d;
+		}
+	return sqrt(Sum2);
+	}
+
+bool Peaker::GetRandomNeighbor(const vector<string> &Center,
+	double MinDelta, double MaxDelta,
+	vector<string> &Neighbor) const
+	{
+	const uint VarCount = GetVarCount();
+	asserta(SIZE(Center) == VarCount);
+	vector<double> CenterValues;
+	xv2values(Center, CenterValues);
+	for (uint Try = 0; Try < 10; ++Try)
+		{
+		Neighbor.clear();
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			{
+			double Value = CenterValues[VarIdx];
+			double Delta = rr(MinDelta, MaxDelta);
+			if (randu32()%2 == 0)
+				Value *= MinDelta;
+			else
+				Value /= MinDelta;
+			string Str;
+			VarFloatToStr(VarIdx, Value, Str);
+			Neighbor.push_back(Str);
+			}
+		if (Neighbor != Center)
+			return true;
+		}
+	return false;
+	}
+
+void Peaker::GetNeighborhood(const vector<string> &Center,
+	double MinDelta, double MaxDelta, uint Size,
+	vector<vector<string> > &Neighbors)
+	{
+	string Tmp;
+	xv2xss(Center, Tmp);
+	Log("GetNeighborhood(%.3g, %.3g, %u)\n",
+		MinDelta, MaxDelta, Size);
+	Log("Center %s\n", Tmp.c_str());
+	for (uint i = 0; i < Size; ++i)
+		{
+		vector<string> Neighbor;
+		bool ok = GetRandomNeighbor(Center,
+			MinDelta, MaxDelta, Neighbor);
+		if (ok)
+			{
+			Neighbors.push_back(Neighbor);
+			string Tmp;
+			xv2xss(Neighbor, Tmp);
+			double Dist = GetEuclideanDist(Center, Neighbor);
+			Log("Neighbor [%4u] %6.4f %s\n", i+1, Dist, Tmp.c_str());
+			}
+		}
+	}
+
+void Peaker::ExploreNeighborhood(const vector<string> &xv,
+	double MinDist, double MaxDist, uint Size)
+	{
+	vector<vector<string> > Neighbors;
+	GetNeighborhood(xv, MinDist, MaxDist, Size, Neighbors);
+
+	// can have n < Size if failures
+	const uint n = SIZE(Neighbors);
+	for (uint i = 0; i < n; ++i)
+		{
+		string why;
+		Ps(why, "xhood%u/%u", i+1, n);
+		Evaluate(Neighbors[i], why);
+		}
 	}
 
 static void Test1(const string &s, bool Plus)

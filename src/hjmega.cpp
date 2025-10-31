@@ -12,7 +12,7 @@ static double EvalArea0(const vector<string> &xv)
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 	string VarsStr;
-	s_Peaker->xv2str(xv, VarsStr);
+	s_Peaker->xv2xss(xv, VarsStr);
 	DSSParams::SetTunableParamsFromStr(VarsStr);
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
@@ -28,7 +28,7 @@ static double EvalArea3(const vector<string> &xv)
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 	string VarsStr;
-	s_Peaker->xv2str(xv, VarsStr);
+	s_Peaker->xv2xss(xv, VarsStr);
 	DSSParams::SetTunableParamsFromStr(VarsStr);
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
@@ -103,19 +103,46 @@ void cmd_hjmega()
 	if (!P.m_InitParams.empty())
 		{
 		vector<string> xv;
-		P.str2xv(P.m_InitParams, xv);
+		P.xss2xv(P.m_InitParams, xv);
 		P.Evaluate(xv, "init");
 		}
 	uint Latin = P.GetGlobalInt("latin", 0);
 	if (Latin > 0)
 		P.RunLatin();
-	P.HJ_RunHookeJeeves();
-	CloseStdioFile(P.m_fTsv);
+
+	vector<uint> TopEvalIdxs;
+	P.GetTopEvalIdxs(3, TopEvalIdxs);
+	const uint n = SIZE(TopEvalIdxs);
+	if (n == 0)
+		Die("No evals");
+	for (uint k = 0; k < n; ++k)
+		{
+		ProgressLog("=========================================\n");
+		ProgressLog("               HJ %u/%u\n", k+1, n);
+		ProgressLog("=========================================\n");
+
+		uint EvalIdx = TopEvalIdxs[k];
+		string ChildName;
+		Ps(ChildName, "HJ%u/%u", k+1, n);
+		Peaker *Child = P.MakeChild(ChildName);
+		double y = P.m_ys[EvalIdx];
+		const vector<string> &xv = P.m_xvs[EvalIdx];
+		Child->AppendResult(xv, y, "HJstart");
+		Child->HJ_RunHookeJeeves();
+		P.AppendChildResults(*Child);
+		delete Child;
+		}
+
 	ProgressLog("Eval cache hits %u\n", P.m_EvaluateCacheHits);
 
 	string BestVarStr;
-	P.xv2str(P.m_Best_xv, BestVarStr);
-	ProgressLog("FINAL [%.3g] %s\n", P.m_Best_y, BestVarStr.c_str());
+	P.xv2xss(P.m_Best_xv, BestVarStr);
+
+	ProgressLog("\n");
+	ProgressLog("CONVERGED [%.3g] %s\n", P.m_Best_y, BestVarStr.c_str());
+	ProgressLog("\n");
+
+	P.WriteFinalResults(g_fLog);
 
 	if (optset_input2)
 		{
@@ -124,7 +151,24 @@ void cmd_hjmega()
 		StatSig::Init(s_SB->GetDBSize());
 		s_SB->Setup();
 		s_SB->m_QuerySelf = true;
-		double Area = EvalArea3(P.m_Best_xv);
-		ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
+
+		vector<uint> TopEvalIdxs;
+		P.GetTopEvalIdxs(3, TopEvalIdxs);
+		const uint n = SIZE(TopEvalIdxs);
+		if (n == 0)
+			Die("No evals");
+		for (uint k = 0; k < n; ++k)
+			{
+			ProgressLog("=========================================\n");
+			ProgressLog("               FULL %u/%u\n", k+1, n);
+			ProgressLog("=========================================\n");
+
+			uint EvalIdx = TopEvalIdxs[k];
+			const vector<string> &xv = P.m_xvs[EvalIdx];
+			double Area = EvalArea3(xv);
+			ProgressLog("FULLDB [%.3g] %s\n", Area, BestVarStr.c_str());
+			}
 		}
+
+	CloseStdioFile(P.m_fTsv);
 	}

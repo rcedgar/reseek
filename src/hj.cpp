@@ -96,20 +96,20 @@ void Peaker::HJ_Extend()
 
 void Peaker::DecreaseRate(uint VarIdx)
 	{
-	asserta(VarIdx < SIZE(m_Rates));
-	uint OldRate = m_Rates[VarIdx];
+	asserta(VarIdx < SIZE(m_VarRates));
+	uint OldRate = m_VarRates[VarIdx];
 	if (OldRate <= MIN_RATE)
 		return;
-	m_Rates[VarIdx] = OldRate - 1;
+	m_VarRates[VarIdx] = OldRate - 1;
 	}
 
 void Peaker::IncreaseRate(uint VarIdx)
 	{
-	asserta(VarIdx < SIZE(m_Rates));
-	uint OldRate = m_Rates[VarIdx];
+	asserta(VarIdx < SIZE(m_VarRates));
+	uint OldRate = m_VarRates[VarIdx];
 	if (OldRate >= MAX_RATE)
 		return;
-	m_Rates[VarIdx] = OldRate + 1;
+	m_VarRates[VarIdx] = OldRate + 1;
 	}
 
 double Peaker::HJ_TryDelta(const string &reason,
@@ -127,7 +127,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	if (NewStr == Start_xv[VarIdx])
 		{
 		ProgressLog("HJ_TryDelta(%s) DeltaVar %s=%s no change (rate %u)\n",
-			reason.c_str(), VarName, OldStr.c_str(), m_Rates[VarIdx]);
+			reason.c_str(), VarName, OldStr.c_str(), m_VarRates[VarIdx]);
 		return Start_y;
 		}
 
@@ -157,12 +157,12 @@ double Peaker::HJ_TryDelta(const string &reason,
 	if (dy < targetdy)
 		{
 		IncreaseRate(VarIdx);
-		Log(" ++rate %u", m_Rates[VarIdx]);
+		Log(" ++rate %u", m_VarRates[VarIdx]);
 		}
 	else if (dy > targetdy)
 		{
 		DecreaseRate(VarIdx);
-		Log(" --rate %u", m_Rates[VarIdx]);
+		Log(" --rate %u", m_VarRates[VarIdx]);
 		}
 	Log("\n");
 
@@ -196,10 +196,10 @@ void Peaker::HJ_RunHookeJeeves()
 			bool Any = false;
 			for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 				{
-				uint Rate = m_Rates[VarIdx];
+				uint Rate = m_VarRates[VarIdx];
 				if (Rate > MIN_RATE)
 					{
-					m_Rates[VarIdx] = MIN_RATE;
+					m_VarRates[VarIdx] = MIN_RATE;
 					Any = true;
 					}
 				}
@@ -245,22 +245,22 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
 		return;
 		}
-	asserta(VarIdx < SIZE(m_Rates));
+	asserta(VarIdx < SIZE(m_VarRates));
 	string TmpStr;
 
 	// Defensive to avoid infinite loop
 	for (uint CheckCounter = MIN_RATE; CheckCounter < MAX_RATE;
 		++CheckCounter)
 		{
-		uint Rate = m_Rates[VarIdx];
+		uint Rate = m_VarRates[VarIdx];
 		double Factor = GetRateFactor(Rate, Plus);
 		double NewValue = OldValue*Factor;
 		VarFloatToStr(VarIdx, NewValue, TmpStr);
 		if (OldStr == TmpStr)
 			{
-			if (m_Rates[VarIdx] > MIN_RATE)
+			if (m_VarRates[VarIdx] > MIN_RATE)
 				{
-				--m_Rates[VarIdx];
+				--m_VarRates[VarIdx];
 				continue;
 				}
 			else
