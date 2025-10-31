@@ -161,7 +161,6 @@ void cmd_hjmega()
 		vector<string> Best_xv;
 		SCOP40Bench *Subset = new SCOP40Bench;
 		FullSB.MakeSubset(*Subset, SubsetPct);
-		Subset->Setup();
 		ProgressLog("Subset %u%%, %u chains\n",
 				SubsetPct, Subset->GetDBChainCount());
 		string OptName;
