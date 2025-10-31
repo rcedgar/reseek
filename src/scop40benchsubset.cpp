@@ -14,12 +14,12 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 		ChainIdxs.push_back(i);
 	Shuffle(ChainIdxs);
 
-// Scalars
 #define c(x)	Subset.x = x
 	c(m_MinEvalue);
 	c(m_Level);
 	c(m_QuerySelf);
 	c(m_SBS);
+	c(m_LabelToChainIdx);
 #undef c
 
 // Vectors size=ChainCount indexed by ChainIdx
@@ -39,4 +39,6 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 	c(m_DomIdxToSFIdx);
 	c(m_DomIdxToFoldIdx);
 #undef c
+
+	Subset.Setup();
 	}
