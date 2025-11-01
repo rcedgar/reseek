@@ -57,8 +57,7 @@ public:
 		}
 
 public:
-	void Init(const string &GlobalSpec,
-		const vector<string> &VarSpecs, PTR_EVAL_FUNC EF);
+	void Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF);
 	void WriteFinalResults(FILE *f) const;
 	void WriteStatusPage(FILE *f) const;
 	void LogSpec() const;
@@ -122,8 +121,6 @@ public:
 	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
 	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
 
-	void GetSlider(uint VarIdx, double Value, uint w, string &Slider) const;
-
 	void IncreaseRate(uint VarIdx);
 	void DecreaseRate(uint VarIdx);
 	void NormalizeVarStr(uint VarIdx, const string &Str,
@@ -139,10 +136,13 @@ public:
 	void HJ_RunHookeJeeves();
 	void HJ_Explore();
 	void HJ_Extend();
+	bool HJ_Iter();
 	double HJ_TryDelta(const string &reason,
 		const vector<string> &Start_xv, uint VarIdx, bool Plus);
 
 public:
+	static void GetGlobalSpec(const vector<string> &SpecLines,
+		string &GlobalSpec);
 	static double GetRoundedValue(double x, uint SigFig);
 	static void GetRoundedStr(double x, uint SigFig, string &Str);
 	static void GetLatinHypercubeIdxs(uint VarCount, uint BinCount,

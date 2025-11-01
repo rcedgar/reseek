@@ -33,6 +33,23 @@ var=lddtMw      min=0   max=1   mind=0.01       maxd=0.2        bins=16
 
 FILE *Peaker::m_fTsv = 0;
 
+void Peaker::GetGlobalSpec(const vector<string> &SpecLines, string &GlobalSpec)
+	{
+	GlobalSpec.clear();
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i];
+		Log("%s\n", Line.c_str());
+		if (Line.empty())
+			continue;
+		if (StartsWith(Line, "#"))
+			continue;
+		if (StartsWith(Line, "var="))
+			continue;
+		GlobalSpec += Line;
+		}
+	}
+
 void Peaker::GetGlobalStr(const string &Name, string &s, const string &Default) const
 	{
 	return SpecGetStr(m_GlobalSpec, Name, s, Default);
@@ -350,30 +367,13 @@ void Peaker::NormalizeWeights(const vector<string> &xv,
 		}
 	}
 
-void Peaker::GetSlider(uint VarIdx, double Value, uint w,
-	string &Slider) const
-	{
-	Slider.clear();
-	Slider.resize(w);
-	double Min = VarSpecGetFloat(VarIdx, "min", 0);
-	double Max = VarSpecGetFloat(VarIdx, "max", 1);
-	double r = (Value - Min)/(Max - Min);
-	if (r < 0)
-		r = 0;
-	if (r > 1)
-		r = 1;
-	uint n = uint(r*w + 0.5);
-	if (n > w)
-		n = w;
-	for (uint i = 0; i < n; ++i)
-		Slider[i] = '|';
-	}
-
 void Peaker::WriteFinalResults(FILE *f) const
 	{
 	if (f == 0)
 		return;
 
+	fprintf(f, "\n_____________________________________________\n");
+	fprintf(f, "FINAL %s\n", m_Name.c_str());
 	const uint VarCount = GetVarCount();
 	fprintf(f, "%u evals\n", SIZE(m_ys));
 	fprintf(f, "%u children\n", SIZE(m_ChildNames));
@@ -419,37 +419,12 @@ void Peaker::WriteFinalResults(FILE *f) const
 		}
 
 	fprintf(f, "\n");
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		if (VarIdx > 0)
-			fprintf(f, "  ");
-		fprintf(f, "%8.8s", GetVarName(VarIdx));
-		}
-	fprintf(f, "\n");
-
-	for (uint i = 0; i < n; ++i)
-		{
-		vector<double> Values;
-		xv2values(m_Best_xvs[i], Values);
-		asserta(SIZE(Values) == VarCount);
-		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-			{
-			double Value = Values[VarIdx];
-			string Slider;
-			GetSlider(VarIdx, Value, 8, Slider);
-			if (VarIdx > 0)
-				fprintf(f, "  ");
-			fprintf(f, "%-8.8s", Slider.c_str());
-			}
-		fprintf(f, "  %s", m_Best_descs[i].c_str());
-		fprintf(f, "\n");
-		}
-
-	fprintf(f, "\n");
 	string best_xss;
 	xv2xss(m_Best_xv, best_xss);
-	fprintf(f, "FINAL [%.6g] %s\n", m_Best_y, best_xss.c_str());
+	fprintf(f, "FINAL %s [%.6g] %s\n",
+		m_Name.c_str(), m_Best_y, best_xss.c_str());
 	fflush(f);
+	fprintf(f, "\n_____________________________________________\n");
 	}
 
 void Peaker::AppendResult(const vector<string> &xv, double y,
@@ -526,17 +501,31 @@ double Peaker::Evaluate(const vector<string> &axv, const string &why)
 	return y;
 	}
 
-void Peaker::Init(const string &GlobalSpec,
-	const vector<string> &VarSpecs, PTR_EVAL_FUNC EF)
+void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 	{
-	m_GlobalSpec = GlobalSpec;
-	m_VarSpecs = VarSpecs;
+	m_GlobalSpec.clear();
+	m_VarNames.clear();
+	m_VarSpecs.clear();
 	m_EvalFunc = EF;
+
+	const uint n = SIZE(SpecLines);
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &Line = SpecLines[i];
+		if (Line.empty() || StartsWith(Line, "#"))
+			continue;
+		asserta(EndsWith(Line, ";"));
+		if (StartsWith(Line, "var="))
+			m_VarSpecs.push_back(Line);
+		else
+			m_GlobalSpec += Line;
+		}
+
 	vector<string> Fields;
-	const uint VarCount = SIZE(VarSpecs);
+	const uint VarCount = SIZE(m_VarSpecs);
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		const string &VarSpec = VarSpecs[VarIdx];
+		const string &VarSpec = m_VarSpecs[VarIdx];
 		asserta(StartsWith(VarSpec, "var="));
 		string Name;
 		SpecGetStr(VarSpec, "var", Name, "");

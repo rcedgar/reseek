@@ -116,9 +116,11 @@ void DBSearcher::Setup()
 	uint ThreadCount = GetRequestedThreadCount();
 	asserta(ThreadCount > 0);
 	asserta(ThreadCount != UINT_MAX);
-	asserta(m_ThreadCount == UINT_MAX);
-	asserta(m_DAs.empty());
-	asserta(m_Mems.empty());
+	//asserta(m_ThreadCount == UINT_MAX);
+	//asserta(m_DAs.empty());
+	//asserta(m_Mems.empty());
+	m_DAs.clear();
+	m_Mems.clear();
 
 	m_ProcessedQueryCount = 0;
 	m_ProcessedPairCount = 0;

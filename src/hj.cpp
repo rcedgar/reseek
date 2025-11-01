@@ -77,6 +77,8 @@ void Peaker::HJ_Explore()
 
 void Peaker::HJ_Extend()
 	{
+	if (m_HJ_Direction == UINT_MAX)
+		return;
 	const uint VarCount = GetVarCount();
 	asserta(m_HJ_Direction < VarCount);
 	asserta(!VarIsConstant(m_HJ_Direction));
@@ -142,7 +144,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	if (Start_y == DBL_MAX)
 		return y;
 
-	double dy = fabs(Start_y - y);
+	double absdy = fabs(Start_y - y);
 	double targetdy = GetGlobalFloat("targetdy", DBL_MAX);
 	asserta(targetdy != DBL_MAX);
 
@@ -152,14 +154,14 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log(" %s", NewStr.c_str());
 	Log(" y %.4g,", Start_y);
 	Log("%.4g", y);
-	Log(" dy %+.3g (target %.3g)", dy, targetdy);
+	Log(" dy %.3g (target %.3g)", absdy, targetdy);
 
-	if (dy < targetdy)
+	if (absdy < targetdy)
 		{
 		IncreaseRate(VarIdx);
 		Log(" ++rate %u", m_VarRates[VarIdx]);
 		}
-	else if (dy > targetdy)
+	else if (absdy > targetdy)
 		{
 		DecreaseRate(VarIdx);
 		Log(" --rate %u", m_VarRates[VarIdx]);
@@ -167,6 +169,33 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log("\n");
 
 	return y;
+	}
+
+bool Peaker::HJ_Iter()
+	{
+	double Saved_Best_y = m_Best_y;
+	HJ_Explore();
+	double Height = m_Best_y - Saved_Best_y;
+	if (Height > 0)
+		{
+		HJ_Extend();
+		return true;
+		}
+
+	asserta(Height <= 0);
+	const uint VarCount = GetVarCount();
+	bool Any = false;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		uint Rate = m_VarRates[VarIdx];
+		if (Rate > MIN_RATE)
+			{
+			m_VarRates[VarIdx] = MIN_RATE;
+			Any = true;
+			}
+		}
+	ProgressLog("HJ converged, no improvement found\n");
+	return false;
 	}
 
 void Peaker::HJ_RunHookeJeeves()
@@ -179,39 +208,9 @@ void Peaker::HJ_RunHookeJeeves()
 			Warning("HJ max iters, not converged");
 			break;
 			}
-		double Saved_Best_y = m_Best_y;
-		HJ_Explore();
-		double Height = m_Best_y - Saved_Best_y;
-		double MinHeight = GetGlobalFloat("minh", 0.0001);
-		asserta(Height >= 0);
-		ProgressLog("HJ height=%.3g (minh %.3g)\n", Height, MinHeight);
-		if (Height <= MinHeight)
-			{
-			ProgressLog("HJ converged by height\n");
-			break;
-			}
-		if (m_HJ_Direction == UINT_MAX)
-			{
-			const uint VarCount = GetVarCount();
-			bool Any = false;
-			for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-				{
-				uint Rate = m_VarRates[VarIdx];
-				if (Rate > MIN_RATE)
-					{
-					m_VarRates[VarIdx] = MIN_RATE;
-					Any = true;
-					}
-				}
-			if (Any)
-				ProgressLog("HJ trying minimum rates\n");
-			else
-				{
-				ProgressLog("HJ converged by no improvement found\n");
-				break;
-				}
-			}
-		HJ_Extend();
+		bool ok = HJ_Iter();
+		if (!ok)
+			return;
 		}
 	}
 

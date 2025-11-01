@@ -26,6 +26,7 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 #define c(x)	{ \
 	if (SIZE(x) != ChainCount) \
 		Die("SCOP40Bench::MakeSubset() size"); \
+	Subset.x.clear(); \
 	for (uint i = 0; i < SubsetChainCount; ++i) \
 		Subset.x.push_back(x[i]); \
 	}
@@ -35,9 +36,6 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 	c(m_DBMuLettersVec);
 	c(m_DBMuKmersVec);
 	c(m_DBSelfRevScores);
-	c(m_DomIdxs);
-	c(m_DomIdxToSFIdx);
-	c(m_DomIdxToFoldIdx);
 #undef c
 
 	Subset.Setup();

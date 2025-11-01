@@ -226,12 +226,23 @@ void SCOP40Bench::ReadLookup(const string &FileName)
 void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 	{
 	const uint ChainCount = GetDBChainCount();
+
+	m_Doms.clear();
+	m_SFs.clear();
+	m_Folds.clear();
+
+	m_DomToIdx.clear();
+	m_SFToIdx.clear();
+	m_FoldToIdx.clear();
+
 	m_DomIdxs.clear();
 	m_DomIdxToSFIdx.clear();
 	m_DomIdxToFoldIdx.clear();
+
 	m_LabelToChainIdx.clear();
 	m_DomIdxToChainIdx.clear();
 	m_DomIdxToChainIdx.resize(ChainCount, UINT_MAX);
+
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		ProgressStep(ChainIndex, ChainCount, "Index SCOP40 domains");
@@ -245,6 +256,8 @@ void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 		string Fmy;
 		string Fold;
 		ParseScopLabel(Label, Dom, Cls, Fold, SF, Fmy);
+		if (Dom == "d3nfka_")
+			Log("d3nfka_ %u\n", ChainIndex);//@@
 		AddDom(Dom, Fold, SF, ChainIndex);
 		}
 

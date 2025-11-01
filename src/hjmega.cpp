@@ -61,8 +61,7 @@ void cmd_evalarea()
 
 static void Optimize(
 	const string &OptName,
-	const string &GlobalSpec,
-	const vector<string> &VarSpecs,
+	const vector<string> &SpecLines,
 	SCOP40Bench &SB,
 	uint LatinBinCount,
 	uint HJCount,
@@ -70,7 +69,7 @@ static void Optimize(
 	vector<string> &Best_xv)
 	{
 	Peaker &P = *new Peaker(0, OptName);
-	P.Init(GlobalSpec, VarSpecs, EvalArea3);
+	P.Init(SpecLines, EvalArea3);
 	s_Peaker = &P;
 
 	s_SB = &SB;
@@ -131,66 +130,40 @@ void cmd_hjmega()
 
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
-	vector<string> VarSpecs;
 	ReadLinesFromFile(SpecFN, SpecLines);
-	for (uint i = 0; i < SIZE(SpecLines); ++i)
-		Log("%s\n", SpecLines[i].c_str());
 
-	string GlobalSpecSub;
-	string GlobalSpecAll;
-	for (uint i = 0; i < SIZE(SpecLines); ++i)
-		{
-		const string &Line = SpecLines[i];
-		if (Line == "" || StartsWith(Line, "#"))
-			continue;
-		asserta(EndsWith(Line, ";"));
-		if (StartsWith(Line, "var="))
-			{
-			VarSpecs.push_back(Line);
-			continue;
-			}
-		else
-			{
-			if (StartsWith(Line, "ALL"))
-				GlobalSpecAll += Line.substr(3);
-			else if (StartsWith(Line, "SUB"))
-				GlobalSpecSub += Line.substr(3);
-			else
-				{
-				GlobalSpecSub += Line;
-				GlobalSpecAll += Line;
-				}
-			}
-		}
-
-	uint SubsetIters = Peaker::SpecGetInt(GlobalSpecAll, "sub", UINT_MAX);
-	uint SubsetPct = Peaker::SpecGetInt(GlobalSpecAll, "subpct", UINT_MAX);
-	uint LatinCount = Peaker::SpecGetInt(GlobalSpecAll, "latin", UINT_MAX);
-	uint HJCount = Peaker::SpecGetInt(GlobalSpecAll, "hj", UINT_MAX);
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+	uint SubsetIters = Peaker::SpecGetInt(GlobalSpec, "sub", UINT_MAX);
+	uint SubsetPct = Peaker::SpecGetInt(GlobalSpec, "subpct", UINT_MAX);
+	uint LatinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
+	uint HJCount = Peaker::SpecGetInt(GlobalSpec, "hj", UINT_MAX);
 	asserta(SubsetIters != UINT_MAX);
 	asserta(LatinCount != UINT_MAX);
 	asserta(HJCount != UINT_MAX);
 
 	double Final_y = -1;
 	string Final_xss;
+
+	// DBSearcher d'tor crashes with subset
+	SCOP40Bench &Subset = *new SCOP40Bench;
 	for (uint SubsetIter = 1; SubsetIter <= SubsetIters; ++SubsetIter)
 		{
 		double Best_y;
 		vector<string> Best_xv;
-		SCOP40Bench *Subset = new SCOP40Bench;
-		FullSB.MakeSubset(*Subset, SubsetPct);
+		FullSB.MakeSubset(Subset, SubsetPct);
 		ProgressLog("Subset %u%%, %u chains\n",
-				SubsetPct, Subset->GetDBChainCount());
+				SubsetPct, Subset.GetDBChainCount());
 		string OptName;
 		Ps(OptName, "sub%u", SubsetIter);
-		Optimize(OptName, GlobalSpecSub, VarSpecs, *Subset,
+		Optimize(OptName, SpecLines, Subset,
 			LatinCount, HJCount, Best_y, Best_xv);
 
 		s_SB = &FullSB;	
 		string PeakerName;
 		Ps(PeakerName, "all%u", SubsetIter);
 		Peaker Pfull(0, PeakerName);
-		Pfull.Init(GlobalSpecAll, VarSpecs, EvalArea3);
+		Pfull.Init(SpecLines, EvalArea3);
 		Pfull.Evaluate(Best_xv, PeakerName + "_init");
 		Pfull.HJ_RunHookeJeeves();
 		Pfull.WriteFinalResults(g_fLog);
@@ -200,8 +173,6 @@ void cmd_hjmega()
 			Final_y = Pfull.m_Best_y;
 			Pfull.xv2xss(Pfull.m_Best_xv, Final_xss);
 			}
-
-		delete Subset;
 		}
 
 	ProgressLog("\n");
