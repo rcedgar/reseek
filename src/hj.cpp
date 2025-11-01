@@ -238,9 +238,9 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 			NewStr = OldStr;
 			return;
 			}
-		double MinValue = VarSpecGetFloat(VarIdx, "min", DBL_MAX);
+		double IfZero = VarSpecGetFloat(VarIdx, "ifzero", 0);
 		string TmpStr;
-		VarFloatToStr(VarIdx, MinValue, TmpStr);
+		VarFloatToStr(VarIdx, IfZero, TmpStr);
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
 		return;
 		}
