@@ -113,7 +113,8 @@ void Peaker::SpecGetStr(const string &Spec, const string &Name,
 			{
 			vector<string> Fields2;
 			Split(Field, Fields2, '=');
-			asserta(SIZE(Fields2) == 2);
+			if (SIZE(Fields2) != 2)
+				Die("expected name=value '%s'", Field.c_str());
 			Str = Fields2[1];
 			return;
 			}

@@ -242,7 +242,7 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 		string TmpStr;
 		VarFloatToStr(VarIdx, IfZero, TmpStr);
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
-		Log("%s ifzero %s => %s\n", GetVarName(VarIdx),
+		ProgressLog("%s ifzero %s => %s\n", GetVarName(VarIdx),
 			OldStr.c_str(), NewStr.c_str());
 		return;
 		}
