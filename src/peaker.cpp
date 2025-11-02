@@ -214,6 +214,13 @@ double Peaker::GetBinWidth(uint VarIdx) const
 double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const
 	{
 	asserta(BinCount > 0);
+	if (VarIsConstant(VarIdx))
+		{
+		double Value = VarSpecGetFloat(VarIdx, "init", DBL_MAX);
+		asserta(Value != DBL_MAX);
+		return Value;
+		}
+
 	double Min = VarSpecGetFloat(VarIdx, "min", DBL_MAX);
 	double Max = VarSpecGetFloat(VarIdx, "max", DBL_MAX);
 	asserta(Min != DBL_MAX && Max != DBL_MAX);
@@ -471,7 +478,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 			RateStr += '0' + m_VarRates[VarIdx];
 		}
-	ProgressLog("%s%.2g[%.6g] %s %s\n",
+	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,
 		m_Best_y,

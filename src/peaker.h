@@ -79,7 +79,7 @@ public:
 	void NormalizeWeights(const vector<string> &xv,
 		vector<string> &Normalized_xv) const;
 	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,
-		string &NewStr, bool Minimum);
+		string &NewStr);
 	void ExploreNeighborhood(const vector<string> &Center,
 		double MinDelta, double MaxDelta, uint Iters);
 	void GetNeighborhood(const vector<string> &xv,
@@ -138,8 +138,7 @@ public:
 	void HJ_Extend();
 	bool HJ_Iter();
 	double HJ_TryDelta(const string &reason,
-		const vector<string> &Start_xv, uint VarIdx, 
-		bool Plus, bool Minimum);
+		const vector<string> &Start_xv, uint VarIdx, bool Plus);
 
 public:
 	static void GetGlobalSpec(const vector<string> &SpecLines,

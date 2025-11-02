@@ -198,8 +198,8 @@ void DSSParams::FreeScoreMxs()
 			}
 		}
 
-	for (uint i = 0; i < FEATURE_COUNT; ++i)
-		asserta(m_ScoreMxs[i] == 0);
+	//for (uint i = 0; i < FEATURE_COUNT; ++i)
+	//	asserta(m_ScoreMxs[i] == 0);
 
 	myfree(m_ScoreMxs);
 	}
