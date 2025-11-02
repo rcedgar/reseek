@@ -465,9 +465,13 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		ProgressLog("\n");
 	string RateStr;
 	uint VarCount = GetVarCount();
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		RateStr += '0' + m_VarRates[VarIdx];
-	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
+	if (SIZE(m_VarRates) == VarCount)
+		{
+		RateStr = " ";
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			RateStr += '0' + m_VarRates[VarIdx];
+		}
+	ProgressLog("%s%.2g[%.6g] %s %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,
 		m_Best_y,
