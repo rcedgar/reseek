@@ -54,9 +54,8 @@ void Peaker::HJ_Explore()
 		for (int iPlus = 0; iPlus <= 1; ++iPlus)
 			{
 			bool Plus = (iPlus == 1);
-			if (VarIdx == m_HJ_Direction)
-				continue;
-			double y = HJ_TryDelta("explore", m_Best_xv, VarIdx, Plus);
+			double y = HJ_TryDelta("explore", m_Best_xv, VarIdx,
+				Plus, false);
 			if (y == DBL_MAX)
 				continue;
 			if (y > BestNew_y)
@@ -69,7 +68,34 @@ void Peaker::HJ_Explore()
 		}
 	m_HJ_Direction = BestNewDirection;
 	if (m_HJ_Direction == UINT_MAX)
-		Log("HJ_Expore(), no improvement found\n");
+		{
+		Log("HJ_Expore(), no improvement found, try minimum\n");
+		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+			{
+			if (VarIsConstant(VarIdx))
+				continue;
+			m_VarRates[VarIdx] = MIN_RATE;
+			for (int iPlus = 0; iPlus <= 1; ++iPlus)
+				{
+				bool Plus = (iPlus == 1);
+				double y = HJ_TryDelta("explore", m_Best_xv, VarIdx,
+					Plus, true);
+				if (y == DBL_MAX)
+					continue;
+				if (y > BestNew_y)
+					{
+					BestNew_y = y;
+					m_HJ_ExtendPlus = Plus;
+					BestNewDirection = VarIdx;
+					}
+				}
+			}
+		if (m_HJ_Direction == UINT_MAX)
+			Log("HJ_Expore(), no improvement by minimum\n");
+		else
+			Log("HJ_Expore(), minimum new direction %s%c\n",
+				GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
+		}
 	else
 		Log("HJ_Expore(), new direction %s%c\n",
 		  GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
@@ -90,7 +116,7 @@ void Peaker::HJ_Extend()
 		Ps(reason, "extend%u", Iter+1);
 
 		double Saved_Best_y = m_Best_y;
-		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus);
+		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus, false);
 		if (m_Best_y <= Saved_Best_y)
 			return;
 		}
@@ -115,7 +141,8 @@ void Peaker::IncreaseRate(uint VarIdx)
 	}
 
 double Peaker::HJ_TryDelta(const string &reason,
-	const vector<string> &Start_xv, uint VarIdx, bool Plus)
+	const vector<string> &Start_xv, uint VarIdx,
+	bool Plus, bool Minimum)
 	{
 	const char *VarName = GetVarName(VarIdx);
 	uint Idx = Find_xv(Start_xv);
@@ -125,7 +152,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 
 	string NewStr;
 	const string &OldStr = Start_xv[VarIdx];
-	DeltaVar(VarIdx, Plus, OldStr, NewStr);
+	DeltaVar(VarIdx, Plus, OldStr, NewStr, Minimum);
 	if (NewStr == Start_xv[VarIdx])
 		{
 		ProgressLog("HJ_TryDelta(%s) DeltaVar %s=%s no change (rate %u)\n",
@@ -151,6 +178,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log("HJ_TryDelta(%s)", reason.c_str());
 	Log(" %s", VarName);
 	Log(" %s,", OldStr.c_str());
+	Log(" [%u]", m_VarRates[VarIdx]);
 	Log(" %s", NewStr.c_str());
 	Log(" y %.4g,", Start_y);
 	Log("%.4g", y);
@@ -181,20 +209,6 @@ bool Peaker::HJ_Iter()
 		HJ_Extend();
 		return true;
 		}
-
-	asserta(Height <= 0);
-	const uint VarCount = GetVarCount();
-	bool Any = false;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		uint Rate = m_VarRates[VarIdx];
-		if (Rate > MIN_RATE)
-			{
-			m_VarRates[VarIdx] = MIN_RATE;
-			Any = true;
-			}
-		}
-	ProgressLog("HJ converged, no improvement found\n");
 	return false;
 	}
 
@@ -226,11 +240,24 @@ void Peaker::NormalizeVarStr(uint VarIdx, const string &Str,
 	}
 
 void Peaker::DeltaVar(uint VarIdx, bool Plus,
-	const string &OldStr, string &NewStr)
+	const string &OldStr, string &NewStr, bool Minimum)
 	{
+	double OldValue = VarStrToFloat(VarIdx, OldStr);
+	if (Minimum)
+		{
+		if (OldValue == 0)
+			{
+			NewStr = OldStr;
+			return;
+			}
+		string TmpStr;
+		IncFloat(OldStr, Plus, TmpStr);
+		NormalizeVarStr(VarIdx, TmpStr, NewStr);
+		return;
+		}
+
 	NewStr.clear();
 	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
-	double OldValue = VarStrToFloat(VarIdx, OldStr);
 	if (OldValue == 0)
 		{
 		if (!Plus)

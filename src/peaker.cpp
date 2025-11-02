@@ -301,7 +301,7 @@ void Peaker::GetPeakerPathStr(string &s) const
 		s = m_Name;
 		return;
 		}
-	s = m_Parent->m_Name + "/" + m_Name;
+	s = m_Parent->m_Name + "." + m_Name;
 	}
 
 void Peaker::AppendChildResults(const Peaker &Child)
@@ -463,11 +463,16 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	xv2xss(xv, xss);
 	if (dy > 0)
 		ProgressLog("\n");
-	ProgressLog("%s%.2g[%.6g] %s %s\n",
+	string RateStr;
+	uint VarCount = GetVarCount();
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		RateStr += '0' + m_VarRates[VarIdx];
+	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,
 		m_Best_y,
 		desc.c_str(),
+		RateStr.c_str(),
 		xss.c_str());
 	if (dy > 0)
 		ProgressLog("\n");
@@ -484,8 +489,9 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		}
 	}
 
-double Peaker::Evaluate(const vector<string> &axv, const string &why)
+double Peaker::Evaluate(const vector<string> &axv, const string &awhy)
 	{
+	string why = awhy;
 	vector<string> xv;
 	NormalizeWeights(axv, xv);
 	uint Idx = Find_xv(xv);
@@ -495,6 +501,7 @@ double Peaker::Evaluate(const vector<string> &axv, const string &why)
 		++m_EvaluateCacheHits;
 		asserta(Idx < SIZE(m_ys));
 		y = m_ys[Idx];
+		why += ":cache";
 		}
 	else
 		y = Calc(xv);
