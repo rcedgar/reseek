@@ -350,6 +350,7 @@ void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
 
 void DSSParams::SetStandardFeatures()
 	{
+#if 0
 	AddFeature(FEATURE_AA,			0.398145f);
 	AddFeature(FEATURE_NENDist,		0.129367f);
 	AddFeature(FEATURE_Conf,		0.202354f);
@@ -358,6 +359,19 @@ void DSSParams::SetStandardFeatures()
 	AddFeature(FEATURE_DstNxtHlx,	0.00475462f);
 	AddFeature(FEATURE_StrandDens,	0.0183853f);
 	AddFeature(FEATURE_NormDens,	0.00384384f);
+#else
+// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02
+	AddFeature(FEATURE_AA,			4.2E-01);
+	AddFeature(FEATURE_NENDist,		1.6E-01);
+	AddFeature(FEATURE_Conf,		2.3E-01);
+	AddFeature(FEATURE_NENConf,		1.3E-01);
+	AddFeature(FEATURE_RENDist,		5.6E-02);
+
+// gap2=8.0E-01;
+	m_GapOpen = -8.0E-01;
+	m_GapExt = -8.0E-02;
+#endif
+
 	SetScoreMxsFromFeatures();
 	}
 
