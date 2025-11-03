@@ -86,6 +86,9 @@ DSSAligner::~DSSAligner()
 		parasail_profile_free((parasail_profile_t *) m_ProfPara);
 	if (m_ProfParaRev != 0)
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
+	if (m_DProw != 0)
+		myfree(m_DProw);
+	FreeSMxData();
 	}
 
 DSSAligner::DSSAligner()

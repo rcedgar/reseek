@@ -925,6 +925,7 @@ void Peaker::ExploreNeighborhood(const vector<string> &xv,
 		}
 	}
 
+#if 0
 static void Test1(const string &s, bool Plus)
 	{
 	string news;
@@ -960,3 +961,4 @@ void cmd_test()
 			OldStr.c_str(), pom(Plus), NewStr.c_str());
 		}
 	}
+#endif // 0

@@ -8,23 +8,7 @@
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
 					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers)
-	{
-	if (opt(selfrev0))
-		return 0;
-	PDBChain RevChain;
-	Chain.GetReverse(RevChain);
-	vector<vector<byte> > RevProfile;
-	D.Init(RevChain);
-	D.GetProfile(RevProfile);
-
-	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
-
-	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
-	DA.AlignQueryTarget();
-	incac(selfrevscores);
-	return DA.m_AlnFwdScore;
-	}
+					  const vector<uint> *ptrMuKmers);
 
 static void ReadChains_SaveLines(const string &FileName,
   vector<PDBChain *> &Chains)

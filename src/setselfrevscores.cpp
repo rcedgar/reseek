@@ -4,7 +4,20 @@
 float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
 					  const vector<byte> *ptrMuLetters,
-					  const vector<uint> *ptrMuKmers);
+					  const vector<uint> *ptrMuKmers)
+	{
+	if (opt(selfrev0))
+		return 0;
+	PDBChain RevChain;
+	Chain.GetReverse(RevChain);
+	vector<vector<byte> > RevProfile;
+	D.Init(RevChain);
+	D.GetProfile(RevProfile);
+	DA.SetQuery(Chain, &Profile, ptrMuLetters, ptrMuKmers, FLT_MAX);
+	DA.SetTarget(RevChain, &RevProfile, ptrMuLetters, ptrMuKmers, FLT_MAX);
+	DA.AlignQueryTarget();
+	return DA.m_AlnFwdScore;
+	}
 
 static DBSearcher *s_DBS;
 static uint s_ChainCount;
@@ -58,4 +71,22 @@ void DBSearcher::SetSelfRevScores()
 
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+	}
+
+void cmd_test()
+	{
+	const string &FN = g_Arg1;
+
+	optset_fast = true;
+	opt(fast) = true;
+	DSSParams::Init(DM_AlwaysSensitive);
+
+	DBSearcher DBS;
+	DBS.LoadDB(FN);
+	const uint N = 1000;
+	for (uint i = 0; i < N; ++i)
+		{
+		ProgressStep(i, N, "Selfrev");
+		DBS.SetSelfRevScores();
+		}
 	}
