@@ -293,6 +293,11 @@ void DSSParams::SetTunableParamStr(const string &Name, const string &StrValue)
 	if (Name == "ext") { m_GapExt = -Value; return; }
 	if (Name == "gap") { m_GapOpen = m_GapExt = -Value; return; }
 	if (Name == "gap2") { m_GapOpen = -Value; m_GapExt = -Value*0.1f; return; }
+	if (Name == "gap1") { m_GapOpen = -Value; m_GapExt = -Value; return; }
+	if (Name == "lddtw") { m_lddtw = Value; return; }
+	if (Name == "dpw") { m_dpw = Value; return; }
+	if (Name == "revtsw") { m_revtsw = Value; return; }
+	if (Name == "ladd") { m_ladd = Value; return; }
 
 	Die("SetParamStr(%s, %s) unknown param",
 		Name.c_str(), StrValue.c_str());
