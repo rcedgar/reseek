@@ -154,6 +154,7 @@ FLAG_OPT(force_undef)
 FLAG_OPT(dss)
 FLAG_OPT(initonly)
 FLAG_OPT(raw)
+FLAG_OPT(newparams)
 
 #undef FLAG_OPT
 #undef UNS_OPT
