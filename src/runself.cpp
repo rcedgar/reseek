@@ -91,6 +91,9 @@ void DBSearcher::RunSelf(bool ShowStats)
 	{
 	StatSig::InitSensitive(GetDBChainCount());//@@TODO why sensitive
 
+	if (m_RecalcSelfRevScores)
+		SetSelfRevScores();
+
 	m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t t_start = time(0);
 	m_Secs = UINT_MAX;

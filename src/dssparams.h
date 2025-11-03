@@ -73,10 +73,11 @@ public:
 	static void Init(DECIDE_MODE DM);
 	static void SetStandardFeatures();
 	static void SetDefaultNonFeatureTunableParams();
-	static void SetTunableParamStr(const string &Name, const string &Value);
+	static void SetTunableParamFromStr(const string &Name, const string &Value);
 	static void SetTunableParamsFromStr(const string &Str, bool DoLog = false);
 	static void SetAlgoMode(DECIDE_MODE DM);
 	static void GetParamStr(string &Str);
+	static void LogMe();
 
 	static uint GetFeatureCount()
 		{

@@ -377,6 +377,7 @@
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />
     <ClCompile Include="seqfeeder.cpp" />
+    <ClCompile Include="setselfrevscores.cpp" />
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="statsig.cpp" />

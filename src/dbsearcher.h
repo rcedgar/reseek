@@ -54,12 +54,15 @@ public:
 	float m_AlnsPerThreadPerSec = FLT_MAX;
 	time_t m_LastProgress = 0;
 
+	bool m_RecalcSelfRevScores = false;
+
 public:
 	void Setup();
 	void InitEmpty();
 	void ClearStats();
 	void LoadDB(const string &DBFN);
 	uint GetDBChainCount() const { return SIZE(m_DBChains); }
+	void SetSelfRevScores();
 
 	void RunQuery(ChainReader2 &QCR);
 	void RunSelf(bool ShowStats = true);

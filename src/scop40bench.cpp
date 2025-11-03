@@ -256,8 +256,6 @@ void SCOP40Bench::BuildDomSFIndexesFromDBChainLabels()
 		string Fmy;
 		string Fold;
 		ParseScopLabel(Label, Dom, Cls, Fold, SF, Fmy);
-		if (Dom == "d3nfka_")
-			Log("d3nfka_ %u\n", ChainIndex);//@@
 		AddDom(Dom, Fold, SF, ChainIndex);
 		}
 

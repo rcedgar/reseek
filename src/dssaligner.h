@@ -128,10 +128,6 @@ public:
 	void ClearAlign();
 	void AlignQueryTarget();
 	void AlignQueryTarget_Trace();
-	void Align_Test(
-	  const PDBChain &ChainA, const PDBChain &ChainB,
-	  const vector<byte> &MuLettersA, const vector<byte> &MuLettersB,
-	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB);
 	void Align_MuFilter(
 	  const PDBChain &ChainA, const PDBChain &ChainB,
 	  const vector<byte> &MuLettersA, const vector<uint> &MuKmersA,
@@ -147,7 +143,6 @@ public:
 	float AlignMuQP_Para();
 	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
 	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
-	float AlignMu_Int(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;

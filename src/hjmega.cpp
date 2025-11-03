@@ -47,6 +47,9 @@ void cmd_evalarea()
 	DSSParams::GetParamStr(ParamStr);
 	ProgressLog("ParamStr:%s\n", ParamStr.c_str());
 
+	void OpenOutputFiles();
+	OpenOutputFiles();
+
 	s_SB = new SCOP40Bench;
 	s_SB->LoadDB(DBFN);
 	StatSig::Init(s_SB->GetDBSize());
@@ -57,6 +60,7 @@ void cmd_evalarea()
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
 	ProgressLog("Area0=%.4g, Area3=%.4g\n", s_SB->m_Area0, s_SB->m_Area3);
+	DSSParams::LogMe();
 	}
 
 static void Optimize(
@@ -118,6 +122,52 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
+static void Climb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
+	{
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+
+	vector<string> Fields;
+	string ParamStr;
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i];
+		if (StartsWith(Line, "#init "))
+			{
+			ParamStr = Line.substr(6);
+			break;
+			}
+		}
+	if (ParamStr.empty())
+		Die("Missing #init in spec");
+
+	vector<string> Fields2, VarNames, Init_xv;
+	Split(ParamStr, Fields, ';');
+	for (uint i = 0; i < SIZE(Fields); ++i)
+		{
+		Split(Fields[i], Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		VarNames.push_back(Fields2[0]);
+		Init_xv.push_back(Fields2[1]);
+		}
+	const uint VarCount = SIZE(VarNames);
+
+	s_SB = &FullSB;	
+	string PeakerName;
+	Ps(PeakerName, "climb");
+	Peaker Pfull(0, PeakerName);
+	Pfull.Init(SpecLines, EvalArea3);
+	asserta(Pfull.GetVarCount() == VarCount);
+	asserta(Pfull.m_VarNames == VarNames);
+	s_Peaker = &Pfull;
+
+	Pfull.Evaluate(Init_xv, PeakerName + "_init");
+	DSSParams::LogMe();
+	Die("TODO");
+	Pfull.HJ_RunHookeJeeves();
+	Pfull.WriteFinalResults(g_fLog);
+	}
+
 static void SubClimb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
@@ -169,6 +219,8 @@ void cmd_hjmega()
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 
+	void OpenOutputFiles();
+	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
 	DSSParams::Init(DM_UseCommandLineOption);
@@ -177,6 +229,7 @@ void cmd_hjmega()
 	SCOP40Bench FullSB;
 	FullSB.LoadDB(DBFN);
 	FullSB.Setup();
+	FullSB.m_RecalcSelfRevScores = true;
 
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
@@ -190,7 +243,9 @@ void cmd_hjmega()
 	if (Strategy == "")
 		Die("Missing strategy=");
 
-	if (Strategy == "subclimb")
+	if (Strategy == "climb")
+		Climb(FullSB, SpecLines);
+	else if (Strategy == "subclimb")
 		SubClimb(FullSB, SpecLines);
 	else if (Strategy == "latinclimb")
 		{

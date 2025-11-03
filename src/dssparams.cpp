@@ -278,7 +278,8 @@ void DSSParams::SetDefaultNonFeatureTunableParams()
 	m_revtsw = 2.0f;
 	}
 
-void DSSParams::SetTunableParamStr(const string &Name, const string &StrValue)
+void DSSParams::SetTunableParamFromStr(const string &Name,
+	const string &StrValue)
 	{
 	FEATURE F = StrToFeature(Name.c_str(), true);
 	float Value = StrToFloatf(StrValue);
@@ -320,6 +321,10 @@ void DSSParams::GetParamStr(string &Str)
 		Psa(Str, "open=%.3g;", -m_GapOpen);
 		Psa(Str, "ext=%.3g;", -m_GapExt);
 		}
+	Psa(Str, "lddtw=%.3g;", m_lddtw);
+	Psa(Str, "dpww=%.3g;", m_dpw);
+	Psa(Str, "revtsw=%.3g;", m_revtsw);
+	Psa(Str, "ladd=%.3g;", m_ladd);
 	}
 
 void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
@@ -347,7 +352,7 @@ void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
 			Die("Expected name=value in field %u '%s'", i, Str.c_str());
 		const string &Name = Fields2[0];
 		const string &Value = Fields2[1];
-		SetTunableParamStr(Name, Value);
+		SetTunableParamFromStr(Name, Value);
 		}
 	asserta(SIZE(m_Features) > 0);
 	SetScoreMxsFromFeatures();
@@ -357,16 +362,46 @@ void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))
 		{
-	// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02
-		AddFeature(FEATURE_AA,			4.2E-01);
-		AddFeature(FEATURE_NENDist,		1.6E-01);
-		AddFeature(FEATURE_Conf,		2.3E-01);
-		AddFeature(FEATURE_NENConf,		1.3E-01);
-		AddFeature(FEATURE_RENDist,		5.6E-02);
+	//////////////////////////////////////////////////////////
+	//// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
+	//	AddFeature(FEATURE_AA,			4.2E-01);
+	//	AddFeature(FEATURE_NENDist,		1.6E-01);
+	//	AddFeature(FEATURE_Conf,		2.3E-01);
+	//	AddFeature(FEATURE_NENConf,		1.3E-01);
+	//	AddFeature(FEATURE_RENDist,		5.6E-02);
 
-	// gap2=8.0E-01;
-		m_GapOpen = -8.0E-01;
-		m_GapExt = -8.0E-02;
+	//	m_GapOpen = -8.0E-01;
+	//	m_GapExt = -8.0E-02;
+
+	//////////////////////////////////////////////////////////
+	// AA=5.1E-01
+	// NENDist=9.4E-02
+	// Conf=2.3E-01
+	// NENConf=1.2E-01
+	// RENDist=4.1E-02
+
+	// DstNxtHlx=0.0E+00
+	// StrandDens=0.0E+00
+	// NormDens=0.0E+00
+
+	// gap2=6.3E-01
+	// dpw=1.9E+00
+	// lddtw=3.4E-01
+	// revtsw=2.2E+00
+	// ladd=2.1E+02
+		AddFeature(FEATURE_AA,			5.1E-01f);
+		AddFeature(FEATURE_NENDist,		9.4E-02f);
+		AddFeature(FEATURE_Conf,		2.3E-01f);
+		AddFeature(FEATURE_NENConf,		1.2E-01f);
+		AddFeature(FEATURE_RENDist,		4.1E-02f);
+
+		m_GapOpen = -6.3E-01f;
+		m_GapExt = -6.3E-02f;
+
+		m_dpw = 1.9E00f;
+		m_lddtw = 3.4E-01f;
+		m_revtsw = 2.2E+00f;
+		m_ladd = 2.1E+02f;
 		}
 	else
 		{
@@ -398,4 +433,54 @@ void DSSParams::Init(DECIDE_MODE DM)
 	string ParamStr;
 	DSSParams::GetParamStr(ParamStr);
 	Log("DSSParams::Init(%d) %s\n", int(DM), ParamStr.c_str());
+	}
+
+void DSSParams::LogMe()
+	{
+	Log("%u features\n", SIZE(m_Features));
+	for (uint i = 0; i < SIZE(m_Features); ++i)
+		Log("%s %.3g\n", FeatureToStr(m_Features[i]), m_Weights[i]);
+
+#define p(x)	Log("%s %d\n", #x, x)
+	p(m_ParaMuGapOpen);
+	p(m_ParaMuGapExt);
+	p(m_PrefilterMinKmerPairScore);
+	p(m_MKF_X1);
+	p(m_MKF_X2);
+	p(m_MKF_MinMuHSPScore);
+	p(m_Density_W);
+	p(m_Density_w);
+	p(m_SSDensity_W);
+	p(m_SSDensity_w);
+	p(m_NEN_W);
+	p(m_NEN_w);
+	p(m_NUDX_W);
+#undef p
+
+#define p(x)	Log("%s %u\n", #x, x)
+	p(m_rsb_size);
+	p(m_MKFL);
+	p(m_SSE_MinLength);
+	p(m_SSE_Margin);
+	p(m_PMDelta);
+#undef p
+
+#define p(x)	Log("%s %.3g\n", #x, x)
+	p(m_GapOpen);
+	p(m_GapExt);
+	p(m_MinFwdScore);
+	p(m_Omega);
+	p(m_OmegaFwd);
+	p(m_MKF_MinMegaHSPScore);
+	p(m_dpw);
+	p(m_lddtw);
+	p(m_ladd);
+	p(m_revtsw);
+	p(m_Density_Radius);
+	p(m_NU_ND_Radius);
+	p(m_DefaultNENDist);
+	p(m_SSDensity_epsilon);
+#undef p
+
+	Log("m_MKFPatternStr %s\n", m_MKFPatternStr.c_str());
 	}

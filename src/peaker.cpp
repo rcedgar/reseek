@@ -381,58 +381,12 @@ void Peaker::WriteFinalResults(FILE *f) const
 		return;
 
 	fprintf(f, "\n_____________________________________________\n");
-	fprintf(f, "FINAL %s\n", m_Name.c_str());
-	const uint VarCount = GetVarCount();
-	fprintf(f, "%u evals\n", SIZE(m_ys));
-	fprintf(f, "%u children\n", SIZE(m_ChildNames));
-	for (uint i = 0; i < SIZE(m_ChildNames); ++i)
-		fprintf(f, "[%4u]  %s\n", i+1, m_ChildNames[i].c_str());
-	fprintf(f, "\n");
-
-	fprintf(f, "%4.4s  ", "");
-	fprintf(f, "  %7.7s ", "");
-	fprintf(f, "  %10.10s", "");
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		fprintf(f, "  %-8.8s", GetVarName(VarIdx));
-	fprintf(f, "\n");
-
-	const uint n = SIZE(m_Best_xvs);
-	asserta(SIZE(m_Best_ys) == n);
-	asserta(SIZE(m_Best_descs) == n);
-	for (uint i = 0; i < n; ++i)
-		{
-		vector<double> Values;
-		xv2values(m_Best_xvs[i], Values);
-		asserta(SIZE(Values) == VarCount);
-
-		fprintf(f, "%4u |", i+1);
-		if (i == 0)
-			fprintf(f, "  %7.7s ", "");
-		else
-			{
-			double y_i = m_Best_ys[i];
-			double y_i_1 = m_Best_ys[i-1];
-			double dy = y_i - y_i_1;
-			double Pct = GetPct(dy, y_i_1);
-			fprintf(f, "  %+7.2f%%", Pct);
-			}
-		fprintf(f, "  %10.6g", m_Best_ys[i]);
-		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-			{
-			double Value = Values[VarIdx];
-			fprintf(f, "  %8.4g", Value);
-			}
-		fprintf(f, "  %s", m_Best_descs[i].c_str());
-		fprintf(f, "\n");
-		}
-
-	fprintf(f, "\n");
 	string best_xss;
 	xv2xss(m_Best_xv, best_xss);
 	fprintf(f, "FINAL %s [%.6g] %s\n",
 		m_Name.c_str(), m_Best_y, best_xss.c_str());
-	fflush(f);
 	fprintf(f, "\n_____________________________________________\n");
+	fflush(f);
 	}
 
 void Peaker::AppendResult(const vector<string> &xv, double y,
