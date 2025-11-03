@@ -163,7 +163,6 @@ static void Climb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
 	DSSParams::LogMe();
-	Die("TODO");
 	Pfull.HJ_RunHookeJeeves();
 	Pfull.WriteFinalResults(g_fLog);
 	}
