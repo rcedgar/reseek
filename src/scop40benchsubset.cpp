@@ -38,5 +38,7 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 	c(m_DBSelfRevScores);
 #undef c
 
+	Subset.m_RecalcSelfRevScores = m_RecalcSelfRevScores;
+
 	Subset.Setup();
 	}
