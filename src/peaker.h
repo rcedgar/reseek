@@ -40,7 +40,6 @@ public:
 	vector<double> m_Best_ys;
 	vector<string> m_Best_descs;
 
-
 // Hooke-Jeeves parameters
 	uint m_HJ_MaxExtendIters = 100;
 	uint m_HJ_MaxIters = 100;
@@ -147,7 +146,6 @@ public:
 	static void GetRoundedStr(double x, uint SigFig, string &Str);
 	static void GetLatinHypercubeIdxs(uint VarCount, uint BinCount,
 		vector<vector<uint> > &IdxMx);
-	static void SpecReplaceStr(string &Spec, const string &Name, const string &NewValue);
 	static double SpecGetFloat(const string &Spec, const string &Name, double Default);
 	static void SpecGetStr(const string &Spec, const string &Name,
 		string &Str, const string &Default);
@@ -158,7 +156,6 @@ public:
 	static double GetDecreaseRateFactor(uint Rate);
 	static void IncFloat(const string &OldStr, bool Plus, string &NewStr);
 	static void ParseEStr(const string &EStr, string &Mantissa, string &Exponent);
-	static uint GetSigFig(const string &EStr);
 	static bool AllNines(const string &s);
 	static bool AllZeros(const string &s);
 	static bool OneZeros(const string &s);

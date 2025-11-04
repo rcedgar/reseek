@@ -596,35 +596,6 @@ void Peaker::VarFloatToStr(uint VarIdx, double Value, string &Str) const
 	NormalizeVarStr(VarIdx, TmpStr, Str);
 	}
 
-void Peaker::SpecReplaceStr(string &Spec, const string &Name,
-	const string &NewValue)
-	{
-	vector<string> Fields;
-	Split(Spec, Fields, ';');
-	Spec.clear();
-	const string NameEq = Name + "=";
-	for (uint i = 0; i < SIZE(Fields); ++i)
-		{
-		const string &Field = Fields[i];
-		if (StartsWith(Field, NameEq))
-			{
-			vector<string> Fields2;
-			Split(Field, Fields2, '=');
-			asserta(SIZE(Fields2) == 2);
-			const string &Name = Fields2[0];
-			Spec += NameEq + NewValue + ";";
-			}
-		else
-			Spec += Fields[i];
-		}
-	}
-
-uint Peaker::GetSigFig(const string &EStr)
-	{
-	Die("TODO");
-	return 0;
-	}
-
 void Peaker::ParseEStr(const string &EStr, string &Mantissa, string &Exponent)
 	{
 	// 1E1

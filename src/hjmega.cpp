@@ -30,7 +30,6 @@ static double EvalArea3(const vector<string> &xv)
 	string VarsStr;
 	s_Peaker->xv2xss(xv, VarsStr);
 	DSSParams::SetParamsFromStr(VarsStr);
-	DSSParams::LogMe();
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
 	s_SB->m_Level = "sf";
@@ -61,7 +60,6 @@ void cmd_evalarea()
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
 	ProgressLog("Area0=%.4g, Area3=%.4g\n", s_SB->m_Area0, s_SB->m_Area3);
-	DSSParams::LogMe();
 	}
 
 static void Optimize(
@@ -163,7 +161,6 @@ static void Climb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 	s_Peaker = &Pfull;
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
-	DSSParams::LogMe();
 	Pfull.HJ_RunHookeJeeves();
 	Pfull.WriteFinalResults(g_fLog);
 	}

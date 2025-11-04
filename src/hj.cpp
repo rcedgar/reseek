@@ -6,11 +6,11 @@ double Peaker::GetIncreaseRateFactor(uint Rate)
 	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
-	case 1:	return 1.05 + randf(0.05);
-	case 2: return 1.10 + randf(0.1);
-	case 3: return 1.30 + randf(0.2);
-	case 4:	return 1.50 + randf(0.3);
-	case 5:	return 2.00 + randf(0.4);
+	case 1:	return 1.02 + randf(0.02);
+	case 2: return 1.05 + randf(0.05);
+	case 3: return 1.10 + randf(0.1);
+	case 4:	return 1.30 + randf(0.2);
+	case 5:	return 1.40 + randf(0.2);
 		}
 	asserta(false);
 	return DBL_MAX;
@@ -21,11 +21,11 @@ double Peaker::GetDecreaseRateFactor(uint Rate)
 	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
-	case 1:	return 0.95 - randf(0.05);
-	case 2: return 0.90 - randf(0.05);
-	case 3: return 0.80 - randf(0.1);
-	case 4:	return 0.60 - randf(0.1);
-	case 5:	return 0.50 - randf(0.1);
+	case 1:	return 0.98 - randf(0.02);
+	case 2: return 0.95 - randf(0.05);
+	case 3: return 0.90 - randf(0.1);
+	case 4:	return 0.70 - randf(0.2);
+	case 5:	return 0.60 - randf(0.2);
 		}
 	asserta(false);
 	return DBL_MAX;
@@ -45,24 +45,30 @@ void Peaker::HJ_Explore()
 
 	uint BestNewDirection = UINT_MAX;
 	m_HJ_ExtendPlus = false;
-	double Saved_Best_y = m_Best_y;
-	double BestNew_y = m_Best_y;
+	double Best_dy = 0;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		if (VarIsConstant(VarIdx))
 			continue;
-		for (int iPlus = 0; iPlus <= 1; ++iPlus)
+		double Saved_Best_y = m_Best_y;
+		double y_plus = HJ_TryDelta("explore", m_Best_xv, VarIdx, true);
+		double dy_plus = y_plus - Saved_Best_y;
+		if (dy_plus > Best_dy)
 			{
-			bool Plus = (iPlus == 1);
-			double y = HJ_TryDelta("explore", m_Best_xv, VarIdx, Plus);
-			if (y == DBL_MAX)
-				continue;
-			if (y > BestNew_y)
-				{
-				BestNew_y = y;
-				m_HJ_ExtendPlus = Plus;
-				BestNewDirection = VarIdx;
-				}
+			Best_dy = dy_plus;
+			m_HJ_ExtendPlus = true;
+			BestNewDirection = VarIdx;
+			continue;
+			}
+
+		double Saved_Best_y = m_Best_y;
+		double y_minus = HJ_TryDelta("explore", m_Best_xv, VarIdx, false);
+		double dy_minus = y_minus - Saved_Best_y;
+		if (dy_minus > Best_dy)
+			{
+			Best_dy = dy_minus;
+			m_HJ_ExtendPlus = false;
+			BestNewDirection = VarIdx;
 			}
 		}
 	m_HJ_Direction = BestNewDirection;
@@ -123,6 +129,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 
 	string NewStr;
 	const string &OldStr = Start_xv[VarIdx];
+	double OldValue = VarStrToFloat(VarIdx, OldStr);
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == Start_xv[VarIdx])
 		{
@@ -155,15 +162,18 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log("%.4g", y);
 	Log(" dy %.3g (target %.3g)", absdy, targetdy);
 
-	if (absdy < targetdy)
+	if (OldValue != 0)
 		{
-		IncreaseRate(VarIdx);
-		Log(" ++rate %u", m_VarRates[VarIdx]);
-		}
-	else if (absdy > targetdy)
-		{
-		DecreaseRate(VarIdx);
-		Log(" --rate %u", m_VarRates[VarIdx]);
+		if (absdy < targetdy)
+			{
+			IncreaseRate(VarIdx);
+			Log(" ++rate %u", m_VarRates[VarIdx]);
+			}
+		else if (absdy > targetdy)
+			{
+			DecreaseRate(VarIdx);
+			Log(" --rate %u", m_VarRates[VarIdx]);
+			}
 		}
 	Log("\n");
 
