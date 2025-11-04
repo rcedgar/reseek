@@ -362,46 +362,16 @@ void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))
 		{
-	//////////////////////////////////////////////////////////
-	//// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
-	//	AddFeature(FEATURE_AA,			4.2E-01);
-	//	AddFeature(FEATURE_NENDist,		1.6E-01);
-	//	AddFeature(FEATURE_Conf,		2.3E-01);
-	//	AddFeature(FEATURE_NENConf,		1.3E-01);
-	//	AddFeature(FEATURE_RENDist,		5.6E-02);
+	////////////////////////////////////////////////////////
+	// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
+		AddFeature(FEATURE_AA,			4.2E-01);
+		AddFeature(FEATURE_NENDist,		1.6E-01);
+		AddFeature(FEATURE_Conf,		2.3E-01);
+		AddFeature(FEATURE_NENConf,		1.3E-01);
+		AddFeature(FEATURE_RENDist,		5.6E-02);
 
-	//	m_GapOpen = -8.0E-01;
-	//	m_GapExt = -8.0E-02;
-
-	//////////////////////////////////////////////////////////
-	// AA=5.1E-01
-	// NENDist=9.4E-02
-	// Conf=2.3E-01
-	// NENConf=1.2E-01
-	// RENDist=4.1E-02
-
-	// DstNxtHlx=0.0E+00
-	// StrandDens=0.0E+00
-	// NormDens=0.0E+00
-
-	// gap2=6.3E-01
-	// dpw=1.9E+00
-	// lddtw=3.4E-01
-	// revtsw=2.2E+00
-	// ladd=2.1E+02
-		AddFeature(FEATURE_AA,			5.1E-01f);
-		AddFeature(FEATURE_NENDist,		9.4E-02f);
-		AddFeature(FEATURE_Conf,		2.3E-01f);
-		AddFeature(FEATURE_NENConf,		1.2E-01f);
-		AddFeature(FEATURE_RENDist,		4.1E-02f);
-
-		m_GapOpen = -6.3E-01f;
-		m_GapExt = -6.3E-02f;
-
-		m_dpw = 1.9E00f;
-		m_lddtw = 3.4E-01f;
-		m_revtsw = 2.2E+00f;
-		m_ladd = 2.1E+02f;
+		m_GapOpen = -8.0E-01;
+		m_GapExt = m_GapOpen/10;
 		}
 	else
 		{

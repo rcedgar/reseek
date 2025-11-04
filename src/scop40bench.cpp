@@ -562,30 +562,27 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	SetArea();
 	}
 
-void SCOP40Bench::WriteSummary()
+const char *SCOP40Bench::GetAccuracyStr(string &Str) const
 	{
-	uint AlnCount = DSSAligner::m_AlnCount;
-	uint HitCount = GetHitCount();
-	uint MuFilterInputCount = DSSAligner::m_MuFilterInputCount;
-	uint MuFilterDiscardCount = DSSAligner::m_MuFilterDiscardCount;
-	uint Secs = m_Secs;
-	float AlnsPerThreadPerSec = m_AlnsPerThreadPerSec;
 	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
 	float SensEPQ1 = float(m_nt_epq1)/m_NT;
 	float SensEPQ10 = float(m_nt_epq10)/m_NT;
 
-	ProgressLog("SEPQ0.1=%.3f", SensEPQ0_1);
-	ProgressLog(" SEPQ1=%.3f", SensEPQ1);
-	ProgressLog(" SEPQ10=%.3f", SensEPQ10);
+	Psa(Str, "SEPQ0.1=%.3f", SensEPQ0_1);
+	Psa(Str, " SEPQ1=%.3f", SensEPQ1);
+	Psa(Str, " SEPQ10=%.3f", SensEPQ10);
 	if (m_Area0 != FLT_MAX)
-		ProgressLog(" Area0=%.3f", m_Area0);
+		Psa(Str, " Area0=%.3f", m_Area0);
 	if (m_Area3 != FLT_MAX)
-		ProgressLog(" Area3=%.3f", m_Area3);
-	if (Secs != UINT_MAX)
-		{
-		ProgressLog(" [%s]", g_GitVer);
-		ProgressLog(" secs=%u", Secs);
-		}
+		Psa(Str, " Area3=%.3f", m_Area3);
+	return Str.c_str();
+	}
+
+void SCOP40Bench::WriteSummary()
+	{
+	string AccuracyStr;
+	GetAccuracyStr(AccuracyStr);
+	ProgressLog("%s", AccuracyStr.c_str());
 	if (optset_fast)
 		ProgressLog(" -fast");
 	else if (optset_sensitive)

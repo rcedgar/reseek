@@ -3,34 +3,6 @@
 #include "sort.h"
 #include <time.h>
 
-/***
-$res/repeak/misc/spec.txt
-=========================
-cmd=C:\cygwin64\bin\bash.exe -e z:/a/res/repeak/misc/eval.bash
-mindy=0.01
-maxdy=1
-minh=0.01
-sigfig=3
-latin=no
-var=open        min=0   max=1   delta=0.05      bins=4  init=2
-var=ext min=0   max=1   delta=0.05      bins=4  init=0.25
-var=topen       min=0   max=1   delta=0.05      bins=4  init=0
-var=text        min=0   max=1   delta=0.05      bins=4  init=0
-
-$res/repeak/misc/spec2.txt
-==========================
-dir=queue/
-dy=3200
-mindy=50
-cool=0.8
-sigfig=5
-latin=200
-var=dpw min=0   max=1   mind=0.01       maxd=0.1        bins=16
-var=adsw        min=0   max=1   mind=0.01       maxd=0.2        bins=16
-var=lddtw       min=0   max=1   mind=0.01       maxd=0.2        bins=16
-var=lddtMw      min=0   max=1   mind=0.01       maxd=0.2        bins=16
-***/
-
 FILE *Peaker::m_fTsv = 0;
 
 void Peaker::GetGlobalSpec(const vector<string> &SpecLines, string &GlobalSpec)

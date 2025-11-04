@@ -130,6 +130,7 @@ public:
 
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
+	const char *GetAccuracyStr(string &Str) const;
 	void WriteSummary();
 	void WriteOutput();
 	void LogFirstFewDoms() const;
