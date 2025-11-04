@@ -6,19 +6,19 @@
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
 
-float DSSParams::m_MinFwdScore = FLT_MAX;
-float DSSParams::m_Omega = FLT_MAX;
-float DSSParams::m_OmegaFwd = FLT_MAX;
+float DSSParams::m_MinFwdScore = 7;
+float DSSParams::m_Omega = 22;
+float DSSParams::m_OmegaFwd = 50;
 string DSSParams::m_MKFPatternStr =  "111";;
 float ***DSSParams::m_ScoreMxs = 0;
 
 int  DSSParams::m_PrefilterMinKmerPairScore = 36;
 uint DSSParams::m_rsb_size = 1500;
-uint DSSParams::m_MKFL = UINT_MAX;
-int DSSParams::m_MKF_X1 = INT_MAX;
-int DSSParams::m_MKF_X2 = INT_MAX;
-int DSSParams::m_MKF_MinMuHSPScore = INT_MAX;
-float DSSParams::m_MKF_MinMegaHSPScore = FLT_MAX;
+uint DSSParams::m_MKFL = 500;
+int DSSParams::m_MKF_X1 = 8;
+int DSSParams::m_MKF_X2 = 8;
+int DSSParams::m_MKF_MinMuHSPScore = 50;
+float DSSParams::m_MKF_MinMegaHSPScore = -4;
 
 int DSSParams::m_ParaMuGapOpen = 2;
 int DSSParams::m_ParaMuGapExt = 1;
@@ -37,10 +37,6 @@ uint DSSParams::m_SSE_MinLength = 8;
 uint DSSParams::m_SSE_Margin = 8;
 uint DSSParams::m_PMDelta = 8;
 
-///////////////////////////////////////////////////////////
-// Tunable parameters supported by DSSParams::SetParamStr()
-// AA=0.398;NENDist=0.129;Conf=0.202;NENConf=0.149;RENDist=0.0938;DstNxtHlx=0.00475;StrandDens=0.0184;NormDens=0.00384;open=0.686;ext=0.0519;
-///////////////////////////////////////////////////////////
 float DSSParams::m_GapOpen = -0.685533f;
 float DSSParams::m_GapExt = -0.051881f;
 
@@ -48,7 +44,6 @@ float DSSParams::m_dpw = 1.7f;
 float DSSParams::m_lddtw = 0.13f;
 float DSSParams::m_ladd = 250.0f;
 float DSSParams::m_revtsw = 2.0f;
-///////////////////////////////////////////////////////////
 
 // Used to initialize g_AlphaSizes2, careful of
 //	order dependencies in static bool Init() idiom.
@@ -278,70 +273,18 @@ void DSSParams::SetDefaultNonFeatureTunableParams()
 	m_revtsw = 2.0f;
 	}
 
-void DSSParams::SetTunableParamFromStr(const string &Name,
-	const string &StrValue)
+
+// Assume defaults are already set, except for features+weights
+// Set features+weights from Str
+// Overwrite any others in Str
+void DSSParams::SetParamsFromStr(const string &Str)
 	{
-	FEATURE F = StrToFeature(Name.c_str(), true);
-	float Value = StrToFloatf(StrValue);
-	if (F != UINT_MAX)
-		{
-		m_Features.push_back(F);
-		m_Weights.push_back(Value);
-		return;
-		}
-
-	if (Name == "open") { m_GapOpen = -Value; return; }
-	if (Name == "ext") { m_GapExt = -Value; return; }
-	if (Name == "gap") { m_GapOpen = m_GapExt = -Value; return; }
-	if (Name == "gap2") { m_GapOpen = -Value; m_GapExt = -Value*0.1f; return; }
-	if (Name == "gap1") { m_GapOpen = -Value; m_GapExt = -Value; return; }
-	if (Name == "lddtw") { m_lddtw = Value; return; }
-	if (Name == "dpw") { m_dpw = Value; return; }
-	if (Name == "revtsw") { m_revtsw = Value; return; }
-	if (Name == "ladd") { m_ladd = Value; return; }
-
-	Die("SetParamStr(%s, %s) unknown param",
-		Name.c_str(), StrValue.c_str());
-	}
-
-void DSSParams::GetParamStr(string &Str)
-	{
-	Str.clear();
-	const uint FeatureCount = GetFeatureCount();
-	asserta(SIZE(m_Features) == FeatureCount);
-	asserta(SIZE(m_Weights) == FeatureCount);
-	for (uint k = 0; k < FeatureCount; ++k)
-		Psa(Str, "%s=%.3g;",
-			FeatureToStr(m_Features[k]),
-			m_Weights[k]);
-	if (feq(m_GapExt*10.0f, m_GapOpen))
-		Psa(Str, "gap2=%.3g;", -m_GapOpen);
-	else
-		{
-		Psa(Str, "open=%.3g;", -m_GapOpen);
-		Psa(Str, "ext=%.3g;", -m_GapExt);
-		}
-	Psa(Str, "lddtw=%.3g;", m_lddtw);
-	Psa(Str, "dpw=%.3g;", m_dpw);
-	Psa(Str, "revtsw=%.3g;", m_revtsw);
-	Psa(Str, "ladd=%.3g;", m_ladd);
-	}
-
-void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
-	{
-	vector<string> Fields;
-	if (DoLog)
-		{
-		Log("SetTunableParamsFromStr()\n");
-		Split(Str, Fields, ';');
-		for (uint i = 0; i < SIZE(Fields); ++i)
-			Log("  %s\n", Fields[i].c_str());
-		}
-
-	SetDefaultNonFeatureTunableParams();
 	m_Features.clear();
 	m_Weights.clear();
+
+	vector<string> Fields;
 	Split(Str, Fields, ';');
+
 	const uint n = SIZE(Fields);
 	for (uint i = 0; i < n; ++i)
 		{
@@ -349,10 +292,19 @@ void DSSParams::SetTunableParamsFromStr(const string &Str, bool DoLog)
 		vector<string> Fields2;
 		Split(NameEqValue, Fields2, '=');
 		if (SIZE(Fields2) != 2)
-			Die("Expected name=value in field %u '%s'", i, Str.c_str());
+			Die("DSSParams::SetParamsFromStr(%s) not name=value '%s'",
+				Str.c_str(), Fields[i].c_str());
 		const string &Name = Fields2[0];
-		const string &Value = Fields2[1];
-		SetTunableParamFromStr(Name, Value);
+		const string &ValueStr = Fields2[1];
+		FEATURE F = StrToFeature(Name.c_str(), true);
+		if (F == FEATURE(UINT_MAX))
+			SetParam(Name, ValueStr);
+		else
+			{
+			float Weight = StrToFloatf(ValueStr);
+			m_Features.push_back(F);
+			m_Weights.push_back(Weight);
+			}
 		}
 	asserta(SIZE(m_Features) > 0);
 	SetScoreMxsFromFeatures();
@@ -364,13 +316,13 @@ void DSSParams::SetStandardFeatures()
 		{
 	////////////////////////////////////////////////////////
 	// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
-		AddFeature(FEATURE_AA,			4.2E-01);
-		AddFeature(FEATURE_NENDist,		1.6E-01);
-		AddFeature(FEATURE_Conf,		2.3E-01);
-		AddFeature(FEATURE_NENConf,		1.3E-01);
-		AddFeature(FEATURE_RENDist,		5.6E-02);
+		AddFeature(FEATURE_AA,			4.2E-01f);
+		AddFeature(FEATURE_NENDist,		1.6E-01f);
+		AddFeature(FEATURE_Conf,		2.3E-01f);
+		AddFeature(FEATURE_NENConf,		1.3E-01f);
+		AddFeature(FEATURE_RENDist,		5.6E-02f);
 
-		m_GapOpen = -8.0E-01;
+		m_GapOpen = -8.0E-01f;
 		m_GapExt = m_GapOpen/10;
 		}
 	else
@@ -392,13 +344,13 @@ void DSSParams::Init(DECIDE_MODE DM)
 	if (optset_feature_spec)
 		LoadFeatures(opt(feature_spec));
 	else if (optset_params)
-		SetTunableParamsFromStr(opt(params));
+		SetParamsFromStr(opt(params));
 	else
 		SetStandardFeatures();
 	SetAlgoMode(DM);
-	string ParamStr;
-	DSSParams::GetParamStr(ParamStr);
-	Log("DSSParams::Init(%d) %s\n", int(DM), ParamStr.c_str());
+	string ParamsStr;
+	DSSParams::GetParamsStr(ParamsStr);
+	Log("DSSParams::Init(%d) %s\n", int(DM), ParamsStr.c_str());
 	}
 
 void DSSParams::LogMe()
@@ -407,46 +359,6 @@ void DSSParams::LogMe()
 	for (uint i = 0; i < SIZE(m_Features); ++i)
 		Log("%s %.3g\n", FeatureToStr(m_Features[i]), m_Weights[i]);
 
-#define p(x)	Log("%s %d\n", #x, x)
-	p(m_ParaMuGapOpen);
-	p(m_ParaMuGapExt);
-	p(m_PrefilterMinKmerPairScore);
-	p(m_MKF_X1);
-	p(m_MKF_X2);
-	p(m_MKF_MinMuHSPScore);
-	p(m_Density_W);
-	p(m_Density_w);
-	p(m_SSDensity_W);
-	p(m_SSDensity_w);
-	p(m_NEN_W);
-	p(m_NEN_w);
-	p(m_NUDX_W);
-#undef p
-
-#define p(x)	Log("%s %u\n", #x, x)
-	p(m_rsb_size);
-	p(m_MKFL);
-	p(m_SSE_MinLength);
-	p(m_SSE_Margin);
-	p(m_PMDelta);
-#undef p
-
-#define p(x)	Log("%s %.3g\n", #x, x)
-	p(m_GapOpen);
-	p(m_GapExt);
-	p(m_MinFwdScore);
-	p(m_Omega);
-	p(m_OmegaFwd);
-	p(m_MKF_MinMegaHSPScore);
-	p(m_dpw);
-	p(m_lddtw);
-	p(m_ladd);
-	p(m_revtsw);
-	p(m_Density_Radius);
-	p(m_NU_ND_Radius);
-	p(m_DefaultNENDist);
-	p(m_SSDensity_epsilon);
-#undef p
-
+	LogParamData();
 	Log("m_MKFPatternStr %s\n", m_MKFPatternStr.c_str());
 	}

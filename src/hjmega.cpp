@@ -13,7 +13,7 @@ static double EvalArea0(const vector<string> &xv)
 	asserta(SIZE(xv) == VarCount);
 	string VarsStr;
 	s_Peaker->xv2xss(xv, VarsStr);
-	DSSParams::SetTunableParamsFromStr(VarsStr);
+	DSSParams::SetParamsFromStr(VarsStr);
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
 	s_SB->m_Level = "sf";
@@ -29,7 +29,8 @@ static double EvalArea3(const vector<string> &xv)
 	asserta(SIZE(xv) == VarCount);
 	string VarsStr;
 	s_Peaker->xv2xss(xv, VarsStr);
-	DSSParams::SetTunableParamsFromStr(VarsStr);
+	DSSParams::SetParamsFromStr(VarsStr);
+	DSSParams::LogMe();
 	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
 	s_SB->m_Level = "sf";
@@ -43,9 +44,9 @@ void cmd_evalarea()
 	const string &DBFN = g_Arg1;
 
 	DSSParams::Init(DM_UseCommandLineOption);
-	string ParamStr;
-	DSSParams::GetParamStr(ParamStr);
-	ProgressLog("ParamStr:%s\n", ParamStr.c_str());
+	string ParamsStr;
+	DSSParams::GetParamsStr(ParamsStr);
+	ProgressLog("ParamsStr:%s\n", ParamsStr.c_str());
 
 	void OpenOutputFiles();
 	OpenOutputFiles();
@@ -224,6 +225,7 @@ void cmd_hjmega()
 
 	DSSParams::Init(DM_UseCommandLineOption);
 	StatSig::Init(SCOP40_DBSIZE);
+	DSSParams::LogParamData();
 
 	SCOP40Bench FullSB;
 	FullSB.LoadDB(DBFN);

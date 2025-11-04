@@ -461,6 +461,9 @@
     <ClCompile Include="setselfrevscores.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dssparamdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -782,6 +785,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="featuretrainer2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dssintparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dssuintparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dssfloatparams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

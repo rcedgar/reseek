@@ -73,10 +73,10 @@ public:
 	static void Init(DECIDE_MODE DM);
 	static void SetStandardFeatures();
 	static void SetDefaultNonFeatureTunableParams();
-	static void SetTunableParamFromStr(const string &Name, const string &Value);
-	static void SetTunableParamsFromStr(const string &Str, bool DoLog = false);
+	//static void SetTunableParamFromStr(const string &Name, const string &Value);
+	static void SetParamsFromStr(const string &Str);
 	static void SetAlgoMode(DECIDE_MODE DM);
-	static void GetParamStr(string &Str);
+	static void GetParamsStr(string &Str);
 	static void LogMe();
 
 	static uint GetFeatureCount()
@@ -110,6 +110,16 @@ public:
 		vector<vector<float> > &ScoreMx);
 	static void OverwriteBinTs(FEATURE F,
 		const vector<float> &BinTs);
+
+	static void InitParamData();
+	static void LogParamData();
+	static bool ParamIsDefault(const string &Name);
+	static const char *GetParamDefaultStr(const string &Name, string &DefaultStr);
+	static const char *GetParamValueStr(const string &Name, string &ValueStr);
+	static int GetIntParam(const string &Name);
+	static uint GetUintParam(const string &Name);
+	static float GetFloatParam(const string &Name);
+	static void SetParam(const string &Name, const string &Value);
 	};
 
 uint GetPatternOnes(const string &Pattern);
