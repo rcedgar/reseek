@@ -322,7 +322,7 @@ void DSSParams::GetParamStr(string &Str)
 		Psa(Str, "ext=%.3g;", -m_GapExt);
 		}
 	Psa(Str, "lddtw=%.3g;", m_lddtw);
-	Psa(Str, "dpww=%.3g;", m_dpw);
+	Psa(Str, "dpw=%.3g;", m_dpw);
 	Psa(Str, "revtsw=%.3g;", m_revtsw);
 	Psa(Str, "ladd=%.3g;", m_ladd);
 	}
@@ -396,10 +396,6 @@ void DSSParams::Init(DECIDE_MODE DM)
 	else
 		SetStandardFeatures();
 	SetAlgoMode(DM);
-	if (optset_gapopen) DSSParams::m_GapOpen = (float) opt(gapopen);
-	if (optset_gapext) DSSParams::m_GapExt = (float) opt(gapext);
-	if (optset_gap2) { DSSParams::m_GapOpen = DSSParams::m_GapExt = (float) opt(gap2); }
-	if (optset_revtsw) { DSSParams::m_revtsw = (float) opt(revtsw); }
 	string ParamStr;
 	DSSParams::GetParamStr(ParamStr);
 	Log("DSSParams::Init(%d) %s\n", int(DM), ParamStr.c_str());
