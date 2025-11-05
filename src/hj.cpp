@@ -108,21 +108,24 @@ void Peaker::HJ_Explore()
 			ProgressLog("    ");
 		else
 			ProgressLog("  %2d",  dRate);
-		ProgressLog("  %s\n", GetVarName(VarIdx));
+		ProgressLog("  %s", GetVarName(VarIdx));
+		if (dys_plus[VarIdx] > 0 || dys_minus[VarIdx] > 0)
+			ProgressLog(" +++");
+		ProgressLog("\n");
 		}
 	ProgressLog("\n");
 
 	const uint N = SIZE(m_Best_ys);
 	asserta(SIZE(m_Best_descs) == N);
-	const uint n = min(N, 5u);
-	for (uint k = 0; k < n; ++k)
+	for (uint k = 0; k < 5; ++k)
 		{
+		if (k > N -1)
+			break;
 		uint i = N-k-1;
-		uint j = n-i-1;
-		double dy = (j > 0 ? m_Best_ys[j] - m_Best_ys[j-1] : 0);
-		ProgressLog("%10.5g", m_Best_ys[j]);
+		double dy = (i > 0 ? m_Best_ys[i] - m_Best_ys[i-1] : 0);
+		ProgressLog("%10.5g", m_Best_ys[i]);
 		ProgressLog("  %+10.2g", dy);
-		ProgressLog("  %s", m_Best_descs[j].c_str());
+		ProgressLog("  %s", m_Best_descs[i].c_str());
 		ProgressLog("\n");
 		}
 	ProgressLog("\n");
