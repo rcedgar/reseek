@@ -142,13 +142,14 @@ void Peaker::xss2xv(const string &xstr, vector<string> &xv) const
 		}
 	}
 
-void Peaker::xv2xss(const vector<string> &xv, string &s) const
+const char *Peaker::xv2xss(const vector<string> &xv, string &s) const
 	{
 	const uint VarCount = GetVarCount();
 	asserta(SIZE(xv) == VarCount);
 	s.clear();
 	for (uint i = 0; i < VarCount; ++i)
 		s += m_VarNames[i] + "=" + xv[i] + ";";
+	return s.c_str();
 	}
 
 double Peaker::rr(double lo, double hi)
@@ -868,7 +869,6 @@ void Peaker::ExploreNeighborhood(const vector<string> &xv,
 		}
 	}
 
-#if 0
 static void Test1(const string &s, bool Plus)
 	{
 	string news;
@@ -878,30 +878,12 @@ static void Test1(const string &s, bool Plus)
 
 void cmd_test()
 	{
-	Test1("9.9E1", true);
-	Test1("9.99E2", true);
-	Test1("9.999E2", true);
-	Test1("9.999E40", true);
-	Test1("1.0E1", false);
-	Test1("1.00E2", false);
-	Test1("1.000E3", false);
-	Test1("1.0000E40", false);
-
 	for (uint i = 0; i < 100; ++i)
 		{
 		uint SigFig = randu32()%3 + 2;
-		double mant = randf(1);
-		double e = randf(20);
-		bool sign = (randu32()%2 == 0);
-		double p = (sign ? pow(10, e) : pow(10, -e));
-		double x = mant*p;
-		string OldStr;
-		Peaker::GetRoundedStr(x, SigFig, OldStr);
-		bool Plus = (randu32()%2 == 0);
-		string NewStr;
-		Peaker::IncFloat(OldStr, Plus, NewStr);
-		ProgressLog("%10.10s  %c  %s\n",
-			OldStr.c_str(), pom(Plus), NewStr.c_str());
+		double x1 = Peaker::rr(0.1, 100);
+		string s1;
+		Peaker::GetRoundedStr(x1, SigFig, s1);
+		//double x2 = Peaker::GetRoundedValue(x
 		}
 	}
-#endif // 0

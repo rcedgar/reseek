@@ -113,7 +113,7 @@ public:
 	// xv vector of strings, xss is semi-colon string
 	void xv2values(const vector<string> &xv, vector<double> &Values) const;
 	void xss2xv(const string &xstr, vector<string> &xv) const;
-	void xv2xss(const vector<string> &xv, string &xstr) const;
+	const char *xv2xss(const vector<string> &xv, string &xstr) const;
 	uint Find_xv(const vector<string> &xv) const;
 
 	// Convert float <-> str for one var
@@ -137,7 +137,8 @@ public:
 	void HJ_Extend();
 	bool HJ_Iter();
 	double HJ_TryDelta(const string &reason,
-		const vector<string> &Start_xv, uint VarIdx, bool Plus);
+		const vector<string> &Start_xv, uint VarIdx, bool Plus,
+		vector<string> &Try_xv);
 
 public:
 	static void GetGlobalSpec(const vector<string> &SpecLines,

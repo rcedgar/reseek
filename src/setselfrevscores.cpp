@@ -73,6 +73,7 @@ void DBSearcher::SetSelfRevScores()
 		delete ts[ThreadIndex];
 	}
 
+#if 0
 void cmd_test()
 	{
 	const string &FN = g_Arg1;
@@ -90,3 +91,4 @@ void cmd_test()
 		DBS.SetSelfRevScores();
 		}
 	}
+#endif

@@ -151,6 +151,7 @@ FLAG_OPT(dss)
 FLAG_OPT(initonly)
 FLAG_OPT(raw)
 FLAG_OPT(newparams)
+FLAG_OPT(ratenoise)
 
 #undef FLAG_OPT
 #undef UNS_OPT

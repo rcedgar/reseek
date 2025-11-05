@@ -6,11 +6,11 @@ double Peaker::GetIncreaseRateFactor(uint Rate)
 	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
-	case 1:	return 1.02 + randf(0.02);
-	case 2: return 1.05 + randf(0.05);
-	case 3: return 1.10 + randf(0.1);
-	case 4:	return 1.30 + randf(0.2);
-	case 5:	return 1.40 + randf(0.2);
+	case 1:	return 1.02 + (opt(ratenoise) ? randf(0.02) : 0);
+	case 2: return 1.05 + (opt(ratenoise) ? randf(0.05) : 0);
+	case 3: return 1.10 + (opt(ratenoise) ? randf(0.1) : 0);
+	case 4:	return 1.30 + (opt(ratenoise) ? randf(0.2) : 0);
+	case 5:	return 1.40 + (opt(ratenoise) ? randf(0.2) : 0);
 		}
 	asserta(false);
 	return DBL_MAX;
@@ -46,26 +46,40 @@ void Peaker::HJ_Explore()
 	uint BestNewDirection = UINT_MAX;
 	m_HJ_ExtendPlus = false;
 	double Best_dy = 0;
+	double Start_Best_y = m_Best_y;
+	vector<string> strs_plus(VarCount);
+	vector<string> strs_minus(VarCount);
+	vector<double> dys_plus(VarCount);
+	vector<double> dys_minus(VarCount);
+	vector<uint> Start_Rates = m_VarRates;
+	vector<string> Try_xv;
+	uint ImprovementCount = 0;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		if (VarIsConstant(VarIdx))
 			continue;
 		double Saved_Best_y = m_Best_y;
-		double y_plus = HJ_TryDelta("explore", m_Best_xv, VarIdx, true);
+		double y_plus = HJ_TryDelta("explore", m_Best_xv, VarIdx, true, Try_xv);
 		double dy_plus = y_plus - Saved_Best_y;
+		dys_plus[VarIdx] = dy_plus;
+		strs_plus[VarIdx] = Try_xv[VarIdx];
 		if (dy_plus > Best_dy)
 			{
+			++ImprovementCount;
 			Best_dy = dy_plus;
 			m_HJ_ExtendPlus = true;
 			BestNewDirection = VarIdx;
 			continue;
 			}
 
-		double Saved_Best_y = m_Best_y;
-		double y_minus = HJ_TryDelta("explore", m_Best_xv, VarIdx, false);
+		Saved_Best_y = m_Best_y;
+		double y_minus = HJ_TryDelta("explore", m_Best_xv, VarIdx, false, Try_xv);
 		double dy_minus = y_minus - Saved_Best_y;
+		dys_minus[VarIdx ] = dy_minus;
+		strs_minus[VarIdx] = Try_xv[VarIdx];
 		if (dy_minus > Best_dy)
 			{
+			++ImprovementCount;
 			Best_dy = dy_minus;
 			m_HJ_ExtendPlus = false;
 			BestNewDirection = VarIdx;
@@ -77,6 +91,41 @@ void Peaker::HJ_Explore()
 	else
 		Log("HJ_Expore(), new direction %s%c\n",
 		  GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
+
+	ProgressLog("\n");
+	ProgressLog("HJ_Explore %u improves\n", ImprovementCount);
+	double Track_Best_y = Start_Best_y;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		int dRate = int(m_VarRates[VarIdx]) - int(Start_Rates[VarIdx]);
+		ProgressLog(">%-10.10s", strs_plus[VarIdx].c_str());
+		ProgressLog("  %10.2g", dys_plus[VarIdx]);
+		ProgressLog("  <%-10.10s", strs_minus[VarIdx].c_str());
+		ProgressLog("  %10.2g", dys_minus[VarIdx]);
+		ProgressLog("  %u",  Start_Rates[VarIdx]);
+		ProgressLog("  %u",  m_VarRates[VarIdx]);
+		if (dRate == 0)
+			ProgressLog("    ");
+		else
+			ProgressLog("  %2d",  dRate);
+		ProgressLog("  %s\n", GetVarName(VarIdx));
+		}
+	ProgressLog("\n");
+
+	const uint N = SIZE(m_Best_ys);
+	asserta(SIZE(m_Best_descs) == N);
+	const uint n = min(N, 5u);
+	for (uint k = 0; k < n; ++k)
+		{
+		uint i = N-k-1;
+		uint j = n-i-1;
+		double dy = (j > 0 ? m_Best_ys[j] - m_Best_ys[j-1] : 0);
+		ProgressLog("%10.5g", m_Best_ys[j]);
+		ProgressLog("  %+10.2g", dy);
+		ProgressLog("  %s", m_Best_descs[j].c_str());
+		ProgressLog("\n");
+		}
+	ProgressLog("\n");
 	}
 
 void Peaker::HJ_Extend()
@@ -88,13 +137,14 @@ void Peaker::HJ_Extend()
 	asserta(!VarIsConstant(m_HJ_Direction));
 	const uint VarIdx = m_HJ_Direction;
 	const char *Name = GetVarName(VarIdx);
+	vector<string> Try_xv;
 	for (uint Iter = 0; Iter < m_HJ_MaxExtendIters; ++Iter)
 		{
 		string reason;
 		Ps(reason, "extend%u", Iter+1);
 
 		double Saved_Best_y = m_Best_y;
-		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus);
+		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus, Try_xv);
 		if (m_Best_y <= Saved_Best_y)
 			return;
 		}
@@ -119,26 +169,37 @@ void Peaker::IncreaseRate(uint VarIdx)
 	}
 
 double Peaker::HJ_TryDelta(const string &reason,
-	const vector<string> &Start_xv, uint VarIdx, bool Plus)
+	const vector<string> &Start_xv, uint VarIdx, bool Plus,
+	vector<string> &Try_xv)
 	{
 	const char *VarName = GetVarName(VarIdx);
 	uint Idx = Find_xv(Start_xv);
 	asserta(Idx != UINT_MAX);
 	asserta(Idx < SIZE(m_ys));
 	const double Start_y = m_ys[Idx];
+	vector<string> Saved_Best_xv;
+	vector<string> Saved_Start_xv;
+	const uint VarCount = GetVarCount();
+	for (uint i = 0; i < VarCount; ++i)
+		{
+		Saved_Start_xv.push_back(Start_xv[i]);
+		Saved_Best_xv.push_back(m_Best_xv[i]);
+		}
 
 	string NewStr;
-	const string &OldStr = Start_xv[VarIdx];
+	const string OldStr = Start_xv[VarIdx];
 	double OldValue = VarStrToFloat(VarIdx, OldStr);
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
-	if (NewStr == Start_xv[VarIdx])
+	if (NewStr == OldStr)
 		{
-		ProgressLog("HJ_TryDelta(%s) DeltaVar %s=%s no change (rate %u)\n",
-			reason.c_str(), VarName, OldStr.c_str(), m_VarRates[VarIdx]);
+		ProgressLog("HJ_TryDelta(%s%c) DeltaVar %s=%s no change (rate %u)\n",
+			reason.c_str(), pom(Plus), VarName, OldStr.c_str(), m_VarRates[VarIdx]);
 		return Start_y;
 		}
 
-	vector<string> Try_xv = Start_xv;
+	Try_xv.clear();
+	for (uint i = 0; i < VarCount; ++i)
+		Try_xv.push_back(Start_xv[i]);
 	Try_xv[VarIdx] = NewStr;
 
 	string why;
@@ -153,7 +214,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	double targetdy = GetGlobalFloat("targetdy", DBL_MAX);
 	asserta(targetdy != DBL_MAX);
 
-	Log("HJ_TryDelta(%s)", reason.c_str());
+	Log("HJ_TryDelta(%s%c)", reason.c_str(), pom(Plus));
 	Log(" %s", VarName);
 	Log(" %s,", OldStr.c_str());
 	Log(" [%u]", m_VarRates[VarIdx]);

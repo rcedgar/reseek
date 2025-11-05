@@ -77,7 +77,7 @@ public:
 	static void SetParamsFromStr(const string &Str);
 	static void SetAlgoMode(DECIDE_MODE DM);
 	static void GetParamsStr(string &Str);
-	static void xLogMe();
+	static void LogMe();
 
 	static uint GetFeatureCount()
 		{

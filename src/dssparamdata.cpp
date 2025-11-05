@@ -49,6 +49,16 @@ void DSSParams::SetParam(const string &Name, const string &StrValue)
 		m_GapExt = -Value/10;
 		return;
 		}
+	if (Name == "logladd")
+		{
+		float Value = StrToFloatf(StrValue);
+		if (Value < 1)
+			Value = 1;
+		if (Value > 4)
+			Value = 4;
+		m_ladd = (float) pow(10, Value);
+		return;
+		}
 	map<string, uint>::const_iterator iter = s_NameToIdx.find(Name);
 	if (iter == s_NameToIdx.end())
 		Die("DSSParams::SetParam(%s)", Name.c_str());
