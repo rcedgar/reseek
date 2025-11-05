@@ -63,9 +63,10 @@ void Peaker::HJ_Explore()
 		double dy_plus = y_plus - Saved_Best_y;
 		dys_plus[VarIdx] = dy_plus;
 		strs_plus[VarIdx] = Try_xv[VarIdx];
+		if (dy_plus > 0)
+			++ImprovementCount;
 		if (dy_plus > Best_dy)
 			{
-			++ImprovementCount;
 			Best_dy = dy_plus;
 			m_HJ_ExtendPlus = true;
 			BestNewDirection = VarIdx;
@@ -75,11 +76,12 @@ void Peaker::HJ_Explore()
 		Saved_Best_y = m_Best_y;
 		double y_minus = HJ_TryDelta("explore", m_Best_xv, VarIdx, false, Try_xv);
 		double dy_minus = y_minus - Saved_Best_y;
-		dys_minus[VarIdx ] = dy_minus;
+		dys_minus[VarIdx] = dy_minus;
 		strs_minus[VarIdx] = Try_xv[VarIdx];
+		if (dy_minus > 0)
+			++ImprovementCount;
 		if (dy_minus > Best_dy)
 			{
-			++ImprovementCount;
 			Best_dy = dy_minus;
 			m_HJ_ExtendPlus = false;
 			BestNewDirection = VarIdx;
