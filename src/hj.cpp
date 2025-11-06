@@ -3,6 +3,9 @@
 
 double Peaker::GetIncreaseRateFactor(uint Rate)
 	{
+	if (optset_rate_factor)
+		return opt(rate_factor);
+
 	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{
@@ -18,6 +21,9 @@ double Peaker::GetIncreaseRateFactor(uint Rate)
 
 double Peaker::GetDecreaseRateFactor(uint Rate)
 	{
+	if (optset_rate_factor)
+		return 1.0/opt(rate_factor);
+
 	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
 	switch (Rate)
 		{

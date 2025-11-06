@@ -114,6 +114,7 @@ FLT_OPT(maxts)
 FLT_OPT(minpctid)
 FLT_OPT(maxpctid)
 FLT_OPT(undef_value)
+FLT_OPT(rate_factor)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
