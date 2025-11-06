@@ -6,7 +6,7 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<byte> *ptrMuLetters,
 					  const vector<uint> *ptrMuKmers)
 	{
-	if (opt(selfrev0))
+	if (opt(selfrev0) || opt(raw))
 		return 0;
 	PDBChain RevChain;
 	Chain.GetReverse(RevChain);

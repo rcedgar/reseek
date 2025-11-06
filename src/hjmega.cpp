@@ -3,6 +3,28 @@
 #include "scop40bench.h"
 #include "peaker.h"
 
+/***
+(+) Random exploration like Latin hypercube quickly reaches diminishing returns
+(+) Careful hill-climbing from a good start is essential
+(+) Preferred strategy per 2025-11-05 is "subclimb" (X is vector of parameter values):
+		Repeat 3 times (i):
+			Select random subset 25% of SCOP40[c] chains ("subpct=25;" in global sec),
+				Eval of one X 16x faster than working with full set
+			Perform Latin hypercube on subset
+			Take top 3 points ("hj=3;" in global spec) and hill-climb (HJ)
+			From these 3, save point X_i with best y
+			Hill-climb (HJ) full set starting at X_i
+		Final X is best of the 3 full HJs
+(*) Subclimb time with ~10 params ~20 mins on a/b subset, 2 - 4 hours on SCOP40[c]
+(*) Don't need open+ext, gap2 works fine (ext = open/10)
+(*) -raw avoids calculating self-rev scores & tuning E-value parameters,
+	  gives similar parameters so this is the way to choose alphabet components.
+(*) The three lowest-weight alphabets in v2.7 consistently optimize to weight=0
+		AddFeature(FEATURE_DstNxtHlx,	0.00475462f);
+		AddFeature(FEATURE_StrandDens,	0.0183853f);
+		AddFeature(FEATURE_NormDens,	0.00384384f);
+***/
+
 static SCOP40Bench *s_SB;
 static Peaker *s_Peaker;
 
