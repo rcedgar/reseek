@@ -1,3 +1,4 @@
+#if 0 //@@TODO delete
 #include "myutils.h"
 #include "featuretrainer.h"
 #include "valuetointtpl.h"
@@ -127,3 +128,4 @@ void FeatureTrainer::QuantizeUniques(const vector<float> &SortedValues,
 	Log("  [%2u]            %10u  %6.4f\n",
 		AlphaSize-1, Counts[AlphaSize-1], double(Counts[AlphaSize-1])/K);
 	}
+#endif

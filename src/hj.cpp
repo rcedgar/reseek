@@ -89,7 +89,7 @@ void Peaker::HJ_Explore()
 		}
 	m_HJ_Direction = BestNewDirection;
 	if (m_HJ_Direction == UINT_MAX)
-		Log("HJ_Expore(), no improvement found, try minimum\n");
+		Log("HJ_Expore(), no improvement found\n");
 	else
 		Log("HJ_Expore(), new direction %s%c\n",
 		  GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));

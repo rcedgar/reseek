@@ -14,10 +14,10 @@ static Peaker *s_Peaker;
 
 static vector<float> s_AlnScores;
 
-static double EvalArea_OpenOnly(const vector<double> &xv)
+static double EvalArea_OpenOnly(const vector<string> &xv)
 	{
 	asserta(SIZE(xv) == 1);
-	float OpenPenalty = float(xv[0]);
+	float OpenPenalty = StrToFloatf(xv[0]);
 	float ExtPenalty = OpenPenalty*0.1f;
 	float Bias = 0; // float(xv[2]);
 
@@ -76,21 +76,20 @@ void FeatureTrainer2::OptimizeArea(
 	vector<string> SpecLines;
 
 	// y is Area, in range 0 to 1
-	SpecLines.push_back("mindy=0.001");
-	SpecLines.push_back("maxdy=0.1");
-	SpecLines.push_back("minh=0.0005");
-	SpecLines.push_back("latin=yes");
-	SpecLines.push_back("sigfig=3");
-	SpecLines.push_back("var=open\tmin=0\tmax=4\tdelta=0.1\tbins=32\tinit=0.5");
-	//SpecLines.push_back("var=ext\tmin=0\tmax=1\tdelta=0.01\tbins=32\tinit=0.1");
-	//SpecLines.push_back("var=bias\tmin=-1\tmax=1\tdelta=0.01\tbins=32\tinit=0.0");
+	SpecLines.push_back("mindy=0.001;");
+	SpecLines.push_back("maxdy=0.1;");
+	SpecLines.push_back("minh=0.0005;");
+	SpecLines.push_back("latin=16;");
+	SpecLines.push_back("sigfig=3;");
+	SpecLines.push_back("targetdy=0.001;");
+	SpecLines.push_back("var=open;min=0;max=4;");
 
 	vector<float> Areas;
 	vector<float> Opens;
 	vector<float> Exts;
 	vector<float> Biases;
 
-	vector<double> xv0 = { 0 };
+	vector<string> xv0 = { "0" };
 	float Area0 = (float) EvalArea_OpenOnly(xv0);
 	Psa(m_FevStr, "area0=%.3g;", Area0);
 	Areas.push_back(Area0);
@@ -99,15 +98,15 @@ void FeatureTrainer2::OptimizeArea(
 	Biases.push_back(0);
 
 	BestArea = 0;
+	Peaker P(0, "root");
+	s_Peaker = &P;
 	for (uint Iter = 0; Iter < Iters; ++Iter)
 		{
-		Die("TODO");
-#if 0
 		s_Peaker->Init(SpecLines, EvalArea_OpenOnly);
-		s_Peaker->Run();
-		const vector<double> &xv = s_Peaker->m_Best_xv;
+		s_Peaker->RunLatinClimb1();
+		const vector<string> &xv = s_Peaker->m_Best_xv;
 		asserta(SIZE(xv) == 1);
-		float OpenPenalty = (float) xv[0];
+		float OpenPenalty = StrToFloatf(xv[0]);
 		float ExtPenalty = OpenPenalty*0.1f; // (float) xv[1];
 		float Bias = 0; // (float) xv[2];
 		float Area = (float) s_Peaker->m_Best_y;
@@ -124,7 +123,6 @@ void FeatureTrainer2::OptimizeArea(
 			BestExtPenalty = ExtPenalty;
 			BestBias = Bias;
 			}
-#endif
 		}
 	vector<uint> Order(Iters);
 	QuickSortOrder(Areas.data(), Iters, Order.data());

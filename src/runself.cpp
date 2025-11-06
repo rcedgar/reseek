@@ -4,6 +4,7 @@
 #include "binner.h"
 #include "statsig.h"
 #include "alncounts.h"
+#include "triangle.h"
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
 	{
@@ -60,30 +61,40 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 
 bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	{
+	//ChainIndex1 = UINT_MAX;
+	//ChainIndex2 = UINT_MAX;
+	//m_Lock.lock();
+	//if (m_PairIndex == m_PairCount)
+	//	{
+	//	m_Lock.unlock();
+	//	return false;
+	//	}
+	//ProgressStep(m_PairIndex, m_PairCount, "Aligning");
+	//ChainIndex1 = m_NextChainIndex1;
+	//ChainIndex2 = m_NextChainIndex2;
+	//uint ChainCount = GetDBChainCount();
+	//assert(m_NextChainIndex1 < ChainCount);
+	//assert(m_NextChainIndex2 < ChainCount);
+	//++m_NextChainIndex2;
+	//if (m_NextChainIndex2 == ChainCount)
+	//	{
+	//	++m_ProcessedQueryCount;
+	//	++m_NextChainIndex1;
+	//	m_NextChainIndex2 = m_NextChainIndex1;
+	//	}
+	//++m_PairIndex;
+	//++m_ProcessedPairCount;
+	//m_Lock.unlock();
+	//return true;
+
 	ChainIndex1 = UINT_MAX;
 	ChainIndex2 = UINT_MAX;
-	m_Lock.lock();
-	if (m_PairIndex == m_PairCount)
-		{
-		m_Lock.unlock();
+	uint MyIndex = m_PairIndex++;
+	if (MyIndex >= m_PairCount)
 		return false;
-		}
-	ProgressStep(m_PairIndex, m_PairCount, "Aligning");
-	ChainIndex1 = m_NextChainIndex1;
-	ChainIndex2 = m_NextChainIndex2;
-	uint ChainCount = GetDBChainCount();
-	assert(m_NextChainIndex1 < ChainCount);
-	assert(m_NextChainIndex2 < ChainCount);
-	++m_NextChainIndex2;
-	if (m_NextChainIndex2 == ChainCount)
-		{
-		++m_ProcessedQueryCount;
-		++m_NextChainIndex1;
-		m_NextChainIndex2 = m_NextChainIndex1;
-		}
-	++m_PairIndex;
-	++m_ProcessedPairCount;
-	m_Lock.unlock();
+	if (MyIndex == 0 || MyIndex+1 == m_PairCount || MyIndex%1000 == 0)
+		ProgressStep(MyIndex, m_PairCount, "Aligning");
+	triangle_k_to_ij(MyIndex, GetDBChainCount(), ChainIndex1, ChainIndex2);
 	return true;
 	}
 

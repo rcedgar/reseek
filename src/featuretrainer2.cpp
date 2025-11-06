@@ -1540,6 +1540,8 @@ void FeatureTrainer2::DumpScoreMx(FILE *f,
 void FeatureTrainer2::DumpBinTs(FILE *f,
 	const vector<float> &BinTs)
 	{
+	if (f == 0)
+		return;
 	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
 	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
 		fprintf(f, "%u\t%.3g\n", j, BinTs[j]);

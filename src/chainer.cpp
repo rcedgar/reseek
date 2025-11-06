@@ -245,7 +245,7 @@ static uint GetRandomLoHis(
 	return Count;
 	}
 
-void cmd_test()
+void __cmd_test()
 	{
 	srand(RandSeed);
 

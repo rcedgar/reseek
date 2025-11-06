@@ -39,7 +39,6 @@
 using namespace std;
 
 #ifdef _MSC_VER
-#include <crtdbg.h>
 #pragma warning(disable: 4996)	// deprecated functions
 #define _CRT_SECURE_NO_DEPRECATE	1
 #endif
@@ -55,6 +54,10 @@ using namespace std;
 #ifndef NDEBUG
 #define	DEBUG	1
 #define	_DEBUG	1
+#endif
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
 #endif
 
 #define byte rce__byte

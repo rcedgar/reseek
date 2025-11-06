@@ -389,6 +389,7 @@
     <ClCompile Include="train_feature.cpp" />
     <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="trees.c" />
+    <ClCompile Include="triangle.cpp" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="userfields.cpp" />
     <ClCompile Include="valuetoint_new.cpp" />
@@ -501,6 +502,7 @@
     <ClInclude Include="tracebit.h" />
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
+    <ClInclude Include="triangle.h" />
     <ClInclude Include="twohitdiag.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />

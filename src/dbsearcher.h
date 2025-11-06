@@ -31,7 +31,7 @@ public:
 	vector<vector<uint> *> m_DBMuKmersVec;
 	vector<float> m_DBSelfRevScores;
 
-	uint m_PairIndex = UINT_MAX;
+	atomic<uint> m_PairIndex = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
 	uint m_NextChainIndex1 = UINT_MAX;
 	uint m_NextChainIndex2 = UINT_MAX;

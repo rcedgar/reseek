@@ -359,6 +359,7 @@ void Peaker::WriteFinalResults(FILE *f) const
 	fprintf(f, "FINAL %s [%.6g] %s\n",
 		m_Name.c_str(), m_Best_y, best_xss.c_str());
 	fprintf(f, "\n_____________________________________________\n");
+	WriteFinalPeak(f);
 	fflush(f);
 	}
 
@@ -453,6 +454,7 @@ void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 	m_VarNames.clear();
 	m_VarSpecs.clear();
 	m_EvalFunc = EF;
+	m_SpecLines = SpecLines;
 
 	const uint n = SIZE(SpecLines);
 	for (uint i = 0; i < n; ++i)
@@ -799,91 +801,109 @@ double Peaker::GetEuclideanDist(const vector<double> &xv1,
 	return sqrt(Sum2);
 	}
 
-bool Peaker::GetRandomNeighbor(const vector<string> &Center,
-	double MinDelta, double MaxDelta,
-	vector<string> &Neighbor) const
+bool Peaker::GetNearestNeighbor(const vector<string> &xv,
+	uint VarIdx, bool Plus, vector<string> &Neighbor_xv, double &y) const
 	{
+	y = -1;
+	Neighbor_xv.clear();
 	const uint VarCount = GetVarCount();
-	asserta(SIZE(Center) == VarCount);
-	vector<double> CenterValues;
-	xv2values(Center, CenterValues);
-	for (uint Try = 0; Try < 10; ++Try)
+	asserta(SIZE(xv) == VarCount);
+	asserta(VarIdx < VarCount);
+	const uint N = SIZE(m_xvs);
+	double MinDist = DBL_MAX;
+	double Value = StrToFloat(xv[VarIdx]);
+	for (uint i = 0; i < N; ++i)
 		{
-		Neighbor.clear();
-		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		const vector<string> &tmp_xv = m_xvs[i];
+		if (tmp_xv == xv)
+			continue;
+		double tmp_Value = StrToFloat(tmp_xv[VarIdx]);
+		if (Plus)
 			{
-			double Value = CenterValues[VarIdx];
-			double Delta = rr(MinDelta, MaxDelta);
-			if (randu32()%2 == 0)
-				Value *= MinDelta;
-			else
-				Value /= MinDelta;
-			string Str;
-			VarFloatToStr(VarIdx, Value, Str);
-			Neighbor.push_back(Str);
+			if (tmp_Value <= Value)
+				continue;
 			}
-		if (Neighbor != Center)
-			return true;
-		}
-	return false;
-	}
-
-void Peaker::GetNeighborhood(const vector<string> &Center,
-	double MinDelta, double MaxDelta, uint Size,
-	vector<vector<string> > &Neighbors)
-	{
-	string Tmp;
-	xv2xss(Center, Tmp);
-	Log("GetNeighborhood(%.3g, %.3g, %u)\n",
-		MinDelta, MaxDelta, Size);
-	Log("Center %s\n", Tmp.c_str());
-	for (uint i = 0; i < Size; ++i)
-		{
-		vector<string> Neighbor;
-		bool ok = GetRandomNeighbor(Center,
-			MinDelta, MaxDelta, Neighbor);
-		if (ok)
+		else
 			{
-			Neighbors.push_back(Neighbor);
-			string Tmp;
-			xv2xss(Neighbor, Tmp);
-			double Dist = GetEuclideanDist(Center, Neighbor);
-			Log("Neighbor [%4u] %6.4f %s\n", i+1, Dist, Tmp.c_str());
+			if (tmp_Value >= Value)
+				continue;
+			}
+		double Dist = GetEuclideanDist(xv, tmp_xv);
+		if (Dist < MinDist)
+			{
+			Neighbor_xv = tmp_xv;
+			MinDist = Dist;
+			y = m_ys[i];
 			}
 		}
+	if (MinDist == DBL_MAX)
+		return false;
+	return true;
 	}
 
-void Peaker::ExploreNeighborhood(const vector<string> &xv,
-	double MinDist, double MaxDist, uint Size)
+void Peaker::WriteFinalPeak(FILE *f) const
 	{
-	vector<vector<string> > Neighbors;
-	GetNeighborhood(xv, MinDist, MaxDist, Size, Neighbors);
-
-	// can have n < Size if failures
-	const uint n = SIZE(Neighbors);
-	for (uint i = 0; i < n; ++i)
+	if (f == 0)
+		return;
+	fprintf(f, "Final peak\n");
+	const uint VarCount = GetVarCount();
+	vector<string> Neighbor;
+	string xss;
+	double y;
+	vector<string> MinValueStrs(VarCount);
+	vector<string> MaxValueStrs(VarCount);
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		string why;
-		Ps(why, "xhood%u/%u", i+1, n);
-		Evaluate(Neighbors[i], why);
+		fprintf(f, "\n");
+		fprintf(f, "%s\n", GetVarName(VarIdx));
+		for (int iPlus = 0; iPlus <= 1; ++iPlus)
+			{
+			bool Plus = (iPlus == 0);
+			bool Ok = GetNearestNeighbor(m_Best_xv, VarIdx, Plus, Neighbor, y);
+			fprintf(f, "%c", pom(Plus));
+			if (!Ok)
+				{
+				fprintf(f, "  (none)\n");
+				continue;
+				}
+			for (uint VarIdx2 = 0; VarIdx2 < VarCount; ++VarIdx2)
+				{
+				double Value = StrToFloat(Neighbor[VarIdx2]);
+				if (MinValueStrs[VarIdx2].empty() || Value < StrToFloat(MinValueStrs[VarIdx2]))
+					MinValueStrs[VarIdx2] = Neighbor[VarIdx2];
+				if (MaxValueStrs[VarIdx2].empty() || Value > StrToFloat(MinValueStrs[VarIdx2]))
+					MaxValueStrs[VarIdx2] = Neighbor[VarIdx2];
+				}
+			double dy = m_Best_y - y;
+			xv2xss(Neighbor, xss);
+			fprintf(f, "  ");
+			fprintf(f, "%8.2g", dy);
+			fprintf(f, "  %s", xss.c_str());
+			fprintf(f, "\n");
+			}
+		}
+	fprintf(f, "\n");
+	fprintf(f, "%10.10s", "Min");
+	fprintf(f, "  %10.10s", "Max");
+	fprintf(f, "  %s", "Var");
+	fprintf(f, "\n");
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		fprintf(f, "%10.4f", StrToFloat(MinValueStrs[VarIdx].c_str()));
+		fprintf(f, "  %10.4f", StrToFloat(MaxValueStrs[VarIdx].c_str()));
+		fprintf(f, "  %s", GetVarName(VarIdx));
+		fprintf(f, "\n");
 		}
 	}
 
-static void Test1(const string &s, bool Plus)
+void Peaker::RunLatinClimb1()
 	{
-	string news;
-	Peaker::IncFloat(s, Plus, news);
-	ProgressLog("%8.8s  %c  %s\n", s.c_str(), pom(Plus), news.c_str());
-	}
+	string GlobalSpec;
+	GetGlobalSpec(m_SpecLines, GlobalSpec);
 
-void cmd_test()
-	{
-	for (uint i = 0; i < 100; ++i)
-		{
-		uint SigFig = randu32()%3 + 2;
-		double x1 = Peaker::rr(0.1, 100);
-		string s1;
-		Peaker::GetRoundedStr(x1, SigFig, s1);
-		//double x2 = Peaker::GetRoundedValue(x
-		}
+	uint LatinBinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
+	asserta(LatinBinCount != UINT_MAX);
+	RunLatin(LatinBinCount);
+	HJ_RunHookeJeeves();
+	WriteFinalResults(g_fLog);
 	}

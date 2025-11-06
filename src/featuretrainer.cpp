@@ -1,3 +1,4 @@
+#if 0 //@@TODO delete
 #include "myutils.h"
 #include "featuretrainer.h"
 #include "sfasta.h"
@@ -1128,3 +1129,4 @@ void FeatureTrainer::Train(const string &Style)
 			TrainFloat_UndefOverlap(RetrainOverlap);
 		}
 	}
+#endif

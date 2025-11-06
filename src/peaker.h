@@ -74,19 +74,16 @@ public:
 
 	double Evaluate(const vector<string> &xv, const string &why);
 	double Calc(const vector<string> &xv);
+	void RunLatinClimb1();
 	void RunLatin(uint BinCount);
 	void NormalizeWeights(const vector<string> &xv,
 		vector<string> &Normalized_xv) const;
 	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,
 		string &NewStr);
-	void ExploreNeighborhood(const vector<string> &Center,
-		double MinDelta, double MaxDelta, uint Iters);
-	void GetNeighborhood(const vector<string> &xv,
-		double MinDelta, double MaxDelta, uint Size,
-		vector<vector<string> > &Neighbors);
-	bool GetRandomNeighbor(const vector<string> &xv,
-		double MinDelta, double MaxDelta,
-		vector<string> &Neighbor) const;
+
+	bool GetNearestNeighbor(const vector<string> &xv,
+		uint VarIdx, bool Plus, vector<string> &Neighbor_xv, double &y) const;
+	void WriteFinalPeak(FILE *f) const;
 
 	// Latin
 	void GetLatinHypercube(vector<vector<string> > &xvs) const;

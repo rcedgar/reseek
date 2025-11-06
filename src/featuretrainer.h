@@ -1,3 +1,4 @@
+#if 0//@@TODO delete
 #pragma once
 
 #include "features.h"
@@ -115,3 +116,4 @@ public:
 	
 	static double EvalArea(const vector<double> &xv);
 	};
+#endif

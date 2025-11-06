@@ -4,6 +4,7 @@
 
 void cmd_train_feature()
 	{
+#if 0//@@TODO delete
 	asserta(optset_feature);
 	DSSParams::Init(DM_DefaultFast);
 
@@ -83,4 +84,5 @@ void cmd_train_feature()
 	FT.MxToSrc(f, FeatureName, ScoreMx);
 	FT.MxToSrc(g_fLog, FeatureName, ScoreMx);
 	CloseStdioFile(f);
+#endif
 	}

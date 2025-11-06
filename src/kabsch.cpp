@@ -438,7 +438,7 @@ static void Test(const double t_in[3],
 	}
 
 #if 0
-void cmd_test()
+void __cmd_test()
 	{
 	double t[3] = { 1, 2, 3 };
 	double u[3][3] =
