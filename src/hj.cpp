@@ -34,19 +34,20 @@ double Peaker::GetGlobalRateFactor()
 bool Peaker::ReduceGlobalRateFactor()
 	{
 	string s;
-	GetGlobalStr("rates", s, "");
-	if (s == "")
-		return false;
+	GetGlobalStr("rates", s, "1.1");
 	vector<string> Fields;
 	Split(s, Fields, ',');
 	const uint n = SIZE(Fields);
 	asserta(m_GlobalVarRateFactorIdx < n);
 	if (m_GlobalVarRateFactorIdx + 1 == n)
+		{
+		ProgressLog("ReduceGlobalRateFactor() no more\n");
 		return false;
+		}
 
 	++m_GlobalVarRateFactorIdx;
 	ProgressLog("\n");
-	ProgressLog("Reduce global rate factor => %.3f\n", GetGlobalRateFactor());
+	ProgressLog("ReduceGlobalRateFactor() => %.3f\n", GetGlobalRateFactor());
 	ProgressLog("\n");
 	return true;
 	}

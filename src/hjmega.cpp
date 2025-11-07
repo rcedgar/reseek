@@ -253,7 +253,7 @@ static void SubClimb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 		}
 
 	ProgressLog("\n");
-	ProgressLog("FINAL [%.4g] %s\n", Final_y, Final_xss.c_str());
+	ProgressLog("FINAL subclimb [%.4g] %s\n", Final_y, Final_xss.c_str());
 	}
 
 void cmd_hjmega()

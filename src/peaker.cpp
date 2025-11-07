@@ -398,14 +398,12 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	xv2xss(xv, xss);
 	if (dy > 0)
 		ProgressLog("\n");
-	string RateStr;
-	Ps(RateStr, " /%.2f/", GetGlobalRateFactor());
-	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
+	ProgressLog("%s%.2g[%.6g] %s /%.2f/ %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,
 		m_Best_y,
 		desc.c_str(),
-		RateStr.c_str(),
+		GetGlobalRateFactor(),
 		xss.c_str());
 	if (dy > 0)
 		ProgressLog("\n");
