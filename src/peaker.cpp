@@ -406,12 +406,18 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		ProgressLog("\n");
 	string RateStr;
 	uint VarCount = GetVarCount();
-	if (SIZE(m_VarRates) == VarCount)
+	double rf = GetGlobalRateFactor();
+	if (rf == DBL_MAX)
 		{
-		RateStr = " ";
-		for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-			RateStr += '0' + m_VarRates[VarIdx];
+		if (SIZE(m_VarRates) == VarCount)
+			{
+			RateStr = " ";
+			for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+				RateStr += '0' + m_VarRates[VarIdx];
+			}
 		}
+	else
+		ProgressLog(" rf%.2f", rf);
 	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,

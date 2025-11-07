@@ -78,6 +78,7 @@ bool Peaker::ReduceGlobalRateFactor()
 	if (m_GlobalVarRateFactorIdx == n)
 		return false;
 
+	++m_GlobalVarRateFactorIdx;
 	ProgressLog("\n");
 	ProgressLog("Reduce global rate factor => %.3f\n", GetGlobalRateFactor());
 	ProgressLog("\n");
