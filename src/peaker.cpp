@@ -262,14 +262,8 @@ uint Peaker::GetVarIdx(const string &Name, bool FailOk) const
 void Peaker::InitRates()
 	{
 	string s;
-	GetGlobalStr("rates", s, "");
-	if (s == "")
-		m_GlobalVarRateFactorIdx = UINT_MAX;
-	else
-		m_GlobalVarRateFactorIdx = 0;
-	m_VarRates.clear();
-	const uint VarCount = GetVarCount();
-	m_VarRates.resize(VarCount, MED_RATE);
+	GetGlobalStr("rates", s, "1.1");
+	m_GlobalVarRateFactorIdx = 0;
 	}
 
 double Peaker::Calc(const vector<string> &xv)
@@ -405,19 +399,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	if (dy > 0)
 		ProgressLog("\n");
 	string RateStr;
-	uint VarCount = GetVarCount();
-	double rf = GetGlobalRateFactor();
-	if (rf == DBL_MAX)
-		{
-		if (SIZE(m_VarRates) == VarCount)
-			{
-			RateStr = " ";
-			for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-				RateStr += '0' + m_VarRates[VarIdx];
-			}
-		}
-	else
-		ProgressLog(" rf%.2f", rf);
+	Ps(RateStr, " /%.2f/", GetGlobalRateFactor());
 	ProgressLog("%s%.2g[%.6g] %s %s %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,

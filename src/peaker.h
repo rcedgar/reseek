@@ -21,7 +21,6 @@ public:
 	string m_GlobalSpec;
 	vector<string> m_VarSpecs;
 	vector<string> m_VarNames;
-	vector<uint> m_VarRates;
 	uint m_GlobalVarRateFactorIdx = UINT_MAX;
 	uint m_EvaluateCacheHits = 0;
 	uint m_RequestIdx = 0;
@@ -118,8 +117,6 @@ public:
 	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
 	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
 
-	void IncreaseRate(uint VarIdx);
-	void DecreaseRate(uint VarIdx);
 	void NormalizeVarStr(uint VarIdx, const string &Str,
 		string &NormalizedStr) const;
 	double GetEuclideanDist(const vector<string> &xv1,
@@ -139,10 +136,10 @@ public:
 		vector<string> &Try_xv);
 
 	bool ReduceGlobalRateFactor();
-	double GetGlobalRateFactor() const;
-	double GetRateFactor(uint Rate, bool Plus) const;
-	double GetIncreaseRateFactor(uint Rate) const;
-	double GetDecreaseRateFactor(uint Rate) const;
+	double GetGlobalRateFactor();
+	double GetRateFactor(bool Plus);
+	double GetIncreaseRateFactor();
+	double GetDecreaseRateFactor();
 
 public:
 	static void GetGlobalSpec(const vector<string> &SpecLines,

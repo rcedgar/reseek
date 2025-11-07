@@ -1,64 +1,28 @@
 #include "myutils.h"
 #include "peaker.h"
 
-double Peaker::GetIncreaseRateFactor(uint Rate) const
+double Peaker::GetIncreaseRateFactor()
 	{
 	double rf = GetGlobalRateFactor();
-	if (rf != DBL_MAX)
-		{
-		asserta(rf > 1);
-		asserta(rf < 3);
-		return rf;
-		}
-	if (optset_rate_factor)
-		return opt(rate_factor);
-
-	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
-	switch (Rate)
-		{
-	case 1:	return 1.02 + (opt(ratenoise) ? randf(0.02) : 0);
-	case 2: return 1.05 + (opt(ratenoise) ? randf(0.05) : 0);
-	case 3: return 1.10 + (opt(ratenoise) ? randf(0.1) : 0);
-	case 4:	return 1.30 + (opt(ratenoise) ? randf(0.2) : 0);
-	case 5:	return 1.40 + (opt(ratenoise) ? randf(0.2) : 0);
-		}
-	asserta(false);
-	return DBL_MAX;
+	asserta(rf > 1);
+	asserta(rf < 3);
+	return rf;
 	}
 
-double Peaker::GetDecreaseRateFactor(uint Rate) const
+double Peaker::GetDecreaseRateFactor()
 	{
 	double rf = GetGlobalRateFactor();
-	if (rf != DBL_MAX)
-		{
-		asserta(rf > 1);
-		asserta(rf < 3);
-		return 1.0/rf;
-		}
-	if (optset_rate_factor)
-		return 1.0/opt(rate_factor);
-
-	asserta(Rate >= MIN_RATE && Rate <= MAX_RATE);
-	switch (Rate)
-		{
-	case 1:	return 0.98 - randf(0.02);
-	case 2: return 0.95 - randf(0.05);
-	case 3: return 0.90 - randf(0.1);
-	case 4:	return 0.70 - randf(0.2);
-	case 5:	return 0.60 - randf(0.2);
-		}
-	asserta(false);
-	return DBL_MAX;
+	asserta(rf > 1);
+	asserta(rf < 3);
+	return 1.0/rf;
 	}
 
-double Peaker::GetGlobalRateFactor() const
+double Peaker::GetGlobalRateFactor()
 	{
 	if (m_GlobalVarRateFactorIdx == UINT_MAX)
-		return DBL_MAX;
+		m_GlobalVarRateFactorIdx = 0;
 	string s;
-	GetGlobalStr("rates", s, "");
-	if (s == "")
-		return DBL_MAX;
+	GetGlobalStr("rates", s, "1.1");
 	vector<string> Fields;
 	Split(s, Fields, ',');
 	const uint n = SIZE(Fields);
@@ -87,12 +51,12 @@ bool Peaker::ReduceGlobalRateFactor()
 	return true;
 	}
 
-double Peaker::GetRateFactor(uint Rate, bool Plus) const
+double Peaker::GetRateFactor(bool Plus)
 	{
 	if (Plus)
-		return GetIncreaseRateFactor(Rate);
+		return GetIncreaseRateFactor();
 	else
-		return GetDecreaseRateFactor(Rate);
+		return GetDecreaseRateFactor();
 	}
 
 void Peaker::HJ_Explore()
@@ -107,7 +71,6 @@ void Peaker::HJ_Explore()
 	vector<string> strs_minus(VarCount);
 	vector<double> dys_plus(VarCount);
 	vector<double> dys_minus(VarCount);
-	vector<uint> Start_Rates = m_VarRates;
 	vector<string> Try_xv;
 	uint ImprovementCount = 0;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
@@ -157,7 +120,6 @@ void Peaker::HJ_Explore()
 	double Track_Best_y = Start_Best_y;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		int dRate = int(m_VarRates[VarIdx]) - int(Start_Rates[VarIdx]);
 		ProgressLog(">%-10.10s", strs_plus[VarIdx].c_str());
 		ProgressLog("  %10.2g", dys_plus[VarIdx]);
 		ProgressLog("  <%-10.10s", strs_minus[VarIdx].c_str());
@@ -184,15 +146,7 @@ void Peaker::HJ_Explore()
 		}
 
 	double rf = GetGlobalRateFactor();
-	if (rf == DBL_MAX)
-		{
-		ProgressLog("Var rates ");
-		for (uint i = 0; i < VarCount; ++i)
-			ProgressLog("%u", m_VarRates[i]);
-		ProgressLog("\n");
-		}
-	else
-		ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor());
+	ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor());
 	ProgressLog("\n");
 	}
 
@@ -219,24 +173,6 @@ void Peaker::HJ_Extend()
 		}
 	}
 
-void Peaker::DecreaseRate(uint VarIdx)
-	{
-	asserta(VarIdx < SIZE(m_VarRates));
-	uint OldRate = m_VarRates[VarIdx];
-	if (OldRate <= MIN_RATE)
-		return;
-	m_VarRates[VarIdx] = OldRate - 1;
-	}
-
-void Peaker::IncreaseRate(uint VarIdx)
-	{
-	asserta(VarIdx < SIZE(m_VarRates));
-	uint OldRate = m_VarRates[VarIdx];
-	if (OldRate >= MAX_RATE)
-		return;
-	m_VarRates[VarIdx] = OldRate + 1;
-	}
-
 double Peaker::HJ_TryDelta(const string &reason,
 	const vector<string> &Start_xv, uint VarIdx, bool Plus,
 	vector<string> &Try_xv)
@@ -261,8 +197,8 @@ double Peaker::HJ_TryDelta(const string &reason,
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == OldStr)
 		{
-		ProgressLog("HJ_TryDelta(%s%c) DeltaVar %s=%s no change (rate %u)\n",
-			reason.c_str(), pom(Plus), VarName, OldStr.c_str(), m_VarRates[VarIdx]);
+		ProgressLog("HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
+			reason.c_str(), pom(Plus), VarName, OldStr.c_str());
 		return Start_y;
 		}
 
@@ -286,25 +222,10 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log("HJ_TryDelta(%s%c)", reason.c_str(), pom(Plus));
 	Log(" %s", VarName);
 	Log(" %s,", OldStr.c_str());
-	Log(" [%u]", m_VarRates[VarIdx]);
 	Log(" %s", NewStr.c_str());
 	Log(" y %.4g,", Start_y);
 	Log("%.4g", y);
 	Log(" dy %.3g (target %.3g)", absdy, targetdy);
-
-	if (OldValue != 0)
-		{
-		if (absdy < targetdy)
-			{
-			IncreaseRate(VarIdx);
-			Log(" ++rate %u", m_VarRates[VarIdx]);
-			}
-		else if (absdy > targetdy)
-			{
-			DecreaseRate(VarIdx);
-			Log(" --rate %u", m_VarRates[VarIdx]);
-			}
-		}
 	Log("\n");
 
 	return y;
@@ -373,30 +294,14 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 			OldStr.c_str(), NewStr.c_str());
 		return;
 		}
-	asserta(VarIdx < SIZE(m_VarRates));
 	string TmpStr;
-
-	// Defensive to avoid infinite loop
-	for (uint CheckCounter = MIN_RATE; CheckCounter < MAX_RATE;
-		++CheckCounter)
-		{
-		uint Rate = m_VarRates[VarIdx];
-		double Factor = GetRateFactor(Rate, Plus);
-		double NewValue = OldValue*Factor;
-		VarFloatToStr(VarIdx, NewValue, TmpStr);
-		if (OldStr == TmpStr)
-			{
-			if (m_VarRates[VarIdx] > MIN_RATE)
-				{
-				--m_VarRates[VarIdx];
-				continue;
-				}
-			else
-				{
-				IncFloat(OldStr, Plus, TmpStr);
-				break;
-				}
-			}
-		}
+	double Factor = GetRateFactor(Plus);
+	double NewValue = OldValue*Factor;
+	VarFloatToStr(VarIdx, NewValue, TmpStr);
 	NormalizeVarStr(VarIdx, TmpStr, NewStr);
+	if (NewStr == OldStr)
+		{
+		IncFloat(OldStr, Plus, TmpStr);
+		NormalizeVarStr(VarIdx, TmpStr, NewStr);
+		}
 	}
