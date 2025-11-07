@@ -119,7 +119,7 @@ void Peaker::HJ_Explore()
 		GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
 
 	ProgressLog("\n");
-	ProgressLog("HJ_Explore %u improves\n", ImprovementCount);
+	ProgressLog("%s: HJ_Explore %u improves\n", m_Name.c_str(), ImprovementCount);
 	double Track_Best_y = Start_Best_y;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
