@@ -1,8 +1,15 @@
 #include "myutils.h"
 #include "peaker.h"
 
-double Peaker::GetIncreaseRateFactor(uint Rate)
+double Peaker::GetIncreaseRateFactor(uint Rate) const
 	{
+	double rf = GetGlobalRateFactor();
+	if (rf != DBL_MAX)
+		{
+		asserta(rf > 1);
+		asserta(rf < 3);
+		return rf;
+		}
 	if (optset_rate_factor)
 		return opt(rate_factor);
 
@@ -19,8 +26,15 @@ double Peaker::GetIncreaseRateFactor(uint Rate)
 	return DBL_MAX;
 	}
 
-double Peaker::GetDecreaseRateFactor(uint Rate)
+double Peaker::GetDecreaseRateFactor(uint Rate) const
 	{
+	double rf = GetGlobalRateFactor();
+	if (rf != DBL_MAX)
+		{
+		asserta(rf > 1);
+		asserta(rf < 3);
+		return 1.0/rf;
+		}
 	if (optset_rate_factor)
 		return 1.0/opt(rate_factor);
 
@@ -37,7 +51,40 @@ double Peaker::GetDecreaseRateFactor(uint Rate)
 	return DBL_MAX;
 	}
 
-double Peaker::GetRateFactor(uint Rate, bool Plus)
+double Peaker::GetGlobalRateFactor() const
+	{
+	string s;
+	GetGlobalStr("rates", s, "");
+	if (s == "")
+		return DBL_MAX;
+	vector<string> Fields;
+	Split(s, Fields, ',');
+	const uint n = SIZE(Fields);
+	asserta(m_GlobalVarRateFactorIdx < n);
+	double Rate = StrToFloat(Fields[m_GlobalVarRateFactorIdx]);
+	return Rate;
+	}
+
+bool Peaker::ReduceGlobalRateFactor()
+	{
+	string s;
+	GetGlobalStr("rates", s, "");
+	if (s == "")
+		return false;
+	vector<string> Fields;
+	Split(s, Fields, ',');
+	const uint n = SIZE(Fields);
+	asserta(m_GlobalVarRateFactorIdx < n);
+	if (m_GlobalVarRateFactorIdx == n)
+		return false;
+
+	ProgressLog("\n");
+	ProgressLog("Reduce global rate factor => %.3f\n", GetGlobalRateFactor());
+	ProgressLog("\n");
+	return true;
+	}
+
+double Peaker::GetRateFactor(uint Rate, bool Plus) const
 	{
 	if (Plus)
 		return GetIncreaseRateFactor(Rate);
@@ -95,10 +142,12 @@ void Peaker::HJ_Explore()
 		}
 	m_HJ_Direction = BestNewDirection;
 	if (m_HJ_Direction == UINT_MAX)
-		Log("HJ_Expore(), no improvement found\n");
-	else
-		Log("HJ_Expore(), new direction %s%c\n",
-		  GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
+		{
+		Log("HJ_Explore(), no improvement found\n");
+		return;
+		}
+	Log("HJ_Explore(), new direction %s%c\n",
+		GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
 
 	ProgressLog("\n");
 	ProgressLog("HJ_Explore %u improves\n", ImprovementCount);
@@ -110,12 +159,6 @@ void Peaker::HJ_Explore()
 		ProgressLog("  %10.2g", dys_plus[VarIdx]);
 		ProgressLog("  <%-10.10s", strs_minus[VarIdx].c_str());
 		ProgressLog("  %10.2g", dys_minus[VarIdx]);
-		ProgressLog("  %u",  Start_Rates[VarIdx]);
-		ProgressLog("  %u",  m_VarRates[VarIdx]);
-		if (dRate == 0)
-			ProgressLog("    ");
-		else
-			ProgressLog("  %2d",  dRate);
 		ProgressLog("  %s", GetVarName(VarIdx));
 		if (dys_plus[VarIdx] > 0 || dys_minus[VarIdx] > 0)
 			ProgressLog(" +++");
@@ -136,6 +179,17 @@ void Peaker::HJ_Explore()
 		ProgressLog("  %s", m_Best_descs[i].c_str());
 		ProgressLog("\n");
 		}
+
+	double rf = GetGlobalRateFactor();
+	if (rf == DBL_MAX)
+		{
+		ProgressLog("Var rates ");
+		for (uint i = 0; i < VarCount; ++i)
+			ProgressLog("%u", m_VarRates[i]);
+		ProgressLog("\n");
+		}
+	else
+		ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor);
 	ProgressLog("\n");
 	}
 
@@ -149,6 +203,7 @@ void Peaker::HJ_Extend()
 	const uint VarIdx = m_HJ_Direction;
 	const char *Name = GetVarName(VarIdx);
 	vector<string> Try_xv;
+	double Start_Best_y = m_Best_y;
 	for (uint Iter = 0; Iter < m_HJ_MaxExtendIters; ++Iter)
 		{
 		string reason;
@@ -157,7 +212,7 @@ void Peaker::HJ_Extend()
 		double Saved_Best_y = m_Best_y;
 		HJ_TryDelta(reason, m_Best_xv, VarIdx, m_HJ_ExtendPlus, Try_xv);
 		if (m_Best_y <= Saved_Best_y)
-			return;
+			break;
 		}
 	}
 
@@ -259,10 +314,12 @@ bool Peaker::HJ_Iter()
 	double Height = m_Best_y - Saved_Best_y;
 	if (Height > 0)
 		{
-		HJ_Extend();
+		if (GetGlobalBool("extend", false))
+			HJ_Extend();
 		return true;
 		}
-	return false;
+	bool ok = ReduceGlobalRateFactor();
+	return ok;
 	}
 
 void Peaker::HJ_RunHookeJeeves()

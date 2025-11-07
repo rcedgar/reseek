@@ -71,6 +71,8 @@ public:
 
 public:
 	static void Init(DECIDE_MODE DM);
+	static void OverwriteFeatures(const vector<FEATURE> &Fs,
+		const vector<float> &Weights);
 	static void SetStandardFeatures();
 	static void SetDefaultNonFeatureTunableParams();
 	//static void SetTunableParamFromStr(const string &Name, const string &Value);

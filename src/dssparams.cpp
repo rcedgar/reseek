@@ -310,6 +310,21 @@ void DSSParams::SetParamsFromStr(const string &Str)
 	SetScoreMxsFromFeatures();
 	}
 
+void DSSParams::OverwriteFeatures(const vector<FEATURE> &Fs,
+	const vector<float> &Weights)
+	{
+	m_Features.clear();
+	m_Weights.clear();
+	const uint n = SIZE(Fs);
+	asserta(SIZE(Weights) == n);
+	for (uint i = 0; i < n; ++i)
+		{
+		m_Features.push_back(Fs[i]);
+		m_Weights.push_back(Weights[i]);
+		}
+	SetScoreMxsFromFeatures();
+	}
+
 void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))

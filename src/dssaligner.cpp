@@ -521,9 +521,6 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 void DSSAligner::SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB)
 	{
-	//const DSSParams &Params = *m_Params;
-	//const vector<vector<byte> > &ProfileA = *m_ProfileA;
-	//const vector<vector<byte> > &ProfileB = *m_ProfileB;
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
 

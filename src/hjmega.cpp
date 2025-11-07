@@ -28,6 +28,30 @@
 static SCOP40Bench *s_SB;
 static Peaker *s_Peaker;
 
+static void AssertProfileSize(const DBSearcher &DBS, uint FeatureCount)
+	{
+	const uint ChainCount = DBS.GetDBChainCount();
+	for (uint i = 0; i < ChainCount; ++i)
+		{
+		const vector<vector<byte> > &Profile = *DBS.m_DBProfiles[i];
+		asserta(SIZE(Profile) == FeatureCount);
+		}
+	}
+
+static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
+	{
+	DSSParams::m_Features.clear();
+	DSSParams::m_Weights.clear();
+
+	const uint VarCount = P.GetVarCount();
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		FEATURE F = StrToFeature(P.m_VarNames[VarIdx].c_str(), true);
+		if (F != FEATURE(UINT_MAX))
+			Fs.push_back(F);
+		}
+	}
+
 static double EvalArea0(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
@@ -178,8 +202,8 @@ static void Climb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
 	Pfull.Init(SpecLines, EvalArea3);
-	asserta(Pfull.GetVarCount() == VarCount);
-	asserta(Pfull.m_VarNames == VarNames);
+	//asserta(Pfull.GetVarCount() == VarCount);
+	//asserta(Pfull.m_VarNames == VarNames);
 	s_Peaker = &Pfull;
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
@@ -235,6 +259,23 @@ static void SubClimb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 void cmd_hjmega()
 	{
 	const string SpecFN = g_Arg1;
+	Log("SpecFN=%s\n", SpecFN.c_str());
+	vector<string> SpecLines;
+	ReadLinesFromFile(SpecFN, SpecLines);
+
+	// Just to get features
+	Peaker Ptmp(0, "tmp");
+	Ptmp.Init(SpecLines, 0);
+	vector<FEATURE> Fs;
+	GetFeaturesFromVarNames(Ptmp, Fs);
+	const uint FeatureCount = SIZE(Fs);
+	asserta(FeatureCount > 0);
+	vector<float> Weights;
+	for (uint i = 0; i < FeatureCount; ++i)
+		Weights.push_back(1);
+
+	StatSig::Init(SCOP40_DBSIZE);
+
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 
@@ -243,17 +284,13 @@ void cmd_hjmega()
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
 	DSSParams::Init(DM_UseCommandLineOption);
-	StatSig::Init(SCOP40_DBSIZE);
-	DSSParams::LogParamData();
+	DSSParams::OverwriteFeatures(Fs, Weights);
 
 	SCOP40Bench FullSB;
 	FullSB.LoadDB(DBFN);
 	FullSB.Setup();
 	FullSB.m_RecalcSelfRevScores = true;
-
-	Log("SpecFN=%s\n", SpecFN.c_str());
-	vector<string> SpecLines;
-	ReadLinesFromFile(SpecFN, SpecLines);
+	AssertProfileSize(FullSB, FeatureCount);
 
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);

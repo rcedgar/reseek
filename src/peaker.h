@@ -22,6 +22,7 @@ public:
 	vector<string> m_VarSpecs;
 	vector<string> m_VarNames;
 	vector<uint> m_VarRates;
+	uint m_GlobalVarRateFactorIdx = UINT_MAX;
 	uint m_EvaluateCacheHits = 0;
 	uint m_RequestIdx = 0;
 	PTR_EVAL_FUNC m_EvalFunc = 0;
@@ -137,6 +138,12 @@ public:
 		const vector<string> &Start_xv, uint VarIdx, bool Plus,
 		vector<string> &Try_xv);
 
+	bool ReduceGlobalRateFactor();
+	double GetGlobalRateFactor() const;
+	double GetRateFactor(uint Rate, bool Plus) const;
+	double GetIncreaseRateFactor(uint Rate) const;
+	double GetDecreaseRateFactor(uint Rate) const;
+
 public:
 	static void GetGlobalSpec(const vector<string> &SpecLines,
 		string &GlobalSpec);
@@ -149,9 +156,6 @@ public:
 		string &Str, const string &Default);
 	static bool SpecGetBool(const string &Spec, const string &Name, bool Default);
 	static uint SpecGetInt(const string &Spec, const string &Name, uint Default);
-	static double GetRateFactor(uint Rate, bool Plus);
-	static double GetIncreaseRateFactor(uint Rate);
-	static double GetDecreaseRateFactor(uint Rate);
 	static void IncFloat(const string &OldStr, bool Plus, string &NewStr);
 	static void ParseEStr(const string &EStr, string &Mantissa, string &Exponent);
 	static bool AllNines(const string &s);

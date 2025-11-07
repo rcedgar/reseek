@@ -261,6 +261,12 @@ uint Peaker::GetVarIdx(const string &Name, bool FailOk) const
 
 void Peaker::InitRates()
 	{
+	string s;
+	GetGlobalStr("rates", s, "");
+	if (s == "")
+		m_GlobalVarRateFactorIdx = UINT_MAX;
+	else
+		m_GlobalVarRateFactorIdx = 0;
 	m_VarRates.clear();
 	const uint VarCount = GetVarCount();
 	m_VarRates.resize(VarCount, MED_RATE);
