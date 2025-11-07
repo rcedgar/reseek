@@ -53,6 +53,8 @@ double Peaker::GetDecreaseRateFactor(uint Rate) const
 
 double Peaker::GetGlobalRateFactor() const
 	{
+	if (m_GlobalVarRateFactorIdx == UINT_MAX)
+		return DBL_MAX;
 	string s;
 	GetGlobalStr("rates", s, "");
 	if (s == "")
@@ -75,7 +77,7 @@ bool Peaker::ReduceGlobalRateFactor()
 	Split(s, Fields, ',');
 	const uint n = SIZE(Fields);
 	asserta(m_GlobalVarRateFactorIdx < n);
-	if (m_GlobalVarRateFactorIdx == n)
+	if (m_GlobalVarRateFactorIdx + 1 == n)
 		return false;
 
 	++m_GlobalVarRateFactorIdx;
