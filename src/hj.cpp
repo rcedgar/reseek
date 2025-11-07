@@ -41,13 +41,15 @@ bool Peaker::ReduceGlobalRateFactor()
 	asserta(m_GlobalVarRateFactorIdx < n);
 	if (m_GlobalVarRateFactorIdx + 1 == n)
 		{
-		ProgressLog("ReduceGlobalRateFactor() no more\n");
+		ProgressLog("%s: ReduceGlobalRateFactor() no more\n",
+			m_Name.c_str());
 		return false;
 		}
 
 	++m_GlobalVarRateFactorIdx;
 	ProgressLog("\n");
-	ProgressLog("ReduceGlobalRateFactor() => %.3f\n", GetGlobalRateFactor());
+	ProgressLog("%s: ReduceGlobalRateFactor() => %.3f\n",
+		m_Name.c_str(), GetGlobalRateFactor());
 	ProgressLog("\n");
 	return true;
 	}
@@ -110,10 +112,10 @@ void Peaker::HJ_Explore()
 	m_HJ_Direction = BestNewDirection;
 	if (m_HJ_Direction == UINT_MAX)
 		{
-		Log("HJ_Explore(), no improvement found\n");
+		Log("%s: HJ_Explore(), no improvement found\n", m_Name.c_str());
 		return;
 		}
-	Log("HJ_Explore(), new direction %s%c\n",
+	Log("%s: HJ_Explore(), new direction %s%c\n", m_Name.c_str(),
 		GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
 
 	ProgressLog("\n");
@@ -198,8 +200,8 @@ double Peaker::HJ_TryDelta(const string &reason,
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == OldStr)
 		{
-		ProgressLog("HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
-			reason.c_str(), pom(Plus), VarName, OldStr.c_str());
+		ProgressLog("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
+			m_Name.c_str(), reason.c_str(), pom(Plus), VarName, OldStr.c_str());
 		return Start_y;
 		}
 
@@ -237,6 +239,7 @@ bool Peaker::HJ_Iter()
 	double Saved_Best_y = m_Best_y;
 	HJ_Explore();
 	double Height = m_Best_y - Saved_Best_y;
+	ProgressLog("%s: HJ_Iter() height %.3g\n", m_Name.c_str(), Height);
 	if (Height > 0)
 		{
 		if (GetGlobalBool("extend", false))
@@ -244,6 +247,7 @@ bool Peaker::HJ_Iter()
 		return true;
 		}
 	bool ok = ReduceGlobalRateFactor();
+	ProgressLog("%s: HJ_Iter() ReduceGlobalRateFactor %c\n", m_Name.c_str(), tof(ok));
 	return ok;
 	}
 
