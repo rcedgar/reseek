@@ -189,7 +189,7 @@ void Peaker::HJ_Explore()
 		ProgressLog("\n");
 		}
 	else
-		ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor);
+		ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor());
 	ProgressLog("\n");
 	}
 
