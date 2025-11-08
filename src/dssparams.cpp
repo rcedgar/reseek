@@ -329,6 +329,29 @@ void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))
 		{
+		// SEPQ0.1=0.226 SEPQ1=0.330 SEPQ10=0.423 Area0=0.829 Area3=1.156
+		// AA=4.4E-01;NENDist=1.6E-01;Conf=1.9E-01;NENConf=8.3E-02;RENDist=5.2E-02;DstNxtHlx=4.4E-02;StrandDens=0.0E+00;NormDens=4.0E-02;
+		AddFeature(FEATURE_AA,			4.4E-01f);
+		AddFeature(FEATURE_NENDist,		1.6E-01f);
+		AddFeature(FEATURE_Conf,		1.91E-01f);
+		AddFeature(FEATURE_NENConf,		8.3E-02f);
+		AddFeature(FEATURE_RENDist,		5.2E-02f);
+		AddFeature(FEATURE_DstNxtHlx,	4.4E-02f);
+		AddFeature(FEATURE_NormDens,	4.0E-02f);
+
+		// gap2=7.6E-01;dpw=2.0E+00;lddtw=2.0E-01;revtsw=2.5E+00;logladd=2.4E+00;
+		m_GapOpen = -7.67E-01f;
+		m_GapExt = m_GapOpen/10;
+		m_dpw = 2.0E+00f;
+		m_lddtw = 2.0E-01f;
+		m_revtsw = 2.5E+00f;
+		m_ladd = powf(10, 2.4E+00f);
+		}
+
+#if 0
+	if (opt(newparams))
+		{
+		// SEPQ0.1=0.217 SEPQ1=0.328 SEPQ10=0.427 Area0=0.815 Area3=1.139
 		// AA=4.87E-01;NENDist=1.51E-01;Conf=2.31E-01;NENConf=5.47E-02;RENDist=7.52E-02;
 		AddFeature(FEATURE_AA,			4.78E-01f);
 		AddFeature(FEATURE_NENDist,		1.51E-01f);
@@ -344,7 +367,6 @@ void DSSParams::SetStandardFeatures()
 		m_revtsw = 2.68E+00f;
 		m_ladd = powf(10, 2.22E+00f);
 		}
-#if 0
 	if (opt(newparams))
 		{
 	////////////////////////////////////////////////////////
@@ -361,6 +383,7 @@ void DSSParams::SetStandardFeatures()
 #endif
 	else
 		{
+		// SEPQ0.1=0.211 SEPQ1=0.324 SEPQ10=0.423 Area0=0.800 Area3=1.119
 		AddFeature(FEATURE_AA,			0.398145f);
 		AddFeature(FEATURE_NENDist,		0.129367f);
 		AddFeature(FEATURE_Conf,		0.202354f);
