@@ -329,6 +329,24 @@ void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))
 		{
+		// AA=4.87E-01;NENDist=1.51E-01;Conf=2.31E-01;NENConf=5.47E-02;RENDist=7.52E-02;
+		AddFeature(FEATURE_AA,			4.78E-01f);
+		AddFeature(FEATURE_NENDist,		1.51E-01f);
+		AddFeature(FEATURE_Conf,		2.31E-01f);
+		AddFeature(FEATURE_NENConf,		5.47E-02f);
+		AddFeature(FEATURE_RENDist,		7.52E-02f);
+
+		// gap2=9.47E-01;dpw=2.26E+00;lddtw=2.60E-01;revtsw=2.68E+00;logladd=2.22E+00;
+		m_GapOpen = -9.47E-01f;
+		m_GapExt = m_GapOpen/10;
+		m_dpw = 2.26E+00f;
+		m_lddtw = 2.60E-01f;
+		m_revtsw = 2.68E+00f;
+		m_ladd = powf(10, 2.22E+00f);
+		}
+#if 0
+	if (opt(newparams))
+		{
 	////////////////////////////////////////////////////////
 	// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
 		AddFeature(FEATURE_AA,			4.2E-01f);
@@ -340,6 +358,7 @@ void DSSParams::SetStandardFeatures()
 		m_GapOpen = -8.0E-01f;
 		m_GapExt = m_GapOpen/10;
 		}
+#endif
 	else
 		{
 		AddFeature(FEATURE_AA,			0.398145f);
