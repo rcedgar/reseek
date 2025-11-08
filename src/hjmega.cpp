@@ -135,7 +135,7 @@ static void Optimize(
 	P.RunLatin(LatinBinCount);
 
 	vector<uint> TopEvalIdxs;
-	P.GetTopEvalIdxs(3, TopEvalIdxs);
+	P.GetTopEvalIdxs(HJCount, TopEvalIdxs);
 	const uint n = SIZE(TopEvalIdxs);
 	if (n == 0)
 		Die("No evals %s", OptName.c_str());
