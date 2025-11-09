@@ -329,11 +329,12 @@ void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))
 		{
+		// git [3d7ef20]
 		// SEPQ0.1=0.226 SEPQ1=0.330 SEPQ10=0.423 Area0=0.829 Area3=1.156
 		// AA=4.4E-01;NENDist=1.6E-01;Conf=1.9E-01;NENConf=8.3E-02;RENDist=5.2E-02;DstNxtHlx=4.4E-02;StrandDens=0.0E+00;NormDens=4.0E-02;
 		AddFeature(FEATURE_AA,			4.4E-01f);
 		AddFeature(FEATURE_NENDist,		1.6E-01f);
-		AddFeature(FEATURE_Conf,		1.91E-01f);
+		AddFeature(FEATURE_Conf,		1.9E-01f);
 		AddFeature(FEATURE_NENConf,		8.3E-02f);
 		AddFeature(FEATURE_RENDist,		5.2E-02f);
 		AddFeature(FEATURE_DstNxtHlx,	4.4E-02f);
