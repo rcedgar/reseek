@@ -75,12 +75,16 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	case FEATURE_NormDens:
 	case FEATURE_NENDist:
 	case FEATURE_RENDist:
+	case FEATURE_PENDist:
+	case FEATURE_MENDist:
+	case FEATURE_PENConf:
+	case FEATURE_MENConf:
+	case FEATURE_PMDistDiff:
 	case FEATURE_HelixDens:
 	case FEATURE_StrandDens:
 	case FEATURE_DstNxtHlx:
 	case FEATURE_DstPrvHlx:
 	case FEATURE_NX:
-	case FEATURE_PMDist:
 		return 16;
 
 	case FEATURE_Mu:

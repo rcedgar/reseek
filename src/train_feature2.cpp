@@ -8,10 +8,10 @@ void cmd_train_feature2()
 	FEATURE F = StrToFeature(FeatureName.c_str());
 	DSSParams::Init(DM_DefaultSensitive);
 
-	const string &ChainFN = opt(db);			// "c:/src/reseek/test_data/scop40.bca";
-	const string &TrainTPAlnFN = opt(traintps); // "../big_out/tp.a.mints05.maxts25.fa2";
-	const string &EvalTPAlnFN = opt(evaltps);	// "../big_out/tp.a.evalrange.fa2";
-	const string &EvalFPAlnFN = opt(evalfps);	// "../big_out/fp.a.evalrange.fa2";
+	const string &ChainFN = opt(db);			// "src/reseek/test_data/scop40.bca";
+	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_out/big_out/tp.a.mints05.maxts25.fa2";
+	const string &EvalTPAlnFN = opt(evaltps);	// "src/2025-10_reseek_tune/tp.a.evalrange.fa2";
+	const string &EvalFPAlnFN = opt(evalfps);	// "src/2025-10_reseek_tune/fp.a.evalrange.fa2";
 
 	FILE *fOut = CreateStdioFile(opt(output));
 
@@ -84,6 +84,7 @@ void cmd_train_feature2()
 				UndefsAllowed, ReplaceUndefWithThisLetter,
 				BS, ScoreMx, BestArea, fSteps);
 			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
+			FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
 			}
 		else
 			{
@@ -104,8 +105,10 @@ void cmd_train_feature2()
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				ScoreMx, BinTs, QS, UndefReplaceValue, BestArea, fSteps);
-			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
 			FeatureTrainer2::DumpBinTs(fOut, BinTs);
+			FeatureTrainer2::BinTsToSrc(g_fLog, BinTs);
+			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
+			FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
 			}
 		}
 	Log("@FEV@ %s\n", FeatureTrainer2::m_FevStr.c_str());

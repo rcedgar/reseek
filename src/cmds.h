@@ -44,11 +44,11 @@ C(cif2pdb)
 C(kmrnbh)
 C(dump_features)
 C(load_features)
-C(train_feature)
 C(train_feature2)
 C(feature_attrs)
 C(float_feature_dists)
 C(hjmega)
 C(evalarea)
+C(dump_float_feature)
 
 #undef C

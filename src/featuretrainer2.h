@@ -519,4 +519,7 @@ static void DumpScoreMx(FILE *f,
 
 static void DumpBinTs(FILE *f,
 	const vector<float> &BinTs);
+
+static void BinTsToSrc(FILE *f,
+	const vector<float> &BinTs);
 };

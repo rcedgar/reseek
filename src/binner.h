@@ -183,6 +183,8 @@ public:
 
 	void ToTsv(const string &FileName) const
 		{
+		if (FileName == "")
+			return;
 		FILE *f = CreateStdioFile(FileName);
 		ToTsv(f);
 		CloseStdioFile(f);

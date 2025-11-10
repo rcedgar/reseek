@@ -1546,3 +1546,14 @@ void FeatureTrainer2::DumpBinTs(FILE *f,
 	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
 		fprintf(f, "%u\t%.3g\n", j, BinTs[j]);
 	}
+
+void FeatureTrainer2::BinTsToSrc(FILE *f,
+	const vector<float> &BinTs)
+	{
+	if (f == 0)
+		return;
+	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
+	const char *Name = FeatureToStr(m_F);
+	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
+		fprintf(f, "BIN_T(%s, %2u, %.4g)\n", Name, j, BinTs[j]);
+	}

@@ -289,13 +289,11 @@
     <ClCompile Include="hjmega.cpp" />
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="peaker.cpp" />
-    <ClCompile Include="quantize.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="dssmu.cpp" />
     <ClCompile Include="duper.cpp" />
-    <ClCompile Include="featuretrainer.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="lddt_bench.cpp" />
@@ -386,7 +384,6 @@
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
-    <ClCompile Include="train_feature.cpp" />
     <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="triangle.cpp" />
@@ -439,7 +436,6 @@
     <ClInclude Include="dssintparams.h" />
     <ClInclude Include="dssuintparams.h" />
     <ClInclude Include="duper.h" />
-    <ClInclude Include="featuretrainer.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="mudex.h" />

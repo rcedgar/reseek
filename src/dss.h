@@ -19,25 +19,11 @@ public:
 	uint m_L = 0;
 
 	vector<float> m_Density_ScaledValues;
-	//vector<float> m_Density_ScaledValuesf;
 	vector<uint> m_NENs;
 	vector<uint> m_RENs;
+	vector<uint> m_PENs;
+	vector<uint> m_MENs;
 	string m_SS;
-
-	//int m_Density_W = 50;
-	//int m_Density_w = 3;
-	//int m_SSDensity_W = 50;
-	//int m_SSDensity_w = 8;
-	//float m_Density_Radius = 20.0;
-	//float m_NU_ND_Radius = 20.0;
-	//int m_NEN_W = 100;
-	//int m_NEN_w = 12;
-	//int m_NUDX_W = 50;
-	//float m_DefaultNENDist = 10.0;
-	//float m_SSDensity_epsilon = 1;
-	//uint m_SSE_MinLength = 8;
-	//uint m_SSE_Margin = 8;
-	//uint m_PMDelta = 8;
 
 	vector<uint> m_SSE_Mids;
 	vector<char> m_SSE_cs;
@@ -53,10 +39,11 @@ public:
 		{
 		m_Chain = &Chain;
 		m_Density_ScaledValues.clear();
-		//m_Density_ScaledValuesf.clear();
 		m_SS.clear();
 		m_NENs.clear();
 		m_RENs.clear();
+		m_PENs.clear();
+		m_MENs.clear();
 		m_SSE_Mids.clear();
 		m_SSE_cs.clear();
 		m_NUs.clear();
@@ -87,10 +74,16 @@ public:
 	void SetDensity_ScaledValues();
 	float GetDensity(uint Pos) const;
 	float GetSSDensity(uint Pos, char c);
+
 	uint GetNEN(uint Pos);
 	uint GetREN(uint Pos);
+	uint GetPEN(uint Pos);
+	uint GetMEN(uint Pos);
+
 	uint CalcNEN(uint Pos) const;
 	uint CalcREN(uint Pos, uint NEN) const;
+	uint CalcPEN(uint Pos) const;
+	uint CalcMEN(uint Pos) const;
 
 	void SetNENs();
 	void SetSS();

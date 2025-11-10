@@ -398,12 +398,6 @@
     <ClCompile Include="lddt_bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="featuretrainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="quantize.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="loadfeatures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -420,9 +414,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="profiletolines.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="train_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="peaker.cpp">
@@ -764,9 +755,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flatmx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="featuretrainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="alncounts.h">

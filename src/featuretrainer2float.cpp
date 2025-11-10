@@ -1,10 +1,5 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
-#include "sfasta.h"
-#include "alpha.h"
-#include "round3sigfig.h"
-#include "quarts.h"
-#include "sort.h"
 
 /***
 		 Feature  AS   Type               Int forced        Float forced    Float not forced

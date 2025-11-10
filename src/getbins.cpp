@@ -6,7 +6,31 @@ void DSSParams::GetBinTs(FEATURE F, vector<float> &Bins)
 	Bins.clear();
 	uint AlphaSize = GetAlphaSize(F);
 
+#define PLACEHOLDER(Feat)	\
+	if (F == FEATURE_##Feat)	\
+		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
+
+PLACEHOLDER(PENDist)
+PLACEHOLDER(MENDist)
+//PLACEHOLDER(PMDistDiff)
+
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
+
+BIN_T(PMDistDiff,  0, -10.57)
+BIN_T(PMDistDiff,  1, -6.86)
+BIN_T(PMDistDiff,  2, -4.669)
+BIN_T(PMDistDiff,  3, -3.201)
+BIN_T(PMDistDiff,  4, -1.803)
+BIN_T(PMDistDiff,  5, -0.626)
+BIN_T(PMDistDiff,  6, 0.2313)
+BIN_T(PMDistDiff,  7, 1.257)
+BIN_T(PMDistDiff,  8, 2.545)
+BIN_T(PMDistDiff,  9, 3.926)
+BIN_T(PMDistDiff, 10, 5.419)
+BIN_T(PMDistDiff, 11, 7.986)
+BIN_T(PMDistDiff, 12, 10)
+BIN_T(PMDistDiff, 13, 10)
+BIN_T(PMDistDiff, 14, 10.86)
 
 // Agree with DSS::ValueToInt_NormDens()
 BIN_T(NormDens, 0, 0.241);
@@ -125,23 +149,6 @@ BIN_T(DstPrvHlx, 11, 18);
 BIN_T(DstPrvHlx, 12, 20);
 BIN_T(DstPrvHlx, 13, 24);
 BIN_T(DstPrvHlx, 14, 28);
-
-// Agrees with vartoint.cpp
-BIN_T(PMDist, 0, 9.994);
-BIN_T(PMDist, 1, 12.06);
-BIN_T(PMDist, 2, 13.65);
-BIN_T(PMDist, 3, 14.98);
-BIN_T(PMDist, 4, 16.3);
-BIN_T(PMDist, 5, 17.57);
-BIN_T(PMDist, 6, 18.82);
-BIN_T(PMDist, 7, 20.06);
-BIN_T(PMDist, 8, 21.33);
-BIN_T(PMDist, 9, 22.64);
-BIN_T(PMDist, 10, 23.93);
-BIN_T(PMDist, 11, 24.86);
-BIN_T(PMDist, 12, 26.38);
-BIN_T(PMDist, 13, 28.84);
-BIN_T(PMDist, 14, 32.77);
 
 // Agrees with vartoint.cpp
 BIN_T(NX, 0, 20.65);

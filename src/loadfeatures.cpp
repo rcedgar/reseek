@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "dssparams.h"
 #include "dss.h"
-#include "featuretrainer.h"
 
 /***
 Unweighted score mxs, overwrite for loaded features:
@@ -19,11 +18,6 @@ valuetoint_new.cpp(7)	static vector<vector<float> > s_BinTs(FEATURE_COUNT);
 valuetoint_new.cpp(19):	static bool Init()
 valuetoint_new.cpp(59)	uint DSSParams::ValueToInt_Feature(FEATURE F, float Value);
 ***/
-
-//static vector<FEATURE> s_LoadedFeatures;
-//static vector<float> s_LoadedWeights(FEATURE_COUNT);
-//static vector<vector<float> > s_LoadedBinTs(FEATURE_COUNT);
-//static vector<vector<vector<float> > > s_LoadedScoreMxs(FEATURE_COUNT);
 
 FEATURE DSSParams::LoadFeature(const string &FN, float Weight)
 	{

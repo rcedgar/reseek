@@ -405,6 +405,46 @@ uint DSS::CalcREN(uint Pos, uint NEN) const
 	return MinPos;
 	}
 
+uint DSS::CalcPEN(uint Pos) const
+	{
+	const uint L = GetSeqLength();
+	float MinDist = 999;
+	uint MinPos = UINT_MAX;
+	uint w = DSSParams::m_NEN_w;
+	for (uint Pos2 = Pos + w; ; ++Pos2)
+		{
+		if (Pos2 >= L)
+			break;
+		float Dist = m_Chain->GetDist(Pos, Pos2);
+		if (Dist < MinDist)
+			{
+			MinDist = Dist;
+			MinPos = Pos2;
+			}
+		}
+	return MinPos;
+	}
+
+uint DSS::CalcMEN(uint Pos) const
+	{
+	const uint L = GetSeqLength();
+	float MinDist = 999;
+	uint MinPos = UINT_MAX;
+	uint w = DSSParams::m_NEN_w;
+	for (int Pos2 = int(Pos) - int(w); ; --Pos2)
+		{
+		if (Pos2 < 0)
+			break;
+		float Dist = m_Chain->GetDist(Pos, Pos2);
+		if (Dist < MinDist)
+			{
+			MinDist = Dist;
+			MinPos = Pos2;
+			}
+		}
+	return MinPos;
+	}
+
 uint DSS::CalcNEN(uint Pos) const
 	{
 	const uint L = GetSeqLength();
@@ -444,19 +484,43 @@ uint DSS::GetREN(uint Pos)
 	return m_RENs[Pos];
 	}
 
+uint DSS::GetPEN(uint Pos)
+	{
+	SetNENs();
+	asserta(Pos < SIZE(m_PENs));
+	return m_PENs[Pos];
+	}
+
+uint DSS::GetMEN(uint Pos)
+	{
+	SetNENs();
+	asserta(Pos < SIZE(m_MENs));
+	return m_MENs[Pos];
+	}
+
 void DSS::SetNENs()
 	{
 	if (!m_NENs.empty())
 		return;
 	const uint L = GetSeqLength();
+	asserta(SIZE(m_NENs) == 0);
+	asserta(SIZE(m_RENs) == 0);
+	asserta(SIZE(m_PENs) == 0);
+	asserta(SIZE(m_MENs) == 0);
 	m_NENs.reserve(L);
 	m_RENs.reserve(L);
+	m_PENs.reserve(L);
+	m_MENs.reserve(L);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		uint NEN = CalcNEN(Pos);
 		uint REN = CalcREN(Pos, NEN);
+		uint PEN = CalcPEN(Pos);
+		uint MEN = CalcMEN(Pos);
 		m_NENs.push_back(NEN);
 		m_RENs.push_back(REN);
+		m_PENs.push_back(PEN);
+		m_MENs.push_back(MEN);
 		}
 	}
 
@@ -497,26 +561,6 @@ float DSS::GetFloat_NENDist(uint Pos)
 	return d;
 	}
 
-float DSS::GetFloat_PMDist(uint Pos)
-	{
-	int iPos = (int) Pos;
-	int L = (int) GetSeqLength();
-	if (L < 8)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		return UNDEFINED_ZERO_OVERLOAD;
-		}
-	int Pos1 = iPos - DSSParams::m_PMDelta;
-	int Pos2 = iPos + DSSParams::m_PMDelta;
-	if (Pos1 < 0)
-		Pos1 = 0;
-	if (Pos2 >= L)
-		Pos2 = L - 1;
-	float d = m_Chain->GetDist(uint(Pos1), uint(Pos2));
-	return (float) d;
-	}
-
 float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint REN = GetREN(Pos);
@@ -527,6 +571,51 @@ float DSS::GetFloat_RENDist(uint Pos)
 		return (float) DSSParams::m_DefaultNENDist;
 		}
 	float d = m_Chain->GetDist(Pos, REN);
+	return d;
+	}
+
+float DSS::GetFloat_PMDistDiff(uint Pos)
+	{
+	float pd = GetFloat_PENDist(Pos);
+	float md = GetFloat_MENDist(Pos);
+	if (pd == FLT_MAX || md == FLT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		else
+			return 0;
+		}
+	float diff = pd - md;
+	if (diff < -20)
+		diff = -20;
+	if (diff > 20)
+		diff = 20;
+	return diff;
+	}
+
+float DSS::GetFloat_PENDist(uint Pos)
+	{
+	uint PEN = GetPEN(Pos);
+	if (PEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;
+		}
+	float d = m_Chain->GetDist(Pos, PEN);
+	return d;
+	}
+
+float DSS::GetFloat_MENDist(uint Pos)
+	{
+	uint MEN = GetMEN(Pos);
+	if (MEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;
+		}
+	float d = m_Chain->GetDist(Pos, MEN);
 	return d;
 	}
 
@@ -735,14 +824,16 @@ float DSS::GetFloat_DstNxtHlx(uint Pos)
 	return 0;
 	}
 
-uint DSS::Get_PlusNENConf(uint Pos)
+uint DSS::Get_PENConf(uint Pos)
 	{
-	Die("Get_PlusNENConf");
-	return UINT_MAX;
+	uint PEN = GetPEN(Pos);
+	uint Letter = Get_Conf(PEN);
+	return Letter;
 	}
 
-uint DSS::Get_MinusNENConf(uint Pos)
+uint DSS::Get_MENConf(uint Pos)
 	{
-	Die("Get_MinusNENConf");
-	return UINT_MAX;
+	uint MEN = GetMEN(Pos);
+	uint Letter = Get_Conf(MEN);
+	return Letter;
 	}
