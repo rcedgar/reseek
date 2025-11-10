@@ -6,12 +6,12 @@ void DSSParams::GetBinTs(FEATURE F, vector<float> &Bins)
 	Bins.clear();
 	uint AlphaSize = GetAlphaSize(F);
 
-#define PLACEHOLDER(Feat)	\
-	if (F == FEATURE_##Feat)	\
-		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
+//#define PLACEHOLDER(Feat)	\
+//	if (F == FEATURE_##Feat)	\
+//		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
 
 //PLACEHOLDER(PENDist)
-PLACEHOLDER(MENDist)
+//PLACEHOLDER(MENDist)
 //PLACEHOLDER(PMDistDiff)
 
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
