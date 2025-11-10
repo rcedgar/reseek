@@ -219,8 +219,6 @@ double Peaker::HJ_TryDelta(const string &reason,
 		return y;
 
 	double absdy = fabs(Start_y - y);
-	double targetdy = GetGlobalFloat("targetdy", DBL_MAX);
-	asserta(targetdy != DBL_MAX);
 
 	Log("HJ_TryDelta(%s%c)", reason.c_str(), pom(Plus));
 	Log(" %s", VarName);
@@ -228,7 +226,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	Log(" %s", NewStr.c_str());
 	Log(" y %.4g,", Start_y);
 	Log("%.4g", y);
-	Log(" dy %.3g (target %.3g)", absdy, targetdy);
+	Log(" dy %.3g", absdy);
 	Log("\n");
 
 	return y;
