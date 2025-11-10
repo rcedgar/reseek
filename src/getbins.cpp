@@ -10,27 +10,62 @@ void DSSParams::GetBinTs(FEATURE F, vector<float> &Bins)
 	if (F == FEATURE_##Feat)	\
 		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
 
-PLACEHOLDER(PENDist)
+//PLACEHOLDER(PENDist)
 PLACEHOLDER(MENDist)
 //PLACEHOLDER(PMDistDiff)
 
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
 
-BIN_T(PMDistDiff,  0, -10.57)
-BIN_T(PMDistDiff,  1, -6.86)
-BIN_T(PMDistDiff,  2, -4.669)
-BIN_T(PMDistDiff,  3, -3.201)
-BIN_T(PMDistDiff,  4, -1.803)
-BIN_T(PMDistDiff,  5, -0.626)
-BIN_T(PMDistDiff,  6, 0.2313)
-BIN_T(PMDistDiff,  7, 1.257)
-BIN_T(PMDistDiff,  8, 2.545)
-BIN_T(PMDistDiff,  9, 3.926)
-BIN_T(PMDistDiff, 10, 5.419)
-BIN_T(PMDistDiff, 11, 7.986)
-BIN_T(PMDistDiff, 12, 10)
-BIN_T(PMDistDiff, 13, 10)
-BIN_T(PMDistDiff, 14, 10.86)
+// C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
+BIN_T(PENDist,  0, 4.632)
+BIN_T(PENDist,  1, 5.004)
+BIN_T(PENDist,  2, 5.394)
+BIN_T(PENDist,  3, 6.012)
+BIN_T(PENDist,  4, 6.683)
+BIN_T(PENDist,  5, 7.338)
+BIN_T(PENDist,  6, 8.018)
+BIN_T(PENDist,  7, 8.701)
+BIN_T(PENDist,  8, 9.354)
+BIN_T(PENDist,  9, 10.07)
+BIN_T(PENDist, 10, 11.1)
+BIN_T(PENDist, 11, 12.69)
+BIN_T(PENDist, 12, 15.26)
+BIN_T(PENDist, 13, 18.54)
+BIN_T(PENDist, 14, FLT_MAX)//@@TODO
+
+// C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
+BIN_T(MENDist,  0, 4.631)
+BIN_T(MENDist,  1, 4.986)
+BIN_T(MENDist,  2, 5.362)
+BIN_T(MENDist,  3, 5.935)
+BIN_T(MENDist,  4, 6.62)
+BIN_T(MENDist,  5, 7.267)
+BIN_T(MENDist,  6, 7.913)
+BIN_T(MENDist,  7, 8.576)
+BIN_T(MENDist,  8, 9.231)
+BIN_T(MENDist,  9, 9.904)
+BIN_T(MENDist, 10, 10.84)
+BIN_T(MENDist, 11, 12.32)
+BIN_T(MENDist, 12, 14.76)
+BIN_T(MENDist, 13, 18.44)
+BIN_T(MENDist, 14, FLT_MAX)//@@TODO
+
+// C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
+BIN_T(PMDistDiff,  0, -10.98)
+BIN_T(PMDistDiff,  1, -7.358)
+BIN_T(PMDistDiff,  2, -5.053)
+BIN_T(PMDistDiff,  3, -3.673)
+BIN_T(PMDistDiff,  4, -2.354)
+BIN_T(PMDistDiff,  5, -1.143)
+BIN_T(PMDistDiff,  6, -0.2293)
+BIN_T(PMDistDiff,  7, 0.5592)
+BIN_T(PMDistDiff,  8, 1.597)
+BIN_T(PMDistDiff,  9, 2.806)
+BIN_T(PMDistDiff, 10, 4.086)
+BIN_T(PMDistDiff, 11, 5.486)
+BIN_T(PMDistDiff, 12, 7.844)
+BIN_T(PMDistDiff, 13, 11.24)
+BIN_T(PMDistDiff, 14, FLT_MAX) //@@TODO
 
 // Agree with DSS::ValueToInt_NormDens()
 BIN_T(NormDens, 0, 0.241);

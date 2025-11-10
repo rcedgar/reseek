@@ -7,14 +7,15 @@
 (+) Random exploration like Latin hypercube quickly reaches diminishing returns
 (+) Careful hill-climbing from a good start is essential
 (+) Preferred strategy per 2025-11-05 is "subclimb" (X is vector of parameter values):
-		Repeat 3 times (i):
+		Repeat "sub=i;" times:
 			Select random subset 25% of SCOP40[c] chains ("subpct=25;" in global sec),
 				Eval of one X 16x faster than working with full set
 			Perform Latin hypercube on subset
-			Take top 3 points ("hj=3;" in global spec) and hill-climb (HJ)
-			From these 3, save point X_i with best y
+			Take top j points ("hj=j;" in global spec) and hill-climb (HJ)
+			From these, save point X_ij = with best y := X_i
 			Hill-climb (HJ) full set starting at X_i
-		Final X is best of the 3 full HJs
+		Final X is best of the i full HJs
+		(Preferred per 2025-11-10 are i=1 j=1)
 (*) Subclimb time with ~10 params ~20 mins on a/b subset, 2 - 4 hours on SCOP40[c]
 (*) Don't need open+ext, gap2 works fine (ext = open/10)
 (*) -raw avoids calculating self-rev scores & tuning E-value parameters,
