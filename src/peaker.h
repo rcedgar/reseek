@@ -86,7 +86,7 @@ public:
 	void WriteFinalPeak(FILE *f) const;
 
 	// Latin
-	void GetLatinHypercube(vector<vector<string> > &xvs) const;
+	void GetLatinHypercube(uint BinCount, vector<vector<string> > &xvs) const;
 	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
 
 	// Global spec

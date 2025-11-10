@@ -76,10 +76,6 @@ void FeatureTrainer2::OptimizeArea(
 	vector<string> SpecLines;
 
 	// y is Area, in range 0 to 1
-	SpecLines.push_back("mindy=0.001;");
-	SpecLines.push_back("maxdy=0.1;");
-	SpecLines.push_back("minh=0.0005;");
-	SpecLines.push_back("latin=16;");
 	SpecLines.push_back("sigfig=3;");
 	SpecLines.push_back("var=open;min=0;max=4;");
 
@@ -102,7 +98,7 @@ void FeatureTrainer2::OptimizeArea(
 	for (uint Iter = 0; Iter < Iters; ++Iter)
 		{
 		s_Peaker->Init(SpecLines, EvalArea_OpenOnly);
-		s_Peaker->RunLatin();
+		s_Peaker->RunLatin(16);
 		const vector<string> &xv = s_Peaker->m_Best_xv;
 		asserta(SIZE(xv) == 1);
 		float OpenPenalty = StrToFloatf(xv[0]);

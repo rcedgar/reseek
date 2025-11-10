@@ -206,10 +206,10 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 	return Value;
 	}
 
-void Peaker::GetLatinHypercube(vector<vector<string > > &xvs) const
+void Peaker::GetLatinHypercube(uint BinCount,
+	vector<vector<string > > &xvs) const
 	{
 	xvs.clear();
-	uint BinCount = GetGlobalInt("latin", 0);
 	if (BinCount == 0)
 		return;
 
@@ -501,7 +501,7 @@ void Peaker::RunLatin(uint BinCount)
 	{
 	const uint VarCount = GetVarCount();
 	vector<vector<string> > xvs;
-	GetLatinHypercube(xvs);
+	GetLatinHypercube(BinCount, xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
 #if	1
