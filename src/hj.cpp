@@ -41,15 +41,15 @@ bool Peaker::ReduceGlobalRateFactor()
 	asserta(m_GlobalVarRateFactorIdx < n);
 	if (m_GlobalVarRateFactorIdx + 1 == n)
 		{
-		ProgressLog("%s: ReduceGlobalRateFactor() no more\n",
-			m_Name.c_str());
+		ProgressLog("%s: ReduceGlobalRateFactor() no more, elapsed %s [%.5g]\n",
+			m_Name.c_str(), GetElapsedTimeStr(s), m_Best_y);
 		return false;
 		}
 
 	++m_GlobalVarRateFactorIdx;
 	ProgressLog("\n");
-	ProgressLog("%s: ReduceGlobalRateFactor() => %.3f\n",
-		m_Name.c_str(), GetGlobalRateFactor());
+	ProgressLog("%s: ReduceGlobalRateFactor() => %.3f, elapsed %s [%.5g]\n",
+		m_Name.c_str(), GetGlobalRateFactor(), GetElapsedTimeStr(s), m_Best_y);
 	ProgressLog("\n");
 	return true;
 	}
