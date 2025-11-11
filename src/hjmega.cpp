@@ -69,7 +69,7 @@ static double EvalArea0(const vector<string> &xv)
 	return s_SB->m_Area0;
 	}
 
-static double EvalArea3(const vector<string> &xv)
+static double OBSOLETE_EvalArea3(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
@@ -82,7 +82,23 @@ static double EvalArea3(const vector<string> &xv)
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
-	return s_SB->m_Area3;
+	return 0; // s_SB->m_Area3;
+	}
+
+static double EvalSum3(const vector<string> &xv)
+	{
+	asserta(s_Peaker != 0);
+	const uint VarCount = s_Peaker->GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+	string VarsStr;
+	s_Peaker->xv2xss(xv, VarsStr);
+	DSSParams::SetParamsFromStr(VarsStr);
+	s_SB->ClearHitsAndResults();
+	s_SB->RunSelf(false);
+	s_SB->m_Level = "sf";
+	s_SB->SetStats(0.005f);
+	s_SB->WriteSummary();
+	return s_SB->m_Sum3;
 	}
 
 void cmd_evalarea()
@@ -106,7 +122,7 @@ void cmd_evalarea()
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
-	ProgressLog("Area0=%.4g, Area3=%.4g\n", s_SB->m_Area0, s_SB->m_Area3);
+	ProgressLog("Area0=%.4g, Sum3=%.4g\n", s_SB->m_Area0, s_SB->m_Sum3);
 	}
 
 static void Optimize(
@@ -125,7 +141,7 @@ static void Optimize(
 	asserta(HJCount != UINT_MAX);
 
 	Peaker &P = *new Peaker(0, OptName);
-	P.Init(SpecLines, EvalArea3);
+	P.Init(SpecLines, EvalSum3);
 	s_Peaker = &P;
 	s_SB = &SB;
 
@@ -202,7 +218,7 @@ static void Climb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 	string PeakerName;
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
-	Pfull.Init(SpecLines, EvalArea3);
+	Pfull.Init(SpecLines, EvalSum3);
 	//asserta(Pfull.GetVarCount() == VarCount);
 	//asserta(Pfull.m_VarNames == VarNames);
 	s_Peaker = &Pfull;
@@ -241,7 +257,7 @@ static void SubClimb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 		string PeakerName;
 		Ps(PeakerName, "all%u", SubsetIter);
 		Peaker Pfull(0, PeakerName);
-		Pfull.Init(SpecLines, EvalArea3);
+		Pfull.Init(SpecLines, EvalSum3);
 		Pfull.Evaluate(Best_xv, PeakerName + "_init");
 		Pfull.HJ_RunHookeJeeves();
 		Pfull.WriteFinalResults(g_fLog);

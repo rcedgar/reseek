@@ -57,9 +57,9 @@ public:
 	uint m_NT = UINT_MAX;
 	uint m_NF = UINT_MAX;
 	uint m_NI = UINT_MAX;
-	uint m_nt_epq0_1 = UINT_MAX;
-	uint m_nt_epq1 = UINT_MAX;
-	uint m_nt_epq10 = UINT_MAX;
+	float m_SEPQ0_1 = FLT_MAX;
+	float m_SEPQ1 = FLT_MAX;
+	float m_SEPQ10 = FLT_MAX;
 
 	uint m_ConsideredHitCount = UINT_MAX;
 	uint m_IgnoredHitCount = UINT_MAX;
@@ -67,8 +67,8 @@ public:
 	// Area from EPQ 0.1 to 10
 	float m_Area0 = FLT_MAX;
 
-	// Area0 + (SEPQ0.1 + SEPQ1 + SEPQ10)/3
-	float m_Area3 = FLT_MAX;
+	// Sum3 = SEPQ0_1*2 + SEPQ1*1.5 + SEPQ10;
+	float m_Sum3 = FLT_MAX;
 
 	FILE *m_fa2_tp = 0;
 	FILE *m_fa2_fp = 0;
@@ -119,9 +119,7 @@ public:
 
 	void WriteCVE(FILE *f) const;
 
-	uint GetNTPAtEPQThreshold(const vector<uint> &NTPs,
-	  const vector<uint> &NFPs, float EPQ) const;
-	float GetTPRAtEPQThreshold(const vector<uint> &NTPs,
+	float GetSEPQ(const vector<uint> &NTPs,
 	  const vector<uint> &NFPs, float EPQ) const;
 	float GetEPQAtEvalueThreshold(const vector<float> &Evalues,
 	  const vector<uint> &NFPs, float Evalue) const;

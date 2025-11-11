@@ -454,15 +454,15 @@ void SCOP40Bench::ClearHitsAndResults()
 	m_NT = UINT_MAX;
 	m_NF = UINT_MAX;
 	m_NI = UINT_MAX;
-	m_nt_epq0_1 = UINT_MAX;
-	m_nt_epq1 = UINT_MAX;
-	m_nt_epq10 = UINT_MAX;
+	m_SEPQ0_1 = FLT_MAX;
+	m_SEPQ1 = FLT_MAX;
+	m_SEPQ10 = FLT_MAX;
 
 	m_ConsideredHitCount = UINT_MAX;
 	m_IgnoredHitCount = UINT_MAX;
 
 	m_Area0 = FLT_MAX;
-	m_Area3 = FLT_MAX;
+	m_Sum3 = FLT_MAX;
 	}
 
 float SCOP40Bench::GetVeryGoodScore() const
@@ -555,26 +555,22 @@ void SCOP40Bench::SetStats(float MaxFPR)
 	SetROCSteps();
 	SetCVE();
 
-	m_nt_epq0_1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
-	m_nt_epq1 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 1);
-	m_nt_epq10 = GetNTPAtEPQThreshold(m_ROCStepNTPs, m_ROCStepNFPs, 10);
+	m_SEPQ0_1 = GetSEPQ(m_ROCStepNTPs, m_ROCStepNFPs, 0.1f);
+	m_SEPQ1 = GetSEPQ(m_ROCStepNTPs, m_ROCStepNFPs, 1);
+	m_SEPQ10 = GetSEPQ(m_ROCStepNTPs, m_ROCStepNFPs, 10);
 
 	SetArea();
 	}
 
 const char *SCOP40Bench::GetAccuracyStr(string &Str) const
 	{
-	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
-	float SensEPQ1 = float(m_nt_epq1)/m_NT;
-	float SensEPQ10 = float(m_nt_epq10)/m_NT;
-
-	Psa(Str, "SEPQ0.1=%.3f", SensEPQ0_1);
-	Psa(Str, " SEPQ1=%.3f", SensEPQ1);
-	Psa(Str, " SEPQ10=%.3f", SensEPQ10);
+	Psa(Str, "SEPQ0.1=%.3f", m_SEPQ0_1);
+	Psa(Str, " SEPQ1=%.3f", m_SEPQ1);
+	Psa(Str, " SEPQ10=%.3f", m_SEPQ10);
 	if (m_Area0 != FLT_MAX)
 		Psa(Str, " Area0=%.3f", m_Area0);
-	if (m_Area3 != FLT_MAX)
-		Psa(Str, " Area3=%.3f", m_Area3);
+	if (m_Sum3 != FLT_MAX)
+		Psa(Str, " Sum3=%.3f", m_Sum3);
 	return Str.c_str();
 	}
 

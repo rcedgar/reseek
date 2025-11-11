@@ -23,28 +23,34 @@ FPR
 	= FP / NF
 ***/
 
-uint SCOP40Bench::GetNTPAtEPQThreshold(const vector<uint> &NTPs,
-  const vector<uint> &NFPs, float EPQThreshold) const
+static float Interpolate(float y0, float y1, float x0, float x1, float x)
 	{
-	uint ntp = 0;
-	uint QueryCount = SIZE(m_Doms);
-	const uint N = SIZE(NTPs);
-	for (uint Idx = 0; Idx < N; ++Idx)
-		{
-		float EPQ = float(NFPs[Idx])/QueryCount;
-		if (Idx > 0)
-			ntp = NTPs[Idx];
-		if (EPQ >= EPQThreshold)
-			break;
-		}
-	return ntp;
+	float dy = y1 - y0;
+	float dx = x1 - x0;
+	asserta(dx > 0);
+	float y = y0 + (x - x0)*dy/dx;
+	return y;
 	}
 
-float SCOP40Bench::GetTPRAtEPQThreshold(const vector<uint> &NTPs,
+float SCOP40Bench::GetSEPQ(const vector<uint> &NTPs,
   const vector<uint> &NFPs, float EPQThreshold) const
 	{
-	uint ntp = GetNTPAtEPQThreshold(NTPs, NFPs, EPQThreshold);
-	return float(ntp)/m_NT;
+	uint QueryCount = SIZE(m_Doms);
+	const uint N = SIZE(NTPs);
+	float PrevSens = 0;
+	float PrevEPQ = 0;
+	for (uint Idx = 0; Idx < N; ++Idx)
+		{
+		float Sens = float(NTPs[Idx])/m_NT;
+		float EPQ = float(NFPs[Idx])/QueryCount;
+		if (EPQ == EPQThreshold)
+			return Sens;
+		if (EPQ > EPQThreshold)
+			return Interpolate(PrevSens, Sens, PrevEPQ, EPQ, EPQThreshold);
+		PrevSens = Sens;
+		PrevEPQ = EPQ;
+		}
+	return PrevSens;
 	}
 
 // Return 1=TP, 0=FP, -1=ignore
@@ -187,7 +193,7 @@ static float Interp(float TargetSens,
 void SCOP40Bench::SetArea()
 	{
 	m_Area0 = FLT_MAX;
-	m_Area3 = FLT_MAX;
+	m_Sum3 = FLT_MAX;
 	const uint N = SIZE(m_CVESensVec);
 	asserta(SIZE(m_CVEEPQVec) == N);
 	asserta(SIZE(m_CVEScoreVec) == N);
@@ -218,10 +224,7 @@ void SCOP40Bench::SetArea()
 		m_Area0 += (x2 + x1)*fabs(LogEPQ2 - LogEPQ1)/2;
 		}
 
-	float SensEPQ0_1 = float(m_nt_epq0_1)/m_NT;
-	float SensEPQ1 = float(m_nt_epq1)/m_NT;
-	float SensEPQ10 = float(m_nt_epq10)/m_NT;
-	m_Area3 = m_Area0 + (SensEPQ0_1 + SensEPQ1 + SensEPQ10)/3;
+	m_Sum3 = m_SEPQ0_1*2 + m_SEPQ1*1.5f + m_SEPQ10;
 	}
 
 void SCOP40Bench::SetCVE()
