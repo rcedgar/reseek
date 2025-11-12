@@ -41,16 +41,16 @@ bool Peaker::ReduceGlobalRateFactor()
 	asserta(m_GlobalVarRateFactorIdx < n);
 	if (m_GlobalVarRateFactorIdx + 1 == n)
 		{
-		ProgressLog("%s: ReduceGlobalRateFactor() no more, elapsed %s [%.5g]\n",
+		ProgressLogPrefix("%s: ReduceGlobalRateFactor() no more, elapsed %s [%.5g]\n",
 			m_Name.c_str(), GetElapsedTimeStr(s), m_Best_y);
 		return false;
 		}
 
 	++m_GlobalVarRateFactorIdx;
-	ProgressLog("\n");
-	ProgressLog("%s: ReduceGlobalRateFactor() => %.3f, elapsed %s [%.5g]\n",
+	ProgressLogPrefix("\n");
+	ProgressLogPrefix("%s: ReduceGlobalRateFactor() => %.3f, elapsed %s [%.5g]\n",
 		m_Name.c_str(), GetGlobalRateFactor(), GetElapsedTimeStr(s), m_Best_y);
-	ProgressLog("\n");
+	ProgressLogPrefix("\n");
 	return true;
 	}
 
@@ -118,21 +118,21 @@ void Peaker::HJ_Explore()
 	Log("%s: HJ_Explore(), new direction %s%c\n", m_Name.c_str(),
 		GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
 
-	ProgressLog("\n");
-	ProgressLog("%s: HJ_Explore %u improves\n", m_Name.c_str(), ImprovementCount);
+	ProgressLogPrefix("\n");
+	ProgressLogPrefix("%s: HJ_Explore %u improves\n", m_Name.c_str(), ImprovementCount);
 	double Track_Best_y = Start_Best_y;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		ProgressLog(">%-10.10s", strs_plus[VarIdx].c_str());
-		ProgressLog("  %10.2g", dys_plus[VarIdx]);
-		ProgressLog("  <%-10.10s", strs_minus[VarIdx].c_str());
-		ProgressLog("  %10.2g", dys_minus[VarIdx]);
-		ProgressLog("  %s", GetVarName(VarIdx));
+		ProgressLogPrefix(">%-10.10s", strs_plus[VarIdx].c_str());
+		ProgressLogPrefix("  %10.2g", dys_plus[VarIdx]);
+		ProgressLogPrefix("  <%-10.10s", strs_minus[VarIdx].c_str());
+		ProgressLogPrefix("  %10.2g", dys_minus[VarIdx]);
+		ProgressLogPrefix("  %s", GetVarName(VarIdx));
 		if (dys_plus[VarIdx] > 0 || dys_minus[VarIdx] > 0)
-			ProgressLog(" +++");
-		ProgressLog("\n");
+			ProgressLogPrefix(" +++");
+		ProgressLogPrefix("\n");
 		}
-	ProgressLog("\n");
+	ProgressLogPrefix("\n");
 
 	const uint N = SIZE(m_Best_ys);
 	asserta(SIZE(m_Best_descs) == N);
@@ -142,15 +142,15 @@ void Peaker::HJ_Explore()
 			break;
 		uint i = N-k-1;
 		double dy = (i > 0 ? m_Best_ys[i] - m_Best_ys[i-1] : 0);
-		ProgressLog("%10.5g", m_Best_ys[i]);
-		ProgressLog("  %+10.2g", dy);
-		ProgressLog("  %s", m_Best_descs[i].c_str());
-		ProgressLog("\n");
+		ProgressLogPrefix("%10.5g", m_Best_ys[i]);
+		ProgressLogPrefix("  %+10.2g", dy);
+		ProgressLogPrefix("  %s", m_Best_descs[i].c_str());
+		ProgressLogPrefix("\n");
 		}
 
 	double rf = GetGlobalRateFactor();
-	ProgressLog("Global rate factor %.2f\n", GetGlobalRateFactor());
-	ProgressLog("\n");
+	ProgressLogPrefix("Global rate factor %.2f\n", GetGlobalRateFactor());
+	ProgressLogPrefix("\n");
 	}
 
 void Peaker::HJ_Extend()
@@ -200,7 +200,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == OldStr)
 		{
-		ProgressLog("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
+		ProgressLogPrefix("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
 			m_Name.c_str(), reason.c_str(), pom(Plus), VarName, OldStr.c_str());
 		return Start_y;
 		}
@@ -237,7 +237,7 @@ bool Peaker::HJ_Iter()
 	double Saved_Best_y = m_Best_y;
 	HJ_Explore();
 	double Height = m_Best_y - Saved_Best_y;
-	ProgressLog("%s: HJ_Iter() height %.3g\n", m_Name.c_str(), Height);
+	ProgressLogPrefix("%s: HJ_Iter() height %.3g\n", m_Name.c_str(), Height);
 	if (Height > 0)
 		{
 		if (GetGlobalBool("extend", false))
@@ -245,7 +245,7 @@ bool Peaker::HJ_Iter()
 		return true;
 		}
 	bool ok = ReduceGlobalRateFactor();
-	ProgressLog("%s: HJ_Iter() ReduceGlobalRateFactor %c\n", m_Name.c_str(), tof(ok));
+	ProgressLogPrefix("%s: HJ_Iter() ReduceGlobalRateFactor %c\n", m_Name.c_str(), tof(ok));
 	return ok;
 	}
 
@@ -293,7 +293,7 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 		string TmpStr;
 		VarFloatToStr(VarIdx, IfZero, TmpStr);
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
-		ProgressLog("%s ifzero %s => %s\n", GetVarName(VarIdx),
+		ProgressLogPrefix("%s ifzero %s => %s\n", GetVarName(VarIdx),
 			OldStr.c_str(), NewStr.c_str());
 		return;
 		}
