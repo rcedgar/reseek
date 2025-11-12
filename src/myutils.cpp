@@ -1378,6 +1378,24 @@ void ProgressLogPrefix(const char *Format, ...)
 	g_ProgressPrefixOn = SavedPrefix;
 	}
 
+void ProgressPrefixLog(const char* Format, ...)
+{
+	string Str;
+	va_list ArgList;
+	va_start(ArgList, Format);
+	myvstrprintf(Str, Format, ArgList);
+	va_end(ArgList);
+
+	string PrefixStr;
+	GetProgressPrefixStr(PrefixStr);
+	Log("%s %s", PrefixStr.c_str(), Str.c_str());
+
+	bool SavedPrefix = g_ProgressPrefixOn;
+	g_ProgressPrefixOn = true;
+	Progress("%s", Str.c_str());
+	g_ProgressPrefixOn = SavedPrefix;
+}
+
 void Pr(FILE *f, const char *Format, ...)
 	{
 	if (f == 0)

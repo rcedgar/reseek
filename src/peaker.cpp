@@ -397,8 +397,8 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	string xss;
 	xv2xss(xv, xss);
 	if (dy > 0)
-		ProgressLogPrefix("\n");
-	ProgressLogPrefix("%s%.2g[%.6g] %s /%.2f/ %s\n",
+		ProgressPrefixLog("\n");
+	ProgressPrefixLog("%s%.2g[%.6g] %s /%.2f/ %s\n",
 		(dy > 0 ? ">>>" : ""),
 		dy,
 		m_Best_y,
@@ -406,7 +406,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		GetGlobalRateFactor(),
 		xss.c_str());
 	if (dy > 0)
-		ProgressLogPrefix("\n");
+		ProgressPrefixLog("\n");
 
 	if (m_fTsv != 0)
 		{
@@ -752,12 +752,12 @@ void Peaker::GetTopEvalIdxs(const uint N, vector<uint> &Idxs) const
 
 	QuickSortOrderDesc(m_ys.data(), Count, Order);
 	uint n = min(N, Count);
-	ProgressLogPrefix("GetTopEvalIdxs(%u)\n", n);
+	ProgressPrefixLog("GetTopEvalIdxs(%u)\n", n);
 	for (uint i = 0; i < n; ++i)
 		{
 		uint Idx = Order[i];
 		Idxs.push_back(Idx);
-		ProgressLogPrefix("Top [%2u]  %.3g\n", i+1, m_ys[Idx]);
+		ProgressPrefixLog("Top [%2u]  %.3g\n", i+1, m_ys[Idx]);
 		}
 
 	myfree(Order);
