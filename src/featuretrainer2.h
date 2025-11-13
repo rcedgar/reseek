@@ -103,9 +103,6 @@ static void AppendAlns(
 	vector<uint> &ChainIdxs,
 	vector<bool> &TPs);
 
-static void AddAln(const string &Label1, const string &Row1,
-	const string &Label2, const string &Row2, bool TP);
-
 static void ReadChains(
 	const string &ChainsFN,
 	vector<PDBChain *> &Chains,
@@ -514,11 +511,8 @@ static void TrainDSSFeature(
 	BACKGROUND_STYLE BS,
 	float &BestArea);
 
-static void DumpScoreMx(FILE *f,
+static void ScoreMxToTsv(FILE *f,
 	const vector<vector<float> > &ScoreMx);
-
-static void DumpBinTs(FILE *f,
-	const vector<float> &BinTs);
 
 static void BinTsToSrc(FILE *f,
 	const vector<float> &BinTs);

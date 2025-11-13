@@ -1519,12 +1519,12 @@ void FeatureTrainer2::GetDSSScoreMx(
 		}
 	}
 
-void FeatureTrainer2::DumpScoreMx(FILE *f,
+void FeatureTrainer2::ScoreMxToTsv(FILE *f,
 	const vector<vector<float> > &ScoreMx)
 	{
 	if (f == 0)
 		return;
-	fprintf(f, "%s\t%u\n", FeatureToStr(m_F), m_AlphaSize);
+	fprintf(f, "scoremx\t%u\n", m_AlphaSize);
 	asserta(SIZE(ScoreMx) == m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
@@ -1532,19 +1532,9 @@ void FeatureTrainer2::DumpScoreMx(FILE *f,
 		asserta(SIZE(Row) == m_AlphaSize);
 		fprintf(f, "%u", i);
 		for (uint j = 0; j < m_AlphaSize; ++j)
-			fprintf(f, "\t%.3g", Row[j]);
+			fprintf(f, "\t%.4g", Row[j]);
 		fprintf(f, "\n");
 		}
-	}
-
-void FeatureTrainer2::DumpBinTs(FILE *f,
-	const vector<float> &BinTs)
-	{
-	if (f == 0)
-		return;
-	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
-	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
-		fprintf(f, "%u\t%.3g\n", j, BinTs[j]);
 	}
 
 void FeatureTrainer2::BinTsToSrc(FILE *f,

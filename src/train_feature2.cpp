@@ -59,6 +59,13 @@ void cmd_train_feature2()
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 			ScoreMx, BS, BestArea);
+		FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
+		if (!FeatureIsInt(F))
+			{
+			vector<float> BinTs;
+			DSSParams::GetBinTs(F, BinTs);
+			FeatureTrainer2::BinTsToTsv(fOut, BinTs);
+			}
 		}
 	else
 		{
@@ -83,7 +90,7 @@ void cmd_train_feature2()
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				UndefsAllowed, ReplaceUndefWithThisLetter,
 				BS, ScoreMx, BestArea, fSteps);
-			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
+			FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
 			FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
 			}
 		else
@@ -105,9 +112,9 @@ void cmd_train_feature2()
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				ScoreMx, BinTs, QS, UndefReplaceValue, BestArea, fSteps);
-			FeatureTrainer2::DumpBinTs(fOut, BinTs);
+			FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
+			FeatureTrainer2::BinTsToTsv(fOut, BinTs);
 			FeatureTrainer2::BinTsToSrc(g_fLog, BinTs);
-			FeatureTrainer2::DumpScoreMx(fOut, ScoreMx);
 			FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
 			}
 		}
