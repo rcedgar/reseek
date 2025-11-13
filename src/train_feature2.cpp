@@ -9,9 +9,9 @@ void cmd_train_feature2()
 	DSSParams::Init(DM_DefaultSensitive);
 
 	const string &ChainFN = opt(db);			// "src/reseek/test_data/scop40.bca";
-	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_out/big_out/tp.a.mints05.maxts25.fa2";
-	const string &EvalTPAlnFN = opt(evaltps);	// "src/2025-10_reseek_tune/tp.a.evalrange.fa2";
-	const string &EvalFPAlnFN = opt(evalfps);	// "src/2025-10_reseek_tune/fp.a.evalrange.fa2";
+	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_fa2/tp.mints05.maxts25.fa2";
+	const string &EvalTPAlnFN = opt(evaltps);	// "src/2025-10_reseek_tune/big_fa2/tp.evalrange.fa2";
+	const string &EvalFPAlnFN = opt(evalfps);	// "src/2025-10_reseek_tune/big_fa2/fp.evalrange.fa2";
 
 	FILE *fOut = CreateStdioFile(opt(output));
 
@@ -59,12 +59,16 @@ void cmd_train_feature2()
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 			ScoreMx, BS, BestArea);
-		FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
-		if (!FeatureIsInt(F))
+
+		if (fOut != 0)
 			{
-			vector<float> BinTs;
-			DSSParams::GetBinTs(F, BinTs);
-			FeatureTrainer2::BinTsToTsv(fOut, BinTs);
+			FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
+			if (!FeatureIsInt(F))
+				{
+				vector<float> BinTs;
+				DSSParams::GetBinTs(F, BinTs);
+				FeatureTrainer2::BinTsToTsv(fOut, BinTs);
+				}
 			}
 		}
 	else
@@ -119,5 +123,13 @@ void cmd_train_feature2()
 			}
 		}
 	Log("@FEV@ %s\n", FeatureTrainer2::m_FevStr.c_str());
-	CloseStdioFile(fOut);
+	if (fOut != 0)
+		{
+		string CmdLine;
+		GetCmdLine(CmdLine);
+		fprintf(fOut, "cmd\t%s\n", CmdLine.c_str());
+		fprintf(fOut, "fev\t%s\n", FeatureTrainer2::m_FevStr.c_str());
+		fprintf(fOut, "git\t%s\n", g_GitVer);
+		CloseStdioFile(fOut);
+		}
 	}

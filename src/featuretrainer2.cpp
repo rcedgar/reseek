@@ -1524,7 +1524,7 @@ void FeatureTrainer2::ScoreMxToTsv(FILE *f,
 	{
 	if (f == 0)
 		return;
-	fprintf(f, "scoremx\t%u\n", m_AlphaSize);
+	fprintf(f, "%s\t%u\n", FeatureToStr(m_F), m_AlphaSize);
 	asserta(SIZE(ScoreMx) == m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{

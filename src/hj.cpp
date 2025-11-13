@@ -237,7 +237,10 @@ bool Peaker::HJ_Iter()
 	double Saved_Best_y = m_Best_y;
 	HJ_Explore();
 	double Height = m_Best_y - Saved_Best_y;
-	ProgressPrefixLog("%s: HJ_Iter() height %.3g\n", m_Name.c_str(), Height);
+	double Pct = 0;
+	if (m_Best_y != 0 && Height > 0 && Height < m_Best_y)
+		Pct = GetPct(Height, m_Best_y);
+	ProgressPrefixLog("%s: HJ_Iter() height %.3g (%.2f%%)\n", m_Name.c_str(), Height, Pct);
 	if (Height > 0)
 		{
 		if (GetGlobalBool("extend", false))

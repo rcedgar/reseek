@@ -49,6 +49,18 @@ void DSSParams::SetParam(const string &Name, const string &StrValue)
 		m_GapExt = -Value/10;
 		return;
 		}
+	if (Name == "open")
+		{
+		float Value = StrToFloatf(StrValue);
+		m_GapOpen = -Value;
+		return;
+		}
+	if (Name == "ext")
+		{
+		float Value = StrToFloatf(StrValue);
+		m_GapExt = -Value;
+		return;
+		}
 	if (Name == "logladd")
 		{
 		float Value = StrToFloatf(StrValue);
