@@ -50,5 +50,6 @@ C(float_feature_dists)
 C(hjmega)
 C(evalarea)
 C(dump_float_feature)
+C(confx_train)
 
 #undef C

@@ -79,6 +79,7 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	case FEATURE_MENDist:
 	case FEATURE_PENConf:
 	case FEATURE_MENConf:
+	case FEATURE_PMDist:
 	case FEATURE_PMDistDiff:
 	case FEATURE_HelixDens:
 	case FEATURE_StrandDens:

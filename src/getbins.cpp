@@ -6,15 +6,32 @@ void DSSParams::GetBinTs(FEATURE F, vector<float> &Bins)
 	Bins.clear();
 	uint AlphaSize = GetAlphaSize(F);
 
-//#define PLACEHOLDER(Feat)	\
-//	if (F == FEATURE_##Feat)	\
-//		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
+#define PLACEHOLDER(Feat)	\
+	if (F == FEATURE_##Feat)	\
+		{ for (uint i = 0; i+1 < AlphaSize; ++i) Bins.push_back(FLT_MAX); }
 
 //PLACEHOLDER(PENDist)
 //PLACEHOLDER(MENDist)
 //PLACEHOLDER(PMDistDiff)
+//PLACEHOLDER(PMDist)
 
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
+
+BIN_T(PMDist,  0, 6.954)
+BIN_T(PMDist,  1, 8.641)
+BIN_T(PMDist,  2, 9.441)
+BIN_T(PMDist,  3, 9.982)
+BIN_T(PMDist,  4, 10.67)
+BIN_T(PMDist,  5, 11.44)
+BIN_T(PMDist,  6, 12.28)
+BIN_T(PMDist,  7, 13.17)
+BIN_T(PMDist,  8, 14.05)
+BIN_T(PMDist,  9, 14.99)
+BIN_T(PMDist, 10, 16.12)
+BIN_T(PMDist, 11, 17.51)
+BIN_T(PMDist, 12, 19.4)
+BIN_T(PMDist, 13, 22.49)
+BIN_T(PMDist, 14, FLT_MAX)//@@TODO
 
 // C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
 BIN_T(PENDist,  0, 4.632)

@@ -606,6 +606,20 @@ float DSS::GetFloat_PENDist(uint Pos)
 	return d;
 	}
 
+float DSS::GetFloat_PMDist(uint Pos)
+	{
+	uint PEN = GetPEN(Pos);
+	uint MEN = GetMEN(Pos);
+	if (PEN == UINT_MAX || MEN == UINT_MAX)
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;
+		}
+	float d = m_Chain->GetDist(PEN, MEN);
+	return d;
+	}
+
 float DSS::GetFloat_MENDist(uint Pos)
 	{
 	uint MEN = GetMEN(Pos);

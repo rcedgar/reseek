@@ -280,6 +280,7 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
+    <ClCompile Include="confx.cpp" />
     <ClCompile Include="dssparamdata.cpp" />
     <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />

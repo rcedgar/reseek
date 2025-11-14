@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "pdbchain.h"
+#include "dss.h"
 #include "logodds.h"
 #include "trainer.h"
 #include "sort.h"
@@ -10,10 +11,10 @@ static uint M;
 static vector<int> ivalues;
 static vector<int> jvalues;
 
-static void Getv(const PDBChain &Chain, uint Pos,
-  vector<double> &v)
+static void Getv(DSS &D, uint Pos, vector<double> &v)
 	{
 	v.clear();
+	const PDBChain &Chain = *D.m_Chain;
 	const uint L = Chain.GetSeqLength();
 	if (Pos < 3 || Pos + 3 >= int(L))
 		return;
@@ -29,8 +30,8 @@ static void Getv(const PDBChain &Chain, uint Pos,
 	}
 
 static double GetDist(
-  const vector<double> &v1,
-  const vector<double> &v2)
+	const vector<double> &v1,
+	const vector<double> &v2)
 	{
 	const uint n = SIZE(v1);
 	asserta(SIZE(v2) == n);
@@ -62,23 +63,27 @@ static uint GetLetter(const vector<double> &v)
 
 static const PDBChain *ChainQ;
 static const PDBChain *ChainR;
+static DSS DQ;
+static DSS DR;
 
 static void TrainerOnPair(
-  const Trainer &T, uint ChainIdxQ, uint ChainIdxR,
-  const vector<uint> &PosQs, const vector<uint> &PosRs)
+	const Trainer &T, uint ChainIdxQ, uint ChainIdxR,
+	const vector<uint> &PosQs, const vector<uint> &PosRs)
 	{
 	ChainQ = &T.GetChain(ChainIdxQ);
 	ChainR = &T.GetChain(ChainIdxR);
+	DQ.Init(*ChainQ);
+	DR.Init(*ChainR);
 	}
 
 static void TrainerAlphaCol(
-  const Trainer &T, uint PosQ, uint PosR,
-  uint &LetterQ, uint &LetterR)
+	const Trainer &T, uint PosQ, uint PosR,
+	uint &LetterQ, uint &LetterR)
 	{
 	vector<double> vQ;
 	vector<double> vR;
-	Getv(*ChainQ, PosQ, vQ);
-	Getv(*ChainR, PosR, vR);
+	Getv(DQ, PosQ, vQ);
+	Getv(DR, PosR, vR);
 	if (vQ.empty() || vR.empty())
 		{
 		LetterQ = UINT_MAX;
@@ -91,9 +96,9 @@ static void TrainerAlphaCol(
 	}
 
 static void GetMeans(uint N, uint K, uint M,
-  const vector<vector<double> > &vs,
-  const vector<uint> &ClusterIdxs,
-  vector<vector<double> > &Means)
+	const vector<vector<double> > &vs,
+	const vector<uint> &ClusterIdxs,
+	vector<vector<double> > &Means)
 	{
 	Means.clear();
 	Means.resize(K);
@@ -129,10 +134,10 @@ static void GetMeans(uint N, uint K, uint M,
 	}
 
 static uint Assign(uint N, uint K, uint M,
-  const vector<vector<double> > &vs,
-  const vector<vector<double> > &Means,
-  vector<uint> &ClusterIdxs,
-  vector<uint> &Sizes)
+	const vector<vector<double> > &vs,
+	const vector<vector<double> > &Means,
+	vector<uint> &ClusterIdxs,
+	vector<uint> &Sizes)
 	{
 	Sizes.clear();
 	Sizes.resize(K, 0);
@@ -162,7 +167,7 @@ static uint Assign(uint N, uint K, uint M,
 	return ChangeCount;
 	}
 
-void cmd_sscluster()
+void cmd_confx_train()
 	{
 	Trainer Tr;
 	Tr.Init(g_Arg1, opt(train_cal));
@@ -173,69 +178,28 @@ void cmd_sscluster()
 	const uint N = optset_n ? opt(n) : 100000;
 	asserta(optset_k);
 	K = opt(k);
-	vector<char> sss;
 
 	uint m = 0;
-	for (int i = -2; i <= 2; ++i)
-		for (int j = i+1; j <= 2; ++j)
-			{
-			int minij = min(i, j);
-			int maxij = max(i, j);
-			if (maxij - minij == 1)
-				Log("EXCLUDE Pos%d,%d\n", i, j);
-			else
-				{
-				Log("Pos%d,%d\n", i, j);
-				ivalues.push_back(minij);
-				jvalues.push_back(maxij);
-				}
-			++m;
-			}
-	if (string(opt(myss3)) == "Y")
-		{
-		ivalues.push_back(-3);
-		jvalues.push_back(3);
-
-		ivalues.push_back(0);
-		jvalues.push_back(3);
-
-		ivalues.push_back(-3);
-		jvalues.push_back(0);
-		}
-
 	M = SIZE(ivalues);
 
 	FILE *ftsv = CreateStdioFile(opt(output));
 	for (uint ChainIndex = 0; ChainIndex < ChainCount; ++ChainIndex)
 		{
 		const PDBChain &Chain = *Chains[ChainIndex];
-		const string &Label = Chain.m_Label;
-
-		string SS;
-		Chain.GetSS(SS);
+		DSS D;
+		D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
 		for (int Pos = 0; Pos < int(L); ++Pos)
 			{
 			vector<double> v;
-			Getv(Chain, Pos, v);
+			Getv(D, Pos, v);
 			if (v.empty())
 				continue;
 			vs.push_back(v);
-			char ss = SS[Pos];
-			sss.push_back(ss);
-			if (ftsv != 0)
-				{
-				fprintf(ftsv, "%c", ss);
-				for (uint i = 0; i < M; ++i)
-					fprintf(ftsv, "\t%.4g", v[i]);
-				fprintf(ftsv, "\n");
-				}
 			if (SIZE(vs) == N)
 				break;
 			}
 		}
-	CloseStdioFile(ftsv);
-	ftsv = 0;
 
 	vector<uint> ClusterIdxs;
 	for (uint i = 0; i < N; ++i)
@@ -258,8 +222,8 @@ void cmd_sscluster()
 				Log(" %10.4g", Means[k][j]);
 			Log("\n");
 			}
-		uint ChangeCount = 
-		  Assign(N, K, M, vs, Means, ClusterIdxs, Sizes);
+		uint ChangeCount =
+			Assign(N, K, M, vs, Means, ClusterIdxs, Sizes);
 		ProgressLog("Iter %u, %u changes\n", Iter, ChangeCount);
 		Log("Sizes");
 		for (uint k = 0; k < K; ++k)
@@ -275,29 +239,6 @@ void cmd_sscluster()
 	vector<uint> Order(K);
 	QuickSortOrderDesc(Sizes.data(), K, Order.data());
 
-	vector<vector<uint> > Correl(K);
-	vector<vector<uint> > InvCorrel(4);
-	for (uint k = 0; k < K; ++k)
-		Correl[k].resize(4, 0);
-
-	for (uint m = 0; m < 4; ++m)
-		InvCorrel[m].resize(K, 0);
-
-	for (uint i = 0; i < N; ++i)
-		{
-		char ss = sss[i];
-		uint k = ClusterIdxs[i];
-		asserta(k < K);
-		switch (ss)
-			{
-		case 'h': Correl[k][0] += 1; InvCorrel[0][k] += 1; break;
-		case 's': Correl[k][1] += 1; InvCorrel[1][k] += 1; break;
-		case '~': Correl[k][2] += 1; InvCorrel[2][k] += 1; break;
-		case 't': Correl[k][3] += 1; InvCorrel[3][k] += 1; break;
-			}
-		}
-
-	Log("=========================================================\n");
 	double TopPct = GetPct(Sizes[Order[0]], N);
 	Log("Seed %u K=%u\n", opt(randseed), K);
 	Log("Sizes");
@@ -325,35 +266,12 @@ void cmd_sscluster()
 		}
 
 	Log("\n");
-	for (uint kk = 0; kk < K; ++kk)
-		{
-		uint k = Order[kk];
-		Log("%2u: ", kk);
-		for (uint m = 0; m < 4; ++m)
-			Log(" %c(%7u)", "hs~t"[m], Correl[k][m]);
-		Log("\n");
-		}
-
-	Log("\n");
-	for (uint m = 0; m < 4; ++m)
-		{
-		Log("%c: ", "hs~t"[m]);
-		uint Sum = 0;
-		for (uint kk = 0; kk < K; ++kk)
-			{
-			uint k = Order[kk];
-			uint n = InvCorrel[m][k];
-			Log(" %2u(%7u)", k, n);
-			Sum += n;
-			}
-		Log("  = %u\n", Sum);
-		}
 
 	LogOdds LO;
 	Tr.TrainLogOdds(K, TrainerOnPair, TrainerAlphaCol, LO);
 	vector<vector<float> > ScoreMx;
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
-	ProgressLog("K=%u myss3=%s M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
-	  K, opt(myss3), M, N, opt(randseed), TopPct, ExpectedScore);
+	ProgressLog("K=%u M=%u N=%u seed=%u top=%.1f%% ES=%.3g\n",
+		K, M, N, opt(randseed), TopPct, ExpectedScore);
 	LO.MxToSrc(g_fLog, "Conf", ScoreMx);
 	}
