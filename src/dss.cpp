@@ -565,11 +565,7 @@ float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint REN = GetREN(Pos);
 	if (REN == UINT_MAX)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;
-		}
+		return FLT_MAX;
 	float d = m_Chain->GetDist(Pos, REN);
 	return d;
 	}
@@ -579,12 +575,7 @@ float DSS::GetFloat_PMDistDiff(uint Pos)
 	float pd = GetFloat_PENDist(Pos);
 	float md = GetFloat_MENDist(Pos);
 	if (pd == FLT_MAX || md == FLT_MAX)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		else
-			return 0;
-		}
+		return FLT_MAX;
 	float diff = pd - md;
 	if (diff < -20)
 		diff = -20;
@@ -597,11 +588,7 @@ float DSS::GetFloat_PENDist(uint Pos)
 	{
 	uint PEN = GetPEN(Pos);
 	if (PEN == UINT_MAX)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;
-		}
+		return FLT_MAX;
 	float d = m_Chain->GetDist(Pos, PEN);
 	return d;
 	}
@@ -611,11 +598,7 @@ float DSS::GetFloat_PMDist(uint Pos)
 	uint PEN = GetPEN(Pos);
 	uint MEN = GetMEN(Pos);
 	if (PEN == UINT_MAX || MEN == UINT_MAX)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;
-		}
+		return FLT_MAX;
 	float d = m_Chain->GetDist(PEN, MEN);
 	return d;
 	}
@@ -624,11 +607,7 @@ float DSS::GetFloat_MENDist(uint Pos)
 	{
 	uint MEN = GetMEN(Pos);
 	if (MEN == UINT_MAX)
-		{
-		if (opt(force_undef))
-			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;
-		}
+		return FLT_MAX;
 	float d = m_Chain->GetDist(Pos, MEN);
 	return d;
 	}
@@ -772,6 +751,7 @@ uint DSS::GetFeature(uint FeatureIndex, uint Pos)
 	switch (FeatureIndex)
 		{
 		case FEATURE_AA:
+		case FEATURE_B62:
 			{
 			char AminoChar = m_Chain->m_Seq[Pos];
 			uint AminoLetter = g_CharToLetterAmino[AminoChar];

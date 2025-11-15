@@ -2,6 +2,8 @@
 #include "features.h"
 #include "dss.h"
 
+extern float B62_S_ij[20][20];
+
 // Keep these static, g_ScoreMxs2 and g_AlphaSizes2[] are global
 
 static float PMDist_S_ij[16][16] = {
@@ -322,6 +324,7 @@ static bool Init()
 	asserta(DSSParams::GetAlphaSize(FEATURE_MENConf) == 16);
 
 	g_AlphaSizes2[FEATURE_AA] = 20;
+	g_AlphaSizes2[FEATURE_B62] = 20;
 	g_AlphaSizes2[FEATURE_NENDist] = 16;
 	g_AlphaSizes2[FEATURE_Conf] = 16;
 	g_AlphaSizes2[FEATURE_NENConf] = 16;
@@ -344,6 +347,15 @@ static bool Init()
 		for (uint j = 0; j < 20; ++j)
 			{
 			g_ScoreMxs2[FEATURE_AA][i][j] = (float) AA_S_ij[i][j];
+			}
+		}
+	g_ScoreMxs2[FEATURE_B62] = myalloc(float *, 20);
+	for (uint i = 0; i < 20; ++i)
+		{
+		g_ScoreMxs2[FEATURE_B62][i] = myalloc(float, 20);
+		for (uint j = 0; j < 20; ++j)
+			{
+			g_ScoreMxs2[FEATURE_B62][i][j] = (float) B62_S_ij[i][j];
 			}
 		}
 	g_ScoreMxs2[FEATURE_PENConf] = myalloc(float *, 16);

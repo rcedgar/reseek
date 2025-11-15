@@ -44,6 +44,7 @@ bool FeatureIsInt(FEATURE f)
 	switch (f)
 		{
 	case FEATURE_AA: return true;
+	case FEATURE_B62: return true;
 
 #define F(x)	case FEATURE_##x: return true;
 #include "intfeatures.h"

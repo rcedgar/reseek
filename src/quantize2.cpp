@@ -120,7 +120,7 @@ void FeatureTrainer2::Quantize_UndefDistinct(
 // Special case bin threshold for undef, Letter=m_AlphaSize-1
 // All values except FLT_MAX will be < this threshold
 // *MUST* use < *NOT* <= in ValueToInt_xxx
-	BinTs.push_back(FLT_MAX);
+	BinTs.push_back(VERY_LARGE_FLOAT);
 	}
 
 void FeatureTrainer2::Quantize_UndefReplaceUser(

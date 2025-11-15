@@ -52,6 +52,7 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	switch (F)
 		{
 	case FEATURE_AA:
+	case FEATURE_B62:
 		return 20;
 
 	case FEATURE_SS:
@@ -335,7 +336,8 @@ void DSSParams::SetStandardFeatures()
 	if (opt(newparams))
 		{
 		// git [3d7ef20]
-		// SEPQ0.1=0.226 SEPQ1=0.330 SEPQ10=0.423 Area0=0.829 Area3=1.156
+		// scop40c SEPQ0.1=0.282 SEPQ1=0.374 SEPQ10=0.452 Area0=0.979 Sum3=1.577 -fast ../data/scop40c.bca
+		// scop40  SEPQ0.1=0.226 SEPQ1=0.330 SEPQ10=0.423 Area0=0.829 Area3=1.156 Sum3=1.370
 		// AA=4.4E-01;NENDist=1.6E-01;Conf=1.9E-01;NENConf=8.3E-02;RENDist=5.2E-02;DstNxtHlx=4.4E-02;StrandDens=0.0E+00;NormDens=4.0E-02;
 		AddFeature(FEATURE_AA,			4.4E-01f);
 		AddFeature(FEATURE_NENDist,		1.6E-01f);
@@ -353,43 +355,10 @@ void DSSParams::SetStandardFeatures()
 		m_revtsw = 2.5E+00f;
 		m_ladd = powf(10, 2.4E+00f);
 		}
-
-#if 0
-	if (opt(newparams))
-		{
-		// SEPQ0.1=0.217 SEPQ1=0.328 SEPQ10=0.427 Area0=0.815 Area3=1.139
-		// AA=4.87E-01;NENDist=1.51E-01;Conf=2.31E-01;NENConf=5.47E-02;RENDist=7.52E-02;
-		AddFeature(FEATURE_AA,			4.78E-01f);
-		AddFeature(FEATURE_NENDist,		1.51E-01f);
-		AddFeature(FEATURE_Conf,		2.31E-01f);
-		AddFeature(FEATURE_NENConf,		5.47E-02f);
-		AddFeature(FEATURE_RENDist,		7.52E-02f);
-
-		// gap2=9.47E-01;dpw=2.26E+00;lddtw=2.60E-01;revtsw=2.68E+00;logladd=2.22E+00;
-		m_GapOpen = -9.47E-01f;
-		m_GapExt = m_GapOpen/10;
-		m_dpw = 2.26E+00f;
-		m_lddtw = 2.60E-01f;
-		m_revtsw = 2.68E+00f;
-		m_ladd = powf(10, 2.22E+00f);
-		}
-	if (opt(newparams))
-		{
-	////////////////////////////////////////////////////////
-	// AA=4.2E-01;NENDist=1.6E-01;Conf=2.3E-01;NENConf=1.3E-01;RENDist=5.6E-02gap2=8.0E-01;
-		AddFeature(FEATURE_AA,			4.2E-01f);
-		AddFeature(FEATURE_NENDist,		1.6E-01f);
-		AddFeature(FEATURE_Conf,		2.3E-01f);
-		AddFeature(FEATURE_NENConf,		1.3E-01f);
-		AddFeature(FEATURE_RENDist,		5.6E-02f);
-
-		m_GapOpen = -8.0E-01f;
-		m_GapExt = m_GapOpen/10;
-		}
-#endif
 	else
 		{
-		// SEPQ0.1=0.211 SEPQ1=0.324 SEPQ10=0.423 Area0=0.800 Area3=1.119
+		// scop40c SEPQ0.1=0.276 SEPQ1=0.368 SEPQ10=0.449 Area0=0.960             Sum3=1.553 -fast ../data/scop40c.bca
+		// scop40  SEPQ0.1=0.211 SEPQ1=0.324 SEPQ10=0.423 Area0=0.800 Area3=1.119 Sum3=1.351
 		AddFeature(FEATURE_AA,			0.398145f);
 		AddFeature(FEATURE_NENDist,		0.129367f);
 		AddFeature(FEATURE_Conf,		0.202354f);

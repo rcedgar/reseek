@@ -31,7 +31,7 @@ BIN_T(PMDist, 10, 16.12)
 BIN_T(PMDist, 11, 17.51)
 BIN_T(PMDist, 12, 19.4)
 BIN_T(PMDist, 13, 22.49)
-BIN_T(PMDist, 14, FLT_MAX)//@@TODO
+BIN_T(PMDist, 14, 1e38f)
 
 // C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
 BIN_T(PENDist,  0, 4.632)
@@ -48,7 +48,7 @@ BIN_T(PENDist, 10, 11.1)
 BIN_T(PENDist, 11, 12.69)
 BIN_T(PENDist, 12, 15.26)
 BIN_T(PENDist, 13, 18.54)
-BIN_T(PENDist, 14, FLT_MAX)//@@TODO
+BIN_T(PENDist, 14, 1e38f)
 
 // C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
 BIN_T(MENDist,  0, 4.631)
@@ -65,7 +65,7 @@ BIN_T(MENDist, 10, 10.84)
 BIN_T(MENDist, 11, 12.32)
 BIN_T(MENDist, 12, 14.76)
 BIN_T(MENDist, 13, 18.44)
-BIN_T(MENDist, 14, FLT_MAX)//@@TODO
+BIN_T(MENDist, 14, 1e38f)
 
 // C:\src\notebooks\2025-10_reseek_tune_train_pms.txt
 BIN_T(PMDistDiff,  0, -10.98)
@@ -82,7 +82,7 @@ BIN_T(PMDistDiff, 10, 4.086)
 BIN_T(PMDistDiff, 11, 5.486)
 BIN_T(PMDistDiff, 12, 7.844)
 BIN_T(PMDistDiff, 13, 11.24)
-BIN_T(PMDistDiff, 14, FLT_MAX) //@@TODO
+BIN_T(PMDistDiff, 14, 1e38f)
 
 // Agree with DSS::ValueToInt_NormDens()
 BIN_T(NormDens, 0, 0.241);

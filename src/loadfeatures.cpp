@@ -19,7 +19,7 @@ valuetoint_new.cpp(19):	static bool Init()
 valuetoint_new.cpp(59)	uint DSSParams::ValueToInt_Feature(FEATURE F, float Value);
 ***/
 
-FEATURE DSSParams::LoadFeature(const string &FN, float Weight)
+FEATURE DSSParams::LoadFeatureScoreMxAndBinTs(const string &FN)
 	{
 	vector<vector<float> > ScoreMx;
 	FILE *f = OpenStdioFile(FN);
@@ -61,7 +61,12 @@ FEATURE DSSParams::LoadFeature(const string &FN, float Weight)
 		OverwriteBinTs(F, BinTs);
 		}
 	CloseStdioFile(f);
+	return F;
+	}
 
+FEATURE DSSParams::LoadFeature(const string &FN, float Weight)
+	{
+	FEATURE F = LoadFeatureScoreMxAndBinTs(FN);
 	AddFeature(F, Weight);
 	return F;
 	}

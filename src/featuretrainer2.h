@@ -6,6 +6,8 @@
 #include "dss.h"
 #include "peaker.h"
 
+static const float VERY_LARGE_FLOAT = powf(10, FLT_MAX_10_EXP);
+
 enum QUANTIZE_STYLE
 	{
 	QS_Invalid,

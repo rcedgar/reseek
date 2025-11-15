@@ -96,6 +96,7 @@ public:
 
 	static void LoadFeatures(const string &FN);
 	static FEATURE LoadFeature(const string &FN, float Weight);
+	static FEATURE LoadFeatureScoreMxAndBinTs(const string &FN);
 
 	static void NormalizeWeights();
 	static void AllocScoreMxs();
