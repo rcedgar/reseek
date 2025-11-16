@@ -51,5 +51,6 @@ C(hjmega)
 C(evalarea)
 C(dump_float_feature)
 C(confx_train)
+C(nucluster)
 
 #undef C

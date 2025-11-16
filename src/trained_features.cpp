@@ -2,6 +2,8 @@
 #include "features.h"
 #include "dss.h"
 
+#pragma warning(disable:4305) // double -> float
+
 extern float B62_S_ij[20][20];
 
 // Keep these static, g_ScoreMxs2 and g_AlphaSizes2[] are global

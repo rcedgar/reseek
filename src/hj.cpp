@@ -147,10 +147,6 @@ void Peaker::HJ_Explore()
 		ProgressPrefixLog("  %s", m_Best_descs[i].c_str());
 		ProgressPrefixLog("\n");
 		}
-
-	double rf = GetGlobalRateFactor();
-	ProgressPrefixLog("Global rate factor %.2f\n", GetGlobalRateFactor());
-	ProgressPrefixLog("\n");
 	}
 
 void Peaker::HJ_Extend()
@@ -240,7 +236,8 @@ bool Peaker::HJ_Iter()
 	double Pct = 0;
 	if (m_Best_y != 0 && Height > 0 && Height < m_Best_y)
 		Pct = GetPct(Height, m_Best_y);
-	ProgressPrefixLog("%s: HJ_Iter() height %.3g (%.2f%%)\n", m_Name.c_str(), Height, Pct);
+	ProgressPrefixLog("%s: [%.5g] HJ_Iter() height %.3g (%.2f%%) /%.2f/\n\n",
+		m_Name.c_str(), m_Best_y, Height, Pct, GetGlobalRateFactor());
 	if (Height > 0)
 		{
 		if (GetGlobalBool("extend", false))
