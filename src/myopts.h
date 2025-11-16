@@ -152,7 +152,7 @@ FLAG_OPT(dss)
 FLAG_OPT(initonly)
 FLAG_OPT(raw)
 FLAG_OPT(newparams)
-FLAG_OPT(ratenoise)
+FLAG_OPT(modal)
 
 #undef FLAG_OPT
 #undef UNS_OPT

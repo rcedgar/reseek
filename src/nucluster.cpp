@@ -2,10 +2,13 @@
 #include "pdbchain.h"
 #include "dss.h"
 #include "sort.h"
+#include "binner.h"
+#include <omp.h>
 
 static vector<vector<byte> > s_Cols;
 static vector<vector<byte> > s_Centroids;
 static vector<uint> s_ClusterIdxs;
+static vector<uint> s_ClusterSizes;
 static uint s_K = UINT_MAX;
 
 static void Load(const string &ChainsFN)
@@ -89,6 +92,7 @@ static uint AssignCluster(uint ColIdx)
 	{
 	const vector<byte> &Col = s_Cols[ColIdx];
 	asserta(SIZE(s_Centroids) == s_K);
+	asserta(SIZE(s_ClusterSizes) == s_K);
 	uint BestClusterIdx = UINT_MAX;
 	float BestScore = -999;
 	for (uint ClusterIdx = 0; ClusterIdx < s_K; ++ClusterIdx)
@@ -113,6 +117,11 @@ static uint AssignClusters()
 		{
 		s_ClusterIdxs.clear();
 		s_ClusterIdxs.resize(ColCount, UINT_MAX);
+
+		uint ColCount = SIZE(s_Cols);
+		uint IdealSize = ColCount/s_K;
+		s_ClusterSizes.clear();
+		s_ClusterSizes.resize(s_K, IdealSize);
 		}
 	else
 		asserta(SIZE(s_ClusterIdxs) == ColCount);
@@ -123,6 +132,7 @@ static uint AssignClusters()
 			{
 			++ChangeCount;
 			s_ClusterIdxs[ColIdx] = ClusterIdx;
+			s_ClusterSizes[ClusterIdx] += 1;
 			}
 		}
 	return ChangeCount;
@@ -182,6 +192,57 @@ static byte GetModalLetter(const vector<uint> ColIdxs, uint FeatureIdx)
 	return BestLetter;
 	}
 
+static void GetCentroid_ModalLetter(
+	const vector<uint> &ColIdxs, vector<byte> &Centroid)
+	{
+	Centroid.clear();
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+		{
+		byte Letter = GetModalLetter(ColIdxs, FeatureIdx);
+		Centroid.push_back(Letter);
+		}
+	}
+
+static float GetAvgScore(const vector<byte> &Col,
+	const vector<uint> &ColIdxs)
+	{
+	uint n = SIZE(ColIdxs);
+	if (n == 0)
+		return 0;
+	float Total = 0;
+	for (uint i = 0; i < n; ++i)
+		Total += GetScoreColPair(Col, s_Cols[ColIdxs[i]]);
+	return Total/n;
+	}
+
+static void GetCentroid_MaximizeScore(
+	const vector<uint> &ColIdxs, vector<byte> &Centroid)
+	{
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	Centroid.clear();
+	Centroid.resize(FeatureCount, 0);
+	vector<vector<byte> > Cols;
+	const uint N = SIZE(ColIdxs);
+	if (N == 0)
+		return;
+	float BestAvgScore = -999;
+#pragma omp parallel for num_threads(32)
+	for (int i = 0; i < int(N); ++i)
+		{
+		const vector<byte> &Col = s_Cols[ColIdxs[randu32()%N]];
+		float Score = GetAvgScore(Col, ColIdxs);
+#pragma omp critical
+		{
+		if (Score > BestAvgScore)
+			{
+			BestAvgScore = Score;
+			Centroid = Col;
+			}
+		}
+		}
+	}
+
 static void GetNewCentroid(uint ClusterIdx, vector<byte> &Centroid)
 	{
 	Centroid.clear();
@@ -189,23 +250,25 @@ static void GetNewCentroid(uint ClusterIdx, vector<byte> &Centroid)
 	Centroid.resize(FeatureCount, UINT8_MAX);
 	vector<uint> ColIdxs;
 	GetColIdxs(ClusterIdx, ColIdxs);
-	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
-		{
-		byte Letter = GetModalLetter(ColIdxs, FeatureIdx);
-		Centroid[FeatureIdx] = Letter;
-		}
+	if (opt(modal))
+		return GetCentroid_ModalLetter(ColIdxs, Centroid);
+	return GetCentroid_MaximizeScore(ColIdxs, Centroid);
 	}
 
 static void SetNewCentroids()
 	{
 	for (uint ClusterIdx = 0; ClusterIdx < s_K; ++ClusterIdx)
+		{
+		ProgressStep(ClusterIdx, s_K, "New centroids");
 		GetNewCentroid(ClusterIdx, s_Centroids[ClusterIdx]);
+		}
 	}
 
 static void LogClusters()
 	{
 	const uint FeatureCount = SIZE(DSSParams::m_Features);
-	Log("Cluster     Size");
+	Log("\n");
+	Log("Cluster     Size    AvgScore   SelfScore");
 	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
 		FEATURE F = DSSParams::m_Features[FeatureIdx];
@@ -222,13 +285,22 @@ static void LogClusters()
 	vector<uint> Order(s_K);
 	QuickSortOrderDesc(Sizes.data(), s_K, Order.data());
 	uint SumSize = 0;
+	float TotalAvgScore = 0;
 	for (uint j = 0; j < s_K; ++j)
 		{
 		uint ClusterIdx = Order[j];
 		uint Size = Sizes[ClusterIdx];
 		SumSize += Size;
+		vector<uint> ColIdxs;
+		GetColIdxs(ClusterIdx, ColIdxs);
+		const vector<byte> &Centroid = s_Centroids[ClusterIdx];
+		float AvgScore = GetAvgScore(Centroid, ColIdxs);
+		TotalAvgScore += AvgScore;
+		float SelfScore = GetScoreColPair(Centroid, Centroid);
 		Log("%7u", ClusterIdx);
 		Log("  %7u", Size);
+		Log("  %10.3g", AvgScore);
+		Log("  %10.3g", SelfScore);
 		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 			{
 			byte Letter = s_Centroids[ClusterIdx][FeatureIdx];
@@ -237,8 +309,29 @@ static void LogClusters()
 		Log("\n");
 		}
 	Log("%7.7s", "Total");
-	Log("  %7u\n", SumSize);
+	Log("  %7u", SumSize);
+	Log("  %10.3g\n", TotalAvgScore/s_K);
 	asserta(SumSize == SIZE(s_Cols));
+	}
+
+static void LogScoreBins()
+	{
+	vector<float> Scores;
+	const uint N = 1000000;
+	const uint ColCount = SIZE(s_Cols);
+	Scores.reserve(N);
+	for (uint i = 0; i < N; ++i)
+		{
+		uint Idx1 = randu32()%ColCount;
+		uint Idx2 = randu32()%ColCount;
+		const vector<byte> &Col1 = s_Cols[Idx1];
+		const vector<byte> &Col2 = s_Cols[Idx2];
+		float Score = GetScoreColPair(Col1, Col2);
+		Scores.push_back(Score);
+		}
+	Binner<float> B(Scores, 32);
+	Log("\n");
+	B.ToHist(g_fLog);
 	}
 
 void cmd_nucluster()
@@ -250,14 +343,38 @@ void cmd_nucluster()
 	s_K = opt(k);
 
 	Load(ChainsFN);
+	LogScoreBins();
 	SetInitialCentroids();
 	const uint ITERS = 100;
+	const uint IMPROVED_WINDOW = 10;
+	vector<uint> ChangeCounts;
+	uint BestIter = UINT_MAX;
+	uint MinChangeCount = UINT_MAX;
+	vector<vector<byte> > BestCentroids;
 	for (uint Iter = 0; Iter < ITERS; ++Iter)
 		{
 		uint ChangeCount = AssignClusters();
-		Progress("Iter %u, changes %u\n", Iter+1, ChangeCount);
 		if (ChangeCount == 0)
+			{
+			Progress("Iter %u, converged no changes\n", Iter+1);
 			break;
+			}
+		ChangeCounts.push_back(ChangeCount);
+		int dc = int(MinChangeCount) - int(ChangeCount);
+		int di = int(Iter) - int(BestIter);
+		Progress("Iter %u, changes %u [%+d, %u]\n", Iter+1, ChangeCount, dc, di);
+		if (ChangeCount < MinChangeCount)
+			{
+			BestIter = Iter;
+			MinChangeCount = ChangeCount;
+			BestCentroids = s_Centroids;
+			}
+		if (Iter - BestIter > IMPROVED_WINDOW)
+			{
+			ProgressLog("Converged, best iter %u\n", BestIter+1);
+			s_Centroids = BestCentroids;
+			break;
+			}
 		SetNewCentroids();
 		}
 	LogClusters();
