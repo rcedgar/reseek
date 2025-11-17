@@ -13,6 +13,7 @@ public:
 	void Init(uint AlphaSize);
 	void ResetCountsToZero();
 	void AddUnalignedLetter(uint Letter);
+	void AddPseudoCount(uint n);
 	uint GetBackgroundCount(uint Letter) const;
 	void AddPair(uint Letter1, uint Letter2);
 	void GetFreqs(vector<float> &Freqs) const;
@@ -22,6 +23,8 @@ public:
 	  vector<vector<int8_t> > &Mxi, int8_t MaxAbsi) const;
 	uint GetTrueTotal() const;
 	void MxToSrc(FILE *f, const string &Name, 
+	  const vector<vector<float> > &Mx) const;
+	void MxToTsv(FILE *f, const string &Name, 
 	  const vector<vector<float> > &Mx) const;
 	void MxToSrc2(FILE *f, const string &Name, 
 	  const vector<vector<float> > &Mx, uint EffAlphaSize) const;

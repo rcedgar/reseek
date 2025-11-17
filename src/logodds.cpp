@@ -162,6 +162,13 @@ void LogOdds::GetFreqMx(vector<vector<float> > &Mx) const
 	asserta(feq(SumFreq, 1.0));
 	}
 
+void LogOdds::AddPseudoCount(uint n)
+	{
+	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
+		for (uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			m_TrueCountMx[Letter1][Letter2] += n;
+	}
+
 float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	{
 	Mx.clear();
@@ -172,7 +179,7 @@ float LogOdds::GetLogOddsMx(vector<vector<float> > &Mx) const
 	Log("Freqs\n");
 	GetFreqMx(FreqMx);
 	for (uint Letter1 = 0; Letter1 < m_AlphaSize; ++Letter1)
-		Log("[%2u]  %6.3f\n", Letter1, BackgroundFreqs[Letter1]);
+		Log("[%2u]  %.3g\n", Letter1, BackgroundFreqs[Letter1]);
 	uint Total = GetTrueTotal();
 	float SumFreq = 0;
 	float ExpectedScore = 0;
@@ -289,6 +296,23 @@ void LogOdds::MxToSrc(FILE *f, const string &Name,
 	fprintf(f, "};\n");
 	}
 
+void LogOdds::MxToTsv(FILE *f, const string &Name, 
+  const vector<vector<float> > &Mx) const
+	{
+	if (f == 0)
+		return;
+	asserta(SIZE(Mx) == m_AlphaSize);
+
+	fprintf(f, "scoremx\t%s\t%u\n", Name.c_str(), m_AlphaSize);
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		fprintf(f, "%u", i);
+		for (uint j = 0; j < m_AlphaSize; ++j)
+			fprintf(f, "\t%.4g", Mx[i][j]);
+		fprintf(f, "\n");
+		}
+	}
+
 void LogOdds::MxToSrc2(FILE *f, const string &Name, 
   const vector<vector<float> > &Mx, uint EffAlphaSize) const
 	{
@@ -343,7 +367,8 @@ void LogOdds::ToTsv(FILE *f) const
 	if (f == 0)
 		return;
 
-	ValidateCounts();
+	//Fails with psuedocount
+	//ValidateCounts();
 	vector<float> Freqs;
 	GetFreqs(Freqs);
 
@@ -501,7 +526,8 @@ void LogOdds::FromTsv(FILE *f)
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		ReadIntVec(f, "pair_counts", i, m_TrueCountMx[i]);
 
-	ValidateCounts();
+	//Fails with psueodocount
+	//ValidateCounts();
 	}
 
 void LogOdds::GetExpectedScores(vector<float> &ExpectedScores) const

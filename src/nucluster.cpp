@@ -3,6 +3,7 @@
 #include "dss.h"
 #include "sort.h"
 #include "binner.h"
+#include "trainer.h"
 #include <omp.h>
 
 static vector<vector<byte> > s_Cols;
@@ -10,6 +11,23 @@ static vector<vector<byte> > s_Centroids;
 static vector<uint> s_ClusterIdxs;
 static vector<uint> s_ClusterSizes;
 static uint s_K = UINT_MAX;
+
+static vector<vector<byte> > s_Profile_Q;
+static vector<vector<byte> > s_Profile_T;
+
+static void GetProfileCol(const vector<vector<byte> > &Profile,
+	uint Pos, vector<byte> &Col)
+	{
+	Col.clear();
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	Col.reserve(FeatureCount);
+	asserta(SIZE(Profile) == FeatureCount);
+	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+		{
+		const vector<byte> &Row = Profile[FeatureIdx];
+		Col.push_back(Row[Pos]);
+		}
+	}
 
 static void Load(const string &ChainsFN)
 	{
@@ -19,10 +37,9 @@ static void Load(const string &ChainsFN)
 	const uint ChainCount = SIZE(Chains);
 	DSS D;
 	vector<vector<byte> > Profile;
-
 	const uint FeatureCount = SIZE(DSSParams::m_Features);
 	s_Cols.reserve(300*ChainCount);
-	vector<byte> Col(FeatureCount);
+	vector<byte> Col;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Profiles");
@@ -34,11 +51,7 @@ static void Load(const string &ChainsFN)
 		asserta(SIZE(Profile) == FeatureCount);
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
-				{
-				const vector<byte> &Row = Profile[FeatureIdx];
-				Col[FeatureIdx] = Row[Pos];
-				}
+			GetProfileCol(Profile, Pos, Col);
 			s_Cols.push_back(Col);
 			}
 		}
@@ -88,9 +101,8 @@ static float GetScoreColPair(const vector<byte> &Col1, const vector<byte> &Col2)
 	return Score;
 	}
 
-static uint AssignCluster(uint ColIdx)
+static uint AssignCluster(const vector<byte> &Col)
 	{
-	const vector<byte> &Col = s_Cols[ColIdx];
 	asserta(SIZE(s_Centroids) == s_K);
 	asserta(SIZE(s_ClusterSizes) == s_K);
 	uint BestClusterIdx = UINT_MAX;
@@ -127,7 +139,8 @@ static uint AssignClusters()
 		asserta(SIZE(s_ClusterIdxs) == ColCount);
 	for (uint ColIdx = 0; ColIdx < ColCount; ++ColIdx)
 		{
-		uint ClusterIdx = AssignCluster(ColIdx);
+		const vector<byte> &Col = s_Cols[ColIdx];
+		uint ClusterIdx = AssignCluster(Col);
 		if (ClusterIdx != s_ClusterIdxs[ColIdx])
 			{
 			++ChangeCount;
@@ -314,6 +327,56 @@ static void LogClusters()
 	asserta(SumSize == SIZE(s_Cols));
 	}
 
+static void ClustersToTsv(FILE *f)
+	{
+	if (f == 0)
+		return;
+	vector<uint> Sizes;
+	for (uint ClusterIdx = 0; ClusterIdx < s_K; ++ClusterIdx)
+		{
+		uint Size = GetClusterSize(ClusterIdx);
+		Sizes.push_back(Size);
+		}
+	vector<uint> Order(s_K);
+	QuickSortOrderDesc(Sizes.data(), s_K, Order.data());
+	uint SumSize = 0;
+	float TotalAvgScore = 0;
+
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	fprintf(f, "AS\t%u\n", s_K);
+	fprintf(f, "Cluster");
+	fprintf(f, "\tSize");
+	fprintf(f, "\tAvgScore");
+	fprintf(f, "\tSelfScore");
+	for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+		fprintf(f, "\t%s", FeatureToStr(DSSParams::m_Features[FeatureIdx]));
+	fprintf(f, "\n");
+	for (uint j = 0; j < s_K; ++j)
+		{
+		uint ClusterIdx = Order[j];
+		uint Size = Sizes[ClusterIdx];
+		SumSize += Size;
+		vector<uint> ColIdxs;
+		GetColIdxs(ClusterIdx, ColIdxs);
+		const vector<byte> &Centroid = s_Centroids[ClusterIdx];
+		float AvgScore = GetAvgScore(Centroid, ColIdxs);
+		TotalAvgScore += AvgScore;
+		float SelfScore = GetScoreColPair(Centroid, Centroid);
+
+		fprintf(f, "%u", j);
+		fprintf(f, "\t%u", Size);
+		fprintf(f, "\t%.3g", AvgScore);
+		fprintf(f, "\t%.3g", SelfScore);
+		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+			{
+			byte Letter = s_Centroids[ClusterIdx][FeatureIdx];
+			fprintf(f, "\t%u", Letter);
+			}
+		fprintf(f, "\n");
+		}
+	asserta(SumSize == SIZE(s_Cols));
+	}
+
 static void LogScoreBins()
 	{
 	vector<float> Scores;
@@ -332,6 +395,72 @@ static void LogScoreBins()
 	Binner<float> B(Scores, 32);
 	Log("\n");
 	B.ToHist(g_fLog);
+	}
+
+static void TrainerOnPair(
+  const Trainer &T, uint ChainIdxQ, uint ChainIdxT,
+  const vector<uint> &PosQs, const vector<uint> &PosRs)
+	{
+	DSS D;
+	const PDBChain &ChainQ = T.GetChain(ChainIdxQ);
+	const PDBChain &ChainT = T.GetChain(ChainIdxT);
+	D.Init(ChainQ);
+	D.GetProfile(s_Profile_Q);
+
+	D.Init(ChainT);
+	D.GetProfile(s_Profile_T);
+	}
+
+static void ChainToFasta(FILE *f, const PDBChain &Chain)
+	{
+	if (f == 0)
+		return;
+	DSS D;
+	D.Init(Chain);
+	vector<vector<byte> > Profile;
+	D.GetProfile(Profile);
+	const uint L = Chain.GetSeqLength();
+	vector<byte> Col;
+	string HexSeq;
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		GetProfileCol(Profile, Pos, Col);
+		uint ClusterIdx = AssignCluster(Col);
+		asserta(ClusterIdx < s_K);
+		Psa(HexSeq, "%02x", ClusterIdx);
+		}
+	SeqToFasta(f, Chain.m_Label, HexSeq);
+	}
+
+static void ChainsToFasta(const vector<PDBChain *> &Chains, const string &FN)
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	const uint ChainCount = SIZE(Chains);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "%s", FN.c_str());
+		const PDBChain &Chain = *Chains[ChainIdx];
+		ChainToFasta(f, Chain);
+		}
+	CloseStdioFile(f);
+	}
+
+static void TrainerAlphaCol(
+  const Trainer &T, uint PosQ, uint PosT,
+  uint &LetterQ, uint &LetterT)
+	{
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	asserta(SIZE(s_Profile_Q) == FeatureCount);
+	asserta(SIZE(s_Profile_T) == FeatureCount);
+
+	vector<byte> Col_T, Col_Q;
+	GetProfileCol(s_Profile_T, PosT, Col_T);
+	GetProfileCol(s_Profile_Q, PosQ, Col_Q);
+
+	LetterQ = AssignCluster(Col_Q);
+	LetterT = AssignCluster(Col_T);
 	}
 
 void cmd_nucluster()
@@ -378,4 +507,41 @@ void cmd_nucluster()
 		SetNewCentroids();
 		}
 	LogClusters();
+
+	if (optset_db && optset_traintps)
+		{
+		asserta(optset_output);
+		Progress("Training log-odds score mx\n");
+		Trainer Tr;
+		Tr.Init(opt(traintps), opt(db));
+		LogOdds LO;
+		LO.m_UseUnalignedBackground = false;
+		Tr.TrainLogOdds(s_K, TrainerOnPair, TrainerAlphaCol, LO);
+		uint pc = 3;
+		if (optset_psuedocount)
+			pc = opt(psuedocount);
+		LO.AddPseudoCount(pc);
+
+		vector<vector<float> > ScoreMx;
+		double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
+		LO.ToTsv(g_fLog);
+		LO.MxToSrc(g_fLog, "Nu", ScoreMx);
+		ProgressLog("ES %.3g\n", ExpectedScore);
+
+		FILE *fOut = CreateStdioFile(opt(output));
+		string ParamStr;
+		DSSParams::GetParamsStr(ParamStr);
+		string CmdLine;
+		GetCmdLine(CmdLine);
+
+		fprintf(fOut, "# %s\n", CmdLine.c_str());
+		fprintf(fOut, "params\t%s\n", opt(params));
+		fprintf(fOut, "params2\t%s\n", ParamStr.c_str());
+		fprintf(fOut, "pseudocount\t%u\n", pc);
+		LO.MxToTsv(fOut, "Nu", ScoreMx);
+		ClustersToTsv(fOut);
+		CloseStdioFile(fOut);
+		if (optset_fasta)
+			ChainsToFasta(Tr.m_Chains, opt(fasta));
+		}
 	}
