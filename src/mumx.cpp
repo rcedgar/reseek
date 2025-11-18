@@ -2,6 +2,54 @@
 #include "dss.h"
 #include "mumx.h"
 #include "mermx.h"
+	//Fs.push_back(FEATURE_SS3);
+	//Fs.push_back(FEATURE_NENSS3);
+	//Fs.push_back(FEATURE_RENDist4);
+
+/********************************
+git checkout 8e89307
+scoremxs2.cpp
+
+Expected scores
+0.3531   4  RevNbrDist4
+0.4655   3  SS3
+0.2556   3  NbrSS3
+
+Freqs SS3/3
+   [ 0]  0.338479
+   [ 1]  0.209130
+   [ 2]  0.452391
+
+Freqs NbrSS3/3
+   [ 0]  0.281821
+   [ 1]  0.283820
+   [ 2]  0.434359
+
+   Freqs RevNbrDist4/4
+   [ 0]  0.191469
+   [ 1]  0.452078
+   [ 2]  0.151362
+   [ 3]  0.205091
+********************************/
+
+static double ScoreMx_SS3[3][3] = {
+  {  0.8913, -2.8877, -1.1241,  }, // 0
+  { -2.8877,  1.4429, -0.5733,  }, // 1
+  { -1.1241, -0.5733,  0.4515,  }, // 2
+};
+
+static double ScoreMx_NbrSS3[3][3] = {
+  {  0.7132, -1.4900, -0.6652,  }, // 0
+  { -1.4900,  1.0304, -0.3502,  }, // 1
+  { -0.6652, -0.3502,  0.3824,  }, // 2
+};
+
+static double ScoreMx_RevNbrDist4[4][4] = {
+  {  1.4279, -0.4181, -1.4284, -2.4223,  }, // 0
+  { -0.4181,  0.4804, -0.4363, -0.9914,  }, // 1
+  { -1.4284, -0.4363,  1.0964, -0.3005,  }, // 2
+  { -2.4223, -0.9914, -0.3005,  0.9618,  }, // 3
+};
 
 static int8_t intround(float f)
 	{
@@ -34,19 +82,46 @@ void cmd_musubstmx()
 	{
 	FILE *f = CreateStdioFile(g_Arg1);
 
-	vector<FEATURE> Fs;
-	Fs.push_back(FEATURE_SS3);
-	Fs.push_back(FEATURE_NENSS3);
-	Fs.push_back(FEATURE_RENDist4);
-	const uint NF = SIZE(Fs);
+	//vector<FEATURE> Fs;
+	//Fs.push_back(FEATURE_SS3);
+	//Fs.push_back(FEATURE_NENSS3);
+	//Fs.push_back(FEATURE_RENDist4);
+	const uint NF = 3;
+	const uint AS = 36;
 
-	vector<float **> ScoreMxs;
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
-	ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
+	//vector<float **> ScoreMxs;
+	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
+	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
+	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
+
+	vector<vector<vector<float> > > ScoreMxs(3);
+	vector<vector<float> > &SS3 = ScoreMxs[0];
+	vector<vector<float> > &NENSS3 = ScoreMxs[1];
+	vector<vector<float> > &RENDist4 = ScoreMxs[2];
+
+	SS3.resize(3);
+	NENSS3.resize(3);
+	RENDist4.resize(4);
+
+	for (uint i = 0; i < 3; ++i)
+		{
+		SS3[i].resize(3);
+		NENSS3[i].resize(3);
+		for (uint j = 0; j < 3; ++j)
+			{
+			SS3[i][j] = (float) ScoreMx_SS3[i][j];
+			NENSS3[i][j] = (float) ScoreMx_NbrSS3[i][j];
+			}
+		}
+
+	for (uint i = 0; i < 4; ++i)
+		{
+		RENDist4[i].resize(4);
+		for (uint j = 0; j < 3; ++j)
+			RENDist4[i][j] = (float) ScoreMx_RevNbrDist4[i][j];
+		}
 
 	DSS D;
-	uint AS = DSSParams::GetAlphaSize(FEATURE_Mu);
 	vector<vector<float> > MuMx(AS);
 	for (uint i = 0; i < AS; ++i)
 		{

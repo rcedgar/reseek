@@ -93,7 +93,10 @@ bool FASTASeqSource::GetNextLo(SeqInfo *SI)
 					}
 				else if (!isalpha(c) && c != '*')
 					{
-					BadByte(c);
+					if (m_AllowDigits && isdigit(c))
+						Seq[SeqLength++] = c;
+					else
+						BadByte(c);
 					continue;
 					}
 				Seq[SeqLength++] = c;

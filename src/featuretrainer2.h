@@ -357,6 +357,21 @@ static void TrainIntFeature(
 	float &BestArea,
 	FILE *fOut);
 
+static void EvaluateMu(
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<vector<float > > &ScoreMx,
+	uint ReplaceUndefWithThisLetter,
+	float &BestArea,
+	FILE *fOut);
+
 static void GetFloatValuesAndSeqs(
 	const vector<PDBChain *> &Chains,
 	bool DiscardUndefsFromValuesButNotSeqs,

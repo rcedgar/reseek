@@ -312,6 +312,7 @@ static bool Init()
 	{
 	//atexit(FreeMe); // use iff leak detection
 	asserta(DSSParams::GetAlphaSize(FEATURE_AA) == 20);
+	asserta(DSSParams::GetAlphaSize(FEATURE_AA) == 20);
 	asserta(DSSParams::GetAlphaSize(FEATURE_NENDist) == 16);
 	asserta(DSSParams::GetAlphaSize(FEATURE_Conf) == 16);
 	asserta(DSSParams::GetAlphaSize(FEATURE_NENConf) == 16);
@@ -341,6 +342,19 @@ static bool Init()
 	g_AlphaSizes2[FEATURE_PMDistDiff] = 16;
 	g_AlphaSizes2[FEATURE_PENConf] = 16;
 	g_AlphaSizes2[FEATURE_MENConf] = 16;
+	g_AlphaSizes2[FEATURE_Mu] = 36;
+
+	g_ScoreMxs2[FEATURE_Mu] = myalloc(float *, 36);
+	extern float ScoreMx_Mu[36][36];
+
+	for (uint i = 0; i < 36; ++i)
+		{
+		g_ScoreMxs2[FEATURE_Mu][i] = myalloc(float, 36);
+		for (uint j = 0; j < 36; ++j)
+			{
+			g_ScoreMxs2[FEATURE_Mu][i][j] = (float) ScoreMx_Mu[i][j];
+			}
+		}
 
 	g_ScoreMxs2[FEATURE_AA] = myalloc(float *, 20);
 	for (uint i = 0; i < 20; ++i)

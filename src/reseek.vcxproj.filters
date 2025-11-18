@@ -464,6 +464,9 @@
     <ClCompile Include="nucluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nuscop40.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

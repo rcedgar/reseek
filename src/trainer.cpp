@@ -65,7 +65,7 @@ void Trainer::Init(
 			{
 			char q = QRow[Col];
 			char r = RRow[Col];
-			if (!isgap(q) && !isgap(r))
+			if (!isgap(q) && !isgap(r) && isupper(q) && isupper(r))
 				{
 				PosQs.push_back(PosQ);
 				PosRs.push_back(PosR);

@@ -31,8 +31,9 @@ void cmd_train_feature2()
 	vector<string> TrainRows;
 	vector<string> TrainLabels;
 	vector<uint> TrainChainIdxs;
-	FeatureTrainer2::AppendAlns("traintps", TrainTPAlnFN, LabelToChainIdx, true,
-	  TrainRows, TrainLabels, TrainChainIdxs, TrainsTPs_notused);
+	if (!opt(evalmu))
+		FeatureTrainer2::AppendAlns("traintps", TrainTPAlnFN, LabelToChainIdx, true,
+		  TrainRows, TrainLabels, TrainChainIdxs, TrainsTPs_notused);
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Eval alignments (TP and FP)
@@ -49,10 +50,27 @@ void cmd_train_feature2()
 
 	vector<vector<float> > ScoreMx;
 	float BestArea = FLT_MAX;
-	asserta(optset_background_style);
+	asserta(optset_evalmu || optset_background_style);
 	BACKGROUND_STYLE BS = FeatureTrainer2::StrToBS(opt(background_style));
 	FILE *fSteps = 0;
-	if (opt(dss))
+	if (opt(evalmu))
+		{
+		extern float ScoreMx_Mu[36][36];
+		ScoreMx.resize(36);
+		for (uint i = 0; i < 36; ++i)
+			{
+			ScoreMx[i].resize(36);
+			for (uint j = 0; j < 36; ++j)
+				ScoreMx[i][j] = ScoreMx_Mu[i][j];
+			}
+		uint ReplaceUndefWithThisLetter = 0; // see dss.cpp:697
+		FeatureTrainer2::EvaluateMu(Chains, LabelToChainIdx,
+			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
+			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+			ScoreMx, ReplaceUndefWithThisLetter,
+			BestArea, fSteps);
+		}
+	else if (opt(dss))
 		{
 		FeatureTrainer2::TrainDSSFeature(F, Chains, LabelToChainIdx,
 			TrainRows, TrainLabels, TrainChainIdxs,

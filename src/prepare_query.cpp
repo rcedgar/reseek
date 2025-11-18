@@ -4,7 +4,7 @@
 #include "xdpmem.h"
 #include <set>
 
-float ViterbiFastMem(XDPMem &Mem, const char *A, uint LA,
+float ViterbiFastMem_Blosum62(XDPMem &Mem, const char *A, uint LA,
 					 const char *B, uint LB, string &Path);
 
 static double GetPctId(const string &Seq_i, const string &Seq_j)
@@ -17,7 +17,7 @@ static double GetPctId(const string &Seq_i, const string &Seq_j)
 	const char *B = Seq_j.c_str();
 	string Path;
 	XDPMem Mem;
-	ViterbiFastMem(Mem, A, LA, B, LB, Path);
+	ViterbiFastMem_Blosum62(Mem, A, LA, B, LB, Path);
 	const uint ColCount = SIZE(Path);
 	uint PosA = 0;
 	uint PosB = 0;

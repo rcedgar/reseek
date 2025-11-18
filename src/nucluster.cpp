@@ -11,6 +11,7 @@ static vector<vector<byte> > s_Centroids;
 static vector<uint> s_ClusterIdxs;
 static vector<uint> s_ClusterSizes;
 static uint s_K = UINT_MAX;
+static bool s_DoMu = false;
 
 static vector<vector<byte> > s_Profile_Q;
 static vector<vector<byte> > s_Profile_T;
@@ -425,7 +426,14 @@ static void ChainToFasta(FILE *f, const PDBChain &Chain)
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		GetProfileCol(Profile, Pos, Col);
-		uint ClusterIdx = AssignCluster(Col);
+		uint ClusterIdx = UINT_MAX;
+		if (s_DoMu)
+			{
+			asserta(SIZE(Col) == 1);
+			ClusterIdx = Col[0];
+			}
+		else
+			ClusterIdx = AssignCluster(Col);
 		asserta(ClusterIdx < s_K);
 		Psa(HexSeq, "%02x", ClusterIdx);
 		}
@@ -463,15 +471,29 @@ static void TrainerAlphaCol(
 	LetterT = AssignCluster(Col_T);
 	}
 
-void cmd_nucluster()
+static void TrainerAlphaColDoMu(
+  const Trainer &T, uint PosQ, uint PosT,
+  uint &LetterQ, uint &LetterT)
 	{
-	const string &ChainsFN = g_Arg1;
-	DSSParams::Init(DM_UseCommandLineOption);
+	const uint FeatureCount = SIZE(DSSParams::m_Features);
+	asserta(SIZE(s_Profile_Q) == FeatureCount);
+	asserta(SIZE(s_Profile_T) == FeatureCount);
 
+	vector<byte> Col_T, Col_Q;
+	GetProfileCol(s_Profile_T, PosT, Col_T);
+	GetProfileCol(s_Profile_Q, PosQ, Col_Q);
+	asserta(SIZE(Col_T) == 1);
+	asserta(SIZE(Col_Q) == 1);
+
+	LetterQ = Col_T[0];
+	LetterT = Col_Q[0];
+	}
+
+static void TrainAlpha()
+	{
 	asserta(optset_k);
 	s_K = opt(k);
 
-	Load(ChainsFN);
 	LogScoreBins();
 	SetInitialCentroids();
 	const uint ITERS = 100;
@@ -507,6 +529,19 @@ void cmd_nucluster()
 		SetNewCentroids();
 		}
 	LogClusters();
+	}
+
+void cmd_nucluster()
+	{
+	const string &ChainsFN = g_Arg1;
+	DSSParams::Init(DM_UseCommandLineOption);
+	Load(ChainsFN);
+
+	s_DoMu = StartsWith(opt(params), "Mu");
+	if (s_DoMu)
+		s_K = 36;
+	else
+		TrainAlpha();
 
 	if (optset_db && optset_traintps)
 		{
@@ -516,7 +551,10 @@ void cmd_nucluster()
 		Tr.Init(opt(traintps), opt(db));
 		LogOdds LO;
 		LO.m_UseUnalignedBackground = false;
-		Tr.TrainLogOdds(s_K, TrainerOnPair, TrainerAlphaCol, LO);
+		if (s_DoMu)
+			Tr.TrainLogOdds(s_K, TrainerOnPair, TrainerAlphaColDoMu, LO);
+		else
+			Tr.TrainLogOdds(s_K, TrainerOnPair, TrainerAlphaCol, LO);
 		uint pc = 3;
 		if (optset_psuedocount)
 			pc = opt(psuedocount);
@@ -539,7 +577,8 @@ void cmd_nucluster()
 		fprintf(fOut, "params2\t%s\n", ParamStr.c_str());
 		fprintf(fOut, "pseudocount\t%u\n", pc);
 		LO.MxToTsv(fOut, "Nu", ScoreMx);
-		ClustersToTsv(fOut);
+		if (!s_DoMu)
+			ClustersToTsv(fOut);
 		CloseStdioFile(fOut);
 		if (optset_fasta)
 			ChainsToFasta(Tr.m_Chains, opt(fasta));

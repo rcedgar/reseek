@@ -1025,6 +1025,7 @@ void FeatureTrainer2::GetChainIntSeqs_Int(
 	optset_force_undef = true;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
+		ProgressStep(ChainIdx, ChainCount, "Int seqs");
 		const PDBChain &Chain = *Chains[ChainIdx];
 		D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
@@ -1303,6 +1304,52 @@ void FeatureTrainer2::TrainIntFeature(
 // TrainLogOddsMx
 ///////////////////////////////////////////////////////////////////////////////////////
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
+
+	float BestOpenPenalty, BestExtPenalty, BestBias;
+	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+
+	WriteSteps(fOut, ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
+		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec, EvalTPs,
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias);
+	}
+
+void FeatureTrainer2::EvaluateMu(
+	const vector<PDBChain *> &Chains,
+	const map<string, uint> &LabelToChainIdx,
+	const vector<bool> &EvalTPs,
+	const vector<string> &EvalRows,
+	const vector<string> &EvalLabels,
+	const vector<uint> &EvalRowChainIdxs,
+	const vector<uint> &EvalAlnColCountVec,
+	const vector<uint> &EvalAlnOpenVec,
+	const vector<uint> &EvalAlnExtVec,
+	const vector<vector<float > > &ScoreMx,
+	uint ReplaceUndefWithThisLetter,
+	float &BestArea,
+	FILE *fOut)
+	{
+	FEATURE F = FEATURE_Mu;
+	m_F = F;
+	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
+	m_FevStr += "type=int;";
+
+	SetIntFeature(F);
+	m_BS = BS_Invalid;
+	BestArea = 0;
+
+	vector<vector<uint> > ChainIntSeqsWithUndefs;
+	uint UndefCount = 0;
+	uint LetterCount = 0;
+	GetChainIntSeqs_Int(Chains, ChainIntSeqsWithUndefs, LetterCount, UndefCount);
+	ProgressLog("%u / %u (%.2f%%) undefined letters in chains\n",
+		UndefCount, LetterCount, GetPct(UndefCount, LetterCount));
+
+	vector<vector<uint> > ChainIntSeqsNoUndefs;
+	ChainIntSeqsNoUndefs = ChainIntSeqsWithUndefs;
+	ReplaceUndefs(ChainIntSeqsWithUndefs,
+		ReplaceUndefWithThisLetter, ChainIntSeqsNoUndefs);
 
 	float BestOpenPenalty, BestExtPenalty, BestBias;
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,

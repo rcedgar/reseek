@@ -696,7 +696,6 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		uint Letter = Get_Mu(Pos);
 		if (Letter == UINT_MAX)
 			Letter = 0;
-		asserta(Letter < 256);
 		asserta(Letter < 36);
 		Letters.push_back(byte(Letter));
 		}
@@ -718,10 +717,10 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 			{
 			uint Letter = GetFeature(Feature, Pos);
 			if (Letter == UINT_MAX)
-				ProfRow.push_back(31);
+				ProfRow.push_back(0);//@@TODO
 			else
 				{
-				asserta(Letter < 31);
+				//asserta(Letter < 31);
 				ProfRow.push_back(byte(Letter));
 				}
 			}

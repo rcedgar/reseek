@@ -7,6 +7,9 @@
 class FASTASeqSource : public FileSeqSource
 	{
 public:
+	bool m_AllowDigits = false;
+
+public:
 	virtual bool GetIsNucleo();
 
 protected:

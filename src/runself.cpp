@@ -61,32 +61,6 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 
 bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 	{
-	//ChainIndex1 = UINT_MAX;
-	//ChainIndex2 = UINT_MAX;
-	//m_Lock.lock();
-	//if (m_PairIndex == m_PairCount)
-	//	{
-	//	m_Lock.unlock();
-	//	return false;
-	//	}
-	//ProgressStep(m_PairIndex, m_PairCount, "Aligning");
-	//ChainIndex1 = m_NextChainIndex1;
-	//ChainIndex2 = m_NextChainIndex2;
-	//uint ChainCount = GetDBChainCount();
-	//assert(m_NextChainIndex1 < ChainCount);
-	//assert(m_NextChainIndex2 < ChainCount);
-	//++m_NextChainIndex2;
-	//if (m_NextChainIndex2 == ChainCount)
-	//	{
-	//	++m_ProcessedQueryCount;
-	//	++m_NextChainIndex1;
-	//	m_NextChainIndex2 = m_NextChainIndex1;
-	//	}
-	//++m_PairIndex;
-	//++m_ProcessedPairCount;
-	//m_Lock.unlock();
-	//return true;
-
 	ChainIndex1 = UINT_MAX;
 	ChainIndex2 = UINT_MAX;
 	uint MyIndex = m_PairIndex++;

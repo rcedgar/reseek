@@ -52,5 +52,6 @@ C(evalarea)
 C(dump_float_feature)
 C(confx_train)
 C(nucluster)
+C(nuscop40)
 
 #undef C

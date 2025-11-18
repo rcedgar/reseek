@@ -154,6 +154,7 @@ FLAG_OPT(initonly)
 FLAG_OPT(raw)
 FLAG_OPT(newparams)
 FLAG_OPT(modal)
+FLAG_OPT(evalmu)
 
 #undef FLAG_OPT
 #undef UNS_OPT

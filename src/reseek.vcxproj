@@ -289,6 +289,7 @@
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
     <ClCompile Include="nucluster.cpp" />
+    <ClCompile Include="nuscop40.cpp" />
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
