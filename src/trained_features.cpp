@@ -5,6 +5,10 @@
 #pragma warning(disable:4305) // double -> float
 
 extern float B62_S_ij[20][20];
+extern float ScoreMx_Mu[36][36];
+extern float ScoreMx_SS3[3][3];
+extern float ScoreMx_NbrSS3[3][3];
+extern float ScoreMx_RevNbrDist4[4][4];
 
 // Keep these static, g_ScoreMxs2 and g_AlphaSizes2[] are global
 
@@ -311,7 +315,9 @@ static void FreeMe();
 static bool Init()
 	{
 	//atexit(FreeMe); // use iff leak detection
-	asserta(DSSParams::GetAlphaSize(FEATURE_AA) == 20);
+	asserta(DSSParams::GetAlphaSize(FEATURE_SS3) == 3);
+	asserta(DSSParams::GetAlphaSize(FEATURE_NENSS3) == 3);
+	asserta(DSSParams::GetAlphaSize(FEATURE_RENDist4) == 4);
 	asserta(DSSParams::GetAlphaSize(FEATURE_AA) == 20);
 	asserta(DSSParams::GetAlphaSize(FEATURE_NENDist) == 16);
 	asserta(DSSParams::GetAlphaSize(FEATURE_Conf) == 16);
@@ -326,6 +332,9 @@ static bool Init()
 	asserta(DSSParams::GetAlphaSize(FEATURE_PENConf) == 16);
 	asserta(DSSParams::GetAlphaSize(FEATURE_MENConf) == 16);
 
+	g_AlphaSizes2[FEATURE_SS3] = 3;
+	g_AlphaSizes2[FEATURE_NENSS3] = 3;
+	g_AlphaSizes2[FEATURE_RENDist4] = 4;
 	g_AlphaSizes2[FEATURE_AA] = 20;
 	g_AlphaSizes2[FEATURE_B62] = 20;
 	g_AlphaSizes2[FEATURE_NENDist] = 16;
@@ -345,14 +354,42 @@ static bool Init()
 	g_AlphaSizes2[FEATURE_Mu] = 36;
 
 	g_ScoreMxs2[FEATURE_Mu] = myalloc(float *, 36);
-	extern float ScoreMx_Mu[36][36];
-
 	for (uint i = 0; i < 36; ++i)
 		{
 		g_ScoreMxs2[FEATURE_Mu][i] = myalloc(float, 36);
 		for (uint j = 0; j < 36; ++j)
 			{
 			g_ScoreMxs2[FEATURE_Mu][i][j] = (float) ScoreMx_Mu[i][j];
+			}
+		}
+
+	g_ScoreMxs2[FEATURE_SS3] = myalloc(float *, 3);
+	for (uint i = 0; i < 3; ++i)
+		{
+		g_ScoreMxs2[FEATURE_SS3][i] = myalloc(float, 3);
+		for (uint j = 0; j < 3; ++j)
+			{
+			g_ScoreMxs2[FEATURE_SS3][i][j] = (float) ScoreMx_SS3[i][j];
+			}
+		}
+
+	g_ScoreMxs2[FEATURE_NENSS3] = myalloc(float *, 3);
+	for (uint i = 0; i < 3; ++i)
+		{
+		g_ScoreMxs2[FEATURE_NENSS3][i] = myalloc(float, 3);
+		for (uint j = 0; j < 3; ++j)
+			{
+			g_ScoreMxs2[FEATURE_NENSS3][i][j] = (float) ScoreMx_NbrSS3[i][j];
+			}
+		}
+
+	g_ScoreMxs2[FEATURE_RENDist4] = myalloc(float *, 4);
+	for (uint i = 0; i < 4; ++i)
+		{
+		g_ScoreMxs2[FEATURE_RENDist4][i] = myalloc(float, 4);
+		for (uint j = 0; j < 4; ++j)
+			{
+			g_ScoreMxs2[FEATURE_RENDist4][i][j] = (float) ScoreMx_RevNbrDist4[i][j];
 			}
 		}
 

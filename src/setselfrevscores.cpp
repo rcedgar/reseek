@@ -41,9 +41,14 @@ static void ThreadBody(uint ThreadIndex)
 
 		PDBChain *Chain = s_DBS->m_DBChains[MyChainIdx];
 
+		vector<byte> *MuLetters = 0;
+		vector<uint> *MuKmers = 0;
+		if (!s_DBS->m_DBMuLettersVec.empty())
+			MuLetters = s_DBS->m_DBMuLettersVec[MyChainIdx];
+		if (!s_DBS->m_DBMuKmersVec.empty())
+			MuKmers = s_DBS->m_DBMuKmersVec[MyChainIdx];
+
 		vector<vector<byte> > *ptrProfile = s_DBS->m_DBProfiles[MyChainIdx];
-		vector<byte> *MuLetters = s_DBS->m_DBMuLettersVec[MyChainIdx];
-		vector<uint> *MuKmers = s_DBS->m_DBMuKmersVec[MyChainIdx];
 		D.Init(*Chain);
 		float SelfRevScore =
 			GetSelfRevScore(DA, D, *Chain, *ptrProfile, MuLetters, MuKmers);

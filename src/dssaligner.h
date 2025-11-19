@@ -78,6 +78,9 @@ public:
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
+	float m_MuFwdMinusRevScore = FLT_MAX;
+	float m_MuFwdScore = FLT_MAX;
+	float m_MuRevScore = FLT_MAX;
 
 	vector<USERFIELD> m_UFs;
 
@@ -123,9 +126,10 @@ public:
 	  float SelfRevScore);
 	bool DoMKF() const;
 
-	float GetMuScore();
+	void SetMuScore();
 	bool MuFilter();
 	void ClearAlign();
+	void ClearAlign_ExceptMu();
 	void AlignQueryTarget();
 	void AlignQueryTarget_Trace();
 	void Align_MuFilter(

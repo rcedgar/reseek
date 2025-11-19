@@ -119,6 +119,8 @@ float DSSAligner::AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 
 float DSSAligner::AlignMuQP_Para()
 	{
+	m_MuFwdScore = 0;
+	m_MuRevScore = 0;
 	StartTimer(SWPara);
 	uint LA = SIZE(*m_MuLettersA);
 	uint LB = SIZE(*m_MuLettersB);
@@ -132,13 +134,14 @@ float DSSAligner::AlignMuQP_Para()
 	  (const parasail_profile_t * const restrict) m_ProfPara;
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
+
 	if (result->flag & PARASAIL_FLAG_SATURATED)
 		{
 		++m_ParasailSaturateCount;
 		result->score = 777;
 		}
-	float fwd_score = (float) result->score;
-	if (fwd_score < OmegaFwd)
+	m_MuFwdScore = (float) result->score;
+	if (m_MuFwdScore < OmegaFwd)
 		{
 		parasail_result_free(result);
 		EndTimer(SWPara);
@@ -149,15 +152,15 @@ float DSSAligner::AlignMuQP_Para()
 	  (const parasail_profile_t * const restrict) m_ProfParaRev;
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
-	float rev_score = (float) result_rev->score;
+	m_MuRevScore = (float) result_rev->score;
 
 	EndTimer(SWPara);
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
-	float Score = fwd_score - rev_score;
+	m_MuFwdMinusRevScore = m_MuFwdScore - m_MuRevScore;
 	parasail_result_free(result);
 	parasail_result_free(result_rev);
-	return Score;
+	return m_MuFwdMinusRevScore;
 	}
 
 void DSSAligner::SetMuQP_Para()

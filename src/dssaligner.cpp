@@ -598,21 +598,20 @@ void DSSAligner::SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 #endif
 	}
 
-float DSSAligner::GetMuScore()
+void DSSAligner::SetMuScore()
 	{
-	float MuScore = AlignMuQP(*m_MuLettersA, *m_MuLettersB);
-	return MuScore;
+	AlignMuQP(*m_MuLettersA, *m_MuLettersB);
 	}
 
 bool DSSAligner::MuFilter()
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
-	float MCS = DSSParams::m_Omega;
-	if (MCS <= 0)
+	const float MinMuScore = DSSParams::m_Omega;
+	if (MinMuScore <= 0)
 		return true;
-	float MuScore = GetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
-	if (MuScore < MCS)
+	SetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	if (m_MuFwdMinusRevScore < MinMuScore)
 		return false;
 	return true;
 	}
@@ -891,12 +890,39 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticB = -FLT_MAX;
 	m_XDropScore = 0;
 	m_AlnFwdScore = 0;
+	m_MuFwdScore = 0;
+	m_MuRevScore = 0;
+	m_MuFwdMinusRevScore = 0;
+	}
+
+void DSSAligner::ClearAlign_ExceptMu()
+	{
+	m_Path.clear();
+	m_XDropPath.clear();
+	m_LoA = UINT_MAX;
+	m_LoB = UINT_MAX;
+	m_HiA = UINT_MAX;
+	m_HiB = UINT_MAX;
+	m_Ids = UINT_MAX;
+	m_Gaps = UINT_MAX;
+	m_PvalueA = FLT_MAX;
+	m_PvalueB = FLT_MAX;
+	m_EvalueA = FLT_MAX;
+	m_EvalueB = FLT_MAX;
+	m_QualityA = FLT_MAX;
+	m_QualityB = FLT_MAX;
+	m_TestStatisticA = -FLT_MAX;
+	m_TestStatisticB = -FLT_MAX;
+	m_NewTestStatisticA = -FLT_MAX;
+	m_NewTestStatisticB = -FLT_MAX;
+	m_XDropScore = 0;
+	m_AlnFwdScore = 0;
 	}
 
 void DSSAligner::Align_NoAccel()
 	{
 	incac(alnnoaccels);
-	ClearAlign();
+	ClearAlign_ExceptMu();
 	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
 
 	const uint LA = m_ChainA->GetSeqLength();

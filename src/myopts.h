@@ -116,6 +116,8 @@ FLT_OPT(minpctid)
 FLT_OPT(maxpctid)
 FLT_OPT(undef_value)
 FLT_OPT(rate_factor)
+FLT_OPT(omega)
+FLT_OPT(omegafwd)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)

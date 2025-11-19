@@ -467,6 +467,9 @@
     <ClCompile Include="nuscop40.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="paralign.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -797,6 +800,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="paralign.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

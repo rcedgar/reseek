@@ -2,11 +2,14 @@
 #include "dss.h"
 #include "mumx.h"
 #include "mermx.h"
-	//Fs.push_back(FEATURE_SS3);
-	//Fs.push_back(FEATURE_NENSS3);
-	//Fs.push_back(FEATURE_RENDist4);
+
+#pragma warning(disable:4305) // double -> float
 
 /********************************
+FEATURE_SS3
+FEATURE_NENSS3
+FEATURE_RENDist4
+
 git checkout 8e89307
 scoremxs2.cpp
 
@@ -25,26 +28,26 @@ Freqs NbrSS3/3
    [ 1]  0.283820
    [ 2]  0.434359
 
-   Freqs RevNbrDist4/4
+Freqs RevNbrDist4/4
    [ 0]  0.191469
    [ 1]  0.452078
    [ 2]  0.151362
    [ 3]  0.205091
 ********************************/
 
-static double ScoreMx_SS3[3][3] = {
+float ScoreMx_SS3[3][3] = {
   {  0.8913, -2.8877, -1.1241,  }, // 0
   { -2.8877,  1.4429, -0.5733,  }, // 1
   { -1.1241, -0.5733,  0.4515,  }, // 2
 };
 
-static double ScoreMx_NbrSS3[3][3] = {
+float ScoreMx_NbrSS3[3][3] = {
   {  0.7132, -1.4900, -0.6652,  }, // 0
   { -1.4900,  1.0304, -0.3502,  }, // 1
   { -0.6652, -0.3502,  0.3824,  }, // 2
 };
 
-static double ScoreMx_RevNbrDist4[4][4] = {
+float ScoreMx_RevNbrDist4[4][4] = {
   {  1.4279, -0.4181, -1.4284, -2.4223,  }, // 0
   { -0.4181,  0.4804, -0.4363, -0.9914,  }, // 1
   { -1.4284, -0.4363,  1.0964, -0.3005,  }, // 2

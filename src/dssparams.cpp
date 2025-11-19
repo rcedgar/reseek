@@ -153,6 +153,10 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 
 	if (optset_rsb_size)
 		m_rsb_size = opt(rsb_size);
+	if (optset_omega)
+		m_Omega = (float) opt(omega);
+	if (optset_omegafwd)
+		m_OmegaFwd = (float) opt(omegafwd);
 	}
 
 void DSSParams::NormalizeWeights()

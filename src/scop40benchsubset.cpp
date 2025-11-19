@@ -24,11 +24,14 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 
 // Vectors size=ChainCount indexed by ChainIdx
 #define c(x)	{ \
-	if (SIZE(x) != ChainCount) \
-		Die("SCOP40Bench::MakeSubset() size"); \
 	Subset.x.clear(); \
-	for (uint i = 0; i < SubsetChainCount; ++i) \
-		Subset.x.push_back(x[i]); \
+	if (!x.empty()) \
+		{ \
+		if (SIZE(x) != ChainCount) \
+			Die("SCOP40Bench::MakeSubset() size"); \
+		for (uint i = 0; i < SubsetChainCount; ++i) \
+			Subset.x.push_back(x[i]); \
+		} \
 	}
 
 	c(m_DBChains);

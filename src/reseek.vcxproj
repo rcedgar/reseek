@@ -291,6 +291,7 @@
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
     <ClCompile Include="optimizearea.cpp" />
+    <ClCompile Include="paralign.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
@@ -463,6 +464,7 @@
     <ClInclude Include="mymutex.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
+    <ClInclude Include="paralign.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
