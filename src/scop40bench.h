@@ -3,7 +3,7 @@
 #include "dbsearcher.h"
 #include "dssaligner.h"
 #include "xdpmem.h"
-#include <map>
+#include <unordered_map>
 #include <mutex>
 
 class SCOP40Bench : public DBSearcher
@@ -12,19 +12,19 @@ public:
 	SBSCORE m_SBS = SBS_Evalue;
 	string m_Level = "sf";
 
-	map<string, uint> m_LabelToChainIdx;
+	unordered_map<string, uint> m_LabelToChainIdx;
 
-	map<string, uint> m_DomToChainIdx;
+	unordered_map<string, uint> m_DomToChainIdx;
 	vector<uint> m_DomIdxToChainIdx;
 
 	vector<string> m_Doms;
-	map<string, uint> m_DomToIdx;
+	unordered_map<string, uint> m_DomToIdx;
 
 	vector<string> m_SFs;
-	map<string, uint> m_SFToIdx;
+	unordered_map<string, uint> m_SFToIdx;
 
 	vector<string> m_Folds;
-	map<string, uint> m_FoldToIdx;
+	unordered_map<string, uint> m_FoldToIdx;
 
 // Per-chain vectors [ChainIdx]
 	vector<uint> m_DomIdxs;
@@ -102,6 +102,8 @@ public:
 	void ReadBit(const string &FileName);
 	int IsT(uint DomIdx1, uint DomIdx2) const;
 	void LoadHitsFromTsv(const string &FileName);
+	void SetHits(const vector<string> &Label1s,
+		const vector<string> &Label2s, const vector<float> &Scores);
 	float GetMeanLength(uint SFIdx) const;
 	void StoreScore(uint ChainIdx1, uint ChainIdx2, float Score12);
 

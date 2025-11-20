@@ -31,6 +31,11 @@
 #endif
 
 #include "myutils.h"
+#include <omp.h>
+unsigned GetThreadIndex()
+	{
+	return omp_get_thread_num();
+	}
 
 bool IsDirectory(const string& PathName)
 {

@@ -474,6 +474,77 @@ void SCOP40Bench::ReadBit(const string &FileName)
 	CloseStdioFile(f);
 	}
 
+void SCOP40Bench::SetHits(const vector<string> &Label1s,
+	const vector<string> &Label2s, const vector<float> &Scores)
+	{
+	asserta(!m_Doms.empty());
+	asserta(!m_SFs.empty());
+	asserta(!m_DomToIdx.empty());
+	asserta(!m_SFToIdx.empty());
+	asserta(!m_DomIdxToSFIdx.empty());
+
+	const uint HitCount = SIZE(Label1s);
+	asserta(SIZE(Label2s) == HitCount);
+	asserta(SIZE(Scores) == HitCount);
+
+	m_DomIdx1s.clear();
+	m_DomIdx2s.clear();
+	m_Scores.clear();
+
+	m_DomIdx1s.reserve(HitCount);
+	m_DomIdx2s.reserve(HitCount);
+	m_Scores.reserve(HitCount);
+
+	const uint ThreadCount = GetRequestedThreadCount();
+	uint HitIdx = 0;
+#pragma omp parallel for num_threads(ThreadCount)
+	for (int k = 0; k < int(HitCount); ++k)
+		{
+#pragma omp critical
+		{
+		ProgressStep(HitIdx++, HitCount, "Loading hits");
+		}
+		const string &Label1 = Label1s[HitIdx];
+		const string &Label2 = Label2s[HitIdx];
+		float Score = Scores[HitIdx];
+		string Dom1;
+		string Dom2;
+		if (Label1.find('/') != string::npos)
+			{
+			string Cls1;
+			string Cls2;
+			string Fold1;
+			string Fold2;
+			string SF1;
+			string SF2;
+			string Fmy1;
+			string Fmy2;
+			ParseScopLabel(Label1, Dom1, Cls1, Fold1, SF1, Fmy1);
+			ParseScopLabel(Label2, Dom2, Cls2, Fold2, SF2, Fmy2);
+			}
+		else
+			{
+			Dom1 = Label1;
+			Dom2 = Label2;
+			}
+		unordered_map<string, uint>::const_iterator iter1 =
+			m_DomToIdx.find(Dom1);
+		unordered_map<string, uint>::const_iterator iter2 =
+			m_DomToIdx.find(Dom2);
+		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
+			continue;
+		uint DomIdx1 = iter1->second;
+		uint DomIdx2 = iter2->second;
+#pragma omp critical
+		{
+		m_DomIdx1s.push_back(DomIdx1);
+		m_DomIdx2s.push_back(DomIdx2);
+		m_Scores.push_back(Score);
+		}
+		}
+	asserta(HitIdx == HitCount);
+	}
+
 void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 	{
 	asserta(!m_Doms.empty());
@@ -525,9 +596,9 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 			Dom1 = Label1;
 			Dom2 = Label2;
 			}
-		map<string, uint>::const_iterator iter1 =
+		unordered_map<string, uint>::const_iterator iter1 =
 			m_DomToIdx.find(Dom1);
-		map<string, uint>::const_iterator iter2 =
+		unordered_map<string, uint>::const_iterator iter2 =
 			m_DomToIdx.find(Dom2);
 		if (iter1 == m_DomToIdx.end() || iter2 == m_DomToIdx.end())
 			continue;

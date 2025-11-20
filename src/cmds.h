@@ -54,5 +54,6 @@ C(confx_train)
 C(nucluster)
 C(nuscop40)
 C(paralign_test)
+C(paralign_scop40)
 
 #undef C

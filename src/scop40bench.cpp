@@ -103,7 +103,7 @@ uint SCOP40Bench::GetDomIdx(const string &Dom_or_DomSlashId,
 	vector<string> Fields;
 	Split(Dom_or_DomSlashId, Fields, '/');
 	const string &Dom = Fields[0];
-	map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
+	unordered_map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
 	if (iter == m_DomToIdx.end())
 		{
 		if (FailOnErr)
@@ -377,8 +377,8 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 	{
 	const string &LabelA = DA.m_ChainA->m_Label;
 	const string &LabelB = DA.m_ChainB->m_Label;
-	map<string, uint>::const_iterator iterA = m_LabelToChainIdx.find(LabelA);
-	map<string, uint>::const_iterator iterB = m_LabelToChainIdx.find(LabelB);
+	unordered_map<string, uint>::const_iterator iterA = m_LabelToChainIdx.find(LabelA);
+	unordered_map<string, uint>::const_iterator iterB = m_LabelToChainIdx.find(LabelB);
 	asserta(iterA != m_LabelToChainIdx.end());
 	asserta(iterB != m_LabelToChainIdx.end());
 	uint ChainIndexA = iterA->second;
@@ -419,7 +419,7 @@ void SCOP40Bench::SetDomIdxToL()
 		vector<string> Fields;
 		Split(Label, Fields, '/');
 		const string &Dom = Fields[0];
-		map<string, uint>::const_iterator iter =
+		unordered_map<string, uint>::const_iterator iter =
 		  m_DomToChainIdx.find(Dom);
 		asserta(iter != m_DomToChainIdx.end());
 		const PDBChain &Chain = *m_DBChains[iter->second];
@@ -511,7 +511,7 @@ float SCOP40Bench::GetMeanLength(uint SFIdx) const
 		const uint n = SIZE(Fields);
 		asserta(n < 3);
 		string Dom = Fields[0];
-		map<string, uint>::const_iterator iter =
+		unordered_map<string, uint>::const_iterator iter =
 		  m_DomToChainIdx.find(Dom);
 		asserta(iter != m_DomToChainIdx.end());
 		uint ChainIdx = iter->second;
@@ -544,7 +544,9 @@ void SCOP40Bench::WriteBit(const string &FileName) const
 void SCOP40Bench::RoundScores()
 	{
 	uint n = SIZE(m_Scores);
-	for (uint i = 0; i < n; ++i)
+	const uint ThreadCount = GetRequestedThreadCount();
+#pragma omp parallel for num_threads(ThreadCount)
+	for (int i = 0; i < int(n); ++i)
 		m_Scores[i] = round3sigfig(m_Scores[i]);
 	}
 

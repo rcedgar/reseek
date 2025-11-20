@@ -73,6 +73,47 @@ parasail_matrix_t parasail_mu_matrix = {
 	NULL // query
 };
 
+void Log_parasail_mu_matrix(const parasail_matrix_t &mx)
+	{
+	Log("name   %s\n", mx.name);
+	Log("size   %d\n", mx.size);
+	Log("max    %d\n", mx.max);
+	Log("min    %d\n", mx.min);
+	Log("length %d\n", mx.length);
+	Log("type   %d\n", mx.type);
+	Log("user_mx  %p\n", mx.user_matrix);
+	Log("mapper\n");
+	for (uint i = 0; i < 36; ++i)
+		Log(" %d", mx.mapper[i]);
+	Log("\n");
+	Log("matrix\n");
+	for (uint i = 0; i < 36; ++i)
+		{
+		for (uint j = 0; j < 36; ++j)
+			Log(" %3d", mx.matrix[36*i + j]);
+		Log("\n");
+		}
+	}
+
+void Log_parasail_profile(const parasail_profile_t &prof)
+	{
+	Log("Log_parasail_profile()\n");
+	Log("s1Len %d\n", prof.s1Len);
+	Log("s1 ");
+	for (int i = 0; i < prof.s1Len; ++i)
+		Log(" %d", prof.s1[i]);
+	Log("\n");
+	const int8_t *ptr_score = (const int8_t *) prof.profile8.score;
+	int k = 0;
+	for (int i = 0; i < 36; ++i)
+		{
+		Log("%3d  |%3d| ", i, prof.s1[i]);
+		for (uint j = 0; j < (uint) prof.s1Len; ++j)
+			Log(" %3d", ptr_score[k++]);
+		Log("\n");
+		}
+	}
+
 float DSSAligner::AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path)
 	{
 	Path.clear();
@@ -134,6 +175,25 @@ float DSSAligner::AlignMuQP_Para()
 	  (const parasail_profile_t * const restrict) m_ProfPara;
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
+#if 0
+	{
+	Log_parasail_mu_matrix(parasail_mu_matrix);
+	const byte *m_Q = m_MuLettersA->data();
+	const byte *m_T = m_MuLettersB->data();
+	uint m_LQ = LA;
+	uint m_LT = LB;
+	Log("QL %u, TL %u\n", m_LQ, m_LT);
+	Log("Q: ");
+	for (uint i = 0; i < m_LQ; ++i)
+		Log(" %u", m_Q[i]);
+	Log("\n");
+	Log("T: ");
+	for (uint i = 0; i < m_LT; ++i)
+		Log(" %u", m_T[i]);
+	Log("\n");
+	Log("score %d\n", result->score);
+	}
+#endif
 
 	if (result->flag & PARASAIL_FLAG_SATURATED)
 		{
@@ -173,7 +233,25 @@ void DSSAligner::SetMuQP_Para()
 	const char *A = (const char *) m_MuLettersA->data();
 	const uint LA = SIZE(*m_MuLettersA);
 	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_mu_matrix);
-
+	Log("ProfQ:");
+	const parasail_profile_t *prof =
+		(parasail_profile_t *) m_ProfPara;
+	Log_parasail_profile(*prof);
+#if 0
+	{
+	const byte *m_Q = m_MuLettersA->data();
+	uint m_LQ = LA;
+	Log("QL %u\n", m_LQ);
+	Log("Q: ");
+	for (uint i = 0; i < m_LQ; ++i)
+		Log(" %u", m_Q[i]);
+	Log("\n");
+	const byte *ptrProf = (const byte *) m_ProfPara;
+	for (uint i = 0; i < sizeof(parasail_profile_t); ++i)
+		Log(" %02x", ptrProf[i]);
+	Log("\n");
+	}
+#endif
 	m_MuRevA.clear();
 	m_MuRevA.reserve(LA);
 	for (uint i = 0; i < LA; ++i)

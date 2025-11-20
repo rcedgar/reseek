@@ -83,6 +83,11 @@ void triangle_k_to_ij(uint k, uint N, uint &i, uint &j)
     j = i + col_offset;
 	}
 
+uint triangle_get_k(uint N)
+    {
+    return triangle_ij_to_k(N-1, N-1, N);
+    }
+
 #if 0
 void __cmd_test()
 	{
