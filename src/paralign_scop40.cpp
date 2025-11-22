@@ -9,6 +9,7 @@
 
 void cmd_paralign_scop40()
 	{
+	asserta(optset_bins);
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
@@ -16,6 +17,13 @@ void cmd_paralign_scop40()
 	const string &FastaFN = g_Arg1;
 	SeqDB Seqs;
 	Seqs.FromFasta(FastaFN);
+
+	if (opt(bins) == 8)
+		Paralign::m_Bits = 8;
+	else if (opt(bins) == 16)
+		Paralign::m_Bits = 16;
+	else
+		Die("-bins must be 8 or 16");
 
 	const uint SeqCount = Seqs.GetSeqCount();
 	vector<vector<byte> > ByteSeqs(SeqCount);
@@ -49,6 +57,9 @@ void cmd_paralign_scop40()
 #else
 	Paralign::SetMu();
 #endif
+	void Log_parasail_mu_matrix(const parasail_matrix_t &mx);//@@TODO
+	Log_parasail_mu_matrix(Paralign::m_matrix);
+
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
 	ProgressLog("PairCount %u %u\n", PairCount, PairCount2);
@@ -102,6 +113,12 @@ void cmd_paralign_scop40()
 			}
 			}
 		}
+
+	ProgressLog("%u long, %u saturated, %u 8-bit, %u 16-bit\n",
+		Paralign::m_TooLongCount.load(),
+		Paralign::m_SaturatedCount.load(),
+		Paralign::m_Count8.load(),
+		Paralign::m_Count16.load());
 
 	SB.SetHits(Label1s, Label2s, Scores);
 	SB.m_SBS = SBS_OtherAlgoScore;

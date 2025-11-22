@@ -25,8 +25,12 @@ int Paralign::m_Open = INT_MAX;
 int Paralign::m_Ext = INT_MAX;
 int Paralign::m_SaturatedScore = INT_MAX;
 uint Paralign::m_MaxLength = 9999;
-int Paralign::m_Bits = 8;
+int Paralign::m_Bits = 16;//@@TODO
 vector<vector<float> > Paralign::m_SWFastSubstMx;
+atomic<uint> Paralign::m_Count8;
+atomic<uint> Paralign::m_Count16;
+atomic<uint> Paralign::m_TooLongCount;
+atomic<uint> Paralign::m_SaturatedCount;
      
 // Ye olde BLOSUM62 as used by NCBI BLAST (1/2-bit units)
 // alphabetical order, no wildcards or stop codon
@@ -366,8 +370,8 @@ void Paralign::SetMatrix(
 	m_matrix.matrix = ScoreVec;
 	m_matrix.mapper = Mapper;
 	m_matrix.size = AS;
-	m_matrix.max = MinScore;
-	m_matrix.min = MaxScore;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
 	m_matrix.user_matrix = 0;
 	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
 	m_matrix.length = AS;
@@ -386,10 +390,12 @@ void Paralign::SetQuery(const string &LabelQ, const byte *Q, uint LQ)
 		{
 	case 8:
 		m_ProfQ = parasail_profile_create_avx_256_8((const char *) Q, LQ, &m_matrix);
+		++m_Count8;
 		break;
 
 	case 16:
 		m_ProfQ = parasail_profile_create_avx_256_16((const char *) Q, LQ, &m_matrix);
+		++m_Count16;
 		break;
 
 	default:
@@ -422,6 +428,7 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 	if (m_LQ > m_MaxLength || m_LT > m_MaxLength)
 		{
 		m_Score = -999;//@@TODO
+		++m_TooLongCount;
 		return;
 		}
 	if (m_result != 0)
@@ -463,7 +470,10 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 	}
 #endif
 	if (m_result->flag & PARASAIL_FLAG_SATURATED)
+		{
 		m_Score = m_SaturatedScore;
+		++m_SaturatedCount;
+		}
 	else
 		m_Score = m_result->score;
 	}

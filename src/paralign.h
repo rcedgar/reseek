@@ -34,6 +34,11 @@ public:
 	int m_SWFastScoreInt = INT_MAX;
 	string m_SWFastPath;
 
+	static atomic<uint> m_Count8;
+	static atomic<uint> m_Count16;
+	static atomic<uint> m_TooLongCount;
+	static atomic<uint> m_SaturatedCount;
+
 public:
 	static void SetMu();
 	static void SetBlosum62();
