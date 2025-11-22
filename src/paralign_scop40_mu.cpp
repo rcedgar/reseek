@@ -23,7 +23,8 @@ SEPQ0.1=0.066 SEPQ1=0.106 SEPQ10=0.215 Area0=0.283 Sum3=0.506
 
 void cmd_paralign_scop40_mu()
 	{
-	DSSParams::Init(DM_DefaultFast);
+	asserta(optset_intopen);
+	asserta(optset_intext);
 
 	asserta(optset_lookup);
 	SCOP40Bench SB;
@@ -51,6 +52,8 @@ void cmd_paralign_scop40_mu()
 		}
 
 	Paralign::SetMu();
+	Paralign::m_Open = opt(intopen);
+	Paralign::m_Ext = opt(intext);
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
