@@ -5,7 +5,7 @@
 #include "scop40bench.h"
 #include "triangle.h"
 
-#define POKE_MU	1
+#define POKE_MU	0
 
 void cmd_paralign_scop40()
 	{
@@ -57,12 +57,8 @@ void cmd_paralign_scop40()
 #else
 	Paralign::SetMu();
 #endif
-	void Log_parasail_mu_matrix(const parasail_matrix_t &mx);//@@TODO
-	Log_parasail_mu_matrix(Paralign::m_matrix);
-
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
-	ProgressLog("PairCount %u %u\n", PairCount, PairCount2);
 	asserta(PairCount == PairCount2);
 	uint ScoreDiffs = 0;
 	vector<string> Label1s;

@@ -97,6 +97,8 @@ UNS_OPT(subsample)
 UNS_OPT(undef_letter)
 UNS_OPT(nested_latin)
 UNS_OPT(psuedocount)
+UNS_OPT(intopen)
+UNS_OPT(intext)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

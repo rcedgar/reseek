@@ -4,13 +4,8 @@
 #include "alpha.h"
 #include "cigar.h"
 
-void Log_parasail_mu_matrix(const parasail_matrix_t &mx);
-void Log_parasail_profile(const parasail_profile_t &prof);
 void ExpandParaCigar_reverseDI(const string &s, string &Path);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
-void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
-  const string &LabelB, const byte *B,
-  uint Loi, uint Loj, const char *Path);
 float SWFast_SubstMx(XDPMem &Mem,
 	const byte *A, uint LA, const byte *B, uint LB,
 	const vector<vector<float> > &SubstMx,
@@ -25,7 +20,7 @@ int Paralign::m_Open = INT_MAX;
 int Paralign::m_Ext = INT_MAX;
 int Paralign::m_SaturatedScore = INT_MAX;
 uint Paralign::m_MaxLength = 9999;
-int Paralign::m_Bits = 16;//@@TODO
+int Paralign::m_Bits = 16;
 vector<vector<float> > Paralign::m_SWFastSubstMx;
 atomic<uint> Paralign::m_Count8;
 atomic<uint> Paralign::m_Count16;
@@ -291,15 +286,35 @@ int Paralign::ScoreAln(bool Trace) const
 
 void Paralign::SetMu()
 	{
-	m_Open = 2;
-	m_Ext = 1;
-	m_SaturatedScore = 777;
-	memcpy(&m_matrix, &parasail_mu_matrix, sizeof(parasail_matrix_t));
-
-	//m_Open = 8;
+	//m_Open = 2;
 	//m_Ext = 1;
-	//extern int Mu_S_k_i8[36*36];
-	//m_matrix.matrix = Mu_S_k_i8;
+	//m_SaturatedScore = 777;
+	//memcpy(&m_matrix, &parasail_mu_matrix, sizeof(parasail_matrix_t));
+
+	asserta(optset_intopen);
+	asserta(optset_intext);
+	m_Open = opt(intopen);
+	m_Ext = opt(intext);
+	extern int Mu_S_k_i8[36*36];
+	int MinScore = 0;
+	int MaxScore = 0;
+	for (uint i = 0; i < 36*36; ++i)
+		{
+		int Score = Mu_S_k_i8[i];
+		if (i == 0 || Score < MinScore) MinScore = Score;
+		if (i == 0 || Score > MaxScore) MaxScore = Score;
+		}
+	m_matrix.size = 36;
+	m_matrix.length = 36;
+	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	m_matrix.matrix = Mu_S_k_i8;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
+	int *Mapper = myalloc(int, 256);
+	memset(Mapper, 0, 256*sizeof(int));
+	for (int i = 0; i < 36; ++i)
+		Mapper[i] = i;
+	m_matrix.mapper = Mapper;
 	}
 
 void Paralign::SetBlosum62()
