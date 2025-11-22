@@ -53,6 +53,7 @@ C(dump_float_feature)
 C(confx_train)
 C(nucluster)
 C(nuscop40)
+C(test_parasail)
 C(paralign_test)
 C(paralign_scop40)
 

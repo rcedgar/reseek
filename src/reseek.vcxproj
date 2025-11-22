@@ -385,6 +385,7 @@
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="statsig.cpp" />
+    <ClCompile Include="test_parasail.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />

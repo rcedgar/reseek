@@ -25,8 +25,9 @@ int Paralign::m_Open = INT_MAX;
 int Paralign::m_Ext = INT_MAX;
 int Paralign::m_SaturatedScore = INT_MAX;
 uint Paralign::m_MaxLength = 9999;
+int Paralign::m_Bits = 8;
 vector<vector<float> > Paralign::m_SWFastSubstMx;
-
+     
 // Ye olde BLOSUM62 as used by NCBI BLAST (1/2-bit units)
 // alphabetical order, no wildcards or stop codon
 static const int Blosum62_Open = 11;
@@ -291,10 +292,10 @@ void Paralign::SetMu()
 	m_SaturatedScore = 777;
 	memcpy(&m_matrix, &parasail_mu_matrix, sizeof(parasail_matrix_t));
 
-	m_Open = 8;
-	m_Ext = 1;
-	extern int Mu_S_k_i8[36*36];
-	m_matrix.matrix = Mu_S_k_i8;
+	//m_Open = 8;
+	//m_Ext = 1;
+	//extern int Mu_S_k_i8[36*36];
+	//m_matrix.matrix = Mu_S_k_i8;
 	}
 
 void Paralign::SetBlosum62()
@@ -381,7 +382,19 @@ void Paralign::SetQuery(const string &LabelQ, const byte *Q, uint LQ)
 	m_LQ = LQ;
 	if (m_ProfQ != 0)
 		parasail_profile_free(m_ProfQ);
-	m_ProfQ = parasail_profile_create_avx_256_8((const char *) Q, LQ, &m_matrix);
+	switch (m_Bits)
+		{
+	case 8:
+		m_ProfQ = parasail_profile_create_avx_256_8((const char *) Q, LQ, &m_matrix);
+		break;
+
+	case 16:
+		m_ProfQ = parasail_profile_create_avx_256_16((const char *) Q, LQ, &m_matrix);
+		break;
+
+	default:
+		asserta(false);
+		}
 #if 0
 	{
 	Log("SetQuery\n");
@@ -413,8 +426,23 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 		}
 	if (m_result != 0)
 		parasail_result_free(m_result);
-	m_result = parasail_sw_striped_profile_avx2_256_8(
-		m_ProfQ, (const char *) T, LT, m_Open, m_Ext);
+
+	switch (m_Bits)
+		{
+	case 8:
+		m_result = parasail_sw_striped_profile_avx2_256_8(
+			m_ProfQ, (const char *) T, LT, m_Open, m_Ext);
+		break;
+
+	case 16:
+		m_result = parasail_sw_striped_profile_avx2_256_16(
+			m_ProfQ, (const char *) T, LT, m_Open, m_Ext);
+		break;
+
+	default:
+		asserta(false);
+		}
+
 #if 0
 	{
 	Log("QL %u, TL %u\n", m_LQ, m_LT);

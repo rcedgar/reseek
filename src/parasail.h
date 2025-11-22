@@ -107,6 +107,28 @@ typedef union __m256i_8 {
     int8_t v[32];
 } __m256i_8_t;
 
+typedef union __m256i_16 {
+    __m256i m;
+    int16_t v[16];
+} __m256i_16_t;
+
+#if HAVE_AVX2_MM256_EXTRACT_EPI16
+#define _mm256_extract_epi16_rpl _mm256_extract_epi16
+#else
+static inline int16_t _mm256_extract_epi16_rpl(__m256i a, int imm) {
+    __m256i_16_t A;
+    A.m = a;
+    return A.v[imm];
+}
+#endif
+
+static inline int16_t _mm256_hmax_epi16_rpl(__m256i a) {
+    a = _mm256_max_epi16(a, _mm256_permute2x128_si256(a, a, _MM_SHUFFLE(0,0,0,0)));
+    a = _mm256_max_epi16(a, _mm256_slli_si256(a, 8));
+    a = _mm256_max_epi16(a, _mm256_slli_si256(a, 4));
+    a = _mm256_max_epi16(a, _mm256_slli_si256(a, 2));
+    return _mm256_extract_epi16_rpl(a, 15);
+}
 
 typedef struct parasail_result_extra_stats_tables {
     int * restrict score_table;     /* DP table of scores */
@@ -313,6 +335,15 @@ parasail_result_t* parasail_sw_striped_profile_avx2_256_8(
         const int open, const int gap);
 
 parasail_result_t* parasail_sw_trace_striped_profile_avx2_256_8(
+        const parasail_profile_t * const restrict profile,
+        const char * const restrict s2, const int s2Len,
+        const int open, const int gap);
+
+parasail_profile_t * parasail_profile_create_avx_256_16(
+        const char * const restrict s1, const int _s1Len,
+        const parasail_matrix_t *matrix);
+
+parasail_result_t* parasail_sw_striped_profile_avx2_256_16(
         const parasail_profile_t * const restrict profile,
         const char * const restrict s2, const int s2Len,
         const int open, const int gap);

@@ -5,6 +5,8 @@
 #include "scop40bench.h"
 #include "triangle.h"
 
+#define POKE_MU	1
+
 void cmd_paralign_scop40()
 	{
 	asserta(optset_lookup);
@@ -32,7 +34,21 @@ void cmd_paralign_scop40()
 			}
 		}
 
+#if POKE_MU
+	{
+	extern int8_t IntScoreMx_Mu[36][36];
+	vector<vector<int> > ScoreMx(36);
+	for (uint i = 0; i < 36; ++i)
+		{
+		ScoreMx[i].resize(36);
+		for (uint j = 0; j < 36; ++j)
+			ScoreMx[i][j] = IntScoreMx_Mu[i][j];
+		}
+	Paralign::SetMatrix(ScoreMx, 2, 1, 777);
+	}
+#else
 	Paralign::SetMu();
+#endif
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
 	ProgressLog("PairCount %u %u\n", PairCount, PairCount2);

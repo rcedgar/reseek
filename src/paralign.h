@@ -12,6 +12,7 @@ public:
 	static int m_SaturatedScore;
 	static uint m_MaxLength;
 	static vector<vector<float> > m_SWFastSubstMx;
+	static int m_Bits;
 
 public:
 	string m_LabelQ;
