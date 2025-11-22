@@ -476,6 +476,9 @@
     <ClCompile Include="test_parasail.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="paralign_scop40_mu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

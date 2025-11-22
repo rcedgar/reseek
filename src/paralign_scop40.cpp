@@ -5,58 +5,53 @@
 #include "scop40bench.h"
 #include "triangle.h"
 
-#define POKE_MU	0
+static void GetByteSeqs(const string &FN,
+	vector<string> &Labels,
+	vector<vector<byte> > &ByteSeqs)
+	{
+	FILE *f = CreateStdioFile("mu.tmp");
+	vector<PDBChain *> Chains;
+	ReadChains(FN, Chains);
+	const uint ChainCount = SIZE(Chains);
+	DSS D;
+	ByteSeqs.clear();
+	ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *Chains[ChainIdx];
+		Labels.push_back(Chain.m_Label);
+		D.Init(Chain);
+		D.GetMuLetters(ByteSeqs[ChainIdx]);
+
+		fprintf(f, ">%s\n", Chain.m_Label.c_str());
+		const vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
+		const uint L = SIZE(ByteSeq);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			fprintf(f, "%c", g_LetterToCharMu[ByteSeq[Pos]]);
+			if (Pos != 0 && Pos%80 == 0 && Pos + 1 != L)
+				fprintf(f, "\n");
+			}
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
 
 void cmd_paralign_scop40()
 	{
-	asserta(optset_bins);
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
 
-	const string &FastaFN = g_Arg1;
-	SeqDB Seqs;
-	Seqs.FromFasta(FastaFN);
+	const string &ChainsFN = g_Arg1;
+	vector<string> Labels;
+	vector<vector<byte> > ByteSeqs;
+	GetByteSeqs(ChainsFN, Labels, ByteSeqs);
 
-	if (opt(bins) == 8)
-		Paralign::m_Bits = 8;
-	else if (opt(bins) == 16)
-		Paralign::m_Bits = 16;
-	else
-		Die("-bins must be 8 or 16");
+	const uint SeqCount = SIZE(ByteSeqs);
 
-	const uint SeqCount = Seqs.GetSeqCount();
-	vector<vector<byte> > ByteSeqs(SeqCount);
-	for (uint i = 0; i < SeqCount; ++i)
-		{
-		ProgressStep(i, SeqCount, "Byte seqs");
-		const string &Seq = Seqs.GetSeq(i);
-		const uint L = Seqs.GetSeqLength(i);
-		vector<byte> &ByteSeq = ByteSeqs[i];
-		ByteSeq.reserve(L);
-		for (uint Pos = 0; Pos < L; ++Pos)
-			{
-			char c = Seq[Pos];
-			byte Letter = g_CharToLetterMu[c];
-			ByteSeq.push_back(Letter);
-			}
-		}
-
-#if POKE_MU
-	{
-	extern int8_t IntScoreMx_Mu[36][36];
-	vector<vector<int> > ScoreMx(36);
-	for (uint i = 0; i < 36; ++i)
-		{
-		ScoreMx[i].resize(36);
-		for (uint j = 0; j < 36; ++j)
-			ScoreMx[i][j] = IntScoreMx_Mu[i][j];
-		}
-	Paralign::SetMatrix(ScoreMx, 2, 1, 777);
-	}
-#else
 	Paralign::SetMu();
-#endif
+
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
 	asserta(PairCount == PairCount2);
@@ -88,19 +83,17 @@ void cmd_paralign_scop40()
 		if (i >= SeqCount)
 			break;
 
-		const string &Label_i = Seqs.GetLabel(i);
-		const string &Seq_i = Seqs.GetSeq(i);
-		const byte *ByteSeq_i = ByteSeqs[i].data();
-		uint L_i = Seqs.GetSeqLength(i);
-		PA.SetQuery(Label_i, ByteSeq_i, L_i);
+		const string &Label_i = Labels[i];
+		const vector<byte> &ByteSeq_i = ByteSeqs[i];
+		uint L_i = SIZE(ByteSeq_i);
+		PA.SetQuery(Label_i, ByteSeq_i.data(), L_i);
 
 		for (uint j = i+1; j < SeqCount; ++j)
 			{
-			const string &Label_j = Seqs.GetLabel(j);
-			const string &Seq_j = Seqs.GetSeq(j);
-			const byte *ByteSeq_j = ByteSeqs[j].data();
-			uint L_j = Seqs.GetSeqLength(j);
-			PA.Align_ScoreOnly(Label_j, ByteSeq_j, L_j);
+			const string &Label_j = Labels[j];
+			const vector<byte> &ByteSeq_j = ByteSeqs[j];
+			uint L_j = SIZE(ByteSeq_j);
+			PA.Align_ScoreOnly(Label_j, ByteSeq_j.data(), L_j);
 #pragma omp critical
 			{
 			Label1s.push_back(Label_i);

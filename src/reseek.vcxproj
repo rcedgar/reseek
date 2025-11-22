@@ -293,6 +293,7 @@
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="paralign_scop40.cpp" />
+    <ClCompile Include="paralign_scop40_mu.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />

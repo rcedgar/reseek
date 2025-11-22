@@ -16,8 +16,8 @@ extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
 
 parasail_matrix_t Paralign::m_matrix;
-int Paralign::m_Open = INT_MAX;
-int Paralign::m_Ext = INT_MAX;
+int Paralign::m_Open = INT_MAX;	// penalty > 0
+int Paralign::m_Ext = INT_MAX;	// penalty > 0
 int Paralign::m_SaturatedScore = INT_MAX;
 uint Paralign::m_MaxLength = 9999;
 int Paralign::m_Bits = 16;
@@ -291,10 +291,18 @@ void Paralign::SetMu()
 	//m_SaturatedScore = 777;
 	//memcpy(&m_matrix, &parasail_mu_matrix, sizeof(parasail_matrix_t));
 
-	asserta(optset_intopen);
-	asserta(optset_intext);
-	m_Open = opt(intopen);
-	m_Ext = opt(intext);
+// $src/2025-10_reseek_tune/2025-11-22_paralign_scop40_mu_16bit_gap_parameter_sweep
+// open20.ext8=0.724
+// open24.ext10=0.724
+// open30.ext5=0.724
+// open35.ext5=0.724
+// open18.ext10=0.726
+// open22.ext10=0.726
+// open22.ext8=0.726
+// open24.ext8=0.726
+// open20.ext10=0.727
+	m_Open = 20;
+	m_Ext = 10;
 	extern int Mu_S_k_i8[36*36];
 	int MinScore = 0;
 	int MaxScore = 0;

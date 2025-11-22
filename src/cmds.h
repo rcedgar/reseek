@@ -56,5 +56,6 @@ C(nuscop40)
 C(test_parasail)
 C(paralign_test)
 C(paralign_scop40)
+C(paralign_scop40_mu)
 
 #undef C
