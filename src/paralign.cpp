@@ -390,12 +390,10 @@ void Paralign::SetQuery(const string &LabelQ, const byte *Q, uint LQ)
 		{
 	case 8:
 		m_ProfQ = parasail_profile_create_avx_256_8((const char *) Q, LQ, &m_matrix);
-		++m_Count8;
 		break;
 
 	case 16:
 		m_ProfQ = parasail_profile_create_avx_256_16((const char *) Q, LQ, &m_matrix);
-		++m_Count16;
 		break;
 
 	default:
@@ -439,11 +437,13 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 	case 8:
 		m_result = parasail_sw_striped_profile_avx2_256_8(
 			m_ProfQ, (const char *) T, LT, m_Open, m_Ext);
+		++m_Count8;
 		break;
 
 	case 16:
 		m_result = parasail_sw_striped_profile_avx2_256_16(
 			m_ProfQ, (const char *) T, LT, m_Open, m_Ext);
+		++m_Count16;
 		break;
 
 	default:
