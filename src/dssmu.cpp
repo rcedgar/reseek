@@ -19,7 +19,7 @@ static const FEATURE s_MuFeatures[s_MuFeatureCount] =
 	FEATURE_RENDist4
 	};
 
-static const uint s_MuAlphaSizes[3] = {3, 3, 4};;
+static const uint s_MuAlphaSizes[3] = {3, 3, 4};
 static const uint s_MuAlphaSize = 36;
 static float s_DefaultNENDist = 10.0;
 

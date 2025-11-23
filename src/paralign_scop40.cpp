@@ -5,11 +5,78 @@
 #include "scop40bench.h"
 #include "triangle.h"
 
-static void GetByteSeqs(const string &FN,
+/////////////////////////////////////////
+// Hack because of K<->L bug in alpha.cpp
+//   baked into mumx_data.cpp
+/////////////////////////////////////////
+// unsigned char g_CharToLetterMu[256] =
+// ...
+//	9  ,         // [ 74] 'J'
+//	11 ,         // [ 75] 'L'
+//	10 ,         // [ 76] 'K'
+//	12 ,         // [ 77] 'M'
+//
+//unsigned char g_LetterToCharMu[256] =
+// ...
+//	'J',           // [9]
+//	'L',           // [10]
+//	'K',           // [11]
+//	'M',           // [12]
+/////////////////////////////////////////
+static void FixMuByteSeq(vector<byte> &ByteSeq)
+	{
+	for (uint i = 0; i < SIZE(ByteSeq); ++i)
+		{
+		byte Letter = ByteSeq[i];
+		if (Letter == 11)
+			ByteSeq[i] = 10;
+		else if (Letter == 10)
+			ByteSeq[i] = 11;
+		}
+	}
+
+static void GetByteSeqs_Mux(const string &FN,
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
-	FILE *f = CreateStdioFile("mu.tmp");
+	//vector<FEATURE> Fs;
+	//Fs.push_back(FEATURE_SS3);
+	//Fs.push_back(FEATURE_NENSS3);
+	//Fs.push_back(FEATURE_RENDist4);
+
+	vector<PDBChain *> Chains;
+	ReadChains(FN, Chains);
+	const uint ChainCount = SIZE(Chains);
+	DSS D;
+	ByteSeqs.clear();
+	ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		Labels.push_back(Chain.m_Label);
+		D.Init(Chain);
+		vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
+		ByteSeq.reserve(L);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			uint Letter_SS3 = D.GetFeature(FEATURE_SS3, Pos);
+			uint Letter_NENSS3 = D.GetFeature(FEATURE_NENSS3, Pos);
+			uint Letter_RENDist4 = D.GetFeature(FEATURE_RENDist4, Pos);
+			byte Letter = Letter_SS3 + Letter_NENSS3*3 + Letter_RENDist4*3*3;
+			byte Letter2 = D.Get_Mu(Pos);
+			assert(Letter == Letter2);
+			asserta(Letter < 36);
+			ByteSeq.push_back(Letter);
+			}
+		FixMuByteSeq(ByteSeq);
+		}
+	}
+
+static void GetByteSeqs_Mu(const string &FN,
+	vector<string> &Labels,
+	vector<vector<byte> > &ByteSeqs)
+	{
 	vector<PDBChain *> Chains;
 	ReadChains(FN, Chains);
 	const uint ChainCount = SIZE(Chains);
@@ -23,38 +90,27 @@ static void GetByteSeqs(const string &FN,
 		D.Init(Chain);
 		vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
 		D.GetMuLetters(ByteSeq);
-
-	/////////////////////////////////////////
-	// Hack because of K<->L bug in alpha.cpp
-	/////////////////////////////////////////
-	// unsigned char g_CharToLetterMu[256] =
-	// ...
-	//	9  ,         // [ 74] 'J'
-	//	11 ,         // [ 75] 'L'
-	//	10 ,         // [ 76] 'K'
-	//	12 ,         // [ 77] 'M'
-	//unsigned char g_LetterToCharMu[256] =
-	// ...
-	//	'J',           // [9]
-	//	'L',           // [10]
-	//	'K',           // [11]
-	//	'M',           // [12]
-	/////////////////////////////////////////
-		for (uint i = 0; i < SIZE(ByteSeq); ++i)
-			{
-			byte Letter = ByteSeq[i];
-			if (Letter == 11)
-				ByteSeq[i] = 10;
-			else if (Letter == 10)
-				ByteSeq[i] = 11;
-			}
-	/////////////////////////////////////////
+		FixMuByteSeq(ByteSeq);
 		}
-	CloseStdioFile(f);
+	}
+
+static void GetByteSeqs(
+	const string &Alpha,
+	const string &FN,
+	vector<string> &Labels,
+	vector<vector<byte> > &ByteSeqs)
+	{
+	if (Alpha == "mu")
+		GetByteSeqs_Mu(FN, Labels, ByteSeqs);
+	else if (Alpha == "mux")
+		GetByteSeqs_Mux(FN, Labels, ByteSeqs);
+	else
+		Die("-alpha %s", Alpha.c_str());
 	}
 
 void cmd_paralign_scop40()
 	{
+	asserta(optset_alpha);
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
@@ -62,7 +118,7 @@ void cmd_paralign_scop40()
 	const string &ChainsFN = g_Arg1;
 	vector<string> Labels;
 	vector<vector<byte> > ByteSeqs;
-	GetByteSeqs(ChainsFN, Labels, ByteSeqs);
+	GetByteSeqs(opt(alpha), ChainsFN, Labels, ByteSeqs);
 
 	const uint SeqCount = SIZE(ByteSeqs);
 
