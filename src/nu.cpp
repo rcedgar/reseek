@@ -204,6 +204,31 @@ void Nu::FloatMxToIntMx(
 		}
 	}
 
+void Nu::GetLetters(const PDBChain &Chain,
+	vector<byte> &Letters)
+	{
+	const uint FeatureCount = GetFeatureCount();
+	m_D.Init(Chain);
+	const uint L = Chain.GetSeqLength();
+	Letters.clear();
+	vector<byte> ComponentLetters;
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		ComponentLetters.clear();
+		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+			{
+			FEATURE F = m_Features[FeatureIdx];
+			uint ComponentLetter = m_D.GetFeature(F, Pos);
+			if (ComponentLetter == UINT_MAX)
+				ComponentLetters.push_back(m_ReplaceUndefWithThisLetter);
+			else
+				ComponentLetters.push_back(ComponentLetter);
+			}
+		byte Letter = ComponentLettersToNuLetter(ComponentLetters);
+		Letters.push_back(Letter);
+		}
+	}
+
 static void TestSetMu()
 	{
 	Nu A;
@@ -331,14 +356,52 @@ static void Match_Mu_S_ij_i8(int Idx1, int Idx2, int Idx3)
 		Idx1, Idx2, Idx3, MatchCount, 36*36);
 	}
 
-void cmd_test_nu()
+// Match_Mu_S_ij_i8(0, 1, 2) 196/1296 matches
+// Match_Mu_S_ij_i8(0, 2, 1) 79/1296 matches
+// Match_Mu_S_ij_i8(1, 2, 0) 71/1296 matches
+// Match_Mu_S_ij_i8(1, 0, 2) 115/1296 matches
+// Match_Mu_S_ij_i8(2, 0, 1) 59/1296 matches
+// Match_Mu_S_ij_i8(2, 1, 0) 60/1296 matches
+static void TryMatch()
 	{
-	TestSetMu();
-	TestSetMuComponents();
 	Match_Mu_S_ij_i8(0, 1, 2);
 	Match_Mu_S_ij_i8(0, 2, 1);
 	Match_Mu_S_ij_i8(1, 0, 2);
 	Match_Mu_S_ij_i8(1, 2, 0);
 	Match_Mu_S_ij_i8(2, 1, 0);
 	Match_Mu_S_ij_i8(2, 0, 1);
+	}
+
+static void TestChains(const string &ChainsFN)
+	{
+	Nu A;
+	A.SetMu();
+
+	DSS D;
+	vector<PDBChain *> Chains;
+	ReadChains(ChainsFN, Chains);
+	const uint ChainCount = SIZE(Chains);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		vector<byte> MuLetters, NuLetters;
+		D.Init(Chain);
+		D.GetMuLetters(MuLetters);
+		A.GetLetters(Chain, NuLetters);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			byte MuLetter = MuLetters[Pos];
+			byte NuLetter = NuLetters[Pos];
+			asserta(MuLetter == NuLetter);
+			}
+		}
+	ProgressLog("TestChains() %u chains PASSED\n", ChainCount);
+	}
+
+void cmd_test_nu()
+	{
+	TestSetMu();
+	TestSetMuComponents();
+	TestChains(g_Arg1);
 	}

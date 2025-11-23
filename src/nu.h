@@ -1,6 +1,7 @@
 #pragma once
 
 #include "features.h"
+#include "dss.h"
 
 class Nu
 	{
@@ -10,6 +11,8 @@ public:
 	vector<uint> m_ASs;
 	vector<const float * const *> m_ComponentScoreMxs;
 	vector<uint> m_Axes;
+	DSS m_D;
+	byte m_ReplaceUndefWithThisLetter = 0;
 
 public:
 	void Clear()
@@ -43,4 +46,6 @@ public:
 	void SetComponents(
 		const vector<FEATURE> &Fs,
 		const vector<float> Weights);
+	void GetLetters(const PDBChain &Chain,
+		vector<byte> &Letters);
 	};
