@@ -23,16 +23,16 @@ static void GetByteSeqs(const string &FN,
 		D.Init(Chain);
 		D.GetMuLetters(ByteSeqs[ChainIdx]);
 
-		fprintf(f, ">%s\n", Chain.m_Label.c_str());
-		const vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
-		const uint L = SIZE(ByteSeq);
-		for (uint Pos = 0; Pos < L; ++Pos)
-			{
-			fprintf(f, "%c", g_LetterToCharMu[ByteSeq[Pos]]);
-			if (Pos != 0 && Pos%80 == 0 && Pos + 1 != L)
-				fprintf(f, "\n");
-			}
-		fprintf(f, "\n");
+		//fprintf(f, ">%s\n", Chain.m_Label.c_str());
+		//const vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
+		//const uint L = SIZE(ByteSeq);
+		//for (uint Pos = 0; Pos < L; ++Pos)
+		//	{
+		//	fprintf(f, "%c", g_LetterToCharMu[ByteSeq[Pos]]);
+		//	if (Pos != 0 && Pos%80 == 0 && Pos + 1 != L)
+		//		fprintf(f, "\n");
+		//	}
+		//fprintf(f, "\n");
 		}
 	CloseStdioFile(f);
 	}
@@ -94,6 +94,20 @@ void cmd_paralign_scop40()
 			const vector<byte> &ByteSeq_j = ByteSeqs[j];
 			uint L_j = SIZE(ByteSeq_j);
 			PA.Align_ScoreOnly(Label_j, ByteSeq_j.data(), L_j);
+			//bool Trace = (StartsWith(Label_i, "d3nfka_/b.36.1") && StartsWith(Label_j, "d1t2da2/d.162.1");
+			//if (Trace)
+			//	{
+			//	Log("Seq_i[%u] ", L_i);
+			//	for (uint posi = 0; posi < L_i; ++posi)
+			//		Log(" %u", ByteSeq_i[posi]);
+			//	Log("\n");
+			//	Log("Seq_i[%u] ", L_j);
+			//	for (uint posj = 0; posj < L_j; ++posj)
+			//		Log(" %u", ByteSeq_j[posj]);
+			//	Log("\n");
+			//	Log("score=%d\n", PA.m_Score);
+			//	Die("TODO");
+			//	}
 #pragma omp critical
 			{
 			Label1s.push_back(Label_i);
@@ -113,4 +127,23 @@ void cmd_paralign_scop40()
 	SB.m_SBS = SBS_OtherAlgoScore;
 	SB.SetScoreOrder();
 	SB.WriteOutput();
+
+	//{//@@TODO
+	//const uint HitCount = SB.GetHitCount();
+	//const vector<uint> &Order = SB.m_ScoreOrder;
+	//asserta(SIZE(Order) == HitCount);
+	//FILE *f = CreateStdioFile("paralign_scop40.hits");
+	//for (uint k = 0; k < HitCount; ++k)
+	//	{
+	//	uint i = k;
+	//	uint DomIdx1 = SB.m_DomIdx1s[i];
+	//	uint DomIdx2 = SB.m_DomIdx2s[i];
+	//	const string &Label1 = SB.m_Doms[DomIdx1];
+	//	const string &Label2 = SB.m_Doms[DomIdx2];
+	//	if (Label1 == Label2)
+	//		continue;
+	//	float Score = SB.m_Scores[i];
+	//	fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+	//	}
+	//}//@@
 	}
