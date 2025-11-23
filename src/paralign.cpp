@@ -301,8 +301,8 @@ void Paralign::SetMu()
 // open22.ext8=0.726
 // open24.ext8=0.726
 // open20.ext10=0.727
-	m_Open = 20;
-	m_Ext = 10;
+	m_Open = 24;
+	m_Ext = 8;
 	extern int Mu_S_k_i8[36*36];
 	int MinScore = 0;
 	int MaxScore = 0;

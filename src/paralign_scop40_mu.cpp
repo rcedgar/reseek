@@ -23,9 +23,6 @@ SEPQ0.1=0.066 SEPQ1=0.106 SEPQ10=0.215 Area0=0.283 Sum3=0.506
 
 void cmd_paralign_scop40_mu()
 	{
-	asserta(optset_intopen);
-	asserta(optset_intext);
-
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
@@ -52,8 +49,6 @@ void cmd_paralign_scop40_mu()
 		}
 
 	Paralign::SetMu();
-	Paralign::m_Open = opt(intopen);
-	Paralign::m_Ext = opt(intext);
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
@@ -99,20 +94,6 @@ void cmd_paralign_scop40_mu()
 			const byte *ByteSeq_j = ByteSeqs[j].data();
 			uint L_j = Seqs.GetSeqLength(j);
 			PA.Align_ScoreOnly(Label_j, ByteSeq_j, L_j);
-			//bool Trace = (StartsWith(Label_i, "d3nfka_/b.36.1") && StartsWith(Label_j, "d1t2da2/d.162.1"));
-			//if (Trace)
-			//	{
-			//	Log("Seq_i[%u] ", L_i);
-			//	for (uint posi = 0; posi < L_i; ++posi)
-			//		Log(" %u", ByteSeq_i[posi]);
-			//	Log("\n");
-			//	Log("Seq_i[%u] ", L_j);
-			//	for (uint posj = 0; posj < L_j; ++posj)
-			//		Log(" %u", ByteSeq_j[posj]);
-			//	Log("\n");
-			//	Log("score=%d\n", PA.m_Score);
-			//	Die("TODO");
-			//	}
 #pragma omp critical
 			{
 			Label1s.push_back(Label_i);
@@ -132,22 +113,25 @@ void cmd_paralign_scop40_mu()
 	SB.m_SBS = SBS_OtherAlgoScore;
 	SB.SetScoreOrder();
 	SB.WriteOutput();
-	//{//@@TODO
-	//const uint HitCount = SB.GetHitCount();
-	//const vector<uint> &Order = SB.m_ScoreOrder;
-	//asserta(SIZE(Order) == HitCount);
-	//FILE *f = CreateStdioFile("paralign_scop40_mu.hits");
-	//for (uint k = 0; k < HitCount; ++k)
-	//	{
-	//	uint i = k;
-	//	uint DomIdx1 = SB.m_DomIdx1s[i];
-	//	uint DomIdx2 = SB.m_DomIdx2s[i];
-	//	const string &Label1 = SB.m_Doms[DomIdx1];
-	//	const string &Label2 = SB.m_Doms[DomIdx2];
-	//	if (Label1 == Label2)
-	//		continue;
-	//	float Score = SB.m_Scores[i];
-	//	fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
-	//	}
-	//}//@@
+
+#if 0
+	{
+	const uint HitCount = SB.GetHitCount();
+	const vector<uint> &Order = SB.m_ScoreOrder;
+	asserta(SIZE(Order) == HitCount);
+	FILE *f = CreateStdioFile("paralign_scop40_mu.hits");
+	for (uint k = 0; k < HitCount; ++k)
+		{
+		uint i = k;
+		uint DomIdx1 = SB.m_DomIdx1s[i];
+		uint DomIdx2 = SB.m_DomIdx2s[i];
+		const string &Label1 = SB.m_Doms[DomIdx1];
+		const string &Label2 = SB.m_Doms[DomIdx2];
+		if (Label1 == Label2)
+			continue;
+		float Score = SB.m_Scores[i];
+		fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+		}
+	}
+#endif
 	}

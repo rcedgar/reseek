@@ -15,6 +15,14 @@ public:
 	static int m_Bits;
 
 public:
+	Paralign()
+		{
+		if (optset_intopen)
+			m_Open = opt(intopen);
+		if (optset_intext)
+			m_Open = opt(intext);
+		}
+
 	string m_LabelQ;
 	string m_LabelT;
 	const byte *m_Q = 0;
