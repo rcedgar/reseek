@@ -92,11 +92,6 @@ void cmd_musubstmx()
 	const uint NF = 3;
 	const uint AS = 36;
 
-	//vector<float **> ScoreMxs;
-	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_SS3]);
-	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_NENSS3]);
-	//ScoreMxs.push_back(g_ScoreMxs2[FEATURE_RENDist4]);
-
 	vector<vector<vector<float> > > ScoreMxs(3);
 	vector<vector<float> > &SS3 = ScoreMxs[0];
 	vector<vector<float> > &NENSS3 = ScoreMxs[1];

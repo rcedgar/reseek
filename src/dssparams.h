@@ -123,6 +123,7 @@ public:
 	static uint GetUintParam(const string &Name);
 	static float GetFloatParam(const string &Name);
 	static void SetParam(const string &Name, const string &Value);
+	static const float * const *GetScoreMx(FEATURE F);
 	};
 
 uint GetPatternOnes(const string &Pattern);

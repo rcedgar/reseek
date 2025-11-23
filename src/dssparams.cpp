@@ -398,3 +398,8 @@ void DSSParams::LogMe()
 	LogParamData();
 	Log("m_MKFPatternStr %s\n", m_MKFPatternStr.c_str());
 	}
+
+const float * const *DSSParams::GetScoreMx(FEATURE F)
+	{
+	return g_ScoreMxs2[F];
+	}

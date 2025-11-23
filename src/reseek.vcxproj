@@ -288,6 +288,7 @@
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
+    <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
     <ClCompile Include="optimizearea.cpp" />
@@ -465,6 +466,7 @@
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
+    <ClInclude Include="nu.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />
