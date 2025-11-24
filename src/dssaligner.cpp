@@ -132,111 +132,6 @@ DSSAligner::DSSAligner()
 		}
 	}
 
-int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
-  const vector<byte> &MuLettersB, uint LoA, uint LoB,
-  const string &Path) const
-	{
-	uint Sum = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	const int Open = -DSSParams::m_ParaMuGapOpen;
-	const int Ext = -DSSParams::m_ParaMuGapExt;
-	const uint ColCount = SIZE(Path);
-	extern int8_t IntScoreMx_Mu[36][36];
- 
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < SIZE(MuLettersA));
-			asserta(PosB < SIZE(MuLettersB));
-			byte a = MuLettersA[PosA];
-			byte b = MuLettersB[PosB];
-			Sum += IntScoreMx_Mu[a][b];
-			++PosA;
-			++PosB;
-			break;
-			}
-
-		case 'D':
-			if (Col != 0 && Path[Col-1] == 'D')
-				Sum += Ext;
-			else
-				Sum += Open;
-			++PosA;
-			break;
-
-		case 'I':
-			if (Col != 0 && Path[Col-1] == 'I')
-				Sum += Ext;
-			else
-				Sum += Open;
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	return Sum;
-	}
-
-float DSSAligner::GetMuDPScorePath(const vector<byte> &LettersA,
-	const vector<byte> &LettersB, uint LoA, uint LoB,
-	float GapOpen, float GapExt, const string &Path) const
-	{
-	asserta(GapOpen <= 0);
-	asserta(GapExt <= 0);
-	float Sum = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	const uint ColCount = SIZE(Path);
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		char c = Path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < SIZE(LettersA));
-			asserta(PosB < SIZE(LettersB));
-			uint LetterA = LettersA[PosA];
-			uint LetterB = LettersB[PosB];
-			asserta(LetterA < 36);
-			asserta(LetterB < 36);
-			extern float ScoreMx_Mu[36][36];
-			Sum += ScoreMx_Mu[LetterA][LetterB];
-			++PosA;
-			++PosB;
-			break;
-			}
-
-		case 'D':
-			if (Col != 0 && Path[Col-1] == 'D')
-				Sum += GapExt;
-			else
-				Sum += GapOpen;
-			++PosA;
-			break;
-
-		case 'I':
-			if (Col != 0 && Path[Col-1] == 'I')
-				Sum += GapExt;
-			else
-				Sum += GapOpen;
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	return Sum;
-	}
-
 // GetDPScorePath calculates AlnScore which is optimized by SWFast.
 float DSSAligner::GetDPScorePath(const vector<vector<byte> > &ProfileA,
   const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
@@ -418,52 +313,52 @@ void DSSAligner::SetSMx_QRev()
 #endif
 	EndTimer(SetSMx_QRev);
 	}
-
-void DSSAligner::SetMuQP()
-	{
-	StartTimer(SetMuQP);
-	const vector<byte> &MuLettersA = *m_MuLettersA;
-	uint LA = SIZE(MuLettersA);
-	uint n = SIZE(m_ProfMu);
-	if (LA > n)
-		{
-		m_ProfMu.resize(LA);
-		m_ProfMuRev.resize(LA);
-		}
-	const uint AS = 36;
-	asserta(AS == 36);
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte LetterA = MuLettersA[PosA];
-		asserta(LetterA < AS);
-		const float *MuMxRow = ScoreMx_Mu[LetterA];
-		m_ProfMu[PosA] = MuMxRow;
-		m_ProfMuRev[LA-PosA-1] = MuMxRow;
-		}
-	EndTimer(SetMuQP);
-	}
-
-void DSSAligner::SetMuQPi()
-	{
-	const vector<byte> &MuLettersA = *m_MuLettersA;
-	uint LA = SIZE(MuLettersA);
-	uint n = SIZE(m_ProfMui);
-	if (LA > n)
-		{
-		m_ProfMui.resize(LA);
-		m_ProfMuRevi.resize(LA);
-		}
-	const uint AS = 36;
-	asserta(AS == 36);
-	for (uint PosA = 0; PosA < LA; ++PosA)
-		{
-		byte LetterA = MuLettersA[PosA];
-		asserta(LetterA < AS);
-		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
-		m_ProfMui[PosA] = MuMxRow;
-		m_ProfMuRevi[LA-PosA-1] = MuMxRow;
-		}
-	}
+//
+//void DSSAligner::SetMuQP()
+//	{
+//	StartTimer(SetMuQP);
+//	const vector<byte> &MuLettersA = *m_MuLettersA;
+//	uint LA = SIZE(MuLettersA);
+//	uint n = SIZE(m_ProfMu);
+//	if (LA > n)
+//		{
+//		m_ProfMu.resize(LA);
+//		m_ProfMuRev.resize(LA);
+//		}
+//	const uint AS = 36;
+//	asserta(AS == 36);
+//	for (uint PosA = 0; PosA < LA; ++PosA)
+//		{
+//		byte LetterA = MuLettersA[PosA];
+//		asserta(LetterA < AS);
+//		const float *MuMxRow = ScoreMx_Mu[LetterA];
+//		m_ProfMu[PosA] = MuMxRow;
+//		m_ProfMuRev[LA-PosA-1] = MuMxRow;
+//		}
+//	EndTimer(SetMuQP);
+//	}
+//
+//void DSSAligner::SetMuQPi()
+//	{
+//	const vector<byte> &MuLettersA = *m_MuLettersA;
+//	uint LA = SIZE(MuLettersA);
+//	uint n = SIZE(m_ProfMui);
+//	if (LA > n)
+//		{
+//		m_ProfMui.resize(LA);
+//		m_ProfMuRevi.resize(LA);
+//		}
+//	const uint AS = 36;
+//	asserta(AS == 36);
+//	for (uint PosA = 0; PosA < LA; ++PosA)
+//		{
+//		byte LetterA = MuLettersA[PosA];
+//		asserta(LetterA < AS);
+//		const int8_t *MuMxRow = IntScoreMx_Mu[LetterA];
+//		m_ProfMui[PosA] = MuMxRow;
+//		m_ProfMuRevi[LA-PosA-1] = MuMxRow;
+//		}
+//	}
 
 void DSSAligner::LogHSP(uint Lo_i, uint Lo_j, uint Len) const
 	{

@@ -159,6 +159,7 @@ FLAG_OPT(raw)
 FLAG_OPT(newparams)
 FLAG_OPT(modal)
 FLAG_OPT(evalmu)
+FLAG_OPT(fixmubyteseq)
 
 #undef FLAG_OPT
 #undef UNS_OPT

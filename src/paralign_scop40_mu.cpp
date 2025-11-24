@@ -114,7 +114,7 @@ void cmd_paralign_scop40_mu()
 	SB.SetScoreOrder();
 	SB.WriteOutput();
 
-#if 0
+#if 1
 	{
 	const uint HitCount = SB.GetHitCount();
 	const vector<uint> &Order = SB.m_ScoreOrder;

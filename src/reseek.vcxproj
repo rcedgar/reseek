@@ -281,13 +281,18 @@
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
+    <ClCompile Include="dali.cpp" />
+    <ClCompile Include="daliscorer.cpp" />
     <ClCompile Include="dssparamdata.cpp" />
     <ClCompile Include="dump_features.cpp" />
+    <ClCompile Include="fa2_lddt.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
+    <ClCompile Include="msta_lddtmuw.cpp" />
+    <ClCompile Include="msta_lddtmuw1.cpp" />
     <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
@@ -426,6 +431,7 @@
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="xdrophsp.cpp" />
+    <ClCompile Include="zscorer.cpp" />
     <ClCompile Include="zutil.c" />
     <ClInclude Include="alncounters.h" />
     <ClInclude Include="alncounts.h" />
@@ -440,6 +446,7 @@
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
+    <ClInclude Include="daliscorer.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="dssfloatparams.h" />

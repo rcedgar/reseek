@@ -150,12 +150,6 @@ public:
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
-	float GetMuDPScorePath(const vector<byte> &LettersA,
-	  const vector<byte> &LettersB, uint LoA, uint LoB,
-	  float GapOpen, float GapExt, const string &Path) const;
-	int GetMuDPScorePathInt(const vector<byte> &MuLettersA,
-	  const vector<byte> &MuLettersB, uint LoA, uint LoB,
-	  const string &Path) const;
 	float GetScorePosPair(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint PosA, uint PosB) const;
 	float GetScoreSegPair(const vector<vector<byte> > &ProfileA,
@@ -166,8 +160,8 @@ public:
 	void SetSMx_QRev();
 	void SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB);
-	void SetMuQP();
-	void SetMuQPi();
+	//void SetMuQP();
+	//void SetMuQPi();
 	void SetMuQP_Para();
 	//void SetSMx_Mu();
 	void AllocDProw(uint LB);

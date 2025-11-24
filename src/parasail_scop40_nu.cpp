@@ -5,6 +5,8 @@
 #include "triangle.h"
 #include "nu.h"
 
+void FixMuByteSeq(vector<byte> &ByteSeq);
+
 void cmd_paralign_scop40_nu()
 	{
 	asserta(optset_lookup);
@@ -27,6 +29,8 @@ void cmd_paralign_scop40_nu()
 		const uint L = Chain.GetSeqLength();
 		vector<byte> &ByteSeq = ByteSeqs[i];
 		A.GetLetters(Chain, ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
 		Labels.push_back(Chain.m_Label);
 		}
 
@@ -103,12 +107,12 @@ void cmd_paralign_scop40_nu()
 	SB.SetScoreOrder();
 	SB.WriteOutput();
 
-#if 0
+#if 1
 	{
 	const uint HitCount = SB.GetHitCount();
 	const vector<uint> &Order = SB.m_ScoreOrder;
 	asserta(SIZE(Order) == HitCount);
-	FILE *f = CreateStdioFile("paralign_scop40_mu.hits");
+	FILE *f = CreateStdioFile("paralign_scop40_nu.hits");
 	for (uint k = 0; k < HitCount; ++k)
 		{
 		uint i = k;

@@ -60,5 +60,6 @@ C(paralign_scop40_mu)
 C(paralign_scop40_nu)
 C(retrainmu)
 C(test_nu)
+C(fa2_lddt)
 
 #undef C

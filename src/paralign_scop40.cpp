@@ -23,7 +23,7 @@
 //	'K',           // [11]
 //	'M',           // [12]
 /////////////////////////////////////////
-static void FixMuByteSeq(vector<byte> &ByteSeq)
+void FixMuByteSeq(vector<byte> &ByteSeq)
 	{
 	for (uint i = 0; i < SIZE(ByteSeq); ++i)
 		{
@@ -69,7 +69,8 @@ static void GetByteSeqs_Mux(const string &FN,
 			asserta(Letter < 36);
 			ByteSeq.push_back(Letter);
 			}
-		FixMuByteSeq(ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
 		}
 	}
 
