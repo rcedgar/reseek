@@ -91,7 +91,8 @@ static void GetByteSeqs_Mu(const string &FN,
 		D.Init(Chain);
 		vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
 		D.GetMuLetters(ByteSeq);
-		FixMuByteSeq(ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
 		}
 	}
 
