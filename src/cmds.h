@@ -57,6 +57,8 @@ C(test_parasail)
 C(paralign_test)
 C(paralign_scop40)
 C(paralign_scop40_mu)
+C(paralign_scop40_nu)
+C(retrainmu)
 C(test_nu)
 
 #undef C

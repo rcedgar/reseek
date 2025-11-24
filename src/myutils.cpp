@@ -747,6 +747,7 @@ void SetLogFileName(const string &FileName)
 	if (FileName.empty())
 		return;
 	g_fLog = CreateStdioFile(FileName);
+	setbuf(g_fLog, 0);
 	}
 
 void Log(const char *Format, ...)

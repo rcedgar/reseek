@@ -160,7 +160,7 @@ void FeatureTrainer2::TrainFloatFeature(
 	vector<float> &BinTs,
 	QUANTIZE_STYLE QS,
 	float UndefReplaceValue,
-	float &BestArea,
+	float *ptrBestArea,
 	FILE *fOut)
 	{
 	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
@@ -203,10 +203,13 @@ void FeatureTrainer2::TrainFloatFeature(
 
 	TrainLogOddsMx(LetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
 
+	if (ptrBestArea == 0)
+		return;
+
 	float BestOpenPenalty, BestExtPenalty, BestBias;
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, *ptrBestArea);
 
 	WriteSteps(fOut, ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec, EvalTPs,

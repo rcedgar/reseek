@@ -354,7 +354,7 @@ static void TrainIntFeature(
 	uint ReplaceUndefWithThisLetter,
 	BACKGROUND_STYLE BS,
 	vector<vector<float > > &ScoreMx,
-	float &BestArea,
+	float *ptrBestArea,
 	FILE *fOut);
 
 static void EvaluateMu(
@@ -507,7 +507,7 @@ static void TrainFloatFeature(
 	vector<float> &BinTs,
 	QUANTIZE_STYLE QS,
 	float UndefReplaceValue,
-	float &BestArea,
+	float *ptrBestArea,
 	FILE *fOut);
 
 static void TrainDSSFeature(
@@ -526,7 +526,7 @@ static void TrainDSSFeature(
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
 	BACKGROUND_STYLE BS,
-	float &BestArea);
+	float *ptrBestArea);
 
 static void ScoreMxToTsv(FILE *f,
 	const vector<vector<float> > &ScoreMx);

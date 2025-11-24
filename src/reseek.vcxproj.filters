@@ -482,6 +482,12 @@
     <ClCompile Include="nu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parasail_scop40_nu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="retrainmu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -818,6 +824,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pearson_correl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,6 +14,7 @@ float SWFast_SubstMx(XDPMem &Mem,
 
 extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
+extern int Mu_S_k_i8[36*36];
 
 parasail_matrix_t Paralign::m_matrix;
 int Paralign::m_Open = INT_MAX;	// penalty > 0
@@ -303,7 +304,6 @@ void Paralign::SetMu()
 // open20.ext10=0.727
 	m_Open = 24;
 	m_Ext = 8;
-	extern int Mu_S_k_i8[36*36];
 	int MinScore = 0;
 	int MaxScore = 0;
 	for (uint i = 0; i < 36*36; ++i)

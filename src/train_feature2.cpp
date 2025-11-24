@@ -2,6 +2,8 @@
 #include "featuretrainer2.h"
 #include "sort.h"
 
+#define EVAL	0
+
 void cmd_train_feature2()
 	{
 	const string FeatureName = g_Arg1;
@@ -44,9 +46,11 @@ void cmd_train_feature2()
 	vector<uint> EvalRowChainIdxs;
 	vector<uint> EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec;
 
+#if EVAL
 	FeatureTrainer2::LoadEvalAlns(EvalTPAlnFN, EvalFPAlnFN, LabelToChainIdx,
 		EvalRows, EvalLabels, EvalRowChainIdxs, EvalTPs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec);
+#endif
 
 	vector<vector<float> > ScoreMx;
 	float BestArea = FLT_MAX;
@@ -76,7 +80,7 @@ void cmd_train_feature2()
 			TrainRows, TrainLabels, TrainChainIdxs,
 			EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 			EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-			ScoreMx, BS, BestArea);
+			ScoreMx, BS, 0);
 
 		if (fOut != 0)
 			{
@@ -111,7 +115,7 @@ void cmd_train_feature2()
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 				UndefsAllowed, ReplaceUndefWithThisLetter,
-				BS, ScoreMx, BestArea, fSteps);
+				BS, ScoreMx, 0, fSteps);
 			FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
 			FeatureTrainer2::ScoreMxToSrc(g_fLog, ScoreMx);
 			}
@@ -133,7 +137,7 @@ void cmd_train_feature2()
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,
 				EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-				ScoreMx, BinTs, QS, UndefReplaceValue, BestArea, fSteps);
+				ScoreMx, BinTs, QS, UndefReplaceValue, 0, fSteps);
 			FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);
 			FeatureTrainer2::BinTsToTsv(fOut, BinTs);
 			FeatureTrainer2::BinTsToSrc(g_fLog, BinTs);

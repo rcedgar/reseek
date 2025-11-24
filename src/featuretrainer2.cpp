@@ -1255,7 +1255,7 @@ void FeatureTrainer2::TrainIntFeature(
 	uint ReplaceUndefWithThisLetter,
 	BACKGROUND_STYLE BS,
 	vector<vector<float > > &ScoreMx,
-	float &BestArea,
+	float *ptrBestArea,
 	FILE *fOut)
 	{
 	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
@@ -1269,7 +1269,6 @@ void FeatureTrainer2::TrainIntFeature(
 
 	SetIntFeature(F);
 	m_BS = BS;
-	BestArea = 0;
 	asserta(ReplaceUndefWithThisLetter < m_AlphaSize);
 
 	vector<vector<uint> > ChainIntSeqsWithUndefs;
@@ -1305,10 +1304,13 @@ void FeatureTrainer2::TrainIntFeature(
 ///////////////////////////////////////////////////////////////////////////////////////
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
 
+	if (ptrBestArea == 0)
+		return;
+
 	float BestOpenPenalty, BestExtPenalty, BestBias;
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, *ptrBestArea);
 
 	WriteSteps(fOut, ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec, EvalTPs,
@@ -1469,7 +1471,7 @@ void FeatureTrainer2::TrainDSSFeature(
 	const vector<uint> &EvalAlnExtVec,
 	vector<vector<float > > &ScoreMx,
 	BACKGROUND_STYLE BS,
-	float &BestArea)
+	float *ptrBestArea)
 	{
 	m_FevStr += "feature=" + string(FeatureToStr(F)) + ";";
 	m_FevStr += "dss=yes;";
@@ -1484,8 +1486,6 @@ void FeatureTrainer2::TrainDSSFeature(
 		}
 	m_BS = BS;
 	m_QS = QS_DSS;
-
-	BestArea = 0;
 
 	vector<vector<uint> > ChainIntSeqsNoUndefs;
 	GetChainIntSeqs_DSS(Chains, ChainIntSeqsNoUndefs);
@@ -1510,9 +1510,13 @@ void FeatureTrainer2::TrainDSSFeature(
 ///////////////////////////////////////////////////////////////////////////////////////
 	float BestOpenPenalty, BestExtPenalty, BestBias;
 	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
+
+	if (ptrBestArea == 0)
+		return;
+
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
-		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, BestArea);
+		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, *ptrBestArea);
 	}
 
 void FeatureTrainer2::GetBackgroundCounts(

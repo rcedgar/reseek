@@ -295,6 +295,7 @@
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="paralign_scop40.cpp" />
     <ClCompile Include="paralign_scop40_mu.cpp" />
+    <ClCompile Include="parasail_scop40_nu.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
@@ -314,6 +315,7 @@
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
+    <ClCompile Include="retrainmu.cpp" />
     <ClCompile Include="scop40benchsubset.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
@@ -490,6 +492,7 @@
     <ClInclude Include="objtypes.h" />
     <ClInclude Include="parasail.h" />
     <ClInclude Include="peaker.h" />
+    <ClInclude Include="pearson_correl.h" />
     <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="primes.h" />
