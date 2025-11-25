@@ -327,7 +327,7 @@ void Paralign::SetMu()
 	LogMatrix();
 	}
 
-void Paralign::SetMu_Float()
+void Paralign::SetMu_Float(int Open, int Ext)
 	{
 	extern float ScoreMx_Mu[36][36];
 	vector<vector<float> > ScoreMx(36);
@@ -337,7 +337,7 @@ void Paralign::SetMu_Float()
 		for (uint j = 0; j < 36; ++j)
 			ScoreMx[i][j] = ScoreMx_Mu[i][j];
 		}
-	SetSWFastSubstMx(ScoreMx, 8, 1);
+	SetSWFastSubstMx(ScoreMx, Open, Ext);
 	}
 
 // Low accuracy 

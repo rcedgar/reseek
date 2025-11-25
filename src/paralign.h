@@ -49,7 +49,7 @@ public:
 
 public:
 	static void SetMu();
-	static void SetMu_Float();
+	static void SetMu_Float(int Open, int Ext);
 	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
 	static void SetMatrix(

@@ -482,7 +482,7 @@
     <ClCompile Include="nu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parasail_scop40_nu.cpp">
+    <ClCompile Include="paralign_scop40_nu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="retrainmu.cpp">

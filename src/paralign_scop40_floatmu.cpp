@@ -71,6 +71,8 @@ static void GetByteSeqs_Mu(const string &FN,
 void cmd_paralign_scop40_floatmu()
 	{
 	asserta(!optset_alpha);
+	asserta(optset_intopen);
+	asserta(optset_intext);
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
@@ -82,7 +84,7 @@ void cmd_paralign_scop40_floatmu()
 
 	const uint SeqCount = SIZE(ByteSeqs);
 
- 	Paralign::SetMu_Float();
+ 	Paralign::SetMu_Float(opt(intopen), opt(intext));
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
