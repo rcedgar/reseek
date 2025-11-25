@@ -49,12 +49,17 @@ public:
 
 public:
 	static void SetMu();
+	static void SetMu_Float();
+	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,
 		int Open, int Ext, int SaturatedScore);
 	static uint GetAlphaSize() { return m_matrix.size; }
-	static void SetSWFastSubstMx();
+	static void SetSWFastSubstMx_FromParasailMx();
+	static void SetSWFastSubstMx(
+		const vector<vector<float> > &Mx,
+		int Open, int Ext);
 	static int GetSubstScore(uint LetterQ, uint LetterT);
 
 public:
@@ -74,9 +79,13 @@ public:
 
 	const char *GetLetterToChar() const;
 	void SetQuery(const string &LabelQ, const byte *Q, uint QL);
+	void SetQueryFloat(const string &LabelQ, const byte *Q, uint QL);
 	void Align_ScoreOnly(const string &LabelT, const byte *T, uint TL);
 	bool Align_Path(const string &LabelT, const byte *T, uint TL);
 	int ScoreAln(bool Trace = false) const;
 	void WriteAln(FILE *f) const;
 	void Align_SWFast();
+
+public:
+	static void LogMatrix();
 	};

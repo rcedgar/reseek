@@ -92,6 +92,10 @@ void cmd_paralign_scop40_nu()
 			Label1s.push_back(Label_i);
 			Label2s.push_back(Label_j);
 			Scores.push_back((float) PA.m_Score);
+
+			Label1s.push_back(Label_j);
+			Label2s.push_back(Label_i);
+			Scores.push_back((float) PA.m_Score);
 			}
 			}
 		}

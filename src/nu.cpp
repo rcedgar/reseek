@@ -59,11 +59,12 @@ void Nu::NuLetterToComponentLetters(byte NuLetter,
 	const uint FeatureCount = GetFeatureCount();
 	const uint AS = GetAlphaSize();
 	ComponentLetters.clear();
-	ComponentLetters.resize(FeatureCount);
+	ComponentLetters.resize(FeatureCount, 0);
 	uint m = AS;
 	for (uint k = 0; k < FeatureCount; ++k)
 		{
 		uint FeatureIdx = FeatureCount - k - 1;
+		asserta(FeatureIdx < FeatureCount);
 		byte ComponentLetter = NuLetter/m_Axes[FeatureIdx];
 		ComponentLetters[FeatureIdx] = ComponentLetter;
 		NuLetter -= ComponentLetter*m_Axes[FeatureIdx];

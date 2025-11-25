@@ -506,6 +506,9 @@
     <ClCompile Include="fa2_lddt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="paralign_scop40_floatmu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

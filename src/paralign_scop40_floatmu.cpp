@@ -5,35 +5,7 @@
 #include "scop40bench.h"
 #include "triangle.h"
 
-/////////////////////////////////////////
-// Hack because of K<->L bug in alpha.cpp
-//   baked into mumx_data.cpp
-/////////////////////////////////////////
-// unsigned char g_CharToLetterMu[256] =
-// ...
-//	9  ,         // [ 74] 'J'
-//	11 ,         // [ 75] 'L'
-//	10 ,         // [ 76] 'K'
-//	12 ,         // [ 77] 'M'
-//
-//unsigned char g_LetterToCharMu[256] =
-// ...
-//	'J',           // [9]
-//	'L',           // [10]
-//	'K',           // [11]
-//	'M',           // [12]
-/////////////////////////////////////////
-void FixMuByteSeq(vector<byte> &ByteSeq)
-	{
-	for (uint i = 0; i < SIZE(ByteSeq); ++i)
-		{
-		byte Letter = ByteSeq[i];
-		if (Letter == 11)
-			ByteSeq[i] = 10;
-		else if (Letter == 10)
-			ByteSeq[i] = 11;
-		}
-	}
+void FixMuByteSeq(vector<byte> &ByteSeq);
 
 static void GetByteSeqs_Mux(const string &FN,
 	vector<string> &Labels,
@@ -96,23 +68,9 @@ static void GetByteSeqs_Mu(const string &FN,
 		}
 	}
 
-static void GetByteSeqs(
-	const string &Alpha,
-	const string &FN,
-	vector<string> &Labels,
-	vector<vector<byte> > &ByteSeqs)
+void cmd_paralign_scop40_floatmu()
 	{
-	if (Alpha == "mu")
-		GetByteSeqs_Mu(FN, Labels, ByteSeqs);
-	else if (Alpha == "mux")
-		GetByteSeqs_Mux(FN, Labels, ByteSeqs);
-	else
-		Die("-alpha %s", Alpha.c_str());
-	}
-
-void cmd_paralign_scop40()
-	{
-	asserta(optset_alpha);
+	asserta(!optset_alpha);
 	asserta(optset_lookup);
 	SCOP40Bench SB;
 	SB.ReadLookup(opt(lookup));
@@ -120,14 +78,11 @@ void cmd_paralign_scop40()
 	const string &ChainsFN = g_Arg1;
 	vector<string> Labels;
 	vector<vector<byte> > ByteSeqs;
-	GetByteSeqs(opt(alpha), ChainsFN, Labels, ByteSeqs);
+	GetByteSeqs_Mu(ChainsFN, Labels, ByteSeqs);
 
 	const uint SeqCount = SIZE(ByteSeqs);
 
- 	if (optset_style && string(opt(style)) == string("scop40_tm0_6_0_8_fa2"))
-		Paralign::SetMu_scop40_tm0_6_0_8_fa2();
-	else
-		Paralign::SetMu();
+ 	Paralign::SetMu_Float();
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
 	uint PairCount2 = triangle_get_k(SeqCount) + 1;
@@ -163,23 +118,26 @@ void cmd_paralign_scop40()
 		const string &Label_i = Labels[i];
 		const vector<byte> &ByteSeq_i = ByteSeqs[i];
 		uint L_i = SIZE(ByteSeq_i);
-		PA.SetQuery(Label_i, ByteSeq_i.data(), L_i);
+		PA.SetQueryFloat(Label_i, ByteSeq_i.data(), L_i);
 
 		for (uint j = i+1; j < SeqCount; ++j)
 			{
 			const string &Label_j = Labels[j];
 			const vector<byte> &ByteSeq_j = ByteSeqs[j];
 			uint L_j = SIZE(ByteSeq_j);
-			PA.Align_ScoreOnly(Label_j, ByteSeq_j.data(), L_j);
+			PA.m_LabelT = Label_j;
+			PA.m_T = ByteSeq_j.data();
+			PA.m_LT = L_j;
+			PA.Align_SWFast();
 #pragma omp critical
 			{
 			Label1s.push_back(Label_i);
 			Label2s.push_back(Label_j);
-			Scores.push_back((float) PA.m_Score);
+			Scores.push_back(PA.m_SWFastScore);
 
 			Label1s.push_back(Label_j);
 			Label2s.push_back(Label_i);
-			Scores.push_back((float) PA.m_Score);
+			Scores.push_back(PA.m_SWFastScore);
 			}
 			}
 		}
@@ -195,24 +153,24 @@ void cmd_paralign_scop40()
 	SB.SetScoreOrder();
 	SB.WriteOutput();
 
-#if 0
-	{
-	const uint HitCount = SB.GetHitCount();
-	const vector<uint> &Order = SB.m_ScoreOrder;
-	asserta(SIZE(Order) == HitCount);
-	FILE *f = CreateStdioFile("paralign_scop40.hits");
-	for (uint k = 0; k < HitCount; ++k)
+	if (optset_output)
 		{
-		uint i = k;
-		uint DomIdx1 = SB.m_DomIdx1s[i];
-		uint DomIdx2 = SB.m_DomIdx2s[i];
-		const string &Label1 = SB.m_Doms[DomIdx1];
-		const string &Label2 = SB.m_Doms[DomIdx2];
-		if (Label1 == Label2)
-			continue;
-		float Score = SB.m_Scores[i];
-		fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+		FILE *f = CreateStdioFile(opt(output));
+		const uint HitCount = SB.GetHitCount();
+		const vector<uint> &Order = SB.m_ScoreOrder;
+		asserta(SIZE(Order) == HitCount);
+		for (uint k = 0; k < HitCount; ++k)
+			{
+			uint i = k;
+			uint DomIdx1 = SB.m_DomIdx1s[i];
+			uint DomIdx2 = SB.m_DomIdx2s[i];
+			const string &Label1 = SB.m_Doms[DomIdx1];
+			const string &Label2 = SB.m_Doms[DomIdx2];
+			if (Label1 == Label2)
+				continue;
+			float Score = SB.m_Scores[i];
+			fprintf(f, "%.1f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+			}
+		CloseStdioFile(f);
 		}
-	}
-#endif
 	}

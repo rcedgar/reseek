@@ -299,6 +299,7 @@
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="paralign_scop40.cpp" />
+    <ClCompile Include="paralign_scop40_floatmu.cpp" />
     <ClCompile Include="paralign_scop40_mu.cpp" />
     <ClCompile Include="parasail_scop40_nu.cpp" />
     <ClCompile Include="peaker.cpp" />
