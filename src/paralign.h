@@ -20,7 +20,7 @@ public:
 		if (optset_intopen)
 			m_Open = opt(intopen);
 		if (optset_intext)
-			m_Open = opt(intext);
+			m_Ext = opt(intext);
 		}
 
 	string m_LabelQ;
