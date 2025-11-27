@@ -35,7 +35,7 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 		}
 	}
 
-static void GetByteSeqs_Mux(const string &FN,
+static void GetByteSeqs_dss3(const string &FN,
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
@@ -74,7 +74,7 @@ static void GetByteSeqs_Mux(const string &FN,
 		}
 	}
 
-static void GetByteSeqs_Mu(const string &FN,
+static void GetByteSeqs_muletters(const string &FN,
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
@@ -102,10 +102,10 @@ static void GetByteSeqs(
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
-	if (Alpha == "mu")
-		GetByteSeqs_Mu(FN, Labels, ByteSeqs);
+	if (Alpha == "dss")
+		GetByteSeqs_muletters(FN, Labels, ByteSeqs);
 	else if (Alpha == "mux")
-		GetByteSeqs_Mux(FN, Labels, ByteSeqs);
+		GetByteSeqs_dss3(FN, Labels, ByteSeqs);
 	else
 		Die("-alpha %s", Alpha.c_str());
 	}

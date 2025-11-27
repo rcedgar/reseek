@@ -55,7 +55,7 @@ public:
 	static void SetSWFastSubstMx_FromParasailMx();
 	static void SetSWFastSubstMx(
 		const vector<vector<float> > &Mx,
-		int Open, int Ext);
+		int Open, int Ext, bool DisableParasail);
 	static int GetSubstScore(uint LetterQ, uint LetterT);
 
 public:

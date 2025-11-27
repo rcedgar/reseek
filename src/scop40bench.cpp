@@ -576,7 +576,7 @@ const char *SCOP40Bench::GetAccuracyStr(string &Str) const
 	return Str.c_str();
 	}
 
-void SCOP40Bench::WriteSummary()
+void SCOP40Bench::WriteSummary(const string &Msg)
 	{
 	string AccuracyStr;
 	GetAccuracyStr(AccuracyStr);
@@ -586,6 +586,8 @@ void SCOP40Bench::WriteSummary()
 	else if (optset_sensitive)
 		ProgressLog(" -sensitive");
 	ProgressLog(" %s", g_Arg1.c_str());
+	if (Msg != "")
+		ProgressLog(" %s", Msg.c_str());
 	ProgressLog("\n");
 	}
 
@@ -646,7 +648,7 @@ void SCOP40Bench::WriteSteps(const string &FN, bool WithHdr) const
 	CloseStdioFile(f);
 	}
 
-void SCOP40Bench::WriteOutput()
+void SCOP40Bench::WriteOutput(const string &Msg)
 	{
 	ProgressLog("\n");
 	float MaxFPR = 0.01f;
@@ -660,7 +662,7 @@ void SCOP40Bench::WriteOutput()
 	WriteCVE(fCVE);
 	WriteSteps(opt(rocsteps), true);
 	WriteSortedHits(opt(sortedhits));
-	WriteSummary();
+	WriteSummary(Msg);
 	CloseStdioFile(fCVE);
 	}
 

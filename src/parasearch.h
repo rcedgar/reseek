@@ -11,10 +11,9 @@ public:
 	vector<PDBChain *> m_Chains;
 	vector<string> m_Labels;
 	vector<vector<byte> > m_ByteSeqs;
+	vector<uint> m_DomIdxs;
 
-	vector<string> m_Label1s;
-	vector<string> m_Label2s;
-	vector<float> m_Scores;
+	float *m_Scores = 0;
 	vector<Paralign *> m_PAs;
 	vector<uint> m_QueryIdxs;
 
@@ -28,9 +27,9 @@ public:
 	uint m_PairCount = UINT_MAX;
 
 public:
-	void GetByteSeqs_NuMu(const string &FN);
-	void GetByteSeqs_Mu(const string &FN);
-	void GetByteSeqs_Mux(const string &FN);
+	void GetByteSeqs_numu(const string &FN);
+	void GetByteSeqs_muletters(const string &FN);
+	void GetByteSeqs_dss3(const string &FN);
 	void GetByteSeqs(const string &FN, const string &Method);
 	void Search(const string &AlignMethod, string SubstMxName);
 	void SetQuery(uint ThreadIdx, uint i);
@@ -38,6 +37,11 @@ public:
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &LookupFN);
 	void WriteHits(const string &FN) const;
+	void SetDomIdxs();
+	void ReadLookup(const string &FN)
+		{
+		m_SB.ReadLookup(FN);
+		}
 	};
 
 void FixMuByteSeq(vector<byte> &ByteSeq);

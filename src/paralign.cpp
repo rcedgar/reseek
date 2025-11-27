@@ -49,7 +49,7 @@ void Paralign::SetSWFastSubstMx_FromParasailMx()
 	}
 
 void Paralign::SetSWFastSubstMx(const vector<vector<float> > &Mx,
-	int Open, int Ext)
+	int Open, int Ext, bool DisableParasail)
 	{
 	m_Open = Open;
 	m_Ext = Ext;
@@ -62,6 +62,8 @@ void Paralign::SetSWFastSubstMx(const vector<vector<float> > &Mx,
 		for (uint j = 0; j < AS; ++j)
 			m_SWFastSubstMx[i][j] = Mx[i][j];
 		}
+	if (DisableParasail)
+		memset(&m_matrix, 0, sizeof(m_matrix));
 	}
 
 void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
@@ -73,7 +75,6 @@ void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
 	m_T = T;
 	m_LT = LT;
 
-	asserta(SIZE(m_SWFastSubstMx) == AS);
 	float Open = -float(m_Open);
 	float Ext = -float(m_Ext);
 
@@ -81,6 +82,7 @@ void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
 	m_SWFastScore = SWFast_SubstMx(m_Mem, m_Q, m_LQ, m_T, m_LT,
 		m_SWFastSubstMx, Open, Ext, LoQ, LenQ, LoT, LenT, m_SWFastPath);
 	m_SWFastScoreInt = int(round(m_SWFastScore));
+	++m_CountSWFast;
 	}
 
 int Paralign::GetSubstScore(uint LetterQ, uint LetterT)
@@ -314,6 +316,11 @@ void Paralign::Set_Mu_S_k_i8()
 	{
 	m_Open = 24;
 	m_Ext = 8;
+	if (optset_intopen)
+		m_Open = opt(intopen);
+	if (optset_intext)
+		m_Ext = opt(intext);
+
 	int MinScore = 0;
 	int MaxScore = 0;
 	for (uint i = 0; i < 36*36; ++i)
@@ -333,8 +340,27 @@ void Paralign::Set_Mu_S_k_i8()
 	for (int i = 0; i < 36; ++i)
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
+
+	SetSWFastSubstMx_FromParasailMx();
 	}
 
+/***
+2025-10_reseek_tune/2025-11-27_musubstmx_gap_sweep
+
+open3.ext2.log:SEPQ0.1=0.129 SEPQ1=0.216 SEPQ10=0.395 Area0=0.549 Sum3=0.977
+open4.ext2.log:SEPQ0.1=0.124 SEPQ1=0.216 SEPQ10=0.391 Area0=0.558 Sum3=0.963
+open3.ext3.log:SEPQ0.1=0.123 SEPQ1=0.217 SEPQ10=0.388 Area0=0.560 Sum3=0.959
+open4.ext1.log:SEPQ0.1=0.127 SEPQ1=0.205 SEPQ10=0.390 Area0=0.536 Sum3=0.952
+open5.ext1.log:SEPQ0.1=0.126 SEPQ1=0.206 SEPQ10=0.389 Area0=0.530 Sum3=0.949
+open3.ext1.log:SEPQ0.1=0.128 SEPQ1=0.202 SEPQ10=0.387 Area0=0.531 Sum3=0.947
+open5.ext2.log:SEPQ0.1=0.119 SEPQ1=0.214 SEPQ10=0.384 Area0=0.548 Sum3=0.943
+open2.ext1.log:SEPQ0.1=0.128 SEPQ1=0.196 SEPQ10=0.377 Area0=0.518 Sum3=0.927
+open6.ext2.log:SEPQ0.1=0.116 SEPQ1=0.210 SEPQ10=0.377 Area0=0.536 Sum3=0.925
+open8.ext1.log:SEPQ0.1=0.115 SEPQ1=0.204 SEPQ10=0.379 Area0=0.527 Sum3=0.916
+open4.ext4.log:SEPQ0.1=0.113 SEPQ1=0.208 SEPQ10=0.370 Area0=0.527 Sum3=0.907
+open8.ext2.log:SEPQ0.1=0.108 SEPQ1=0.203 SEPQ10=0.367 Area0=0.514 Sum3=0.888
+open8.ext4.log:SEPQ0.1=0.095 SEPQ1=0.185 SEPQ10=0.341 Area0=0.463 Sum3=0.806
+***/
 void Paralign::SetMu_musubstmx()
 	{
 	asserta(optset_intopen && optset_intext);
@@ -346,7 +372,11 @@ void Paralign::SetMu_musubstmx()
 		for (uint j = 0; j < 36; ++j)
 			ScoreMx[i][j] = musubstmx[i][j];
 		}
-	SetSWFastSubstMx(ScoreMx, opt(intopen), opt(intext));
+
+	/////////////////////////////////////////////////
+	// Supports SWFast only, disables parasail matrix
+	/////////////////////////////////////////////////
+	SetSWFastSubstMx(ScoreMx, opt(intopen), opt(intext), true);
 	}
 
 // Low accuracy 
@@ -416,6 +446,7 @@ void Paralign::SetMu_scop40_tm0_6_0_8_fa2()
 	for (int i = 0; i < 36; ++i)
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
+	SetSWFastSubstMx_FromParasailMx();
 	}
 
 void Paralign::SetBlosum62()
@@ -525,6 +556,7 @@ void Paralign::SetMatrix(
 	m_matrix.length = AS;
 	m_matrix.alphabet = Alphabet;
 	m_matrix.query = 0;
+	SetSWFastSubstMx_FromParasailMx();
 	}
 
 void Paralign::SetQueryNoProfile(const string &LabelQ, const byte *Q, uint LQ)

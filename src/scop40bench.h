@@ -131,8 +131,8 @@ public:
 	float AlignDomPair(uint ThreadIndex, uint Dom1, uint Dom2,
 	  uint &Lo1, uint &Lo2, string &Path);
 	const char *GetAccuracyStr(string &Str) const;
-	void WriteSummary();
-	void WriteOutput();
+	void WriteSummary(const string &Msg = "");
+	void WriteOutput(const string &Msg = "");
 	void LogFirstFewDoms() const;
 	void LogFirstFewHits() const;
 	void WriteSteps(const string &FN, bool WithHdr = false) const;

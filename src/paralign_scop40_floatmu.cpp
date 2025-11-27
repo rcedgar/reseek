@@ -46,7 +46,7 @@ static void GetByteSeqs_Mux(const string &FN,
 		}
 	}
 
-static void GetByteSeqs_Mu(const string &FN,
+static void GetByteSeqs_DSS(const string &FN,
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
@@ -80,7 +80,7 @@ void cmd_paralign_scop40_floatmu()
 	const string &ChainsFN = g_Arg1;
 	vector<string> Labels;
 	vector<vector<byte> > ByteSeqs;
-	GetByteSeqs_Mu(ChainsFN, Labels, ByteSeqs);
+	GetByteSeqs_DSS(ChainsFN, Labels, ByteSeqs);
 
 	const uint SeqCount = SIZE(ByteSeqs);
 
