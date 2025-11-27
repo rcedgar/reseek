@@ -3,7 +3,7 @@
 #include "dss.h"
 
 extern int8_t Mu_S_ij_i8[36][36];
-extern float ScoreMx_Mu[36][36];
+extern float musubstmx[36][36];
 extern int8_t IntScoreMx_Mu[36][36];
 
 void Nu::SetMu()
@@ -247,7 +247,7 @@ static void TestSetMu()
 
 	for (uint i = 0; i < 36; ++i)
 		for (uint j = 0; j < 36; ++j)
-			asserta(feq(ScoreMx_Mu[i][j], Mxf[i][j]));
+			asserta(feq(musubstmx[i][j], Mxf[i][j]));
 
 	vector<vector<int> > Mxi;
 	A.FloatMxToIntMx(Mxf, 1, Mxi);
@@ -289,10 +289,10 @@ static void TestSetMuComponents()
 	A.GetScoreMx(Mxf);
 	//A.MxToSrcf(g_fLog, "SetMu_ScoreMx", Mxf);
 
-	extern float ScoreMx_Mu[36][36];
+	extern float musubstmx[36][36];
 	for (uint i = 0; i < 36; ++i)
 		for (uint j = 0; j < 36; ++j)
-			asserta(feq(ScoreMx_Mu[i][j], Mxf[i][j]));
+			asserta(feq(musubstmx[i][j], Mxf[i][j]));
 
 	vector<vector<int> > Mxi;
 	A.FloatMxToIntMx(Mxf, 1, Mxi);

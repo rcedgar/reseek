@@ -9,7 +9,7 @@ const float SCALE_FACTOR = 3.5f;
 extern int8_t Mu_S_ij_i8[36][36];
 
 // Float matrix for ... not sure what
-extern float ScoreMx_Mu[36][36];
+extern float musubstmx[36][36];
 
 static void IntMxToSrc(FILE *f, const string &Name, 
   const vector<vector<int> > &Mx)
@@ -68,9 +68,9 @@ static void Cmp_ScoreMx_Mu()
 		{
 		ScoreMx[i].resize(36);
 		for (uint j = 0; j < 36; ++j)
-			ScoreMx[i][j] = ScoreMx_Mu[i][j];
+			ScoreMx[i][j] = musubstmx[i][j];
 		}
-	CmpMx("extern float ScoreMx_Mu", ScoreMx);
+	CmpMx("extern float musubstmx", ScoreMx);
 	}
 
 void cmd_retrainmu()

@@ -44,7 +44,7 @@ void cmd_paralign_scop40_nu()
 	Paralign::SetMatrix(NuMxi, 10, 3, 777);
 
 	uint PairCount = ChainCount*(ChainCount-1)/2 + ChainCount;
-	uint PairCount2 = triangle_get_k(ChainCount) + 1;
+	uint PairCount2 = triangle_get_K(ChainCount) + 1;
 	asserta(PairCount == PairCount2);
 	uint ScoreDiffs = 0;
 	vector<string> Label1s;
@@ -77,7 +77,7 @@ void cmd_paralign_scop40_nu()
 		const string &Label_i = Labels[i];
 		const vector<byte> &ByteSeq_i = ByteSeqs[i];
 		uint L_i = SIZE(ByteSeq_i);
-		PA.SetQuery(Label_i, ByteSeq_i.data(), L_i);
+		PA.SetQueryProfile(Label_i, ByteSeq_i.data(), L_i);
 
 		for (uint j = i+1; j < ChainCount; ++j)
 			{

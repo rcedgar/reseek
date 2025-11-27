@@ -331,7 +331,7 @@ void DSSAligner::SetSMx_QRev()
 //		{
 //		byte LetterA = MuLettersA[PosA];
 //		asserta(LetterA < AS);
-//		const float *MuMxRow = ScoreMx_Mu[LetterA];
+//		const float *MuMxRow = musubstmx[LetterA];
 //		m_ProfMu[PosA] = MuMxRow;
 //		m_ProfMuRev[LA-PosA-1] = MuMxRow;
 //		}

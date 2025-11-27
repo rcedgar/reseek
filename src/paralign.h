@@ -6,6 +6,7 @@
 class Paralign
 	{
 public:
+	static string m_SubstMxName;
 	static parasail_matrix_t m_matrix;
 	static int m_Open;
 	static int m_Ext;
@@ -14,15 +15,13 @@ public:
 	static vector<vector<float> > m_SWFastSubstMx;
 	static int m_Bits;
 
-public:
-	Paralign()
-		{
-		if (optset_intopen)
-			m_Open = opt(intopen);
-		if (optset_intext)
-			m_Ext = opt(intext);
-		}
+	static atomic<uint> m_Count8;
+	static atomic<uint> m_Count16;
+	static atomic<uint> m_CountSWFast;
+	static atomic<uint> m_TooLongCount;
+	static atomic<uint> m_SaturatedCount;
 
+public:
 	string m_LabelQ;
 	string m_LabelT;
 	const byte *m_Q = 0;
@@ -42,19 +41,16 @@ public:
 	int m_SWFastScoreInt = INT_MAX;
 	string m_SWFastPath;
 
-	static atomic<uint> m_Count8;
-	static atomic<uint> m_Count16;
-	static atomic<uint> m_TooLongCount;
-	static atomic<uint> m_SaturatedCount;
-
 public:
-	static void SetMu();
-	static void SetMu_Float(int Open, int Ext);
+	static void Set_Mu_S_k_i8();
+	static void SetMu_musubstmx();
 	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,
 		int Open, int Ext, int SaturatedScore);
+	static void SetSubstMx(const string &Name);
+
 	static uint GetAlphaSize() { return m_matrix.size; }
 	static void SetSWFastSubstMx_FromParasailMx();
 	static void SetSWFastSubstMx(
@@ -78,13 +74,13 @@ public:
 		}
 
 	const char *GetLetterToChar() const;
-	void SetQuery(const string &LabelQ, const byte *Q, uint QL);
-	void SetQueryFloat(const string &LabelQ, const byte *Q, uint QL);
-	void Align_ScoreOnly(const string &LabelT, const byte *T, uint TL);
-	bool Align_Path(const string &LabelT, const byte *T, uint TL);
+	void SetQueryProfile(const string &LabelQ, const byte *Q, uint QL);
+	void SetQueryNoProfile(const string &LabelQ, const byte *Q, uint QL);
+	void Align_ScoreOnly(const string &LabelT, const byte *T, uint LT);
+	bool Align_Path(const string &LabelT, const byte *T, uint LT);
 	int ScoreAln(bool Trace = false) const;
 	void WriteAln(FILE *f) const;
-	void Align_SWFast();
+	void Align_SWFast(const string &LabelT, const byte *T, uint LT);
 
 public:
 	static void LogMatrix();

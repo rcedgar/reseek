@@ -1541,7 +1541,7 @@ void FeatureTrainer2::GetDSSScoreMx(
 	FEATURE F,
 	vector<vector<float> > &ScoreMx)
 	{
-	extern float ScoreMx_Mu[36][36];
+	extern float musubstmx[36][36];
 	extern float **g_ScoreMxs2[FEATURE_COUNT];
 	const float * const *Mx = g_ScoreMxs2[F];
 	if (F == FEATURE_Mu)
@@ -1552,7 +1552,7 @@ void FeatureTrainer2::GetDSSScoreMx(
 			{
 			ScoreMx[Letter1].resize(36, FLT_MAX);
 			for (uint Letter2 = 0; Letter2 < 36; ++Letter2)
-				ScoreMx[Letter1][Letter2] = ScoreMx_Mu[Letter1][Letter2];
+				ScoreMx[Letter1][Letter2] = musubstmx[Letter1][Letter2];
 			}
 		return;
 		}

@@ -84,10 +84,10 @@ void cmd_paralign_scop40_floatmu()
 
 	const uint SeqCount = SIZE(ByteSeqs);
 
- 	Paralign::SetMu_Float(opt(intopen), opt(intext));
+ 	Paralign::SetMu_musubstmx();
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
-	uint PairCount2 = triangle_get_k(SeqCount) + 1;
+	uint PairCount2 = triangle_get_K(SeqCount) + 1;
 	asserta(PairCount == PairCount2);
 	uint ScoreDiffs = 0;
 	vector<string> Label1s;
@@ -120,17 +120,14 @@ void cmd_paralign_scop40_floatmu()
 		const string &Label_i = Labels[i];
 		const vector<byte> &ByteSeq_i = ByteSeqs[i];
 		uint L_i = SIZE(ByteSeq_i);
-		PA.SetQueryFloat(Label_i, ByteSeq_i.data(), L_i);
+		PA.SetQueryNoProfile(Label_i, ByteSeq_i.data(), L_i);
 
 		for (uint j = i+1; j < SeqCount; ++j)
 			{
 			const string &Label_j = Labels[j];
 			const vector<byte> &ByteSeq_j = ByteSeqs[j];
 			uint L_j = SIZE(ByteSeq_j);
-			PA.m_LabelT = Label_j;
-			PA.m_T = ByteSeq_j.data();
-			PA.m_LT = L_j;
-			PA.Align_SWFast();
+			PA.Align_SWFast(Label_j, ByteSeq_j.data(), L_j);
 #pragma omp critical
 			{
 			Label1s.push_back(Label_i);

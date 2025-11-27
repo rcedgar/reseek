@@ -302,6 +302,7 @@
     <ClCompile Include="paralign_scop40_floatmu.cpp" />
     <ClCompile Include="paralign_scop40_mu.cpp" />
     <ClCompile Include="paralign_scop40_nu.cpp" />
+    <ClCompile Include="parasearch.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
@@ -480,6 +481,7 @@
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />
+    <ClInclude Include="parasearch.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />

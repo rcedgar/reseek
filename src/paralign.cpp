@@ -22,9 +22,11 @@ int Paralign::m_Ext = INT_MAX;	// penalty > 0
 int Paralign::m_SaturatedScore = INT_MAX;
 uint Paralign::m_MaxLength = 9999;
 int Paralign::m_Bits = 16;
+string Paralign::m_SubstMxName = "_NOT_SET_";
 vector<vector<float> > Paralign::m_SWFastSubstMx;
 atomic<uint> Paralign::m_Count8;
 atomic<uint> Paralign::m_Count16;
+atomic<uint> Paralign::m_CountSWFast;
 atomic<uint> Paralign::m_TooLongCount;
 atomic<uint> Paralign::m_SaturatedCount;
      
@@ -62,12 +64,19 @@ void Paralign::SetSWFastSubstMx(const vector<vector<float> > &Mx,
 		}
 	}
 
-void Paralign::Align_SWFast()
+void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
 	{
+	ClearResult();
+
 	const uint AS = GetAlphaSize();
+	m_LabelT = LabelT;
+	m_T = T;
+	m_LT = LT;
+
 	asserta(SIZE(m_SWFastSubstMx) == AS);
 	float Open = -float(m_Open);
 	float Ext = -float(m_Ext);
+
 	uint LoQ, LenQ, LoT, LenT;
 	m_SWFastScore = SWFast_SubstMx(m_Mem, m_Q, m_LQ, m_T, m_LT,
 		m_SWFastSubstMx, Open, Ext, LoQ, LenQ, LoT, LenT, m_SWFastPath);
@@ -301,7 +310,7 @@ int Paralign::ScoreAln(bool Trace) const
 	return Score;
 	}
 
-void Paralign::SetMu()
+void Paralign::Set_Mu_S_k_i8()
 	{
 	m_Open = 24;
 	m_Ext = 8;
@@ -324,20 +333,20 @@ void Paralign::SetMu()
 	for (int i = 0; i < 36; ++i)
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
-	LogMatrix();
 	}
 
-void Paralign::SetMu_Float(int Open, int Ext)
+void Paralign::SetMu_musubstmx()
 	{
-	extern float ScoreMx_Mu[36][36];
+	asserta(optset_intopen && optset_intext);
+	extern float musubstmx[36][36];
 	vector<vector<float> > ScoreMx(36);
 	for (uint i = 0; i < 36; ++i)
 		{
 		ScoreMx[i].resize(36);
 		for (uint j = 0; j < 36; ++j)
-			ScoreMx[i][j] = ScoreMx_Mu[i][j];
+			ScoreMx[i][j] = musubstmx[i][j];
 		}
-	SetSWFastSubstMx(ScoreMx, Open, Ext);
+	SetSWFastSubstMx(ScoreMx, opt(intopen), opt(intext));
 	}
 
 // Low accuracy 
@@ -407,7 +416,6 @@ void Paralign::SetMu_scop40_tm0_6_0_8_fa2()
 	for (int i = 0; i < 36; ++i)
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
-	LogMatrix();
 	}
 
 void Paralign::SetBlosum62()
@@ -439,6 +447,19 @@ void Paralign::LogMatrix()
 			Log("%4d", m_matrix.matrix[i*AS + j]);
 		Log("\n");
 		}
+	}
+
+void Paralign::SetSubstMx(const string &Name)
+	{
+	m_SubstMxName = Name;
+	if (Name == "Mu_S_k_i8")
+		Set_Mu_S_k_i8();
+	else if (Name == "Mu_scop40_tm0_6_0_8_fa2")
+		SetMu_scop40_tm0_6_0_8_fa2();
+	else if (Name == "musubstmx")
+		SetMu_musubstmx();
+	else
+		Die("SetSubstMx(%s)", Name.c_str());
 	}
 
 void Paralign::SetMatrix(
@@ -504,18 +525,16 @@ void Paralign::SetMatrix(
 	m_matrix.length = AS;
 	m_matrix.alphabet = Alphabet;
 	m_matrix.query = 0;
-
-	LogMatrix();
 	}
 
-void Paralign::SetQueryFloat(const string &LabelQ, const byte *Q, uint LQ)
+void Paralign::SetQueryNoProfile(const string &LabelQ, const byte *Q, uint LQ)
 	{
 	m_LabelQ = LabelQ;
 	m_Q = Q;
 	m_LQ = LQ;
 	}
 
-void Paralign::SetQuery(const string &LabelQ, const byte *Q, uint LQ)
+void Paralign::SetQueryProfile(const string &LabelQ, const byte *Q, uint LQ)
 	{
 	m_LabelQ = LabelQ;
 	m_Q = Q;
@@ -686,7 +705,7 @@ void cmd_paralign_test()
 		}
 
 	Paralign PA;
-	Paralign::SetMu();
+	Paralign::Set_Mu_S_k_i8();
 	Paralign::SetSWFastSubstMx_FromParasailMx();
 	uint Pairs = 0;
 	uint ScoreDiffs = 0;
@@ -697,7 +716,7 @@ void cmd_paralign_test()
 		const string &Seq_i = Seqs.GetSeq(i);
 		const byte *ByteSeq_i = ByteSeqs[i].data();
 		uint L_i = Seqs.GetSeqLength(i);
-		PA.SetQuery(Label_i, ByteSeq_i, L_i);
+		PA.SetQueryProfile(Label_i, ByteSeq_i, L_i);
 		for (uint j = i+1; j < SeqCount; ++j)
 			{
 			++Pairs;
@@ -715,7 +734,7 @@ void cmd_paralign_test()
 			LocalPathToCIGAR(PA.m_SemiGlobalPath.c_str(), 0, 0, CIGAR, false);
 			if (fAln != 0)
 				PA.WriteAln(fAln);
-			PA.Align_SWFast();
+			PA.Align_SWFast(Label_j, ByteSeq_j, L_j);
 			float Score3 = PA.m_SWFastScore;
 			int Score4 = PA.m_SWFastScoreInt;
 			char isdiff = 'n';

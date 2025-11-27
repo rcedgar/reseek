@@ -200,11 +200,11 @@ void cmd_nuscop40()
 	ReadSubstMx(TsvFN, s_FeatureName, s_AS, s_ScoreMx);
 //#pragma warning("TODO")
 //	{//@@@@@@@@@@
-//	extern float ScoreMx_Mu[36][36];
+//	extern float musubstmx[36][36];
 //	asserta(SIZE(s_ScoreMx) == 36);
 //	for (uint i = 0; i < 36; ++i)
 //		for (uint j = 0; j < 36; ++j)
-//			s_ScoreMx[i][j] = ScoreMx_Mu[i][j];
+//			s_ScoreMx[i][j] = musubstmx[i][j];
 //	}//@@@@@@@@@@
 
 	FASTASeqSource FSS;

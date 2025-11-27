@@ -59,13 +59,13 @@ void cmd_train_feature2()
 	FILE *fSteps = 0;
 	if (opt(evalmu))
 		{
-		extern float ScoreMx_Mu[36][36];
+		extern float musubstmx[36][36];
 		ScoreMx.resize(36);
 		for (uint i = 0; i < 36; ++i)
 			{
 			ScoreMx[i].resize(36);
 			for (uint j = 0; j < 36; ++j)
-				ScoreMx[i][j] = ScoreMx_Mu[i][j];
+				ScoreMx[i][j] = musubstmx[i][j];
 			}
 		uint ReplaceUndefWithThisLetter = 0; // see dss.cpp:697
 		FeatureTrainer2::EvaluateMu(Chains, LabelToChainIdx,

@@ -48,10 +48,10 @@ void cmd_paralign_scop40_mu()
 			}
 		}
 
-	Paralign::SetMu();
+	Paralign::Set_Mu_S_k_i8();
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
-	uint PairCount2 = triangle_get_k(SeqCount) + 1;
+	uint PairCount2 = triangle_get_K(SeqCount) + 1;
 	asserta(PairCount == PairCount2);
 	uint ScoreDiffs = 0;
 	vector<string> Label1s;
@@ -85,7 +85,7 @@ void cmd_paralign_scop40_mu()
 		const string &Seq_i = Seqs.GetSeq(i);
 		const byte *ByteSeq_i = ByteSeqs[i].data();
 		uint L_i = Seqs.GetSeqLength(i);
-		PA.SetQuery(Label_i, ByteSeq_i, L_i);
+		PA.SetQueryProfile(Label_i, ByteSeq_i, L_i);
 
 		for (uint j = i+1; j < SeqCount; ++j)
 			{
@@ -118,7 +118,7 @@ void cmd_paralign_scop40_mu()
 	SB.SetScoreOrder();
 	SB.WriteOutput();
 
-#if 1
+#if 0
 	{
 	const uint HitCount = SB.GetHitCount();
 	const vector<uint> &Order = SB.m_ScoreOrder;

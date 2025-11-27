@@ -83,15 +83,28 @@ void triangle_k_to_ij(uint k, uint N, uint &i, uint &j)
     j = i + col_offset;
 	}
 
-uint triangle_get_k(uint N)
+uint triangle_get_K(uint N)
     {
     return triangle_ij_to_k(N-1, N-1, N);
     }
 
 #if 0
-void __cmd_test()
+void cmd_test()
 	{
-	for (uint N = 100; N < 100000; N += 5000)
+    uint N = 4104;
+    uint K = triangle_get_K(N);
+    ProgressLog("K=%u\n", K);
+    for (uint i = 0; i < N; ++i)
+        {
+        for (uint j = i; j < N; ++j)
+            {
+            uint k = triangle_ij_to_k(i, j, N);
+            asserta(k <= K);
+            }
+        }
+    return;
+
+    for (uint N = 100; N < 100000; N += 5000)
 		{
 		ProgressLog("N=%u\n", N);
 		uint PairCount = N + (N*(N-1))/2;

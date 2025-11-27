@@ -127,10 +127,10 @@ void cmd_paralign_scop40()
  	if (optset_style && string(opt(style)) == string("scop40_tm0_6_0_8_fa2"))
 		Paralign::SetMu_scop40_tm0_6_0_8_fa2();
 	else
-		Paralign::SetMu();
+		Paralign::Set_Mu_S_k_i8();
 
 	uint PairCount = SeqCount*(SeqCount-1)/2 + SeqCount;
-	uint PairCount2 = triangle_get_k(SeqCount) + 1;
+	uint PairCount2 = triangle_get_K(SeqCount) + 1;
 	asserta(PairCount == PairCount2);
 	uint ScoreDiffs = 0;
 	vector<string> Label1s;
@@ -163,7 +163,7 @@ void cmd_paralign_scop40()
 		const string &Label_i = Labels[i];
 		const vector<byte> &ByteSeq_i = ByteSeqs[i];
 		uint L_i = SIZE(ByteSeq_i);
-		PA.SetQuery(Label_i, ByteSeq_i.data(), L_i);
+		PA.SetQueryProfile(Label_i, ByteSeq_i.data(), L_i);
 
 		for (uint j = i+1; j < SeqCount; ++j)
 			{

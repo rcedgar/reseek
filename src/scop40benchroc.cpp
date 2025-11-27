@@ -495,18 +495,20 @@ void SCOP40Bench::SetHits(const vector<string> &Label1s,
 	m_DomIdx2s.reserve(HitCount);
 	m_Scores.reserve(HitCount);
 
-	const uint ThreadCount = GetRequestedThreadCount();
+	const uint ThreadCount = 6; // GetRequestedThreadCount();
 	uint HitIdx = 0;
 #pragma omp parallel for num_threads(ThreadCount)
 	for (int k = 0; k < int(HitCount); ++k)
 		{
+		uint MyHitIdx;
 #pragma omp critical
 		{
-		ProgressStep(HitIdx++, HitCount, "Loading hits");
+		MyHitIdx = HitIdx++;
+		ProgressStep(MyHitIdx, HitCount, "Loading hits");
 		}
-		const string &Label1 = Label1s[HitIdx];
-		const string &Label2 = Label2s[HitIdx];
-		float Score = Scores[HitIdx];
+		const string &Label1 = Label1s[MyHitIdx];
+		const string &Label2 = Label2s[MyHitIdx];
+		float Score = Scores[MyHitIdx];
 		string Dom1;
 		string Dom2;
 		if (Label1.find('/') != string::npos)
@@ -702,6 +704,10 @@ void cmd_scop40bench_tsv()
 	{
 	asserta(optset_lookup);
 	SCOP40Bench SB;
+	if (opt(scores_are_not_evalues))
+		SB.m_SBS = SBS_OtherAlgoScore;
+	else
+		SB.m_SBS = SBS_Evalue;
 	SB.ReadLookup(opt(lookup));
 	SB.ReadHits(g_Arg1);
 	SB.WriteOutput();
