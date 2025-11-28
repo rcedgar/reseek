@@ -188,23 +188,25 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 
 void ParaSearch::GetByteSeqs_numu(const string &FN)
 	{
+	m_ByteSeqs.clear();
+	m_Labels.clear();
+
 	Nu A;
 	A.SetMu();
 
 	ReadChains(FN, m_Chains);
 	const uint ChainCount = SIZE(m_Chains);
-	vector<vector<byte> > ByteSeqs(ChainCount);
-	vector<string> Labels;
+	m_ByteSeqs.resize(ChainCount);
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Nu::GetLetters(Mu)");
 		const PDBChain &Chain = *m_Chains[ChainIdx];
 		const uint L = Chain.GetSeqLength();
-		vector<byte> &ByteSeq = ByteSeqs[ChainIdx];
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
 		A.GetLetters(Chain, ByteSeq);
 		if (opt(fixmubyteseq))
 			FixMuByteSeq(ByteSeq);
-		Labels.push_back(Chain.m_Label);
+		m_Labels.push_back(Chain.m_Label);
 		}
 	}
 
