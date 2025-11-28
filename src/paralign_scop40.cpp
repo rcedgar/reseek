@@ -102,7 +102,7 @@ static void GetByteSeqs(
 	vector<string> &Labels,
 	vector<vector<byte> > &ByteSeqs)
 	{
-	if (Alpha == "dss")
+	if (Alpha == "muletters")
 		GetByteSeqs_muletters(FN, Labels, ByteSeqs);
 	else if (Alpha == "mux")
 		GetByteSeqs_dss3(FN, Labels, ByteSeqs);
@@ -195,24 +195,23 @@ void cmd_paralign_scop40()
 	SB.SetScoreOrder();
 	SB.WriteOutput();
 
-#if 0
-	{
-	const uint HitCount = SB.GetHitCount();
-	const vector<uint> &Order = SB.m_ScoreOrder;
-	asserta(SIZE(Order) == HitCount);
-	FILE *f = CreateStdioFile("paralign_scop40.hits");
-	for (uint k = 0; k < HitCount; ++k)
+	if (optset_output)
 		{
-		uint i = k;
-		uint DomIdx1 = SB.m_DomIdx1s[i];
-		uint DomIdx2 = SB.m_DomIdx2s[i];
-		const string &Label1 = SB.m_Doms[DomIdx1];
-		const string &Label2 = SB.m_Doms[DomIdx2];
-		if (Label1 == Label2)
-			continue;
-		float Score = SB.m_Scores[i];
-		fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+		const uint HitCount = SB.GetHitCount();
+		const vector<uint> &Order = SB.m_ScoreOrder;
+		asserta(SIZE(Order) == HitCount);
+		FILE *f = CreateStdioFile(opt(output));
+		for (uint k = 0; k < HitCount; ++k)
+			{
+			uint i = k;
+			uint DomIdx1 = SB.m_DomIdx1s[i];
+			uint DomIdx2 = SB.m_DomIdx2s[i];
+			const string &Label1 = SB.m_Doms[DomIdx1];
+			const string &Label2 = SB.m_Doms[DomIdx2];
+			if (Label1 == Label2)
+				continue;
+			float Score = SB.m_Scores[i];
+			fprintf(f, "%.0f\t%s\t%s\n", Score, Label1.c_str(), Label2.c_str());
+			}
 		}
-	}
-#endif
 	}

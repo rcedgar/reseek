@@ -86,8 +86,7 @@ void ParaSearch::Search(const string &AlignMethod, string SubstMxName)
 
 #pragma omp parallel num_threads(ThreadCount)
 	{
-	// Make sure ThreadIdx is defined inside the parallel region if used locally
-	uint ThreadIdx = GetThreadIndex(); // Or your GetThreadIndex()
+	uint ThreadIdx = GetThreadIndex();
 #pragma omp for
 	for (int PairIdx = 0; PairIdx < int(m_PairCount); ++PairIdx)
 		{
@@ -104,7 +103,6 @@ void ParaSearch::Search(const string &AlignMethod, string SubstMxName)
 		triangle_k_to_ij(PairIdx, m_SeqCount, i, j);
 		Align(ThreadIdx, i, j);
 		}
-	// Threads implicitly wait at the end of the omp for construct
 	}
 
 	ProgressStep(m_PairCount-1, m_PairCount, "Aligning");
@@ -225,9 +223,14 @@ void ParaSearch::Bench(const string &LookupFN)
 		Label1s.push_back(m_Labels[i]);
 		Label2s.push_back(m_Labels[j]);
 		Scores.push_back(m_Scores[k]);
+
+		Label1s.push_back(m_Labels[j]);
+		Label2s.push_back(m_Labels[i]);
+		Scores.push_back(m_Scores[k]);
 		}
-	m_SB.SetHits(Label1s, Label2s, Scores);
+
 	m_SB.m_SBS = SBS_OtherAlgoScore;
+	m_SB.SetHits(Label1s, Label2s, Scores);
 	m_SB.SetScoreOrder();
 
 	string Msg;
@@ -246,19 +249,22 @@ void ParaSearch::WriteHits(const string &FN) const
 	if (FN == "")
 		return;
 
-	Die("TODO");
-	//const uint HitCount = SIZE(m_Label1s);
-	//FILE *f = CreateStdioFile(FN);
-	//for (uint i = 0; i < HitCount; ++i)
-	//	{
-	//	ProgressStep(i, HitCount, "Writing %s", FN.c_str());
+	FILE *f = CreateStdioFile(FN);
+	for (uint k = 0; k < m_PairCount; ++k)
+		{
+		uint i, j;
+		triangle_k_to_ij(k, m_SeqCount, i, j);
+		fprintf(f, "%.3g", m_Scores[k]);
+		fprintf(f, "\t%s", m_Labels[i].c_str());
+		fprintf(f, "\t%s", m_Labels[j].c_str());
+		fprintf(f, "\n");
 
-	//	fprintf(f, "%s\t%s\t%.3g\n",
-	//		m_Label1s[i].c_str(),
-	//		m_Label2s[i].c_str(),
-	//		m_Scores[i]);
-	//	}
-	//CloseStdioFile(f);
+		fprintf(f, "%.3g", m_Scores[k]);
+		fprintf(f, "\t%s", m_Labels[j].c_str());
+		fprintf(f, "\t%s", m_Labels[i].c_str());
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
 	}
 
 void ParaSearch::SetDomIdxs()
