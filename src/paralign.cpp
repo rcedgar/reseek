@@ -363,7 +363,12 @@ open8.ext4.log:SEPQ0.1=0.095 SEPQ1=0.185 SEPQ10=0.341 Area0=0.463 Sum3=0.806
 ***/
 void Paralign::SetMu_musubstmx()
 	{
-	asserta(optset_intopen && optset_intext);
+	int Open = 3;
+	int Ext = 2;
+	if (optset_intopen)
+		Open = opt(intopen);
+	if (optset_intext)
+		Ext = opt(intext);
 	extern float musubstmx[36][36];
 	vector<vector<float> > ScoreMx(36);
 	for (uint i = 0; i < 36; ++i)
@@ -376,7 +381,7 @@ void Paralign::SetMu_musubstmx()
 	/////////////////////////////////////////////////
 	// Supports SWFast only, disables parasail matrix
 	/////////////////////////////////////////////////
-	SetSWFastSubstMx(ScoreMx, opt(intopen), opt(intext), true);
+	SetSWFastSubstMx(ScoreMx, Open, Ext, true);
 	}
 
 // Low accuracy 
