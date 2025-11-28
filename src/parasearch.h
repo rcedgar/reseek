@@ -27,15 +27,17 @@ public:
 	uint m_PairCount = UINT_MAX;
 
 public:
+	void ClearHitsAndResults();
+	void SetGapParams(int Open, int Ext);
 	void GetByteSeqs_numu(const string &FN);
 	void GetByteSeqs_muletters(const string &FN);
 	void GetByteSeqs_dss3(const string &FN);
 	void GetByteSeqs(const string &FN, const string &Method);
-	void Search(const string &AlignMethod, string SubstMxName);
+	void Search(const string &AlignMethod);
 	void SetQuery(uint ThreadIdx, uint i);
 	void Align(uint ThreadIdx, uint i, uint j);
 	void AppendHit(uint i, uint j, float Score);
-	void Bench(const string &LookupFN);
+	void Bench();
 	void WriteHits(const string &FN) const;
 	void SetDomIdxs();
 	void ReadLookup(const string &FN)

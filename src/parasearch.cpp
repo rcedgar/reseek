@@ -3,6 +3,36 @@
 #include "triangle.h"
 #include "nu.h"
 
+/////////////////////////////////////////
+// Hack because of K<->L bug in alpha.cpp
+//   baked into mumx_data.cpp
+/////////////////////////////////////////
+// unsigned char g_CharToLetterMu[256] =
+// ...
+//	9  ,         // [ 74] 'J'
+//	11 ,         // [ 75] 'L'
+//	10 ,         // [ 76] 'K'
+//	12 ,         // [ 77] 'M'
+//
+//unsigned char g_LetterToCharMu[256] =
+// ...
+//	'J',           // [9]
+//	'L',           // [10]
+//	'K',           // [11]
+//	'M',           // [12]
+/////////////////////////////////////////
+void FixMuByteSeq(vector<byte> &ByteSeq)
+	{
+	for (uint i = 0; i < SIZE(ByteSeq); ++i)
+		{
+		byte Letter = ByteSeq[i];
+		if (Letter == 11)
+			ByteSeq[i] = 10;
+		else if (Letter == 10)
+			ByteSeq[i] = 11;
+		}
+	}
+
 void ParaSearch::AppendHit(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
@@ -57,10 +87,9 @@ void ParaSearch::SetQuery(uint ThreadIdx, uint i)
 		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
 	}
 
-void ParaSearch::Search(const string &AlignMethod, string SubstMxName)
+void ParaSearch::Search(const string &AlignMethod)
 	{
 	m_AlignMethod = AlignMethod;
-	m_SubstMxName = SubstMxName;
 
 	ProgressLog("Search %s %s %s\n",
 		m_AlignMethod.c_str(),
@@ -73,7 +102,6 @@ void ParaSearch::Search(const string &AlignMethod, string SubstMxName)
 	const uint ThreadCount = GetRequestedThreadCount();
 	m_PAs.clear();
 	m_QueryIdxs.clear();
-	Paralign::SetSubstMx(SubstMxName);
 	for (uint i = 0; i < ThreadCount; ++i)
 		{
 		Paralign *PA = new Paralign;
@@ -106,8 +134,7 @@ void ParaSearch::Search(const string &AlignMethod, string SubstMxName)
 	}
 
 	ProgressStep(m_PairCount-1, m_PairCount, "Aligning");
-	ProgressLog("%u long, %u saturated, %u 8-bit, %u 16-bit, %u SW\n",
-		Paralign::m_TooLongCount.load(),
+	ProgressLog("%u saturated, %u 8-bit, %u 16-bit, %u SW\n",
 		Paralign::m_SaturatedCount.load(),
 		Paralign::m_Count8.load(),
 		Paralign::m_Count16.load(),
@@ -210,7 +237,7 @@ void ParaSearch::GetByteSeqs_numu(const string &FN)
 		}
 	}
 
-void ParaSearch::Bench(const string &LookupFN)
+void ParaSearch::Bench()
 	{
 	vector<string> Label1s;
 	vector<string> Label2s;
@@ -278,6 +305,18 @@ void ParaSearch::SetDomIdxs()
 		m_DomIdxs.push_back(m_SB.GetDomIdx(m_Labels[i]));
 	}
 
+void ParaSearch::ClearHitsAndResults()
+	{
+	Paralign::ClearStats();
+	m_SB.ClearHitsAndResults();
+	}
+
+void ParaSearch::SetGapParams(int Open, int Ext)
+	{
+	Paralign::m_Open = Open;
+	Paralign::m_Ext = Ext;
+	}
+
 // -seqsmethod		mu | numu (also mux but redundant)
 // -alignmethod		para | sw
 // -mxname			Mu_S_k_i8 | Mu_scop40_tm0_6_0_8_fa2 | musubstmx
@@ -287,7 +326,8 @@ void cmd_para_scop40()
 	PS.ReadLookup(opt(lookup));
 	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
 	PS.SetDomIdxs();
-	PS.Search(opt(alignmethod), opt(mxname));
+	Paralign::SetSubstMx(opt(mxname));
+	PS.Search(opt(alignmethod));
 	PS.WriteHits(opt(output));
-	PS.Bench(opt(lookup));
+	PS.Bench();
 	}

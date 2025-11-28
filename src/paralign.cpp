@@ -15,19 +15,18 @@ float SWFast_SubstMx(XDPMem &Mem,
 extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
 extern int Mu_S_k_i8[36*36];
+extern int Mu_hjmux[36*36];
 
 parasail_matrix_t Paralign::m_matrix;
 int Paralign::m_Open = INT_MAX;	// penalty > 0
 int Paralign::m_Ext = INT_MAX;	// penalty > 0
 int Paralign::m_SaturatedScore = INT_MAX;
-uint Paralign::m_MaxLength = 9999;
 int Paralign::m_Bits = 16;
 string Paralign::m_SubstMxName = "_NOT_SET_";
 vector<vector<float> > Paralign::m_SWFastSubstMx;
 atomic<uint> Paralign::m_Count8;
 atomic<uint> Paralign::m_Count16;
 atomic<uint> Paralign::m_CountSWFast;
-atomic<uint> Paralign::m_TooLongCount;
 atomic<uint> Paralign::m_SaturatedCount;
      
 // Ye olde BLOSUM62 as used by NCBI BLAST (1/2-bit units)
@@ -312,10 +311,30 @@ int Paralign::ScoreAln(bool Trace) const
 	return Score;
 	}
 
+/***
+2025-10_reseek_tune/2025-11-27_Mu_S_k_i8_gap_sweep
+open30.ext4  1.259
+open20.ext8  1.264
+open24.ext6  1.265
+open28.ext8  1.265
+open29.ext5  1.266
+open24.ext9  1.267
+open30.ext7  1.267
+open23.ext7  1.268
+open30.ext5  1.268
+open25.ext8  1.269
+open29.ext7  1.269
+open23.ext8  1.270
+open24.ext7  1.270
+open24.ext8  1.270
+open28.ext6  1.270
+open30.ext6  1.270
+open29.ext6  1.271 <<<
+***/
 void Paralign::Set_Mu_S_k_i8()
 	{
-	m_Open = 24;
-	m_Ext = 8;
+	m_Open = 29;
+	m_Ext = 6;
 	if (optset_intopen)
 		m_Open = opt(intopen);
 	if (optset_intext)
@@ -333,6 +352,38 @@ void Paralign::Set_Mu_S_k_i8()
 	m_matrix.length = 36;
 	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
 	m_matrix.matrix = Mu_S_k_i8;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
+	int *Mapper = myalloc(int, 256);
+	memset(Mapper, 0, 256*sizeof(int));
+	for (int i = 0; i < 36; ++i)
+		Mapper[i] = i;
+	m_matrix.mapper = Mapper;
+
+	SetSWFastSubstMx_FromParasailMx();
+	}
+
+void Paralign::Set_Mu_hjmux()
+	{
+	m_Open = 4;
+	m_Ext = 2;
+	if (optset_intopen)
+		m_Open = opt(intopen);
+	if (optset_intext)
+		m_Ext = opt(intext);
+
+	int MinScore = 0;
+	int MaxScore = 0;
+	for (uint i = 0; i < 36*36; ++i)
+		{
+		int Score = Mu_hjmux[i];
+		if (i == 0 || Score < MinScore) MinScore = Score;
+		if (i == 0 || Score > MaxScore) MaxScore = Score;
+		}
+	m_matrix.size = 36;
+	m_matrix.length = 36;
+	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	m_matrix.matrix = Mu_hjmux;
 	m_matrix.min = MinScore;
 	m_matrix.max = MaxScore;
 	int *Mapper = myalloc(int, 256);
@@ -476,13 +527,15 @@ void Paralign::LogMatrix()
 		m_matrix.max,
 		m_matrix.size,
 		m_matrix.length);
+
+	Log("static const int parasail_mu_[36*36] = {\n");
 	for (int i = 0; i < AS; ++i)
 		{
-		Log("%2d | ", i);
 		for (int j = 0; j < AS; ++j)
-			Log("%4d", m_matrix.matrix[i*AS + j]);
-		Log("\n");
+			Log("%4d,", m_matrix.matrix[i*AS + j]);
+		Log("  // %d\n", i);
 		}
+	Log("};\n");
 	}
 
 void Paralign::SetSubstMx(const string &Name)
@@ -490,6 +543,8 @@ void Paralign::SetSubstMx(const string &Name)
 	m_SubstMxName = Name;
 	if (Name == "Mu_S_k_i8")
 		Set_Mu_S_k_i8();
+	else if (Name == "Mu_hjmux")
+		Set_Mu_hjmux();
 	else if (Name == "Mu_scop40_tm0_6_0_8_fa2")
 		SetMu_scop40_tm0_6_0_8_fa2();
 	else if (Name == "musubstmx")
@@ -615,12 +670,6 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 	m_T = T;
 	m_LT = LT;
 	m_LabelT = LabelT;
-	if (m_LQ > m_MaxLength || m_LT > m_MaxLength)
-		{
-		m_Score = -999;//@@TODO
-		++m_TooLongCount;
-		return;
-		}
 	if (m_result != 0)
 		parasail_result_free(m_result);
 
@@ -676,11 +725,6 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	m_LabelT = LabelT;
 	m_T = T;
 	m_LT = LT;
-	if (m_LQ > m_MaxLength || m_LT > m_MaxLength)
-		{
-		m_Score = -999;//@@TODO
-		return false;
-		}
 	if (m_result != 0)
 		parasail_result_free(m_result);
 	m_result = parasail_sw_trace_striped_profile_avx2_256_8(
@@ -717,6 +761,7 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	return true;
 	}
 
+#if 0
 void cmd_paralign_test()
 	{
 	const string &FastaFN = g_Arg1;
@@ -797,3 +842,4 @@ void cmd_paralign_test()
 	CloseStdioFile(fAln);
 	ProgressLog("%u / %u score diffs\n", ScoreDiffs, Pairs);
 	}
+#endif

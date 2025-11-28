@@ -107,8 +107,7 @@ void cmd_paralign_scop40_mu()
 			}
 		}
 
-	ProgressLog("%u long, %u saturated, %u 8-bit, %u 16-bit\n",
-		Paralign::m_TooLongCount.load(),
+	ProgressLog("%u saturated, %u 8-bit, %u 16-bit\n",
 		Paralign::m_SaturatedCount.load(),
 		Paralign::m_Count8.load(),
 		Paralign::m_Count16.load());

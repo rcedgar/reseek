@@ -153,7 +153,7 @@ public:
 		string &Str, const string &Default);
 	static bool SpecGetBool(const string &Spec, const string &Name, bool Default);
 	static uint SpecGetInt(const string &Spec, const string &Name, uint Default);
-	static void IncFloat(const string &OldStr, bool Plus, string &NewStr);
+	static void IncFloat(const string &OldStr, bool Plus, string &NewStr, uint SigFig);
 	static void ParseEStr(const string &EStr, string &Mantissa, string &Exponent);
 	static bool AllNines(const string &s);
 	static bool AllZeros(const string &s);

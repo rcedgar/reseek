@@ -11,14 +11,12 @@ public:
 	static int m_Open;
 	static int m_Ext;
 	static int m_SaturatedScore;
-	static uint m_MaxLength;
 	static vector<vector<float> > m_SWFastSubstMx;
 	static int m_Bits;
 
 	static atomic<uint> m_Count8;
 	static atomic<uint> m_Count16;
 	static atomic<uint> m_CountSWFast;
-	static atomic<uint> m_TooLongCount;
 	static atomic<uint> m_SaturatedCount;
 
 public:
@@ -43,6 +41,7 @@ public:
 
 public:
 	static void Set_Mu_S_k_i8();
+	static void Set_Mu_hjmux();
 	static void SetMu_musubstmx();
 	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
@@ -84,4 +83,11 @@ public:
 
 public:
 	static void LogMatrix();
+	static void ClearStats()
+		{
+		m_Count8 = 0;
+		m_Count16 = 0;
+		m_CountSWFast = 0;
+		m_SaturatedCount = 0;
+		}
 	};

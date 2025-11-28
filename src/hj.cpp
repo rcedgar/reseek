@@ -304,7 +304,7 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 	NormalizeVarStr(VarIdx, TmpStr, NewStr);
 	if (NewStr == OldStr)
 		{
-		IncFloat(OldStr, Plus, TmpStr);
+		IncFloat(OldStr, Plus, TmpStr, SigFig);
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
 		}
 	}

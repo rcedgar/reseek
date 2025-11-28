@@ -481,6 +481,8 @@ void Peaker::LogState() const
 
 double Peaker::GetRoundedValue(double x, uint SigFig)
 	{
+	if (SigFig == 0)
+		return round(x);
 	string Fmt;
 	Ps(Fmt, "%%.%uE", SigFig-1);
 	string Tmp;
@@ -491,6 +493,12 @@ double Peaker::GetRoundedValue(double x, uint SigFig)
 
 void Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
 	{
+	if (SigFig == 0)
+		{
+		Ps(Str, "%d", int(round(x)));
+		return;
+		}
+
 	asserta(SigFig > 1);
 	string Fmt;
 	Ps(Fmt, "%%.%uE", SigFig-1);
@@ -667,8 +675,16 @@ bool Peaker::OneZeros(const string &s)
 	return true;
 	}
 
-void Peaker::IncFloat(const string &OldStr, bool Plus, string &NewStr)
+void Peaker::IncFloat(const string &OldStr, bool Plus, string &NewStr, uint SigFig)
 	{
+	if (SigFig == 0)
+		{
+		int OldValue = int(round(StrToFloat(OldStr)));
+		int NewValue = (Plus ? OldValue + 1 : OldValue - 1);
+		Ps(NewStr, "%d", NewValue);
+		return;
+		}
+
 	NewStr.clear();
 	double OldValue = StrToFloat(OldStr);
 

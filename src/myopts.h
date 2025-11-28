@@ -123,6 +123,7 @@ FLT_OPT(undef_value)
 FLT_OPT(rate_factor)
 FLT_OPT(omega)
 FLT_OPT(omegafwd)
+FLT_OPT(scale)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
