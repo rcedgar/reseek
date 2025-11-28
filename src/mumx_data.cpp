@@ -183,6 +183,10 @@ int Mu_S_k_i8[36*36] = {
 };
 
 /***
+src/2025-10_reseek_tune/2025-11-28_retrain_para_mu
+reseek [f3871ac]
+2025-10_reseek_tune [ca4cd71]
+
 hjmux.spec
 	latin=8;
 	rates=1.3,1.05;

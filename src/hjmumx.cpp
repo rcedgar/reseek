@@ -165,6 +165,7 @@ void cmd_hjmumx()
 	Optimize(SpecLines, Best_y, Best_xv);
 
 	ProgressLog("\n");
-	ProgressLog("Best Sum3=%.3f\n", Best_y);
+	ProgressLog("Best Sum3=%.3f open=%s ext=%s\n",
+		Best_y, Best_xv[0].c_str(), Best_xv[1].c_str());
 	ProgressLog("\n");
 	}
