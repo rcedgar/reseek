@@ -6,9 +6,24 @@
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
 
+////////////////////////////////////////////////
+// Mu-related parameters
+////////////////////////////////////////////////
+
+//int DSSParams::m_ParaMuGapOpen = 2;
+//int DSSParams::m_ParaMuGapExt = 1;
+//float DSSParams::m_Omega = 22;
+//float DSSParams::m_OmegaFwd = 50;
+
+float DSSParams::m_Omega = 250;
+float DSSParams::m_OmegaFwd = 500;
+
+int DSSParams::m_ParaMuGapOpen = 8;
+int DSSParams::m_ParaMuGapExt = 5;
+
+////////////////////////////////////////////////
+
 float DSSParams::m_MinFwdScore = 7;
-float DSSParams::m_Omega = 22;
-float DSSParams::m_OmegaFwd = 50;
 string DSSParams::m_MKFPatternStr =  "111";;
 float ***DSSParams::m_ScoreMxs = 0;
 
@@ -20,8 +35,6 @@ int DSSParams::m_MKF_X2 = 8;
 int DSSParams::m_MKF_MinMuHSPScore = 50;
 float DSSParams::m_MKF_MinMegaHSPScore = -4;
 
-int DSSParams::m_ParaMuGapOpen = 2;
-int DSSParams::m_ParaMuGapExt = 1;
 int DSSParams::m_Density_W = 50;
 int DSSParams::m_Density_w = 3;
 int DSSParams::m_SSDensity_W = 50;
@@ -142,8 +155,10 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 		}
 
 	X(MinFwdScore,			7.0f,	 7.0f,	0)
-	X(Omega,				22,		12,		0)
-	X(OmegaFwd,				50,		20,		0)
+	//X(Omega,				22,		12,		0)
+	//X(OmegaFwd,				50,		20,		0)
+	X(Omega,				24,		12,		0)
+	X(OmegaFwd,				48,		20,		0)
 	X(MKFL,					500,	600,	99999)
 	X(MKF_X1,				8,		8,		99999)
 	X(MKF_X2,				8,		8,		99999)

@@ -146,7 +146,7 @@ public:
 	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	float AlignMuQP_Para();
 	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
-	float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
+	//float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
