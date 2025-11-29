@@ -15,7 +15,8 @@ float SWFast_SubstMx(XDPMem &Mem,
 extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
 extern int Mu_S_k_i8[36*36];
-extern int Mu_hjmux[36*36];
+extern int Mu_hjmumx[36*36];
+extern int parasail_mu_[36*36];
 
 parasail_matrix_t Paralign::m_matrix;
 int Paralign::m_Open = INT_MAX;	// penalty > 0
@@ -28,12 +29,34 @@ atomic<uint> Paralign::m_Count8;
 atomic<uint> Paralign::m_Count16;
 atomic<uint> Paralign::m_CountSWFast;
 atomic<uint> Paralign::m_SaturatedCount;
+
+bool Paralign::m_GapLengthDist = false;
+uint Paralign::m_MaxGapLength = UINT_MAX;
+vector<uint> Paralign::m_GapLengthToCount;
+omp_lock_t Paralign::m_GapLengthLock;
      
 // Ye olde BLOSUM62 as used by NCBI BLAST (1/2-bit units)
 // alphabetical order, no wildcards or stop codon
 static const int Blosum62_Open = 11;
 static const int Blosum62_Ext = 1;
 static const int Blosum62_SaturatedScore = 999;
+
+void Paralign::LogGapLengthDist()
+	{
+	ProgressLog("Paralign::LogGapLengthDist() max=%u\n", m_MaxGapLength);
+	for (uint L = 1; L <= m_MaxGapLength; ++L)
+		ProgressLog("%3u  %u\n", L, m_GapLengthToCount[L]);
+	}
+
+void Paralign::InitGapLengthDist(uint MaxLen)
+	{
+	asserta(m_MaxGapLength == UINT_MAX);
+	m_MaxGapLength = MaxLen;
+	m_GapLengthToCount.clear();
+	m_GapLengthToCount.resize(m_MaxGapLength+1);
+	omp_init_lock(&m_GapLengthLock);
+	m_GapLengthDist = true;
+	}
 
 void Paralign::SetSWFastSubstMx_FromParasailMx()
 	{
@@ -65,6 +88,36 @@ void Paralign::SetSWFastSubstMx(const vector<vector<float> > &Mx,
 		memset(&m_matrix, 0, sizeof(m_matrix));
 	}
 
+void Paralign::UpdateGapLengthDist(const string &Path)
+	{
+	asserta(SIZE(m_GapLengthToCount) == m_MaxGapLength + 1);
+	uint L = 0;
+	const uint ColCount = SIZE(Path);
+	for (uint Col = 0; Col < ColCount; ++Col)
+		{
+		char c = Path[Col];
+		if (c == 'M')
+			{
+			if (L != 0)
+				{
+				omp_set_lock(&m_GapLengthLock);
+				m_GapLengthToCount[min(L, m_MaxGapLength)] += 1;
+				omp_unset_lock(&m_GapLengthLock);
+				}
+			L = 0;
+			continue;
+			}
+		else
+			++L;
+		}
+	if (L != 0)
+		{
+		omp_set_lock(&m_GapLengthLock);
+		m_GapLengthToCount[min(L, m_MaxGapLength)] += 1;
+		omp_unset_lock(&m_GapLengthLock);
+		}
+	}
+
 void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
 	{
 	ClearResult();
@@ -80,6 +133,8 @@ void Paralign::Align_SWFast(const string &LabelT, const byte *T, uint LT)
 	uint LoQ, LenQ, LoT, LenT;
 	m_SWFastScore = SWFast_SubstMx(m_Mem, m_Q, m_LQ, m_T, m_LT,
 		m_SWFastSubstMx, Open, Ext, LoQ, LenQ, LoT, LenT, m_SWFastPath);
+	if (m_GapLengthDist)
+		UpdateGapLengthDist(m_SWFastPath);
 	m_SWFastScoreInt = int(round(m_SWFastScore));
 	++m_CountSWFast;
 	}
@@ -360,6 +415,40 @@ void Paralign::Set_Mu_S_k_i8()
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
 
+	m_Bits = 16;
+	SetSWFastSubstMx_FromParasailMx();
+	}
+
+void Paralign::SetMu_parasail_mu_()
+	{
+	m_Open = 2;
+	m_Ext = 1;
+	if (optset_intopen)
+		m_Open = opt(intopen);
+	if (optset_intext)
+		m_Ext = opt(intext);
+
+	int MinScore = 0;
+	int MaxScore = 0;
+	for (uint i = 0; i < 36*36; ++i)
+		{
+		int Score = Mu_S_k_i8[i];
+		if (i == 0 || Score < MinScore) MinScore = Score;
+		if (i == 0 || Score > MaxScore) MaxScore = Score;
+		}
+	m_matrix.size = 36;
+	m_matrix.length = 36;
+	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	m_matrix.matrix = parasail_mu_;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
+	int *Mapper = myalloc(int, 256);
+	memset(Mapper, 0, 256*sizeof(int));
+	for (int i = 0; i < 36; ++i)
+		Mapper[i] = i;
+	m_matrix.mapper = Mapper;
+
+	m_Bits = 8;
 	SetSWFastSubstMx_FromParasailMx();
 	}
 
@@ -376,14 +465,14 @@ void Paralign::Set_Mu_hjmux()
 	int MaxScore = 0;
 	for (uint i = 0; i < 36*36; ++i)
 		{
-		int Score = Mu_hjmux[i];
+		int Score = Mu_hjmumx[i];
 		if (i == 0 || Score < MinScore) MinScore = Score;
 		if (i == 0 || Score > MaxScore) MaxScore = Score;
 		}
 	m_matrix.size = 36;
 	m_matrix.length = 36;
 	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
-	m_matrix.matrix = Mu_hjmux;
+	m_matrix.matrix = Mu_hjmumx;
 	m_matrix.min = MinScore;
 	m_matrix.max = MaxScore;
 	int *Mapper = myalloc(int, 256);
@@ -392,6 +481,7 @@ void Paralign::Set_Mu_hjmux()
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
 
+	m_Bits = 16;
 	SetSWFastSubstMx_FromParasailMx();
 	}
 
@@ -432,7 +522,7 @@ void Paralign::SetMu_musubstmx()
 	/////////////////////////////////////////////////
 	// Supports SWFast only, disables parasail matrix
 	/////////////////////////////////////////////////
-	SetSWFastSubstMx(ScoreMx, Open, Ext, true);
+	SetSWFastSubstMx(ScoreMx, Open, Ext, false);
 	}
 
 // Low accuracy 
@@ -502,6 +592,7 @@ void Paralign::SetMu_scop40_tm0_6_0_8_fa2()
 	for (int i = 0; i < 36; ++i)
 		Mapper[i] = i;
 	m_matrix.mapper = Mapper;
+	m_Bits = 16;
 	SetSWFastSubstMx_FromParasailMx();
 	}
 
@@ -528,11 +619,11 @@ void Paralign::LogMatrix()
 		m_matrix.size,
 		m_matrix.length);
 
-	Log("static const int parasail_mu_[36*36] = {\n");
+	Log("int Mu_hjmumx[36*36] = {\n");
 	for (int i = 0; i < AS; ++i)
 		{
 		for (int j = 0; j < AS; ++j)
-			Log("%4d,", m_matrix.matrix[i*AS + j]);
+			Log("%3d,", m_matrix.matrix[i*AS + j]);
 		Log("  // %d\n", i);
 		}
 	Log("};\n");
@@ -549,6 +640,8 @@ void Paralign::SetSubstMx(const string &Name)
 		SetMu_scop40_tm0_6_0_8_fa2();
 	else if (Name == "musubstmx")
 		SetMu_musubstmx();
+	else if (Name == "parasail_mu_")
+		SetMu_parasail_mu_();
 	else
 		Die("SetSubstMx(%s)", Name.c_str());
 	}

@@ -2,6 +2,7 @@
 
 #include "parasail.h"
 #include "xdpmem.h"
+#include <omp.h>
 
 class Paralign
 	{
@@ -18,6 +19,11 @@ public:
 	static atomic<uint> m_Count16;
 	static atomic<uint> m_CountSWFast;
 	static atomic<uint> m_SaturatedCount;
+
+	static bool m_GapLengthDist;
+	static uint m_MaxGapLength;
+	static vector<uint> m_GapLengthToCount;
+	static omp_lock_t m_GapLengthLock;
 
 public:
 	string m_LabelQ;
@@ -40,9 +46,13 @@ public:
 	string m_SWFastPath;
 
 public:
+	static void InitGapLengthDist(uint MaxLen);
+	static void LogGapLengthDist();
+
 	static void Set_Mu_S_k_i8();
 	static void Set_Mu_hjmux();
 	static void SetMu_musubstmx();
+	static void SetMu_parasail_mu_();
 	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
 	static void SetMatrix(
@@ -80,6 +90,7 @@ public:
 	int ScoreAln(bool Trace = false) const;
 	void WriteAln(FILE *f) const;
 	void Align_SWFast(const string &LabelT, const byte *T, uint LT);
+	void UpdateGapLengthDist(const string &Path);
 
 public:
 	static void LogMatrix();
