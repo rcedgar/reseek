@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "features.h"
-#include "dss.h"
-
+#include "dssparams.h"
+#if 0
 #pragma warning(disable:4305) // double -> float
 
 extern float B62_S_ij[20][20];
@@ -345,8 +345,8 @@ static double NormDens_S_ij[16][16] = {
    {    -0.8663,     -2.197,     -2.952,     -3.317,     -3.513,     -3.409,     -3.067,     -2.858,     -2.404,     -1.999,     -1.572,    -0.9662,     -0.423,     0.3147,      1.291,      2.277, }, // 15
  };
 
-float **g_ScoreMxs2[FEATURE_COUNT];
-uint g_AlphaSizes2[FEATURE_COUNT];
+static float **g_ScoreMxs2[FEATURE_COUNT];
+static uint g_AlphaSizes2[FEATURE_COUNT];
 
 // use iff leak detection
 static void FreeMe();
@@ -595,17 +595,72 @@ static void FreeMe()
 		}
 	}
 
-void DSSParams::OverwriteUnweightedScoreMx(FEATURE F,
-	vector<vector<float> > &ScoreMx)
+static char *ScoreToStr(float x)
 	{
-	asserta(g_ScoreMxs2[F] != 0);
-	const uint AS = g_AlphaSizes2[F];
-	asserta(SIZE(ScoreMx) == AS);
-	for (uint i = 0; i < AS; ++i)
-		{
-		const vector<float> &Row = ScoreMx[i];
-		asserta(SIZE(Row) == AS);
-		for (uint j = 0; j < AS; ++j)
-			g_ScoreMxs2[F][i][j] = ScoreMx[i][j];
-		}
+	static char Tmp[16];
+	static char Tmp2[16];
+	if (fabs(x) < 0.001)
+		x = 0;
+	sprintf(Tmp, "%.3g", x);
+	sprintf(Tmp2, "%8s", Tmp);
+	return Tmp2;
 	}
+
+void cmd_test()
+	{
+	FILE *f = CreateStdioFile(g_Arg1);
+
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		{
+		uint AS = g_AlphaSizes2[F];
+		if (AS == 0)
+			continue;
+		const char *Name = FeatureToStr(F);
+		fprintf(f, "g_AlphaSizes2[FEATURE_%s] = %u;\n", Name, AS);
+		}
+
+	fprintf(f, "\n");
+	fprintf(f, "// ========================\n");
+	fprintf(f, "// Not implemented \n");
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		{
+		uint AS = g_AlphaSizes2[F];
+		if (AS == 0)
+			{
+			const char *Name = FeatureToStr(F);
+			fprintf(f, "// FEATURE_%s\n", Name);
+			}
+		}
+	fprintf(f, "// ========================\n");
+
+	for (uint F = 0; F < FEATURE_COUNT; ++F)
+		{
+		uint AS = g_AlphaSizes2[F];
+		if (AS == 0)
+			continue;
+		const char *Name = FeatureToStr(F);
+		fprintf(f, "\n");
+		fprintf(f, "static const float S_ij_%s[%u*%u] = {\n", Name, AS, AS);
+		fprintf(f, "//");
+		for (uint i = 0; i < AS; ++i)
+			{
+			if (i == 0)
+				fprintf(f, "%6u", i);
+			else
+				fprintf(f, " %8u", i);
+			}
+		fprintf(f, "\n");
+
+		for (uint i = 0; i < AS; ++i)
+			{
+			for (uint j = 0; j < AS; ++j)
+				fprintf(f, "%s,", ScoreToStr(g_ScoreMxs2[F][i][j]));
+			fprintf(f, " // %u\n", i);
+			}
+		fprintf(f, "};\n");
+		fprintf(f, "SetFeatureScoreMx(FEATURE_%s, S_ij_%s, %u);\n", Name, Name, AS);
+		}
+
+	CloseStdioFile(f);
+	}
+#endif

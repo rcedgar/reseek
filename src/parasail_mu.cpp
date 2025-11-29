@@ -239,12 +239,12 @@ void DSSAligner::SetMuQP_Para()
 	const char *A = (const char *) m_MuLettersA->data();
 	const uint LA = SIZE(*m_MuLettersA);
 	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_mu_matrix);
-	Log("ProfQ:");
 	const parasail_profile_t *prof =
 		(parasail_profile_t *) m_ProfPara;
-	Log_parasail_profile(*prof);
 #if 0
 	{
+	Log_parasail_profile(*prof);
+	Log("ProfQ:");
 	const byte *m_Q = m_MuLettersA->data();
 	uint m_LQ = LA;
 	Log("QL %u\n", m_LQ);
