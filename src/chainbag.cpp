@@ -66,10 +66,10 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 		return;
 		}
 
-	float Omega = DSSParams::m_Omega;
+	int Omega = DSSParams::GetOmega();
 	if (Omega > 0)
 		{
-		float MuScore = AlignMuParaBags(BagA, BagB);
+		int MuScore = AlignMuParaBags_xx(BagA, BagB);
 		if (MuScore < Omega)
 			return;
 		}

@@ -52,7 +52,7 @@ public:
 	static void Set_Mu_S_k_i8();
 	static void Set_Mu_hjmux();
 	static void SetMu_musubstmx();
-	static void SetMu_parasail_mu_();
+	static void SetMu_parasail_mu_8();
 	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void SetBlosum62();
 	static void SetMatrix(

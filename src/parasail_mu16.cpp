@@ -71,8 +71,8 @@ int parasail_mu_16[36*36] = {
  -9, -6, -4, -9, -9, -4, -7, -6, -3, -8, -4, -2, -6, -5, -1, -5, -2,  0, -5, -2,  0, -3, -3,  0, -2, -1,  1, -3,  0,  2, -1,  0,  3,  0,  2,  4,  // 35
 };
 
-parasail_matrix_t parasail_mu_matrix = {
-	"mu",  // name
+parasail_matrix_t parasail_mu_matrix_16 = {
+	"mu16",  // name
 	parasail_mu_16,  // matrix
 	parasail_mu_map,  // mapper
 	36,  // size
@@ -126,16 +126,16 @@ void Log_parasail_profile(const parasail_profile_t &prof)
 		}
 	}
 
-float DSSAligner::AlignMuQP_Para()
+int DSSAligner::AlignMuQP_Para16()
 	{
-	m_MuFwdScore = 0;
-	m_MuRevScore = 0;
+	m_MuFwdScore16 = 0;
+	m_MuRevScore16 = 0;
 	StartTimer(SWPara);
 	uint LA = SIZE(*m_MuLettersA);
 	uint LB = SIZE(*m_MuLettersB);
-	const int Open = DSSParams::m_ParaMuGapOpen;
-	const int Ext = DSSParams::m_ParaMuGapExt;
-	const float OmegaFwd = DSSParams::m_OmegaFwd;
+	const int Open = DSSParams::m_ParaMuGapOpen16;
+	const int Ext = DSSParams::m_ParaMuGapExt16;
+	const int OmegaFwd = DSSParams::m_OmegaFwd16;
 
 	const char *B = (const char *) m_MuLettersB->data();
 
@@ -168,8 +168,8 @@ float DSSAligner::AlignMuQP_Para()
 		++m_ParasailSaturateCount;
 		result->score = 777;
 		}
-	m_MuFwdScore = (float) result->score;
-	if (m_MuFwdScore < OmegaFwd)
+	m_MuFwdScore16 = result->score;
+	if (m_MuFwdScore16 < OmegaFwd)
 		{
 		parasail_result_free(result);
 		EndTimer(SWPara);
@@ -180,18 +180,18 @@ float DSSAligner::AlignMuQP_Para()
 	  (const parasail_profile_t * const restrict) m_ProfParaRev;
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_16(profile_rev, B, LB, Open, Ext);
-	m_MuRevScore = (float) result_rev->score;
+	m_MuRevScore16 = result_rev->score;
 
 	EndTimer(SWPara);
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
-	m_MuFwdMinusRevScore = m_MuFwdScore - m_MuRevScore;
+	m_MuFwdMinusRevScore = m_MuFwdScore16 - m_MuRevScore16;
 	parasail_result_free(result);
 	parasail_result_free(result_rev);
 	return m_MuFwdMinusRevScore;
 	}
 
-void DSSAligner::SetMuQP_Para()
+void DSSAligner::SetMuQP_Para16()
 	{
 	StartTimer(SetMuQP_Para);
 	if (m_ProfPara != 0)
@@ -200,7 +200,7 @@ void DSSAligner::SetMuQP_Para()
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	const char *A = (const char *) m_MuLettersA->data();
 	const uint LA = SIZE(*m_MuLettersA);
-	m_ProfPara = parasail_profile_create_avx_256_16(A, LA, &parasail_mu_matrix);
+	m_ProfPara = parasail_profile_create_avx_256_16(A, LA, &parasail_mu_matrix_16);
 	const parasail_profile_t *prof =
 		(parasail_profile_t *) m_ProfPara;
 #if 0
@@ -225,11 +225,11 @@ void DSSAligner::SetMuQP_Para()
 	for (uint i = 0; i < LA; ++i)
 		m_MuRevA.push_back((*m_MuLettersA)[LA-i-1]);
 	const char *AR = (const char *) m_MuRevA.data();
-	m_ProfParaRev = parasail_profile_create_avx_256_16(AR, LA, &parasail_mu_matrix);
+	m_ProfParaRev = parasail_profile_create_avx_256_16(AR, LA, &parasail_mu_matrix_16);
 	EndTimer(SetMuQP_Para);
 	}
 
-float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
+int DSSAligner::AlignMuParaBags16(const ChainBag &BagA, const ChainBag &BagB)
 	{
 	asserta(BagA.m_ptrProfPara != 0);
 	asserta(BagA.m_ptrProfParaRev != 0);
@@ -238,9 +238,9 @@ float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
 	uint LB = BagB.m_ptrChain->GetSeqLength();
 	asserta(SIZE(*BagB.m_ptrMuLetters) == LB);
 
-	const int Open = DSSParams::m_ParaMuGapOpen;
-	const int Ext = DSSParams::m_ParaMuGapExt;
-	const float OmegaFwd = DSSParams::m_OmegaFwd;
+	const int Open = DSSParams::m_ParaMuGapOpen16;
+	const int Ext = DSSParams::m_ParaMuGapExt16;
+	const int OmegaFwd = DSSParams::m_OmegaFwd16;
 
 	const char *B = (const char *) BagB.m_ptrMuLetters->data();
 
@@ -253,7 +253,7 @@ float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
 		++m_ParasailSaturateCount;
 		result->score = 777;
 		}
-	float fwd_score = (float) result->score;
+	int fwd_score = result->score;
 	if (fwd_score < OmegaFwd)
 		{
 		parasail_result_free(result);
@@ -269,7 +269,7 @@ float DSSAligner::AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB)
 	EndTimer(SWPara);
 	if (result_rev->flag & PARASAIL_FLAG_SATURATED)
 		result_rev->score = 777;
-	float Score = fwd_score - rev_score;
+	int Score = fwd_score - rev_score;
 	parasail_result_free(result);
 	parasail_result_free(result_rev);
 	return Score;

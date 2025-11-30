@@ -495,14 +495,14 @@ void DSSAligner::SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 
 void DSSAligner::SetMuScore()
 	{
-	AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	AlignMuQP_xx(*m_MuLettersA, *m_MuLettersB);
 	}
 
 bool DSSAligner::MuFilter()
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
-	const float MinMuScore = DSSParams::m_Omega;
+	const int MinMuScore = DSSParams::GetOmega();
 	if (MinMuScore <= 0)
 		return true;
 	SetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
@@ -565,8 +565,9 @@ void DSSAligner::SetQuery(
 	m_MuLettersA = ptrMuLetters;
 	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
-	if (ptrMuLetters != 0 && DSSParams::m_Omega > 0)
-		SetMuQP_Para();
+	int Omega = DSSParams::GetOmega();
+	if (ptrMuLetters != 0 && Omega > 0)
+		SetMuQP_Para_xx();
 	}
 
 void DSSAligner::SetTarget(
@@ -640,7 +641,8 @@ void DSSAligner::AlignQueryTarget_Trace()
 		return;
 		}
 
-	if (DSSParams::m_Omega > 0)
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
 		{
 		Log("Omega > 0\n");
 		++m_MuFilterInputCount;
@@ -702,7 +704,8 @@ void DSSAligner::AlignQueryTarget()
 
 	++m_AlnCount;
 
-	if (DSSParams::m_Omega > 0)
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
 		{
 		incac(mufilters);
 		++m_MuFilterInputCount;
@@ -785,8 +788,10 @@ void DSSAligner::ClearAlign()
 	m_NewTestStatisticB = -FLT_MAX;
 	m_XDropScore = 0;
 	m_AlnFwdScore = 0;
-	m_MuFwdScore = 0;
-	m_MuRevScore = 0;
+	m_MuFwdScore8 = 0;
+	m_MuRevScore8 = 0;
+	m_MuFwdScore16 = 0;
+	m_MuRevScore16 = 0;
 	m_MuFwdMinusRevScore = 0;
 	}
 
@@ -933,13 +938,41 @@ void DSSAligner::AllocDProw(uint LB)
 	m_DProw = myalloc(float, m_DProwSize);
 	}
 
-float DSSAligner::AlignMuQP(const vector<byte> &LettersA,
+int DSSAligner::AlignMuQP_Para_xx()
+	{
+	if (DSSParams::m_ParaBits == 8)
+		return AlignMuQP_Para8();
+	if (DSSParams::m_ParaBits == 16)
+		return AlignMuQP_Para16();
+	Die("AlignMuQP_Para_xx");
+	return 0;
+	}
+
+int DSSAligner::AlignMuParaBags_xx(const ChainBag &BagA, const ChainBag &BagB)
+	{
+	if (DSSParams::m_ParaBits == 8)
+		return AlignMuParaBags8(BagA, BagB);
+	if (DSSParams::m_ParaBits == 16)
+		return AlignMuParaBags16(BagA, BagB);
+	Die("AlignMuParaBags_xx");
+	return 0;
+	}
+
+void DSSAligner::SetMuQP_Para_xx()
+	{
+	if (DSSParams::m_ParaBits == 8)
+		return SetMuQP_Para8();
+	if (DSSParams::m_ParaBits == 16)
+		return SetMuQP_Para16();
+	Die("SetMuQP_Para_xx");
+	}
+
+int DSSAligner::AlignMuQP_xx(const vector<byte> &LettersA,
   const vector<byte> &LettersB)
 	{
 	m_MuLettersA = &LettersA;
 	m_MuLettersB = &LettersB;
-	float ScorePara = AlignMuQP_Para();
-	return ScorePara;
+	return AlignMuQP_Para_xx();
 	}
 
 void DSSAligner::Stats()

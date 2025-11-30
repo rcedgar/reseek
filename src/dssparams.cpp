@@ -9,18 +9,19 @@ vector<float> DSSParams::m_Weights;
 ////////////////////////////////////////////////
 // Mu-related parameters
 ////////////////////////////////////////////////
+int DSSParams::m_ParaBits = 8;
 
-//int DSSParams::m_ParaMuGapOpen = 2;
-//int DSSParams::m_ParaMuGapExt = 1;
-//float DSSParams::m_Omega = 22;
-//float DSSParams::m_OmegaFwd = 50;
+int DSSParams::m_Omega8 = 22;
+int DSSParams::m_OmegaFwd8 = 50;
 
-float DSSParams::m_Omega = 250;
-float DSSParams::m_OmegaFwd = 500;
+int DSSParams::m_Omega16 = 250;
+int DSSParams::m_OmegaFwd16 = 500;
 
-int DSSParams::m_ParaMuGapOpen = 8;
-int DSSParams::m_ParaMuGapExt = 5;
+int DSSParams::m_ParaMuGapOpen8 = 2;
+int DSSParams::m_ParaMuGapExt8 = 1;
 
+int DSSParams::m_ParaMuGapOpen16 = 8;
+int DSSParams::m_ParaMuGapExt16 = 5;
 ////////////////////////////////////////////////
 
 float DSSParams::m_MinFwdScore = 7;
@@ -141,6 +142,26 @@ static ALGO_MODE GetAlgoMode(DECIDE_MODE DM)
 	return AM_Invalid;
 	}
 
+int DSSParams::GetOmega()
+	{
+	if (m_ParaBits == 8)
+		return m_Omega8;
+	else if (m_ParaBits == 16)
+		return m_Omega16;
+	Die("GetOmega");
+	return false;
+	}
+
+int DSSParams::GetOmegaFwd()
+	{
+	if (m_ParaBits == 8)
+		return m_OmegaFwd8;
+	else if (m_ParaBits == 16)
+		return m_OmegaFwd16;
+	Die("GetOmega");
+	return false;
+	}
+
 void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 	{
 	ALGO_MODE AM = GetAlgoMode(DM);
@@ -155,10 +176,10 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 		}
 
 	X(MinFwdScore,			7.0f,	 7.0f,	0)
-	//X(Omega,				22,		12,		0)
-	//X(OmegaFwd,				50,		20,		0)
-	X(Omega,				16,		12,		0)
-	X(OmegaFwd,				48,		20,		0)
+	X(Omega8,				22,		12,		0)
+	X(OmegaFwd8,			50,		20,		0)
+	X(Omega16,				16,		12,		0)
+	X(OmegaFwd16,			48,		20,		0)
 	X(MKFL,					500,	600,	99999)
 	X(MKF_X1,				8,		8,		99999)
 	X(MKF_X2,				8,		8,		99999)
@@ -168,10 +189,8 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 
 	if (optset_rsb_size)
 		m_rsb_size = opt(rsb_size);
-	if (optset_omega)
-		m_Omega = (float) opt(omega);
-	if (optset_omegafwd)
-		m_OmegaFwd = (float) opt(omegafwd);
+	asserta(!optset_omega);
+	asserta(!optset_omegafwd);
 	}
 
 void DSSParams::NormalizeWeights()

@@ -5,8 +5,6 @@
 P(GapOpen)
 P(GapExt)
 P(MinFwdScore)
-P(Omega)
-P(OmegaFwd)
 P(MKF_MinMegaHSPScore)
 P(dpw)
 P(lddtw)

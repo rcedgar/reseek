@@ -74,7 +74,8 @@ static float AlignPair1(DSS &D, DSSAligner &DA,
 	uint BestChainIndexT = UINT_MAX;
 	D.Init(*ChainQ);
 	D.GetProfile(ProfileQ);
-	if (DSSParams::m_Omega > 0)
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
 		D.GetMuLetters(MuLettersQ);
 
 	float SelfRevScoreQ = GetSelfRevScore(DA, D, *ChainQ, ProfileQ, 0, 0);
@@ -85,7 +86,7 @@ static float AlignPair1(DSS &D, DSSAligner &DA,
 	D.Init(*ChainT);
 	D.GetProfile(ProfileT);
 
-	if (DSSParams::m_Omega > 0)
+	if (Omega > 0)
 		D.GetMuLetters(MuLettersT);
 
 	float SelfRevScoreT = GetSelfRevScore(DA, D, *ChainT, ProfileT, 0, 0);
@@ -156,7 +157,8 @@ void cmd_alignpair()
 	optset_sensitive = true;
 	opt(sensitive) = true;
 	DSSParams::Init(DM_AlwaysSensitive);
-	DSSParams::m_Omega = 0;
+	DSSParams::m_Omega8 = 0;
+	DSSParams::m_Omega16 = 0;
 
 	DSSAligner DA;
 	DSS D;

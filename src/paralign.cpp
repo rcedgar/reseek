@@ -16,7 +16,7 @@ extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
 extern int Mu_S_k_i8[36*36];
 extern int Mu_hjmumx[36*36];
-extern int parasail_mu_[36*36];
+extern int parasail_mu_8[36*36];
 
 parasail_matrix_t Paralign::m_matrix;
 int Paralign::m_Open = INT_MAX;	// penalty > 0
@@ -419,7 +419,7 @@ void Paralign::Set_Mu_S_k_i8()
 	SetSWFastSubstMx_FromParasailMx();
 	}
 
-void Paralign::SetMu_parasail_mu_()
+void Paralign::SetMu_parasail_mu_8()
 	{
 	m_Open = 2;
 	m_Ext = 1;
@@ -439,7 +439,7 @@ void Paralign::SetMu_parasail_mu_()
 	m_matrix.size = 36;
 	m_matrix.length = 36;
 	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
-	m_matrix.matrix = parasail_mu_;
+	m_matrix.matrix = parasail_mu_8;
 	m_matrix.min = MinScore;
 	m_matrix.max = MaxScore;
 	int *Mapper = myalloc(int, 256);
@@ -640,8 +640,8 @@ void Paralign::SetSubstMx(const string &Name)
 		SetMu_scop40_tm0_6_0_8_fa2();
 	else if (Name == "musubstmx")
 		SetMu_musubstmx();
-	else if (Name == "parasail_mu_")
-		SetMu_parasail_mu_();
+	else if (Name == "parasail_mu_8")
+		SetMu_parasail_mu_8();
 	else
 		Die("SetSubstMx(%s)", Name.c_str());
 	}

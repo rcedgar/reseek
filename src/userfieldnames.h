@@ -27,6 +27,5 @@ x(muhsp)
 x(muchain)
 x(raw)
 x(fwdrev)
-x(muscore)
 
 #undef x

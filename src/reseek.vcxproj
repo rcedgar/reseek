@@ -369,7 +369,7 @@
     <ClCompile Include="linereader2.cpp" />
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
-    <ClCompile Include="parasail_mu.cpp" />
+    <ClCompile Include="parasail_mu8.cpp" />
     <ClCompile Include="pdb2mega.cpp" />
     <ClCompile Include="readhits.cpp" />
     <ClCompile Include="runquery.cpp" />
@@ -398,7 +398,6 @@
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="statsig.cpp" />
-    <ClCompile Include="test_parasail.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />

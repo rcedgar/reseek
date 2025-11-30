@@ -158,7 +158,7 @@
     <ClCompile Include="pdb2mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parasail_mu.cpp">
+    <ClCompile Include="parasail_mu8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parasail.cpp">
@@ -471,9 +471,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="paralign_scop40.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_parasail.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="paralign_scop40_mu.cpp">

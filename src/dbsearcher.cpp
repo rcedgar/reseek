@@ -149,7 +149,8 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 	vector<vector<byte> *> *ptrMuLetters = &m_DBMuLettersVec;
 	vector<vector<uint> *> *ptrMuKmersVec = &m_DBMuKmersVec;
-	if (DSSParams::m_Omega <= 0)
+	int Omega = DSSParams::GetOmega();
+	if (Omega <= 0)
 		ptrMuLetters = 0;
 
 	PL.Load(CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,

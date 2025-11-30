@@ -35,12 +35,19 @@ public:
 	static float m_GapOpen;
 	static float m_GapExt;
 	static float m_MinFwdScore;
-	static float m_Omega;
-	static float m_OmegaFwd;
+
+	static int m_ParaBits;
+	static int m_Omega8;
+	static int m_Omega16;
+	static int m_OmegaFwd8;
+	static int m_OmegaFwd16;
+	static int m_ParaMuGapOpen8;
+	static int m_ParaMuGapOpen16;
+	static int m_ParaMuGapExt8;
+	static int m_ParaMuGapExt16;
+
 	static string m_MKFPatternStr;
 
-	static int m_ParaMuGapOpen;
-	static int m_ParaMuGapExt;
 
 	static uint m_rsb_size;
 	static int m_PrefilterMinKmerPairScore;
@@ -80,6 +87,8 @@ public:
 	static void SetAlgoMode(DECIDE_MODE DM);
 	static void GetParamsStr(string &Str);
 	static void LogMe();
+	static int GetOmega();
+	static int GetOmegaFwd();
 
 	static uint GetFeatureCount()
 		{

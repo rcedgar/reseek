@@ -57,8 +57,6 @@ static void TraceAln1(const PDBChain &Q, const PDBChain &T)
 		Log("m_MKF.BestChainScore=%d\n", DA.m_MKF.m_BestChainScore);
 		Log("m_XDropScore=%.1f\n", DA.m_XDropScore);
 		}
-	Log("Omega=%.1f\n", DSSParams::m_Omega);
-	Log("DoMuFilter=%c\n", tof(DSSParams::m_Omega > 0));
 	Log("MuFilterOk=%c\n", tof(DA.MuFilter()));
 	}
 

@@ -37,8 +37,6 @@ public:
 	const vector<uint> *m_MuKmersB = 0;
 	vector<const float *> m_ProfMu;
 	vector<const float *> m_ProfMuRev;
-	vector<const int8_t *> m_ProfMui;
-	vector<const int8_t *> m_ProfMuRevi;
 	vector<byte> m_MuRevA;
 	void *m_ProfPara = 0;
 	void *m_ProfParaRev = 0;
@@ -49,7 +47,6 @@ public:
 	string m_XDropPath;
 
 	XDPMem m_Mem;
-	//Mx<float> m_SM;
 
 	uint m_AlnDomIdx1 = UINT_MAX;
 	uint m_AlnDomIdx2 = UINT_MAX;
@@ -71,16 +68,18 @@ public:
 
 	uint m_Ids = UINT_MAX;
 	uint m_Gaps = UINT_MAX;
-	//float m_AlnDaliScore = FLT_MAX;
+
 	float m_SelfRevScoreA = FLT_MAX;
 	float m_SelfRevScoreB = FLT_MAX;
 
 	float *m_DProw = 0;
 	uint m_DProwSize = 0;
 	float m_AlnFwdScore = FLT_MAX;
-	float m_MuFwdMinusRevScore = FLT_MAX;
-	float m_MuFwdScore = FLT_MAX;
-	float m_MuRevScore = FLT_MAX;
+	int m_MuFwdMinusRevScore = -999;
+	int m_MuFwdScore8 = -999;
+	int m_MuRevScore8 = -999;
+	int m_MuFwdScore16 = -999;
+	int m_MuRevScore16 = -999;
 
 	vector<USERFIELD> m_UFs;
 
@@ -143,10 +142,21 @@ public:
 	void LogHSP(uint Lo_i, uint Lo_j, uint Len) const;
 	void Align_NoAccel();
 	void Align_QRev();
-	float AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	float AlignMuQP_Para();
-	float AlignMuParaBags(const ChainBag &BagA, const ChainBag &BagB);
-	//float AlignMuQP_Para_Path(uint &LoA, uint &LoB, string &Path);
+
+	int AlignMuQP_xx(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	int AlignMuQP_Para_xx();
+	int AlignMuParaBags_xx(const ChainBag &BagA, const ChainBag &BagB);
+	void SetMuQP_Para_xx();
+
+	int AlignMuQP8(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	int AlignMuQP16(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	int AlignMuQP_Para8();
+	int AlignMuQP_Para16();
+	int AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB);
+	int AlignMuParaBags16(const ChainBag &BagA, const ChainBag &BagB);
+	void SetMuQP_Para8();
+	void SetMuQP_Para16();
+
 	float GetDPScorePath(const vector<vector<byte> > &ProfileA,
 	  const vector<vector<byte> > &ProfileB, uint LoA, uint LoB,
 	  const string &Path) const;
@@ -160,10 +170,6 @@ public:
 	void SetSMx_QRev();
 	void SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 					  const vector<vector<byte> > &ProfileB);
-	//void SetMuQP();
-	//void SetMuQPi();
-	void SetMuQP_Para();
-	//void SetSMx_Mu();
 	void AllocDProw(uint LB);
 	const float * const *GetSMxData() const;
 	float **GetSMxData();

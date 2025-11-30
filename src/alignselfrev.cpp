@@ -8,7 +8,8 @@ void cmd_alignselfrev()
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	DSSParams::Init(DM_AlwaysSensitive);
-	DSSParams::m_Omega = 0;
+	DSSParams::m_Omega8 = 0;
+	DSSParams::m_Omega16 = 0;
 
 	DSSAligner DA;
 	DSS D;
