@@ -131,6 +131,8 @@ void cmd_hjmumx()
 	double ScaleFactor = 1.0;
 	if (optset_scale)
 		ScaleFactor = opt(scale);
+	if (optset_parabits)
+		Paralign::m_Bits = opt(parabits);
 
 	vector<vector<int> > ScoreMx;
 	if (optset_mxname)
