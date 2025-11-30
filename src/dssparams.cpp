@@ -187,10 +187,12 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 	X(MKF_MinMegaHSPScore,	-4,		-4,		-99999)
 #undef X
 
-	if (optset_rsb_size)
-		m_rsb_size = opt(rsb_size);
-	asserta(!optset_omega);
-	asserta(!optset_omegafwd);
+	if (optset_rsb_size)	m_rsb_size = opt(rsb_size);
+	if (optset_parabits)	m_ParaBits = opt(parabits);
+	if (optset_omega8)		m_Omega8 = (int) opt(omega8);
+	if (optset_omega16)		m_Omega16 = (int) opt(omega16);
+	if (optset_omegafwd8)	m_OmegaFwd8 = (int) opt(omegafwd8);
+	if (optset_omegafwd16)	m_OmegaFwd16 = (int) opt(omegafwd16);
 	}
 
 void DSSParams::NormalizeWeights()

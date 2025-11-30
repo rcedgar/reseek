@@ -37,8 +37,10 @@ static ChainBag *MakeBag(
 	ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
 	ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
 	ptrCBQ->m_SelfRevScore = QSelfRevScore;
-	ptrCBQ->m_ptrProfPara = DA_selfrev.m_ProfPara;
-	ptrCBQ->m_ptrProfParaRev = DA_selfrev.m_ProfParaRev;
+	ptrCBQ->m_ptrProfPara8 = DA_selfrev.m_ProfPara8;
+	ptrCBQ->m_ptrProfPara16 = DA_selfrev.m_ProfPara16;
+	ptrCBQ->m_ptrProfParaRev8 = DA_selfrev.m_ProfParaRev8;
+	ptrCBQ->m_ptrProfParaRev16 = DA_selfrev.m_ProfParaRev16;
 	ptrCBQ->m_ptrKmerHashTableQ = HT;
 
 	return ptrCBQ;

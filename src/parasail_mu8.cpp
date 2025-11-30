@@ -90,7 +90,7 @@ int DSSAligner::AlignMuQP_Para8()
 	const char *B = (const char *) m_MuLettersB->data();
 
 	const parasail_profile_t * const restrict profile =
-	  (const parasail_profile_t * const restrict) m_ProfPara;
+	  (const parasail_profile_t * const restrict) m_ProfPara8;
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
 #if 0
@@ -127,7 +127,7 @@ int DSSAligner::AlignMuQP_Para8()
 		}
 
 	const parasail_profile_t * const restrict profile_rev =
-	  (const parasail_profile_t * const restrict) m_ProfParaRev;
+	  (const parasail_profile_t * const restrict) m_ProfParaRev8;
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
 	m_MuRevScore8 = result_rev->score;
@@ -144,15 +144,15 @@ int DSSAligner::AlignMuQP_Para8()
 void DSSAligner::SetMuQP_Para8()
 	{
 	StartTimer(SetMuQP_Para);
-	if (m_ProfPara != 0)
-		parasail_profile_free((parasail_profile_t *) m_ProfPara);
-	if (m_ProfParaRev != 0)
-		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
+	if (m_ProfPara8 != 0)
+		parasail_profile_free((parasail_profile_t *) m_ProfPara8);
+	if (m_ProfParaRev8 != 0)
+		parasail_profile_free((parasail_profile_t *) m_ProfParaRev8);
 	const char *A = (const char *) m_MuLettersA->data();
 	const uint LA = SIZE(*m_MuLettersA);
-	m_ProfPara = parasail_profile_create_avx_256_8(A, LA, &parasail_mu_matrix_8);
+	m_ProfPara8 = parasail_profile_create_avx_256_8(A, LA, &parasail_mu_matrix_8);
 	const parasail_profile_t *prof =
-		(parasail_profile_t *) m_ProfPara;
+		(parasail_profile_t *) m_ProfPara8;
 #if 0
 	{
 	Log_parasail_profile(*prof);
@@ -170,19 +170,19 @@ void DSSAligner::SetMuQP_Para8()
 	Log("\n");
 	}
 #endif
-	m_MuRevA.clear();
-	m_MuRevA.reserve(LA);
+	m_MuRevA8.clear();
+	m_MuRevA8.reserve(LA);
 	for (uint i = 0; i < LA; ++i)
-		m_MuRevA.push_back((*m_MuLettersA)[LA-i-1]);
-	const char *AR = (const char *) m_MuRevA.data();
-	m_ProfParaRev = parasail_profile_create_avx_256_8(AR, LA, &parasail_mu_matrix_8);
+		m_MuRevA8.push_back((*m_MuLettersA)[LA-i-1]);
+	const char *AR = (const char *) m_MuRevA8.data();
+	m_ProfParaRev8 = parasail_profile_create_avx_256_8(AR, LA, &parasail_mu_matrix_8);
 	EndTimer(SetMuQP_Para);
 	}
 
 int DSSAligner::AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB)
 	{
-	asserta(BagA.m_ptrProfPara != 0);
-	asserta(BagA.m_ptrProfParaRev != 0);
+	asserta(BagA.m_ptrProfPara8 != 0);
+	asserta(BagA.m_ptrProfParaRev8 != 0);
 	asserta(BagB.m_ptrMuLetters != 0);
 
 	uint LB = BagB.m_ptrChain->GetSeqLength();
@@ -195,7 +195,7 @@ int DSSAligner::AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB)
 	const char *B = (const char *) BagB.m_ptrMuLetters->data();
 
 	const parasail_profile_t * const restrict profile =
-	  (const parasail_profile_t * const restrict) BagA.m_ptrProfPara;
+	  (const parasail_profile_t * const restrict) BagA.m_ptrProfPara8;
 	parasail_result_t* result =
 	  parasail_sw_striped_profile_avx2_256_8(profile, B, LB, Open, Ext);
 	if (result->flag & PARASAIL_FLAG_SATURATED)
@@ -211,7 +211,7 @@ int DSSAligner::AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB)
 		}
 
 	const parasail_profile_t * const restrict profile_rev =
-	  (const parasail_profile_t * const restrict) BagA.m_ptrProfParaRev;
+	  (const parasail_profile_t * const restrict) BagA.m_ptrProfParaRev8;
 	parasail_result_t* result_rev =
 	  parasail_sw_striped_profile_avx2_256_8(profile_rev, B, LB, Open, Ext);
 	int rev_score = result_rev->score;

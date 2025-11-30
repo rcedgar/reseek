@@ -40,6 +40,26 @@ void DSSParams::GetParamsStr(string &ParamsStr)
 		}
 	}
 
+bool DSSParams::GetDoMuFilter()
+	{
+	return GetNeedMuLetters();
+	}
+
+bool DSSParams::GetNeedMuLetters()
+	{
+	if (m_ParaBits == 8)
+		return m_Omega8 > 0;
+	else if (m_ParaBits == 16)
+		return m_Omega16 > 0;
+	else if (m_ParaBits == 2)
+		{
+		asserta(m_Omega8 > 0 && m_Omega16 > 0);
+		return true;
+		}
+	Die("DSSParams::NeedMuLetters");
+	return false;
+	}
+
 void DSSParams::SetParam(const string &Name, const string &StrValue)
 	{
 	if (Name == "gap2")

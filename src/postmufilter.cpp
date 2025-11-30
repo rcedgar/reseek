@@ -85,8 +85,8 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
 		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
 		ptrCBQ->m_SelfRevScore = QSelfRevScore;
-		ptrCBQ->m_ptrProfPara = DASelfRev.m_ProfPara;
-		ptrCBQ->m_ptrProfParaRev = DASelfRev.m_ProfParaRev;
+		ptrCBQ->m_ptrProfPara8 = DASelfRev.m_ProfPara8;
+		ptrCBQ->m_ptrProfParaRev16 = DASelfRev.m_ProfParaRev16;
 		ptrCBQ->m_ptrKmerHashTableQ = HT;
 		asserta(ChainBagsQ[QueryIdx] == 0);
 		s_IndexQueryLock.lock();
@@ -94,8 +94,8 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		s_IndexQueryLock.unlock();
 
 		//DASelfRev.m_MKF.ForceZero();
-		DASelfRev.m_ProfPara = 0;
-		DASelfRev.m_ProfParaRev = 0;
+		DASelfRev.m_ProfPara16 = 0;
+		DASelfRev.m_ProfParaRev16 = 0;
 		}
 	}
 
@@ -169,8 +169,10 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		CBT.m_ptrMuLetters = &DBMuLetters;
 		CBT.m_ptrMuKmers = &DBMuKmers;
 		CBT.m_SelfRevScore = DBSelfRevScore;
-		CBT.m_ptrProfPara = 0;
-		CBT.m_ptrProfParaRev = 0;
+		CBT.m_ptrProfPara8 = 0;
+		CBT.m_ptrProfPara16 = 0;
+		CBT.m_ptrProfParaRev8 = 0;
+		CBT.m_ptrProfParaRev16 = 0;
 
 		const uint FilHitCount = StrToUint(Fields[1]);
 		asserta(FilHitCount + 2 == FieldCount);

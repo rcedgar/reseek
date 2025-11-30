@@ -92,18 +92,22 @@ void ChainBag::Validate(const char *Msg) const
 		asserta(m_ptrProfile == 0);
 		asserta(m_ptrMuLetters == 0);
 		asserta(m_ptrMuKmers == 0);
-		asserta(m_ptrProfPara == 0);
-		asserta(m_ptrProfParaRev == 0);
+		asserta(m_ptrProfPara8 == 0);
+		asserta(m_ptrProfPara16 == 0);
+		asserta(m_ptrProfParaRev8 == 0);
+		asserta(m_ptrProfParaRev16 == 0);
 		asserta(m_ptrKmerHashTableQ == 0);
 		return;
 		}
 	const uint L = m_ptrChain->GetSeqLength();
 	asserta(SIZE(*m_ptrMuLetters) == L);
 	asserta(SIZE(*m_ptrMuKmers) + 2 == L);
-	const parasail_profile_t *Prof = (const parasail_profile_t *) m_ptrProfPara;
-	const parasail_profile_t *ProfRev = (const parasail_profile_t *) m_ptrProfParaRev;
-	if (Prof != 0)
-		asserta(Prof->s1Len == L);
-	if (ProfRev != 0)
-		asserta(ProfRev->s1Len == L);
+	const parasail_profile_t *Prof8 = (const parasail_profile_t *) m_ptrProfPara8;
+	const parasail_profile_t *Prof16 = (const parasail_profile_t *) m_ptrProfPara16;
+	const parasail_profile_t *ProfRev8 = (const parasail_profile_t *) m_ptrProfParaRev8;
+	const parasail_profile_t *ProfRev16 = (const parasail_profile_t *) m_ptrProfParaRev16;
+	if (Prof8 != 0)		asserta(Prof8->s1Len == L);
+	if (Prof16 != 0)	asserta(Prof16->s1Len == L);
+	if (ProfRev8 != 0)	asserta(ProfRev8->s1Len == L);
+	if (ProfRev16 != 0)	asserta(ProfRev16->s1Len == L);
 	}

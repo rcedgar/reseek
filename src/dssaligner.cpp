@@ -82,10 +82,10 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 
 DSSAligner::~DSSAligner()
 	{
-	if (m_ProfPara != 0)
-		parasail_profile_free((parasail_profile_t *) m_ProfPara);
-	if (m_ProfParaRev != 0)
-		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
+	if (m_ProfPara8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara8);
+	if (m_ProfPara16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara16);
+	if (m_ProfParaRev8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev8);
+	if (m_ProfParaRev16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev16);
 	if (m_DProw != 0)
 		myfree(m_DProw);
 	FreeSMxData();
@@ -502,10 +502,22 @@ bool DSSAligner::MuFilter()
 	{
 	if (m_MuLettersA == 0 || m_MuLettersB == 0)
 		return true;
+
+	if (DSSParams::m_ParaBits == 2)
+		{
+		int Score8 = AlignMuQP_Para8();
+		if (Score8 < DSSParams::m_Omega8)
+			return false;
+		int Score16 = AlignMuQP_Para16();
+		if (Score16 < DSSParams::m_Omega16)
+			return false;
+		return true;
+		}
+
 	const int MinMuScore = DSSParams::GetOmega();
 	if (MinMuScore <= 0)
 		return true;
-	SetMuScore(); // AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	SetMuScore();
 	if (m_MuFwdMinusRevScore < MinMuScore)
 		return false;
 	return true;
@@ -565,8 +577,7 @@ void DSSAligner::SetQuery(
 	m_MuLettersA = ptrMuLetters;
 	m_MuKmersA = ptrMuKmers;
 	m_SelfRevScoreA = SelfRevScore;
-	int Omega = DSSParams::GetOmega();
-	if (ptrMuLetters != 0 && Omega > 0)
+	if (ptrMuLetters != 0 && DSSParams::GetNeedMuLetters())
 		SetMuQP_Para_xx();
 	}
 
@@ -704,8 +715,7 @@ void DSSAligner::AlignQueryTarget()
 
 	++m_AlnCount;
 
-	int Omega = DSSParams::GetOmega();
-	if (Omega > 0)
+	if (DSSParams::GetDoMuFilter())
 		{
 		incac(mufilters);
 		++m_MuFilterInputCount;
@@ -961,10 +971,16 @@ int DSSAligner::AlignMuParaBags_xx(const ChainBag &BagA, const ChainBag &BagB)
 void DSSAligner::SetMuQP_Para_xx()
 	{
 	if (DSSParams::m_ParaBits == 8)
-		return SetMuQP_Para8();
-	if (DSSParams::m_ParaBits == 16)
-		return SetMuQP_Para16();
-	Die("SetMuQP_Para_xx");
+		SetMuQP_Para8();
+	else if (DSSParams::m_ParaBits == 16)
+		SetMuQP_Para16();
+	else if (DSSParams::m_ParaBits == 2)
+		{
+		SetMuQP_Para8();
+		SetMuQP_Para16();
+		}
+	else
+		Die("SetMuQP_Para_xx");
 	}
 
 int DSSAligner::AlignMuQP_xx(const vector<byte> &LettersA,

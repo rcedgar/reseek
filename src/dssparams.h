@@ -133,6 +133,8 @@ public:
 	static float GetFloatParam(const string &Name);
 	static void SetParam(const string &Name, const string &Value);
 	static const float * const *GetScoreMx(FEATURE F);
+	static bool GetNeedMuLetters();
+	static bool GetDoMuFilter();
 	};
 
 uint GetPatternOnes(const string &Pattern);

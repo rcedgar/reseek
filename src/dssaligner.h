@@ -35,11 +35,16 @@ public:
 	const vector<byte> *m_MuLettersB = 0;
 	const vector<uint> *m_MuKmersA = 0;
 	const vector<uint> *m_MuKmersB = 0;
-	vector<const float *> m_ProfMu;
-	vector<const float *> m_ProfMuRev;
-	vector<byte> m_MuRevA;
-	void *m_ProfPara = 0;
-	void *m_ProfParaRev = 0;
+	vector<const float *> m_ProfMu8;
+	vector<const float *> m_ProfMu16;
+	vector<const float *> m_ProfMuRev8;
+	vector<const float *> m_ProfMuRev16;
+	vector<byte> m_MuRevA8;
+	vector<byte> m_MuRevA16;
+	void *m_ProfPara8 = 0;
+	void *m_ProfPara16 = 0;
+	void *m_ProfParaRev8 = 0;
+	void *m_ProfParaRev16 = 0;
 	MuKmerFilter m_MKF;
 	float m_XDropScore = 0;
 	float m_XDropScoreFwd = 0;
@@ -148,8 +153,6 @@ public:
 	int AlignMuParaBags_xx(const ChainBag &BagA, const ChainBag &BagB);
 	void SetMuQP_Para_xx();
 
-	int AlignMuQP8(const vector<byte> &LettersA, const vector<byte> &LettersB);
-	int AlignMuQP16(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	int AlignMuQP_Para8();
 	int AlignMuQP_Para16();
 	int AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB);
