@@ -47,7 +47,7 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
 		DA.AlignQueryTarget();
-		if (DA.m_Path.empty())
+		if (DA.m_EvalueA == FLT_MAX)
 			incac(emptypaths);
 		else
 			{
