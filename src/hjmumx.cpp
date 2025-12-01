@@ -131,7 +131,7 @@ static bool AddPendingIfOk(int Open, int Ext)
 static void Optimize(int ScaleFactor)
 	{
 	int FirstOpen = ScaleFactor*3;
-	int FirstExt = ScaleFactor;
+	int FirstExt = ScaleFactor*3;
 
 	AddPendingIfOk(FirstOpen, FirstExt);
 	for (uint Iter = 0; Iter < 100; ++Iter)
