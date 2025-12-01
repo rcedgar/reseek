@@ -505,6 +505,22 @@ void Peaker::GetRoundedStr(double x, uint SigFig, string &Str)
 	Ps(Str, Fmt.c_str(), x);
 	}
 
+bool Peaker::RunInits(bool Required)
+	{
+	const uint VarCount = GetVarCount();
+	vector<string> xv;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		string s;
+		VarSpecGetStr(VarIdx, "init", s, "");
+		if (s == "")
+			return false;
+		xv.push_back(s);
+		}
+	Evaluate(xv, "Inits");
+	return true;
+	}
+
 void Peaker::RunLatin(uint BinCount)
 	{
 	const uint VarCount = GetVarCount();
@@ -512,9 +528,8 @@ void Peaker::RunLatin(uint BinCount)
 	GetLatinHypercube(BinCount, xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
-#if	1
-	{
 	const uint m = GetVarCount();
+
 	Log("Latin=%u\n", n);
 	for (uint i = 0; i < n; ++i)
 		{
@@ -524,8 +539,7 @@ void Peaker::RunLatin(uint BinCount)
 		Log("[%5u] %s", i, tmp.c_str());
 		Log("\n");
 		}
-	}
-#endif
+
 	for (uint i = 0; i < n; ++i)
 		{
 		string why;

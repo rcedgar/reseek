@@ -569,8 +569,6 @@ const char *SCOP40Bench::GetAccuracyStr(string &Str) const
 	Psa(Str, "SEPQ0.1=%.3f", m_SEPQ0_1);
 	Psa(Str, " SEPQ1=%.3f", m_SEPQ1);
 	Psa(Str, " SEPQ10=%.3f", m_SEPQ10);
-	if (m_Area0 != FLT_MAX)
-		Psa(Str, " Area0=%.3f", m_Area0);
 	if (m_Sum3 != FLT_MAX)
 		Psa(Str, " Sum3=%.3f", m_Sum3);
 	return Str.c_str();

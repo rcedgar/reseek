@@ -264,6 +264,8 @@ void SCOP40Bench::SetCVE()
 			break;
 			}
 		}
+	if (IdxLo == UINT_MAX || IdxHi == UINT_MAX || IdxLo == IdxHi)
+		return;
 	asserta(IdxLo != UINT_MAX);
 	asserta(IdxHi != UINT_MAX);
 	asserta(IdxLo < IdxHi);

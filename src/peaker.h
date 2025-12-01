@@ -76,6 +76,7 @@ public:
 	double Calc(const vector<string> &xv);
 	void RunLatinClimb1();
 	void RunLatin(uint BinCount);
+	bool RunInits(bool Required);
 	void NormalizeWeights(const vector<string> &xv,
 		vector<string> &Normalized_xv) const;
 	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,

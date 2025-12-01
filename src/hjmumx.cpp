@@ -1,21 +1,12 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "parasearch.h"
-#include "peaker.h"
+//#include "peaker.h"
 
 static ParaSearch *s_PS;
-static Peaker *s_Peaker;
 
-static double EvalSum3(const vector<string> &xv)
+static double EvalSum3(int IntOpen, int IntExt)
 	{
-	asserta(SIZE(xv) == 2);
-
-	const float Open = StrToFloatf(xv[0]);
-	const float Ext = StrToFloatf(xv[1]);
-
-	const int IntOpen = int(round(Open));
-	const int IntExt= int(round(Ext));
-
 	s_PS->SetGapParams(IntOpen, IntExt);
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para");
@@ -23,9 +14,9 @@ static double EvalSum3(const vector<string> &xv)
 	return s_PS->m_SB.m_Sum3;
 	}
 
-static void TrainMx(vector<vector<int> > &IntScoreMx, double ScaleFactor)
+static void TrainMx(const string &ChainFN,
+	vector<vector<int> > &IntScoreMx, double ScaleFactor)
 	{
-	const string &ChainFN = opt(db);			// "src/reseek/test_data/scop40.bca";
 	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_fa2/tp.mints05.maxts25.fa2";
 
 	FeatureTrainer2::m_FevStr.clear();
@@ -78,57 +69,127 @@ static void TrainMx(vector<vector<int> > &IntScoreMx, double ScaleFactor)
 		}
 	}
 
-static void Optimize(
-	const vector<string> &SpecLines,
-	double &Best_y,
-	vector<string> &Best_xv)
+static double s_BestSum3 = DBL_MAX;
+static int s_BestOpen = -999;
+static int s_BestExt = -999;
+
+list<int> s_PendingOpens;
+list<int> s_PendingExts;
+
+vector<int> s_DoneOpens;
+vector<int> s_DoneExts;
+vector<double> s_DoneSum3s;
+
+static bool ExtStalled(int Open, int Ext)
 	{
-	uint HJCount = 1;
+	double Score3_Minus1 = DBL_MAX;
+	double Score3_Minus2 = DBL_MAX;
+	double Score3_Minus3 = DBL_MAX;
+	const uint N = SIZE(s_DoneOpens);
+	asserta(SIZE(s_DoneExts) == N);
+	for (uint i = 0; i < N; ++i)
+		{
+		int Open2 = s_DoneOpens[i];
+		int Ext2 = s_DoneExts[i];
+		if (Open2 == Open && Ext2 == Ext - 1)
+			Score3_Minus1 = s_DoneSum3s[i];
+		if (Open2 == Open && Ext2 == Ext - 2)
+			Score3_Minus2 = s_DoneSum3s[i];
+		if (Open2 == Open && Ext2 == Ext - 3)
+			Score3_Minus3 = s_DoneSum3s[i];
+		}
+	if (Score3_Minus1 == DBL_MAX ||
+		Score3_Minus2 == DBL_MAX ||
+		Score3_Minus3 == DBL_MAX)
+		return false;
+	return	feq(Score3_Minus1, Score3_Minus2) &&
+			feq(Score3_Minus2, Score3_Minus3);
+	}
 
-	string GlobalSpec;
-	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-	uint LatinBinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
-	asserta(LatinBinCount != UINT_MAX);
+static bool AddPendingIfOk(int Open, int Ext)
+	{
+	if (Open < 0 || Ext < 0)
+		return false;
 
-	Peaker &P = *new Peaker(0, "mumx");
-	P.Init(SpecLines, EvalSum3);
-	s_Peaker = &P;
+	bool OpenFound = (std::find(s_DoneOpens.begin(), s_DoneOpens.end(), Open) != s_DoneOpens.end());
+	bool ExtFound = (std::find(s_DoneExts.begin(), s_DoneExts.end(), Ext) != s_DoneExts.end());
+	if (OpenFound && ExtFound)
+		return false;
 
-	ProgressLog("==============\n");
-	ProgressLog("Latin (%u)\n", LatinBinCount);
-	ProgressLog("==============\n");
-	asserta(LatinBinCount > 0);
-	P.RunLatin(LatinBinCount);
+	if (ExtStalled(Open, Ext))
+		{
+		ProgressLog("\nSTALLED %d/%d\n\n", Open, Ext);
+		return false;
+		}
 
-	vector<uint> TopEvalIdxs;
-	P.GetTopEvalIdxs(HJCount, TopEvalIdxs);
-	const uint n = SIZE(TopEvalIdxs);
-	if (n == 0)
-		Die("No evals");
+	s_PendingOpens.push_back(Open);
+	s_PendingExts.push_back(Ext);
 
-	uint EvalIdx = TopEvalIdxs[0];
-	Peaker *Child = P.MakeChild("HJ");
-	double y = P.m_ys[EvalIdx];
-	const vector<string> &xv = P.m_xvs[EvalIdx];
-	Child->AppendResult(xv, y, "HJstart");
-	Child->HJ_RunHookeJeeves();
-	P.AppendChildResults(*Child);
-	delete Child;
-	ProgressLog("============\n");
-	ProgressLog("HJ converged\n");
-	ProgressLog("============\n");
+	return true;
+	}
 
-	Best_y = P.m_Best_y;
-	Best_xv = P.m_Best_xv;
+static void Optimize(int ScaleFactor)
+	{
+	int FirstOpen = ScaleFactor*3;
+	int FirstExt = ScaleFactor;
+
+	AddPendingIfOk(FirstOpen, FirstExt);
+	for (uint Iter = 0; Iter < 100; ++Iter)
+		{
+		uint PendingCount = SIZE(s_PendingOpens);
+		asserta(SIZE(s_PendingExts) == PendingCount);
+		if (PendingCount == 0)
+			break;
+		int Open = s_PendingOpens.front();
+		int Ext = s_PendingExts.front();
+		s_PendingOpens.pop_front();
+		s_PendingExts.pop_front();
+		double Sum3 = EvalSum3(Open, Ext);
+		s_DoneOpens.push_back(Open);
+		s_DoneExts.push_back(Ext);
+		s_DoneSum3s.push_back(Sum3);
+
+		bool Better = false;
+		if (s_BestSum3 == DBL_MAX || Sum3 > s_BestSum3)
+			{
+			Better = true;
+			s_BestSum3 = Sum3;
+			s_BestOpen = Open;
+			s_BestExt = Ext;
+
+			AddPendingIfOk(Open+1, Ext);
+			AddPendingIfOk(Open-1, Ext);
+			AddPendingIfOk(Open, Ext+1);
+			AddPendingIfOk(Open, Ext-1);
+
+			ProgressLog("\n >>> [%.3f]   open/ext %d/%d\n\n", s_BestSum3, Open, Ext);
+			}
+		else
+			ProgressLog("\n ... [%.3f]   open/ext %d/%d %.3f\n\n", s_BestSum3, Open, Ext, Sum3);
+
+		if (!Better && feq(Sum3, s_BestSum3))
+			{
+			AddPendingIfOk(Open+1, Ext);
+			AddPendingIfOk(Open-1, Ext);
+			AddPendingIfOk(Open, Ext+1);
+			AddPendingIfOk(Open, Ext-1);
+			}
+		}
+
+	if (!s_PendingOpens.empty())
+		Warning("Failed to converge\n");
 	}
 
 // Train matrix and optimize gap penalies on SCOP40
 // to find best subst mx for Mu
 void cmd_hjmumx()
 	{
+// -fixmubyteseq applies only when reading FASTA
+	asserta(!optset_fixmubyteseq);
+
 	DSSParams::Init(DM_DefaultSensitive);
 
-	double ScaleFactor = 1.0;
+	int ScaleFactor = 1;
 	if (optset_scale)
 		ScaleFactor = opt(scale);
 	if (optset_parabits)
@@ -142,18 +203,14 @@ void cmd_hjmumx()
 		}
 	else
 		{
-		ProgressLog("Training, scale = %.1f\n", ScaleFactor);
-		TrainMx(ScoreMx, ScaleFactor);
+		ProgressLog("Training, scale = %d\n", ScaleFactor);
+		const string &ChainFN = g_Arg1;				// "src/reseek/test_data/scop40.bca";
+		TrainMx(g_Arg1, ScoreMx, double(ScaleFactor));
 		ProgressLog("Training complete\n");
 		ProgressLog("%s\n", FeatureTrainer2::m_FevStr.c_str());
 		Paralign::SetMatrix(ScoreMx, 0, 0, 9999);
 		Paralign::LogMatrix();
 		}
-
-	const string SpecFN = g_Arg1;
-	Log("SpecFN=%s\n", SpecFN.c_str());
-	vector<string> SpecLines;
-	ReadLinesFromFile(SpecFN, SpecLines);
 
 	string SeqsMethod = "muletters";
 	if (optset_seqsmethod)
@@ -162,12 +219,10 @@ void cmd_hjmumx()
 	s_PS->GetByteSeqs(opt(input2), SeqsMethod);
 	s_PS->m_SB.ReadLookup(opt(lookup));
 
-	double Best_y;
-	vector<string> Best_xv;
-	Optimize(SpecLines, Best_y, Best_xv);
+	Optimize(ScaleFactor);
 
 	ProgressLog("\n");
-	ProgressLog("Best Sum3=%.3f open=%s ext=%s\n",
-		Best_y, Best_xv[0].c_str(), Best_xv[1].c_str());
+	ProgressLog("Best Sum3=%.3f open=%d ext=%d scale=%d bits=%d\n",
+		s_BestSum3, s_BestOpen, s_BestExt, ScaleFactor, Paralign::m_Bits);
 	ProgressLog("\n");
 	}
