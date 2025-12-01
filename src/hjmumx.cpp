@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "parasearch.h"
-//#include "peaker.h"
+#include <list>
 
 static ParaSearch *s_PS;
 
