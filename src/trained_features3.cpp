@@ -26,7 +26,7 @@ void DSSParams::OverwriteUnweightedScoreMx(FEATURE F,
 static void SetFeatureScoreMx(FEATURE F, const float *mx, uint AS)
 	{
 	asserta(uint(F) < FEATURE_COUNT);
-	//asserta(AS == g_AlphaSizes2[F]);
+	g_AlphaSizes2[F] = AS;
 	g_ScoreMxs2[F] = myalloc(float *, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
@@ -51,7 +51,7 @@ static void SetPlaceholderScoreMx(FEATURE F, uint AS)
 
 static bool Init()
 	{
-	//SetPlaceholderScoreMx(FEATURE_SS4, 4);
+	// SetPlaceholderScoreMx(FEATURE_MENDist4b, 4);
 
 #include "alphadata.inc"
 	return true;

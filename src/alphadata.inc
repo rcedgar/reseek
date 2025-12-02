@@ -453,3 +453,61 @@ static const float S_ij_SS[4*4] = {
    -1.93,  -0.515,  -0.201,   0.657, // 3
 };
 SetFeatureScoreMx(FEATURE_SS, S_ij_SS, 4);
+
+// C:\src\2025-10_reseek_tune\2025-12-02_train_pen_men_ss3and4\PENSS3.log
+static const float S_ij_PENSS3[3*3] = {
+//     0        1        2
+   0.535,   -1.36,  -0.502, // 0
+   -1.36,    1.06,  -0.267, // 1
+  -0.502,  -0.267,   0.401, // 2
+};
+SetFeatureScoreMx(FEATURE_PENSS3, S_ij_PENSS3, 3);
+
+// C:\src\2025-10_reseek_tune\2025-12-02_train_pen_men_ss3and4\PENSS4.log
+static const float S_ij_PENSS4[4*4] = {
+//     0        1        2        3
+   0.535,   -1.36,  -0.358,  -0.547, // 0
+   -1.36,    1.06,  -0.712,  -0.171, // 1
+  -0.358,  -0.712,    1.05,  0.0692, // 2
+  -0.547,  -0.171,  0.0692,   0.484, // 3
+};
+SetFeatureScoreMx(FEATURE_PENSS4, S_ij_PENSS4, 4);
+
+// C:\src\2025-10_reseek_tune\2025-12-02_train_pen_men_ss3and4\MENSS3.log
+static const float S_ij_MENSS3[3*3] = {
+//     0        1        2
+   0.495,    -1.3,  -0.582, // 0
+    -1.3,    1.04,  -0.208, // 1
+  -0.582,  -0.208,    0.41, // 2
+};
+SetFeatureScoreMx(FEATURE_MENSS3, S_ij_MENSS3, 3);
+
+// C:\src\2025-10_reseek_tune\2025-12-02_train_pen_men_ss3and4\MENSS4.log
+static const float S_ij_MENSS4[4*4] = {
+//     0        1        2        3
+   0.495,    -1.3,  -0.375,  -0.653, // 0
+    -1.3,    1.04,  -0.616,  -0.113, // 1
+  -0.375,  -0.616,    1.14,  0.0788, // 2
+  -0.653,  -0.113,  0.0788,    0.48, // 3
+};
+SetFeatureScoreMx(FEATURE_MENSS4, S_ij_MENSS4, 4);
+
+// reseek v2.8.win64 [dfc0a0b]
+// reseek.exe -train_feature2 PENDist -alpha_size 4 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 3 -log train.log -output train.out 
+static const float S_ij_PENDist4b[4*4] = {
+//     0        1        2        3
+    1.13,  -0.305,   -1.37,   -1.39, // 0
+  -0.305,   0.755, -0.0674,   -1.38, // 1
+   -1.37, -0.0674,   0.795,   -0.41, // 2
+   -1.39,   -1.38,   -0.41,   0.865, // 3
+};
+SetFeatureScoreMx(FEATURE_PENDist4b, S_ij_PENDist4b, 4);
+
+static const float S_ij_MENDist4b[4*4] = {
+//     0        1        2        3
+    1.12,  -0.291,   -1.42,   -1.34, // 0
+  -0.291,   0.773,  -0.035,   -1.36, // 1
+   -1.42,  -0.035,   0.771,  -0.419, // 2
+   -1.34,   -1.36,  -0.419,   0.855, // 3
+};
+SetFeatureScoreMx(FEATURE_MENDist4b, S_ij_MENDist4b, 4);

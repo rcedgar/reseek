@@ -12,9 +12,10 @@ void cmd_train_feature2()
 
 	const string &ChainFN = opt(db);			// "src/reseek/test_data/scop40.bca";
 	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_fa2/tp.mints05.maxts25.fa2";
+#if EVAL
 	const string &EvalTPAlnFN = opt(evaltps);	// "src/2025-10_reseek_tune/big_fa2/tp.evalrange.fa2";
 	const string &EvalFPAlnFN = opt(evalfps);	// "src/2025-10_reseek_tune/big_fa2/fp.evalrange.fa2";
-
+#endif
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	FeatureTrainer2::m_FevStr.clear();
