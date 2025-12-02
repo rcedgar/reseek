@@ -373,6 +373,15 @@ void DSSParams::OverwriteFeatures(const vector<FEATURE> &Fs,
 	SetScoreMxsFromFeatures();
 	}
 
+uint DSSParams::GetMegaAlphaSize()
+	{
+	uint AS = 1;
+	const uint FeatureCount = GetFeatureCount();
+	for (uint i = 0; i < FeatureCount; ++i)
+		AS *= GetAlphaSize(m_Features[i]);
+	return AS;
+	}
+
 void DSSParams::SetStandardFeatures()
 	{
 	if (opt(newparams))

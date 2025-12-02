@@ -89,6 +89,7 @@ public:
 	static void LogMe();
 	static int GetOmega();
 	static int GetOmegaFwd();
+	static uint GetMegaAlphaSize();
 
 	static uint GetFeatureCount()
 		{
