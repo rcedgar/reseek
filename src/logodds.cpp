@@ -133,6 +133,9 @@ void LogOdds::GetFreqs(vector<float> &Freqs) const
 		Freqs.push_back(Freq);
 		SumFreq += Freq;
 		}
+	if (SumFreq == 0)
+		Die("LogOdds::GetFreqs() SumFreq=0, m_UseUnalignedBackground=%c",
+			tof(m_UseUnalignedBackground));
 	asserta(feq(SumFreq, 1.0));
 	}
 

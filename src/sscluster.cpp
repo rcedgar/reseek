@@ -93,10 +93,12 @@ static void TrainerAlphaCol(
 static void GetMeans(uint N, uint K, uint M,
   const vector<vector<double> > &vs,
   const vector<uint> &ClusterIdxs,
-  vector<vector<double> > &Means)
+  vector<vector<double> > &Means,
+  uint &ZeroCount)
 	{
 	Means.clear();
 	Means.resize(K);
+	ZeroCount = 0;
 	vector<vector<double> > Sums(K);
 	vector<uint> Counts(K);
 	for (uint k = 0; k < K; ++k)
@@ -122,9 +124,19 @@ static void GetMeans(uint N, uint K, uint M,
 	for (uint k = 0; k < K; ++k)
 		{
 		uint Count = Counts[k];
-		asserta(Count > 0);
-		for (uint j = 0; j < M; ++j)
-			Means[k][j] = Sums[k][j]/Count;
+		if (Count == 0)
+			{
+			++ZeroCount;
+			asserta(M > 0);
+			uint idx = randu32()%M;
+			const vector<double> &v = vs[idx];
+			Means[k] = v;
+			}
+		else
+			{
+			for (uint j = 0; j < M; ++j)
+				Means[k][j] = Sums[k][j]/Count;
+			}
 		}
 	}
 
@@ -248,7 +260,8 @@ void cmd_sscluster()
 	vector<uint> Sizes;
 	for (uint Iter = 0; Iter < ITERS; ++Iter)
 		{
-		GetMeans(N, K, M, vs, ClusterIdxs, Means);
+		uint ZeroCount = UINT_MAX;
+		GetMeans(N, K, M, vs, ClusterIdxs, Means, ZeroCount);
 		Log("\n");
 		Log("Iter %u\n", Iter);
 		for (uint k = 0; k < K; ++k)
@@ -260,7 +273,10 @@ void cmd_sscluster()
 			}
 		uint ChangeCount = 
 		  Assign(N, K, M, vs, Means, ClusterIdxs, Sizes);
-		ProgressLog("Iter %u, %u changes\n", Iter, ChangeCount);
+		ProgressLog("Iter %u, %u changes", Iter, ChangeCount);
+		if (ZeroCount > 0)
+			ProgressLog(", %u zero", ZeroCount);
+		ProgressLog("\n");
 		Log("Sizes");
 		for (uint k = 0; k < K; ++k)
 			Log(" %u", Sizes[k]);
@@ -350,6 +366,7 @@ void cmd_sscluster()
 		}
 
 	LogOdds LO;
+	LO.m_UseUnalignedBackground = false;
 	Tr.TrainLogOdds(K, TrainerOnPair, TrainerAlphaCol, LO);
 	vector<vector<float> > ScoreMx;
 	double ExpectedScore = LO.GetLogOddsMx(ScoreMx);
