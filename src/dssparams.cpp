@@ -16,9 +16,6 @@ int DSSParams::m_OmegaFwd8 = 50;
 
 int DSSParams::m_Omega16 = 250;
 int DSSParams::m_OmegaFwd16 = 500;
-
-int DSSParams::m_ParaMuGapOpen16 = 8;
-int DSSParams::m_ParaMuGapExt16 = 5;
 ////////////////////////////////////////////////
 
 float DSSParams::m_MinFwdScore = 7;

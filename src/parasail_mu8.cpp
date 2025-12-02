@@ -58,7 +58,7 @@ int parasail_mu_8[36*36] = {
 //		Sum3=1.218	mints10.maxts60.subseta.scale1.bits8	open=4	ext=2
 
 // reseek -scop40bench ../data/scop40c.bca -log bench8_new.log -fast -threads 64 -parabits 8 -omega8 14 -omegafwd8 42
-//		SEPQ0.1=0.279 SEPQ1=0.371 SEPQ10=0.452 Sum3=1.566 Elapsed 00:24
+//		SEPQ0.1=0.279 SEPQ1=0.371 SEPQ10=0.452 Sum3=1.566 Elapsed 00:24 | [b13f594]
 //		SEPQ0.1=0.276 SEPQ1=0.368 SEPQ10=0.449 Sum3=1.553 Elapsed 00:26 | v2.7
 
 int DSSParams::m_ParaMuGapOpen8 = 4;
