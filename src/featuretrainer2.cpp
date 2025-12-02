@@ -7,6 +7,17 @@
 #include "quarts.h"
 #include "sort.h"
 
+char *ScoreToStr(float x)
+	{
+	static char Tmp[16];
+	static char Tmp2[16];
+	if (fabs(x) < 0.001)
+		x = 0;
+	sprintf(Tmp, "%.3g", x);
+	sprintf(Tmp2, "%8s", Tmp);
+	return Tmp2;
+	}
+
 FEATURE FeatureTrainer2::m_F = FEATURE(-1);
 uint FeatureTrainer2::m_AlphaSize = UINT_MAX;
 BACKGROUND_STYLE FeatureTrainer2::m_BS = BS_Invalid;
@@ -411,7 +422,7 @@ void FeatureTrainer2::LogChainIntSeqsStats(
 	vector<float> Freqs;
 	GetFreqs(Counts, Freqs);
 	LogFreqs(Freqs);
-	Log("LogChainIntSeqStats() N=%u, UINT_MAX=%u", N, M);
+	Log("LogChainIntSeqStats() N=%u, UINT_MAX=%u\n", N, M);
 	}
 
 void FeatureTrainer2::BinTsToTsv(
@@ -448,8 +459,12 @@ void FeatureTrainer2::ScoreMxToSrc(
 	if (f == 0)
 		return;
 	asserta(SIZE(ScoreMx) == m_AlphaSize);
+	const uint AS = m_AlphaSize;
+	const char *Name = FeatureToStr(m_F);
+
+	// Matrix form [AS][AS]
 	fprintf(f, "\nstatic float %s_S_ij[%u][%u] = {\n",
-			FeatureToStr(m_F), m_AlphaSize, m_AlphaSize);
+			Name, m_AlphaSize, m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
 		fprintf(f, "	{");
@@ -458,6 +473,29 @@ void FeatureTrainer2::ScoreMxToSrc(
 		fprintf(f, " }, // %u\n", i);
 		}
 	fprintf(f, "};\n");
+
+	// Vector form [AS*AS]
+	fprintf(f, "\n");
+	fprintf(f, "static const float S_ij_%s[%u*%u] = {\n", Name, AS, AS);
+	fprintf(f, "//");
+	for (uint i = 0; i < AS; ++i)
+		{
+		if (i == 0)
+			fprintf(f, "%6u", i);
+		else
+			fprintf(f, " %8u", i);
+		}
+	fprintf(f, "\n");
+
+	for (uint i = 0; i < AS; ++i)
+		{
+		for (uint j = 0; j < AS; ++j)
+			fprintf(f, "%s,", ScoreToStr(ScoreMx[i][j]));
+		fprintf(f, " // %u\n", i);
+		}
+	fprintf(f, "};\n");
+	fprintf(f, "SetFeatureScoreMx(FEATURE_%s, S_ij_%s, %u);\n", Name, Name, AS);
+	fprintf(f, "\n");
 	}
 
 // To train with undefs in place:

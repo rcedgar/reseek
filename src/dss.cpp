@@ -830,3 +830,39 @@ uint DSS::Get_MENConf(uint Pos)
 	uint Letter = Get_Conf(MEN);
 	return Letter;
 	}
+
+uint DSS::Get_PENSS3(uint Pos)
+	{
+	SetSS();
+	uint PEN = GetPEN(Pos);
+	if (PEN == UINT_MAX)
+		return UNDEFINED_ZERO_OVERLOAD;
+	return Get_SS3(PEN);
+	}
+
+uint DSS::Get_PENSS4(uint Pos)
+	{
+	SetSS();
+	uint PEN = GetPEN(Pos);
+	if (PEN == UINT_MAX)
+		return UNDEFINED_ZERO_OVERLOAD;
+	return Get_SS(PEN);
+	}
+
+uint DSS::Get_MENSS3(uint Pos)
+	{
+	SetSS();
+	uint MEN = GetMEN(Pos);
+	if (MEN == UINT_MAX)
+		return UNDEFINED_ZERO_OVERLOAD;
+	return Get_SS3(MEN);
+	}
+
+uint DSS::Get_MENSS4(uint Pos)
+	{
+	SetSS();
+	uint MEN = GetMEN(Pos);
+	if (MEN == UINT_MAX)
+		return UNDEFINED_ZERO_OVERLOAD;
+	return Get_SS(MEN);
+	}

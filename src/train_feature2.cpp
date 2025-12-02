@@ -110,6 +110,15 @@ void cmd_train_feature2()
 			asserta(optset_undef_letter);
 			uint ReplaceUndefWithThisLetter = opt(undef_letter);
 			bool UndefsAllowed = true;
+			if (optset_undefs_allowed)
+				{
+				if (opt(undefs_allowed) == string("yes"))
+					UndefsAllowed = true;
+				else if (opt(undefs_allowed) == string("no"))
+					UndefsAllowed = false;
+				else
+					Die("-undefs_allows %s", opt(undefs_allowed));
+				}
 			FeatureTrainer2::TrainIntFeature(F, Chains, LabelToChainIdx,
 				TrainRows, TrainLabels, TrainChainIdxs,
 				EvalTPs, EvalRows, EvalLabels, EvalRowChainIdxs,

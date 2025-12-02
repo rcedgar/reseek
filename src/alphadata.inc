@@ -444,3 +444,12 @@ static const float S_ij_DstNxtHlx[16*16] = {
    -1.53,   -1.98,   -2.02,   -2.01,   -1.96,   -1.88,   -1.84,   -1.78,    -1.7,   -1.44,   -1.47,   -1.34,    -1.1,  -0.611,   0.346,    1.38, // 15
 };
 SetFeatureScoreMx(FEATURE_DstNxtHlx, S_ij_DstNxtHlx, 16);
+
+static const float S_ij_SS[4*4] = {
+//     0        1        2        3
+   0.966,   -5.24,   -0.94,   -1.93, // 0
+   -5.24,    1.47,   -3.24,  -0.515, // 1
+   -0.94,   -3.24,    1.76,  -0.201, // 2
+   -1.93,  -0.515,  -0.201,   0.657, // 3
+};
+SetFeatureScoreMx(FEATURE_SS, S_ij_SS, 4);

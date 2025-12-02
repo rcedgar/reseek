@@ -73,6 +73,7 @@ STR_OPT(background_style)
 STR_OPT(seqsmethod)
 STR_OPT(alignmethod)
 STR_OPT(mxname)
+STR_OPT(undefs_allowed)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

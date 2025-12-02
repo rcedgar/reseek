@@ -3,6 +3,7 @@
 #include "dss.h"
 
 #pragma warning(disable:4305) // double -> float
+#pragma warning(disable:4244) // int -> float
 
 float **g_ScoreMxs2[FEATURE_COUNT];
 uint g_AlphaSizes2[FEATURE_COUNT];
@@ -25,7 +26,7 @@ void DSSParams::OverwriteUnweightedScoreMx(FEATURE F,
 static void SetFeatureScoreMx(FEATURE F, const float *mx, uint AS)
 	{
 	asserta(uint(F) < FEATURE_COUNT);
-	asserta(AS == g_AlphaSizes2[F]);
+	//asserta(AS == g_AlphaSizes2[F]);
 	g_ScoreMxs2[F] = myalloc(float *, AS);
 	for (uint i = 0; i < AS; ++i)
 		{
@@ -35,8 +36,23 @@ static void SetFeatureScoreMx(FEATURE F, const float *mx, uint AS)
 		}
 	}
 
+static void SetPlaceholderScoreMx(FEATURE F, uint AS)
+	{
+	asserta(uint(F) < FEATURE_COUNT);
+	g_AlphaSizes2[F] = AS;
+	g_ScoreMxs2[F] = myalloc(float *, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		g_ScoreMxs2[F][i] = myalloc(float, AS);
+		for (uint j = 0; j < AS; ++j)
+			g_ScoreMxs2[F][i][j] = (i == j ? 1 : 0);
+		}
+	}
+
 static bool Init()
 	{
+	//SetPlaceholderScoreMx(FEATURE_SS4, 4);
+
 #include "alphadata.inc"
 	return true;
 	}
