@@ -602,6 +602,24 @@ float DSS::GetFloat_PENDist4b(uint Pos)
 	return d;
 	}
 
+float DSS::GetFloat_PENDist3b(uint Pos)
+	{
+	uint PEN = GetPEN(Pos);
+	if (PEN == UINT_MAX)
+		return FLT_MAX;
+	float d = m_Chain->GetDist(Pos, PEN);
+	return d;
+	}
+
+float DSS::GetFloat_MENDist3b(uint Pos)
+	{
+	uint PEN = GetPEN(Pos);
+	if (PEN == UINT_MAX)
+		return FLT_MAX;
+	float d = m_Chain->GetDist(Pos, PEN);
+	return d;
+	}
+
 float DSS::GetFloat_MENDist4b(uint Pos)
 	{
 	uint MEN = GetMEN(Pos);

@@ -511,3 +511,23 @@ static const float S_ij_MENDist4b[4*4] = {
    -1.34,   -1.36,  -0.419,   0.855, // 3
 };
 SetFeatureScoreMx(FEATURE_MENDist4b, S_ij_MENDist4b, 4);
+
+// reseek v2.8.win64 [dfc0a0b]
+// reseek.exe -train_feature2 PENDist -alpha_size 3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 0 -log train.log -output train.out 
+static const float S_ij_PENDist3b[3*3] = {
+//     0        1        2
+   0.889,  -0.594,   -1.42, // 0
+  -0.594,    0.63,  -0.511, // 1
+   -1.42,  -0.511,   0.643, // 2
+};
+SetFeatureScoreMx(FEATURE_PENDist3b, S_ij_PENDist3b, 3);
+
+// reseek v2.8.win64 [dfc0a0b]
+// reseek.exe -train_feature2 MENDist -alpha_size 3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 0 -log train.log -output train.out 
+static const float S_ij_MENDist3b[3*3] = {
+//     0        1        2
+   0.889,  -0.613,   -1.39, // 0
+  -0.613,   0.641,  -0.499, // 1
+   -1.39,  -0.499,   0.626, // 2
+};
+SetFeatureScoreMx(FEATURE_MENDist3b, S_ij_MENDist3b, 3);

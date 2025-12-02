@@ -18,6 +18,16 @@ void DSSParams::GetBinTs(FEATURE F, vector<float> &Bins)
 #define BIN_T(Feat, Idx, t)	if (F == FEATURE_##Feat) Bins.push_back(float(t));
 
 // reseek v2.8.win64 [dfc0a0b]
+// reseek.exe -train_feature2 PENDist -alpha_size 3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 0 -log train.log -output train.out 
+BIN_T(PENDist3b,  0, 6.192)
+BIN_T(PENDist3b,  1, 9.775)
+
+// reseek v2.8.win64 [dfc0a0b]
+// reseek.exe -train_feature2 MENDist -alpha_size 3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 0 -log train.log -output train.out 
+BIN_T(MENDist3b,  0, 6.116)
+BIN_T(MENDist3b,  1, 9.638)
+
+// reseek v2.8.win64 [dfc0a0b]
 // reseek.exe -train_feature2 PENDist -alpha_size 4 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style float -quantize_style replace -undef_value 3 -log train.log -output train.out 
 BIN_T(PENDist4b,  0, 5.357)
 BIN_T(PENDist4b,  1, 7.98)
