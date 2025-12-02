@@ -1,35 +1,30 @@
-g_AlphaSizes2[FEATURE_AA] = 20;
-g_AlphaSizes2[FEATURE_B62] = 20;
-g_AlphaSizes2[FEATURE_SS3] = 3;
-g_AlphaSizes2[FEATURE_NENConf] = 16;
-g_AlphaSizes2[FEATURE_PENConf] = 16;
-g_AlphaSizes2[FEATURE_MENConf] = 16;
-g_AlphaSizes2[FEATURE_NENSS3] = 3;
-g_AlphaSizes2[FEATURE_Conf] = 16;
-g_AlphaSizes2[FEATURE_RENConf] = 16;
-g_AlphaSizes2[FEATURE_RENDist4] = 4;
-g_AlphaSizes2[FEATURE_Mu] = 36;
-g_AlphaSizes2[FEATURE_NormDens] = 16;
-g_AlphaSizes2[FEATURE_NENDist] = 16;
-g_AlphaSizes2[FEATURE_RENDist] = 16;
-g_AlphaSizes2[FEATURE_PENDist] = 16;
-g_AlphaSizes2[FEATURE_MENDist] = 16;
-g_AlphaSizes2[FEATURE_PMDist] = 16;
-g_AlphaSizes2[FEATURE_PMDistDiff] = 16;
-g_AlphaSizes2[FEATURE_StrandDens] = 16;
-g_AlphaSizes2[FEATURE_DstNxtHlx] = 16;
+// g_AlphaSizes2[FEATURE_AA] = 20;
+// g_AlphaSizes2[FEATURE_B62] = 20;
+// g_AlphaSizes2[FEATURE_SS3] = 3;
+// g_AlphaSizes2[FEATURE_NENConf] = 16;
+// g_AlphaSizes2[FEATURE_PENConf] = 16;
+// g_AlphaSizes2[FEATURE_MENConf] = 16;
+// g_AlphaSizes2[FEATURE_NENSS3] = 3;
+// g_AlphaSizes2[FEATURE_Conf] = 16;
+// g_AlphaSizes2[FEATURE_RENConf] = 16;
+// g_AlphaSizes2[FEATURE_RENDist4] = 4;
+// g_AlphaSizes2[FEATURE_Mu] = 36;
+// g_AlphaSizes2[FEATURE_NormDens] = 16;
+// g_AlphaSizes2[FEATURE_NENDist] = 16;
+// g_AlphaSizes2[FEATURE_RENDist] = 16;
+// g_AlphaSizes2[FEATURE_PENDist] = 16;
+// g_AlphaSizes2[FEATURE_MENDist] = 16;
+// g_AlphaSizes2[FEATURE_PMDist] = 16;
+// g_AlphaSizes2[FEATURE_PMDistDiff] = 16;
+// g_AlphaSizes2[FEATURE_StrandDens] = 16;
+// g_AlphaSizes2[FEATURE_DstNxtHlx] = 16;
 
 // ========================
-// Not implemented 
-// FEATURE_SS
-// FEATURE_NENSS
-// FEATURE_ConfU
-// FEATURE_RENSS
-// FEATURE_RENSS3
-// FEATURE_NormDens4
-// FEATURE_NENDist4
 // FEATURE_AA3
 // FEATURE_AA4
+
+// Not implemented 
+// FEATURE_ConfU
 // FEATURE_HelixDens
 // FEATURE_DstPrvHlx
 // FEATURE_NX
@@ -531,3 +526,79 @@ static const float S_ij_MENDist3b[3*3] = {
    -1.39,  -0.499,   0.626, // 2
 };
 SetFeatureScoreMx(FEATURE_MENDist3b, S_ij_MENDist3b, 3);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 NENSS -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log NENSS.log -output NENSS.out -dss -undefs_allowed no 
+static const float S_ij_NENSS[4*4] = {
+//     0        1        2        3
+   0.636,   -1.47,  -0.265,  -0.689, // 0
+   -1.47,   0.982,  -0.826,  -0.197, // 1
+  -0.265,  -0.826,    1.02,-0.00132, // 2
+  -0.689,  -0.197,-0.00132,   0.459, // 3
+};
+SetFeatureScoreMx(FEATURE_NENSS, S_ij_NENSS, 4);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 RENSS -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+
+static const float S_ij_RENSS[4*4] = {
+//     0        1        2        3
+   0.675,  -0.825,  -0.138,  -0.634, // 0
+  -0.825,    1.05,  -0.268,  -0.251, // 1
+  -0.138,  -0.268,    1.04,  -0.169, // 2
+  -0.634,  -0.251,  -0.169,   0.313, // 3
+};
+SetFeatureScoreMx(FEATURE_RENSS, S_ij_RENSS, 4);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 RENSS3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_RENSS3[3*3] = {
+//     0        1        2
+   0.355,   -1.06,  -0.508, // 0
+   -1.06,    1.05,-0.00868, // 1
+  -0.508,-0.00868,   0.429, // 2
+};
+SetFeatureScoreMx(FEATURE_RENSS3, S_ij_RENSS3, 3);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 NormDens4 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_NormDens4[4*4] = {
+//     0        1        2        3
+   0.611,  -0.399,   -1.57,   -2.65, // 0
+  -0.399,   0.634,  0.0698,  -0.974, // 1
+   -1.57,  0.0698,   0.786,   0.264, // 2
+   -2.65,  -0.974,   0.264,    1.35, // 3
+};
+SetFeatureScoreMx(FEATURE_NormDens4, S_ij_NormDens4, 4);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 NENDist4 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_NENDist4[4*4] = {
+//     0        1        2        3
+    1.37,   0.134,   -1.29,   -2.19, // 0
+   0.134,   0.732, -0.0718,   -1.22, // 1
+   -1.29, -0.0718,    0.64,  -0.254, // 2
+   -2.19,   -1.22,  -0.254,   0.568, // 3
+};
+SetFeatureScoreMx(FEATURE_NENDist4, S_ij_NENDist4, 4);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 AA3 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_AA3[3*3] = {
+//     0        1        2
+    1.74,  -0.245,   -1.04, // 0
+  -0.245,   0.247,  -0.677, // 1
+   -1.04,  -0.677,   0.733, // 2
+};
+SetFeatureScoreMx(FEATURE_AA3, S_ij_AA3, 3);
+
+// reseek v2.8.win64 [aca90a4]
+// reseek.exe -train_feature2 AA4 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_AA4[4*4] = {
+//     0        1        2        3
+    1.74,  -0.161,   -1.04,  -0.321, // 0
+  -0.161,   0.447,    -0.4,  -0.111, // 1
+   -1.04,    -0.4,   0.733,  -0.988, // 2
+  -0.321,  -0.111,  -0.988,   0.546, // 3
+};
+SetFeatureScoreMx(FEATURE_AA4, S_ij_AA4, 4);
