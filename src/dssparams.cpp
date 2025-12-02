@@ -66,6 +66,8 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	case FEATURE_SS:
 	case FEATURE_NENSS:
 	case FEATURE_RENSS:
+	case FEATURE_PENSS4:
+	case FEATURE_MENSS4:
 	case FEATURE_NormDens4:
 	case FEATURE_NENDist4:
 	case FEATURE_RENDist4:
@@ -75,6 +77,8 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	case FEATURE_SS3:
 	case FEATURE_NENSS3:
 	case FEATURE_RENSS3:
+	case FEATURE_PENSS3:
+	case FEATURE_MENSS3:
 	case FEATURE_AA3:
 		return 3;
 
