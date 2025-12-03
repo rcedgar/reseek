@@ -674,6 +674,36 @@ uint DSS::Get_NENDist4(uint Pos)
 	return ND/4;
 	}
 
+uint DSS::Get_PM2(uint Pos)
+	{
+	float pd = GetFloat_PENDist(Pos);
+	float md = GetFloat_MENDist(Pos);
+	if (pd >= md)
+		return 1;
+	return 0;
+	}
+
+// Optimal BLOSUM 2-class
+// Class 1: Small, Hydrophilic, and/or Flexible Residues (S-H-F)
+//		Polar/Small: Serine (S), Threonine (T), Asparagine (N), Glutamine (Q), 
+//			Aspartic acid (D), Glutamic acid (E).
+//		Small/Flexible: Glycine (G), Alanine (A), Proline (P).
+//		Cysteine: Cysteine (C) is sometimes grouped here
+//		Charged/Basic: Histidine (H), Lysine (K), Arginine (R).
+
+// Class 2: Large, Hydrophobic, and/or Aromatic Residues (L-H-A)
+//		Aliphatic Hydrophobic: Valine (V), Leucine (L), Isoleucine (I), Methionine (M).
+//		Aromatic: Phenylalanine (F), Tyrosine (Y), Tryptophan (W).
+uint DSS::Get_AA2(uint Pos)
+	{
+	const string &Seq = m_Chain->m_Seq;
+	asserta(Pos < SIZE(Seq));
+	char c = Seq[Pos];
+	if (strchr("STNQDEGAPC", c) != 0)
+		return 0;
+	return 1;
+	}
+
 // ADEHKNPQRST,CFILMVWY,G
 uint DSS::Get_AA3(uint Pos)
 	{

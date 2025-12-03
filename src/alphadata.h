@@ -1,28 +1,4 @@
-// g_AlphaSizes2[FEATURE_AA] = 20;
-// g_AlphaSizes2[FEATURE_B62] = 20;
-// g_AlphaSizes2[FEATURE_SS3] = 3;
-// g_AlphaSizes2[FEATURE_NENConf] = 16;
-// g_AlphaSizes2[FEATURE_PENConf] = 16;
-// g_AlphaSizes2[FEATURE_MENConf] = 16;
-// g_AlphaSizes2[FEATURE_NENSS3] = 3;
-// g_AlphaSizes2[FEATURE_Conf] = 16;
-// g_AlphaSizes2[FEATURE_RENConf] = 16;
-// g_AlphaSizes2[FEATURE_RENDist4] = 4;
-// g_AlphaSizes2[FEATURE_Mu] = 36;
-// g_AlphaSizes2[FEATURE_NormDens] = 16;
-// g_AlphaSizes2[FEATURE_NENDist] = 16;
-// g_AlphaSizes2[FEATURE_RENDist] = 16;
-// g_AlphaSizes2[FEATURE_PENDist] = 16;
-// g_AlphaSizes2[FEATURE_MENDist] = 16;
-// g_AlphaSizes2[FEATURE_PMDist] = 16;
-// g_AlphaSizes2[FEATURE_PMDistDiff] = 16;
-// g_AlphaSizes2[FEATURE_StrandDens] = 16;
-// g_AlphaSizes2[FEATURE_DstNxtHlx] = 16;
-
 // ========================
-// FEATURE_AA3
-// FEATURE_AA4
-
 // Not implemented 
 // FEATURE_ConfU
 // FEATURE_HelixDens
@@ -602,3 +578,21 @@ static const float S_ij_AA4[4*4] = {
   -0.321,  -0.111,  -0.988,   0.546, // 3
 };
 SetFeatureScoreMx(FEATURE_AA4, S_ij_AA4, 4);
+
+// reseek v2.8.win64 [31868b9]
+// reseek.exe -train_feature2 AA2 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_AA2[2*2] = {
+//     0        1
+   0.268,  -0.484, // 0
+  -0.484,   0.389, // 1
+};
+SetFeatureScoreMx(FEATURE_AA2, S_ij_AA2, 2);
+
+// reseek v2.8.win64 [31868b9]
+// reseek.exe -train_feature2 PM2 -db ../data/scop40.bca -traintps ../big_fa2/tp.evaluerange.fa2 -background_style uniq -log train.log -dss -undefs_allowed no 
+static const float S_ij_PM2[2*2] = {
+//     0        1
+   0.491,  -0.997, // 0
+  -0.997,   0.487, // 1
+};
+SetFeatureScoreMx(FEATURE_PM2, S_ij_PM2, 2);

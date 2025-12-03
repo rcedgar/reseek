@@ -63,6 +63,10 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 	case FEATURE_B62:
 		return 20;
 
+	case FEATURE_AA2:
+	case FEATURE_PM2:
+		return 2;
+
 	case FEATURE_SS:
 	case FEATURE_NENSS:
 	case FEATURE_RENSS:

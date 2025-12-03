@@ -53,7 +53,7 @@ static bool Init()
 	{
 	// SetPlaceholderScoreMx(FEATURE_MENDist4b, 4);
 
-#include "alphadata.inc"
+#include "alphadata.h"
 	return true;
 	}
 static bool s_InitDone = Init();
