@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "paralign.h"
+#include "nu.h"
 #include "seqdb.h"
 #include "alpha.h"
 #include "cigar.h"
@@ -629,7 +630,7 @@ void Paralign::LogMatrix()
 	Log("};\n");
 	}
 
-void Paralign::SetSubstMx(const string &Name)
+void Paralign::SetSubstMxByName(const string &Name)
 	{
 	m_SubstMxName = Name;
 	if (Name == "Mu_S_k_i8")
@@ -852,6 +853,49 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	}
 #endif
 	return true;
+	}
+
+void Paralign::SetCompoundMx(vector<FEATURE> &Fs, vector<float> &Weights,
+	int ScaleFactor, int Open, int Ext, int SaturatedScore)
+	{
+	const uint NF = SIZE(Fs);
+	asserta(SIZE(Weights) == NF);
+
+	vector<const float * const *> ScoreMxs;
+	for (uint i = 0; i < NF; ++i)
+		ScoreMxs.push_back(DSSParams::GetScoreMx(Fs[i]));
+
+	Nu TheNu;
+	TheNu.SetComponents(Fs, Weights);
+	uint AS = TheNu.GetAlphaSize();
+
+	vector<vector<int> > ScoreMx(AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		ScoreMx[i].resize(AS);
+
+		vector<byte> Lettersi;
+		TheNu.NuLetterToComponentLetters(i, Lettersi);
+		asserta(SIZE(Lettersi) == NF);
+
+		for (uint j = 0; j < AS; ++j)
+			{
+			vector<byte> Lettersj;
+			TheNu.NuLetterToComponentLetters(j, Lettersj);
+			asserta(SIZE(Lettersj) == NF);
+
+			float Score = 0;
+			for (uint k = 0; k < NF; ++k)
+				{
+				uint Letteri = Lettersi[k];
+				uint Letterj = Lettersj[k];
+				Score += ScoreMxs[k][Letteri][Letterj];
+				}
+			int iScore = int(round(ScaleFactor*Score));
+			ScoreMx[i][j] = iScore;
+			}
+		}
+	SetMatrix(ScoreMx, Open, Ext, SaturatedScore);
 	}
 
 #if 0

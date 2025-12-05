@@ -27,8 +27,12 @@ public:
 	uint m_PairCount = UINT_MAX;
 
 public:
+	static vector<FEATURE> m_NuFs;
+
+public:
 	void ClearHitsAndResults();
 	void SetGapParams(int Open, int Ext);
+	void GetByteSeqs_nu(const string &FN);
 	void GetByteSeqs_numu(const string &FN);
 	void GetByteSeqs_muletters(const string &FN);
 	void GetByteSeqs_dss3(const string &FN);

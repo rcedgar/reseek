@@ -4,6 +4,16 @@
 #include <list>
 
 static ParaSearch *s_PS;
+static double s_BestSum3 = DBL_MAX;
+static int s_BestOpen = -999;
+static int s_BestExt = -999;
+
+static list<int> s_PendingOpens;
+static list<int> s_PendingExts;
+
+static vector<int> s_DoneOpens;
+static vector<int> s_DoneExts;
+static vector<double> s_DoneSum3s;
 
 static double EvalSum3(int IntOpen, int IntExt)
 	{
@@ -68,17 +78,6 @@ static void TrainMx(const string &ChainFN,
 			IntScoreMx[i][j] = int(round(ScaleFactor*ScoreMx[i][j]));
 		}
 	}
-
-static double s_BestSum3 = DBL_MAX;
-static int s_BestOpen = -999;
-static int s_BestExt = -999;
-
-list<int> s_PendingOpens;
-list<int> s_PendingExts;
-
-vector<int> s_DoneOpens;
-vector<int> s_DoneExts;
-vector<double> s_DoneSum3s;
 
 static bool ExtStalled(int Open, int Ext)
 	{
@@ -199,7 +198,7 @@ void cmd_hjmumx()
 	if (optset_mxname)
 		{
 		ProgressLog("SetSubstMx(%s)\n", opt(mxname));
-		Paralign::SetSubstMx(opt(mxname));
+		Paralign::SetSubstMxByName(opt(mxname));
 		}
 	else
 		{

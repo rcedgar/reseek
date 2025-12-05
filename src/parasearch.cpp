@@ -33,6 +33,8 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 		}
 	}
 
+vector<FEATURE> ParaSearch::m_NuFs;
+
 void ParaSearch::AppendHit(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
@@ -150,6 +152,8 @@ void ParaSearch::GetByteSeqs(const string &FN, const string &Method)
 		GetByteSeqs_dss3(FN);
 	else if (Method == "numu")
 		GetByteSeqs_numu(FN);
+	else if (Method == "nuletters")
+		GetByteSeqs_nu(FN);
 	else
 		Die("GetByteSeqs(%s)", Method.c_str());
 
@@ -210,6 +214,35 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 		D.GetMuLetters(ByteSeq);
 		if (opt(fixmubyteseq))
 			FixMuByteSeq(ByteSeq);
+		}
+	}
+
+void ParaSearch::GetByteSeqs_nu(const string &FN)
+	{
+	m_ByteSeqs.clear();
+	m_Labels.clear();
+
+	vector<float> Weights;
+	const uint NF = SIZE(m_NuFs);
+	for (uint i = 0; i < NF; ++i)
+		Weights.push_back(float(1)/i);
+	
+	Nu TheNu;
+	TheNu.SetComponents(m_NuFs, Weights);
+
+	ReadChains(FN, m_Chains);
+	const uint ChainCount = SIZE(m_Chains);
+	m_ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "GetByteSeqs_nu()");
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		TheNu.GetLetters(Chain, ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
+		m_Labels.push_back(Chain.m_Label);
 		}
 	}
 
@@ -326,7 +359,7 @@ void cmd_para_scop40()
 	PS.ReadLookup(opt(lookup));
 	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
 	PS.SetDomIdxs();
-	Paralign::SetSubstMx(opt(mxname));
+	Paralign::SetSubstMxByName(opt(mxname));
 	PS.Search(opt(alignmethod));
 	PS.WriteHits(opt(output));
 	PS.Bench();

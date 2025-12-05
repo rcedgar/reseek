@@ -58,5 +58,6 @@ C(test_nu)
 C(fa2_lddt)
 C(para_scop40)
 C(hjmumx)
+C(nubench)
 
 #undef C

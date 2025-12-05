@@ -518,6 +518,9 @@
     <ClCompile Include="parasail_mu16.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nubench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

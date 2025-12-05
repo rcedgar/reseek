@@ -2,6 +2,7 @@
 
 #include "parasail.h"
 #include "xdpmem.h"
+#include "features.h"
 #include <omp.h>
 
 class Paralign
@@ -58,7 +59,10 @@ public:
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,
 		int Open, int Ext, int SaturatedScore);
-	static void SetSubstMx(const string &Name);
+	static void SetSubstMxByName(const string &Name);
+	static void SetCompoundMx(
+		vector<FEATURE> &Fs, vector<float> &Weights,
+		int ScaleFactor, int Open, int Ext, int SaturatedScore);
 
 	static uint GetAlphaSize() { return m_matrix.size; }
 	static void SetSWFastSubstMx_FromParasailMx();
