@@ -194,6 +194,18 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 		return Value;
 		}
 
+	if (VarIsInt(VarIdx))
+		{
+		int Min = VarSpecGetInt(VarIdx, "min", INT_MAX);
+		int Max = VarSpecGetInt(VarIdx, "max", INT_MAX);
+		asserta(Min != INT_MAX);
+		asserta(Max != INT_MAX);
+		double BinWidth = double(Max - Min)/BinCount;
+		double Value = round(Min + BinWidth*BinIdx);
+		asserta(Value >= Min && Value <= Max);
+		return Value;
+		}
+
 	double Min = VarSpecGetFloat(VarIdx, "min", DBL_MAX);
 	double Max = VarSpecGetFloat(VarIdx, "max", DBL_MAX);
 	asserta(Min != DBL_MAX && Max != DBL_MAX);

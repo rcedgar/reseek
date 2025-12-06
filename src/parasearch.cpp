@@ -35,13 +35,6 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 	}
 
 vector<FEATURE> ParaSearch::m_NuFs;
-vector<uint> ParaSearch::m_LabelIdxToSFIdx;
-vector<string> ParaSearch::m_SFs;
-unordered_map<string, uint> ParaSearch::m_SFToIdx;
-vector<uint> ParaSearch::m_SFIdxToSize;
-uint ParaSearch::m_NT;	// upper triangle only
-uint ParaSearch::m_NF;	// upper triangle only
-uint *ParaSearch::m_ScoreOrder = 0;
 
 void ParaSearch::AppendHit(uint i, uint j, float Score)
 	{
@@ -363,15 +356,14 @@ void ParaSearch::Bench()
 	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
 	m_Sum3 = SEPQ0_1*2 + SEPQ1*3/2 + SEPQ10;
 
-	ProgressLog("%s %s %s gap %d/%d N=%u NT=%u Sum3=%.3f\n",
+	ProgressLog("%s %s %s gap %d/%d N=%u NT=%u\n",
 		m_AlignMethod.c_str(),
 		m_SubstMxName.c_str(),
 		m_ByteSeqMethod.c_str(),
 		Paralign::m_Open,
 		Paralign::m_Ext,
 		m_SeqCount,
-		m_NT,
-		m_Sum3);
+		m_NT);
 	ProgressLog("SEPQ0.1=%.3f", SEPQ0_1);
 	ProgressLog(" SEPQ1=%.3f", SEPQ1);
 	ProgressLog(" SEPQ10=%.3f", SEPQ10);
@@ -440,6 +432,51 @@ void ParaSearch::SetGapParams(int Open, int Ext)
 	{
 	Paralign::m_Open = Open;
 	Paralign::m_Ext = Ext;
+	}
+
+void ParaSearch::MakeSubset(ParaSearch &Subset, uint SubsetPct)
+	{
+	vector<uint> ChainIdxs;
+	const uint ChainCount = SIZE(m_Labels);
+	const uint SubsetChainCount = (ChainCount*SubsetPct)/100;
+	asserta(SubsetChainCount > 0 && SubsetChainCount <= ChainCount);
+	for (uint i = 0; i < ChainCount; ++i)
+		ChainIdxs.push_back(i);
+	Shuffle(ChainIdxs);
+
+	Subset.m_SeqCount = SubsetChainCount;
+	Subset.m_PairCount = SubsetChainCount*(SubsetChainCount-1)/2 + SubsetChainCount;
+	Subset.m_AlignMethod = m_AlignMethod;
+	Subset.m_SubstMxName = m_SubstMxName;
+	Subset.m_ByteSeqMethod = m_ByteSeqMethod;
+	Subset.m_LabelIdxToSFIdx.clear();
+	Subset.m_DomIdxs.clear();
+	Subset.m_SFs.clear();
+	Subset.m_SFIdxToSize.clear();
+	Subset.m_NT = UINT_MAX;
+	Subset.m_NF = UINT_MAX;
+	Subset.m_ScoreOrder = 0;
+
+	Subset.m_Chains.clear();
+	Subset.m_Labels.clear();
+	Subset.m_ByteSeqs.clear();
+	Subset.m_LabelIdxToSFIdx.clear();
+
+	Subset.m_Chains.reserve(SubsetChainCount);
+	Subset.m_Labels.reserve(SubsetChainCount);
+	Subset.m_ByteSeqs.reserve(SubsetChainCount);
+	Subset.m_LabelIdxToSFIdx.reserve(SubsetChainCount);
+
+	for (uint i = 0; i < SubsetChainCount; ++i)
+		{
+		uint Idx = ChainIdxs[i];
+		PDBChain *Chain = m_Chains[Idx];
+		Subset.m_Chains.push_back(Chain);
+		Subset.m_Labels.push_back(Chain->m_Label);
+		Subset.m_ByteSeqs.push_back(m_ByteSeqs[Idx]);
+		Subset.m_LabelIdxToSFIdx.push_back(m_LabelIdxToSFIdx[Idx]);
+		}
+	Subset.SetLookupFromLabels();
 	}
 
 // -seqsmethod		mu | numu (also mux but redundant)

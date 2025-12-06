@@ -1,7 +1,6 @@
 #pragma once
 
 #include "paralign.h"
-#include "scop40bench.h"
 
 class PDBChain;
 
@@ -19,32 +18,26 @@ public:
 	vector<Paralign *> m_PAs;
 	vector<uint> m_QueryIdxs;
 
-//	SCOP40Bench m_SB;
-
 	string m_AlignMethod;
 	string m_SubstMxName;
 	string m_ByteSeqMethod;
 
 	uint m_SeqCount = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
+	vector<uint> m_LabelIdxToSFIdx;
+	vector<string> m_SFs;
+	vector<uint> m_SFIdxToSize;
+	unordered_map<string, uint> m_SFToIdx;
+	uint m_NT;	// upper triangle only
+	uint m_NF;	// upper triangle only
+	uint *m_ScoreOrder;
 
 public:
 	static vector<FEATURE> m_NuFs;
-	static vector<uint> m_LabelIdxToSFIdx;
-	static vector<string> m_SFs;
-	static vector<uint> m_SFIdxToSize;
-	static unordered_map<string, uint> m_SFToIdx;
-	static uint m_NT;	// upper triangle only
-	static uint m_NF;	// upper triangle only
-	static uint *m_ScoreOrder;
 
 public:
 	void ClearHitsAndResults();
 	void SetGapParams(int Open, int Ext);
-	void GetByteSeqs_nu(const string &FN);
-	void GetByteSeqs_numu(const string &FN);
-	void GetByteSeqs_muletters(const string &FN);
-	void GetByteSeqs_dss3(const string &FN);
 	void GetByteSeqs(const string &FN, const string &Method);
 	void Search(const string &AlignMethod);
 	void SetQuery(uint ThreadIdx, uint i);
@@ -55,6 +48,14 @@ public:
 	void WriteHits(const string &FN) const;
 	void SetLookupFromLabels();
 	void AddDom(const string &Dom, const string &SF, uint LabelIdx);
+	void MakeSubset(ParaSearch &Subset, uint SubsetPct);
+
+	private:
+	void GetByteSeqs_nu(const string &FN);
+	void GetByteSeqs_numu(const string &FN);
+	void GetByteSeqs_muletters(const string &FN);
+	void GetByteSeqs_dss3(const string &FN);
+
 	};
 
 void FixMuByteSeq(vector<byte> &ByteSeq);
