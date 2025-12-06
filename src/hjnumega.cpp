@@ -17,7 +17,7 @@ static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
 		}
 	}
 
-static int StrToInt(const string &s)
+static int LocalStrToInt(const string &s)
 	{
 	float f = StrToFloatf(s);
 	int i = int(round(f));
@@ -45,9 +45,9 @@ static double EvalSum3(const vector<string> &xv)
 		string sValue = xv[VarIdx];
 		const string &VarName = s_Peaker->GetVarName(VarIdx);
 		if (VarName == "open")
-			Open = StrToInt(sValue);
+			Open = LocalStrToInt(sValue);
 		else if (VarName == "ext")
-			Ext = StrToInt(sValue);
+			Ext = LocalStrToInt(sValue);
 		else
 			{
 			FEATURE F = StrToFeature(VarName.c_str());
