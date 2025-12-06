@@ -2,6 +2,7 @@
 #include "parasearch.h"
 #include "triangle.h"
 #include "nu.h"
+#include "sort.h"
 
 /////////////////////////////////////////
 // Hack because of K<->L bug in alpha.cpp
@@ -34,6 +35,13 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 	}
 
 vector<FEATURE> ParaSearch::m_NuFs;
+vector<uint> ParaSearch::m_LabelIdxToSFIdx;
+vector<string> ParaSearch::m_SFs;
+unordered_map<string, uint> ParaSearch::m_SFToIdx;
+vector<uint> ParaSearch::m_SFIdxToSize;
+uint ParaSearch::m_NT;	// upper triangle only
+uint ParaSearch::m_NF;	// upper triangle only
+uint *ParaSearch::m_ScoreOrder = 0;
 
 void ParaSearch::AppendHit(uint i, uint j, float Score)
 	{
@@ -217,6 +225,40 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 		}
 	}
 
+void ParaSearch::SetLookupFromLabels()
+	{
+	m_SFIdxToSize.clear();
+	m_SFIdxToSize.resize(2000, 0);
+
+	const uint N = SIZE(m_Labels);
+	for (uint LabelIdx = 0; LabelIdx < N; ++LabelIdx)
+		{
+		const string &Label = m_Labels[LabelIdx];
+		vector<string> Fields, Fields2;
+		Split(Label, Fields, '/');
+		asserta(SIZE(Fields) == 2);
+		const string &Dom = Fields[0];
+		const string &ScopId = Fields[1];
+		Split(ScopId, Fields2, '.');
+		asserta(SIZE(Fields2) == 4);
+		const string &SF = Fields2[0] + "." + Fields2[1] + "." + Fields2[2];
+		AddDom(Dom, SF, LabelIdx);
+		}
+
+	m_NT = 0;
+	m_NF = 0;
+	const uint SFCount = SIZE(m_SFs);
+	for (uint SFIdx = 0; SFIdx < SFCount; ++SFIdx)
+		{
+		uint Size = m_SFIdxToSize[SFIdx];
+		asserta(Size > 0);
+		m_NT += (Size*(Size - 1))/2;
+		}
+	m_NT *= 2;
+	uint DomCount = SIZE(m_Labels);
+	m_NF = DomCount*(DomCount-1) - m_NT;
+	}
+
 void ParaSearch::GetByteSeqs_nu(const string &FN)
 	{
 	m_ByteSeqs.clear();
@@ -270,58 +312,115 @@ void ParaSearch::GetByteSeqs_numu(const string &FN)
 		}
 	}
 
+void ParaSearch::SetScoreOrder()
+	{
+	uint K = triangle_get_K(m_SeqCount);
+	if (m_ScoreOrder == 0)
+		myfree(m_ScoreOrder);
+	m_ScoreOrder = myalloc(uint, K);
+	QuickSortOrderDesc(m_Scores, K, m_ScoreOrder);
+	}
+
 void ParaSearch::Bench()
 	{
-	vector<string> Label1s;
-	vector<string> Label2s;
-	vector<float> Scores;
-	Label1s.reserve(m_PairCount);
-	Label2s.reserve(m_PairCount);
-	Scores.reserve(m_PairCount);
-	for (uint k = 0; k < m_PairCount; ++k)
+	asserta(m_ScoreOrder != 0);
+	uint K = triangle_get_K(m_SeqCount);
+	uint nt = 0;
+	uint nf = 0;
+	float LastScore = FLT_MAX;
+	float SEPQ0_1 = FLT_MAX;
+	float SEPQ1 = FLT_MAX;
+	float SEPQ10 = FLT_MAX;
+	for (uint k = 0; k < K; ++k)
 		{
-		uint i, j;
-		triangle_k_to_ij(k, m_SeqCount, i, j);
-		Label1s.push_back(m_Labels[i]);
-		Label2s.push_back(m_Labels[j]);
-		Scores.push_back(m_Scores[k]);
-
-		Label1s.push_back(m_Labels[j]);
-		Label2s.push_back(m_Labels[i]);
-		Scores.push_back(m_Scores[k]);
+		uint HitIdx = m_ScoreOrder[k];
+		uint LabelIdx_i, LabelIdx_j;
+		triangle_k_to_ij(HitIdx, m_SeqCount, LabelIdx_i, LabelIdx_j);
+		if (LabelIdx_i == LabelIdx_j)
+			continue;
+		float Score = m_Scores[HitIdx];
+		if (Score != LastScore)
+			{
+			asserta(Score < LastScore);
+			float EPQ = 2*float(nf)/m_SeqCount;
+			float Sens = 2*float(nt)/m_NT;
+			if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
+			if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
+			if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
+			LastScore = Score;
+			}
+		uint SFIdx_i = m_LabelIdxToSFIdx[LabelIdx_i];
+		uint SFIdx_j = m_LabelIdxToSFIdx[LabelIdx_j];
+		if (SFIdx_i == SFIdx_j)
+			++nt;
+		else
+			++nf;
 		}
+	float EPQ = float(nf)/m_SeqCount;
+	float Sens = float(nt)/m_NT;
+	if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
+	if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
+	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
+	m_Sum3 = SEPQ0_1*2 + SEPQ1*3/2 + SEPQ10;
 
-	m_SB.m_SBS = SBS_OtherAlgoScore;
-	m_SB.SetHits(Label1s, Label2s, Scores);
-	m_SB.SetScoreOrder();
-
-	string Msg;
-	Ps(Msg, "%s %s %s gap %d/%d\n",
+	ProgressLog("%s %s %s gap %d/%d N=%u NT=%u Sum3=%.3f\n",
 		m_AlignMethod.c_str(),
 		m_SubstMxName.c_str(),
 		m_ByteSeqMethod.c_str(),
 		Paralign::m_Open,
-		Paralign::m_Ext);
+		Paralign::m_Ext,
+		m_SeqCount,
+		m_NT,
+		m_Sum3);
+	ProgressLog("SEPQ0.1=%.3f", SEPQ0_1);
+	ProgressLog(" SEPQ1=%.3f", SEPQ1);
+	ProgressLog(" SEPQ10=%.3f", SEPQ10);
+	ProgressLog(" Sum3=%.3f", m_Sum3);
+	ProgressLog("\n");
+	}
 
-	m_SB.WriteOutput(Msg);
+void ParaSearch::AddDom(
+	const string &Dom, const string &SF, uint LabelIdx)
+	{
+	uint SFIdx = UINT_MAX;
+	if (m_SFToIdx.find(SF) == m_SFToIdx.end())
+		{
+		SFIdx = SIZE(m_SFs);
+		m_SFs.push_back(SF);
+		m_SFToIdx[SF] = SFIdx;
+		}
+	else
+		SFIdx = m_SFToIdx[SF];
+ 
+	m_LabelIdxToSFIdx.push_back(SFIdx);
+
+	asserta(SFIdx < SIZE(m_SFIdxToSize));
+	m_SFIdxToSize[SFIdx] += 1;
 	}
 
 void ParaSearch::WriteHits(const string &FN) const
 	{
 	if (FN == "")
 		return;
+	asserta(m_ScoreOrder != 0);
 
 	FILE *f = CreateStdioFile(FN);
-	for (uint k = 0; k < m_PairCount; ++k)
+	uint K = triangle_get_K(m_SeqCount);
+	for (uint k = 0; k < K; ++k)
 		{
+		ProgressStep(k, K, "Writing %s", FN.c_str());
+		uint HitIdx = m_ScoreOrder[k];
 		uint i, j;
-		triangle_k_to_ij(k, m_SeqCount, i, j);
-		fprintf(f, "%.3g", m_Scores[k]);
+		triangle_k_to_ij(HitIdx, m_SeqCount, i, j);
+		if (i == j)
+			continue;
+
+		fprintf(f, "%.3g", m_Scores[HitIdx]);
 		fprintf(f, "\t%s", m_Labels[i].c_str());
 		fprintf(f, "\t%s", m_Labels[j].c_str());
 		fprintf(f, "\n");
 
-		fprintf(f, "%.3g", m_Scores[k]);
+		fprintf(f, "%.3g", m_Scores[HitIdx]);
 		fprintf(f, "\t%s", m_Labels[j].c_str());
 		fprintf(f, "\t%s", m_Labels[i].c_str());
 		fprintf(f, "\n");
@@ -329,19 +428,12 @@ void ParaSearch::WriteHits(const string &FN) const
 	CloseStdioFile(f);
 	}
 
-void ParaSearch::SetDomIdxs()
-	{
-	asserta(SIZE(m_Labels) == m_SeqCount);
-	m_DomIdxs.clear();
-	m_DomIdxs.reserve(m_SeqCount);
-	for (uint i = 0; i < m_SeqCount; ++i)
-		m_DomIdxs.push_back(m_SB.GetDomIdx(m_Labels[i]));
-	}
-
 void ParaSearch::ClearHitsAndResults()
 	{
 	Paralign::ClearStats();
-	m_SB.ClearHitsAndResults();
+	myfree(m_Scores);
+	m_Scores = 0;
+	m_Sum3 = FLT_MAX;
 	}
 
 void ParaSearch::SetGapParams(int Open, int Ext)
@@ -356,9 +448,8 @@ void ParaSearch::SetGapParams(int Open, int Ext)
 void cmd_para_scop40()
 	{
 	ParaSearch PS;
-	PS.ReadLookup(opt(lookup));
 	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
-	PS.SetDomIdxs();
+	PS.SetLookupFromLabels();
 	Paralign::SetSubstMxByName(opt(mxname));
 	PS.Search(opt(alignmethod));
 	PS.WriteHits(opt(output));

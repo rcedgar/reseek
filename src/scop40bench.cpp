@@ -649,7 +649,7 @@ void SCOP40Bench::WriteSteps(const string &FN, bool WithHdr) const
 void SCOP40Bench::WriteOutput(const string &Msg)
 	{
 	ProgressLog("\n");
-	float MaxFPR = 0.01f;
+	float MaxFPR = 0.005f;
 	if (optset_maxfpr)
 		MaxFPR = (float) opt(maxfpr);
 	FILE *fCVE = CreateStdioFile(opt(cve));

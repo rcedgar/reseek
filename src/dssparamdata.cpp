@@ -42,6 +42,8 @@ void DSSParams::GetParamsStr(string &ParamsStr)
 
 bool DSSParams::GetDoMuFilter()
 	{
+	if (opt(nomufilter))
+		return false;
 	return GetNeedMuLetters();
 	}
 

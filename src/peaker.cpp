@@ -246,6 +246,13 @@ bool Peaker::VarIsConstant(uint VarIdx) const
 	return yes == "yes";
 	}
 
+bool Peaker::VarIsInt(uint VarIdx) const
+	{
+	string Type;
+	VarSpecGetStr(VarIdx, "type", Type, "float");
+	return Type == "int";
+	}
+
 uint Peaker::GetVarIdx(const string &Name, bool FailOk) const
 	{
 	for (uint Idx = 0; Idx < SIZE(m_VarNames); ++Idx)

@@ -13,13 +13,15 @@ static vector<vector<float> > s_ScoreMx;
 
 static uint s_PairIndex = UINT_MAX;
 static uint s_PairCount = UINT_MAX;
-static uint s_NextSeqIndex1 = UINT_MAX;
-static uint s_NextSeqIndex2 = UINT_MAX;
+static uint s_NextSeqIdx1 = UINT_MAX;
+static uint s_NextSeqIdx2 = UINT_MAX;
 static vector<vector<byte> > s_ByteSeqs;
 static vector<string> s_Labels;
 
-static vector<uint> s_Idx1s;
-static vector<uint> s_Idx2s;
+static vector<uint> s_DomIdxToSeqIdx;
+static vector<uint> s_SeqIdxToDomIdx;
+static vector<uint> s_DomIdx1s;
+static vector<uint> s_DomIdx2s;
 static vector<float> s_Scores;
 static mutex s_HitsLock;
 
@@ -97,16 +99,16 @@ static void ReadSubstMx(const string &TsvFN, string &FeatureName, uint &AS,
 	CloseStdioFile(f);
 	}
 
-static bool GetNextPairSelf(uint &SeqIndex1, uint &SeqIndex2)
+static bool GetNextPairSelf(uint &SeqIdx1, uint &SeqIdx2)
 	{
-	SeqIndex1 = UINT_MAX;
-	SeqIndex2 = UINT_MAX;
+	SeqIdx1 = UINT_MAX;
+	SeqIdx2 = UINT_MAX;
 	uint MyIndex = s_PairIndex++;
 	if (MyIndex >= s_PairCount)
 		return false;
 	if (MyIndex == 0 || MyIndex+1 == s_PairCount || MyIndex%1000 == 0)
 		ProgressStep(MyIndex, s_PairCount, "Aligning");
-	triangle_k_to_ij(MyIndex, GetSeqCount(), SeqIndex1, SeqIndex2);
+	triangle_k_to_ij(MyIndex, GetSeqCount(), SeqIdx1, SeqIdx2);
 	return true;
 	}
 
@@ -138,30 +140,32 @@ static float Align(const vector<byte> &SeqA, const vector<byte> &SeqB)
 
 static void ThreadBody(uint ThreadIndex)
 	{
-	vector<uint> Idx1s;
-	vector<uint> Idx2s;
+	vector<uint> DomIdx1s;
+	vector<uint> DomIdx2s;
 	vector<float> Scores;
 	for (;;)
 		{
-		uint SeqIndex1, SeqIndex2;
-		bool Ok = GetNextPairSelf(SeqIndex1, SeqIndex2);
+		uint SeqIdx1, SeqIdx2;
+		bool Ok = GetNextPairSelf(SeqIdx1, SeqIdx2);
 		if (!Ok)
 			break;
 
-		if (SeqIndex1 == SeqIndex2)
+		if (SeqIdx1 == SeqIdx2)
 			continue;
 
-		const vector<byte> &Seq1 = s_ByteSeqs[SeqIndex1];
-		const vector<byte> &Seq2 = s_ByteSeqs[SeqIndex2];
+		const vector<byte> &Seq1 = s_ByteSeqs[SeqIdx1];
+		const vector<byte> &Seq2 = s_ByteSeqs[SeqIdx2];
 		float Score = Align(Seq1, Seq2);
-		Idx1s.push_back(SeqIndex1);
-		Idx2s.push_back(SeqIndex2);
+		uint DomIdx1 = s_SeqIdxToDomIdx[SeqIdx1];
+		uint DomIdx2 = s_SeqIdxToDomIdx[SeqIdx2];
+		DomIdx1s.push_back(SeqIdx1);
+		DomIdx2s.push_back(SeqIdx2);
 		Scores.push_back(Score);
 		}
 
 	s_HitsLock.lock();
-	s_Idx1s.insert(s_Idx1s.end(), Idx1s.begin(), Idx1s.end());
-	s_Idx2s.insert(s_Idx2s.end(), Idx2s.begin(), Idx2s.end());
+	s_DomIdx1s.insert(s_DomIdx1s.end(), DomIdx1s.begin(), DomIdx1s.end());
+	s_DomIdx2s.insert(s_DomIdx2s.end(), DomIdx2s.begin(), DomIdx2s.end());
 	s_Scores.insert(s_Scores.end(), Scores.begin(), Scores.end());
 	s_HitsLock.unlock();
 	}
@@ -170,14 +174,14 @@ static void Search()
 	{
 	s_PairIndex = UINT_MAX;
 	s_PairCount = UINT_MAX;
-	s_NextSeqIndex1 = UINT_MAX;
-	s_NextSeqIndex2 = UINT_MAX;
+	s_NextSeqIdx1 = UINT_MAX;
+	s_NextSeqIdx2 = UINT_MAX;
 
 	uint SeqCount = GetSeqCount();
 	s_PairIndex = 0;
 	s_PairCount = SeqCount + (SeqCount*(SeqCount-1))/2;
-	s_NextSeqIndex1 = 0;
-	s_NextSeqIndex2 = 0;
+	s_NextSeqIdx1 = 0;
+	s_NextSeqIdx2 = 0;
 
 	const uint ThreadCount = GetRequestedThreadCount();
 	vector<thread *> ts;
@@ -198,14 +202,6 @@ void cmd_nuscop40()
 	const string &TsvFN = opt(input);
 
 	ReadSubstMx(TsvFN, s_FeatureName, s_AS, s_ScoreMx);
-//#pragma warning("TODO")
-//	{//@@@@@@@@@@
-//	extern float musubstmx[36][36];
-//	asserta(SIZE(s_ScoreMx) == 36);
-//	for (uint i = 0; i < 36; ++i)
-//		for (uint j = 0; j < 36; ++j)
-//			s_ScoreMx[i][j] = musubstmx[i][j];
-//	}//@@@@@@@@@@
 
 	FASTASeqSource FSS;
 	FSS.Open(FastaFN);
@@ -227,8 +223,8 @@ void cmd_nuscop40()
 	Search();
 	const uint HitCount = SIZE(s_Scores);
 	ProgressLog("%u hits\n", HitCount);
-	asserta(SIZE(s_Idx1s) == HitCount);
-	asserta(SIZE(s_Idx2s) == HitCount);
+	asserta(SIZE(s_DomIdx1s) == HitCount);
+	asserta(SIZE(s_DomIdx2s) == HitCount);
 
 	FILE *fOut = CreateStdioFile(opt(output));
 	vector<uint> Order(HitCount);
@@ -237,8 +233,12 @@ void cmd_nuscop40()
 		{
 		ProgressStep(k, HitCount, "Writing hits");
 		uint i = Order[k];
-		fprintf(fOut, "%s", s_Labels[s_Idx1s[i]].c_str());
-		fprintf(fOut, "\t%s", s_Labels[s_Idx2s[i]].c_str());
+		uint DomIdx1 = s_DomIdx1s[i];
+		uint DomIdx2 = s_DomIdx2s[i];
+		uint SeqIdx1 = s_DomIdxToSeqIdx[DomIdx1];
+		uint SeqIdx2 = s_DomIdxToSeqIdx[DomIdx2];
+		fprintf(fOut, "%s", s_Labels[SeqIdx1].c_str());
+		fprintf(fOut, "\t%s", s_Labels[SeqIdx2].c_str());
 		fprintf(fOut, "\t%.4g", s_Scores[i]);
 		fprintf(fOut, "\n");
 		}

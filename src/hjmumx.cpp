@@ -21,7 +21,7 @@ static double EvalSum3(int IntOpen, int IntExt)
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para");
 	s_PS->Bench();
-	return s_PS->m_SB.m_Sum3;
+	return s_PS->m_Sum3;
 	}
 
 static void TrainMx(const string &ChainFN,
@@ -217,7 +217,7 @@ void cmd_hjmumx()
 		SeqsMethod = opt(seqsmethod);
 	s_PS = new ParaSearch;
 	s_PS->GetByteSeqs(opt(input2), SeqsMethod);
-	s_PS->m_SB.ReadLookup(opt(lookup));
+	s_PS->SetLookupFromLabels();
 
 	Optimize(ScaleFactor);
 

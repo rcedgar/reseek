@@ -14,10 +14,12 @@ public:
 	vector<uint> m_DomIdxs;
 
 	float *m_Scores = 0;
+	float m_Sum3 = FLT_MAX;
+
 	vector<Paralign *> m_PAs;
 	vector<uint> m_QueryIdxs;
 
-	SCOP40Bench m_SB;
+//	SCOP40Bench m_SB;
 
 	string m_AlignMethod;
 	string m_SubstMxName;
@@ -28,6 +30,13 @@ public:
 
 public:
 	static vector<FEATURE> m_NuFs;
+	static vector<uint> m_LabelIdxToSFIdx;
+	static vector<string> m_SFs;
+	static vector<uint> m_SFIdxToSize;
+	static unordered_map<string, uint> m_SFToIdx;
+	static uint m_NT;	// upper triangle only
+	static uint m_NF;	// upper triangle only
+	static uint *m_ScoreOrder;
 
 public:
 	void ClearHitsAndResults();
@@ -42,12 +51,10 @@ public:
 	void Align(uint ThreadIdx, uint i, uint j);
 	void AppendHit(uint i, uint j, float Score);
 	void Bench();
+	void SetScoreOrder();
 	void WriteHits(const string &FN) const;
-	void SetDomIdxs();
-	void ReadLookup(const string &FN)
-		{
-		m_SB.ReadLookup(FN);
-		}
+	void SetLookupFromLabels();
+	void AddDom(const string &Dom, const string &SF, uint LabelIdx);
 	};
 
 void FixMuByteSeq(vector<byte> &ByteSeq);

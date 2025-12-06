@@ -24,7 +24,7 @@ static double EvalSum3(int IntOpen, int IntExt)
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para");
 	s_PS->Bench();
-	return s_PS->m_SB.m_Sum3;
+	return s_PS->m_Sum3;
 	}
 
 static void GetFeatures(const string &s,
@@ -170,17 +170,8 @@ void cmd_hjnugaps()
 
 	s_PS = new ParaSearch;
 	s_PS->m_NuFs = s_Fs;
-	s_PS->ReadLookup(opt(lookup));
 	s_PS->GetByteSeqs(opt(db), "nuletters");
-	s_PS->SetDomIdxs();
-
-	if (0)
-	{//@@TODO
-	Paralign::SetCompoundMx(s_Fs, s_Weights, 1, 6, 2, 777);
-	double Sum3 = EvalSum3(6, 2);
-	ProgressLog("Sum3=%.3f\n", Sum3);
-	Die("TODO");
-	}//@@
+	s_PS->SetLookupFromLabels();
 
 	double BestSum3 = -999;
 	int BestOpen = -999;

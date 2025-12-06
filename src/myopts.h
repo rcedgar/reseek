@@ -74,6 +74,7 @@ STR_OPT(seqsmethod)
 STR_OPT(alignmethod)
 STR_OPT(mxname)
 STR_OPT(undefs_allowed)
+STR_OPT(varstr)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -169,6 +170,7 @@ FLAG_OPT(modal)
 FLAG_OPT(evalmu)
 FLAG_OPT(fixmubyteseq)
 FLAG_OPT(roundmx)
+FLAG_OPT(nomufilter)
 
 #undef FLAG_OPT
 #undef UNS_OPT

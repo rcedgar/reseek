@@ -81,6 +81,8 @@ public:
 		vector<string> &Normalized_xv) const;
 	void DeltaVar(uint VarIdx, bool Plus, const string &OldStr,
 		string &NewStr);
+	void DeltaVarInt(uint VarIdx, bool Plus, const string &OldStr,
+		string &NewStr);
 
 	bool GetNearestNeighbor(const vector<string> &xv,
 		uint VarIdx, bool Plus, vector<string> &Neighbor_xv, double &y) const;
@@ -106,6 +108,7 @@ public:
 
 	const char *GetVarName(uint VarIdx) const;
 	bool VarIsConstant(uint VarIdx) const;
+	bool VarIsInt(uint VarIdx) const;
 	double GetBinWidth(uint VarIdx) const;
 
 	// xv vector of strings, xss is semi-colon string

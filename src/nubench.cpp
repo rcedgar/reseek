@@ -60,10 +60,10 @@ void cmd_nubench()
 
 	ParaSearch PS;
 	PS.m_NuFs = Fs;
-	PS.ReadLookup(opt(lookup));
 	PS.GetByteSeqs(DBFN, "nuletters");
-	PS.SetDomIdxs();
+	PS.SetLookupFromLabels();
 	PS.Search(AlignMethod);
+	PS.SetScoreOrder();
 	PS.WriteHits(opt(output));
 	PS.Bench();
 	}

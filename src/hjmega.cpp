@@ -53,38 +53,6 @@ static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
 		}
 	}
 
-static double EvalArea0(const vector<string> &xv)
-	{
-	asserta(s_Peaker != 0);
-	const uint VarCount = s_Peaker->GetVarCount();
-	asserta(SIZE(xv) == VarCount);
-	string VarsStr;
-	s_Peaker->xv2xss(xv, VarsStr);
-	DSSParams::SetParamsFromStr(VarsStr);
-	s_SB->ClearHitsAndResults();
-	s_SB->RunSelf(false);
-	s_SB->m_Level = "sf";
-	s_SB->SetStats(0.005f);
-	s_SB->WriteSummary();
-	return s_SB->m_Area0;
-	}
-
-static double OBSOLETE_EvalArea3(const vector<string> &xv)
-	{
-	asserta(s_Peaker != 0);
-	const uint VarCount = s_Peaker->GetVarCount();
-	asserta(SIZE(xv) == VarCount);
-	string VarsStr;
-	s_Peaker->xv2xss(xv, VarsStr);
-	DSSParams::SetParamsFromStr(VarsStr);
-	s_SB->ClearHitsAndResults();
-	s_SB->RunSelf(false);
-	s_SB->m_Level = "sf";
-	s_SB->SetStats(0.005f);
-	s_SB->WriteSummary();
-	return 0; // s_SB->m_Area3;
-	}
-
 static double EvalSum3(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
@@ -101,28 +69,15 @@ static double EvalSum3(const vector<string> &xv)
 	return s_SB->m_Sum3;
 	}
 
-void cmd_evalarea()
+static void EvalSum3_VarStr(SCOP40Bench &FullSB, const string &VarStr)
 	{
-	const string &DBFN = g_Arg1;
-
-	DSSParams::Init(DM_UseCommandLineOption);
-	string ParamsStr;
-	DSSParams::GetParamsStr(ParamsStr);
-	ProgressLog("ParamsStr:%s\n", ParamsStr.c_str());
-
-	void OpenOutputFiles();
-	OpenOutputFiles();
-
-	s_SB = new SCOP40Bench;
-	s_SB->LoadDB(DBFN);
-	StatSig::Init(s_SB->GetDBSize());
-	s_SB->Setup();
-	s_SB->m_QuerySelf = true;
+	s_SB = &FullSB;
+	DSSParams::SetParamsFromStr(VarStr);
+	s_SB->ClearHitsAndResults();
 	s_SB->RunSelf(false);
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
-	ProgressLog("Area0=%.4g, Sum3=%.4g\n", s_SB->m_Area0, s_SB->m_Sum3);
 	}
 
 static void Optimize(
@@ -314,6 +269,11 @@ void cmd_hjmega()
 	FullSB.Setup();
 	FullSB.m_RecalcSelfRevScores = true;
 	AssertProfileSize(FullSB, FeatureCount);
+	if (optset_varstr)
+		{
+		EvalSum3_VarStr(FullSB, opt(varstr));
+		return;
+		}
 
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);

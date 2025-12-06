@@ -276,9 +276,27 @@ void Peaker::NormalizeVarStr(uint VarIdx, const string &Str,
 	GetRoundedStr(Value, SigFig, NormalizedStr);
 	}
 
+void Peaker::DeltaVarInt(uint VarIdx, bool Plus, const string &OldStr,
+	string &NewStr)
+	{
+	double OldValue = VarStrToFloat(VarIdx, OldStr);
+	int iOldValue = int(round(OldValue));
+	asserta(float(iOldValue) == OldValue);
+	int iNewValue = (Plus ? iOldValue + 1 : iOldValue - 1);
+	if (iNewValue < 0)
+		iNewValue = 0;
+	VarFloatToStr(VarIdx, float(iNewValue), NewStr);
+	}
+
 void Peaker::DeltaVar(uint VarIdx, bool Plus,
 	const string &OldStr, string &NewStr)
 	{
+	if (VarIsInt(VarIdx))
+		{
+		DeltaVarInt(VarIdx, Plus, OldStr, NewStr);
+		return;
+		}
+
 	NewStr.clear();
 	uint SigFig = VarSpecGetInt(VarIdx, "sigfig", 2);
 	double OldValue = VarStrToFloat(VarIdx, OldStr);
