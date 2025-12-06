@@ -620,11 +620,25 @@ void Paralign::LogMatrix()
 		m_matrix.size,
 		m_matrix.length);
 
-	Log("int Mu_hjmumx[36*36] = {\n");
+	Log("int Paralign_IntMx[36*36] = {\n");
 	for (int i = 0; i < AS; ++i)
 		{
 		for (int j = 0; j < AS; ++j)
 			Log("%3d,", m_matrix.matrix[i*AS + j]);
+		Log("  // %d\n", i);
+		}
+	Log("};\n");
+	}
+
+void Paralign::LogSWFastMatrix()
+	{
+	int AS = m_matrix.size;
+
+	Log("float Paralign_SWFastMx[36*36] = {\n");
+	for (int i = 0; i < AS; ++i)
+		{
+		for (int j = 0; j < AS; ++j)
+			Log("%7.3g,", m_SWFastSubstMx[i][j]);
 		Log("  // %d\n", i);
 		}
 	Log("};\n");
@@ -649,7 +663,8 @@ void Paralign::SetSubstMxByName(const string &Name)
 
 void Paralign::SetMatrix(
 	const vector<vector<int> > &ScoreMx,
-	int Open, int Ext, int SaturatedScore)
+	int Open, int Ext, int SaturatedScore,
+	bool SetSWFastMatrix)
 	{
 	asserta(!ScoreMx.empty());
 	memset(&m_matrix, 0, sizeof(m_matrix));
@@ -710,7 +725,8 @@ void Paralign::SetMatrix(
 	m_matrix.length = AS;
 	m_matrix.alphabet = Alphabet;
 	m_matrix.query = 0;
-	SetSWFastSubstMx_FromParasailMx();
+	if (SetSWFastMatrix)
+		SetSWFastSubstMx_FromParasailMx();
 	}
 
 void Paralign::SetQueryNoProfile(const string &LabelQ, const byte *Q, uint LQ)
@@ -855,7 +871,8 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	return true;
 	}
 
-void Paralign::SetCompoundMx(vector<FEATURE> &Fs, vector<float> &Weights,
+void Paralign::SetCompoundMx(
+	const vector<FEATURE> &Fs, const vector<float> &Weights,
 	int ScaleFactor, int Open, int Ext, int SaturatedScore)
 	{
 	const uint NF = SIZE(Fs);
@@ -869,14 +886,18 @@ void Paralign::SetCompoundMx(vector<FEATURE> &Fs, vector<float> &Weights,
 	TheNu.SetComponents(Fs, Weights);
 	uint AS = TheNu.GetAlphaSize();
 
-	vector<vector<int> > ScoreMx(AS);
+	m_SWFastSubstMx.clear();
+	m_SWFastSubstMx.resize(AS);
+	vector<vector<int> > IntScoreMx(AS);
 	for (uint i = 0; i < AS; ++i)
 		{
-		ScoreMx[i].resize(AS);
+		m_SWFastSubstMx[i].resize(AS);
+		IntScoreMx[i].resize(AS);
 
 		vector<byte> Lettersi;
 		TheNu.NuLetterToComponentLetters(i, Lettersi);
 		asserta(SIZE(Lettersi) == NF);
+
 
 		for (uint j = 0; j < AS; ++j)
 			{
@@ -884,18 +905,23 @@ void Paralign::SetCompoundMx(vector<FEATURE> &Fs, vector<float> &Weights,
 			TheNu.NuLetterToComponentLetters(j, Lettersj);
 			asserta(SIZE(Lettersj) == NF);
 
-			float Score = 0;
+			float SumScore = 0;
 			for (uint k = 0; k < NF; ++k)
 				{
+				float wk = NF*Weights[k];
 				uint Letteri = Lettersi[k];
 				uint Letterj = Lettersj[k];
-				Score += ScoreMxs[k][Letteri][Letterj];
+				SumScore += wk*ScoreMxs[k][Letteri][Letterj];
 				}
-			int iScore = int(round(ScaleFactor*Score));
-			ScoreMx[i][j] = iScore;
+			float Score = ScaleFactor*SumScore;
+			m_SWFastSubstMx[i][j] = Score;
+			IntScoreMx[i][j] = int(round(Score));
 			}
 		}
-	SetMatrix(ScoreMx, Open, Ext, SaturatedScore);
+	bool SetSWFastMx = false;
+	if (opt(roundmx))
+		SetSWFastMx = true;
+	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
 	}
 
 #if 0

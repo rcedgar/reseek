@@ -292,6 +292,7 @@
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
     <ClCompile Include="hjmumx.cpp" />
+    <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="nubench.cpp" />
     <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />

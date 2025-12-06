@@ -161,6 +161,8 @@ void DBSearcher::LoadDB(const string &DBFN)
 
 bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	{
+	if (opt(raw))
+		return false;
 	bool Evalue_ok = true;
 	bool TS_ok = false;
 	float E = DA.GetEvalue(Up);

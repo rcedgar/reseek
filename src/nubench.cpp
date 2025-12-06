@@ -22,6 +22,17 @@ static void GetFeatures(const string &s,
 		}
 	}
 
+void cmd_numx()
+	{
+	vector<FEATURE> Fs;
+	vector<float> Weights;
+	GetFeatures(g_Arg1, Fs, Weights);
+	const uint FeatureCount = SIZE(Fs);
+	asserta(FeatureCount > 0);
+	Paralign::SetCompoundMx(Fs, Weights, 1, 1, 1, 1);
+	Paralign::LogMatrix();
+	Paralign::LogSWFastMatrix();
+	}
 
 void cmd_nubench()
 	{
@@ -30,6 +41,10 @@ void cmd_nubench()
 	GetFeatures(g_Arg1, Fs, Weights);
 	const uint FeatureCount = SIZE(Fs);
 	asserta(FeatureCount > 0);
+
+	string AlignMethod = "para";
+	if (optset_alignmethod)
+		AlignMethod = string(opt(alignmethod));
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);
@@ -48,7 +63,7 @@ void cmd_nubench()
 	PS.ReadLookup(opt(lookup));
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetDomIdxs();
-	PS.Search("para");
+	PS.Search(AlignMethod);
 	PS.WriteHits(opt(output));
 	PS.Bench();
 	}

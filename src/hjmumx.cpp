@@ -181,6 +181,7 @@ static void Optimize(int ScaleFactor)
 
 // Train matrix and optimize gap penalies on SCOP40
 // to find best subst mx for Mu
+// H-J-like hack for integers
 void cmd_hjmumx()
 	{
 // -fixmubyteseq applies only when reading FASTA

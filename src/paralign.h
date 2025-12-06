@@ -58,10 +58,11 @@ public:
 	static void SetBlosum62();
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,
-		int Open, int Ext, int SaturatedScore);
+		int Open, int Ext, int SaturatedScore,
+		bool SetSWFastMatrix = true);
 	static void SetSubstMxByName(const string &Name);
 	static void SetCompoundMx(
-		vector<FEATURE> &Fs, vector<float> &Weights,
+		const vector<FEATURE> &Fs, const vector<float> &Weights,
 		int ScaleFactor, int Open, int Ext, int SaturatedScore);
 
 	static uint GetAlphaSize() { return m_matrix.size; }
@@ -98,6 +99,7 @@ public:
 
 public:
 	static void LogMatrix();
+	static void LogSWFastMatrix();
 	static void ClearStats()
 		{
 		m_Count8 = 0;
