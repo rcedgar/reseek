@@ -49,7 +49,7 @@ static double EvalSum3(const vector<string> &xv)
 		else if (VarName == "ext")
 			Ext = LocalStrToInt(sValue);
 		else if (VarName == "scale")
-			ScaleFactor = LocalStrToInt(sValue);
+			Die("ver=scale not supported");
 		else
 			{
 			FEATURE F = StrToFeature(VarName.c_str());
