@@ -41,16 +41,16 @@ bool Peaker::ReduceGlobalRateFactor()
 	asserta(m_GlobalVarRateFactorIdx < n);
 	if (m_GlobalVarRateFactorIdx + 1 == n)
 		{
-		ProgressPrefixLog("%s: ReduceGlobalRateFactor() no more, elapsed %s [%.5g]\n",
+		ProgressLogNoPrefix("%s: ReduceGlobalRateFactor() no more, elapsed %s [%.5g]\n",
 			m_Name.c_str(), GetElapsedTimeStr(s), m_Best_y);
 		return false;
 		}
 
 	++m_GlobalVarRateFactorIdx;
-	ProgressPrefixLog("\n");
-	ProgressPrefixLog("%s: ReduceGlobalRateFactor() => %.3f, elapsed %s [%.5g]\n",
+	ProgressLogNoPrefix("\n");
+	ProgressLogNoPrefix("%s: ReduceGlobalRateFactor() => %.3f, elapsed %s [%.5g]\n",
 		m_Name.c_str(), GetGlobalRateFactor(), GetElapsedTimeStr(s), m_Best_y);
-	ProgressPrefixLog("\n");
+	ProgressLogNoPrefix("\n");
 	return true;
 	}
 
@@ -118,21 +118,21 @@ void Peaker::HJ_Explore()
 	Log("%s: HJ_Explore(), new direction %s%c\n", m_Name.c_str(),
 		GetVarName(m_HJ_Direction), pom(m_HJ_ExtendPlus));
 
-	ProgressPrefixLog("\n");
-	ProgressPrefixLog("%s: HJ_Explore %u improves\n", m_Name.c_str(), ImprovementCount);
+	ProgressLogNoPrefix("\n");
+	ProgressLogNoPrefix("%s: HJ_Explore %u improves\n", m_Name.c_str(), ImprovementCount);
 	double Track_Best_y = Start_Best_y;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		ProgressPrefixLog(">%-10.10s", strs_plus[VarIdx].c_str());
-		ProgressPrefixLog("  %10.2g", dys_plus[VarIdx]);
-		ProgressPrefixLog("  <%-10.10s", strs_minus[VarIdx].c_str());
-		ProgressPrefixLog("  %10.2g", dys_minus[VarIdx]);
-		ProgressPrefixLog("  %s", GetVarName(VarIdx));
+		ProgressLogNoPrefix(">%-10.10s", strs_plus[VarIdx].c_str());
+		ProgressLogNoPrefix("  %10.2g", dys_plus[VarIdx]);
+		ProgressLogNoPrefix("  <%-10.10s", strs_minus[VarIdx].c_str());
+		ProgressLogNoPrefix("  %10.2g", dys_minus[VarIdx]);
+		ProgressLogNoPrefix("  %s", GetVarName(VarIdx));
 		if (dys_plus[VarIdx] > 0 || dys_minus[VarIdx] > 0)
-			ProgressPrefixLog(" +++");
-		ProgressPrefixLog("\n");
+			ProgressLogNoPrefix(" +++");
+		ProgressLogNoPrefix("\n");
 		}
-	ProgressPrefixLog("\n");
+	ProgressLogNoPrefix("\n");
 
 	const uint N = SIZE(m_Best_ys);
 	asserta(SIZE(m_Best_descs) == N);
@@ -142,10 +142,10 @@ void Peaker::HJ_Explore()
 			break;
 		uint i = N-k-1;
 		double dy = (i > 0 ? m_Best_ys[i] - m_Best_ys[i-1] : 0);
-		ProgressPrefixLog("%10.5g", m_Best_ys[i]);
-		ProgressPrefixLog("  %+10.2g", dy);
-		ProgressPrefixLog("  %s", m_Best_descs[i].c_str());
-		ProgressPrefixLog("\n");
+		ProgressLogNoPrefix("%10.5g", m_Best_ys[i]);
+		ProgressLogNoPrefix("  %+10.2g", dy);
+		ProgressLogNoPrefix("  %s", m_Best_descs[i].c_str());
+		ProgressLogNoPrefix("\n");
 		}
 	}
 
@@ -196,7 +196,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == OldStr)
 		{
-		ProgressPrefixLog("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
+		ProgressLogNoPrefix("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
 			m_Name.c_str(), reason.c_str(), pom(Plus), VarName, OldStr.c_str());
 		return Start_y;
 		}
@@ -236,7 +236,7 @@ bool Peaker::HJ_Iter()
 	double Pct = 0;
 	if (m_Best_y != 0 && Height > 0 && Height < m_Best_y)
 		Pct = GetPct(Height, m_Best_y);
-	ProgressPrefixLog("%s: [%.5g] HJ_Iter() height %.3g (%.2f%%) /%.2f/\n\n",
+	ProgressLogNoPrefix("%s: [%.5g] HJ_Iter() height %.3g (%.2f%%) /%.2f/\n\n",
 		m_Name.c_str(), m_Best_y, Height, Pct, GetGlobalRateFactor());
 	if (Height > 0)
 		{
@@ -245,7 +245,7 @@ bool Peaker::HJ_Iter()
 		return true;
 		}
 	bool ok = ReduceGlobalRateFactor();
-	ProgressPrefixLog("%s: HJ_Iter() ReduceGlobalRateFactor %c\n", m_Name.c_str(), tof(ok));
+	ProgressLogNoPrefix("%s: HJ_Iter() ReduceGlobalRateFactor %c\n", m_Name.c_str(), tof(ok));
 	return ok;
 	}
 
@@ -311,7 +311,7 @@ void Peaker::DeltaVar(uint VarIdx, bool Plus,
 		string TmpStr;
 		VarFloatToStr(VarIdx, IfZero, TmpStr);
 		NormalizeVarStr(VarIdx, TmpStr, NewStr);
-		ProgressPrefixLog("%s ifzero %s => %s\n", GetVarName(VarIdx),
+		ProgressLogNoPrefix("%s ifzero %s => %s\n", GetVarName(VarIdx),
 			OldStr.c_str(), NewStr.c_str());
 		return;
 		}

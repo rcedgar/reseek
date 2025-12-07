@@ -61,5 +61,6 @@ C(nubench)
 C(numx)
 C(hjnugaps)
 C(hjnumega)
+C(hjnumegarev)
 
 #undef C

@@ -18,6 +18,8 @@ public:
 
 	static atomic<uint> m_Count8;
 	static atomic<uint> m_Count16;
+	static atomic<uint> m_Count8_rev;
+	static atomic<uint> m_Count16_rev;
 	static atomic<uint> m_CountSWFast;
 	static atomic<uint> m_SaturatedCount;
 
@@ -30,13 +32,17 @@ public:
 	string m_LabelQ;
 	string m_LabelT;
 	const byte *m_Q = 0;
+	byte *m_Q_rev = 0;
 	const byte *m_T = 0;
 	uint m_LQ = UINT_MAX;
 	uint m_LT = UINT_MAX;
 
+	bool m_DoReverse = false;
 	parasail_profile_t *m_ProfQ = 0;
+	parasail_profile_t *m_ProfQ_rev = 0;
 	parasail_result_t *m_result = 0;
 	int m_Score = INT_MAX;
+	int m_Score_rev = INT_MAX;
 	string m_SemiGlobalPath;	// left-terminal gaps, ends in last M
 	int m_LoQ = INT_MAX;		// always zero (?)
 	int m_LoT = INT_MAX;		// always zero (?)
@@ -77,6 +83,7 @@ public:
 		{
 	// Parasail
 		m_Score = INT_MAX;
+		m_Score_rev = INT_MAX;
 		m_SemiGlobalPath.clear();
 		m_LoQ = INT_MAX;
 		m_LoT = INT_MAX;
@@ -89,8 +96,10 @@ public:
 
 	const char *GetLetterToChar() const;
 	void SetQueryProfile(const string &LabelQ, const byte *Q, uint QL);
+	void SetQueryProfile_rev(const byte *Q, uint QL);
 	void SetQueryNoProfile(const string &LabelQ, const byte *Q, uint QL);
 	void Align_ScoreOnly(const string &LabelT, const byte *T, uint LT);
+	void Align_ScoreOnly_rev(const string &LabelT, const byte *T, uint LT);
 	bool Align_Path(const string &LabelT, const byte *T, uint LT);
 	int ScoreAln(bool Trace = false) const;
 	void WriteAln(FILE *f) const;

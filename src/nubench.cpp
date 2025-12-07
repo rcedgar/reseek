@@ -62,7 +62,7 @@ void cmd_nubench()
 	PS.m_NuFs = Fs;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
-	PS.Search(AlignMethod);
+	PS.Search(AlignMethod, false);
 	PS.SetScoreOrder();
 	PS.WriteHits(opt(output));
 	PS.Bench();

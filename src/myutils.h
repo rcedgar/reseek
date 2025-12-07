@@ -253,6 +253,7 @@ void Progress(const char *szFormat, ...);
 void Progress(const string &Str);
 void ProgressLog(const char *szFormat, ...);
 void ProgressLogPrefix(const char *Format, ...);
+void ProgressLogNoPrefix(const char *Format, ...);
 void ProgressPrefixLog(const char *Format, ...);
 
 void ProgressFileInit(FILE *f, const char *Format = 0, ...);

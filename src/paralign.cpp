@@ -28,6 +28,8 @@ string Paralign::m_SubstMxName = "_NOT_SET_";
 vector<vector<float> > Paralign::m_SWFastSubstMx;
 atomic<uint> Paralign::m_Count8;
 atomic<uint> Paralign::m_Count16;
+atomic<uint> Paralign::m_Count8_rev;
+atomic<uint> Paralign::m_Count16_rev;
 atomic<uint> Paralign::m_CountSWFast;
 atomic<uint> Paralign::m_SaturatedCount;
 
@@ -736,6 +738,34 @@ void Paralign::SetQueryNoProfile(const string &LabelQ, const byte *Q, uint LQ)
 	m_LQ = LQ;
 	}
 
+void Paralign::SetQueryProfile_rev(const byte *Q, uint LQ)
+	{
+	if (!m_DoReverse)
+		return;
+	if (m_Q_rev != 0)
+		myfree(m_Q_rev);
+	if (m_ProfQ_rev != 0)
+		parasail_profile_free(m_ProfQ_rev);
+
+	m_Q_rev = myalloc(byte, LQ);
+	for (uint i = 0; i < LQ; ++i)
+		m_Q_rev[i] = Q[LQ-i-1];
+
+	switch (m_Bits)
+		{
+	case 8:
+		m_ProfQ_rev = parasail_profile_create_avx_256_8((const char *) m_Q_rev, LQ, &m_matrix);
+		break;
+
+	case 16:
+		m_ProfQ_rev = parasail_profile_create_avx_256_16((const char *) m_Q_rev, LQ, &m_matrix);
+		break;
+
+	default:
+		asserta(false);
+		}
+	}
+
 void Paralign::SetQueryProfile(const string &LabelQ, const byte *Q, uint LQ)
 	{
 	m_LabelQ = LabelQ;
@@ -756,6 +786,9 @@ void Paralign::SetQueryProfile(const string &LabelQ, const byte *Q, uint LQ)
 	default:
 		asserta(false);
 		}
+	if (m_DoReverse)
+		SetQueryProfile_rev(Q, LQ);
+
 #if 0
 	{
 	Log("SetQuery\n");
@@ -772,6 +805,39 @@ void Paralign::SetQueryProfile(const string &LabelQ, const byte *Q, uint LQ)
 	Log("\n");
 	}
 #endif
+	}
+
+void Paralign::Align_ScoreOnly_rev(const string &LabelT, const byte *T, uint LT)
+	{
+	ClearResult();
+	if (m_result != 0)
+		parasail_result_free(m_result);
+
+	switch (m_Bits)
+		{
+	case 8:
+		m_result = parasail_sw_striped_profile_avx2_256_8(
+			m_ProfQ_rev, (const char *) T, LT, m_Open, m_Ext);
+		++m_Count8_rev;
+		break;
+
+	case 16:
+		m_result = parasail_sw_striped_profile_avx2_256_16(
+			m_ProfQ_rev, (const char *) T, LT, m_Open, m_Ext);
+		++m_Count16_rev;
+		break;
+
+	default:
+		asserta(false);
+		}
+
+	if (m_result->flag & PARASAIL_FLAG_SATURATED)
+		{
+		m_Score_rev = m_SaturatedScore;
+		++m_SaturatedCount;
+		}
+	else
+		m_Score_rev = m_result->score;
 	}
 
 void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
@@ -801,25 +867,6 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 		asserta(false);
 		}
 
-#if 0
-	{
-	Log("QL %u, TL %u\n", m_LQ, m_LT);
-	Log("Q: ");
-	for (uint i = 0; i < m_LQ; ++i)
-		Log(" %u", m_Q[i]);
-	Log("\n");
-	Log("T: ");
-	for (uint i = 0; i < m_LT; ++i)
-		Log(" %u", m_T[i]);
-	Log("\n");
-	Log("ProfQ:");
-	const parasail_profile_t *prof =
-		(parasail_profile_t *) m_ProfQ;
-	Log_parasail_profile(*prof);
-	Log("\n");
-	Log("score %d\n", m_result->score);
-	}
-#endif
 	if (m_result->flag & PARASAIL_FLAG_SATURATED)
 		{
 		m_Score = m_SaturatedScore;
@@ -831,6 +878,7 @@ void Paralign::Align_ScoreOnly(const string &LabelT, const byte *T, uint LT)
 
 bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	{
+	asserta(!m_DoReverse);
 	ClearResult();
 	m_LabelT = LabelT;
 	m_T = T;

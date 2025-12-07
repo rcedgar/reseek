@@ -3,6 +3,7 @@
 #include "triangle.h"
 #include "nu.h"
 #include "sort.h"
+#include <numeric>
 
 /////////////////////////////////////////
 // Hack because of K<->L bug in alpha.cpp
@@ -36,10 +37,46 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 
 vector<FEATURE> ParaSearch::m_NuFs;
 
+void ParaSearch::AppendHit_rev(uint i, uint j, float Score)
+	{
+	uint k = triangle_ij_to_k(i, j, m_SeqCount);
+	m_Scores_rev[k] = Score;
+	}
+
 void ParaSearch::AppendHit(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
+	if (m_DoReverse)
+		m_Scores_fwd[k] = Score;
 	m_Scores[k] = Score;
+	}
+
+float ParaSearch::GetSelfScore_rev(Paralign &PA, uint ChainIdx)
+	{
+	asserta(m_AlignMethod == "para");
+	const string &Label = m_Labels[ChainIdx];
+	const vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+	uint L = SIZE(ByteSeq);
+	PA.m_Q = ByteSeq.data();
+	PA.m_LQ = L;
+
+	PA.SetQueryProfile(Label, ByteSeq.data(), L);
+	PA.Align_ScoreOnly_rev(Label, ByteSeq.data(), L);
+	return (float) PA.m_Score_rev;
+	}
+
+void ParaSearch::SetSelfScores_rev(const string &AlignMethod)
+	{
+	InitThreads(AlignMethod, true);
+	if (m_SelfScores_rev != 0)
+		myfree(m_SelfScores_rev);
+	m_SelfScores_rev = myalloc(float, m_SeqCount);
+	Paralign PA;
+	PA.m_DoReverse = true;
+	Progress("Self scores... ");
+	for (uint i = 0; i < m_SeqCount; ++i)
+		m_SelfScores_rev[i] = GetSelfScore_rev(PA, i);
+	Progress("done\n");
 	}
 
 void ParaSearch::Align(uint ThreadIdx, uint i, uint j)
@@ -61,6 +98,7 @@ void ParaSearch::Align(uint ThreadIdx, uint i, uint j)
 
 	if (m_AlignMethod == "sw")
 		{
+		asserta(!m_DoReverse);
 		PA.Align_SWFast(Label_j, ByteSeq_j.data(), L_j);
 		AppendHit(i, j, PA.m_SWFastScore);
 		}
@@ -68,6 +106,11 @@ void ParaSearch::Align(uint ThreadIdx, uint i, uint j)
 		{
 		PA.Align_ScoreOnly(Label_j, ByteSeq_j.data(), L_j);
 		AppendHit(i, j, (float) PA.m_Score);
+		if (m_DoReverse)
+			{
+			PA.Align_ScoreOnly_rev(Label_j, ByteSeq_j.data(), L_j);
+			AppendHit_rev(i, j, (float) PA.m_Score_rev);
+			}
 		}
 	else
 		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
@@ -83,15 +126,21 @@ void ParaSearch::SetQuery(uint ThreadIdx, uint i)
 	PA.m_LQ = L_i;
 
 	if (m_AlignMethod == "para")
+		{
 		PA.SetQueryProfile(Label_i, ByteSeq_i.data(), L_i);
+		if (m_DoReverse)
+			PA.SetQueryProfile_rev(ByteSeq_i.data(), L_i);
+		}
 	else if (m_AlignMethod == "sw")
 		;
 	else
 		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
 	}
 
-void ParaSearch::Search(const string &AlignMethod)
+void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
 	{
+	if (!m_PAs.empty() && AlignMethod == m_AlignMethod)
+		return;
 	m_AlignMethod = AlignMethod;
 
 	ProgressLog("Search %s %s %s\n",
@@ -99,22 +148,41 @@ void ParaSearch::Search(const string &AlignMethod)
 		m_SubstMxName.c_str(),
 		m_ByteSeqMethod.c_str());
 
+	asserta(m_SeqCount == SIZE(m_Chains));
+	asserta(m_SeqCount == SIZE(m_ByteSeqs));
 	uint PairCount2 = triangle_get_K(m_SeqCount) + 1;
 	asserta(m_PairCount == PairCount2);
+	if (m_Scores != 0)
+		myfree(m_Scores);
+	if (m_Scores_fwd != 0)
+		myfree(m_Scores_fwd);
+	if (m_Scores_rev != 0)
+		myfree(m_Scores_rev);
 	m_Scores = myalloc(float, m_PairCount);
+	if (m_DoReverse)
+		{
+		m_Scores_fwd = myalloc(float, m_PairCount);
+		m_Scores_rev = myalloc(float, m_PairCount);
+		}
 	const uint ThreadCount = GetRequestedThreadCount();
 	m_PAs.clear();
 	m_QueryIdxs.clear();
 	for (uint i = 0; i < ThreadCount; ++i)
 		{
 		Paralign *PA = new Paralign;
+		PA->m_DoReverse = DoReverse;
 		m_PAs.push_back(PA);
 		m_QueryIdxs.push_back(UINT_MAX);
 		}
+	}
 
+void ParaSearch::Search(const string &AlignMethod, bool DoReverse)
+	{
+	InitThreads(AlignMethod, DoReverse);
 	atomic<uint> Counter = 0;
 	ProgressStep(0, m_PairCount, "Aligning");
 
+	const uint ThreadCount = GetRequestedThreadCount();
 #pragma omp parallel num_threads(ThreadCount)
 	{
 	uint ThreadIdx = GetThreadIndex();
@@ -314,7 +382,35 @@ void ParaSearch::SetScoreOrder()
 	QuickSortOrderDesc(m_Scores, K, m_ScoreOrder);
 	}
 
-void ParaSearch::Bench()
+void ParaSearch::BenchRev(const string &Msg, 
+	float SelfWeight, float RevWeight)
+	{
+	asserta(m_DoReverse);
+	asserta(m_SelfScores_rev != 0);
+	asserta(m_Scores_fwd != 0);
+	asserta(m_Scores_rev != 0);
+	asserta(m_Scores != 0);
+
+	uint K = triangle_get_K(m_SeqCount);
+	for (uint HitIdx = 0; HitIdx < K; ++HitIdx)
+		{
+		uint LabelIdx_i, LabelIdx_j;
+		triangle_k_to_ij(HitIdx, m_SeqCount, LabelIdx_i, LabelIdx_j);
+		if (LabelIdx_i == LabelIdx_j)
+			continue;
+		float SelfScore_rev_i = m_SelfScores_rev[LabelIdx_i];
+		float SelfScore_rev_j = m_SelfScores_rev[LabelIdx_j];
+		float Score_fwd = m_Scores_fwd[HitIdx];
+		float Score_rev = m_Scores_rev[HitIdx];
+		
+		m_Scores[HitIdx] = Score_fwd - RevWeight*Score_rev -
+			SelfWeight*(SelfScore_rev_i + SelfScore_rev_j);
+		}
+	SetScoreOrder();
+	Bench(Msg);
+	}
+
+void ParaSearch::Bench(const string &Msg)
 	{
 	asserta(m_ScoreOrder != 0);
 	uint K = triangle_get_K(m_SeqCount);
@@ -356,6 +452,8 @@ void ParaSearch::Bench()
 	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
 	m_Sum3 = SEPQ0_1*2 + SEPQ1*3/2 + SEPQ10;
 
+	if (Msg != "")
+		ProgressLog("%s ", Msg.c_str());
 	ProgressLog("%s %s %s gap %d/%d N=%u NT=%u\n",
 		m_AlignMethod.c_str(),
 		m_SubstMxName.c_str(),
@@ -388,6 +486,42 @@ void ParaSearch::AddDom(
 
 	asserta(SFIdx < SIZE(m_SFIdxToSize));
 	m_SFIdxToSize[SFIdx] += 1;
+	}
+
+void ParaSearch::WriteRevTsv(const string &FN) const
+	{
+	asserta(m_DoReverse);
+	if (FN == "")
+		return;
+	asserta(m_ScoreOrder != 0);
+	asserta(m_SelfScores_rev != 0);
+	asserta(m_Scores_rev != 0);
+	asserta(m_Scores_fwd != 0);
+
+	FILE *f = CreateStdioFile(FN);
+
+	fprintf(f, "%u\n", m_SeqCount);
+	for (uint i = 0; i < m_SeqCount; ++i)
+		fprintf(f, "%u\t%s\t%.3g\n",
+			i, m_Labels[i].c_str(), m_SelfScores_rev[i]);
+
+	uint K = triangle_get_K(m_SeqCount);
+	for (uint k = 0; k < K; ++k)
+		{
+		ProgressStep(k, K, "Writing %s", FN.c_str());
+		uint HitIdx = m_ScoreOrder[k];
+		uint i, j;
+		triangle_k_to_ij(HitIdx, m_SeqCount, i, j);
+		if (i == j)
+			continue;
+
+		fprintf(f, "%.3g", m_Scores_fwd[HitIdx]);
+		fprintf(f, "\t%.3g", m_Scores_rev[HitIdx]);
+		fprintf(f, "\t%s", m_Labels[i].c_str());
+		fprintf(f, "\t%s", m_Labels[j].c_str());
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
 	}
 
 void ParaSearch::WriteHits(const string &FN) const
@@ -488,7 +622,7 @@ void cmd_para_scop40()
 	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
 	PS.SetLookupFromLabels();
 	Paralign::SetSubstMxByName(opt(mxname));
-	PS.Search(opt(alignmethod));
+	PS.Search(opt(alignmethod), false);
 	PS.WriteHits(opt(output));
 	PS.Bench();
 	}

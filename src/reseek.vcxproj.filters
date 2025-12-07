@@ -527,6 +527,9 @@
     <ClCompile Include="hjnumega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hjnumegarev.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

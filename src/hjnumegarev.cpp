@@ -6,14 +6,23 @@
 static ParaSearch *s_PS;
 static Peaker *s_Peaker;
 
-static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
+static void GetFeatures(const string &s,
+	vector<FEATURE> &Fs, vector<float> &Weights)
 	{
-	const uint VarCount = P.GetVarCount();
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+	Fs.clear();
+	Weights.clear();
+	vector<string> Fields;
+	Split(s, Fields, ';');
+	const uint n = SIZE(Fields);
+	for (uint Idx = 0; Idx < n; ++Idx)
 		{
-		FEATURE F = StrToFeature(P.m_VarNames[VarIdx].c_str(), true);
-		if (F != FEATURE(UINT_MAX))
-			Fs.push_back(F);
+		vector<string> Fields2;
+		Split(Fields[Idx], Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		FEATURE F = StrToFeature(Fields2[0].c_str());
+		float Weight = StrToFloatf(Fields2[1]);
+		Fs.push_back(F);
+		Weights.push_back(Weight);
 		}
 	}
 
@@ -31,39 +40,13 @@ static double EvalSum3(const vector<string> &xv)
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
-	string VarsStr;
+	asserta(VarCount == 2);
+	asserta(s_Peaker->m_VarNames[0] == "selfw");
+	asserta(s_Peaker->m_VarNames[1] == "revw");
 
-	int ScaleFactor = 1;
-	if (optset_scale)
-		ScaleFactor = opt(scale);
-	int Open = 0;
-	int Ext = 0;
-	int SaturatedScore = 777;
-	vector<float> Weights;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		string sValue = xv[VarIdx];
-		const string &VarName = s_Peaker->GetVarName(VarIdx);
-		if (VarName == "open")
-			Open = LocalStrToInt(sValue);
-		else if (VarName == "ext")
-			Ext = LocalStrToInt(sValue);
-		else if (VarName == "scale")
-			ScaleFactor = LocalStrToInt(sValue);
-		else
-			{
-			FEATURE F = StrToFeature(VarName.c_str());
-			asserta(F == ParaSearch::m_NuFs[SIZE(Weights)]);
-			Weights.push_back(StrToFloatf(sValue));
-			}
-		}
-
-	Paralign::SetCompoundMx(ParaSearch::m_NuFs, Weights,
-		ScaleFactor, Open, Ext, SaturatedScore);
-	s_PS->ClearHitsAndResults();
-	s_PS->Search("para", false);
-	s_PS->SetScoreOrder();
-	s_PS->Bench();
+	float SelfWeight = StrToFloatf(xv[0]);
+	float RevWeight = StrToFloatf(xv[1]);
+	s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
 	return s_PS->m_Sum3;
 	}
 
@@ -102,19 +85,19 @@ static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 	Paralign::SetCompoundMx(ParaSearch::m_NuFs,
 		Weights, ScaleFactor, Open, Ext, SaturatedScore);
 	PS.ClearHitsAndResults();
-	PS.Search("para", false);
+	PS.Search("para", true);
 	PS.SetScoreOrder();
 	PS.Bench();
 	return PS.m_Sum3;
 	}
 
 static void Optimize(
-	const string &OptName,
 	const vector<string> &SpecLines,
 	ParaSearch &PS,
 	double &Best_y,
 	vector<string> &Best_xv)
 	{
+	const string OptName("latinclimb");
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
 
@@ -167,7 +150,7 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
-static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
+static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -197,13 +180,11 @@ static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
 		}
 	const uint VarCount = SIZE(VarNames);
 
-	s_PS = &FullPS;	
+	s_PS = &PS;	
 	string PeakerName;
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
 	Pfull.Init(SpecLines, EvalSum3);
-	//asserta(Pfull.GetVarCount() == VarCount);
-	//asserta(Pfull.m_VarNames == VarNames);
 	s_Peaker = &Pfull;
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
@@ -211,112 +192,50 @@ static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
-static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
+void cmd_hjnumegarev()
 	{
-	string GlobalSpec;
-	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-
-	uint SubsetIters = Peaker::SpecGetInt(GlobalSpec, "sub", UINT_MAX);
-	uint SubsetPct = Peaker::SpecGetInt(GlobalSpec, "subpct", UINT_MAX);
-	asserta(SubsetIters != UINT_MAX);
-
-	double Final_y = -1;
-	string Final_xss;
-
-	ParaSearch &Subset = *new ParaSearch;
-	for (uint SubsetIter = 1; SubsetIter <= SubsetIters; ++SubsetIter)
-		{
-		double Best_y;
-		vector<string> Best_xv;
-		FullPS.MakeSubset(Subset, SubsetPct);
-		ProgressLog("Subset %u%%, %u chains\n",
-			SubsetPct, SIZE(Subset.m_Labels));
-		string OptName;
-		Ps(OptName, "sub%u", SubsetIter);
-		Optimize(OptName, SpecLines, Subset, Best_y, Best_xv);
-
-		s_PS = &FullPS;	
-		string PeakerName;
-		Ps(PeakerName, "all%u", SubsetIter);
-		Peaker Pfull(0, PeakerName);
-		Pfull.Init(SpecLines, EvalSum3);
-		Pfull.Evaluate(Best_xv, PeakerName + "_init");
-		Pfull.HJ_RunHookeJeeves();
-		Pfull.WriteFinalResults(g_fLog);
-
-		if (Pfull.m_Best_y > Final_y)
-			{
-			Final_y = Pfull.m_Best_y;
-			Pfull.xv2xss(Pfull.m_Best_xv, Final_xss);
-			}
-		}
-
-	ProgressLog("\n");
-	ProgressLog("FINAL subclimb [%.4g] %s\n",
-		Final_y, Final_xss.c_str());
-	Log("@TSV@");
-	Log("\t%.4g", Final_y);
-	Log("\t%s", Final_xss.c_str());
-	Log("\n");
-	}
-
-void cmd_hjnumega()
-	{
-	const string SpecFN = g_Arg1;
-	Log("SpecFN=%s\n", SpecFN.c_str());
-	vector<string> SpecLines;
-	ReadLinesFromFile(SpecFN, SpecLines);
-
-	// Just to get features
-	Peaker Ptmp(0, "tmp");
-	Ptmp.Init(SpecLines, 0);
 	vector<FEATURE> Fs;
-	GetFeaturesFromVarNames(Ptmp, Fs);
+	vector<float> Weights;
+
+	GetFeatures(g_Arg1, Fs, Weights);
 	const uint FeatureCount = SIZE(Fs);
 	asserta(FeatureCount > 0);
-	ParaSearch::m_NuFs = Fs;
 
-	StatSig::Init(SCOP40_DBSIZE);
+	asserta(!optset_alignmethod);
+	asserta(optset_db);
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 
-	void OpenOutputFiles();
-	OpenOutputFiles();
-	Peaker::m_fTsv = CreateStdioFile(opt(output2));
+	asserta(optset_intopen);
+	asserta(optset_intext);
+	asserta(optset_scale);
+	int Scale = opt(scale);
+	int IntOpen = opt(intopen);
+	int IntExt = opt(intext);
+	Paralign::SetCompoundMx(Fs, Weights, Scale, 
+		IntOpen, IntExt, 777);
 
-	//DSSParams::Init(DM_UseCommandLineOption);
-	//DSSParams::OverwriteFeatures(Fs, Weights);
+	ParaSearch PS;
+	ParaSearch::m_NuFs = Fs;
+	PS.GetByteSeqs(DBFN, "nuletters");
+	PS.SetLookupFromLabels();
+	PS.m_DoReverse = true;
+	PS.SetSelfScores_rev("para");
+	PS.Search("para", true);
+	PS.SetScoreOrder();
+	PS.WriteRevTsv(opt(output2));
+	PS.Bench("Bench()");
+	PS.BenchRev("BenchRev(0, 0)", 0, 0);
 
-	ParaSearch FullPS;
-	FullPS.GetByteSeqs(DBFN, "nuletters");
-	FullPS.SetLookupFromLabels();
-	if (optset_varstr)
-		{
-		EvalSum3_VarStr(FullPS, opt(varstr));
-		return;
-		}
+	vector<string> SpecLines;
+	SpecLines.push_back("latin=32;");
+	SpecLines.push_back("rates=1.3,1.05,1.02;");
+	SpecLines.push_back("hj=2;");
+	SpecLines.push_back("var=selfw;min=0;max=1;");
+	SpecLines.push_back("var=revw;min=0;max=1;");
 
-	string GlobalSpec;
-	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-
-	string Strategy;
-	Peaker::SpecGetStr(GlobalSpec, "strategy", Strategy, "");
-	if (Strategy == "")
-		Die("Missing strategy=");
-
-	if (Strategy == "climb")
-		Climb(FullPS, SpecLines);
-	else if (Strategy == "subclimb")
-		SubClimb(FullPS, SpecLines);
-	else if (Strategy == "latinclimb")
-		{
-		double Best_y;
-		vector<string> Best_xv;
-		Optimize("LatinClimb", SpecLines, FullPS, Best_y, Best_xv);
-		}
-	else
-		Die("Bad strategy=%s", Strategy.c_str());
-
-	CloseStdioFile(Peaker::m_fTsv);
+	double Best_y;
+	vector<string> Best_xv;
+	Optimize(SpecLines, PS, Best_y, Best_xv);
 	}
