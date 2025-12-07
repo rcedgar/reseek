@@ -139,8 +139,6 @@ void ParaSearch::SetQuery(uint ThreadIdx, uint i)
 
 void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
 	{
-	if (!m_PAs.empty() && AlignMethod == m_AlignMethod)
-		return;
 	m_AlignMethod = AlignMethod;
 
 	ProgressLog("Search %s %s %s\n",
@@ -558,8 +556,17 @@ void ParaSearch::ClearHitsAndResults()
 	{
 	Paralign::ClearStats();
 	myfree(m_Scores);
+	myfree(m_Scores_fwd);
+	myfree(m_Scores_rev);
+	myfree(m_SelfScores_rev);
 	m_Scores = 0;
+	m_Scores_fwd = 0;
+	m_Scores_rev = 0;
+	m_SelfScores_rev = 0;
 	m_Sum3 = FLT_MAX;
+	for (uint i = 0; i < SIZE(m_PAs); ++i)
+		delete m_PAs[i];
+	m_PAs.clear();
 	}
 
 void ParaSearch::SetGapParams(int Open, int Ext)
