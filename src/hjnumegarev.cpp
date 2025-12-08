@@ -39,14 +39,27 @@ static double EvalSum3(const vector<string> &xv)
 	{
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
-	asserta(SIZE(xv) == VarCount);
-	asserta(VarCount == 2);
-	asserta(s_Peaker->m_VarNames[0] == "selfw");
-	asserta(s_Peaker->m_VarNames[1] == "revw");
+	if (opt(selfonly))
+		{
+		asserta(SIZE(xv) == VarCount);
+		asserta(VarCount == 1);
+		asserta(s_Peaker->m_VarNames[0] == "selfw");
 
-	float SelfWeight = StrToFloatf(xv[0]);
-	float RevWeight = StrToFloatf(xv[1]);
-	s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
+		float SelfWeight = StrToFloatf(xv[0]);
+		float RevWeight = 0;
+		s_PS->BenchRev("EvalSum3_selfonly()", SelfWeight, RevWeight);
+		}
+	else
+		{
+		asserta(SIZE(xv) == VarCount);
+		asserta(VarCount == 2);
+		asserta(s_Peaker->m_VarNames[0] == "selfw");
+		asserta(s_Peaker->m_VarNames[1] == "revw");
+
+		float SelfWeight = StrToFloatf(xv[0]);
+		float RevWeight = StrToFloatf(xv[1]);
+		s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
+		}
 	return s_PS->m_Sum3;
 	}
 
@@ -233,9 +246,11 @@ void cmd_hjnumegarev()
 	SpecLines.push_back("rates=1.3,1.05,1.02;");
 	SpecLines.push_back("hj=2;");
 	SpecLines.push_back("var=selfw;min=0;max=1;");
-	SpecLines.push_back("var=revw;min=0;max=1;");
 
 	double Best_y;
 	vector<string> Best_xv;
+	if (!opt(selfonly))
+		SpecLines.push_back	("var=revw;min=0;max=1;");
+
 	Optimize(SpecLines, PS, Best_y, Best_xv);
 	}
