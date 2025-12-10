@@ -40,6 +40,7 @@ public:
 		m_Ys.clear();
 		m_Zs.clear();
 		m_Lines.clear();
+		m_Idx = UINT_MAX;
 		}
 
 	uint GetSeqLength() const;
@@ -77,6 +78,7 @@ public:
 	void Reverse();
 	void Flip();
 	void GetReverse(PDBChain &Rev) const;
+	void GetSubChain(PDBChain &SubChain, uint Lo, uint Len) const;
 
 public:
 	static bool IsATOMLine(const string &Line);

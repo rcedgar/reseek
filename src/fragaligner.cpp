@@ -74,8 +74,10 @@ float FragAligner::CalcDALIScore()
 	return Score;
 	}
 
-void FragAligner::Align(const ChainData &Q, const ChainData &F, uint LoQ)
+void FragAligner::Align(ChainData &Q, ChainData &F, uint LoQ)
 	{
+	m_ChainDataQ = &Q;
+	m_ChainDataF = &F;
 	m_LoQ = LoQ;
 	const uint LQ = m_ChainDataQ->m_L;
 	const uint LF = m_ChainDataF->m_L;
@@ -83,6 +85,7 @@ void FragAligner::Align(const ChainData &Q, const ChainData &F, uint LoQ)
 	m_DALIScore = CalcDALIScore();
 	}
 
+#if 0
 void cmd_test()
 	{
 	asserta(optset_input2);
@@ -124,3 +127,4 @@ void cmd_test()
 			}
 		}
 	}
+#endif // 0

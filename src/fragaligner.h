@@ -16,7 +16,6 @@ class FragAligner
 public:
 	ChainData *m_ChainDataQ = 0;
 	ChainData *m_ChainDataF = 0;
-	const float *m_SubstMxPtr = 0;
 	uint m_LoQ = UINT_MAX;
 	float m_DALIScore = FLT_MAX;
 
@@ -24,7 +23,7 @@ public:
 	FragAligner() {}
 	~FragAligner() {}
 
-	void Align(const ChainData &A, const ChainData &F, uint LoQ);
+	void Align(ChainData &A, ChainData &F, uint LoQ);
 
 private:
 	float CalcDALIScore();

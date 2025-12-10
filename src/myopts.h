@@ -110,6 +110,7 @@ UNS_OPT(omega16)
 UNS_OPT(omegafwd8)
 UNS_OPT(omegafwd16)
 UNS_OPT(scale)
+UNS_OPT(m)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

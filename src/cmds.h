@@ -62,5 +62,6 @@ C(numx)
 C(hjnugaps)
 C(hjnumega)
 C(hjnumegarev)
+C(build_s3e_library)
 
 #undef C

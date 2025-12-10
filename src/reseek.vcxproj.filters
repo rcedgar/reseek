@@ -536,6 +536,9 @@
     <ClCompile Include="chaindata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="build_s3e_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

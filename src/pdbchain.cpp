@@ -478,6 +478,21 @@ void PDBChain::Reverse()
 	std::reverse(m_Zs.begin(), m_Zs.end());
 	}
 
+void PDBChain::GetSubChain(PDBChain &SubChain, uint Lo, uint Len) const
+	{
+	SubChain.Clear();
+	const uint L = GetSeqLength();
+	asserta(Lo + Len <= L);
+	Ps(SubChain.m_Label, "%s(lo=%u,len=%u)", m_Label.c_str(), Lo+1, Len);
+	for (uint Pos = Lo; Pos < Lo + Len; ++Pos)
+		{
+		SubChain.m_Xs.push_back(m_Xs[Pos]);
+		SubChain.m_Ys.push_back(m_Ys[Pos]);
+		SubChain.m_Zs.push_back(m_Zs[Pos]);
+		SubChain.m_Seq.push_back(m_Seq[Pos]);
+		}
+	}
+
 void PDBChain::GetReverse(PDBChain &Rev) const
 	{
 	Rev = *this;

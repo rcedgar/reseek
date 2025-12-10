@@ -279,6 +279,7 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
+    <ClCompile Include="build_s3e_library.cpp" />
     <ClCompile Include="chaindata.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
