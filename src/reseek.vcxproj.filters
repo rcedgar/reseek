@@ -539,6 +539,9 @@
     <ClCompile Include="build_s3e_library.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wisp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
