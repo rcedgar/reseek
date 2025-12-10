@@ -530,6 +530,12 @@
     <ClCompile Include="hjnumegarev.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fragaligner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chaindata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -877,13 +883,22 @@
     <ClInclude Include="parasearch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fragaligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chaindata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alphadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="maxbuff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">
       <Filter>Python</Filter>
-    </None>
-    <None Include="alphadata.inc">
-      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

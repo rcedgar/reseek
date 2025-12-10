@@ -279,6 +279,7 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
+    <ClCompile Include="chaindata.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
     <ClCompile Include="dali.cpp" />
@@ -289,6 +290,7 @@
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
+    <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
     <ClCompile Include="hjmumx.cpp" />
@@ -443,11 +445,13 @@
     <ClCompile Include="zutil.c" />
     <ClInclude Include="alncounters.h" />
     <ClInclude Include="alncounts.h" />
+    <ClInclude Include="alphadata.h" />
     <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
     <ClInclude Include="chainbag.h" />
+    <ClInclude Include="chaindata.h" />
     <ClInclude Include="chainer.h" />
     <ClInclude Include="chainreader2.h" />
     <ClInclude Include="cif.h" />
@@ -463,6 +467,8 @@
     <ClInclude Include="duper.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flatmx.h" />
+    <ClInclude Include="fragaligner.h" />
+    <ClInclude Include="maxbuff.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
     <ClInclude Include="mumx.h" />
@@ -560,7 +566,6 @@
     <ClInclude Include="sort.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="alphadata.inc" />
     <None Include="train_features2cpp.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -11,8 +11,8 @@ public:
 	vector<uint> m_ASs;
 	vector<const float * const *> m_ComponentScoreMxs;
 	vector<uint> m_Axes;
-	DSS m_D;
 	byte m_ReplaceUndefWithThisLetter = 0;
+	DSS m_D;
 
 public:
 	void Clear()
@@ -27,6 +27,7 @@ public:
 	uint GetFeatureCount() const { return SIZE(m_Features); }
 	uint GetAlphaSize() const;
 	void GetScoreMx(vector<vector<float> > &Mx) const;
+	float *GetScoreMxPtr() const;
 	void NuLetterToComponentLetters(byte NuLetter,
 		vector<byte> &ComponentLetters) const;
 	byte ComponentLettersToNuLetter(
@@ -46,6 +47,6 @@ public:
 	void SetComponents(
 		const vector<FEATURE> &Fs,
 		const vector<float> Weights);
-	void GetLetters(const PDBChain &Chain,
-		vector<byte> &Letters);
+	void GetLetters(const PDBChain &Chain, vector<byte> &Letters);
+	void GetLettersPtr(const PDBChain &Chain, byte *Letters);
 	};

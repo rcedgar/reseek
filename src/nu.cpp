@@ -98,6 +98,18 @@ uint Nu::GetAlphaSize() const
 	return AS;
 	}
 
+float *Nu::GetScoreMxPtr() const
+	{
+	vector<vector<float> > Mx;
+	GetScoreMx(Mx);
+	const uint AS = GetAlphaSize();
+	float *ScoreMxPtr = myalloc(float, AS*AS);
+	for (uint i = 0; i < AS; ++i)
+		for (uint j = 0; j < AS; ++j)
+			ScoreMxPtr[AS*i + j] = Mx[i][j];
+	return ScoreMxPtr;
+	}
+
 void Nu::GetScoreMx(vector<vector<float> > &Mx) const
 	{
 	const uint NF = GetFeatureCount();
@@ -205,25 +217,45 @@ void Nu::FloatMxToIntMx(
 		}
 	}
 
-void Nu::GetLetters(const PDBChain &Chain,
-	vector<byte> &Letters)
+void Nu::GetLettersPtr(const PDBChain &Chain, byte *Letters)
 	{
 	const uint FeatureCount = GetFeatureCount();
 	m_D.Init(Chain);
 	const uint L = Chain.GetSeqLength();
-	Letters.clear();
-	vector<byte> ComponentLetters;
+	vector<byte> ComponentLetters(FeatureCount);
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
-		ComponentLetters.clear();
 		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
 			{
 			FEATURE F = m_Features[FeatureIdx];
 			uint ComponentLetter = m_D.GetFeature(F, Pos);
 			if (ComponentLetter == UINT_MAX)
-				ComponentLetters.push_back(m_ReplaceUndefWithThisLetter);
+				ComponentLetters[FeatureIdx] = m_ReplaceUndefWithThisLetter;
 			else
-				ComponentLetters.push_back(ComponentLetter);
+				ComponentLetters[FeatureIdx] = ComponentLetter;
+			}
+		byte Letter = ComponentLettersToNuLetter(ComponentLetters);
+		Letters[Pos] = Letter;
+		}
+	}
+
+void Nu::GetLetters(const PDBChain &Chain, vector<byte> &Letters)
+	{
+	const uint FeatureCount = GetFeatureCount();
+	m_D.Init(Chain);
+	const uint L = Chain.GetSeqLength();
+	Letters.clear();
+	vector<byte> ComponentLetters(FeatureCount);
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		for (uint FeatureIdx = 0; FeatureIdx < FeatureCount; ++FeatureIdx)
+			{
+			FEATURE F = m_Features[FeatureIdx];
+			uint ComponentLetter = m_D.GetFeature(F, Pos);
+			if (ComponentLetter == UINT_MAX)
+				ComponentLetters[FeatureIdx] = m_ReplaceUndefWithThisLetter;
+			else
+				ComponentLetters[FeatureIdx] = ComponentLetter;
 			}
 		byte Letter = ComponentLettersToNuLetter(ComponentLetters);
 		Letters.push_back(Letter);
