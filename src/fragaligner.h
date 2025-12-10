@@ -4,27 +4,33 @@
 #include "chaindata.h"
 #include "maxbuff.h"
 
-static const uint DEFAULT_MAX_LF = 64;
-static const float s_DALI_D = 20.0f;
-static const float s_DALI_d0 = 0.2f;
-static const float s_DALI_Theta = 0.2f;
-static const float s_EXPFACTOR = 1.0f/(s_DALI_D*s_DALI_D);
-static const int TBLSZ = 100;
-
 class FragAligner
 	{
 public:
-	ChainData *m_ChainDataQ = 0;
-	ChainData *m_ChainDataF = 0;
-	uint m_LoQ = UINT_MAX;
-	float m_DALIScore = FLT_MAX;
+	static int m_DistScale;
+
+public:
+	uint m_Length = 0;
+	uint m_BandWidth = 0;
+	uint m_IdxCount = 0;
+	uint m_DistN = 0;
+	const float *m_DistPairScoresPtr = 0;
+	vector<uint> m_Idx_is;
+	vector<uint> m_Idx_js;
 
 public:
 	FragAligner() {}
 	~FragAligner() {}
 
-	void Align(ChainData &A, ChainData &F, uint LoQ);
+	void Init(uint Length, uint BandWidth, uint DistN,
+		const float *DistPairScoresPtr);
+	float Align(const uint *DistsPtrA, const uint *DistsPtrB) const;
+	uint *GetDistsPtr(const PDBChain &Chain, uint Pos) const;
+	void LogScoreMx() const;
 
-private:
-	float CalcDALIScore();
+public:
+	static float GetDistPairScore(uint Dist1, uint Dist2);
+	static void GetIdx_ijs(uint Length, uint BandWidth,
+		vector<uint> &Idx_is, vector<uint> &Idx_js);
+	static float *MakeDistPairScoresPtr(uint DistN);
 	};

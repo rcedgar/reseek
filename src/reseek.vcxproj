@@ -438,7 +438,6 @@
     <ClCompile Include="sfasta.cpp" />
     <ClCompile Include="sort.cpp" />
     <ClCompile Include="viterbifastmem.cpp" />
-    <ClCompile Include="wisp.cpp" />
     <ClCompile Include="writelocalaln.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />

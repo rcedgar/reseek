@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "fragaligner.h"
 #include "sort.h"
-
+#if 0
 static uint SSCharToInt(char c)
 	{
 	switch (c)
@@ -177,3 +177,6 @@ void cmd_build_s3e_library()
 			Frag.m_Label.c_str());
 		}
 	}
+#else
+void cmd_build_s3e_library() {}
+#endif

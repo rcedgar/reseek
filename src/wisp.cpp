@@ -139,7 +139,7 @@ void findSolution(const vector<int>& M, const vector<int>& predecessor,
 
 
 // Example Usage
-int main() {
+int example_main() {
     // Intervals: {start, finish, weight}
     vector<Interval> intervals = {
         {1, 4, 20},  // i1

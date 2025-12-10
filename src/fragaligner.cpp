@@ -1,130 +1,187 @@
 #include "myutils.h"
 #include "fragaligner.h"
 
-static float *WeightLookup = 0;
+int FragAligner::m_DistScale = 9;
 
-static float GetWeight_NoLookup(float y)
+float FragAligner::Align(const uint *DistsPtrA, const uint *DistsPtrB) const
 	{
-	float w = expf(-s_EXPFACTOR*y*y);
+	float Score = 0;
+	for (uint i = 0; i < m_IdxCount; ++i)
+		{
+		uint dij_A = DistsPtrA[i];
+		uint dij_B = DistsPtrB[i];
+		assert(dij_A < m_DistN);
+		assert(dij_B < m_DistN);
+		Score += m_DistPairScoresPtr[m_DistN*dij_A + dij_B];
+		}
+	return Score;
+	}
+
+void FragAligner::GetIdx_ijs(uint Length, uint BandWidth,
+	vector<uint> &Idx_is, vector<uint> &Idx_js)
+	{
+	Idx_is.clear();
+	Idx_js.clear();
+	for (uint i = 0; i < Length; ++i)
+		{
+		for (uint j = i + 1 + BandWidth; j < Length; ++j)
+			{
+			Idx_is.push_back(i);
+			Idx_js.push_back(j);
+			}
+		}
+	}
+
+float *FragAligner::MakeDistPairScoresPtr(uint DistN)
+	{
+	float *DistPairScoresPtr = myalloc(float, DistN*DistN);
+	for (uint Dist1 = 0; Dist1 < DistN; ++Dist1)
+		for (uint Dist2 = 0; Dist2 < DistN; ++Dist2)
+			DistPairScoresPtr[Dist1*DistN + Dist2] =
+				GetDistPairScore(Dist1, Dist2);
+	return DistPairScoresPtr;
+	}
+
+void FragAligner::Init(uint Length, uint BandWidth, uint DistN,
+	const float *DistPairScoresPtr)
+	{
+	m_Length = Length;
+	m_BandWidth = BandWidth;
+	m_DistN = DistN;
+	m_DistPairScoresPtr = DistPairScoresPtr;
+	GetIdx_ijs(Length, BandWidth, m_Idx_is, m_Idx_js);
+	m_IdxCount = SIZE(m_Idx_is);
+	asserta(SIZE(m_Idx_js) == m_IdxCount);
+	}
+
+static float Weight_NoLookup(float y)
+	{
+	const float D = 20.0;
+	const float x = 1/(D*D);
+	float w = expf(-x*y*y);
 	return w;
 	}
 
-static float GetWeight_Lookup(float y)
+float FragAligner::GetDistPairScore(uint Dist1, uint Dist2)
 	{
-	int iy = int(y+0.5f);
-	if (iy < 0)
-		iy = 0;
-	if (iy >= TBLSZ)
-		iy = TBLSZ-1;
-	float w2 = WeightLookup[iy];
-	return w2;
-	}
+	const float d0 = 0.2f;
 
-static bool InitWeightLookup()
-	{
-	WeightLookup = myalloc(float, TBLSZ);
-	for (int i = 0; i < TBLSZ; ++i)
-		{
-		float y = float(i);
-		float w = GetWeight_NoLookup(y);
-		WeightLookup[i] = w;
-		}
-	return true;
-	};
-static bool InitWeightLookupDone = InitWeightLookup();
-
-static float DALI_dpscorefun(float a, float b)
-	{
+	float a = float(Dist1);
+	float b = float(Dist2);
 	float Score = 0;
 	float diff = fabs(a - b);
 	float mean = (a + b)/2;
 	float ratio = diff/mean;
-	float w = GetWeight_Lookup(mean);
+	float w = Weight_NoLookup(mean);
 	if (mean > 100)
 		Score = 0;
+	else if (mean > 0)
+		Score = w*(d0 - ratio);
 	else
-		{
-		if (mean > 0)
-			Score = w*(s_DALI_d0 - ratio);
-		else
-			Score = w*s_DALI_d0;
-		}
+		Score = w*d0;
 	return Score;
 	}
 
-float FragAligner::CalcDALIScore()
+uint *FragAligner::GetDistsPtr(const PDBChain &Chain, uint Pos) const
 	{
-	const uint LQ = m_ChainDataQ->m_L;
-	const uint LF = m_ChainDataF->m_L;
-	const float *DistMxVecPtrQ = m_ChainDataQ->GetDistMxPtr();
-	const float *DistMxVecPtrF = m_ChainDataF->GetDistMxPtr();
-	float Score = 0;
-	for (uint PosF_i = 0; PosF_i < LF; ++PosF_i)
+	const uint L = Chain.GetSeqLength();
+	const uint n = SIZE(m_Idx_is);
+	asserta(n > 0);
+	asserta(SIZE(m_Idx_js) == n);
+	uint *DistsPtr = myalloc(uint, n);
+	for (uint k = 0; k < n; ++k)
 		{
-		uint PosQ_i = m_LoQ + PosF_i;
-		for (uint PosF_j = 0; PosF_j < LF; ++PosF_j)
+		uint i = m_Idx_is[k];
+		uint j = m_Idx_js[k];
+		double d = Chain.GetDist(Pos+i, Pos+j);
+		uint ud = uint(d);
+		if (ud >= m_DistN)
+			ud = m_DistN - 1;
+		DistsPtr[k] = ud;
+		}
+	return DistsPtr;
+	}
+
+void FragAligner::LogScoreMx() const
+	{
+	Log("FragAligner::LogScoreMx()\n");
+	Log("Length  %u\n", m_Length);
+	Log("Band    %u\n", m_BandWidth);
+	Log("DistN   %u\n", m_DistN);
+	Log("NrIdxs  %u\n", m_IdxCount);
+	Log("\n");
+	Log("Idx_ijs\n");
+	for (uint i = 0; i < m_IdxCount; ++i)
+		Log("  %3u  %3u\n", m_Idx_is[i], m_Idx_js[i]);
+
+	for (uint Dist1 = 0; Dist1 < m_DistN; ++Dist1)
+		{
+		for (uint Dist2 = Dist1; Dist2 < m_DistN; ++Dist2)
 			{
-			uint PosQ_j = m_LoQ + PosF_j;
-			float dij_Q = DistMxVecPtrQ[PosQ_i*LQ + PosQ_j];
-			float dij_F = DistMxVecPtrF[PosF_i*LF + PosF_j];
-			Score += DALI_dpscorefun(dij_Q, dij_F);
+			float Score = m_DistPairScoresPtr[Dist1*m_DistN + Dist2];
+			float Score2 = GetDistPairScore(Dist1, Dist2);
+			Log("  %3u  %3u  %7.3f\n", Dist1, Dist2, Score);
+			asserta(Score == Score2);
 			}
 		}
-	Score += LF*s_DALI_Theta;
-	return Score;
 	}
 
-void FragAligner::Align(ChainData &Q, ChainData &F, uint LoQ)
-	{
-	m_ChainDataQ = &Q;
-	m_ChainDataF = &F;
-	m_LoQ = LoQ;
-	const uint LQ = m_ChainDataQ->m_L;
-	const uint LF = m_ChainDataF->m_L;
-	asserta(m_LoQ + LF <= LQ);
-	m_DALIScore = CalcDALIScore();
-	}
-
-#if 0
 void cmd_test()
 	{
 	asserta(optset_input2);
-	vector<PDBChain *> Chains1;
-	vector<PDBChain *> Chains2;
-	ReadChains(g_Arg1, Chains1);
-	ReadChains(opt(input2), Chains2);
-	
-	ChainData CD_i;
-	ChainData CD_j;
+	vector<PDBChain *> Chains;
+	ReadChains(g_Arg1, Chains);
+	const uint ChainCount = SIZE(Chains);
+	ProgressLog("%u chains\n", ChainCount);
+
+	const uint Length = 32;
+	const uint BandWidth = 2;
+	const uint DistN = 20;
+	float *DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(DistN);
 
 	FragAligner FA;
-	FA.m_ChainDataQ = &CD_i;
-	FA.m_ChainDataF = &CD_j;
+	FA.Init(Length, BandWidth, DistN, DistPairScoresPtr);
+	//FA.LogScoreMx();
 
-	const uint n1 = SIZE(Chains1);
-	const uint n2 = SIZE(Chains2);
-	const uint FL = 32;
-	for (uint i = 0; i < n1; ++i)
+	float MinDiagScore = FLT_MAX;
+	float MaxDiagScore = FLT_MAX;
+	float MinOtherScore = FLT_MAX;
+	float MaxOtherScore = FLT_MAX;
+	for (uint i = 0; i < ChainCount; ++i)
 		{
-		PDBChain &Chain_i = *Chains1[i];
-		CD_i.SetChain(Chain_i);
-		uint L_i = Chain_i.GetSeqLength();
-
-		for (uint j = 0; j < n2; ++j)
+		PDBChain &Chain = *Chains[i];
+		const uint L = Chain.GetSeqLength();
+		for (uint Pos = 0; Pos + Length < L; ++Pos)
 			{
-			PDBChain &Chain_j = *Chains2[j];
-			uint L_j = Chain_j.GetSeqLength();
-			CD_j.SetChain(Chain_j);
-			for (uint Lo_i = 0; Lo_i < L_i; ++Lo_i)
+			uint *DistsPtr = FA.GetDistsPtr(Chain, Pos);
+			float Score = FA.Align(DistsPtr, DistsPtr);
+			if (MinDiagScore == FLT_MAX)
+				MinDiagScore = MaxDiagScore = Score;
+			else
 				{
-				uint Hi_i = Lo_i + L_j + 4;
-				if (Hi_i >= L_i)
-					break;
-
-				FA.Align(CD_i, CD_j, Lo_i);
-				Log("[%4u]  %8.3g\n", Lo_i, FA.m_DALIScore);
+				MinDiagScore = min(Score, MinDiagScore);
+				MaxDiagScore = max(Score, MaxDiagScore);
+				}
+			}
+		for (uint Pos1 = 0; Pos1 + Length < L; ++Pos1)
+			{
+			uint *DistsPtr1 = FA.GetDistsPtr(Chain, Pos1);
+			for (uint Pos2 = Pos1 + 1; Pos2 + Length < L; ++Pos2)
+				{
+				uint *DistsPtr2 = FA.GetDistsPtr(Chain, Pos2);
+				float Score = FA.Align(DistsPtr1, DistsPtr2);
+				if (MinOtherScore == FLT_MAX)
+					MinOtherScore = MaxOtherScore = Score;
+				else
+					{
+					MinOtherScore = min(Score, MinOtherScore);
+					MaxOtherScore = max(Score, MaxOtherScore);
+					}
 				}
 			}
 		}
+	ProgressLog(" Diag scores %8.3g to %8.3g\n",
+		MinDiagScore, MaxDiagScore);
+	ProgressLog("Other scores %8.3g to %8.3g\n",
+		MinOtherScore, MaxOtherScore);
 	}
-#endif // 0
