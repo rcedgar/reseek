@@ -143,20 +143,20 @@ void SSSLib::ThreadBody(uint ThreadIndex)
 	const uint FragCount = SIZE(m_DistsPtrVec);
 	asserta(SIZE(m_CentroidsDistsPtrVec) == m_AlphaSize);
 	FragAligner FA;
-	FA.Init(m_M, m_BandWidth, m_DistN, m_DistPairScoresPtr);
+	FA.Init(m_FragL, m_BandWidth, m_DistN, m_DistPairScoresPtr);
 	for (;;)
 		{
 		m_Lock.lock();
 		uint NextFragIdx = m_NextFragIdx;
 		if (m_NextFragIdx < FragCount)
-			m_NextFragIdx += m_Chunk;
+			m_NextFragIdx += m_ThreadBatch;
 		m_Lock.unlock();
 		if (m_NextFragIdx >= FragCount)
 			break;
 
-		uint IdxHi = min(NextFragIdx + m_Chunk, FragCount);
+		uint IdxHi = min(NextFragIdx + m_ThreadBatch, FragCount);
 		vector<uint> ClusterIdxs;
-		for (uint i = 0; i < m_Chunk; ++i)
+		for (uint i = 0; i < m_ThreadBatch; ++i)
 			{
 			uint FragIdx = i + NextFragIdx;
 			if (FragIdx >= FragCount)
@@ -166,7 +166,7 @@ void SSSLib::ThreadBody(uint ThreadIndex)
 			}
 
 		m_Lock.lock();
-		for (uint i = 0; i < m_Chunk; ++i)
+		for (uint i = 0; i < m_ThreadBatch; ++i)
 			{
 			uint FragIdx = i + NextFragIdx;
 			if (FragIdx >= FragCount)
@@ -197,7 +197,7 @@ void SSSLib::AddFrags(FragAligner &FA, uint ChainIdx)
 	{
 	const PDBChain &Chain = *m_Chains[ChainIdx];
 	const uint L = Chain.GetSeqLength();
-	for (uint Pos = randu32()%m_M; Pos + m_M <= L; Pos += m_M/4)
+	for (uint Pos = randu32()%m_FragL; Pos + m_FragL <= L; Pos += m_FragStep)
 		AddFrag(FA, ChainIdx, Pos);
 	}
 
@@ -273,12 +273,14 @@ void SSSLib::SetTrainingFrags()
 	ProgressLog("%u frags, %.2f frags/chain\n", FragCount, FragsPerChain);
 	}
 
-void SSSLib::SetParams(uint AlphaSize, uint M, uint BandWidth, uint DistN)
+void SSSLib::SetParams(uint AlphaSize, uint M, uint BandWidth,
+	uint DistN, uint FragStep)
 	{
 	m_AlphaSize = AlphaSize;
-	m_M = M;
+	m_FragL = M;
 	m_BandWidth = BandWidth;
 	m_DistN = DistN;
+	m_FragStep = FragStep;
 
 	m_DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(m_DistN);
 
@@ -339,25 +341,41 @@ void SSSLib::LogClusters() const
 	vector<uint> Sizes, Order;
 	GetClusterSizes(Sizes, Order);
 
+	uint FragCount = GetFragCount();
 	for (uint k = 0; k < m_AlphaSize; ++k)
 		{
 		uint ClusterIdx = Order[k];
 		uint Size = Sizes[ClusterIdx];
+		double Pct = GetPct(Size, FragCount);
 		uint FragIdx = m_RepFragIdxs[ClusterIdx];
 		uint ChainIdx = m_FragChainIdxs[FragIdx];
 		uint Start = m_FragStarts[FragIdx];
 		const string &Label = m_Chains[ChainIdx]->m_Label;
 		Log("[%3u]", k);
 		Log("  %7u", Size);
+		Log("  %4.1f", Pct);
 		Log("  %s(%u)", Label.c_str(), Start);
 		Log("\n");
 		}
 	}
 
-byte SSSLib::GetLetter(const uint *DistsPtr, uint L, uint Start)
+uint SSSLib::GetMinClusterSize() const
 	{
-	if (Start + m_M > L)
+	uint MinSize = UINT_MAX;
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		MinSize = min(MinSize, SIZE(m_ClusterIdxToFragIdxs[i]));
+	return MinSize;
+	}
+
+byte SSSLib::GetLetter(const uint *DistsPtr, uint L, uint Pos)
+	{
+	int iStart = int(Pos) - int(m_FragL)/2;
+	if (iStart < 0)
 		return 0xff;
+	int iEnd = iStart + int(m_FragL) - 1;
+	if (iEnd >= int(L))
+		return 0xff;
+	uint Start = uint(iStart);
 
 	float BestScore = -999;
 	byte BestLetter = 0xff;
@@ -387,8 +405,8 @@ void SSSLib::AssignLetters()
 		vector<byte> &Letters = m_LettersVec[ChainIdx];
 		Letters.reserve(L);
 		uint *DistsPtr = m_FA.GetDistsPtrChain(Chain);
-		for (uint Start = 0; Start < L; ++Start)
-			Letters.push_back(GetLetter(DistsPtr, L, Start));
+		for (uint Pos = 0; Pos < L; ++Pos)
+			Letters.push_back(GetLetter(DistsPtr, L, Pos));
 		myfree(DistsPtr);
 		}
 	}
@@ -401,6 +419,41 @@ char SSSLib::LetterToChar(byte Letter) const
 	return g_LetterToCharMu[Letter];
 	}
 
+void SSSLib::ToSpec(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	vector<uint> Sizes, Order;
+	GetClusterSizes(Sizes, Order);
+	string CmdLine;
+	GetCmdLine(CmdLine);
+	fprintf(f, "# %s\n", CmdLine.c_str());
+	fprintf(f, "alpha_size=%u\n", m_AlphaSize);
+	fprintf(f, "fragl=%u\n", m_FragL);
+	fprintf(f, "bandwidth=%u\n", m_BandWidth);
+	fprintf(f, "fragstep=%u\n", m_FragStep);
+	fprintf(f, "distn=%u\n", m_DistN);
+	fprintf(f, "idxcount=%u\n", m_IdxCount);
+	for (uint k = 0; k < m_AlphaSize; ++k)
+		{
+		uint ClusterIdx = Order[k];
+		uint Size = Sizes[ClusterIdx];
+		uint FragIdx = m_RepFragIdxs[ClusterIdx];
+		uint ChainIdx = m_FragChainIdxs[FragIdx];
+		uint Start = m_FragStarts[FragIdx];
+		const string &Label = m_Chains[ChainIdx]->m_Label;
+		fprintf(f, "%u", k);
+		fprintf(f, "\t%7u", Size);
+		fprintf(f, "\t%s(%u)", Label.c_str(), Start);
+		const uint *DistsPtr = m_CentroidsDistsPtrVec[ClusterIdx];
+		for (uint Idx = 0; Idx < m_IdxCount; ++Idx)
+			fprintf(f, "\t%u", DistsPtr[Idx]);
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
+
 void SSSLib::ToFasta(const string &FN) const
 	{
 	if (FN == "")
@@ -408,6 +461,7 @@ void SSSLib::ToFasta(const string &FN) const
 	FILE *f = CreateStdioFile(FN);
 	const uint ChainCount = SIZE(m_Chains);
 	asserta(SIZE(m_LettersVec) == ChainCount);
+	string Tmp;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Writing %s", FN.c_str());
@@ -417,32 +471,60 @@ void SSSLib::ToFasta(const string &FN) const
 		const vector<byte> &Letters = m_LettersVec[ChainIdx];
 		asserta(SIZE(Letters) == L);
 		string Seq;
-		for (uint Pos = 0; Pos < L; ++Pos)
-			Seq += LetterToChar(Letters[Pos]);
+		if (m_AlphaSize <= 36)
+			{
+			for (uint Pos = 0; Pos < L; ++Pos)
+				Seq += LetterToChar(Letters[Pos]);
+			}
+		else
+			{
+			for (uint Pos = 0; Pos < L; ++Pos)
+				{
+				Ps(Tmp, "%02x", Letters[Pos]);
+				Seq += Tmp;
+				}
+			}
 		SeqToFasta(f, Label, Seq);
 		}
 	CloseStdioFile(f);
 	}
 
-void cmd_build_sss_library()
+void cmd_cluster_sss()
 	{
 	const string &ChainsFN = g_Arg1;
 	asserta(optset_alpha_size);
-	asserta(optset_m);
+	asserta(optset_fragl);
 
 	uint AlphaSize = opt(alpha_size);
-	uint M = opt(m);
+	uint FragL = opt(fragl);
 	uint BandWidth = 2;
 	uint DistN = 20;
+	uint FragStep = 8;
+	uint MinSize = 100;
+
+	if (optset_bandwidth)
+		BandWidth = opt(bandwidth);
+	if (optset_bandwidth)
+		FragStep = opt(fragstep);
+	if (optset_distn)
+		DistN = opt(distn);
+	if (optset_minsize)
+		DistN = opt(minsize);
 
 	SSSLib Lib;
-	Lib.SetParams(AlphaSize, M, BandWidth, DistN);
+	Lib.SetParams(AlphaSize, FragL, BandWidth, DistN, FragStep);
 	Lib.LoadChains(ChainsFN);
 	Lib.SetTrainingFrags();
 	Lib.AssertSames();
 	Lib.Train();
+	uint MinClusterSize = Lib.GetMinClusterSize();
+	if (MinClusterSize < MinSize)
+		Die("MinSize %u", MinClusterSize);
 	Lib.AssignReps();
 	Lib.LogClusters();
+	ProgressLog("MinSize %u (%.2f%%)\n",
+		MinSize, GetPct(MinSize, Lib.GetFragCount()));
+	Lib.ToSpec(opt(output));
 	Lib.AssignLetters();
 	Lib.ToFasta(opt(fasta));
 	}

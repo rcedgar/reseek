@@ -536,9 +536,6 @@
     <ClCompile Include="chaindata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="build_sss_library.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ssslib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

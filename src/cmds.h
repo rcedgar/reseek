@@ -62,6 +62,6 @@ C(numx)
 C(hjnugaps)
 C(hjnumega)
 C(hjnumegarev)
-C(build_sss_library)
+C(cluster_sss)
 
 #undef C

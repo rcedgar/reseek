@@ -7,11 +7,12 @@ class PDBChain;
 class SSSLib
 	{
 public:
-	uint m_M = UINT_MAX;
+	uint m_FragL = UINT_MAX;
 	uint m_AlphaSize = UINT_MAX;
 	uint m_IdxCount = UINT_MAX;
 	uint m_NextFragIdx = 0;
-	uint m_Chunk = 256;
+	uint m_ThreadBatch = 256;
+	uint m_FragStep = 8;
 	uint m_BandWidth = 2;
 	uint m_DistN = 40;
 
@@ -49,7 +50,8 @@ public:
 	void AddFrags(FragAligner &FA, uint ChainIdx);
 	void LogClusterAssignsHead(uint n = 10);
 	void ThreadBody(uint ThreadIndex);
-	void SetParams(uint AlphaSize, uint M, uint BandWidth, uint DistN);
+	void SetParams(uint AlphaSize, uint M, uint BandWidth,
+		uint DistN, uint FragStep);
 	void SetTrainingFrags();
 	void Train();
 	void LoadChains(const string &FN);
@@ -62,7 +64,9 @@ public:
 	void AssignLetters();
 	byte GetLetter(const uint *DistsPtr, uint L, uint Start);
 	void ToFasta(const string &FN) const;
+	void ToSpec(const string &FN) const;
 	char LetterToChar(byte Letter) const;
+	uint GetMinClusterSize() const;
 
 public:
 	static void StaticThreadBody(SSSLib *Lib, uint ThreadIndex);
