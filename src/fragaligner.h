@@ -25,7 +25,13 @@ public:
 	void Init(uint Length, uint BandWidth, uint DistN,
 		const float *DistPairScoresPtr);
 	float Align(const uint *DistsPtrA, const uint *DistsPtrB) const;
-	uint *GetDistsPtr(const PDBChain &Chain, uint Pos) const;
+	float Align_Trace(const uint *DistsPtrA, const uint *DistsPtrB) const;
+	float AlignSubchain(const uint *DistsPtrQ, uint LQ, uint StartQ,
+		const uint *DistsPtrF) const;
+	float AlignSubchain_Trace(const uint *DistsPtrQ, uint LQ, uint StartQ,
+		const uint *DistsPtrF) const;
+	uint *GetDistsPtrFrag(const PDBChain &Chain, uint Pos) const;
+	uint *GetDistsPtrChain(const PDBChain &Chain) const;
 	void LogScoreMx() const;
 
 public:

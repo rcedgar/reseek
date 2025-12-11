@@ -1,8 +1,10 @@
 #include "myutils.h"
 #include "fragaligner.h"
 #include "sort.h"
+#include "ssslib.h"
 #include <set>
 
+#if 0
 static uint s_M;
 static uint s_AlphaSize;
 static uint s_IdxCount;
@@ -61,8 +63,13 @@ static void LogCentroidDists()
 
 static uint *GetRandomDistsPtr()
 	{
-	asserta(false);
-	return 0;
+	uint *DistsPtr = myalloc(uint, s_IdxCount);
+	for (uint i = 0; i < s_IdxCount; ++i)
+		{
+		uint ClusterIdx = randu32()%s_AlphaSize;
+		DistsPtr[i] = s_CentroidsDistsPtrVec[ClusterIdx][i];
+		}
+	return DistsPtr;
 	}
 
 static void AssignMeanCentroid(uint ClusterIdx)
@@ -106,10 +113,6 @@ static uint AssignCluster(FragAligner &FA, uint FragIdx)
 		{
 		const uint *DistsPtr_Centroid = s_CentroidsDistsPtrVec[ClusterIdx];
 		float Score = FA.Align(DistsPtr_Frag, DistsPtr_Centroid);
-		if (FragIdx == 0)
-			{//@@
-			Log("Frag 0 cluster %u score %.2f\n", ClusterIdx, Score);
-			}//@@
 		if (Score > BestScore)
 			{
 			BestScore = Score;
@@ -163,7 +166,7 @@ static void ThreadBody(uint ThreadIndex)
 static void AddFrag(FragAligner &FA, uint ChainIdx, uint Pos)
 	{
 	const PDBChain &Chain = *s_Chains[ChainIdx];
-	uint *DistsPtr = FA.GetDistsPtr(Chain, Pos);
+	uint *DistsPtr = FA.GetDistsPtrFrag(Chain, Pos);
 	s_ChainIdxs.push_back(ChainIdx);
 	s_FragStarts.push_back(Pos);
 	s_DistsPtrVec.push_back(DistsPtr);
@@ -211,10 +214,9 @@ static void AssignClusters()
 		delete ts[ThreadIndex];
 	}
 
-void cmd_build_s3e_library()
+void cmd_build_sss_library()
 	{
 	const string &ChainsFN = g_Arg1;
-	asserta(optset_subsample);
 	s_M = opt(m);
 
 	asserta(optset_alpha_size);
@@ -251,8 +253,6 @@ void cmd_build_s3e_library()
 	uint BestIter = UINT_MAX;
 	for (uint Iter = 0; Iter < 1000; ++Iter)
 		{
-		//LogCentroidDists();
-		//LogClusterAssignsHead();
 		memcpy(s_PrevClusterIdxs, s_ClusterIdxs, FragCount*sizeof(uint));
 		AssignMeanCentroids();
 		AssignClusters();
@@ -276,4 +276,17 @@ void cmd_build_s3e_library()
 			}
 		}
 	ProgressLog("Done\n");
+
+	vector<uint> ClusterSizes;
+	for (uint i = 0; i < s_AlphaSize; ++i)
+		ClusterSizes.push_back(SIZE(s_ClusterIdxToFragIdxs[i]));
+
+	vector<uint> Order(s_AlphaSize);
+	QuickSortOrderDesc(ClusterSizes.data(), s_AlphaSize, Order.data());
+	for (uint i = 0; i < s_AlphaSize; ++i)
+		{
+		uint Size = ClusterSizes[Order[i]];
+		Log("%3u  %8u\n", i, Size);
+		}
 	}
+#endif // 0

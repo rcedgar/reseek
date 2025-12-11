@@ -536,7 +536,10 @@
     <ClCompile Include="chaindata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="build_s3e_library.cpp">
+    <ClCompile Include="build_sss_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssslib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -896,6 +899,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="maxbuff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ssslib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

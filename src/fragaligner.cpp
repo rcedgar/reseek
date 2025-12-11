@@ -3,6 +3,58 @@
 
 int FragAligner::m_DistScale = 9;
 
+float FragAligner::AlignSubchain(const uint *DistsPtrQ, uint LQ, uint StartQ,
+	const uint *DistsPtrF) const
+	{
+	float Score = 0;
+	uint k = 0;
+	for (uint i = 0; i < m_Length; ++i)
+		{
+		uint PosQ_i = StartQ + i;
+		for (uint j = i + 1 + m_BandWidth; j < m_Length; ++j)
+			{
+			uint PosQ_j = StartQ + j;
+			uint dij_Q = DistsPtrQ[PosQ_i*LQ + PosQ_j];
+			uint dij_F = DistsPtrF[k++];
+			assert(dij_Q < m_DistN);
+			assert(dij_F < m_DistN);
+			Score += m_DistPairScoresPtr[m_DistN*dij_Q + dij_F];
+			}
+		}
+	return Score;
+	}
+
+float FragAligner::AlignSubchain_Trace(const uint *DistsPtrQ, uint LQ, uint StartQ,
+	const uint *DistsPtrF) const
+	{
+	Log("\nAlignSubchain_Trace()\n");
+	float Score = 0;
+	uint k = 0;
+	for (uint i = 0; i < m_Length; ++i)
+		{
+		uint PosQ_i = StartQ + i;
+		for (uint j = i + 1 + m_BandWidth; j < m_Length; ++j)
+			{
+			uint PosQ_j = StartQ + j;
+			uint dij_Q = DistsPtrQ[PosQ_i*LQ + PosQ_j];
+			uint dij_F = DistsPtrF[k++];
+			assert(dij_Q < m_DistN);
+			assert(dij_F < m_DistN);
+			Score += m_DistPairScoresPtr[m_DistN*dij_Q + dij_F];
+			Log("i %u", i);
+			Log(" j %u", j);
+			Log(" PosQ_i %u", PosQ_i);
+			Log(" PosQ_j %u", PosQ_j);
+			Log(" dij_Q %u", dij_Q);
+			Log(" dij_F %u", dij_F);
+			Log(" Score %.2f", Score);
+			Log("\n");
+			}
+		}
+	Log("= Score %.2f\n", Score);
+	return Score;
+	}
+
 float FragAligner::Align(const uint *DistsPtrA, const uint *DistsPtrB) const
 	{
 	float Score = 0;
@@ -14,6 +66,29 @@ float FragAligner::Align(const uint *DistsPtrA, const uint *DistsPtrB) const
 		assert(dij_B < m_DistN);
 		Score += m_DistPairScoresPtr[m_DistN*dij_A + dij_B];
 		}
+	return Score;
+	}
+
+float FragAligner::Align_Trace(const uint *DistsPtrA, const uint *DistsPtrB) const
+	{
+	Log("\nAlign_Trace()\n");
+	float Score = 0;
+	for (uint i = 0; i < m_IdxCount; ++i)
+		{
+		uint dij_A = DistsPtrA[i];
+		uint dij_B = DistsPtrB[i];
+		assert(dij_A < m_DistN);
+		assert(dij_B < m_DistN);
+		Score += m_DistPairScoresPtr[m_DistN*dij_A + dij_B];
+		Log("i %u", i);
+		Log(" Idx_i %u", m_Idx_is[i]);
+		Log(" Idx_j %u", m_Idx_js[i]);
+		Log(" dij_A %u", dij_A);
+		Log(" dij_B %u", dij_B);
+		Log(" Score %.2f", Score);
+		Log("\n");
+		}
+	Log("= Score %.2f\n", Score);
 	return Score;
 	}
 
@@ -82,7 +157,29 @@ float FragAligner::GetDistPairScore(uint Dist1, uint Dist2)
 	return Score;
 	}
 
-uint *FragAligner::GetDistsPtr(const PDBChain &Chain, uint Pos) const
+uint *FragAligner::GetDistsPtrChain(const PDBChain &Chain) const
+	{
+	const uint L = Chain.GetSeqLength();
+	asserta(L > 0);
+	const uint n = L*L;
+	uint *DistsPtr = myalloc(uint, n);
+	for (uint i = 0; i < L; ++i)
+		{
+		DistsPtr[L*i + i] = 0;
+		for (uint j = i+1; j < L; ++j)
+			{
+			double d = Chain.GetDist(i, j);
+			uint ud = uint(d);
+			if (ud >= m_DistN)
+				ud = m_DistN - 1;
+			DistsPtr[L*i + j] = ud;
+			DistsPtr[L*j + i] = ud;
+			}
+		}
+	return DistsPtr;
+	}
+
+uint *FragAligner::GetDistsPtrFrag(const PDBChain &Chain, uint Pos) const
 	{
 	const uint L = Chain.GetSeqLength();
 	const uint n = SIZE(m_Idx_is);

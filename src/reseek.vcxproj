@@ -279,7 +279,7 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
-    <ClCompile Include="build_s3e_library.cpp" />
+    <ClCompile Include="build_sss_library.cpp" />
     <ClCompile Include="chaindata.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
@@ -404,6 +404,7 @@
     <ClCompile Include="setselfrevscores.cpp" />
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
+    <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
@@ -527,6 +528,7 @@
     <ClInclude Include="scop40bench.h" />
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
+    <ClInclude Include="ssslib.h" />
     <ClInclude Include="statsig.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
