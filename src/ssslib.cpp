@@ -281,6 +281,7 @@ void SSSLib::SetParams(uint AlphaSize, uint M, uint BandWidth,
 	m_BandWidth = BandWidth;
 	m_DistN = DistN;
 	m_FragStep = FragStep;
+	asserta(m_FragStep > 0);
 
 	m_DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(m_DistN);
 
@@ -504,7 +505,7 @@ void cmd_cluster_sss()
 
 	if (optset_bandwidth)
 		BandWidth = opt(bandwidth);
-	if (optset_bandwidth)
+	if (optset_fragstep)
 		FragStep = opt(fragstep);
 	if (optset_distn)
 		DistN = opt(distn);
