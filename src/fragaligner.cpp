@@ -37,18 +37,23 @@ float FragAligner::AlignSubchain_Trace(const uint *DistsPtrQ, uint LQ, uint Star
 			{
 			uint PosQ_j = StartQ + j;
 			uint dij_Q = DistsPtrQ[PosQ_i*LQ + PosQ_j];
-			uint dij_F = DistsPtrF[k++];
+			uint dij_F = DistsPtrF[k];
 			assert(dij_Q < m_DistN);
 			assert(dij_F < m_DistN);
-			Score += m_DistPairScoresPtr[m_DistN*dij_Q + dij_F];
-			Log("i %u", i);
+			float PairScore = m_DistPairScoresPtr[m_DistN*dij_Q + dij_F];
+			Score += PairScore;
+			Log("k %u", k);
+			Log(" i %u", i);
 			Log(" j %u", j);
 			Log(" PosQ_i %u", PosQ_i);
 			Log(" PosQ_j %u", PosQ_j);
 			Log(" dij_Q %u", dij_Q);
 			Log(" dij_F %u", dij_F);
+			Log(" PairScore %.2f", PairScore);
 			Log(" Score %.2f", Score);
 			Log("\n");
+
+			++k;
 			}
 		}
 	Log("= Score %.2f\n", Score);
@@ -79,12 +84,14 @@ float FragAligner::Align_Trace(const uint *DistsPtrA, const uint *DistsPtrB) con
 		uint dij_B = DistsPtrB[i];
 		assert(dij_A < m_DistN);
 		assert(dij_B < m_DistN);
-		Score += m_DistPairScoresPtr[m_DistN*dij_A + dij_B];
+		float PairScore = m_DistPairScoresPtr[m_DistN*dij_A + dij_B];
+		Score += PairScore;
 		Log("i %u", i);
 		Log(" Idx_i %u", m_Idx_is[i]);
 		Log(" Idx_j %u", m_Idx_js[i]);
 		Log(" dij_A %u", dij_A);
 		Log(" dij_B %u", dij_B);
+		Log(" PairScore %.2f", PairScore);
 		Log(" Score %.2f", Score);
 		Log("\n");
 		}

@@ -123,7 +123,17 @@ void SSSLib::AssertSame(FragAligner &FA, uint FragIdx1, uint FragIdx2)
 
 	float ScoreSub = FA.AlignSubchain(DistsPtr_Chain1, L1, Start1, DistsPtr_Frag2);
 	float ScoreFrag = FA.Align(DistsPtr_Frag1, DistsPtr_Frag2);
-	asserta(feq(ScoreSub, ScoreFrag));
+#ifdef _MSC_VER
+// fails with gcc, likely due to optimizing floating-point rounding
+// for integer distances
+	if (!feq(ScoreSub, ScoreFrag))
+		{
+		float ScoreSub2 = FA.AlignSubchain_Trace(DistsPtr_Chain1, L1, Start1, DistsPtr_Frag2);
+		float ScoreFrag2 = FA.Align_Trace(DistsPtr_Frag1, DistsPtr_Frag2);
+		Die("SSSLib::AssertSame() %.3g %.3g %.3g %.3g\n",
+			ScoreSub, ScoreSub2, ScoreFrag, ScoreFrag2);
+		}
+#endif
 	}
 
 void SSSLib::AssertSames()
@@ -524,7 +534,7 @@ void cmd_cluster_sss()
 	Lib.AssignReps();
 	Lib.LogClusters();
 	ProgressLog("MinSize %u (%.2f%%)\n",
-		MinSize, GetPct(MinSize, Lib.GetFragCount()));
+		MinClusterSize, GetPct(MinClusterSize, Lib.GetFragCount()));
 	Lib.ToSpec(opt(output));
 	Lib.AssignLetters();
 	Lib.ToFasta(opt(fasta));
