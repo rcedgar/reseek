@@ -126,6 +126,7 @@ void FragAligner::LogScoreMx() const
 		}
 	}
 
+#if 0
 void cmd_test()
 	{
 	asserta(optset_input2);
@@ -185,3 +186,4 @@ void cmd_test()
 	ProgressLog("Other scores %8.3g to %8.3g\n",
 		MinOtherScore, MaxOtherScore);
 	}
+#endif

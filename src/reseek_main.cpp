@@ -6,7 +6,7 @@
 int g_Frame = 0;
 string g_Arg1;
 
-// void cmd_test() {}
+void cmd_test() {}
 
 int main(int argc, char **argv)
 	{

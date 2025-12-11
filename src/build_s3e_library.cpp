@@ -1,158 +1,205 @@
 #include "myutils.h"
 #include "fragaligner.h"
 #include "sort.h"
-#if 0
-static uint SSCharToInt(char c)
-	{
-	switch (c)
-		{
-	case 'h': return 0;
-	case 's': return 1;
-	case 't': return 2;
-	case '~': return 3;
-		}
-	asserta(false);
-	return UINT_MAX;
-	}
-
-static void GetSSCounts(string &SS, uint Counts[4])
-	{
-	memset(Counts, 0, sizeof(Counts));
-	const uint L = SIZE(SS);
-	for (uint i = 0; i < L; ++i)
-		Counts[SSCharToInt(SS[i])] += 1;
-	}
-
-static bool SelectCandidateS3E(const string &SS3, uint M, uint &Lo)
-	{
-	uint L = SIZE(SS3);
-	if (M < 2*L)
-		return false;
-	Lo = randu32()%(L - M);
-	return true;
-	}
+#include <set>
 
 static uint s_M;
-static vector<PDBChain *> *s_ptrFrags;
-static vector<PDBChain *> *s_ptrChains;
-static uint s_CandidateCount;
+static uint s_AlphaSize;
+static uint s_IdxCount;
+static vector<PDBChain *> s_Chains;
+static vector<uint *> s_DistsPtrVec;
+static float *s_DistPairScoresPtr;
+
+static vector<uint> s_ChainIdxs;
+static vector<uint> s_FragStarts;
+
+static vector<uint *> s_CentroidsDistsPtrVec;
+static uint *s_ClusterIdxs;
+static uint *s_PrevClusterIdxs;
+static vector<vector<uint> > s_ClusterIdxToFragIdxs;
+
 static mutex s_Lock;
-static vector<float> *s_ptrTotalScores;
-static float s_MinScore = 10;
-static uint s_NextChainIdx;
+static uint s_NextFragIdx;
+static uint s_Chunk = 256;
+static uint s_BandWidth = 2;
+static uint s_DistN = 40;
+
+static void SetRandomInitialCentroids()
+	{
+	s_CentroidsDistsPtrVec.clear();
+	set<uint> DoneSet;
+	const uint FragCount = SIZE(s_DistsPtrVec);
+	for (uint i = 0; i < s_AlphaSize; ++i)
+		{
+		uint FragIdx = UINT_MAX;
+		for (int Try = 0; Try < 100; ++Try)
+			{
+			FragIdx = randu32()%FragCount;
+			if (DoneSet.find(FragIdx) != DoneSet.end())
+				break;
+			}
+		asserta(FragIdx != UINT_MAX);
+		DoneSet.insert(FragIdx);
+		uint *DistsPtr = s_DistsPtrVec[FragIdx];
+		s_CentroidsDistsPtrVec.push_back(DistsPtr);
+		}
+	}
+
+static void LogCentroidDists()
+	{
+	Log("\n");
+	Log("LogCentroidDists()\n");
+	for (uint ClusterIdx = 0; ClusterIdx < s_AlphaSize; ++ClusterIdx)
+		{
+		Log("[%3u]  ", ClusterIdx);
+		const uint *DistsPtr_Centroid = s_CentroidsDistsPtrVec[ClusterIdx];
+		for (uint j = 0; j < s_IdxCount; ++j)
+			Log(" %2u", DistsPtr_Centroid[j]);
+		Log("\n");
+		}
+	}
+
+static uint *GetRandomDistsPtr()
+	{
+	asserta(false);
+	return 0;
+	}
+
+static void AssignMeanCentroid(uint ClusterIdx)
+	{
+	const vector<uint> &FragIdxs = s_ClusterIdxToFragIdxs[ClusterIdx];
+	const uint n = SIZE(FragIdxs);
+	if (n == 0)
+		{
+		s_CentroidsDistsPtrVec[ClusterIdx] = GetRandomDistsPtr();
+		return;
+		}
+
+	vector<float> Sums(s_IdxCount);
+	for (uint i = 0; i < n; ++i)
+		{
+		uint FragIdx = FragIdxs[i];
+		const uint *DistsPtr = s_DistsPtrVec[FragIdx];
+		for (uint j = 0; j < s_IdxCount; ++j)
+			Sums[j] += DistsPtr[j];
+		}
+
+	for (uint j = 0; j < s_IdxCount; ++j)
+		{
+		uint Mean = uint(round(Sums[j]/n));
+		s_CentroidsDistsPtrVec[ClusterIdx][j] = Mean;
+		}
+	}
+
+static void AssignMeanCentroids()
+	{
+	for (uint ClusterIdx = 0; ClusterIdx < s_AlphaSize; ++ClusterIdx)
+		AssignMeanCentroid(ClusterIdx);
+	}
+
+static uint AssignCluster(FragAligner &FA, uint FragIdx)
+	{
+	const uint *DistsPtr_Frag = s_DistsPtrVec[FragIdx];
+	float BestScore = -999;
+	uint BestClusterIdx = UINT_MAX;
+	for (uint ClusterIdx = 0; ClusterIdx < s_AlphaSize; ++ClusterIdx)
+		{
+		const uint *DistsPtr_Centroid = s_CentroidsDistsPtrVec[ClusterIdx];
+		float Score = FA.Align(DistsPtr_Frag, DistsPtr_Centroid);
+		if (FragIdx == 0)
+			{//@@
+			Log("Frag 0 cluster %u score %.2f\n", ClusterIdx, Score);
+			}//@@
+		if (Score > BestScore)
+			{
+			BestScore = Score;
+			BestClusterIdx = ClusterIdx;
+			}
+		}
+	return BestClusterIdx;
+	}
 
 static void ThreadBody(uint ThreadIndex)
 	{
-	vector<float> TotalScores(s_CandidateCount);
-	vector<ChainData *> FragCDs(s_CandidateCount);
-	for (uint CandidateIdx = 0; CandidateIdx < s_CandidateCount; ++CandidateIdx)
-		{
-		ChainData &CDF = *new ChainData;
-		CDF.SetChain(*(*s_ptrFrags)[CandidateIdx]);
-		FragCDs[CandidateIdx] = &CDF;
-		}
-
+	const uint FragCount = SIZE(s_DistsPtrVec);
+	asserta(SIZE(s_CentroidsDistsPtrVec) == s_AlphaSize);
 	FragAligner FA;
-	const uint ChainCount = SIZE(*s_ptrChains);
+	FA.Init(s_M, s_BandWidth, s_DistN, s_DistPairScoresPtr);
 	for (;;)
 		{
 		s_Lock.lock();
-		uint MyChainIdx = s_NextChainIdx++;
+		uint NextFragIdx = s_NextFragIdx;
+		if (s_NextFragIdx < FragCount)
+			s_NextFragIdx += s_Chunk;
 		s_Lock.unlock();
-		if (MyChainIdx >= ChainCount)
+		if (s_NextFragIdx >= FragCount)
 			break;
-		ProgressStep(MyChainIdx, ChainCount, "Aligning");
-		PDBChain &Q = *(*s_ptrChains)[MyChainIdx];
 
-		ChainData CDQ;
-		CDQ.SetChain(Q);
-		const uint LQ = Q.GetSeqLength();
-
-		for (uint CandidateIdx = 0; CandidateIdx < s_CandidateCount; ++CandidateIdx)
+		uint IdxHi = min(NextFragIdx + s_Chunk, FragCount);
+		vector<uint> ClusterIdxs;
+		for (uint i = 0; i < s_Chunk; ++i)
 			{
-			ChainData &CDF = *FragCDs[CandidateIdx];
-			for (uint PosQ = 0; PosQ + s_M < LQ; ++PosQ)
-				{
-				FA.Align(CDQ, CDF, PosQ);
-				float Score = FA.m_DALIScore;
-				asserta(!isnan(Score));
-				asserta(!isinf(Score));
-				if (Score >= s_MinScore)
-					TotalScores[CandidateIdx] += Score;
-				}
-			float x = TotalScores[CandidateIdx];
-			asserta(!isnan(x));
-			asserta(!isinf(x));
+			uint FragIdx = i + NextFragIdx;
+			if (FragIdx >= FragCount)
+				break;
+			uint ClusterIdx = AssignCluster(FA, FragIdx);
+			ClusterIdxs.push_back(ClusterIdx);
 			}
-		}
 
-	s_Lock.lock();
-	for (uint CandidateIdx = 0; CandidateIdx < s_CandidateCount; ++CandidateIdx)
-		(*s_ptrTotalScores)[CandidateIdx] += TotalScores[CandidateIdx];
-	s_Lock.unlock();
+		s_Lock.lock();
+		for (uint i = 0; i < s_Chunk; ++i)
+			{
+			uint FragIdx = i + NextFragIdx;
+			if (FragIdx >= FragCount)
+				break;
+			uint ClusterIdx = ClusterIdxs[i];
+			s_ClusterIdxs[FragIdx] = ClusterIdx;
+			s_ClusterIdxToFragIdxs[ClusterIdx].push_back(FragIdx);
+			}
+		s_Lock.unlock();
+		}
 	}
 
-void cmd_build_s3e_library()
+static void AddFrag(FragAligner &FA, uint ChainIdx, uint Pos)
 	{
-	const string &ChainsFN = g_Arg1;
-	asserta(optset_alpha_size);
-	asserta(optset_subsample);
-	asserta(optset_m);
-	const uint AS = opt(alpha_size);
-	s_CandidateCount = opt(subsample);
-	s_M = opt(m);
-	s_MinScore = 10;
-	if (optset_minscore)
-		s_MinScore = (float) opt(minscore);
+	const PDBChain &Chain = *s_Chains[ChainIdx];
+	uint *DistsPtr = FA.GetDistsPtr(Chain, Pos);
+	s_ChainIdxs.push_back(ChainIdx);
+	s_FragStarts.push_back(Pos);
+	s_DistsPtrVec.push_back(DistsPtr);
+	}
 
-	vector<PDBChain *> Chains;
-	Progress("Reading chains...");
-	ReadChains(ChainsFN, Chains);
-	const uint ChainCount = SIZE(Chains);
-	Progress(" %u done.\n", ChainCount);
-	s_ptrChains = &Chains;
+static void AddFrags(FragAligner &FA, uint ChainIdx)
+	{
+	const PDBChain &Chain = *s_Chains[ChainIdx];
+	const uint L = Chain.GetSeqLength();
+	for (uint Pos = randu32()%s_M; Pos + s_M <= L; Pos += s_M/4)
+		AddFrag(FA, ChainIdx, Pos);
+	}
 
-	vector<string> SSs(ChainCount);
-	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
-		Chains[ChainIdx]->GetSS(SSs[ChainIdx]);
+static void LogClusterAssignsHead(uint n = 10)
+	{
+	const uint FragCount = SIZE(s_DistsPtrVec);
+	Log("\n");
+	Log("LogClusterAssignsHead()\n");
+	for (uint FragIdx = 0; FragIdx < min(FragCount, n); ++FragIdx)
+		Log("Frag %6u  cluster %3u\n", FragIdx, s_ClusterIdxs[FragIdx]);
+	}
 
-	vector<PDBChain *> Frags(s_CandidateCount);
-	vector<string> FragSSs(s_CandidateCount);
-	s_ptrFrags = &Frags;
-	for (uint CandidateIdx = 0; CandidateIdx < s_CandidateCount; ++CandidateIdx)
+static void AssignClusters()
+	{
+	const uint FragCount = SIZE(s_DistsPtrVec);
+	if (s_ClusterIdxs == 0)
 		{
-		ProgressStep(CandidateIdx, s_CandidateCount, "Candidates");
-		uint Lo;
-		uint TryCount = 0;
-		uint ChainIdx = UINT_MAX;
-		for (;;)
-			{
-			ChainIdx = randu32()%ChainCount;
-			const PDBChain &Chain = *Chains[ChainIdx];
-			uint L = Chain.GetSeqLength();
-			if (L < 2*s_M)
-				{
-				if (++TryCount > 100)
-					Die("tries");
-				continue;
-				}
-			Lo = randu32()%(L - s_M);
-			break;
-			}
-		PDBChain *Frag = new PDBChain;
-		Chains[ChainIdx]->GetSubChain(*Frag, Lo, s_M);
-		Frags[CandidateIdx] = Frag;
-		string &FragSS = FragSSs[CandidateIdx];
-		const string &SS = SSs[ChainIdx];
-		for (uint PosF = 0; PosF < s_M; ++PosF)
-			FragSS.push_back(SS[Lo+PosF]);
+		s_ClusterIdxs = myalloc(uint, FragCount);
+		s_PrevClusterIdxs = myalloc(uint, FragCount);
 		}
-
-	vector<float> TotalScores(s_CandidateCount);
-	s_ptrTotalScores = &TotalScores;
+	s_ClusterIdxToFragIdxs.clear();
+	s_ClusterIdxToFragIdxs.resize(s_AlphaSize);
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
+	s_NextFragIdx = 0;
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		thread *t = new thread(ThreadBody, ThreadIndex);
@@ -162,21 +209,71 @@ void cmd_build_s3e_library()
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-
-	vector<uint> Order(s_CandidateCount);
-	QuickSortOrderDesc(TotalScores.data(), s_CandidateCount, Order.data());
-
-	for (uint k = 0; k < s_CandidateCount; ++k)
-		{
-		uint CandidateIdx = Order[k];
-		const PDBChain &Frag = *Frags[CandidateIdx];
-		const string &FragSS = FragSSs[CandidateIdx];
-		Log("%10.3g  %s  %s\n",
-			TotalScores[CandidateIdx],
-			FragSS.c_str(),
-			Frag.m_Label.c_str());
-		}
 	}
-#else
-void cmd_build_s3e_library() {}
-#endif
+
+void cmd_build_s3e_library()
+	{
+	const string &ChainsFN = g_Arg1;
+	asserta(optset_subsample);
+	s_M = opt(m);
+
+	asserta(optset_alpha_size);
+	s_AlphaSize = opt(alpha_size);
+
+	asserta(optset_m);
+	s_M = opt(m);
+
+	s_BandWidth = 2;
+	s_DistN = 20;
+	s_DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(s_DistN);
+
+	FragAligner FA;
+	FA.Init(s_M, s_BandWidth, s_DistN, s_DistPairScoresPtr);
+	s_IdxCount = FA.m_IdxCount;
+
+	Progress("Reading chains...");
+	ReadChains(ChainsFN, s_Chains);
+	const uint ChainCount = SIZE(s_Chains);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "Add frags");
+		AddFrags(FA, ChainIdx);
+		}
+	uint FragCount = SIZE(s_ChainIdxs);
+	asserta(SIZE(s_FragStarts) == FragCount);
+	asserta(SIZE(s_DistsPtrVec) == FragCount);
+	float FragsPerChain = float(FragCount)/ChainCount;
+	ProgressLog("%u frags, %.2f frags/chain\n", FragCount, FragsPerChain);
+
+	SetRandomInitialCentroids();
+	AssignClusters();
+	uint BestChangeCount = FragCount;
+	uint BestIter = UINT_MAX;
+	for (uint Iter = 0; Iter < 1000; ++Iter)
+		{
+		//LogCentroidDists();
+		//LogClusterAssignsHead();
+		memcpy(s_PrevClusterIdxs, s_ClusterIdxs, FragCount*sizeof(uint));
+		AssignMeanCentroids();
+		AssignClusters();
+		uint ChangeCount = 0;
+		for (uint FragIdx = 0; FragIdx < FragCount; ++FragIdx)
+			{
+			if (s_PrevClusterIdxs[FragIdx] != s_ClusterIdxs[FragIdx])
+				++ChangeCount;
+			}
+		if (ChangeCount < BestChangeCount)
+			{
+			BestChangeCount = ChangeCount;
+			BestIter = Iter;
+			}
+		ProgressLog("[%u] changes %u (%u, %u)\n",
+			Iter+1, ChangeCount, BestChangeCount, BestIter+1);
+		if (ChangeCount == 0 || Iter - BestIter > 1000)
+			{
+			ProgressLog("Converged\n");
+			break;
+			}
+		}
+	ProgressLog("Done\n");
+	}
