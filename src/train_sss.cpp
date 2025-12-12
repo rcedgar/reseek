@@ -2,6 +2,7 @@
 #include "featuretrainer2.h"
 #include "seqdb.h"
 #include "sort.h"
+#include "hexintseq.h"
 
 void cmd_train_sss()
 	{
@@ -11,8 +12,9 @@ void cmd_train_sss()
 	const string &SeqsFN = g_Arg1;
 	const string &TrainTPAlnFN = opt(traintps); // "src/2025-10_reseek_tune/big_fa2/tp.mints05.maxts25.fa2";
 	FILE *fOut = CreateStdioFile(opt(output));
+	const uint AS = opt(alpha_size);
 
-	FeatureTrainer2::m_AlphaSize = opt(alpha_size);
+	FeatureTrainer2::m_AlphaSize = AS;
 	FeatureTrainer2::m_FevStr.clear();
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -21,7 +23,7 @@ void cmd_train_sss()
 	vector<vector<uint> > IntSeqs;
 	map<string, uint> LabelToSeqIdx;
 	Progress("Reading int seqs... ");
-	FeatureTrainer2::ReadSSSIntSeqs(SeqsFN, IntSeqs, LabelToSeqIdx);
+	ReadHexIntSeqs(AS, SeqsFN, IntSeqs, LabelToSeqIdx);
 	Progress("done.\n");
 
 	vector<bool> TrainsTPs_notused;

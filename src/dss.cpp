@@ -932,3 +932,39 @@ uint DSS::Get_MENSS4(uint Pos)
 		return UNDEFINED_ZERO_OVERLOAD;
 	return Get_SS(MEN);
 	}
+
+uint DSS::Get_SSSA(uint Pos)
+	{
+	if (m_Seq_SSSA == 0)
+		{
+		vector<string> Fields;
+		Split(m_Chain->m_Label, Fields, '/');
+		string Label = Fields[0];
+		map<string, uint>::const_iterator iter = 
+			DSSParams::m_LabelToSeqIdx_SSSA.find(Label);
+		asserta(iter != DSSParams::m_LabelToSeqIdx_SSSA.end());
+		uint SeqIdx = iter->second;
+		m_Seq_SSSA = &DSSParams::m_IntSeqs_SSSA[SeqIdx];
+		}
+	const vector<byte> &Seq = (*m_Seq_SSSA);
+	asserta(Pos < SIZE(Seq));
+	return Seq[Pos];
+	}
+
+uint DSS::Get_SSSB(uint Pos)
+	{
+	if (m_Seq_SSSB == 0)
+		{
+		vector<string> Fields;
+		Split(m_Chain->m_Label, Fields, '/');
+		string Label = Fields[0];
+		map<string, uint>::const_iterator iter = 
+			DSSParams::m_LabelToSeqIdx_SSSB.find(Label);
+		asserta(iter != DSSParams::m_LabelToSeqIdx_SSSB.end());
+		uint SeqIdx = iter->second;
+		m_Seq_SSSB = &DSSParams::m_IntSeqs_SSSB[SeqIdx];
+		}
+	const vector<byte> &Seq = (*m_Seq_SSSB);
+	asserta(Pos < SIZE(Seq));
+	return Seq[Pos];
+	}

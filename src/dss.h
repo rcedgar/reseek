@@ -31,6 +31,9 @@ public:
 	vector<float> m_NDs;
 	vector<float> m_NXs;
 
+	const vector<byte> *m_Seq_SSSA = 0;
+	const vector<byte> *m_Seq_SSSB = 0;
+
 private:
 	const DSSParams *m_Params = 0;
 
@@ -49,6 +52,8 @@ public:
 		m_NUs.clear();
 		m_NDs.clear();
 		m_NXs.clear();
+		m_Seq_SSSA = 0;
+		m_Seq_SSSB = 0;
 		}
 
 	uint GetSeqLength() const { return m_Chain->GetSeqLength(); }

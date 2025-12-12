@@ -4,6 +4,7 @@
 #include "fragaligner.h"
 #include "sort.h"
 #include "alpha.h"
+#include "hexintseq.h"
 
 void SSSLib::SetRandomInitialCentroids()
 	{
@@ -579,19 +580,7 @@ void SSSLib::ToFasta(const string &FN) const
 		const vector<byte> &Letters = m_LettersVec[ChainIdx];
 		asserta(SIZE(Letters) == L);
 		string Seq;
-		for (uint Pos = 0; Pos < L; ++Pos)
-			{
-			byte Letter = Letters[Pos];
-			if (Letter == 0xff)
-				Letter = m_AlphaSize;
-			if (m_AlphaSize < 36)
-				Seq += LetterToChar(Letter);
-			else
-				{
-				Ps(Tmp, "%02x", Letter);
-				Seq += Tmp;
-				}
-			}
+		ByteSeqToHexIntStr(m_AlphaSize, Letters, Seq);
 		SeqToFasta(f, Label, Seq);
 		}
 	CloseStdioFile(f);

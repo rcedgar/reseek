@@ -110,11 +110,6 @@ static void ReadChains(
 	vector<PDBChain *> &Chains,
 	map<string, uint> &LabelToChainIdx);
 
-static void ReadSSSIntSeqs(
-	const string &SeqsFN,
-	vector<vector<uint> > &IntSeqs,
-	map<string, uint> &LabelToSeqIdx);
-
 static void ScoreMxToSrc(
 	FILE *f,
 	const vector<vector<float> > &ScoreMx);

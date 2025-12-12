@@ -542,6 +542,9 @@
     <ClCompile Include="train_sss.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hexintseq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -902,6 +905,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ssslib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hexintseq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

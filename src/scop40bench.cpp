@@ -668,6 +668,7 @@ void cmd_scop40bench()
 	{
 	string DBFN = g_Arg1;
 	DSSParams::Init(DM_UseCommandLineOption);
+
 	SCOP40Bench SB;
 	SB.LoadDB(DBFN);
 

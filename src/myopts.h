@@ -75,6 +75,8 @@ STR_OPT(alignmethod)
 STR_OPT(mxname)
 STR_OPT(undefs_allowed)
 STR_OPT(varstr)
+STR_OPT(sssa)
+STR_OPT(sssb)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

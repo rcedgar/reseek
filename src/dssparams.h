@@ -48,7 +48,6 @@ public:
 
 	static string m_MKFPatternStr;
 
-
 	static uint m_rsb_size;
 	static int m_PrefilterMinKmerPairScore;
 	static uint m_MKFL;
@@ -75,6 +74,18 @@ public:
 	static uint m_SSE_MinLength;
 	static uint m_SSE_Margin;
 	static uint m_PMDelta;
+
+	static uint m_AlphaSize_SSSA;
+	static uint m_AlphaSize_SSSB;
+
+	static map<string, uint> m_LabelToSeqIdx_SSSA;
+	static map<string, uint> m_LabelToSeqIdx_SSSB;
+
+	static vector<vector<byte> > m_IntSeqs_SSSA;
+	static vector<vector<byte> > m_IntSeqs_SSSB;
+
+	static vector<vector<float> > m_ScoreMx_SSSA;
+	static vector<vector<float> > m_ScoreMx_SSSB;
 
 public:
 	static void Init(DECIDE_MODE DM);
@@ -136,6 +147,19 @@ public:
 	static const float * const *GetScoreMx(FEATURE F);
 	static bool GetNeedMuLetters();
 	static bool GetDoMuFilter();
+	static void LoadSSSA(const string &MxFN, const string &FastaFN);
+	static void LoadSSSB(const string &MxFN, const string &FastaFN);
+	static void CreateFeatureScoreMx(FEATURE F, 
+		const vector<vector<float> > &ScoreMx);
+
+private:
+	static void ReadSSS(
+		const string &MxFN,
+		const string &FastaFN,
+		uint &AlphaSize,
+		vector<vector<byte> > &IntSeqs,
+		map<string, uint> &LabelToSeqIdx,
+		vector<vector<float> > &ScoreMx);
 	};
 
 uint GetPatternOnes(const string &Pattern);

@@ -2,6 +2,7 @@
 #include "dssparams.h"
 #include "dss.h"
 #include "sort.h"
+#include "hexintseq.h"
 
 vector<FEATURE> DSSParams::m_Features;
 vector<float> DSSParams::m_Weights;
@@ -52,6 +53,18 @@ float DSSParams::m_dpw = 1.7f;
 float DSSParams::m_lddtw = 0.13f;
 float DSSParams::m_ladd = 250.0f;
 float DSSParams::m_revtsw = 2.0f;
+
+uint DSSParams::m_AlphaSize_SSSA;
+uint DSSParams::m_AlphaSize_SSSB;
+
+map<string, uint> DSSParams::m_LabelToSeqIdx_SSSA;
+map<string, uint> DSSParams::m_LabelToSeqIdx_SSSB;
+
+vector<vector<byte> > DSSParams::m_IntSeqs_SSSA;
+vector<vector<byte> > DSSParams::m_IntSeqs_SSSB;
+
+vector<vector<float> > DSSParams::m_ScoreMx_SSSA;
+vector<vector<float> > DSSParams::m_ScoreMx_SSSB;
 
 // Used to initialize g_AlphaSizes2, careful of
 //	order dependencies in static bool Init() idiom.
@@ -114,6 +127,12 @@ uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
 
 	case FEATURE_ConfU:
 		return 17;
+
+	case FEATURE_SSSA:
+		return g_AlphaSizes2[FEATURE_SSSA];
+
+	case FEATURE_SSSB:
+		return g_AlphaSizes2[FEATURE_SSSB];
 		}
 	if (!FailOk)
 		Die("DSSParams::GetAlphaSize(%d)", int(F));
@@ -428,6 +447,25 @@ void DSSParams::SetStandardFeatures()
 
 void DSSParams::Init(DECIDE_MODE DM)
 	{
+	vector<string> Fields;
+	if (optset_sssa)
+		{
+		Split(opt(sssa), Fields, '+');
+		asserta(SIZE(Fields) == 2);
+		const string &MxFN = Fields[0];
+		const string &FastaFN = Fields[1];
+		DSSParams::LoadSSSA(MxFN, FastaFN);
+		}
+
+	if (optset_sssb)
+		{
+		Split(opt(sssb), Fields, '+');
+		asserta(SIZE(Fields) == 2);
+		const string &MxFN = Fields[0];
+		const string &FastaFN = Fields[1];
+		DSSParams::LoadSSSB(MxFN, FastaFN);
+		}
+
 	if (optset_feature_spec)
 		LoadFeatures(opt(feature_spec));
 	else if (optset_params)
@@ -453,4 +491,64 @@ void DSSParams::LogMe()
 const float * const *DSSParams::GetScoreMx(FEATURE F)
 	{
 	return g_ScoreMxs2[F];
+	}
+
+void DSSParams::ReadSSS(
+	const string &MxFN,
+	const string &FastaFN,
+	uint &AlphaSize,
+	vector<vector<byte> > &IntSeqs,
+	map<string, uint> &LabelToSeqIdx,
+	vector<vector<float> > &ScoreMx)
+	{
+	AlphaSize = UINT_MAX;
+	IntSeqs.clear();
+	ScoreMx.clear();
+
+	vector<string> Lines;
+	vector<string> Fields;
+	ReadLinesFromFile(MxFN, Lines);
+	const uint LineCount = SIZE(Lines);
+	asserta(!Lines.empty());
+
+	// FEATURE_invalid 16
+	Split(Lines[0], Fields, '\t');
+	asserta(SIZE(Fields) == 2);
+	AlphaSize = StrToUint(Fields[1]);
+	asserta(AlphaSize > 1 && AlphaSize <= 256);
+
+	ScoreMx.resize(AlphaSize);
+	uint Letter = 0;
+	for (uint i = 1; i < LineCount; ++i)
+		{
+		const string &Line = Lines[i];
+		if (Line.empty() || Line[0] == '#')
+			continue;
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == AlphaSize + 1);
+		asserta(StrToUint(Fields[0]) == Letter);
+		ScoreMx[Letter].reserve(AlphaSize);
+		for (uint Letter2 = 0; Letter2 < AlphaSize; ++Letter2)
+			ScoreMx[Letter].push_back((StrToFloatf(Fields[Letter2+1])));
+		++Letter;
+		if (Letter == AlphaSize)
+			break;
+		}
+	asserta(Letter == AlphaSize);
+
+	ReadHexIntSeqs(AlphaSize, FastaFN, IntSeqs, LabelToSeqIdx);
+	}
+
+void DSSParams::LoadSSSA(const string &MxFN, const string &FastaFN)
+	{
+	ReadSSS(MxFN, FastaFN, m_AlphaSize_SSSA, m_IntSeqs_SSSA,
+		m_LabelToSeqIdx_SSSA, m_ScoreMx_SSSA);
+	CreateFeatureScoreMx(FEATURE_SSSA, m_ScoreMx_SSSA);
+	}
+
+void DSSParams::LoadSSSB(const string &MxFN, const string &FastaFN)
+	{
+	ReadSSS(MxFN, FastaFN, m_AlphaSize_SSSB, m_IntSeqs_SSSB,
+		m_LabelToSeqIdx_SSSB, m_ScoreMx_SSSB);
+	CreateFeatureScoreMx(FEATURE_SSSB, m_ScoreMx_SSSB);
 	}

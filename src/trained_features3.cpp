@@ -23,6 +23,21 @@ void DSSParams::OverwriteUnweightedScoreMx(FEATURE F,
 		}
 	}
 
+void DSSParams::CreateFeatureScoreMx(FEATURE F, 
+	const vector<vector<float> > &ScoreMx)
+	{
+	const uint AS = SIZE(ScoreMx);
+	asserta(uint(F) < FEATURE_COUNT);
+	g_AlphaSizes2[F] = AS;
+	g_ScoreMxs2[F] = myalloc(float *, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		g_ScoreMxs2[F][i] = myalloc(float, AS);
+		for (uint j = 0; j < AS; ++j)
+			g_ScoreMxs2[F][i][j] = ScoreMx[i][j];
+		}
+	}
+
 static void SetFeatureScoreMx(FEATURE F, const float *mx, uint AS)
 	{
 	asserta(uint(F) < FEATURE_COUNT);
