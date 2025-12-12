@@ -17,8 +17,7 @@ const char *FeatureToStr(FEATURE f)
 #define F(x)	case FEATURE_##x: return #x;
 #include "featurelist.h"
 		}
-	Die("FeatureToStr(%u)", f);
-	return "?";
+	return "FEATURE_invalid";
 	}
 
 FEATURE StrToFeature(const char *s, bool ErrOk)

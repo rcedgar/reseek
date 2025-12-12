@@ -539,6 +539,9 @@
     <ClCompile Include="ssslib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="train_sss.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

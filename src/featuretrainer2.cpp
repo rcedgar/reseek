@@ -74,6 +74,88 @@ void FeatureTrainer2::TruncLabel(const string &Label,
 		TruncatedLabel.resize(n);
 	}
 
+void FeatureTrainer2::GetIntSeq(const string &Seq, vector<uint> &IntSeq)
+	{
+	IntSeq.clear();
+	const uint SeqL = SIZE(Seq);
+	const uint L = (m_AlphaSize < 35 ? SeqL : SeqL/2);
+	IntSeq.reserve(L);
+	if (m_AlphaSize < 36)
+		{
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			char c = Seq[Pos];
+			byte Letter = g_CharToLetterMu[c];
+			asserta(Letter < m_AlphaSize);
+			IntSeq.push_back(Letter);
+			}
+		}
+	else
+		{
+		char Tmp[3];
+		Tmp[2] = 0;
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			Tmp[0] = Seq[2*Pos];
+			Tmp[1] = Seq[2*Pos+1];
+			char *endptr;
+			uint Letter32 = strtoul(Tmp, &endptr, 16);
+			byte Letter = byte(Letter32);
+			asserta(uint(Letter) == Letter32);
+			IntSeq.push_back(Letter);
+			}
+		}
+	}
+
+void FeatureTrainer2::ReadSSSIntSeqs(
+	const string &FN,
+	vector<vector<uint> > &IntSeqs,
+	map<string, uint> &LabelToSeqIdx)
+	{
+	m_FevStr += "seqs=" + FN + ";";
+	IntSeqs.clear();
+	LabelToSeqIdx.clear();
+
+	vector<string> Lines;
+	ReadLinesFromFile(FN, Lines);
+	const uint LineCount = SIZE(Lines);
+	string Seq;
+	string Label;
+	vector<uint> IntSeq;
+	vector<string> Fields;
+	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
+		{
+		const string &Line = Lines[LineIdx];
+		if (Line.empty())
+			continue;
+		if (Line[0] == '>')
+			{
+			if (!Seq.empty())
+				{
+				uint SeqIdx = SIZE(IntSeqs);
+				GetIntSeq(Seq, IntSeq);
+				IntSeqs.push_back(IntSeq);
+				asserta(!Label.empty());
+				LabelToSeqIdx[Label] = SeqIdx;
+				Seq.clear();
+				}
+			Label = Line.substr(1, string::npos);
+			Split(Label, Fields, '/');
+			Label = Fields[0];
+			}
+		else
+			Seq += Line;
+		}
+	if (!Seq.empty())
+		{
+		uint SeqIdx = SIZE(IntSeqs);
+		GetIntSeq(Seq, IntSeq);
+		IntSeqs.push_back(IntSeq);
+		asserta(!Label.empty());
+		LabelToSeqIdx[Label] = SeqIdx;
+		}
+	}
+
 void FeatureTrainer2::ReadChains(const string &FN,
 	vector<PDBChain *> &Chains,
 	map<string, uint> &LabelToChainIdx)
@@ -399,19 +481,21 @@ void FeatureTrainer2::LogChainIntSeqsStats(
 	{
 	const uint SeqCount = SIZE(Seqs);
 	asserta(SeqCount > 0);
-	uint N = 0;
-	uint M = 0;
+	uint LetterCount = 0;
+	uint UndefCount = 0;
 	vector<uint> Counts(m_AlphaSize);
 	for (uint i = 0; i < SeqCount; ++i)
 		{
+		ProgressStep(i, SeqCount, "Freqs AS=%u undef=%u",
+			m_AlphaSize, UndefCount);
 		const vector<uint> &Seq = Seqs[i];
 		const uint L = SIZE(Seq);
-		N += L;
+		LetterCount += L;
 		for (uint Pos = 0; Pos < L; ++Pos)
 			{
 			uint Letter = Seq[Pos];
-			if (Letter == FLT_MAX)
-				++M;
+			if (Letter == UINT_MAX)
+				++UndefCount;
 			else
 				{
 				asserta(Letter < m_AlphaSize);
@@ -422,7 +506,7 @@ void FeatureTrainer2::LogChainIntSeqsStats(
 	vector<float> Freqs;
 	GetFreqs(Counts, Freqs);
 	LogFreqs(Freqs);
-	Log("LogChainIntSeqStats() N=%u, UINT_MAX=%u\n", N, M);
+	Log("LogChainIntSeqStats() %u letters, %u undef\n", LetterCount, UndefCount);
 	}
 
 void FeatureTrainer2::BinTsToTsv(
@@ -570,13 +654,16 @@ void FeatureTrainer2::GetAllLetterCountsUniqueChains(
 	Counts.clear();
 	Counts.resize(m_AlphaSize);
 
+	const uint N = SIZE(ChainIdxs);
 	set<uint> ChainIdxSet;
-	for (uint k = 0; k < SIZE(ChainIdxs); ++k)
+	for (uint k = 0; k < N; ++k)
 		ChainIdxSet.insert(ChainIdxs[k]);
 
+	uint Count = 0;
 	for (set<uint>::const_iterator iter = ChainIdxSet.begin();
 		iter != ChainIdxSet.end(); ++iter)
 		{
+		ProgressStep(Count++, N, "Counting letters");
 		uint ChainIdx = *iter;
 		const vector<uint> &IntSeq = ChainIntSeqsNoUndefs[ChainIdx];
 		uint L = SIZE(IntSeq);
@@ -783,7 +870,7 @@ void FeatureTrainer2::GetFreqs(
 	vector<float> &Freqs)
 	{
 	asserta(SIZE(Counts) == m_AlphaSize);
-	uint Sum = 0;
+	uint64 Sum = 0;
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		Sum += Counts[i];
 	const float fSum = float(Sum);
@@ -796,7 +883,8 @@ void FeatureTrainer2::GetFreqs(
 		Freqs.push_back(Freq);
 		SumFreqs += Freq;
 		}
-	asserta(feq(SumFreqs, 1));
+	if (!feq(SumFreqs, 1))
+		Die("SumFreqs=%.3g", SumFreqs);
 	}
 
 void FeatureTrainer2::GetFreqMx(
@@ -1244,6 +1332,20 @@ void FeatureTrainer2::ReplaceUndefs(
 		}
 	}
 
+void FeatureTrainer2::LogPairCountsMx(
+	const vector<vector<uint> > &CountsMx)
+	{
+	asserta(SIZE(CountsMx) == m_AlphaSize);
+	Log("FeatureTrainer2::LogPairCountsMx()\n");
+	for (uint Letter = 0; Letter < m_AlphaSize; ++Letter)
+		{
+		Log("%u", Letter);
+		for(uint Letter2 = 0; Letter2 < m_AlphaSize; ++Letter2)
+			Log("\t%u", CountsMx[Letter][Letter2]);
+		Log("\n");
+		}
+	}
+
 void FeatureTrainer2::TrainLogOddsMx(
 	const vector<uint> &Counts,
 	const vector<vector<uint> > &CountMx,
@@ -1257,11 +1359,13 @@ void FeatureTrainer2::TrainLogOddsMx(
 	vector<vector<float> > FreqMx;
 	GetFreqMx(CountMx, FreqMx);
 
+	LogPairCountsMx(CountMx);
+
 	GetLogOddsMx(Freqs, FreqMx, ScoreMx);
 
 	Log("\n");
 	Log("// %s %s", FeatureToStr(m_F), BSToStr(m_BS));
-	if (!FeatureIsInt(m_F))
+	if (m_QS != QS_Invalid)
 		Log("%s", QSToStr(m_QS));
 	Log("\n");
 	ScoreMxToSrc(g_fLog, ScoreMx);
@@ -1555,6 +1659,77 @@ void FeatureTrainer2::TrainDSSFeature(
 	EvalLogOddsMx(ChainIntSeqsNoUndefs, EvalRows, EvalRowChainIdxs,
 		EvalTPs, EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec,
 		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias, *ptrBestArea);
+	}
+
+void FeatureTrainer2::GetIntSeqs_SSS(
+	const vector<string> &Seqs,
+	vector<vector<uint> > &IntSeqs)
+	{
+	const uint SeqCount = SIZE(Seqs);
+	IntSeqs.clear();
+	IntSeqs.resize(SeqCount);
+	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
+		{
+		const string &Seq = Seqs[SeqIdx];
+		const uint SeqL = SIZE(Seq);
+		const uint L = (m_AlphaSize < 35 ? SeqL : SeqL/2);
+		vector<uint> &IntSeq = IntSeqs[SeqIdx];
+		IntSeq.reserve(L);
+		if (m_AlphaSize < 36)
+			{
+			for (uint Pos = 0; Pos < L; ++Pos)
+				{
+				char c = Seq[Pos];
+				byte Letter = g_CharToLetterMu[c];
+				asserta(Letter < m_AlphaSize);
+				IntSeq.push_back(Letter);
+				}
+			}
+		else
+			{
+			char Tmp[3];
+			Tmp[2] = 0;
+			for (uint Pos = 0; Pos < L; ++Pos)
+				{
+				Tmp[0] = Seq[2*Pos];
+				Tmp[1] = Seq[2*Pos+1];
+				char *endptr;
+				uint Letter32 = strtoul(Tmp, &endptr, 16);
+				byte Letter = byte(Letter32);
+				asserta(uint(Letter) == Letter32);
+				IntSeq.push_back(Letter);
+				}
+			}
+		}
+	}
+
+void FeatureTrainer2::TrainSSS(
+	const vector<vector<uint> > &IntSeqs,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainSeqIdxs,
+	vector<vector<float > > &ScoreMx,
+	BACKGROUND_STYLE BS)
+	{
+	asserta(m_AlphaSize != UINT_MAX && m_AlphaSize != 0);
+	m_FevStr += "feature=SSS;";
+	m_FevStr += "BS=" + string(BSToStr(BS)) + ";";
+
+	m_F = FEATURE(-1);
+	m_BS = BS;
+	m_QS = QS_Invalid;
+
+	LogChainIntSeqsStats(IntSeqs);
+
+	vector<uint> TrainLetterCounts;
+	GetBackgroundCounts(IntSeqs, TrainSeqIdxs,
+		TrainRows, TrainLetterCounts);
+
+	vector<vector<uint> > TrainAlnLetterPairCountMx;
+	GetAlignedLetterPairCounts(IntSeqs, TrainRows,
+	  TrainSeqIdxs, TrainAlnLetterPairCountMx);
+
+	TrainLogOddsMx(TrainLetterCounts, TrainAlnLetterPairCountMx, ScoreMx);
 	}
 
 void FeatureTrainer2::GetBackgroundCounts(

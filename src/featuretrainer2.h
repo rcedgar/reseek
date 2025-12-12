@@ -110,6 +110,11 @@ static void ReadChains(
 	vector<PDBChain *> &Chains,
 	map<string, uint> &LabelToChainIdx);
 
+static void ReadSSSIntSeqs(
+	const string &SeqsFN,
+	vector<vector<uint> > &IntSeqs,
+	map<string, uint> &LabelToSeqIdx);
+
 static void ScoreMxToSrc(
 	FILE *f,
 	const vector<vector<float> > &ScoreMx);
@@ -140,6 +145,10 @@ static void GetFloatSeqs(
 static void LogChainFloatSeqsStats(
 	const string &Msg,
 	const vector<vector<float> > &Seqs);
+
+static void GetIntSeq(
+	const string &Seq,
+	vector<uint> &IntSeq);
 
 static void GetIntSeqs(
 	const vector<PDBChain *> &Chains,
@@ -237,6 +246,10 @@ static void FloatSeqsToInt(
 
 static void GetChainIntSeqs_DSS(
 	const vector<PDBChain *> &Chains,
+	vector<vector<uint> > &IntSeqs);
+
+void GetIntSeqs_SSS(
+	const vector<string> &Seqs,
 	vector<vector<uint> > &IntSeqs);
 
 static void GetAlnSubstScores(
@@ -391,6 +404,9 @@ static void GetLetterCounts(
 	vector<uint> &Counts,
 	uint &UndefCount);
 
+static void LogPairCountsMx(
+	const vector<vector<uint> > &CountsMx);
+
 static void LogLetterCountsFreqsAndBinTs(
 	const vector<uint> &Counts,
 	uint UndefCount,
@@ -509,6 +525,14 @@ static void TrainFloatFeature(
 	float UndefReplaceValue,
 	float *ptrBestArea,
 	FILE *fOut);
+
+static void TrainSSS(
+	const vector<vector<uint> > &IntSeqs,
+	const vector<string> &TrainRows,
+	const vector<string> &TrainLabels,
+	const vector<uint> &TrainSeqIdxs,
+	vector<vector<float > > &ScoreMx,
+	BACKGROUND_STYLE BS);
 
 static void TrainDSSFeature(
 	FEATURE F,
