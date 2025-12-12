@@ -283,11 +283,11 @@ void SSSLib::SetTrainingFrags()
 	ProgressLog("%u frags, %.2f frags/chain\n", FragCount, FragsPerChain);
 	}
 
-void SSSLib::SetParams(uint AlphaSize, uint M, uint BandWidth,
+void SSSLib::SetParams(uint AlphaSize, uint FragL, uint BandWidth,
 	uint DistN, uint FragStep)
 	{
 	m_AlphaSize = AlphaSize;
-	m_FragL = M;
+	m_FragL = FragL;
 	m_BandWidth = BandWidth;
 	m_DistN = DistN;
 	m_FragStep = FragStep;
@@ -295,7 +295,7 @@ void SSSLib::SetParams(uint AlphaSize, uint M, uint BandWidth,
 
 	m_DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(m_DistN);
 
-	m_FA.Init(M, BandWidth, DistN, m_DistPairScoresPtr);
+	m_FA.Init(FragL, BandWidth, DistN, m_DistPairScoresPtr);
 	m_IdxCount = m_FA.m_IdxCount;
 	}
 
@@ -424,10 +424,107 @@ void SSSLib::AssignLetters()
 
 char SSSLib::LetterToChar(byte Letter) const
 	{
-	if (Letter == 0xff)
-		return '*';
 	asserta(Letter < 36);
 	return g_LetterToCharMu[Letter];
+	}
+
+void SSSLib::Clear()
+	{
+	myfree(m_ClusterIdxs);
+	myfree(m_PrevClusterIdxs);
+	myfree(m_DistPairScoresPtr);
+
+	m_FragL = UINT_MAX;
+	m_AlphaSize = UINT_MAX;
+	m_IdxCount = UINT_MAX;
+	m_NextFragIdx = 0;
+	m_ThreadBatch = 256;
+	m_FragStep = 8;
+	m_BandWidth = 2;
+	m_DistN = 40;
+
+	m_Chains.clear();
+	m_DistsPtrVec.clear();
+	m_FragChainIdxs.clear();
+	m_FragStarts.clear();
+	m_ClusterIdxs = 0;
+	m_PrevClusterIdxs = 0;
+
+	m_CentroidsDistsPtrVec.clear();
+	m_ClusterIdxToFragIdxs.clear();
+	m_RepFragIdxs.clear();
+
+	m_DistPairScoresPtr = 0;
+	m_LettersVec.clear();
+	}
+
+static uint GetIntEq(const string &s)
+	{
+	asserta(false);
+	return 0;
+	}
+
+void SSSLib::FromSpec(const string &FN)
+	{
+	Clear();
+	vector<string> Lines;
+	ReadLinesFromFile(FN, Lines);
+	const uint LineCount = SIZE(Lines);
+	uint Letter = 0;
+	vector<string> Fields;
+	for (uint LineIdx = 0; LineIdx < LineCount; ++LineIdx)
+		{
+		const string &Line = Lines[LineIdx];
+		if (Line.empty())
+			continue;
+		if (StartsWith(Line, "#"))
+			continue;
+		else if (StartsWith(Line, "alpha_size="))
+			{
+			m_AlphaSize = GetIntEq(Line);
+			continue;
+			}
+		else if (StartsWith(Line, "fragl="))
+			{
+			m_FragL = GetIntEq(Line);
+			continue;
+			}
+		else if (StartsWith(Line, "fragstep="))
+			{
+			m_FragStep = GetIntEq(Line);
+			continue;
+			}
+		else if (StartsWith(Line, "distn="))
+			{
+			m_DistN= GetIntEq(Line);
+			continue;
+			}
+		else if (StartsWith(Line, "idxcount="))
+			{
+			m_IdxCount = GetIntEq(Line);
+			continue;
+			}
+
+		if (Letter == 0)
+			{
+			m_DistPairScoresPtr = FragAligner::MakeDistPairScoresPtr(m_DistN);
+			m_FA.Init(m_FragL, m_BandWidth, m_DistN, m_DistPairScoresPtr);
+			m_CentroidsDistsPtrVec.resize(m_AlphaSize);
+			}
+		
+		asserta(m_AlphaSize != UINT_MAX && m_AlphaSize > 0);
+		asserta(m_FragL != UINT_MAX && m_FragL > 0);
+		asserta(m_IdxCount != UINT_MAX && m_IdxCount > 0);
+		Split(Line, Fields, '\t');
+		asserta(SIZE(Fields) == 3 + m_IdxCount);
+		asserta(StrToUint(Fields[0]) == Letter);
+		uint *DistsPtr = myalloc(uint, m_IdxCount);
+		for (uint Idx = 0; Idx < m_IdxCount; ++Idx)
+			DistsPtr[Idx] = StrToUint(Fields[3+Idx]);
+		m_CentroidsDistsPtrVec[Letter] = DistsPtr;
+
+		++Letter;
+		}
 	}
 
 void SSSLib::ToSpec(const string &FN) const
@@ -482,16 +579,16 @@ void SSSLib::ToFasta(const string &FN) const
 		const vector<byte> &Letters = m_LettersVec[ChainIdx];
 		asserta(SIZE(Letters) == L);
 		string Seq;
-		if (m_AlphaSize <= 36)
+		for (uint Pos = 0; Pos < L; ++Pos)
 			{
-			for (uint Pos = 0; Pos < L; ++Pos)
-				Seq += LetterToChar(Letters[Pos]);
-			}
-		else
-			{
-			for (uint Pos = 0; Pos < L; ++Pos)
+			byte Letter = Letters[Pos];
+			if (Letter == 0xff)
+				Letter = m_AlphaSize;
+			if (m_AlphaSize < 36)
+				Seq += LetterToChar(Letter);
+			else
 				{
-				Ps(Tmp, "%02x", Letters[Pos]);
+				Ps(Tmp, "%02x", Letter);
 				Seq += Tmp;
 				}
 			}

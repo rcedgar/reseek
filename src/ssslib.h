@@ -39,6 +39,7 @@ public:
 	vector<vector<byte> > m_LettersVec;
 
 public:
+	void Clear();
 	void SetRandomInitialCentroids();
 	void LogCentroidDists();
 	void AssignMeanCentroid(uint ClusterIdx);
@@ -67,6 +68,7 @@ public:
 	void ToSpec(const string &FN) const;
 	char LetterToChar(byte Letter) const;
 	uint GetMinClusterSize() const;
+	void FromSpec(const string &FN);
 
 public:
 	static void StaticThreadBody(SSSLib *Lib, uint ThreadIndex);
