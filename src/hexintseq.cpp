@@ -11,8 +11,7 @@ void ByteSeqToHexIntStr(uint AlphaSize, const vector<byte> &Letters, string &Str
 	for (uint Pos = 0; Pos < L; ++Pos)
 		{
 		byte Letter = Letters[Pos];
-		if (Letter == 0xff)
-			Letter = AlphaSize;
+		asserta(Letter < 16);
 		if (AlphaSize < 36)
 			Str += g_LetterToCharMu[Letter];
 		else

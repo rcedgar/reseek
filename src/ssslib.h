@@ -8,7 +8,7 @@ class SSSLib
 	{
 public:
 	uint m_FragL = UINT_MAX;
-	uint m_AlphaSize = UINT_MAX;
+	uint m_K = UINT_MAX;	// AlphaSize=K+1 to allow for undef
 	uint m_IdxCount = UINT_MAX;
 	uint m_NextFragIdx = 0;
 	uint m_ThreadBatch = 256;
@@ -51,7 +51,7 @@ public:
 	void AddFrags(FragAligner &FA, uint ChainIdx);
 	void LogClusterAssignsHead(uint n = 10);
 	void ThreadBody(uint ThreadIndex);
-	void SetParams(uint AlphaSize, uint M, uint BandWidth,
+	void SetParams(uint K, uint M, uint BandWidth,
 		uint DistN, uint FragStep);
 	void SetTrainingFrags();
 	void Train();
