@@ -81,6 +81,9 @@ public:
 	static map<string, uint> m_LabelToSeqIdx_SSSA;
 	static map<string, uint> m_LabelToSeqIdx_SSSB;
 
+	static vector<string> m_Labels_SSSA;
+	static vector<string> m_Labels_SSSB;
+
 	static vector<vector<byte> > m_IntSeqs_SSSA;
 	static vector<vector<byte> > m_IntSeqs_SSSB;
 
@@ -158,6 +161,7 @@ private:
 		const string &FastaFN,
 		uint &AlphaSize,
 		vector<vector<byte> > &IntSeqs,
+		vector<string> &Labels,
 		map<string, uint> &LabelToSeqIdx,
 		vector<vector<float> > &ScoreMx);
 	};

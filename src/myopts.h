@@ -179,6 +179,7 @@ FLAG_OPT(fixmubyteseq)
 FLAG_OPT(roundmx)
 FLAG_OPT(nomufilter)
 FLAG_OPT(selfonly)
+FLAG_OPT(keepscopid)
 
 #undef FLAG_OPT
 #undef UNS_OPT

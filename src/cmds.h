@@ -64,5 +64,6 @@ C(hjnumega)
 C(hjnumegarev)
 C(cluster_sss)
 C(train_sss)
+C(sssv_scop40)
 
 #undef C

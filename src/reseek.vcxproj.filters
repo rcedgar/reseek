@@ -545,6 +545,15 @@
     <ClCompile Include="hexintseq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fastbench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_sss.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sssv_scop40.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -908,6 +917,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hexintseq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastbench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

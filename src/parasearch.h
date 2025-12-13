@@ -1,22 +1,20 @@
 #pragma once
 
+#include "fastbench.h"
 #include "paralign.h"
 
 class PDBChain;
 
-class ParaSearch
+class ParaSearch : public FastBench
 	{
 public:
 	vector<PDBChain *> m_Chains;
-	vector<string> m_Labels;
 	vector<vector<byte> > m_ByteSeqs;
 	vector<uint> m_DomIdxs;
 
 	float *m_SelfScores_rev = 0;
-	float *m_Scores = 0;
 	float *m_Scores_fwd = 0;
 	float *m_Scores_rev = 0;
-	float m_Sum3 = FLT_MAX;
 
 	vector<Paralign *> m_PAs;
 	vector<uint> m_QueryIdxs;
@@ -25,19 +23,14 @@ public:
 	string m_SubstMxName;
 	string m_ByteSeqMethod;
 
-	uint m_SeqCount = UINT_MAX;
-	uint m_PairCount = UINT_MAX;
-	vector<uint> m_LabelIdxToSFIdx;
-	vector<string> m_SFs;
-	vector<uint> m_SFIdxToSize;
-	unordered_map<string, uint> m_SFToIdx;
-	uint m_NT = UINT_MAX;
-	uint m_NF = UINT_MAX;
-	uint *m_ScoreOrder = 0;
 	bool m_DoReverse = false;
 
 public:
 	static vector<FEATURE> m_NuFs;
+
+public:
+	virtual void SubclassClearHitsAndResults();
+	virtual void SubclassAppendHit(uint i, uint j, float Score);
 
 public:
 	void ClearHitsAndResults();
@@ -47,17 +40,12 @@ public:
 	void InitThreads(const string &AlignMethod, bool DoReverse);
 	void SetQuery(uint ThreadIdx, uint i);
 	void Align(uint ThreadIdx, uint i, uint j);
-	void AppendHit(uint i, uint j, float Score);
-	void AppendHit_rev(uint i, uint j, float Score);
-	void Bench(const string &Msg = "");
-	void SetScoreOrder();
-	void WriteHits(const string &FN) const;
 	void WriteRevTsv(const string &FN) const;
-	void SetLookupFromLabels();
-	void AddDom(const string &Dom, const string &SF, uint LabelIdx);
 	void MakeSubset(ParaSearch &Subset, uint SubsetPct);
+
 	void SetSelfScores_rev(const string &AlignMethod);
 	float GetSelfScore_rev(Paralign &PA, uint ChainIdx);
+	void AppendHit_rev(uint i, uint j, float Score);
 	void BenchRev(const string &Msg, float SelfWeight, float RevWeight);
 
 private:

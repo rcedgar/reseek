@@ -46,9 +46,11 @@ template<class t> void ReadHexIntSeqs(
 	uint AlphaSize,
 	const string &FN,
 	vector<vector<t> > &IntSeqs,
+	vector<string> &Labels,
 	map<string, uint> &LabelToSeqIdx)
 	{
 	IntSeqs.clear();
+	Labels.clear();
 	LabelToSeqIdx.clear();
 
 	vector<string> Lines;
@@ -71,12 +73,16 @@ template<class t> void ReadHexIntSeqs(
 				GetHexIntSeq(AlphaSize, Seq, IntSeq);
 				IntSeqs.push_back(IntSeq);
 				asserta(!Label.empty());
+				Labels.push_back(Label);
 				LabelToSeqIdx[Label] = SeqIdx;
 				Seq.clear();
 				}
 			Label = Line.substr(1, string::npos);
-			Split(Label, Fields, '/');
-			Label = Fields[0];
+			if (!opt(keepscopid))
+				{
+				Split(Label, Fields, '/');
+				Label = Fields[0];
+				}
 			}
 		else
 			Seq += Line;
@@ -88,5 +94,6 @@ template<class t> void ReadHexIntSeqs(
 		IntSeqs.push_back(IntSeq);
 		asserta(!Label.empty());
 		LabelToSeqIdx[Label] = SeqIdx;
+		Labels.push_back(Label);
 		}
 	}

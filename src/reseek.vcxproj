@@ -280,6 +280,7 @@
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="chaindata.cpp" />
+    <ClCompile Include="cluster_sss.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
     <ClCompile Include="dali.cpp" />
@@ -287,6 +288,7 @@
     <ClCompile Include="dssparamdata.cpp" />
     <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="fa2_lddt.cpp" />
+    <ClCompile Include="fastbench.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
@@ -405,6 +407,7 @@
     <ClCompile Include="shuffle.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="ssslib.cpp" />
+    <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
@@ -468,6 +471,7 @@
     <ClInclude Include="dssintparams.h" />
     <ClInclude Include="dssuintparams.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="fragaligner.h" />

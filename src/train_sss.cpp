@@ -22,8 +22,9 @@ void cmd_train_sss()
 ///////////////////////////////////////////////////////////////////////////////////////
 	vector<vector<uint> > IntSeqs;
 	map<string, uint> LabelToSeqIdx;
+	vector<string> Labels;
 	Progress("Reading int seqs... ");
-	ReadHexIntSeqs(AS, SeqsFN, IntSeqs, LabelToSeqIdx);
+	ReadHexIntSeqs(AS, SeqsFN, IntSeqs, Labels, LabelToSeqIdx);
 	Progress("done.\n");
 
 	vector<bool> TrainsTPs_notused;

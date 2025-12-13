@@ -57,6 +57,9 @@ float DSSParams::m_revtsw = 2.0f;
 uint DSSParams::m_AlphaSize_SSSA;
 uint DSSParams::m_AlphaSize_SSSB;
 
+vector<string> DSSParams::m_Labels_SSSA;
+vector<string> DSSParams::m_Labels_SSSB;
+
 map<string, uint> DSSParams::m_LabelToSeqIdx_SSSA;
 map<string, uint> DSSParams::m_LabelToSeqIdx_SSSB;
 
@@ -498,11 +501,13 @@ void DSSParams::ReadSSS(
 	const string &FastaFN,
 	uint &AlphaSize,
 	vector<vector<byte> > &IntSeqs,
+	vector<string> &Labels,
 	map<string, uint> &LabelToSeqIdx,
 	vector<vector<float> > &ScoreMx)
 	{
 	AlphaSize = UINT_MAX;
 	IntSeqs.clear();
+	Labels.clear();
 	ScoreMx.clear();
 
 	vector<string> Lines;
@@ -536,19 +541,19 @@ void DSSParams::ReadSSS(
 		}
 	asserta(Letter == AlphaSize);
 
-	ReadHexIntSeqs(AlphaSize, FastaFN, IntSeqs, LabelToSeqIdx);
+	ReadHexIntSeqs(AlphaSize, FastaFN, IntSeqs, Labels, LabelToSeqIdx);
 	}
 
 void DSSParams::LoadSSSA(const string &MxFN, const string &FastaFN)
 	{
 	ReadSSS(MxFN, FastaFN, m_AlphaSize_SSSA, m_IntSeqs_SSSA,
-		m_LabelToSeqIdx_SSSA, m_ScoreMx_SSSA);
+		m_Labels_SSSA, m_LabelToSeqIdx_SSSA, m_ScoreMx_SSSA);
 	CreateFeatureScoreMx(FEATURE_SSSA, m_ScoreMx_SSSA);
 	}
 
 void DSSParams::LoadSSSB(const string &MxFN, const string &FastaFN)
 	{
 	ReadSSS(MxFN, FastaFN, m_AlphaSize_SSSB, m_IntSeqs_SSSB,
-		m_LabelToSeqIdx_SSSB, m_ScoreMx_SSSB);
+		m_Labels_SSSB, m_LabelToSeqIdx_SSSB, m_ScoreMx_SSSB);
 	CreateFeatureScoreMx(FEATURE_SSSB, m_ScoreMx_SSSB);
 	}
