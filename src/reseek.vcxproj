@@ -279,6 +279,7 @@
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
     <ClCompile Include="blosum62.cpp" />
+    <ClCompile Include="bytevecdb.cpp" />
     <ClCompile Include="chaindata.cpp" />
     <ClCompile Include="cluster_sss.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
@@ -300,6 +301,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="letteralndb.cpp" />
     <ClCompile Include="nubench.cpp" />
     <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />
@@ -330,6 +332,7 @@
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
+    <ClCompile Include="pwalndb.cpp" />
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
@@ -414,6 +417,7 @@
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="trained_features3.cpp" />
+    <ClCompile Include="train_feature3.cpp" />
     <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="train_sss.cpp" />
     <ClCompile Include="trees.c" />
@@ -454,6 +458,7 @@
     <ClInclude Include="alphadata.h" />
     <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
+    <ClInclude Include="bytevecdb.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
     <ClInclude Include="chainbag.h" />
@@ -476,6 +481,8 @@
     <ClInclude Include="flatmx.h" />
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="hexintseq.h" />
+    <ClInclude Include="letteralndb.h" />
+    <ClInclude Include="logmxptr.h" />
     <ClInclude Include="maxbuff.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />
@@ -527,6 +534,7 @@
     <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="profileloader.h" />
+    <ClInclude Include="pwalndb.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="round3sigfig.h" />

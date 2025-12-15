@@ -767,6 +767,28 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		}
 	}
 
+void DSS::GetByteVec(FEATURE F, vector<uint8_t> &ByteVec)
+	{
+	const uint L = GetSeqLength();
+	ByteVec.reserve(L);
+	uint AS = DSSParams::GetAlphaSize(F);
+	asserta(AS > 0 && AS < 256);
+	for (uint Pos = 0; Pos < L; ++Pos)
+		{
+		uint Letter32 = GetFeature(F, Pos);
+		uint8_t Byte = 0;
+		if (Letter32 == UINT_MAX)
+			Byte = 0xff;
+		else
+			{
+			asserta(Letter32 < AS);
+			Byte = uint8_t(Letter32);
+			asserta(uint(Byte) == Letter32);
+			}
+		ByteVec.push_back(Byte);
+		}
+	}
+
 void DSS::GetProfile(vector<vector<byte> > &Profile)
 	{
 	Profile.clear();

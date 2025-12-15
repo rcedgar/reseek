@@ -99,6 +99,7 @@ public:
 	void Set_NU_ND_Vecs();
 	void GetMuLetters(uint MuLetter, vector<uint> &Letters) const;
 	float GetFloat_RENDist_ForMu(uint Pos);
+	void GetByteVec(FEATURE F, vector<uint8_t> &ByteVec);
 
 public:
 	static uint SSCharToInt(char c);

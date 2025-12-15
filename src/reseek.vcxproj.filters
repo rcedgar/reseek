@@ -554,6 +554,18 @@
     <ClCompile Include="sssv_scop40.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pwalndb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bytevecdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="letteralndb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="train_feature3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -920,6 +932,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fastbench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pwalndb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bytevecdb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="letteralndb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="logmxptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
