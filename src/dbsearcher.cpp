@@ -259,7 +259,7 @@ bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	{
 	if (!opt(scores_are_not_evalues) && DA.GetEvalue(Up) > m_MaxEvalue)
 		return true;
-	 if (optset_mints && DA.GetNewTestStatistic(Up) < opt(mints))
+	if (optset_mints && DA.GetNewTestStatistic(Up) < opt(mints))
 		return true;
 	return false;	
 	}
