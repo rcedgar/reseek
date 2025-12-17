@@ -58,7 +58,7 @@ float LetterAlnDB::GetFreq(uint8_t Letter) const
 	return m_FreqsPtr[Letter];
 	}
 
-void LetterAlnDB::SetCountsAndFreqs()
+void LetterAlnDB::SetCountsAndFreqs(uint PsuedoCount)
 	{
 	asserta(m_CountsPtr == 0);
 	asserta(m_FreqsPtr == 0);
@@ -74,6 +74,13 @@ void LetterAlnDB::SetCountsAndFreqs()
 	zero_array(m_JointCountsMxPtr, AS*AS);
 	zero_array(m_JointFreqsMxPtr, AS*AS);
 
+	for (uint i = 0; i < AS; ++i)
+		m_CountsPtr[i] = PsuedoCount;
+
+	for (uint i = 0; i < AS; ++i)
+		for (uint j = 0; j < AS; ++j)
+			m_JointCountsMxPtr[AS*i + j] = PsuedoCount;
+
 	for (uint i = 0; i < m_LetterPairCount; ++i)
 		{
 		uint8_t Letter1 = m_Letters[2*i];
@@ -88,22 +95,24 @@ void LetterAlnDB::SetCountsAndFreqs()
 		m_JointCountsMxPtr[AS*Letter2 + Letter1] += 1;
 		}
 
+	uint N2 = 2*m_LetterPairCount + m_AlphaSize*m_AlphaSize*PsuedoCount;
 	float SumFreq = 0;
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
-		float Freq = float(m_CountsPtr[i])/(2*m_LetterPairCount);
+		float Freq = float(m_CountsPtr[i])/N2;
 		m_FreqsPtr[i] = Freq;
 		SumFreq += Freq;
 		}
 	asserta(feq(SumFreq, 1));
 
+	uint N1 = 2*m_LetterPairCount + m_AlphaSize*PsuedoCount;
 	float SumFreq2 = 0;
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		{
 		for (uint j = 0; j < m_AlphaSize; ++j)
 			{
 			uint n = m_JointCountsMxPtr[AS*i + j];
-			float Freq = float(n)/(2*m_LetterPairCount);
+			float Freq = float(n)/N1;
 			m_JointFreqsMxPtr[AS*i + j] = Freq;
 			SumFreq2 += Freq;
 			}
@@ -145,9 +154,9 @@ float LetterAlnDB::GetExpectedCount(const float *LetterFreqsPtr,
 	}
 
 float LetterAlnDB::GetLogOddsScore(uint8_t Letter1, uint8_t Letter2,
-	const float *LetterFreqsPtr, uint PseudoCount) const
+	const float *LetterFreqsPtr) const
 	{
-	uint ObsPairCount = GetJointCount(Letter1, Letter2) + PseudoCount;
+	uint ObsPairCount = GetJointCount(Letter1, Letter2);
 	float ObsFreq = float(ObsPairCount)/m_LetterPairCount;
 	float ObsFreq1 = LetterFreqsPtr[Letter1];
 	float ObsFreq2 = LetterFreqsPtr[Letter2];
@@ -158,16 +167,86 @@ float LetterAlnDB::GetLogOddsScore(uint8_t Letter1, uint8_t Letter2,
 	}
 
 float *LetterAlnDB::GetLogOddsMxPtr(
-	const float *LetterFreqsPtr, uint PseudoCount) const
+	const float *LetterFreqsPtr) const
 	{
 	float *Mx = myalloc(float, m_AlphaSize*m_AlphaSize);
 	for (uint i = 0; i < m_AlphaSize; ++i)
 		for (uint j = i; j < m_AlphaSize; ++j)
 			{
-			float Score = GetLogOddsScore(i, j, LetterFreqsPtr, PseudoCount);
+			float Score = GetLogOddsScore(i, j, LetterFreqsPtr);
 			Mx[m_AlphaSize*i + j] = Score;
 			if (i != j)
 				Mx[m_AlphaSize*j + i] = Score;
+			}
+	return Mx;
+	}
+
+/***
+Expected Score.
+Kullback-Leibler divergence between joint probabilities for homologs
+and joint probabilities for non-homologs (random pairs) is precisely
+the expected log-odds score when you draw pairs from the homolog distribution.
+***/
+float LetterAlnDB::GetES(const float *LetterFreqsPtr) const
+	{
+	float Sum = 0;
+	for (uint i = 0; i < m_AlphaSize; ++i)
+		{
+		for (uint j = 0; j < m_AlphaSize; ++j)
+			{
+			float P_ij = GetJointFreq(i, j);
+			float Score = GetLogOddsScore(i, j, LetterFreqsPtr);
+			Sum += P_ij*Score;
+			}
+		}
+	return Sum;
+	}
+
+float LetterAlnDB::GetES2(
+	const uint AlphaSize,
+	const float *LogOddsMxPtr,
+	const float *JointFreqsPtr)
+	{
+	float Sum = 0;
+	for (uint i = 0; i < AlphaSize; ++i)
+		{
+		for (uint j = 0; j < AlphaSize; ++j)
+			{
+			float P_ij = JointFreqsPtr[AlphaSize*i + j];
+			float Score = LogOddsMxPtr[AlphaSize*i + j];
+			Sum += P_ij*Score;
+			}
+		}
+	return Sum;
+	}
+
+float LetterAlnDB::GetLogOddsScore2(
+	uint8_t Letter1, uint8_t Letter2,
+	const LetterAlnDB &DB_TP,
+	const LetterAlnDB &DB_FP,
+	const float *LetterFreqsPtr)
+	{
+	float Freq_TP = DB_TP.GetJointFreq(Letter1, Letter2);
+	float Freq_FP = DB_FP.GetJointFreq(Letter1, Letter2);
+	float Ratio = Freq_TP/Freq_FP;
+	float LogOddsScore = log(Ratio);
+	return LogOddsScore;
+	}
+
+float *LetterAlnDB::GetLogOddsMxPtr2(
+	uint AlphaSize,
+	const LetterAlnDB &LA_TP,
+	const LetterAlnDB &LA_FP,
+	const float *LetterFreqsPtr)
+	{
+	float *Mx = myalloc(float, AlphaSize*AlphaSize);
+	for (uint i = 0; i < AlphaSize; ++i)
+		for (uint j = i; j < AlphaSize; ++j)
+			{
+			float Score = GetLogOddsScore2(i, j, LA_TP, LA_FP, LetterFreqsPtr);
+			Mx[AlphaSize*i + j] = Score;
+			if (i != j)
+				Mx[AlphaSize*j + i] = Score;
 			}
 	return Mx;
 	}

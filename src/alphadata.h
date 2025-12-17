@@ -353,6 +353,9 @@ static const float S_ij_PMDist[16*16] = {
 };
 SetFeatureScoreMx(FEATURE_PMDist, S_ij_PMDist, 16);
 
+// reseek v2.8.i86linux64 [a2911b0]
+// reseek -train_feature2 PMDistDiff -alpha_size 16 -db ../data/scop40.bca -force_undef -traintps ../big_out/tp.b.mints05.maxts25.fa2 -evaltps ../big_out/tp.b.mints05.maxts25.fa2 -evalfps ../big_out/fp.b.mints05.maxts25.fa2 -quantize_style distinct -background_style float -log PMDistDiff.log -output PMDistDiff.out
+// 2025-10_reseek_tune/train_pms/PMDistDiff.log
 static const float S_ij_PMDistDiff[16*16] = {
 //     0        1        2        3        4        5        6        7        8        9       10       11       12       13       14       15
     2.23,    0.94,  -0.223,   -1.01,   -1.43,   -1.65,   -2.01,   -2.41,   -2.31,   -2.39,   -2.38,   -2.66,    -2.8,   -2.87,    -2.8,   0.202, // 0

@@ -66,5 +66,7 @@ C(hjnumegarev)
 C(cluster_sss)
 C(train_sss)
 C(sssv_scop40)
+C(subset_bench_dope)
+C(subset_bench_bsaa)
 
 #undef C

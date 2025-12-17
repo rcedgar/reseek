@@ -412,6 +412,7 @@
     <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
+    <ClCompile Include="subset_bench.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
@@ -544,6 +545,7 @@
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="ssslib.h" />
     <ClInclude Include="statsig.h" />
+    <ClInclude Include="subset_bench.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />

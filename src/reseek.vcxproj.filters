@@ -566,6 +566,9 @@
     <ClCompile Include="train_feature3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="subset_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -944,6 +947,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="logmxptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="subset_bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
