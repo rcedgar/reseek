@@ -4,7 +4,6 @@
 #include "xdpmem.h"
 #include "swtrace.h"
 
-
 void TraceBackBitSW(XDPMem &Mem,
   uint LA, uint LB, uint Besti, uint Bestj,
   uint &Leni, uint &Lenj, string &Path)
