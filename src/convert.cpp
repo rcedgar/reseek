@@ -252,6 +252,11 @@ static void ThreadBody(uint ThreadIndex)
 		delete ptrChain;
 		}
 	}
+	
+void cmd_subset()
+	{
+	Die("Use -convert -subsample");
+	}
 
 void cmd_convert()
 	{

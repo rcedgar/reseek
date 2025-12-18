@@ -1,6 +1,7 @@
 #ifndef tracebit_h
 #define tracebit_h
 
+const byte TRACEBITS_MM = 0x00;
 const byte TRACEBITS_DM = 0x01;
 const byte TRACEBITS_IM = 0x02;
 const byte TRACEBITS_MD = 0x04;

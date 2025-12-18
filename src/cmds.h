@@ -71,5 +71,6 @@ C(subset_bench_bsaa)
 C(subset_bench_bsfeature)
 C(subset_bench_bs2fa)
 C(subset_bench)
+C(subset)
 
 #undef C

@@ -4,12 +4,25 @@
 #include "xdpmem.h"
 #include "swtrace.h"
 
+#define DEBUG_UNINIT	0
+
 void TraceBackBitSW(XDPMem &Mem,
   uint LA, uint LB, uint Besti, uint Bestj,
   uint &Leni, uint &Lenj, string &Path)
 	{
 	Path.clear();
 	byte **TB = Mem.GetTBBit();
+
+#if DEBUG_UNINIT
+	for (uint i = 0; i < LA; ++i)
+		{
+		for (uint j = 0; j < LB; ++j)
+			{
+			if (TB[i][j] == TRACEBITS_UNINIT)
+				Log("!TB[%u][%u]\n", i, j);
+			}
+		}
+#endif
 
 #if TRACE && !DOTONLY
 	Log("\n");
@@ -30,8 +43,20 @@ void TraceBackBitSW(XDPMem &Mem,
 		switch (State)
 			{
 		case 'M':
-			asserta(i > 0 && j > 0);
+			if (i == 0 || j == 0)
+				{
+				Leni = Besti - i;
+				Lenj = Bestj - j;
+				reverse(Path.begin(), Path.end());
+				return;
+				}
 			t = TB[i-1][j-1];
+#if DEBUG_UNINIT
+			{
+			if (t == TRACEBITS_UNINIT)
+				Die("TRACEBITS_UNINIT LA=%u LB=%u i=%u j=%u", LA, LB, i, j);
+			}
+#endif
 			if (t & TRACEBITS_DM)
 				State = 'D';
 			else if (t & TRACEBITS_IM)
@@ -52,6 +77,9 @@ void TraceBackBitSW(XDPMem &Mem,
 		case 'D':
 			asserta(i > 0);
 			t = TB[i-1][j];
+#if DEBUG_UNINIT
+			asserta(t != TRACEBITS_UNINIT);
+#endif
 			if (t & TRACEBITS_MD)
 				State = 'M';
 			else
@@ -62,6 +90,9 @@ void TraceBackBitSW(XDPMem &Mem,
 		case 'I':
 			asserta(j > 0);
 			t = TB[i][j-1];
+#if DEBUG_UNINIT
+			asserta(t != TRACEBITS_UNINIT);
+#endif
 			if (t & TRACEBITS_MI)
 				State = 'M';
 			else
@@ -79,9 +110,6 @@ float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
   float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
   string &Path)
 	{
-#if TRACE && !DOTONLY
-	SMx.LogMe();
-#endif
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
 
@@ -96,6 +124,13 @@ float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
 	float *Drow = Mem.GetDPRow2();
 	byte **TB = Mem.GetTBBit();
 	INIT_TRACE(LA, LB, TB);
+
+#if DEBUG_UNINIT
+	Mem.m_TBBit.Assign(TRACEBITS_UNINIT);
+	vector<vector<bool> > TBDone(LA);
+	for (uint i = 0; i < LA; ++i)
+		TBDone[i].resize(LB);
+#endif
 
 // Use Mrow[-1], so...
 	Mrow[-1] = MINUS_INFINITY;
@@ -122,7 +157,7 @@ float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
 		byte *TBrow = TB[i];
 		for (uint j = 0; j < LB; ++j)
 			{
-			byte TraceBits = 0;
+			byte TraceBits = TRACEBITS_MM;
 			float SavedM0 = M0;
 
 		// MATCH
@@ -190,14 +225,31 @@ float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
 			}
 			
 			TBrow[j] = TraceBits;
+#if DEBUG_UNINIT
+			TBDone[i][j] = true;
+#endif
 			}
 		
 		M0 = MINUS_INFINITY;
 		}
-
 	DONE_TRACE(BestScore, Besti, Bestj, TB);
 	if (BestScore == 0.0f)
 		return 0.0f;
+
+#if DEBUG_UNINIT
+	{
+	for (uint i = 0; i < LA; ++i)
+		{
+		for (uint j = 0; j < LB; ++j)
+			{
+			if (TB[i][j] == TRACEBITS_UNINIT)
+				Log("!TB[%u][%u]\n", i, j);
+			if (!TBDone[i][j])
+				Log("!TBDone[%u][%u]\n", i, j);
+			}
+		}
+	}
+#endif
 
 	TraceBackBitSW(Mem, LA, LB, Besti+1, Bestj+1,
 	  Leni, Lenj, Path);
@@ -217,9 +269,6 @@ float SWFast_SubstMx(XDPMem &Mem,
 	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
 	string &Path)
 	{
-#if TRACE && !DOTONLY
-	SMx.LogMe();
-#endif
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
 

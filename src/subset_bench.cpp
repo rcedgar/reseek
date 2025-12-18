@@ -8,6 +8,53 @@ static const uint MAGIC2 = 0xd06e2;
 static const uint MAGIC3 = 0xd06e3;
 static const uint MAGIC4 = 0xd06e4;
 
+void SubPattern(const string &Pattern, const string &x,	string &s)
+	{
+	s.clear();
+	bool Found = false;
+	for (uint i = 0; i < SIZE(Pattern); ++i)
+		{
+		char c = Pattern[i];
+		if (c == '@')
+			{
+			asserta(!Found);
+			Found = true;
+			s += x;
+			}
+		else
+			s += c;
+		}
+	asserta(Found);
+	}
+
+void ParseVarStr(
+	const string &VarStr,
+	vector<string> &Names,
+	vector<float> &Values)
+	{
+	Names.clear();
+	Values.clear();
+
+	vector<string> Fields;
+	Split(VarStr, Fields, ';');
+
+	const uint n = SIZE(Fields);
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &NameEqValue = Fields[i];
+		vector<string> Fields2;
+		Split(NameEqValue, Fields2, '=');
+		if (SIZE(Fields2) != 2)
+			Die("SubsetBench::ParseVarStr(%s) not name=value '%s'",
+				VarStr.c_str(), Fields[i].c_str());
+		const string &Name = Fields2[0];
+		const string &ValueStr = Fields2[1];
+		float Weight = StrToFloatf(ValueStr);
+		Names.push_back(Name);
+		Values.push_back(Weight);
+		}
+	}
+
 void SubsetBench::AddDom(const string &Dom, const string &ScopId)
 	{
 	vector<string> Fields;
@@ -85,12 +132,17 @@ void SubsetBench::AllocHits()
 	m_ScoreOrder = myalloc(uint, m_DopeSize);
 	}
 
-uint SubsetBench::GetDomIdx(const string &Label) const
+uint SubsetBench::GetDomIdx(const string &Label, bool ErrOk) const
 	{
 	string Dom;
 	SCOP40Bench::GetDomFromLabel(Label, Dom);
 	map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
-	asserta(iter != m_DomToIdx.end());
+	if (iter == m_DomToIdx.end())
+		{
+		if (ErrOk)
+			return UINT_MAX;
+		Die("SubsetBench::GetDomIdx(%s)", Label.c_str());
+		}
 	uint Idx = iter->second;
 	return Idx;
 	}
@@ -121,6 +173,16 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 		const string &LabelT = Fields[1];
 		if (LabelQ == LabelT)
 			continue;
+
+		string DomQ, DomT;
+		SCOP40Bench::GetDomFromLabel(LabelQ, DomQ);
+		SCOP40Bench::GetDomFromLabel(LabelT, DomT);
+
+		uint DomIdxQ = GetDomIdx(DomQ, true);
+		uint DomIdxT = GetDomIdx(DomT, true);
+		if (DomIdxQ == UINT_MAX || DomIdxT == UINT_MAX)
+			continue;
+
 		double Evalue = StrToFloat(Fields[2]);
 		if (Evalue >= 10)
 			continue;
@@ -144,8 +206,12 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 		const string &LabelQ = LabelQs[Idx];
 		const string &LabelT = LabelTs[Idx];
 
-		uint DomIdxQ = GetDomIdx(LabelQ);
-		uint DomIdxT = GetDomIdx(LabelT);
+		string DomQ, DomT;
+		SCOP40Bench::GetDomFromLabel(LabelQ, DomQ);
+		SCOP40Bench::GetDomFromLabel(LabelT, DomT);
+
+		uint DomIdxQ = GetDomIdx(DomQ, false);
+		uint DomIdxT = GetDomIdx(DomT, false);
 
 		m_DopeDomIdxs.insert(DomIdxQ);
 		m_DopeDomIdxs.insert(DomIdxT);
@@ -411,6 +477,8 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 
 	const uint LQ = m_Ls[DomIdxQ];
 	const uint LT = m_Ls[DomIdxT];
+	asserta(LQ <= m_MaxL);
+	asserta(LT <= m_MaxL);
 
 	float **SWMx = m_SWMxs[ThreadIdx];
 	const uint FeatureCount = GetFeatureCount();
@@ -441,12 +509,12 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 		for (uint PosQ = 0; PosQ < LQ; ++PosQ)
 			{
 			byte q = Q[PosQ];
-			assert(q < AS0);
+			assert(q < AS);
 			for (uint PosT = 0; PosT < LT; ++PosT)
 				{
 				byte t = T[PosT];
 				assert(t < AS);
-				SWMx[PosQ][PosT] += SubstMxPtr0[AS0*q + t];
+				SWMx[PosQ][PosT] += SubstMxPtr[AS*q + t];
 				}
 			}
 		}
@@ -468,7 +536,12 @@ void SubsetBench::ThreadBody(uint ThreadIdx)
 		float * const *SWMx = MakeSWMx(ThreadIdx, DomIdxQ, DomIdxT);
 		uint LQ = m_Ls[DomIdxQ];
 		uint LT = m_Ls[DomIdxT];
-		m_Scores[PairIdx] = m_AF(Mem, LQ, LT, m_Open, m_Ext, SWMx);
+		assert(LQ <= m_MaxL);
+		assert(LT <= m_MaxL);
+		float Score = m_AF(Mem, LQ, LT, m_Open, m_Ext, SWMx);
+		asserta(!isnan(Score));
+		asserta(!isinf(Score));
+		m_Scores[PairIdx] = Score;
 		}
 	}
 
@@ -555,8 +628,10 @@ void SubsetBench::LoadScoreMxs(vector<string> &FNs)
 	m_SubstMxPtrs.resize(N);
 	for (uint i = 0; i < N; ++i)
 		{
+		const string &FN = FNs[i];
+		Progress("Load %s\n", FN.c_str());
 		uint AS;
-		m_SubstMxPtrs[i] = ReadScoreMx(FNs[i], AS);
+		m_SubstMxPtrs[i] = ReadScoreMx(FN, AS);
 		m_AlphaSizes.push_back(AS);
 		}
 	}
@@ -686,7 +761,9 @@ void SubsetBench::Bench(const string &Msg)
 		float Score = m_Scores[HitIdx];
 		if (Score != LastScore)
 			{
-			asserta(Score < LastScore);
+			if (Score >= LastScore)
+				Die("k=%u HitIdx=%u Score=%.3g LastScore=%3g\n",
+					k, HitIdx, Score, LastScore);
 			float EPQ = 2*float(nf)/DomCount;
 			float Sens = 2*float(nt)/m_NT;
 			if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
@@ -701,9 +778,9 @@ void SubsetBench::Bench(const string &Msg)
 		}
 	float EPQ = float(nf)/DomCount;
 	float Sens = float(nt)/m_NT;
-	if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
-	if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
-	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
+	if (SEPQ0_1 == FLT_MAX) SEPQ0_1 = Sens;
+	if (SEPQ1 == FLT_MAX)   SEPQ1   = Sens;
+	if (SEPQ10 == FLT_MAX)  SEPQ10  = Sens;
 	m_Sum3 = SEPQ0_1*2 + SEPQ1*3/2 + SEPQ10;
 
 	if (Msg != "")
@@ -733,24 +810,44 @@ static float AF(
 
 void cmd_subset_bench()
 	{
+	asserta(optset_bspattern);
+	asserta(optset_mxpattern);
+	asserta(optset_varstr);
 	const string &DopeFN = g_Arg1;
 	const string &LookupFN = opt(lookup);
+	const string &BSPattern = opt(bspattern);
+	const string &MxPattern = opt(mxpattern);
+	const string &VarStr = opt(varstr);
+
+	vector<string> FeatureNames;
+	vector<float> Weights;
+	ParseVarStr(VarStr, FeatureNames, Weights);
+
+	vector<string> BSFNs;
+	vector<string> SMFNs;
+	const uint n = SIZE(FeatureNames);
+	asserta(SIZE(Weights) == n);
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &Name = FeatureNames[i];
+		string BSFN, MxFN;
+		SubPattern(BSPattern, Name, BSFN);
+		SubPattern(MxPattern, Name, MxFN);
+		BSFNs.push_back(BSFN);
+		SMFNs.push_back(MxFN);
+		}
 
 	SubsetBench SB;
 	SB.ReadLookup(LookupFN);
 	SB.ReadDope(DopeFN);
 	SB.AllocHits();
 
-	vector<string> BSFNs;
-	vector<string> SMFNs;
-	vector<float> Weights;
-
-	SMFNs.push_back("../2025-12-16_train_alphadata_h/AA_20.out");
-	BSFNs.push_back("scop40c.bsaaf");
-	Weights.push_back(1);
+	//SMFNs.push_back("../2025-12-16_train_alphadata_h/AA_20.out");
+	//BSFNs.push_back("scop40c.bsaaf");
+	//Weights.push_back(1);
 
 	SB.m_Open = 3;
-	SB.m_Ext = 0.3;
+	SB.m_Ext = 0.3f;
 	SB.LoadScoreMxs(SMFNs);
 	SB.LoadByteSeqs(BSFNs);
 	SB.SetWeights(Weights);

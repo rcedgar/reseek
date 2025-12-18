@@ -83,7 +83,7 @@ public:
 	void AllocDope(uint DopeSize);
 	void AllocHits();
 	void MakeDopeFromHits(const string &FN);
-	uint GetDomIdx(const string &Label) const;
+	uint GetDomIdx(const string &Label, bool ErrOk) const;
 	uint GetSFIdx(uint DomIdx) const;
 	void WriteDope(const string &FN) const;
 	void ReadDope(const string &FN);
@@ -108,3 +108,8 @@ public:
 public:
 	static void StaticThreadBody(SubsetBench *SB, uint ThreadIdx);
 	};
+
+void ParseVarStr(
+	const string &VarStr,
+	vector<string> &Names,
+	vector<float> &Weights);
