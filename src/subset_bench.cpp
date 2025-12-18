@@ -485,6 +485,7 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 	asserta(FeatureCount > 0);
 
 	const float *SubstMxPtr0 = m_SubstMxPtrs[0];
+	const float w0 = m_Weights[0];
 	const uint AS0 = m_AlphaSizes[0];
 	const byte *Q0 = m_ByteSeqVec[0][DomIdxQ].data();
 	const byte *T0 = m_ByteSeqVec[0][DomIdxT].data();
@@ -496,13 +497,14 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 			{
 			byte t = T0[PosT];
 			assert(t < AS0);
-			SWMx[PosQ][PosT] = SubstMxPtr0[AS0*q + t];
+			SWMx[PosQ][PosT] = w0*SubstMxPtr0[AS0*q + t];
 			}
 		}
 
 	for (uint FeatureIdx = 1; FeatureIdx < FeatureCount; ++FeatureIdx)
 		{
 		const float *SubstMxPtr = m_SubstMxPtrs[FeatureIdx];
+		const float w = m_Weights[FeatureIdx];
 		const uint AS = m_AlphaSizes[FeatureIdx];
 		const byte *Q = m_ByteSeqVec[FeatureIdx][DomIdxQ].data();
 		const byte *T = m_ByteSeqVec[FeatureIdx][DomIdxT].data();
@@ -514,7 +516,7 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 				{
 				byte t = T[PosT];
 				assert(t < AS);
-				SWMx[PosQ][PosT] += SubstMxPtr[AS*q + t];
+				SWMx[PosQ][PosT] += w*SubstMxPtr[AS*q + t];
 				}
 			}
 		}
@@ -776,8 +778,8 @@ void SubsetBench::Bench(const string &Msg)
 		else
 			++nf;
 		}
-	float EPQ = float(nf)/DomCount;
-	float Sens = float(nt)/m_NT;
+	float EPQ = 2*float(nf)/DomCount;
+	float Sens = 2*float(nt)/m_NT;
 	if (SEPQ0_1 == FLT_MAX) SEPQ0_1 = Sens;
 	if (SEPQ1 == FLT_MAX)   SEPQ1   = Sens;
 	if (SEPQ10 == FLT_MAX)  SEPQ10  = Sens;
