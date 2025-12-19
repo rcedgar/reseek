@@ -799,6 +799,7 @@ static void ByteSeq_Feature(const PDBChain &Chain, uint AS,
 
 void cmd_subset_bench_bsfeature()
 	{
+	DSSParams::Init(DM_AlwaysVerysensitive); // for SSSA/B
 	const string &DopeFN = g_Arg1;
 	const string &LookupFN = opt(lookup);
 	asserta(optset_feature);
