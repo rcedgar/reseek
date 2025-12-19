@@ -297,6 +297,7 @@
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjmega.cpp" />
+    <ClCompile Include="hjmegasb.cpp" />
     <ClCompile Include="hjmumx.cpp" />
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
@@ -412,7 +413,7 @@
     <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
-    <ClCompile Include="subset_bench.cpp" />
+    <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
@@ -545,7 +546,7 @@
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="ssslib.h" />
     <ClInclude Include="statsig.h" />
-    <ClInclude Include="subset_bench.h" />
+    <ClInclude Include="subsetbench.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />

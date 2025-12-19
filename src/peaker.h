@@ -129,6 +129,8 @@ public:
 		const vector<double> &xv2) const;
 
 	void GetTopEvalIdxs(const uint N, vector<uint> &Idxs) const;
+	void GetTopEvalIdxs_mindy(const uint N, double mindy,
+		vector<uint> &Idxs) const;
 
 // Hooke-Jeeves
 	void HJ_RunHookeJeeves();
@@ -163,4 +165,7 @@ public:
 	static bool AllZeros(const string &s);
 	static bool OneZeros(const string &s);
 	static double rr(double lo, double hi);
+	static void GetVarNames(
+		const vector<string> &SpecLines,
+		vector<string> &VarNames);
 	};

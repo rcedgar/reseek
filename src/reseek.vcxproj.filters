@@ -566,7 +566,10 @@
     <ClCompile Include="train_feature3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="subset_bench.cpp">
+    <ClCompile Include="subsetbench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hjmegasb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -949,7 +952,7 @@
     <ClInclude Include="logmxptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="subset_bench.h">
+    <ClInclude Include="subsetbench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

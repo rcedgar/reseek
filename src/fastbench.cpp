@@ -39,7 +39,7 @@ void FastBench::SetLookupFromLabels()
 		const string &Dom = Fields[0];
 		const string &ScopId = Fields[1];
 		Split(ScopId, Fields2, '.');
-		asserta(SIZE(Fields2) == 4);
+		asserta(SIZE(Fields2) == 3 || SIZE(Fields2) == 4);
 		const string &SF = Fields2[0] + "." + Fields2[1] + "." + Fields2[2];
 		AddDom(Dom, SF, LabelIdx);
 		}
@@ -103,8 +103,8 @@ void FastBench::Bench(const string &Msg)
 		else
 			++nf;
 		}
-	float EPQ = float(nf)/m_SeqCount;
-	float Sens = float(nt)/m_NT;
+	float EPQ = 2*float(nf)/m_SeqCount;
+	float Sens = 2*float(nt)/m_NT;
 	if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
 	if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
 	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;

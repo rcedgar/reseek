@@ -459,6 +459,15 @@ double Peaker::Evaluate(const vector<string> &axv, const string &awhy)
 	return y;
 	}
 
+void Peaker::GetVarNames(
+	const vector<string> &SpecLines,
+	vector<string> &VarNames)
+	{
+	Peaker Ptmp(0, "Ptmp");
+	Ptmp.Init(SpecLines, 0);
+	VarNames = Ptmp.m_VarNames;
+	}
+
 void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 	{
 	m_GlobalSpec.clear();
@@ -791,6 +800,32 @@ void Peaker::xv2values(const vector<string> &xv, vector<double> &Values) const
 	Values.clear();
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		Values.push_back(VarStrToFloat(VarIdx, xv[VarIdx]));
+	}
+
+void Peaker::GetTopEvalIdxs_mindy(const uint N, double mindy,
+	vector<uint> &Idxs) const
+	{
+	Idxs.clear();
+	const uint Count = SIZE(m_ys);
+	uint *Order = myalloc(uint, Count);
+
+	QuickSortOrderDesc(m_ys.data(), Count, Order);
+	ProgressPrefixLog("GetTopEvalIdxs(%u)\n", N);
+	double Last_y = FLT_MAX;
+	for (uint i = 0; i < Count; ++i)
+		{
+		uint Idx = Order[i];
+		if (SIZE(Idxs) >= N)
+			break;
+		double y = m_ys[Idx];
+		if (Last_y != FLT_MAX && Last_y - y < mindy)
+			continue;
+		Idxs.push_back(Idx);
+		Last_y = y;
+		ProgressPrefixLog("Top [%2u]  %.6g\n", i+1, y);
+		}
+
+	myfree(Order);
 	}
 
 void Peaker::GetTopEvalIdxs(const uint N, vector<uint> &Idxs) const

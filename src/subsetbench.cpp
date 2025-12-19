@@ -1,7 +1,8 @@
 #include "myutils.h"
-#include "subset_bench.h"
+#include "subsetbench.h"
 #include "alpha.h"
 #include "sort.h"
+#include "triangle.h"
 
 static const uint MAGIC1 = 0xd06e1;
 static const uint MAGIC2 = 0xd06e2;
@@ -520,6 +521,26 @@ float * const * SubsetBench::MakeSWMx(uint ThreadIdx,
 				}
 			}
 		}
+	if (optset_label1 && optset_label2)
+		{
+		const string &DomQ = m_Doms[DomIdxQ];
+		const string &DomT = m_Doms[DomIdxT];
+		bool Trace = false;
+		if (StartsWith(DomQ, opt(label1)) && StartsWith(DomT, opt(label2)))
+			Trace = true;
+		if (StartsWith(DomQ, opt(label2)) && StartsWith(DomT, opt(label1)))
+			Trace = true;
+		if (Trace)
+			{
+			ProgressLog("Trace %s %s\n", DomQ.c_str(), DomT.c_str());
+			for (uint i = 0; i < 10; ++i)
+				{
+				for (uint j = 0; j < 10; ++j)
+					Log("  %8.3g", SWMx[i][j]);
+				Log("\n");
+				}
+			}
+		}
 	return SWMx;
 	}
 
@@ -547,7 +568,60 @@ void SubsetBench::ThreadBody(uint ThreadIdx)
 		}
 	}
 
-void SubsetBench::Search(ALIGN_FN AF)
+static char GetSCOPClass(const string &Label)
+	{
+	uint pos = UINT_MAX;
+	for (uint i = 0; i < SIZE(Label); ++i)
+		if (Label[i] == '/')
+			return Label[i+1];
+	Die("GetSCOPClass(%s)", Label.c_str());
+	return 0;
+	}
+
+void SubsetBench::ThreadBodyAll(uint ThreadIdx)
+	{
+	static mutex s_ProgressLock;
+	asserta(ThreadIdx < SIZE(m_Mems));
+	asserta(ThreadIdx < SIZE(m_SWMxs));
+	const uint SeqCount = SIZE(m_ByteSeqVec[0]);
+	const uint K = triangle_get_K(SeqCount);
+	XDPMem &Mem = *m_Mems[ThreadIdx];
+	for (;;)
+		{
+		uint PairIdx = m_NextPairIdx++;
+		if (PairIdx >= K)
+			return;
+		if (PairIdx%100000 == 0)
+			{
+			s_ProgressLock.lock();
+			Progress("Aligning all %.1f%%\r", GetPct(PairIdx, K));
+			s_ProgressLock.unlock();
+			}
+		uint DomIdxQ = UINT_MAX;
+		uint DomIdxT = UINT_MAX;
+		triangle_k_to_ij(PairIdx, SeqCount, DomIdxQ, DomIdxT);
+		const string &DomQ = m_Doms[DomIdxQ];
+		const string &DomT = m_Doms[DomIdxT];
+		char ClassQ = GetSCOPClass(DomQ);
+		char ClassT = GetSCOPClass(DomT);
+		if (ClassQ != ClassT)
+			{
+			m_FB.AppendHit(DomIdxQ, DomIdxT, -999);
+			continue;
+			}
+		float * const *SWMx = MakeSWMx(ThreadIdx, DomIdxQ, DomIdxT);
+		uint LQ = m_Ls[DomIdxQ];
+		uint LT = m_Ls[DomIdxT];
+		assert(LQ <= m_MaxL);
+		assert(LT <= m_MaxL);
+		float Score = m_AF(Mem, LQ, LT, m_Open, m_Ext, SWMx);
+		asserta(!isnan(Score));
+		asserta(!isinf(Score));
+		m_FB.AppendHit(DomIdxQ, DomIdxT, Score);
+		}
+	}
+
+void SubsetBench::Search(ALIGN_FN AF, bool All)
 	{
 	m_AF = AF;
 	m_ThreadCount = GetRequestedThreadCount();
@@ -565,21 +639,40 @@ void SubsetBench::Search(ALIGN_FN AF)
 		asserta(SIZE(m_SWMxs) == m_ThreadCount);
 		}
 
+	m_NextPairIdx = 0;
 	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+	if (All)
 		{
-		thread *t = new thread(StaticThreadBody, this, ThreadIndex);
-		ts.push_back(t);
+		for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+			{
+			thread *t = new thread(StaticThreadBodyAll, this, ThreadIndex);
+			ts.push_back(t);
+			}
+		}
+	else
+		{
+		for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+			{
+			thread *t = new thread(StaticThreadBody, this, ThreadIndex);
+			ts.push_back(t);
+			}
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+	if (All)
+		Progress("Aligning all 100.00%%  \n");
 	}
 
 void SubsetBench::StaticThreadBody(SubsetBench *SB, uint ThreadIdx)
 	{
 	SB->ThreadBody(ThreadIdx);
+	}
+
+void SubsetBench::StaticThreadBodyAll(SubsetBench *SB, uint ThreadIdx)
+	{
+	SB->ThreadBodyAll(ThreadIdx);
 	}
 
 float *SubsetBench::ReadScoreMx(const string &FN, uint &AlphaSize) const
@@ -744,6 +837,16 @@ void SubsetBench::SetScoreOrder()
 	QuickSortOrderDesc(m_Scores, m_DopeSize, m_ScoreOrder);
 	}
 
+void SubsetBench::BenchAll(const string &Msg)
+	{
+	string FBMsg = "All";
+	if (Msg != "")
+		FBMsg += " " + Msg;
+	m_FB.SetScoreOrder();
+	m_FB.Bench(FBMsg);
+	m_Sum3 = m_FB.m_Sum3;
+	}
+
 void SubsetBench::Bench(const string &Msg)
 	{
 	SetScoreOrder();
@@ -794,7 +897,35 @@ void SubsetBench::Bench(const string &Msg)
 	ProgressLog("\n");
 	}
 
-static float AF(
+void SubsetBench::WriteHits(const string &FN) const
+	{
+	if (FN == "")
+		return;
+	FILE *f = CreateStdioFile(FN);
+	for (uint k = 0; k < m_DopeSize; ++k)
+		{
+		uint HitIdx = m_ScoreOrder[k];
+		float Score = m_Scores[HitIdx];
+		uint DomIdxQ = m_DomIdxQs[HitIdx];
+		uint DomIdxT = m_DomIdxTs[HitIdx];
+		const string &DomQ = m_Doms[DomIdxQ];
+		const string &DomT = m_Doms[DomIdxT];
+		asserta(DomQ != DomT);
+		fprintf(f, "%s", DomQ.c_str());
+		fprintf(f, "\t%s", DomT.c_str());
+		fprintf(f, "\t%.3g", Score);
+		fprintf(f, "\n");
+
+		fprintf(f, "%s", DomT.c_str());
+		fprintf(f, "\t%s", DomQ.c_str());
+		fprintf(f, "\t%.3g", Score);
+		fprintf(f, "\n");
+		}
+
+	CloseStdioFile(f);
+	}
+
+float SubsetBench_AF_SWFast(
 	XDPMem &Mem,
 	uint LQ, uint LT,
 	float Open, float Ext,
@@ -810,49 +941,137 @@ static float AF(
 	return Score;
 	}
 
+void SubsetBench::SetScalarParams(
+	const vector<string> &Names,
+	const vector<float> &Values)
+	{
+	m_Open = FLT_MAX;
+	m_Ext = FLT_MAX;
+	for (uint i = 0; i < SIZE(Names); ++i)
+		{
+		const string &Name = Names[i];
+		float Value = Values[i];
+		if (Name == "open")
+			m_Open = Value;
+		else if (Name == "ext")
+			m_Ext = Value;
+		else if (Name == "gap2")
+			{
+			m_Open = Value;
+			m_Ext = Value/10;
+			}
+		else
+			Die("SubsetBench::SetScalarParams() Name=%s", Name.c_str());
+		}
+	asserta(m_Open != FLT_MAX && m_Ext != FLT_MAX);
+	}
+
+void SubsetBench::LoadAlphas(
+	const vector<string> &Names,
+	const string &BSFNPattern,
+	const string MxFNPattern)
+	{
+	m_AlphaNames = Names;
+
+	vector<string> BSFNs;
+	vector<string> SMFNs;
+	const uint n = SIZE(Names);
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &Name = Names[i];
+		string BSFN, MxFN;
+		SubPattern(BSFNPattern, Name, BSFN);
+		SubPattern(MxFNPattern, Name, MxFN);
+		BSFNs.push_back(BSFN);
+		SMFNs.push_back(MxFN);
+		}
+	LoadScoreMxs(SMFNs);
+	LoadByteSeqs(BSFNs);
+	}
+
+void SubsetBench::ClassifyParams(
+	const vector<string> &Names,
+	const vector<float> &Values,
+	vector<string> &AlphaNames,
+	vector<float> &Weights,
+	vector<string> &ScalarNames,
+	vector<float> &ScalarValues)
+	{
+	for (uint i = 0; i < SIZE(Names); ++i)
+		{
+		const string &Name = Names[i];
+		float Value = Values[i];
+		if (Name == "open" || Name == "ext" || Name == "gap2")
+			{
+			ScalarNames.push_back(Name);
+			ScalarValues.push_back(Value);
+			}
+		else
+			{
+			AlphaNames.push_back(Name);
+			Weights.push_back(Value);
+			}
+		}
+	}
+
+void SubsetBench::UpdateParamsFromVarStr(const string &VarStr)
+	{
+	vector<string> Names;
+	vector<float> Values;
+	ParseVarStr(VarStr, Names, Values);
+
+	vector<string> AlphaNames;
+	vector<float> Weights;
+	vector<string> ScalarNames;
+	vector<float> ScalarValues;
+	SubsetBench::ClassifyParams(
+		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues);
+
+	SetScalarParams(ScalarNames, ScalarValues);
+
+	asserta(AlphaNames == m_AlphaNames);
+	asserta(SIZE(m_Weights) == SIZE(Weights));
+	m_Weights = Weights;
+	}
+
+void SubsetBench::InitFB()
+	{
+	m_FB.m_Labels = m_Doms;
+	m_FB.SetLookupFromLabels();
+	m_FB.Alloc();
+	}
+
 void cmd_subset_bench()
 	{
 	asserta(optset_bspattern);
 	asserta(optset_mxpattern);
 	asserta(optset_varstr);
+
 	const string &DopeFN = g_Arg1;
 	const string &LookupFN = opt(lookup);
-	const string &BSPattern = opt(bspattern);
-	const string &MxPattern = opt(mxpattern);
+	const string &BSFNPattern = opt(bspattern);
+	const string &MxFNPattern = opt(mxpattern);
 	const string &VarStr = opt(varstr);
 
-	vector<string> FeatureNames;
-	vector<float> Weights;
-	ParseVarStr(VarStr, FeatureNames, Weights);
+	vector<string> Names;
+	vector<float> Values;
+	ParseVarStr(VarStr, Names, Values);
 
-	vector<string> BSFNs;
-	vector<string> SMFNs;
-	const uint n = SIZE(FeatureNames);
-	asserta(SIZE(Weights) == n);
-	for (uint i = 0; i < n; ++i)
-		{
-		const string &Name = FeatureNames[i];
-		string BSFN, MxFN;
-		SubPattern(BSPattern, Name, BSFN);
-		SubPattern(MxPattern, Name, MxFN);
-		BSFNs.push_back(BSFN);
-		SMFNs.push_back(MxFN);
-		}
+	vector<string> AlphaNames;
+	vector<float> Weights;
+	vector<string> ScalarNames;
+	vector<float> ScalarValues;
+	SubsetBench::ClassifyParams(
+		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues);
 
 	SubsetBench SB;
 	SB.ReadLookup(LookupFN);
 	SB.ReadDope(DopeFN);
-	SB.AllocHits();
-
-	//SMFNs.push_back("../2025-12-16_train_alphadata_h/AA_20.out");
-	//BSFNs.push_back("scop40c.bsaaf");
-	//Weights.push_back(1);
-
-	SB.m_Open = 3;
-	SB.m_Ext = 0.3f;
-	SB.LoadScoreMxs(SMFNs);
-	SB.LoadByteSeqs(BSFNs);
+	SB.LoadAlphas(AlphaNames, BSFNPattern, MxFNPattern);
 	SB.SetWeights(Weights);
-	SB.Search(AF);
+	SB.SetScalarParams(ScalarNames, ScalarValues);
+	SB.AllocHits();
+	SB.Search(SubsetBench_AF_SWFast, false);
 	SB.Bench();
+	SB.WriteHits(opt(output));
 	}

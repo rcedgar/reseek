@@ -2,6 +2,7 @@
 
 #include "scop40bench.h"
 #include "xdpmem.h"
+#include "fastbench.h"
 
 typedef void BYTE_SEQ_FN(
 	const PDBChain &Chain,
@@ -49,6 +50,7 @@ public:
 //////////////////////////////
 // Per-feature
 //////////////////////////////
+	vector<string> m_AlphaNames;
 	vector<uint> m_AlphaSizes;
 	vector<float> m_Weights;
 	vector<string> m_ByteSeqFNs;
@@ -74,9 +76,10 @@ public:
 // Bench
 //////////////////////////////
 	float m_Sum3 = 0;
+	FastBench m_FB;
 
 public:
-	uint GetFeatureCount() const { return SIZE(m_AlphaSizes); }
+	uint GetFeatureCount() const { return SIZE(m_AlphaNames); }
 	uint GetDomCount() const { return SIZE(m_Doms); }
 	void ReadLookup(const string &FN);
 	void AddDom(const string &Dom, const string &ScopId);
@@ -97,16 +100,36 @@ public:
 	float * const * MakeSWMx(uint ThreadIdx,
 		uint DomIdxQ, uint DomIdxT);
 	void ThreadBody(uint ThreadIdx);
-	void Search(ALIGN_FN AF);
+	void ThreadBodyAll(uint ThreadIdx);
+	void Search(ALIGN_FN AF, bool All);
 	float *ReadScoreMx(const string &FN, uint &AlphaSize) const;
 	void LoadScoreMxs(vector<string> &FNs);
 	void SetWeights(const vector<float> &Weights);
 	void Bench(const string &Msg = "");
+	void BenchAll(const string &Msg = "");
 	void SetScoreOrder();
 	float **AllocSWMx() const;
+	void WriteHits(const string &FN) const;
+	void LoadAlphas(
+		const vector<string> &Names,
+		const string &BSFNPattern,
+		const string MxFNPattern);
+	void SetScalarParams(
+		const vector<string> &Names,
+		const vector<float> &Values);
+	void UpdateParamsFromVarStr(const string &VarStr);
+	void InitFB();
 
 public:
+	static void ClassifyParams(
+		const vector<string> &Names,
+		const vector<float> &Values,
+		vector<string> &AlphaNames,
+		vector<float> &Weights,
+		vector<string> &ScalarNames,
+		vector<float> &ScalarValues);
 	static void StaticThreadBody(SubsetBench *SB, uint ThreadIdx);
+	static void StaticThreadBodyAll(SubsetBench *SB, uint ThreadIdx);
 	};
 
 void ParseVarStr(

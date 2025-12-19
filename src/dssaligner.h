@@ -93,6 +93,7 @@ public:
 	size_t m_SMx_BufferSize = 0;
 	uint m_SMx_Rows = 0;
 	uint m_SMx_Cols = 0;
+	bool m_DoTrace = false;//@@TODO
 
 public:
 	static mutex m_OutputLock;

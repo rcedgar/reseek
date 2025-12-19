@@ -78,6 +78,7 @@ static void EvalSum3_VarStr(SCOP40Bench &FullSB, const string &VarStr)
 	s_SB->m_Level = "sf";
 	s_SB->SetStats(0.005f);
 	s_SB->WriteSummary();
+	s_SB->WriteSortedHits(opt(output));
 	}
 
 static void Optimize(

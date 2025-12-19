@@ -667,6 +667,16 @@ void DSSAligner::AlignQueryTarget_Trace()
 		}
 
 	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
+	if (m_DoTrace)
+		{
+		ProgressLog("Trace SWMx\n");
+		for (uint i = 0; i < 10; ++i)
+			{
+			for (uint j = 0; j < 10; ++j)
+				Log("  %8.3g", m_SMx_Data[i][j]);
+			Log("\n");
+			}
+		}
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -694,9 +704,9 @@ void DSSAligner::AlignQueryTarget()
 		{
 		const string Label1 = string(opt(label1));
 		const string Label2 = string(opt(label2));
-		bool DoTrace = (m_ChainA->m_Label == Label1 && m_ChainB->m_Label == Label2) ||
+		m_DoTrace = (m_ChainA->m_Label == Label1 && m_ChainB->m_Label == Label2) ||
 			(m_ChainA->m_Label == Label2 && m_ChainB->m_Label == Label1);
-		if (DoTrace)
+		if (m_DoTrace)
 			{
 			ProgressLog("Trace %s, %s\n", Label1.c_str(), Label2.c_str());
 			AlignQueryTarget_Trace();
@@ -840,6 +850,16 @@ void DSSAligner::Align_NoAccel()
 
 	StartTimer(SWFwd);
 	uint Leni, Lenj;
+	if (m_DoTrace)
+		{
+		ProgressLog("Trace SWMx");
+		for (uint i = 0; i < 10; ++i)
+			{
+			for (uint j = 0; j < 10; ++j)
+				Log("  %8.3g", m_SMx_Data[i][j]);
+			Log("\n");
+			}
+		}
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
 	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
