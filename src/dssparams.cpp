@@ -347,7 +347,6 @@ void DSSParams::SetDefaultNonFeatureTunableParams()
 	m_revtsw = 2.0f;
 	}
 
-
 // Assume defaults are already set, except for features+weights
 // Set features+weights from Str
 // Overwrite any others in Str
@@ -382,6 +381,10 @@ void DSSParams::SetParamsFromStr(const string &Str)
 		}
 	asserta(SIZE(m_Features) > 0);
 	SetScoreMxsFromFeatures();
+
+	string ParamsStr;
+	DSSParams::GetParamsStr(ParamsStr);
+	Log("DSSParams::SetParamsFromStr() %s\n", ParamsStr.c_str());
 	}
 
 void DSSParams::OverwriteFeatures(const vector<FEATURE> &Fs,
