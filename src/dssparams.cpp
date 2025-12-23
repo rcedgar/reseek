@@ -363,6 +363,12 @@ void DSSParams::SetDefaultNonFeatureTunableParams()
 // Overwrite any others in Str
 void DSSParams::SetParamsFromStr(const string &Str)
 	{
+	if (opt(blast_blosum62))
+		{
+		void SetBLAST_B62();
+		ProgressLog("Using BLAST BLOSUM62\n");
+		SetBLAST_B62();
+		}
 	m_Features.clear();
 	m_Weights.clear();
 

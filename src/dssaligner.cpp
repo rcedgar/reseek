@@ -1228,7 +1228,8 @@ float DSSAligner::GetBitScore() const
 	{
 	// S = Smith-Waterman score
 	// S' = (lambda S - ln K)/ ln 2
-	TODO
+	Die("TODO");
+	return 0;
 	}
 
 float DSSAligner::GetPctId() const

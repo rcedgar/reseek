@@ -185,6 +185,7 @@ FLAG_OPT(roundmx)
 FLAG_OPT(nomufilter)
 FLAG_OPT(selfonly)
 FLAG_OPT(keepscopid)
+FLAG_OPT(blast_blosum62)
 
 #undef FLAG_OPT
 #undef UNS_OPT
