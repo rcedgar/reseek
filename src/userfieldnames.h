@@ -26,6 +26,7 @@ x(aq)
 x(muhsp)
 x(muchain)
 x(raw)
+x(cols)
 x(fwdrev)
 
 #undef x

@@ -68,6 +68,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_raw:	fprintf(f, "%.3g", m_AlnFwdScore); break;
 	case UF_ids:	fprintf(f, "%u", m_Ids); break;
 	case UF_gaps:	fprintf(f, "%u", m_Gaps); break;
+	case UF_cols:	fprintf(f, "%u", SIZE(m_Path)); break;
 
 	case UF_cigar:
 		{
