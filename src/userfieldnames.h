@@ -26,7 +26,7 @@ x(aq)
 x(muhsp)
 x(muchain)
 x(raw)
-x(bits)
+x(rawlc)
 x(cols)
 x(fwdrev)
 

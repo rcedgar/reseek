@@ -69,16 +69,33 @@ vector<vector<byte> > DSSParams::m_IntSeqs_SSSB;
 vector<vector<float> > DSSParams::m_ScoreMx_SSSA;
 vector<vector<float> > DSSParams::m_ScoreMx_SSSB;
 
-// [dog] /mnt/c/src/null_model3/bash
-// # ./mean_lambda_K.bash
-// ==> ../results/mean_lambda.txt <==
-// N 20, sum  7.502, mean 0.3751, med  0.369, min  0.217, max  0.523
+/***
+Lambda and K estimation for BLAST BLOSUM62
+==========================================
+==> ../results/mean_lambda_b62.txt <==
+N 20, sum  4.209, mean 0.2105, med  0.211, min  0.194, max  0.218
+==> ../results/mean_K_b62.txt <==
+N 20, sum  0.3864, mean 0.01932, med  0.02, min  0.0109, max  0.0258
+Median: lambda=0.211, K=0.020
+BLAST:  lambda=0.267, K=0.041
+***/
 
-// ==> ../results/mean_K.txt <==
-// N 20, sum  -416.2, mean -20.81, med  -20.6, min  -38.1, max  -13.2
+/***
+Lambda and K estimation for  v2.7 Mega
+======================================
+[dog] /mnt/c/src/null_model3/bash
+# ./mean_lambda_K.bash
+==> ../results/mean_lambda.txt <==
+                                    vvvvv
+N 20, sum  7.502, mean 0.3751, med  0.369, min  0.217, max  0.523
 
-float DSSParams::m_KA_Lambda = 0.369f;
-float DSSParams::m_KA_K = -20.6;
+==> ../results/mean_K.txt <==
+                                         vvvvvvvv
+N 20, sum  0.01146, mean 0.0005728, med  0.000547, min  0.00026, max  0.00116
+***/
+
+float DSSParams::m_KA_Lambda = 0.37f;
+float DSSParams::m_KA_logK = logf(0.00055f);
 
 // Used to initialize g_AlphaSizes2, careful of
 //	order dependencies in static bool Init() idiom.

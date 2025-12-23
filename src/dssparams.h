@@ -91,7 +91,7 @@ public:
 	static vector<vector<float> > m_ScoreMx_SSSB;
 
 	static float m_KA_Lambda;
-	static float m_KA_K;
+	static float m_KA_logK;
 
 public:
 	static void Init(DECIDE_MODE DM);

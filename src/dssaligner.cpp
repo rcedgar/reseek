@@ -1219,16 +1219,17 @@ float DSSAligner::GetLDDT() const
 	vector<uint> PosAs;
 	vector<uint> PosBs;
 	GetPosABs(PosAs, PosBs);
-	double LDDT = 
-	  GetLDDT_mu_fast(*m_ChainA, *m_ChainB, PosAs, PosBs);
+	double LDDT = GetLDDT_mu_fast(*m_ChainA, *m_ChainB, PosAs, PosBs);
 	return (float) LDDT;
 	}
 
-float DSSAligner::GetBitScore() const
+float DSSAligner::GetLengthCorrectedRawScore() const
 	{
+	static const float log2 = logf(2);
+
 	// S = Smith-Waterman score
 	// S' = (lambda S - ln K)/ ln 2
-	Die("TODO");
+	float S_prime = (DSSParams::m_KA_Lambda*m_AlnFwdScore - DSSParams::m_KA_logK)/log2;
 	return 0;
 	}
 
