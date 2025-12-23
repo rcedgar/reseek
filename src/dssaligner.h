@@ -206,6 +206,7 @@ public:
 	float GetEvalue(bool Top) const { return Top ? m_EvalueA : m_EvalueB; }
 	float GetPvalue(bool Top) const { return Top ? m_PvalueA : m_PvalueB; }
 	float GetAQ(bool Top) const { return Top ? m_QualityA : m_QualityB; }
+	float GetBitScore() const;
 
 	void GetRow(bool Up, bool Top, bool Global, string &Row) const;
 

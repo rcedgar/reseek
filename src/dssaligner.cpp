@@ -1224,6 +1224,13 @@ float DSSAligner::GetLDDT() const
 	return (float) LDDT;
 	}
 
+float DSSAligner::GetBitScore() const
+	{
+	// S = Smith-Waterman score
+	// S' = (lambda S - ln K)/ ln 2
+	TODO
+	}
+
 float DSSAligner::GetPctId() const
 	{
 	const string &Path = m_Path;

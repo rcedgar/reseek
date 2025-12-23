@@ -90,6 +90,9 @@ public:
 	static vector<vector<float> > m_ScoreMx_SSSA;
 	static vector<vector<float> > m_ScoreMx_SSSB;
 
+	static float m_KA_Lambda;
+	static float m_KA_K;
+
 public:
 	static void Init(DECIDE_MODE DM);
 	static void OverwriteFeatures(const vector<FEATURE> &Fs,

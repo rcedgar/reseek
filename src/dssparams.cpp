@@ -69,6 +69,17 @@ vector<vector<byte> > DSSParams::m_IntSeqs_SSSB;
 vector<vector<float> > DSSParams::m_ScoreMx_SSSA;
 vector<vector<float> > DSSParams::m_ScoreMx_SSSB;
 
+// [dog] /mnt/c/src/null_model3/bash
+// # ./mean_lambda_K.bash
+// ==> ../results/mean_lambda.txt <==
+// N 20, sum  7.502, mean 0.3751, med  0.369, min  0.217, max  0.523
+
+// ==> ../results/mean_K.txt <==
+// N 20, sum  -416.2, mean -20.81, med  -20.6, min  -38.1, max  -13.2
+
+float DSSParams::m_KA_Lambda = 0.369f;
+float DSSParams::m_KA_K = -20.6;
+
 // Used to initialize g_AlphaSizes2, careful of
 //	order dependencies in static bool Init() idiom.
 uint DSSParams::GetAlphaSize(FEATURE F, bool FailOk)
