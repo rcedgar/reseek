@@ -78,5 +78,5 @@ void SetBLAST_B62()
 	extern int Blosum62_int[20][20];
 	for (uint i = 0; i < 20; ++i)
 		for (uint j = 0; j < 20; ++j)
-			g_ScoreMxs2[FEATURE_B62][i][j] = (i == j ? 1 : 0);
+			g_ScoreMxs2[FEATURE_B62][i][j] = Blosum62_int[i][j];
 	}
