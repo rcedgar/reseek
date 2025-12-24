@@ -34,6 +34,8 @@ void DBSearcher::ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR)
 			return;
 		D.Init(*Chain1);
 		D.GetProfile(Profile1);
+		if (opt(shuffle_profiles))
+			ShuffleProfile(Profile1);
 		D.GetMuLetters(MuLetters1);
 		D.GetMuKmers(MuLetters1, MuKmers1, DSSParams::m_MKFPatternStr);
 

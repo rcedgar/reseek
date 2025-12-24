@@ -75,6 +75,8 @@ public:
 	void RunStats() const;
 	void AddChain(PDBChain *ptrChain, vector<vector<byte> > *ptrProfile,
 	  vector<byte> *ptrMuLetters);
+	void ShuffleProfiles();
+	void ShuffleProfile(vector<vector<byte> > &Profile);
 
 public:
 	virtual bool Reject(DSSAligner &DA, bool Up) const;

@@ -186,6 +186,7 @@ FLAG_OPT(nomufilter)
 FLAG_OPT(selfonly)
 FLAG_OPT(keepscopid)
 FLAG_OPT(blast_blosum62)
+FLAG_OPT(shuffle_profiles)
 
 #undef FLAG_OPT
 #undef UNS_OPT

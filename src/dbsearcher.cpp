@@ -156,6 +156,9 @@ void DBSearcher::LoadDB(const string &DBFN)
 	PL.Load(CR, &m_DBChains, &m_DBProfiles, ptrMuLetters,
 	  ptrMuKmersVec, &m_DBSelfRevScores, ThreadCount);
 
+	if (opt(shuffle_profiles))
+		ShuffleProfiles();
+
 	setac(targets, SIZE(m_DBChains));
 	}
 
@@ -193,4 +196,28 @@ void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)
 	DA.ToFasta2(g_fFasta2, opt(unaligned), Up);
 	OnAln(DA, Up);
 	m_Lock.unlock();
+	}
+
+void DBSearcher::ShuffleProfiles()
+	{
+	for (uint i = 0; i < SIZE(m_DBProfiles); ++i)
+		ShuffleProfile(*m_DBProfiles[i]);
+	}
+
+void DBSearcher::ShuffleProfile(vector<vector<byte> > &Profile)
+	{
+// Fisher-Yates shuffle:
+// To shuffle an array a of n elements (indices 0 .. n-1):
+//  for i from n - 1 downto 1 do
+//       j := random integer with 0 <= j <= i
+//       exchange a[j] and a[i]
+	asserta(SIZE(Profile) > 0);
+	const uint NF = SIZE(Profile);
+	const uint L = SIZE(Profile[0]);
+	for (uint i = L - 1; i >= 1; --i)
+		{
+		uint j = randu32()%(i + 1);
+		for (uint FeatIdx = 0; FeatIdx < NF ; ++FeatIdx)
+			swap(Profile[FeatIdx][i], Profile[FeatIdx][j]);
+		}
 	}
