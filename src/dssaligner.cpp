@@ -1230,7 +1230,7 @@ float DSSAligner::GetLengthCorrectedRawScore() const
 	// S = Smith-Waterman score
 	// S' = (lambda S - ln K)/ ln 2
 	float S_prime = (DSSParams::m_KA_Lambda*m_AlnFwdScore - DSSParams::m_KA_logK)/log2;
-	return 0;
+	return S_prime;
 	}
 
 float DSSAligner::GetPctId() const
