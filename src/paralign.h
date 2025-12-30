@@ -56,6 +56,7 @@ public:
 	static void InitGapLengthDist(uint MaxLen);
 	static void LogGapLengthDist();
 
+	static void Set_3Di();
 	static void Set_Mu_S_k_i8();
 	static void Set_Mu_hjmux();
 	static void SetMu_musubstmx();

@@ -81,6 +81,7 @@ STR_OPT(sssb)
 STR_OPT(bspattern)
 STR_OPT(mxpattern)
 STR_OPT(dope)
+STR_OPT(ss_fasta)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

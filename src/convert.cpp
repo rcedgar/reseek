@@ -9,6 +9,7 @@ static FILE *s_fCal;
 static FILE *s_fFasta;
 static FILE *s_fMultiPDB;
 static FILE *s_fFeatureFasta;
+static FILE *s_fSSFasta;
 
 static PDBFileScanner *s_ptrFS = 0;
 static time_t s_Now;
@@ -73,7 +74,9 @@ static FEATURE GetFeatureFromCmdLine()
 static void ThreadBody(uint ThreadIndex)
 	{
 	DSS *ptrD = 0;
-	if (s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT)
+	bool NeedDSS = s_fFeatureFasta != 0 && uint(s_Feat) < FEATURE_COUNT;
+	NeedDSS = NeedDSS || s_fSSFasta != 0;
+	if (NeedDSS)
 		ptrD = new DSS;
 
 	ChainReader2 CR;
@@ -210,6 +213,16 @@ static void ThreadBody(uint ThreadIndex)
 			s_LockFasta.unlock();
 			}
 
+		if (s_fSSFasta != 0)
+			{
+			DSS &D = *ptrD;
+			D.Init(*ptrChain);
+			D.SetSS();
+			s_LockFasta.lock();
+			SeqToFasta(s_fSSFasta, ptrChain->m_Label, D.m_SS);
+			s_LockFasta.unlock();
+			}
+
 		if (s_ptrBCA != 0)
 			{
 			s_LockBCA.lock();
@@ -314,6 +327,7 @@ void cmd_convert()
 	s_fCal = CreateStdioFile(opt(cal));
 	s_fFasta = CreateStdioFile(opt(fasta));
 	s_fFeatureFasta = CreateStdioFile(opt(feature_fasta));
+	s_fSSFasta = CreateStdioFile(opt(ss_fasta));
 	s_fMultiPDB = CreateStdioFile(opt(multipdb));
 
 	s_InputCount = 0;

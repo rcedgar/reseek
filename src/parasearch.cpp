@@ -3,6 +3,8 @@
 #include "triangle.h"
 #include "nu.h"
 #include "sort.h"
+#include "seqdb.h"
+#include "alpha.h"
 #include <numeric>
 
 /////////////////////////////////////////
@@ -149,7 +151,7 @@ void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
 		m_SubstMxName.c_str(),
 		m_ByteSeqMethod.c_str());
 
-	asserta(m_SeqCount == SIZE(m_Chains));
+	asserta(m_Chains.empty() || m_SeqCount == SIZE(m_Chains));
 	asserta(m_SeqCount == SIZE(m_ByteSeqs));
 	uint PairCount2 = triangle_get_K(m_SeqCount) + 1;
 	asserta(m_PairCount == PairCount2);
@@ -221,6 +223,8 @@ void ParaSearch::GetByteSeqs(const string &FN, const string &Method)
 		GetByteSeqs_numu(FN);
 	else if (Method == "nuletters")
 		GetByteSeqs_nu(FN);
+	else if (Method == "3Di")
+		GetByteSeqs_3Di(FN);
 	else
 		Die("GetByteSeqs(%s)", Method.c_str());
 
@@ -283,6 +287,7 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 			FixMuByteSeq(ByteSeq);
 		}
 	}
+
 void ParaSearch::GetByteSeqs_nu(const string &FN)
 	{
 	m_ByteSeqs.clear();
@@ -309,6 +314,30 @@ void ParaSearch::GetByteSeqs_nu(const string &FN)
 		if (opt(fixmubyteseq))
 			FixMuByteSeq(ByteSeq);
 		m_Labels.push_back(Chain.m_Label);
+		}
+	}
+
+void ParaSearch::GetByteSeqs_3Di(const string &FN)
+	{
+	m_ByteSeqs.clear();
+	m_Labels.clear();
+
+	SeqDB Seqs;
+	Seqs.FromFasta(FN);
+	Seqs.ToLetters(g_CharToLetterAmino);
+
+	const uint ChainCount = Seqs.GetSeqCount();
+	m_ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "GetByteSeqs_3Di()");
+		const string &Label = Seqs.GetLabel(ChainIdx);
+		uint L = Seqs.GetSeqLength(ChainIdx);
+		m_Labels.push_back(Label);
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		ByteSeq.resize(L);
+		const byte *bs = Seqs.GetByteSeq(ChainIdx);
+		memcpy(ByteSeq.data(), bs, L);
 		}
 	}
 
@@ -502,5 +531,6 @@ void cmd_para_scop40()
 		Paralign::m_Ext,
 		PS.m_SeqCount,
 		PS.m_NT);
+	PS.SetScoreOrder();
 	PS.Bench(Msg);
 	}

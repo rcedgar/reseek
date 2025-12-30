@@ -53,6 +53,7 @@ private:
 	void GetByteSeqs_numu(const string &FN);
 	void GetByteSeqs_muletters(const string &FN);
 	void GetByteSeqs_dss3(const string &FN);
+	void GetByteSeqs_3Di(const string &FN);
 	};
 
 void FixMuByteSeq(vector<byte> &ByteSeq);

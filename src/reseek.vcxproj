@@ -270,6 +270,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="3di_data.cpp" />
     <ClCompile Include="abcxyz.cpp" />
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
@@ -311,10 +312,6 @@
     <ClCompile Include="nuscop40.cpp" />
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="paralign.cpp" />
-    <ClCompile Include="paralign_scop40.cpp" />
-    <ClCompile Include="paralign_scop40_floatmu.cpp" />
-    <ClCompile Include="paralign_scop40_mu.cpp" />
-    <ClCompile Include="paralign_scop40_nu.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
     <ClCompile Include="parasearch.cpp" />
     <ClCompile Include="peaker.cpp" />

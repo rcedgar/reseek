@@ -470,16 +470,7 @@
     <ClCompile Include="paralign.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="paralign_scop40.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="paralign_scop40_mu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="nu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="paralign_scop40_nu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="retrainmu.cpp">
@@ -501,9 +492,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fa2_lddt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="paralign_scop40_floatmu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parasearch.cpp">
@@ -570,6 +558,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hjmegasb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="3di_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

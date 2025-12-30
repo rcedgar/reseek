@@ -18,6 +18,7 @@ extern int Blosum62_int[20][20];
 extern int Mu_S_k_i8[36*36];
 extern int Mu_hjmumx[36*36];
 extern int parasail_mu_8[36*36];
+extern int IntScoreMx_3Di[20*20];
 
 parasail_matrix_t Paralign::m_matrix;
 int Paralign::m_Open = INT_MAX;	// penalty > 0
@@ -422,6 +423,50 @@ void Paralign::Set_Mu_S_k_i8()
 	SetSWFastSubstMx_FromParasailMx();
 	}
 
+void Paralign::Set_3Di()
+	{
+/***
+reseek v2.8.win64 [e2515ee]
+C:\src\reseek\src\Release\reseek.exe -para_scop40 ../data/scop40.3di.fa -mxname 3Di -alignmethod para -seqsmethod 3Di -log para_scop40.log 
+
+para  3Di gap 80/10 N=11211 NT=454766 SEPQ0.1=0.079 SEPQ1=0.162 SEPQ10=0.290 Sum3=0.691
+para  3Di gap 90/10 N=11211 NT=454766 SEPQ0.1=0.082 SEPQ1=0.161 SEPQ10=0.284 Sum3=0.690
+para  3Di gap 100/10 N=11211 NT=454766 SEPQ0.1=0.083 SEPQ1=0.160 SEPQ10=0.278 Sum3=0.684
+para  3Di gap 80/5 N=11211 NT=454766 SEPQ0.1=0.074 SEPQ1=0.158 SEPQ10=0.298 Sum3=0.682
+para  3Di gap 60/10 N=11211 NT=454766 SEPQ0.1=0.069 SEPQ1=0.158 SEPQ10=0.297 Sum3=0.674
+para  3Di gap 80/20 N=11211 NT=454766 SEPQ0.1=0.080 SEPQ1=0.154 SEPQ10=0.267 Sum3=0.658
+***/
+	m_Open = 80;
+	m_Ext = 5;
+	if (optset_intopen)
+		m_Open = opt(intopen);
+	if (optset_intext)
+		m_Ext = opt(intext);
+
+	int MinScore = 0;
+	int MaxScore = 0;
+	for (uint i = 0; i < 20*20; ++i)
+		{
+		int Score = IntScoreMx_3Di[i];
+		if (i == 0 || Score < MinScore) MinScore = Score;
+		if (i == 0 || Score > MaxScore) MaxScore = Score;
+		}
+	m_matrix.size = 20;
+	m_matrix.length = 20;
+	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	m_matrix.matrix = IntScoreMx_3Di;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
+	int *Mapper = myalloc(int, 256);
+	memset(Mapper, 0, 256*sizeof(int));
+	for (int i = 0; i < 20; ++i)
+		Mapper[i] = i;
+	m_matrix.mapper = Mapper;
+
+	m_Bits = 16;
+	SetSWFastSubstMx_FromParasailMx();
+	}
+
 void Paralign::SetMu_parasail_mu_8()
 	{
 	m_Open = 2;
@@ -659,6 +704,8 @@ void Paralign::SetSubstMxByName(const string &Name)
 		SetMu_musubstmx();
 	else if (Name == "parasail_mu_8")
 		SetMu_parasail_mu_8();
+	else if (Name == "3Di")
+		Set_3Di();
 	else
 		Die("SetSubstMx(%s)", Name.c_str());
 	}
