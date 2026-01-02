@@ -426,7 +426,7 @@ void Paralign::Set_Mu_S_k_i8()
 void Paralign::Set_3Di()
 	{
 /***
-reseek v2.8.win64 [e2515ee]
+reseek v2.8.win64 [8a3d363]
 C:\src\reseek\src\Release\reseek.exe -para_scop40 ../data/scop40.3di.fa -mxname 3Di -alignmethod para -seqsmethod 3Di -log para_scop40.log 
 
 para  3Di gap 80/10 N=11211 NT=454766 SEPQ0.1=0.079 SEPQ1=0.162 SEPQ10=0.290 Sum3=0.691
@@ -437,7 +437,7 @@ para  3Di gap 60/10 N=11211 NT=454766 SEPQ0.1=0.069 SEPQ1=0.158 SEPQ10=0.297 Sum
 para  3Di gap 80/20 N=11211 NT=454766 SEPQ0.1=0.080 SEPQ1=0.154 SEPQ10=0.267 Sum3=0.658
 ***/
 	m_Open = 80;
-	m_Ext = 5;
+	m_Ext = 10;
 	if (optset_intopen)
 		m_Open = opt(intopen);
 	if (optset_intext)

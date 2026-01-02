@@ -520,6 +520,7 @@ void cmd_para_scop40()
 	PS.SetLookupFromLabels();
 	Paralign::SetSubstMxByName(opt(mxname));
 	PS.Search(opt(alignmethod), false);
+	PS.SetScoreOrder();
 	PS.WriteHits(opt(output));
 
 	string Msg;
@@ -531,6 +532,5 @@ void cmd_para_scop40()
 		Paralign::m_Ext,
 		PS.m_SeqCount,
 		PS.m_NT);
-	PS.SetScoreOrder();
 	PS.Bench(Msg);
 	}
