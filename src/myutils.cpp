@@ -128,7 +128,33 @@ void GetStemName(const string &PathName, string &Stem)
 	GetBaseName(PathName, Base);
 	vector<string> Fields;
 	Split(Base, Fields, '.');
-	Stem = Fields[0];
+
+	const uint n = SIZE(Fields);
+	if (n == 0)
+		{
+		Stem.clear();
+		return;
+		}
+	if (n == 1)
+		{
+		Stem = Fields[0];
+		return;
+		}
+
+	uint upto = n - 1;
+	if (Fields[n-1] == "gz" && n > 2)
+		upto = n - 2;
+
+	Stem.clear();
+	for (uint i = 0; i < upto; ++i)
+		{
+		if (i > 0)
+			Stem.push_back('.');
+		Stem += Fields[i];
+		}
+
+	if (Stem.empty())
+		Stem = Fields[0];
 	}
 
 void GetExtFromPathName(const string &PathName, string &Ext)
