@@ -62,6 +62,8 @@ void PDBChain::GetSS(string &SS) const
 void cmd_pdb2ss()
 	{
 	const string &QueryFN = opt(pdb2ss);
+	asserta(optset_output);
+	FILE *f = CreateStdioFile(opt(output));
 
 	vector<PDBChain *> Qs;
 	ReadChains(QueryFN, Qs);
@@ -74,6 +76,8 @@ void cmd_pdb2ss()
 		string Sketch;
 		string SS;
 		Q.GetSS(SS);
-		Log("%s   SecStr  %s\n", Q.m_Label.c_str(), SS.c_str());
+		// Log("%s   SecStr  %s\n", Q.m_Label.c_str(), SS.c_str());
+		SeqToFasta(f, Q.m_Label, SS);
 		}
+	CloseStdioFile(f);
 	}
