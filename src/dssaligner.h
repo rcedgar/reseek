@@ -185,7 +185,7 @@ public:
 	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
 	  uint LoA, uint LoB, const string &Path, float Quality, float Evalue) const;
-	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;
+	void WriteUserField(FILE *f, USERFIELD UF, bool Up);
 
 // Top=true means fetch value for A, Top=false fetch B
 	const PDBChain &GetChain(bool Top) const { return Top ? *m_ChainA : *m_ChainB; }
@@ -224,6 +224,7 @@ public:
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
+	float GetDiagScore();
 
 public:
 	static void Stats();

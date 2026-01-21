@@ -231,6 +231,39 @@ void RankedScoresBag::ToTsv(FILE *f)
 		}
 	}
 
+void RankedScoresBag::ToScoreTsv(FILE *f,
+					const vector<string> &QLabels,
+					const vector<string> &TLabels)
+	{
+	if (f == 0)
+		return;
+
+	asserta(SIZE(QLabels) == m_QueryCount);
+	const uint TCount = SIZE(TLabels);
+
+	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
+		TruncateVecs(QueryIdx);
+
+	map<uint, vector<uint> > TargetIdxToQueryIdxs;
+	vector<uint> TargetIdxs;
+	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
+		{
+		const string &QLabel = QLabels[QueryIdx];
+		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
+		const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
+		const uint n = SIZE(ScoreVec);
+		asserta(SIZE(TargetIdxVec) == n);
+		for (uint i = 0; i < n; ++i)
+			{
+			uint TargetIdx = TargetIdxVec[i];
+			asserta(TargetIdx < SIZE(TLabels));
+			const string &TLabel = TLabels[TargetIdx];
+			uint16_t Score = ScoreVec[i];
+			fprintf(f, "%s\t%s\t%d\n", QLabel.c_str(), TLabel.c_str(), int(Score));
+			}
+		}
+	}
+
 void RankedScoresBag::Init(uint QueryCount)
 	{
 	m_QueryCount = QueryCount;

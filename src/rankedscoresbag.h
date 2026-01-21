@@ -34,6 +34,9 @@ public:
 	void ToLabelsTsv(FILE *fTsv,
 					 const vector<string> &QLabels,
 					 const vector<string> &TLabels);
+	void ToScoreTsv(FILE *fTsv,
+					 const vector<string> &QLabels,
+					 const vector<string> &TLabels);
 #if CHECK_SCORE_VECS
 	void CheckScoreVecs(uint QIdx);
 	void CheckAllScoreVecs();

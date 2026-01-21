@@ -29,5 +29,6 @@ x(muhsp)
 x(muchain)
 x(gscore)
 x(raw)
+x(muscore)
 
 #undef x

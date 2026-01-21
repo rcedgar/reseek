@@ -42,7 +42,7 @@ const char *UFToStr(USERFIELD UF)
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
-void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
+void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp)
 	{
 	if (f == 0)
 		return;
@@ -68,6 +68,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_raw:	fprintf(f, "%.3g", m_AlnFwdScore); break;
 	case UF_ids:	fprintf(f, "%u", m_Ids); break;
 	case UF_gaps:	fprintf(f, "%u", m_Gaps); break;
+	case UF_muscore:	fprintf(f, "%.3g", GetMuScore()); break;
 
 	case UF_cigar:
 		{

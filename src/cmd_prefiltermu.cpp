@@ -117,6 +117,19 @@ void cmd_prefilter_mu()
 	CloseStdioFile(s_fTsv);
 	}
 
+	if (optset_output2)
+		{
+		vector<string> QLabels;
+		vector<string> TLabels;
+		for (uint i = 0; i < QSeqCount; ++i)
+			QLabels.push_back(QDB.GetLabel(i));
+		for (uint i = 0; i < TSeqCount; ++i)
+			TLabels.push_back(TDB.GetLabel(i));
+		FILE *fTsv = CreateStdioFile(opt(output2));
+		PrefilterMu::m_RSB.ToScoreTsv(fTsv, QLabels, TLabels);
+		CloseStdioFile(s_fTsv);
+		}
+
 	if (optset_output3)
 		{
 		vector<string> QLabels;
