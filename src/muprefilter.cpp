@@ -61,7 +61,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		}
 	}
 
-uint MuPreFilter(const DSSParams &Params,
+void MuPreFilter(const DSSParams &Params,
 			  SeqDB &QDB,
 			  MuSeqSource &FSS,
 			  const string &OutputFN)
@@ -130,5 +130,4 @@ uint MuPreFilter(const DSSParams &Params,
 	FILE *fTsv = CreateStdioFile(OutputFN);
 	PrefilterMu::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(fTsv);
-	return s_DBSize;
 	}

@@ -2,6 +2,13 @@
 
 cd ../test_output
 
+if [ -z "$reseek" ] ; then
+	reseek=../bin/reseek
+fi
+
+mkdir -p ../test_output
+cd ../test_output
+
 $reseek \
 	-search scop40.bca \
 	-db scop40.bca \

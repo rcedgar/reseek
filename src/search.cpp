@@ -6,7 +6,7 @@
 #include "output.h"
 #include "statsig.h"
 
-uint MuPreFilter(const DSSParams &Params,
+void MuPreFilter(const DSSParams &Params,
 			  SeqDB &QueryDB,
 			  MuSeqSource &FSS,
 			  const string &OutputFN);
@@ -30,7 +30,6 @@ void SelfSearch()
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	StatSig::Init(DBS.GetDBChainCount());
 
 	OpenOutputFiles();
 	DBS.RunSelf();
@@ -52,7 +51,6 @@ static void Search_NoMuFilter()
 
 	DBS.LoadDB(QFN);
 	DBS.Setup();
-	StatSig::Init(DBS.GetDBChainCount());
 
 	OpenOutputFiles();
 	ChainReader2 CR;
@@ -103,8 +101,7 @@ void cmd_search()
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
 
-	uint DBSize = MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
-	StatSig::Init(DBSize);
+	MuPreFilter(Params, MuQueryDB, DBSS, MuFilterTsvFN);
 
 	DSSParams Params2;
 	Params2.SetDSSParams(DM_AlwaysSensitive);

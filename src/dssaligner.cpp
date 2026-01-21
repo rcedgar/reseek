@@ -841,13 +841,11 @@ void DSSAligner::CalcEvalue_AAOnly()
 
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
-	asserta(StatSig::m_DBSize != UINT_MAX);
-	const float DBSize = (float) StatSig::m_DBSize;
 
 	float Score = m_AlnFwdScore;
 	float BitScore = (Score*GappedLambda - LogGappedK)/Log2;
-	float NM_A = float(LA)*float(DBSize);
-	float NM_B = float(LB)*float(DBSize);
+	float NM_A = float(LA)*float(SCOP40c_DBSIZE);
+	float NM_B = float(LB)*float(SCOP40c_DBSIZE);
 	m_QualityA = 0;
 	m_QualityB = 0;
 	m_EvalueA = NM_A/powf(2, BitScore);
@@ -897,9 +895,7 @@ void DSSAligner::CalcEvalue()
 
 	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);
 	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
-	float E = FLT_MAX;
-	if (StatSig::m_DBSize != UINT_MAX)
-		E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
+	float E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
 
 	m_QualityA = Qual;
 	m_QualityB = Qual;

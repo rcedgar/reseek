@@ -100,7 +100,6 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf()
 	{
-	StatSig::InitSensitive(GetDBChainCount());
 	for (uint i = 0; i < SIZE(m_DAs); ++i)
 		m_DAs[i]->SetParams(*m_Params);
 

@@ -23,7 +23,6 @@ void cmd_calibrate()
 	CalibrateSearcher DBS;
 	DSSParams Params;
 	Params.SetDSSParams(DM_DefaultFast);
-	StatSig::InitSensitive(SCOP40_DBSIZE);
 	DBS.m_Params = &Params;
 
 	DBS.LoadDB(DBFN);

@@ -789,7 +789,6 @@ void cmd_scop40bench()
 	SB.LoadDB(CalFN);
 
 	asserta(SB.m_Params == &Params);
-	StatSig::Init(SB.GetDBSize());
 
 	SB.Setup();
 	
