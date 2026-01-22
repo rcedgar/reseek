@@ -65,28 +65,22 @@ def check_default(fn):
     global errors
     for line in open(fn):
         flds = line[:-1].split('\t')
-        if len(flds) != 5:
-            print("%s: ERROR %s not five flds" % (sys.argv[0], fn))
+        if len(flds) != 10:
+            print("%s: ERROR %s not 10 flds" % (sys.argv[0], fn))
             errors += 1
             return
         try:
-            Q = float(flds[0])
+            P = float(flds[9])
         except:
-            print("%s: ERROR %s aq %s not float" % (sys.argv[0], fn, flds[0]))
+            print("%s: ERROR %s pvalue %s not float" % (sys.argv[0], fn, flds[9]))
             errors += 1
             return
-        try:
-            E = float(flds[3])
-        except:
-            print("%s: ERROR %s evalue %s not float" % (sys.argv[0], fn, flds[0]))
+        if not flds[0] in labels:
+            print("%s: ERROR %s label %s not found" % (sys.argv[0], fn, flds[0]))
             errors += 1
             return
         if not flds[1] in labels:
             print("%s: ERROR %s label %s not found" % (sys.argv[0], fn, flds[1]))
-            errors += 1
-            return
-        if not flds[2] in labels:
-            print("%s: ERROR %s label %s not found" % (sys.argv[0], fn, flds[2]))
             errors += 1
             return
             

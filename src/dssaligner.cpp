@@ -97,6 +97,20 @@ DSSAligner::~DSSAligner()
 		parasail_profile_free((parasail_profile_t *) m_ProfParaRev);
 	}
 
+static void default_columns(vector<USERFIELD> &v)
+	{
+	v.push_back(UF_query);
+	v.push_back(UF_target);
+	v.push_back(UF_qlo);
+	v.push_back(UF_qhi);
+	v.push_back(UF_ql);
+	v.push_back(UF_tlo);
+	v.push_back(UF_thi);
+	v.push_back(UF_tl);
+	v.push_back(UF_pctid);
+	v.push_back(UF_pvalue);
+	}
+
 DSSAligner::DSSAligner()
 	{
 	if (optset_columns)
@@ -109,33 +123,16 @@ DSSAligner::DSSAligner()
 		for (uint i = 0; i < n; ++i)
 			{
 			if (Fields[i] == "std")
-				{
-				m_UFs.push_back(UF_query);
-				m_UFs.push_back(UF_target);
-				m_UFs.push_back(UF_qlo);
-				m_UFs.push_back(UF_qhi);
-				m_UFs.push_back(UF_ql);
-				m_UFs.push_back(UF_tlo);
-				m_UFs.push_back(UF_thi);
-				m_UFs.push_back(UF_tl);
-				m_UFs.push_back(UF_pctid);
-				m_UFs.push_back(UF_pvalue);
-				}
+				default_columns(m_UFs);
 			else
 				{
 				USERFIELD UF = StrToUF(Fields[i]);
-				if (UF == UF_evalue)
-					Warning("evalue is deprecated, recommend use pvalue");
 				m_UFs.push_back(UF);
 				}
 			}
 		}
 	else
-		{
-		m_UFs.push_back(UF_pvalue);
-		m_UFs.push_back(UF_query);
-		m_UFs.push_back(UF_target);
-		}
+		default_columns(m_UFs);
 	}
 
 int DSSAligner::GetMuDPScorePathInt(const vector<byte> &MuLettersA,
