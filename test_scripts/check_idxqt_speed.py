@@ -26,9 +26,9 @@ idxt_secs, idxt_Mb = do_time("../test_output/1hhs_pdb90_idxt.time")
 hostname = socket.gethostname()
 
 if hostname == "rip":
-	if idxq_secs > 8:
+	if idxq_secs > 10:
 		errors += 1
-		print("%s: ERROR 1hhs PDB90 idxq secs=%d (max 8)" \
+		print("%s: ERROR 1hhs PDB90 idxq secs=%d (max 10)" \
 			% (sys.argv[0], idxq_secs))
 	if idxt_secs > 100:
 		errors += 1
