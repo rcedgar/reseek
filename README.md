@@ -62,15 +62,14 @@ Output options for -search
                  #   tl      Target length
                  #   pctid   Percent identity of alignment
                  #   cigar   CIGAR string
-                 #   pvalue  P-value according to log-linear null model
-                 #   evalue  E-value according to log-linear null model
-                 #   aq      AQ (aln. qual., 0 to 1, >0.5 suggests homology)
+                 #   pvalue  P-value according to log-linear null model (RECOMMENDED)
+                 #   evalue  E-value according to log-linear null model (DEPRECATED)
+                 #   aq      AQ (aln. qual., 0 to 1)                    (DEPRECATED)
                  #   qrow    Aligned query sequence with gaps (local)
                  #   trow    Aligned target sequence with gaps (local)
                  #   qrowg   Aligned query sequence with gaps (global)
                  #   trowg   Aligned target sequence with gaps (global)
-                 #   std     query+target+qlo+qhi+ql+tlo+thi+tl+pctid+evalue
-                 # default aq+query+target+evalue+pvalue
+                 #   std     query+target+qlo+qhi+ql+tlo+thi+tl+pctid+pvalue (default)
 
 Search and alignment options
   -fast, -sensitive or -verysensitive     # Required
@@ -110,13 +109,11 @@ Other options:
 cd src/; chmod +x build_linux_x86.bash ; ./build_linux_x86.bash
 </pre>
 
-#### Build from source on OSX x86
-<pre>
-cd src/ ; chmod +x build_osx_x86.bash ; ./build_osx_x86.bash
-</pre>
-
 #### Build from source on Windows
 Load `reseek.vcxproj` into Microsoft Visual Studio and use the Build command.
+
+#### OSX currently not supported
+The problem is compatibility with the amazing parasail library [https://github.com/jeffdaily/parasail](https://github.com/jeffdaily/parasail) (thanks Jeff!) which reseek uses for fast Smith-Waterman alignment. See [issue 25](https://github.com/rcedgar/reseek/issues/25), there is probably an easy fix, anyone...?
 
 #### Ignore static link warning
 Don't worry about a warning something like this, it's expected:
