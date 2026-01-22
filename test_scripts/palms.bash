@@ -14,7 +14,7 @@ for mode in fast sensitive verysensitive ; do
 	$reseek \
 		-search $q \
 		-db $db \
-		-columns query+target+pvalue+evalue+ql+tl \
+		-columns query+target+pvalue+evalue+qlo+qhi+ql+tlo+thi+tl+qcovpct+tcovpct \
 		-output palms_scop40.$mode.hits \
 		-$mode \
 		-log palms_scop40_$mode.log
