@@ -1119,6 +1119,30 @@ uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) co
 	return U;
 	}
 
+double DSSAligner::GetQCovPct(bool Top) const
+	{
+	uint QL = GetQL(Top);
+	if (QL == 0)
+		return 0;
+	uint QLo = GetLo(Top);
+	uint QHi = GetHi(Top);
+	double Pct = (100.0*(QHi - QLo + 1))/QL;
+	if (Pct > 100)
+		Pct = 100;
+	return Pct;
+	}
+
+double DSSAligner::GetTCovPct(bool Top) const
+	{
+	uint TL = GetQL(Top);
+	uint TLo = GetLo(!Top);
+	uint THi = GetHi(!Top);
+	double Pct = (100.0*(THi - TLo + 1))/TL;
+	if (Pct > 100)
+		Pct = 100;
+	return Pct;
+	}
+
 void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const
 	{
 	if (Up)

@@ -60,6 +60,8 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up)
 	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;
 	case UF_thi:	fprintf(f, "%u", GetHi(!Up) + 1); break;
+	case UF_qcovpct:fprintf(f, "%.1f", GetQCovPct(Up)); break;
+	case UF_tcovpct:fprintf(f, "%.1f", GetTCovPct(Up)); break;
 	case UF_pctid:	fprintf(f, "%.1f", GetPctId()); break;
 	case UF_ts:		fprintf(f, "%.3g", GetTestStatistic(Up)); break;
 	case UF_newts:	fprintf(f, "%.3g", GetNewTestStatistic(Up)); break;

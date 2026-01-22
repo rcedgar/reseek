@@ -30,5 +30,7 @@ x(muchain)
 x(gscore)
 x(raw)
 x(muscore)
+x(qcovpct)
+x(tcovpct)
 
 #undef x
