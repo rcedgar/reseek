@@ -119,22 +119,22 @@ DSSAligner::DSSAligner()
 				m_UFs.push_back(UF_thi);
 				m_UFs.push_back(UF_tl);
 				m_UFs.push_back(UF_pctid);
-				m_UFs.push_back(UF_evalue);
+				m_UFs.push_back(UF_pvalue);
 				}
 			else
 				{
 				USERFIELD UF = StrToUF(Fields[i]);
+				if (UF == UF_evalue)
+					Warning("evalue is deprecated, recommend use pvalue");
 				m_UFs.push_back(UF);
 				}
 			}
 		}
 	else
 		{
-		m_UFs.push_back(UF_aq);
+		m_UFs.push_back(UF_pvalue);
 		m_UFs.push_back(UF_query);
 		m_UFs.push_back(UF_target);
-		m_UFs.push_back(UF_evalue);
-		m_UFs.push_back(UF_pvalue);
 		}
 	}
 
