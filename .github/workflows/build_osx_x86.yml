@@ -5,7 +5,7 @@ on:
   
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
