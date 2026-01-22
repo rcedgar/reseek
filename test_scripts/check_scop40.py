@@ -13,9 +13,9 @@ def dofile(tsv_fn, SEPQ0_1, SEPQ1, SEPQ10):
 
 	name = tsv_fn.split('/')[-1].split('.')[0]
 
-	qfldnr = 1
-	tfldnr = 2
-	scorefldnr = 3
+	qfldnr = 0
+	tfldnr = 1
+	scorefldnr = 2
 	is_sorted = False
 	sc.eval_file(tsv_fn, qfldnr, tfldnr, scorefldnr, is_sorted)
 	sepq0_1 = sc.tpr_at_fpepq0_1
