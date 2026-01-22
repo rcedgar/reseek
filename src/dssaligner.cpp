@@ -968,13 +968,13 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 		return;
 	if (Up)
 		PrettyAln(f, *m_ChainA, *m_ChainB, *m_ProfileA, *m_ProfileB,
-		  m_LoA, m_LoB, m_Path, m_QualityA, m_EvalueA);
+		  m_LoA, m_LoB, m_Path, m_QualityA, m_PvalueA);
 	else
 		{
 		string Path;
 		InvertPath(m_Path, Path);
 		PrettyAln(f, *m_ChainB, *m_ChainA, *m_ProfileB, *m_ProfileA,
-		  m_LoB, m_LoA, Path, m_QualityB, m_EvalueB);
+		  m_LoB, m_LoA, Path, m_QualityB, m_PvalueB);
 		}
 	}
 

@@ -26,7 +26,7 @@ static char GetAnnotChar(char a, char b)
 void DSSAligner::PrettyAln(FILE *f,
   const PDBChain &A, const PDBChain &B,
   const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
-  uint LoA, uint LoB, const string &Path, float AQ, float Evalue) const
+  uint LoA, uint LoB, const string &Path, float AQ, float Pvalue) const
 	{
 	if (f == 0)
 		return;
@@ -93,7 +93,7 @@ void DSSAligner::PrettyAln(FILE *f,
 
 	fprintf(f, "AQ %.4f, cols %u, gaps %u (%.1f%%), ids %u (%.1f%%)",
 	  AQ, ColCount, Gaps, PctGaps, Ids, PctId);
-	if (Evalue != FLT_MAX)
-		fprintf(f, ", E-value %.3g", Evalue);
+	if (Pvalue != FLT_MAX)
+		fprintf(f, ", P-value %.3g", Pvalue);
 	fprintf(f, "\n");
 	}
