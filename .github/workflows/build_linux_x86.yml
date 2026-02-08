@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read    
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-    
 
 jobs:
   build:
@@ -17,20 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-           python-version: '3.10' 
+          python-version: "3.10"
 
       # Runs a set of commands using the runners shell
-      - name: Build-commands
+      - name: Build commands
+        working-directory: ./src
+        env:
+          PORTABLE: "1"
         run: |
-          cd $GITHUB_WORKSPACE/src
           chmod u+x ./build_linux_x86.bash
           ./build_linux_x86.bash
+          ../bin/reseek -h >/dev/null
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: reseek-linux-x86
-          path: /home/runner/work/reseek/reseek/bin/reseek
+          path: ${{ github.workspace }}/bin/reseek
+          if-no-files-found: error
