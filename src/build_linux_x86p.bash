@@ -8,9 +8,9 @@ curl -fsSL "https://raw.githubusercontent.com/rcedgar/vcxproj_make/$commit/vcxpr
 
 mkdir -p ../bin
 
-portable_opt=""
+cmd=(python3 ./vcxproj_make.py --profile --binary reseekp --ccompiler "gcc -std=gnu17")
 if [ "${PORTABLE:-0}" = "1" ]; then
-  portable_opt="--nonative"
+  cmd+=(--nonative --cppcompiler "g++ -mavx2")
 fi
 
-python3 ./vcxproj_make.py --profile --binary reseekp --ccompiler "gcc -std=gnu17" $portable_opt
+"${cmd[@]}"
