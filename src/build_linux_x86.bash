@@ -1,8 +1,16 @@
-commit=`cat vcxproj_make_commit.txt`
+#!/usr/bin/env bash
+set -euo pipefail
 
-curl -fsSL https://raw.githubusercontent.com/rcedgar/vcxproj_make/$commit/vcxproj_make.py \
+commit=$(cat vcxproj_make_commit.txt)
+
+curl -fsSL "https://raw.githubusercontent.com/rcedgar/vcxproj_make/$commit/vcxproj_make.py" \
   > vcxproj_make.py
 
 mkdir -p ../bin
 
-python3 ./vcxproj_make.py
+cmd=(python3 ./vcxproj_make.py --ccompiler "gcc -std=gnu17")
+if [ "${PORTABLE:-0}" = "1" ]; then
+  cmd+=(--nonative --cppcompiler "g++ -mavx2")
+fi
+
+"${cmd[@]}"
