@@ -675,8 +675,6 @@ void cmd_scop40bench()
 	SCOP40Bench SB;
 	SB.LoadDB(DBFN);
 
-	StatSig::Init(SB.GetDBSize());
-
 	SB.Setup();
 	
 	float MaxFPR = 0.005f;

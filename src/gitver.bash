@@ -1,22 +1,11 @@
 #!/bin/bash
 
 if [ ! -d ../.git ] ; then
-  if [ ! -f gitver.txt ] ; then
-    echo "0" > gitver.txt
-  fi
-  echo "Repo not found, git hash set to zero"
-  exit 0
+	echo "Repo not found, git hash set to zero"
+	hash=0
+else
+	PATH=$PATH:/usr/bin
+	hash=$(git rev-parse --short HEAD)$([ -n "$(git status --porcelain)" ] && echo "-dirty")
 fi
-
-PATH=$PATH:/usr/bin
-
-git describe --abbrev=7 --long --always \
-  > gitver.tmp
-
-sed -i '-es/"//g' gitver.tmp
-
-echo \"`cat gitver.tmp`\" > gitver.txt
-
-rm -f gitver.tmp
-
-cat gitver.txt
+echo "#define GIT_HASH \"$hash\"" > git_hash.h
+cat git_hash.h

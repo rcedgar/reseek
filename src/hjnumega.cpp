@@ -276,8 +276,6 @@ void cmd_hjnumega()
 	asserta(FeatureCount > 0);
 	ParaSearch::m_NuFs = Fs;
 
-	StatSig::Init(SCOP40_DBSIZE);
-
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 

@@ -17,13 +17,6 @@ enum SBSCORE
 	SBS_OtherAlgoScore,	// DALI, TM-Align...
 	};
 
-#define SCORE_DIST	0
-
-#if SCORE_DIST
-#include "binner.h"
-#define SCORE_BINS	100
-#endif
-
 class DSSAligner
 	{
 public:
@@ -130,6 +123,7 @@ public:
 	  const vector<uint> *ptrMuKmers,
 	  float SelfRevScore);
 	bool DoMKF() const;
+	float GetMuScore();
 
 	void SetMuScore();
 	bool MuFilter();
@@ -149,7 +143,7 @@ public:
 	void Align_NoAccel();
 	void Align_QRev();
 
-	int AlignMuQP_xx(const vector<byte> &LettersA, const vector<byte> &LettersB);
+	int AlignMuQP(const vector<byte> &LettersA, const vector<byte> &LettersB);
 	int AlignMuQP_Para_xx();
 	int AlignMuParaBags_xx(const ChainBag &BagA, const ChainBag &BagB);
 	void SetMuQP_Para_xx();
@@ -188,7 +182,7 @@ public:
 	void PrettyAln(FILE *f, const PDBChain &A, const PDBChain &B,
 	  const vector<vector<byte> > &ProfileA, const vector<vector<byte> > &ProfileB,
 	  uint LoA, uint LoB, const string &Path, float Quality, float Evalue) const;
-	void WriteUserField(FILE *f, USERFIELD UF, bool Up) const;
+	void WriteUserField(FILE *f, USERFIELD UF, bool Up);
 
 // Top=true means fetch value for A, Top=false fetch B
 	const PDBChain &GetChain(bool Top) const { return Top ? *m_ChainA : *m_ChainB; }
@@ -199,6 +193,8 @@ public:
 	uint GetLo(bool Top) const { return Top ? m_LoA : m_LoB; }
 	uint GetHi(bool Top) const { return Top ? m_HiA : m_HiB; }
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
+	double GetQCovPct(bool Top) const;
+	double GetTCovPct(bool Top) const;
 	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
 	float GetSBScore(SBSCORE SBS, bool Up) const;
@@ -235,9 +231,6 @@ public:
 
 public:
 	static void Stats();
-#if SCORE_DIST
-	static void ReportScoreDist();
-#endif
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	static float StaticSubstScore_Trace(void *UserData_this, uint PosA, uint PosB);
 	};

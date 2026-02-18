@@ -74,8 +74,6 @@ bool DBSearcher::GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2)
 
 void DBSearcher::RunSelf(bool ShowStats)
 	{
-	StatSig::InitSensitive(GetDBChainCount());//@@TODO why sensitive
-
 	if (m_RecalcSelfRevScores)
 		SetSelfRevScores();
 

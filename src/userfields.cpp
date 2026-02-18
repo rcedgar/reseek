@@ -42,12 +42,10 @@ const char *UFToStr(USERFIELD UF)
 
 // Up is true  if alignment is Query=A, Target=B
 // Up is false if alignment is Query=B, Target=A
-void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
+void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up)
 	{
 	if (f == 0)
 		return;
-
-	const bool Up = (optset_fast ? aUp : !aUp);
 
 	string TmpStr;
 	switch (UF)
@@ -62,6 +60,8 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;
 	case UF_thi:	fprintf(f, "%u", GetHi(!Up) + 1); break;
+	case UF_qcovpct:fprintf(f, "%.1f", GetQCovPct(Up)); break;
+	case UF_tcovpct:fprintf(f, "%.1f", GetTCovPct(Up)); break;
 	case UF_pctid:	fprintf(f, "%.1f", GetPctId()); break;
 	case UF_ts:		fprintf(f, "%.3g", GetTestStatistic(Up)); break;
 	case UF_newts:	fprintf(f, "%.3g", GetNewTestStatistic(Up)); break;
@@ -70,6 +70,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool aUp) const
 	case UF_ids:	fprintf(f, "%u", m_Ids); break;
 	case UF_gaps:	fprintf(f, "%u", m_Gaps); break;
 	case UF_cols:	fprintf(f, "%u", SIZE(m_Path)); break;
+	case UF_muscore:	fprintf(f, "%.3g", GetMuScore()); break;
 
 	case UF_cigar:
 		{

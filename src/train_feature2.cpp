@@ -161,7 +161,7 @@ void cmd_train_feature2()
 		GetCmdLine(CmdLine);
 		fprintf(fOut, "cmd\t%s\n", CmdLine.c_str());
 		fprintf(fOut, "fev\t%s\n", FeatureTrainer2::m_FevStr.c_str());
-		fprintf(fOut, "git\t%s\n", g_GitVer);
+		fprintf(fOut, "git\t%s\n", GIT_HASH);
 		CloseStdioFile(fOut);
 		}
 	}

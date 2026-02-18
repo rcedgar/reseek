@@ -166,19 +166,11 @@ bool DBSearcher::Reject(DSSAligner &DA, bool Up) const
 	{
 	if (opt(raw))
 		return false;
-	bool Evalue_ok = true;
-	bool TS_ok = false;
-	float E = DA.GetEvalue(Up);
-	if (E < m_MinEvalue)
+	if (!opt(scores_are_not_evalues) && DA.GetEvalue(Up) > m_MaxEvalue)
 		return true;
-	if (!opt(scores_are_not_evalues) && E > m_MaxEvalue)
-		Evalue_ok = false;
-	float TS = DA.GetNewTestStatistic(Up);
-	if (optset_mints && TS >= opt(mints))
-		TS_ok = true;
-	if (Evalue_ok || TS_ok)
-		return false;
-	return true;
+	if (optset_mints && DA.GetNewTestStatistic(Up) < opt(mints))
+		return true;
+	return false;	
 	}
 
 void DBSearcher::BaseOnAln(DSSAligner &DA, bool Up)

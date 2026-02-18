@@ -253,8 +253,6 @@ void cmd_hjmega()
 	for (uint i = 0; i < FeatureCount; ++i)
 		Weights.push_back(1);
 
-	StatSig::Init(SCOP40_DBSIZE);
-
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 

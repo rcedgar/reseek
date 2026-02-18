@@ -29,5 +29,8 @@ x(raw)
 x(rawlc)
 x(cols)
 x(fwdrev)
+x(muscore)
+x(qcovpct)
+x(tcovpct)
 
 #undef x

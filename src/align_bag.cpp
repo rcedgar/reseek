@@ -103,7 +103,6 @@ void cmd_align_bags()
 	DSSParams::Init(DM_AlwaysSensitive);
 	DSSParams::m_Omega8 = 0;
 	DSSParams::m_Omega16 = 0;
-	StatSig::InitSensitive(SCOP40_DBSIZE);
 
 	const uint ChainCount = SIZE(Chains);
 

@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <set>
 #include <atomic>
+#include "git_hash.h"
 
 #ifndef _MSC_VER
 #include <inttypes.h>
@@ -117,7 +118,6 @@ static inline char yon(bool x)		{ return x ? 'Y' : 'N';	}
 static inline const char *YesOrNo(bool x)	{ return x ? "Yes" : "No"; }
 static inline const char *plurals(unsigned n) { return n == 1 ? "" : "s"; }
 
-extern const char *g_GitVer;
 extern vector<string> g_Argv;
 extern string g_Arg1;
 extern mutex g_DieLock;

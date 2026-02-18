@@ -127,6 +127,12 @@ void GetBaseName(const string &PathName, string &Base)
 	Base = string(GetBaseName(PathName.c_str()));
 	}
 
+// Extract the "stem" of a filename with optional path
+// and optional extension, e.g.
+//								vvvvvvvvvvvv basename
+//		/home/user/fred/project/somefile.txt
+//								^^^^^^^^ stem
+// Used only for informatinal messages, this is cosmetic.
 void GetStemName(const string &PathName, string &Stem)
 	{
 	string Base;
@@ -134,6 +140,33 @@ void GetStemName(const string &PathName, string &Stem)
 	vector<string> Fields;
 	Split(Base, Fields, '.');
 	Stem = Fields[0];
+
+	const uint n = SIZE(Fields);
+	if (n == 0)
+		{
+		Stem.clear();
+		return;
+		}
+	if (n == 1)
+		{
+		Stem = Fields[0];
+		return;
+		}
+
+	uint upto = n - 1;
+	if (Fields[n-1] == "gz" && n > 2)
+		upto = n - 2;
+
+	Stem.clear();
+	for (uint i = 0; i < upto; i)
+		{
+		if (i > 0)
+			Stem.push_back('.');
+		Stem = Fields[i];
+		}
+
+	if (Stem.empty())
+		Stem = Fields[0];
 	}
 
 void GetExtFromPathName(const string &PathName, string &Ext)
@@ -2121,10 +2154,6 @@ void Split(const string &Str, vector<string> &Fields, char Sep)
 		Fields.push_back(s);
 	}
 
-const char *g_GitVer = 
-#include "gitver.txt"
-		;
-
 void Version(FILE *f)
 	{
 	if (f == 0)
@@ -2139,7 +2168,7 @@ void Version(FILE *f)
 	;
 	fprintf(f, "\n");
 
-	fprintf(f, "reseek v%s.%s%s [%s]\n", MY_VERSION, GetPlatform(), Flags, g_GitVer);
+	fprintf(f, "reseek v%s.%s%s [%s]\n", MY_VERSION, GetPlatform(), Flags, GIT_HASH);
 	}
 
 void PrintHelp()
@@ -2340,11 +2369,36 @@ unsigned GetCPUCoreCount()
 	if (n == 0 || n > 64)
 		return 1;
 	return n;
+#elif defined(__APPLE__)
+	int count;
+	size_t len = sizeof(count);
+	if (sysctlbyname("hw.physicalcpu", &count, &len, NULL, 0) == 0) {
+		return (unsigned)count;
+		}
+	return 1; // Fallback
+#elif defined(__linux__)
+	// Count unique "core id" occurrences in /proc/cpuinfo
+	FILE* fp = fopen("/proc/cpuinfo", "r");
+	if (!fp) return 1;
+
+	char line[256];
+	int cores = 0;
+	// On Linux, we can also check "cpu cores" field
+	while (fgets(line, sizeof(line), fp)) {
+		if (strncmp(line, "cpu cores", 9) == 0) {
+			char* p = strchr(line, ':');
+			if (p) {
+				cores = atoi(p + 1);
+				break;
+				}
+			}
+		}
+	fclose(fp);
+	if (cores > 0) return (long)cores;
+	return sysconf(_SC_NPROCESSORS_ONLN) / 2; // Rough fallback if parsing fails
 #else
-	long n = sysconf(_SC_NPROCESSORS_ONLN);
-	if (n <= 0)
-		return 1;
-	return (unsigned) n;
+	// Default fallback for other Unix-like systems
+	return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	}
 

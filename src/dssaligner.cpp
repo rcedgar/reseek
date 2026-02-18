@@ -91,6 +91,20 @@ DSSAligner::~DSSAligner()
 	FreeSMxData();
 	}
 
+static void default_columns(vector<USERFIELD> &v)
+	{
+	v.push_back(UF_query);
+	v.push_back(UF_target);
+	v.push_back(UF_qlo);
+	v.push_back(UF_qhi);
+	v.push_back(UF_ql);
+	v.push_back(UF_tlo);
+	v.push_back(UF_thi);
+	v.push_back(UF_tl);
+	v.push_back(UF_pctid);
+	v.push_back(UF_pvalue);
+	}
+
 DSSAligner::DSSAligner()
 	{
 	if (optset_columns)
@@ -103,33 +117,18 @@ DSSAligner::DSSAligner()
 		for (uint i = 0; i < n; ++i)
 			{
 			if (Fields[i] == "std")
-				{
-				m_UFs.push_back(UF_query);
-				m_UFs.push_back(UF_target);
-				m_UFs.push_back(UF_qlo);
-				m_UFs.push_back(UF_qhi);
-				m_UFs.push_back(UF_ql);
-				m_UFs.push_back(UF_tlo);
-				m_UFs.push_back(UF_thi);
-				m_UFs.push_back(UF_tl);
-				m_UFs.push_back(UF_pctid);
-				m_UFs.push_back(UF_evalue);
-				}
+				default_columns(m_UFs);
 			else
 				{
 				USERFIELD UF = StrToUF(Fields[i]);
+				if (UF == UF_evalue)
+					Warning("evalue is deprecated, recommend use pvalue");
 				m_UFs.push_back(UF);
 				}
 			}
 		}
 	else
-		{
-		m_UFs.push_back(UF_aq);
-		m_UFs.push_back(UF_query);
-		m_UFs.push_back(UF_target);
-		m_UFs.push_back(UF_evalue);
-		m_UFs.push_back(UF_pvalue);
-		}
+		default_columns(m_UFs);
 	}
 
 // GetDPScorePath calculates AlnScore which is optimized by SWFast.
@@ -495,7 +494,13 @@ void DSSAligner::SetSMx_NoRev(const vector<vector<byte> > &ProfileA,
 
 void DSSAligner::SetMuScore()
 	{
-	AlignMuQP_xx(*m_MuLettersA, *m_MuLettersB);
+	AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	}
+
+float DSSAligner::GetMuScore()
+	{
+	int MuScore = AlignMuQP(*m_MuLettersA, *m_MuLettersB);
+	return (float) MuScore;
 	}
 
 bool DSSAligner::MuFilter()
@@ -773,9 +778,7 @@ void DSSAligner::CalcEvalue()
 
 	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);
 	float Qual = (float) StatSig::GetQual(m_NewTestStatisticA);
-	float E = FLT_MAX;
-	if (StatSig::m_DBSize != UINT_MAX)
-		E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
+	float E = (float) StatSig::GetEvalue(m_NewTestStatisticA);
 
 	m_QualityA = Qual;
 	m_QualityB = Qual;
@@ -892,13 +895,13 @@ void DSSAligner::ToAln(FILE *f, bool Up) const
 		return;
 	if (Up)
 		PrettyAln(f, *m_ChainA, *m_ChainB, *m_ProfileA, *m_ProfileB,
-		  m_LoA, m_LoB, m_Path, m_QualityA, m_EvalueA);
+		  m_LoA, m_LoB, m_Path, m_QualityA, m_PvalueA);
 	else
 		{
 		string Path;
 		InvertPath(m_Path, Path);
 		PrettyAln(f, *m_ChainB, *m_ChainA, *m_ProfileB, *m_ProfileA,
-		  m_LoB, m_LoA, Path, m_QualityB, m_EvalueB);
+		  m_LoB, m_LoA, Path, m_QualityB, m_PvalueB);
 		}
 	}
 
@@ -1003,7 +1006,7 @@ void DSSAligner::SetMuQP_Para_xx()
 		Die("SetMuQP_Para_xx");
 	}
 
-int DSSAligner::AlignMuQP_xx(const vector<byte> &LettersA,
+int DSSAligner::AlignMuQP(const vector<byte> &LettersA,
   const vector<byte> &LettersB)
 	{
 	m_MuLettersA = &LettersA;
@@ -1040,6 +1043,30 @@ uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) co
 			++U;
 		}
 	return U;
+	}
+
+double DSSAligner::GetQCovPct(bool Top) const
+	{
+	uint QL = GetQL(Top);
+	if (QL == 0)
+		return 0;
+	uint QLo = GetLo(Top);
+	uint QHi = GetHi(Top);
+	double Pct = (100.0*(QHi - QLo + 1))/QL;
+	if (Pct > 100)
+		Pct = 100;
+	return Pct;
+	}
+
+double DSSAligner::GetTCovPct(bool Top) const
+	{
+	uint TL = GetQL(Top);
+	uint TLo = GetLo(!Top);
+	uint THi = GetHi(!Top);
+	double Pct = (100.0*(THi - TLo + 1))/TL;
+	if (Pct > 100)
+		Pct = 100;
+	return Pct;
 	}
 
 void DSSAligner::GetRow(bool Up, bool Top, bool Global, string &Row) const
