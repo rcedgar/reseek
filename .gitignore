@@ -5,6 +5,7 @@
 
 # RCE added
 big_*/
+src/git_hash.h
 gitver.txt
 o/
 obj/
