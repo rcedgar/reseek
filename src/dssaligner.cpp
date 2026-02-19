@@ -672,15 +672,12 @@ void DSSAligner::AlignQueryTarget_Trace()
 		}
 
 	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
-	if (m_DoTrace)
+	ProgressLog("Trace SWMx\n");
+	for (uint i = 0; i < 10; ++i)
 		{
-		ProgressLog("Trace SWMx\n");
-		for (uint i = 0; i < 10; ++i)
-			{
-			for (uint j = 0; j < 10; ++j)
-				Log("  %8.3g", m_SMx_Data[i][j]);
-			Log("\n");
-			}
+		for (uint j = 0; j < 10; ++j)
+			Log("  %8.3g", m_SMx_Data[i][j]);
+		Log("\n");
 		}
 
 	const uint LA = m_ChainA->GetSeqLength();
@@ -694,11 +691,7 @@ void DSSAligner::AlignQueryTarget_Trace()
 	CalcEvalue();
 
 	Log("AlnFwdScore=%.3g\n", m_AlnFwdScore);
-	float E = m_EvalueA;
-	if (E > 1e5)
-		Log("EvalueA=%.3g\n", E);
-	else
-		Log("EvalueA=%.1f\n", E);
+	Log("PvalueA=%.4g\n", m_PvalueA);
 	Log("Path=(%u)%.10s...\n", SIZE(m_Path), m_Path.c_str());
 	}
 

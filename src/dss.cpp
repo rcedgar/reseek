@@ -565,7 +565,11 @@ float DSS::GetFloat_RENDist(uint Pos)
 	{
 	uint REN = GetREN(Pos);
 	if (REN == UINT_MAX)
-		return FLT_MAX;
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;
+		}
 	float d = m_Chain->GetDist(Pos, REN);
 	return d;
 	}
@@ -588,7 +592,11 @@ float DSS::GetFloat_PENDist(uint Pos)
 	{
 	uint PEN = GetPEN(Pos);
 	if (PEN == UINT_MAX)
-		return FLT_MAX;
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;//@@TODO train default
+		}
 	float d = m_Chain->GetDist(Pos, PEN);
 	return d;
 	}
@@ -643,7 +651,11 @@ float DSS::GetFloat_MENDist(uint Pos)
 	{
 	uint MEN = GetMEN(Pos);
 	if (MEN == UINT_MAX)
-		return FLT_MAX;
+		{
+		if (opt(force_undef))
+			return FLT_MAX;
+		return (float) DSSParams::m_DefaultNENDist;//@@TODO train default
+		}
 	float d = m_Chain->GetDist(Pos, MEN);
 	return d;
 	}

@@ -89,6 +89,7 @@ void cmd_search()
 	SeqDB MuQueryDB;
 	MuQueryDB.FromSS(QSS);
 
+	MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
 	DSSParams::SetAlgoMode(DM_AlwaysSensitive);
 	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
