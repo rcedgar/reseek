@@ -1,27 +1,20 @@
 #!/bin/bash
-set -euo pipefail
 
-export PATH=$PATH:/usr/bin
-
-# repo root (works no matter where called from)
-repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-out_rel="src/git_hash.h"
-out="$repo_root/$out_rel"
-
-hash="0"
-if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  hash="$(git -C "$repo_root" rev-parse --short HEAD)"
-  if ! git -C "$repo_root" diff --quiet --no-ext-diff -- \
-     || ! git -C "$repo_root" diff --cached --quiet --no-ext-diff --
-  then
-    hash="${hash}-dirty"
+if [ ! -d ../.git ] ; then
+  if [ ! -f git_hash.h ] ; then
+    echo "0" > git_hash.h
   fi
+  echo "Repo not found, git hash set to zero"
+  exit 0
 fi
 
-new="#define GIT_HASH \"${hash}\""
+PATH=$PATH:/usr/bin
 
-# only update if content differs
-if [[ ! -f "$out" ]] || [[ "$(cat "$out")" != "$new" ]]; then
-  mkdir -p "$(dirname "$out")"
-  printf '%s\n' "$new" > "$out"
+hold=`cat git_hash.h`
+h=`git describe --abbrev=7 --dirty --long --always`
+if [[ $h == $hold ]] ; then
+    echo Same version githash=$h
+else
+    echo New version githash=$h
+    echo "#define GIT_HASH \"$h\"" > git_hash.h
 fi
