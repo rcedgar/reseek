@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+export PATH=$PATH:/usr/bin
+
 # repo root (works no matter where called from)
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 out_rel="src/git_hash.h"
