@@ -1,11 +1,27 @@
 #!/bin/bash
+set -euo pipefail
 
-if [ ! -d ../.git ] ; then
-	echo "Repo not found, git hash set to zero"
-	hash=0
+out="git_hash.h"
+
+if [[ ! -d ../.git ]]; then
+  echo "Repo not found, git hash set to zero"
+  hash="0"
 else
-	PATH=$PATH:/usr/bin
-	hash=$(git rev-parse --short HEAD)$([ -n "$(git status --porcelain)" ] && echo "-dirty")
+  PATH="$PATH:/usr/bin"
+
+  hash="$(git rev-parse --short HEAD)"
+
+  # Mark dirty only if tracked files differ (ignores untracked)
+  if ! git diff --quiet --no-ext-diff --; then
+    hash="${hash}-dirty"
+  fi
 fi
-echo "#define GIT_HASH \"$hash\"" > git_hash.h
-cat git_hash.h
+
+new="#define GIT_HASH \"${hash}\""
+
+# Only rewrite if content changed
+if [[ ! -f "$out" ]] || [[ "$(cat "$out")" != "$new" ]]; then
+  printf '%s\n' "$new" > "$out"
+fi
+
+cat "$out"
