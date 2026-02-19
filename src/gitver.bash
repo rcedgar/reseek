@@ -12,6 +12,8 @@ PATH=$PATH:/usr/bin
 
 hold=`cat git_hash.h`
 h=`git describe --abbrev=7 --dirty --long --always`
+h=$h
+hold=$hold
 if [[ $h == $hold ]] ; then
     echo Same version githash=$h
 else
