@@ -1,5 +1,8 @@
 #!/bin/bash
+
 set -euo pipefail
+
+PATH=$PATH:/usr/bin
 
 out_rel="src/git_hash.h"
 
