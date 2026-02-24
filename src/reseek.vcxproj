@@ -285,6 +285,7 @@
     <ClCompile Include="cluster_sss.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
+    <ClCompile Include="core_block.cpp" />
     <ClCompile Include="dali.cpp" />
     <ClCompile Include="daliscorer.cpp" />
     <ClCompile Include="dssparamdata.cpp" />

@@ -503,11 +503,15 @@ void FeatureTrainer2::ScoreMxToSrc(
 // To train with undefs in place:
 //		DiscardUndefs=true, ReplaceUndefWithThisLetter=UINT_MAX
 void FeatureTrainer2::GetAlignedLetterCounts(
-	const vector<vector<uint> > &ChainIntSeqsNoUndef,
+	const vector<PDBChain *> &Chains,
+	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
-	vector<uint> &Counts)
+	vector<uint> &Counts,
+	bool UniqueAligned,
+	set<string> &DoneLabels)
 	{
+	DoneLabels.clear();
 	Counts.clear();
 	Counts.resize(m_AlphaSize);
 
@@ -527,8 +531,16 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 		const uint ChainIdx1 = RowChainIdxs[RowIdx1];
 		const uint ChainIdx2 = RowChainIdxs[RowIdx2];
 
-		const vector<uint> &IntSeq1 = ChainIntSeqsNoUndef[ChainIdx1];
-		const vector<uint> &IntSeq2 = ChainIntSeqsNoUndef[ChainIdx2];
+		const string &Label1 = Chains[ChainIdx1]->m_Label;
+		const string &Label2 = Chains[ChainIdx2]->m_Label;
+
+		bool Done1 = DoneLabels.find(Label1) != DoneLabels.end();
+		bool Done2 = DoneLabels.find(Label2) != DoneLabels.end();
+		if (UniqueAligned && (Done1 || Done2))
+			continue;
+		const vector<uint> &IntSeq1 = ChainIntSeqsNoUndefs[ChainIdx1];
+		const vector<uint> &IntSeq2 = ChainIntSeqsNoUndefs[ChainIdx2];
+
 		uint L1 = SIZE(IntSeq1);
 		uint L2 = SIZE(IntSeq2);
 
@@ -548,8 +560,11 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 				uint Letter2 = IntSeq2[Pos2];
 				asserta(Letter1 < m_AlphaSize);
 				asserta(Letter2 < m_AlphaSize);
-				Counts[Letter1] += 1;
-				Counts[Letter2] += 1;
+				if (!Done1 && !Done2)
+					{
+					Counts[Letter1] += 1;
+					Counts[Letter2] += 1;
+					}
 				}
 
 			if (!isgap(c1))
@@ -559,6 +574,9 @@ void FeatureTrainer2::GetAlignedLetterCounts(
 			}
 		asserta(Pos1 == L1);
 		asserta(Pos2 == L2);
+
+		DoneLabels.insert(Label1);
+		DoneLabels.insert(Label2);
 		}
 	}
 
@@ -1349,7 +1367,7 @@ void FeatureTrainer2::TrainIntFeature(
 // Background letter counts
 ///////////////////////////////////////////////////////////////////////////////////////
 	vector<uint> TrainLetterCounts;
-	GetBackgroundCounts(ChainIntSeqsNoUndefs, TrainChainIdxs,
+	GetBackgroundCounts(Chains, ChainIntSeqsNoUndefs, TrainChainIdxs,
 		TrainRows, TrainLetterCounts);
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1555,7 +1573,7 @@ void FeatureTrainer2::TrainDSSFeature(
 // Background letter counts
 ///////////////////////////////////////////////////////////////////////////////////////
 	vector<uint> TrainLetterCounts;
-	GetBackgroundCounts(ChainIntSeqsNoUndefs, TrainChainIdxs,
+	GetBackgroundCounts(Chains, ChainIntSeqsNoUndefs, TrainChainIdxs,
 		TrainRows, TrainLetterCounts);
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1622,6 +1640,7 @@ void FeatureTrainer2::GetIntSeqs_SSS(
 	}
 
 void FeatureTrainer2::TrainSSS(
+	const vector<PDBChain *> &Chains,
 	const vector<vector<uint> > &IntSeqs,
 	const vector<string> &TrainRows,
 	const vector<string> &TrainLabels,
@@ -1640,7 +1659,7 @@ void FeatureTrainer2::TrainSSS(
 	LogChainIntSeqsStats(IntSeqs);
 
 	vector<uint> TrainLetterCounts;
-	GetBackgroundCounts(IntSeqs, TrainSeqIdxs,
+	GetBackgroundCounts(Chains, IntSeqs, TrainSeqIdxs,
 		TrainRows, TrainLetterCounts);
 
 	vector<vector<uint> > TrainAlnLetterPairCountMx;
@@ -1651,6 +1670,7 @@ void FeatureTrainer2::TrainSSS(
 	}
 
 void FeatureTrainer2::GetBackgroundCounts(
+	const vector<PDBChain *> &Chains,
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<uint> &ChainIdxs,
 	const vector<string> &Rows,
@@ -1658,8 +1678,18 @@ void FeatureTrainer2::GetBackgroundCounts(
 	{
 	// Aligned chains, with multiple counting
 	if (m_BS == BS_AlignedLetters)
-		GetAlignedLetterCounts(ChainIntSeqsNoUndefs, Rows, ChainIdxs,
-			LetterCounts);
+		{
+		set<string> DoneLabels;
+		GetAlignedLetterCounts(Chains, ChainIntSeqsNoUndefs, Rows, ChainIdxs,
+			LetterCounts, false, DoneLabels);
+		}
+	// Aligned chains, don't re-use any chain
+	else if (m_BS == BS_UniqueAligned)
+		{
+		set<string> DoneLabels;
+		GetAlignedLetterCounts(Chains, ChainIntSeqsNoUndefs, Rows, ChainIdxs,
+			LetterCounts, true, DoneLabels);
+		}
 	// Aligned chains, each chain exactly once
 	else if (m_BS == BS_UniqueChains)
 		GetAllLetterCountsUniqueChains(ChainIntSeqsNoUndefs, ChainIdxs,

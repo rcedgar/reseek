@@ -72,5 +72,7 @@ C(subset_bench_bsfeature)
 C(subset_bench_bs2fa)
 C(subset_bench)
 C(subset)
+C(checkfa2)
+C(core_blocks)
 
 #undef C

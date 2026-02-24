@@ -64,6 +64,13 @@ bool DSSParams::GetNeedMuLetters()
 
 void DSSParams::SetParam(const string &Name, const string &StrValue)
 	{
+	if (Name == "confdiagw")
+		{
+		void SetConfDiagw(float w);
+		float Value = StrToFloatf(StrValue);
+		SetConfDiagw(Value);
+		return;
+		}
 	if (Name == "gap2")
 		{
 		float Value = StrToFloatf(StrValue);

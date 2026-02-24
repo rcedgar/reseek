@@ -512,6 +512,10 @@ void DSSParams::Init(DECIDE_MODE DM)
 		SetParamsFromStr(opt(params));
 	else
 		SetStandardFeatures();
+
+	if (optset_replace_feature)
+		DSSParams::LoadFeatureScoreMxAndBinTs(opt(replace_feature));
+
 	SetAlgoMode(DM);
 	string ParamsStr;
 	DSSParams::GetParamsStr(ParamsStr);

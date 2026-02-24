@@ -563,6 +563,9 @@
     <ClCompile Include="3di_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core_block.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

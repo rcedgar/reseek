@@ -36,7 +36,8 @@ void cmd_train_sss()
 
 	vector<vector<float> > ScoreMx;
 	BACKGROUND_STYLE BS = FeatureTrainer2::StrToBS(opt(background_style));
-	FeatureTrainer2::TrainSSS(IntSeqs, TrainRows, TrainLabels,
+	const vector<PDBChain *> *ptrNullChains = 0;// placeholder, Chains needed only for BS_UniqueAligned
+	FeatureTrainer2::TrainSSS(*ptrNullChains, IntSeqs, TrainRows, TrainLabels,
 		TrainSeqIdxs, ScoreMx, BS);
 
 	FeatureTrainer2::ScoreMxToTsv(fOut, ScoreMx);

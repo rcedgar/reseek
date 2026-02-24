@@ -137,6 +137,7 @@ static void Optimize(
 	Best_xv = P.m_Best_xv;
 	ProgressLog("=========================================\n");
 	ProgressLog("%s completed\n", OptName.c_str());
+	ProgressLog("FINAL %.3g\n", Best_y);
 	ProgressLog("=========================================\n");
 	}
 

@@ -24,6 +24,7 @@ enum BACKGROUND_STYLE
 	BS_DSSScoreMx,
 	BS_AlignedLetters,
 	BS_UniqueChains,
+	BS_UniqueAligned,
 	BS_Float,
 	};
 
@@ -41,6 +42,7 @@ static BACKGROUND_STYLE StrToBS(const string &s)
 	if (s == "dss") return BS_DSSScoreMx;
 	if (s == "aln") return BS_AlignedLetters;
 	if (s == "uniq") return BS_UniqueChains;
+	if (s == "uniqaln") return BS_UniqueAligned;
 	if (s == "float") return BS_Float;
 	Die("StrToBS(%s)", s.c_str());
 	return BS_Invalid;
@@ -62,6 +64,7 @@ static const char *BSToStr(BACKGROUND_STYLE BS)
 		{
 	case BS_AlignedLetters:	return "AlignedLetters";
 	case BS_UniqueChains:	return "UniqueChains";
+	case BS_UniqueAligned:	return "UniqueAligned";
 
 	// Must set BS=BS_Float if float feature, method hard-coded in 
 	//   FeatureTrainer2::TrainFloatFeature(), similar to UniqueChains
@@ -156,10 +159,13 @@ static void LogChainIntSeqsStats(
 	const vector<vector<uint> > &Seqs);
 
 static void GetAlignedLetterCounts(
+	const vector<PDBChain *> &Chains,
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<string> &Rows,
 	const vector<uint> &RowChainIdxs,
-	vector<uint> &Counts);
+	vector<uint> &Counts,
+	bool UniqueAligned,
+	set<string> &DoneLabels);
 
 static void GetAlignedLetterPairCounts(
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
@@ -476,6 +482,7 @@ static void EvalLogOddsMx(
 	float &BestArea);
 
 static void GetBackgroundCounts(
+	const vector<PDBChain *> &Chains,
 	const vector<vector<uint> > &ChainIntSeqsNoUndefs,
 	const vector<uint> &TrainChainIdxs,
 	const vector<string> &TrainRows,
@@ -522,6 +529,7 @@ static void TrainFloatFeature(
 	FILE *fOut);
 
 static void TrainSSS(
+	const vector<PDBChain *> &Chains,
 	const vector<vector<uint> > &IntSeqs,
 	const vector<string> &TrainRows,
 	const vector<string> &TrainLabels,
