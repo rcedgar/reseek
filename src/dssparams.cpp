@@ -232,8 +232,8 @@ void DSSParams::SetAlgoMode(DECIDE_MODE DM)
 		}
 
 	X(MinFwdScore,			7.0f,	 7.0f,	0)
-	X(Omega8,				22,		12,		0)
-	X(OmegaFwd8,			50,		20,		0)
+	X(Omega8,				22,		7,		0)
+	X(OmegaFwd8,			50,		15,		0)
 	X(Omega16,				16,		12,		0)
 	X(OmegaFwd16,			48,		20,		0)
 	X(MKFL,					500,	600,	99999)
