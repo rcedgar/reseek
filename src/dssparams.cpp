@@ -447,41 +447,17 @@ uint DSSParams::GetMegaAlphaSize()
 
 void DSSParams::SetStandardFeatures()
 	{
-	if (opt(newparams))
-		{
-		// git [3d7ef20]
-		// scop40c SEPQ0.1=0.282 SEPQ1=0.374 SEPQ10=0.452 Area0=0.979 Sum3=1.577 -fast ../data/scop40c.bca
-		// scop40  SEPQ0.1=0.226 SEPQ1=0.330 SEPQ10=0.423 Area0=0.829 Area3=1.156 Sum3=1.370
-		// AA=4.4E-01;NENDist=1.6E-01;Conf=1.9E-01;NENConf=8.3E-02;RENDist=5.2E-02;DstNxtHlx=4.4E-02;StrandDens=0.0E+00;NormDens=4.0E-02;
-		AddFeature(FEATURE_AA,			4.4E-01f);
-		AddFeature(FEATURE_NENDist,		1.6E-01f);
-		AddFeature(FEATURE_Conf,		1.9E-01f);
-		AddFeature(FEATURE_NENConf,		8.3E-02f);
-		AddFeature(FEATURE_RENDist,		5.2E-02f);
-		AddFeature(FEATURE_DstNxtHlx,	4.4E-02f);
-		AddFeature(FEATURE_NormDens,	4.0E-02f);
+	const string OldVarStr =
+		"AA=0.436;NENDist=0.159;Conf=0.188;NENConf=0.0823;RENDist=0.0515;DstNxtHlx=0.0436;NormDens=0.0396;"
+		"Omega8=12;Omega16=12;OmegaFwd8=20;OmegaFwd16=20;MKFL=600;"
+		"GapOpen=-0.767;GapExt=-0.0767;dpw=2;lddtw=0.2;ladd=251.189;revtsw=2.5;";
 
-		// gap2=7.6E-01;dpw=2.0E+00;lddtw=2.0E-01;revtsw=2.5E+00;logladd=2.4E+00;
-		m_GapOpen = -7.67E-01f;
-		m_GapExt = m_GapOpen/10;
-		m_dpw = 2.0E+00f;
-		m_lddtw = 2.0E-01f;
-		m_revtsw = 2.5E+00f;
-		m_ladd = powf(10, 2.4E+00f);
-		}
-	else
-		{
-		// scop40c SEPQ0.1=0.276 SEPQ1=0.368 SEPQ10=0.449 Area0=0.960             Sum3=1.553 -fast ../data/scop40c.bca
-		// scop40  SEPQ0.1=0.211 SEPQ1=0.324 SEPQ10=0.423 Area0=0.800 Area3=1.119 Sum3=1.351
-		AddFeature(FEATURE_AA,			0.398145f);
-		AddFeature(FEATURE_NENDist,		0.129367f);
-		AddFeature(FEATURE_Conf,		0.202354f);
-		AddFeature(FEATURE_NENConf,		0.149383f);
-		AddFeature(FEATURE_RENDist,		0.0937677f);
-		AddFeature(FEATURE_DstNxtHlx,	0.00475462f);
-		AddFeature(FEATURE_StrandDens,	0.0183853f);
-		AddFeature(FEATURE_NormDens,	0.00384384f);
-		}
+	const string BestVarStr = 
+		"AA=4.93E-01;Conf=1.56E-01;NENConf=3.34E-02;RENConf=1.77E-02;PENConf=1.60E-02;MENConf=3.85E-02;"
+		"RENDist=2.22E-02;NENDist=7.03E-02;PENDist=8.42E-02;MENDist=3.85E-02;PMDistDiff=3.07E-02;"
+		"gap2=7.37E-01;dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;";
+
+	SetParamsFromStr(BestVarStr);
 	SetScoreMxsFromFeatures();
 	}
 

@@ -8,7 +8,7 @@ extern float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<uint> *ptrMuKmers);
 
 
-static ChainBag *MakeBag(
+ChainBag *MakeBag(
 	MuKmerFilter &MKF,
 	DSSAligner &DA_selfrev,
 	DSS &D,

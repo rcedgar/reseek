@@ -16,6 +16,11 @@ float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
 					  const vector<vector<byte> > &Profile,
 					  const vector<byte> *ptrMuLetters,
 					  const vector<uint> *ptrMuKmers);
+ChainBag *MakeBag(
+	MuKmerFilter &MKF,
+	DSSAligner &DA_selfrev,
+	DSS &D,
+	const PDBChain &QChain);
 
 static mutex s_IndexQueryLock;
 static mutex s_ScanLock;
@@ -61,37 +66,38 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		if (ThreadIndex == 0)
 			ProgressStep(QueryIdx, s_QueryCount, "Index query");
 
-		const PDBChain &QChain = *QChains[QueryIdx];
-		D.Init(QChain);
+		//const PDBChain &QChain = *QChains[QueryIdx];
+		//D.Init(QChain);
 
-		vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
-		vector<byte> *ptrQMuLetters = new vector<byte>;
-		vector<uint> *ptrQMuKmers = new vector<uint>;
+		//vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
+		//vector<byte> *ptrQMuLetters = new vector<byte>;
+		//vector<uint> *ptrQMuKmers = new vector<uint>;
 
-		D.GetProfile(*ptrQProfile);
-		D.GetMuLetters(*ptrQMuLetters);
-		D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
-		incac(postmuqselfrevs);
-		float QSelfRevScore = 
-			GetSelfRevScore(DASelfRev, D, QChain,
-							*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
+		//D.GetProfile(*ptrQProfile);
+		//D.GetMuLetters(*ptrQMuLetters);
+		//D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
+		//incac(postmuqselfrevs);
+		//float QSelfRevScore = 
+		//	GetSelfRevScore(DASelfRev, D, QChain,
+		//					*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
 
-		uint16_t *HT = MKF.CreateEmptyHashTable();
-		MKF.SetHashTable(*ptrQMuKmers, HT);
+		//uint16_t *HT = MKF.CreateEmptyHashTable();
+		//MKF.SetHashTable(*ptrQMuKmers, HT);
 
-		ChainBag *ptrCBQ = new ChainBag;
-		ptrCBQ->m_ptrChain = &QChain;
-		ptrCBQ->m_ptrProfile = ptrQProfile;
-		ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
-		ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
-		ptrCBQ->m_SelfRevScore = QSelfRevScore;
-		ptrCBQ->m_ptrProfPara8 = DASelfRev.m_ProfPara8;
-		ptrCBQ->m_ptrProfParaRev16 = DASelfRev.m_ProfParaRev16;
-		ptrCBQ->m_ptrKmerHashTableQ = HT;
-		asserta(ChainBagsQ[QueryIdx] == 0);
-		s_IndexQueryLock.lock();
-		ChainBagsQ[QueryIdx] = ptrCBQ;
-		s_IndexQueryLock.unlock();
+		//ChainBag *ptrCBQ = new ChainBag;
+		//ptrCBQ->m_ptrChain = &QChain;
+		//ptrCBQ->m_ptrProfile = ptrQProfile;
+		//ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
+		//ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
+		//ptrCBQ->m_SelfRevScore = QSelfRevScore;
+		//ptrCBQ->m_ptrProfPara8 = DASelfRev.m_ProfPara8;
+		//ptrCBQ->m_ptrProfParaRev8 = DASelfRev.m_ProfParaRev8;
+		//ptrCBQ->m_ptrProfParaRev16 = DASelfRev.m_ProfParaRev16;
+		//ptrCBQ->m_ptrKmerHashTableQ = HT;
+		//asserta(ChainBagsQ[QueryIdx] == 0);
+		//s_IndexQueryLock.lock();
+		//ChainBagsQ[QueryIdx] = ptrCBQ;
+		//s_IndexQueryLock.unlock();
 
 		//DASelfRev.m_MKF.ForceZero();
 		DASelfRev.m_ProfPara16 = 0;
@@ -125,6 +131,17 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	ChainBag CBT;
 	DSSAligner TheDA;
 	LineReader2 &LR = *s_ptrLR;
+
+#if DEBUG
+	{
+	const uint NQ = SIZE(QChains);
+	for (uint i = 0; i < NQ; ++i)
+		{
+		const ChainBag &CBQ = *ChainBagsQ[i];
+		CBQ.Validate("");//@@TODO
+		}
+	}
+#endif
 
 	string Line;
 	vector<string> Fields;
@@ -169,10 +186,11 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		CBT.m_ptrMuLetters = &DBMuLetters;
 		CBT.m_ptrMuKmers = &DBMuKmers;
 		CBT.m_SelfRevScore = DBSelfRevScore;
-		CBT.m_ptrProfPara8 = 0;
+		CBT.m_ptrProfPara8 = DASelfRev.m_ProfPara8;//@@TODO
 		CBT.m_ptrProfPara16 = 0;
-		CBT.m_ptrProfParaRev8 = 0;
+		CBT.m_ptrProfParaRev8 = DASelfRev.m_ProfParaRev8;//@@TODO
 		CBT.m_ptrProfParaRev16 = 0;
+		CBT.Validate("");//@@TODO
 
 		const uint FilHitCount = StrToUint(Fields[1]);
 		asserta(FilHitCount + 2 == FieldCount);
@@ -182,6 +200,8 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			uint QueryIdx = StrToUint(Fields[FilHitIdx+2]);
 			asserta(QueryIdx < SIZE(ChainBagsQ));
 			const ChainBag &CBQ = *ChainBagsQ[QueryIdx];
+			CBQ.Validate("");//@@TODO
+			//CBT.Validate("");//@@TODO
 			TheDA.AlignBags(CBQ, CBT);
 			if (Accept(TheDA))
 				{
@@ -248,13 +268,23 @@ void PostMuFilter(const string &MuFilterTsvFN,
 	setac(queries, s_QueryCount);
 
 	DSS D;
-	DSSAligner DASelfRev;
+	MuKmerFilter MKF;
+	// One DSSAligner per query so each ChainBag gets its own parasail profile
+	// (reusing one aligner would overwrite m_ProfPara8 each time, leaving
+	// earlier bags with wrong/freed profiles and triggering Prof8->s1Len == L).
+	vector<DSSAligner> DASelfRevs(s_QueryCount);
 
 	vector<ChainBag *> ChainBagsQ;
 	ChainBagsQ.resize(s_QueryCount, 0);
 
 	s_ptrQChains = &QChains;
 	s_ptrChainBagsQ = &ChainBagsQ;
+	for (uint QueryIdx = 0; QueryIdx < s_QueryCount; ++QueryIdx)
+		{
+		ChainBag *CB = MakeBag(MKF, DASelfRevs[QueryIdx], D, *QChains[QueryIdx]);
+		CB->Validate("");
+		 (*s_ptrChainBagsQ)[QueryIdx] = CB;
+		}
 
 	uint ThreadCount = GetRequestedThreadCount();
 	vector<thread *> ts;
@@ -294,4 +324,23 @@ void PostMuFilter(const string &MuFilterTsvFN,
 	CloseStdioFile(s_fTsv2);
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
+	}
+
+void cmd_postmufilter()
+	{
+	const string &QueryCAFN = g_Arg1;
+	const string &HitsFN = opt(output);
+
+	asserta(optset_db);
+	const string &DBCAFN = opt(db);
+
+	asserta(optset_filin);
+	const string &MuFilterTsvFN = opt(filin);
+
+	s_fTsv = CreateStdioFile(opt(output));
+
+	PostMuFilter(opt(filin),
+				 QueryCAFN,
+				 DBCAFN,
+				 HitsFN);
 	}

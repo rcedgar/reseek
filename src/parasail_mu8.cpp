@@ -239,6 +239,7 @@ int DSSAligner::AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB)
 	asserta(BagA.m_ptrProfPara8 != 0);
 	asserta(BagA.m_ptrProfParaRev8 != 0);
 	asserta(BagB.m_ptrMuLetters != 0);
+	asserta(BagB.m_ptrProfParaRev8 != 0);
 
 	uint LB = BagB.m_ptrChain->GetSeqLength();
 	asserta(SIZE(*BagB.m_ptrMuLetters) == LB);
