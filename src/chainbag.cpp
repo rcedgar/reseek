@@ -59,6 +59,7 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 
 	if (DoMKF_Bags(BagA, BagB))
 		{
+		++m_PostMuFilterMKFCount;
 		m_MKF.m_DA = this;
 		m_MKF.SetBagQ(BagA);
 		m_MKF.AlignBag(BagB);
@@ -71,7 +72,10 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 		{
 		int MuScore = AlignMuParaBags_xx(BagA, BagB);
 		if (MuScore < Omega)
+			{
+			++m_PostMuFilterOmegaDiscardCount;
 			return;
+			}
 		}
 	SetSMx_NoRev(*BagA.m_ptrProfile, *BagB.m_ptrProfile);
 	const uint LA = BagA.m_ptrChain->GetSeqLength();
@@ -81,7 +85,7 @@ void DSSAligner::AlignBags(const ChainBag &BagA,
 	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
 	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
 	  m_LoA, m_LoB, Leni, Lenj, m_Path);
-
+	++m_PostMuFilterSWCount;
 	CalcEvalue();
 	}
 

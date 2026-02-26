@@ -105,7 +105,7 @@ static void ThreadBody_IndexQuery(uint ThreadIndex)
 		}
 	}
 
-static bool Accept(const DSSAligner &DA)
+static bool Accept(const DSSAligner &DA)//@@TODO compare Search
 	{
 	if (DA.m_EvalueA <= s_MaxEvalue)
 		return true;
@@ -324,6 +324,12 @@ void PostMuFilter(const string &MuFilterTsvFN,
 	CloseStdioFile(s_fTsv2);
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
+	ProgressLog("%10u  m_PostMuFilterMKFCount\n", DSSAligner::m_PostMuFilterMKFCount.load());
+	ProgressLog("%10u  m_PostMuFilterOmegaDiscardCount\n", DSSAligner::m_PostMuFilterOmegaDiscardCount.load());
+	ProgressLog("%10u  m_PostMuFilterSWCount\n", DSSAligner::m_PostMuFilterSWCount.load());
+	ProgressLog("%10u  m_XDropDiscardCount1\n", DSSAligner::m_XDropDiscardCount1.load());
+	ProgressLog("%10u  m_XDropDiscardCount2\n", DSSAligner::m_XDropDiscardCount2.load());
+	ProgressLog("%10u  m_XDropAlnCount\n", DSSAligner::m_XDropAlnCount.load());
 	}
 
 void cmd_postmufilter()

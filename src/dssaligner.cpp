@@ -24,11 +24,17 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 
 atomic<uint> DSSAligner::m_AlnCount;
 atomic<uint> DSSAligner::m_XDropAlnCount;
-atomic<uint> DSSAligner::m_XDropDiscardCount;
+atomic<uint> DSSAligner::m_XDropDiscardCount1;
+atomic<uint> DSSAligner::m_XDropDiscardCount2;
 atomic<uint> DSSAligner::m_SWCount;
 atomic<uint> DSSAligner::m_MuFilterInputCount;
 atomic<uint> DSSAligner::m_MuFilterDiscardCount;
 atomic<uint> DSSAligner::m_ParasailSaturateCount;
+
+atomic<uint> DSSAligner::m_PostMuFilterMKFCount;
+atomic<uint> DSSAligner::m_PostMuFilterOmegaDiscardCount;
+atomic<uint> DSSAligner::m_PostMuFilterSWCount;
+atomic<uint> DSSAligner::m_PostMuFilterXDropCount;
 
 uint GetU(const vector<uint> &KmersQ, const vector<uint> &KmersR)
 	{
@@ -1012,10 +1018,8 @@ void DSSAligner::Stats()
 	uint Satn = m_ParasailSaturateCount;
 	uint Disn = m_MuFilterDiscardCount;
 	uint Inn = m_MuFilterInputCount;
-	Log("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)",
+	Log("DSSAligner::Stats() alns %s, mufil %u/%u %.1f%% (sat %u)\n",
 	  FloatToStr(m_AlnCount), Inn, Disn, GetPct(Disn, Inn), Satn);
-	Log(" xfil %.1f%%\n",
-				GetPct(m_XDropDiscardCount, m_XDropAlnCount+1));
 	MuKmerFilter::Stats();
 	}
 
@@ -1327,10 +1331,12 @@ void DSSAligner::PostAlignMKF()
 	{
 	incac(postalignmkfs);
 	if (m_MKF.m_BestChainScore <= 0)
+		{
+		++m_XDropDiscardCount1;
 		return;
+		}
 
 	incac(postaligntryxdrops);
-	++m_XDropAlnCount;
 	float MegaHSPTotal = 0;
 	const uint M = SIZE(m_MKF.m_ChainHSPLois);
 	float BestMegaScore = 0;
@@ -1351,9 +1357,11 @@ void DSSAligner::PostAlignMKF()
 	if (MegaHSPTotal < DSSParams::m_MKF_MinMegaHSPScore)
 		{
 		incac(postalignlohsps);
+		++m_XDropDiscardCount2;
 		return;
 		}
 
+	++m_XDropAlnCount;
 	incac(postalignxdrops);
 	uint HSPLoA = (uint) m_MKF.m_ChainHSPLois[BestMegaIdx];
 	uint HSPLoB = (uint) m_MKF.m_ChainHSPLojs[BestMegaIdx];
@@ -1370,6 +1378,7 @@ void DSSAligner::PostAlignMKF()
 	GetPathCounts(m_Path, nM, nD, nI);
 	m_HiA = m_LoA + nM + nD - 1;
 	m_HiB = m_LoB + nM + nI - 1;
+	++m_PostMuFilterXDropCount;
 	CalcEvalue();
 	}
 

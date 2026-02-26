@@ -217,6 +217,7 @@ void RankedScoresBag::ToTsv(FILE *f)
 	const uint TargetCount = SIZE(TargetIdxs);
 	QuickSortInPlace(TargetIdxs.data(), TargetCount);
 	fprintf(f, "prefilter\t%u\n", TargetCount);
+	uint64_t Total = 0;
 	for (uint k = 0; k < TargetCount; ++k)
 		{
 		uint TargetIdx = TargetIdxs[k];
@@ -224,11 +225,13 @@ void RankedScoresBag::ToTsv(FILE *f)
 		asserta(iter != TargetIdxToQueryIdxs.end());
 		const vector<uint> &QIdxs = iter->second;
 		const uint K = SIZE(QIdxs);
+		Total += K;
 		fprintf(f, "%u\t%u", TargetIdx, K);
 		for (uint i = 0; i < K; ++i)
 			fprintf(f, "\t%u", QIdxs[i]);
 		fprintf(f, "\n");
 		}
+	ProgressLog("%s prefilter hits\n", FloatToStr(double(Total)));
 	}
 
 void RankedScoresBag::Init(uint QueryCount)

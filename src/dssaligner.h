@@ -99,7 +99,13 @@ public:
 	static atomic<uint> m_MuFilterInputCount;
 	static atomic<uint> m_ParasailSaturateCount;
 	static atomic<uint> m_XDropAlnCount;
-	static atomic<uint> m_XDropDiscardCount;
+	static atomic<uint> m_XDropDiscardCount1;
+	static atomic<uint> m_XDropDiscardCount2;
+
+	static atomic<uint> m_PostMuFilterMKFCount;
+	static atomic<uint> m_PostMuFilterOmegaDiscardCount;
+	static atomic<uint> m_PostMuFilterSWCount;
+	static atomic<uint> m_PostMuFilterXDropCount;
 #if SCORE_DIST
 	static vector<float> m_TSs;
 #endif

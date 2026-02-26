@@ -90,7 +90,7 @@ void cmd_search()
 	MuQueryDB.FromSS(QSS);
 
 	MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
-	DSSParams::SetAlgoMode(DM_AlwaysSensitive);
+	DSSParams::SetAlgoMode(DM_AlwaysFast);
 	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
 
 	if (!opt(keeptmp))
