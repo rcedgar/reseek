@@ -28,16 +28,13 @@ public:
 	const vector<byte> *m_MuLettersB = 0;
 	const vector<uint> *m_MuKmersA = 0;
 	const vector<uint> *m_MuKmersB = 0;
-	vector<const float *> m_ProfMu8;
-	vector<const float *> m_ProfMu16;
-	vector<const float *> m_ProfMuRev8;
-	vector<const float *> m_ProfMuRev16;
 	vector<byte> m_MuRevA8;
 	vector<byte> m_MuRevA16;
-	void *m_ProfPara8 = 0;
-	void *m_ProfPara16 = 0;
-	void *m_ProfParaRev8 = 0;
-	void *m_ProfParaRev16 = 0;
+
+	const void *m_ProfPara8 = 0;
+	const void *m_ProfPara16 = 0;
+	const void *m_ProfParaRev8 = 0;
+	const void *m_ProfParaRev16 = 0;
 	MuKmerFilter m_MKF;
 	float m_XDropScore = 0;
 	float m_XDropScoreFwd = 0;
@@ -228,6 +225,9 @@ public:
 	float GetPctId() const;
 	float GetLDDT() const;
 	float SubstScore(uint PosA, uint PosB);
+
+	void SetBagA(const ChainBag &BagA);
+	void AlignBagB(const ChainBag &BagB);
 	void AlignBags(const ChainBag &BagA,
 				   const ChainBag &BagB);
 	void AlignBagsMKF(const ChainBag &BagA,

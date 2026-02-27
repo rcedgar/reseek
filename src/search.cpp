@@ -5,15 +5,18 @@
 #include "dbsearcher.h"
 #include "output.h"
 #include "statsig.h"
+#include "alpha.h"
 
-uint MuPreFilter(SeqDB &QueryDB,
-			  MuSeqSource &FSS,
-			  const string &OutputFN);
+void MakeBags(const vector<PDBChain *> Chains, vector<ChainBag *> &Bags);
+void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
+	map<uint, vector<uint> > &TargetIdxToQueryIdxs);
 
-void PostMuFilter(const string &MuFilterTsvFN,
-				  const string &QueryCAFN,
-				  const string &DBBCAFN,
-				  const string &HitsFN);
+void PostMuFilter(
+	const vector<ChainBag *> &CBQs,
+	const string &DBBCAFN,
+	const vector<uint> &TargetIdxs,
+	const map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	const string &HitsFN);
 
 void SelfSearch()
 	{
@@ -51,6 +54,28 @@ static void Search_NoMuFilter()
 	CloseOutputFiles();
 	}
 
+void MakeMuSeqDB(const vector<ChainBag *> &CBs, SeqDB &DB)
+	{
+	DB.Clear();
+	const uint ChainCount = SIZE(CBs);
+	DB.m_Labels.reserve(ChainCount);
+	DB.m_Seqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const ChainBag &CB = *CBs[ChainIdx];
+		const vector<byte> &MuLetters = *CB.m_ptrMuLetters;
+		const uint L = CB.GetSeqLength();
+		DB.m_Labels.push_back(CB.GetLabel());
+		string &Seq = DB.m_Seqs[ChainIdx];
+		Seq.reserve(L);
+		for (uint i = 0; i < L; ++i)
+			{
+			assert(MuLetters[i] < 36);
+			Seq += g_LetterToCharMu[MuLetters[i]];
+			}
+		}
+	}
+
 void cmd_search()
 	{
 	DSSParams::Init(DM_UseCommandLineOption);
@@ -72,27 +97,23 @@ void cmd_search()
 	if (!EndsWith(DBFN, ".bca"))
 		Die(".bca format required for -db");
 
-	string MuFilterTsvFN;
-	GetTmpFileName(MuFilterTsvFN);
-	Log("MuFilterTsvFN=%s\n", MuFilterTsvFN.c_str());
+	vector<PDBChain *> ChainsQ;
+	ReadChains(QueryFN, ChainsQ);
 
-	MuSeqSource QSS;
-	MuSeqSource DBSS;
-
-	QSS.OpenChains(QueryFN);
-
-	if (optset_dbmu)
-		DBSS.OpenFasta(opt(dbmu));
-	else
-		DBSS.OpenChains(DBFN);
+	vector<ChainBag *> CBQs;
+	MakeBags(ChainsQ, CBQs);
 
 	SeqDB MuQueryDB;
-	MuQueryDB.FromSS(QSS);
+	//MuQueryDB.FromSS(QSS);
+	MakeMuSeqDB(CBQs, MuQueryDB);
 
-	MuPreFilter(MuQueryDB, DBSS, MuFilterTsvFN);
+	MuSeqSource DBSS;
+	DBSS.OpenChains(DBFN);
+
+	vector<uint> TargetIdxs;
+	map<uint, vector<uint> > TargetIdxToQueryIdxs;
+	MuPreFilter(MuQueryDB, DBSS, TargetIdxs, TargetIdxToQueryIdxs);
+
 	DSSParams::SetAlgoMode(DM_AlwaysFast);
-	PostMuFilter(MuFilterTsvFN, QueryFN, DBFN, opt(output));
-
-	if (!opt(keeptmp))
-		DeleteStdioFile(MuFilterTsvFN);
+	PostMuFilter(CBQs, DBFN, TargetIdxs, TargetIdxToQueryIdxs, opt(output));
 	}

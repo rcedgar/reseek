@@ -304,6 +304,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
     <ClCompile Include="nubench.cpp" />
     <ClCompile Include="msta_lddtmuw.cpp" />
@@ -328,6 +329,7 @@
     <ClCompile Include="mmseqs_index_dump.cpp" />
     <ClCompile Include="muprefilter.cpp" />
     <ClCompile Include="mymutex.cpp" />
+    <ClCompile Include="postmufilter_alternate.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />

@@ -228,7 +228,7 @@ void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
 		uint QKmer = GetQKmer(QSeqIdx, QSeqPos);
 		m_QKmerIndex->KmerToStr(m_TBaseKmer, TKmerStr);
 		m_QKmerIndex->KmerToStr(QKmer, QKmerStr);
-		const MerMx &MM = GetMuMerMx(k);
+		const MerMx &MM = GetMuMerMx(m_QKmerIndex->m_k);
 		int KmerPairScore = MM.GetScoreKmerPair(TKmer, QKmer);
 
 		Log("@K@  [%4u] %5s  [%4u] %5s  /%5u/  %+3d\n",

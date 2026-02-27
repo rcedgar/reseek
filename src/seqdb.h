@@ -26,6 +26,16 @@ public:
 		m_ColCount = UINT_MAX;
 		}
 
+	void Clear()
+		{
+		m_Seqs.clear();
+		m_Labels.clear();
+		m_LabelToIndex.clear();
+		m_IsAligned = false;
+		m_IsNucleo = false;
+		m_IsNucleoSet = true;
+		}
+
 	void SetLabelToIndex();
 	void ToLetters(const byte *CharToLetter);
 	bool GetSeqByLabel(const string &Label, string &Seq,

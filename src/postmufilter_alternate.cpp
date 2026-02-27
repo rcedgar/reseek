@@ -1,12 +1,13 @@
 /***
 Query bags are pre-computed.
 ThreadBody()
-	1. Load next target in DB order.
-	2. Create target bag.
-	3. For each query with prefilter hit:
-		3b. Align to query
+	1. Load next query
+	2. For each target with prefilter hit:
+		2a. Create target bag
+		2b. Align to query
+Much slower for all-vs-all e.g. SCOP40
 ***/
-
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 #include "chainreader2.h"
@@ -21,11 +22,9 @@ void MakeBags(const vector<PDBChain *> Chains, vector<ChainBag *> &Bags);
 void MakeBag(const PDBChain &Chain, ChainBag &CB,
 	DSS &D, DSSAligner &DASelfRev, MuKmerFilter &MKF);
 
-static atomic<uint> s_TargetCounter;
-static uint s_TargetCount;
+static atomic<uint> s_QueryIdx;
+static uint s_QueryCount;
 static const vector<ChainBag *> *s_ptrCBQs;
-static const vector<uint> *s_ptrTargetIdxs;
-static const map<uint, vector<uint> > *s_ptrTargetIdxToQueryIdxs;
 static BCAData *s_ptrDB;
 static uint s_ScannedCount;
 static double s_MaxEvalue = 10;
@@ -48,6 +47,7 @@ static bool Accept(const DSSAligner &DA)//@@TODO compare Search
 static void ThreadBody_Scan(uint ThreadIndex)
 	{
 	DSS D;
+	DSSAligner DASelfRevQ;
 	DSSAligner DASelfRevT;
 	MuKmerFilter MKF;
 	const vector<ChainBag *> &CBQs = *s_ptrCBQs;
@@ -63,42 +63,55 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	vector<string> Fields;
 
 	if (ThreadIndex == 0)
-		ProgressStep(0, s_TargetCount, "Scanning");
+		ProgressStep(0, s_QueryCount, "Scanning");
 
 	for (;;)
 		{
-		uint TargetCounter = s_TargetCounter.fetch_add(1, std::memory_order_relaxed);
-		if (TargetCounter >= s_TargetCount)
+		uint QueryIdx = s_QueryIdx.fetch_add(1, std::memory_order_relaxed);
+		if (QueryIdx >= s_QueryCount)
 			{
 			if (ThreadIndex == 0)
-				ProgressStep(s_TargetCount-1, s_TargetCount, "Scanning");
+				ProgressStep(s_QueryCount-1, s_QueryCount, "Scanning");
 			return;
 			}
-		if (ThreadIndex == 0 && TargetCounter + 1 < s_TargetCount)
-			ProgressStep(TargetCounter, s_TargetCount, "Scanning");
+		if (ThreadIndex == 0 && QueryIdx + 1 < s_QueryCount)
+			ProgressStep(QueryIdx, s_QueryCount, "Scanning");
 
-		const uint TargetIdx = (*s_ptrTargetIdxs)[TargetCounter];
+		const ChainBag &CBQ = *CBQs[QueryIdx];
+		const PDBChain &ChainQ = *CBQ.m_ptrChain;
+		TheDA.m_MKF.SetQ(ChainQ.m_Label, CBQ.m_ptrMuLetters, CBQ.m_ptrMuKmers);
+		TheDA.SetBagA(CBQ);
 
-		PDBChain ChainT;
-		DB.ReadChain(TargetIdx, ChainT);
-		MakeBag(ChainT, CBT, D, DASelfRevT, MKF);
-
-		map<uint, vector<uint> >::const_iterator iter =
-			s_ptrTargetIdxToQueryIdxs->find(TargetIdx);
-		asserta(iter != s_ptrTargetIdxToQueryIdxs->end());
-		const vector<uint> &QueryIdxs = iter->second;
-
-		const uint QN = SIZE(QueryIdxs);
-		for (uint k = 0; k < QN; ++k)
+		const vector<uint> &TargetIdxs = PrefilterMu::m_RSB.GetTargetIdxs(QueryIdx);
+		const uint TIN = SIZE(TargetIdxs);
+		for (uint k = 0; k < TIN; ++k)
 			{
-			if (ThreadIndex == 0 && TargetCounter + 1 < s_TargetCount)
-				ProgressStep(TargetCounter, s_TargetCount, "Scanning");
+			if (ThreadIndex == 0 && QueryIdx + 1 < s_QueryCount)
+				ProgressStep(QueryIdx, s_QueryCount, "Scanning");
 
-			const uint QueryIdx = QueryIdxs[k];
-			const ChainBag &CBQ = *CBQs[QueryIdx];
-			const PDBChain &ChainQ = *CBQ.m_ptrChain;
-			TheDA.m_MKF.SetQ(ChainQ.m_Label, CBQ.m_ptrMuLetters, CBQ.m_ptrMuKmers);
-			TheDA.SetBagA(CBQ);
+			uint TargetIdx = TargetIdxs[k];
+
+			PDBChain DBChain;
+			DB.ReadChain(TargetIdx, DBChain);
+
+			D.Init(DBChain);
+			D.GetProfile(DBProfile);
+			D.GetMuLetters(DBMuLetters);
+			D.GetMuKmers(DBMuLetters, DBMuKmers, DSSParams::m_MKFPatternStr);
+
+			//@@TODO usually don't need full self rev score
+			float DBSelfRevScore = GetSelfRevScore(DASelfRevT, D, DBChain, DBProfile,
+											   &DBMuLetters, &DBMuKmers);
+
+			CBT.m_ptrChain = &DBChain;
+			CBT.m_ptrProfile = &DBProfile;
+			CBT.m_ptrMuLetters = &DBMuLetters;
+			CBT.m_ptrMuKmers = &DBMuKmers;
+			CBT.m_SelfRevScore = DBSelfRevScore;
+			CBT.m_ptrProfPara8 = DASelfRevT.m_ProfPara8;
+			CBT.m_ptrProfPara16 = DASelfRevT.m_ProfPara16;
+			CBT.m_ptrProfParaRev8 = DASelfRevT.m_ProfParaRev8;
+			CBT.m_ptrProfParaRev16 = DASelfRevT.m_ProfParaRev16;
 			TheDA.AlignBagB(CBT);
 			if (Accept(TheDA))
 				{
@@ -114,19 +127,12 @@ static void ThreadBody_Scan(uint ThreadIndex)
 	}
 
 // Query & DB need C-alpha
-void PostMuFilter(
-	const vector<ChainBag *> &CBQs,
-	const string &DBBCAFN,
-	const vector<uint> &TargetIdxs,
-	const map<uint, vector<uint> > &TargetIdxToQueryIdxs,
-	const string &HitsFN)
+void PostMuFilter(const vector<ChainBag *> &CBQs,
+				  const string &DBBCAFN,
+				  const string &HitsFN)
 	{
 	time_t t0 = time(0);
-
 	s_ptrCBQs = &CBQs;
-	s_ptrTargetIdxs = &TargetIdxs;
-	s_ptrTargetIdxToQueryIdxs = &TargetIdxToQueryIdxs;
-
 	if (optset_evalue)
 		s_MaxEvalue = opt(evalue);
 	else if (optset_verysensitive)
@@ -139,7 +145,9 @@ void PostMuFilter(
 	s_fAln = CreateStdioFile(opt(aln));
 	s_fTsv = CreateStdioFile(HitsFN);
 	
-	s_TargetCount = SIZE(TargetIdxs);
+	//vector<PDBChain *> QChains;
+	//ReadChains(QueryCAFN, QChains);
+	s_QueryCount = SIZE(CBQs);
 	setac(queries, s_QueryCount);
 
 	BCAData DB;
@@ -171,3 +179,4 @@ void PostMuFilter(
 	ProgressLog("%10u  m_XDropDiscardCount2\n", DSSAligner::m_XDropDiscardCount2.load());
 	ProgressLog("%10u  m_XDropAlnCount\n", DSSAligner::m_XDropAlnCount.load());
 	}
+#endif

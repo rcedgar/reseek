@@ -566,6 +566,12 @@
     <ClCompile Include="core_block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="makebags.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="postmufilter_alternate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -27,6 +27,17 @@ const uint32_t MuDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 void MuDex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
 	{
+#if DEBUG_CHECKS
+	{
+	for (uint i = 0; i < L; ++i)
+		{
+		uint Letter = Seq[i];
+		if (Letter >= 36)
+			Die("MuDex::SetSeq(SeqIdx=%u, %s) Pos=%u, L=%u, Mu letter=%u",
+				SeqIdx, Label, i, L, Letter);
+		}
+	}
+#endif
 	m_SeqIdx = SeqIdx;
 	m_Label = Label;
 	m_Seq = Seq;
@@ -384,7 +395,7 @@ uint MuDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	return Kmer;
 	}
 
-void MuDex::FromSeqDB(const SeqDB &Input)
+void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mers
 	{
 	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
@@ -525,12 +536,14 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		for (uint i = 0; i < m_k; ++i)
 			{
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
+			assert(Letter < 36);
 			Kmer = Kmer*36 + Letter;
 			}
 #if DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
+		assert(Kmer < PREFILTER_KMER_DICT_SIZE);
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else

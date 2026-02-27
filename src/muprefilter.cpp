@@ -61,9 +61,8 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		}
 	}
 
-uint MuPreFilter(SeqDB &QDB,
-			  MuSeqSource &FSS,
-			  const string &OutputFN)
+void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
+	map<uint, vector<uint> > &TargetIdxToQueryIdxs)
 	{
 	const uint QSeqCount = QDB.GetSeqCount();
 	if (opt(idxq))
@@ -85,6 +84,17 @@ uint MuPreFilter(SeqDB &QDB,
 	const uint k = MuDex::m_k;
 
 	QDB.ToLetters(g_CharToLetterMu);
+#if DEBUG_CHECKS
+	{
+	for (uint SeqIdx = 0; SeqIdx < QSeqCount; ++SeqIdx)
+		{
+		const uint L = QDB.GetSeqLength(SeqIdx);
+		const byte *MuLetters = QDB.GetByteSeq(SeqIdx);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			asserta(MuLetters[Pos] < 36);
+		}
+	}
+#endif
 
 	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
 	PrefilterMu::m_RSB.Init(QSeqCount);
@@ -122,10 +132,8 @@ uint MuPreFilter(SeqDB &QDB,
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
-	Progress("Filtering done %s      \n", IntToStr(s_DBSize));
 
-	FILE *fTsv = CreateStdioFile(OutputFN);
-	PrefilterMu::m_RSB.ToTsv(fTsv);
-	CloseStdioFile(fTsv);
-	return s_DBSize;
+	uint Total = PrefilterMu::m_RSB.TruncateAllQueryVecs();
+	ProgressLog("%s prefilter hits\n", FloatToStr(double(Total)));
+	PrefilterMu::m_RSB.GetTargetInfo(TargetIdxs, TargetIdxToQueryIdxs);
 	}

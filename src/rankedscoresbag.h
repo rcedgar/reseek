@@ -28,7 +28,13 @@ public:
 
 public:
 	void Init(uint QueryCount);
+	uint TruncateAllQueryVecs();
 	void TruncateVecs(uint QIdx);
+	const vector<uint> &GetTargetIdxs(uint QueryIdx) const;
+	void GetTargetInfo(
+		vector<uint> &TargetIdxs,
+		map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
+
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
 	void ToTsv(FILE *fTsv);
 	void ToLabelsTsv(FILE *fTsv,

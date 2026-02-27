@@ -1,6 +1,6 @@
 #pragma once
 
-class PDBChain;
+#include "pdbchain.h"
 
 class ChainBag
 	{
@@ -18,4 +18,14 @@ public:
 
 public:
 	void Validate(const char *Msg) const;
+	uint GetSeqLength() const
+		{
+		asserta(m_ptrChain != 0);
+		return m_ptrChain->GetSeqLength();
+		}
+	const string &GetLabel() const
+		{
+		asserta(m_ptrChain != 0);
+		return m_ptrChain->m_Label;
+		}
 	};

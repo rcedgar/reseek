@@ -447,7 +447,7 @@ uint DSSParams::GetMegaAlphaSize()
 
 void DSSParams::SetStandardFeatures()
 	{
-	const string OldVarStr =
+	const string Ver2_8_varstr =
 		"AA=0.436;NENDist=0.159;Conf=0.188;NENConf=0.0823;RENDist=0.0515;DstNxtHlx=0.0436;NormDens=0.0396;"
 		"Omega8=12;Omega16=12;OmegaFwd8=20;OmegaFwd16=20;MKFL=600;"
 		"GapOpen=-0.767;GapExt=-0.0767;dpw=2;lddtw=0.2;ladd=251.189;revtsw=2.5;";
@@ -457,7 +457,10 @@ void DSSParams::SetStandardFeatures()
 		"RENDist=2.22E-02;NENDist=7.03E-02;PENDist=8.42E-02;MENDist=3.85E-02;PMDistDiff=3.07E-02;"
 		"gap2=7.37E-01;dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;";
 
-	SetParamsFromStr(BestVarStr);
+	if (opt(v2_8))
+		SetParamsFromStr(Ver2_8_varstr);
+	else
+		SetParamsFromStr(BestVarStr);
 	SetScoreMxsFromFeatures();
 	}
 

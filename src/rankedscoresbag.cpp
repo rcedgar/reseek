@@ -2,6 +2,12 @@
 #include "rankedscoresbag.h"
 #include "sort.h"
 
+const vector<uint> &RankedScoresBag::GetTargetIdxs(uint QueryIdx) const
+	{
+	asserta(QueryIdx < SIZE(m_QueryIdxToTargetIdxVec));
+	return m_QueryIdxToTargetIdxVec[QueryIdx];
+	}
+
 void RankedScoresBag::TruncateVecs(uint QueryIdx)
 	{
 	vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
@@ -182,23 +188,27 @@ void RankedScoresBag::ToLabelsTsv(FILE *f,
 		}
 	}
 
-void RankedScoresBag::ToTsv(FILE *f)
+uint RankedScoresBag::TruncateAllQueryVecs()
 	{
-	if (f == 0)
-		return;
-
+	uint Total = 0;
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
 		ProgressStep(QueryIdx, m_QueryCount, "Truncate prefilter vecs");
 		TruncateVecs(QueryIdx);
+		Total += SIZE(m_QueryIdxToTargetIdxVec[QueryIdx]);
 		}
+	return Total;
+	}
 
-	map<uint, vector<uint> > TargetIdxToQueryIdxs;
-	vector<uint> TargetIdxs;
+void RankedScoresBag::GetTargetInfo(
+	vector<uint> &TargetIdxs,
+	map<uint, vector<uint> > &TargetIdxToQueryIdxs) const
+	{
+	TargetIdxToQueryIdxs.clear();
+	TargetIdxs.clear();
+	Progress("Make target info...");
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
-		ProgressStep(QueryIdx, m_QueryCount, "Write prefilter tmp tsv");
-
 		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
 		const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
 		const uint n = SIZE(ScoreVec);
@@ -216,6 +226,41 @@ void RankedScoresBag::ToTsv(FILE *f)
 		}
 	const uint TargetCount = SIZE(TargetIdxs);
 	QuickSortInPlace(TargetIdxs.data(), TargetCount);
+	Progress(" %u targets\n", TargetCount);
+	}
+
+void RankedScoresBag::ToTsv(FILE *f)
+	{
+	if (f == 0)
+		return;
+
+	map<uint, vector<uint> > TargetIdxToQueryIdxs;
+	vector<uint> TargetIdxs;
+	GetTargetInfo(TargetIdxs, TargetIdxToQueryIdxs);
+	//for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
+	//	{
+	//	ProgressStep(QueryIdx, m_QueryCount, "Write prefilter tmp tsv");
+
+	//	const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
+	//	const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
+	//	const uint n = SIZE(ScoreVec);
+	//	for (uint i = 0; i < n; ++i)
+	//		{
+	//		uint TargetIdx = TargetIdxVec[i];
+	//		if (TargetIdxToQueryIdxs.find(TargetIdx) == TargetIdxToQueryIdxs.end())
+	//			{
+	//			TargetIdxs.push_back(TargetIdx);
+	//			vector<uint> Empty;
+	//			TargetIdxToQueryIdxs[TargetIdx] = Empty;
+	//			}
+	//		TargetIdxToQueryIdxs[TargetIdx].push_back(QueryIdx);
+	//		}
+	//	}
+
+	const uint TargetCount = SIZE(TargetIdxs);
+
+	//QuickSortInPlace(TargetIdxs.data(), TargetCount);
+
 	fprintf(f, "prefilter\t%u\n", TargetCount);
 	uint64_t Total = 0;
 	for (uint k = 0; k < TargetCount; ++k)

@@ -88,10 +88,11 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 
 DSSAligner::~DSSAligner()
 	{
-	if (m_ProfPara8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara8);
-	if (m_ProfPara16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara16);
-	if (m_ProfParaRev8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev8);
-	if (m_ProfParaRev16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev16);
+// don't free here may be owned somewhere else
+	//if (m_ProfPara8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara8);
+	//if (m_ProfPara16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfPara16);
+	//if (m_ProfParaRev8 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev8);
+	//if (m_ProfParaRev16 != 0)	parasail_profile_free((parasail_profile_t *) m_ProfParaRev16);
 	if (m_DProw != 0)
 		myfree(m_DProw);
 	FreeSMxData();
@@ -381,6 +382,7 @@ void DSSAligner::LogHSP(uint Lo_i, uint Lo_j, uint Len) const
 float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 	{
 	StartTimer(GetMegaHSPScore);
+	asserta(m_ProfileA != 0 && m_ProfileB != 0);
 	const vector<vector<byte> > &ProfileA = *m_ProfileA;
 	const vector<vector<byte> > &ProfileB = *m_ProfileB;
 	const uint FeatureCount = DSSParams::GetFeatureCount();
@@ -401,13 +403,13 @@ float DSSAligner::GetMegaHSPScore(uint Lo_i, uint Lo_j, uint Len)
 		float **ScoreMx = DSSParams::m_ScoreMxs[F];
 		const vector<byte> &ProfRowA = ProfileA[FeatureIdx];
 		const vector<byte> &ProfRowB = ProfileB[FeatureIdx];
+		asserta(Lo_i + Len <= SIZE(ProfRowA));
+		asserta(Lo_j + Len <= SIZE(ProfRowB));
 		for (uint k = 0; k < Len; ++k)
 			{
 			uint PosA = uint(Lo_i + k);
 			byte ia = ProfRowA[PosA];
-			assert(ia < AlphaSize);
 			const float *ScoreMxRow = ScoreMx[ia];
-
 			uint PosB = uint(Lo_j + k);
 			byte ib = ProfRowB[PosB];
 			assert(ib < AlphaSize);
@@ -1335,6 +1337,7 @@ void DSSAligner::PostAlignMKF()
 		++m_XDropDiscardCount1;
 		return;
 		}
+	asserta(m_ProfileA != 0 && m_ProfileB != 0);
 
 	incac(postaligntryxdrops);
 	float MegaHSPTotal = 0;

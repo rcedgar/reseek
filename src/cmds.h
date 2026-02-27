@@ -74,6 +74,5 @@ C(subset_bench)
 C(subset)
 C(checkfa2)
 C(core_blocks)
-C(postmufilter)
 
 #undef C
