@@ -100,8 +100,10 @@ static void ThreadBody_Scan(uint ThreadIndex)
 			TheDA.m_MKF.SetQ(ChainQ.m_Label, CBQ.m_ptrMuLetters, CBQ.m_ptrMuKmers);
 			TheDA.SetBagA(CBQ);
 			TheDA.AlignBagB(CBT);
+			++DSSAligner::m_FilterPairCount;
 			if (Accept(TheDA))
 				{
+				++DSSAligner::m_PostMuFilterHitCount;
 				incac(scanhits);
 				TheDA.ToTsv(s_fTsv, true);
 				TheDA.ToAln(s_fAln, true);
@@ -122,6 +124,12 @@ void PostMuFilter(
 	const string &HitsFN)
 	{
 	time_t t0 = time(0);
+
+	{//@@TODO
+	DSSAligner::m_XDropAlnCount = 0;
+	DSSAligner::m_XDropDiscardCount1 = 0;
+	DSSAligner::m_XDropDiscardCount2 = 0;
+	}
 
 	s_ptrCBQs = &CBQs;
 	s_ptrTargetIdxs = &TargetIdxs;
@@ -164,10 +172,25 @@ void PostMuFilter(
 	CloseStdioFile(s_fTsv);
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
-	ProgressLog("%10u  m_PostMuFilterMKFCount\n", DSSAligner::m_PostMuFilterMKFCount.load());
+	ProgressLog("%10u  m_FilterPairCount\n", DSSAligner::m_FilterPairCount.load());
+	ProgressLog("%10u  m_PostMuFilterSWCount_AlignBagB\n", DSSAligner::m_PostMuFilterSWCount_AlignBagB.load());
 	ProgressLog("%10u  m_PostMuFilterOmegaDiscardCount\n", DSSAligner::m_PostMuFilterOmegaDiscardCount.load());
-	ProgressLog("%10u  m_PostMuFilterSWCount\n", DSSAligner::m_PostMuFilterSWCount.load());
+	ProgressLog("%10u  m_PostMuFilterOmegaPassCount\n", DSSAligner::m_PostMuFilterOmegaPassCount.load());
+	ProgressLog("%10u  m_AlignBagB_MKFCount\n", DSSAligner::m_AlignBagB_MKFCount.load());
 	ProgressLog("%10u  m_XDropDiscardCount1\n", DSSAligner::m_XDropDiscardCount1.load());
 	ProgressLog("%10u  m_XDropDiscardCount2\n", DSSAligner::m_XDropDiscardCount2.load());
 	ProgressLog("%10u  m_XDropAlnCount\n", DSSAligner::m_XDropAlnCount.load());
+	ProgressLog("%10u  m_PostMuFilterSWCount\n", DSSAligner::m_PostMuFilterSWCount.load());
+	ProgressLog("%10u  m_PostMuFilterHitCount\n", DSSAligner::m_PostMuFilterHitCount.load());
+
+	asserta(DSSAligner::m_AlignBags_MKFCount == 0);
+	//ProgressLog("%10u  m_AlignBags_MKFCount\n", DSSAligner::m_AlignBags_MKFCount.load());
+
+	asserta(DSSAligner::m_PostMuFilterSWCount == DSSAligner::m_PostMuFilterOmegaPassCount);
+
+	asserta(DSSAligner::m_FilterPairCount == DSSAligner::m_PostMuFilterSWCount_AlignBagB);
+	asserta(DSSAligner::m_FilterPairCount == 
+		DSSAligner::m_AlignBagB_MKFCount +
+		DSSAligner::m_PostMuFilterOmegaDiscardCount +
+		DSSAligner::m_PostMuFilterSWCount);
 	}
