@@ -172,7 +172,7 @@ void PostMuFilter(const vector<ChainBag *> &CBQs,
 	CloseStdioFile(s_fTsv);
 	time_t t1 = time(0);
 	ProgressLog("Post-mu %u secs\n", uint(t1 - t0));
-	ProgressLog("%10u  m_AlignBagB_MKFCount\n", DSSAligner::m_AlignBagB_MKFCount.load());
+	ProgressLog("%10u  m_PostMuFilterMKFCount\n", DSSAligner::m_PostMuFilterMKFCount.load());
 	ProgressLog("%10u  m_PostMuFilterOmegaDiscardCount\n", DSSAligner::m_PostMuFilterOmegaDiscardCount.load());
 	ProgressLog("%10u  m_PostMuFilterSWCount\n", DSSAligner::m_PostMuFilterSWCount.load());
 	ProgressLog("%10u  m_XDropDiscardCount1\n", DSSAligner::m_XDropDiscardCount1.load());

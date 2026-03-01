@@ -48,7 +48,6 @@ void DSSAligner::SetBagA(const ChainBag &BagA)
 	m_ProfileA = BagA.m_ptrProfile;
 	m_SelfRevScoreA = BagA.m_SelfRevScore;
 	m_MuLettersA = BagA.m_ptrMuLetters;
-	m_MuKmersA = BagA.m_ptrMuKmers;
 	m_ProfPara8 = BagA.m_ptrProfPara8;
 	m_ProfParaRev8 = BagA.m_ptrProfParaRev8;
 	m_ProfPara16 = BagA.m_ptrProfPara16;
@@ -58,7 +57,6 @@ void DSSAligner::SetBagA(const ChainBag &BagA)
 
 void DSSAligner::AlignBagB(const ChainBag &BagB)
 	{
-	++m_PostMuFilterSWCount_AlignBagB;
 	incac(alignbags);
 	ClearAlign();
 
@@ -66,11 +64,10 @@ void DSSAligner::AlignBagB(const ChainBag &BagB)
 	m_ProfileB = BagB.m_ptrProfile;
 	m_SelfRevScoreB = BagB.m_SelfRevScore;
 	m_MuLettersB = BagB.m_ptrMuLetters;
-	m_MuKmersB = BagB.m_ptrMuKmers;
 
 	if (DoMKF())
 		{
-		++m_AlignBagB_MKFCount;
+		++m_PostMuFilterMKFCount;
 		m_MKF.m_DA = this;
 		m_MKF.AlignBag(BagB);
 		PostAlignMKF();
@@ -87,7 +84,6 @@ void DSSAligner::AlignBagB(const ChainBag &BagB)
 			return;
 			}
 		}
-	++m_PostMuFilterOmegaPassCount;
 	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -100,52 +96,52 @@ void DSSAligner::AlignBagB(const ChainBag &BagB)
 	CalcEvalue();
 	}
 
-//void DSSAligner::AlignBags(const ChainBag &BagA,
-//						   const ChainBag &BagB)
-//	{
-//	incac(alignbags);
-//	ClearAlign();
-//
-//	m_ChainA = BagA.m_ptrChain;
-//	m_ChainB = BagB.m_ptrChain;
-//
-//	m_ProfileA = BagA.m_ptrProfile;
-//	m_ProfileB = BagB.m_ptrProfile;
-//
-//	m_SelfRevScoreA = BagA.m_SelfRevScore;
-//	m_SelfRevScoreB = BagB.m_SelfRevScore;
-//
-//	if (DoMKF_Bags(BagA, BagB))
-//		{
-//		++m_AlignBags_MKFCount;
-//		m_MKF.m_DA = this;
-//		m_MKF.SetBagQ(BagA);
-//		m_MKF.AlignBag(BagB);
-//		PostAlignMKF();
-//		return;
-//		}
-//
-//	int Omega = DSSParams::GetOmega();
-//	if (Omega > 0)
-//		{
-//		int MuScore = AlignMuParaBags_xx(BagA, BagB);
-//		if (MuScore < Omega)
-//			{
-//			++m_PostMuFilterOmegaDiscardCount;
-//			return;
-//			}
-//		}
-//	SetSMx_NoRev(*BagA.m_ptrProfile, *BagB.m_ptrProfile);
-//	const uint LA = BagA.m_ptrChain->GetSeqLength();
-//	const uint LB = BagB.m_ptrChain->GetSeqLength();
-//
-//	uint Leni, Lenj;
-//	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
-//	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
-//	  m_LoA, m_LoB, Leni, Lenj, m_Path);
-//	++m_PostMuFilterSWCount_AlignBags;
-//	CalcEvalue();
-//	}
+void DSSAligner::AlignBags(const ChainBag &BagA,
+						   const ChainBag &BagB)
+	{
+	incac(alignbags);
+	ClearAlign();
+
+	m_ChainA = BagA.m_ptrChain;
+	m_ChainB = BagB.m_ptrChain;
+
+	m_ProfileA = BagA.m_ptrProfile;
+	m_ProfileB = BagB.m_ptrProfile;
+
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+
+	if (DoMKF_Bags(BagA, BagB))
+		{
+		++m_PostMuFilterMKFCount;
+		m_MKF.m_DA = this;
+		m_MKF.SetBagQ(BagA);
+		m_MKF.AlignBag(BagB);
+		PostAlignMKF();
+		return;
+		}
+
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
+		{
+		int MuScore = AlignMuParaBags_xx(BagA, BagB);
+		if (MuScore < Omega)
+			{
+			++m_PostMuFilterOmegaDiscardCount;
+			return;
+			}
+		}
+	SetSMx_NoRev(*BagA.m_ptrProfile, *BagB.m_ptrProfile);
+	const uint LA = BagA.m_ptrChain->GetSeqLength();
+	const uint LB = BagB.m_ptrChain->GetSeqLength();
+
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	++m_PostMuFilterSWCount;
+	CalcEvalue();
+	}
 
 void ChainBag::Validate(const char *Msg) const
 	{

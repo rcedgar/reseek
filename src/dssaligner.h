@@ -99,13 +99,8 @@ public:
 	static atomic<uint> m_XDropDiscardCount1;
 	static atomic<uint> m_XDropDiscardCount2;
 
-	static atomic<uint> m_PostMuFilterHitCount;
-	static atomic<uint> m_FilterPairCount;
-	static atomic<uint> m_AlignBags_MKFCount;
-	static atomic<uint> m_AlignBagB_MKFCount;
+	static atomic<uint> m_PostMuFilterMKFCount;
 	static atomic<uint> m_PostMuFilterOmegaDiscardCount;
-	static atomic<uint> m_PostMuFilterOmegaPassCount;
-	static atomic<uint> m_PostMuFilterSWCount_AlignBagB;
 	static atomic<uint> m_PostMuFilterSWCount;
 	static atomic<uint> m_PostMuFilterXDropCount;
 #if SCORE_DIST
@@ -233,8 +228,8 @@ public:
 
 	void SetBagA(const ChainBag &BagA);
 	void AlignBagB(const ChainBag &BagB);
-	//void AlignBags(const ChainBag &BagA,
-	//			   const ChainBag &BagB);
+	void AlignBags(const ChainBag &BagA,
+				   const ChainBag &BagB);
 	void AlignBagsMKF(const ChainBag &BagA,
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,

@@ -31,13 +31,8 @@ atomic<uint> DSSAligner::m_MuFilterInputCount;
 atomic<uint> DSSAligner::m_MuFilterDiscardCount;
 atomic<uint> DSSAligner::m_ParasailSaturateCount;
 
-atomic<uint> DSSAligner::m_PostMuFilterHitCount;
-atomic<uint> DSSAligner::m_FilterPairCount;
-atomic<uint> DSSAligner::m_AlignBagB_MKFCount;
-atomic<uint> DSSAligner::m_AlignBags_MKFCount;
+atomic<uint> DSSAligner::m_PostMuFilterMKFCount;
 atomic<uint> DSSAligner::m_PostMuFilterOmegaDiscardCount;
-atomic<uint> DSSAligner::m_PostMuFilterOmegaPassCount;
-atomic<uint> DSSAligner::m_PostMuFilterSWCount_AlignBagB;
 atomic<uint> DSSAligner::m_PostMuFilterSWCount;
 atomic<uint> DSSAligner::m_PostMuFilterXDropCount;
 
