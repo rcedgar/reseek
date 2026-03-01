@@ -318,7 +318,6 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	const string &BaseLabel = TmpBaseLabel;
 
 	string CurrentChainStr;
-	flat_chain *Chain = 0;
 	const uint N = SIZE(Lines);
 	CIF_PARSER_STATE PS = PS_WaitingForLoop;
 	vector<string> FieldList;
@@ -329,7 +328,6 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	Ys.reserve(RESERVE_CHAIN_LENGTH);
 	Zs.reserve(RESERVE_CHAIN_LENGTH);
 	aas.reserve(RESERVE_CHAIN_LENGTH);
-	string next_label;
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Line = Lines[i];
@@ -431,8 +429,6 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 			IncFormatErrors();
 			Log("%s: Expected %u fields got %u in '%s'\n",
 			  m_CurrentFN.c_str(), FieldCount, n, Line.c_str());
-			if (Chain != 0)
-				delete Chain;
 			return;
 			}
 
@@ -454,22 +450,16 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 			ChainStr = "__";
 		if (ChainStr != CurrentChainStr)
 			{
-			//if (Chain != 0)
-			//	Chains.push_back(Chain);
-			//Chain = new flat_chain;
-			//string Label = BaseLabel;
-			//ChainizeLabel(Label, ChainStr);
-			//Chain->m_Label = Label;
 			if (!aas.empty())
 				{
-				flat_chain *chain = new flat_chain(next_label, aas, Xs, Ys, Zs);
+				string Label = BaseLabel;
+				ChainizeLabel(Label, CurrentChainStr);
+				flat_chain *chain = new flat_chain(Label, aas, Xs, Ys, Zs);
 				Chains.push_back(chain);
 				aas.clear();
 				Xs.clear();
 				Ys.clear();
 				Zs.clear();
-				next_label = BaseLabel;
-				ChainizeLabel(next_label, ChainStr);
 				}
 			CurrentChainStr = ChainStr;
 			}
@@ -486,15 +476,12 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 		Xs.push_back(X);
 		Ys.push_back(Y);
 		Zs.push_back(Z);
-
-		//Chain->m_Seq.push_back(aa);
-		//Chain->m_Xs.push_back(X);
-		//Chain->m_Ys.push_back(Y);
-		//Chain->m_Zs.push_back(Z);
 		}
 	if (!aas.empty())
 		{
-		flat_chain *chain = new flat_chain(next_label, aas, Xs, Ys, Zs);
+		string Label = BaseLabel;
+		ChainizeLabel(Label, CurrentChainStr);
+		flat_chain *chain = new flat_chain(Label, aas, Xs, Ys, Zs);
 		Chains.push_back(chain);
 		}
 	}

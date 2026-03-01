@@ -11,6 +11,7 @@ flat_chain::flat_chain(
 	const vector<float> &Ys,
 	const vector<float> &Zs)
 	{
+	m_label = label;
 	m_aa = nullptr;
 	m_xyz = nullptr;
 	set_aa(aas);
