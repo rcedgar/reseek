@@ -584,11 +584,11 @@
     <ClCompile Include="flat_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_stats.cpp">
+    <ClCompile Include="flat_chain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_alloc.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="flat_chain_reader.cpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -973,13 +973,16 @@
     <ClInclude Include="flat_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_round.h">
+    <ClInclude Include="flat_type_names.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_stats.h">
+    <ClInclude Include="flat_enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_alloc.h">
+    <ClInclude Include="flat_chain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_chain_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

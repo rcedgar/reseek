@@ -403,6 +403,8 @@ void Dirize(string &Dir);
 void MyutilsExit();
 uint GetUniqueInt();
 void GetTmpFileName(string &FN);
+void* aligned_malloc(size_t bytes);
+void aligned_free(void *p);
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);

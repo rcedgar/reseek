@@ -296,9 +296,9 @@
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
-    <ClCompile Include="flat_alloc.cpp" />
     <ClCompile Include="flat_base.cpp" />
-    <ClCompile Include="flat_stats.cpp" />
+    <ClCompile Include="flat_chain.cpp" />
+    <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />
@@ -486,10 +486,11 @@
     <ClInclude Include="duper.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
-    <ClInclude Include="flat_alloc.h" />
     <ClInclude Include="flat_base.h" />
-    <ClInclude Include="flat_round.h" />
-    <ClInclude Include="flat_stats.h" />
+    <ClInclude Include="flat_chain.h" />
+    <ClInclude Include="flat_chain_reader.h" />
+    <ClInclude Include="flat_enum.h" />
+    <ClInclude Include="flat_type_names.h" />
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="hexintseq.h" />
     <ClInclude Include="letteralndb.h" />

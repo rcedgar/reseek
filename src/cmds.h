@@ -76,5 +76,6 @@ C(checkfa2)
 C(core_blocks)
 C(nn_primary_chain_dist)
 C(fast_dist_mx)
+C(test_flat)
 
 #undef C

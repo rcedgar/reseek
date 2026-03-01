@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "flat_chain.h"
 #include "pdbchain.h"
 #include "bcadata.h"
 
@@ -186,6 +187,51 @@ uint BCAData::GetSeqLength(uint64 ChainIdx) const
 	{
 	asserta(ChainIdx < SIZE(m_SeqLengths));
 	return m_SeqLengths[ChainIdx];
+	}
+
+flat_chain *BCAData::read_flat_chain(uint64 ChainIdx) const
+	{
+	asserta(m_Reading && !m_Writing);
+	flat_chain *chain = new flat_chain;
+	uint L = GetSeqLength(ChainIdx);
+	uint64 SeqOffset = GetSeqOffset(ChainIdx);
+	//char *Seq = myalloc(char, L+1);
+	chain->m_aa = create_chainaa(L);
+	m_ReadLock.lock();
+	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, chain->m_aa->m_data, L);
+	if (nL != L)
+		{
+		Log("FN=%s\n", m_FN.c_str());
+		Log("ChainIdx=%u\n", ChainIdx);
+		Log("Chains=%u\n", SIZE(m_SeqLengths));
+		Log("L=%u\n", L);
+		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+		Log("nL=%llu\n", (unsigned long long) nL);
+		Die("BCAData::ReadChain(#2)");
+		}
+
+	chain->m_xyz = create_chainxyz(L);
+	//uint16_t *ICs = myalloc(uint16_t, 3*L);
+	uint64 BytesToRead = 6*L;
+	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L,
+		chain->m_xyz->m_data, BytesToRead);
+	m_ReadLock.unlock();
+	if (nIC != BytesToRead)
+		{
+		Log("FN=%s\n", m_FN.c_str());
+		Log("ChainIdx=%u\n", ChainIdx);
+		Log("Chains=%u\n", SIZE(m_SeqLengths));
+		Log("L=%u\n", L);
+		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+		Log("nIC=%llu\n", (unsigned long long) nIC);
+		Die("BCAData::ReadChain(#2)");
+		}
+
+	//Chain.CoordsFromICs(ICs, L);
+	//myfree(ICs);
+	asserta(ChainIdx < SIZE(m_Labels));
+	chain->m_label = m_Labels[ChainIdx];
+	return chain;
 	}
 
 void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const

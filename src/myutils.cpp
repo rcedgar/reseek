@@ -2635,3 +2635,29 @@ uint Replace(string &s, const string &from, const string &to)
 	s = s.replace(n, from.size(), to);
 	return 1;
 	}
+
+void* aligned_malloc(size_t bytes)
+	{
+	const size_t alignment = 32;
+
+#if defined(_MSC_VER)
+	return _aligned_malloc(bytes, alignment);
+#else
+	// posix_memalign requires alignment to be power-of-two
+	// and multiple of sizeof(void*)
+	static_assert(alignment >= sizeof(void*));
+	void* p = 0;
+	int rc = posix_memalign(&p, alignment, bytes);
+	asserta(rc == 0);
+	return p;
+#endif
+	}
+
+void aligned_free(void* p)
+	{
+#if defined(_MSC_VER)
+	_aligned_free(p);
+#else
+	free(p);
+#endif
+	}
