@@ -5,7 +5,6 @@
 #include "features.h"
 #include "dssparams.h"
 #include "xdpmem.h"
-#include "flatmx.h"
 
 const uint UNDEFINED_ZERO_OVERLOAD = 0;
 

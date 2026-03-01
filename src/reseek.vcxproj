@@ -292,9 +292,13 @@
     <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="fa2_lddt.cpp" />
     <ClCompile Include="fastbench.cpp" />
+    <ClCompile Include="fast_dist_mx.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
+    <ClCompile Include="flat_alloc.cpp" />
+    <ClCompile Include="flat_base.cpp" />
+    <ClCompile Include="flat_stats.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />
@@ -306,6 +310,7 @@
     <ClCompile Include="hjnumegarev.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
+    <ClCompile Include="nn_primary_chain_dist.cpp" />
     <ClCompile Include="nubench.cpp" />
     <ClCompile Include="msta_lddtmuw.cpp" />
     <ClCompile Include="msta_lddtmuw1.cpp" />
@@ -415,6 +420,7 @@
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="timing.cpp" />
+    <ClCompile Include="todo.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
@@ -480,7 +486,10 @@
     <ClInclude Include="duper.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
-    <ClInclude Include="flatmx.h" />
+    <ClInclude Include="flat_alloc.h" />
+    <ClInclude Include="flat_base.h" />
+    <ClInclude Include="flat_round.h" />
+    <ClInclude Include="flat_stats.h" />
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="hexintseq.h" />
     <ClInclude Include="letteralndb.h" />

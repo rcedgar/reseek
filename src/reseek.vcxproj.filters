@@ -572,6 +572,24 @@
     <ClCompile Include="postmufilter_alternate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="todo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nn_primary_chain_dist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fast_dist_mx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_alloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -868,9 +886,6 @@
     <ClInclude Include="cif.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flatmx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="alncounts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -953,6 +968,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="subsetbench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_round.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

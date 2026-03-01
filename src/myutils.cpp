@@ -158,7 +158,7 @@ void GetStemName(const string &PathName, string &Stem)
 		upto = n - 2;
 
 	Stem.clear();
-	for (uint i = 0; i < upto; i)
+	for (uint i = 0; i < upto; ++i)
 		{
 		if (i > 0)
 			Stem.push_back('.');
