@@ -1,9 +1,7 @@
 #include "myutils.h"
 #include "flat_base.h"
 #include "chaq.h"
-#include "fast_dist_mx2.h"
-
-static const BandIndexLite s_bi(M);
+#include "fast_dist_mx.h"
 
 const chaindistmx_t *chaq::get_distmx()
 	{
@@ -12,6 +10,6 @@ const chaindistmx_t *chaq::get_distmx()
 	m_distmx = create_chaindistmx(L);
 	const uint16_t *chain_ics = m_chain->m_xyz->m_data;
 	uint16_t *distmx = m_distmx->m_data;
-	banded_distances_avx2_u16_xyz(chain_ics, L, s_bi, distmx);
+	banded_distances_avx2_u16_xyz(chain_ics, L, distmx);
 	return m_distmx;
 	}

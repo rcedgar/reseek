@@ -294,7 +294,6 @@
     <ClCompile Include="fa2_lddt.cpp" />
     <ClCompile Include="fastbench.cpp" />
     <ClCompile Include="fast_dist_mx.cpp" />
-    <ClCompile Include="fast_dist_mx2.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
@@ -489,7 +488,7 @@
     <ClInclude Include="dssuintparams.h" />
     <ClInclude Include="duper.h" />
     <ClInclude Include="fastbench.h" />
-    <ClInclude Include="fast_dist_mx2.h" />
+    <ClInclude Include="fast_dist_mx.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_base.h" />
     <ClInclude Include="flat_chain.h" />

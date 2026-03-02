@@ -593,9 +593,6 @@
     <ClCompile Include="chaq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fast_dist_mx2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="test_flat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -997,7 +994,7 @@
     <ClInclude Include="chaq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fast_dist_mx2.h">
+    <ClInclude Include="fast_dist_mx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

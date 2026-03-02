@@ -3,7 +3,7 @@
 #include "chaq.h"
 #include "flat_chain.h"
 #include "pdbchain.h"
-#include "fast_dist_mx2.h"
+#include "fast_dist_mx.h"
 
 void cmd_test_flat()
 	{
@@ -23,14 +23,16 @@ void cmd_test_flat()
 		const PDBChain &Chain = *Chains[ChainIdx];
 		const flat_chain *chain = chains[ChainIdx];
 		D.Init(Chain);
+		const uint L = Chain.GetSeqLength();
+		if (L < 8)
+			continue;
+
 		c.init(chain);
 		const chaindistmx_t *distmx = c.get_distmx();
 		const uint16_t *distmx_ics = distmx->m_data;
-
-		const uint L = Chain.GetSeqLength();
 		asserta(chain->get_length() == L);
 		const int Li = L;
-		const uint band_size = band_K(L, M);
+		const uint band_size = band_K(L);
 		uint band_counter = 0;
 		uint same = 0;
 		uint diff1 = 0;
@@ -44,7 +46,7 @@ void cmd_test_flat()
 				++band_counter;
 				float d = Chain.GetDist(uint(i), uint(j));
 				uint16_t dIC = Chain.CoordToIC(d);
-				uint k = band_ij_to_k(i, j, L, M);
+				uint k = band_ij_to_k(i, j, L);
 				uint16_t dIC2 = distmx_ics[k];
 				int diff = int(dIC2) - int(dIC);
 				if (diff == 0)
