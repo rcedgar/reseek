@@ -1,5 +1,6 @@
 #pragma once
 
+#include <immintrin.h>
 #include <cstdint>
 #include <cassert>
 #include <cmath>
