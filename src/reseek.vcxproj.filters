@@ -596,6 +596,9 @@
     <ClCompile Include="fast_dist_mx2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_flat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

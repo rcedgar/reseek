@@ -24,6 +24,7 @@ void log_flat_stats(const string &msg)
 #include "flat_type_names.h"
 	}
 
+#if 0
 void cmd_test_flat()
 	{
 	museq_t *museq = create_museq(123);
@@ -31,3 +32,4 @@ void cmd_test_flat()
 	down(museq);
 	log_flat_stats("two");
 	}
+#endif // 0

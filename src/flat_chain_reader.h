@@ -84,5 +84,3 @@ private:
 public:
 	static void GetFallbackLabelFromFN(const string &FN, string &Label);
 	};
-
-void read_flat_chains(const string &fn, vector<flat_chain *> &chains);

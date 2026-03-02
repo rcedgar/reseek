@@ -3,6 +3,9 @@
 #include "flat_base.h"
 #include "flat_chain.h"
 
+// band width, i.e. max |i-j|
+static const uint32_t M = 100;
+
 /***
 Chain quantizer
 Data derived from a chain is created here.

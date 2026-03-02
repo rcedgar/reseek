@@ -56,3 +56,5 @@ public:
 	static uint16_t coord2ic(float X) { return uint16_t((X + 1000)*10 + 0.5); }
 	static float ic2coord(uint16_t IC) { return float(IC/10.0f) - 1000; }
 	};
+
+void read_flat_chains(const string &fn, vector<flat_chain *> &chains);

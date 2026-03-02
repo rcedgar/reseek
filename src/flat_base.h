@@ -161,10 +161,10 @@ class chainxyz_t : public flat_mx<uint16_t, FE_chainxyz>
 	{
 public:
 	chainxyz_t(uint32_t L) :
-		flat_mx<uint16_t, FE_chainxyz>(L, 3)
+		flat_mx<uint16_t, FE_chainxyz>(3, L)
 		{ }
 	chainxyz_t(uint32_t L, const char *srcfile, int srcline) :
-		flat_mx<uint16_t, FE_chainxyz>(L, 3, srcfile, srcline)
+		flat_mx<uint16_t, FE_chainxyz>(3, L, srcfile, srcline)
 		{ }
 	};
 

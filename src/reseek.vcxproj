@@ -421,6 +421,7 @@
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="subsetbench.cpp" />
+    <ClCompile Include="test_flat.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="todo.cpp" />
     <ClCompile Include="tracealn.cpp" />
