@@ -105,6 +105,12 @@ public:
 		assert(j < m_cols);
 		this->m_data[i*m_cols + j] = value;
 		}
+	T get(uint32_t i, uint32_t j) const
+		{
+		assert(i < m_rows);
+		assert(j < m_cols);
+		return this->m_data[i*m_cols + j];
+		}
 	};
 
 class chainxyz_t : public flat_mx<uint16_t, FE_chainxyz>

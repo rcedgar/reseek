@@ -100,6 +100,27 @@ void read_flat_chains(const string &fn, vector<flat_chain *> &chains)
 		}
 	}
 
+char flat_chain::get_aa(uint i) const
+	{
+	assert(m_xyz != 0);
+	assert(i < m_aa->m_size);
+	return m_aa->m_data[i];
+	}
+
+void flat_chain::get_coords(uint i, float &x, float &y, float &z) const
+	{
+	assert(m_xyz != 0);
+	const uint16_t *data = m_xyz->m_data;
+	uint L = get_length();
+	uint k = 3*i;
+	uint ic_x = data[k];
+	uint ic_y = data[k+1];
+	uint ic_z = data[k+2];
+	x = ic2coord(ic_x);
+	y = ic2coord(ic_y);
+	z = ic2coord(ic_z);
+	}
+
 void flat_chain::to_fasta(const string &fn) const
 	{
 	FILE *f = CreateStdioFile(fn);
@@ -107,10 +128,34 @@ void flat_chain::to_fasta(const string &fn) const
 	CloseStdioFile(f);
 	}
 
+void flat_chain::to_cal(const string &fn) const
+	{
+	FILE *f = CreateStdioFile(fn);
+	to_cal(f);
+	CloseStdioFile(f);
+	}
+
 void flat_chain::to_fasta(FILE *f) const
 	{
+	if (f == 0)
+		return;
 	string seq(m_aa->m_data, m_aa->m_size);
 	SeqToFasta(f, m_label, seq);
+	}
+
+void flat_chain::to_cal(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	fprintf(f, ">%s\n", m_label.c_str());
+	uint L = get_length();
+	for (uint i = 0; i < L; ++i)
+		{
+		char aa = get_aa(i);
+		float x, y, z;
+		get_coords(i, x, y, z);
+		fprintf(f, "%c\t%.1f\t%.1f\t%.1f\n", aa, x, y, z);
+		}
 	}
 
 void cmd_test()
@@ -121,7 +166,7 @@ void cmd_test()
 	uint n = SIZE(chains);
 	ProgressLog("%u chains\n", n);
 	for (uint i = 0; i < n; ++i)
-		chains[i]->to_fasta(f);
+		chains[i]->to_cal(f);
 	log_flat_stats();
 	CloseStdioFile(f);
 	}

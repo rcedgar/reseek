@@ -45,6 +45,14 @@ public:
 		const vector<string> &lines, bool save_lines);
 	void to_fasta(const string &fn) const;
 	void to_fasta(FILE *f) const;
+	void to_cal(const string &fn) const;
+	void to_cal(FILE *f) const;
 
 	uint32_t get_length() const { return m_aa == 0 ? 0 : m_aa->m_size; }
+	void get_coords(uint i, float &x, float &y, float &z) const;
+	char get_aa(uint i) const;
+
+public:
+	static uint16_t coord2ic(float X) { return uint16_t((X + 1000)*10 + 0.5); }
+	static float ic2coord(uint16_t IC) { return float(IC/10.0f) - 1000; }
 	};
