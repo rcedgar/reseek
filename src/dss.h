@@ -33,9 +33,9 @@ public:
 	const vector<byte> *m_Seq_SSSA = 0;
 	const vector<byte> *m_Seq_SSSB = 0;
 
-private:
-	const DSSParams *m_Params = 0;
-
+//private:
+//	const DSSParams *m_Params = 0;
+//
 public:
 	void Init(const PDBChain &Chain)
 		{

@@ -34,8 +34,8 @@ public:
 	void clear()
 		{
 		m_lines.clear();
-		release0(m_xyz);
-		release0(m_aa);
+		down0(m_xyz);
+		down0(m_aa);
 		}
 
 	void set_xyz(const vector<float> &Xs,
@@ -48,7 +48,7 @@ public:
 	void to_cal(const string &fn) const;
 	void to_cal(FILE *f) const;
 
-	uint32_t get_length() const { return m_aa == 0 ? 0 : m_aa->m_size; }
+	uint32_t get_length() const { assert(m_aa); return m_aa->m_size; }
 	void get_coords(uint i, float &x, float &y, float &z) const;
 	char get_aa(uint i) const;
 

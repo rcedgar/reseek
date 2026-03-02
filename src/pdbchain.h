@@ -73,6 +73,7 @@ public:
 	float GetDist2(uint Pos1, uint Pos2) const;
 	void GetSS(string &SS) const;
 	void GetICs(vector<uint16_t> &ICs) const;
+	void GetICsxyz(vector<uint16_t> &ICs) const;
 	void CoordsFromICs(const vector<uint16_t> &ICs);
 	void CoordsFromICs(const uint16_t *ICs, uint L);
 	void Reverse();

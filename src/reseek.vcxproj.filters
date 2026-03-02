@@ -590,6 +590,12 @@
     <ClCompile Include="flat_chain_reader.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="chaq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fast_dist_mx2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -983,6 +989,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_chain_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chaq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fast_dist_mx2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

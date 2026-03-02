@@ -447,11 +447,27 @@ uint DSSParams::GetMegaAlphaSize()
 
 void DSSParams::SetStandardFeatures()
 	{
+	// 7 features
+	// AA
+	// NENDist
+	// Conf
+	// NENConf
+	// RENDist
+	// DstNxtHlx
+	// NormDens
 	const string Ver2_8_varstr =
 		"AA=0.436;NENDist=0.159;Conf=0.188;NENConf=0.0823;RENDist=0.0515;DstNxtHlx=0.0436;NormDens=0.0396;"
 		"Omega8=12;Omega16=12;OmegaFwd8=20;OmegaFwd16=20;MKFL=600;"
 		"GapOpen=-0.767;GapExt=-0.0767;dpw=2;lddtw=0.2;ladd=251.189;revtsw=2.5;";
 
+	// 11 features, no density or ss elements
+	// AA
+	// Conf
+	// NENConf NENDist
+	// RENConf RENDist
+	// PENConf PENDist
+	// MENConf MENDist
+	// PMDistDiff
 	const string BestVarStr = 
 		"AA=4.93E-01;Conf=1.56E-01;NENConf=3.34E-02;RENConf=1.77E-02;PENConf=1.60E-02;MENConf=3.85E-02;"
 		"RENDist=2.22E-02;NENDist=7.03E-02;PENDist=8.42E-02;MENDist=3.85E-02;PMDistDiff=3.07E-02;"

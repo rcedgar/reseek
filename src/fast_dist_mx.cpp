@@ -163,7 +163,7 @@ static inline void banded_distances_avx2_u16(
         }
     }
 }
-
+#if 0
 static vector<float> x, y, z;
 static void append(float X, float Y, float Z)
     {
@@ -262,3 +262,4 @@ void cmd_fast_dist_mx()
 		}
 	CloseStdioFile(f);
 	}
+#endif // 0

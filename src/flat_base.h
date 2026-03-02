@@ -1,7 +1,60 @@
 #pragma once
 
+/***
+Action			Code						Comments
+------			----						--------
+Create object	ptr_museq = create_museq(n)	initial refcount=1
+Refcopy object	up(ptr_museq)				++refcount
+Release object	down(ptr_museq)				deletes when refcount=1
+				down0(ptr_museq)			allows nullptr (e.g. d'tor)
+
+Function returning an object pointer p increments refcount.
+Caller ensures that down(p) is called.
+
+Simple lifetime
+---------------
+Effectively new ... delete inside function body.
+	ptr_museq = create_museq(n);
+	// ...
+	down(ptr_museq);
+
+Returning pointer to object from create_xxx()
+---------------------------------------------
+Same idiom as create_xxx().
+	ptr_museq = my_chaq->get_museq();
+	// ... same function ...
+	down(ptr_museq);	// nullptr not allowed
+
+Returning object to higher caller
+---------------------------------
+Reference count is not changed, now it its higher
+caller's responsibility to down().
+	ptr_museq = ...;	// create_xxx() or call to lower object
+	// ... arbitrary code ...
+	return ptr_museq
+
+Member pointer
+--------------
+	m_ptr_museq = nullptr;	// c'tor
+	// ... arbitary code ...
+	m_ptr_museq = create_xxx(); OR lower_obj->get_museq(); // anywhere
+	// ... arbitary code ...
+	down0(m_ptr_museq);		// d'tor, allows nullptr if never set
+
+Returning member pointer
+------------------------
+Increment refcount, caller will decrement when no longer needed.
+	up(m_ptr_museq);	// increment refcount immediately before return
+	return m_ptr_museq;
+***/
+
 #include "flat_enum.h"
 
+static const uint32_t CHAIN_DISTMX_BAND = 100;
+
+// Global atomics shared by all threads
+// Simpler, faster and smaller compared to ObjMgr
+// where one object per thread.
 extern atomic<int64_t> g_flat_creates[FE_N];
 extern atomic<int64_t> g_flat_destroys[FE_N];
 extern atomic<int64_t> g_flat_bytes[FE_N];
@@ -56,25 +109,16 @@ public:
 		}
 	};
 
-class museq_t : public flat_base<uint8_t, FE_museq>
+template<typename T, FE fe>
+class flat_vec : public flat_base<T, fe>
 	{
 public:
-	museq_t(uint32_t n) : flat_base<uint8_t, FE_museq>(n)
+	flat_vec(uint32_t n) : flat_base<T, fe>(n)
 		{ }
-	museq_t(uint32_t n, const char *srcfile, int srcline) :
-		flat_base<uint8_t, FE_museq>(n, srcfile, srcline)
+	flat_vec(uint32_t n, const char *srcfile, int srcline) :
+		flat_base<T, fe>(n, srcfile, srcline)
 		{ }
- 	};
-
-class chainaa_t : public flat_base<char, FE_chainaa>
-	{
-public:
-	chainaa_t(uint32_t n) : flat_base<char, FE_chainaa>(n)
-		{ }
-	chainaa_t(uint32_t n, const char *srcfile, int srcline) :
-		flat_base<char, FE_chainaa>(n, srcfile, srcline)
-		{ }
- 	};
+	};
 
 template<typename T, FE fe>
 class flat_mx : public flat_base<T, fe>
@@ -83,7 +127,7 @@ public:
 	uint32_t m_rows;
 	uint32_t m_cols;
 
-protected:
+public:
 	flat_mx(int32_t rows, int32_t cols) :
 		flat_base<T, fe>(rows*cols)
 		{
@@ -124,11 +168,26 @@ public:
 		{ }
 	};
 
+using chainaa_t = flat_vec<char, FE_chainaa>;
+using museq_t = flat_vec<uint8_t, FE_museq>;
+using featseq_t = flat_vec<uint8_t, FE_museq>;
+using ss3_t = flat_vec<char, FE_ss3>;
+using nnvec_t = flat_vec<uint8_t, FE_nnvec>;
+
+using chaindistmx_t = flat_mx<uint16_t, FE_chaindistmx>;
+using megaprof_t = flat_mx<uint8_t, FE_chaindistmx>;
+
 #define create_museq(n)		new museq_t((n), __FILE__, __LINE__);
+#define create_featseq(n)	new featseq_t((n), __FILE__, __LINE__);
+#define create_nnvece(n)	new nnvec_t((n), __FILE__, __LINE__);
+#define create_ss3(n)		new ss3_t((n), __FILE__, __LINE__);
 #define create_chainaa(n)	new chainaa_t((n), __FILE__, __LINE__);
 #define create_chainxyz(n)	new chainxyz_t((n), __FILE__, __LINE__);
 
-#define release(p)	p->base_release((p))
-#define release0(p)	(p ? p->base_release((p)) : (void) 0)
+#define create_chaindistmx(rows)	new chaindistmx_t((rows), CHAIN_DISTMX_BAND, __FILE__, __LINE__);
+#define create_megaprof(nfeat, L)	new megaprof_t((nfeat), (L), __FILE__, __LINE__);
+
+#define down(p)		p->base_release((p))
+#define down0(p)	(p ? p->base_release((p)) : (void) 0)
 
 void log_flat_stats(const string &msg = "");

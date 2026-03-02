@@ -10,7 +10,7 @@ void flat_chain::set_xyz(const vector<float> &Xs,
 	const vector<float> &Ys, const vector<float> &Zs)
 	{
 	const uint32_t L = SIZE(Xs);
-	release0(m_xyz);
+	down0(m_xyz);
 	m_xyz = create_chainxyz(L);
 	for (uint32_t i = 0; i < L; ++i)
 		{
@@ -26,7 +26,7 @@ void flat_chain::set_xyz(const vector<float> &Xs,
 void flat_chain::set_aa(const vector<char> &aas)
 	{
 	const uint32_t L = SIZE(aas);
-	release0(m_aa);
+	down0(m_aa);
 	m_aa = create_chainaa(L);
 	memcpy(m_aa->m_data, aas.data(), L);
 	}

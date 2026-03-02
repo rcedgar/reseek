@@ -28,6 +28,6 @@ void cmd_test_flat()
 	{
 	museq_t *museq = create_museq(123);
 	log_flat_stats("one");
-	release(museq);
+	down(museq);
 	log_flat_stats("two");
 	}

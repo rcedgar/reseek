@@ -282,6 +282,7 @@
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="bytevecdb.cpp" />
     <ClCompile Include="chaindata.cpp" />
+    <ClCompile Include="chaq.cpp" />
     <ClCompile Include="cluster_sss.cpp" />
     <ClCompile Include="cmd_prefiltermu.cpp" />
     <ClCompile Include="confx.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="fa2_lddt.cpp" />
     <ClCompile Include="fastbench.cpp" />
     <ClCompile Include="fast_dist_mx.cpp" />
+    <ClCompile Include="fast_dist_mx2.cpp" />
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
@@ -473,6 +475,7 @@
     <ClInclude Include="chaindata.h" />
     <ClInclude Include="chainer.h" />
     <ClInclude Include="chainreader2.h" />
+    <ClInclude Include="chaq.h" />
     <ClInclude Include="cif.h" />
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
@@ -485,6 +488,7 @@
     <ClInclude Include="dssuintparams.h" />
     <ClInclude Include="duper.h" />
     <ClInclude Include="fastbench.h" />
+    <ClInclude Include="fast_dist_mx2.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_base.h" />
     <ClInclude Include="flat_chain.h" />
