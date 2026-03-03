@@ -596,6 +596,12 @@
     <ClCompile Include="test_flat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fast_dist_mx_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="distmx_kernel.cpp">
+      <Filter>Source Files C</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -995,6 +1001,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fast_dist_mx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="distmx_kernel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

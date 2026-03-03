@@ -1,13 +1,6 @@
-#if 0
 #include "myutils.h"
-#include <immintrin.h>
-#include <cstdint>
-#include <cmath>
-#include <algorithm>
-#include <cassert>
 #include "fast_dist_mx.h"
 #include "dss.h"
-#include "pdbchain.h"
 
 static vector<float> x, y, z;
 static void append(float X, float Y, float Z)
@@ -44,7 +37,9 @@ static void SimpleTest()
 		ICs.push_back(CoordToIC(z[i]));
 
 	uint16_t *outIC = myalloc(uint16_t, band_K(L));
-	banded_distances_avx2_u16_xyz(ICs.data(), L, outIC);
+	uint16_t *men = myalloc(uint16_t, L);
+	uint16_t *pen = myalloc(uint16_t, L);
+	band2_distances_avx2_u16_xyz_v5(ICs.data(), L, outIC, men, pen);
 	const uint band_size = band_K(L);
 	vector<bool> touched(band_size);
 	uint band_counter = 0;
@@ -57,11 +52,13 @@ static void SimpleTest()
 			++band_counter;
 			float d = GetDist(i, j);
 			uint16_t dIC = CoordToIC(d);
-			uint32_t k = band_ij_to_k(i, j, L);
+			uint32_t k = band_ij_to_k(i, j);
 			assert(k < band_size);
 			asserta(!touched[k]);
 			touched[k] = true;
 			uint16_t dIC2 = outIC[k];
+			uint16_t dIC3 = band2_get_checked(outIC, i, j);
+			asserta(dIC3 == dIC2);
 			int diff = int(dIC) - int(dIC2);
 			Log( "%d", i);
 			Log( "\t%d", j);
@@ -78,6 +75,7 @@ static void SimpleTest()
 	Log("K=%u, count=%u, not=%u\n", band_size, band_counter, not_touched);
 	}
 
+#if 0
 void cmd_fast_dist_mx()
 	{
 #if 0
@@ -98,9 +96,11 @@ void cmd_fast_dist_mx()
 
 		const uint L = Chain.GetSeqLength();
 		const int Li = L;
-		//uint16_t *outIC = myalloc(uint16_t, L*L);
-		uint16_t *outIC = myalloc(uint16_t, band_K(L));
-		banded_distances_avx2_u16_xyz(ICs.data(), L, outIC);
+		uint32_t K = band_K(L);
+		uint16_t *outIC = myalloc(uint16_t, K);
+		uint16_t *men = myalloc(uint16_t, L);
+		uint16_t *pen = myalloc(uint16_t, L);
+		band2_distances_avx2_u16_xyz_v5(ICs.data(), L, outIC, men, pen);
 		uint band_counter = 0;
 		for (int i = 0; i < Li; ++i)
 			{
@@ -111,8 +111,10 @@ void cmd_fast_dist_mx()
 				++band_counter;
 				float d = Chain.GetDist(uint(i), uint(j));
 				uint16_t dIC = Chain.CoordToIC(d);
-				uint k = band_ij_to_k(i, j, L);
+				uint k = band_ij_to_k(i, j);
 				uint16_t dIC2 = outIC[k];
+				uint16_t dIC3 = band2_get_checked(outIC, i, j);
+				asserta(dIC3 == dIC2);
 				int diff = int(dIC2) - int(dIC);
 				fprintf(f, "%d", i);
 				fprintf(f, "\t%d", j);
@@ -123,9 +125,43 @@ void cmd_fast_dist_mx()
 				fprintf(f, "\n");
 				}
 			}
-		break;
+		_chkmem();
 		}
-	_chkmem();
 	CloseStdioFile(f);
 	}
-#endif 
+#endif // 0
+
+void cmd_fast_dist_mx()
+	{
+	vector<PDBChain *> Chains;
+	ReadChains(g_Arg1, Chains);
+	const uint ChainCount = SIZE(Chains);
+	const uint M = 100;
+	const uint m = 12;
+	uint64_t N = 0;
+	uint64_t n = 0;
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "n=%s", Int64ToStr(n));
+		const PDBChain &Chain = *Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		const int iL = int(L);
+		for (int i = 0; i < iL ; ++i)
+			{
+			for (int j = 1; j < i; ++j)
+				{
+				int dij = abs(i - j);
+				if (dij < m || dij > M)
+					continue;
+				float d2 = Chain.GetDist2(i, j);
+				uint32_t ic = uint32_t(d2 + 0.5);
+				++N;
+				if (ic >= UINT16_MAX)
+					++n;
+				}
+			}
+		}
+	ProgressLog("N=%s", Int64ToStr(N));
+	ProgressLog(" n=%s", Int64ToStr(n));
+	ProgressLog("\n");
+	}

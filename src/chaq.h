@@ -4,7 +4,7 @@
 #include "flat_chain.h"
 
 // band width, i.e. max |i-j|
-static const uint32_t M = 100;
+// static const uint32_t M = 100;
 
 /***
 Chain quantizer
@@ -26,10 +26,10 @@ public:
 private:
 	////////////////////////////
 	// Cached data
-	nnvec_t *m_nen = 0;
-	nnvec_t *m_ren = 0;
 	nnvec_t *m_pen = 0;
 	nnvec_t *m_men = 0;
+	floatvec_t *m_pendist = 0;
+	floatvec_t *m_mendist = 0;
 	ss3_t *m_ss3 = 0;
 	megaprof_t *m_megaprof = 0;
 	chaindistmx_t *m_distmx = 0;
@@ -38,8 +38,6 @@ private:
 public:
 	void clear()
 		{
-		down0(m_nen);
-		down0(m_ren);
 		down0(m_pen);
 		down0(m_men);
 		down0(m_ss3);
@@ -54,11 +52,15 @@ public:
 		}
 
 	uint32_t get_length() const { assert(m_chain); return m_chain->get_length(); }
-	const nnvec_t *get_nen();
-	const nnvec_t *get_ren();
 	const nnvec_t *get_pen();
 	const nnvec_t *get_men();
 	const ss3_t *get_ss3();
 	const megaprof_t *get_megaprof();
 	const chaindistmx_t *get_distmx();
+	uint16_t get_nen(uint i) const;
+	uint16_t get_ren(uint i) const;
+	uint16_t get_pen(uint i) const;
+	uint16_t get_men(uint i) const;
+	float get_pen_dist_float(uint i) const;
+	uint16_t get_pen_dist_ic(uint i) const;
 	};

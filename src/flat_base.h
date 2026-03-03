@@ -172,19 +172,21 @@ using chainaa_t = flat_vec<char, FE_chainaa>;
 using museq_t = flat_vec<uint8_t, FE_museq>;
 using featseq_t = flat_vec<uint8_t, FE_museq>;
 using ss3_t = flat_vec<char, FE_ss3>;
-using nnvec_t = flat_vec<uint8_t, FE_nnvec>;
+using nnvec_t = flat_vec<uint16_t, FE_nnvec>;
+using floatvec_t = flat_vec<float, FE_floatvec>;
 
-using chaindistmx_t = flat_mx<uint16_t, FE_chaindistmx>;
+using chaindistmx_t = flat_vec<uint16_t, FE_chaindistmx>;
 using megaprof_t = flat_mx<uint8_t, FE_chaindistmx>;
 
+#define create_floatvec(n)	new floatvec_t((n), __FILE__, __LINE__);
 #define create_museq(n)		new museq_t((n), __FILE__, __LINE__);
 #define create_featseq(n)	new featseq_t((n), __FILE__, __LINE__);
-#define create_nnvece(n)	new nnvec_t((n), __FILE__, __LINE__);
+#define create_nnvec(n)		new nnvec_t((n), __FILE__, __LINE__);
 #define create_ss3(n)		new ss3_t((n), __FILE__, __LINE__);
 #define create_chainaa(n)	new chainaa_t((n), __FILE__, __LINE__);
 #define create_chainxyz(n)	new chainxyz_t((n), __FILE__, __LINE__);
 
-#define create_chaindistmx(rows)	new chaindistmx_t((rows), CHAIN_DISTMX_BAND, __FILE__, __LINE__);
+#define create_chaindistmx(L)		new chaindistmx_t(band_K(L), __FILE__, __LINE__);
 #define create_megaprof(nfeat, L)	new megaprof_t((nfeat), (L), __FILE__, __LINE__);
 
 #define down(p)		p->base_release((p))

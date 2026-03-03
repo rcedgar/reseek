@@ -2,6 +2,7 @@
 #error "x not defined"
 #endif
 
+x(floatvec)
 x(chainxyz)
 x(chainaa)
 x(chaindistmx)

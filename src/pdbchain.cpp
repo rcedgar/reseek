@@ -435,20 +435,23 @@ void PDBChain::GetICs(vector<uint16_t> &ICs) const
 		}
 	}
 
-// flattened as x0...xL-1 y0...yL-1 z0...zL-1
-void PDBChain::GetICsxyz(vector<uint16_t> &ICs) const
+void PDBChain::GetICsxyz(vector<uint16_t> &x, vector<uint16_t> &y, vector<uint16_t> &z) const
 	{
 	const uint L = SIZE(m_Xs);
 	asserta(SIZE(m_Ys) == L);
 	asserta(SIZE(m_Zs) == L);
-	ICs.clear();
-	ICs.reserve(3*L);
+	x.clear();
+	y.clear();
+	z.clear();
+	x.reserve(L);
+	y.reserve(L);
+	z.reserve(L);
 	for (uint i = 0; i < L; ++i)
-		ICs.push_back(CoordToIC(m_Xs[i]));
+		x.push_back(CoordToIC(m_Xs[i]));
 	for (uint i = 0; i < L; ++i)
-		ICs.push_back(CoordToIC(m_Ys[i]));
+		y.push_back(CoordToIC(m_Ys[i]));
 	for (uint i = 0; i < L; ++i)
-		ICs.push_back(CoordToIC(m_Zs[i]));
+		z.push_back(CoordToIC(m_Zs[i]));
 	}
 
 void PDBChain::CoordsFromICs(const uint16_t *ICs, uint L)
