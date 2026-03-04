@@ -1,10 +1,9 @@
 #pragma once
 
 void myfree(void *p);
+void myfreea(void *p);
 
 #define MYMALLOC_DBG		0
-
-void myfree(void *p);
 
 #if MYMALLOC_DBG
 
@@ -30,8 +29,12 @@ void *mymalloc(unsigned n, unsigned bytes);
 #define mymalloc_write_state(fn)	0
 #define mymalloc_trace(on)	0
 void *mymalloc(unsigned n, unsigned bytes);
+void *mymalloca(unsigned n, unsigned bytes);
 void *mymalloc64(uint64_t n, uint64_t bytes);
+void *mymalloc64a(uint64_t n, uint64_t bytes);
 #define myalloc(t, n)	(t *) mymalloc((n), sizeof(t))
+#define myalloca(t, n)	(t *) mymalloca((n), sizeof(t))
 #define myalloc64(t, n)	(t *) mymalloc64((n), sizeof(t))
+#define myalloc64a(t, n)	(t *) mymalloc64a((n), sizeof(t))
 
 #endif
