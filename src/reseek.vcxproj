@@ -290,6 +290,7 @@
     <ClCompile Include="dali.cpp" />
     <ClCompile Include="daliscorer.cpp" />
     <ClCompile Include="distmx_kernel.cpp" />
+    <ClCompile Include="distmx_kernel_only.cpp" />
     <ClCompile Include="dssparamdata.cpp" />
     <ClCompile Include="dump_features.cpp" />
     <ClCompile Include="fa2_lddt.cpp" />

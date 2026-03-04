@@ -600,7 +600,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="distmx_kernel.cpp">
-      <Filter>Source Files C</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="distmx_kernel_only.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

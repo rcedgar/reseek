@@ -5,6 +5,95 @@
 #include "distmx_kernel.h"
 #include "getticks.h"
 
+static uint16_t compand(uint32_t sd)
+	{
+	if (sd < 32767)
+		return uint16_t(sd);
+	else
+		return (uint16_t(0xffff) & uint16_t(sd >> 8));
+	}
+
+static inline void dist_fill_avx2(
+	const uint16_t* __restrict x,
+	const uint16_t* __restrict y,
+	const uint16_t* __restrict z,
+	uint32_t L,
+	uint32_t* __restrict dist)   // length L*M
+	{
+	for (uint32_t i = 0; i < L; ++i)
+		{
+		uint32_t dmax = (i < M) ? i : M;
+		uint32_t* row = dist + i * M;
+
+		int32_t xi = (int32_t)x[i];
+		int32_t yi = (int32_t)y[i];
+		int32_t zi = (int32_t)z[i];
+
+		// d = i - j
+		for (uint32_t d = 1; d <= dmax; ++d)
+			{
+			uint32_t j = i - d;
+
+			int32_t dx = xi - (int32_t)x[j];
+			int32_t dy = yi - (int32_t)y[j];
+			int32_t dz = zi - (int32_t)z[j];
+
+			uint32_t sx = (uint32_t)(dx * dx);
+			uint32_t sy = (uint32_t)(dy * dy);
+			uint32_t sz = (uint32_t)(dz * dz);
+
+			uint32_t sd = compand(sx + sy + sz);
+
+			row[(d - 1)] = sd;
+			}
+		}
+	}
+
+static inline void dist_fill_avx2_men(
+	const uint16_t* __restrict x,
+	const uint16_t* __restrict y,
+	const uint16_t* __restrict z,
+	uint32_t L,
+	uint32_t* __restrict dist,
+	uint16_t* __restrict men)
+	{
+	for (uint32_t i = 0; i < L; ++i)
+		{
+		uint32_t dmax = (i < M) ? i : M;
+		uint32_t* row = dist + i * M;
+
+		int32_t xi = (int32_t)x[i];
+		int32_t yi = (int32_t)y[i];
+		int32_t zi = (int32_t)z[i];
+
+		// d = i - j
+		uint16_t men_i = UINT16_MAX;
+		uint16_t mensd = UINT16_MAX;
+		for (uint32_t d = 1; d <= dmax; ++d)
+			{
+			uint32_t j = i - d;
+
+			int32_t dx = xi - (int32_t)x[j];
+			int32_t dy = yi - (int32_t)y[j];
+			int32_t dz = zi - (int32_t)z[j];
+
+			uint32_t sx = (uint32_t)(dx * dx);
+			uint32_t sy = (uint32_t)(dy * dy);
+			uint32_t sz = (uint32_t)(dz * dz);
+
+			uint32_t sd = sx + sy + sz;
+			uint32_t sdc = compand(sx + sy + sz);
+			if (sd < mensd)
+				{
+				men_i = j;
+				mensd = sd;
+				}
+			row[(d - 1)] = sdc;
+			}
+		men[i] = men_i;
+		}
+	}
+
 static uint16_t coord2ic(float X) { return uint16_t((X + 1000)*10 + 0.5); }
 static int16_t coord2ic_signed(float X) { return int16_t((X + 1000)*10 + 0.5); }
 static float ic2coord(uint16_t IC) { return float(IC/10.0f) - 1000; }
@@ -26,6 +115,7 @@ static TICKS s_MENTicks;
 
 uint cmp_kernel(vector<uint16_t> &xic, vector<uint16_t> &yic, vector<uint16_t> &zic)
 	{
+	_chkmem();//@@
 	const bool trace = false;
 	uint diffs = 0;
 	const uint L = SIZE(xic);
@@ -124,8 +214,7 @@ static void get_pen(const uint32_t* __restrict distmx, uint L,
 		uint16_t minj = UINT16_MAX;
 		for (uint32_t j = i+m_skip; j < min(L, i+M); ++j)
 			{
-			uint k = j*M + (j - i - 1);
-			assert(k == dmx_ij_to_k(i, j));
+			uint k = dmx_ij_to_k(i, j);
 			if (distmx[k] < mind2)
 				{
 				mind2 = distmx[k];
@@ -264,7 +353,7 @@ void cmd_test_dist_mx()
 	uint diffs_men = 0;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
-		ProgressStep(ChainIdx, ChainCount, "Testing %u diffs_pen", diffs_pen);
+		ProgressStep(ChainIdx, ChainCount, "Testing %u diffs_dist", diffs_dist);
 		const PDBChain &Chain = *Chains[ChainIdx];
 		//D.Init(Chain);
 
@@ -274,26 +363,29 @@ void cmd_test_dist_mx()
 		vector<uint16_t> yic;
 		vector<uint16_t> zic;
 		Chain.GetICsxyz(xic, yic, zic);
+		_chkmem();//@@
 		const uint32_t K = L*M;
 		uint32_t* distmx = myalloc(uint32_t, K);
+		uint16_t* men = myalloc(uint16_t, L);
 		TICKS t1 = GetClockTicks();
-		dist_fill_avx2(xic.data(), yic.data(), zic.data(), L, distmx);
+		dist_fill_avx2_men(xic.data(), yic.data(), zic.data(), L, distmx, men);
 		TICKS t2 = GetClockTicks();
 		s_DistTicks += (t2 - t1);
+		_chkmem();//@@
 
 		//log_mx(Chain, distmx);
 
 		diffs_dist += cmp_kernel(xic, yic, zic);
 
-		uint16_t* pen = myalloc(uint16_t, L);
-		uint16_t* men = myalloc(uint16_t, L);
+		//uint16_t* pen = myalloc(uint16_t, L);
+		//uint16_t* men = myalloc(uint16_t, L);
 
-		TICKS t3 = GetClockTicks();
-		get_pen(distmx, L, pen);
-		TICKS t4 = GetClockTicks();
-		s_PENTicks += (t4 - t3);
+		//TICKS t3 = GetClockTicks();
+		//get_pen(distmx, L, pen);
+		//TICKS t4 = GetClockTicks();
+		//s_PENTicks += (t4 - t3);
 
-		diffs_pen += cmp_nn(Chain, pen, true);
+		//diffs_pen += cmp_nn(Chain, pen, true);
 
 		//next_from_dist(distmx, L, M, skip, next);
 
