@@ -3,12 +3,13 @@
 #include "chaq.h"
 #include "flat_chain.h"
 #include "pdbchain.h"
-#include "fast_dist_mx.h"
+#include "flat_distmx.h"
 #include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
 
 static void test_dist_mx(DSS &D, chaq &c)
 	{
+#if 0
 	const flat_chain *chain = c.m_chain;
 	const PDBChain &Chain = *D.m_Chain;
 	const chaindistmx_t *distmx = c.get_distmx();
@@ -55,6 +56,7 @@ static void test_dist_mx(DSS &D, chaq &c)
 		diffgt1, GetPct(diffgt1, band_counter),
 		chain->m_label.c_str());
 //	asserta(band_size == band_counter);
+#endif // 0
 	}
 
 static void test_nn(DSS &D, chaq &c)

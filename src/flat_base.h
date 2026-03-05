@@ -50,8 +50,6 @@ Increment refcount, caller will decrement when no longer needed.
 
 #include "flat_enum.h"
 
-static const uint32_t CHAIN_DISTMX_BAND = 100;
-
 // Global atomics shared by all threads
 // Simpler, faster and smaller compared to ObjMgr
 // where one object per thread.

@@ -1,23 +1,24 @@
 #include "myutils.h"
 #include "flat_base.h"
 #include "chaq.h"
-#include "fast_dist_mx.h"
+#include "flat_distmx.h"
 
 const chaindistmx_t *chaq::get_distmx()
 	{
-	assert(m_chain);
-	if (m_distmx) return m_distmx;
-	const uint32_t L = get_length();
-	m_distmx = create_chaindistmx(L);
-	m_pen = create_nnvec(L);
-	m_men = create_nnvec(L);
+	//assert(m_chain);
+	//if (m_distmx) return m_distmx;
+	//const uint32_t L = get_length();
+	//m_distmx = create_chaindistmx(L);
+	//m_pen = create_nnvec(L);
+	//m_men = create_nnvec(L);
 
-	const uint16_t *chain_ics = m_chain->m_xyz->m_data;
-	uint16_t *distmx = m_distmx->m_data;
-	uint16_t *men = m_men->m_data;
-	uint16_t *pen = m_pen->m_data;
-	band2_distances_avx2_u16_xyz_v5(chain_ics, L, distmx, men, pen);
-	return m_distmx;
+	//const uint16_t *chain_ics = m_chain->m_xyz->m_data;
+	//uint16_t *distmx = m_distmx->m_data;
+	//uint16_t *men = m_men->m_data;
+	//uint16_t *pen = m_pen->m_data;
+	//band2_distances_avx2_u16_xyz_v5(chain_ics, L, distmx, men, pen);
+	//return m_distmx;
+	return 0;//@@TODO
 	}
 
 float chaq::get_pen_dist_float(uint i) const
