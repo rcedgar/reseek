@@ -21,7 +21,6 @@ static inline uint16_t coord2ic(float x) { return uint16_t((x + 1000)*10 + 0.5);
 static inline float ic2coord(uint16_t ic) { return float(ic/10.0f) - 1000; }
 
 static const uint32_t M = 128;  // band width, M values per i
-static const uint32_t m = 16;   // min |i-j| for nearest neighbors
 
 static inline uint32_t banded_ij_to_k(uint32_t i, uint32_t j)
     {

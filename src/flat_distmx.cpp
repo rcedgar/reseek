@@ -57,10 +57,10 @@ static const uint trace_i = 0;
 static const uint trace_j = 1;
 #endif
 
-static inline void fast_fill_flat_distmx(
-	const uint16_t *xyz,
+static inline void fill_flat_distmx(
+	const uint16_t *__restrict xyz,
 	uint32_t L,
-	uint32_t *sdmx)
+	uint32_t *__restrict sdmx)
 	{
 	uint i3 = 0;
 	for (uint32_t i = 0; i < L; ++i)
@@ -68,7 +68,7 @@ static inline void fast_fill_flat_distmx(
 		int32_t icx_i = xyz[i3++];
 		int32_t icy_i = xyz[i3++];
 		int32_t icz_i = xyz[i3++];
-		uint32_t k = i * M;
+		uint32_t k = i*M;
 		const uint32_t jend = min(i+M, L-1);
 		for (uint32_t j = i + 1; j <= jend; ++j)
 			{
@@ -78,17 +78,30 @@ static inline void fast_fill_flat_distmx(
 			assert(k == banded_ij_to_k(i, j));
 			uint32_t sd = dicx*dicx + dicy*dicy + dicz*dicz;
 			sdmx[k++] = sd;
-
-#if TRACE
-			if (i == trace_i && j == trace_j)
-				{
-				Log("fill(i=%u, j=%u)\n", i, j);
-				Log("ic_i = %u, %u, %u; ic_j = %u, %u, %u sd=%u\n",
-					icx_i, icy_i, icz_i,
-					xyz[3*j], xyz[3*j+1], xyz[3*j+2], sd);
-				}
-#endif
 			}
+		}
+	}
+
+static inline void fill_pen(uint32_t *__restrict sdmx,
+	uint32_t L, uint32_t m, uint16_t *pen)
+	{
+	for (uint32_t i = 0; i < L; ++i)
+		{
+		const uint32_t jend = min(i+M, L-1);
+		uint16_t pen_i = UINT16_MAX;
+		uint32_t min_sd = UINT32_MAX;
+		uint32_t k = i*M + m - 1;
+		for (uint32_t j = i + m; j <= jend; ++j)
+			{
+			assert(k == banded_ij_to_k(i, j));
+			uint32_t sd = sdmx[k++];
+			if (sd < min_sd)
+				{
+				min_sd = sd;
+				pen_i = j;
+				}
+			}
+		pen[i] = pen_i;
 		}
 	}
 
@@ -125,21 +138,41 @@ static uint compare_fill(const PDBChain &Chain, const uint32_t *sdmx)
 			uint32_t sd2 = sdmx[k];
 			if (sd2 != sd)
 				++diffs;
-#if TRACE
-			if (i == trace_i && j == trace_j)
-				{
-				Log("compare(i=%u, j=%u)\n", i, j);
-				Log("ic_i = %u, %u, %u; ic_j = %u, %u, %u sd=%u, %u\n",
-					x[i], x[j], y[j],
-					x[j], y[j], z[j], sd, sd2);
-				Die("TODO");
-				}
-#endif
 			}
 		}
 	return diffs;
 	}
 
+static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
+	{
+	const uint L = Chain.GetSeqLength();
+	vector<uint16_t> x;
+	vector<uint16_t> y;
+	vector<uint16_t> z;
+	Chain.GetICsxyz(x, y, z);
+
+	uint diffs = 0;
+	for (int i = 0; i < int(L); ++i)
+		{
+		const uint32_t jend = min(i+M, L-1);
+		float MinDist = FLT_MAX;
+		uint16_t pen_i = UINT16_MAX;
+		for (int j = i + m; j <= jend; ++j)
+			{
+			if (i==j || abs(i-j) < m || abs(i-j) > M)
+				continue;
+			float d = Chain.GetDist(i, j);
+			if (d < MinDist)
+				{
+				MinDist = d;
+				pen_i = j;
+				}
+			}
+		if (pen_i != pen[i])
+			++diffs;
+		}
+	return diffs;
+	}
 static void test_sd()
 	{
 	vector<PDBChain *> Chains;
@@ -158,17 +191,49 @@ static void test_sd()
 		const uint16_t *xyz = ICs.data();
 		uint32_t *sdmx = myalloc(uint32_t, K);
 		TICKS t1 = GetClockTicks();
-		fast_fill_flat_distmx(xyz, L, sdmx);
+		fill_flat_distmx(xyz, L, sdmx);
 		TICKS t2 = GetClockTicks();
 		total_ticks += t2 - t1;
 		uint diffs = compare_fill(Chain, sdmx);
 		total_diffs += diffs;
 		}
-	ProgressLog("%.3g ticks\n", double(total_ticks));
+	ProgressLog("%.3g ticks, %u diffs\n", double(total_ticks), total_diffs);
+	}
+
+static void test_pen(uint m)
+	{
+	vector<PDBChain *> Chains;
+	ReadChains(g_Arg1, Chains);
+	const uint ChainCount = SIZE(Chains);
+	vector<uint16_t> ICs;
+	uint total_diffs = 0;
+	TICKS total_ticks = 0;
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
+		const PDBChain &Chain = *Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		const uint K = L*M;
+		Chain.GetICs(ICs);
+		const uint16_t *xyz = ICs.data();
+		uint32_t *sdmx = myalloc(uint32_t, K);
+		fill_flat_distmx(xyz, L, sdmx);
+
+		uint16_t *pen = myalloc(uint16_t, L);
+
+		TICKS t1 = GetClockTicks();
+		fill_pen(sdmx, L, m, pen);
+		TICKS t2 = GetClockTicks();
+
+		total_ticks += t2 - t1;
+		uint diffs = compare_pen(Chain, m, pen);
+		total_diffs += diffs;
+		}
+	ProgressLog("%.3g ticks, %u diffs\n", double(total_ticks), total_diffs);
 	}
 
 void cmd_test_flat_distmx()
 	{
 	test_indexing();
-	test_sd();
+	test_pen(16);
 	}
