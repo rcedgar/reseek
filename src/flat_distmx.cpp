@@ -105,6 +105,28 @@ static inline void fill_pen(uint32_t *__restrict sdmx,
 		}
 	}
 
+static inline void fill_men(uint32_t *__restrict sdmx,
+	uint32_t L, uint32_t m, uint16_t *men)
+	{
+	for (int i = 0; i < int(L); ++i)
+		{
+		const uint32_t jstart = min(i+M, L-1);
+		uint16_t men_i = UINT16_MAX;
+		uint32_t min_sd = UINT32_MAX;
+		for (int j = max(0,i-int(M)); j <= i-int(m); ++j)
+			{
+			uint32_t k = banded_ij_to_k(i, j);
+			uint32_t sd = sdmx[k];
+			if (sd < min_sd)
+				{
+				min_sd = sd;
+				men_i = j;
+				}
+			}
+		men[i] = men_i;
+		}
+	}
+
 static uint compare_fill(const PDBChain &Chain, const uint32_t *sdmx)
 	{
 	const uint L = Chain.GetSeqLength();
@@ -154,12 +176,12 @@ static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
 	uint diffs = 0;
 	for (int i = 0; i < int(L); ++i)
 		{
-		const uint32_t jend = min(i+M, L-1);
+		const int jend = min(i+int(M), int(L)-1);
 		float MinDist = FLT_MAX;
 		uint16_t pen_i = UINT16_MAX;
-		for (int j = i + m; j <= jend; ++j)
+		for (int j = i + int(m); j <= jend; ++j)
 			{
-			if (i==j || abs(i-j) < m || abs(i-j) > M)
+			if (i==j || abs(i-j) < int(m) || abs(i-j) > M)
 				continue;
 			float d = Chain.GetDist(i, j);
 			if (d < MinDist)
@@ -173,10 +195,40 @@ static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
 		}
 	return diffs;
 	}
-static void test_sd()
+
+static uint compare_men(const PDBChain &Chain, uint m, const uint16_t *men)
 	{
-	vector<PDBChain *> Chains;
-	ReadChains(g_Arg1, Chains);
+	const uint L = Chain.GetSeqLength();
+	vector<uint16_t> x;
+	vector<uint16_t> y;
+	vector<uint16_t> z;
+	Chain.GetICsxyz(x, y, z);
+
+	uint diffs = 0;
+	for (int i = 0; i < int(L); ++i)
+		{
+		const int jend = min(i+int(M), int(L)-1);
+		float MinDist = FLT_MAX;
+		uint16_t men_i = UINT16_MAX;
+		for (int j = 0; j < i; ++j)
+			{
+			if (i==j || abs(i-j) < int(m) || abs(i-j) > M)
+				continue;
+			float d = Chain.GetDist(i, j);
+			if (d < MinDist)
+				{
+				MinDist = d;
+				men_i = j;
+				}
+			}
+		if (men_i != men[i])
+			++diffs;
+		}
+	return diffs;
+	}
+
+static void test_sd(const vector<PDBChain *> &Chains)
+	{
 	const uint ChainCount = SIZE(Chains);
 	vector<uint16_t> ICs;
 	uint total_diffs = 0;
@@ -197,13 +249,11 @@ static void test_sd()
 		uint diffs = compare_fill(Chain, sdmx);
 		total_diffs += diffs;
 		}
-	ProgressLog("%.3g ticks, %u diffs\n", double(total_ticks), total_diffs);
+	ProgressLog("%.3g ticks, %u diffs sd\n", double(total_ticks), total_diffs);
 	}
 
-static void test_pen(uint m)
+static void test_pen(const vector<PDBChain *> &Chains, uint m)
 	{
-	vector<PDBChain *> Chains;
-	ReadChains(g_Arg1, Chains);
 	const uint ChainCount = SIZE(Chains);
 	vector<uint16_t> ICs;
 	uint total_diffs = 0;
@@ -229,11 +279,45 @@ static void test_pen(uint m)
 		uint diffs = compare_pen(Chain, m, pen);
 		total_diffs += diffs;
 		}
-	ProgressLog("%.3g ticks, %u diffs\n", double(total_ticks), total_diffs);
+	ProgressLog("%.3g ticks, %u diffs pen\n", double(total_ticks), total_diffs);
+	}
+
+static void test_men(const vector<PDBChain *> &Chains, uint m)
+	{
+	const uint ChainCount = SIZE(Chains);
+	vector<uint16_t> ICs;
+	uint total_diffs = 0;
+	TICKS total_ticks = 0;
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
+		const PDBChain &Chain = *Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		const uint K = L*M;
+		Chain.GetICs(ICs);
+		const uint16_t *xyz = ICs.data();
+		uint32_t *sdmx = myalloc(uint32_t, K);
+		fill_flat_distmx(xyz, L, sdmx);
+
+		uint16_t *men = myalloc(uint16_t, L);
+
+		TICKS t1 = GetClockTicks();
+		fill_men(sdmx, L, m, men);
+		TICKS t2 = GetClockTicks();
+
+		total_ticks += t2 - t1;
+		uint diffs = compare_men(Chain, m, men);
+		total_diffs += diffs;
+		}
+	ProgressLog("%.3g ticks, %u diffs men\n", double(total_ticks), total_diffs);
 	}
 
 void cmd_test_flat_distmx()
 	{
 	test_indexing();
-	test_pen(16);
+	vector<PDBChain *> Chains;
+	ReadChains(g_Arg1, Chains);
+	test_sd(Chains);
+	test_pen(Chains, 16);
+	test_men(Chains, 16);
 	}
