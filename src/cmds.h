@@ -77,5 +77,6 @@ C(core_blocks)
 C(nn_primary_chain_dist)
 C(test_flat_distmx)
 C(test_flat)
+C(test_flat_dist_types)
 
 #undef C

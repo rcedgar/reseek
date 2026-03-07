@@ -415,6 +415,7 @@
     <ClCompile Include="seqfeeder.cpp" />
     <ClCompile Include="setselfrevscores.cpp" />
     <ClCompile Include="shuffle.cpp" />
+    <ClCompile Include="sid2ic.cpp" />
     <ClCompile Include="split.cpp" />
     <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="sssv_scop40.cpp" />
@@ -494,6 +495,7 @@
     <ClInclude Include="flat_base.h" />
     <ClInclude Include="flat_chain.h" />
     <ClInclude Include="flat_chain_reader.h" />
+    <ClInclude Include="flat_dist_types.h" />
     <ClInclude Include="flat_enum.h" />
     <ClInclude Include="flat_type_names.h" />
     <ClInclude Include="fragaligner.h" />

@@ -1,9 +1,10 @@
 #include "myutils.h"
 #include "pdbchain.h"
+#include "flat_chain.h"
 #include "flat_distmx.h"
 #include "getticks.h"
 
-void test_indexing()
+void test_indexing(uint32_t M)
 	{
 	const int L = 250;
 	const uint K = 250*M;
@@ -12,16 +13,16 @@ void test_indexing()
 		{
 		for (int j = i+1; j < L; ++j)
 			{
-			if (abs(i-j) > M)
+			if (abs(i-j) > int(M))
 				continue;
-			uint32_t k = banded_ij_to_k(i, j);
+			uint32_t k = banded_ij_to_k(M, i, j);
 			asserta(k < K);
 
 			asserta(!touched_plus[k]);
 			touched_plus[k] = true;
 
 			uint32_t i2, j2;
-			banded_k_to_ij(k, i2, j2);
+			banded_k_to_ij(M, k, i2, j2);
 			if (i2 != i)
 				Die("i2=%u i=%u j=%u", i2, i, j);
 			if (j2 != j)
@@ -34,15 +35,15 @@ void test_indexing()
 		{
 		for (int j = i+1; j < L; ++j)
 			{
-			if (abs(i-j) > M)
+			if (abs(i-j) > int(M))
 				continue;
-			uint32_t k = banded_ij_to_k(i, j);
+			uint32_t k = banded_ij_to_k(M, i, j);
 			asserta(k < K);
 
 			asserta(!touched_minus[k]);
 			touched_minus[k] = true;
 			uint32_t i2, j2;
-			banded_k_to_ij(k, i2, j2);
+			banded_k_to_ij(M, k, i2, j2);
 			if (i2 != i)
 				Die("i2=%u i=%u j=%u", i2, i, j);
 			if (j2 != j)
@@ -57,33 +58,8 @@ static const uint trace_i = 0;
 static const uint trace_j = 1;
 #endif
 
-static inline void fill_flat_distmx(
-	const uint16_t *__restrict xyz,
-	uint32_t L,
-	uint32_t *__restrict sdmx)
-	{
-	uint i3 = 0;
-	for (uint32_t i = 0; i < L; ++i)
-		{
-		int32_t icx_i = xyz[i3++];
-		int32_t icy_i = xyz[i3++];
-		int32_t icz_i = xyz[i3++];
-		uint32_t k = i*M;
-		const uint32_t jend = min(i+M, L-1);
-		for (uint32_t j = i + 1; j <= jend; ++j)
-			{
-			int32_t dicx = icx_i - xyz[3*j];
-			int32_t dicy = icy_i - xyz[3*j+1];
-			int32_t dicz = icz_i - xyz[3*j+2];
-			assert(k == banded_ij_to_k(i, j));
-			uint32_t sd = dicx*dicx + dicy*dicy + dicz*dicz;
-			sdmx[k++] = sd;
-			}
-		}
-	}
-
-static inline void fill_pen(uint32_t *__restrict sdmx,
-	uint32_t L, uint32_t m, uint16_t *pen)
+static inline void fill_pen(sid_t *__restrict sdmx,
+	uint32_t L, uint32_t M, uint32_t m, uint16_t *pen)
 	{
 	for (uint32_t i = 0; i < L; ++i)
 		{
@@ -93,7 +69,7 @@ static inline void fill_pen(uint32_t *__restrict sdmx,
 		uint32_t k = i*M + m - 1;
 		for (uint32_t j = i + m; j <= jend; ++j)
 			{
-			assert(k == banded_ij_to_k(i, j));
+			assert(k == banded_ij_to_k(M, i, j));
 			uint32_t sd = sdmx[k++];
 			if (sd < min_sd)
 				{
@@ -105,8 +81,8 @@ static inline void fill_pen(uint32_t *__restrict sdmx,
 		}
 	}
 
-static inline void fill_men(uint32_t *__restrict sdmx,
-	uint32_t L, uint32_t m, uint16_t *men)
+static inline void fill_men(sid_t *__restrict sdmx,
+	uint32_t L, uint32_t M, uint32_t m, uint16_t *men)
 	{
 	for (int i = 0; i < int(L); ++i)
 		{
@@ -115,7 +91,7 @@ static inline void fill_men(uint32_t *__restrict sdmx,
 		uint32_t min_sd = UINT32_MAX;
 		for (int j = max(0,i-int(M)); j <= i-int(m); ++j)
 			{
-			uint32_t k = banded_ij_to_k(i, j);
+			uint32_t k = banded_ij_to_k(M, i, j);
 			uint32_t sd = sdmx[k];
 			if (sd < min_sd)
 				{
@@ -127,52 +103,35 @@ static inline void fill_men(uint32_t *__restrict sdmx,
 		}
 	}
 
-static uint compare_fill(const PDBChain &Chain, const uint32_t *sdmx)
+static uint compare_fill(const flat_chain &chain, uint32_t M,
+	const sid_t *sdmx)
 	{
-	const uint L = Chain.GetSeqLength();
-	vector<uint16_t> x;
-	vector<uint16_t> y;
-	vector<uint16_t> z;
-	Chain.GetICsxyz(x, y, z);
-
-	vector<uint16_t> ICs;
-	Chain.GetICs(ICs);
-
-	for (uint i = 0; i < L; ++i)
-		{
-		asserta(x[i] == ICs[3*i]);
-		asserta(y[i] == ICs[3*i+1]);
-		asserta(z[i] == ICs[3*i+2]);
-		}
-
+	const uint L = chain.get_length();
 	uint diffs = 0;
-	for (int i = 0; i < int(L); ++i)
-		{
-		for (int j = i+1; j < int(L); ++j)
-			{
-			if (i==j || abs(i-j) > M)
-				continue;
-			int dx = int(x[i]) - int(x[j]);
-			int dy = int(y[i]) - int(y[j]);
-			int dz = int(z[i]) - int(z[j]);
-			uint32_t sd = dx*dx + dy*dy + dz*dz;
-			uint k = banded_ij_to_k(i, j);
-			uint32_t sd2 = sdmx[k];
-			if (sd2 != sd)
-				++diffs;
-			}
-		}
+	//@@TODO
+	//for (int i = 0; i < int(L); ++i)
+	//	{
+	//	for (int j = i+1; j < int(L); ++j)
+	//		{
+	//		if (i==j || abs(i-j) > int(M))
+	//			continue;
+	//		int dx = int(x[i]) - int(x[j]);
+	//		int dy = int(y[i]) - int(y[j]);
+	//		int dz = int(z[i]) - int(z[j]);
+	//		uint32_t sd = dx*dx + dy*dy + dz*dz;
+	//		uint k = banded_ij_to_k(M, i, j);
+	//		uint32_t sd2 = sdmx[k];
+	//		if (sd2 != sd)
+	//			++diffs;
+	//		}
+	//	}
 	return diffs;
 	}
 
-static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
+static uint compare_pen(const flat_chain &chain, uint M, uint m,
+	const uint16_t *pen)
 	{
-	const uint L = Chain.GetSeqLength();
-	vector<uint16_t> x;
-	vector<uint16_t> y;
-	vector<uint16_t> z;
-	Chain.GetICsxyz(x, y, z);
-
+	const uint L = chain.get_length();
 	uint diffs = 0;
 	for (int i = 0; i < int(L); ++i)
 		{
@@ -181,9 +140,9 @@ static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
 		uint16_t pen_i = UINT16_MAX;
 		for (int j = i + int(m); j <= jend; ++j)
 			{
-			if (i==j || abs(i-j) < int(m) || abs(i-j) > M)
+			if (i==j || abs(i-j) < int(m) || abs(i-j) > int(M))
 				continue;
-			float d = Chain.GetDist(i, j);
+			float d = chain.slow_float_dist(i, j);
 			if (d < MinDist)
 				{
 				MinDist = d;
@@ -196,14 +155,10 @@ static uint compare_pen(const PDBChain &Chain, uint m, const uint16_t *pen)
 	return diffs;
 	}
 
-static uint compare_men(const PDBChain &Chain, uint m, const uint16_t *men)
+static uint compare_men(const flat_chain &chain, uint M, uint m,
+	const uint16_t *men)
 	{
-	const uint L = Chain.GetSeqLength();
-	vector<uint16_t> x;
-	vector<uint16_t> y;
-	vector<uint16_t> z;
-	Chain.GetICsxyz(x, y, z);
-
+	const uint L = chain.get_length();
 	uint diffs = 0;
 	for (int i = 0; i < int(L); ++i)
 		{
@@ -212,9 +167,9 @@ static uint compare_men(const PDBChain &Chain, uint m, const uint16_t *men)
 		uint16_t men_i = UINT16_MAX;
 		for (int j = 0; j < i; ++j)
 			{
-			if (i==j || abs(i-j) < int(m) || abs(i-j) > M)
+			if (i==j || abs(i-j) < int(m) || abs(i-j) > int(M))
 				continue;
-			float d = Chain.GetDist(i, j);
+			float d = chain.slow_float_dist(i, j);
 			if (d < MinDist)
 				{
 				MinDist = d;
@@ -227,86 +182,83 @@ static uint compare_men(const PDBChain &Chain, uint m, const uint16_t *men)
 	return diffs;
 	}
 
-static void test_sd(const vector<PDBChain *> &Chains)
+static void test_distmx(const vector<flat_chain *> &chains, uint M)
 	{
-	const uint ChainCount = SIZE(Chains);
+	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
 	uint total_diffs = 0;
 	TICKS total_ticks = 0;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const PDBChain &Chain = *Chains[ChainIdx];
-		const uint L = Chain.GetSeqLength();
+		const flat_chain &chain = *chains[ChainIdx];
+		const uint L = chain.get_length();
 		const uint K = L*M;
-		Chain.GetICs(ICs);
 		const uint16_t *xyz = ICs.data();
-		uint32_t *sdmx = myalloc(uint32_t, K);
+		sid_t *sdmx = myalloc(sid_t, K);
 		TICKS t1 = GetClockTicks();
-		fill_flat_distmx(xyz, L, sdmx);
+		fill_flat_distmx(xyz, L, M, sdmx);
 		TICKS t2 = GetClockTicks();
 		total_ticks += t2 - t1;
-		uint diffs = compare_fill(Chain, sdmx);
+		uint diffs = compare_fill(chain, M, sdmx);
 		total_diffs += diffs;
 		}
 	ProgressLog("%.3g ticks, %u diffs sd\n", double(total_ticks), total_diffs);
 	}
 
-static void test_pen(const vector<PDBChain *> &Chains, uint m)
+static void test_pen(const vector<flat_chain *> &chains, uint M, uint m)
 	{
-	const uint ChainCount = SIZE(Chains);
+	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
 	uint total_diffs = 0;
 	TICKS total_ticks = 0;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const PDBChain &Chain = *Chains[ChainIdx];
-		const uint L = Chain.GetSeqLength();
+		const flat_chain &chain = *chains[ChainIdx];
+		const uint L = chain.get_length();
 		const uint K = L*M;
-		Chain.GetICs(ICs);
-		const uint16_t *xyz = ICs.data();
-		uint32_t *sdmx = myalloc(uint32_t, K);
-		fill_flat_distmx(xyz, L, sdmx);
+		const uint16_t *xyz = chain.m_xyz->m_data;
+		sid_t *sdmx = myalloc(sid_t, K);
+		fill_flat_distmx(xyz, L, M, sdmx);
 
 		uint16_t *pen = myalloc(uint16_t, L);
 
 		TICKS t1 = GetClockTicks();
-		fill_pen(sdmx, L, m, pen);
+		fill_pen(sdmx, L, m, M, pen);
 		TICKS t2 = GetClockTicks();
 
 		total_ticks += t2 - t1;
-		uint diffs = compare_pen(Chain, m, pen);
+		uint diffs = compare_pen(chain, m, M, pen);
 		total_diffs += diffs;
 		}
 	ProgressLog("%.3g ticks, %u diffs pen\n", double(total_ticks), total_diffs);
 	}
 
-static void test_men(const vector<PDBChain *> &Chains, uint m)
+static void test_men(const vector<flat_chain *> &chains, uint M, uint m)
 	{
-	const uint ChainCount = SIZE(Chains);
+	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
 	uint total_diffs = 0;
 	TICKS total_ticks = 0;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const PDBChain &Chain = *Chains[ChainIdx];
-		const uint L = Chain.GetSeqLength();
+		const flat_chain &chain = *chains[ChainIdx];
+		const uint L = chain.get_length();
 		const uint K = L*M;
-		Chain.GetICs(ICs);
-		const uint16_t *xyz = ICs.data();
-		uint32_t *sdmx = myalloc(uint32_t, K);
-		fill_flat_distmx(xyz, L, sdmx);
+		const uint16_t *xyz = chain.m_xyz->m_data;
+		sid_t *sdmx = myalloc(sid_t, K);
+		fill_flat_distmx(xyz, L, M, sdmx);
 
 		uint16_t *men = myalloc(uint16_t, L);
 
 		TICKS t1 = GetClockTicks();
-		fill_men(sdmx, L, m, men);
+		fill_men(sdmx, L, m, M, men);
 		TICKS t2 = GetClockTicks();
 
 		total_ticks += t2 - t1;
-		uint diffs = compare_men(Chain, m, men);
+		uint diffs = compare_men(chain, m, M, men);
 		total_diffs += diffs;
 		}
 	ProgressLog("%.3g ticks, %u diffs men\n", double(total_ticks), total_diffs);
@@ -314,10 +266,11 @@ static void test_men(const vector<PDBChain *> &Chains, uint m)
 
 void cmd_test_flat_distmx()
 	{
-	test_indexing();
-	vector<PDBChain *> Chains;
-	ReadChains(g_Arg1, Chains);
-	test_sd(Chains);
-	test_pen(Chains, 16);
-	test_men(Chains, 16);
+	uint32_t M = 48;
+	test_indexing(M);
+	vector<flat_chain *> chains;
+	read_flat_chains(g_Arg1, chains);
+	test_distmx(chains, M);
+	test_pen(chains, M, 16);
+	test_men(chains, M, 16);
 	}

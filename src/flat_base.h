@@ -49,6 +49,9 @@ Increment refcount, caller will decrement when no longer needed.
 ***/
 
 #include "flat_enum.h"
+#include "flat_dist_types.h"
+
+extern const ic_t sid2ic[65536];
 
 // Global atomics shared by all threads
 // Simpler, faster and smaller compared to ObjMgr
@@ -173,7 +176,7 @@ using ss3_t = flat_vec<char, FE_ss3>;
 using nnvec_t = flat_vec<uint16_t, FE_nnvec>;
 using floatvec_t = flat_vec<float, FE_floatvec>;
 
-using chaindistmx_t = flat_vec<uint16_t, FE_chaindistmx>;
+using chaindistmx_t = flat_vec<sid_t, FE_chaindistmx>;
 using megaprof_t = flat_mx<uint8_t, FE_chaindistmx>;
 
 #define create_floatvec(n)	new floatvec_t((n), __FILE__, __LINE__);
@@ -184,7 +187,7 @@ using megaprof_t = flat_mx<uint8_t, FE_chaindistmx>;
 #define create_chainaa(n)	new chainaa_t((n), __FILE__, __LINE__);
 #define create_chainxyz(n)	new chainxyz_t((n), __FILE__, __LINE__);
 
-#define create_chaindistmx(L)		new chaindistmx_t(band_K(L), __FILE__, __LINE__);
+#define create_chaindistmx(L, M)	new chaindistmx_t((L)*(M), __FILE__, __LINE__);
 #define create_megaprof(nfeat, L)	new megaprof_t((nfeat), (L), __FILE__, __LINE__);
 
 #define down(p)		p->base_release((p))

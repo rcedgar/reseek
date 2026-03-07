@@ -225,10 +225,9 @@ flat_chain *BCAData::read_flat_chain(uint64 ChainIdx) const
 		}
 
 	chain->m_xyz = create_chainxyz(L);
-	uint16_t *ICs = myalloc(uint16_t, 3*L);
 	uint64 BytesToRead = 6*L;
-	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L, ICs, BytesToRead);
-	aos_to_soa_u16(ICs, chain->m_xyz->m_data, L);
+	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L,
+		chain->m_xyz->m_data, BytesToRead);
 	m_ReadLock.unlock();
 	if (nIC != BytesToRead)
 		{
@@ -241,8 +240,6 @@ flat_chain *BCAData::read_flat_chain(uint64 ChainIdx) const
 		Die("BCAData::ReadChain(#2)");
 		}
 
-	//Chain.CoordsFromICs(ICs, L);
-	myfree(ICs);
 	asserta(ChainIdx < SIZE(m_Labels));
 	chain->m_label = m_Labels[ChainIdx];
 	return chain;

@@ -8,4 +8,6 @@ Turn off exceptions
 Cache Mu in db binary for prefilter kmers
 
 Test scripts and data for very short chains e.g. <10aa.
+
+Use pair-wise alignment to anchor contact map profile alignment.
 ***/
