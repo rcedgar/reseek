@@ -99,6 +99,7 @@ protected:
 		}
 
 public:
+	//TODO ref-counting logic is not right, see chaq
 	template<class Derived>
 	void base_release(Derived *& p)
 		{
@@ -189,6 +190,8 @@ using megaprof_t = flat_mx<uint8_t, FE_chaindistmx>;
 
 #define create_chaindistmx(L, M)	new chaindistmx_t((L)*(M), __FILE__, __LINE__);
 #define create_megaprof(nfeat, L)	new megaprof_t((nfeat), (L), __FILE__, __LINE__);
+
+#define up(p)	((p)->m_refcount++)
 
 #define down(p)		p->base_release((p))
 #define down0(p)	(p ? p->base_release((p)) : (void) 0)

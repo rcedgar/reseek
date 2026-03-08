@@ -1,5 +1,6 @@
 #pragma once
 
+#include "flat_dist_types.h"
 
 static inline uint32_t banded_ij_to_k(uint32_t M, uint32_t i, uint32_t j)
     {

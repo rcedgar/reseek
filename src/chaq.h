@@ -53,7 +53,7 @@ public:
 	const nnvec_t *get_men();
 	const ss3_t *get_ss3();
 	const megaprof_t *get_megaprof();
-	const chaindistmx_t *get_distmx();
+	const chaindistmx_t *get_distmx(uint M);
 	uint16_t get_nen(uint i) const;
 	uint16_t get_ren(uint i) const;
 	uint16_t get_pen(uint i) const;

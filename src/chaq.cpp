@@ -3,7 +3,7 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
-const chaindistmx_t *chaq::get_distmx()
+const chaindistmx_t *chaq::get_distmx(uint M)
 	{
 	assert(m_chain);
 	if (m_distmx) return m_distmx;
@@ -12,6 +12,7 @@ const chaindistmx_t *chaq::get_distmx()
 	const uint16_t *xyz = m_chain->m_xyz->m_data;
 	uint16_t *distmx = m_distmx->m_data;
 	fill_flat_distmx(xyz, L, M, distmx);
+	up(m_distmx);
 	return m_distmx;
 	}
 

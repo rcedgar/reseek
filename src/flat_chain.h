@@ -3,7 +3,7 @@
 #include "flat_base.h"
 
 static const size_t RESERVE_CHAIN_LENGTH = 400;
-static const uint M = 64;
+//static const uint M = 64;
 
 class flat_chain
 	{

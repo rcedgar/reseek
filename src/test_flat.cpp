@@ -8,11 +8,13 @@
 #include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
 
+static const uint M = 256;
+
 static bool test_dist_mx(DSS &D, chaq &c)
 	{
 	const flat_chain *chain = c.m_chain;
 	const PDBChain &Chain = *D.m_Chain;
-	const chaindistmx_t *dm = c.get_distmx();
+	const chaindistmx_t *dm = c.get_distmx(M);
 	const sid_t *distmx = dm->m_data;
 	uint L = D.GetSeqLength();
 	asserta(chain->get_length() == L);
@@ -55,7 +57,7 @@ static void test_nn(DSS &D, chaq &c)
 	{
 	const flat_chain *chain = c.m_chain;
 	const PDBChain &Chain = *D.m_Chain;
-	c.get_distmx();
+	c.get_distmx(M);
 
 	const uint L = Chain.GetSeqLength();
 	for (uint i = 0; i < L; ++i)

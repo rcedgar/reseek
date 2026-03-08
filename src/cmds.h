@@ -78,5 +78,6 @@ C(nn_primary_chain_dist)
 C(test_flat_distmx)
 C(test_flat)
 C(test_flat_dist_types)
+C(nbr_stats)
 
 #undef C
