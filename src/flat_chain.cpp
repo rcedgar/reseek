@@ -17,9 +17,9 @@ void flat_chain::set_xyz(const vector<float> &Xs,
 		uint16_t ic_x = PDBChain::CoordToIC(Xs[i]);
 		uint16_t ic_y = PDBChain::CoordToIC(Ys[i]);
 		uint16_t ic_z = PDBChain::CoordToIC(Zs[i]);
-		m_xyz->set(0, i, ic_x);
-		m_xyz->set(1, i, ic_y);
-		m_xyz->set(2, i, ic_z);
+		m_xyz->set(i, 0, ic_x);
+		m_xyz->set(i, 1, ic_y);
+		m_xyz->set(i, 2, ic_z);
 		}
 	}
 

@@ -578,9 +578,6 @@
     <ClCompile Include="nn_primary_chain_dist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fast_dist_mx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="flat_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -596,13 +593,16 @@
     <ClCompile Include="test_flat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fast_dist_mx_layout.cpp">
+    <ClCompile Include="flat_distmx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="distmx_kernel.cpp">
+    <ClCompile Include="nbr_stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="distmx_kernel_only.cpp">
+    <ClCompile Include="sid2ic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sec_kmeans.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1003,10 +1003,13 @@
     <ClInclude Include="chaq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fast_dist_mx.h">
+    <ClInclude Include="flat_distmx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="distmx_kernel.h">
+    <ClInclude Include="flat_dist_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sec_cluster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

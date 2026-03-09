@@ -54,13 +54,13 @@ public:
 		assert(m_aa); return m_aa->m_size;
 		}
 
-	void get_ics(uint i, uint16_t &icx, uint16_t &icy, uint16_t &icz) const
+	void get_ic_xyz(uint i, ic_t &ic_x, ic_t &ic_y, ic_t &ic_z) const
 		{
-		const uint16_t *data = m_xyz->m_data;
+		const ic_t *data = m_xyz->m_data;
 		uint k = 3*i;
-		uint ic_x = data[k];
-		uint ic_y = data[k+1];
-		uint ic_z = data[k+2];
+		ic_x = data[k];
+		ic_y = data[k+1];
+		ic_z = data[k+2];
 		}
 
 	void get_coords(uint i, float &x, float &y, float &z) const

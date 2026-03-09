@@ -51,8 +51,6 @@ Increment refcount, caller will decrement when no longer needed.
 #include "flat_enum.h"
 #include "flat_dist_types.h"
 
-extern const ic_t sid2ic[65536];
-
 // Global atomics shared by all threads
 // Simpler, faster and smaller compared to ObjMgr
 // where one object per thread.
@@ -163,10 +161,10 @@ class chainxyz_t : public flat_mx<uint16_t, FE_chainxyz>
 	{
 public:
 	chainxyz_t(uint32_t L) :
-		flat_mx<uint16_t, FE_chainxyz>(3, L)
+		flat_mx<uint16_t, FE_chainxyz>(L, 3)
 		{ }
 	chainxyz_t(uint32_t L, const char *srcfile, int srcline) :
-		flat_mx<uint16_t, FE_chainxyz>(3, L, srcfile, srcline)
+		flat_mx<uint16_t, FE_chainxyz>(L, 3, srcfile, srcline)
 		{ }
 	};
 

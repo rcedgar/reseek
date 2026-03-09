@@ -160,7 +160,7 @@ static void test_xyzpair()
 			icx2, icy2, icz2);
 
 		int diff = abs(int(sid2) - int(sid1));
-		double fractdiff = 2.0*double(diff)/(sid1 + sid2 + 1);
+		double fractdiff = (sid1 == 0 && sid2 == 0 ? 0 : 2.0*double(diff)/(sid1 + sid2));
 		asserta(fractdiff < 0.01);
 		}
 	ProgressLog("test_xyzpair PASS\n");
@@ -217,8 +217,69 @@ M       48.5    24.1    -10.0	10485	10241	9900
 	asserta(feq(d2, 3.81));
 	}
 
+static void test_one()
+	{
+/***
+>d1v05a_/b.1.18.10
+A	45.6	26.0	-11.6	# 0
+M	48.5	24.1	-10.0	# 1
+G	49.1	26.3	-7.0	# 2
+S	46.8	28.3	-4.8	# 3
+D	45.7	31.8	-3.9	# 4
+A	43.8	32.3	-0.7	# 5
+
+S	46.8	28.3	-4.8	# 3
+A	43.8	32.3	-0.7	# 5
+
+i=3 j=5
+ xyz(3) = 10468,10283,9952 = 46.8, 28.3, -4.8
+ xyz(5) = 10438,10323,9993 = 43.8, 32.3, -0.7
+ = 6.5
+
+sid = 261 = 6.5 A
+***/
+
+	float x_i = 46.8f;
+	float y_i = 28.3f;
+	float z_i = -4.8f;
+
+	float x_j = 43.8f;
+	float y_j = 32.3f;
+	float z_j = -0.7f;
+
+	float dx = x_i - x_j;
+	float dy = y_i - y_j;
+	float dz = z_i - z_j;
+
+	float d = sqrtf(dx*dx + dy*dy + dz*dz);
+	sid_t sid = dist2sid(d);
+
+	ic_t icx_i = coord2ic(x_i);
+	ic_t icy_i = coord2ic(y_i);
+	ic_t icz_i = coord2ic(z_i);
+
+	ic_t icx_j = coord2ic(x_j);
+	ic_t icy_j = coord2ic(y_j);
+	ic_t icz_j = coord2ic(z_j);
+
+	assert(feq(ic2coord(icx_i), x_i));
+	assert(feq(ic2coord(icy_i), y_i));
+	assert(feq(ic2coord(icz_i), z_i));
+
+	assert(feq(ic2coord(icx_j), x_j));
+	assert(feq(ic2coord(icy_j), y_j));
+	assert(feq(ic2coord(icz_j), z_j));
+
+	sid_t sid2 = icxyzpair2sid(
+		icx_i, icy_i, icz_i,
+		icx_j, icy_j, icz_j);
+	float d2 = sid2dist(sid2);
+	asserta(feq(d, d2));
+	}
+
 void cmd_test_flat_dist_types()
 	{
+	test_one();
 	test_neighbor();
 	test_xyzpair();
 	test_sid();

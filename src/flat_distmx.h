@@ -4,6 +4,7 @@
 
 static inline uint32_t banded_ij_to_k(uint32_t M, uint32_t i, uint32_t j)
     {
+	assert(abs(int(i)-int(j)) <= int(M));
     if (j < i) std::swap(i, j);
     uint32_t offset = j - i;
     return M*i + offset - 1;
@@ -15,7 +16,6 @@ static inline void banded_k_to_ij(uint32_t M, uint32_t k, uint32_t& i, uint32_t&
     uint32_t offset = (k % M) + 1;
     j = i + offset;
     }
-
 
 static inline void fill_flat_distmx(
 	const uint16_t *__restrict xyz,

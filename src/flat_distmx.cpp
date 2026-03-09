@@ -108,23 +108,40 @@ static uint compare_fill(const flat_chain &chain, uint32_t M,
 	{
 	const uint L = chain.get_length();
 	uint diffs = 0;
-	//@@TODO
-	//for (int i = 0; i < int(L); ++i)
-	//	{
-	//	for (int j = i+1; j < int(L); ++j)
-	//		{
-	//		if (i==j || abs(i-j) > int(M))
-	//			continue;
-	//		int dx = int(x[i]) - int(x[j]);
-	//		int dy = int(y[i]) - int(y[j]);
-	//		int dz = int(z[i]) - int(z[j]);
-	//		uint32_t sd = dx*dx + dy*dy + dz*dz;
-	//		uint k = banded_ij_to_k(M, i, j);
-	//		uint32_t sd2 = sdmx[k];
-	//		if (sd2 != sd)
-	//			++diffs;
-	//		}
-	//	}
+	for (int i = 0; i < int(L); ++i)
+		{
+		ic_t icx_i, icy_i, icz_i;
+		chain.get_ic_xyz(i, icx_i, icy_i, icz_i);
+		for (int j = i+1; j < int(L); ++j)
+			{
+			if (i==j || abs(i-j) > int(M))
+				continue;
+
+			ic_t icx_j, icy_j, icz_j;
+			chain.get_ic_xyz(j, icx_j, icy_j, icz_j);
+
+			uint32_t sid = icxyzpair2sid(
+				icx_i, icy_i, icz_i,
+				icx_j, icy_j, icz_j);
+
+			uint k = banded_ij_to_k(M, i, j);
+			uint32_t sid2 = sdmx[k];
+			if (sid2 != sid)
+				++diffs;
+
+			if (opt_verbose)
+				{
+				Log("\n");
+				Log("i=%u j=%u\n", i, j);
+				Log(" xyz(%u) = %u,%u,%u", i, icx_i, icy_i, icz_i);
+				Log(" = %.1f, %.1f, %.1f\n", ic2coord(icx_i), ic2coord(icy_i), ic2coord(icz_i));
+				Log(" xyz(%u) = %u,%u,%u", j, icx_j, icy_j, icz_j);
+				Log(" = %.1f, %.1f, %.1f\n", ic2coord(icx_j), ic2coord(icy_j), ic2coord(icz_j));
+				Log(" sid = %u = %.1f A", sid, sid2dist(sid));
+				Log("\n");
+				}
+			}
+		}
 	return diffs;
 	}
 
@@ -194,10 +211,10 @@ static void test_distmx(const vector<flat_chain *> &chains, uint M)
 		const flat_chain &chain = *chains[ChainIdx];
 		const uint L = chain.get_length();
 		const uint K = L*M;
-		const uint16_t *xyz = ICs.data();
+		const chainxyz_t *xyz = chain.m_xyz;
 		sid_t *sdmx = myalloc(sid_t, K);
 		TICKS t1 = GetClockTicks();
-		fill_flat_distmx(xyz, L, M, sdmx);
+		fill_flat_distmx(xyz->m_data, L, M, sdmx);
 		TICKS t2 = GetClockTicks();
 		total_ticks += t2 - t1;
 		uint diffs = compare_fill(chain, M, sdmx);

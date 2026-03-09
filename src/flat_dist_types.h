@@ -56,3 +56,5 @@ static inline sid_t icxyzpair2sid(
 	sid_t sid = (dx*dx + dy*dy + dz*dz)/16;
 	return sid; 
 	}
+
+extern const ic_t sid2ic[65536];
