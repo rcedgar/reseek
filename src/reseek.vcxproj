@@ -524,6 +524,7 @@
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
+    <ClInclude Include="next_line.h" />
     <ClInclude Include="nu.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
@@ -560,13 +561,14 @@
     <ClInclude Include="round3sigfig.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />
-    <ClInclude Include="sec_cluster.h" />
+    <ClInclude Include="sec_kmeans.h" />
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
     <ClInclude Include="ssslib.h" />
     <ClInclude Include="statsig.h" />
     <ClInclude Include="subsetbench.h" />
     <ClInclude Include="swtrace.h" />
+    <ClInclude Include="tabbedlines.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="tracebit.h" />

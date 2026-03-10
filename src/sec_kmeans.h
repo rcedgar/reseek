@@ -3,29 +3,137 @@
 #include "flat_distmx.h"
 #include "chaq.h"
 #include "sort.h"
+#include "tabbedlines.h"
 
 // Cluster subset of local distance
 //	matrix by k-meeans clustering
-class sec_cluster
+class sec_kmeans
 	{
 public:
+	// Parameters
+	/////////////
 	uint m_K = 0;				// number of clusters for K-means
-	uint m_N = 0;				// number of residues, size of m_vs
 	uint m_D = 0;				// dimension of feature vector, length of m_i/jvalues
 	uint m_M = 0;				// band width for distance matrix (e.g. 64)
 	int m_w = 0;				// band width for sec (e.g. 3), max index in m_i/jvalues
-	const int* m_off1s = 0;		// +/- offsets from position
-	const int* m_off2s = 0;		// +/- offsets from position
-	uint* m_cluster_idxs = 0;	// current cluster assignments
+	int* m_off1s = 0;		// +/- offsets from position
+	int* m_off2s = 0;		// +/- offsets from position
 	sid_t *m_means = 0;			// flat matrix of current means size m_K x m_D
+
+	// Training data
+	////////////////
+	const vector<flat_chain *> *m_chains = 0;
+	uint m_N = 0;				// number of residues, size of m_vs
 	sid_t *m_vs = 0;			// flat matrix of feature vectors size m_N x m_D
+	uint* m_cluster_idxs = 0;	// current cluster assignments
 	uint* m_cluster_sizes = 0;	// cluster sizes
 	uint* m_size_order = 0;
 	uint m_zero_count = 0;
 	uint m_nrchanges = 0;
-	const vector<flat_chain *> *m_chains = 0;
+	sid_t *m_tmpv = 0;
 
 public:
+	void clear_params()
+		{
+		m_K = 0;
+		m_D = 0;
+		m_M = 0;
+		m_w = 0;
+		myfree(m_tmpv);
+		myfree(m_off1s);
+		myfree(m_off2s);
+		m_tmpv = 0;
+		m_off1s = 0;
+		m_off2s = 0;		// +/- offsets from position
+		}
+
+	void clear_training_data()
+		{
+		myfree(m_vs);
+		myfree(m_cluster_idxs);
+		myfree(m_cluster_sizes);
+		myfree(m_size_order);
+
+		m_N = 0;
+		m_vs = 0;
+		m_cluster_idxs = 0;
+		m_cluster_sizes = 0;
+		m_size_order = 0;
+		m_zero_count = 0;
+		m_nrchanges = 0;
+		}
+
+	void clear()
+		{
+		clear_params();
+		clear_training_data();
+		}
+
+	void to_tsv(const string &fn) const
+		{
+		vector<string> lines;
+		to_lines(lines);
+		tabbedlines::to_tsv(fn, lines);
+		}
+
+	void from_tsv(const string &fn)
+		{
+		vector<string> lines;
+		ReadLinesFromFile(fn, lines);
+		from_lines(lines);
+		}
+
+	void to_lines(vector<string> &lines) const
+		{
+		tabbedlines tl;
+
+		tl.put_int("sec", m_K);
+		tl.put_int("dim", m_D);
+		tl.put_signed_int_flat_vec("offs1", m_off1s, m_D);
+		tl.put_signed_int_flat_vec("offs2", m_off2s, m_D);
+		sid_t *sorted_means = get_sorted_means();
+		tl.put_int16_flat_vec("mean", sorted_means, m_K*m_D);
+		myfree(sorted_means);
+
+		lines = tl.m_lines;
+		}
+
+	uint calc_w() const
+		{
+		uint max_off = 0;
+		for (uint i = 0; i < m_D; ++i)
+			{
+			max_off = max(max_off, uint(abs(m_off1s[i])));
+			max_off = max(max_off, uint(abs(m_off2s[i])));
+			}
+		return max_off;
+		}
+
+	void alloc_DK()
+		{
+		asserta(m_D > 0);
+		asserta(m_K > 0);
+		asserta(m_tmpv == 0);
+		m_tmpv = myalloc(sid_t, m_D);
+		}
+
+	void from_lines(const vector<string> &lines)
+		{
+		clear();
+		tabbedlines tl(lines);
+
+		m_K = tl.get_int("sec");
+		m_D = tl.get_int("dim");
+		m_off1s = tl.get_signed_int_flat_vec("offs1", m_D);
+		m_off2s = tl.get_signed_int_flat_vec("offs2", m_D);
+		m_means = tl.get_int16_flat_vec("mean", m_K*m_D);
+		tl.get_eof();
+
+		m_w = calc_w();
+
+		alloc_DK();
+		}
+
 	void log_params() const
 		{
 		Log("K %u, N %u, D %u, M %u, w %u\n", m_K, m_N, m_D, m_M, m_w);
@@ -61,13 +169,24 @@ public:
 		for (uint i = 0; i < m_K; ++i)
 			{
 			uint cluster_idx = (m_size_order == 0 ? i : m_size_order[i]);
-			Log("%3u [%7u] ", cluster_idx, m_cluster_sizes[cluster_idx]);
+			if (m_cluster_sizes == 0)
+				Log("%3u [-] ", cluster_idx);
+			else
+				{
+				double pct = GetPct(m_cluster_sizes[cluster_idx], m_N);
+				Log("%3u [%6.1f%%] ", cluster_idx, pct);
+				}
 			log_v(m_means + cluster_idx*m_D);
 			}
 		}
 
 	void log_head_vs(uint n=10) const
 		{
+		if (m_vs == 0)
+			{
+			Log("m_vs=nullptr\n");
+			return;
+			}
 		Log("\nhead_vs(%u):\n", n);
 		for (uint residue_idx = 0; residue_idx < min(n, m_N); ++residue_idx)
 			{
@@ -115,7 +234,7 @@ public:
 		return true;
 		}
 
-	void get_v(uint chain_idx, const sid_t* distmx, int pos, int L, sid_t* v)
+	void get_v(const sid_t* distmx, int pos, int L, sid_t* v) const
 		{
 		assert(pos >= m_w && pos + m_w < L);
 		for (uint m = 0; m < m_D; ++m)
@@ -124,19 +243,7 @@ public:
 			int off2 = m_off2s[m];
 			uint k = banded_ij_to_k(m_M, pos+off1, pos+off2);
 			sid_t sid = distmx[k];
-#if DEBUG
-			assert(chain_idx < size(*m_chains));
-			const flat_chain *chain = (*m_chains)[chain_idx];
-			float dist_slow = chain->slow_float_dist(pos+off1, pos+off2);
-			float dist_sid = sid2dist(sid);
-			float diff = fabs(dist_slow - dist_sid);
-			if (diff > 0.5f)
-				Die("get_v(%s, pos1=%u, pos2=%u) sid=%u dist_sid=%.1f dist_slow=%.1f",
-					chain->m_label.c_str(), pos+off1, pos+off2, sid, dist_sid, dist_slow);
-#endif
-			//_chkmem();//@@
 			v[m] = sid;
-			//_chkmem();//@@//FAILS HERE
 			}
 		}
 
@@ -167,7 +274,7 @@ public:
 		return sum2;
 		}
 	
-	uint assign_cluster(const sid_t* v) const
+	uint8_t assign_cluster(const sid_t* v) const
 		{
 		uint best_cluster = UINT32_MAX;
 		uint32_t min_dist = UINT32_MAX;
@@ -180,8 +287,9 @@ public:
 				best_cluster = cluster_idx;
 				}
 			}
-		assert(best_cluster != UINT_MAX);
-		return best_cluster;
+		assert(best_cluster != UINT32_MAX);
+		assert(best_cluster < UINT8_MAX);
+		return uint8_t(best_cluster);
 		}
 
 	void assign_random_means()
@@ -197,6 +305,17 @@ public:
 			log_v(m_means + cluster_idx*m_D);
 			}
 			}
+		}
+
+	sid_t *get_sorted_means() const
+		{
+		sid_t *sorted_means = myalloc(sid_t, m_D*m_K);
+		for (uint i = 0; i < m_K; ++i)
+			{
+			uint j = m_size_order[i];
+			memcpy(sorted_means + i*m_D, m_means + j*m_D, m_D*sizeof(sid_t));
+			}
+		return sorted_means;
 		}
 
 	uint assign_clusters()
@@ -296,10 +415,16 @@ public:
 		{
 		m_K = K;
 		m_M = M;
+
 		m_D = SIZE(off1s);
 		asserta(SIZE(off2s) == m_D);
-		m_off1s = off1s.data();
-		m_off2s = off2s.data();
+
+		m_off1s = myalloc(int, m_D);
+		m_off2s = myalloc(int, m_D);
+
+		memcpy(m_off1s, off1s.data(), m_D*sizeof(int));
+		memcpy(m_off2s, off2s.data(), m_D*sizeof(int));
+
 		m_w = 0;
 		for (uint i = 0; i < m_D; ++i)
 			{
@@ -350,7 +475,7 @@ public:
 					++bad_backbones;
 					continue;
 					}
-				get_v(chain_idx, distmx, pos, L, m_vs + m_D*residue_idx++);
+				get_v(distmx, pos, L, m_vs + m_D*residue_idx++);
 				}
 			}
 		m_N = residue_idx;
@@ -359,9 +484,76 @@ public:
 		ProgressLog("%u / %u bad backbones\n", bad_backbones, m_N);
 		}
 
-	void iter()
+	void get_intseq(const sid_t *distmx, uint L, uint8_t *intseq) const
+		{
+		if (int(L) < 2*m_w + 1)
+			{
+			memset(intseq, m_K-1, L);
+			return;
+			}
+
+		assert(m_tmpv);
+#if DEBUG
+		memset(intseq, UINT8_MAX, L);
+#endif
+
+		get_v(distmx, m_w, L, m_tmpv);
+		int8_t letter_lo = assign_cluster(m_tmpv);
+		for (int pos = 0; pos <= m_w; ++pos)
+			{
+#if DEBUG
+			assert(intseq[pos] == UINT8_MAX);
+#endif
+			intseq[pos] = letter_lo;
+			}
+
+		int pos_hi = L - m_w - 1;
+		for (int pos = m_w + 1; pos < pos_hi; ++pos)
+			{
+			get_v(distmx, pos, L, m_tmpv);
+#if DEBUG
+			assert(intseq[pos] == UINT8_MAX);
+#endif
+			intseq[pos] = assign_cluster(m_tmpv);
+			}
+
+		get_v(distmx, pos_hi, L, m_tmpv);
+		int8_t letter_hi = assign_cluster(m_tmpv);
+		for (int pos = pos_hi; pos < int(L); ++pos)
+			{
+#if DEBUG
+			assert(intseq[pos] == UINT8_MAX);
+#endif
+			intseq[pos] = letter_hi;
+			}
+
+#if DEBUG
+		for (uint pos = 0; pos < L; ++pos)
+			assert(intseq[pos] < m_K);
+#endif
+		}
+
+	void run_iter()
 		{
 		m_zero_count = calc_means();
 		m_nrchanges = assign_clusters();
+		}
+
+	void train(uint ITERS = 1000)
+		{
+		assign_random_means();
+		assign_clusters();
+		for (uint iter = 0; iter < ITERS; ++iter)
+			{
+			run_iter();
+			ProgressLog("iter %u, zero %u, changes %u\n",
+				iter, m_zero_count, m_nrchanges);
+			if (m_nrchanges == 0)
+				{
+				ProgressLog("Converged\n");
+				break;
+				}
+			}
+
 		}
 	};

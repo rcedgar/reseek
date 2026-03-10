@@ -207,7 +207,7 @@ void WriteStdioFile64(FILE *f, uint64 Pos, const void *Buffer, uint64 Bytes);
 void WriteStdioFile(FILE *f, const void *Buffer, uint32 Bytes);
 void WriteStdioFile64(FILE *f, const void *Buffer, uint64 Bytes);
 
-void Ps(string &Str, const char *Format, ...);
+const string &Ps(string &Str, const char *Format, ...);
 void Psa(string &Str, const char *Format, ...);
 void Psasc(string &Str, const char *Format, ...);
 void Pf(FILE *f, const char *Format, ...);

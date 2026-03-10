@@ -1009,7 +1009,13 @@
     <ClInclude Include="flat_dist_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sec_cluster.h">
+    <ClInclude Include="sec_kmeans.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="next_line.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tabbedlines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

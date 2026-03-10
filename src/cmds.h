@@ -81,5 +81,6 @@ C(test_flat_dist_types)
 C(nbr_stats)
 C(sec_kmeans)
 C(sec_variance)
+C(sec_fasta)
 
 #undef C

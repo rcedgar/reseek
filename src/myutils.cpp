@@ -2406,12 +2406,13 @@ unsigned GetCPUCoreCount()
 #undef myalloc
 #undef myfree
 
-void Ps(string &Str, const char *Format, ...)
+const string &Ps(string &Str, const char *Format, ...)
 	{
 	va_list ArgList;
 	va_start(ArgList, Format);
 	myvstrprintf(Str, Format, ArgList);
 	va_end(ArgList);
+	return Str;
 	}
 
 void Pf(FILE *f, const char *Format, ...)
