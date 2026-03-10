@@ -2,8 +2,17 @@
 
 #include "flat_dist_types.h"
 
+static inline uint32_t banded_i_lt_j_to_k(uint32_t M, uint32_t i, uint32_t j)
+    {
+	assert(i < j);
+	assert(abs(int(i)-int(j)) <= int(M));
+    uint32_t offset = j - i;
+    return M*i + offset - 1;
+    }
+
 static inline uint32_t banded_ij_to_k(uint32_t M, uint32_t i, uint32_t j)
     {
+	assert(i != j);
 	assert(abs(int(i)-int(j)) <= int(M));
     if (j < i) std::swap(i, j);
     uint32_t offset = j - i;

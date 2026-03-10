@@ -1,8 +1,5 @@
 #include "myutils.h"
 #include "flat_chain.h"
-#include "logodds.h"
-#include "trainer.h"
-#include "sort.h"
 #include "sec_kmeans.h"
 #include "chaq.h"
 #include "quarts.h"
@@ -120,6 +117,7 @@ void cmd_sec_kmeans()
 	SK.set_vs(chains);
 	SK.train();
 	SK.logme();
+	SK.ss4stats();
 	SK.to_tsv(opt(output));
 
 #if DEBUG

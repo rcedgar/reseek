@@ -60,4 +60,8 @@ public:
 	uint16_t get_men(uint i) const;
 	float get_pen_dist_float(uint i) const;
 	uint16_t get_pen_dist_ic(uint i) const;
+	uint8_t get_ss3(const sid_t *distmx, uint M, uint L, uint pos) const;
+	uint8_t get_ss4(const sid_t *distmx, uint M, uint L, uint pos) const;
+	void get_ss4_str(const sid_t *distmx, uint M, uint L, string &ss) const;
+	void get_ss4_intseq(const sid_t *distmx, uint M, uint L, uint8_t *intseq) const;
 	};

@@ -4,6 +4,7 @@
 #include "chaq.h"
 #include "sort.h"
 #include "tabbedlines.h"
+#include "alpha.h"
 
 // Cluster subset of local distance
 //	matrix by k-meeans clustering
@@ -433,6 +434,8 @@ public:
 			}
 		myfree(m_means);
 		m_means = myalloc(sid_t, m_K*m_D);
+		myfree(m_tmpv);
+		m_tmpv = myalloc(sid_t, m_D);
 		}
 
 	void set_vs(const vector<flat_chain *> &chains)
@@ -555,5 +558,50 @@ public:
 				}
 			}
 
+		}
+
+	void ss4stats()
+		{
+		assert(m_chains);
+		vector<vector<uint> > countmx(m_K);
+		for (uint i = 0; i < m_K; ++i)
+			countmx[i].resize(4);
+
+		chaq c;
+		uint nrchains = SIZE(*m_chains);
+		for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
+			{
+			const flat_chain *chain = (*m_chains)[chainidx];
+			c.init(chain);
+			const uint L = chain->get_length();
+			const chaindistmx_t *dm = c.get_distmx(m_M);
+			const sid_t *distmx = dm->m_data;
+
+			uint8_t *intseq = myalloc(uint8_t, L);
+			get_intseq(distmx, L, intseq);
+
+			uint8_t *ss4intseq = myalloc(uint8_t, L);
+			c.get_ss4_intseq(distmx, m_M, L, ss4intseq);
+
+			for (uint pos = 2; pos < L - 2; ++pos)
+				{
+				uint8_t letter = intseq[pos];
+				uint8_t ss4letter = ss4intseq[pos];
+				countmx[letter][ss4letter] += 1;
+				}
+			myfree(ss4intseq);
+			}
+
+		ProgressLog("X    Helix   Strand     Turn     Loop\n");
+		for (uint j = 0; j < m_K; ++j)
+			{
+			uint i = m_size_order[j];
+			ProgressLog("%c", g_LetterToCharMu[j]);
+			for (uint j = 0; j < 4; ++j)
+				ProgressLog("  %7u", countmx[i][j]);
+			ProgressLog("  [%2u]", j);
+			ProgressLog("  %6.1f%%", GetPct(m_cluster_sizes[i], m_N));
+			ProgressLog("\n");
+			}
 		}
 	};
