@@ -134,6 +134,21 @@ struct QuartsFloat
 		Log(", StdDev=%.3g", StdDev);
 		Log("\n");
 		}
+
+	void ToTsv(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		fprintf(f, "%u", N);
+		fprintf(f, "\t%.3g", Min);
+		fprintf(f, "\t%.3g", LoQ);
+		fprintf(f, "\t%.3g", Med);
+		fprintf(f, "\t%.3g", HiQ);
+		fprintf(f, "\t%.3g", Max);
+		fprintf(f, "\t%.3g", Avg);
+		fprintf(f, "\t%.3g", StdDev);
+		fprintf(f, "\n");
+		}
 	};
 
 void GetQuarts(const vector<unsigned> &v, Quarts &Q);

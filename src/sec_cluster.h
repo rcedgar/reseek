@@ -2,6 +2,7 @@
 
 #include "flat_distmx.h"
 #include "chaq.h"
+#include "sort.h"
 
 // Cluster subset of local distance
 //	matrix by k-meeans clustering
@@ -17,8 +18,11 @@ public:
 	const int* m_off2s = 0;		// +/- offsets from position
 	uint* m_cluster_idxs = 0;	// current cluster assignments
 	sid_t *m_means = 0;			// flat matrix of current means size m_K x m_D
-	sid_t *m_vs;				// flat matrix of feature vectors size m_N x m_D
+	sid_t *m_vs = 0;			// flat matrix of feature vectors size m_N x m_D
 	uint* m_cluster_sizes = 0;	// cluster sizes
+	uint* m_size_order = 0;
+	uint m_zero_count = 0;
+	uint m_nrchanges = 0;
 	const vector<flat_chain *> *m_chains = 0;
 
 public:
@@ -47,15 +51,16 @@ public:
 	void log_v(const sid_t *v) const
 		{
 		for (uint i = 0; i < m_D; ++i)
-			Log(" %5u(%4.1f)", v[i], sid2dist(v[i]));
+			Log(" %5u(%5.2f)", v[i], sid2dist(v[i]));
 		Log("\n");
 		}
 
 	void log_means() const
 		{
 		Log("\nmeans:\n");
-		for (uint cluster_idx = 0; cluster_idx < m_K; ++cluster_idx)
+		for (uint i = 0; i < m_K; ++i)
 			{
+			uint cluster_idx = (m_size_order == 0 ? i : m_size_order[i]);
 			Log("%3u [%7u] ", cluster_idx, m_cluster_sizes[cluster_idx]);
 			log_v(m_means + cluster_idx*m_D);
 			}
@@ -85,7 +90,7 @@ public:
 	void logme() const
 		{
 		log_params();
-		log_random_vs();
+		log_head_vs();
 		log_means();
 		}
 
@@ -196,9 +201,10 @@ public:
 
 	uint assign_clusters()
 		{
-		if (m_cluster_sizes != 0)
-			myfree(m_cluster_sizes);
+		myfree(m_cluster_sizes);
+		myfree(m_size_order);
 		m_cluster_sizes = myalloc(uint, m_K);
+		m_size_order = myalloc(uint, m_K);
 		zero_array(m_cluster_sizes, m_K);
 		uint nrchanges = 0;
 		for (uint residue_idx = 0; residue_idx < m_N; ++residue_idx)
@@ -212,6 +218,7 @@ public:
 				}
 			++m_cluster_sizes[new_cluster_idx];
 			}
+		QuickSortOrderDesc(m_cluster_sizes, m_K, m_size_order);
 		return nrchanges;
 		}
 
@@ -277,13 +284,18 @@ public:
 		assert(sum_residue_count == m_N);
 		myfree(sums);
 		myfree(residue_counts);
+#if DEBUG
+		myfree(check_counts);
+#endif
 		return zero_count;
 		}
 
-	void init(
+	void init(uint K, uint M,
 		const vector<int> &off1s,
 		const vector<int> &off2s)
 		{
+		m_K = K;
+		m_M = M;
 		m_D = SIZE(off1s);
 		asserta(SIZE(off2s) == m_D);
 		m_off1s = off1s.data();
@@ -294,6 +306,8 @@ public:
 			m_w = max(m_w, abs(off1s[i]));
 			m_w = max(m_w, abs(off2s[i]));
 			}
+		myfree(m_means);
+		m_means = myalloc(sid_t, m_K*m_D);
 		}
 
 	void set_vs(const vector<flat_chain *> &chains)
@@ -311,6 +325,7 @@ public:
 			}
 
 		// Will skip some residues, total_length is > m_N
+		myfree(m_vs);
 		m_vs = myalloc(sid_t, m_D*total_length);
 #if DEBUG
 		memset(m_vs, 0xff, m_D*total_length*sizeof(sid_t));
@@ -339,6 +354,14 @@ public:
 				}
 			}
 		m_N = residue_idx;
+		myfree(m_cluster_idxs);
+		m_cluster_idxs = myalloc(uint, m_N);
 		ProgressLog("%u / %u bad backbones\n", bad_backbones, m_N);
+		}
+
+	void iter()
+		{
+		m_zero_count = calc_means();
+		m_nrchanges = assign_clusters();
 		}
 	};

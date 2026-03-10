@@ -5,26 +5,13 @@
 #include "sort.h"
 #include "sec_cluster.h"
 #include "chaq.h"
-
-// -2,0 
-// -2,1
-// -2,2
-// -1,1
-// -1,2
-// 0,2
-// -3,3
-// 0,3
-// -3,0
+#include "quarts.h"
 
 void cmd_sec_kmeans()
 	{
 	vector<flat_chain *> chains;
 	read_flat_chains(g_Arg1, chains);
 	const uint nrchains = SIZE(chains);
-
-	uint N = 0;
-	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
-		N += chains[chainidx]->get_length();
 
 /***
      _________________________________________
@@ -52,20 +39,16 @@ void cmd_sec_kmeans()
 
 ***/
 	//                     0   1   2   3   4   5   6   7   8
-	const int offs1[] = { -2, -2, -2, -1, -1,  0, -3,  0, -3 };
-	const int offs2[] = {  0,  1,  2,  1,  2,  2,  3,  3,  0 };
+	const vector<int> off1s = { -2, -2, -2, -1, -1,  0, -3,  0, -3 };
+	const vector<int> off2s = {  0,  1,  2,  1,  2,  2,  3,  3,  0 };
 	const int w = 3;
 
+	const uint K = 16;
 	const uint32_t M = 32; // dist mx band width
+
 	sec_cluster SC;
-	SC.m_K = 16;
-	SC.m_off1s = offs1;
-	SC.m_off2s = offs2;
-	SC.m_w = w;
-	SC.m_D = 9;
-	SC.m_M = M;
-	SC.m_N = N;
-	SC.m_means = myalloc(sid_t, SC.m_K*SC.m_D);
+	SC.init(K, M, off1s, off2s);
+
 	sid_t *vs = myalloc(sid_t, SC.m_N*SC.m_D);
 	SC.m_cluster_idxs = myalloc(uint, SC.m_N);
 	SC.set_vs(chains);
@@ -73,19 +56,81 @@ void cmd_sec_kmeans()
 	SC.assign_clusters();
 	SC.logme();
 
-	const uint ITERS = 100;
+	const uint ITERS = 1000;
 	for (uint iter = 0; iter < ITERS; ++iter)
 		{
-		uint zero_count = SC.calc_means();
-		uint nrchanges = SC.assign_clusters();
-		ProgressLog("iter %u, zero %u, changes %u\n", iter, zero_count, nrchanges);
-		if (nrchanges == 0)
+		SC.iter();
+		ProgressLog("iter %u, zero %u, changes %u\n",
+			iter, SC.m_zero_count, SC.m_nrchanges);
+		if (SC.m_nrchanges == 0)
 			{
 			ProgressLog("Converged\n");
-			uint nrchanges2 = SC.assign_clusters();
-			asserta(nrchanges2 == 0);
 			break;
 			}
 		}
 	SC.logme();
+	}
+
+static bool check_backbone(const flat_chain *chain)
+	{
+	const uint L = chain->get_length();
+	for (uint i = 1; i < L; ++i)
+		{
+		float d = chain->slow_float_dist(i-1, i);
+		if (d < 3.7 || d > 3.9)
+			return false;
+		}
+	return true;
+	}
+
+void cmd_sec_variance()
+	{
+	asserta(optset_output);
+	FILE *fOut = CreateStdioFile(opt(output));
+	vector<flat_chain *> chains;
+	read_flat_chains(g_Arg1, chains);
+	const uint nrchains = SIZE(chains);
+	chaq c;
+	const uint M = 32;
+	const int w = 16;
+	vector<vector<float> > dists(w+1);
+	for (uint chain_idx = 0; chain_idx < nrchains; ++chain_idx)
+		{
+		const flat_chain *chain = chains[chain_idx];
+		if (!check_backbone(chain))
+			continue;
+		const uint L = chain->get_length();
+		for (uint pos = 0; pos < L; ++pos)
+		for (uint dij = 1; dij < w; ++dij)
+			{
+			uint pos2 = pos + dij;
+			if (pos2 >= L)
+				break;
+			float d = chain->slow_float_dist(pos, pos2);
+			dists[dij].push_back(d);
+			}
+		}
+
+	fprintf(fOut, "dij");
+	fprintf(fOut, "\tN");
+	fprintf(fOut, "\tMin");
+	fprintf(fOut, "\tLoQ");
+	fprintf(fOut, "\tMed");
+	fprintf(fOut, "\tHiQ");
+	fprintf(fOut, "\tMax");
+	fprintf(fOut, "\tAvg");
+	fprintf(fOut, "\tStdDev");
+	fprintf(fOut, "\n");
+	for (uint dij = 1; dij < w; ++dij)
+		{
+		const vector<float> &ds = dists[dij];
+		QuartsFloat QF;
+		GetQuartsFloat(ds, QF);
+		ProgressLog("dij=%2u  ", dij);
+		QF.ProgressLogMe();
+
+		fprintf(fOut, "%u\t", dij);
+		QF.ToTsv(fOut);
+		}
+	CloseStdioFile(fOut);
 	}
