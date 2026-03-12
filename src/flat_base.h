@@ -74,16 +74,19 @@ protected:
 #endif
 		}
 
-public:
-	void add_ref()
-		{
-		++m_refcount;
-		}
-
+private:
 	void release_ref()
 		{
 		assert(m_refcount > 0);
 		--m_refcount;
+		if (m_refcount == 0)
+			delete this;
+		}
+
+public:
+	void add_ref()
+		{
+		++m_refcount;
 		}
 
 	int get_refcount() const
@@ -97,6 +100,17 @@ public:
 		m_size = n;
 		m_data = (T*) aligned_malloc(m_size*sizeof(T));
 		g_flat_bytes[fe] += n*sizeof(T);
+		}
+
+public:
+	template<class U>
+	static void release(U*& ptr)
+		{
+		if (ptr)
+			{
+			ptr->release_ref();
+			ptr = 0;
+			}
 		}
 	};
 

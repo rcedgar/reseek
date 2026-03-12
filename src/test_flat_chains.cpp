@@ -50,6 +50,7 @@ static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
 			diff1, GetPct(diff1, counter),
 			diffgt1, GetPct(diffgt1, counter),
 			chain->m_label.c_str());
+	chaindistmx_t::release(dm);
 	return diffgt1 == 0;
 	}
 
