@@ -2,11 +2,14 @@
 #error "x not defined"
 #endif
 
+x(BASE)
+x(flat_chain)
 x(floatvec)
 x(chainxyz)
 x(chainaa)
 x(chaindistmx)
 x(museq)
+x(featseq)
 x(megaprof)
 x(nnvec)
 x(ss3)

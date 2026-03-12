@@ -590,7 +590,7 @@
     <ClCompile Include="chaq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_flat.cpp">
+    <ClCompile Include="test_flat_chains.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_distmx.cpp">
@@ -603,6 +603,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sec_kmeans.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1016,6 +1019,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tabbedlines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainxyz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chaindistmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainaa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="museq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

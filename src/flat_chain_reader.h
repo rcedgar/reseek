@@ -27,9 +27,9 @@ public:
 	LineReader2 m_LR;
 	string m_Line;
 	vector<string> m_Lines;
-	vector<flat_chain *> m_Chains_PDB;
-	vector<flat_chain *> m_Chains_CIF;
-	vector<flat_chain *> *m_ptrChains = 0;
+	vector<flat_chain_t *> m_Chains_PDB;
+	vector<flat_chain_t *> m_Chains_CIF;
+	vector<flat_chain_t *> *m_ptrChains = 0;
 	uint m_ChainIdx_PDB = 0;
 	uint m_ChainIdx_CIF = 0;
 	uint m_ChainIdx_Vec = 0;
@@ -50,32 +50,32 @@ public:
 public:
 	void Open(const string &FileName);
 	void Open(PDBFileScanner &FS);
-	void Open(vector<flat_chain *> &Chains);
-	flat_chain *GetNext();
+	void Open(vector<flat_chain_t *> &Chains);
+	flat_chain_t *GetNext();
 
 private:
 	void Close();
-	flat_chain *GetNextLo1();
-	flat_chain *GetFirst(const string &FN);
+	flat_chain_t *GetNextLo1();
+	flat_chain_t *GetFirst(const string &FN);
 
-	flat_chain *GetFirst_BCA(const string &FN);
-	flat_chain *GetNext_BCA();
+	flat_chain_t *GetFirst_BCA(const string &FN);
+	flat_chain_t *GetNext_BCA();
 
-	flat_chain *GetFirst_CAL(const string &FN);
-	flat_chain *GetNext_CAL();
+	flat_chain_t *GetFirst_CAL(const string &FN);
+	flat_chain_t *GetNext_CAL();
 
-	flat_chain *GetFirst_PDB(const string &FN);
-	flat_chain *GetNext_PDB();
+	flat_chain_t *GetFirst_PDB(const string &FN);
+	flat_chain_t *GetNext_PDB();
 
-	flat_chain *GetFirst_CIF(const string &FN);
-	flat_chain *GetNext_CIF();
+	flat_chain_t *GetFirst_CIF(const string &FN);
+	flat_chain_t *GetNext_CIF();
 
-	flat_chain *GetNext_Vec();
+	flat_chain_t *GetNext_Vec();
 
 	void ChainsFromLines_PDB(const vector<string> &Lines,
-		vector<flat_chain *> &Chains, const string &Label) const;
+		vector<flat_chain_t *> &Chains, const string &Label) const;
 	void ChainsFromLines_CIF(const vector<string> &Lines,
-		vector<flat_chain *> &Chains, const string &FallbackLabel);
+		vector<flat_chain_t *> &Chains, const string &FallbackLabel);
 	bool IsATOMLine_PDB(const string &Line) const;
 	bool IsChainEndLine_PDB(const string &Line) const;
 	uint GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name);

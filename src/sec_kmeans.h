@@ -17,13 +17,13 @@ public:
 	uint m_D = 0;				// dimension of feature vector, length of m_i/jvalues
 	uint m_M = 0;				// band width for distance matrix (e.g. 64)
 	int m_w = 0;				// band width for sec (e.g. 3), max index in m_i/jvalues
-	int* m_off1s = 0;		// +/- offsets from position
-	int* m_off2s = 0;		// +/- offsets from position
+	int* m_off1s = 0;			// +/- offsets from position
+	int* m_off2s = 0;			// +/- offsets from position
 	sid_t *m_means = 0;			// flat matrix of current means size m_K x m_D
 
 	// Training data
 	////////////////
-	const vector<flat_chain *> *m_chains = 0;
+	const vector<flat_chain_t *> *m_chains = 0;
 	uint m_N = 0;				// number of residues, size of m_vs
 	sid_t *m_vs = 0;			// flat matrix of feature vectors size m_N x m_D
 	uint* m_cluster_idxs = 0;	// current cluster assignments
@@ -438,7 +438,7 @@ public:
 		m_tmpv = myalloc(sid_t, m_D);
 		}
 
-	void set_vs(const vector<flat_chain *> &chains)
+	void set_vs(const vector<flat_chain_t *> &chains)
 		{
 		m_N = 0;
 		m_chains = &chains;
@@ -459,16 +459,16 @@ public:
 		memset(m_vs, 0xff, m_D*total_length*sizeof(sid_t));
 #endif
 
-		chaq c;
 		uint residue_idx = 0;
 		uint bad_backbones = 0;
 		for (uint chain_idx = 0; chain_idx < nrchains; ++chain_idx)
 			{
-			const flat_chain *chain = chains[chain_idx];
+			const flat_chain_t* chain = chains[chain_idx];
 			const int L = (int) chain->get_length();
 
-			c.init(chain);
-			const chaindistmx_t* dm = c.get_distmx(m_M);
+			//auto dm = chaindistmx_t::newflat();
+			auto dm = chaindistmx_t::newflat(0);
+			chaq::create_distmx(*chain, dm, m_M);
 			const sid_t *distmx = dm->m_data;
 			for (int pos = m_w; pos < L - m_w; ++pos)
 				{
@@ -567,21 +567,21 @@ public:
 		for (uint i = 0; i < m_K; ++i)
 			countmx[i].resize(4);
 
-		chaq c;
 		uint nrchains = SIZE(*m_chains);
 		for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
 			{
-			const flat_chain *chain = (*m_chains)[chainidx];
-			c.init(chain);
+			const flat_chain_t* chain =(*m_chains)[chainidx];
 			const uint L = chain->get_length();
-			const chaindistmx_t *dm = c.get_distmx(m_M);
+			//auto dm = chaindistmx_t::newflat();
+			auto dm = chaindistmx_t::newflat(0);
+			chaq::create_distmx(*chain, dm, m_M);
 			const sid_t *distmx = dm->m_data;
 
 			uint8_t *intseq = myalloc(uint8_t, L);
 			get_intseq(distmx, L, intseq);
 
 			uint8_t *ss4intseq = myalloc(uint8_t, L);
-			c.get_ss4_intseq(distmx, m_M, L, ss4intseq);
+			chaq::get_ss4_intseq(distmx, m_M, L, ss4intseq);
 
 			for (uint pos = 2; pos < L - 2; ++pos)
 				{

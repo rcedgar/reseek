@@ -203,14 +203,12 @@ static inline void aos_to_soa_u16(
     }
 }
 
-flat_chain *BCAData::read_flat_chain(uint64 ChainIdx) const
+flat_chain_t* BCAData::read_flat_chain(uint64 ChainIdx) const
 	{
 	asserta(m_Reading && !m_Writing);
-	flat_chain *chain = new flat_chain;
 	uint L = GetSeqLength(ChainIdx);
+	auto chain = flat_chain_t::newflat(L);
 	uint64 SeqOffset = GetSeqOffset(ChainIdx);
-	//char *Seq = myalloc(char, L+1);
-	chain->m_aa = create_chainaa(L);
 	m_ReadLock.lock();
 	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, chain->m_aa->m_data, L);
 	if (nL != L)
@@ -224,7 +222,6 @@ flat_chain *BCAData::read_flat_chain(uint64 ChainIdx) const
 		Die("BCAData::ReadChain(#2)");
 		}
 
-	chain->m_xyz = create_chainxyz(L);
 	uint64 BytesToRead = 6*L;
 	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L,
 		chain->m_xyz->m_data, BytesToRead);

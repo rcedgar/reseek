@@ -1,42 +1,57 @@
 #pragma once
 
 #include "flat_base.h"
+#include "chainaa.h"
+#include "chainxyz.h"
 
 static const size_t RESERVE_CHAIN_LENGTH = 400;
 //static const uint M = 64;
 
-class flat_chain
+class flat_chain_t : public flat_base<uint32_t, FE_flat_chain>
 	{
 public:
-	string m_label;
-	chainxyz_t *m_xyz;
-	chainaa_t *m_aa;
+	uint32_t m_L = 0;
+	string m_label = "_null_";
+	chainxyz_t *m_xyz = 0;
+	chainaa_t *m_aa = 0;
 	vector<string> m_lines;
 
-	flat_chain()
+protected:
+	flat_chain_t(uint32_t L) :
+		flat_base<uint32_t, FE_flat_chain>(L)
 		{
-		m_label = "(undef)";
-		m_xyz = nullptr;
-		m_aa = nullptr;
+		if (L == 0)
+			{
+			m_L = 0;
+			m_label = "_null_";
+			m_xyz = 0;
+			m_aa = 0;
+			}
+		else
+			{
+			m_L = L;
+#if TRACK_SRC
+			m_xyz = chainxyz_t::newflat_src(L, m_srcfile, m_srcline);
+			m_aa = chainaa_t::newflat_src(L, m_srcfile, m_srcline);
+#else
+			m_xyz = chainxyz_t::newflat(L);
+			m_aa = chainaa_t::newflat(L);
+#endif
+			}
 		}
 
-	flat_chain(
-		const string &label,
-		const vector<char> aas,
-		const vector<float> &Xs,
-		const vector<float> &Ys,
-		const vector<float> &Zs);
-
-	~flat_chain()
+public:
+	void falloc(uint L)
 		{
-		clear();
-		}
-
-	void clear()
-		{
-		m_lines.clear();
-		down0(m_xyz);
-		down0(m_aa);
+		asserta(m_L == 0);
+		m_L = L;
+#if TRACK_SRC
+		m_aa = chainaa_t::newflat_src(m_L, m_srcfile, m_srcline);
+		m_xyz = chainxyz_t::newflat_src(m_L, m_srcfile, m_srcline);
+#else
+		m_aa = chainaa_t::newflat(m_L);
+		m_xyz = chainxyz_t::newflat(m_L);
+#endif
 		}
 
 	void set_xyz(const vector<float> &Xs,
@@ -51,7 +66,7 @@ public:
 
 	uint32_t get_length() const
 		{
-		assert(m_aa); return m_aa->m_size;
+		return m_L;
 		}
 
 	void get_ic_xyz(uint i, ic_t &ic_x, ic_t &ic_y, ic_t &ic_z) const
@@ -65,7 +80,6 @@ public:
 
 	void get_coords(uint i, float &x, float &y, float &z) const
 		{
-		assert(m_xyz != 0);
 		const uint16_t *data = m_xyz->m_data;
 		uint k = 3*i;
 		uint ic_x = data[k];
@@ -105,7 +119,6 @@ public:
 
 	char get_aa(uint i) const
 		{
-		assert(m_xyz != 0);
 		assert(i < m_aa->m_size);
 		return m_aa->m_data[i];
 		}
@@ -113,6 +126,70 @@ public:
 public:
 	static uint16_t coord2ic(float X) { return uint16_t((X + 1000)*10 + 0.5); }
 	static float ic2coord(uint16_t IC) { return float(IC/10.0f) - 1000; }
+
+#if TRACK_SRC
+	static flat_chain_t* newflat_src(uint32_t L,
+		const char *srcfile, int srcline)
+		{
+		flat_chain_t *chain = new flat_chain_t(L);
+		chain->m_srcfile = srcfile;
+		chain->m_srcline = srcline;
+
+		chain->m_aa->m_srcfile = srcfile;
+		chain->m_aa->m_srcline = srcline;
+
+		chain->m_xyz->m_srcfile = srcfile;
+		chain->m_xyz->m_srcline = srcline;
+		return chain;
+		}
+
+	static flat_chain_t* newflat_src(
+		const string &label,
+		const vector<char> &aas,
+		const vector<float> &Xs,
+		const vector<float> &Ys,
+		const vector<float> &Zs,
+		const char *srcfile, int srcline)
+		{
+		uint32_t L = SIZE(aas);
+		assert(SIZE(Xs) == L);
+		assert(SIZE(Ys) == L);
+		assert(SIZE(Zs) == L);
+
+		flat_chain_t *chain = newflat(L);
+		chain->m_label = label;
+		chain->set_aa(aas);
+		chain->set_xyz(Xs, Ys, Zs);
+		chain->m_srcfile = srcfile;
+		chain->m_srcline = srcline;
+		return chain;
+		}
+#else
+	static flat_chain_t* newflat(uint32_t L)
+		{
+		flat_chain_t *chain = new flat_chain_t(L);
+		return chain;
+		}
+
+	static flat_chain_t* newflat(
+		const string &label,
+		const vector<char> &aas,
+		const vector<float> &Xs,
+		const vector<float> &Ys,
+		const vector<float> &Zs)
+		{
+		uint32_t L = SIZE(aas);
+		assert(SIZE(Xs) == L);
+		assert(SIZE(Ys) == L);
+		assert(SIZE(Zs) == L);
+
+		flat_chain_t *chain = newflat(L);
+		chain->m_label = label;
+		chain->set_aa(aas);
+		chain->set_xyz(Xs, Ys, Zs);
+		return chain;
+		}
+#endif
 	};
 
-void read_flat_chains(const string &fn, vector<flat_chain *> &chains);
+void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains);

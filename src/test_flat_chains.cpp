@@ -10,11 +10,11 @@
 
 static const uint M = 256;
 
-static bool test_dist_mx(DSS &D, chaq &c)
+static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
 	{
-	const flat_chain *chain = c.m_chain;
 	const PDBChain &Chain = *D.m_Chain;
-	const chaindistmx_t *dm = c.get_distmx(M);
+	auto dm = chaindistmx_t::newflat(0);
+	chaq::create_distmx(*chain, dm, M);
 	const sid_t *distmx = dm->m_data;
 	uint L = D.GetSeqLength();
 	asserta(chain->get_length() == L);
@@ -53,21 +53,21 @@ static bool test_dist_mx(DSS &D, chaq &c)
 	return diffgt1 == 0;
 	}
 
-static void test_nn(DSS &D, chaq &c)
+static void test_nn(DSS &D, const flat_chain_t &chain)
 	{
-	const flat_chain *chain = c.m_chain;
-	const PDBChain &Chain = *D.m_Chain;
-	c.get_distmx(M);
+	Die("TODO");
+	//const PDBChain &Chain = *D.m_Chain;
+	//c.get_distmx(M);
 
-	const uint L = Chain.GetSeqLength();
-	for (uint i = 0; i < L; ++i)
-		{
-		uint PEN = D.GetPEN(i);
-		uint MEN = D.GetMEN(i);
-		uint pen = c.get_pen(i);
-		uint men = c.get_men(i);
-		Log("%4u | %4u  %4u | %4u  %4u\n", i, PEN, pen, MEN, men);
-		}
+	//const uint L = Chain.GetSeqLength();
+	//for (uint i = 0; i < L; ++i)
+	//	{
+	//	uint PEN = D.GetPEN(i);
+	//	uint MEN = D.GetMEN(i);
+	//	uint pen = c.get_pen(i);
+	//	uint men = c.get_men(i);
+	//	Log("%4u | %4u  %4u | %4u  %4u\n", i, PEN, pen, MEN, men);
+	//	}
 	}
 
 static void test_ic()
@@ -286,16 +286,14 @@ void cmd_test_flat_dist_types()
 	test_ic();
 	}
 
-void cmd_test_flat()
+void cmd_test_flat_chains()
 	{
 	vector<PDBChain *> Chains;
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *> chains;
 	ReadChains(g_Arg1, Chains);
 	const uint ChainCount = SIZE(Chains);
 
 	DSS D;
-	chaq c;
-
 	PDBFileScanner FS;
 	FS.Open(g_Arg1);
 	flat_chain_reader CR;
@@ -305,7 +303,7 @@ void cmd_test_flat()
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Processing %.3g%% errs.", GetPct(n, N));
-		flat_chain *chain = CR.GetNext();
+		flat_chain_t* chain = CR.GetNext();
 		asserta(chain);
 		const PDBChain &Chain = *Chains[ChainIdx];
 		asserta(chain->m_label == Chain.m_Label);
@@ -315,15 +313,11 @@ void cmd_test_flat()
 		if (L < 8)
 			continue;
 
-		c.init(chain);
-		//test_nn(D, c);
-		bool ok = test_dist_mx(D, c);
+		bool ok = test_dist_mx(D, chain);
 		++N;
 		if (!ok)
 			++n;
 		_chkmem();
-
-		delete chain;
 		}
 	ProgressLog("%u / %u (%.2f%%) distmx with diffs > 1\n",
 		n, N, GetPct(n, N));

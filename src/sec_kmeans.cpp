@@ -5,7 +5,7 @@
 #include "quarts.h"
 #include "alpha.h"
 
-static bool check_backbone(const flat_chain *chain)
+static bool check_backbone(const flat_chain_t* chain)
 	{
 	const uint L = chain->get_length();
 	for (uint i = 1; i < L; ++i)
@@ -21,16 +21,15 @@ void cmd_sec_variance()
 	{
 	asserta(optset_output);
 	FILE *fOut = CreateStdioFile(opt(output));
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *>chains;
 	read_flat_chains(g_Arg1, chains);
 	const uint nrchains = SIZE(chains);
-	chaq c;
 	const uint M = 32;
 	const int w = 16;
 	vector<vector<float> > dists(w+1);
 	for (uint chain_idx = 0; chain_idx < nrchains; ++chain_idx)
 		{
-		const flat_chain *chain = chains[chain_idx];
+		const flat_chain_t* chain = chains[chain_idx];
 		if (!check_backbone(chain))
 			continue;
 		const uint L = chain->get_length();
@@ -71,7 +70,7 @@ void cmd_sec_variance()
 
 void cmd_sec_kmeans()
 	{
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *>chains;
 	read_flat_chains(g_Arg1, chains);
 	const uint nrchains = SIZE(chains);
 
@@ -146,7 +145,7 @@ void cmd_sec_fasta()
 	{
 	const uint M = 32;
 
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *>chains;
 	read_flat_chains(g_Arg1, chains);
 	const uint nrchains = SIZE(chains);
 
@@ -156,13 +155,12 @@ void cmd_sec_fasta()
 
 	FILE *ffa = CreateStdioFile(opt(output));
 
-	chaq c;
 	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
 		{
-		const flat_chain *chain = chains[chainidx];
-		c.init(chain);
+		const flat_chain_t* chain = chains[chainidx];
 		const uint L = chain->get_length();
-		const chaindistmx_t *dm = c.get_distmx(M);
+		auto dm = chaindistmx_t::newflat(0);
+		chaq::create_distmx(*chain, dm, M);
 		const sid_t *distmx = dm->m_data;
 		uint8_t *intseq = myalloc(uint8_t, L);
 		SK.get_intseq(distmx, L, intseq);

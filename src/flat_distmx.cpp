@@ -103,7 +103,7 @@ static inline void fill_men(sid_t *__restrict sdmx,
 		}
 	}
 
-static uint compare_fill(const flat_chain &chain, uint32_t M,
+static uint compare_fill(const flat_chain_t &chain, uint32_t M,
 	const sid_t *sdmx)
 	{
 	const uint L = chain.get_length();
@@ -145,7 +145,7 @@ static uint compare_fill(const flat_chain &chain, uint32_t M,
 	return diffs;
 	}
 
-static uint compare_pen(const flat_chain &chain, uint M, uint m,
+static uint compare_pen(const flat_chain_t &chain, uint M, uint m,
 	const uint16_t *pen)
 	{
 	const uint L = chain.get_length();
@@ -172,7 +172,7 @@ static uint compare_pen(const flat_chain &chain, uint M, uint m,
 	return diffs;
 	}
 
-static uint compare_men(const flat_chain &chain, uint M, uint m,
+static uint compare_men(const flat_chain_t &chain, uint M, uint m,
 	const uint16_t *men)
 	{
 	const uint L = chain.get_length();
@@ -199,7 +199,7 @@ static uint compare_men(const flat_chain &chain, uint M, uint m,
 	return diffs;
 	}
 
-static void test_distmx(const vector<flat_chain *> &chains, uint M)
+static void test_distmx(const vector<flat_chain_t *> &chains, uint M)
 	{
 	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
@@ -208,13 +208,12 @@ static void test_distmx(const vector<flat_chain *> &chains, uint M)
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const flat_chain &chain = *chains[ChainIdx];
+		const flat_chain_t &chain = *chains[ChainIdx];
 		const uint L = chain.get_length();
 		const uint K = L*M;
-		const chainxyz_t *xyz = chain.m_xyz;
 		sid_t *sdmx = myalloc(sid_t, K);
 		TICKS t1 = GetClockTicks();
-		fill_flat_distmx(xyz->m_data, L, M, sdmx);
+		fill_flat_distmx(chain.m_xyz->m_data, L, M, sdmx);
 		TICKS t2 = GetClockTicks();
 		total_ticks += t2 - t1;
 		uint diffs = compare_fill(chain, M, sdmx);
@@ -223,7 +222,7 @@ static void test_distmx(const vector<flat_chain *> &chains, uint M)
 	ProgressLog("%.3g ticks, %u diffs sd\n", double(total_ticks), total_diffs);
 	}
 
-static void test_pen(const vector<flat_chain *> &chains, uint M, uint m)
+static void test_pen(const vector<flat_chain_t *> &chains, uint M, uint m)
 	{
 	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
@@ -232,7 +231,7 @@ static void test_pen(const vector<flat_chain *> &chains, uint M, uint m)
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const flat_chain &chain = *chains[ChainIdx];
+		const flat_chain_t &chain = *chains[ChainIdx];
 		const uint L = chain.get_length();
 		const uint K = L*M;
 		const uint16_t *xyz = chain.m_xyz->m_data;
@@ -252,7 +251,7 @@ static void test_pen(const vector<flat_chain *> &chains, uint M, uint m)
 	ProgressLog("%.3g ticks, %u diffs pen\n", double(total_ticks), total_diffs);
 	}
 
-static void test_men(const vector<flat_chain *> &chains, uint M, uint m)
+static void test_men(const vector<flat_chain_t *> &chains, uint M, uint m)
 	{
 	const uint ChainCount = SIZE(chains);
 	vector<uint16_t> ICs;
@@ -261,7 +260,7 @@ static void test_men(const vector<flat_chain *> &chains, uint M, uint m)
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "working diffs %u", total_diffs);
-		const flat_chain &chain = *chains[ChainIdx];
+		const flat_chain_t &chain = *chains[ChainIdx];
 		const uint L = chain.get_length();
 		const uint K = L*M;
 		const uint16_t *xyz = chain.m_xyz->m_data;
@@ -285,7 +284,7 @@ void cmd_test_flat_distmx()
 	{
 	uint32_t M = 48;
 	test_indexing(M);
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
 	test_distmx(chains, M);
 	test_pen(chains, M, 16);

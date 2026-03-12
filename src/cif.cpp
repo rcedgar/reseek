@@ -299,7 +299,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	}
 
 void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
-	vector<flat_chain *> &Chains, const string &FallbackLabel)
+	vector<flat_chain_t *> &Chains, const string &FallbackLabel)
 	{
 	Chains.clear();
 	string TmpBaseLabel = FallbackLabel;
@@ -454,7 +454,7 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 				{
 				string Label = BaseLabel;
 				ChainizeLabel(Label, CurrentChainStr);
-				flat_chain *chain = new flat_chain(Label, aas, Xs, Ys, Zs);
+				auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
 				Chains.push_back(chain);
 				aas.clear();
 				Xs.clear();
@@ -481,7 +481,7 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 		{
 		string Label = BaseLabel;
 		ChainizeLabel(Label, CurrentChainStr);
-		flat_chain *chain = new flat_chain(Label, aas, Xs, Ys, Zs);
+		auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
 		Chains.push_back(chain);
 		}
 	}

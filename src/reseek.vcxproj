@@ -82,8 +82,8 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateManifest>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PreBuildEventUseInBuild>
-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
@@ -423,7 +423,8 @@
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="subsetbench.cpp" />
-    <ClCompile Include="test_flat.cpp" />
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="test_flat_chains.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="todo.cpp" />
     <ClCompile Include="tracealn.cpp" />
@@ -474,10 +475,13 @@
     <ClInclude Include="bytevecdb.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
+    <ClInclude Include="chainaa.h" />
     <ClInclude Include="chainbag.h" />
     <ClInclude Include="chaindata.h" />
+    <ClInclude Include="chaindistmx.h" />
     <ClInclude Include="chainer.h" />
     <ClInclude Include="chainreader2.h" />
+    <ClInclude Include="chainxyz.h" />
     <ClInclude Include="chaq.h" />
     <ClInclude Include="cif.h" />
     <ClInclude Include="cigar.h" />
@@ -521,6 +525,7 @@
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
     <ClInclude Include="museqsource.h" />
+    <ClInclude Include="museq.h" />
     <ClInclude Include="myallocator.h" />
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />

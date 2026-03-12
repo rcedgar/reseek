@@ -420,4 +420,20 @@ double GetTicksPerSec();
 
 #define TRACE_XDROP	0
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define warn(msg) _Pragma("GCC warning \"" msg "\"")
+#elif defined(_MSC_VER)
+    #define warn(msg) __pragma(message("WARNING: " msg))
+#else
+    #define warn(msg)
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define todo _Pragma("GCC warning TODO " __FILE__)
+#elif defined(_MSC_VER)
+    #define todo __pragma(warning())
+#else
+    #define todo	/* empty */
+#endif
+
 #endif	// myutils_h

@@ -6,12 +6,11 @@
 
 void ChainizeLabel(string &Label, const string &_ChainStr);
 
-void flat_chain::set_xyz(const vector<float> &Xs,
+void flat_chain_t::set_xyz(const vector<float> &Xs,
 	const vector<float> &Ys, const vector<float> &Zs)
 	{
 	const uint32_t L = SIZE(Xs);
-	down0(m_xyz);
-	m_xyz = create_chainxyz(L);
+	m_xyz->falloc(L);
 	for (uint32_t i = 0; i < L; ++i)
 		{
 		uint16_t ic_x = PDBChain::CoordToIC(Xs[i]);
@@ -23,18 +22,16 @@ void flat_chain::set_xyz(const vector<float> &Xs,
 		}
 	}
 
-void flat_chain::set_aa(const vector<char> &aas)
+void flat_chain_t::set_aa(const vector<char> &aas)
 	{
 	const uint32_t L = SIZE(aas);
-	down0(m_aa);
-	m_aa = create_chainaa(L);
+	m_aa->falloc(L);
 	memcpy(m_aa->m_data, aas.data(), L);
 	}
 
-bool flat_chain::from_pdb_lines(const string &label,
+bool flat_chain_t::from_pdb_lines(const string &label,
 	const vector<string> &lines, bool save_lines)
 	{
-	clear();
 	if (save_lines)
 		m_lines = lines;
 	m_label = label;
@@ -62,7 +59,7 @@ bool flat_chain::from_pdb_lines(const string &label,
 		if (ChainStr == "")
 			ChainStr = lineChainStr;
 		else if (ChainStr != lineChainStr)
-			Die("flat_chain::from_pdb_lines() two chains %s, %s",
+			Die("flat_chain_t::from_pdb_lines() two chains %s, %s",
 			  ChainStr.c_str(), lineChainStr.c_str());
 
 		char aa;
@@ -84,7 +81,7 @@ bool flat_chain::from_pdb_lines(const string &label,
 	return Ok;
 	}
 
-void read_flat_chains(const string &fn, vector<flat_chain *> &chains)
+void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains)
 	{
 	PDBFileScanner FS;
 	FS.Open(fn);
@@ -93,29 +90,28 @@ void read_flat_chains(const string &fn, vector<flat_chain *> &chains)
 	CR.Open(FS);
 	for (;;)
 		{
-		flat_chain *chain = CR.GetNext();
-		if (chain == 0)
+		flat_chain_t *chain = CR.GetNext();
+		if (!chain)
 			break;
 		chains.push_back(chain);
 		}
 	}
 
-
-void flat_chain::to_fasta(const string &fn) const
+void flat_chain_t::to_fasta(const string &fn) const
 	{
 	FILE *f = CreateStdioFile(fn);
 	to_fasta(f);
 	CloseStdioFile(f);
 	}
 
-void flat_chain::to_cal(const string &fn) const
+void flat_chain_t::to_cal(const string &fn) const
 	{
 	FILE *f = CreateStdioFile(fn);
 	to_cal(f);
 	CloseStdioFile(f);
 	}
 
-void flat_chain::to_fasta(FILE *f) const
+void flat_chain_t::to_fasta(FILE *f) const
 	{
 	if (f == 0)
 		return;
@@ -123,7 +119,7 @@ void flat_chain::to_fasta(FILE *f) const
 	SeqToFasta(f, m_label, seq);
 	}
 
-void flat_chain::to_cal(FILE *f) const
+void flat_chain_t::to_cal(FILE *f) const
 	{
 	if (f == 0)
 		return;
@@ -140,7 +136,7 @@ void flat_chain::to_cal(FILE *f) const
 
 void cmd_test()
 	{
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *>chains;
 	read_flat_chains(g_Arg1, chains);
 	FILE *f = CreateStdioFile(opt(output));
 	uint n = SIZE(chains);

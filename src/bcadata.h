@@ -1,7 +1,7 @@
 #pragma once
 
 class PDBChain;
-class flat_chain;
+#include "flat_chain.h"
 
 // Binary C-alpha
 class BCAData
@@ -24,7 +24,7 @@ public:
 	void Open(const string &FN);
 	void WriteChain(const PDBChain &Chain);
 	void ReadChain(uint64 ChainIdx, PDBChain &Chain) const;
-	flat_chain *read_flat_chain(uint64 ChainIdx) const;
+	flat_chain_t* read_flat_chain(uint64 ChainIdx) const;
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;

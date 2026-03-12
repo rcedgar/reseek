@@ -1,22 +1,9 @@
 #include "myutils.h"
+#include "flat_chain.h"
 #include "flat_chain_reader.h"
 
 uint flat_chain_reader::m_CRGlobalChainCount;
 uint flat_chain_reader::m_CRGlobalFormatErrors;
-
-flat_chain::flat_chain(
-	const string &label,
-	const vector<char> aas,
-	const vector<float> &Xs,
-	const vector<float> &Ys,
-	const vector<float> &Zs)
-	{
-	m_label = label;
-	m_aa = nullptr;
-	m_xyz = nullptr;
-	set_aa(aas);
-	set_xyz(Xs, Ys, Zs);
-	}
 
 void flat_chain_reader::Close()
 	{
@@ -52,7 +39,7 @@ void flat_chain_reader::Open(PDBFileScanner &FS)
 	m_CRGlobalChainCount = 0;
 	}
 
-void flat_chain_reader::Open(vector<flat_chain *> &Chains)
+void flat_chain_reader::Open(vector<flat_chain_t *> &Chains)
 	{
 	asserta(m_State == STATE_Closed);
 	m_ptrChains = &Chains;
@@ -60,7 +47,7 @@ void flat_chain_reader::Open(vector<flat_chain *> &Chains)
 	}
 
 // Files first, then directories to reduce queue
-flat_chain *flat_chain_reader::GetFirst(const string &FN)
+flat_chain_t* flat_chain_reader::GetFirst(const string &FN)
 	{
 	m_CurrentFN = FN;
 
@@ -71,29 +58,29 @@ flat_chain *flat_chain_reader::GetFirst(const string &FN)
 	if (Ext == "cal")
 		{
 		m_State = STATE_ReadingCALFile;
-		flat_chain *Chain = GetFirst_CAL(FN);
-		if (Chain != 0)
+		flat_chain_t* Chain = GetFirst_CAL(FN);
+		if (Chain)
 			return Chain;
 		}
 	else if (Ext == "bca")
 		{
 		m_State = STATE_ReadingBCAFile;
-		flat_chain *Chain = GetFirst_BCA(FN);
-		if (Chain != 0)
+		flat_chain_t* Chain = GetFirst_BCA(FN);
+		if (Chain)
 			return Chain;
 		}
 	else if (Ext == "pdb" || Ext == "pdb.gz" || Ext == "ent" || Ext == "ent.gz")
 		{
 		m_State = STATE_ReadingPDBFile;
-		flat_chain *Chain = GetFirst_PDB(FN);
-		if (Chain != 0)
+		flat_chain_t* Chain = GetFirst_PDB(FN);
+		if (Chain)
 			return Chain;
 		}
 	else if (Ext == "cif" || Ext == "cif.gz" || Ext == "mmcif" || Ext == "mmcif.gz")
 		{
 		m_State = STATE_ReadingCIFFile;
-		flat_chain *Chain = GetFirst_CIF(FN);
-		if (Chain != 0)
+		flat_chain_t* Chain = GetFirst_CIF(FN);
+		if (Chain)
 			return Chain;
 		}
 	else
@@ -101,7 +88,7 @@ flat_chain *flat_chain_reader::GetFirst(const string &FN)
 	return 0;
 	}
 
-flat_chain *flat_chain_reader::GetNext()
+flat_chain_t* flat_chain_reader::GetNext()
 	{
 	for (uint SanityCounter = 0; ; ++SanityCounter)
 		{
@@ -109,22 +96,19 @@ flat_chain *flat_chain_reader::GetNext()
 			Warning("Excessive looping in flat_chain_reader::GetNext()");
 
 		m_CRPerThreadLock.lock();
-		flat_chain *Chain = GetNextLo1();
+		flat_chain_t* Chain = GetNextLo1();
 		m_CRPerThreadLock.unlock();
 
-		if (Chain == 0)
+		if (!Chain)
 			return 0;
 
 		if (Chain->get_length() == 0)
-			{
-			delete Chain;
 			continue;
-			}
 		return Chain;
 		}
 	}
 
-flat_chain *flat_chain_reader::GetNextLo1()
+flat_chain_t* flat_chain_reader::GetNextLo1()
 	{
 	for (uint SanityCounter = 0; SanityCounter < 100; ++SanityCounter)
 		{
@@ -140,16 +124,16 @@ flat_chain *flat_chain_reader::GetNextLo1()
 			bool Ok = m_ptrFS->GetNext(FN);
 			if (!Ok)
 				return 0;
-			flat_chain *Chain = GetFirst(FN);
-			if (Chain != 0)
+			flat_chain_t* Chain = GetFirst(FN);
+			if (Chain)
 				return Chain;
 			continue;
 			}
 
 		case STATE_ReadingCALFile:
 			{
-			flat_chain *Chain = GetNext_CAL();
-			if (Chain != 0)
+			flat_chain_t* Chain = GetNext_CAL();
+			if (Chain)
 				return Chain;
 			if (m_Trace) Log("GetNext_CAL()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
@@ -158,8 +142,8 @@ flat_chain *flat_chain_reader::GetNextLo1()
 
 		case STATE_ReadingBCAFile:
 			{
-			flat_chain *Chain = GetNext_BCA();
-			if (Chain != 0)
+			flat_chain_t* Chain = GetNext_BCA();
+			if (Chain)
 				return Chain;
 			if (m_Trace) Log("GetNext_BCA()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
@@ -168,8 +152,8 @@ flat_chain *flat_chain_reader::GetNextLo1()
 
 		case STATE_ReadingPDBFile:
 			{
-			flat_chain *Chain = GetNext_PDB();
-			if (Chain != 0)
+			flat_chain_t* Chain = GetNext_PDB();
+			if (Chain)
 				return Chain;
 			if (m_Trace) Log("GetNext_PDB()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
@@ -178,8 +162,8 @@ flat_chain *flat_chain_reader::GetNextLo1()
 
 		case STATE_ReadingCIFFile:
 			{
-			flat_chain *Chain = GetNext_CIF();
-			if (Chain != 0)
+			flat_chain_t* Chain = GetNext_CIF();
+			if (Chain)
 				return Chain;
 			if (m_Trace) Log("GetNext_CIF()=0, state->PendingFile\n");
 			m_State = STATE_PendingFile;
@@ -212,14 +196,14 @@ void flat_chain_reader::GetFallbackLabelFromFN(const string &FN, string &Label)
 		}
 	}
 
-flat_chain *flat_chain_reader::GetFirst_BCA(const string &FN)
+flat_chain_t* flat_chain_reader::GetFirst_BCA(const string &FN)
 	{
 	m_BCA.Open(FN);
 	m_ChainIdx_BCA = 0;
 	return GetNext_BCA();
 	}
 
-flat_chain *flat_chain_reader::GetNext_BCA()
+flat_chain_t* flat_chain_reader::GetNext_BCA()
 	{
 	uint64 ChainCount = m_BCA.GetChainCount();
 	if (m_ChainIdx_BCA >= ChainCount)
@@ -227,11 +211,11 @@ flat_chain *flat_chain_reader::GetNext_BCA()
 		m_BCA.Close();
 		return 0;
 		}
-	flat_chain *chain = m_BCA.read_flat_chain(m_ChainIdx_BCA++);
+	flat_chain_t* chain = m_BCA.read_flat_chain(m_ChainIdx_BCA++);
 	return chain;
 	}
 
-flat_chain *flat_chain_reader::GetFirst_CAL(const string &FN)
+flat_chain_t* flat_chain_reader::GetFirst_CAL(const string &FN)
 	{
 	m_LR.Open(FN);
 	bool Ok = m_LR.ReadLine(m_Line);
@@ -241,7 +225,7 @@ flat_chain *flat_chain_reader::GetFirst_CAL(const string &FN)
 	return GetNext_CAL();
 	}
 
-flat_chain *flat_chain_reader::GetNext_CAL()
+flat_chain_t* flat_chain_reader::GetNext_CAL()
 	{
 	if (m_LR.m_EOF)
 		{
@@ -297,11 +281,11 @@ F       40.340  3.621   14.036
 		Ys.push_back(Y);
 		Zs.push_back(Z);
 		}
-	flat_chain *chain = new flat_chain(Label, aas, Xs, Ys, Zs);
+	auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
 	return chain;
 	}
 
-flat_chain *flat_chain_reader::GetFirst_PDB(const string &FN)
+flat_chain_t* flat_chain_reader::GetFirst_PDB(const string &FN)
 	{
 	ReadLinesFromFile(FN, m_Lines);
 	string Label;
@@ -311,7 +295,7 @@ flat_chain *flat_chain_reader::GetFirst_PDB(const string &FN)
 	return GetNext_PDB();
 	}
 
-flat_chain *flat_chain_reader::GetFirst_CIF(const string &FN)
+flat_chain_t* flat_chain_reader::GetFirst_CIF(const string &FN)
 	{
 	ReadLinesFromFile(FN, m_Lines);
 
@@ -322,36 +306,36 @@ flat_chain *flat_chain_reader::GetFirst_CIF(const string &FN)
 	return GetNext_CIF();
 	}
 
-flat_chain *flat_chain_reader::GetNext_PDB()
+flat_chain_t* flat_chain_reader::GetNext_PDB()
 	{
 	const uint N = SIZE(m_Chains_PDB);
 	if (m_ChainIdx_PDB == N)
 		return 0;
 	asserta(m_ChainIdx_PDB < N);
-	flat_chain *Chain = m_Chains_PDB[m_ChainIdx_PDB++];
+	flat_chain_t* Chain = m_Chains_PDB[m_ChainIdx_PDB++];
 	if (m_Trace) Log("flat_chain_reader::GetNext_PDB() %u/%u Label=%s\n", m_ChainIdx_PDB, N, Chain->m_label.c_str());
 	return Chain;
 	}
 
-flat_chain *flat_chain_reader::GetNext_Vec()
+flat_chain_t* flat_chain_reader::GetNext_Vec()
 	{
 	asserta(m_ptrChains != 0);
 	const uint N = SIZE(*m_ptrChains);
 	if (m_ChainIdx_Vec == N)
 		return 0;
 	asserta(m_ChainIdx_CIF < N);
-	flat_chain *Chain = (*m_ptrChains)[m_ChainIdx_Vec++];
+	flat_chain_t* Chain = (*m_ptrChains)[m_ChainIdx_Vec++];
 	if (m_Trace) Log("flat_chain_reader::GetNext_Vec() %u/%u Label=%s\n", m_ChainIdx_Vec, N, Chain->m_label.c_str());
 	return Chain;
 	}
 
-flat_chain *flat_chain_reader::GetNext_CIF()
+flat_chain_t* flat_chain_reader::GetNext_CIF()
 	{
 	const uint N = SIZE(m_Chains_CIF);
 	if (m_ChainIdx_CIF == N)
 		return 0;
 	asserta(m_ChainIdx_CIF < N);
-	flat_chain *Chain = m_Chains_CIF[m_ChainIdx_CIF++];
+	flat_chain_t* Chain = m_Chains_CIF[m_ChainIdx_CIF++];
 	if (m_Trace) Log("flat_chain_reader::GetNext_CIF() %u/%u Label=%s\n", m_ChainIdx_CIF, N, Chain->m_label.c_str());
 	return Chain;
 	}
@@ -373,7 +357,7 @@ bool flat_chain_reader::IsChainEndLine_PDB(const string &Line) const
 	}
 
 void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
-  vector<flat_chain *> &Chains, const string &Label) const
+  vector<flat_chain_t *> &Chains, const string &Label) const
 	{
 	Chains.clear();
 	const uint N = SIZE(Lines);
@@ -395,13 +379,11 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 				{
 				if (AnyAtoms && !ChainLines.empty())
 					{
-					flat_chain *Chain = new flat_chain;
+					flat_chain_t* Chain = flat_chain_t::newflat(0);
 					string ChainStr;
 					bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
 					if (Ok)
 						Chains.push_back(Chain);
-					else
-						delete Chain;
 					ChainLines.clear();
 					EndOfChainFound = false;
 					AnyAtoms = false;
@@ -416,7 +398,7 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 
 	if (!ChainLines.empty() && AnyAtoms)
 		{
-		flat_chain *Chain = new flat_chain;
+		flat_chain_t* Chain = flat_chain_t::newflat(0);
 		bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
 		ChainLines.clear();
 		Chains.push_back(Chain);

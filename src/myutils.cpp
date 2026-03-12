@@ -1091,7 +1091,7 @@ const char *MemBytesToStr(double Bytes)
 	static char Str[SIZE_32];
 
 	if (Bytes < 1e4)
-		snprintf(Str, SIZE_32, "%.1fb", Bytes);
+		snprintf(Str, SIZE_32, "%.0f", Bytes);
 	else if (Bytes < 1e6)
 		snprintf(Str, SIZE_32, "%.1fkb", Bytes/1e3);
 	else if (Bytes < 10e6)

@@ -8,10 +8,10 @@
 static uint M = 64;
 static uint m = 8;
 
-static void upd_nen_di(const chaindistmx_t *dm,
+static void upd_nen_di(const chaindistmx_t &dm,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm->m_data;
+	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint nendi = 0;
 	sid_t minsid = UINT16_MAX;
@@ -34,10 +34,10 @@ static void upd_nen_di(const chaindistmx_t *dm,
 		++counts[nendi];
 	}
 
-static void upd_fen_di(const chaindistmx_t *dm,
+static void upd_fen_di(const chaindistmx_t &dm,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm->m_data;
+	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint fendi = 0;
 	sid_t maxsid = 0;
@@ -60,10 +60,10 @@ static void upd_fen_di(const chaindistmx_t *dm,
 		++counts[fendi];
 	}
 
-static void upd_nen_dx(const chaindistmx_t *dm,
+static void upd_nen_dx(const chaindistmx_t &dm,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm->m_data;
+	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint nendi = 0;
 	sid_t minsid = UINT16_MAX;
@@ -87,10 +87,10 @@ static void upd_nen_dx(const chaindistmx_t *dm,
 		++counts[dist_Angstroms];
 	}
 
-static void upd_fen_dx(const chaindistmx_t *dm,
+static void upd_fen_dx(const chaindistmx_t &dm,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm->m_data;
+	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint fendi = 0;
 	sid_t maxsid = 0;
@@ -115,8 +115,8 @@ static void upd_fen_dx(const chaindistmx_t *dm,
 	}
 
 static void write_dist(FILE *f,
-	const vector<flat_chain *> &chains,
-	const vector<const chaindistmx_t *> &dms,
+	const vector<flat_chain_t *> &chains,
+	const vector<chaindistmx_t *> &dms,
 	const string &name, uint N)
 	{
 	if (f == 0)
@@ -124,22 +124,22 @@ static void write_dist(FILE *f,
 	vector<uint> counts(N);
 
 	Progress("%s ...", name.c_str());
-	const uint nchains = SIZE(dms);
+	const uint nchains = SIZE(chains);
 	for (uint chidx = 0; chidx < nchains; ++chidx)
 		{
-		const flat_chain *chain = chains[chidx];
+		flat_chain_t * chain = chains[chidx];
 		const uint L = chain->get_length();
 		const chaindistmx_t *dm = dms[chidx];
 		for (uint i = 0; i < L; ++i)
 			{
 			if (name == "nen_di")
-				upd_nen_di(dm, L, i, counts);
+				upd_nen_di(*dm, L, i, counts);
 			else if (name == "nen_dx")
-				upd_nen_dx(dm, L, i, counts);
+				upd_nen_dx(*dm, L, i, counts);
 			if (name == "fen_di")
-				upd_fen_di(dm, L, i, counts);
+				upd_fen_di(*dm, L, i, counts);
 			else if (name == "fen_dx")
-				upd_fen_dx(dm, L, i, counts);
+				upd_fen_dx(*dm, L, i, counts);
 			}
 		}
 	Progress(" done\n");
@@ -149,37 +149,32 @@ static void write_dist(FILE *f,
 		fprintf(f, "%u\t%i\n", i, counts[i]);
 	}
 
-static void get_dms(vector<flat_chain *> &chains,
-	vector<const chaindistmx_t *> &dms)
+static void get_dms(const vector<flat_chain_t *> &chains,
+	const vector<chaindistmx_t *> &dms)
 	{
-	dms.clear();
-
-	chaq c;
 	const uint nchains = SIZE(chains);
-	dms.reserve(nchains);
 	for (uint chidx = 0; chidx < nchains; ++chidx)
 		{
 		ProgressStep(chidx, nchains, "Reading chains");
-		const flat_chain *chain = chains[chidx];
-
+		flat_chain_t * chain = chains[chidx];
 		const uint L = chain->get_length();
 		if (L < 8)
 			continue;
 
-		c.init(chain);
-		const chaindistmx_t *dm = c.get_distmx(M);
-		dms.push_back(dm);
+		chaq::create_distmx(*chain, dms[chidx], M);
 		}
 	}
 
 void cmd_nbr_stats()
 	{
-	vector<flat_chain *> chains;
+	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
+	const uint nchains = SIZE(chains);
+
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	M = 64;
-	vector<const chaindistmx_t *> dms;
+	vector<chaindistmx_t *> dms;
 	get_dms(chains, dms);
 
 	write_dist(fOut, chains, dms, "nen_di", M);
