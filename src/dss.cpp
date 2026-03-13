@@ -779,6 +779,19 @@ void DSS::GetMuLetters(vector<byte> &Letters)
 		}
 	}
 
+void DSS::GetDistMx(vector<vector<float> > &DistMx) const
+	{
+	DistMx.clear();
+	const uint L = GetSeqLength();
+	DistMx.resize(L);
+	for (uint Pos = 0; Pos < L; ++Pos)
+		DistMx[Pos].resize(L);
+
+	for (uint i = 0; i < L; ++i)
+		for (uint j = 0; j < L; ++j)
+			DistMx[i][j] = m_Chain->GetDist(i, j);
+	}
+
 void DSS::GetByteVec(FEATURE F, vector<uint8_t> &ByteVec)
 	{
 	const uint L = GetSeqLength();

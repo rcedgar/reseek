@@ -2,7 +2,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 
-static void trunc_label(const string &Label,
+void trunc_label(const string &Label,
 	string &TruncatedLabel)
 	{
 	TruncatedLabel = Label;
@@ -15,6 +15,45 @@ static void trunc_label(const string &Label,
 	n = TruncatedLabel.find('/');
 	if (n != string::npos)
 		TruncatedLabel.resize(n);
+	}
+
+void get_freqs_from_unaln(const string &fafn, uint alpha_size,
+	vector<double> &freqs)
+	{
+	freqs.clear();
+	freqs.resize(alpha_size);
+	SeqDB db_fa;
+	db_fa.FromFasta(fafn, false);
+	const uint8_t *char2letter = (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
+	const uint nseq = db_fa.GetSeqCount();
+	vector<uint> counts(alpha_size);
+	uint N = 0;
+	for (uint i = 0; i < nseq; ++i)
+		{
+		const uint L = db_fa.GetSeqLength(i);
+		const string &seq = db_fa.GetSeq(i);
+		for (uint j = 0; j < L; ++j)
+			{
+			uint8_t code = char2letter[seq[j]];
+			if (code < alpha_size)
+				{
+				++counts[code];
+				++N;
+				}
+			}
+		}
+	double sumfreq = 0;
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		double freq = counts[i]/double(N);
+		sumfreq += freq;
+		freqs[i] = freq;
+		}
+	asserta(sumfreq > 0.99 && sumfreq < 1.01);
+
+	Log("\nfreqs (unaln)\n");
+	for (uint i = 0; i < alpha_size; ++i)
+		Log("[%2u]  %6.4f\n", i, freqs[i]);
 	}
 
 void read_feature_fa_and_fa2(
@@ -216,7 +255,7 @@ void get_marginal_freqs_from_code_countsmx(
 		}
 	asserta(sumfreq > 0.99 && sumfreq < 1.01);
 
-	Log("\nfreqs\n");
+	Log("\nfreqs (cols)\n");
 	for (uint i = 0; i < alpha_size; ++i)
 		Log("[%2u]  %6.4f\n", i, freqs[i]);
 	}
@@ -273,7 +312,7 @@ void get_logoddsmx_from_freqs(
 	const vector<double> &freqs,
 	const vector<vector<double> > &freqmx,
 	vector<vector<double> > &logoddsmx,
-	double base)
+	const string &units)
 	{
 	uint alpha_size = SIZE(freqs);
 	asserta(SIZE(freqs) == alpha_size);
@@ -289,8 +328,14 @@ void get_logoddsmx_from_freqs(
 			{
 			double f_j = freqs[j];
 			double f_ij = freqmx[i][j];
+			asserta(f_ij > 1e-6);
 			asserta(feq(freqmx[j][i], f_ij));
-			logoddsmx[i][j] = log_base(f_ij, base) - log_base(f_i, base) - log_base(f_j, base);
+			if (units == "bits")
+				logoddsmx[i][j] = log2(f_ij) - log2(f_i) - log2(f_j);
+			else if (units == "nats")
+				logoddsmx[i][j] = log(f_ij) - log(f_i) - log(f_j);
+			else
+				Die("units=%s", units.c_str());
 			}
 		}
 	Log("\nlogodds\n");
@@ -299,6 +344,51 @@ void get_logoddsmx_from_freqs(
 		for (uint j = 0; j < alpha_size; ++j)
 			Log("  %8.2g", logoddsmx[i][j]);
 		Log("\n");
+		}
+	}
+
+void scale_logoddsmx(vector<vector<double> > &logoddsmx, uint scale)
+	{
+	const uint alpha_size = SIZE(logoddsmx);
+	for (uint i = 0; i < alpha_size; ++i)
+		for (uint j = 0; j < alpha_size; ++j)
+			logoddsmx[i][j] = round(scale*logoddsmx[i][j]);
+	}
+
+void write_logoddsmx(FILE *f,
+	const vector<vector<double> > &logoddsmx,
+	bool asintegers)
+	{
+	if (f == 0)
+		return;
+	string cmd;
+	GetCmdLine(cmd);
+	const uint alpha_size = SIZE(logoddsmx);
+	time_t t = time(0);
+	char timeString[16];
+	strftime(timeString, size(timeString), "%Y-%m-%d", gmtime(&t));
+	fprintf(f, "# %s\n", cmd.c_str());
+	fprintf(f, "# [%s] %s\n", GIT_HASH, timeString);
+	fprintf(f, "logodds\t%u\n", alpha_size);
+	if (asintegers)
+		{
+		for (uint i = 0; i < alpha_size; ++i)
+			{
+			fprintf(f, "%u", i);
+			for (uint j = 0; j < alpha_size; ++j)
+				fprintf(f, "\t%d", int(round(logoddsmx[i][j])));
+			fprintf(f, "\n");
+			}
+		}
+	else
+		{
+		for (uint i = 0; i < alpha_size; ++i)
+			{
+			fprintf(f, "%u", i);
+			for (uint j = 0; j < alpha_size; ++j)
+				fprintf(f, "\t%.4g", logoddsmx[i][j]);
+			}
+		fprintf(f, "\n");
 		}
 	}
 
@@ -311,6 +401,9 @@ void cmd_flat_train_discrete()
 	asserta(optset_alpha_size);
 	const uint alpha_size = opt(alpha_size);
 
+	asserta(optset_feature);
+	const string feature = opt(feature);
+
 	vector<uint8_t> code1s;
 	vector<uint8_t> code2s;
 	read_feature_fa_and_fa2(fafn, fa2fn, min_length, alpha_size,
@@ -320,11 +413,35 @@ void cmd_flat_train_discrete()
 	get_countmx_from_code_pairs(code1s, code2s, alpha_size, countmx);
 
 	vector<vector<double> > freqmx;
+	asserta(optset_background_style);
+	const string bs = opt(background_style);
+
 	get_joint_freqmx_from_code_countsmx(countmx, freqmx);
 
-	vector<double> freqs;
-	get_marginal_freqs_from_code_countsmx(countmx, freqs);
+	vector<double> freqs_cols;
+	vector<double> freqs_unaln;
+	get_marginal_freqs_from_code_countsmx(countmx, freqs_cols);
+	get_freqs_from_unaln(fafn, alpha_size, freqs_unaln);
+
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		double fc = freqs_cols[i];
+		double fu = freqs_unaln[i];
+		double r = fc/fu;
+		Log("%6.4f  %6.4f  %6.4f\n", fc, fu, r);
+		}
 
 	vector<vector<double> > logoddsmx;
-	get_logoddsmx_from_freqs(freqs, freqmx, logoddsmx, 2);
+	string units("bits");
+	if (optset_units)
+		units = opt(units);
+	get_logoddsmx_from_freqs(freqs_cols, freqmx, logoddsmx, units);
+
+	uint scale = 1;
+	if (optset_scale)
+		scale_logoddsmx(logoddsmx, opt(scale));
+	FILE *f = CreateStdioFile(opt(output));
+	bool asintegers = optset_scale;
+	write_logoddsmx(f, logoddsmx, asintegers);
+	CloseStdioFile(f);
 	}

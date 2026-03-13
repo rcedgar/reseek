@@ -13,6 +13,10 @@ Use pair-wise alignment to anchor contact map profile alignment.
 
 Test speedup with __restrict for flat_base::m_data
 
+Position-specific gap penalties.
+
+Redefine neighbors after local alignment is constructed.
+
 Feature Plot Structure Aligner (FPSA)
 https://docs.google.com/document/d/1YRq1LQcEIgraHt_5G_V5-YU1YIwEmnu_MHpQQZmQsuY/edit?tab=t.0#heading=h.pcvo5gmuhifv
 ***/

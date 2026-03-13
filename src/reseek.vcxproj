@@ -300,6 +300,7 @@
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
+    <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
@@ -531,6 +532,7 @@
     <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
     <ClInclude Include="next_line.h" />
+    <ClInclude Include="nnvec.h" />
     <ClInclude Include="nu.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
@@ -570,6 +572,7 @@
     <ClInclude Include="sec_kmeans.h" />
     <ClInclude Include="seqfeeder.h" />
     <ClInclude Include="seqinfo.h" />
+    <ClInclude Include="sidvec.h" />
     <ClInclude Include="ssslib.h" />
     <ClInclude Include="statsig.h" />
     <ClInclude Include="subsetbench.h" />

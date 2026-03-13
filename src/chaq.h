@@ -15,8 +15,10 @@ private:
 	chaq() = delete;
 
 public:
-	static const sid_t *create_distmx(const flat_chain_t &chain, 
-		chaindistmx_t *dm, uint M);
+	static void create_distmx(const flat_chain_t &chain, 
+		chaindistmx_t*& dm, uint M);
+	static void create_nenvec(const sid_t *distmx, uint M, uint L,
+		uint m, nnvec_t*& nnvec, sidvec_t*& nnsidvec);
 	static uint8_t get_ss3(const sid_t *distmx, uint M, uint L, uint pos);
 	static uint8_t get_ss4(const sid_t *distmx, uint M, uint L, uint pos);
 	static void get_ss4_str(const sid_t *distmx, uint M, uint L, string &ss);

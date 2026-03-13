@@ -163,6 +163,8 @@ public:
 #include "chainxyz.h"
 #include "chaindistmx.h"
 #include "chainaa.h"
+#include "nnvec.h"
+#include "sidvec.h"
 
 #if TRACK_SRC
 #define newflat(...) newflat_src(__VA_ARGS__, __FILE__, __LINE__)

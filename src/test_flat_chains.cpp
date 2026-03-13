@@ -54,21 +54,49 @@ static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
 	return diffgt1 == 0;
 	}
 
-static void test_nn(DSS &D, const flat_chain_t &chain)
+static double test_nn(DSS &D, const flat_chain_t *chain)
 	{
-	Die("TODO");
-	//const PDBChain &Chain = *D.m_Chain;
-	//c.get_distmx(M);
+	uint L = D.GetSeqLength();
+	if (L < 80)
+		return 0;
+	asserta(chain->get_length() == L);
 
-	//const uint L = Chain.GetSeqLength();
-	//for (uint i = 0; i < L; ++i)
-	//	{
-	//	uint PEN = D.GetPEN(i);
-	//	uint MEN = D.GetMEN(i);
-	//	uint pen = c.get_pen(i);
-	//	uint men = c.get_men(i);
-	//	Log("%4u | %4u  %4u | %4u  %4u\n", i, PEN, pen, MEN, men);
-	//	}
+	chaindistmx_t *dm;
+	chaq::create_distmx(*chain, dm, M);
+
+	const uint m = 12;
+	nnvec_t *nnvec;
+	sidvec_t *nndistvec;
+
+	chaq::create_nenvec(dm->m_data, M, L, m, nnvec, nndistvec);
+	chaindistmx_t::release(dm);
+	auto v = nnvec->m_data;
+
+	uint nsame = 0;
+	uint ndiff = 0;
+	for (uint i = 0; i < L; ++i)
+		{
+		uint nn = v[i];
+		uint nn2 = UINT_MAX;
+		float mindist = FLT_MAX;
+		for (uint j = 0; j < L; ++j)
+			{
+			int diag = abs(int(i) - int(j));
+			if (diag < m || diag > int(M))
+				continue;
+			float d = D.m_Chain->GetDist(i, j);
+			if (d < mindist)
+				{
+				mindist = d;
+				nn2 = j;
+				}
+			}
+		if (nn == nn2)
+			++nsame;
+		else
+			++ndiff;
+		}
+	return float(ndiff)/(nsame + ndiff);
 	}
 
 static void test_ic()
@@ -301,6 +329,7 @@ void cmd_test_flat_chains()
 	CR.Open(FS);
 	uint N = 0;
 	uint n = 0;
+	uint n_fract_diff_gt_1pct = 0;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "Processing %.3g%% errs.", GetPct(n, N));
@@ -319,8 +348,15 @@ void cmd_test_flat_chains()
 		if (!ok)
 			++n;
 		_chkmem();
+
+		double fract_diff = test_nn(D, chain);
+		if (fract_diff > 0.01)
+			++n_fract_diff_gt_1pct;
+		_chkmem();
 		}
 	ProgressLog("%u / %u (%.2f%%) distmx with diffs > 1\n",
 		n, N, GetPct(n, N));
+	ProgressLog("%u / %u (%.2f%%) nn with diffs > 1%%\n",
+		n_fract_diff_gt_1pct, N, GetPct(n_fract_diff_gt_1pct, N));
 	log_flat_stats();
 	}

@@ -12,6 +12,7 @@ x(museq)
 x(featseq)
 x(megaprof)
 x(nnvec)
+x(sidvec)
 x(ss3)
 
 #undef x

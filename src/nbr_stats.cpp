@@ -150,7 +150,7 @@ static void write_dist(FILE *f,
 	}
 
 static void get_dms(const vector<flat_chain_t *> &chains,
-	const vector<chaindistmx_t *> &dms)
+	vector<chaindistmx_t *> &dms)
 	{
 	const uint nchains = SIZE(chains);
 	for (uint chidx = 0; chidx < nchains; ++chidx)

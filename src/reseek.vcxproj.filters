@@ -611,6 +611,9 @@
     <ClCompile Include="flat_train_discrete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_quantize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1034,6 +1037,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="museq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnvec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sidvec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

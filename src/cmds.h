@@ -84,5 +84,6 @@ C(sec_kmeans)
 C(sec_variance)
 C(sec_fasta)
 C(flat_train_discrete)
+C(flat_quantize)
 
 #undef C

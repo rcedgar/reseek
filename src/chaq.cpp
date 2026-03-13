@@ -3,14 +3,13 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
-const sid_t *chaq::create_distmx(const flat_chain_t &chain, 
-	chaindistmx_t *dm, uint M)
+void chaq::create_distmx(const flat_chain_t &chain, 
+	chaindistmx_t*& dm, uint M)
 	{
 	const uint32_t L = chain.get_length();
-	dm->falloc(L*M);
+	dm = chaindistmx_t::newflat(L, M);
 	uint16_t *distmx = dm->m_data;
 	fill_flat_distmx(chain.m_xyz->m_data, L, M, distmx);
-	return distmx;
 	}
 
 // 0=helix 1=strand 2=turn 3=loop
@@ -68,4 +67,44 @@ void chaq::get_ss4_intseq(const sid_t *distmx, uint M, uint L, uint8_t *intseq)
 	{
 	for (uint pos = 0; pos < L; ++pos)
 		intseq[pos] = get_ss4(distmx, M, L, pos);
+	}
+
+void chaq::create_nenvec(const sid_t* __restrict distmx, uint M, uint L,
+	uint m, nnvec_t*& __restrict nnvec, sidvec_t*& __restrict nnsidvec)
+	{
+	nnvec = nnvec_t::newflat(L);
+	nnsidvec = sidvec_t::newflat(L);
+	uint16_t* __restrict v = nnvec->m_data;
+	sid_t* __restrict dv = nnsidvec->m_data;
+
+	for (uint i = 0; i < L; ++i)
+		{
+		v[i] = UINT16_MAX;
+		dv[i] = UINT16_MAX;
+		}
+
+	for (uint i = 0; i < L; ++i)
+		{
+		uint dmax = L - 1 - i;
+		if (dmax > M)
+			dmax = M;
+
+		for (uint d = m; d <= dmax; ++d)
+			{
+			uint j = i + d;
+			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+
+			if (sid < dv[i])
+				{
+				dv[i] = sid;
+				v[i] = uint16_t(j);
+				}
+
+			if (sid < dv[j])
+				{
+				dv[j] = sid;
+				v[j] = uint16_t(i);
+				}
+			}
+		}
 	}
