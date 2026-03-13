@@ -300,6 +300,7 @@
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
+    <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />

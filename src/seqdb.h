@@ -48,6 +48,8 @@ public:
 	void GetSeq_StripGaps(unsigned SeqIndex, string &Seq, bool ToUpper = false) const;
 	const string &GetLabel(unsigned SeqIndex) const;
 	unsigned GetSeqLength(unsigned SeqIndex) const;
+	unsigned GetUngappedSeqLength(unsigned SeqIndex) const;
+	void GetUngappedSeq(unsigned SeqIndex, string &Seq) const;
 	uint GetUpperCount(unsigned uColIndex) const;
 	uint GetLowerCount(unsigned uColIndex) const;
 	uint GetLetterCount(unsigned uColIndex) const;

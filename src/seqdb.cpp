@@ -82,6 +82,28 @@ const byte *SeqDB::GetByteSeq(unsigned SeqIndex) const
 	return (const byte *) m_Seqs[SeqIndex].c_str();
 	}
 
+uint SeqDB::GetUngappedSeqLength(unsigned SeqIndex) const
+	{
+	assert(SeqIndex < SIZE(m_Seqs));
+	const string &Seq = m_Seqs[SeqIndex];
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Seq); ++i)
+		if (!isgap(Seq[i]))
+			++n;
+	return n;
+	}
+
+void SeqDB::GetUngappedSeq(unsigned SeqIndex, string &USeq) const
+	{
+	USeq.clear();
+	assert(SeqIndex < SIZE(m_Seqs));
+	const string &Seq = m_Seqs[SeqIndex];
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Seq); ++i)
+		if (!isgap(Seq[i]))
+			USeq += Seq[i];
+	}
+
 const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Seqs));

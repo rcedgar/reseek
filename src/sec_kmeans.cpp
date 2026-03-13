@@ -68,6 +68,49 @@ void cmd_sec_variance()
 	CloseStdioFile(fOut);
 	}
 
+void intseq2fasta(FILE *f, const string &label, const uint8_t *intseq, uint L)
+	{
+	if (f == 0)
+		return;
+	fprintf(f, ">%s\n", label.c_str());
+	for (uint i = 0; i < L; ++i)
+		{
+		if (i > 0 && i%80 == 0)
+			fputc('\n', f);
+		char c = g_LetterToCharMu[intseq[i]];
+		fputc(c, f);
+		}
+	fputc('\n', f);
+	}
+
+void cmd_sec_fasta()
+	{
+	const uint M = 32;
+
+	vector<flat_chain_t *>chains;
+	read_flat_chains(g_Arg1, chains);
+	const uint nrchains = SIZE(chains);
+
+	sec_kmeans SK;
+	SK.from_tsv(opt(input));
+	SK.m_M = M;
+
+	FILE *ffa = CreateStdioFile(opt(output));
+
+	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
+		{
+		const flat_chain_t* chain = chains[chainidx];
+		const uint L = chain->get_length();
+		auto dm = chaindistmx_t::newflat(0);
+		chaq::create_distmx(*chain, dm, M);
+		const sid_t *distmx = dm->m_data;
+		uint8_t *intseq = myalloc(uint8_t, L);
+		SK.get_intseq(distmx, L, intseq);
+		intseq2fasta(ffa, chain->m_label, intseq, L);
+		}
+	CloseStdioFile(ffa);
+	}
+
 void cmd_sec_kmeans()
 	{
 	vector<flat_chain_t *>chains;
@@ -124,47 +167,5 @@ void cmd_sec_kmeans()
 	SK2.from_tsv(opt(output));
 	SK2.logme();
 #endif
-	}
-
-void intseq2fasta(FILE *f, const string &label, const uint8_t *intseq, uint L)
-	{
-	if (f == 0)
-		return;
-	fprintf(f, ">%s\n", label.c_str());
-	for (uint i = 0; i < L; ++i)
-		{
-		if (i > 0 && i%80 == 0)
-			fputc('\n', f);
-		char c = g_LetterToCharMu[intseq[i]];
-		fputc(c, f);
-		}
-	fputc('\n', f);
-	}
-
-void cmd_sec_fasta()
-	{
-	const uint M = 32;
-
-	vector<flat_chain_t *>chains;
-	read_flat_chains(g_Arg1, chains);
-	const uint nrchains = SIZE(chains);
-
-	sec_kmeans SK;
-	SK.from_tsv(opt(input));
-	SK.m_M = M;
-
-	FILE *ffa = CreateStdioFile(opt(output));
-
-	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
-		{
-		const flat_chain_t* chain = chains[chainidx];
-		const uint L = chain->get_length();
-		auto dm = chaindistmx_t::newflat(0);
-		chaq::create_distmx(*chain, dm, M);
-		const sid_t *distmx = dm->m_data;
-		uint8_t *intseq = myalloc(uint8_t, L);
-		SK.get_intseq(distmx, L, intseq);
-		intseq2fasta(ffa, chain->m_label, intseq, L);
-		}
-	CloseStdioFile(ffa);
+	log_flat_stats();
 	}

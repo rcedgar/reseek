@@ -83,5 +83,6 @@ C(nbr_stats)
 C(sec_kmeans)
 C(sec_variance)
 C(sec_fasta)
+C(flat_train_discrete)
 
 #undef C
