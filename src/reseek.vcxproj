@@ -343,6 +343,7 @@
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
     <ClCompile Include="pwalndb.cpp" />
+    <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />

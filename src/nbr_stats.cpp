@@ -161,7 +161,7 @@ static void get_dms(const vector<flat_chain_t *> &chains,
 		if (L < 8)
 			continue;
 
-		chaq::create_distmx(*chain, dms[chidx], M);
+		chaq::create_distmx(chain, dms[chidx], M);
 		}
 	}
 

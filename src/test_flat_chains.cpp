@@ -14,7 +14,7 @@ static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
 	{
 	const PDBChain &Chain = *D.m_Chain;
 	auto dm = chaindistmx_t::newflat(0);
-	chaq::create_distmx(*chain, dm, M);
+	chaq::create_distmx(chain, dm, M);
 	const sid_t *distmx = dm->m_data;
 	uint L = D.GetSeqLength();
 	asserta(chain->get_length() == L);
@@ -62,7 +62,7 @@ static double test_nn(DSS &D, const flat_chain_t *chain)
 	asserta(chain->get_length() == L);
 
 	chaindistmx_t *dm;
-	chaq::create_distmx(*chain, dm, M);
+	chaq::create_distmx(chain, dm, M);
 
 	const uint m = 12;
 	nnvec_t *nnvec;

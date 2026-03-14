@@ -102,7 +102,7 @@ void cmd_sec_fasta()
 		const flat_chain_t* chain = chains[chainidx];
 		const uint L = chain->get_length();
 		auto dm = chaindistmx_t::newflat(0);
-		chaq::create_distmx(*chain, dm, M);
+		chaq::create_distmx(chain, dm, M);
 		const sid_t *distmx = dm->m_data;
 		uint8_t *intseq = myalloc(uint8_t, L);
 		SK.get_intseq(distmx, L, intseq);

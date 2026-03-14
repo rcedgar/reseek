@@ -3,13 +3,13 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
-void chaq::create_distmx(const flat_chain_t &chain, 
+void chaq::create_distmx(const flat_chain_t *chain, 
 	chaindistmx_t*& dm, uint M)
 	{
-	const uint32_t L = chain.get_length();
+	const uint32_t L = chain->get_length();
 	dm = chaindistmx_t::newflat(L, M);
 	uint16_t *distmx = dm->m_data;
-	fill_flat_distmx(chain.m_xyz->m_data, L, M, distmx);
+	fill_flat_distmx(chain->m_xyz->m_data, L, M, distmx);
 	}
 
 // 0=helix 1=strand 2=turn 3=loop

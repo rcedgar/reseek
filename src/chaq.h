@@ -15,7 +15,7 @@ private:
 	chaq() = delete;
 
 public:
-	static void create_distmx(const flat_chain_t &chain, 
+	static void create_distmx(const flat_chain_t *chain, 
 		chaindistmx_t*& dm, uint M);
 	static void create_nenvec(const sid_t *distmx, uint M, uint L,
 		uint m, nnvec_t*& nnvec, sidvec_t*& nnsidvec);

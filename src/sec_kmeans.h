@@ -468,7 +468,7 @@ public:
 
 			//auto dm = chaindistmx_t::newflat();
 			auto dm = chaindistmx_t::newflat(0);
-			chaq::create_distmx(*chain, dm, m_M);
+			chaq::create_distmx(chain, dm, m_M);
 			const sid_t *distmx = dm->m_data;
 			for (int pos = m_w; pos < L - m_w; ++pos)
 				{
@@ -574,7 +574,7 @@ public:
 			const uint L = chain->get_length();
 			//auto dm = chaindistmx_t::newflat();
 			auto dm = chaindistmx_t::newflat(0);
-			chaq::create_distmx(*chain, dm, m_M);
+			chaq::create_distmx(chain, dm, m_M);
 			const sid_t *distmx = dm->m_data;
 
 			uint8_t *intseq = myalloc(uint8_t, L);
