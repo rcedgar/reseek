@@ -22,10 +22,15 @@ public:
 
 	const string &get()
 		{
-		asserta(m_linenr < m_lines.size());
-		const string& line = m_lines[m_linenr++];
-		Split(line, m_flds, '\t');
-		return line;
+		for (;;)
+			{
+			asserta(m_linenr < m_lines.size());
+			const string& line = m_lines[m_linenr++];
+			if (StartsWith(line, "#"))
+				continue;
+			Split(line, m_flds, '\t');
+			return line;
+			}
 		}
 
 	const string &get_str(const string &fld0)
@@ -77,6 +82,19 @@ public:
 		for (uint i = 0; i < n; ++i)
 			v[i] = StrToInt(m_flds[i+2]);
 		return v;
+		}
+
+	void get_float_flat_square_mx(uint n, float *v)
+		{
+		for (uint i = 0; i < n; ++i)
+			{
+			get();
+			asserta(SIZE(m_flds) == n+1);
+			uint i2 = StrToUint(m_flds[0]);
+			asserta(i2 == i);
+			for (uint j = 0; j < n; ++j)
+				v[i*n + j] = (float) StrToFloat(m_flds[j+1]);
+			}
 		}
 
 	uint16_t* get_int16_flat_vec(const string &fld0, uint n)

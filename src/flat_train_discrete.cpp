@@ -387,8 +387,8 @@ void write_logoddsmx(FILE *f,
 			fprintf(f, "%u", i);
 			for (uint j = 0; j < alpha_size; ++j)
 				fprintf(f, "\t%.4g", logoddsmx[i][j]);
+			fprintf(f, "\n");
 			}
-		fprintf(f, "\n");
 		}
 	}
 
