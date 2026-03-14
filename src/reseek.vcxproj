@@ -157,6 +157,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <UACUIAccess>false</UACUIAccess>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -259,6 +260,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <UACUIAccess>false</UACUIAccess>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -300,6 +302,7 @@
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
+    <ClCompile Include="flat_profiles_from_fastas.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />

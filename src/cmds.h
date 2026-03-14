@@ -85,5 +85,6 @@ C(sec_variance)
 C(sec_fasta)
 C(flat_train_discrete)
 C(flat_quantize)
+C(flat_profiles)
 
 #undef C

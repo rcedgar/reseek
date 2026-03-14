@@ -466,10 +466,8 @@ public:
 			const flat_chain_t* chain = chains[chain_idx];
 			const int L = (int) chain->get_length();
 
-			//auto dm = chaindistmx_t::newflat();
-			auto dm = chaindistmx_t::newflat(0);
-			chaq::create_distmx(chain, dm, m_M);
-			const sid_t *distmx = dm->m_data;
+			sid_t *distmx = myalloc(sid_t, L*m_M);
+			chaq::fill_distmx(chain->m_xyz->m_data, L, m_M, distmx);
 			for (int pos = m_w; pos < L - m_w; ++pos)
 				{
 				bool ok = check_backbone(chain_idx, distmx, pos, L);
@@ -572,10 +570,8 @@ public:
 			{
 			const flat_chain_t* chain =(*m_chains)[chainidx];
 			const uint L = chain->get_length();
-			//auto dm = chaindistmx_t::newflat();
-			auto dm = chaindistmx_t::newflat(0);
-			chaq::create_distmx(chain, dm, m_M);
-			const sid_t *distmx = dm->m_data;
+			sid_t *distmx = myalloc(sid_t, L*m_M);
+			chaq::fill_distmx(chain->m_xyz->m_data, L, m_M, distmx);
 
 			uint8_t *intseq = myalloc(uint8_t, L);
 			get_intseq(distmx, L, intseq);

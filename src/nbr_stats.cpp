@@ -8,10 +8,9 @@
 static uint M = 64;
 static uint m = 8;
 
-static void upd_nen_di(const chaindistmx_t &dm,
+static void upd_nen_di(const sid_t *distmx,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint nendi = 0;
 	sid_t minsid = UINT16_MAX;
@@ -34,10 +33,9 @@ static void upd_nen_di(const chaindistmx_t &dm,
 		++counts[nendi];
 	}
 
-static void upd_fen_di(const chaindistmx_t &dm,
+static void upd_fen_di(const sid_t *distmx,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint fendi = 0;
 	sid_t maxsid = 0;
@@ -60,10 +58,9 @@ static void upd_fen_di(const chaindistmx_t &dm,
 		++counts[fendi];
 	}
 
-static void upd_nen_dx(const chaindistmx_t &dm,
+static void upd_nen_dx(const sid_t *distmx,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint nendi = 0;
 	sid_t minsid = UINT16_MAX;
@@ -87,10 +84,9 @@ static void upd_nen_dx(const chaindistmx_t &dm,
 		++counts[dist_Angstroms];
 	}
 
-static void upd_fen_dx(const chaindistmx_t &dm,
+static void upd_fen_dx(const sid_t *distmx,
 	uint L, uint i, vector<uint> &counts)
 	{
-	const uint16_t *distmx = dm.m_data;
 	uint n = SIZE(counts);
 	uint fendi = 0;
 	sid_t maxsid = 0;
@@ -116,7 +112,7 @@ static void upd_fen_dx(const chaindistmx_t &dm,
 
 static void write_dist(FILE *f,
 	const vector<flat_chain_t *> &chains,
-	const vector<chaindistmx_t *> &dms,
+	const vector<sid_t *> &dms,
 	const string &name, uint N)
 	{
 	if (f == 0)
@@ -129,17 +125,17 @@ static void write_dist(FILE *f,
 		{
 		flat_chain_t * chain = chains[chidx];
 		const uint L = chain->get_length();
-		const chaindistmx_t *dm = dms[chidx];
+		const sid_t *dm = dms[chidx];
 		for (uint i = 0; i < L; ++i)
 			{
 			if (name == "nen_di")
-				upd_nen_di(*dm, L, i, counts);
+				upd_nen_di(dm, L, i, counts);
 			else if (name == "nen_dx")
-				upd_nen_dx(*dm, L, i, counts);
+				upd_nen_dx(dm, L, i, counts);
 			if (name == "fen_di")
-				upd_fen_di(*dm, L, i, counts);
+				upd_fen_di(dm, L, i, counts);
 			else if (name == "fen_dx")
-				upd_fen_dx(*dm, L, i, counts);
+				upd_fen_dx(dm, L, i, counts);
 			}
 		}
 	Progress(" done\n");
@@ -150,7 +146,7 @@ static void write_dist(FILE *f,
 	}
 
 static void get_dms(const vector<flat_chain_t *> &chains,
-	vector<chaindistmx_t *> &dms)
+	vector<sid_t *> &dms)
 	{
 	const uint nchains = SIZE(chains);
 	for (uint chidx = 0; chidx < nchains; ++chidx)
@@ -161,7 +157,8 @@ static void get_dms(const vector<flat_chain_t *> &chains,
 		if (L < 8)
 			continue;
 
-		chaq::create_distmx(chain, dms[chidx], M);
+		dms[chidx] = myalloc(sid_t, L*M);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, M, dms[chidx]);
 		}
 	}
 
@@ -174,7 +171,7 @@ void cmd_nbr_stats()
 	FILE *fOut = CreateStdioFile(opt(output));
 
 	M = 64;
-	vector<chaindistmx_t *> dms;
+	vector<sid_t *> dms;
 	get_dms(chains, dms);
 
 	write_dist(fOut, chains, dms, "nen_di", M);

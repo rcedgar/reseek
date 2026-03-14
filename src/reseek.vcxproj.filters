@@ -617,6 +617,9 @@
     <ClCompile Include="quantize.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_profiles_from_fastas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

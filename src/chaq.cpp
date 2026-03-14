@@ -3,13 +3,13 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
-void chaq::create_distmx(const flat_chain_t *chain, 
-	chaindistmx_t*& dm, uint M)
+void chaq::fill_distmx(
+	const ic_t *xyz,
+	uint L,
+	uint M,
+	uint16_t *distmx)
 	{
-	const uint32_t L = chain->get_length();
-	dm = chaindistmx_t::newflat(L, M);
-	uint16_t *distmx = dm->m_data;
-	fill_flat_distmx(chain->m_xyz->m_data, L, M, distmx);
+	fill_flat_distmx(xyz, L, M, distmx);
 	}
 
 // 0=helix 1=strand 2=turn 3=loop
@@ -69,18 +69,18 @@ void chaq::get_ss4_intseq(const sid_t *distmx, uint M, uint L, uint8_t *intseq)
 		intseq[pos] = get_ss4(distmx, M, L, pos);
 	}
 
-void chaq::create_nenvec(const sid_t* __restrict distmx, uint M, uint L,
-	uint m, nnvec_t*& __restrict nnvec, sidvec_t*& __restrict nnsidvec)
+void chaq::fill_nenvec(
+	const sid_t* __restrict distmx,
+	uint L,
+	uint M,
+	uint m,
+	uint16_t* __restrict nen,
+	uint16_t* __restrict nensid)
 	{
-	nnvec = nnvec_t::newflat(L);
-	nnsidvec = sidvec_t::newflat(L);
-	uint16_t* __restrict v = nnvec->m_data;
-	sid_t* __restrict dv = nnsidvec->m_data;
-
 	for (uint i = 0; i < L; ++i)
 		{
-		v[i] = UINT16_MAX;
-		dv[i] = UINT16_MAX;
+		nen[i] = UINT16_MAX;
+		nensid[i] = UINT16_MAX;
 		}
 
 	for (uint i = 0; i < L; ++i)
@@ -94,16 +94,62 @@ void chaq::create_nenvec(const sid_t* __restrict distmx, uint M, uint L,
 			uint j = i + d;
 			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
 
-			if (sid < dv[i])
+			if (sid < nensid[i])
 				{
-				dv[i] = sid;
-				v[i] = uint16_t(j);
+				nensid[i] = sid;
+				nen[i] = uint16_t(j);
 				}
 
-			if (sid < dv[j])
+			if (sid < nensid[j])
 				{
-				dv[j] = sid;
-				v[j] = uint16_t(i);
+				nensid[j] = sid;
+				nen[j] = uint16_t(i);
+				}
+			}
+		}
+	}
+
+void chaq::fill_nen_pen_vecs(
+	const sid_t* __restrict distmx,
+	uint L,
+	uint M,
+	uint m,
+	uint16_t* __restrict pen,
+	uint16_t* __restrict pensid,
+	uint16_t* __restrict men,
+	uint16_t* __restrict mensid)
+	{
+	for (uint i = 0; i < L; ++i)
+		{
+		pen[i]  = UINT16_MAX;
+		pensid[i] = UINT16_MAX;
+		men[i]  = UINT16_MAX;
+		mensid[i] = UINT16_MAX;
+		}
+
+	for (uint i = 0; i < L; ++i)
+		{
+		uint dmax = L - 1 - i;
+		if (dmax > M)
+			dmax = M;
+
+		for (uint d = m; d <= dmax; ++d)
+			{
+			uint j = i + d;
+			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+
+			// forward for i: j > i
+			if (sid < pensid[i])
+				{
+				pensid[i] = sid;
+				pen[i] = uint16_t(j);
+				}
+
+			// reverse for j: i < j
+			if (sid < mensid[j])
+				{
+				mensid[j] = sid;
+				men[j] = uint16_t(i);
 				}
 			}
 		}

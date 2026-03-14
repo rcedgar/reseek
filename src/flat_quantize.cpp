@@ -13,13 +13,13 @@ static void update_counts(
 
 	const uint M = 48;
 	const uint m = 12;
-	chaindistmx_t *dm;
-	chaq::create_distmx(chain, dm, M);
+	uint16_t *distmx = myalloc(sid_t, L*M);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
 
-	nnvec_t *nnvec;
-	sidvec_t *nndisvec;
-	chaq::create_nenvec(dm->m_data, M, L, m, nnvec, nndisvec);
-	const sid_t *nns = nndisvec->m_data;
+	nnvec_t *nnvec = nnvec_t::newflat(L);
+	sidvec_t *nnsidvec = sidvec_t::newflat(L);
+	chaq::fill_nenvec(distmx, L, M, m, nnvec->m_data, nnsidvec->m_data);
+	const sid_t *nns = nnsidvec->m_data;
 	for (uint i = 0; i < L; ++i)
 		counts[nns[i]] += 1;
 	}
@@ -35,13 +35,12 @@ static void make_charseq(
 
 	const uint M = 48;
 	const uint m = 12;
-	chaindistmx_t *dm;
-	chaq::create_distmx(chain, dm, M);
+	uint16_t *distmx = myalloc(sid_t, L*M);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
 
-	nnvec_t *nnvec;
-	sidvec_t *nndistvec;
-	chaq::create_nenvec(dm->m_data, M, L, m, nnvec, nndistvec);
-	const sid_t *nns = nndistvec->m_data;
+	nnvec_t *nnvec = nnvec_t::newflat(L);
+	sidvec_t *nnsidvec = sidvec_t::newflat(L);
+	const sid_t *nns = nnsidvec->m_data;
 	for (uint i = 0; i < L; ++i)
 		{
 		uint16_t nndist = nns[i];

@@ -401,9 +401,6 @@ void cmd_flat_train_discrete()
 	asserta(optset_alpha_size);
 	const uint alpha_size = opt(alpha_size);
 
-	asserta(optset_feature);
-	const string feature = opt(feature);
-
 	vector<uint8_t> code1s;
 	vector<uint8_t> code2s;
 	read_feature_fa_and_fa2(fafn, fa2fn, min_length, alpha_size,
@@ -435,7 +432,13 @@ void cmd_flat_train_discrete()
 	string units("bits");
 	if (optset_units)
 		units = opt(units);
-	get_logoddsmx_from_freqs(freqs_cols, freqmx, logoddsmx, units);
+
+	if (bs == "cols")
+		get_logoddsmx_from_freqs(freqs_cols, freqmx, logoddsmx, units);
+	else if (bs == "unaln")
+		get_logoddsmx_from_freqs(freqs_unaln, freqmx, logoddsmx, units);
+	else
+		Die("-background_style %s", bs.c_str());
 
 	uint scale = 1;
 	if (optset_scale)

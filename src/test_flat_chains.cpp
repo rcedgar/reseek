@@ -10,14 +10,12 @@
 
 static const uint M = 256;
 
-static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
+static bool test_dist_mx(const PDBChain &Chain, const flat_chain_t* chain)
 	{
-	const PDBChain &Chain = *D.m_Chain;
-	auto dm = chaindistmx_t::newflat(0);
-	chaq::create_distmx(chain, dm, M);
-	const sid_t *distmx = dm->m_data;
-	uint L = D.GetSeqLength();
+	uint L = Chain.GetSeqLength();
 	asserta(chain->get_length() == L);
+	uint16_t *distmx = myalloc(sid_t, L*M);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
 	const int Li = L;
 	uint counter = 0;
 	uint same = 0;
@@ -50,52 +48,66 @@ static bool test_dist_mx(DSS &D, const flat_chain_t* chain)
 			diff1, GetPct(diff1, counter),
 			diffgt1, GetPct(diffgt1, counter),
 			chain->m_label.c_str());
-	chaindistmx_t::release(dm);
+	myfree(distmx);
 	return diffgt1 == 0;
 	}
 
-static double test_nn(DSS &D, const flat_chain_t *chain)
+static void get_nn_check(const PDBChain &Chain, uint i, uint M, uint m,
+	uint &nn, float &nndist)
 	{
-	uint L = D.GetSeqLength();
+	nn = UINT_MAX;
+	nndist = FLT_MAX;
+	const uint L = Chain.GetSeqLength();
+	nndist = FLT_MAX;
+	for (uint j = 0; j < L; ++j)
+		{
+		int diag = abs(int(i) - int(j));
+		if (diag < int(m) || diag > int(M))
+			continue;
+		float d = Chain.GetDist(i, j);
+		if (d < nndist)
+			{
+			nndist = d;
+			nn = j;
+			}
+		}
+	}
+
+static double test_nn(const PDBChain &Chain, const flat_chain_t *chain)
+	{
+	uint L = Chain.GetSeqLength();
 	if (L < 80)
 		return 0;
 	asserta(chain->get_length() == L);
 
-	chaindistmx_t *dm;
-	chaq::create_distmx(chain, dm, M);
-
 	const uint m = 12;
-	nnvec_t *nnvec;
-	sidvec_t *nndistvec;
 
-	chaq::create_nenvec(dm->m_data, M, L, m, nnvec, nndistvec);
-	chaindistmx_t::release(dm);
-	auto v = nnvec->m_data;
+	sid_t *distmx = myalloc(sid_t, L*M);
+	uint16_t *nns = myalloc(uint16_t, L);
+	sid_t *nnsids = myalloc(sid_t, L);
+
+	chaq::fill_nenvec(distmx, L, M, m, nns, nnsids);
 
 	uint nsame = 0;
 	uint ndiff = 0;
 	for (uint i = 0; i < L; ++i)
 		{
-		uint nn = v[i];
-		uint nn2 = UINT_MAX;
-		float mindist = FLT_MAX;
-		for (uint j = 0; j < L; ++j)
-			{
-			int diag = abs(int(i) - int(j));
-			if (diag < m || diag > int(M))
-				continue;
-			float d = D.m_Chain->GetDist(i, j);
-			if (d < mindist)
-				{
-				mindist = d;
-				nn2 = j;
-				}
-			}
-		if (nn == nn2)
+		uint nn = nns[i];
+		uint nn_check = UINT_MAX;
+		float nndist_check = FLT_MAX;
+		get_nn_check(Chain, i, M, m, nn_check, nndist_check);
+		sid_t sid = nnsids[i];
+		sid_t sid_check = dist2sid(nndist_check);
+		if (nn == nn_check && abs(int(sid) - int(sid_check)) < 5)
 			++nsame;
 		else
 			++ndiff;
 		}
+
+	myfree(distmx);
+	myfree(nns);
+	myfree(nnsids);
+
 	return float(ndiff)/(nsame + ndiff);
 	}
 
@@ -322,7 +334,6 @@ void cmd_test_flat_chains()
 	ReadChains(g_Arg1, Chains);
 	const uint ChainCount = SIZE(Chains);
 
-	DSS D;
 	PDBFileScanner FS;
 	FS.Open(g_Arg1);
 	flat_chain_reader CR;
@@ -338,18 +349,17 @@ void cmd_test_flat_chains()
 		const PDBChain &Chain = *Chains[ChainIdx];
 		asserta(chain->m_label == Chain.m_Label);
 
-		D.Init(Chain);
 		const uint L = Chain.GetSeqLength();
 		if (L < 8)
 			continue;
 
-		bool ok = test_dist_mx(D, chain);
+		bool ok = test_dist_mx(Chain, chain);
 		++N;
 		if (!ok)
 			++n;
 		_chkmem();
 
-		double fract_diff = test_nn(D, chain);
+		double fract_diff = test_nn(Chain, chain);
 		if (fract_diff > 0.01)
 			++n_fract_diff_gt_1pct;
 		_chkmem();
