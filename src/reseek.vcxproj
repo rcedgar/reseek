@@ -304,7 +304,6 @@
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_profiles_from_fastas.cpp" />
-    <ClCompile Include="flat_pssm.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />

@@ -404,6 +404,7 @@ void cmd_test_fill_smx()
 
 		if (idxB == prev_idxB)
 			++cached;
+		else
 			{
 			++notcached;
 			uint nr_floats = LB*rows_per_pos;
