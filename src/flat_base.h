@@ -18,7 +18,7 @@ extern atomic<int64_t> g_flat_bytes[FE_N];
 #endif
 
 #if TRACK_SRC
-extern list<void *> g_flat_obj_list;
+extern std::list<void *> g_flat_obj_list;
 extern mutex g_flat_obj_list_lock;
 #endif
 
@@ -132,7 +132,7 @@ public:
 protected:
 	flat_mx() = delete;
 
-	flat_mx(uint32_t rows, uint32_t cols) : flat_base(0)
+	flat_mx(uint32_t rows, uint32_t cols) : flat_base<T, fe>(0)
 		{
 		falloc2(rows, cols);
 		}

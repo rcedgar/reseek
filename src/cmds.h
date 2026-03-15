@@ -86,5 +86,6 @@ C(sec_fasta)
 C(flat_train_discrete)
 C(flat_quantize)
 C(flat_profiles)
+C(make_pairs_binary)
 
 #undef C

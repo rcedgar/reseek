@@ -620,6 +620,9 @@
     <ClCompile Include="flat_profiles_from_fastas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="make_pairs_binary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

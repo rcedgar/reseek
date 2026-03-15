@@ -98,7 +98,7 @@ void log_flat_stats(const string &msg)
 		uint64_t size = e.second;
 		total_size += size;
 
-		Log("%10.10s", MemBytesToStr(size));
+		Log("%10.10s", MemBytesToStr(double(size)));
 		Log("  %s(%d)", file.c_str(), line);
 		Log("\n");
 		}

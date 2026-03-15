@@ -25,6 +25,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <list>
 #include <atomic>
 #include "git_hash.h"
 

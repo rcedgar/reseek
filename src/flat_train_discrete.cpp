@@ -17,6 +17,21 @@ void trunc_label(const string &Label,
 		TruncatedLabel.resize(n);
 	}
 
+void trunc_label(string &Label)
+	{
+	string TruncatedLabel = Label;
+	size_t n = TruncatedLabel.find(' ');
+	if (n != string::npos)
+		TruncatedLabel.resize(n);
+	n = TruncatedLabel.find('|');
+	if (n != string::npos)
+		TruncatedLabel.resize(n);
+	n = TruncatedLabel.find('/');
+	if (n != string::npos)
+		TruncatedLabel.resize(n);
+	Label = TruncatedLabel;
+	}
+
 void get_freqs_from_unaln(const string &fafn, uint alpha_size,
 	vector<double> &freqs)
 	{
