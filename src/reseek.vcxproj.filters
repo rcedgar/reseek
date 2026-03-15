@@ -623,6 +623,12 @@
     <ClCompile Include="make_pairs_binary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fill_smx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_pssm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

@@ -78,7 +78,7 @@ void read_profiles_from_fastas(
 
 	map<string, uint> label2idx;
 	read_fasta_label2idx(fafns[0], label2idx);
-	const uint nseq = SIZE(label2idx);
+	const uint nprof = SIZE(label2idx);
 
 	vector<vector<vector<uint8_t> > > codeseqsvec(nfeat);
 
@@ -86,7 +86,7 @@ void read_profiles_from_fastas(
 	for (uint fi = 1; fi < nfeat; ++fi)
 		read_feature_fasta(fafns[fi], alpha_sizes[fi], label2idx, codeseqsvec[fi]);
 
-	profiles.resize(nseq);
+	profiles.resize(nprof);
 	for (auto iter : label2idx)
 		{
 		const string &label = iter.first;
@@ -101,7 +101,7 @@ void read_profiles_from_fastas(
 			for (uint i = 0; i < L; ++i)
 				asserta(codeseq[i] != 0xff);
 			for (uint pos = 0; pos < L; ++pos)
-				profile[nfeat*pos + fi] = codeseq[pos];
+				profile[fi*L + pos] = codeseq[pos];
 			}
 		for (uint i = 0; i < nfeat*L; ++i)
 			asserta(profile[i] != 0xff);
@@ -154,37 +154,117 @@ void log_flat_square_mx(const float *mx, uint n)
 		}
 	}
 
-void cmd_flat_profiles()
+void check_profile(
+	vector<uint8_t> &profile,
+	vector<uint> &alpha_sizes)
 	{
-	const string &specfn = g_Arg1;
+	const uint n = SIZE(profile);
+	const uint nfeat = SIZE(alpha_sizes);
+	asserta(n%nfeat == 0);
+	const uint L = n/nfeat;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint AS = alpha_sizes[fi];
+		for (uint i = 0; i < L; ++i)
+			asserta(profile[fi*L + i] < AS);
+		}
+	}
+
+void check_profiles(
+	vector<vector<uint8_t> > &profiles,
+	vector<uint> &alpha_sizes)
+	{
+	const uint nprof = SIZE(profiles);
+	for (uint i = 0; i < nprof; ++i)
+		check_profile(profiles[i], alpha_sizes);
+	}
+
+void read_profiles_and_logoddsmxvec(
+	const string &specfn,
+	vector<string> &feature_names,
+	vector<uint> &alpha_sizes,
+	vector<string> &labels,
+	vector<vector<uint8_t> > &profiles,
+	vector<vector<float> > &logoddsmxvec)
+	{
 	vector<string> lines;
 	ReadLinesFromFile(specfn, lines);
 	uint nfeat = SIZE(lines);
 
 	vector<string> fafns;
 	vector<string> logoddsfns;
-	vector<uint> alpha_sizes;
 	for (auto line : lines)
 		{
 		vector<string> flds;
 		Split(line, flds, '\t');
-		asserta(SIZE(flds) == 3);
-		fafns.push_back(flds[0]);
-		alpha_sizes.push_back(StrToUint(flds[1]));
-		logoddsfns.push_back(flds[2]);
+		asserta(SIZE(flds) == 4);
+		feature_names.push_back(flds[0]);
+		fafns.push_back(flds[1]);
+		alpha_sizes.push_back(StrToUint(flds[2]));
+		logoddsfns.push_back(flds[3]);
 		}
+	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
+	read_logoddsvec(logoddsfns, logoddsmxvec);
+	}
 
+void cmd_flat_profiles()
+	{
+	const string &specfn = g_Arg1;
 	vector<string> labels;
 	vector<vector<uint8_t> > profiles;
-	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
-
+	vector<string> feature_names;
+	vector<uint> alpha_sizes;
 	vector<vector<float> > logoddsmxvec;
-	read_logoddsvec(logoddsfns, logoddsmxvec);
-	asserta(SIZE(logoddsmxvec) == nfeat);
+	read_profiles_and_logoddsmxvec(
+		specfn,
+		feature_names,
+		alpha_sizes,
+		labels,
+		profiles,
+		logoddsmxvec);
+
+	const uint nfeat = SIZE(feature_names);
+	const uint nprof = SIZE(labels);
+
+	asserta(SIZE(alpha_sizes) == nfeat);
+	asserta(SIZE(profiles) == nprof);
+
+	check_profiles(profiles, alpha_sizes);
 
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		Log("\n%s\n", fafns[fi].c_str());
+		Log("\n%s\n", feature_names[fi].c_str());
 		log_flat_square_mx(logoddsmxvec[fi].data(), alpha_sizes[fi]);
+		}
+
+	// Convert profiles back to FASTA for correctness checking
+	if (optset_output2)
+		{
+		const uint nprof = SIZE(labels);
+		asserta(SIZE(profiles) == nprof);
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			uint alpha_size = alpha_sizes[fi];
+			const uint8_t *letter2char = (alpha_size == 20 ? g_LetterToCharAmino : g_LetterToCharMu);
+
+			string fn = opt(output2) + feature_names[fi];
+			Progress("FASTA %s\n", fn.c_str());
+			FILE *ffa = CreateStdioFile(fn);
+			for (uint seqidx = 0; seqidx < nprof; ++seqidx)
+				{
+				const string &label = labels[seqidx];
+				const vector<uint8_t> &profile = profiles[seqidx];
+				asserta(SIZE(profile)%nfeat == 0);
+				const uint L = SIZE(profile)/nfeat;
+				string seq;
+				for (uint pos = 0; pos < L; ++pos)
+					{
+					uint8_t code = profile[fi*L + pos];
+					seq += letter2char[code];
+					}
+				SeqToFasta(ffa, label, seq);
+				}
+			CloseStdioFile(ffa);
+			}
 		}
 	}

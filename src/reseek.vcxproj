@@ -277,6 +277,7 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
+    <ClCompile Include="fill_smx.cpp" />
     <ClCompile Include="alncounts.cpp" />
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
@@ -303,6 +304,7 @@
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_profiles_from_fastas.cpp" />
+    <ClCompile Include="flat_pssm.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />

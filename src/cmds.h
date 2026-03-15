@@ -87,5 +87,6 @@ C(flat_train_discrete)
 C(flat_quantize)
 C(flat_profiles)
 C(make_pairs_binary)
+C(test_fill_smx)
 
 #undef C
