@@ -2,12 +2,13 @@
 #include "getticks.h"
 
 #if DEBUG
-static const uint SAMPLES = 10;
+static const uint CMP_SAMPLES = 10;
 static const uint TIMING_SAMPLES = 10;
 #else
-static const uint SAMPLES = 1000;
+static const uint CMP_SAMPLES = 1000;
 static const uint TIMING_SAMPLES = 10000;
 #endif
+static const uint MAXL = 1024;
 
 void read_profiles_and_logoddsmxvec(
 	const string &specfn,
@@ -276,6 +277,8 @@ void cmd_test_fill_smx()
 	asserta(SIZE(alpha_sizes) == nfeat);
 	asserta(SIZE(profiles) == nprof);
 
+	float *smx_timing = myalloc(float, MAXL*MAXL);
+
 	check_profiles(profiles, alpha_sizes);
 
 	float **weighted_logoddsmxvec = myalloc(float *, nfeat);
@@ -290,7 +293,9 @@ void cmd_test_fill_smx()
 	const uint32_t rows_per_pos =
 		get_flat_pssm_feature_block_offsets(nfeat, alpha_sizes.data(), feature_block_offsets);
 
-	for (uint sample = 0; sample < SAMPLES; ++sample)
+	TICKS tcmp = GetClockTicks();
+	TICKS tmalloc = 0;
+	for (uint sample = 0; sample < CMP_SAMPLES; ++sample)
 		{
 		uint idxA = randu32()%nprof;
 		uint idxB = randu32()%nprof;
@@ -304,9 +309,11 @@ void cmd_test_fill_smx()
 		const uint8_t *profA = vector_profA.data();
 		const uint8_t *profB = vector_profB.data();
 
+		TICKS t = GetClockTicks();
 		float *smx = myalloc(float, LA*LB);
 		float *smx_slow = myalloc(float, LA*LB);
 		float *smx_pssm = myalloc(float, LA*LB);
+		tmalloc += GetClockTicks() - t;
 
 		fill_smx(profA, LA, profB, LB, nfeat,
 			alpha_sizes.data(), weighted_logoddsmxvec, smx);
@@ -327,6 +334,9 @@ void cmd_test_fill_smx()
 
 		cmp_smx(smx, smx_pssm, LA, LB);
 		}
+	tcmp = GetClockTicks() - tcmp;
+	ProgressLog("Cmp ticks %.3g, malloc %s (%.1f%%)\n",
+		double(tcmp), FloatToStr(double(tmalloc)), GetPct(double(tmalloc), double(tcmp)));
 
 	vector<uint> idxAs;
 	vector<uint> idxBs;
@@ -350,14 +360,14 @@ void cmd_test_fill_smx()
 
 		uint LA = SIZE(vector_profA)/nfeat;
 		uint LB = SIZE(vector_profB)/nfeat;
+		if (LA > MAXL || LB > MAXL)
+			continue;
 
 		const uint8_t *profA = vector_profA.data();
 		const uint8_t *profB = vector_profB.data();
 
-		float *smx_slow = myalloc(float, LA*LB);
-
 		fill_smx_slow(vector_profA, LA, vector_profB, LB, nfeat,
-			alpha_sizes, weighted_logoddsmxvec, smx_slow);
+			alpha_sizes, weighted_logoddsmxvec, smx_timing);
 		}
 	TICKS t2 = GetClockTicks();
 
@@ -371,21 +381,27 @@ void cmd_test_fill_smx()
 
 		uint LA = SIZE(vector_profA)/nfeat;
 		uint LB = SIZE(vector_profB)/nfeat;
+		if (LA > MAXL || LB > MAXL)
+			continue;
 
 		const uint8_t *profA = vector_profA.data();
 		const uint8_t *profB = vector_profB.data();
 
-		float *smx = myalloc(float, LA*LB);
-
 		fill_smx(profA, LA, profB, LB, nfeat,
-			alpha_sizes.data(), weighted_logoddsmxvec, smx);
+			alpha_sizes.data(), weighted_logoddsmxvec, smx_timing);
 		}
 	TICKS t3 = GetClockTicks();
 
-	uint prev_idxB = UINT_MAX;
-	float *pssm = 0;
+	/////////////////////////////////////////////////////////
+	// Begin PSSM
+	/////////////////////////////////////////////////////////
 	uint cached = 0;
 	uint notcached = 0;
+	{
+	uint prev_idxB = UINT_MAX;
+
+	uint nr_floats = MAXL*rows_per_pos;
+	float *pssm = myalloc(float, nr_floats);
 	for (uint sample = 0; sample < TIMING_SAMPLES; ++sample)
 		{
 		uint idxA = idxAs[sample];
@@ -396,19 +412,18 @@ void cmd_test_fill_smx()
 
 		uint LA = SIZE(vector_profA)/nfeat;
 		uint LB = SIZE(vector_profB)/nfeat;
+		if (LA > MAXL || LB > MAXL)
+			continue;
 
 		const uint8_t *profA = vector_profA.data();
 		const uint8_t *profB = vector_profB.data();
 
-		float *smx_pssm = myalloc(float, LA*LB);
 
 		if (idxB == prev_idxB)
 			++cached;
 		else
 			{
 			++notcached;
-			uint nr_floats = LB*rows_per_pos;
-			pssm = myalloc(float, nr_floats);
 
 			fill_flat_pssm(profB, LB, nfeat, alpha_sizes.data(),
 				feature_block_offsets, weighted_logoddsmxvec, pssm);
@@ -417,10 +432,14 @@ void cmd_test_fill_smx()
 			}
 
 		fill_smx_using_flat_pssm(profA, LA, LB, nfeat,
-			feature_block_offsets, pssm, smx_pssm);
+			feature_block_offsets, pssm, smx_timing);
 		}
+	}
 	TICKS t4 = GetClockTicks();
 	Progress("%u cached, %u not cached\n", cached, notcached);
+	/////////////////////////////////////////////////////////
+	// End PSSM
+	/////////////////////////////////////////////////////////
 
 	double tslow = double(t2 - t1);
 	double tfast = double(t3 - t2);
