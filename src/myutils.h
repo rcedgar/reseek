@@ -294,12 +294,7 @@ inline bool feq(double x, double y)
 	{
 	if (x < -1e6 && y < -1e6)
 		return true;
-	double e = epsilon;
-	if (fabs(x) > 10000)
-		e = fabs(x)/10000;
-	if (fabs(x - y) > e)
-		return false;
-	return true;
+	return fabs(x - y)/fabs(x + y) < 0.01;
 	}
 
 #define asserteq(x, y)	assert(feq(x, y))

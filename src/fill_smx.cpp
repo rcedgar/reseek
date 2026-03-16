@@ -3,6 +3,8 @@
 #include "xdpmem.h"
 #include "flat_sw_pssm.h"
 
+#define USE_TPL	0
+
 /***
 $src/2026-03-15_benchmark_flat_fill_smx/2026-03-15_benchmark_flat_fill_smx
 
@@ -1052,7 +1054,9 @@ void cmd_test_flat_sw()
 	double told = 0;
 	double tpssm = 0;
 	double tfast = 0;
+#if USE_TPL
 	double ttpl = 0;
+#endif
 	for (uint sample = 0; sample < SW_SAMPLES; ++sample)
 		{
 		uint idxA = randu32()%nprof;
@@ -1103,19 +1107,36 @@ void cmd_test_flat_sw()
 
 		cmp_smx(smx, smx_pssm, LA, LB);
 
+#if USE_TPL
+		float score_tpl = 0;
 		TICKS t5 = GetClockTicks();
-		float score_fast = smith_waterman_affine_flat_pssm_fixed_nfeat<2>(
-			profA, LA, LB, feature_block_offsets, pssm,
-			gap_open, gap_ext, H, F);
+		switch (nfeat)
+			{
+		case 2:
+			score_tpl = smith_waterman_affine_flat_pssm_fixed_nfeat<2>(
+				profA, LA, LB, feature_block_offsets, pssm,
+				gap_open, gap_ext, H, F);
+			break;
+
+		case 6:
+			score_tpl = smith_waterman_affine_flat_pssm_fixed_nfeat<6>(
+				profA, LA, LB, feature_block_offsets, pssm,
+				gap_open, gap_ext, H, F);
+			break;
+
+		default:
+			Die("tpl %u", nfeat);
+			}
 		TICKS t6 = GetClockTicks();
-		tfast += double(t6 - t5);
+		ttpl += double(t6 - t5);
+#endif USE_TPL
 
 		TICKS t7 = GetClockTicks();
-		float score_tpl = smith_waterman_affine_flat_pssm_fast(
+		float score_fast = smith_waterman_affine_flat_pssm_fast(
 			profA, LA, LB, nfeat, feature_block_offsets, pssm,
 			gap_open, gap_ext, H, F, row_ptrs);
 		TICKS t8 = GetClockTicks();
-		ttpl += double(t8 - t7);
+		tfast += double(t8 - t7);
 
 		cvt_smx(smx, LA, LB, SMxData);
 
@@ -1129,16 +1150,22 @@ void cmd_test_flat_sw()
 
 		//Log("%5u  score_old %8.3g   score %8.3g   %-20.20s...(%u)\n",
 		//	sample, score_old, score, Path.c_str(), SIZE(Path));
+		if (!feq(score, score_fast))
+			Die("score %.3g fast %.3g", score, score_fast);
 		if (!feq(score, score_old))
 			Die("score %.3g old %.3g", score, score_old);
 		if (!feq(score_fast, score_old))
 			Die("score_fast %.3g old %.3g", score_fast, score_old);
+#if USE_TPL
 		if (!feq(score_tpl, score_old))
 			Die("score_tpl %.3g old %.3g", score_tpl, score_old);
+#endif
 		}
 
 	ProgressLog("%s  old\n", FloatToStr(told));
 	ProgressLog("%s  pssm (%.1f%%)\n", FloatToStr(tpssm), 100 - GetPct(told-tpssm, told));
 	ProgressLog("%s  fast (%.1f%%)\n", FloatToStr(tfast), 100 - GetPct(told-tfast, told));
+#if USE_TPL
 	ProgressLog("%s  tpl  (%.1f%%)\n", FloatToStr(ttpl), 100 - GetPct(told-ttpl, told));
+#endif
 	}
