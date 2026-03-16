@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "tracebit.h"
 
@@ -187,3 +188,4 @@ float sw_flat(
 
 	return BestScore;
 	}
+#endif // 0

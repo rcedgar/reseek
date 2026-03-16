@@ -3,17 +3,24 @@
 
 static uint32_t s_nfeat = 3;
 static uint32_t s_minL = 3;
-static uint32_t s_maxL = 6;
-static uint32_t s_nprof = 3;
+static uint32_t s_maxL = 10;
+static uint32_t s_nprof = 10;
 
-static float s_open = -3;
-static float s_ext = -1;
+static float s_open = -1;
+static float s_ext = -0.1f;
 
 using colscorefn = float(uint i, uint j);
 float SWFast_Callback(XDPMem &Mem,
 	uint LA,
 	uint LB,
 	colscorefn sf,
+	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	string &Path);
+
+float sw_flat(
+	float *__restrict scratch_rows,
+	uint8_t *__restrict TB,
+	uint LA, uint LB, colscorefn sf,
 	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
 	string &Path);
 
@@ -25,6 +32,17 @@ void fill_flat_pssm(
 	const uint32_t * __restrict feature_block_offsets,
 	const float *const * __restrict weighted_logoddsmxvec,
 	float * __restrict pssm);
+
+float sw_flat_pssm(
+	float *__restrict scratch_rows,
+	uint8_t *__restrict TB,
+	const float ** __restrict scratch_ppsms,
+	const uint8_t *__restrict profA, uint LA,
+	const float *__restrict pssm, uint LB,
+	const uint32_t * __restrict feature_block_offsets,
+	uint nfeat,
+	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	string &Path);
 
 uint32_t get_flat_pssm_feature_block_offsets(
 	const uint32_t nfeat,
@@ -55,7 +73,7 @@ static uint8_t *make_random_profile(uint32_t L)
 
 static float get_random_score()
 	{
-	int i = int(randu32()%10) - 7;
+	int i = int(randu32()%10) - 3;
 	float r = float(randu32()%1000 + 1)/3000.0f;
 	return float(i) + r;
 	}
@@ -94,15 +112,15 @@ static uint32_t s_L_j;
 static uint8_t *s_prof_i;
 static uint8_t *s_prof_j;
 
-static float *s_pssm_i;
+static float *s_pssm_j;
 
-static void cache_prof(uint i)
+static void cache_prof_j(uint j)
 	{
-	s_i = i;
-	s_L_i = s_prof_lengths[i];
-	s_prof_i = s_profs[i];
-	fill_flat_pssm(s_prof_i, s_L_i, s_nfeat, s_alpha_sizes,
-		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_i);
+	s_j = j;
+	s_L_j = s_prof_lengths[j];
+	s_prof_j = s_profs[j];
+	fill_flat_pssm(s_prof_j, s_L_j, s_nfeat, s_alpha_sizes,
+		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_j);
 	}
 
 static float prof_col_score(uint pos_i, uint pos_j)
@@ -161,7 +179,7 @@ static float score_path(uint start_i, uint start_j, const string &path)
 	return score;
 	}
 
-static void align_prof_enum(uint j)
+static void align_prof_enum()
 	{
 	void enum_sw_paths(
 		uint32_t LA,
@@ -193,10 +211,10 @@ static void align_prof_enum(uint j)
 			best_path = path;
 			}
 		}
-	Log("%3u,%3u  score %.3g  %s  enum\n", s_i, s_j, best_score, best_path.c_str());
+	Log("%10.3g  %s  enum\n", best_score, best_path.c_str());
 	}
 
-static void align_prof_callback(uint j)
+static void align_prof_callback()
 	{
 	XDPMem Mem;
 	uint Loi, Loj, Leni, Lenj;
@@ -205,19 +223,55 @@ static void align_prof_callback(uint j)
 		s_open, s_ext,
 		Loi, Loj, Leni, Lenj, Path);
 	float score2 = score_path(Loi, Loj, Path);
-	assert(feq(score, score2));
-	Log("%3u,%3u  score %10.3g  %s  callback\n",
-		s_i, s_j, score, Path.c_str());
+	Log("%10.3g  %s  callback\n", score, Path.c_str());
+	if (!feq(score, score2))
+		Die("callback %.3g %.3g", score, score2);
 	}
 
-static void align_prof(uint j)
+static float *s_scratch_rows;
+static uint8_t *s_TB;
+static void align_prof_flat()
 	{
-	s_j = j;
-	s_L_j = s_prof_lengths[j];
-	s_prof_j = s_profs[j];
+	XDPMem Mem;
+	uint Loi, Loj, Leni, Lenj;
+	string Path;
+	float score = sw_flat(s_scratch_rows, s_TB, s_L_i, s_L_j,
+		prof_col_score, s_open, s_ext,
+		Loi, Loj, Leni, Lenj, Path);
+	float score2 = score_path(Loi, Loj, Path);
+	Log("%10.3g  %s  flat\n", score, Path.c_str());
+	if (!feq(score, score2))
+		Die("flat %.3g %.3g", score, score2);
+	}
 
-	align_prof_callback(j);
-	align_prof_enum(j);
+static const float **__restrict s_scratch_pssms;
+static void align_prof_pssm()
+	{
+	uint Loi, Loj, Leni, Lenj;
+	string Path;
+	float score = sw_flat_pssm(
+		s_scratch_rows, s_TB, s_scratch_pssms,
+		s_prof_i, s_L_i,
+		s_pssm_j, s_L_j, s_feature_block_offsets,
+		s_nfeat, s_open, s_ext,
+		Loi, Loj, Leni, Lenj, Path);
+	Log("%10.3g  %s  pssm\n", score, Path.c_str());
+	float score2 = score_path(Loi, Loj, Path);
+	if (!feq(score, score2))
+		Die("pssm %.3g %.3g", score, score2);
+	}
+
+static void align_prof_i(uint i)
+	{
+	s_i = i;
+	s_L_i = s_prof_lengths[i];
+	s_prof_i = s_profs[i];
+
+	Log("\n======= (%u, %u)\n", s_i, s_j);
+	align_prof_callback();
+	align_prof_flat();
+	align_prof_enum();
+	align_prof_pssm();
 	}
 
 void cmd_test_sw_enum()
@@ -227,11 +281,14 @@ void cmd_test_sw_enum()
 	s_alpha_sizes[1] = 4;
 	s_alpha_sizes[2] = 5;
 
-	s_pssm_i = myalloc(float, s_maxL*s_maxL);
 	s_feature_block_offsets = myalloc(uint32_t, s_nfeat);
+	s_scratch_rows = myalloc(float, 2*s_maxL + 2);
+	s_scratch_pssms = myalloc(const float *, s_nfeat);
+	s_TB = myalloc(uint8_t, s_maxL*s_maxL);
 
 	s_sum_alpha_sizes = get_flat_pssm_feature_block_offsets(
 		s_nfeat, s_alpha_sizes, s_feature_block_offsets);
+	s_pssm_j = myalloc(float, s_maxL * s_sum_alpha_sizes);
 
 	s_weighted_logoddsmxvec = myalloc(float *, s_nfeat);
 	for (uint fi = 0; fi < s_nfeat; ++fi)
@@ -249,12 +306,10 @@ void cmd_test_sw_enum()
 		s_profs[i] = make_random_profile(L);
 		}
 
-	for (uint i = 0; i < s_nprof; ++i)
+	for (uint j = 0; j < s_nprof; ++j)
 		{
-		cache_prof(i);
-		for (uint j = 0; j < s_nprof; ++j)
-			{
-			align_prof(j);
-			}
+		cache_prof_j(j);
+		for (uint i = 0; i < s_nprof; ++i)
+			align_prof_i(i);
 		}
 	}
