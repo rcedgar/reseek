@@ -1,0 +1,260 @@
+#include "myutils.h"
+#include "xdpmem.h"
+
+static uint32_t s_nfeat = 3;
+static uint32_t s_minL = 3;
+static uint32_t s_maxL = 6;
+static uint32_t s_nprof = 3;
+
+static float s_open = -3;
+static float s_ext = -1;
+
+using colscorefn = float(uint i, uint j);
+float SWFast_Callback(XDPMem &Mem,
+	uint LA,
+	uint LB,
+	colscorefn sf,
+	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	string &Path);
+
+void fill_flat_pssm(
+	const uint8_t * __restrict profQ,
+	uint32_t LQ,
+	uint32_t nfeat,
+	const uint32_t * __restrict alpha_sizes,
+	const uint32_t * __restrict feature_block_offsets,
+	const float *const * __restrict weighted_logoddsmxvec,
+	float * __restrict pssm);
+
+uint32_t get_flat_pssm_feature_block_offsets(
+	const uint32_t nfeat,
+	const uint32_t * __restrict alpha_sizes,
+	uint32_t * __restrict feature_block_offsets);
+
+static uint8_t **s_profs;
+static uint32_t *s_prof_lengths;
+
+static uint32_t *s_alpha_sizes;
+static uint32_t s_sum_alpha_sizes;
+static uint32_t *s_feature_block_offsets;
+static float **s_weighted_logoddsmxvec;
+
+static uint8_t *make_random_profile(uint32_t L)
+	{
+	uint8_t *prof = myalloc(uint8_t, s_nfeat*L);
+	uint32_t k = 0;
+	for (uint fi = 0; fi < s_nfeat; ++fi)
+		{
+		uint32_t alpha_size = s_alpha_sizes[fi];
+		for (uint pos = 0; pos < L; ++pos)
+			prof[k++] = uint8_t(randu32()%alpha_size);
+		}
+	assert(k == s_nfeat*L);
+	return prof;
+	}
+
+static float get_random_score()
+	{
+	int i = int(randu32()%10) - 7;
+	float r = float(randu32()%1000 + 1)/3000.0f;
+	return float(i) + r;
+	}
+
+static float get_random_positive_score()
+	{
+	uint i = randu32()%10 + 1;
+	assert(i > 0);
+	float r = float(randu32()%1000 + 1)/3000.0f;
+	return float(i) + r;
+	}
+
+static float *make_random_logoddsmx(uint32_t alpha_size)
+	{
+	float *mx = myalloc(float, alpha_size*alpha_size);
+	uint n = 100;
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		for (uint j = 0; j < alpha_size; ++j)
+			{
+			float score = (i == j) ? 
+				get_random_positive_score() :
+				get_random_score();
+			mx[i*alpha_size + j] = score;
+			}
+		}
+	return mx;
+	}
+
+static uint s_i;
+static uint s_j;
+
+static uint32_t s_L_i;
+static uint32_t s_L_j;
+
+static uint8_t *s_prof_i;
+static uint8_t *s_prof_j;
+
+static float *s_pssm_i;
+
+static void cache_prof(uint i)
+	{
+	s_i = i;
+	s_L_i = s_prof_lengths[i];
+	s_prof_i = s_profs[i];
+	fill_flat_pssm(s_prof_i, s_L_i, s_nfeat, s_alpha_sizes,
+		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_i);
+	}
+
+static float prof_col_score(uint pos_i, uint pos_j)
+	{
+	assert(pos_i < s_L_i);
+	assert(pos_j < s_L_j);
+	float score = 0;
+	for (uint32_t fi = 0; fi < s_nfeat; ++fi)
+		{
+		const uint32_t AS_fi = s_alpha_sizes[fi];
+		const float *weighted_logoddsmx_fi = s_weighted_logoddsmxvec[fi];
+		const uint8_t *prof_i_fi = s_prof_i + fi*s_L_i;
+		const uint8_t *prof_j_fi = s_prof_j + fi*s_L_j;
+		const uint8_t code_i_pos_i = prof_i_fi[pos_i];
+		const float *weighted_logoddsmx_row = weighted_logoddsmx_fi + code_i_pos_i*AS_fi;
+		const uint8_t code_j_pos_j = prof_j_fi[pos_j];
+		score += weighted_logoddsmx_row[code_j_pos_j];
+		}
+	return score;
+	}
+
+static float score_path(uint start_i, uint start_j, const string &path)
+	{
+	uint pos_i = start_i;
+	uint pos_j = start_j;
+	uint ncol = SIZE(path);
+	float score = 0;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		switch (path[col])
+			{
+		case 'M':
+			score += prof_col_score(pos_i, pos_j);
+			++pos_i;
+			++pos_j;
+			break;
+		
+		case 'D':
+			assert(col > 0);
+			score += (path[col-1] == 'M') ? s_open : s_ext;
+			++pos_i;
+			break;
+
+		case 'I':
+			assert(col > 0);
+			score += (path[col-1] == 'M') ? s_open : s_ext;
+			++pos_j;
+			break;
+
+		default:
+			Die("path[%u]='%c'", col, path[col]);
+			}
+		}
+	assert(pos_i <= s_L_i);
+	assert(pos_j <= s_L_j);
+	return score;
+	}
+
+static void align_prof_enum(uint j)
+	{
+	void enum_sw_paths(
+		uint32_t LA,
+		uint32_t LB,
+		vector<uint32_t>& starts_A,
+		vector<uint32_t>& starts_B,
+		vector<string>& paths);
+
+	vector<uint32_t> starts_i;
+	vector<uint32_t> starts_j;
+	vector<string> paths;
+	enum_sw_paths(s_L_i, s_L_j, starts_i, starts_j, paths);
+	const uint npath = SIZE(paths);
+	float best_score = 0;
+	uint best_start_i = 0;
+	uint best_start_j = 0;
+	string best_path;
+	for (uint pathidx = 0; pathidx < npath; ++pathidx)
+		{
+		uint start_i = starts_i[pathidx];
+		uint start_j = starts_j[pathidx];
+		string path = paths[pathidx];
+		float score = score_path(start_i, start_j, path);
+		if (score > best_score)
+			{
+			best_score = score;
+			best_start_i = start_i;
+			best_start_j = start_j;
+			best_path = path;
+			}
+		}
+	Log("%3u,%3u  score %.3g  %s  enum\n", s_i, s_j, best_score, best_path.c_str());
+	}
+
+static void align_prof_callback(uint j)
+	{
+	XDPMem Mem;
+	uint Loi, Loj, Leni, Lenj;
+	string Path;
+	float score = SWFast_Callback(Mem, s_L_i, s_L_j, prof_col_score,
+		s_open, s_ext,
+		Loi, Loj, Leni, Lenj, Path);
+	float score2 = score_path(Loi, Loj, Path);
+	assert(feq(score, score2));
+	Log("%3u,%3u  score %10.3g  %s  callback\n",
+		s_i, s_j, score, Path.c_str());
+	}
+
+static void align_prof(uint j)
+	{
+	s_j = j;
+	s_L_j = s_prof_lengths[j];
+	s_prof_j = s_profs[j];
+
+	align_prof_callback(j);
+	align_prof_enum(j);
+	}
+
+void cmd_test_sw_enum()
+	{
+	s_alpha_sizes = myalloc(uint32_t, s_nfeat);
+	s_alpha_sizes[0] = 3;
+	s_alpha_sizes[1] = 4;
+	s_alpha_sizes[2] = 5;
+
+	s_pssm_i = myalloc(float, s_maxL*s_maxL);
+	s_feature_block_offsets = myalloc(uint32_t, s_nfeat);
+
+	s_sum_alpha_sizes = get_flat_pssm_feature_block_offsets(
+		s_nfeat, s_alpha_sizes, s_feature_block_offsets);
+
+	s_weighted_logoddsmxvec = myalloc(float *, s_nfeat);
+	for (uint fi = 0; fi < s_nfeat; ++fi)
+		{
+		uint alpha_size = s_alpha_sizes[fi];
+		s_weighted_logoddsmxvec[fi] = make_random_logoddsmx(alpha_size);
+		}
+
+	s_profs = myalloc(uint8_t *, s_nprof);
+	s_prof_lengths = myalloc(uint32_t, s_nprof);
+	for (uint i = 0; i < s_nprof; ++i)
+		{
+		uint32_t L = s_minL + randu32()%(s_maxL - s_minL);
+		s_prof_lengths[i] = L;
+		s_profs[i] = make_random_profile(L);
+		}
+
+	for (uint i = 0; i < s_nprof; ++i)
+		{
+		cache_prof(i);
+		for (uint j = 0; j < s_nprof; ++j)
+			{
+			align_prof(j);
+			}
+		}
+	}

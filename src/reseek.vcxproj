@@ -277,6 +277,7 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
+    <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fill_smx.cpp" />
     <ClCompile Include="alncounts.cpp" />
     <ClCompile Include="alpha.cpp" />
@@ -431,8 +432,11 @@
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
     <ClCompile Include="subsetbench.cpp" />
+    <ClCompile Include="sw_flat.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_flat_chains.cpp" />
+    <ClCompile Include="test_sw.cpp" />
+    <ClCompile Include="test_sw_enum.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="todo.cpp" />
     <ClCompile Include="tracealn.cpp" />
