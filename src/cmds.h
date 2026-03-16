@@ -88,5 +88,6 @@ C(flat_quantize)
 C(flat_profiles)
 C(make_pairs_binary)
 C(test_fill_smx)
+C(test_flat_sw)
 
 #undef C

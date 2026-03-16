@@ -1057,6 +1057,9 @@
     <ClInclude Include="sidvec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="flat_sw_pssm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">

@@ -193,18 +193,37 @@ void read_profiles_and_logoddsmxvec(
 
 	vector<string> fafns;
 	vector<string> logoddsfns;
+	vector<float> weights;
+	float sumw = 0;
 	for (auto line : lines)
 		{
 		vector<string> flds;
 		Split(line, flds, '\t');
-		asserta(SIZE(flds) == 4);
+		asserta(SIZE(flds) == 5);
 		feature_names.push_back(flds[0]);
 		fafns.push_back(flds[1]);
 		alpha_sizes.push_back(StrToUint(flds[2]));
 		logoddsfns.push_back(flds[3]);
+		float w = (float) StrToFloat(flds[4]);
+		weights.push_back(w);
+		sumw += w;
 		}
-	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
+	asserta(SIZE(weights) == nfeat);
+
+	asserta(sumw > 0);
+	float sumw2 = 0;
+	for (uint i = 0; i < nfeat; ++i)
+		{
+		float w = weights[i]/sumw;
+		sumw2 += w;
+		weights[i] = w;
+		}
+	asserta(sumw2 > 0.99 && sumw2 < 1.01);
+
 	read_logoddsvec(logoddsfns, logoddsmxvec);
+	asserta(SIZE(logoddsmxvec) == nfeat);
+
+	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
 	}
 
 void cmd_flat_profiles()

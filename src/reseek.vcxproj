@@ -510,6 +510,7 @@
     <ClInclude Include="flat_chain_reader.h" />
     <ClInclude Include="flat_dist_types.h" />
     <ClInclude Include="flat_enum.h" />
+    <ClInclude Include="flat_sw_pssm.h" />
     <ClInclude Include="flat_type_names.h" />
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="hexintseq.h" />
