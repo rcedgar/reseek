@@ -306,6 +306,7 @@
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_profiles_from_fastas.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
+    <ClCompile Include="flat_subsetbench.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
@@ -318,7 +319,6 @@
     <ClCompile Include="hjnumegarev.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
-    <ClCompile Include="make_pairs_binary.cpp" />
     <ClCompile Include="nbr_stats.cpp" />
     <ClCompile Include="nn_primary_chain_dist.cpp" />
     <ClCompile Include="nubench.cpp" />
@@ -514,6 +514,7 @@
     <ClInclude Include="flat_chain_reader.h" />
     <ClInclude Include="flat_dist_types.h" />
     <ClInclude Include="flat_enum.h" />
+    <ClInclude Include="flat_subsetbench.h" />
     <ClInclude Include="flat_sw_pssm.h" />
     <ClInclude Include="flat_type_names.h" />
     <ClInclude Include="fragaligner.h" />

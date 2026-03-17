@@ -86,10 +86,10 @@ C(sec_fasta)
 C(flat_train_discrete)
 C(flat_quantize)
 C(flat_profiles)
-C(make_pairs_binary)
 C(test_fill_smx)
 C(test_sw)
 C(test_enum_paths)
 C(test_sw_enum)
+C(flat_subset_bench)
 
 #undef C

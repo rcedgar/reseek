@@ -620,9 +620,6 @@
     <ClCompile Include="flat_profiles_from_fastas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="make_pairs_binary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="fill_smx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -636,6 +633,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="enum_paths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_subsetbench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1070,6 +1070,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_sw_pssm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_subsetbench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

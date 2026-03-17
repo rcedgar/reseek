@@ -22,17 +22,6 @@ float sw_flat_pssm(
 	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
 	string &Path);
 
-float sw_flat_pssm_ptrwalk(
-	float *__restrict scratch_rows,
-	uint8_t *__restrict TB,
-	const float ** __restrict scratch_ppsms,
-	const uint8_t *__restrict profA, uint LA,
-	const float *__restrict pssm, uint LB,
-	const uint32_t * __restrict feature_block_offsets,
-	uint nfeat,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	string &Path);
-
 void read_profiles_and_logoddsmxvec(
 	const string &specfn,
 	vector<string> &feature_names,
