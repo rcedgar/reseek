@@ -7,8 +7,31 @@
 #include "flat_distmx.h"
 #include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
+#include "getticks.h"
 
-static const uint MAXL = 1000;
+static const uint s_maxL = 1000;
+
+float sw_flat_pssm(
+	float *__restrict scratch_rows,
+	uint8_t *__restrict TB,
+	const float ** __restrict scratch_ppsms,
+	const uint8_t *__restrict profA, uint LA,
+	const float *__restrict pssm, uint LB,
+	const uint32_t * __restrict feature_block_offsets,
+	uint nfeat,
+	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	string &Path);
+
+float sw_flat_pssm_ptrwalk(
+	float *__restrict scratch_rows,
+	uint8_t *__restrict TB,
+	const float ** __restrict scratch_ppsms,
+	const uint8_t *__restrict profA, uint LA,
+	const float *__restrict pssm, uint LB,
+	const uint32_t * __restrict feature_block_offsets,
+	uint nfeat,
+	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	string &Path);
 
 void read_profiles_and_logoddsmxvec(
 	const string &specfn,
@@ -36,29 +59,22 @@ void fill_flat_pssm(
 	const float *const * __restrict weighted_logoddsmxvec,
 	float * __restrict pssm);
 
-void fill_smx_using_flat_pssm(
-	const uint8_t * __restrict profA,
-	uint32_t LA,
-	uint32_t LB,
-	uint32_t nfeat,
-	const uint32_t * __restrict feature_block_offsets,
-	const float * __restrict pssm,
-	float * __restrict smx);
-
-float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
-  float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-  string &Path);
-
 static uint s_nfeat;
 static uint *s_alpha_sizes;
 static uint *s_feature_block_offsets;
 static float *s_pssm_i;
-static float *s_smx;
 static float **s_weighted_logoddsmxvec;
 static uint s_L_i;
 static string s_label_i;
 
-static void cache_i_flat(const string &label, const uint8_t *prof_i, uint L_i)
+static const float **__restrict s_scratch_pssms;
+static float *s_scratch_rows;
+static uint8_t *s_TB;
+
+static float s_open = -3;
+static float s_ext = -1;
+
+static void cache_i(const string &label, const uint8_t *prof_i, uint L_i)
 	{
 	s_label_i = label;
 	s_L_i = L_i;
@@ -66,20 +82,17 @@ static void cache_i_flat(const string &label, const uint8_t *prof_i, uint L_i)
 		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_i);
 	}
 
-static float align_j_flat(const string &label, const uint8_t *prof_j, uint L_j)
+static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	{
-	fill_smx_using_flat_pssm(prof_j, L_j, s_L_i, s_nfeat,
-		s_feature_block_offsets, s_pssm_i, s_smx);
-	return 0;
-	}
-
-static void cache_i_old(const string &label, const uint8_t *prof_i, uint L_i)
-	{
-	}
-
-static float align_j_old(const string &label, const uint8_t *prof_j, uint L_j)
-	{
-	return 0;
+	uint Loi, Loj, Leni, Lenj;
+	string Path;
+	float score = sw_flat_pssm(
+		s_scratch_rows, s_TB, s_scratch_pssms,
+		prof_j, L_j,
+		s_pssm_i, s_L_i, s_feature_block_offsets,
+		s_nfeat, s_open, s_ext,
+		Loi, Loj, Leni, Lenj, Path);
+	return score;
 	}
 
 void cmd_test_sw()
@@ -104,7 +117,6 @@ void cmd_test_sw()
 	asserta(SIZE(alpha_sizes) == s_nfeat);
 	asserta(SIZE(profiles) == nprof);
 
-	s_smx = myalloc(float, MAXL*MAXL);
 	s_alpha_sizes = alpha_sizes.data();
 
 	check_profiles(profiles, alpha_sizes);
@@ -118,23 +130,43 @@ void cmd_test_sw()
 		}
 
 	s_feature_block_offsets = myalloc(uint32_t, s_nfeat);
-	const uint32_t rows_per_pos =
+	const uint32_t sum_alpha_sizes =
 		get_flat_pssm_feature_block_offsets(s_nfeat,
 			s_alpha_sizes, s_feature_block_offsets);
 
+	s_pssm_i = myalloc(float, s_maxL * sum_alpha_sizes);
+
+	s_scratch_rows = myalloc(float, 2*s_maxL + 2);
+	s_scratch_pssms = myalloc(const float *, s_nfeat);
+	s_TB = myalloc(uint8_t, s_maxL*s_maxL);
+
+	uint npairs = nprof*nprof;
+
+	ProgressLog("%10u  features\n", s_nfeat);
+	ProgressLog("%10u  profiles\n", nprof);
+	ProgressLog("%10u  pairs\n", npairs);
+
+	uint counter = 0;
+	TICKS t1 = GetClockTicks();
 	for (uint i = 0; i < nprof; ++i)
 		{
 		uint L_i = SIZE(profiles[i]);
-		if (L_i > MAXL) continue;
-		cache_i_flat(labels[i], profiles[i].data(), L_i);
-		cache_i_old(labels[i], profiles[i].data(), L_i);
+		asserta(L_i%s_nfeat == 0);
+		L_i /= s_nfeat;
+		if (L_i > s_maxL) continue;
+		cache_i(labels[i], profiles[i].data(), L_i);
 
 		for (uint j = 0; j < nprof; ++j)
 			{
+			//ProgressStep(counter++, npairs, "Aligning");
 			uint L_j = SIZE(profiles[j]);
-			if (L_j > MAXL) continue;
-			align_j_flat(labels[j], profiles[j].data(), L_j);
-			align_j_old(labels[j], profiles[j].data(), L_j);
+			asserta(L_j%s_nfeat == 0);
+			L_j /= s_nfeat;
+			if (L_j > s_maxL) continue;
+			align_j(labels[j], profiles[j].data(), L_j);
 			}
 		}
+	TICKS t2 = GetClockTicks();
+	double t = double(t2 - t1);
+	ProgressLog("%.3g ticks\n", t);
 	}

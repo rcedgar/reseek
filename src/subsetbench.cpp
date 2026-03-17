@@ -164,6 +164,10 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 	vector<string> LabelQs;
 	vector<string> LabelTs;
 	uint HitCount = 0;
+	uint HighEvalue = 0;
+	uint GtCount = 0;
+	uint SelfCount = 0;
+	uint NotFound = 0;
 	while (ReadLineStdioFile(f, Line))
 		{
 		if (++HitCount%100000 == 0)
@@ -173,8 +177,10 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 		const string &LabelQ = Fields[0];
 		const string &LabelT = Fields[1];
 		if (LabelQ == LabelT)
+			{
+			++SelfCount;
 			continue;
-
+			}
 		string DomQ, DomT;
 		SCOP40Bench::GetDomFromLabel(LabelQ, DomQ);
 		SCOP40Bench::GetDomFromLabel(LabelT, DomT);
@@ -182,22 +188,36 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 		uint DomIdxQ = GetDomIdx(DomQ, true);
 		uint DomIdxT = GetDomIdx(DomT, true);
 		if (DomIdxQ == UINT_MAX || DomIdxT == UINT_MAX)
+			{
+			++NotFound;
 			continue;
+			}
 
 		double Evalue = StrToFloat(Fields[2]);
 		if (Evalue >= 10)
+			{
+			++HighEvalue;
 			continue;
+			}
 		if (LabelQ > LabelT)
+			{
+			++GtCount;
 			continue;
+			}
 
 		LabelQs.push_back(LabelQ);
 		LabelTs.push_back(LabelT);
 		}
-	Progress("Hits %u\n", HitCount);
-
 	uint DopeSize = SIZE(LabelQs);
 	asserta(SIZE(LabelTs) == DopeSize);
-	ProgressLog("Dope size %u\n", DopeSize);
+
+	ProgressLog("%10u  Total hits\n", HitCount);
+	ProgressLog("%10u  High E-value\n", HighEvalue);
+	ProgressLog("%10u  Not found\n", NotFound);
+	ProgressLog("%10u  Self-hits\n", SelfCount);
+	ProgressLog("%10u  Other triangle\n", GtCount);
+	ProgressLog("%10u  Hits saved to dope\n", DopeSize);
+
 	AllocDope(DopeSize);
 
 	uint NT = 0;
