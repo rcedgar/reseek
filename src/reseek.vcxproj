@@ -160,12 +160,10 @@
       <UACUIAccess>false</UACUIAccess>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>c:\exe\signtool sign /fd sha256 /n "My Test Code Signing" "$(TargetPath)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message>sign exe</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -263,12 +261,10 @@
       <UACUIAccess>false</UACUIAccess>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>c:\exe\signtool sign /fd sha256 /n "My Test Code Signing" "$(TargetPath)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>
-      </Message>
+      <Message>sign exe</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

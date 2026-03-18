@@ -3,11 +3,6 @@
 #include "scop40bench.h"
 #include "fastbench.h"
 
-typedef void BYTE_SEQ_FN(
-	const PDBChain &Chain,
-	uint AlphaSize,
-	vector<byte> &ByteSeq);
-
 typedef float (*ALIGN_FN)();
 
 class flat_subsetbench
@@ -62,22 +57,19 @@ public:
 	vector<uint> m_alpha_sizes;
 	vector<string> m_profile_labels;
 	vector<vector<uint8_t> > m_profiles;
-	vector<vector<float> > m_logoddsmxvec;
 	vector<uint16_t> m_DomIdx_to_profile_idx;	// DomIdxs per lookup
+	uint m_MaxL = 0;
 
 //////////////////////////////
-// Per-Dom
+// Log-odds matrices
 //////////////////////////////
-	vector<uint> m_Ls;
-	uint m_MaxL = 0;
+	vector<vector<float> > m_raw_logoddsmxvec;
+	vector<vector<float> > m_weighted_logoddsmxvec;
 
 //////////////////////////////
 // Per-thread
 //////////////////////////////
 	uint m_ThreadCount = 0;
-	uint m_MaxSeqLength = 0;
-	vector<float **> m_SWMxs;
-	vector<XDPMem *> m_Mems;
 
 //////////////////////////////
 // Bench
@@ -97,14 +89,9 @@ public:
 	uint GetSFIdx(uint DomIdx) const;
 	void WriteDope(const string &FN) const;
 	void ReadDope(const string &FN);
-	void MakeByteSeqs(const string &ChainsFN, BYTE_SEQ_FN BSFn,
-		uint AlphaSize, const string &BSFN) const;
-	void ReadByteSeqs(const string &FN, uint AS,
-		vector<vector<byte> > &ByteSeqs) const;
 	void ThreadBody(uint ThreadIdx);
 	void Search();
-	float *ReadScoreMx(const string &FN, uint &AlphaSize) const;
-	void SetWeights(const vector<float> &Weights);
+	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
 	void WriteHits(const string &FN) const;

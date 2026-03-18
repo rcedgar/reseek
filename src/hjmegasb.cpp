@@ -148,6 +148,7 @@ static void Climb(SubsetBench &FullSB, const vector<string> &SpecLines,
 
 void cmd_hjmegasb()
 	{
+	asserta(!optset_topn);//  EvalSum3All() gives very low Sum3=, surely buggy
 	const string SpecFN = g_Arg1;
 
 	asserta(optset_bspattern);
@@ -208,6 +209,7 @@ void cmd_hjmegasb()
 
 	if (optset_topn)
 		{
+		Warning("This seems buggy");
 		SB.InitFB();
 		vector<uint> Idxs;
 		s_Peaker->GetTopEvalIdxs_mindy(opt(topn), 0.01, Idxs);

@@ -51,6 +51,7 @@ void ParseVarStr(
 
 void flat_subsetbench::validate_mappings() const
 	{
+	//Bug("start validate_mappings()");
 	asserta(!m_DopeDomIdxs.empty());
 	const uint ndom = SIZE(m_Doms);
 	for (auto DomIdx : m_DopeDomIdxs)
@@ -100,11 +101,29 @@ void flat_subsetbench::validate_mappings() const
 			}
 		}
 	asserta(pair_count == m_DopeSize);
-	asserta(SIZE(m_DomIdx_to_profile_idx) == ndom);
-	for (uint i = 0; i < ndom; ++i)
+	const uint nprof = SIZE(m_profiles);
+	const uint nfeat = SIZE(m_alpha_sizes);
+	uint missing = 0;
+	//Bug("before test loop");
+	for (auto DomIdx : m_DopeDomIdxs)
 		{
-
+		string Dom = m_Doms[DomIdx];
+		TruncLabel(Dom);
+		uint profile_idx = m_DomIdx_to_profile_idx[DomIdx];
+		if (profile_idx == UINT16_MAX)
+			{
+			++missing;
+			Log("missing >%s\n", Dom.c_str());
+			continue;
+			}
+		asserta(profile_idx < nprof);
+		string prof_label = m_profile_labels[profile_idx];
+		TruncLabel(prof_label);
+		asserta(prof_label == Dom);
+		uint profile_length = SIZE(m_profiles[profile_idx]);
+		asserta(profile_length%nfeat == 0);
 		}
+	if (missing != 0) Die("%u missing", missing);
 
 	ProgressLog("validate_mappings() PASSED\n");
 	}
@@ -117,23 +136,43 @@ void flat_subsetbench::LoadAlphas(const string &SpecFN)
 		m_alpha_sizes,
 		m_profile_labels,
 		m_profiles,
-		m_logoddsmxvec);
+		m_raw_logoddsmxvec);
+
+	uint nfeat = SIZE(m_AlphaNames);
+	asserta(SIZE(m_alpha_sizes) == nfeat);
+	m_weighted_logoddsmxvec.clear();
+	m_weighted_logoddsmxvec.resize(nfeat);
+
+// Initialize to uniform weights
+	const float w = 1.0f/nfeat;;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint AS = m_alpha_sizes[fi];
+		m_weighted_logoddsmxvec[fi].reserve(AS);
+		asserta(SIZE(m_raw_logoddsmxvec[fi]) == AS*AS);
+		for (uint k = 0; k < AS*AS; ++k)
+			m_weighted_logoddsmxvec[fi].push_back(
+				w*m_raw_logoddsmxvec[fi][k]);
+		}
 
 	const uint n = SIZE(m_profile_labels);
 	asserta(SIZE(m_profiles) == n);
 
-	uint nfeat = SIZE(m_AlphaNames);
-	asserta(SIZE(m_alpha_sizes) == nfeat);
-
-	set<uint16_t> domset;
+	set<uint16_t> domidxset;
+	set<string> domlabelset;
 	for (uint i = 0; i < m_DopeSize; ++i)
 		{
-		domset.insert(m_DomIdxQs[i]);
-		domset.insert(m_DomIdxTs[i]);
+		uint domidxQ = m_DomIdxQs[i];
+		uint domidxT = m_DomIdxTs[i];
+
+		domidxset.insert(domidxQ);
+		domidxset.insert(domidxT);
+
+		domlabelset.insert(m_Doms[domidxQ]);
+		domlabelset.insert(m_Doms[domidxT]);
 		}
 
 	unordered_map<string, uint> profile_label_to_idx;
-	m_Ls.clear();
 	m_MaxL = 0;
 	for (uint profile_idx = 0; profile_idx < n; ++profile_idx)
 		{
@@ -144,13 +183,12 @@ void flat_subsetbench::LoadAlphas(const string &SpecFN)
 		asserta(Ln%nfeat == 0);
 		uint L = Ln/nfeat;
 		m_MaxL = max(L, m_MaxL);
-		m_Ls.push_back(L);
 		}
 
 	m_DomIdx_to_profile_idx.clear();
 	m_DomIdx_to_profile_idx.resize(UINT16_MAX, UINT16_MAX);
-	uint found = 0;
-	for (auto DomIdx : domset)
+	set<string> foundset;
+	for (auto DomIdx : domidxset)
 		{
 		string label = m_Doms[DomIdx];
 		TruncLabel(label);
@@ -158,11 +196,22 @@ void flat_subsetbench::LoadAlphas(const string &SpecFN)
 			profile_label_to_idx.find(label);
 		if (iter != profile_label_to_idx.end())
 			{
-			++found;
+			foundset.insert(label);;
 			m_DomIdx_to_profile_idx[DomIdx] = iter->second;
 			}
 		}
-	asserta(found == SIZE(domset));
+	uint nfound = SIZE(foundset);
+	uint ndom = SIZE(domlabelset);
+	asserta(ndom >= nfound);
+	if (nfound < ndom)
+		{
+		for (auto label : domlabelset)
+			{
+			if (foundset.find(label) == foundset.end())
+				Log("missing >%s\n", label.c_str());
+			}
+		Die("%u found, %u missing profiles", nfound, ndom - nfound);
+		}
 	}
 
 void flat_subsetbench::AddDom(const string &Dom, const string &ScopId)
@@ -497,131 +546,17 @@ void flat_subsetbench::SortDope()
 	asserta(pair_idx == m_DopeSize);
 	}
 
-void flat_subsetbench::MakeByteSeqs(
-	const string &FN, BYTE_SEQ_FN BSFn, uint AlphaSize,
-	const string &BSFN) const
-	{
-	if (BSFN == "")
-		return;
-
-	FILE *f = CreateStdioFile(BSFN);
-	vector<vector<byte> > ByteSeqVec;
-
-	const uint DomCount = SIZE(m_Doms);
-	ByteSeqVec.clear();
-	ByteSeqVec.resize(DomCount);
-
-	vector<PDBChain *> Chains;
-	ReadChains(FN, Chains);
-	const uint ChainCount = SIZE(Chains);
-	uint SumLength = 0;
-	for (uint i = 0; i < ChainCount; ++i)
-		{
-		PDBChain &Chain = *Chains[i];
-		const string &Label = Chain.m_Label;
-		string Dom;
-		SCOP40Bench::GetDomFromLabel(Label, Dom);
-		map<string, uint>::const_iterator iter = m_DomToIdx.find(Dom);
-		if (iter == m_DomToIdx.end())
-			continue;
-		uint DomIdx = iter->second;
-		asserta(DomIdx < DomCount);
-		vector<byte> &ByteSeq = ByteSeqVec[DomIdx];
-		asserta(ByteSeq.empty());
-		BSFn(Chain, AlphaSize, ByteSeq);
-		uint L = SIZE(ByteSeq);
-		asserta(L == Chain.GetSeqLength());
-		SumLength += L;
-		}
-
-	for (uint i = 0; i < m_DopeSize; ++i)
-		{
-		uint DomIdxQ = m_DomIdxQs[i];
-		uint DomIdxT = m_DomIdxTs[i];
-		if (ByteSeqVec[DomIdxQ].empty())
-			Die("Missing chain >%s", m_Doms[DomIdxQ].c_str());
-		if (ByteSeqVec[DomIdxT].empty())
-			Die("Missing chain >%s", m_Doms[DomIdxT].c_str());
-		}
-
-	byte *ByteSeqs = myalloc(byte, SumLength);
-	uint Offset = 0;
-	vector<uint> Ls;
-	for (uint DomIdx = 0; DomIdx < DomCount; ++DomIdx)
-		{
-		const vector<byte> &ByteSeq = ByteSeqVec[DomIdx];
-		const uint L = SIZE(ByteSeq);
-		Ls.push_back(L);
-		memcpy(ByteSeqs + Offset, ByteSeq.data(), L);
-		Offset += L;
-		}
-	asserta(Offset == SumLength);
-
-	WriteStdioFile(f, &MAGIC3, sizeof(MAGIC3));
-	WriteStdioFile(f, &DomCount, sizeof(DomCount));
-	WriteStdioFile(f, &SumLength, sizeof(SumLength));
-	WriteStdioFile(f, (void *) Ls.data(), DomCount*sizeof(Ls[0]));
-	WriteStdioFile(f, (void *) ByteSeqs, SumLength);
-	WriteStdioFile(f, &MAGIC4, sizeof(MAGIC4));
-
-	CloseStdioFile(f);
-	}
-
-void flat_subsetbench::ReadByteSeqs(const string &FN, uint AS,
-	vector<vector<byte> > &ByteSeqs) const
-	{
-	FILE *f = OpenStdioFile(FN);
-
-	uint Word;
-	ReadStdioFile(f, &Word, sizeof(Word));
-	asserta(Word == MAGIC3);
-
-	uint DomCount, SumLength;
-	ReadStdioFile(f, &DomCount, sizeof(DomCount));
-	ReadStdioFile(f, &SumLength, sizeof(SumLength));
-
-	asserta(DomCount == SIZE(m_Doms));
-	uint *Ls = myalloc(uint, DomCount);
-	byte *BSData = myalloc(byte, SumLength);
-
-	ReadStdioFile(f, (void *) Ls, DomCount*sizeof(Ls[0]));
-	ReadStdioFile(f, (void *) BSData, SumLength);
-
-	ReadStdioFile(f, &Word, sizeof(Word));
-	asserta(Word == MAGIC4);
-
-	ByteSeqs.clear();
-	ByteSeqs.resize(DomCount);
-	uint Offset = 0;
-	for (uint i = 0; i < DomCount; ++i)
-		{
-		uint L = Ls[i];
-		vector<byte> &ByteSeq = ByteSeqs[i];
-		ByteSeq.resize(L);
-		//memcpy(ByteSeq.data(), BSData + Offset, L);
-		for (uint Pos = 0; Pos < L; ++Pos)
-			{
-			byte Letter = BSData[Offset++];
-			asserta(Letter < AS);
-			ByteSeq[Pos] = Letter;
-			}
-		}
-	asserta(Offset == SumLength);
-
-	CloseStdioFile(f);
-	}
-
 void flat_subsetbench::ThreadBody(uint ThreadIdx)
 	{
 	const uint NQ = SIZE(m_DomIdxQs_sorted);
 	const uint nfeat = SIZE(m_AlphaNames);
-	asserta(SIZE(m_logoddsmxvec) == nfeat);
+	asserta(SIZE(m_weighted_logoddsmxvec) == nfeat);
 	float **weighted_logoddsmxvec = myalloc(float *, nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		uint AS = m_alpha_sizes[fi];
 		asserta(AS >= 2 && AS < 256);
-		weighted_logoddsmxvec[fi] = m_logoddsmxvec[fi].data();
+		weighted_logoddsmxvec[fi] = m_weighted_logoddsmxvec[fi].data();
 		}
 	uint32_t *feature_block_offsets = myalloc(uint32_t, nfeat);
 	const uint32_t sum_alpha_sizes =
@@ -645,11 +580,25 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 		// Cache query
 		/////////////////////////////////////////////////////////
 		uint DomIdxQ = m_DomIdxQs_sorted[qidx];
-		uint LQ = m_Ls[DomIdxQ];
-		assert(LQ <= m_MaxL);
 		uint prof_idxQ = m_DomIdx_to_profile_idx[DomIdxQ];
 		const vector<uint8_t> &profvecQ = m_profiles[prof_idxQ];
-		assert(SIZE(profvecQ) == LQ*nfeat);
+		uint profile_length = SIZE(profvecQ);
+		asserta(profile_length%nfeat == 0);
+		uint LQ = profile_length/nfeat;
+		assert(LQ <= m_MaxL);
+		if (SIZE(profvecQ) != LQ*nfeat)
+			{
+			ProgressLog("qidx       %u\n", qidx);
+			ProgressLog("nfeat      %u\n", nfeat);
+			ProgressLog("DomIdxQ    %u\n", DomIdxQ);
+			ProgressLog("prof_idxq  %u\n", prof_idxQ);
+			ProgressLog("dom        %s\n", m_Doms[DomIdxQ].c_str());
+			ProgressLog("prof       %s\n", m_profile_labels[prof_idxQ].c_str());
+			ProgressLog("LQ         %u\n", LQ);
+			ProgressLog("proflen    %u\n", SIZE(profvecQ));
+			ProgressLog("LQ*nfeat   %u\n", LQ*nfeat);
+			Die("SIZE(profvecQ) != LQ*nfeat");
+			}
 		const uint8_t *profQ = profvecQ.data();
 		fill_flat_pssm(profQ, LQ, nfeat, m_alpha_sizes.data(),
 			feature_block_offsets, weighted_logoddsmxvec, pssmQ);
@@ -662,12 +611,13 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 			{
 			uint DomIdxT = DomIdxTs[ti];
 			uint PairIdx = PairIdxs[ti];
-			uint LT = m_Ls[DomIdxT];
-			assert(LT <= m_MaxL);
 
 			uint prof_idxT = m_DomIdx_to_profile_idx[DomIdxT];
 			const vector<uint8_t> &profvecT = m_profiles[prof_idxT];
-			assert(SIZE(profvecT) == LT*nfeat);
+			uint profile_lengthT = SIZE(profvecT);
+			assert(profile_lengthT%nfeat == 0);
+			uint LT = profile_lengthT/nfeat;
+			assert(LT <= m_MaxL);
 			const uint8_t *profT = profvecT.data();
 
 			float Score = sw_flat_pssm(
@@ -704,51 +654,6 @@ void flat_subsetbench::Search()
 void flat_subsetbench::StaticThreadBody(flat_subsetbench *SB, uint ThreadIdx)
 	{
 	SB->ThreadBody(ThreadIdx);
-	}
-
-float *flat_subsetbench::ReadScoreMx(const string &FN, uint &AlphaSize) const
-	{
-	FILE *f = OpenStdioFile(FN);
-	string Line;
-	vector<string> Fields;
-	bool Ok = ReadLineStdioFile(f, Line);
-	asserta(Ok);
-	Split(Line, Fields, '\t');
-	asserta(SIZE(Fields) == 2);
-	FEATURE F = StrToFeature(Fields[0].c_str());
-	AlphaSize = StrToUint(Fields[1]);
-	float *ScoreMxPtr = myalloc(float, AlphaSize*AlphaSize);
-	for (uint Letter = 0; Letter < AlphaSize; ++Letter)
-		{
-		bool Ok = ReadLineStdioFile(f, Line);
-		asserta(Ok);
-		Split(Line, Fields, '\t');
-		asserta(SIZE(Fields) == AlphaSize+1);
-		asserta(StrToUint(Fields[0]) == Letter);
-		for (uint Letter2 = 0; Letter2 < AlphaSize; ++Letter2)
-			ScoreMxPtr[Letter*AlphaSize + Letter2] =
-				StrToFloatf(Fields[Letter2+1]);
-		}
-	CloseStdioFile(f);
-	return ScoreMxPtr;
-	}
-
-static void ByteSeq_AA(const PDBChain &Chain,
-	uint AlphaSize,
-	vector<byte> &ByteSeq)
-	{
-	asserta(AlphaSize == 20);
-	const string &Seq = Chain.m_Seq;
-	const uint L = SIZE(Seq);
-	ByteSeq.clear();
-	ByteSeq.reserve(L);
-	for (uint i = 0; i < L; ++i)
-		{
-		byte Letter = g_CharToLetterAmino[Seq[i]];
-		if (Letter >= 20)
-			Letter = UNDEFINED_ZERO_OVERLOAD;
-		ByteSeq.push_back(Letter);
-		}
 	}
 
 void flat_subsetbench::SetScoreOrder()
@@ -902,6 +807,33 @@ void flat_subsetbench::ClassifyParams(
 		}
 	}
 
+void flat_subsetbench::ApplyWeightsToLogOdds(
+	const unordered_map<string, float> &NameToWeight)
+	{
+	uint nalpha = SIZE(m_AlphaNames);
+	m_Weights.clear();
+	asserta(SIZE(NameToWeight) == nalpha);
+	unordered_map<string, uint> NameToIdx;
+	for (uint idx = 0; idx < nalpha; ++idx)
+		NameToIdx[m_AlphaNames[idx]] = idx;
+
+	for (unordered_map<string, float>::const_iterator iter = NameToWeight.begin();
+		iter != NameToWeight.end(); ++iter)
+		{
+		const string &Name = iter->first;
+		float Weight = iter->second;
+		unordered_map<string, uint>::const_iterator iter2 = NameToIdx.find(Name);
+		asserta(iter2 != NameToIdx.end());
+		uint idx = iter2->second;
+		m_Weights[idx] = Weight;
+
+		uint AS = m_alpha_sizes[idx];
+		for (uint code = 0; code < AS; ++code)
+			m_weighted_logoddsmxvec[idx][code] =
+				m_raw_logoddsmxvec[idx][code]*Weight;
+		}
+	}
+
 void flat_subsetbench::UpdateParamsFromVarStr(const string &VarStr)
 	{
 	vector<string> Names;
@@ -917,9 +849,12 @@ void flat_subsetbench::UpdateParamsFromVarStr(const string &VarStr)
 
 	SetScalarParams(ScalarNames, ScalarValues);
 
-	asserta(AlphaNames == m_AlphaNames);
-	asserta(SIZE(m_Weights) == SIZE(Weights));
-	m_Weights = Weights;
+	uint n = SIZE(AlphaNames);
+	asserta(SIZE(Weights) == n);
+	unordered_map<string, float> NameToWeight;
+	for (uint i = 0; i < n; ++i)
+		NameToWeight[AlphaNames[i]] = Weights[i];
+	ApplyWeightsToLogOdds(NameToWeight);
 	}
 
 void flat_subsetbench::InitFB()
@@ -957,10 +892,9 @@ void cmd_flat_subset_bench()
 	SB.LoadAlphas(SpecFN);
 	SB.LoadStats();
 	SB.validate_mappings();
-	//SB.SetWeights(Weights);
 	SB.SetScalarParams(ScalarNames, ScalarValues);
 	SB.AllocHits();
 	SB.Search();
-	//SB.Bench();
+	SB.Bench();
 	//SB.WriteHits(opt(output));
 	}

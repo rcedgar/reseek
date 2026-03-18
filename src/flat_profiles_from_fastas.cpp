@@ -89,7 +89,9 @@ void read_profiles_from_fastas(
 	profiles.resize(nprof);
 	for (auto iter : label2idx)
 		{
-		const string &label = iter.first;
+		void TruncLabel(string &lab);
+		string label = iter.first;
+		TruncLabel(label);
 		uint idx = iter.second;
 		labels.push_back(label);
 		vector<uint8_t> &profile = profiles[idx];
