@@ -812,6 +812,7 @@ void flat_subsetbench::ApplyWeightsToLogOdds(
 	{
 	uint nalpha = SIZE(m_AlphaNames);
 	m_Weights.clear();
+	m_Weights.resize(nalpha, 0);
 	asserta(SIZE(NameToWeight) == nalpha);
 	unordered_map<string, uint> NameToIdx;
 	for (uint idx = 0; idx < nalpha; ++idx)
@@ -886,13 +887,15 @@ void cmd_flat_subset_bench()
 	flat_subsetbench::ClassifyParams(
 		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues);
 
+
 	flat_subsetbench SB;
 	SB.ReadLookup(LookupFN);
 	SB.ReadDope(DopeFN);
 	SB.LoadAlphas(SpecFN);
 	SB.LoadStats();
 	SB.validate_mappings();
-	SB.SetScalarParams(ScalarNames, ScalarValues);
+	// SB.SetScalarParams(ScalarNames, ScalarValues);
+	SB.UpdateParamsFromVarStr(VarStr);
 	SB.AllocHits();
 	SB.Search();
 	SB.Bench();
