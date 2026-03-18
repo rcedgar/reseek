@@ -710,7 +710,8 @@ void flat_subsetbench::Bench(const string &Msg)
 	ProgressLog(" SEPQ1=%.3f", SEPQ1);
 	ProgressLog(" SEPQ10=%.3f", SEPQ10);
 	ProgressLog(" Sum3=%.3f", m_Sum3);
-	ProgressLog("\n");
+	ProgressLog("  ");
+	ProgressLogParams();
 	}
 
 void flat_subsetbench::WriteHits(const string &FN) const
@@ -835,6 +836,17 @@ void flat_subsetbench::ApplyWeightsToLogOdds(
 		}
 	}
 
+void flat_subsetbench::ProgressLogParams() const
+	{
+	ProgressLog("open=%.3g;", m_Open);
+	ProgressLog("ext=%.3g;", m_Ext);
+	uint nfeat = SIZE(m_AlphaNames);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		ProgressLog("%s=%.3g;",
+			m_AlphaNames[fi].c_str(), m_Weights[fi]);
+	ProgressLog("\n");
+	}
+
 void flat_subsetbench::UpdateParamsFromVarStr(const string &VarStr)
 	{
 	vector<string> Names;
@@ -896,6 +908,7 @@ void cmd_flat_subset_bench()
 	SB.validate_mappings();
 	// SB.SetScalarParams(ScalarNames, ScalarValues);
 	SB.UpdateParamsFromVarStr(VarStr);
+	SB.ProgressLogParams();
 	SB.AllocHits();
 	SB.Search();
 	SB.Bench();

@@ -103,6 +103,7 @@ public:
 	void LoadAlphas(const string &SpecFN);
 	void SortDope();
 	void LoadStats() const;
+	void ProgressLogParams() const;
 
 public:
 	static void ClassifyParams(
