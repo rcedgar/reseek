@@ -1,6 +1,14 @@
 #pragma once
 #include "alpha.h"
 
+using colscorefn = float(uint i, uint j);
+float sw_flat(
+	float *__restrict scratch_rows,
+	uint8_t *__restrict TB,
+	uint LA, uint LB, colscorefn sf,
+	float Open, float Ext, uint &Loi, uint &Loj,
+	string &Path);
+
 float sw_flat_pssm(
 	float *__restrict scratch_rows,
 	uint8_t *__restrict TB,
@@ -9,7 +17,7 @@ float sw_flat_pssm(
 	const float *__restrict pssm, uint LB,
 	const uint32_t * __restrict feature_block_offsets,
 	uint nfeat,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	float Open, float Ext, uint &Loi, uint &Loj,
 	string &Path);
 
 void profiles2faprof(
@@ -26,13 +34,23 @@ void read_profiles_faprof(
 	vector<string> &labels,
 	vector<vector<uint8_t> > &profiles);
 
-void read_profiles_and_logoddsmxvec(
+void read_logoddsvec(
+	const vector<string> &fns,
+	vector<vector<float> > &logoddsvec);
+
+void read_logoddsvec_pattern(
+	const string &fnpattern,
+	const vector<string> &feature_names,
+	const vector<uint> &alpha_sizes,
+	vector<vector<float> > &logoddsvec);
+
+void read_profiles_and_logoddsvec(
 	const string &specfn,
 	vector<string> &feature_names,
 	vector<uint> &alpha_sizes,
 	vector<string> &labels,
 	vector<vector<uint8_t> > &profiles,
-	vector<vector<float> > &logoddsmxvec);
+	vector<vector<float> > &logoddsvec);
 
 void check_profiles(
 	vector<vector<uint8_t> > &profiles,
@@ -49,7 +67,7 @@ void fill_flat_pssm(
 	uint32_t nfeat,
 	const uint32_t * __restrict alpha_sizes,
 	const uint32_t * __restrict feature_block_offsets,
-	const float *const * __restrict weighted_logoddsmxvec,
+	const float *const * __restrict weighted_logoddsvec,
 	float * __restrict pssm);
 
 void fill_smx_using_flat_pssm(
@@ -60,6 +78,22 @@ void fill_smx_using_flat_pssm(
 	const uint32_t * __restrict feature_block_offsets,
 	const float * __restrict pssm,
 	float * __restrict smx);
+
+void write_flat_aln(
+	FILE *f,
+	const string &labelQ, const uint8_t *profQ, uint LQ,
+	const string &labelT, const uint8_t *profT, uint LT,
+	uint LoQ, uint LoT, const string &path,
+	const vector<string> &feature_names,
+	const vector<uint> &alpha_sizes,
+	const vector<string> &symbolsvec,
+	float score,
+	const string &style = "");
+
+void flat_logodds_symbols(
+	const float *logodds,
+	uint alpha_size,
+	string &symbols);
 
 static inline const uint8_t *get_letter2char(uint alpha_size)
 	{

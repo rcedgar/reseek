@@ -501,6 +501,8 @@ void traceback_flat(const uint8_t *__restrict TB,
 	{
 	Path.clear();
 
+	Leni = 0;
+	Lenj = 0;
 	uint i = Besti;
 	uint j = Bestj;
 	char State = 'M';
@@ -572,14 +574,11 @@ float sw_flat(
 	float *__restrict scratch_rows,
 	uint8_t *__restrict TB,
 	uint LA, uint LB, colscorefn sf,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
+	float Open, float Ext, uint &Loi, uint &Loj,
 	string &Path)
 	{
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
-
-	Leni = 0;
-	Lenj = 0;
 
 	float *Mrow = scratch_rows + 1;
 	float *Drow = scratch_rows + LB + 2;
@@ -672,6 +671,8 @@ float sw_flat(
 	if (BestScore == 0.0f)
 		return 0.0f;
 
+	uint Leni = UINT_MAX;
+	uint Lenj = UINT_MAX;
 	traceback_flat(TB, LA, LB, Besti+1, Bestj+1,
 	  Leni, Lenj, Path);
 	asserta(Besti+1 >= Leni);
@@ -694,14 +695,11 @@ float sw_flat_pssm(
 	const float *__restrict pssm, uint LB,
 	const uint32_t * __restrict feature_block_offsets,
 	uint nfeat,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	string &Path)
+	float Open, float Ext,
+	uint &Loi, uint &Loj, string &Path)
 	{
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
-
-	Leni = 0;
-	Lenj = 0;
 
 	float *Mrow = scratch_rows + 1;
 	float *Drow = scratch_rows + LB + 2;
@@ -809,13 +807,18 @@ float sw_flat_pssm(
 	if (BestScore == 0.0f)
 		return 0.0f;
 
-	traceback_flat(TB, LA, LB, Besti+1, Bestj+1,
-	  Leni, Lenj, Path);
-	asserta(Besti+1 >= Leni);
-	asserta(Bestj+1 >= Lenj);
+	uint Leni = UINT_MAX;
+	uint Lenj = UINT_MAX;
+	traceback_flat(TB, LA, LB, Besti+1, Bestj+1, Leni, Lenj, Path);
+
+	assert(Leni <= Besti+1);
+	assert(Lenj <= Bestj+1);
 
 	Loi = Besti + 1 - Leni;
 	Loj = Bestj + 1 - Lenj;
+
+	assert(Loi < LA);
+	assert(Loj < LB);
 
 	return BestScore;
 	}

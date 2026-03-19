@@ -8,15 +8,19 @@
 #include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
 #include "flat_helpers.h"
+#include "flat_features.h"
+#include "flat_profiles.h"
+#include "flat_aligner.h"
 #include "getticks.h"
 
-static const uint s_maxL = 1000;
+static const uint s_maxL = 4000;
 
 static uint s_nfeat;
 static uint *s_alpha_sizes;
 static uint *s_feature_block_offsets;
 static float *s_pssm_i;
 static float **s_weighted_logoddsmxvec;
+static const uint8_t *s_prof_i;
 static uint s_L_i;
 static string s_label_i;
 
@@ -30,25 +34,39 @@ static float s_ext = -1;
 static void cache_i(const string &label, const uint8_t *prof_i, uint L_i)
 	{
 	s_label_i = label;
+	s_prof_i = prof_i;
 	s_L_i = L_i;
 	fill_flat_pssm(prof_i, L_i, s_nfeat, s_alpha_sizes,
 		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_i);
 	}
 
-static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
+static float align_j(
+	const string &label,
+	const uint8_t *prof_j,
+	uint L_j,
+	uint &Loi,
+	uint &Loj,
+	string &Path)
 	{
-	uint Loi, Loj, Leni, Lenj;
-	string Path;
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		prof_j, L_j,
 		s_pssm_i, s_L_i, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Leni, Lenj, Path);
+		Loi, Loj, Path);
 	return score;
 	}
 
-void cmd_flat_align_pair()
+static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
+	{
+	uint Loi, Loj;
+	string Path;
+	float score = align_j(label, prof_j, L_j,
+		Loi, Loj, Path);
+	return score;
+	}
+
+void cmd_flat_align_pairs_spec()
 	{
 	const string &specfn = g_Arg1;
 	vector<string> labels;
@@ -56,7 +74,7 @@ void cmd_flat_align_pair()
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
 	vector<vector<float> > logoddsmxvec;
-	read_profiles_and_logoddsmxvec(
+	read_profiles_and_logoddsvec(
 		specfn,
 		feature_names,
 		alpha_sizes,
@@ -122,4 +140,60 @@ void cmd_flat_align_pair()
 	TICKS t2 = GetClockTicks();
 	double t = double(t2 - t1);
 	ProgressLog("%.3g ticks\n", t);
+	}
+
+void cmd_flat_align_pairs_faprof()
+	{
+	asserta(optset_mxpattern);
+	const string &faproffn = g_Arg1;
+
+	flat_profiles fp;
+	vector<string> feature_names;
+	vector<uint> alpha_sizes;
+	_chkmem();//@@
+	fp.read_profiles_faprof(faproffn, feature_names, alpha_sizes);
+	_chkmem();//@@
+	fp.m_ff = new flat_features;
+	_chkmem();//@@
+	fp.m_ff->init(feature_names, alpha_sizes);
+	_chkmem();//@@
+	fp.m_ff->read_logoddsvec_pattern(opt(mxpattern));
+	_chkmem();//@@
+	fp.m_ff->apply_unit_weights();
+	_chkmem();//@@
+	fp.m_ff->finalize();
+	_chkmem();//@@
+	fp.check_profiles();
+	_chkmem();//@@
+
+	flat_aligner fa;
+	fa.m_ff = fp.m_ff;
+	fa.alloc();
+	_chkmem();//@@
+
+	const uint nprof = fp.get_nprof();
+	const uint npairs = nprof*nprof;
+
+	ProgressLog("%10u  features\n", s_nfeat);
+	ProgressLog("%10u  profiles\n", nprof);
+	ProgressLog("%10u  pairs\n", npairs);
+
+	for (uint i = 0; i < nprof; ++i)
+		{
+		uint L_i = fp.get_length(i);
+		if (L_i > s_maxL) continue;
+		const string &label_i = fp.get_label(i);
+		const uint8_t *prof_i = fp.get_profile(i);
+		fa.cacheT(label_i, prof_i, L_i);
+
+		for (uint j = 0; j < nprof; ++j)
+			{
+			uint L_j = fp.get_length(j);
+			if (L_j > s_maxL) continue;
+			const string &label_j = fp.get_label(j);
+			const uint8_t *prof_j = fp.get_profile(j);
+			fa.alignQ(label_j, prof_j, L_j);
+			fa.write_aln(g_fLog);
+			}
+		}
 	}

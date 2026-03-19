@@ -118,7 +118,7 @@ uint lines2logoddsmx(
 	return alpha_size;
 	}
 
-uint read_logoddsmx(
+uint read_logodds(
 	const string &fn,
 	vector<float> &logoddsmx)
 	{
@@ -129,15 +129,52 @@ uint read_logoddsmx(
 
 void read_logoddsvec(
 	const vector<string> &fns,
-	vector<vector<float> > &logoddsmxvec)
+	vector<vector<float> > &logoddsvec)
 	{
-	logoddsmxvec.clear();
+	logoddsvec.clear();
 	for (auto fn : fns)
 		{
 		vector<float> logoddsmx;
-		read_logoddsmx(fn, logoddsmx);
-		logoddsmxvec.push_back(logoddsmx);
+		read_logodds(fn, logoddsmx);
+		logoddsvec.push_back(logoddsmx);
 		}
+	}
+
+// @=name, %=AS
+void make_logoddsfn_pattern(
+	const string &fnpattern,
+	const string &feature_name,
+	uint alpha_size,
+	string &fn)
+	{
+	fn.clear();
+	for (auto c : fnpattern)
+		{
+		if (c == '@')
+			fn += feature_name;
+		else if (c == '%')
+			fn += to_string(alpha_size);
+		else
+			fn += c;
+		}
+	}
+
+void read_logoddsvec_pattern(
+	const string &fnpattern,
+	const vector<string> &feature_names,
+	const vector<uint> &alpha_sizes,
+	vector<vector<float> > &logoddsvec)
+	{
+	const uint nfeat = SIZE(feature_names);
+	asserta(SIZE(alpha_sizes) == nfeat);
+	vector<string> fns(nfeat);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		make_logoddsfn_pattern(
+			fnpattern,
+			feature_names[fi],
+			alpha_sizes[fi],
+			fns[fi]);
+	read_logoddsvec(fns, logoddsvec);
 	}
 
 void log_flat_square_mx(const float *mx, uint n)
@@ -307,13 +344,13 @@ void read_profiles_faprof(
 		}
 	}
 
-void read_profiles_and_logoddsmxvec(
+void read_profiles_and_logoddsvec(
 	const string &specfn,
 	vector<string> &feature_names,
 	vector<uint> &alpha_sizes,
 	vector<string> &labels,
 	vector<vector<uint8_t> > &profiles,
-	vector<vector<float> > &logoddsmxvec)
+	vector<vector<float> > &logoddsvec)
 	{
 	vector<string> lines;
 	ReadLinesFromFile(specfn, lines);
@@ -348,8 +385,8 @@ void read_profiles_and_logoddsmxvec(
 		}
 	asserta(sumw2 > 0.99 && sumw2 < 1.01);
 
-	read_logoddsvec(logoddsfns, logoddsmxvec);
-	asserta(SIZE(logoddsmxvec) == nfeat);
+	read_logoddsvec(logoddsfns, logoddsvec);
+	asserta(SIZE(logoddsvec) == nfeat);
 
 	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
 	}
@@ -361,14 +398,14 @@ void cmd_flat_profiles()
 	vector<vector<uint8_t> > profiles;
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
-	vector<vector<float> > logoddsmxvec;
-	read_profiles_and_logoddsmxvec(
+	vector<vector<float> > logoddsvec;
+	read_profiles_and_logoddsvec(
 		specfn,
 		feature_names,
 		alpha_sizes,
 		labels,
 		profiles,
-		logoddsmxvec);
+		logoddsvec);
 
 	const uint nfeat = SIZE(feature_names);
 	const uint nprof = SIZE(labels);
@@ -381,7 +418,7 @@ void cmd_flat_profiles()
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		Log("\n%s\n", feature_names[fi].c_str());
-		log_flat_square_mx(logoddsmxvec[fi].data(), alpha_sizes[fi]);
+		log_flat_square_mx(logoddsvec[fi].data(), alpha_sizes[fi]);
 		}
 
 	// Convert profiles back to FASTA for correctness checking
@@ -420,6 +457,80 @@ void cmd_flat_profiles()
 		profiles2faprof(opt(faprof), feature_names, alpha_sizes, labels, profiles);
 	}
 
+void write_flat_aln(
+	FILE *f,
+	const string &labelQ, const uint8_t *profQ, uint LQ,
+	const string &labelT, const uint8_t *profT, uint LT,
+	uint LoQ, uint LoT, const string &path,
+	const vector<string> &feature_names,
+	const vector<uint> &alpha_sizes,
+	const vector<string> &symbolsvec,
+	float score,
+	const string &style)
+	{
+	if (f == 0)
+		return;
+	fprintf(f, "\n");
+	uint nfeat = SIZE(feature_names);
+	asserta(alpha_sizes.size() == nfeat);
+
+	size_t ncol = path.size();
+	vector<string> feature_rowsQ(nfeat);
+	vector<string> feature_rowsT(nfeat);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		string feature_rowQ = feature_rowsQ[fi];
+		string feature_rowT = feature_rowsT[fi];
+		string annot_row;
+
+		feature_rowQ.reserve(ncol);
+		feature_rowT.reserve(ncol);
+		annot_row.reserve(ncol);
+		uint alpha_size = alpha_sizes[fi];
+		uint posQ = 0;
+		uint posT = 0;
+		const uint8_t *letter2char = get_letter2char(alpha_size);
+		for (uint col = 0; col < ncol; ++col)
+			{
+			uint8_t codeQ = profQ[fi*LQ + posQ];
+			uint8_t codeT = profT[fi*LT + posT];
+			char c = path[col];
+			if (c == 'M')
+				annot_row += (codeQ == codeT) ? '|' :
+					symbolsvec[fi][codeQ*alpha_size + codeT];
+			else
+				annot_row += ' ';
+
+			if (c == 'M' || c == 'D')
+				{
+				feature_rowQ += letter2char[codeQ];
+				++posQ;
+				}
+			else
+				feature_rowQ += '-';
+
+			if (c == 'M' || c == 'I')
+				{
+				feature_rowT += letter2char[codeT];
+				++posT;
+				}
+			else
+				feature_rowT += '-';
+			}
+		fprintf(f, "\n");
+		fprintf(f, "%s", feature_rowQ.c_str());
+		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %s\n", labelQ.c_str());
+
+		fprintf(f, "%s\n", annot_row.c_str());
+
+		fprintf(f, "%s", feature_rowT.c_str());
+		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %s\n", labelT.c_str());
+		}
+	fprintf(f, "score %.1f\n", score);
+	}
+
 void cmd_test_faprof()
 	{
 	vector<string> feature_names;
@@ -432,4 +543,85 @@ void cmd_test_faprof()
 		labels,
 		profiles);
 	profiles2faprof(opt(output), feature_names, alpha_sizes, labels, profiles);
+	}
+
+void flat_logodds_symbols(
+	const float *logodds,
+	uint alpha_size,
+	string &symbols)
+	{
+	symbols.clear();
+	float min_score = FLT_MAX;
+	float max_score = FLT_MAX;
+	for (uint i = 0; i < alpha_size*alpha_size; ++i)
+		{
+		float score = logodds[i];
+		min_score = (i == 0 ? score : min(min_score, score));
+		max_score = (i == 0 ? score : max(max_score, score));
+		}
+
+	// __. +*^
+	// 0123456
+	static const char s[7] = { 'V', '_', '.', ' ', '+', '*', '^' };
+	for (uint i = 0; i < alpha_size*alpha_size; ++i)
+		{
+		float score = logodds[i];
+		uint k = uint(7*(score - min_score)/(max_score - min_score + max_score/7));
+		symbols += s[k];
+		}
+	}
+
+void cmd_flat_logodds_info()
+	{
+	vector<float> logodds;
+	uint AS = read_logodds(g_Arg1, logodds);
+	asserta(logodds.size() == AS*AS);
+
+	float sum_diag = 0;
+	float min_diag = 999;
+	float max_diag = -999;
+	for (uint i = 0; i < AS; ++i)
+		{
+		float score = logodds[AS*i + i];
+		sum_diag += score;
+		max_diag = max(score, max_diag);
+		min_diag = min(score, min_diag);
+		}
+	float sum = 0;
+	float min_offdiag_score = 999;
+	float max_offdiag_score = -999;
+	for (uint i = 0; i < AS; ++i)
+		{
+		for (uint j = 0; j < AS; ++j)
+			{
+			float score = logodds[i*AS + j];
+			if (i != j)
+				{
+				min_offdiag_score = min(score, min_offdiag_score);
+				max_offdiag_score = max(score, max_offdiag_score);
+				}
+			sum += score;
+			}
+		}
+
+	float mean = sum/(AS*AS);
+	float mean_off_diag = (sum - sum_diag)/(AS*(AS-1));
+
+	string symbols;
+	flat_logodds_symbols(logodds.data(), AS, symbols);
+
+	ProgressLog("%s\n", g_Arg1.c_str());
+	ProgressLog("%8.3f  min off-diag\n", min_offdiag_score);
+	ProgressLog("%8.3f  min diag\n", min_diag);
+	ProgressLog("%8.3f  max off-diag\n", max_offdiag_score);
+	ProgressLog("%8.3f  max diag\n", max_diag);
+	ProgressLog("%8.3f  mean\n", mean);
+	ProgressLog("%8.3f  mean_off_diag\n", mean_off_diag);
+
+	for (uint i = 0; i < AS; ++i)
+		{
+		for (uint j = 0; j < AS; ++j)
+			Log("%c", symbols[i*AS + j]);
+		Log("\n");
+		}
 	}

@@ -100,7 +100,7 @@ void flat_subsetbench::validate_mappings() const
 
 void flat_subsetbench::LoadAlphas(const string &SpecFN)
 	{
-	read_profiles_and_logoddsmxvec(
+	read_profiles_and_logoddsvec(
 		SpecFN,
 		m_AlphaNames,
 		m_alpha_sizes,
@@ -533,7 +533,7 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 	float *scratch_rows = myalloc(float, 2*m_MaxL + 2);
 	const float **scratch_pssms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 
 	for (;;)
@@ -591,7 +591,7 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 				pssmQ, LQ,
 				feature_block_offsets, nfeat,
 				-m_Open, -m_Ext,
-				Loi, Loj, Leni, Lenj, Path);
+				Loi, Loj, Path);
 
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));
@@ -623,7 +623,7 @@ void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
 	float *scratch_rows = myalloc(float, 2*m_MaxL + 2);
 	const float **scratch_pssms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 	for (;;)
 		{
@@ -642,7 +642,7 @@ void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
 		assert(LQ <= m_MaxL);
 		if (SIZE(profvecQ) != LQ*nfeat)
 			{
-			ProgressLog("DomIdxQ       %u\n", DomIdxQ);
+			ProgressLog("DomIdxQ    %u\n", DomIdxQ);
 			ProgressLog("nfeat      %u\n", nfeat);
 			ProgressLog("prof_idxq  %u\n", prof_idxQ);
 			ProgressLog("dom        %s\n", m_Doms[DomIdxQ].c_str());
@@ -675,7 +675,7 @@ void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
 				pssmQ, LQ,
 				feature_block_offsets, nfeat,
 				-m_Open, -m_Ext,
-				Loi, Loj, Leni, Lenj, Path);
+				Loi, Loj, Path);
 
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));
@@ -964,31 +964,12 @@ void cmd_flat_subset_bench()
 	vector<float> Values;
 	ParseVarStr(VarStr, Names, Values);
 
-#if 0
 	flat_subsetbench SB;
 	SB.ReadLookup(LookupFN);
-	SB.ReadDope(DopeFN);
 	SB.LoadAlphas(SpecFN);
-	SB.LoadStats();
-	SB.validate_mappings();
-	SB.UpdateParamsFromVarStr(VarStr);
-	SB.ProgressLogParams();
-	SB.AllocHits();
-	SB.Search();
-	SB.Bench();
-	//SB.WriteHits(opt(output));
-#else
-	flat_subsetbench SB;
-	SB.ReadLookup(LookupFN);
-	//SB.ReadDope(DopeFN);
-	SB.LoadAlphas(SpecFN);
-	//SB.LoadStats();
-	//SB.validate_mappings();
 	SB.UpdateParamsFromVarStr(VarStr);
 	SB.ProgressLogParams();
 	SB.AllocHits_All();
 	SB.Search_All();
 	SB.Bench_All();
-	//SB.WriteHits(opt(output));
-#endif
 	}

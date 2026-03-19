@@ -296,13 +296,16 @@
     <ClCompile Include="featuretrainer2.cpp" />
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
+    <ClCompile Include="flat_aligner.cpp" />
     <ClCompile Include="flat_align_pair.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
-    <ClCompile Include="flat_profiles_from_fastas.cpp" />
+    <ClCompile Include="flat_features.cpp" />
+    <ClCompile Include="flat_helpers.cpp" />
+    <ClCompile Include="flat_profiles.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_subsetbench.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
@@ -506,6 +509,7 @@
     <ClInclude Include="duper.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
+    <ClInclude Include="flat_aligner.h" />
     <ClInclude Include="flat_bench.h" />
     <ClInclude Include="flat_distmx.h" />
     <ClInclude Include="flat_base.h" />
@@ -513,7 +517,9 @@
     <ClInclude Include="flat_chain_reader.h" />
     <ClInclude Include="flat_dist_types.h" />
     <ClInclude Include="flat_enum.h" />
+    <ClInclude Include="flat_features.h" />
     <ClInclude Include="flat_helpers.h" />
+    <ClInclude Include="flat_profiles.h" />
     <ClInclude Include="flat_subsetbench.h" />
     <ClInclude Include="flat_sw_pssm.h" />
     <ClInclude Include="flat_type_names.h" />

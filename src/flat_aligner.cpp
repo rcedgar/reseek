@@ -1,0 +1,134 @@
+#include "myutils.h"
+#include "flat_features.h"
+#include "flat_aligner.h"
+#include "flat_helpers.h"
+
+void flat_aligner::alloc()
+	{
+	assert(m_ff != 0);
+	const uint nfeat = m_ff->m_nfeat;
+
+	m_pssmT = myalloc(float, m_maxL*m_ff->get_sum_alpha_sizes());
+
+	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
+	m_scratch_pssms = myalloc(const float *, nfeat);
+	m_TB = myalloc(uint8_t, m_maxL*m_maxL);
+	}
+
+void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
+	{
+	assert(m_ff != 0);
+	asserta(LT < m_maxL);
+	m_labelT = labelT;
+	m_profT = profT;
+	m_LT = LT;
+	fill_flat_pssm(profT, LT, m_ff->m_nfeat,
+		m_ff->m_alpha_sizes,
+		m_ff->m_feature_block_offsets,
+		m_ff->m_weighted_logoddsvec,
+		m_pssmT);
+	}
+
+void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
+	{
+	assert(profQ != 0);
+	assert(LQ > 0);
+	m_labelQ = labelQ;
+	m_profQ = profQ;
+	m_LQ = LQ;
+	assert(m_ff != 0);
+	m_score = sw_flat_pssm(
+		m_scratch_rows, m_TB, m_scratch_pssms,
+		profQ, LQ,
+		m_pssmT, m_LT, 
+		m_ff->m_feature_block_offsets,
+		m_ff->m_nfeat, m_open, m_ext,
+		m_loQ, m_loT, m_path);
+	}
+
+void flat_aligner::write_aln(FILE *f) const
+	{
+	if (f == 0)
+		return;
+	fprintf(f, "\n");
+	uint nfeat = m_ff->m_nfeat;
+	assert(nfeat > 0);
+	const uint32_t *alpha_sizes = m_ff->m_alpha_sizes;
+	const vector<string> &feature_names = m_ff->m_feature_names;
+	const vector<string> &symbolsvec = m_ff->m_symbolsvec;
+
+	size_t ncol = m_path.size();
+	vector<string> feature_rowsQ(nfeat);
+	vector<string> feature_rowsT(nfeat);
+	uint hiQ = 0;
+	uint hiT = 0;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		string feature_rowQ = feature_rowsQ[fi];
+		string feature_rowT = feature_rowsT[fi];
+		string annot_row;
+
+		feature_rowQ.reserve(ncol);
+		feature_rowT.reserve(ncol);
+		annot_row.reserve(ncol);
+		uint alpha_size = alpha_sizes[fi];
+		uint posQ = m_loQ;
+		uint posT = m_loT;
+		const uint8_t *letter2char = get_letter2char(alpha_size);
+		for (uint col = 0; col < ncol; ++col)
+			{
+			char c = m_path[col];
+			if (c == 'M')
+				{
+				assert(posQ < m_LQ);
+				assert(posT < m_LT);
+				uint8_t codeQ = m_profQ[fi*m_LQ + posQ];
+				uint8_t codeT = m_profT[fi*m_LT + posT];
+				annot_row += (codeQ == codeT) ? '|' :
+					symbolsvec[fi][codeQ*alpha_size + codeT];
+				}
+			else
+				annot_row += ' ';
+
+			if (c == 'M' || c == 'D')
+				{
+				assert(posQ < m_LQ);
+				uint8_t codeQ = m_profQ[fi*m_LQ + posQ];
+				feature_rowQ += letter2char[codeQ];
+				++posQ;
+				}
+			else
+				feature_rowQ += '-';
+
+			if (c == 'M' || c == 'I')
+				{
+				assert(posT < m_LT);
+				uint8_t codeT = m_profT[fi*m_LT + posT];
+				feature_rowT += letter2char[codeT];
+				++posT;
+				}
+			else
+				feature_rowT += '-';
+			}
+		fprintf(f, "\n");
+		fprintf(f, "%s", feature_rowQ.c_str());
+		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %s\n", m_labelQ.c_str());
+
+		fprintf(f, "%s\n", annot_row.c_str());
+
+		fprintf(f, "%s", feature_rowT.c_str());
+		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %s\n", m_labelT.c_str());
+
+		if (fi == 0)
+			{
+			hiQ = posQ;
+			hiT = posT;
+			}
+		}
+	fprintf(f, "score %.1f", m_score);
+	fprintf(f, ", Q %u-%u(%u)", m_loQ+1, hiQ, m_LQ);
+	fprintf(f, ", T %u-%u(%u)", m_loT+1, hiT, m_LT);
+	fprintf(f, "\n");
+	}

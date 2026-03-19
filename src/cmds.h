@@ -93,7 +93,9 @@ C(test_sw_enum)
 C(flat_subset_bench)
 C(flat_bench)
 C(flat_bench_align_pair)
-C(flat_align_pair)
+C(flat_align_pairs_spec)
+C(flat_align_pairs_faprof)
 C(test_faprof)
+C(flat_logodds_info)
 
 #undef C

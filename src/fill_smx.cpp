@@ -229,7 +229,7 @@ void cmd_test_fill_smx()
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
 	vector<vector<float> > logoddsmxvec;
-	read_profiles_and_logoddsmxvec(
+	read_profiles_and_logoddsvec(
 		specfn,
 		feature_names,
 		alpha_sizes,

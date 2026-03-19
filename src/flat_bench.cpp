@@ -16,7 +16,7 @@ void ParseVarStr(
 
 void flat_bench::load_alphas_and_profiles(const string &SpecFN)
 	{
-	read_profiles_and_logoddsmxvec(
+	read_profiles_and_logoddsvec(
 		SpecFN,
 		m_AlphaNames,
 		m_alpha_sizes,
@@ -79,7 +79,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	float *scratch_rows = myalloc(float, 2*m_MaxL + 2);
 	const float **scratch_pssms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 	for (;;)
 		{
@@ -127,7 +127,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 				pssmQ, LQ,
 				feature_block_offsets, nfeat,
 				-m_Open, -m_Ext,
-				Loi, Loj, Leni, Lenj, Path);
+				Loi, Loj, Path);
 
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));
@@ -315,7 +315,7 @@ void flat_bench::AlignPair(const string &LabelQ, const string &LabelT)
 	float *scratch_rows = myalloc(float, 2*m_MaxL + 2);
 	const float **scratch_pssms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 
 	const vector<uint8_t> &profvecQ = m_profiles[profile_idxQ];
@@ -342,7 +342,7 @@ void flat_bench::AlignPair(const string &LabelQ, const string &LabelT)
 		pssmQ, LQ,
 		feature_block_offsets, nfeat,
 		-m_Open, -m_Ext,
-		Loi, Loj, Leni, Lenj, Path);
+		Loi, Loj, Path);
 
 	Log("score %.3g  %s\n", Score, Path.c_str());
 	}

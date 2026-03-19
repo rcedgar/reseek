@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "xdpmem.h"
 #include "getticks.h"
+#include "flat_helpers.h"
 
 static uint32_t s_nfeat = 3;
 static uint32_t s_minL = 3;
@@ -10,45 +11,12 @@ static uint32_t s_nprof = 10;
 static float s_open = -1;
 static float s_ext = -0.1f;
 
-using colscorefn = float(uint i, uint j);
 float SWFast_Callback(XDPMem &Mem,
 	uint LA,
 	uint LB,
 	colscorefn sf,
 	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
 	string &Path);
-
-float sw_flat(
-	float *__restrict scratch_rows,
-	uint8_t *__restrict TB,
-	uint LA, uint LB, colscorefn sf,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	string &Path);
-
-void fill_flat_pssm(
-	const uint8_t * __restrict profQ,
-	uint32_t LQ,
-	uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	const uint32_t * __restrict feature_block_offsets,
-	const float *const * __restrict weighted_logoddsmxvec,
-	float * __restrict pssm);
-
-float sw_flat_pssm(
-	float *__restrict scratch_rows,
-	uint8_t *__restrict TB,
-	const float ** __restrict scratch_ppsms,
-	const uint8_t *__restrict profA, uint LA,
-	const float *__restrict pssm, uint LB,
-	const uint32_t * __restrict feature_block_offsets,
-	uint nfeat,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	string &Path);
-
-uint32_t get_flat_pssm_feature_block_offsets(
-	const uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	uint32_t * __restrict feature_block_offsets);
 
 static uint8_t **s_profs;
 static uint32_t *s_prof_lengths;
@@ -234,11 +202,11 @@ static uint8_t *s_TB;
 static void align_prof_flat()
 	{
 	XDPMem Mem;
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 	float score = sw_flat(s_scratch_rows, s_TB, s_L_i, s_L_j,
 		prof_col_score, s_open, s_ext,
-		Loi, Loj, Leni, Lenj, Path);
+		Loi, Loj, Path);
 	float score2 = score_path(Loi, Loj, Path);
 	Log("%10.3g  %s  flat\n", score, Path.c_str());
 	if (!feq(score, score2))
@@ -248,14 +216,14 @@ static void align_prof_flat()
 static const float **__restrict s_scratch_pssms;
 static void align_prof_pssm()
 	{
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		s_prof_i, s_L_i,
 		s_pssm_j, s_L_j, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Leni, Lenj, Path);
+		Loi, Loj, Path);
 	Log("%10.3g  %s  pssm\n", score, Path.c_str());
 	float score2 = score_path(Loi, Loj, Path);
 	if (!feq(score, score2))

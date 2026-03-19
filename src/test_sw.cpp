@@ -37,14 +37,14 @@ static void cache_i(const string &label, const uint8_t *prof_i, uint L_i)
 
 static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	{
-	uint Loi, Loj, Leni, Lenj;
+	uint Loi, Loj;
 	string Path;
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		prof_j, L_j,
 		s_pssm_i, s_L_i, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Leni, Lenj, Path);
+		Loi, Loj, Path);
 	return score;
 	}
 
@@ -56,7 +56,7 @@ void cmd_test_sw()
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
 	vector<vector<float> > logoddsmxvec;
-	read_profiles_and_logoddsmxvec(
+	read_profiles_and_logoddsvec(
 		specfn,
 		feature_names,
 		alpha_sizes,

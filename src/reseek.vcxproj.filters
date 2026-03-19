@@ -617,7 +617,7 @@
     <ClCompile Include="quantize.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_profiles_from_fastas.cpp">
+    <ClCompile Include="flat_helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fill_smx.cpp">
@@ -643,6 +643,15 @@
     </ClCompile>
     <ClCompile Include="flat_align_pair.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_profiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_aligner.cpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1085,6 +1094,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_features.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_profiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_aligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
