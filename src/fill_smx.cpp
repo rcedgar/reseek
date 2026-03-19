@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "getticks.h"
+#include "flat_helpers.h"
 
 #if DEBUG
 static const uint CMP_SAMPLES = 10;
@@ -9,41 +10,6 @@ static const uint CMP_SAMPLES = 1000;
 static const uint TIMING_SAMPLES = 10000;
 #endif
 static const uint MAXL = 1024;
-
-void read_profiles_and_logoddsmxvec(
-	const string &specfn,
-	vector<string> &feature_names,
-	vector<uint> &alpha_sizes,
-	vector<string> &labels,
-	vector<vector<uint8_t> > &profiles,
-	vector<vector<float> > &logoddsmxvec);
-
-void check_profiles(
-	vector<vector<uint8_t> > &profiles,
-	vector<uint> &alpha_sizes);
-
-uint32_t get_flat_pssm_feature_block_offsets(
-	const uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	uint32_t * __restrict feature_block_offsets);
-
-void fill_flat_pssm(
-	const uint8_t * __restrict profQ,
-	uint32_t LQ,
-	uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	const uint32_t * __restrict feature_block_offsets,
-	const float *const * __restrict weighted_logoddsmxvec,
-	float * __restrict pssm);
-
-void fill_smx_using_flat_pssm(
-	const uint8_t * __restrict profA,
-	uint32_t LA,
-	uint32_t LB,
-	uint32_t nfeat,
-	const uint32_t * __restrict feature_block_offsets,
-	const float * __restrict pssm,
-	float * __restrict smx);
 
 /***
 Flattened PSSM.

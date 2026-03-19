@@ -638,6 +638,12 @@
     <ClCompile Include="flat_subsetbench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_align_pair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1073,6 +1079,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_subsetbench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

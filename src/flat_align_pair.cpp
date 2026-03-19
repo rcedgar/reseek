@@ -48,7 +48,7 @@ static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	return score;
 	}
 
-void cmd_test_sw()
+void cmd_flat_align_pair()
 	{
 	const string &specfn = g_Arg1;
 	vector<string> labels;

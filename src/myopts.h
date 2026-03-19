@@ -85,6 +85,7 @@ STR_OPT(ss_fasta)
 STR_OPT(replace_feature)
 STR_OPT(units)
 STR_OPT(spec)
+STR_OPT(faprof)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

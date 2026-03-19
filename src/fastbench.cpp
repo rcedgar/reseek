@@ -3,6 +3,17 @@
 #include "fastbench.h"
 #include "sort.h"
 
+/***
+Performs all-vs-all on subset defined by subclass.
+Labels MUST have SCOP ids.
+
+Subclass
+	EITHER	calls AppendLabel() for each desired label,
+	OR		assignes this->m_Labels = DesiredLabels.
+	
+	THEN calls SetLookupFromLabels()
+***/
+
 void FastBench::Alloc()
 	{
 	m_SeqCount = SIZE(m_Labels);
@@ -139,7 +150,7 @@ void FastBench::AddDom(
 	}
 
 
-void FastBench::WriteHits(const string &FN) const
+void FastBench::WriteHits(const string &FN, bool IncludeSelf) const
 	{
 	if (FN == "")
 		return;
@@ -153,7 +164,7 @@ void FastBench::WriteHits(const string &FN) const
 		uint HitIdx = m_ScoreOrder[k];
 		uint i, j;
 		triangle_k_to_ij(HitIdx, m_SeqCount, i, j);
-		if (i == j)
+		if (i == j && !IncludeSelf)
 			continue;
 
 		fprintf(f, "%.3g", m_Scores[HitIdx]);

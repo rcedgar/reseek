@@ -3,46 +3,16 @@
 #include "alpha.h"
 #include "sort.h"
 #include "triangle.h"
+#include "flat_helpers.h"
 #include <unordered_map>
 #include <unordered_set>
-
-void read_profiles_and_logoddsmxvec(
-	const string &specfn,
-	vector<string> &feature_names,
-	vector<uint> &alpha_sizes,
-	vector<string> &labels,
-	vector<vector<uint8_t> > &profiles,
-	vector<vector<float> > &logoddsmxvec);
-
-uint32_t get_flat_pssm_feature_block_offsets(
-	const uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	uint32_t * __restrict feature_block_offsets);
-
-void fill_flat_pssm(
-	const uint8_t * __restrict profQ,
-	uint32_t LQ,
-	uint32_t nfeat,
-	const uint32_t * __restrict alpha_sizes,
-	const uint32_t * __restrict feature_block_offsets,
-	const float *const * __restrict weighted_logoddsmxvec,
-	float * __restrict pssm);
-
-float sw_flat_pssm(
-	float *__restrict scratch_rows,
-	uint8_t *__restrict TB,
-	const float ** __restrict scratch_ppsms,
-	const uint8_t *__restrict profA, uint LA,
-	const float *__restrict pssm, uint LB,
-	const uint32_t * __restrict feature_block_offsets,
-	uint nfeat,
-	float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	string &Path);
 
 static const uint MAGIC1 = 0xd06e1;
 static const uint MAGIC2 = 0xd06e2;
 static const uint MAGIC3 = 0xd06e3;
 static const uint MAGIC4 = 0xd06e4;
+
+atomic<uint> flat_subsetbench::m_progress_counter;
 
 void ParseVarStr(
 	const string &VarStr,
@@ -284,6 +254,16 @@ void flat_subsetbench::AllocDope(uint DopeSize)
 	m_DopeSize = DopeSize;
 	}
 
+void flat_subsetbench::AllocHits_All()
+	{
+	uint NQ = SIZE(m_Doms);
+	uint K = triangle_get_K(NQ);
+	asserta(m_Scores == 0);
+	asserta(m_ScoreOrder == 0);
+	m_Scores = myalloc(float, K);
+	m_ScoreOrder = myalloc(uint, K);
+	}
+
 void flat_subsetbench::AllocHits()
 	{
 	asserta(m_Scores == 0);
@@ -420,21 +400,6 @@ void flat_subsetbench::MakeDopeFromHits(const string &FN)
 		SIZE(m_DopeDomIdxs), SIZE(m_Doms), NT, NF);
 	}
 
-void flat_subsetbench::WriteDope(const string &FN) const
-	{
-	if (FN == "")
-		return;
-	FILE *f = CreateStdioFile(FN);
-
-	WriteStdioFile(f, &MAGIC1, sizeof(MAGIC1));
-	WriteStdioFile(f, &m_DopeSize, sizeof(m_DopeSize));
-	WriteStdioFile(f, (void *) m_DomIdxQs, m_DopeSize*sizeof(m_DomIdxQs[0]));
-	WriteStdioFile(f, (void *) m_DomIdxTs, m_DopeSize*sizeof(m_DomIdxTs[0]));
-	WriteStdioFile(f, (void *) m_TPs, m_DopeSize*sizeof(m_TPs[0]));
-	WriteStdioFile(f, &MAGIC2, sizeof(MAGIC2));
-
-	CloseStdioFile(f);
-	}
 
 void flat_subsetbench::ReadDope(const string &FN)
 	{
@@ -635,6 +600,95 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 		}
 	}
 
+void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
+	{
+	const uint NQ = SIZE(m_Doms);
+	const uint PairCount = triangle_get_K(NQ);
+	const uint nfeat = SIZE(m_AlphaNames);
+	asserta(SIZE(m_weighted_logoddsmxvec) == nfeat);
+	float **weighted_logoddsmxvec = myalloc(float *, nfeat);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint AS = m_alpha_sizes[fi];
+		asserta(AS >= 2 && AS < 256);
+		weighted_logoddsmxvec[fi] = m_weighted_logoddsmxvec[fi].data();
+		}
+	uint32_t *feature_block_offsets = myalloc(uint32_t, nfeat);
+	const uint32_t sum_alpha_sizes =
+		get_flat_pssm_feature_block_offsets(nfeat,
+			m_alpha_sizes.data(), feature_block_offsets);
+
+	float *pssmQ = myalloc(float, m_MaxL*sum_alpha_sizes);
+
+	float *scratch_rows = myalloc(float, 2*m_MaxL + 2);
+	const float **scratch_pssms = myalloc(const float *, nfeat);
+	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
+	uint Loi, Loj, Leni, Lenj;
+	string Path;
+	for (;;)
+		{
+		uint DomIdxQ = m_NextQueryIdx++;
+		if (DomIdxQ >= NQ)
+			return;
+
+		/////////////////////////////////////////////////////////
+		// Cache query
+		/////////////////////////////////////////////////////////
+		uint prof_idxQ = m_DomIdx_to_profile_idx[DomIdxQ];
+		const vector<uint8_t> &profvecQ = m_profiles[prof_idxQ];
+		uint profile_length = SIZE(profvecQ);
+		asserta(profile_length%nfeat == 0);
+		uint LQ = profile_length/nfeat;
+		assert(LQ <= m_MaxL);
+		if (SIZE(profvecQ) != LQ*nfeat)
+			{
+			ProgressLog("DomIdxQ       %u\n", DomIdxQ);
+			ProgressLog("nfeat      %u\n", nfeat);
+			ProgressLog("prof_idxq  %u\n", prof_idxQ);
+			ProgressLog("dom        %s\n", m_Doms[DomIdxQ].c_str());
+			ProgressLog("prof       %s\n", m_profile_labels[prof_idxQ].c_str());
+			ProgressLog("LQ         %u\n", LQ);
+			ProgressLog("proflen    %u\n", SIZE(profvecQ));
+			ProgressLog("LQ*nfeat   %u\n", LQ*nfeat);
+			Die("SIZE(profvecQ) != LQ*nfeat");
+			}
+		const uint8_t *profQ = profvecQ.data();
+		fill_flat_pssm(profQ, LQ, nfeat, m_alpha_sizes.data(),
+			feature_block_offsets, weighted_logoddsmxvec, pssmQ);
+		/////////////////////////////////////////////////////////
+
+		// Includes self-score for santify checking and because
+		//   triangle*() functions include diagonal
+		for (uint DomIdxT = DomIdxQ; DomIdxT < NQ; ++DomIdxT)
+			{
+			uint prof_idxT = m_DomIdx_to_profile_idx[DomIdxT];
+			const vector<uint8_t> &profvecT = m_profiles[prof_idxT];
+			uint profile_lengthT = SIZE(profvecT);
+			assert(profile_lengthT%nfeat == 0);
+			uint LT = profile_lengthT/nfeat;
+			assert(LT <= m_MaxL);
+			const uint8_t *profT = profvecT.data();
+
+			float Score = sw_flat_pssm(
+				scratch_rows, TB, scratch_pssms,
+				profT, LT,
+				pssmQ, LQ,
+				feature_block_offsets, nfeat,
+				-m_Open, -m_Ext,
+				Loi, Loj, Leni, Lenj, Path);
+
+			asserta(!isnan(Score));
+			asserta(!isinf(Score));
+			uint PairIdx = triangle_ij_to_k(DomIdxQ, DomIdxT, NQ);
+			uint progress_count = m_progress_counter++;
+			if (progress_count%1000 == 0)
+				ProgressStep(progress_count, PairCount, "Aligning");
+
+			m_Scores[PairIdx] = Score;
+			}
+		}
+	}
+
 void flat_subsetbench::Search()
 	{
 	m_ThreadCount = GetRequestedThreadCount();
@@ -651,9 +705,31 @@ void flat_subsetbench::Search()
 		delete ts[ThreadIndex];
 	}
 
+void flat_subsetbench::Search_All()
+	{
+	m_ThreadCount = GetRequestedThreadCount();
+	m_NextQueryIdx = 0;
+	m_progress_counter = 0;
+	vector<thread *> ts;
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(StaticThreadBody_All, this, ThreadIndex);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+	}
+
 void flat_subsetbench::StaticThreadBody(flat_subsetbench *SB, uint ThreadIdx)
 	{
 	SB->ThreadBody(ThreadIdx);
+	}
+
+void flat_subsetbench::StaticThreadBody_All(flat_subsetbench *SB, uint ThreadIdx)
+	{
+	SB->ThreadBody_All(ThreadIdx);
 	}
 
 void flat_subsetbench::SetScoreOrder()
@@ -663,12 +739,22 @@ void flat_subsetbench::SetScoreOrder()
 	QuickSortOrderDesc(m_Scores, m_DopeSize, m_ScoreOrder);
 	}
 
-void flat_subsetbench::Bench(const string &Msg)
+void flat_subsetbench::SetScoreOrder_All()
+	{
+	uint NQ = SIZE(m_Doms);
+	uint K = triangle_get_K(NQ);
+	if (m_ScoreOrder == 0)
+		m_ScoreOrder = myalloc(uint, K);
+	QuickSortOrderDesc(m_Scores, K, m_ScoreOrder);
+	}
+
+void flat_subsetbench::Bench_All(const string &Msg)
 	{
 	SetScoreOrder();
 	asserta(m_ScoreOrder != 0);
 	asserta(m_NT > 0);
-	uint K = m_DopeSize;
+	uint NQ = SIZE(m_Doms);
+	uint K = triangle_get_K(NQ);
 	uint nt = 0;
 	uint nf = 0;
 	float LastScore = FLT_MAX;
@@ -723,6 +809,8 @@ void flat_subsetbench::WriteHits(const string &FN) const
 		{
 		uint HitIdx = m_ScoreOrder[k];
 		float Score = m_Scores[HitIdx];
+		if (Score <= 0)
+			continue;
 		uint DomIdxQ = m_DomIdxQs[HitIdx];
 		uint DomIdxT = m_DomIdxTs[HitIdx];
 		const string &DomQ = m_Doms[DomIdxQ];
@@ -740,22 +828,6 @@ void flat_subsetbench::WriteHits(const string &FN) const
 		}
 
 	CloseStdioFile(f);
-	}
-
-float flat_subsetbench_AF_SWFast(
-	XDPMem &Mem,
-	uint LQ, uint LT,
-	float Open, float Ext,
-	float * const * SWMx)
-	{
-	float SWFast(XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
-	  float Open, float Ext, uint &Loi, uint &Loj, uint &Leni, uint &Lenj,
-	  string &Path);
-
-	uint Loi, Loj, Leni, Lenj;
-	string Path;
-	float Score = SWFast(Mem, SWMx, LQ, LT, -Open, -Ext, Loi, Loj, Leni, Lenj, Path);
-	return Score;
 	}
 
 void flat_subsetbench::SetScalarParams(
@@ -892,25 +964,31 @@ void cmd_flat_subset_bench()
 	vector<float> Values;
 	ParseVarStr(VarStr, Names, Values);
 
-	vector<string> AlphaNames;
-	vector<float> Weights;
-	vector<string> ScalarNames;
-	vector<float> ScalarValues;
-	flat_subsetbench::ClassifyParams(
-		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues);
-
-
+#if 0
 	flat_subsetbench SB;
 	SB.ReadLookup(LookupFN);
 	SB.ReadDope(DopeFN);
 	SB.LoadAlphas(SpecFN);
 	SB.LoadStats();
 	SB.validate_mappings();
-	// SB.SetScalarParams(ScalarNames, ScalarValues);
 	SB.UpdateParamsFromVarStr(VarStr);
 	SB.ProgressLogParams();
 	SB.AllocHits();
 	SB.Search();
 	SB.Bench();
 	//SB.WriteHits(opt(output));
+#else
+	flat_subsetbench SB;
+	SB.ReadLookup(LookupFN);
+	//SB.ReadDope(DopeFN);
+	SB.LoadAlphas(SpecFN);
+	//SB.LoadStats();
+	//SB.validate_mappings();
+	SB.UpdateParamsFromVarStr(VarStr);
+	SB.ProgressLogParams();
+	SB.AllocHits_All();
+	SB.Search_All();
+	SB.Bench_All();
+	//SB.WriteHits(opt(output));
+#endif
 	}

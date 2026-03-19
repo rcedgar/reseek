@@ -45,6 +45,6 @@ public:
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
-	void WriteHits(const string &FN) const;
+	void WriteHits(const string &FN, bool IncludeSelf = false) const;
 	void SetLookupFromLabels();
 	};

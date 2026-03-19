@@ -91,5 +91,9 @@ C(test_sw)
 C(test_enum_paths)
 C(test_sw_enum)
 C(flat_subset_bench)
+C(flat_bench)
+C(flat_bench_align_pair)
+C(flat_align_pair)
+C(test_faprof)
 
 #undef C

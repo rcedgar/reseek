@@ -25,10 +25,13 @@ public:
 	float m_Ext = -999;
 	ALIGN_FN m_AF = 0;
 
-//////////////////////////////
+/////////////////////////////////////////
 // Dope built from lookup+hits
-// Defines subset of used doms
-//////////////////////////////
+// Hits MUST be all-vs-all of lookup doms
+//   because sensitivity divides by number
+//   of searched doms, and a dom may have
+//   no hits above threshold.
+/////////////////////////////////////////
 	string m_DopeFN;
 	uint m_DopeSize = 0;
 	uint16_t *m_DomIdxQs = 0;	// idxs per lookup
@@ -78,22 +81,29 @@ public:
 	FastBench m_FB;
 
 public:
+	static atomic<uint> m_progress_counter;
+
+public:
 	void validate_mappings() const;
 	uint GetDomCount() const { return SIZE(m_Doms); }
 	void ReadLookup(const string &FN);
 	void AddDom(const string &Dom, const string &ScopId);
 	void AllocDope(uint DopeSize);
 	void AllocHits();
+	void AllocHits_All();
 	void MakeDopeFromHits(const string &FN);
 	uint16_t GetDomIdx(const string &Label, bool ErrOk) const;
 	uint GetSFIdx(uint DomIdx) const;
-	void WriteDope(const string &FN) const;
 	void ReadDope(const string &FN);
 	void ThreadBody(uint ThreadIdx);
+	void ThreadBody_All(uint ThreadIdx);
 	void Search();
+	void Search_All();
 	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
+	void Bench_All(const string &Msg = "");
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
+	void SetScoreOrder_All();
 	void WriteHits(const string &FN) const;
 	void SetScalarParams(
 		const vector<string> &Names,
@@ -114,6 +124,7 @@ public:
 		vector<string> &ScalarNames,
 		vector<float> &ScalarValues);
 	static void StaticThreadBody(flat_subsetbench *SB, uint ThreadIdx);
+	static void StaticThreadBody_All(flat_subsetbench *SB, uint ThreadIdx);
 	};
 
 void ParseVarStr(

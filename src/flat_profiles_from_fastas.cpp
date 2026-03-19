@@ -2,9 +2,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 #include "tabbedlines.h"
-
-void trunc_label(const string &Label,
-	string &TruncatedLabel);
+#include "flat_helpers.h"
 
 void read_fasta_label2idx(
 	const string &fafn,
@@ -16,8 +14,7 @@ void read_fasta_label2idx(
 	const uint nseqs = db_fa.GetSeqCount();
 	for (uint i = 0; i < nseqs; ++i)
 		{
-		string label;
-		trunc_label(db_fa.GetLabel(i), label);
+		const string &label = db_fa.GetLabel(i);
 		label2idx[label] = i;
 		}
 	}
@@ -40,8 +37,7 @@ void read_feature_fasta(
 	for (uint i = 0; i < nseqs; ++i)
 		{
 		uint L = db_fa.GetSeqLength(i);
-		string label;
-		trunc_label(db_fa.GetLabel(i), label);
+		const string &label = db_fa.GetLabel(i);
 		map<string, uint>::const_iterator iter = label2idx.find(label);
 		if (iter == label2idx.end())
 			Die("Not found %s in %s", label.c_str(), fafn.c_str());
@@ -91,7 +87,6 @@ void read_profiles_from_fastas(
 		{
 		void TruncLabel(string &lab);
 		string label = iter.first;
-		TruncLabel(label);
 		uint idx = iter.second;
 		labels.push_back(label);
 		vector<uint8_t> &profile = profiles[idx];
@@ -179,6 +174,137 @@ void check_profiles(
 	const uint nprof = SIZE(profiles);
 	for (uint i = 0; i < nprof; ++i)
 		check_profile(profiles[i], alpha_sizes);
+	}
+
+void profiles2faprof(
+	const string &fn,
+	const vector<string> &feature_names,
+	const vector<uint> &alpha_sizes,
+	const vector<string> &labels,
+	const vector<vector<uint8_t> > &profiles)
+	{
+	FILE *fap = CreateStdioFile(fn);
+		const uint nprof = SIZE(labels);
+	asserta(SIZE(profiles) == nprof);
+	const uint nfeat = SIZE(feature_names);
+	asserta(SIZE(alpha_sizes) == nfeat);
+	for (uint seqidx = 0; seqidx < nprof; ++seqidx)
+		{
+		const string &label = labels[seqidx];
+		const vector<uint8_t> &profile = profiles[seqidx];
+		asserta(SIZE(profile)%nfeat == 0);
+		const uint L = SIZE(profile)/nfeat;
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			uint alpha_size = alpha_sizes[fi];
+			const uint8_t *letter2char = get_letter2char(alpha_size);
+
+			string seq;
+			for (uint pos = 0; pos < L; ++pos)
+				{
+				uint8_t code = profile[fi*L + pos];
+				seq += letter2char[code];
+				}
+			string label_feat;
+			Psa(label_feat, "%s:%s*%u",
+				label.c_str(),
+				feature_names[fi].c_str(),
+				alpha_sizes[fi]);
+			SeqToFasta(fap, label_feat, seq, L);
+			}
+		}
+	CloseStdioFile(fap);
+	}
+
+void read_profiles_faprof(
+	const string &fn,
+	vector<string> &feature_names,
+	vector<uint> &alpha_sizes,
+	vector<string> &labels,
+	vector<vector<uint8_t> > &profiles)
+	{
+	if (fn == "")
+		return;
+
+	feature_names.clear();
+	alpha_sizes.clear();
+	labels.clear();
+	profiles.clear();
+
+	SeqDB DB;
+	DB.FromFasta(fn);
+	const uint ndbseq = DB.GetSeqCount();
+	asserta(ndbseq > 0);
+	vector<string> flds;
+	string acc;
+	uint nfeat = 0;
+	for (uint i = 0; i < ndbseq; ++i)
+		{
+		const string &label = DB.GetLabel(i);
+		Split(label, flds, ':');
+		asserta(SIZE(flds) == 2);
+		if (i == 0)
+			{
+			acc = flds[0];
+			continue;
+			}
+		else
+			{
+			if (flds[0] != acc)
+				{
+				nfeat = i;
+				break;
+				}
+			}
+		}
+	asserta(nfeat > 0);
+	for (uint i = 0; i < nfeat; ++i)
+		{
+		const string &label = DB.GetLabel(i);
+		Split(label, flds, ':');
+		asserta(flds.size() == 2);
+		string alpha_annot = flds[1];
+		Split(alpha_annot, flds, '*');
+		asserta(flds.size() == 2);
+		feature_names.push_back(flds[0]);
+		alpha_sizes.push_back(StrToUint(flds[1]));
+		}
+	ProgressLog("%u features", nfeat);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		ProgressLog(" %s*%u",
+			feature_names[fi].c_str(),
+			alpha_sizes[fi]);
+	ProgressLog("\n");
+	asserta(ndbseq%nfeat == 0);
+	uint nprof = ndbseq/nfeat;
+	profiles.resize(nprof);
+	for (uint profidx = 0; profidx < nprof; ++profidx)
+		{
+		uint L = DB.GetSeqLength(nfeat*profidx);
+		uint profile_length = nfeat*L;
+		vector<uint8_t> &profile = profiles[profidx];
+		profile.resize(profile_length);
+		uint k = 0;
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			if (fi == 0)
+				{
+				const string &label = DB.GetLabel(nfeat*profidx);
+				Split(label, flds, ':');
+				asserta(flds.size() == 2);
+				const string &acc = flds[0];
+				labels.push_back(acc);
+				}
+			uint alpha_size = alpha_sizes[fi];
+			const uint8_t *char2letter = get_char2letter(alpha_size);
+			uint L_fi = DB.GetSeqLength(nfeat*profidx + fi);
+			asserta(L_fi == L);
+			const string &seq = DB.GetSeq(nfeat*profidx + fi);
+			asserta(SIZE(seq) == L);
+			for (uint k = 0; k < L; ++k)
+				profile[fi*L + k] = char2letter[seq[k]];
+			}
+		}
 	}
 
 void read_profiles_and_logoddsmxvec(
@@ -288,4 +414,22 @@ void cmd_flat_profiles()
 			CloseStdioFile(ffa);
 			}
 		}
+
+	// Convert profiles to faprof
+	if (optset_faprof)
+		profiles2faprof(opt(faprof), feature_names, alpha_sizes, labels, profiles);
+	}
+
+void cmd_test_faprof()
+	{
+	vector<string> feature_names;
+	vector<uint> alpha_sizes;
+	vector<string> labels;
+	vector<vector<uint8_t> > profiles;
+	read_profiles_faprof(g_Arg1,
+		feature_names,
+		alpha_sizes,
+		labels,
+		profiles);
+	profiles2faprof(opt(output), feature_names, alpha_sizes, labels, profiles);
 	}
