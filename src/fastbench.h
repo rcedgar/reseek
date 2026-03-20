@@ -47,4 +47,5 @@ public:
 	void SetScoreOrder();
 	void WriteHits(const string &FN, bool IncludeSelf = false) const;
 	void SetLookupFromLabels();
+	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;
 	};

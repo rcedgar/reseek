@@ -4,17 +4,57 @@
 #include "flat_helpers.h"
 #include "seqdb.h"
 
+void flat_profiles::read_profiles_from_fastas(
+	const vector<string> &fafns)
+	{
+	asserta(m_ff);
+	const uint nfeat = m_ff->m_nfeat;
+	asserta(nfeat);
+	asserta(fafns.size() == nfeat);
+	const uint32_t *alpha_sizes = m_ff->m_alpha_sizes;
+
+	map<string, uint> label2idx;
+	read_fasta_label2idx(fafns[0], label2idx);
+	const uint nprof = SIZE(label2idx);
+
+	vector<vector<vector<uint8_t> > > codeseqsvec(nfeat);
+
+	read_feature_fasta(fafns[0], alpha_sizes[0], label2idx, codeseqsvec[0]);
+	for (uint fi = 1; fi < nfeat; ++fi)
+		read_feature_fasta(fafns[fi], alpha_sizes[fi], label2idx, codeseqsvec[fi]);
+
+	m_profiles.resize(nprof);
+	m_labels.resize(nprof);
+	for (auto iter : label2idx)
+		{
+		string label = iter.first;
+		uint idx = iter.second;
+		m_labels[idx] = label;
+		vector<uint8_t> &profile = m_profiles[idx];
+		uint L = SIZE(codeseqsvec[0][idx]);
+		profile.resize(nfeat*L, 0xff);
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			const vector<uint8_t> &codeseq = codeseqsvec[fi][idx];
+			for (uint i = 0; i < L; ++i)
+				asserta(codeseq[i] != 0xff);
+			for (uint pos = 0; pos < L; ++pos)
+				profile[fi*L + pos] = codeseq[pos];
+			}
+		for (uint i = 0; i < nfeat*L; ++i)
+			asserta(profile[i] != 0xff);
+		}
+	}
+
 void flat_profiles::read_profiles_faprof(
 	const string &fn,
-	vector<string> &feature_names,
-	vector<uint> &alpha_sizes)
+	vector<string> &feature_names)
 	{
 	asserta(m_ff == 0); // must create later
 	asserta(fn != "");
 	asserta(m_labels.empty());
 	asserta(m_profiles.empty());
 	feature_names.clear();
-	alpha_sizes.clear();
 
 	m_labels.clear();
 	m_profiles.clear();
@@ -52,17 +92,11 @@ void flat_profiles::read_profiles_faprof(
 		const string &label = DB.GetLabel(i);
 		Split(label, flds, ':');
 		asserta(flds.size() == 2);
-		string alpha_annot = flds[1];
-		Split(alpha_annot, flds, '*');
-		asserta(flds.size() == 2);
-		feature_names.push_back(flds[0]);
-		alpha_sizes.push_back(StrToUint(flds[1]));
+		feature_names.push_back(flds[1]);
 		}
 	ProgressLog("%u features", nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
-		ProgressLog(" %s*%u",
-			feature_names[fi].c_str(),
-			alpha_sizes[fi]);
+		ProgressLog(" %s", feature_names[fi].c_str());
 	ProgressLog("\n");
 	asserta(ndbseq%nfeat == 0);
 	uint nprof = ndbseq/nfeat;
@@ -76,32 +110,60 @@ void flat_profiles::read_profiles_faprof(
 		uint k = 0;
 		for (uint fi = 0; fi < nfeat; ++fi)
 			{
-			const string &label = DB.GetLabel(nfeat*profidx + fi);
+			const uint seqidx = nfeat*profidx + fi;
+			const string &label = DB.GetLabel(seqidx);
 
 			Split(label, flds, ':');
 			asserta(flds.size() == 2);
 			const string &acc = flds[0];
-			string name_star_size = flds[1];
-
-			Split(name_star_size, flds2, '*');
-			asserta(flds2.size() == 2);
-			asserta(flds2[0] == feature_names[fi]);
-			asserta(StrToUint(flds2[1]) == alpha_sizes[fi]);
 			if (fi == 0)
 				m_labels.push_back(acc);
 			else
 				asserta(acc == m_labels.back());
-			uint alpha_size = alpha_sizes[fi];
-			const uint8_t *char2letter = get_char2letter(alpha_size);
-			uint L_fi = DB.GetSeqLength(nfeat*profidx + fi);
+			const uint8_t *char2letter =
+				get_char2letter(feature_names[fi]);
+			uint L_fi = DB.GetSeqLength(seqidx);
 			asserta(L_fi == L);
-			const string &seq = DB.GetSeq(nfeat*profidx + fi);
+			const string &seq = DB.GetSeq(seqidx);
 			asserta(SIZE(seq) == L);
 			for (uint k = 0; k < L; ++k)
 				profile[fi*L + k] = char2letter[seq[k]];
 			}
 		}
 	asserta(m_ff == 0); // must create later
+	}
+
+void flat_profiles::profile_to_fasta(FILE *f, uint i) const
+	{
+	if (f == 0)
+		return;
+	asserta(m_ff != 0);
+	asserta(i < m_profiles.size());
+	asserta(i < m_labels.size());
+	const vector<uint8_t> &profile = m_profiles[i];
+	const string &label = m_labels[i];
+	const uint n = SIZE(profile);
+	const uint nfeat = m_ff->m_nfeat;
+	asserta(n%nfeat == 0);
+	const uint L = n/nfeat;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint alpha_size = m_ff->m_alpha_sizes[fi];
+		const string &feature_name = m_ff->m_feature_names[fi];
+		const uint8_t *letter2char = get_letter2char(alpha_size);
+
+		string seq;
+		for (uint pos = 0; pos < L; ++pos)
+			{
+			uint8_t code = profile[fi*L + pos];
+			seq += letter2char[code];
+			}
+		string label_feat;
+		Psa(label_feat, "%s:%s",
+			label.c_str(),
+			feature_name.c_str());
+		SeqToFasta(f, label_feat, seq, L);
+		}
 	}
 
 void flat_profiles::check_profile(uint i) const

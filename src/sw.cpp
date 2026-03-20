@@ -684,30 +684,30 @@ float sw_flat(
 	return BestScore;
 	}
 
-// scratch_rows length 2*LB + 2
-// TB length LA*LB
+// scratch_rows length 2*LT + 2
+// TB length LQ*LT
 // scratch_ppsms length nfeat
 float sw_flat_pssm(
 	float *__restrict scratch_rows,
 	uint8_t *__restrict TB,
 	const float ** __restrict scratch_ppsms,
-	const uint8_t *__restrict profA, uint LA,
-	const float *__restrict pssm, uint LB,
+	const uint8_t *__restrict profQ, uint LQ,
+	const float *__restrict pssmT, uint LT,
 	const uint32_t * __restrict feature_block_offsets,
 	uint nfeat,
 	float Open, float Ext,
-	uint &Loi, uint &Loj, string &Path)
+	uint &loQ, uint &loT, string &path)
 	{
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
 
 	float *Mrow = scratch_rows + 1;
-	float *Drow = scratch_rows + LB + 2;
+	float *Drow = scratch_rows + LT + 2;
 
 // Use Mrow[-1], so...
 	Mrow[-1] = MINUS_INFINITY;
 
-	for (uint j = 0; j <= LB; ++j)
+	for (uint j = 0; j <= LT; ++j)
 		{
 		Mrow[j] = MINUS_INFINITY;
 		Drow[j] = MINUS_INFINITY;
@@ -721,20 +721,20 @@ float sw_flat_pssm(
 
 // Main loop
 	float M0 = float(0);
-	for (uint i = 0; i < LA; ++i)
+	for (uint i = 0; i < LQ; ++i)
 		{
 		// Select one PSSM row per feature for this i.
 		for (uint fi = 0; fi < nfeat; ++fi)
 			{
-			const uint8_t codeA = profA[size_t(fi)*LA + i];
+			const uint8_t codeA = profQ[size_t(fi)*LQ + i];
 			const float * __restrict pssm_fi =
-				pssm + size_t(feature_block_offsets[fi])*LB;
-			scratch_ppsms[fi] = pssm_fi + size_t(codeA)*LB;
+				pssmT + size_t(feature_block_offsets[fi])*LT;
+			scratch_ppsms[fi] = pssm_fi + size_t(codeA)*LT;
 			}
 
 		float I0 = MINUS_INFINITY;
-		uint8_t *TBrow = TB + i*LB;
-		for (uint j = 0; j < LB; ++j)
+		uint8_t *TBrow = TB + i*LT;
+		for (uint j = 0; j < LT; ++j)
 			{
 			byte TraceBits = 0;
 			float SavedM0 = M0;
@@ -809,16 +809,16 @@ float sw_flat_pssm(
 
 	uint Leni = UINT_MAX;
 	uint Lenj = UINT_MAX;
-	traceback_flat(TB, LA, LB, Besti+1, Bestj+1, Leni, Lenj, Path);
+	traceback_flat(TB, LQ, LT, Besti+1, Bestj+1, Leni, Lenj, path);
 
 	assert(Leni <= Besti+1);
 	assert(Lenj <= Bestj+1);
 
-	Loi = Besti + 1 - Leni;
-	Loj = Bestj + 1 - Lenj;
+	loQ = Besti + 1 - Leni;
+	loT = Bestj + 1 - Lenj;
 
-	assert(Loi < LA);
-	assert(Loj < LB);
+	assert(loQ < LQ);
+	assert(loT < LT);
 
 	return BestScore;
 	}

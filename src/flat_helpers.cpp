@@ -27,6 +27,23 @@ void read_feature_fasta(
 	{
 	codeseqs.clear();
 
+	uint idx1 = UINT_MAX;
+	uint idx2 = UINT_MAX;
+	if (optset_label1)
+		{
+		map<string, uint>::const_iterator iter = label2idx.find(opt(label1));
+		asserta(iter != label2idx.end());
+		idx1 = iter->second;
+		ProgressLog("read_feature_fasta() idx1=%u\n", idx1);
+		}
+	if (optset_label2)
+		{
+		map<string, uint>::const_iterator iter = label2idx.find(opt(label2));
+		asserta(iter != label2idx.end());
+		idx2 = iter->second;
+		ProgressLog("read_feature_fasta() idx2=%u\n", idx2);
+		}
+
 	const uint8_t *char2letter = (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 
 	SeqDB db_fa;
@@ -140,11 +157,26 @@ void read_logoddsvec(
 		}
 	}
 
-// @=name, %=AS
-void make_logoddsfn_pattern(
+uint32_t get_alpha_size_from_feature_name(const string &name)
+	{
+	if (name == "aa" || name == "AA")
+		return 20;
+	uint n = 0;
+	for (auto c : name)
+		{
+		if (isdigit(c))
+			n = 10*n + c - '0';
+		else
+			n = 0;
+		}
+	asserta(n > 0);
+	return n;
+	}
+
+// @=name endswith AS e.g. AA20
+void make_fn_pattern(
 	const string &fnpattern,
 	const string &feature_name,
-	uint alpha_size,
 	string &fn)
 	{
 	fn.clear();
@@ -152,8 +184,6 @@ void make_logoddsfn_pattern(
 		{
 		if (c == '@')
 			fn += feature_name;
-		else if (c == '%')
-			fn += to_string(alpha_size);
 		else
 			fn += c;
 		}
@@ -169,10 +199,9 @@ void read_logoddsvec_pattern(
 	asserta(SIZE(alpha_sizes) == nfeat);
 	vector<string> fns(nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
-		make_logoddsfn_pattern(
+		make_fn_pattern(
 			fnpattern,
 			feature_names[fi],
-			alpha_sizes[fi],
 			fns[fi]);
 	read_logoddsvec(fns, logoddsvec);
 	}
@@ -243,10 +272,9 @@ void profiles2faprof(
 				seq += letter2char[code];
 				}
 			string label_feat;
-			Psa(label_feat, "%s:%s*%u",
+			Psa(label_feat, "%s:%s",
 				label.c_str(),
-				feature_names[fi].c_str(),
-				alpha_sizes[fi]);
+				feature_names[fi].c_str());
 			SeqToFasta(fap, label_feat, seq, L);
 			}
 		}

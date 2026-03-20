@@ -20,11 +20,11 @@ public:
 	vector<string> m_symbolsvec;
 
 public:
+	uint get_nfeat() const { asserta(m_nfeat != 0); return m_nfeat; }
+	
 	void alloc(uint32 nfeat);
 
-	void init(
-		const vector<string> &feature_names,
-		const vector<uint> &alpha_sizes);
+	void init(const vector<string> &feature_names);
 
 	void read_logoddsvec(const vector<string> &fns);
 
@@ -35,6 +35,8 @@ public:
 	void read_logoddsvec_pattern(const string &fnpattern);
 
 	void apply_weights(const vector<float> &weights);
+
+	void apply_weights(const unordered_map<string, float> &name2weight);
 
 	void apply_unit_weights();
 
@@ -68,14 +70,6 @@ public:
 
 	void check_sane_scores() const;
 
-	void finalize()
-		{
-		set_symbolsvec();
-		set_feature_block_offsets();
-		check_sane_scores();
-		}
-
-private:
 	void set_symbolsvec();
 	void set_feature_block_offsets();
 

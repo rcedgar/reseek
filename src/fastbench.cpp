@@ -79,6 +79,17 @@ void FastBench::SetScoreOrder()
 	QuickSortOrderDesc(m_Scores, K, m_ScoreOrder);
 	}
 
+bool FastBench::IsTP(uint LabelIdx_i, uint LabelIdx_j) const
+	{
+	assert(LabelIdx_i < m_LabelIdxToSFIdx.size());
+	assert(LabelIdx_j < m_LabelIdxToSFIdx.size());
+
+	uint SFIdx_i = m_LabelIdxToSFIdx[LabelIdx_i];
+	uint SFIdx_j = m_LabelIdxToSFIdx[LabelIdx_j];
+
+	return SFIdx_i == SFIdx_j;
+	}
+
 void FastBench::Bench(const string &Msg)
 	{
 	asserta(m_ScoreOrder != 0);

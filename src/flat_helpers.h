@@ -95,6 +95,23 @@ void flat_logodds_symbols(
 	uint alpha_size,
 	string &symbols);
 
+void read_fasta_label2idx(
+	const string &fafn,
+	map<string, uint> &label2idx);
+
+void read_feature_fasta(
+	const string &fafn,
+	uint alpha_size,
+	const map<string, uint> &label2idx,
+	vector<vector<uint8_t> > &codeseqs);
+
+void make_fn_pattern(
+	const string &fnpattern,
+	const string &feature_name,
+	string &fn);
+
+uint32_t get_alpha_size_from_feature_name(const string &name);
+
 static inline const uint8_t *get_letter2char(uint alpha_size)
 	{
 	return (alpha_size == 20 ? g_LetterToCharAmino : g_LetterToCharMu);
@@ -102,5 +119,11 @@ static inline const uint8_t *get_letter2char(uint alpha_size)
 
 static inline const uint8_t *get_char2letter(uint alpha_size)
 	{
+	return (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
+	}
+
+static inline const uint8_t *get_char2letter(const string &feature_name)
+	{
+	uint alpha_size = get_alpha_size_from_feature_name(feature_name);
 	return (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 	}

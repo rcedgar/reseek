@@ -3,16 +3,20 @@
 #include "flat_helpers.h"
 #include "flat_features.h"
 
-void flat_features::init(
-	const vector<string> &feature_names,
-	const vector<uint> &alpha_sizes)
+void flat_features::init(const vector<string> &feature_names)
 	{
 	asserta(m_nfeat == 0);
 	alloc(uint(feature_names.size()));
-	asserta(alpha_sizes.size() == m_nfeat);
 	m_feature_names = feature_names;
-	memcpy(m_alpha_sizes, alpha_sizes.data(),
-		m_nfeat*sizeof(m_alpha_sizes[0]));
+	m_sum_alpha_sizes = 0;
+	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		uint alpha_size =
+			get_alpha_size_from_feature_name(feature_names[fi]);
+		m_alpha_sizes[fi] = alpha_size;
+		m_sum_alpha_sizes += alpha_size;
+		}
+
 	}
 
 uint flat_features::lines2logoddsmx(
@@ -58,10 +62,8 @@ void flat_features::alloc(uint32 nfeat)
 
 void flat_features::read_logoddsvec(const vector<string> &fns)
 	{
-	_chkmem();//@@
 	uint nfeat = uint(fns.size());
 	alloc(nfeat);
-	_chkmem();//@@
 	for (uint i = 0; i < m_nfeat; ++i)
 		{
 		const string &fn = fns[i];
@@ -78,7 +80,6 @@ void flat_features::read_logoddsvec(const vector<string> &fns)
 			m_unweighted_logoddsvec[i][k] = score;
 			m_weighted_logoddsvec[i][k] = BAD_SCORE;
 			}
-		_chkmem();//@@
 		}
 	}
 
@@ -113,16 +114,13 @@ void flat_features::read_logoddsvec_pattern(
 	vector<string> fns(m_nfeat);
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
-		_chkmem();//@@
 		make_logoddsfn_pattern(
 			fnpattern,
 			m_feature_names[fi],
 			m_alpha_sizes[fi],
 			fns[fi]);
-		_chkmem();//@@
 		}
 	read_logoddsvec(fns);
-	_chkmem();//@@
 	}
 
 void flat_features::check_sane_scores() const
@@ -223,6 +221,33 @@ const uint32_t *flat_features::get_feature_block_offsets() const
 	{
 	assert(m_feature_block_offsets != 0);
 	return m_feature_block_offsets;
+	}
+
+void flat_features::apply_weights(
+	const unordered_map<string, float> &NameToWeight)
+	{
+	asserta(SIZE(NameToWeight) == m_nfeat);
+	unordered_map<string, uint> NameToIdx;
+	for (uint idx = 0; idx < m_nfeat; ++idx)
+		NameToIdx[m_feature_names[idx]] = idx;
+
+	for (unordered_map<string, float>::const_iterator iter = NameToWeight.begin();
+		iter != NameToWeight.end(); ++iter)
+		{
+		const string &Name = iter->first;
+		float Weight = iter->second;
+		unordered_map<string, uint>::const_iterator iter2 =
+			NameToIdx.find(Name);
+		asserta(iter2 != NameToIdx.end());
+		uint idx = iter2->second;
+		m_weights[idx] = Weight;
+
+		uint AS = m_alpha_sizes[idx];
+		for (uint code = 0; code < AS*AS; ++code)
+			m_weighted_logoddsvec[idx][code] =
+				m_unweighted_logoddsvec[idx][code]*Weight;
+		}
+	check_sane_scores();
 	}
 
 void flat_features::apply_weights(const vector<float> &weights)

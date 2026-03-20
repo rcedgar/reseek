@@ -11,9 +11,10 @@ public:
 
 public:
 	void read_profiles_faprof(
-		const string &fn,
-		vector<string> &feature_names,
-		vector<uint> &alpha_sizes);
+		const string &faproffn,
+		vector<string> &feature_names);
+
+	void read_profiles_from_fastas(const vector<string> &fafns);
 
 	void check_profiles() const;
 	void check_profile(uint i) const;
@@ -42,4 +43,6 @@ public:
 		}
 
 	uint get_nprof() const { return uint(m_profiles.size()); }
+
+	void profile_to_fasta(FILE *f, uint i) const;
 	};

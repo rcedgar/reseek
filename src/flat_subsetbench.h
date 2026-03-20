@@ -23,7 +23,7 @@ public:
 	map<string, uint> m_SFToIdx;
 	float m_Open = -999;
 	float m_Ext = -999;
-	ALIGN_FN m_AF = 0;
+	//ALIGN_FN m_AF = 0;
 
 /////////////////////////////////////////
 // Dope built from lookup+hits
