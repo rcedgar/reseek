@@ -76,6 +76,21 @@ void MakeMuSeqDB(const vector<ChainBag *> &CBs, SeqDB &DB)
 		}
 	}
 
+void cmd_mufilter()
+	{
+	const string &QFN = g_Arg1;
+
+	DSSParams::Init(DM_UseCommandLineOption);
+	DBSearcher DBS;
+
+	DBS.LoadDB(QFN);
+	DBS.Setup();
+
+	OpenOutputFiles();
+	DBS.RunSelf();
+	CloseOutputFiles();
+	}
+
 void cmd_search()
 	{
 	DSSParams::Init(DM_UseCommandLineOption);

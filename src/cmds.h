@@ -96,5 +96,7 @@ C(flat_align_pairs_spec)
 C(flat_align_pairs_faprof)
 C(test_faprof)
 C(flat_logodds_info)
+C(mufilter)
+C(bitdope)
 
 #undef C

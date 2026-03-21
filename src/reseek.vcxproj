@@ -273,6 +273,7 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
+    <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fill_smx.cpp" />
     <ClCompile Include="alncounts.cpp" />

@@ -8,7 +8,58 @@
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
 	{
-	ptrDBS->ThreadBodySelf(ThreadIndex);
+	if (opt(mufilter))
+		ptrDBS->ThreadBodySelf_MuFilterOnly(ThreadIndex);
+	else
+		ptrDBS->ThreadBodySelf(ThreadIndex);
+	}
+
+void DBSearcher::ThreadBodySelf_MuFilterOnly(uint ThreadIndex)
+	{
+	asserta(ThreadIndex < SIZE(m_DAs));
+	uint PrevChainIndex1 = UINT_MAX;
+	DSSAligner &DA = *m_DAs[ThreadIndex];
+	const bool HasSelfRevScores = !m_DBSelfRevScores.empty();
+	for (;;)
+		{
+		uint ChainIndex1, ChainIndex2;
+		bool Ok = GetNextPairSelf(ChainIndex1, ChainIndex2);
+		if (!Ok)
+			break;
+
+		if (ChainIndex1 == PrevChainIndex1)
+			++m_QPCacheHits;
+		else
+			{
+			++m_QPCacheMisses;
+			const PDBChain &Chain1 = *m_DBChains[ChainIndex1];
+			const vector<vector<byte> > *ptrProfile1 = m_DBProfiles[ChainIndex1];
+			const vector<byte> *ptrMuLetters1 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex1]);
+			const vector<uint> *ptrMuKmers1 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex1]);
+			float SelfRevScore1 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex1] : FLT_MAX;
+			DA.SetQuery(Chain1, ptrProfile1, ptrMuLetters1, ptrMuKmers1, SelfRevScore1);
+			}
+
+		if (opt(noself) && ChainIndex1 == ChainIndex2)
+			continue;
+
+		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
+		const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[ChainIndex2];
+		const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex2]);
+		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);
+		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
+		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
+		bool PassedMuFilter = DA.MuFilter();
+		if (PassedMuFilter)
+			{
+			extern FILE *g_fTsv;
+			asserta(g_fTsv != 0);
+			fprintf(g_fTsv, "%s\t%s\n",
+				DA.m_ChainA->m_Label.c_str(),
+				DA.m_ChainB->m_Label.c_str());
+			}
+		PrevChainIndex1 = ChainIndex1;
+		}
 	}
 
 void DBSearcher::ThreadBodySelf(uint ThreadIndex)

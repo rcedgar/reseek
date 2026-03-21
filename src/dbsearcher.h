@@ -69,6 +69,7 @@ public:
 
 	void ThreadBodyQuery(uint ThreadIndex, ChainReader2 *ptrQueryCR);
 	void ThreadBodySelf(uint ThreadIndex);
+	void ThreadBodySelf_MuFilterOnly(uint ThreadIndex);
 
 	uint GetDBSize() const;
 	bool GetNextPairSelf(uint &ChainIndex1, uint &ChainIndex2);

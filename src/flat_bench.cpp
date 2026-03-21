@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#define	SHOW_PROGRESS	1
+
 atomic<uint> flat_bench::m_progress_counter;
 
 void ParseVarStr(
@@ -97,6 +99,8 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	const uint nfeat = get_nfeat();
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
+	fa.m_open = -m_Open;
+	fa.m_ext = -m_Ext;
 	fa.alloc();
 	for (;;)
 		{
@@ -122,8 +126,10 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 			asserta(!isinf(Score));
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
 			uint progress_count = m_progress_counter++;
+#if SHOW_PROGRESS
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
+#endif
 			AppendHit(DomIdxT, DomIdxQ, Score);
 			}
 		}
@@ -147,7 +153,9 @@ void flat_bench::Search_All()
 
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
+#if SHOW_PROGRESS
 	ProgressStep(PairCount-1, PairCount, "Aligning");
+#endif
 	}
 
 void flat_bench::StaticThreadBody_All(flat_bench *SB, uint ThreadIdx)

@@ -653,6 +653,9 @@
     <ClCompile Include="flat_aligner.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="bitdope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
