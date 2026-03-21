@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <malloc.h>
 #endif
 
 #include "myutils.h"
@@ -870,11 +871,13 @@ void mysleep(unsigned ms)
 double GetMemUseBytes()
 	{
 	HANDLE hProc = GetCurrentProcess();
-	PROCESS_MEMORY_COUNTERS PMC;
-	BOOL bOk = GetProcessMemoryInfo(hProc, &PMC, sizeof(PMC));
+	PROCESS_MEMORY_COUNTERS_EX PMC;
+	BOOL bOk = GetProcessMemoryInfo(hProc,
+		(PROCESS_MEMORY_COUNTERS*) &PMC, sizeof(PMC));
 	if (!bOk)
 		return 1000000;
-	double Bytes = (double) PMC.WorkingSetSize;
+	// double Bytes = (double) PMC.WorkingSetSize;
+	double Bytes = (double) PMC.PrivateUsage;
 	UpdMemUse(Bytes);
 	return Bytes;
 	}
@@ -910,36 +913,11 @@ double GetPhysMemBytes()
 
 double GetMemUseBytes()
 	{
-	static char statm[SIZE_64];
-	static int PageSize = 1;
-	if (0 == statm[0])
-		{
-		PageSize = sysconf(_SC_PAGESIZE);
-		pid_t pid = getpid();
-		snprintf(statm, SIZE_64, "/proc/%d/statm", (int) pid);
-		}
-
-	int fd = open(statm, O_RDONLY);
-	if (fd < 0)
-		return 0.0;
-	char Buffer[64];
-	int n = read(fd, Buffer, sizeof(Buffer) - 1);
-	close(fd);
-	fd = -1;
-
-	if (n <= 0)
-		return 0.0;
-
-	Buffer[n] = 0;
-	const char *p = strchr(Buffer, ' ');
-	if (p == 0)
-		return 0.0;
-
-	double Pages = atof(p);
-
-	double Bytes = Pages*PageSize;
-	UpdMemUse(Bytes);
-	return Bytes;
+	// mallinfo2().arena + mallinfo2().hblkhd
+	struct mallinfo2 mi = mallinfo2();
+	double total = double(mi.arena) + double(mi.hblkhd);
+	UpdMemUse(total);
+	return total;
 	}
 
 #elif defined(__MACH__)
@@ -1098,6 +1076,8 @@ const char *MemBytesToStr(double Bytes)
 		snprintf(Str, SIZE_32, "%.1fMb", Bytes/1e6);
 	else if (Bytes < 1e9)
 		snprintf(Str, SIZE_32, "%.0fMb", Bytes/1e6);
+	else if (Bytes < 10e9)
+		snprintf(Str, SIZE_32, "%.2fGb", Bytes/1e9);
 	else if (Bytes < 100e9)
 		snprintf(Str, SIZE_32, "%.1fGb", Bytes/1e9);
 	else

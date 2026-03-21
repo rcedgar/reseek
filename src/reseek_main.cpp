@@ -2,6 +2,9 @@
 #include "dss.h"
 #include "timing.h"
 #include "alncounts.h"
+#include "procstats.h"
+
+RunStats rs;
 
 int g_Frame = 0;
 string g_Arg1;
@@ -10,6 +13,8 @@ string g_Arg1;
 
 int main(int argc, char **argv)
 	{
+	start_runstats(rs);
+
 	MyCmdLine(argc, argv);
 	LogProgramInfoAndCmdLine();
 	if (!opt(quiet))
@@ -61,6 +66,8 @@ int main(int argc, char **argv)
 	LogAlnCounts();
 	LogTiming();
 	LogElapsedTimeAndRAM();
+	log_runstats(rs, g_fLog);
+	log_runstats(rs, stderr);
 	MyutilsExit();
 	return 0;
 	}

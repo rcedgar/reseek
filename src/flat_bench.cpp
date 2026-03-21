@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#define	SHOW_PROGRESS	0
+#define	SHOW_PROGRESS	1
 
 atomic<uint> flat_bench::m_progress_counter;
 

@@ -584,6 +584,7 @@
     <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="primes.h" />
+    <ClInclude Include="procstats.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="rankedscoresbag.h" />

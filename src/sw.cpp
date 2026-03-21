@@ -4,6 +4,14 @@
 #include "xdpmem.h"
 #include "swtrace.h"
 
+static inline void reverse_path_buffer(
+	char *path_buffer, uint ncol)
+	{
+	for (uint i = 0; i < ncol/2; ++i)
+		swap(path_buffer[i], path_buffer[ncol-i-1]);
+	path_buffer[ncol] = 0;
+	}
+
 void TraceBackBitSW(XDPMem &Mem,
   uint LA, uint LB, uint Besti, uint Bestj,
   uint &Leni, uint &Lenj, string &Path)
@@ -518,7 +526,7 @@ void traceback_flat(const uint8_t *__restrict TB,
 				Leni = Besti - i;
 				Lenj = Bestj - j;
 				path_buffer[ncol] = 0;
-				strrev(path_buffer);
+				reverse_path_buffer(path_buffer, ncol);
 				return;
 				}
 			//t = TB[i-1][j-1];
@@ -532,7 +540,7 @@ void traceback_flat(const uint8_t *__restrict TB,
 				Leni = Besti - i + 1;
 				Lenj = Bestj - j + 1;
 				path_buffer[ncol] = 0;
-				strrev(path_buffer);
+				reverse_path_buffer(path_buffer, ncol);
 				return;
 				}
 			else
