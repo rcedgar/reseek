@@ -29,7 +29,8 @@ public:
 	float m_score = 0;
 	uint m_loQ = UINT_MAX;
 	uint m_loT = UINT_MAX;
-	string m_path;
+	char *m_path_buffer = 0;
+	uint m_ncol = 0;
 
 public:
 	void alloc();

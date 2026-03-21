@@ -6,7 +6,7 @@
 
 void read_fasta_label2idx(
 	const string &fafn,
-	map<string, uint> &label2idx)
+	unordered_map<string, uint> &label2idx)
 	{
 	label2idx.clear();
 	SeqDB db_fa;
@@ -22,29 +22,12 @@ void read_fasta_label2idx(
 void read_feature_fasta(
 	const string &fafn,
 	uint alpha_size,
-	const map<string, uint> &label2idx,
+	const unordered_map<string, uint> &label2idx,
 	vector<vector<uint8_t> > &codeseqs)
 	{
 	codeseqs.clear();
 
-	uint idx1 = UINT_MAX;
-	uint idx2 = UINT_MAX;
-	if (optset_label1)
-		{
-		map<string, uint>::const_iterator iter = label2idx.find(opt(label1));
-		asserta(iter != label2idx.end());
-		idx1 = iter->second;
-		ProgressLog("read_feature_fasta() idx1=%u\n", idx1);
-		}
-	if (optset_label2)
-		{
-		map<string, uint>::const_iterator iter = label2idx.find(opt(label2));
-		asserta(iter != label2idx.end());
-		idx2 = iter->second;
-		ProgressLog("read_feature_fasta() idx2=%u\n", idx2);
-		}
-
-	const uint8_t *char2letter = (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
+	const uint8_t *char2letter = get_char2letter(alpha_size);
 
 	SeqDB db_fa;
 	db_fa.FromFasta(fafn, false);
@@ -54,8 +37,9 @@ void read_feature_fasta(
 	for (uint i = 0; i < nseqs; ++i)
 		{
 		uint L = db_fa.GetSeqLength(i);
-		const string &label = db_fa.GetLabel(i);
-		map<string, uint>::const_iterator iter = label2idx.find(label);
+		string label = db_fa.GetLabel(i);
+		trunc_label(label);
+		unordered_map<string, uint>::const_iterator iter = label2idx.find(label);
 		if (iter == label2idx.end())
 			Die("Not found %s in %s", label.c_str(), fafn.c_str());
 		uint idx = iter->second;
@@ -89,7 +73,7 @@ void read_profiles_from_fastas(
 	asserta(SIZE(alpha_sizes) == nfeat);
 	asserta(nfeat > 0);
 
-	map<string, uint> label2idx;
+	unordered_map<string, uint> label2idx;
 	read_fasta_label2idx(fafns[0], label2idx);
 	const uint nprof = SIZE(label2idx);
 

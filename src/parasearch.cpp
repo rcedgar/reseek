@@ -275,17 +275,21 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 	DSS D;
 	m_ByteSeqs.clear();
 	m_ByteSeqs.resize(ChainCount);
+	vector<string> Labels;
 	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
 		{
 		ProgressStep(ChainIdx, ChainCount, "DSS::GetMuLetters()");
 		const PDBChain &Chain = *m_Chains[ChainIdx];
-		AppendLabel(Chain.m_Label);
+		Labels.push_back(Chain.m_Label);
 		D.Init(Chain);
 		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
 		D.GetMuLetters(ByteSeq);
 		if (opt(fixmubyteseq))
 			FixMuByteSeq(ByteSeq);
 		}
+
+	if (m_look == 0) m_look = new lookup;
+	m_look->from_labels(Labels);
 	}
 
 void ParaSearch::GetByteSeqs_nu(const string &FN)
@@ -466,23 +470,15 @@ void ParaSearch::MakeSubset(ParaSearch &Subset, uint SubsetPct)
 	Subset.m_AlignMethod = m_AlignMethod;
 	Subset.m_SubstMxName = m_SubstMxName;
 	Subset.m_ByteSeqMethod = m_ByteSeqMethod;
-	Subset.m_LabelIdxToSFIdx.clear();
-	Subset.m_DomIdxs.clear();
-	Subset.m_SFs.clear();
-	Subset.m_SFIdxToSize.clear();
-	Subset.m_NT = UINT_MAX;
-	Subset.m_NF = UINT_MAX;
 	Subset.m_ScoreOrder = 0;
 
 	Subset.m_Chains.clear();
 	Subset.m_Labels.clear();
 	Subset.m_ByteSeqs.clear();
-	Subset.m_LabelIdxToSFIdx.clear();
 
 	Subset.m_Chains.reserve(SubsetChainCount);
 	Subset.m_Labels.reserve(SubsetChainCount);
 	Subset.m_ByteSeqs.reserve(SubsetChainCount);
-	Subset.m_LabelIdxToSFIdx.reserve(SubsetChainCount);
 
 	for (uint i = 0; i < SubsetChainCount; ++i)
 		{
@@ -491,7 +487,6 @@ void ParaSearch::MakeSubset(ParaSearch &Subset, uint SubsetPct)
 		Subset.m_Chains.push_back(Chain);
 		Subset.m_Labels.push_back(Chain->m_Label);
 		Subset.m_ByteSeqs.push_back(m_ByteSeqs[Idx]);
-		Subset.m_LabelIdxToSFIdx.push_back(m_LabelIdxToSFIdx[Idx]);
 		}
 	Subset.SetLookupFromLabels();
 	}
@@ -531,6 +526,6 @@ void cmd_para_scop40()
 		Paralign::m_Open,
 		Paralign::m_Ext,
 		PS.m_SeqCount,
-		PS.m_NT);
+		PS.m_look->m_NT);
 	PS.Bench(Msg);
 	}

@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#define	SHOW_PROGRESS	1
+#define	SHOW_PROGRESS	0
 
 atomic<uint> flat_bench::m_progress_counter;
 
@@ -46,7 +46,7 @@ void flat_bench::load_alphas_and_profiles(
 
 	m_ff.init(feature_names);
 	m_fp.m_ff = &m_ff;
-	m_fp.read_profiles_from_fastas(fafns);
+	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
 	m_ff.read_logoddsvec_pattern(logoddsfnpattern);
 	m_ff.set_feature_block_offsets();
 	m_ff.set_symbolsvec();
@@ -262,18 +262,19 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 
 void cmd_flat_bench()
 	{
-	asserta(!optset_lookup);
 	asserta(!optset_spec);
-	asserta(!optset_varstr);
+	asserta(!optset_lookup);
+	asserta(optset_varstr);
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
 
-	const string &VarStr = g_Arg1;
+	const string &lookupfn = g_Arg1;
+	const string &VarStr = opt(varstr);
 
 	flat_bench FB;
+	FB.ReadLookup(lookupfn);
 	FB.load_alphas_and_profiles(
 		VarStr, opt(fapattern), opt(mxpattern));
-	FB.SetLookupFromLabels();
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();

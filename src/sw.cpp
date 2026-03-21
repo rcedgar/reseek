@@ -497,18 +497,17 @@ float SWFast_Callback(XDPMem &Mem,
 
 void traceback_flat(const uint8_t *__restrict TB,
   uint LA, uint LB, uint Besti, uint Bestj,
-  uint &Leni, uint &Lenj, string &Path)
+  uint &Leni, uint &Lenj, char *path_buffer, uint &ncol)
 	{
-	Path.clear();
-
 	Leni = 0;
 	Lenj = 0;
 	uint i = Besti;
 	uint j = Bestj;
+	ncol = 0;
 	char State = 'M';
 	for (;;)
 		{
-		Path += State;
+		path_buffer[ncol++] = State;
 
 		byte t;
 		switch (State)
@@ -518,7 +517,8 @@ void traceback_flat(const uint8_t *__restrict TB,
 				{
 				Leni = Besti - i;
 				Lenj = Bestj - j;
-				reverse(Path.begin(), Path.end());
+				path_buffer[ncol] = 0;
+				strrev(path_buffer);
 				return;
 				}
 			//t = TB[i-1][j-1];
@@ -531,7 +531,8 @@ void traceback_flat(const uint8_t *__restrict TB,
 				{
 				Leni = Besti - i + 1;
 				Lenj = Bestj - j + 1;
-				reverse(Path.begin(), Path.end());
+				path_buffer[ncol] = 0;
+				strrev(path_buffer);
 				return;
 				}
 			else
@@ -575,7 +576,7 @@ float sw_flat(
 	uint8_t *__restrict TB,
 	uint LA, uint LB, colscorefn sf,
 	float Open, float Ext, uint &Loi, uint &Loj,
-	string &Path)
+	char *path_buffer, uint &ncol)
 	{
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
@@ -674,7 +675,7 @@ float sw_flat(
 	uint Leni = UINT_MAX;
 	uint Lenj = UINT_MAX;
 	traceback_flat(TB, LA, LB, Besti+1, Bestj+1,
-	  Leni, Lenj, Path);
+	  Leni, Lenj, path_buffer, ncol);
 	asserta(Besti+1 >= Leni);
 	asserta(Bestj+1 >= Lenj);
 
@@ -696,7 +697,8 @@ float sw_flat_pssm(
 	const uint32_t * __restrict feature_block_offsets,
 	uint nfeat,
 	float Open, float Ext,
-	uint &loQ, uint &loT, string &path)
+	uint &loQ, uint &loT,
+	char *path_buffer, uint &ncol)
 	{
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
@@ -809,7 +811,8 @@ float sw_flat_pssm(
 
 	uint Leni = UINT_MAX;
 	uint Lenj = UINT_MAX;
-	traceback_flat(TB, LQ, LT, Besti+1, Bestj+1, Leni, Lenj, path);
+	traceback_flat(TB, LQ, LT, Besti+1, Bestj+1, Leni, Lenj,
+		path_buffer, ncol);
 
 	assert(Leni <= Besti+1);
 	assert(Lenj <= Bestj+1);

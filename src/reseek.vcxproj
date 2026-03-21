@@ -319,6 +319,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="lookup.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
     <ClCompile Include="nbr_stats.cpp" />
@@ -329,6 +330,7 @@
     <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
+    <ClCompile Include="operator_new.cpp" />
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
@@ -528,6 +530,7 @@
     <ClInclude Include="hexintseq.h" />
     <ClInclude Include="letteralndb.h" />
     <ClInclude Include="logmxptr.h" />
+    <ClInclude Include="lookup.h" />
     <ClInclude Include="maxbuff.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mukmerfilter.h" />

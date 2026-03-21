@@ -46,23 +46,25 @@ static float align_j(
 	uint L_j,
 	uint &Loi,
 	uint &Loj,
-	string &Path)
+	char *path_buffer,
+	uint &ncol)
 	{
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		prof_j, L_j,
 		s_pssm_i, s_L_i, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Path);
+		Loi, Loj, path_buffer, ncol);
 	return score;
 	}
 
 static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	{
 	uint Loi, Loj;
-	string Path;
+	char *path_buffer = myalloc(char, 2*s_maxL);
+	uint ncol;
 	float score = align_j(label, prof_j, L_j,
-		Loi, Loj, Path);
+		Loi, Loj, path_buffer, ncol);
 	return score;
 	}
 

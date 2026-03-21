@@ -7,7 +7,7 @@ float sw_flat(
 	uint8_t *__restrict TB,
 	uint LA, uint LB, colscorefn sf,
 	float Open, float Ext, uint &Loi, uint &Loj,
-	string &Path);
+	char *path_buffer, uint &ncol);
 
 float sw_flat_pssm(
 	float *__restrict scratch_rows,
@@ -18,7 +18,7 @@ float sw_flat_pssm(
 	const uint32_t * __restrict feature_block_offsets,
 	uint nfeat,
 	float Open, float Ext, uint &Loi, uint &Loj,
-	string &Path);
+	char *path_buffer, uint &ncol);
 
 void profiles2faprof(
 	const string &fn,
@@ -97,18 +97,23 @@ void flat_logodds_symbols(
 
 void read_fasta_label2idx(
 	const string &fafn,
-	map<string, uint> &label2idx);
+	unordered_map<string, uint> &label2idx);
 
 void read_feature_fasta(
 	const string &fafn,
 	uint alpha_size,
-	const map<string, uint> &label2idx,
+	const unordered_map<string, uint> &label2idx,
 	vector<vector<uint8_t> > &codeseqs);
 
 void make_fn_pattern(
 	const string &fnpattern,
 	const string &feature_name,
 	string &fn);
+
+void trunc_label(const string &Label,
+	string &TruncatedLabel);
+
+void trunc_label(string &Label);
 
 uint32_t get_alpha_size_from_feature_name(const string &name);
 

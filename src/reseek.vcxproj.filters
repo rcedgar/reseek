@@ -656,6 +656,12 @@
     <ClCompile Include="bitdope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="operator_new.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1106,6 +1112,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_aligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lookup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

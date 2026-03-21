@@ -111,11 +111,11 @@ static float prof_col_score(uint pos_i, uint pos_j)
 	return score;
 	}
 
-static float score_path(uint start_i, uint start_j, const string &path)
+static float score_path(uint start_i, uint start_j,
+	const char *path, uint ncol)
 	{
 	uint pos_i = start_i;
 	uint pos_j = start_j;
-	uint ncol = SIZE(path);
 	float score = 0;
 	for (uint col = 0; col < ncol; ++col)
 		{
@@ -170,8 +170,11 @@ static void align_prof_enum()
 		{
 		uint start_i = starts_i[pathidx];
 		uint start_j = starts_j[pathidx];
-		string path = paths[pathidx];
-		float score = score_path(start_i, start_j, path);
+		const string &path = paths[pathidx];
+		const char *path_buffer = path.c_str();
+		uint ncol = uint(path.size());
+		float score = score_path(start_i, start_j,
+			path_buffer, ncol);
 		if (score > best_score)
 			{
 			best_score = score;
@@ -190,9 +193,12 @@ static void align_prof_callback()
 	string Path;
 	float score = SWFast_Callback(Mem, s_L_i, s_L_j, prof_col_score,
 		s_open, s_ext,
-		Loi, Loj, Leni, Lenj, Path);
-	float score2 = score_path(Loi, Loj, Path);
-	Log("%10.3g  %s  callback\n", score, Path.c_str());
+		Loi, Loj, Leni, Lenj,
+		Path);
+	const char *path_buffer = Path.c_str();
+	uint ncol = uint(Path.size());
+	float score2 = score_path(Loi, Loj, path_buffer, ncol);
+	Log("%10.3g  %s  callback\n", score, path_buffer);
 	if (!feq(score, score2))
 		Die("callback %.3g %.3g", score, score2);
 	}
@@ -203,31 +209,35 @@ static void align_prof_flat()
 	{
 	XDPMem Mem;
 	uint Loi, Loj;
-	string Path;
+	uint ncol;
+	char *path_buffer = myalloc(char, 2*s_maxL);
 	float score = sw_flat(s_scratch_rows, s_TB, s_L_i, s_L_j,
 		prof_col_score, s_open, s_ext,
-		Loi, Loj, Path);
-	float score2 = score_path(Loi, Loj, Path);
-	Log("%10.3g  %s  flat\n", score, Path.c_str());
+		Loi, Loj, path_buffer, ncol);
+	float score2 = score_path(Loi, Loj, path_buffer, ncol);
+	Log("%10.3g  %s  flat\n", score, path_buffer);
 	if (!feq(score, score2))
 		Die("flat %.3g %.3g", score, score2);
+	myfree(path_buffer);
 	}
 
 static const float **__restrict s_scratch_pssms;
 static void align_prof_pssm()
 	{
 	uint Loi, Loj;
-	string Path;
+	uint ncol;
+	char *path_buffer = myalloc(char, 2*s_maxL);
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		s_prof_i, s_L_i,
 		s_pssm_j, s_L_j, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Path);
-	Log("%10.3g  %s  pssm\n", score, Path.c_str());
-	float score2 = score_path(Loi, Loj, Path);
+		Loi, Loj, path_buffer, ncol);
+	Log("%10.3g  %s  pssm\n", score, path_buffer);
+	float score2 = score_path(Loi, Loj, path_buffer, ncol);
 	if (!feq(score, score2))
 		Die("pssm %.3g %.3g", score, score2);
+	myfree(path_buffer);
 	}
 
 static void align_prof_i(uint i)

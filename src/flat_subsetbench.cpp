@@ -536,11 +536,17 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 	uint Loi, Loj;
 	string Path;
 
+	char *path_buffer = myalloc(char, 2*m_MaxL);
+	uint ncol;
+
 	for (;;)
 		{
 		uint qidx = m_NextQueryIdx++;
 		if (qidx >= NQ)
+			{
+			myfree(path_buffer);
 			return;
+			}
 		/////////////////////////////////////////////////////////
 		// Cache query
 		/////////////////////////////////////////////////////////
@@ -591,7 +597,7 @@ void flat_subsetbench::ThreadBody(uint ThreadIdx)
 				pssmQ, LQ,
 				feature_block_offsets, nfeat,
 				-m_Open, -m_Ext,
-				Loi, Loj, Path);
+				Loi, Loj, path_buffer, ncol);
 
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));
@@ -624,7 +630,8 @@ void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
 	const float **scratch_pssms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, m_MaxL*m_MaxL);
 	uint Loi, Loj;
-	string Path;
+	char *path_buffer = myalloc(char, 2*m_MaxL);
+	uint ncol;
 	for (;;)
 		{
 		uint DomIdxQ = m_NextQueryIdx++;
@@ -675,7 +682,7 @@ void flat_subsetbench::ThreadBody_All(uint ThreadIdx)
 				pssmQ, LQ,
 				feature_block_offsets, nfeat,
 				-m_Open, -m_Ext,
-				Loi, Loj, Path);
+				Loi, Loj, path_buffer, ncol);
 
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));

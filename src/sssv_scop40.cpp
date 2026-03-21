@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "fastbench.h"
 #include "dssparams.h"
@@ -104,3 +105,4 @@ void cmd_sssv_scop40()
 	FB.Bench();
 	FB.WriteHits(opt(output));
 	}
+#endif // 0

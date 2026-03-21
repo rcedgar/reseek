@@ -13,6 +13,7 @@ void flat_aligner::alloc()
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
 	m_TB = myalloc(uint8_t, m_maxL*m_maxL);
+	m_path_buffer = myalloc(char, 2*m_maxL);
 	}
 
 void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
@@ -43,7 +44,7 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_pssmT, m_LT, 
 		m_ff->m_feature_block_offsets,
 		m_ff->m_nfeat, m_open, m_ext,
-		m_loQ, m_loT, m_path);
+		m_loQ, m_loT, m_path_buffer, m_ncol);
 	}
 
 void flat_aligner::write_aln(FILE *f) const
@@ -57,7 +58,6 @@ void flat_aligner::write_aln(FILE *f) const
 	const vector<string> &feature_names = m_ff->m_feature_names;
 	const vector<string> &symbolsvec = m_ff->m_symbolsvec;
 
-	size_t ncol = m_path.size();
 	vector<string> feature_rowsQ(nfeat);
 	vector<string> feature_rowsT(nfeat);
 	uint hiQ = 0;
@@ -68,16 +68,16 @@ void flat_aligner::write_aln(FILE *f) const
 		string feature_rowT = feature_rowsT[fi];
 		string annot_row;
 
-		feature_rowQ.reserve(ncol);
-		feature_rowT.reserve(ncol);
-		annot_row.reserve(ncol);
+		feature_rowQ.reserve(m_ncol);
+		feature_rowT.reserve(m_ncol);
+		annot_row.reserve(m_ncol);
 		uint alpha_size = alpha_sizes[fi];
 		uint posQ = m_loQ;
 		uint posT = m_loT;
 		const uint8_t *letter2char = get_letter2char(alpha_size);
-		for (uint col = 0; col < ncol; ++col)
+		for (uint col = 0; col < m_ncol; ++col)
 			{
-			char c = m_path[col];
+			char c = m_path_buffer[col];
 			if (c == 'M')
 				{
 				assert(posQ < m_LQ);

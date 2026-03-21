@@ -5,7 +5,8 @@
 #include "seqdb.h"
 
 void flat_profiles::read_profiles_from_fastas(
-	const vector<string> &fafns)
+	const vector<string> &fafns,
+	const unordered_map<string, uint> &label2idx)
 	{
 	asserta(m_ff);
 	const uint nfeat = m_ff->m_nfeat;
@@ -13,15 +14,13 @@ void flat_profiles::read_profiles_from_fastas(
 	asserta(fafns.size() == nfeat);
 	const uint32_t *alpha_sizes = m_ff->m_alpha_sizes;
 
-	map<string, uint> label2idx;
-	read_fasta_label2idx(fafns[0], label2idx);
-	const uint nprof = SIZE(label2idx);
-
 	vector<vector<vector<uint8_t> > > codeseqsvec(nfeat);
 
-	read_feature_fasta(fafns[0], alpha_sizes[0], label2idx, codeseqsvec[0]);
-	for (uint fi = 1; fi < nfeat; ++fi)
+	for (uint fi = 0; fi < nfeat; ++fi)
 		read_feature_fasta(fafns[fi], alpha_sizes[fi], label2idx, codeseqsvec[fi]);
+	const uint nprof = uint(codeseqsvec[0].size());
+	for (uint fi = 0; fi < nfeat; ++fi)
+		asserta(codeseqsvec[fi].size() == nprof);
 
 	m_profiles.resize(nprof);
 	m_labels.resize(nprof);

@@ -14,7 +14,9 @@ public:
 		const string &faproffn,
 		vector<string> &feature_names);
 
-	void read_profiles_from_fastas(const vector<string> &fafns);
+	void read_profiles_from_fastas(
+		const vector<string> &fafns,
+		const unordered_map<string, uint> &label2idx);
 
 	void check_profiles() const;
 	void check_profile(uint i) const;

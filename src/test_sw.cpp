@@ -38,13 +38,15 @@ static void cache_i(const string &label, const uint8_t *prof_i, uint L_i)
 static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	{
 	uint Loi, Loj;
-	string Path;
+	char *path_buffer = myalloc(char, 2*s_maxL);
+	uint ncol;
 	float score = sw_flat_pssm(
 		s_scratch_rows, s_TB, s_scratch_pssms,
 		prof_j, L_j,
 		s_pssm_i, s_L_i, s_feature_block_offsets,
 		s_nfeat, s_open, s_ext,
-		Loi, Loj, Path);
+		Loi, Loj, path_buffer, ncol);
+	myfree(path_buffer);
 	return score;
 	}
 
