@@ -110,6 +110,21 @@ void cmd_sec_fasta()
 	CloseStdioFile(ffa);
 	}
 
+static void validate_offs(
+	const vector<int> &off1s,
+	const vector<int> &off2s)
+	{
+	size_t n = off1s.size();
+	asserta(off2s.size() == n);
+	for (uint i = 0; i < n; ++i)
+		{
+		int off1 = off1s[i];
+		int off2 = off2s[i];
+		int dij = max(off1, off2) - min(off1, off2);
+		asserta(dij > 1);
+		}
+	}
+
 void cmd_sec_kmeans()
 	{
 	asserta(optset_alpha_size);
@@ -142,11 +157,32 @@ void cmd_sec_kmeans()
 	|_____|_____|_____|_____|_____|_____|_____|
 
 ***/
-	//                           0   1   2   3   4   5   6   7   8
-	const vector<int> off1s = { -2, -2, -2, -1, -1,  0, -3,  0, -3 };
-	const vector<int> off2s = {  0,  1,  2,  1,  2,  2,  3,  3,  0 };
-	//                           3   3   5   3   3   3   7   4   4  dij
-	const int w = 3;
+	//                                   0   1   2   3   4   5   6   7   8
+	const vector<int> default_off1s = { -2, -2, -2, -1, -1,  0, -3,  0, -3 };
+	const vector<int> default_off2s = {  0,  1,  2,  1,  2,  2,  3,  3,  0 };
+	//                                   3   3   5   3   3   3   7   4   4  dij
+
+	vector<int> off1s;
+	vector<int> off2s;
+	if (optset_spec)
+		{
+		vector<string> flds;
+		Split(opt(spec), flds, ',');
+		size_t n = flds.size();
+		asserta(n%2 == 0);
+		n /= 2;
+		for (uint i = 0; i < n; ++i)
+			{
+			off1s.push_back(StrToInt(flds[2*i]));
+			off2s.push_back(StrToInt(flds[2*i+1]));
+			}
+		}
+	else
+		{
+		off1s = default_off1s;
+		off2s = default_off2s;
+		}
+	validate_offs(off1s, off2s);
 
 	const uint K = opt(alpha_size);
 	const uint32_t M = 32; // dist mx band width
