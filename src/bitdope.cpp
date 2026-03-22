@@ -69,8 +69,10 @@ void cmd_bitdope()
 		asserta(flds.size() == 2);
 		const string &labelq = flds[0];
 		const string &labelt = flds[1];
-		uint idxq = look.get_domidx(labelq);
-		uint idxt = look.get_domidx(labelt);
+		uint idxq = look.get_domidx(labelq, true);
+		uint idxt = look.get_domidx(labelt, true);
+		if (idxq == UINT_MAX || idxt == UINT_MAX)
+			continue;
 		uint minidx = min(idxq, idxt);
 		uint maxidx = max(idxq, idxt);
 		uint k = triangle_ij_to_k(minidx, maxidx, ndom);

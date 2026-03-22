@@ -69,7 +69,7 @@ public:
 		label = m_doms[domidx] + "/" + m_sfs[sfidx];
 		}
 
-	uint get_domidx(const string &lab) const
+	uint get_domidx(const string &lab, bool failok = false) const
 		{
 		void trunc_label(const string &Label, string &TruncatedLabel);
 
@@ -77,7 +77,12 @@ public:
 		trunc_label(lab, dom);
 		unordered_map<string, uint>::const_iterator iter =
 			m_dom2idx.find(dom);
-		asserta(iter != m_dom2idx.end());
+		if (iter != m_dom2idx.end())
+			{
+			if (failok)
+				return UINT_MAX;
+			Die("get_domidx(%s)", lab.c_str());
+			}
 		return iter->second;
 		}
 

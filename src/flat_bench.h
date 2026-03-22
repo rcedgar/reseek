@@ -33,6 +33,8 @@ public:
 
 public:
 	static atomic<uint> m_progress_counter;
+	static atomic<uint> m_ncachehits;
+	static atomic<uint> m_ncachemisses;
 
 public:
 	uint get_nfeat() const { return m_ff.get_nfeat(); }

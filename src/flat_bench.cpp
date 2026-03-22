@@ -11,6 +11,8 @@
 #define	SHOW_PROGRESS	1
 
 atomic<uint> flat_bench::m_progress_counter;
+atomic<uint> flat_bench::m_ncachehits;
+atomic<uint> flat_bench::m_ncachemisses;
 
 void ParseVarStr(
 	const string &VarStr,
@@ -159,12 +161,16 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		uint DomIdxQ, DomIdxT;
 		triangle_k_to_ij(k, ndom, DomIdxT, DomIdxQ);
 
-		if (DomIdxT != CurrentDomIdxT)
+		if (DomIdxT == CurrentDomIdxT)
+			++m_ncachehits;
+		else
 			{
+			++m_ncachemisses;
 			const string &labelT = m_fp.get_label(DomIdxT);
 			const uint8_t *profT = m_fp.get_profile(DomIdxT);
 			const uint LT = m_fp.get_length(DomIdxT);
 			fa.cacheT(labelT, profT, LT);
+			CurrentDomIdxT = DomIdxT;
 			}
 
 		const string &labelQ = m_fp.get_label(DomIdxQ);
@@ -185,6 +191,8 @@ void flat_bench::Search(const string &how)
 	m_ThreadCount = GetRequestedThreadCount();
 	m_NextQueryIdx = 0;
 	m_progress_counter = 0;
+	m_ncachehits = 0;
+	m_ncachemisses = 0;
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
 		{
@@ -206,6 +214,10 @@ void flat_bench::Search(const string &how)
 	else if (how == "dope")
 		{
 		ProgressStep(m_dope_nhit-1, m_dope_nhit, "Aligning");
+		uint hits = m_ncachehits;
+		uint misses = m_ncachemisses;
+		ProgressLog("Cache misses %u, hits %u (%.1f%%)\n",
+			misses, hits, GetPct(hits, hits+misses));
 		}
 #endif
 	}
