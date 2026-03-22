@@ -6,17 +6,8 @@ void trunc_label(string &Label);
 
 static const uint32_t MAGIC	= 0xd05e;
 
-/***
-Read TSV 1=query 2=target from mufilter.
-Save sorted list of 7-character used labels (SCOP domains)
-Make bitvector with pairs which passed.
-
-0123456
-d2eyqa6
-d7reqb1
-***/
-
-uint8_t *read_bitdope(const string &fn, uint32_t &ndom, uint32_t &nhit)
+uint8_t *read_bitdope(const string &fn,
+	uint32_t &ndom, uint32_t &nhit)
 	{
 	uint32_t magic;
 	FILE *f = OpenStdioFile(fn);
@@ -32,6 +23,7 @@ uint8_t *read_bitdope(const string &fn, uint32_t &ndom, uint32_t &nhit)
 	asserta(magic == MAGIC);
 	CloseStdioFile(f);
 
+	nhit = 0;
 	for (uint i = 0; i < bytes; ++i)
 		{
 		uint8_t b = bitvec[i];
@@ -91,7 +83,7 @@ void cmd_bitdope()
 				++nbit;
 			}
 		}
-	ProgressLog("nbit %u\n", nbit);
+	ProgressLog("nhit %u\n", nhit);
 	asserta(nbit == nhit);
 
 	FILE *fOut = CreateStdioFile(opt(output));
@@ -102,7 +94,9 @@ void cmd_bitdope()
 	CloseStdioFile(fOut);
 
 	uint32_t ndom2, nhit2;
-	read_bitdope(opt(output), ndom2, nhit2);
+	const uint8_t *bitvec2 =
+		read_bitdope(opt(output), ndom2, nhit2);
 	asserta(ndom2 == ndom);
-	asserta(nhit2 == nhit);
+	if (nhit2 != nhit)
+		Die("nhit2 %u, nhit %u", nhit2, nhit);
 	}

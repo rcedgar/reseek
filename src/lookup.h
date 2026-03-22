@@ -77,7 +77,7 @@ public:
 		trunc_label(lab, dom);
 		unordered_map<string, uint>::const_iterator iter =
 			m_dom2idx.find(dom);
-		if (iter != m_dom2idx.end())
+		if (iter == m_dom2idx.end())
 			{
 			if (failok)
 				return UINT_MAX;
