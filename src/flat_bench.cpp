@@ -135,7 +135,52 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		}
 	}
 
-void flat_bench::Search_All()
+void flat_bench::ThreadBody_Dope(uint ThreadIdx)
+	{
+	assert(m_look);
+	const uint ndom = m_look->get_ndom();
+	const uint nfeat = get_nfeat();
+	flat_aligner fa;
+	fa.m_ff = &m_ff;
+	fa.m_open = -m_Open;
+	fa.m_ext = -m_Ext;
+	fa.alloc();
+	uint CurrentDomIdxT = UINT_MAX;
+	for (;;)
+		{
+		uint dopeidx = m_NextDopeIdx++;
+		if (dopeidx >= m_dope_nhit)
+			return;
+#if SHOW_PROGRESS
+		if (dopeidx%1000 == 0)
+			ProgressStep(dopeidx, m_dope_nhit, "Aligning");
+#endif
+		uint k = m_dope_ks[dopeidx];
+		uint DomIdxQ, DomIdxT;
+		triangle_k_to_ij(k, ndom, DomIdxT, DomIdxQ);
+
+		if (DomIdxT != CurrentDomIdxT)
+			{
+			const string &labelT = m_fp.get_label(DomIdxT);
+			const uint8_t *profT = m_fp.get_profile(DomIdxT);
+			const uint LT = m_fp.get_length(DomIdxT);
+			fa.cacheT(labelT, profT, LT);
+			}
+
+		const string &labelQ = m_fp.get_label(DomIdxQ);
+		const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
+		const uint LQ = m_fp.get_length(DomIdxQ);
+		fa.alignQ(labelQ, profQ, LQ);
+		float Score = fa.m_score;
+		asserta(!isnan(Score));
+		asserta(!isinf(Score));
+		uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
+		uint progress_count = m_progress_counter++;
+		AppendHit(DomIdxT, DomIdxQ, Score);
+		}
+	}
+
+void flat_bench::Search(const string &how)
 	{
 	m_ThreadCount = GetRequestedThreadCount();
 	m_NextQueryIdx = 0;
@@ -143,7 +188,7 @@ void flat_bench::Search_All()
 	vector<thread *> ts;
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
 		{
-		thread *t = new thread(StaticThreadBody_All, this, ThreadIndex);
+		thread *t = new thread(StaticThreadBody, this, ThreadIndex, how);
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
@@ -151,16 +196,29 @@ void flat_bench::Search_All()
 	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 
-	const uint NQ = SIZE(m_Labels);
-	const uint PairCount = triangle_get_K(NQ);
 #if SHOW_PROGRESS
-	ProgressStep(PairCount-1, PairCount, "Aligning");
+	if (how == "all")
+		{
+		const uint NQ = SIZE(m_Labels);
+		const uint PairCount = triangle_get_K(NQ);
+		ProgressStep(PairCount-1, PairCount, "Aligning");
+		}
+	else if (how == "dope")
+		{
+		ProgressStep(m_dope_nhit-1, m_dope_nhit, "Aligning");
+		}
 #endif
 	}
 
-void flat_bench::StaticThreadBody_All(flat_bench *SB, uint ThreadIdx)
+void flat_bench::StaticThreadBody(flat_bench *SB,
+	uint ThreadIdx, const string &how)
 	{
-	SB->ThreadBody_All(ThreadIdx);
+	if (how == "all")
+		SB->ThreadBody_All(ThreadIdx);
+	else if (how == "dope")
+		SB->ThreadBody_Dope(ThreadIdx);
+	else
+		Die("how=%s", how.c_str());
 	}
 
 void flat_bench::Bench_All(const string &Msg)
@@ -262,17 +320,21 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 
 void cmd_flat_bench()
 	{
-	asserta(!optset_spec);
-	asserta(!optset_lookup);
-	asserta(optset_varstr);
+	asserta(optset_lookup);
+	asserta(optset_dope);
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
 
-	const string &lookupfn = g_Arg1;
-	const string &VarStr = opt(varstr);
+	asserta(!optset_spec);
+	asserta(!optset_varstr);
+
+	const string &VarStr = g_Arg1;
 
 	flat_bench FB;
-	FB.ReadLookup(lookupfn);
+	FB.ReadLookup(opt(lookup));
+	if (optset_dope)
+		FB.ReadDope(opt(dope));
+
 	FB.load_alphas_and_profiles(
 		VarStr, opt(fapattern), opt(mxpattern));
 	FB.UpdateParamsFromVarStr(VarStr);
@@ -286,7 +348,10 @@ void cmd_flat_bench()
 		return;
 		}
 
-	FB.Search_All();
+	if (optset_dope)
+		FB.Search("dope");
+	else
+		FB.Search("all");
 	FB.SetScoreOrder();
 	FB.Bench_All();
 	FB.WriteHits(opt(output), true);

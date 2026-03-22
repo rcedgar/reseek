@@ -54,6 +54,33 @@ public:
 	void fill();
 	void stats();
 
+	const string &get_dom(uint domidx) const
+		{
+		assert(domidx < m_doms.size());
+		return m_doms[domidx];
+		}
+
+	void get_dom_scopid(uint domidx, string &label) const
+		{
+		assert(domidx < m_doms.size());
+		assert(domidx < m_domidx2sfidx.size());
+		uint sfidx = m_domidx2sfidx[domidx];
+		assert(sfidx < m_sfs.size());
+		label = m_doms[domidx] + "/" + m_sfs[sfidx];
+		}
+
+	uint get_domidx(const string &lab) const
+		{
+		void trunc_label(const string &Label, string &TruncatedLabel);
+
+		string dom;
+		trunc_label(lab, dom);
+		unordered_map<string, uint>::const_iterator iter =
+			m_dom2idx.find(dom);
+		asserta(iter != m_dom2idx.end());
+		return iter->second;
+		}
+
 	uint get_pair_count_upper_triangle_with_diagonal()
 		{
 		uint K = triangle_get_K(get_ndom());

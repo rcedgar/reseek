@@ -136,3 +136,55 @@ void FastBench::ReadLookup(const string &FN)
 	if (m_look == 0) m_look = new lookup;
 	m_look->from_tsv(FN);
 	}
+
+void FastBench::log_dope_ks() const
+	{
+	assert(m_look);
+	const uint ndom = m_look->get_ndom();
+	uint ntp = 0;
+	uint nfp = 0;
+	for (uint i = 0; i < m_dope_nhit; ++i)
+		{
+		ProgressStep(i, m_dope_nhit, "Logging dope hits");
+		uint k = m_dope_ks[i];
+		uint domidx_q, domidx_t;
+		triangle_k_to_ij(k, ndom, domidx_q, domidx_t);
+		string label_q, label_t;
+		m_look->get_dom_scopid(domidx_q, label_q);
+		m_look->get_dom_scopid(domidx_t, label_t);
+		bool tp = m_look->is_tp_ij(domidx_q, domidx_t);
+		if (tp) ntp++ ; else nfp++;
+		Log("%s\t%s\t%s\n", label_q.c_str(), label_t.c_str(), tp ? "T" : "F");
+		}
+	ProgressLog("%u TP, %u FP\n", ntp, nfp);
+	}
+
+void FastBench::ReadDope(const string &FN)
+	{
+	uint8_t *read_bitdope(const string &fn, uint32_t &ndom, uint32_t &nhit);
+
+	uint32_t ndom;
+	m_dope = read_bitdope(FN, ndom, m_dope_nhit);
+	asserta(ndom == m_look->get_ndom());
+	m_dope_ks = myalloc(uint32_t, m_dope_nhit);
+	const uint K = triangle_get_K(ndom);
+
+	uint32_t bytes = (K + 7)/8;
+	uint nhit = 0;
+	for (uint i = 0; i < bytes; ++i)
+		{
+		uint8_t b = m_dope[i];
+		for (uint j = 0; j < 8; ++j)
+			{
+			if (b & (1 << j))
+				{
+				uint k = i*8 + j;
+				uint domidx_i, domidx_j;
+				triangle_k_to_ij(k, ndom, domidx_i, domidx_j);
+				assert(k < K);
+				m_dope_ks[nhit++] = k;
+				}
+			}
+		}
+	asserta(nhit == m_dope_nhit);
+	}

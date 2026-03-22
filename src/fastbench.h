@@ -12,6 +12,9 @@ public:
 	uint *m_ScoreOrder = 0;
 	vector<string> m_Labels;
 	lookup *m_look = 0;
+	uint8_t *m_dope = 0;
+	uint32_t m_dope_nhit = 0;
+	uint32_t *m_dope_ks = 0;
 
 public:
 	FastBench()
@@ -32,10 +35,12 @@ public:
 	void Alloc();
 	void ClearHitsAndResults();
 	void ReadLookup(const string &FN);
+	void ReadDope(const string &FN);
 	void SetLookupFromLabels();
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
 	void WriteHits(const string &FN, bool IncludeSelf = false) const;
 	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;
+	void log_dope_ks() const;
 	};
