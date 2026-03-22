@@ -42,13 +42,13 @@ public:
 	void ThreadBody_Dope(uint ThreadIdx);
 	void Search(const string &how);
 	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
-	void Bench_All(const string &Msg = "");
 	void SetScalarParams(
 		const vector<string> &Names,
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
 	void load_alphas_and_profiles(
-		const string &VarStr,
+		const vector<string> &feature_names,
+		const vector<float> &weights,
 		const string &fafnpattern,
 		const string &logoddsfnpattern);
 	void ProgressLogParams() const;

@@ -662,6 +662,9 @@
     <ClCompile Include="operator_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_hjmega.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

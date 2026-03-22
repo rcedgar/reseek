@@ -121,6 +121,7 @@ public:
 	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
 	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
 
+	void GetInitialVarStr(string &Str) const;
 	void NormalizeVarStr(uint VarIdx, const string &Str,
 		string &NormalizedStr) const;
 	double GetEuclideanDist(const vector<string> &xv1,

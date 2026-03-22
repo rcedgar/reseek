@@ -8,9 +8,9 @@ void FastBench::Alloc()
 	asserta(m_look);
 	const uint ndom = m_look->get_ndom();
 	const uint npair = m_look->get_pair_count_upper_triangle_with_diagonal();
-	if (m_Scores != 0)
-		myfree(m_Scores);
-	m_PairCount = triangle_get_K(ndom) + 1;
+	myfree(m_Scores);
+	myfree(m_ScoreOrder);
+	m_PairCount = npair;
 	m_Scores = myalloc(float, npair);
 	}
 
@@ -23,6 +23,7 @@ void FastBench::AppendHit(uint i, uint j, float Score)
 
 void FastBench::SetScoreOrder()
 	{
+	asserta(m_Scores);
 	uint K = triangle_get_K(m_SeqCount);
 	if (m_ScoreOrder == 0)
 		myfree(m_ScoreOrder);
@@ -83,6 +84,10 @@ void FastBench::Bench(const string &Msg)
 	ProgressLog(" SEPQ10=%.3f", SEPQ10);
 	ProgressLog(" Sum3=%.3f", m_Sum3);
 	ProgressLog("\n");
+	myfree(m_Scores);
+	myfree(m_ScoreOrder);
+	m_ScoreOrder = 0;
+	m_Scores = 0;
 	}
 
 void FastBench::WriteHits(const string &FN, bool IncludeSelf) const
@@ -118,10 +123,9 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf) const
 
 void FastBench::ClearHitsAndResults()
 	{
-	myfree(m_Scores);
-	m_Scores = 0;
+	//myfree(m_Scores);
+	//m_Scores = 0;
 	m_Sum3 = FLT_MAX;
-
 	SubclassClearHitsAndResults();
 	}
 

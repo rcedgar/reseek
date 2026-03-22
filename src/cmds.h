@@ -98,5 +98,6 @@ C(test_faprof)
 C(flat_logodds_info)
 C(mufilter)
 C(bitdope)
+C(flat_hjmega)
 
 #undef C

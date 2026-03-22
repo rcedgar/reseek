@@ -31,22 +31,24 @@ void read_feature_fasta(
 
 	SeqDB db_fa;
 	db_fa.FromFasta(fafn, false);
-	const uint nseqs = db_fa.GetSeqCount();
-	asserta(nseqs == SIZE(label2idx));
+	const uint db_seq_count = db_fa.GetSeqCount();
+	for (uint i = 0; i < db_seq_count; ++i)
+		trunc_label(db_fa.m_Labels[i]);
+	db_fa.SetLabelToIndex();
+	const uint nseqs = SIZE(label2idx);
 	codeseqs.resize(nseqs);
-	for (uint i = 0; i < nseqs; ++i)
+	for (unordered_map<string, uint>::const_iterator iter =
+		label2idx.begin(); iter != label2idx.end(); ++iter)
 		{
-		uint L = db_fa.GetSeqLength(i);
-		string label = db_fa.GetLabel(i);
+		string label = iter->first;
 		trunc_label(label);
-		unordered_map<string, uint>::const_iterator iter = label2idx.find(label);
-		if (iter == label2idx.end())
-			Die("Not found %s in %s", label.c_str(), fafn.c_str());
 		uint idx = iter->second;
+		uint seqidx = db_fa.GetSeqIndex(label);
+		uint L = db_fa.GetSeqLength(seqidx);
 		asserta(idx < nseqs);
 		asserta(codeseqs[idx].size() == 0);
 		codeseqs[idx].resize(L);
-		const byte *byteseq = db_fa.GetByteSeq(i);
+		const byte *byteseq = db_fa.GetByteSeq(seqidx);
 		for (uint pos = 0; pos < L; ++pos)
 			{
 			uint8_t code = char2letter[byteseq[pos]];

@@ -1391,6 +1391,7 @@ void ProgressLogPrefix(const char *Format, ...)
 	va_end(ArgList);
 
 	Log("%s", Str.c_str());
+
 	bool SavedPrefix = g_ProgressPrefixOn;
 	g_ProgressPrefixOn = true;
 	Progress("%s", Str.c_str());

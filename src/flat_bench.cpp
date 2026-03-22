@@ -20,22 +20,11 @@ void ParseVarStr(
 	vector<float> &Values);
 
 void flat_bench::load_alphas_and_profiles(
-	const string &VarStr,
+	const vector<string> &feature_names,
+	const vector<float> &weights,
 	const string &fafnpattern,
 	const string &logoddsfnpattern)
 	{
-	vector<string> param_names;
-	vector<float> param_values;
-	ParseVarStr(VarStr, param_names, param_values);
-
-	vector<string> feature_names;
-	vector<string> scalar_names;
-	vector<float> weights;
-	vector<float> scalar_values;
-	ClassifyParams(param_names, param_values,
-		feature_names, weights,
-		scalar_names, scalar_values);
-
 	const uint nfeat = uint(feature_names.size());
 	asserta(weights.size() == nfeat);
 
@@ -152,7 +141,10 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		{
 		uint dopeidx = m_NextDopeIdx++;
 		if (dopeidx >= m_dope_nhit)
+			{
+			fa.freemem();
 			return;
+			}
 #if SHOW_PROGRESS
 		if (dopeidx%1000 == 0)
 			ProgressStep(dopeidx, m_dope_nhit, "Aligning");
@@ -188,8 +180,24 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 
 void flat_bench::Search(const string &how)
 	{
+	Alloc();
+
+#if SHOW_PROGRESS
+	if (how == "all")
+		{
+		const uint NQ = SIZE(m_Labels);
+		const uint PairCount = triangle_get_K(NQ);
+		ProgressStep(0, PairCount, "Aligning");
+		}
+	else if (how == "dope")
+		{
+		ProgressStep(0, m_dope_nhit, "Aligning");
+		}
+#endif
+
 	m_ThreadCount = GetRequestedThreadCount();
 	m_NextQueryIdx = 0;
+	m_NextDopeIdx = 0;
 	m_progress_counter = 0;
 	m_ncachehits = 0;
 	m_ncachemisses = 0;
@@ -231,12 +239,6 @@ void flat_bench::StaticThreadBody(flat_bench *SB,
 		SB->ThreadBody_Dope(ThreadIdx);
 	else
 		Die("how=%s", how.c_str());
-	}
-
-void flat_bench::Bench_All(const string &Msg)
-	{
-	SetScoreOrder();
-	FastBench::Bench(Msg);
 	}
 
 void flat_bench::SetScalarParams(
@@ -347,8 +349,20 @@ void cmd_flat_bench()
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
 
+	vector<string> param_names;
+	vector<float> param_values;
+	ParseVarStr(VarStr, param_names, param_values);
+
+	vector<string> feature_names;
+	vector<string> scalar_names;
+	vector<float> weights;
+	vector<float> scalar_values;
+	flat_bench::ClassifyParams(param_names, param_values,
+		feature_names, weights,
+		scalar_names, scalar_values);
+
 	FB.load_alphas_and_profiles(
-		VarStr, opt(fapattern), opt(mxpattern));
+		feature_names, weights, opt(fapattern), opt(mxpattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();
@@ -365,6 +379,6 @@ void cmd_flat_bench()
 	else
 		FB.Search("all");
 	FB.SetScoreOrder();
-	FB.Bench_All();
+	FB.Bench();
 	FB.WriteHits(opt(output), true);
 	}

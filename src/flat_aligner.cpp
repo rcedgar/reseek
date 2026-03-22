@@ -16,6 +16,15 @@ void flat_aligner::alloc()
 	m_path_buffer = myalloc(char, 2*m_maxL);
 	}
 
+void flat_aligner::freemem()
+	{
+	myfree(m_pssmT);		m_pssmT = 0;
+	myfree(m_scratch_rows);	m_scratch_rows = 0;
+	myfree(m_scratch_pssms);m_scratch_pssms = 0;
+	myfree(m_TB);			m_TB = 0;
+	myfree(m_path_buffer);	m_path_buffer = 0;
+	}
+
 void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 	{
 	assert(m_ff != 0);
