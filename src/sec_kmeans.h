@@ -540,15 +540,18 @@ public:
 		m_nrchanges = assign_clusters();
 		}
 
-	void train(uint ITERS = 1000)
+	void train(uint niter)
 		{
 		assign_random_means();
 		assign_clusters();
-		for (uint iter = 0; iter < ITERS; ++iter)
+		for (uint iter = 0; iter < niter; ++iter)
 			{
 			run_iter();
-			ProgressLog("iter %u, zero %u, changes %u\n",
-				iter, m_zero_count, m_nrchanges);
+			ProgressLog("iter %u, changes %u",
+				iter, m_nrchanges);
+			if (m_zero_count > 0)
+				ProgressLog(", zero %u", m_zero_count);
+			ProgressLog("\n");
 			if (m_nrchanges == 0)
 				{
 				ProgressLog("Converged\n");

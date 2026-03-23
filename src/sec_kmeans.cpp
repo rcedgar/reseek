@@ -120,9 +120,87 @@ static void validate_offs(
 		{
 		int off1 = off1s[i];
 		int off2 = off2s[i];
+		asserta(off1 < off2);
 		int dij = max(off1, off2) - min(off1, off2);
 		asserta(dij > 1);
+		for (uint j = 0; j < i; ++i)
+			{
+			if (off1s[j] == off1 && off2s[j] == off2)
+				Die("dupe %d,%d", off1, off2);
+			}
 		}
+	}
+
+static void get_rand_off12(uint M, int &off1, int &off2)
+	{
+	for (uint iter = 0; iter < 100; ++iter)
+		{
+		uint u = randu32()%(M+1);
+		bool plus = (randu32()%2 == 0);
+		off1 = (plus ? u : -int(u));
+
+		u = randu32()%(M+1);
+		plus = (randu32()%2 == 0);
+		off2 = (plus ? u : -int(u));
+		int dij = max(off1, off2) - min(off1, off2);
+		if (dij > 1)
+			return;
+		}
+	asserta(false);
+	}
+
+static bool ok_to_append(
+	const vector<int> &off1s,
+	const vector<int> &off2s,
+	int off1,
+	int off2)
+	{
+	size_t n = off1s.size();
+	asserta(off2s.size() == n);
+	for (size_t i = 0; i < n; ++i)
+		{
+		if (off1s[i] == off1 && off2s[i] == off2)
+			return false;
+		if (off2s[i] == off1 && off1s[i] == off2)
+			return false;
+		}
+	return true;
+	}
+
+// r_D_M where D=dimension M=max offset
+static void get_random_offs(const string &spec,
+	vector<int> &off1s, vector<int> &off2s)
+	{
+	vector<string> flds;
+	Split(spec, flds, '_');
+	asserta(flds.size() == 3);
+	assert(flds[0] == "r");
+	uint D = StrToUint(flds[1]);
+	uint M = StrToUint(flds[2]);
+	asserta(D > 1 && D < 32);
+	asserta(M > 2 && M < 32);
+	off1s.clear();
+	off2s.clear();
+
+	for (uint d = 0; d < D; ++d)
+		{
+		bool ok = false;
+		for (uint iter = 0; iter < 100; ++iter)
+			{
+			int off1, off2;
+			get_rand_off12(M, off1, off2);
+			if (ok_to_append(off1s, off2s, off1, off2))
+				{
+				off1s.push_back(min(off1,off2));
+				off2s.push_back(max(off1,off2));
+				ok = true;
+				break;
+				}
+			}
+		asserta(ok);
+		}
+	asserta(off1s.size() == D);
+	asserta(off2s.size() == D);
 	}
 
 void cmd_sec_kmeans()
@@ -164,17 +242,28 @@ void cmd_sec_kmeans()
 
 	vector<int> off1s;
 	vector<int> off2s;
+	uint D = UINT_MAX;
 	if (optset_spec)
 		{
-		vector<string> flds;
-		Split(opt(spec), flds, ',');
-		size_t n = flds.size();
-		asserta(n%2 == 0);
-		n /= 2;
-		for (uint i = 0; i < n; ++i)
+		const string &spec = opt(spec);
+		if (spec[0] == 'r')
+			get_random_offs(spec, off1s, off2s);
+		else
 			{
-			off1s.push_back(StrToInt(flds[2*i]));
-			off2s.push_back(StrToInt(flds[2*i+1]));
+			vector<string> flds;
+			Split(spec, flds, ',');
+			size_t n = flds.size();
+			asserta(n%2 == 0);
+			n /= 2;
+			for (uint i = 0; i < n; ++i)
+				{
+				int off1 = StrToInt(flds[2*i]);
+				int off2 = StrToInt(flds[2*i+1]);
+				int minoff = min(off1,off2);
+				int maxoff = min(off1,off2);
+				off1s.push_back(minoff);
+				off2s.push_back(maxoff);
+				}
 			}
 		}
 	else
@@ -184,8 +273,21 @@ void cmd_sec_kmeans()
 		}
 	validate_offs(off1s, off2s);
 
+	Log("off1s "); for (uint i = 0; i < off1s.size(); ++i) Log(" %3d", off1s[i]); Log("\n");
+	Log("off2s "); for (uint i = 0; i < off2s.size(); ++i) Log(" %3d", off2s[i]); Log("\n");
+	Log("-spec ");
+	for (uint i = 0; i < off1s.size(); ++i)
+		{
+		if (i > 0) Log(",");
+		Log("%d,%d", off1s[i], off2s[i]);
+		}
+	Log("\n");
+	
 	const uint K = opt(alpha_size);
 	const uint32_t M = 32; // dist mx band width
+
+	uint niter = 1000;
+	if (optset_iters) niter = opt(iters);
 
 	sec_kmeans SK;
 	SK.init(K, M, off1s, off2s);
@@ -193,7 +295,7 @@ void cmd_sec_kmeans()
 	sid_t *vs = myalloc(sid_t, SK.m_N*SK.m_D);
 	SK.m_cluster_idxs = myalloc(uint, SK.m_N);
 	SK.set_vs(chains);
-	SK.train();
+	SK.train(niter);
 	SK.logme();
 	SK.ss4stats();
 	SK.to_tsv(opt(output));
