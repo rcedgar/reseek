@@ -123,7 +123,7 @@ static void validate_offs(
 		asserta(off1 < off2);
 		int dij = max(off1, off2) - min(off1, off2);
 		asserta(dij > 1);
-		for (uint j = 0; j < i; ++i)
+		for (uint j = 0; j < i; ++j)
 			{
 			if (off1s[j] == off1 && off2s[j] == off2)
 				Die("dupe %d,%d", off1, off2);
@@ -260,7 +260,7 @@ void cmd_sec_kmeans()
 				int off1 = StrToInt(flds[2*i]);
 				int off2 = StrToInt(flds[2*i+1]);
 				int minoff = min(off1,off2);
-				int maxoff = min(off1,off2);
+				int maxoff = max(off1,off2);
 				off1s.push_back(minoff);
 				off2s.push_back(maxoff);
 				}
