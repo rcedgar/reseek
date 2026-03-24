@@ -2,6 +2,7 @@
 
 #include "flat_base.h"
 #include "flat_chain.h"
+#include "fan.h"
 
 /***
 Chain quantizer / quantifier
@@ -16,31 +17,44 @@ private:
 
 public:
 	static void fill_distmx(
-		const ic_t *xyz,
+		cp_ic_t xyz,
 		uint L,
 		uint M,
 		uint16_t *distmx);
 
 	static void fill_nenvec(
-		const sid_t* __restrict distmx,
+		cp_sid_t distmx,
 		uint L,
 		uint M,
 		uint m,
-		uint16_t* __restrict nnvec,
-		uint16_t* __restrict nnsidvec);
+		p_uint16_t nnvec,
+		p_uint16_t nnsidvec);
 
-	static void fill_nen_pen_vecs(
-		const sid_t* __restrict distmx,
+	static void fill_nen_ren_vecs(
+		cp_uint16_t pens,
+		cp_uint16_t mens,
+		cp_sid_t pensids,
+		cp_sid_t mensids,
+		uint L,
+		p_uint16_t nens,
+		p_uint16_t rens,
+		p_uint16_t nensids,
+		p_uint16_t rensids);
+
+	static void fill_pen_men_vecs(
+		cp_sid_t distmx,
 		uint L,
 		uint M,
 		uint m,
-		uint16_t* __restrict nnvec,
-		uint16_t* __restrict nnsidvec,
-		uint16_t* __restrict renvec,
-		uint16_t* __restrict renidvec);
+		p_uint16_t penvec,
+		p_uint16_t pensidvec,
+		p_uint16_t menvec,
+		p_uint16_t mensidvec);
 
-	static uint8_t get_ss3(const sid_t *distmx, uint M, uint L, uint pos);
-	static uint8_t get_ss4(const sid_t *distmx, uint M, uint L, uint pos);
-	static void get_ss4_str(const sid_t *distmx, uint M, uint L, string &ss);
-	static void get_ss4_intseq(const sid_t *distmx, uint M, uint L, uint8_t *intseq);
+	static uint8_t get_ss3(cp_sid_t distmx, uint M, uint L, uint pos);
+	static uint8_t get_ss4(cp_sid_t distmx, uint M, uint L, uint pos);
+	static void get_ss4_str(cp_sid_t distmx, uint M, uint L, string &ss);
+
+	static void get_ss3_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
+	static void get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
 	};

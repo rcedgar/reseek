@@ -3,8 +3,30 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
+static uint8_t get_aa4(char c)
+	{
+	c = toupper(c);
+	if (c == 'G')
+		return 0;
+	if (strchr("AHPST", c) != 0)
+		return 1;
+	if (strchr("DEKNQR", c) != 0)
+		return 2;
+	return 3;
+	}
+
+static uint8_t get_aa3(char c)
+	{
+	c = toupper(c);
+	if (c == 'G')
+		return 0;
+	if (strchr("CFILMVWY", c) != 0)
+		return 1;
+	return 2;
+	}
+
 void chaq::fill_distmx(
-	const ic_t *xyz,
+	cp_ic_t xyz,
 	uint L,
 	uint M,
 	uint16_t *distmx)
@@ -45,13 +67,13 @@ uint8_t chaq::get_ss4(const sid_t *distmx, uint M, uint L, uint pos)
 	}
 
 // 0=helix 1=strand 2=other
-uint8_t chaq::get_ss3(const sid_t *distmx, uint M, uint L, uint pos)
+uint8_t chaq::get_ss3(const sid_t * __restrict distmx, uint M, uint L, uint pos)
 	{
 	uint8_t ss4 = get_ss4(distmx, M, L, pos);
 	return ss4 <= 2 ? ss4 : 2;
 	}
 
-void chaq::get_ss4_str(const sid_t *distmx, uint M, uint L, string &ss)
+void chaq::get_ss4_str(const sid_t * __restrict distmx, uint M, uint L, string &ss)
 	{
 	ss.clear();
 	ss.reserve(L);
@@ -63,19 +85,19 @@ void chaq::get_ss4_str(const sid_t *distmx, uint M, uint L, string &ss)
 		}
 	}
 
-void chaq::get_ss4_intseq(const sid_t *distmx, uint M, uint L, uint8_t *intseq)
+void chaq::get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t intseq)
 	{
 	for (uint pos = 0; pos < L; ++pos)
 		intseq[pos] = get_ss4(distmx, M, L, pos);
 	}
 
 void chaq::fill_nenvec(
-	const sid_t* __restrict distmx,
+	cp_sid_t distmx,
 	uint L,
 	uint M,
 	uint m,
-	uint16_t* __restrict nen,
-	uint16_t* __restrict nensid)
+	p_uint16_t nen,
+	p_uint16_t nensid)
 	{
 	for (uint i = 0; i < L; ++i)
 		{
@@ -109,15 +131,47 @@ void chaq::fill_nenvec(
 		}
 	}
 
-void chaq::fill_nen_pen_vecs(
-	const sid_t* __restrict distmx,
+void chaq::fill_nen_ren_vecs(
+	cp_uint16_t pens,
+	cp_uint16_t mens,
+	cp_sid_t pensids,
+	cp_sid_t mensids,
+	uint L,
+	p_uint16_t nens,
+	p_uint16_t rens,
+	p_uint16_t nensids,
+	p_uint16_t rensids)
+	{
+	for (uint i = 0; i < L; ++i)
+		{
+		sid_t pensid = pensids[i];
+		sid_t mensid = mensids[i];
+		if (pensid <= mensid)
+			{
+			nens[i] = pens[i];
+			rens[i] = mens[i];
+			nensids[i] = pensids[i];
+			rensids[i] = mensids[i];
+			}
+		else
+			{
+			nens[i] = mens[i];
+			rens[i] = pens[i];
+			nensids[i] = mensids[i];
+			rensids[i] = pensids[i];
+			}
+		}
+	}
+
+void chaq::fill_pen_men_vecs(
+	cp_sid_t distmx,
 	uint L,
 	uint M,
 	uint m,
-	uint16_t* __restrict pen,
-	uint16_t* __restrict pensid,
-	uint16_t* __restrict men,
-	uint16_t* __restrict mensid)
+	p_uint16_t pen,
+	p_uint16_t pensid,
+	p_uint16_t men,
+	p_uint16_t mensid)
 	{
 	for (uint i = 0; i < L; ++i)
 		{

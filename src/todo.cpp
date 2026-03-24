@@ -1,6 +1,8 @@
 /***
 @@TODOs
 
+RNA structures
+
 Turn off exceptions
 	GCC/Clang: -fno-exceptions (and often -fno-rtti if desired)
 	MSVC: /EHs-c- (disable C++ exceptions)

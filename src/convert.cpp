@@ -39,6 +39,8 @@ static FEATURE GetFeatureFromCmdLine()
 		Alpha = opt(alpha);
 	if (optset_feature)
 		Alpha = opt(feature);
+	if (Alpha == "SS4")
+		Alpha = "SS";
 	if (Alpha == "NENConf3")
 		Alpha = "NENSS3";
 	else if (Alpha == "RENDist4")

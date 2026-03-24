@@ -27,10 +27,10 @@ static inline void banded_k_to_ij(uint32_t M, uint32_t k, uint32_t& i, uint32_t&
     }
 
 static inline void fill_flat_distmx(
-	const uint16_t *__restrict xyz,
+	cp_ic_t xyz,
 	uint32_t L,
 	uint32_t M,
-	sid_t *__restrict sdmx)
+	p_sid_t sdmx)
 	{
 	uint i3 = 0;
 	for (uint32_t i = 0; i < L; ++i)

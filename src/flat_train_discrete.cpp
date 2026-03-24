@@ -2,6 +2,47 @@
 #include "seqdb.h"
 #include "alpha.h"
 
+static double get_relative_entropy(
+	const vector<vector<double> > &freqmx,
+	const vector<vector<double> > &scoremx)
+	{
+	size_t alpha_size = freqmx.size();
+	asserta(scoremx.size() == alpha_size);
+	double hrel = 0;
+	double sumf = 0;
+	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
+		{
+		for (uint letter2 = 0; letter2 < alpha_size; ++letter2)
+			{
+			double f = freqmx[letter1][letter2];
+			hrel += f*scoremx[letter1][letter2];
+			sumf += f;
+			}
+		}
+	asserta(feq(sumf, 1));
+	return hrel;
+	}
+
+static double get_expected_score(
+	const vector<double> &freqs,
+	vector<vector<double> > &scoremx)
+	{
+	size_t alpha_size = freqs.size();
+	asserta(size(scoremx) == alpha_size);
+	asserta(size(freqs) == alpha_size);
+	double ES = 0;
+	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
+		{
+		double f1 = freqs[letter1];
+		for (uint letter2 = 0; letter2 < alpha_size; ++letter2)
+			{
+			double f2 = freqs[letter1];
+			ES += f1*f2*scoremx[letter1][letter2];
+			}
+		}
+	return ES;
+	}
+
 void trunc_label(const string &Label,
 	string &TruncatedLabel)
 	{
@@ -370,6 +411,17 @@ void scale_logoddsmx(vector<vector<double> > &logoddsmx, uint scale)
 			logoddsmx[i][j] = round(scale*logoddsmx[i][j]);
 	}
 
+void write_freqs(FILE *f, const vector<double> *ptr_freqs)
+	{
+	if (!ptr_freqs) return;
+	const vector<double> &freqs = *ptr_freqs;
+	const size_t alpha_size = freqs.size();
+	fprintf(f, "# freqs");
+	for (uint i = 0; i < alpha_size; ++i)
+		fprintf(f, "\t%.3g", freqs[i]);
+	fprintf(f, "\n");
+	}
+
 void write_logoddsmx(FILE *f,
 	const vector<vector<double> > &logoddsmx,
 	bool asintegers)
@@ -409,6 +461,7 @@ void write_logoddsmx(FILE *f,
 
 void cmd_flat_train_discrete()
 	{
+	asserta(optset_output);
 	const string &fafn = g_Arg1;
 	const string &fa2fn = opt(fasta2_tp);
 	vector<vector<uint8_t> > codeseqs;
@@ -448,18 +501,31 @@ void cmd_flat_train_discrete()
 	if (optset_units)
 		units = opt(units);
 
+	FILE *f = CreateStdioFile(opt(output));
+	asserta(f);
+	const vector<double> *freqs = 0;
 	if (bs == "cols")
+		{
+		freqs = &freqs_cols;
 		get_logoddsmx_from_freqs(freqs_cols, freqmx, logoddsmx, units);
+		}
 	else if (bs == "unaln")
+		{
+		freqs = &freqs_unaln;
 		get_logoddsmx_from_freqs(freqs_unaln, freqmx, logoddsmx, units);
+		}
 	else
 		Die("-background_style %s", bs.c_str());
 
 	uint scale = 1;
 	if (optset_scale)
 		scale_logoddsmx(logoddsmx, opt(scale));
-	FILE *f = CreateStdioFile(opt(output));
 	bool asintegers = optset_scale;
 	write_logoddsmx(f, logoddsmx, asintegers);
+
+	write_freqs(f, freqs);
+	double ES = get_expected_score(*freqs, logoddsmx);
+	double Hrel = get_relative_entropy(freqmx, logoddsmx);
+	fprintf(f, "# ES=%.3g Hrel=%.3g\n", ES, Hrel);
 	CloseStdioFile(f);
 	}

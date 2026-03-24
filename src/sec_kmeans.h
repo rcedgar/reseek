@@ -11,6 +11,13 @@
 class sec_kmeans
 	{
 public:
+	enum DIST_STYLE
+		{
+		DS_euclid,
+		DS_norm1,
+		};
+
+public:
 	// Parameters
 	/////////////
 	uint m_K = 0;				// number of clusters for K-means
@@ -20,6 +27,8 @@ public:
 	int* m_off1s = 0;			// +/- offsets from position
 	int* m_off2s = 0;			// +/- offsets from position
 	sid_t *m_means = 0;			// flat matrix of current means size m_K x m_D
+
+	DIST_STYLE m_ds = DS_euclid;
 
 	// Training data
 	////////////////
@@ -249,13 +258,24 @@ public:
 		}
 
 	// Euclidean squared distance (no need to sqrt)
-	uint32_t get_dist(const sid_t* v1, const sid_t* v2) const
+	uint32_t get_dist_euclid(const sid_t* v1, const sid_t* v2) const
 		{
 		uint32_t sum2 = 0;
 		for (uint m = 0; m < m_D; ++m)
 			{
-			uint32_t diff = int32_t(v1[m]) - int32_t(v2[m]);
-			sum2 += diff*diff;
+			int32_t diff = int32_t(v1[m]) - int32_t(v2[m]);
+			sum2 += uint32_t(diff*diff);
+			}
+		return sum2;
+		}
+
+	uint32_t get_dist_norm1(const sid_t* v1, const sid_t* v2) const
+		{
+		uint32_t sum2 = 0;
+		for (uint m = 0; m < m_D; ++m)
+			{
+			int32_t diff = abs(int32_t(v1[m]) - int32_t(v2[m]));
+			sum2 += uint32_t(diff);
 			}
 		return sum2;
 		}
@@ -267,12 +287,23 @@ public:
 		uint32_t sum2 = 0;
 		for (uint m = 0; m < m_D; ++m)
 			{
-			uint32_t diff = int32_t(v1[m]) - int32_t(v2[m]);
+			int32_t diff = int32_t(v1[m]) - int32_t(v2[m]);
 			sum2 += diff*diff;
 			if (sum2 >= smallest_so_far)
 				return sum2;
 			}
 		return sum2;
+		}
+
+	uint32_t get_dist_enum(const sid_t* v1, const sid_t* v2) const
+		{
+		switch (m_ds)
+			{
+		case DS_euclid: return get_dist_euclid(v1, v2);
+		case DS_norm1: return get_dist_norm1(v1, v2);
+			}
+		asserta(false);
+		return 0;
 		}
 	
 	uint8_t assign_cluster(const sid_t* v) const
@@ -281,7 +312,8 @@ public:
 		uint32_t min_dist = UINT32_MAX;
 		for (uint cluster_idx = 0; cluster_idx < m_K; ++cluster_idx)
 			{
-			uint32_t d = get_dist_early_quit(v, m_means + cluster_idx*m_D, min_dist);
+			//uint32_t d = get_dist_early_quit(v, m_means + cluster_idx*m_D, min_dist);
+			uint32_t d = get_dist_enum(v, m_means + cluster_idx*m_D);
 			if (d < min_dist)
 				{
 				min_dist = d;
@@ -299,12 +331,6 @@ public:
 			{
 			uint residue_idx = randu32()%m_N;
 			memcpy(m_means + cluster_idx*m_D, m_vs + residue_idx*m_D, m_D*sizeof(sid_t));
-			//@@TODO
-			{
-			Log("\n");
-			Log("Random mean %u:\n", cluster_idx);
-			log_v(m_means + cluster_idx*m_D);
-			}
 			}
 		}
 
@@ -485,17 +511,17 @@ public:
 		ProgressLog("%u / %u bad backbones\n", bad_backbones, m_N);
 		}
 
-	void get_intseq(const sid_t *distmx, uint L, uint8_t *intseq) const
+	void get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const
 		{
 		if (int(L) < 2*m_w + 1)
 			{
-			memset(intseq, m_K-1, L);
+			memset(codeseq, m_K-1, L);
 			return;
 			}
 
 		assert(m_tmpv);
 #if DEBUG
-		memset(intseq, UINT8_MAX, L);
+		memset(codeseq, UINT8_MAX, L);
 #endif
 
 		get_v(distmx, m_w, L, m_tmpv);
@@ -503,9 +529,9 @@ public:
 		for (int pos = 0; pos <= m_w; ++pos)
 			{
 #if DEBUG
-			assert(intseq[pos] == UINT8_MAX);
+			assert(codeseq[pos] == UINT8_MAX);
 #endif
-			intseq[pos] = letter_lo;
+			codeseq[pos] = letter_lo;
 			}
 
 		int pos_hi = L - m_w - 1;
@@ -513,9 +539,9 @@ public:
 			{
 			get_v(distmx, pos, L, m_tmpv);
 #if DEBUG
-			assert(intseq[pos] == UINT8_MAX);
+			assert(codeseq[pos] == UINT8_MAX);
 #endif
-			intseq[pos] = assign_cluster(m_tmpv);
+			codeseq[pos] = assign_cluster(m_tmpv);
 			}
 
 		get_v(distmx, pos_hi, L, m_tmpv);
@@ -523,14 +549,14 @@ public:
 		for (int pos = pos_hi; pos < int(L); ++pos)
 			{
 #if DEBUG
-			assert(intseq[pos] == UINT8_MAX);
+			assert(codeseq[pos] == UINT8_MAX);
 #endif
-			intseq[pos] = letter_hi;
+			codeseq[pos] = letter_hi;
 			}
 
 #if DEBUG
 		for (uint pos = 0; pos < L; ++pos)
-			assert(intseq[pos] < m_K);
+			assert(codeseq[pos] < m_K);
 #endif
 		}
 
@@ -576,19 +602,19 @@ public:
 			sid_t *distmx = myalloc(sid_t, L*m_M);
 			chaq::fill_distmx(chain->m_xyz->m_data, L, m_M, distmx);
 
-			uint8_t *intseq = myalloc(uint8_t, L);
-			get_intseq(distmx, L, intseq);
+			uint8_t *codeseq = myalloc(uint8_t, L);
+			get_codeseq(distmx, L, codeseq);
 
-			uint8_t *ss4intseq = myalloc(uint8_t, L);
-			chaq::get_ss4_intseq(distmx, m_M, L, ss4intseq);
+			uint8_t *ss4codeseq = myalloc(uint8_t, L);
+			chaq::get_ss4_codeseq(distmx, m_M, L, ss4codeseq);
 
 			for (uint pos = 2; pos < L - 2; ++pos)
 				{
-				uint8_t letter = intseq[pos];
-				uint8_t ss4letter = ss4intseq[pos];
+				uint8_t letter = codeseq[pos];
+				uint8_t ss4letter = ss4codeseq[pos];
 				countmx[letter][ss4letter] += 1;
 				}
-			myfree(ss4intseq);
+			myfree(ss4codeseq);
 			}
 
 		ProgressLog("X    Helix   Strand     Turn     Loop\n");

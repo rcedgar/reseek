@@ -89,6 +89,7 @@ STR_OPT(replace_feature)
 STR_OPT(units)
 STR_OPT(spec)
 STR_OPT(faprof)
+STR_OPT(diststyle)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

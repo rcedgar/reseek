@@ -665,6 +665,9 @@
     <ClCompile Include="flat_hjmega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1121,6 +1124,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="procstats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_alphanamelist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

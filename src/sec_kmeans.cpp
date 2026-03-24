@@ -68,7 +68,7 @@ void cmd_sec_variance()
 	CloseStdioFile(fOut);
 	}
 
-void intseq2fasta(FILE *f, const string &label, const uint8_t *intseq, uint L)
+void codeseq2fasta(FILE *f, const string &label, const uint8_t *codeseq, uint L)
 	{
 	if (f == 0)
 		return;
@@ -77,7 +77,7 @@ void intseq2fasta(FILE *f, const string &label, const uint8_t *intseq, uint L)
 		{
 		if (i > 0 && i%80 == 0)
 			fputc('\n', f);
-		char c = g_LetterToCharMu[intseq[i]];
+		char c = g_LetterToCharMu[codeseq[i]];
 		fputc(c, f);
 		}
 	fputc('\n', f);
@@ -103,9 +103,9 @@ void cmd_sec_fasta()
 		const uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
-		uint8_t *intseq = myalloc(uint8_t, L);
-		SK.get_intseq(distmx, L, intseq);
-		intseq2fasta(ffa, chain->m_label, intseq, L);
+		uint8_t *codeseq = myalloc(uint8_t, L);
+		SK.get_codeseq(distmx, L, codeseq);
+		codeseq2fasta(ffa, chain->m_label, codeseq, L);
 		}
 	CloseStdioFile(ffa);
 	}
@@ -120,7 +120,6 @@ static void validate_offs(
 		{
 		int off1 = off1s[i];
 		int off2 = off2s[i];
-		asserta(off1 < off2);
 		int dij = max(off1, off2) - min(off1, off2);
 		asserta(dij > 1);
 		for (uint j = 0; j < i; ++j)
@@ -235,10 +234,22 @@ void cmd_sec_kmeans()
 	|_____|_____|_____|_____|_____|_____|_____|
 
 ***/
+
+#if 0	/////// OLD DEFAULTS
 	//                                   0   1   2   3   4   5   6   7   8
 	const vector<int> default_off1s = { -2, -2, -2, -1, -1,  0, -3,  0, -3 };
 	const vector<int> default_off2s = {  0,  1,  2,  1,  2,  2,  3,  3,  0 };
 	//                                   3   3   5   3   3   3   7   4   4  dij
+#endif
+
+///////////////////////////////////////////////////////////////
+// $src/2025-10_reseek_tune/2026-03-23_sec_variants_best_sweep
+// nbr16_16      1.303   -3,1,-3,0,0,2,1,3,2,0,-3,3 <<<<<< best
+///////////////////////////////////////////////////////////////
+    //                                   0   1   2   3   4   5
+	const vector<int> default_off1s = { -3, -3,  0,  1,  2, -3 };
+	const vector<int> default_off2s = {  1,  0,  2,  3,  0,  3 };
+	//                                   4   3   2   2   2   6  dij
 
 	vector<int> off1s;
 	vector<int> off2s;
@@ -292,6 +303,16 @@ void cmd_sec_kmeans()
 	sec_kmeans SK;
 	SK.init(K, M, off1s, off2s);
 
+	if (optset_diststyle)
+		{
+		if (string(opt(diststyle)) == "norm1")
+			SK.m_ds = sec_kmeans::DS_norm1;
+		else if (string(opt(diststyle)) == "euclid")
+			SK.m_ds = sec_kmeans::DS_euclid;
+		else
+			Die("-diststyle %s", opt(diststyle));
+		}
+
 	sid_t *vs = myalloc(sid_t, SK.m_N*SK.m_D);
 	SK.m_cluster_idxs = myalloc(uint, SK.m_N);
 	SK.set_vs(chains);
@@ -309,9 +330,9 @@ void cmd_sec_kmeans()
 			const uint L = chain->get_length();
 			sid_t *distmx = myalloc(sid_t, L*M);
 			chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
-			uint8_t *intseq = myalloc(uint8_t, L);
-			SK.get_intseq(distmx, L, intseq);
-			intseq2fasta(ffa, chain->m_label, intseq, L);
+			uint8_t *codeseq = myalloc(uint8_t, L);
+			SK.get_codeseq(distmx, L, codeseq);
+			codeseq2fasta(ffa, chain->m_label, codeseq, L);
 			}
 		CloseStdioFile(ffa);
 		}

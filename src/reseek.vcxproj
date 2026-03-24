@@ -275,6 +275,7 @@
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="enum_paths.cpp" />
+    <ClCompile Include="fan.cpp" />
     <ClCompile Include="fill_smx.cpp" />
     <ClCompile Include="alncounts.cpp" />
     <ClCompile Include="alpha.cpp" />
@@ -514,6 +515,8 @@
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_aligner.h" />
+    <ClInclude Include="flat_alphanamelist.h" />
+    <ClInclude Include="fan.h" />
     <ClInclude Include="flat_bench.h" />
     <ClInclude Include="flat_distmx.h" />
     <ClInclude Include="flat_base.h" />

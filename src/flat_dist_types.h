@@ -33,6 +33,15 @@ Flat matrix layout:
 using ic_t = uint16_t;	// 1/10th Angstrom units
 using sid_t = uint16_t;	// (ic_t*ic_t*)/8
 
+using p_uint8_t = uint8_t * __restrict;
+using cp_uint8_t = const uint8_t * __restrict;
+using p_ic_t = uint16_t * __restrict;
+using cp_ic_t = const uint16_t * __restrict;
+using p_sid_t = sid_t * __restrict;
+using cp_sid_t = const sid_t * __restrict;
+using p_uint16_t = uint16_t * __restrict;
+using cp_uint16_t = const uint16_t * __restrict;
+
 static inline ic_t coord2ic(float x) { return ic_t((x + 1000)*10 + 0.5); }
 static inline float ic2coord(ic_t ic) { return float(ic/10.0f) - 1000; }
 

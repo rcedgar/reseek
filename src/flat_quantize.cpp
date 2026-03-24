@@ -4,50 +4,101 @@
 #include "alpha.h"
 #include "quantize.h"
 
-static void update_counts(
+static const uint M = 48;
+static const uint m = 12;
+
+static void get_values(
 	const flat_chain_t *chain,
-	const string &feature,
-	uint16_t *counts)
+	FAN fan,
+	uint alpha_size,
+	uint16_t *values)
 	{
 	const uint L = chain->get_length();
 
-	const uint M = 48;
-	const uint m = 12;
 	uint16_t *distmx = myalloc(sid_t, L*M);
+	uint16_t *pens = myalloc(uint16_t, L);
+	uint16_t *mens = myalloc(uint16_t, L);
+	uint16_t *nens = myalloc(uint16_t, L);
+	uint16_t *rens = myalloc(uint16_t, L);
+	sid_t *pensids = myalloc(sid_t, L);
+	sid_t *mensids = myalloc(sid_t, L);
+	sid_t *nensids = myalloc(sid_t, L);
+	sid_t *rensids = myalloc(sid_t, L);
+
 	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
 
-	nnvec_t *nnvec = nnvec_t::newflat(L);
-	sidvec_t *nnsidvec = sidvec_t::newflat(L);
-	chaq::fill_nenvec(distmx, L, M, m, nnvec->m_data, nnsidvec->m_data);
-	const sid_t *nns = nnsidvec->m_data;
+	chaq::fill_pen_men_vecs(
+		distmx, L, M, m,
+		pens, pensids, mens, mensids);
+
+	chaq::fill_nen_ren_vecs(
+		pens, mens, pensids, mensids, L,
+		nens, nensids, rens, rensids);
+
+	// Only "float" features, not aa, ss3 etc.
+	const size_t bytes = L*sizeof(uint16_t);
+	switch (fan)
+		{
+	case FAN_nendist:	memcpy(values, nensids, bytes); break;
+	case FAN_rendist:	memcpy(values, rensids, bytes); break;
+	case FAN_pendist:	memcpy(values, pensids, bytes); break;
+	case FAN_mendist:	memcpy(values, mensids, bytes); break;
+	default:	Die("update_counts(%s)", FAN2str(fan));
+		}
+
+	myfree(distmx);
+	myfree(pens);
+	myfree(mens);
+	myfree(nens);
+	myfree(rens);
+	myfree(pensids);
+	myfree(mensids);
+	myfree(nensids);
+	myfree(rensids);
+	}
+
+static void update_counts(
+	const flat_chain_t *chain,
+	FAN fan,
+	uint alpha_size,
+	uint16_t *counts)
+	{
+	const uint L = chain->get_length();
+	uint16_t *values = myalloc(uint16_t, L);
 	for (uint i = 0; i < L; ++i)
-		counts[nns[i]] += 1;
+		values[i] = UINT16_MAX-1;
+	get_values(chain, fan, alpha_size, values);
+
+	for (uint i = 0; i < L; ++i)
+		{
+		uint16_t value = values[i];
+		asserta(value != UINT16_MAX-1);
+		counts[value] += 1;
+		}
+
+	myfree(values);
 	}
 
 static void make_charseq(
 	const flat_chain_t *chain,
-	const string &feature,
 	uint8_t alpha_size,
 	const uint16_t *thresholds,
-	char *codeseq)
+	uint16_t undef_value,
+	char *charseq)
 	{
 	const uint L = chain->get_length();
 
-	const uint M = 48;
-	const uint m = 12;
-	uint16_t *distmx = myalloc(sid_t, L*M);
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
-
-	nnvec_t *nnvec = nnvec_t::newflat(L);
-	sidvec_t *nnsidvec = sidvec_t::newflat(L);
-	const sid_t *nns = nnsidvec->m_data;
+	uint16_t *values = myalloc(uint16_t, L);
 	for (uint i = 0; i < L; ++i)
 		{
-		uint16_t nndist = nns[i];
-		uint8_t code = get_bin(nndist, alpha_size, thresholds);
+		uint16_t value = values[i];
+		if (value == UINT16_MAX)
+			value = undef_value;
+		uint8_t code = get_bin(value, alpha_size, thresholds);
 		assert(code < alpha_size);
-		codeseq[i] = g_LetterToCharMu[code];
+		charseq[i] = g_LetterToCharMu[code];
 		}
+	myfree(values);
 	}
 
 void cmd_flat_quantize()
@@ -58,7 +109,8 @@ void cmd_flat_quantize()
 	const uint alpha_size = opt(alpha_size);
 
 	asserta(optset_feature);
-	const string feature = opt(feature);
+	const string feature_name = opt(feature);
+	FAN fan = str2FAN(feature_name.c_str());
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainfn, chains);
@@ -66,16 +118,13 @@ void cmd_flat_quantize()
 
 	vector<uint16_t> counts(UINT16_MAX+1);
 	uint nbad = 0;
-	uint N = 0;
 	for (uint i = 0; i < nchain; ++i)
-		{
-		update_counts(chains[i], feature, counts.data());
-		N += chains[i]->get_length();
-		}
+		update_counts(chains[i], fan, alpha_size, counts.data());
 
-	QuantizeResult QR = quantize_histogram_equal_mass_dp(counts, alpha_size);
+	const QuantizeResult QR =
+		quantize_histogram_equal_mass_dp(counts, alpha_size);
 
-	double ideal_bin_size = double(N)/alpha_size;
+	double ideal_bin_size = double(QR.sum_count)/alpha_size;
 	double sum_abs_diff = 0;
 	const vector<uint16_t> &ts = QR.thresholds;
 
@@ -102,8 +151,11 @@ void cmd_flat_quantize()
 		}
 
 	double mean_diff = sum_abs_diff/alpha_size;
-	ProgressLog("Ideal %.1f, mean diff %.1f  (%.1f%%)\n",
-		ideal_bin_size, mean_diff, GetPct(mean_diff, ideal_bin_size));
+	ProgressLog("Ideal %.1f, mean diff %.1f (%.1f%%) median %u\n",
+		ideal_bin_size,
+		mean_diff,
+		GetPct(mean_diff, ideal_bin_size),
+		QR.median_value);
 
 	if (optset_output)
 		{
@@ -116,7 +168,6 @@ void cmd_flat_quantize()
 		CloseStdioFile(f);
 		}
 
-
 	if (optset_fasta)
 		{
 		FILE *f = CreateStdioFile(opt(fasta));
@@ -125,7 +176,8 @@ void cmd_flat_quantize()
 			uint L = chains[i]->get_length();
 			string Seq;
 			Seq.resize(L);
-			make_charseq(chains[i], feature, alpha_size, ts.data(), Seq.data());
+			make_charseq(chains[i], alpha_size,
+				ts.data(), QR.median_value, Seq.data());
 			SeqToFasta(f, chains[i]->m_label, Seq);
 			}
 		CloseStdioFile(f);
