@@ -31,9 +31,19 @@ static void get_values(
 		distmx, L, M, m,
 		pens, pensids, mens, mensids);
 
+//void chaq::fill_nen_ren_vecs(
+//	cp_uint16_t pens,
+//	cp_uint16_t mens,
+//	cp_sid_t pensids,
+//	cp_sid_t mensids,
+//	uint L,
+//	p_uint16_t nens,
+//	p_uint16_t rens,
+//	p_uint16_t nensids,
+//	p_uint16_t rensids)
 	chaq::fill_nen_ren_vecs(
 		pens, mens, pensids, mensids, L,
-		nens, nensids, rens, rensids);
+		nens, rens, nensids, rensids);
 
 	// Only "float" features, not aa, ss3 etc.
 	const size_t bytes = L*sizeof(uint16_t);

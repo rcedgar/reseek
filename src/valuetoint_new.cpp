@@ -47,6 +47,7 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 //	without special-case testing
 	uint Letter = ValueToIntTpl<false>(Value, AS, BinTs, 0);
 	assert(Letter < AS);
+	extern byte g_LetterToCharMu[256];
 	return Letter;
 	}
 
