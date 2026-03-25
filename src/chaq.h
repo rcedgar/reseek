@@ -58,5 +58,8 @@ public:
 	static void get_ss3_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
 	static void get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
 
+	static void get_aa3_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
+	static void get_aa4_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
+
 	static void get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq);
 	};

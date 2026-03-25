@@ -3,7 +3,7 @@
 #include "chaq.h"
 #include "flat_distmx.h"
 
-static uint8_t get_aa4(char c)
+static uint8_t get_aa4code(char c)
 	{
 	c = toupper(c);
 	if (c == 'G')
@@ -15,7 +15,7 @@ static uint8_t get_aa4(char c)
 	return 3;
 	}
 
-static uint8_t get_aa3(char c)
+static uint8_t get_aa3code(char c)
 	{
 	c = toupper(c);
 	if (c == 'G')
@@ -207,6 +207,18 @@ void chaq::fill_pen_men_vecs(
 				}
 			}
 		}
+	}
+
+void chaq::get_aa3_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq)
+	{
+	for (uint i = 0; i < L; ++i)
+		codeseq[i] = get_aa3code(aacharseq[i]);
+	}
+
+void chaq::get_aa4_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq)
+	{
+	for (uint i = 0; i < L; ++i)
+		codeseq[i] = get_aa4code(aacharseq[i]);
 	}
 
 void chaq::get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq)

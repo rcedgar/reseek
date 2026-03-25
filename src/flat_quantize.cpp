@@ -143,6 +143,49 @@ void cmd_flat_pm()
 	CloseStdioFile(f);
 	}
 
+void cmd_flat_aan()
+	{
+	asserta(optset_fasta);
+	asserta(optset_alpha_size);
+	const uint alpha_size = opt(alpha_size);
+	const string &chainfn = g_Arg1;
+	vector<vector<uint8_t> > codeseqs;
+	vector<flat_chain_t *> chains;
+	read_flat_chains(chainfn, chains);
+	uint nchain = SIZE(chains);
+	FILE *f = CreateStdioFile(opt(fasta));
+	for (uint i = 0; i < nchain; ++i)
+		{
+		const flat_chain_t &chain = *chains[i];
+		uint L = chain.get_length();
+		const char *aacharseq = chain.m_aa->m_data;
+		uint8_t *codeseq = myalloc(uint8_t, L);
+		switch (alpha_size)
+			{
+		case 3:
+			chaq::get_aa3_codeseq(aacharseq, L, codeseq);
+			break;
+
+		case 4:
+			chaq::get_aa4_codeseq(aacharseq, L, codeseq);
+			break;
+
+		default:
+			Die("aan alpha_size %u", alpha_size);
+			}
+
+		string Seq;
+		for (uint i = 0; i < L; ++i)
+			{
+			uint v = codeseq[i];
+			Seq.push_back(g_LetterToCharMu[v]);
+			}
+		SeqToFasta(f, chains[i]->m_label, Seq);
+		myfree(codeseq);
+		}
+	CloseStdioFile(f);
+	}
+
 void cmd_flat_quantize()
 	{
 	const string &chainfn = g_Arg1;

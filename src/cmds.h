@@ -100,5 +100,6 @@ C(mufilter)
 C(bitdope)
 C(flat_hjmega)
 C(flat_pm)
+C(flat_aan)
 
 #undef C
