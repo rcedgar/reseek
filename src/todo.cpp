@@ -19,6 +19,11 @@ Position-specific gap penalties.
 
 Redefine neighbors after local alignment is constructed.
 
+Low-complexity weighting
+
+>d1g9ga_/a.102.1.2 (nendist)
+PJAAPJAAPPAAPPAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAAPAAA
+
 Feature Plot Structure Aligner (FPSA)
 https://docs.google.com/document/d/1YRq1LQcEIgraHt_5G_V5-YU1YIwEmnu_MHpQQZmQsuY/edit?tab=t.0#heading=h.pcvo5gmuhifv
 ***/

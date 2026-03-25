@@ -33,7 +33,7 @@ static uint s_LabelSetSize;
 
 static FEATURE GetFeatureFromCmdLine()
 	{
-	string Alpha = "Mu";
+	string Alpha;
 	FEATURE Feat = FEATURE(FEATURE_COUNT);
 	if (optset_alpha)
 		Alpha = opt(alpha);
@@ -66,7 +66,7 @@ static FEATURE GetFeatureFromCmdLine()
 #undef c
 
 #define F(x) if (stricmp(Alpha.c_str(), #x) == 0) Feat = FEATURE_##x;
-#include "intfeatures.h"
+#include "featurelist.h"
 #undef F
 
 	if (Feat == FEATURE(FEATURE_COUNT))
@@ -289,6 +289,11 @@ void cmd_convert()
 
 	uint AlphaSize = 0;
 	s_Feat = FEATURE(FEATURE_COUNT);
+	if (optset_feature || optset_alpha)
+		{
+		if (!optset_feature_fasta)
+			Die("-feature or -alpha uses -feature_fasta not -fasta");
+		}
 	if (optset_feature_fasta)
 		{
 		optset_fast = true;

@@ -99,5 +99,6 @@ C(flat_logodds_info)
 C(mufilter)
 C(bitdope)
 C(flat_hjmega)
+C(flat_pm)
 
 #undef C

@@ -160,8 +160,6 @@ static bool ok_to_append(
 		{
 		if (off1s[i] == off1 && off2s[i] == off2)
 			return false;
-		if (off2s[i] == off1 && off1s[i] == off2)
-			return false;
 		}
 	return true;
 	}
@@ -270,10 +268,8 @@ void cmd_sec_kmeans()
 				{
 				int off1 = StrToInt(flds[2*i]);
 				int off2 = StrToInt(flds[2*i+1]);
-				int minoff = min(off1,off2);
-				int maxoff = max(off1,off2);
-				off1s.push_back(minoff);
-				off2s.push_back(maxoff);
+				off1s.push_back(off1);
+				off2s.push_back(off2);
 				}
 			}
 		}

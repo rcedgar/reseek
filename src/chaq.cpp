@@ -208,3 +208,9 @@ void chaq::fill_pen_men_vecs(
 			}
 		}
 	}
+
+void chaq::get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq)
+	{
+	for (uint i = 0; i < L; ++i)
+		codeseq[i] = (pensids[i] <= mensids[i] ? 0 : 1);
+	}

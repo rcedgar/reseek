@@ -43,6 +43,18 @@ static void get_values(
 	case FAN_rendist:	memcpy(values, rensids, bytes); break;
 	case FAN_pendist:	memcpy(values, pensids, bytes); break;
 	case FAN_mendist:	memcpy(values, mensids, bytes); break;
+
+	case FAN_pm:
+		{
+		// Special-case hack, convert 8- to 16-bit.
+		uint8_t *codeseq = myalloc(uint8_t, L);
+		chaq::get_pm_codeseq(pensids, mensids, L, codeseq);
+		for (uint i = 0; i < L; ++i)
+			values[i] = codeseq[i];
+		myfree(codeseq);
+		break;
+		}
+
 	default:	Die("update_counts(%s)", FAN2str(fan));
 		}
 
@@ -81,6 +93,7 @@ static void update_counts(
 
 static void make_charseq(
 	const flat_chain_t *chain,
+	FAN fan,
 	uint8_t alpha_size,
 	const uint16_t *thresholds,
 	uint16_t undef_value,
@@ -89,6 +102,7 @@ static void make_charseq(
 	const uint L = chain->get_length();
 
 	uint16_t *values = myalloc(uint16_t, L);
+	get_values(chain, fan, alpha_size, values);
 	for (uint i = 0; i < L; ++i)
 		{
 		uint16_t value = values[i];
@@ -99,6 +113,34 @@ static void make_charseq(
 		charseq[i] = g_LetterToCharMu[code];
 		}
 	myfree(values);
+	}
+
+void cmd_flat_pm()
+	{
+	asserta(optset_fasta);
+	const string &chainfn = g_Arg1;
+	vector<vector<uint8_t> > codeseqs;
+	vector<flat_chain_t *> chains;
+	read_flat_chains(chainfn, chains);
+	uint nchain = SIZE(chains);
+	FILE *f = CreateStdioFile(opt(fasta));
+	for (uint i = 0; i < nchain; ++i)
+		{
+		uint L = chains[i]->get_length();
+		uint16_t *values = myalloc(uint16_t, L);
+		get_values(chains[i], FAN_pm, 2, values);
+		string Seq;
+		Seq.resize(L);
+		for (uint i = 0; i < L; ++i)
+			{
+			uint v = values[i];
+			asserta(v == 0 || v == 1);
+			Seq[i] = (v == 0 ? 'A' : 'B');
+			}
+		SeqToFasta(f, chains[i]->m_label, Seq);
+		myfree(values);
+		}
+	CloseStdioFile(f);
 	}
 
 void cmd_flat_quantize()
@@ -176,7 +218,7 @@ void cmd_flat_quantize()
 			uint L = chains[i]->get_length();
 			string Seq;
 			Seq.resize(L);
-			make_charseq(chains[i], alpha_size,
+			make_charseq(chains[i], fan, alpha_size,
 				ts.data(), QR.median_value, Seq.data());
 			SeqToFasta(f, chains[i]->m_label, Seq);
 			}
