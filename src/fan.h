@@ -3,7 +3,7 @@
 enum FAN
 	{
 #define f(x)	FAN_##x,
-#include "flat_alphanamelist.h"
+#include "flat_featlist.h"
 	FAN_COUNT
 	};
 

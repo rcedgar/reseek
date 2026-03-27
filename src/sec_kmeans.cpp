@@ -5,6 +5,95 @@
 #include "quarts.h"
 #include "alpha.h"
 
+sec_kmeans *sec_kmeans::m_SK3 = 0;
+sec_kmeans *sec_kmeans::m_SK4 = 0;
+sec_kmeans *sec_kmeans::m_SK16 = 0;
+
+// C:\src\2025-10_reseek_tune\2026-03-25_logodds_and_bins\sec_3.kmeans
+void sec_kmeans::get_sec3_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	3");
+	lines.push_back("dim	5");
+	lines.push_back("offs1	5	-2	-2	-1	-1	-3");
+	lines.push_back("offs2	5	1	2	1	2	3");
+	lines.push_back("mean	15	233	305	197	233	598	599	1024	276	599	2105	475	742	250	474	1162");
+	}
+
+// C:\src\2025-10_reseek_tune\2026-03-25_logodds_and_bins\sec_4.kmeans
+void sec_kmeans::get_sec4_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	4");
+	lines.push_back("dim	6");
+	lines.push_back("offs1	6	-3	-3	0	1	-2	-3");
+	lines.push_back("offs2	6	1	0	2	3	0	3");
+	lines.push_back("mean	24	274	213	203	207	194	591	698	471	218	222	243	860	1053	609	273	265	276	2229	789	482	260	251	255	1544");
+	}
+
+// C:\src\2025-10_reseek_tune\2026-03-25_logodds_and_bins\sec_16.kmeans
+void sec_kmeans::get_sec16_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	16");
+	lines.push_back("dim	5");
+	lines.push_back("offs1	5	-3	-3	0	1	-3");
+	lines.push_back("offs2	5	1	0	2	3	3");
+	lines.push_back("mean	80	246	168	192	193	613	1029	596	271	258	2177	1126	645	279	284	2463	326	200	229	234	832	233	224	228	241	289	533	421	216	216	827	792	470	274	270	1822	1018	601	262	236	1869	863	561	198	207	619	646	403	268	261	1504	936	575	211	215	984	958	583	241	235	1426	435	232	253	256	1132	619	450	245	238	1181	301	429	212	212	635	542	433	208	227	325");
+	}
+
+void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
+	{
+	switch (alpha_size)
+		{
+	case 3:
+		get_sec3_lines(lines); return;
+	case 4:
+		get_sec4_lines(lines); return;
+	case 16:
+		get_sec16_lines(lines); return;
+		}
+	Die("get_sec_lines(%u)", alpha_size);
+	}
+
+sec_kmeans *sec_kmeans::get_SK(uint alpha_size, uint M)
+	{
+	sec_kmeans **ptrSK = 0;
+	sec_kmeans *SK = 0;
+	switch (alpha_size)
+		{
+	case 3:		ptrSK = &m_SK3; break;
+	case 4:		ptrSK = &m_SK4; break;
+	case 16:	ptrSK = &m_SK16; break;
+	default:	Die("sec_kmeans::get_SK(%u)", alpha_size);
+		}
+	if (*ptrSK == 0)
+		{
+		SK = new sec_kmeans;
+		vector<string> lines;
+		get_sec_lines(alpha_size, lines);
+		SK->from_lines(lines);
+		assert(SK->m_K == alpha_size);
+		SK->m_M = M;
+		*ptrSK = SK;
+		}
+	SK = *ptrSK;
+	return SK;
+	}
+
+void sec_kmeans::from_sec_n(uint alpha_size)
+	{
+	vector<string> lines;
+	switch (alpha_size)
+		{
+	case 3:		get_sec3_lines(lines); break;
+	case 4:		get_sec4_lines(lines); break;
+	case 16:	get_sec16_lines(lines); break;
+	default: Die("from_sec_n(%u)", alpha_size);
+		}
+	from_lines(lines);
+	}
+
 static bool check_backbone(const flat_chain_t* chain)
 	{
 	const uint L = chain->get_length();
@@ -200,6 +289,55 @@ static void get_random_offs(const string &spec,
 	asserta(off2s.size() == D);
 	}
 
+void sec_kmeans::get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const
+	{
+	if (int(L) < 2*m_w + 1)
+		{
+		memset(codeseq, m_K-1, L);
+		return;
+		}
+
+	assert(m_tmpv);
+#if DEBUG
+	memset(codeseq, UINT8_MAX, L);
+#endif
+
+	get_v(distmx, m_w, L, m_tmpv);
+	int8_t letter_lo = assign_cluster(m_tmpv);
+	for (int pos = 0; pos <= m_w; ++pos)
+		{
+#if DEBUG
+		assert(codeseq[pos] == UINT8_MAX);
+#endif
+		codeseq[pos] = letter_lo;
+		}
+
+	int pos_hi = L - m_w - 1;
+	for (int pos = m_w + 1; pos < pos_hi; ++pos)
+		{
+		get_v(distmx, pos, L, m_tmpv);
+#if DEBUG
+		assert(codeseq[pos] == UINT8_MAX);
+#endif
+		codeseq[pos] = assign_cluster(m_tmpv);
+		}
+
+	get_v(distmx, pos_hi, L, m_tmpv);
+	int8_t letter_hi = assign_cluster(m_tmpv);
+	for (int pos = pos_hi; pos < int(L); ++pos)
+		{
+#if DEBUG
+		assert(codeseq[pos] == UINT8_MAX);
+#endif
+		codeseq[pos] = letter_hi;
+		}
+
+#if DEBUG
+	for (uint pos = 0; pos < L; ++pos)
+		assert(codeseq[pos] < m_K);
+#endif
+	}
+
 void cmd_sec_kmeans()
 	{
 	asserta(optset_alpha_size);
@@ -299,16 +437,6 @@ void cmd_sec_kmeans()
 	sec_kmeans SK;
 	SK.init(K, M, off1s, off2s);
 
-	if (optset_diststyle)
-		{
-		if (string(opt(diststyle)) == "norm1")
-			SK.m_ds = sec_kmeans::DS_norm1;
-		else if (string(opt(diststyle)) == "euclid")
-			SK.m_ds = sec_kmeans::DS_euclid;
-		else
-			Die("-diststyle %s", opt(diststyle));
-		}
-
 	sid_t *vs = myalloc(sid_t, SK.m_N*SK.m_D);
 	SK.m_cluster_idxs = myalloc(uint, SK.m_N);
 	SK.set_vs(chains);
@@ -339,4 +467,34 @@ void cmd_sec_kmeans()
 	SK2.logme();
 #endif
 	log_flat_stats();
+	}
+
+void cmd_flat_secn()
+	{
+	asserta(optset_alpha_size);
+	asserta(optset_fasta);
+	vector<flat_chain_t *>chains;
+	read_flat_chains(g_Arg1, chains);
+	const uint nrchains = SIZE(chains);
+	FILE *ffa = CreateStdioFile(opt(fasta));
+	
+	const uint alpha_size = opt(alpha_size);
+	const uint K = alpha_size;
+	const uint M = 32;
+
+	sec_kmeans SK;
+	SK.from_sec_n(alpha_size);
+	SK.m_M = M;
+
+	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
+		{
+		const flat_chain_t* chain = chains[chainidx];
+		const uint L = chain->get_length();
+		sid_t *distmx = myalloc(sid_t, L*M);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		uint8_t *codeseq = myalloc(uint8_t, L);
+		SK.get_codeseq(distmx, L, codeseq);
+		codeseq2fasta(ffa, chain->m_label, codeseq, L);
+		}
+	CloseStdioFile(ffa);
 	}

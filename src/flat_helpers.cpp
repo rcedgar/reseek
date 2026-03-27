@@ -155,7 +155,8 @@ uint32_t get_alpha_size_from_feature_name(const string &name)
 		else
 			n = 0;
 		}
-	asserta(n > 0);
+	if (n == 0)
+		Die("get_alpha_size_from_feature_name(%s)", name.c_str());
 	return n;
 	}
 

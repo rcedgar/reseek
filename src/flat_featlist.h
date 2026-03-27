@@ -2,13 +2,19 @@
 #error "f not defined"
 #endif
 
-f(aa3)
-f(aa4)
 f(aa)
 f(pm)
+f(sec)
+f(nensec)
+f(rensec)
+f(pensec)
+f(mensec)
 f(nendist)
 f(rendist)
 f(pendist)
 f(mendist)
+f(pack)
+f(ppack)
+f(mpack)
 
 #undef f

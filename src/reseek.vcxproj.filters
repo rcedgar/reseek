@@ -668,6 +668,21 @@
     <ClCompile Include="fan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_feat2fa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat_fa_mi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_ts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entropy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1126,10 +1141,13 @@
     <ClInclude Include="procstats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_alphanamelist.h">
+    <ClInclude Include="flat_featlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entropy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

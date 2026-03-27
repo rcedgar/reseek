@@ -274,8 +274,10 @@
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="bitdope.cpp" />
+    <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fan.cpp" />
+    <ClCompile Include="feat_fa_mi.cpp" />
     <ClCompile Include="fill_smx.cpp" />
     <ClCompile Include="alncounts.cpp" />
     <ClCompile Include="alpha.cpp" />
@@ -305,6 +307,7 @@
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
+    <ClCompile Include="flat_feat2fa.cpp" />
     <ClCompile Include="flat_features.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
@@ -312,6 +315,7 @@
     <ClCompile Include="flat_quantize.cpp" />
     <ClCompile Include="flat_subsetbench.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
+    <ClCompile Include="flat_ts.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />
@@ -334,6 +338,7 @@
     <ClCompile Include="nuscop40.cpp" />
     <ClCompile Include="operator_new.cpp" />
     <ClCompile Include="optimizearea.cpp" />
+    <ClCompile Include="packing.cpp" />
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
     <ClCompile Include="parasearch.cpp" />
@@ -512,10 +517,11 @@
     <ClInclude Include="dssintparams.h" />
     <ClInclude Include="dssuintparams.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="entropy.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_aligner.h" />
-    <ClInclude Include="flat_alphanamelist.h" />
+    <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />
     <ClInclude Include="flat_bench.h" />
     <ClInclude Include="flat_distmx.h" />

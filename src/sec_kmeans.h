@@ -11,13 +11,6 @@
 class sec_kmeans
 	{
 public:
-	enum DIST_STYLE
-		{
-		DS_euclid,
-		DS_norm1,
-		};
-
-public:
 	// Parameters
 	/////////////
 	uint m_K = 0;				// number of clusters for K-means
@@ -27,8 +20,6 @@ public:
 	int* m_off1s = 0;			// +/- offsets from position
 	int* m_off2s = 0;			// +/- offsets from position
 	sid_t *m_means = 0;			// flat matrix of current means size m_K x m_D
-
-	DIST_STYLE m_ds = DS_euclid;
 
 	// Training data
 	////////////////
@@ -126,6 +117,8 @@ public:
 		asserta(m_tmpv == 0);
 		m_tmpv = myalloc(sid_t, m_D);
 		}
+
+	void from_sec_n(uint alpha_size);
 
 	void from_lines(const vector<string> &lines)
 		{
@@ -258,24 +251,13 @@ public:
 		}
 
 	// Euclidean squared distance (no need to sqrt)
-	uint32_t get_dist_euclid(const sid_t* v1, const sid_t* v2) const
+	uint32_t get_dist(const sid_t* v1, const sid_t* v2) const
 		{
 		uint32_t sum2 = 0;
 		for (uint m = 0; m < m_D; ++m)
 			{
 			int32_t diff = int32_t(v1[m]) - int32_t(v2[m]);
 			sum2 += uint32_t(diff*diff);
-			}
-		return sum2;
-		}
-
-	uint32_t get_dist_norm1(const sid_t* v1, const sid_t* v2) const
-		{
-		uint32_t sum2 = 0;
-		for (uint m = 0; m < m_D; ++m)
-			{
-			int32_t diff = abs(int32_t(v1[m]) - int32_t(v2[m]));
-			sum2 += uint32_t(diff);
 			}
 		return sum2;
 		}
@@ -295,25 +277,13 @@ public:
 		return sum2;
 		}
 
-	uint32_t get_dist_enum(const sid_t* v1, const sid_t* v2) const
-		{
-		switch (m_ds)
-			{
-		case DS_euclid: return get_dist_euclid(v1, v2);
-		case DS_norm1: return get_dist_norm1(v1, v2);
-			}
-		asserta(false);
-		return 0;
-		}
-	
 	uint8_t assign_cluster(const sid_t* v) const
 		{
 		uint best_cluster = UINT32_MAX;
 		uint32_t min_dist = UINT32_MAX;
 		for (uint cluster_idx = 0; cluster_idx < m_K; ++cluster_idx)
 			{
-			//uint32_t d = get_dist_early_quit(v, m_means + cluster_idx*m_D, min_dist);
-			uint32_t d = get_dist_enum(v, m_means + cluster_idx*m_D);
+			uint32_t d = get_dist_early_quit(v, m_means + cluster_idx*m_D, min_dist);
 			if (d < min_dist)
 				{
 				min_dist = d;
@@ -511,54 +481,7 @@ public:
 		ProgressLog("%u / %u bad backbones\n", bad_backbones, m_N);
 		}
 
-	void get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const
-		{
-		if (int(L) < 2*m_w + 1)
-			{
-			memset(codeseq, m_K-1, L);
-			return;
-			}
-
-		assert(m_tmpv);
-#if DEBUG
-		memset(codeseq, UINT8_MAX, L);
-#endif
-
-		get_v(distmx, m_w, L, m_tmpv);
-		int8_t letter_lo = assign_cluster(m_tmpv);
-		for (int pos = 0; pos <= m_w; ++pos)
-			{
-#if DEBUG
-			assert(codeseq[pos] == UINT8_MAX);
-#endif
-			codeseq[pos] = letter_lo;
-			}
-
-		int pos_hi = L - m_w - 1;
-		for (int pos = m_w + 1; pos < pos_hi; ++pos)
-			{
-			get_v(distmx, pos, L, m_tmpv);
-#if DEBUG
-			assert(codeseq[pos] == UINT8_MAX);
-#endif
-			codeseq[pos] = assign_cluster(m_tmpv);
-			}
-
-		get_v(distmx, pos_hi, L, m_tmpv);
-		int8_t letter_hi = assign_cluster(m_tmpv);
-		for (int pos = pos_hi; pos < int(L); ++pos)
-			{
-#if DEBUG
-			assert(codeseq[pos] == UINT8_MAX);
-#endif
-			codeseq[pos] = letter_hi;
-			}
-
-#if DEBUG
-		for (uint pos = 0; pos < L; ++pos)
-			assert(codeseq[pos] < m_K);
-#endif
-		}
+	void get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const;
 
 	void run_iter()
 		{
@@ -629,4 +552,13 @@ public:
 			ProgressLog("\n");
 			}
 		}
+public:
+	static sec_kmeans *m_SK3;
+	static sec_kmeans *m_SK4;
+	static sec_kmeans *m_SK16;
+	static void get_sec3_lines(vector<string> &lines);
+	static void get_sec4_lines(vector<string> &lines);
+	static void get_sec16_lines(vector<string> &lines);
+	static void get_sec_lines(uint alpha_size, vector<string> &lines);
+	static sec_kmeans *get_SK(uint alpha_size, uint M);
 	};

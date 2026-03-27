@@ -1,6 +1,6 @@
 #pragma once
 
-#include "alpha.h"
+#include "chaq.h"
 
 static const float BAD_SCORE = -9999;
 static const float MIN_SANE_SCORE = -1000;
@@ -54,18 +54,18 @@ public:
 		return m_sum_alpha_sizes;
 		}
 	
-	uint8_t *get_letter2char(uint fi) const
+	const unsigned char *get_letter2char(uint fi) const
 		{
 		assert(fi < m_nfeat);
 		uint alpha_size = m_alpha_sizes[fi];
-		return (alpha_size == 20 ? g_LetterToCharAmino : g_LetterToCharMu);
+		return chaq::get_letter2char(alpha_size);
 		}
 
-	uint8_t *get_char2letter(uint fi) const
+	const uint8_t *get_char2letter(uint fi) const
 		{
 		assert(fi < m_nfeat);
 		uint alpha_size = m_alpha_sizes[fi];
-		return (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
+		return chaq::get_char2letter(alpha_size);
 		}
 
 	void check_sane_scores() const;

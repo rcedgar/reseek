@@ -99,7 +99,10 @@ C(flat_logodds_info)
 C(mufilter)
 C(bitdope)
 C(flat_hjmega)
-C(flat_pm)
-C(flat_aan)
+C(flat_feat2fa)
+C(feat_fa_mi)
+C(packing)
+C(entropy)
+C(entropy_greedy)
 
 #undef C
