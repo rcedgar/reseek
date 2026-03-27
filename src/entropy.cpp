@@ -144,8 +144,11 @@ double entropy::get_mean_entropy(const vector<uint> &fis)
 	double meanH = sumH/N;
 	m_fis2H[sorted_fis] = meanH;
 
-	ProgressLog("n=%u;%s=%.4f\n",
-		uint(fis.size()), namestr.c_str(), meanH);
+	ProgressLog("n=%u;%s=%.4f/%.4f\n",
+		uint(fis.size()),
+		namestr.c_str(),
+		meanH,
+		meanH/m_max_possible_H);
 	return meanH;
 	}
 
@@ -276,15 +279,16 @@ void cmd_entropy_greedy()
 	E.m_step = 12;
 	if (optset_step)
 		E.m_step = opt(step);
-	ProgressLog("window=%u, step=%u\n",
-		E.m_window, E.m_step);
 
+	E.set_max_possible_H();
 	E.load_profiles(fafns);
+
+	ProgressLog("window=%u, step=%u, maxH=%.4f\n",
+		E.m_window, E.m_step, E.m_max_possible_H);
 
 	vector<uint> fis;
 	fis.push_back(0);
 
-	double H0 = E.get_mean_entropy(fis);
 	vector<double> Hs;
 	vector<vector<uint> > fivec;
 	for (uint fi = 0; fi < nfeat; ++fi)
@@ -301,11 +305,20 @@ void cmd_entropy_greedy()
 	for (uint iter = 0; iter < 100; ++iter)
 		{
 		E.get_next_fis(last_fivec, order, 1024, next_fivec);
-		if (next_fivec.empty())
+		size_t n = uint(next_fivec.size());
+		if (n == 0)
 			break;
-		Progress("\niter %u (%u)\n", iter+1, uint(next_fivec.size()));
+
 		E.get_mean_entropy_vec(next_fivec, Hs, order);
 		last_fivec = next_fivec;
+		double minH = Hs[order[0]];
+		double maxH = Hs[order[n-1]];
+		ProgressLog("iter=%u n=%u minH=%.4f maxh=%.4f fract=%.4f\n",
+			iter, uint(n), minH, maxH, maxH/E.m_max_possible_H);
+		if (maxH-minH < 0.0001)
+			{
+			Progress("converged.\n");
+			break;
+			}
 		}
-	Progress("converged.\n");
 	}
