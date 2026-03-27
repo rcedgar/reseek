@@ -311,8 +311,9 @@ void cmd_entropy_greedy()
 
 		E.get_mean_entropy_vec(next_fivec, Hs, order);
 		last_fivec = next_fivec;
-		double minH = Hs[order[0]];
-		double maxH = Hs[order[n-1]];
+		double maxH = Hs[order[0]];
+		double minH = Hs[order[n-1]];
+		asserta(maxH >= minH);
 		ProgressLog("iter=%u n=%u minH=%.4f maxh=%.4f fract=%.4f\n",
 			iter, uint(n), minH, maxH, maxH/E.m_max_possible_H);
 		if (maxH-minH < 0.0001)
