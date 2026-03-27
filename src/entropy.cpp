@@ -287,10 +287,9 @@ void cmd_entropy_greedy()
 	double H0 = E.get_mean_entropy(fis);
 	vector<double> Hs;
 	vector<vector<uint> > fivec;
-	for (uint fi = 1; fi < nfeat; ++fi)
+	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		fis.clear();
-		fis.push_back(0);
 		fis.push_back(fi);
 		fivec.push_back(fis);
 		}
