@@ -365,6 +365,7 @@
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
     <ClCompile Include="retrainmu.cpp" />
+    <ClCompile Include="rocauc.cpp" />
     <ClCompile Include="scop40benchsubset.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
@@ -454,6 +455,7 @@
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
     <ClCompile Include="trained_features3.cpp" />
+    <ClCompile Include="train_fa2auc.cpp" />
     <ClCompile Include="train_feature3.cpp" />
     <ClCompile Include="train_feature2.cpp" />
     <ClCompile Include="train_sss.cpp" />

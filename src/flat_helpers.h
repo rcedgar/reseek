@@ -110,6 +110,10 @@ void make_fn_pattern(
 	const string &feature_name,
 	string &fn);
 
+uint read_logodds(
+	const string &fn,
+	vector<float> &logoddsmx);
+
 void trunc_label(const string &Label,
 	string &TruncatedLabel);
 

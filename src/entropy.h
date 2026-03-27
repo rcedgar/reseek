@@ -1,5 +1,7 @@
 #pragma once
 
+#include "seqdb.h"
+
 class entropy
 	{
 public:
@@ -10,9 +12,27 @@ public:
 
 	vector<string> m_fafns;
 	vector<string> m_feature_names;
+	vector<uint> m_alpha_sizes;
 	vector<vector<vector<uint8_t> > > m_profiles;
+	map<string, uint> m_label2idx;
+	float **m_unweighted_logoddsvec = 0;
+	float **m_weighted_logoddsvec = 0;
+	float *m_weights = 0;
 
 	map<vector<uint>, double> m_fis2H;
+
+	SeqDB m_TPDB;
+	SeqDB m_FPDB;
+
+	vector<uint> m_tp_profidxqs;
+	vector<uint> m_tp_profidxts;
+	vector<vector<uint> > m_tp_posvecq;
+	vector<vector<uint> > m_tp_posvect;
+
+	vector<uint> m_fp_profidxqs;
+	vector<uint> m_fp_profidxts;
+	vector<vector<uint> > m_fp_posvecq;
+	vector<vector<uint> > m_fp_posvect;
 
 public:
 	void set_max_possible_H()
@@ -40,4 +60,18 @@ public:
 		const vector<uint> &order,
 		uint maxn,
 		vector<vector<uint> > &next_fis) const;
+
+	void load_fa2s(
+		const string &lookupfn,
+		const string &tpfa2fn,
+		const string &fpfa2fn);
+
+	void parse_fa2(
+		SeqDB &DB,
+		vector<uint> domidxqs,
+		vector<uint> domidxts,
+		vector<vector<uint> > &posvecq,
+		vector<vector<uint> > &posvect);
+
+	void read_logoddsvec(const vector<string> &fns);
 	};

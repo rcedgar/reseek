@@ -104,5 +104,6 @@ C(feat_fa_mi)
 C(packing)
 C(entropy)
 C(entropy_greedy)
+C(train_fa2auc)
 
 #undef C

@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_chain.h"
+#include "flat_features.h"
 #include "flat_helpers.h"
 #include "alpha.h"
 #include "chaq.h"
@@ -55,12 +56,11 @@ void entropy::load_profiles(const vector<string> &fafns)
 		{
 		string name;
 		GetStemName(m_fafns[i], name);
-		ProgressStep(i, nfeat, "Loading profiles %s", name.c_str());
+		ProgressStep(i, nfeat, "Loading profiles");
 		m_feature_names.push_back(name);
 		}
 
 	vector<SeqDB *> DBs;
-	const map<string, uint> *label2idx = 0;
 	m_nseq = 0;
 	for (size_t fi = 0; fi < nfeat; ++fi)
 		{
@@ -75,7 +75,7 @@ void entropy::load_profiles(const vector<string> &fafns)
 		if (fi == 0)
 			{
 			m_nseq = DB.GetSeqCount();
-			label2idx = &DB.m_LabelToIndex;
+			m_label2idx = DB.m_LabelToIndex;
 			m_profiles.resize(m_nseq);
 			for (uint seqidx = 0; seqidx < m_nseq; ++seqidx)
 				m_profiles[seqidx].resize(nfeat);
@@ -83,8 +83,8 @@ void entropy::load_profiles(const vector<string> &fafns)
 		DB.ToLetters(char2code);
 		uint labelidx = 0;
 		uint undef = 0;
-		for (map<string, uint>::const_iterator iter = label2idx->begin();
-			iter != label2idx->end(); ++iter)
+		for (map<string, uint>::const_iterator iter = m_label2idx.begin();
+			iter != m_label2idx.end(); ++iter)
 			{
 			const string &label = iter->first;
 			uint seqidx = DB.GetSeqIndex(label);
@@ -261,6 +261,36 @@ void entropy::get_next_fis(
 						}
 					}
 				}
+			}
+		}
+	}
+
+void entropy::read_logoddsvec(const vector<string> &fns)
+	{
+	uint nfeat = uint(fns.size());
+	asserta(m_feature_names.size() == nfeat);
+	asserta(m_alpha_sizes.empty());
+	m_weighted_logoddsvec = myalloc(float *, nfeat);
+	m_unweighted_logoddsvec = myalloc(float *, nfeat);
+	m_alpha_sizes.resize(nfeat);
+	for (uint i = 0; i < nfeat; ++i)
+		{
+		const string &fn = fns[i];
+		string feature_name;
+		GetStemName(m_fafns[i], feature_name);
+		asserta(feature_name == m_feature_names[i]);
+		vector<float> logodds;
+		uint AS = read_logodds(fn, logodds);
+		m_alpha_sizes[i] = AS;
+		uint bytes = AS*AS*sizeof(float);
+		m_unweighted_logoddsvec[i] = myalloc(float, bytes);
+		m_weighted_logoddsvec[i] = myalloc(float, bytes);
+		for (uint k = 0; k < AS*AS; ++k)
+			{
+			float score = logodds[k];
+			assert(score >= MIN_SANE_SCORE && score <= MAX_SANE_SCORE);
+			m_unweighted_logoddsvec[i][k] = score;
+			m_weighted_logoddsvec[i][k] = BAD_SCORE;
 			}
 		}
 	}

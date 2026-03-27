@@ -193,3 +193,8 @@ public:
 	};
 
 void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains);
+void read_flat_chains_idx(
+	const string &fn,
+	vector<flat_chain_t *> &chains,
+	unordered_map<string, uint> &label2idx);
+

@@ -97,6 +97,20 @@ void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains)
 		}
 	}
 
+void read_flat_chains_idx(
+	const string &fn,
+	vector<flat_chain_t *> &chains,
+	unordered_map<string, uint> &label2idx)
+	{
+	read_flat_chains(fn, chains);
+	size_t nchain = chains.size();
+	for (size_t i = 0; i < nchain; ++i)
+		{
+		const string &label = chains[i]->m_label;
+		label2idx[label] = uint(i);
+		}
+	}
+
 void flat_chain_t::to_fasta(const string &fn) const
 	{
 	FILE *f = CreateStdioFile(fn);
