@@ -76,19 +76,27 @@ void entropy::load_profiles(const vector<string> &fafns)
 			{
 			m_nseq = DB.GetSeqCount();
 			m_label2idx = DB.m_LabelToIndex;
+			m_labels = DB.m_Labels;
 			m_profiles.resize(m_nseq);
+			m_seqlengths.clear();
+			m_seqlengths.reserve(m_nseq);
 			for (uint seqidx = 0; seqidx < m_nseq; ++seqidx)
+				{
+				uint L = DB.GetSeqLength(seqidx);
+				m_seqlengths.push_back(L);
 				m_profiles[seqidx].resize(nfeat);
+				}
 			}
 		DB.ToLetters(char2code);
-		uint labelidx = 0;
 		uint undef = 0;
 		for (map<string, uint>::const_iterator iter = m_label2idx.begin();
 			iter != m_label2idx.end(); ++iter)
 			{
 			const string &label = iter->first;
+			const uint labelidx = iter->second;
 			uint seqidx = DB.GetSeqIndex(label);
 			const uint L = DB.GetSeqLength(seqidx);
+			asserta(L == m_seqlengths[labelidx]);
 			const uint8_t *seq = DB.GetByteSeq(seqidx);
 			for (uint pos = 0; pos < L; ++pos)
 				{
@@ -100,7 +108,6 @@ void entropy::load_profiles(const vector<string> &fafns)
 					}
 				m_profiles[labelidx][fi].push_back(code);
 				}
-			++labelidx;
 			}
 		if (undef > 0)
 			ProgressLog("%s undef=%u\n", fafn.c_str(), undef);
