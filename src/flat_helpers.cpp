@@ -3,6 +3,8 @@
 #include "alpha.h"
 #include "tabbedlines.h"
 #include "flat_helpers.h"
+#include "features.h"
+#include "dss.h"
 
 void read_fasta_label2idx(
 	const string &fafn,
@@ -145,6 +147,10 @@ void read_logoddsvec(
 
 uint32_t get_alpha_size_from_feature_name(const string &name)
 	{
+	FEATURE F = StrToFeature(name.c_str(), true);
+	if (uint(F) != UINT_MAX)
+		return DSSParams::GetAlphaSize(F);
+
 	if (name == "aa" || name == "AA")
 		return 20;
 	uint n = 0;

@@ -553,12 +553,18 @@ public:
 			}
 		}
 public:
+	static sec_kmeans *m_SK2;
 	static sec_kmeans *m_SK3;
 	static sec_kmeans *m_SK4;
+	static sec_kmeans *m_SK8;
 	static sec_kmeans *m_SK16;
+	static sec_kmeans *m_SK32;
+	static void get_sec2_lines(vector<string> &lines);
 	static void get_sec3_lines(vector<string> &lines);
 	static void get_sec4_lines(vector<string> &lines);
+	static void get_sec8_lines(vector<string> &lines);
 	static void get_sec16_lines(vector<string> &lines);
+	static void get_sec32_lines(vector<string> &lines);
 	static void get_sec_lines(uint alpha_size, vector<string> &lines);
 	static sec_kmeans *get_SK(uint alpha_size, uint M);
 	};

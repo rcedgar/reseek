@@ -357,14 +357,27 @@ void chaq::slow_get_codeseq_discrete(
 		pens, mens, pensids, mensids, L,
 		nens, rens, nensids, rensids);
 
-	if (alpha_size == 3 || alpha_size == 4 || alpha_size == 16)
+	bool need_sec_codeseq = false;
+	switch (fan)
+		{
+	case FAN_sec:
+	case FAN_nensec:
+	case FAN_rensec:
+	case FAN_pensec:
+	case FAN_mensec:
+		need_sec_codeseq = true;
+		}
+
+	if (need_sec_codeseq)
+		{
 		chaq::get_sec_codeseq(alpha_size, distmx, M, L, sec_codeseq);
 #if DEBUG
-	{
-	for (uint i = 0; i < L; ++i)
-		asserta(sec_codeseq[i] < alpha_size);
-	}
+		{
+		for (uint i = 0; i < L; ++i)
+			asserta(sec_codeseq[i] < alpha_size);
+		}
 #endif
+		}
 
 	// Only "discrete" features, not *dist etc.
 	const size_t bytes = L*sizeof(uint16_t);
@@ -375,7 +388,7 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_nensec:
-		asserta(alpha_size == 3 || alpha_size == 4 || alpha_size == 16);
+		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = nens[i];
@@ -388,7 +401,7 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_rensec:
-		asserta(alpha_size == 3 || alpha_size == 4 || alpha_size == 16);
+		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = rens[i];
@@ -401,7 +414,7 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_pensec:
-		asserta(alpha_size == 3 || alpha_size == 4 || alpha_size == 16);
+		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = pens[i];
@@ -414,7 +427,7 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_mensec:
-		asserta(alpha_size == 3 || alpha_size == 4 || alpha_size == 16);
+		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = mens[i];
@@ -427,6 +440,7 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_pm:
+		asserta(alpha_size == 2);
 		chaq::get_pm_codeseq(pensids, mensids, L, codeseq);
 		break;
 

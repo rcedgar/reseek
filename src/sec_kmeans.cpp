@@ -5,9 +5,46 @@
 #include "quarts.h"
 #include "alpha.h"
 
+sec_kmeans *sec_kmeans::m_SK2 = 0;
 sec_kmeans *sec_kmeans::m_SK3 = 0;
 sec_kmeans *sec_kmeans::m_SK4 = 0;
+sec_kmeans *sec_kmeans::m_SK8 = 0;
 sec_kmeans *sec_kmeans::m_SK16 = 0;
+sec_kmeans *sec_kmeans::m_SK32 = 0;
+
+// C:\src\2025-10_reseek_tune\bash\make_sec32.bash
+void sec_kmeans::get_sec32_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	32");
+	lines.push_back("dim	6");
+	lines.push_back("offs1	6	-3	-3	0	1	2	-3");
+	lines.push_back("offs2	6	1	0	2	3	0	3");
+	lines.push_back("mean	192	234	162	186	188	186	604	257	179	187	191	187	662	1076	619	274	276	274	2347	1077	624	268	240	268	2153	222	177	227	225	227	456	449	433	211	212	211	843	1024	605	264	232	264	1918	799	473	275	269	275	1842	1155	660	283	292	283	2543	291	187	234	248	234	895	454	216	206	214	206	698	267	425	203	206	203	637	424	210	250	251	250	1069	908	528	275	280	275	2089	538	432	239	236	239	1093	656	456	259	246	259	1361	662	392	271	270	271	1616	819	550	195	206	195	528	750	489	209	215	209	819	204	186	221	246	221	246	986	596	228	230	228	1330	816	524	231	227	231	1112	837	529	267	242	267	1567	510	267	269	266	269	1319	984	598	197	205	197	720	1038	611	249	239	249	1665	522	455	230	225	230	546	1007	603	205	212	205	985	248	182	269	245	269	703	483	261	193	210	193	310	275	411	254	252	254	244	614	547	204	249	204	247");
+	}
+
+// C:\src\2025-10_reseek_tune\bash\make_sec8.bash
+void sec_kmeans::get_sec8_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	8");
+	lines.push_back("dim	6");
+	lines.push_back("offs1	6	-3	-3	0	1	2	-3");
+	lines.push_back("offs2	6	1	0	2	3	0	3");
+	lines.push_back("mean	48	244	177	194	195	194	613	400	321	222	226	222	825	943	554	268	253	268	1933	1097	630	276	274	276	2365	829	512	254	245	254	1482	871	558	204	211	204	766	367	328	221	237	221	300	535	344	253	250	253	1201");
+	}
+
+// # -sec_kmeans ../data/scop40c.bca -log sec_kmeans2.log -randseed 1  -alpha_size 2 -output sec2.tsv
+void sec_kmeans::get_sec2_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	2");
+	lines.push_back("dim	6");
+	lines.push_back("offs1	6	-3	-3	0	1	2	-3");
+	lines.push_back("offs2	6	1	0	2	3	0	3");
+	lines.push_back("mean	12	401	289	209	213	209	688	951	561	267	258	267	1932");
+	}
+
 
 // C:\src\2025-10_reseek_tune\2026-03-25_logodds_and_bins\sec_3.kmeans
 void sec_kmeans::get_sec3_lines(vector<string> &lines)
@@ -46,6 +83,8 @@ void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
 	{
 	switch (alpha_size)
 		{
+	case 2:
+		get_sec2_lines(lines); return;
 	case 3:
 		get_sec3_lines(lines); return;
 	case 4:
@@ -62,6 +101,7 @@ sec_kmeans *sec_kmeans::get_SK(uint alpha_size, uint M)
 	sec_kmeans *SK = 0;
 	switch (alpha_size)
 		{
+	case 2:		ptrSK = &m_SK2; break;
 	case 3:		ptrSK = &m_SK3; break;
 	case 4:		ptrSK = &m_SK4; break;
 	case 16:	ptrSK = &m_SK16; break;

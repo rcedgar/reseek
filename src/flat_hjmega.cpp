@@ -149,20 +149,16 @@ static void SubClimb(
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
 
 	uint SubsetIters = Peaker::SpecGetInt(GlobalSpec, "sub", UINT_MAX);
-	uint SubsetPct = Peaker::SpecGetInt(GlobalSpec, "subpct", UINT_MAX);
 	asserta(SubsetIters != UINT_MAX);
 
 	double Final_y = -1;
 	string Final_xss;
 
-	//flat_bench &Subset = *new flat_bench;
 	for (uint SubsetIter = 1; SubsetIter <= SubsetIters; ++SubsetIter)
 		{
 		double Best_y;
 		vector<string> Best_xv;
-		//FullFB.MakeSubset(SubsetFB, SubsetPct);
-		ProgressLog("Subset %u%%, %u chains\n",
-				SubsetPct, SubsetFB.m_fp.get_nprof());
+		ProgressLog("Subset %u chains\n", SubsetFB.m_fp.get_nprof());
 		string OptName;
 		Ps(OptName, "sub%u", SubsetIter);
 		Optimize(OptName, SpecLines, SubsetFB, Best_y, Best_xv);

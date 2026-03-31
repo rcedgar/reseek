@@ -105,5 +105,6 @@ C(packing)
 C(entropy)
 C(entropy_greedy)
 C(train_fa2auc)
+C(flat_merge_features)
 
 #undef C

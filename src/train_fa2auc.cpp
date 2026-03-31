@@ -146,7 +146,7 @@ void entropy::calc_col_scores()
 
 	for (uint pairidx = 0; pairidx < npair; ++pairidx)
 		{
-		ProgressStep(pairidx, npair, "col scores");
+//		ProgressStep(pairidx, npair, "col scores");
 		const uint profidxq = m_profidxqs[pairidx];
 		const uint profidxt = m_profidxts[pairidx];
 		assert(profidxq < m_profiles.size());
@@ -330,39 +330,19 @@ void cmd_train_fa2auc()
 	E.read_logoddsvec(logoddsfns);
 	E.load_fa2s(opt(fasta2_tp), opt(fasta2_fp));
 
-	vector<uint> fis;
-	vector<float> weights;
+	for (uint i = 0; i < E.m_feature_names.size(); ++i)
+		{
+		vector<uint> fis;
+		vector<float> weights;
+		const string &name = E.m_feature_names[i];
 
-//[  0] aa20.fa
-//[ 10] nendist16.fa
-//[ 14] nensec16.fa
-//[ 25] rendist16.fa
-//[ 29] rensec16.fa
-//[ 32] sec16.fa
+		fis.push_back(i);
+		weights.push_back(1.0f);
 
-	//fis.push_back(0);
-	//weights.push_back(0.5f);
+		E.set_logodds_subset(fis, weights);
+		E.calc_col_scores();
 
-	fis.push_back(10);
-	weights.push_back(1.0f);
-
-	fis.push_back(14);
-	weights.push_back(1.0f);
-
-	fis.push_back(25);
-	weights.push_back(1.0f);
-
-	fis.push_back(29);
-	weights.push_back(1.0f);
-
-	fis.push_back(32);
-	weights.push_back(1.0f);
-
-	E.set_logodds_subset(fis, weights);
-	E.calc_col_scores();
-
-	float AUC = E.roc_auc(E.m_scores, E.m_is_tps);
-	ProgressLog("AUC=%.4f\n", AUC);
-
-	Progress("done.\n");
+		float AUC = E.roc_auc(E.m_scores, E.m_is_tps);
+		ProgressLog("name=%s AUC=%.4f\n", name.c_str(), AUC);
+		}
 	}

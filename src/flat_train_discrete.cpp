@@ -384,8 +384,19 @@ void get_logoddsmx_from_freqs(
 			{
 			double f_j = freqs[j];
 			double f_ij = freqmx[i][j];
-			asserta(f_ij > 1e-6);
-			asserta(feq(freqmx[j][i], f_ij));
+			if (!feq(freqmx[j][i], f_ij))
+				Warning("f_[%d][%d] = %.3g != f_[%u][%u] = %.3g",
+					i, j, f_ij,
+					j, i, freqmx[j][i]);
+
+			if (f_ij < 1e-6)
+				{
+				Warning("f_ij %c %c = %.3g",
+					g_LetterToCharMu[i],
+					g_LetterToCharMu[j],
+					f_ij);
+				f_ij = 1e-6;
+				}
 			if (units == "bits")
 				logoddsmx[i][j] = log2(f_ij) - log2(f_i) - log2(f_j);
 			else if (units == "nats")
