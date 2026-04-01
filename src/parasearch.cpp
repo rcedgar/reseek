@@ -5,6 +5,7 @@
 #include "sort.h"
 #include "seqdb.h"
 #include "alpha.h"
+#include "hexintseq.h"
 #include <numeric>
 
 /////////////////////////////////////////
@@ -37,7 +38,7 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 		}
 	}
 
-vector<FEATURE> ParaSearch::m_NuFs;
+flat_features ParaSearch::m_ff;
 
 void ParaSearch::AppendHit_rev(uint i, uint j, float Score)
 	{
@@ -153,7 +154,7 @@ void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
 
 	asserta(m_Chains.empty() || m_SeqCount == SIZE(m_Chains));
 	asserta(m_SeqCount == SIZE(m_ByteSeqs));
-	uint PairCount2 = triangle_get_K(m_SeqCount) + 1;
+	uint PairCount2 = triangle_get_K(m_SeqCount);
 	asserta(m_PairCount == PairCount2);
 	if (m_Scores_fwd != 0)
 		myfree(m_Scores_fwd);
@@ -292,33 +293,16 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 	m_look->from_labels(Labels);
 	}
 
-void ParaSearch::GetByteSeqs_nu(const string &FN)
+void ParaSearch::GetByteSeqs_nu(const string &hexfastafn)
 	{
-	m_ByteSeqs.clear();
-	m_Labels.clear();
-
-	vector<float> Weights;
-	const uint NF = SIZE(m_NuFs);
-	for (uint i = 0; i < NF; ++i)
-		Weights.push_back(float(1)/i);
-	
-	Nu TheNu;
-	TheNu.SetComponents(m_NuFs, Weights);
-
-	ReadChains(FN, m_Chains);
-	const uint ChainCount = SIZE(m_Chains);
-	m_ByteSeqs.resize(ChainCount);
-	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
-		{
-		ProgressStep(ChainIdx, ChainCount, "GetByteSeqs_nu()");
-		const PDBChain &Chain = *m_Chains[ChainIdx];
-		const uint L = Chain.GetSeqLength();
-		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
-		TheNu.GetLetters(Chain, ByteSeq);
-		if (opt(fixmubyteseq))
-			FixMuByteSeq(ByteSeq);
-		m_Labels.push_back(Chain.m_Label);
-		}
+	uint alpha_size = m_ff.get_compound_alpha_size();
+	map<string, uint> label2seqidx;
+	ReadHexIntSeqs<uint8_t>(
+		alpha_size,
+		hexfastafn,
+		m_ByteSeqs,
+		m_Labels,
+		label2seqidx);
 	}
 
 void ParaSearch::GetByteSeqs_3Di(const string &FN)

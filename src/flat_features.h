@@ -17,6 +17,8 @@ public:
 	float *m_weights = 0;
 	uint32_t *m_feature_block_offsets = 0;
 	uint32_t m_sum_alpha_sizes = 0;
+	uint32_t m_compound_alpha_size = 0;
+	uint32_t *m_axes = 0;
 	vector<string> m_symbolsvec;
 
 public:
@@ -48,6 +50,8 @@ public:
 
 	const uint32_t *get_feature_block_offsets() const;
 
+	uint32_t get_compound_alpha_size() const { return m_compound_alpha_size; }
+
 	uint32_t get_sum_alpha_sizes() const
 		{
 		assert(m_sum_alpha_sizes > 0);
@@ -67,6 +71,15 @@ public:
 		uint alpha_size = m_alpha_sizes[fi];
 		return chaq::get_char2letter(alpha_size);
 		}
+
+	uint8_t component_codes_to_compound_code(
+		const vector<uint8_t> &codes) const;
+
+	void compound_code_to_component_codes(
+		uint8_t code, vector<uint8_t> &codes) const;
+
+	float get_compound_subst_score_slow(
+		uint8_t code1, uint8_t code2) const;
 
 	void check_sane_scores() const;
 

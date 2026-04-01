@@ -2,6 +2,7 @@
 
 #include "fastbench.h"
 #include "paralign.h"
+#include "flat_features.h"
 
 class PDBChain;
 
@@ -26,7 +27,7 @@ public:
 	bool m_DoReverse = false;
 
 public:
-	static vector<FEATURE> m_NuFs;
+	static flat_features m_ff;
 
 public:
 	virtual void SubclassClearHitsAndResults();
@@ -49,7 +50,7 @@ public:
 	void BenchRev(const string &Msg, float SelfWeight, float RevWeight);
 
 private:
-	void GetByteSeqs_nu(const string &FN);
+	void GetByteSeqs_nu(const string &hexfastafn);
 	void GetByteSeqs_numu(const string &FN);
 	void GetByteSeqs_muletters(const string &FN);
 	void GetByteSeqs_dss3(const string &FN);

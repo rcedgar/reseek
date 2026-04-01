@@ -2,7 +2,12 @@
 #include "featuretrainer2.h"
 #include "parasearch.h"
 #include <list>
+void cmd_hjnugaps()
+	{
+	Die("TODO");
+	}
 
+#if 0
 static ParaSearch *s_PS;
 static double s_BestSum3 = -999;
 static int s_BestOpen = -999;
@@ -166,6 +171,7 @@ static void Optimize(int ScaleFactor, int FirstOpen, int FirstExt)
 // H-J-like hack for integers
 void cmd_hjnugaps()
 	{
+	Die("TODO");
 	GetFeatures(g_Arg1, s_Fs, s_Weights);
 
 	s_PS = new ParaSearch;
@@ -206,3 +212,4 @@ void cmd_hjnugaps()
 		BestSum3, BestOpen, BestExt, BestScaleFactor, Paralign::m_Bits);
 	ProgressLog("\n");
 	}
+#endif // 0

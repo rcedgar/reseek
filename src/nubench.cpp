@@ -1,46 +1,72 @@
 #include "myutils.h"
 #include "statsig.h"
 #include "parasearch.h"
+#include "flat_bench.h"
 
-static void GetFeatures(const string &s,
-	vector<FEATURE> &Fs, vector<float> &Weights)
+static void GetFeatures(
+	const string &varstr,
+	vector<string> &feature_names,
+	vector<float> &weights)
 	{
-	Fs.clear();
-	Weights.clear();
-	vector<string> Fields;
-	Split(s, Fields, ';');
-	const uint n = SIZE(Fields);
-	for (uint Idx = 0; Idx < n; ++Idx)
-		{
-		vector<string> Fields2;
-		Split(Fields[Idx], Fields2, '=');
-		asserta(SIZE(Fields2) == 2);
-		FEATURE F = StrToFeature(Fields2[0].c_str());
-		float Weight = StrToFloatf(Fields2[1]);
-		Fs.push_back(F);
-		Weights.push_back(Weight);
-		}
+	void ParseVarStr(
+		const string &VarStr,
+		vector<string> &Names,
+		vector<float> &Values);
+
+	vector<string> names;
+	vector<float> values;
+	ParseVarStr(varstr, names, values);
+	vector<string> AlphaNames;
+
+	vector<string> scalar_names;
+	vector<float> scalar_values;
+	flat_bench::ClassifyParams(
+		names, values,
+		feature_names, weights,
+		scalar_names, scalar_values);
 	}
 
 void cmd_numx()
 	{
-	vector<FEATURE> Fs;
-	vector<float> Weights;
-	GetFeatures(g_Arg1, Fs, Weights);
-	const uint FeatureCount = SIZE(Fs);
-	asserta(FeatureCount > 0);
-	Paralign::SetCompoundMx(Fs, Weights, 1, 1, 1, 1);
+	vector<string> feature_names;
+	vector<float> weights;
+	GetFeatures(g_Arg1, feature_names, weights);
+	const uint nfeat = uint(feature_names.size());
+	asserta(nfeat > 0);
+	asserta(weights.size() == nfeat);
+
+	flat_features ff;
+	ff.init(feature_names);
+	asserta(ff.m_nfeat == nfeat);
+
+	unordered_map<string, float> name2weight;
+	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+		name2weight[feature_names[fi]] = weights[fi];
+
+	Paralign::set_flat_compound(ff, name2weight, 1, 1, 1, 1);
 	Paralign::LogMatrix();
 	Paralign::LogSWFastMatrix();
 	}
 
 void cmd_nubench()
 	{
-	vector<FEATURE> Fs;
-	vector<float> Weights;
-	GetFeatures(g_Arg1, Fs, Weights);
-	const uint FeatureCount = SIZE(Fs);
-	asserta(FeatureCount > 0);
+	asserta(optset_mxpattern);
+	vector<string> feature_names;
+	vector<float> weights;
+	GetFeatures(g_Arg1, feature_names, weights);
+	const uint nfeat = uint(feature_names.size());
+	asserta(nfeat > 0);
+	asserta(weights.size() == nfeat);
+
+	flat_features &ff = ParaSearch::m_ff;
+	ff.init(feature_names);
+	asserta(ff.m_nfeat == nfeat);
+	ff.read_logoddsvec_pattern(opt(mxpattern));
+
+	unordered_map<string, float> name2weight;
+	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+		name2weight[feature_names[fi]] = weights[fi];
+
 
 	string AlignMethod = "para";
 	if (optset_alignmethod)
@@ -49,17 +75,16 @@ void cmd_nubench()
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 
-	int Scale = 1;
+	float Scale = 1.0f;
 	int IntOpen = 2;
 	int IntExt = 1;
-	if (optset_scale) Scale = opt(scale);
+	if (optset_scalef) Scale = float(opt(scalef));
 	if (optset_intopen) IntOpen = opt(intopen);
 	if (optset_intext) IntExt = opt(intext);
-	Paralign::SetCompoundMx(Fs, Weights, Scale, 
+	Paralign::set_flat_compound(ff, name2weight, Scale, 
 		IntOpen, IntExt, 777);
 
 	ParaSearch PS;
-	PS.m_NuFs = Fs;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
 	PS.Search(AlignMethod, false);

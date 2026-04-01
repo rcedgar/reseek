@@ -5,6 +5,8 @@
 #include "features.h"
 #include <omp.h>
 
+class flat_features;
+
 class Paralign
 	{
 public:
@@ -71,6 +73,13 @@ public:
 	static void SetCompoundMx(
 		const vector<FEATURE> &Fs, const vector<float> &Weights,
 		int ScaleFactor, int Open, int Ext, int SaturatedScore);
+	static void set_flat_compound(
+		flat_features &ff,
+		const unordered_map<string, float> &name2weight,
+		float ScaleFactor,
+		int Open,
+		int Ext,
+		int SaturatedScore);
 
 	static uint GetAlphaSize() { return m_matrix.size; }
 	static void SetSWFastSubstMx_FromParasailMx();

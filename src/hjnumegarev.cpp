@@ -63,19 +63,22 @@ static double EvalSum3(const vector<string> &xv)
 	return s_PS->m_Sum3;
 	}
 
-static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
+static double EvalSum3_VarStr(
+	ParaSearch &PS,
+	flat_features &ff,
+	const string &VarStr)
 	{
 	vector<string> Fields, Fields2;
 	Split(VarStr, Fields, ';');
 	const uint VarCount = SIZE(Fields);
 
-	int ScaleFactor = 1;
+	float ScaleFactor = 1;
 	if (optset_scale)
-		ScaleFactor = opt(scale);
+		ScaleFactor = float(opt(scalef));
 	int Open = 0;
 	int Ext = 0;
 	int SaturatedScore = 777;
-	vector<float> Weights;
+	unordered_map<string, float> name2weight;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		const string &Field = Fields[VarIdx];
@@ -87,16 +90,14 @@ static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 			Open = StrToInt(sValue);
 		else if (VarName == "ext")
 			Ext = StrToInt(sValue);
+		else if (VarName == "gap2")
+			Die("-gap2 not supported for integer scoring");
 		else
-			{
-			FEATURE F = StrToFeature(VarName.c_str());
-			asserta(F == ParaSearch::m_NuFs[SIZE(Weights)]);
-			Weights.push_back(StrToFloatf(sValue));
-			}
+			name2weight[VarName] = StrToFloatf(sValue);
 		}
 
-	Paralign::SetCompoundMx(ParaSearch::m_NuFs,
-		Weights, ScaleFactor, Open, Ext, SaturatedScore);
+	Paralign::set_flat_compound(ff,  name2weight,
+		ScaleFactor, Open, Ext, SaturatedScore);
 	PS.ClearHitsAndResults();
 	PS.Search("para", true);
 	PS.SetScoreOrder();
@@ -230,7 +231,7 @@ void cmd_hjnumegarev()
 		IntOpen, IntExt, 777);
 
 	ParaSearch PS;
-	ParaSearch::m_NuFs = Fs;
+//	ParaSearch::m_NuFs = Fs;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
 	PS.m_DoReverse = true;

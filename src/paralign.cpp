@@ -4,6 +4,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 #include "cigar.h"
+#include "flat_features.h"
 
 void ExpandParaCigar_reverseDI(const string &s, string &Path);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
@@ -964,6 +965,41 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	}
 #endif
 	return true;
+	}
+
+void Paralign::set_flat_compound(
+	flat_features &ff,
+	const unordered_map<string, float> &name2weight,
+	float ScaleFactor,
+	int Open,
+	int Ext,
+	int SaturatedScore)
+	{
+	ff.apply_weights(name2weight);
+	const uint compound_alpha_size = ff.get_compound_alpha_size();
+
+	m_SWFastSubstMx.clear();
+	m_SWFastSubstMx.resize(compound_alpha_size);
+	asserta(compound_alpha_size <= 256);
+	vector<vector<int> > IntScoreMx(compound_alpha_size);
+	for (uint i = 0; i < compound_alpha_size; ++i)
+		{
+		m_SWFastSubstMx[i].resize(compound_alpha_size);
+		IntScoreMx[i].resize(compound_alpha_size);
+		const uint8_t code_i = uint8_t(i);
+		for (uint j = 0; j < compound_alpha_size; ++j)
+			{
+			const uint8_t code_j = uint8_t(j);
+			float Score = ScaleFactor*
+				ff.get_compound_subst_score_slow(code_i, code_j);
+			m_SWFastSubstMx[i][j] = Score;
+			IntScoreMx[i][j] = int(round(Score));
+			}
+		}
+	bool SetSWFastMx = false;
+	if (opt(roundmx))
+		SetSWFastMx = true;
+	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
 	}
 
 void Paralign::SetCompoundMx(

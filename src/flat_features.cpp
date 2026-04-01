@@ -9,14 +9,16 @@ void flat_features::init(const vector<string> &feature_names)
 	alloc(uint(feature_names.size()));
 	m_feature_names = feature_names;
 	m_sum_alpha_sizes = 0;
+	m_compound_alpha_size = 1;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
 		uint alpha_size =
 			get_alpha_size_from_feature_name(feature_names[fi]);
 		m_alpha_sizes[fi] = alpha_size;
 		m_sum_alpha_sizes += alpha_size;
+		m_axes[fi] = m_compound_alpha_size;
+		m_compound_alpha_size *= alpha_size;
 		}
-
 	}
 
 uint flat_features::lines2logoddsmx(
@@ -58,6 +60,7 @@ void flat_features::alloc(uint32 nfeat)
 	m_unweighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_weighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
+	m_axes = myalloc(uint32_t, m_nfeat);
 	}
 
 void flat_features::read_logoddsvec(const vector<string> &fns)
@@ -300,6 +303,66 @@ float flat_features::prof_col_score(
 		const uint8_t codeT = profT_fi[posT];
 		const float *logodds_row = logodds_fi + codeQ*AS_fi;
 		score += logodds_row[codeT];
+		}
+	return score;
+	}
+
+uint8_t flat_features::component_codes_to_compound_code(
+	const vector<uint8_t> &component_codes) const
+	{
+	uint compound_code = 0;
+	asserta(SIZE(component_codes) == m_nfeat);
+	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		byte component_code = component_codes[fi];
+		compound_code += component_code*m_axes[fi];
+		}
+	byte b = byte(compound_code);
+	asserta(uint(b) == compound_code);
+	return b;
+	}
+
+void flat_features::compound_code_to_component_codes(
+	uint8_t compound_code, vector<uint8_t> &codes) const
+	{
+	codes.clear();
+	codes.resize(m_nfeat, 0);
+	uint m = m_compound_alpha_size;
+	for (uint k = 0; k < m_nfeat; ++k)
+		{
+		uint fi = m_nfeat - k - 1;
+		assert(fi < m_nfeat);
+		uint axis = m_axes[fi];
+		byte component_code = compound_code/axis;
+		codes[fi] = component_code;
+		compound_code -= component_code*axis;
+		}
+	}
+
+float flat_features::get_compound_subst_score_slow(
+	uint8_t code1, uint8_t code2) const
+	{
+	vector<uint8_t> code1s;
+	vector<uint8_t> code2s;
+	compound_code_to_component_codes(code1, code1s);
+	compound_code_to_component_codes(code2, code2s);
+#if DEBUG
+	{
+	vector<uint8_t> code1s_check;
+	vector<uint8_t> code2s_check;
+	uint8_t code1_check = component_codes_to_compound_code(code1s);
+	uint8_t code2_check = component_codes_to_compound_code(code2s);
+	assert(code1_check == code1);
+	assert(code2_check == code2);
+	}
+#endif
+	float score = 0;
+	for (uint32_t fi = 0; fi < m_nfeat; ++fi)
+		{
+		const uint32_t AS_fi = m_alpha_sizes[fi];
+		const float *logodds_fi = m_weighted_logoddsvec[fi];
+		const float *logodds_row = logodds_fi + code1s[fi]*AS_fi;
+		score += logodds_row[code2s[fi]];
 		}
 	return score;
 	}

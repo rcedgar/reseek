@@ -5,6 +5,7 @@
 
 static ParaSearch *s_PS;
 static Peaker *s_Peaker;
+static flat_features *s_ff;
 
 static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
 	{
@@ -31,15 +32,14 @@ static double EvalSum3(const vector<string> &xv)
 	asserta(s_Peaker != 0);
 	const uint VarCount = s_Peaker->GetVarCount();
 	asserta(SIZE(xv) == VarCount);
-	string VarsStr;
 
-	int ScaleFactor = 1;
+	float ScaleFactor = 1;
 	if (optset_scale)
-		ScaleFactor = opt(scale);
+		ScaleFactor = float(opt(scalef));
 	int Open = 0;
 	int Ext = 0;
 	int SaturatedScore = 777;
-	vector<float> Weights;
+	unordered_map<string, float> name2weight;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
 		string sValue = xv[VarIdx];
@@ -49,16 +49,15 @@ static double EvalSum3(const vector<string> &xv)
 		else if (VarName == "ext")
 			Ext = LocalStrToInt(sValue);
 		else if (VarName == "scale")
-			Die("ver=scale not supported");
+			ScaleFactor = (float) StrToFloat(sValue);
+		else if (VarName == "gap2")
+			Die("var=scale not supported");
 		else
-			{
-			FEATURE F = StrToFeature(VarName.c_str());
-			asserta(F == ParaSearch::m_NuFs[SIZE(Weights)]);
-			Weights.push_back(StrToFloatf(sValue));
-			}
+			name2weight[VarName] = (float) StrToFloat(sValue);
 		}
 
-	Paralign::SetCompoundMx(ParaSearch::m_NuFs, Weights,
+	asserta(s_ff);
+	Paralign::set_flat_compound(*s_ff, name2weight,
 		ScaleFactor, Open, Ext, SaturatedScore);
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para", false);
@@ -73,39 +72,42 @@ static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 	Split(VarStr, Fields, ';');
 	const uint VarCount = SIZE(Fields);
 
-	int ScaleFactor = 1;
+	float ScaleFactor = 1;
 	if (optset_scale)
-		ScaleFactor = opt(scale);
+		ScaleFactor = float(opt(scalef));
 	int Open = 0;
 	int Ext = 0;
 	int SaturatedScore = 777;
-	vector<float> Weights;
+	unordered_map<string, float> name2weight;
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		const string &Field = Fields[VarIdx];
-		Split(Field, Fields2, '=');
-		asserta(SIZE(Fields2) == 2);
-		const string &VarName = Fields2[0];
-		const string &sValue = Fields2[1];
+		const string &name_eq_value = Fields[VarIdx];
+		vector<string> flds;
+		Split(name_eq_value, flds, '=');
+		asserta(flds.size() == 2);
+		const string &VarName = s_Peaker->GetVarName(VarIdx);
+		asserta(flds[0] == VarName);
+		string sValue = flds[1];
 		if (VarName == "open")
-			Open = StrToInt(sValue);
+			Open = LocalStrToInt(sValue);
 		else if (VarName == "ext")
-			Ext = StrToInt(sValue);
+			Ext = LocalStrToInt(sValue);
+		else if (VarName == "scale")
+			ScaleFactor = (float) StrToFloat(sValue);
+		else if (VarName == "gap2")
+			Die("var=scale not supported");
 		else
-			{
-			FEATURE F = StrToFeature(VarName.c_str());
-			asserta(F == ParaSearch::m_NuFs[SIZE(Weights)]);
-			Weights.push_back(StrToFloatf(sValue));
-			}
+			name2weight[VarName] = (float) StrToFloat(sValue);
 		}
 
-	Paralign::SetCompoundMx(ParaSearch::m_NuFs,
-		Weights, ScaleFactor, Open, Ext, SaturatedScore);
-	PS.ClearHitsAndResults();
-	PS.Search("para", false);
-	PS.SetScoreOrder();
-	PS.Bench();
-	return PS.m_Sum3;
+	asserta(s_ff);
+	Paralign::set_flat_compound(*s_ff, name2weight,
+		ScaleFactor, Open, Ext, SaturatedScore);
+	s_PS->ClearHitsAndResults();
+	s_PS->Search("para", false);
+	s_PS->SetScoreOrder();
+	s_PS->Bench();
+	return s_PS->m_Sum3;
 	}
 
 static void Optimize(
@@ -262,6 +264,8 @@ static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
 
 void cmd_hjnumega()
 	{
+	Die("Implement s_ff");
+
 	const string SpecFN = g_Arg1;
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
@@ -274,7 +278,7 @@ void cmd_hjnumega()
 	GetFeaturesFromVarNames(Ptmp, Fs);
 	const uint FeatureCount = SIZE(Fs);
 	asserta(FeatureCount > 0);
-	ParaSearch::m_NuFs = Fs;
+//	ParaSearch::m_NuFs = Fs;
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);
