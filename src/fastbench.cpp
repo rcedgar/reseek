@@ -84,10 +84,6 @@ void FastBench::Bench(const string &Msg)
 	ProgressLog(" SEPQ10=%.3f", SEPQ10);
 	ProgressLog(" Sum3=%.3f", m_Sum3);
 	ProgressLog("\n");
-	//myfree(m_Scores);
-	myfree(m_ScoreOrder);
-	m_ScoreOrder = 0;
-	//m_Scores = 0;
 	}
 
 void FastBench::WriteHits(const string &FN, bool IncludeSelf) const

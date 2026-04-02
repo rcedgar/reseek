@@ -380,6 +380,7 @@ void ParaSearch::BenchRev(const string &Msg,
 	SetScoreOrder();
 	Bench(Msg);
 	}
+
 void ParaSearch::WriteRevTsv(const string &FN) const
 	{
 	asserta(m_DoReverse);

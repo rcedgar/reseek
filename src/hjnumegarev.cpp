@@ -263,4 +263,5 @@ void cmd_hjnumegarev()
 		SpecLines.push_back	("var=revw;min=0;max=1;");
 
 	Optimize(SpecLines, PS, Best_y, Best_xv);
+	PS.WriteHits(opt(output));
 	}
