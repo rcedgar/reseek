@@ -57,6 +57,7 @@ void cmd_nubench()
 	const uint nfeat = uint(feature_names.size());
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);
+	asserta(!optset_scale);
 
 	flat_features &ff = ParaSearch::m_ff;
 	ff.init(feature_names);

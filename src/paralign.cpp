@@ -1001,7 +1001,10 @@ void Paralign::set_flat_compound(
 	bool SetSWFastMx = false;
 	if (opt(roundmx))
 		SetSWFastMx = true;
-	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
+	const int ScaledOpen = Open;
+	const int ScaledExt = Ext;
+	SetMatrix(IntScoreMx, ScaledOpen, ScaledExt,
+		SaturatedScore, SetSWFastMx);
 	if (opt(logmx))
 		{
 		LogMatrix();
@@ -1059,7 +1062,10 @@ void Paralign::SetCompoundMx(
 	bool SetSWFastMx = false;
 	if (opt(roundmx))
 		SetSWFastMx = true;
-	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
+	const int ScaledOpen = Open;
+	const int ScaledExt = Ext;
+	SetMatrix(IntScoreMx, ScaledOpen, ScaledExt,
+		SaturatedScore, SetSWFastMx);
 	}
 
 #if 0

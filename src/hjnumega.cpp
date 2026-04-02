@@ -283,6 +283,8 @@ static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
 
 void cmd_hjnumega()
 	{
+	asserta(!optset_scale);
+
 	const string SpecFN = g_Arg1;
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;

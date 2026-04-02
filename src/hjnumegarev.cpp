@@ -206,32 +206,41 @@ static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
+// -nubench aa4=0.481;pm2=0.301;sec32=0.219; -db merge.hexfa 
+// -log nubenchmu.log -intopen 23 -intext 3 -scalef 8.39 
+// -mxpattern ../ff_logodds/@.logodds -keepscopid
 void cmd_hjnumegarev()
 	{
-	vector<FEATURE> Fs;
-	vector<float> Weights;
+	asserta(optset_mxpattern);
 
-	GetFeatures(g_Arg1, Fs, Weights);
-	const uint FeatureCount = SIZE(Fs);
-	asserta(FeatureCount > 0);
-
+	asserta(!optset_db);
+	asserta(!optset_intopen);
+	asserta(!optset_intext);
+	asserta(!optset_scalef);
+	asserta(!optset_scale);
 	asserta(!optset_alignmethod);
-	asserta(optset_db);
 
-	asserta(optset_db);
-	const string &DBFN = opt(db);
+	const string &DBFN = g_Arg1;
 
-	asserta(optset_intopen);
-	asserta(optset_intext);
-	asserta(optset_scale);
-	int Scale = opt(scale);
-	int IntOpen = opt(intopen);
-	int IntExt = opt(intext);
-	Paralign::SetCompoundMx(Fs, Weights, Scale, 
-		IntOpen, IntExt, 777);
+	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
+	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
+
+	flat_features &ff = ParaSearch::m_ff;
+	ff.init(feature_names);
+	ff.read_logoddsvec_pattern(opt(mxpattern));
+
+	unordered_map<string, float> name2weight;
+	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+		name2weight[feature_names[fi]] = weights[fi];
+
+	const float Scale = 8.39f;
+	const int IntOpen = 23;
+	const int IntExt = 3;
+	const int IntSaturatedScore = 777;
+	Paralign::set_flat_compound(ff, name2weight,
+		Scale, IntOpen, IntExt, IntSaturatedScore);
 
 	ParaSearch PS;
-//	ParaSearch::m_NuFs = Fs;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
 	PS.m_DoReverse = true;
