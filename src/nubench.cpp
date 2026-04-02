@@ -3,7 +3,7 @@
 #include "parasearch.h"
 #include "flat_bench.h"
 
-static void GetFeatures(
+void GetFeatures(
 	const string &varstr,
 	vector<string> &feature_names,
 	vector<float> &weights)
@@ -66,7 +66,6 @@ void cmd_nubench()
 	unordered_map<string, float> name2weight;
 	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
-
 
 	string AlignMethod = "para";
 	if (optset_alignmethod)

@@ -189,6 +189,25 @@ static void SubClimb(
 	Log("\n");
 	}
 
+void get_feature_names_from_peaker_spec_file_lines(
+	vector<string> &lines,
+	vector<string> &feature_names)
+	{
+	feature_names.clear();
+	vector<string> flds;
+	for (size_t i = 0; i < lines.size(); ++i)
+		{
+		const string &line = lines[i];
+		if (!StartsWith(line, "var=") || line.find("weight=yes") == string::npos)
+			continue;
+		Split(line, flds, ';');
+		const string var_eq_name = flds[0];
+		Split(var_eq_name, flds, '=');
+		asserta(flds.size() == 2);
+		feature_names.push_back(flds[1]);
+		}
+	}
+
 void cmd_flat_hjmega()
 	{
 	asserta(optset_fapattern);
@@ -201,20 +220,10 @@ void cmd_flat_hjmega()
 	ReadLinesFromFile(SpecFN, SpecLines);
 
 	vector<string> AlphaNames;
-	vector<float> Weights;
-	vector<string> flds;
-	for (size_t i = 0; i < SpecLines.size(); ++i)
-		{
-		const string &line = SpecLines[i];
-		if (!StartsWith(line, "var=") || line.find("weight=yes") == string::npos)
-			continue;
-		Split(line, flds, ';');
-		const string var_eq_name = flds[0];
-		Split(var_eq_name, flds, '=');
-		asserta(flds.size() == 2);
-		AlphaNames.push_back(flds[1]);
-		Weights.push_back(1); // placeholder
-		}
+	get_feature_names_from_peaker_spec_file_lines(
+		SpecLines, AlphaNames);
+	const uint nfeat = uint(AlphaNames.size());
+	vector<float> Weights(nfeat, 1.0f);	// placeholders
 
 	void OpenOutputFiles();
 	OpenOutputFiles();

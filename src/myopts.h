@@ -202,6 +202,7 @@ FLAG_OPT(keepscopid)
 FLAG_OPT(blast_blosum62)
 FLAG_OPT(shuffle_profiles)
 FLAG_OPT(v2_8)
+FLAG_OPT(logmx)
 
 #undef FLAG_OPT
 #undef UNS_OPT

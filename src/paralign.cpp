@@ -975,6 +975,7 @@ void Paralign::set_flat_compound(
 	int Ext,
 	int SaturatedScore)
 	{
+	asserta(ScaleFactor > 0.1);
 	ff.apply_weights(name2weight);
 	const uint compound_alpha_size = ff.get_compound_alpha_size();
 
@@ -993,13 +994,19 @@ void Paralign::set_flat_compound(
 			float Score = ScaleFactor*
 				ff.get_compound_subst_score_slow(code_i, code_j);
 			m_SWFastSubstMx[i][j] = Score;
-			IntScoreMx[i][j] = int(round(Score));
+			int IntScore = int(round(Score));
+			IntScoreMx[i][j] = IntScore;
 			}
 		}
 	bool SetSWFastMx = false;
 	if (opt(roundmx))
 		SetSWFastMx = true;
 	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
+	if (opt(logmx))
+		{
+		LogMatrix();
+		Die("-logmx");
+		}
 	}
 
 void Paralign::SetCompoundMx(

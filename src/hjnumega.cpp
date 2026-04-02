@@ -7,6 +7,11 @@ static ParaSearch *s_PS;
 static Peaker *s_Peaker;
 static flat_features *s_ff;
 
+void GetFeatures(
+	const string &varstr,
+	vector<string> &feature_names,
+	vector<float> &weights);
+
 static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
 	{
 	const uint VarCount = P.GetVarCount();
@@ -27,27 +32,41 @@ static int LocalStrToInt(const string &s)
 	return i;
 	}
 
-static double EvalSum3(const vector<string> &xv)
+static void set_params_from_varstr(
+	const string &varstr,
+	unordered_map<string, float> &name2weight,
+	int &IntOpen,
+	int &IntExt,
+	float &ScaleFactor,
+	int &IntSaturatedScore)
 	{
-	asserta(s_Peaker != 0);
-	const uint VarCount = s_Peaker->GetVarCount();
-	asserta(SIZE(xv) == VarCount);
-
-	float ScaleFactor = 1;
-	if (optset_scale)
+	ScaleFactor = 1;
+	if (optset_scalef)
 		ScaleFactor = float(opt(scalef));
-	int Open = 0;
-	int Ext = 0;
-	int SaturatedScore = 777;
-	unordered_map<string, float> name2weight;
+	IntOpen = 0;
+	IntExt = 0;
+	IntSaturatedScore = 777;
+	const uint VarCount = s_Peaker->GetVarCount();
+	vector<string> flds;
+	Split(varstr, flds, ';');
+	asserta(flds.size() == VarCount);
 	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
 		{
-		string sValue = xv[VarIdx];
+		const string &name_eq_value = flds[VarIdx];
+		vector<string> flds2;
+		Split(name_eq_value, flds2, '=');
+		asserta(flds2.size() == 2);
 		const string &VarName = s_Peaker->GetVarName(VarIdx);
-		if (VarName == "open")
-			Open = LocalStrToInt(sValue);
+		asserta(flds2[0] == VarName);
+		const string &sValue = flds2[1];
+		if (VarName == "intopen")
+			IntOpen = LocalStrToInt(sValue);
+		else if (VarName == "open")
+			Die("var=open not supported");
+		else if (VarName == "intext")
+			IntExt = LocalStrToInt(sValue);
 		else if (VarName == "ext")
-			Ext = LocalStrToInt(sValue);
+			Die("var=open not supported");
 		else if (VarName == "scale")
 			ScaleFactor = (float) StrToFloat(sValue);
 		else if (VarName == "gap2")
@@ -55,10 +74,33 @@ static double EvalSum3(const vector<string> &xv)
 		else
 			name2weight[VarName] = (float) StrToFloat(sValue);
 		}
+	}
+
+static double EvalSum3(const vector<string> &xv)
+	{
+	asserta(s_Peaker != 0);
+	const uint VarCount = s_Peaker->GetVarCount();
+	asserta(SIZE(xv) == VarCount);
+
+	string varstr;
+	s_Peaker->xv2xss(xv, varstr);
+
+	unordered_map<string, float> name2weight;
+	int IntOpen;
+	int IntExt;
+	float Scale;
+	int IntSaturatedScore;
+	set_params_from_varstr(
+		varstr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
 	asserta(s_ff);
 	Paralign::set_flat_compound(*s_ff, name2weight,
-		ScaleFactor, Open, Ext, SaturatedScore);
+		Scale, IntOpen, IntExt, IntSaturatedScore);
+	if (opt(logmx))
+		{
+		Paralign::LogMatrix();
+		Die("-logmx");
+		}
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para", false);
 	s_PS->SetScoreOrder();
@@ -68,41 +110,17 @@ static double EvalSum3(const vector<string> &xv)
 
 static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 	{
-	vector<string> Fields, Fields2;
-	Split(VarStr, Fields, ';');
-	const uint VarCount = SIZE(Fields);
-
-	float ScaleFactor = 1;
-	if (optset_scale)
-		ScaleFactor = float(opt(scalef));
-	int Open = 0;
-	int Ext = 0;
-	int SaturatedScore = 777;
 	unordered_map<string, float> name2weight;
-	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
-		{
-		const string &name_eq_value = Fields[VarIdx];
-		vector<string> flds;
-		Split(name_eq_value, flds, '=');
-		asserta(flds.size() == 2);
-		const string &VarName = s_Peaker->GetVarName(VarIdx);
-		asserta(flds[0] == VarName);
-		string sValue = flds[1];
-		if (VarName == "open")
-			Open = LocalStrToInt(sValue);
-		else if (VarName == "ext")
-			Ext = LocalStrToInt(sValue);
-		else if (VarName == "scale")
-			ScaleFactor = (float) StrToFloat(sValue);
-		else if (VarName == "gap2")
-			Die("var=scale not supported");
-		else
-			name2weight[VarName] = (float) StrToFloat(sValue);
-		}
+	int IntOpen;
+	int IntExt;
+	float Scale;
+	int IntSaturatedScore;
+	set_params_from_varstr(
+		VarStr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
 	asserta(s_ff);
 	Paralign::set_flat_compound(*s_ff, name2weight,
-		ScaleFactor, Open, Ext, SaturatedScore);
+		Scale, IntOpen, IntExt, IntSaturatedScore);
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para", false);
 	s_PS->SetScoreOrder();
@@ -204,11 +222,12 @@ static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
 	Pfull.Init(SpecLines, EvalSum3);
-	//asserta(Pfull.GetVarCount() == VarCount);
-	//asserta(Pfull.m_VarNames == VarNames);
 	s_Peaker = &Pfull;
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
+	uint LatinBinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
+	if (LatinBinCount != UINT_MAX)
+		Pfull.RunLatin(LatinBinCount);
 	Pfull.HJ_RunHookeJeeves();
 	Pfull.WriteFinalResults(g_fLog);
 	}
@@ -264,21 +283,32 @@ static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
 
 void cmd_hjnumega()
 	{
-	Die("Implement s_ff");
-
 	const string SpecFN = g_Arg1;
 	Log("SpecFN=%s\n", SpecFN.c_str());
 	vector<string> SpecLines;
 	ReadLinesFromFile(SpecFN, SpecLines);
 
-	// Just to get features
-	Peaker Ptmp(0, "tmp");
-	Ptmp.Init(SpecLines, 0);
-	vector<FEATURE> Fs;
-	GetFeaturesFromVarNames(Ptmp, Fs);
-	const uint FeatureCount = SIZE(Fs);
+	void get_feature_names_from_peaker_spec_file_lines(
+		vector<string> &lines,
+		vector<string> &feature_names);
+
+	vector<string> feature_names;
+	get_feature_names_from_peaker_spec_file_lines(
+		SpecLines, feature_names);
+
+	const uint FeatureCount = SIZE(feature_names);
 	asserta(FeatureCount > 0);
-//	ParaSearch::m_NuFs = Fs;
+	vector<float> weights(FeatureCount, 1.0f); // placeholder
+
+	flat_features &ff = ParaSearch::m_ff;
+	ff.init(feature_names);
+	asserta(ff.m_nfeat == FeatureCount);
+	ff.read_logoddsvec_pattern(opt(mxpattern));
+	s_ff = &ff;
+
+	unordered_map<string, float> name2weight;
+	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+		name2weight[feature_names[fi]] = weights[fi];
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);
@@ -286,9 +316,6 @@ void cmd_hjnumega()
 	void OpenOutputFiles();
 	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
-
-	//DSSParams::Init(DM_UseCommandLineOption);
-	//DSSParams::OverwriteFeatures(Fs, Weights);
 
 	ParaSearch FullPS;
 	FullPS.GetByteSeqs(DBFN, "nuletters");
@@ -308,7 +335,9 @@ void cmd_hjnumega()
 		Die("Missing strategy=");
 
 	if (Strategy == "climb")
+		{
 		Climb(FullPS, SpecLines);
+		}
 	else if (Strategy == "subclimb")
 		SubClimb(FullPS, SpecLines);
 	else if (Strategy == "latinclimb")
