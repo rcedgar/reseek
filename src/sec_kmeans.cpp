@@ -89,6 +89,8 @@ void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
 		get_sec3_lines(lines); return;
 	case 4:
 		get_sec4_lines(lines); return;
+	case 8:
+		get_sec8_lines(lines); return;
 	case 16:
 		get_sec16_lines(lines); return;
 		}
