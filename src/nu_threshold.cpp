@@ -52,3 +52,38 @@ void cmd_nu_threshold()
 		ProgressLog("\n");
 		}
 	}
+
+void cmd_mu_threshold()
+	{
+	asserta(optset_lookup);
+	asserta(optset_dope);
+	const string &vsfn = g_Arg1;
+
+	FastBench FB_vs, FB_t;
+	FB_vs.ReadLookup(opt(lookup));
+	FB_vs.ReadBits(vsfn);
+	FB_t.ReadLookup(opt(lookup));
+	FB_t.ReadDope(opt(dope));
+	FB_t.Alloc();
+	FB_t.m_scores_are_evalues = true;
+	const uint npair = FB_vs.m_PairCount;
+	for (uint i = 0; i < npair; ++i)
+		FB_t.m_Scores[i] = FLT_MAX;
+
+	uint n = 0;
+	for (uint hitidx = 0; hitidx < FB_t.m_dope_nhit; ++hitidx)
+		{
+		uint k = FB_t.m_dope_ks[hitidx];
+		asserta(k < npair);
+		float score = FB_vs.m_Scores[k];
+		FB_t.m_Scores[k] = score;
+		n += 1;
+		}
+	FB_t.SetScoreOrder();
+	FB_t.Bench();
+	ProgressLog("t=mufilter;");
+	ProgressLog("Sum3=%.4f;", FB_t.m_Sum3);
+	ProgressLog("n=%u;", n);
+	ProgressLog("pct=%.3g%%;", GetPct(n, npair));
+	ProgressLog("\n");
+	}
