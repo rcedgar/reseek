@@ -55,6 +55,12 @@ void SCOP40Bench::ReadHits(const string &FN)
 	uint QueryFieldNr = 0;
 	uint TargetFieldNr = 1;
 	uint ScoreFieldNr = 2;
+	if (opt(scorefirst))
+		{
+		QueryFieldNr = 1;
+		TargetFieldNr = 2;
+		ScoreFieldNr = 0;
+		}
 
 	string Algo;
 	GetStemName(FN, Algo);

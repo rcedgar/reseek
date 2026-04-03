@@ -5,6 +5,7 @@
 class FastBench
 	{
 public:
+	bool m_scores_are_evalues = false;
 	float *m_Scores = 0;
 	float m_Sum3 = FLT_MAX;
 	uint m_SeqCount = UINT_MAX;
@@ -40,7 +41,14 @@ public:
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
+	void ReadHits(
+		const string &FN,
+		uint qidx,
+		uint tidx,
+		uint scoreidx);
 	void WriteHits(const string &FN, bool IncludeSelf = false) const;
+	void ReadBits(const string &FN);
+	void WriteBits(const string &FN) const;
 	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;
 	void log_dope_ks() const;
 	};

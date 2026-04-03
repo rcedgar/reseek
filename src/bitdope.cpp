@@ -36,6 +36,15 @@ uint8_t *read_bitdope(const string &fn,
 	return bitvec;
 	}
 
+/***
+The -bitdope command creates a bit-vector file representing an 
+all-vs-all search. A bit is 1/0 if hit is/not present.
+Only the upper triangle is represented, i.e. only pairs (i,j) where
+	0 <= i <= j < N.
+The diagonal (i,i) is included but is never used because these
+represent trivial self-hits (basically I was lazy and didn't
+update triangle.h to exclude the diagonal).
+***/
 void cmd_bitdope()
 	{
 	asserta(optset_output);
