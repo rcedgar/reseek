@@ -692,6 +692,9 @@
     <ClCompile Include="flat_merge_features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nu_threshold.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

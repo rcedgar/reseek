@@ -109,5 +109,6 @@ C(flat_merge_features)
 C(fast_bench_hits)
 C(fast_bench_bits)
 C(fb_hits2bits)
+C(nu_threshold)
 
 #undef C

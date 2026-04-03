@@ -337,6 +337,7 @@
     <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
+    <ClCompile Include="nu_threshold.cpp" />
     <ClCompile Include="operator_new.cpp" />
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="packing.cpp" />
