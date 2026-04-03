@@ -104,6 +104,7 @@ sec_kmeans *sec_kmeans::get_SK(uint alpha_size, uint M)
 	case 2:		ptrSK = &m_SK2; break;
 	case 3:		ptrSK = &m_SK3; break;
 	case 4:		ptrSK = &m_SK4; break;
+	case 8:		ptrSK = &m_SK8; break;
 	case 16:	ptrSK = &m_SK16; break;
 	default:	Die("sec_kmeans::get_SK(%u)", alpha_size);
 		}
