@@ -77,8 +77,12 @@ void cmd_bitdope()
 		uint minidx = min(idxq, idxt);
 		uint maxidx = max(idxq, idxt);
 		uint k = triangle_ij_to_k(minidx, maxidx, ndom);
-		bitvec[k/8] |= (1 << (k%8));
-		++nhit;
+		const uint8_t thebit = (1 << (k%8));
+		if ((bitvec[k/8] & thebit) == 0)
+			{
+			bitvec[k/8] |= thebit;
+			++nhit;
+			}
 		}
 	CloseStdioFile(f);
 
@@ -93,7 +97,8 @@ void cmd_bitdope()
 			}
 		}
 	ProgressLog("nhit %u\n", nhit);
-	asserta(nbit == nhit);
+	if (nbit != nhit)
+		Die("nbit %u, nhit %u", nbit, nhit);
 
 	FILE *fOut = CreateStdioFile(opt(output));
 	WriteStdioFile(fOut, &MAGIC, sizeof(MAGIC));

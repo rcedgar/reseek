@@ -47,9 +47,9 @@ void FastBench::Bench(const string &Msg)
 	uint nt = 0;
 	uint nf = 0;
 	float LastScore = m_scores_are_evalues ? -1 : FLT_MAX;
-	float SEPQ0_1 = FLT_MAX;
-	float SEPQ1 = FLT_MAX;
-	float SEPQ10 = FLT_MAX;
+	m_SEPQ0_1 = FLT_MAX;
+	m_SEPQ1 = FLT_MAX;
+	m_SEPQ10 = FLT_MAX;
 	for (uint k = 0; k < K; ++k)
 		{
 		uint HitIdx = m_ScoreOrder[k];
@@ -67,9 +67,9 @@ void FastBench::Bench(const string &Msg)
 				asserta(Score < LastScore);
 			float EPQ = 2*float(nf)/m_SeqCount;
 			float Sens = 2*float(nt)/m_look->m_NT;
-			if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
-			if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
-			if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
+			if (m_SEPQ0_1 == FLT_MAX && EPQ >= 0.1) m_SEPQ0_1 = Sens;
+			if (m_SEPQ1 == FLT_MAX   && EPQ >= 1)   m_SEPQ1   = Sens;
+			if (m_SEPQ10 == FLT_MAX  && EPQ >= 10)  m_SEPQ10  = Sens;
 			LastScore = Score;
 			}
 		if (IsTP(LabelIdx_i, LabelIdx_j))
@@ -79,18 +79,21 @@ void FastBench::Bench(const string &Msg)
 		}
 	float EPQ = 2*float(nf)/m_SeqCount;
 	float Sens = 2*float(nt)/m_look->m_NT;
-	if (SEPQ0_1 == FLT_MAX && EPQ >= 0.1) SEPQ0_1 = Sens;
-	if (SEPQ1 == FLT_MAX   && EPQ >= 1)   SEPQ1   = Sens;
-	if (SEPQ10 == FLT_MAX  && EPQ >= 10)  SEPQ10  = Sens;
-	m_Sum3 = SEPQ0_1*2 + SEPQ1*3/2 + SEPQ10;
+	if (m_SEPQ0_1 == FLT_MAX) m_SEPQ0_1 = Sens;
+	if (m_SEPQ1 == FLT_MAX)   m_SEPQ1   = Sens;
+	if (m_SEPQ10 == FLT_MAX)  m_SEPQ10  = Sens;
+	m_Sum3 = m_SEPQ0_1*2 + m_SEPQ1*3/2 + m_SEPQ10;
 
-	if (Msg != "")
-		ProgressLog("%s ", Msg.c_str());
-	ProgressLog("SEPQ0.1=%.3f", SEPQ0_1);
-	ProgressLog(" SEPQ1=%.3f", SEPQ1);
-	ProgressLog(" SEPQ10=%.3f", SEPQ10);
-	ProgressLog(" Sum3=%.3f", m_Sum3);
-	ProgressLog("\n");
+	if (Msg != "noshow")
+		{
+		if (Msg != "")
+			ProgressLog("%s ", Msg.c_str());
+		ProgressLog("SEPQ0.1=%.3f", m_SEPQ0_1);
+		ProgressLog(" SEPQ1=%.3f", m_SEPQ1);
+		ProgressLog(" SEPQ10=%.3f", m_SEPQ10);
+		ProgressLog(" Sum3=%.3f", m_Sum3);
+		ProgressLog("\n");
+		}
 	}
 
 void FastBench::ReadHits(

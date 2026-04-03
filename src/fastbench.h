@@ -8,6 +8,9 @@ public:
 	bool m_scores_are_evalues = false;
 	float *m_Scores = 0;
 	float m_Sum3 = FLT_MAX;
+	float m_SEPQ0_1 = FLT_MAX;
+	float m_SEPQ1 = FLT_MAX;
+	float m_SEPQ10 = FLT_MAX;
 	uint m_SeqCount = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
 	uint *m_ScoreOrder = 0;
