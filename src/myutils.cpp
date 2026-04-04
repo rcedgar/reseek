@@ -912,13 +912,20 @@ double GetPhysMemBytes()
 	}
 
 double GetMemUseBytes()
-	{
-	// mallinfo2().arena + mallinfo2().hblkhd
-	struct mallinfo2 mi = mallinfo2();
-	double total = double(mi.arena) + double(mi.hblkhd);
-	UpdMemUse(total);
-	return total;
-	}
+{
+    double total;
+
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+    struct mallinfo2 mi = mallinfo2();
+    total = double(mi.arena) + double(mi.hblkhd);
+#else
+    struct mallinfo mi = mallinfo();
+    total = double(mi.arena) + double(mi.hblkhd);
+#endif
+
+    UpdMemUse(total);
+    return total;
+}
 
 #elif defined(__MACH__)
 #include <memory.h>
