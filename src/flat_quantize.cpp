@@ -90,6 +90,7 @@ void cmd_flat_quantize()
 		FILE *f = CreateStdioFile(opt(output));
 		fprintf(f, "# %s\n", cmd.c_str());
 		fprintf(f, "# [%s] %s\n", GIT_HASH, timeString);
+		fprintf(f, "# median %u\n", QR.median_value);
 		fprintf(f, "bins\t%u\n", alpha_size);
 		for (uint i = 0; i + 1 < alpha_size; ++i)
 			fprintf(f, "%u\t%u\n", i, ts[i]);

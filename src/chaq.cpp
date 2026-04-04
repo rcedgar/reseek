@@ -24,6 +24,12 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	// lowest frequency code
 		return alpha_size - 1;
 
+	case FAN_pack:
+	case FAN_mpack:
+	case FAN_ppack:
+	// roughly median value, @@TODO?
+		return alpha_size/2;
+
 	case FAN_aa:
 	case FAN_pm:
 		return 0;
@@ -256,6 +262,12 @@ void chaq::get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t 
 		codeseq[i] = (pensids[i] <= mensids[i] ? 0 : 1);
 	}
 
+void chaq::get_packing_codeseq(cp_sid_t distmx, uint M, uint L,
+	uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq)
+	{
+	Die("TODO");
+	}
+
 void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
 	uint maxsid, bool include_plus, bool include_minus,
 	p_uint16_t values)
@@ -445,15 +457,9 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_pack:
-		chaq::get_packing_codeseq(distmx, M, L, s_packing_maxsid, true, true, codeseq);
-		break;
-
 	case FAN_ppack:
-		chaq::get_packing_codeseq(distmx, M, L, s_packing_maxsid, true, false, codeseq);
-		break;
-
 	case FAN_mpack:
-		chaq::get_packing_codeseq(distmx, M, L, s_packing_maxsid, false, true, codeseq);
+		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, M, m, codeseq);
 		break;
 
 	default:	Die("slow_get_codeseq_discrete(%s)", FAN2str(fan));
@@ -625,7 +631,23 @@ void chaq::slow_get_codeseq_binned(
 	uint m,
 	p_uint8_t codeseq)
 	{
-	Die("TODO");
+	const uint L = chain->get_length();
+
+	cp_uint16_t thresholds = get_thresholds(fan, alpha_size);
+	const uint16_t undef_value = get_undef_value(fan, alpha_size);
+
+	uint16_t *values = myalloc(uint16_t, L);
+	chaq::slow_get_values(chain, fan, alpha_size, M, m, values);
+	for (uint i = 0; i < L; ++i)
+		{
+		uint16_t value = values[i];
+		if (value == UINT16_MAX)
+			value = undef_value;
+		uint8_t code = get_bin(value, alpha_size, thresholds);
+		assert(code < alpha_size);
+		codeseq[i] = g_LetterToCharMu[code];
+		}
+	myfree(values);
 	}
 
 void chaq::slow_get_charseq_binned(

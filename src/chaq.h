@@ -27,6 +27,9 @@ public:
 		case FAN_rendist:
 		case FAN_pendist:
 		case FAN_mendist:
+		case FAN_pack:
+		case FAN_ppack:
+		case FAN_mpack:
 			return true;
 			}
 		return false;
@@ -84,10 +87,7 @@ public:
 		p_uint16_t values);
 
 	static void get_packing_codeseq(cp_sid_t distmx, uint M, uint L, 
-		uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq)
-		{
-		Die("TODO");
-		}
+		uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq);
 
 	static void slow_get_values(
 		const flat_chain_t *chain,

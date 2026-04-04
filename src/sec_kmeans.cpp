@@ -110,6 +110,7 @@ sec_kmeans *sec_kmeans::get_SK(uint alpha_size, uint M)
 	case 4:		ptrSK = &m_SK4; break;
 	case 8:		ptrSK = &m_SK8; break;
 	case 16:	ptrSK = &m_SK16; break;
+	case 32:	ptrSK = &m_SK32; break;
 	default:	Die("sec_kmeans::get_SK(%u)", alpha_size);
 		}
 	if (*ptrSK == 0)
@@ -133,7 +134,9 @@ void sec_kmeans::from_sec_n(uint alpha_size)
 		{
 	case 3:		get_sec3_lines(lines); break;
 	case 4:		get_sec4_lines(lines); break;
+	case 8:		get_sec8_lines(lines); break;
 	case 16:	get_sec16_lines(lines); break;
+	case 32:	get_sec32_lines(lines); break;
 	default: Die("from_sec_n(%u)", alpha_size);
 		}
 	from_lines(lines);
