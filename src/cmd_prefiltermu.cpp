@@ -115,6 +115,39 @@ void cmd_prefilter_mu()
 	CloseStdioFile(s_fTsv);
 	}
 
+#if STORE_PAIR_SCORES
+	if (optset_output2)
+		{
+		vector<string> QLabels;
+		vector<string> TLabels;
+		for (uint i = 0; i < QSeqCount; ++i)
+			QLabels.push_back(QDB.GetLabel(i));
+		for (uint i = 0; i < TSeqCount; ++i)
+			TLabels.push_back(TDB.GetLabel(i));
+
+		FILE *f = CreateStdioFile(opt(output2));
+		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
+		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+			{
+			const string &q = QLabels[qidx];
+			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+				{
+				uint16_t score = row[tidx];
+				if (score > 0)
+					{
+					const string &t = TLabels[tidx];
+					fprintf(f, "%s\t%s\t%u\n",
+						q.c_str(), t.c_str(), score);
+					}
+				}
+			}
+		CloseStdioFile(f);
+		}
+#endif
+
 	if (optset_output3)
 		{
 		vector<string> QLabels;

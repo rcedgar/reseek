@@ -16,5 +16,6 @@ f(mendist)
 f(pack)
 f(ppack)
 f(mpack)
+f(angle)
 
 #undef f

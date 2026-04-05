@@ -206,7 +206,7 @@ template <typename T> T GetTheta3D(
 	T DotProd = xi*xj + yi*yj + zi*zj;
 	T Modi = GetMod_xyz(xi, yi, zi);
 	T Modj = GetMod_xyz(xj, yj, zj);
-	if (fabs(Modi*Modj) < 1e-6)
+	if (abs(Modi*Modj) < 1e-6)
 		return 0;
 	T cos_theta = DotProd/(Modi*Modj);
 	asserta(cos_theta >= -1.02 && cos_theta <= 1.02);
@@ -216,6 +216,17 @@ template <typename T> T GetTheta3D(
 		cos_theta = 1;
 	T theta = acos(cos_theta);
 	return theta;
+	}
+
+// angle a-b-c where b is the vertex
+template <typename T> T GetTheta3D_3pts(
+	T xa, T ya, T za,
+	T xb, T yb, T zb,
+	T xc, T yc, T zc)
+	{
+    return GetTheta3D(
+        xa - xb, ya - yb, za - zb,
+        xc - xb, yc - yb, zc - zb);
 	}
 
 template <typename T> T GetTheta3D(

@@ -310,6 +310,7 @@
     <ClCompile Include="flat_align_pair.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
+    <ClCompile Include="flat_bench_kmer.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
@@ -531,6 +532,7 @@
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_aligner.h" />
+    <ClInclude Include="flat_bench_kmer.h" />
     <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />
     <ClInclude Include="flat_bench.h" />

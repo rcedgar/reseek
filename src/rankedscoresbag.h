@@ -10,6 +10,7 @@
 ///////////////////////////////////////
 
 #define	CHECK_SCORE_VECS	0
+#define STORE_PAIR_SCORES	0
 
 class RankedScoresBag
 	{
@@ -24,6 +25,9 @@ public:
 #if CHECK_SCORE_VECS
 	vector<vector<uint16_t> > m_QueryIdxToFullScoreVec;
 	vector<vector<uint> > m_QueryIdxToFullTargetIdxVec;
+#endif
+#if STORE_PAIR_SCORES
+	vector<vector<uint16_t> > m_QueryIdxToTopScoreVec;
 #endif
 
 public:

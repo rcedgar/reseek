@@ -695,6 +695,9 @@
     <ClCompile Include="nu_threshold.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flat_bench_kmer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1160,6 +1163,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="entropy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench_kmer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

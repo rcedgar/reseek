@@ -38,8 +38,6 @@ public:
 
 public:
 	uint get_nfeat() const { return m_ff.get_nfeat(); }
-	void ThreadBody_All(uint ThreadIdx);
-	void ThreadBody_Dope(uint ThreadIdx);
 	void Search(const string &how);
 	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
 	void SetScalarParams(
@@ -53,6 +51,10 @@ public:
 		const string &logoddsfnpattern);
 	void ProgressLogParams() const;
 	void align_pair(const string &labelQ, const string &labelT);
+
+public:
+	virtual void ThreadBody_All(uint ThreadIdx);
+	virtual void ThreadBody_Dope(uint ThreadIdx);
 
 public:
 	static void ClassifyParams(

@@ -30,6 +30,7 @@ public:
 		case FAN_pack:
 		case FAN_ppack:
 		case FAN_mpack:
+		case FAN_angle:
 			return true;
 			}
 		return false;
@@ -161,6 +162,12 @@ public:
 		uint L,
 		uint alpha_size,
 		uint8_t *codeseq);
+
+	static void slow_get_angle_values(
+		const flat_chain_t *chain,
+		uint n,
+		uint alpha_size,
+		p_uint16_t values);
 
 	static cp_uint16_t get_thresholds(FAN fan, uint alpha_size);
 	static uint16_t get_undef_value(FAN fan, uint alpha_size);

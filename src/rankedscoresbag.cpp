@@ -52,6 +52,16 @@ void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
 		m_QueryIdxToTargetIdxVec[QueryIdx].push_back(TargetIdx);
 		if (SIZE(ScoreVec) >= 2*m_B)
 			TruncateVecs(QueryIdx);
+#if STORE_PAIR_SCORES
+		{
+		asserta(QueryIdx < m_QueryIdxToTopScoreVec.size());
+		asserta(TargetIdx < m_QueryIdxToTopScoreVec[QueryIdx].size());
+		uint16_t TopScore =
+			m_QueryIdxToTopScoreVec[QueryIdx][TargetIdx];
+		if (Score > TopScore)
+			m_QueryIdxToTopScoreVec[QueryIdx][TargetIdx] = Score;
+		}
+#endif
 		}
 	m_DataLock.unlock();
 	}
@@ -172,7 +182,7 @@ void RankedScoresBag::ToLabelsTsv(FILE *f,
 		{
 		uint TargetIdx = TargetIdxs[k];
 		asserta(TargetIdx < TCount);
-		const string &TLabel = QLabels[TargetIdx];
+		const string &TLabel = TLabels[TargetIdx];
 
 		map<uint, vector<uint> >::const_iterator iter = TargetIdxToQueryIdxs.find(TargetIdx);
 		asserta(iter != TargetIdxToQueryIdxs.end());
@@ -288,5 +298,10 @@ void RankedScoresBag::Init(uint QueryCount)
 #if CHECK_SCORE_VECS
 	m_QueryIdxToFullTargetIdxVec.resize(QueryCount);
 	m_QueryIdxToFullScoreVec.resize(QueryCount);
+#endif
+#if STORE_PAIR_SCORES
+	m_QueryIdxToTopScoreVec.resize(QueryCount);
+	for (uint i = 0; i < QueryCount; ++i)
+		m_QueryIdxToTopScoreVec[i].resize(QueryCount);
 #endif
 	}

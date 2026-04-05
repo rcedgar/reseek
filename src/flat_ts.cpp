@@ -56,6 +56,11 @@ static uint16_t ts_mpack6[6-1] = {6,11,16,20,25};
 static uint16_t ts_mpack4[4-1] = {8,16,22};
 static uint16_t ts_mpack3[3-1] = {11,20};
 
+// C:\src\reseek\src\Release\reseek.exe -flat_quantize ../data/scop40c.bca -alpha_size 16 -feature angle -log flat_quantize.log -output angle.bins -fasta angle.fa -output2 angle.cpp
+// [41b07af] 2026-04-05
+static uint16_t median_angle = 44933;
+static uint16_t ts_angle16[16-1] = {18064,24326,28943,32691,36079,39078,41953,44932,48033,51180,54221,57199,59845,61439,62716};
+
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
@@ -107,6 +112,8 @@ cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	x(mpack, 8);
 	x(mpack, 16);
 	x(mpack, 32);
+
+	x(angle, 16);
 #undef x
 
 	Die("chaq::get_thresholds(%s,%u)", FAN2str(fan), alpha_size);
@@ -133,6 +140,7 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	x(pack);
 	x(ppack);
 	x(mpack);
+	x(angle);
 
 	Die("get_undef_value(%s)", FAN2str(fan));
 	return 0;

@@ -78,9 +78,6 @@ void flat_bench::align_pair(
 
 	fa.write_aln(stdout);
 	fa.write_aln(g_fLog);
-
-	bool tp = IsTP(DomIdxQ, DomIdxT);
-	ProgressLog("%s\n", tp ? "TRUE POSITIVE" : "FALSE POSITIVE");
 	}
 
 void flat_bench::ThreadBody_All(uint ThreadIdx)

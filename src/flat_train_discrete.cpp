@@ -391,10 +391,7 @@ void get_logoddsmx_from_freqs(
 
 			if (f_ij < 1e-6)
 				{
-				Warning("f_ij %c %c = %.3g",
-					g_LetterToCharMu[i],
-					g_LetterToCharMu[j],
-					f_ij);
+				Warning("f_ij[%u][%u] = %.3g", i, j, f_ij);
 				f_ij = 1e-6;
 				}
 			if (units == "bits")

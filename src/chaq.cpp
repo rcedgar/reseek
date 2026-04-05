@@ -4,8 +4,28 @@
 #include "flat_distmx.h"
 #include "sec_kmeans.h"
 #include "quantize.h"
+#include "abcxyz.h"
+#include <cmath>
 
 static const uint16_t s_packing_maxsid = dist2sid(15.0f);
+
+static inline uint16_t radians_to_uint16(float theta)
+	{
+	const float M_PI = 3.1415926535f;
+    // clamp just in case of small FP drift
+    if (theta < 0.0f)
+        theta = 0.0f;
+    else if (theta > float(M_PI))
+        theta = float(M_PI);
+
+    // normalize to [0,1]
+    float u = theta * (1.0f / float(M_PI));
+
+    // map to [0,65535] with 0 centered at ~32767
+    float val = (2.0f * u) * 65535.0f * 0.5f; // same as u * 65535
+
+    return uint16_t(val + 0.5f);
+	}
 
 static uint8_t get_packing_code(uint n)
 	{
@@ -491,6 +511,13 @@ void chaq::slow_get_values(
 	uint m,
 	p_uint16_t values)
 	{
+	if (fan == FAN_angle)
+		{
+		const uint n = 4; // TODO@@
+		slow_get_angle_values(chain, n, alpha_size, values);
+		return;
+		}
+
 	const uint L = chain->get_length();
 
 	uint16_t *distmx = myalloc(sid_t, L*M);
@@ -674,4 +701,46 @@ void chaq::slow_get_charseq_binned(
 		charseq[i] = g_LetterToCharMu[code];
 		}
 	myfree(values);
+	}
+
+void chaq::slow_get_angle_values(
+	const flat_chain_t *chain,
+	uint n,
+	uint alpha_size,
+	p_uint16_t values)
+	{
+	const uint16_t undef_value = radians_to_uint16(0);
+
+	const uint L = chain->get_length();
+
+	for (uint pos = 0; pos < n; ++pos)
+		values[pos] = undef_value;
+
+	const ic_t *xyz = chain->m_xyz->m_data;
+	for (uint pos = n; pos < L - n - 1; ++pos)
+		{
+		uint posa = pos - n;
+		uint posc = pos + n;
+
+		ic_t xa = xyz[3*posa];
+		ic_t ya = xyz[3*posa+1];
+		ic_t za = xyz[3*posa+2];
+
+		ic_t xb = xyz[3*pos];
+		ic_t yb = xyz[3*pos+1];
+		ic_t zb = xyz[3*pos+2];
+
+		ic_t xc = xyz[3*posc];
+		ic_t yc = xyz[3*posc+1];
+		ic_t zc = xyz[3*posc+2];
+
+		float theta = GetTheta3D_3pts<float>(
+			xa, ya, za,
+			xb, yb, zb,
+			xc, yc, zc);
+		values[pos] = radians_to_uint16(theta);
+		}
+
+	for (uint pos = L - n - 1; pos < L; ++pos)
+		values[pos] = undef_value;
 	}

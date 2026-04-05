@@ -47,10 +47,15 @@ void cmd_flat_quantize()
 	vector<uint16_t> counts(UINT16_MAX+1);
 	uint nbad = 0;
 	for (uint i = 0; i < nchain; ++i)
+		{
+		ProgressStep(i, nchain, "Counting");
 		update_counts(chains[i], fan, alpha_size, counts.data());
+		}
 
+	ProgressLog("Quantize...");
 	const QuantizeResult QR =
 		quantize_histogram_equal_mass_dp(counts, alpha_size);
+	ProgressLog(" done.\n");
 
 	double ideal_bin_size = double(QR.sum_count)/alpha_size;
 	double sum_abs_diff = 0;

@@ -8,6 +8,7 @@ void flat_profiles::read_profiles_from_fastas(
 	const vector<string> &fafns,
 	const unordered_map<string, uint> &label2idx)
 	{
+	m_label2idx = label2idx;
 	asserta(m_ff);
 	const uint nfeat = m_ff->m_nfeat;
 	asserta(nfeat);
@@ -53,6 +54,7 @@ void flat_profiles::read_profiles_faprof(
 	asserta(fn != "");
 	asserta(m_labels.empty());
 	asserta(m_profiles.empty());
+	m_label2idx.clear();
 	feature_names.clear();
 
 	m_labels.clear();
@@ -116,7 +118,10 @@ void flat_profiles::read_profiles_faprof(
 			asserta(flds.size() == 2);
 			const string &acc = flds[0];
 			if (fi == 0)
+				{
 				m_labels.push_back(acc);
+				m_label2idx[acc] = profidx;
+				}
 			else
 				asserta(acc == m_labels.back());
 			const uint8_t *char2letter =

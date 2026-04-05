@@ -8,6 +8,7 @@ public:
 	flat_features *m_ff = 0;
 	vector<string> m_labels;
 	vector<vector<uint8_t> > m_profiles;
+	unordered_map<string, uint> m_label2idx;
 
 public:
 	void read_profiles_faprof(
