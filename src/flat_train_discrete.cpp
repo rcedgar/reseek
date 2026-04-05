@@ -2,7 +2,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 
-static double get_relative_entropy(
+double get_relative_entropy(
 	const vector<vector<double> > &freqmx,
 	const vector<vector<double> > &scoremx)
 	{
@@ -23,7 +23,29 @@ static double get_relative_entropy(
 	return hrel;
 	}
 
-static double get_expected_score(
+double get_relative_entropy_flat(
+	const vector<double> &freqmx,
+	const vector<double> &scoremx,
+	uint alpha_size)
+	{
+	asserta(freqmx.size() == alpha_size*alpha_size);
+	asserta(scoremx.size() == alpha_size*alpha_size);
+	double hrel = 0;
+	double sumf = 0;
+	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
+		{
+		for (uint letter2 = 0; letter2 < alpha_size; ++letter2)
+			{
+			double f = freqmx[letter1*alpha_size + letter2];
+			hrel += f*scoremx[letter1*alpha_size + letter2];
+			sumf += f;
+			}
+		}
+	asserta(feq(sumf, 1));
+	return hrel;
+	}
+
+double get_expected_score(
 	const vector<double> &freqs,
 	vector<vector<double> > &scoremx)
 	{
@@ -38,6 +60,25 @@ static double get_expected_score(
 			{
 			double f2 = freqs[letter1];
 			ES += f1*f2*scoremx[letter1][letter2];
+			}
+		}
+	return ES;
+	}
+
+double get_expected_score_flat(
+	const vector<double> &freqs,
+	const vector<double> &scoremx)
+	{
+	size_t alpha_size = freqs.size();
+	asserta(size(scoremx) == alpha_size*alpha_size);
+	double ES = 0;
+	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
+		{
+		double f1 = freqs[letter1];
+		for (uint letter2 = 0; letter2 < alpha_size; ++letter2)
+			{
+			double f2 = freqs[letter1];
+			ES += f1*f2*scoremx[alpha_size*letter1 + letter2];
 			}
 		}
 	return ES;
@@ -411,6 +452,41 @@ void get_logoddsmx_from_freqs(
 		}
 	}
 
+void get_logoddsmx_from_flat_freqmx(
+	const vector<double> &freqmx,
+	uint alpha_size,
+	vector<double> &logoddsmx)
+	{
+	asserta(SIZE(freqmx) == alpha_size*alpha_size);
+	vector<double> freqs;
+	logoddsmx.resize(alpha_size*alpha_size);
+	double sumfreq = 0;
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		double freq = 0;
+		for (uint j = 0; j < alpha_size; ++j)
+			freq += freqmx[alpha_size*i + j];
+		freqs.push_back(freq);
+		sumfreq += freq;
+		}
+	asserta(sumfreq > 0.99 && sumfreq < 1.01);
+
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		double f_i = freqs[i];
+		for (uint j = 0; j < alpha_size; ++j)
+			{
+			double f_j = freqs[j];
+			double f_ij = freqmx[i*alpha_size + j];
+
+			if (f_ij < 1e-6)
+				f_ij = 1e-6;
+			logoddsmx[alpha_size*i + j] =
+				log2(f_ij) - log2(f_i) - log2(f_j);
+			}
+		}
+	}
+
 void scale_logoddsmx(vector<vector<double> > &logoddsmx, uint scale)
 	{
 	const uint alpha_size = SIZE(logoddsmx);
@@ -428,6 +504,27 @@ void write_freqs(FILE *f, const vector<double> *ptr_freqs)
 	for (uint i = 0; i < alpha_size; ++i)
 		fprintf(f, "\t%.3g", freqs[i]);
 	fprintf(f, "\n");
+	}
+
+void write_freqsmx(FILE *f,
+	const vector<vector<double> > &logoddsmx)
+	{
+	if (f == 0)
+		return;
+	string cmd;
+	GetCmdLine(cmd);
+	const uint alpha_size = SIZE(logoddsmx);
+	time_t t = time(0);
+	char timeString[16];
+	strftime(timeString, size(timeString), "%Y-%m-%d", gmtime(&t));
+	fprintf(f, "freqs\t%u\n", alpha_size);
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		fprintf(f, "%u", i);
+		for (uint j = 0; j < alpha_size; ++j)
+			fprintf(f, "\t%.4g", logoddsmx[i][j]);
+		fprintf(f, "\n");
+		}
 	}
 
 void write_logoddsmx(FILE *f,
@@ -530,6 +627,7 @@ void cmd_flat_train_discrete()
 		scale_logoddsmx(logoddsmx, opt(scale));
 	bool asintegers = optset_scale;
 	write_logoddsmx(f, logoddsmx, asintegers);
+	write_freqsmx(f, freqmx);
 
 	write_freqs(f, freqs);
 	double ES = get_expected_score(*freqs, logoddsmx);

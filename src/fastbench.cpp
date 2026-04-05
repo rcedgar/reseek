@@ -213,6 +213,7 @@ void FastBench::ReadLookup(const string &FN)
 	m_look->from_tsv(FN);
 	m_SeqCount = m_look->get_ndom();
 	m_PairCount = m_look->get_pair_count_upper_triangle_with_diagonal();
+	m_Labels = m_look->m_doms;
 	}
 
 void FastBench::log_dope_ks() const

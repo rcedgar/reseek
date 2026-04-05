@@ -2,6 +2,8 @@
 #include "seqdb.h"
 #include "flat_bench_kmer.h"
 
+#define	SHOW_PROGRESS	1
+
 void flat_bench_kmer::align_pair_kmer(uint domidxq, uint domidxt)
 	{
 	assert(domidxq < m_kmerseqvec.size());
@@ -64,45 +66,38 @@ void flat_bench_kmer::read_kmers(const string &fastafn,
 		}
 	}
 
-void flat_bench_kmer::ThreadBody_Dope(uint ThreadIdx)
+void flat_bench_kmer::ThreadBody_All(uint ThreadIdx)
 	{
 	assert(m_look);
 	const uint ndom = m_look->get_ndom();
+	const uint npair = m_look->get_pair_count_upper_triangle_with_diagonal();
 	uint CurrentDomIdxT = UINT_MAX;
 	for (;;)
 		{
-		uint dopeidx = m_NextDopeIdx++;
-		if (dopeidx >= m_dope_nhit)
+		uint DomIdxT = m_NextQueryIdx++;
+		if (DomIdxT >= ndom)
 			return;
-#if SHOW_PROGRESS
-		if (dopeidx%1000 == 0)
-			ProgressStep(dopeidx, m_dope_nhit, "Aligning");
-#endif
-		uint k = m_dope_ks[dopeidx];
-		uint DomIdxQ, DomIdxT;
-		triangle_k_to_ij(k, ndom, DomIdxT, DomIdxQ);
 
-		if (DomIdxT == CurrentDomIdxT)
-			++m_ncachehits;
-		else
+		for (uint DomIdxQ = DomIdxT+1; DomIdxQ < ndom; ++DomIdxQ)
 			{
-			++m_ncachemisses;
-			CurrentDomIdxT = DomIdxT;
+			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
+			uint progress_count = m_progress_counter++;
+#if SHOW_PROGRESS
+			if (progress_count%1000 == 0)
+				ProgressStep(progress_count, npair, "Aligning");
+#endif
+			align_pair_kmer(DomIdxT, DomIdxQ);
 			}
-
-		uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
-		uint progress_count = m_progress_counter++;
-		align_pair_kmer(DomIdxT, DomIdxQ);
 		}
 	}
 
 void cmd_flat_bench_kmer()
 	{
 	asserta(optset_lookup);
-	asserta(optset_dope);
 	asserta(optset_alpha_size);
 	asserta(optset_k);
 
+	asserta(!optset_dope);
 	asserta(!optset_fapattern);
 	asserta(!optset_mxpattern);
 	asserta(!optset_spec);
@@ -112,11 +107,10 @@ void cmd_flat_bench_kmer()
 
 	flat_bench_kmer FB;
 	FB.ReadLookup(opt(lookup));
-	FB.ReadDope(opt(dope));
 	FB.read_kmers(fastafn, opt(alpha_size), opt(k));
 
 	FB.Alloc();
-	FB.Search("dope");
+	FB.Search("all");
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), true);

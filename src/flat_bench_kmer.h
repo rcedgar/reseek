@@ -13,6 +13,6 @@ public:
 	void align_pair_kmer(uint DomIdxT, uint DomIdxQ);
 
 public:
-	virtual void ThreadBody_All(uint ThreadIdx) { Die("All"); }
-	virtual void ThreadBody_Dope(uint ThreadIdx);
+	virtual void ThreadBody_All(uint ThreadIdx);
+	virtual void ThreadBody_Dope(uint ThreadIdx) { Die("dope"); }
 	};

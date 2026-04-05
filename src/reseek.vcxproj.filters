@@ -698,6 +698,9 @@
     <ClCompile Include="flat_bench_kmer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="reduce_alphabet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

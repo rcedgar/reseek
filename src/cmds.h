@@ -112,5 +112,6 @@ C(fast_bench_bits)
 C(fb_hits2bits)
 C(nu_threshold)
 C(mu_threshold)
+C(reduce_alphabet)
 
 #undef C

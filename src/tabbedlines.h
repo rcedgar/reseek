@@ -97,6 +97,19 @@ public:
 			}
 		}
 
+	void get_double_flat_square_mx(uint n, double *v)
+		{
+		for (uint i = 0; i < n; ++i)
+			{
+			get();
+			asserta(SIZE(m_flds) == n+1);
+			uint i2 = StrToUint(m_flds[0]);
+			asserta(i2 == i);
+			for (uint j = 0; j < n; ++j)
+				v[i*n + j] = StrToFloat(m_flds[j+1]);
+			}
+		}
+
 	uint16_t* get_int16_flat_vec(const string &fld0, uint n)
 		{
 		get();

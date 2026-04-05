@@ -114,6 +114,29 @@ uint read_logodds(
 	const string &fn,
 	vector<float> &logoddsmx);
 
+uint read_logodds_and_freqmx(
+	const string &fn,
+	vector<double> &logoddsmx,
+	vector<double> &freqmx);
+
+double get_expected_score(
+	const vector<double> &freqs,
+	vector<vector<double> > &scoremx);
+
+double get_expected_score_flat(
+	const vector<double> &freqs,
+	const vector<double> &scoremx);
+
+double get_relative_entropy_flat(
+	const vector<double> &freqmx,
+	const vector<double> &scoremx,
+	uint alpha_size);
+
+void get_logoddsmx_from_flat_freqmx(
+	const vector<double> &freqmx,
+	uint alpha_size,
+	vector<double> &logoddsmx);
+
 void trunc_label(const string &Label,
 	string &TruncatedLabel);
 
