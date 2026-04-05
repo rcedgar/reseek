@@ -11,15 +11,15 @@ static const uint16_t s_packing_maxsid = dist2sid(15.0f);
 
 static inline uint16_t radians_to_uint16(float theta)
 	{
-	const float M_PI = 3.1415926535f;
+	const float MY_PI = 3.1415926535f; // M_PI not in MSVC <cmath>?
     // clamp just in case of small FP drift
     if (theta < 0.0f)
         theta = 0.0f;
-    else if (theta > float(M_PI))
-        theta = float(M_PI);
+    else if (theta > float(MY_PI))
+        theta = float(MY_PI);
 
     // normalize to [0,1]
-    float u = theta * (1.0f / float(M_PI));
+    float u = theta * (1.0f / float(MY_PI));
 
     // map to [0,65535] with 0 centered at ~32767
     float val = (2.0f * u) * 65535.0f * 0.5f; // same as u * 65535
