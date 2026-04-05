@@ -1,47 +1,74 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 
-static double merge_letters(
-	uint8_t i, uint8_t j, uint in_alpha_size,
-	const vector<double> &in_freqmx,
-	vector<double> &out_freqmx)
+static uint get_maxreducedcode(
+	const vector<uint> &fullcode2reducedcode)
 	{
-	asserta(i < in_alpha_size);
-	asserta(j < in_alpha_size);
-	asserta(i != j);
-	asserta(in_freqmx.size() == in_alpha_size*in_alpha_size);
-
-	const uint out_alpha_size = in_alpha_size - 1;
-	out_freqmx.clear();
-	out_freqmx.resize(out_alpha_size*out_alpha_size);
-
-	vector<uint> in_code_to_out_code;
-	uint idx = 0;
-	for (uint k = 0; k < in_alpha_size; ++k)
+	const uint fullAS = uint(fullcode2reducedcode.size());
+	uint maxreducedcode = 0;
+	for (uint full_code = 0; full_code < fullAS ; ++full_code)
 		{
-		if (k == i || k == j)
-			in_code_to_out_code.push_back(out_alpha_size-1);
-		else
-			in_code_to_out_code.push_back(idx++);
+		uint reduced_code = fullcode2reducedcode[full_code];
+		maxreducedcode = max(reduced_code, maxreducedcode);
 		}
-	asserta(idx+1 == out_alpha_size);
+	asserta(maxreducedcode > 0);
+	return maxreducedcode;
+	}
 
-	for (uint in_code1 = 0; in_code1 < in_alpha_size; ++in_code1)
+/** After merge, merged pair -> newAS-1; other old reduced codes -> 0..newAS-2. */
+static void merge_old2new(
+	uint reducedAS, uint i, uint j, vector<uint> &old2new)
+	{
+	asserta(i < reducedAS && j < reducedAS);
+	asserta(i != j);
+	const uint newAS = reducedAS - 1;
+	old2new.assign(reducedAS, UINT_MAX);
+	uint idx = 0;
+	for (uint old = 0; old < reducedAS; ++old)
 		{
-		uint out_code1 = in_code_to_out_code[in_code1];
-		for (uint in_code2 = 0; in_code2 < in_alpha_size; ++in_code2)
+		if (old == i || old == j)
+			continue;
+		old2new[old] = idx++;
+		}
+	asserta(idx + 1 == newAS);
+	old2new[i] = newAS - 1;
+	old2new[j] = newAS - 1;
+	}
+
+static double merge_letters(
+	const vector<double> &fullfreqmx,
+	const vector<uint> &fullcode2reducedcode,
+	uint i, uint j)
+	{
+	const uint maxreducedcode = get_maxreducedcode(fullcode2reducedcode);
+	const uint reducedAS = maxreducedcode + 1;
+	const uint fullAS = uint(fullcode2reducedcode.size());
+	asserta(i < reducedAS && j < reducedAS);
+	asserta(i != j);
+	asserta(fullfreqmx.size() == fullAS*fullAS);
+
+	const uint newAS = reducedAS - 1;
+	vector<uint> old2new;
+	merge_old2new(reducedAS, i, j, old2new);
+
+	vector<double> reducedfreqmx(newAS*newAS);
+
+	for (uint fullcode1 = 0; fullcode1 < fullAS; ++fullcode1)
+		{
+		uint r1 = old2new[fullcode2reducedcode[fullcode1]];
+		for (uint fullcode2 = 0; fullcode2 < fullAS; ++fullcode2)
 			{
-			uint out_code2 = in_code_to_out_code[in_code2];
-			double freq = in_freqmx[in_code1*in_alpha_size + in_code2];
-			out_freqmx[out_code1*out_alpha_size + out_code2] += freq;
+			uint r2 = old2new[fullcode2reducedcode[fullcode2]];
+			double freq = fullfreqmx[fullcode1*fullAS + fullcode2];
+			reducedfreqmx[r1*newAS + r2] += freq;
 			}
 		}
 
 	vector<double> logoddsmx;
 	get_logoddsmx_from_flat_freqmx(
-		out_freqmx, out_alpha_size, logoddsmx);
+		reducedfreqmx, newAS, logoddsmx);
 	double H = get_relative_entropy_flat(
-		out_freqmx, logoddsmx, out_alpha_size);
+		reducedfreqmx, logoddsmx, newAS);
 
 	return H;
 	}
@@ -51,8 +78,10 @@ static double find_best_ij(
 	uint alpha_size,
 	uint &best_i,
 	uint &best_j,
-	vector<double> &out_freqmx)
+	const vector<uint> &fullcode2reducedcode)
 	{
+	asserta(alpha_size >= 2);
+	bool have = false;
 	double best_H = 0;
 	best_i = UINT_MAX;
 	best_j = UINT_MAX;
@@ -61,31 +90,23 @@ static double find_best_ij(
 		for (uint j = i+1; j < alpha_size; ++j)
 			{
 			double H = merge_letters(
-				i, j, alpha_size, in_freqmx, out_freqmx);
-			if (H > best_H)
+				in_freqmx, fullcode2reducedcode, i, j);
+			if (!have || H > best_H)
 				{
+				have = true;
 				best_H = H;
 				best_i = i;
 				best_j = j;
 				}
 			}
 		}
-	double H = merge_letters(
-		best_i, best_j, alpha_size, in_freqmx, out_freqmx);
-	asserta(H == best_H);
-	return H;
+	return best_H;
 	}
 
 static void validate_map(const vector<uint> &fullcode2reducedcode)
 	{
 	uint fullAS = uint(fullcode2reducedcode.size());
-	uint maxreducedcode = 0;
-	for (uint full_code = 0; full_code < fullAS ; ++full_code)
-		{
-		uint reduced_code = fullcode2reducedcode[full_code];
-		maxreducedcode = max(reduced_code, maxreducedcode);
-		}
-	asserta(maxreducedcode > 0);
+	uint maxreducedcode = get_maxreducedcode(fullcode2reducedcode);
 	uint reducedAS = maxreducedcode + 1;
 	vector<bool> found(reducedAS);
 	uint nfound = 0;
@@ -108,29 +129,15 @@ static void upd_map(
 	validate_map(fullcode2reducedcode);
 
 	uint fullAS = uint(fullcode2reducedcode.size());
-	uint maxreducedcode = 0;
-	for (uint fullcode = 0; fullcode < fullAS; ++fullcode)
-		maxreducedcode = max(maxreducedcode, fullcode2reducedcode[fullcode]);
+	uint maxreducedcode = get_maxreducedcode(fullcode2reducedcode);
 	const uint reducedAS = maxreducedcode + 1;
 
 	asserta(best_i < reducedAS && best_j < reducedAS);
 	asserta(best_i != best_j);
 
-	// Match merge_letters: merged pair -> last code (newAS-1); others compact 0..newAS-2
 	const uint newAS = reducedAS - 1;
-	vector<uint> old2new(reducedAS);
-	for (uint old = 0; old < reducedAS; ++old)
-		old2new[old] = UINT_MAX;
-	uint idx = 0;
-	for (uint old = 0; old < reducedAS; ++old)
-		{
-		if (old == best_i || old == best_j)
-			continue;
-		old2new[old] = idx++;
-		}
-	asserta(idx + 1 == newAS);
-	old2new[best_i] = newAS - 1;
-	old2new[best_j] = newAS - 1;
+	vector<uint> old2new;
+	merge_old2new(reducedAS, best_i, best_j, old2new);
 
 	for (uint fullcode = 0; fullcode < fullAS; ++fullcode)
 		{
@@ -174,7 +181,7 @@ void cmd_reduce_alphabet()
 
 	ProgressLog("Input ES=%.3g\n", H);
 
-	vector<double> out_freqmx;
+	//vector<double> out_freqmx;
 	vector<uint> fullcode2reducedcode;
 
 	for (uint i = 0; i < in_alpha_size; ++i)
@@ -184,11 +191,8 @@ void cmd_reduce_alphabet()
 	for (uint AS = in_alpha_size; AS >= out_alpha_size; --AS)
 		{
 		uint best_i, best_j;
-		asserta(in_freqmx.size() == AS*AS);
 		double H = find_best_ij(in_freqmx,
-			AS, best_i, best_j, out_freqmx);
-		asserta(out_freqmx.size() == (AS-1)*(AS-1));
-		in_freqmx = out_freqmx;
+			AS, best_i, best_j, fullcode2reducedcode);
 		ProgressLog("[%3u]  %3u  %3u  H=%.4f\n",
 			AS, best_i, best_j, H);
 
