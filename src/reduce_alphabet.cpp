@@ -504,7 +504,7 @@ void cmd_reduce_alphabet()
 			{
 			string fafn;
 			char c = 'A' + uint8_t(i);
-			Ps(fafn, "%s%c%u", prefix.c_str(), c, reducedAS);
+			Ps(fafn, "%s%c%u.fa", prefix.c_str(), c, reducedAS);
 			ProgressLog("%s\n", fafn.c_str());
 			FILE *f = CreateStdioFile(fafn);
 			double H = output_Hs[i];
