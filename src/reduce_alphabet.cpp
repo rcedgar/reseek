@@ -6,7 +6,7 @@ static uint get_maxreducedcode(
 	{
 	const uint fullAS = uint(fullcode2reducedcode.size());
 	uint maxreducedcode = 0;
-	for (uint full_code = 0; full_code < fullAS ; ++full_code)
+	for (uint full_code = 0; full_code < fullAS; ++full_code)
 		{
 		uint reduced_code = fullcode2reducedcode[full_code];
 		maxreducedcode = max(reduced_code, maxreducedcode);
@@ -15,7 +15,55 @@ static uint get_maxreducedcode(
 	return maxreducedcode;
 	}
 
-/** After merge, merged pair -> newAS-1; other old reduced codes -> 0..newAS-2. */
+static uint get_reducedAS(
+	const vector<uint> &fullcode2reducedcode)
+	{
+	return 1 + get_maxreducedcode(fullcode2reducedcode);
+	}
+
+static void invert_map(
+	const vector<uint> &fullcode2reducedcode,
+	vector<vector<uint> > &reducedcode2full_codes)
+	{
+	const uint fullAS = uint(fullcode2reducedcode.size());
+	const uint reducedAS = get_reducedAS(fullcode2reducedcode);
+	reducedcode2full_codes.clear();
+	reducedcode2full_codes.resize(reducedAS);
+	for (uint fullcode = 0; fullcode < fullAS; ++fullcode)
+		{
+		uint reducedcode = fullcode2reducedcode[fullcode];
+		assert(reducedcode < reducedAS);
+		reducedcode2full_codes[reducedcode].push_back(fullcode);
+		}
+	}
+
+static void log_map(
+	const vector<uint> &fullcode2reducedcode,
+	double H)
+	{
+	uint fullAS = uint(fullcode2reducedcode.size());
+	uint reducedAS = get_reducedAS(fullcode2reducedcode);
+	vector<vector<uint> > reducedcode2full_codes;
+	invert_map(fullcode2reducedcode, reducedcode2full_codes);
+	ProgressLog("[%3u] ", reducedAS);
+	ProgressLog(" %.4f", H);
+	Log(" | ");
+	for (uint i = 0; i < reducedAS; ++i)
+		{
+		const vector<uint> &fullcodes =
+			reducedcode2full_codes[i];
+		Log(" (");
+		for (auto fullcode : fullcodes)
+			{
+			Log(" %u", fullcode);
+			}
+		Log(" )");
+		}
+	ProgressLog("\n");
+	}
+
+// After merge, merged pair -> newAS-1; 
+//   other old reduced codes -> 0..newAS-2.
 static void merge_old2new(
 	uint reducedAS, uint i, uint j, vector<uint> &old2new)
 	{
@@ -33,6 +81,35 @@ static void merge_old2new(
 	asserta(idx + 1 == newAS);
 	old2new[i] = newAS - 1;
 	old2new[j] = newAS - 1;
+	}
+
+static double getH(
+	const vector<double> &fullfreqmx,
+	const vector<uint> &fullcode2reducedcode)
+	{
+	const uint reducedAS = get_reducedAS(fullcode2reducedcode);
+	const uint fullAS = uint(fullcode2reducedcode.size());
+	asserta(fullfreqmx.size() == fullAS*fullAS);
+
+	vector<double> reducedfreqmx(reducedAS*reducedAS);
+	for (uint fullcode1 = 0; fullcode1 < fullAS; ++fullcode1)
+		{
+		uint r1 = fullcode2reducedcode[fullcode1];
+		for (uint fullcode2 = 0; fullcode2 < fullAS; ++fullcode2)
+			{
+			uint r2 = fullcode2reducedcode[fullcode2];
+			double freq = fullfreqmx[fullcode1*fullAS + fullcode2];
+			reducedfreqmx[r1*reducedAS + r2] += freq;
+			}
+		}
+
+	vector<double> logoddsmx;
+	get_logoddsmx_from_flat_freqmx(
+		reducedfreqmx, reducedAS, logoddsmx);
+	double H = get_relative_entropy_flat(
+		reducedfreqmx, logoddsmx, reducedAS);
+
+	return H;
 	}
 
 static double merge_letters(
@@ -150,6 +227,47 @@ static void upd_map(
 	validate_map(fullcode2reducedcode);
 	}
 
+void peturb(
+	const vector<uint> &fullcode2reducedcode,
+	vector<uint> &fc)
+	{
+	const uint fullAS = uint(fullcode2reducedcode.size());
+	const uint reducedAS = get_reducedAS(fullcode2reducedcode);
+	uint r = randu32()%100;
+	uint nmut = 1;
+	if (r > 80)
+		nmut = 2;
+	if (r > 95)
+		nmut = 3;
+
+	fc = fullcode2reducedcode;
+	for (uint mutidx = 0; mutidx < nmut; ++mutidx)
+		{
+		switch (randu32()%2)
+			{
+		case 0: // swap
+			{
+			uint i = randu32()%reducedAS;
+			uint j = randu32()%(reducedAS-1);
+			if (i == j)
+				++j;
+			swap(fc[i], fc[j]);
+			break;
+			}
+
+		case 1: // poke
+			{
+			uint reduced_code = randu32()%reducedAS;
+			uint full_code = randu32()%fullAS;
+			fc[full_code] = reduced_code;
+			break;
+			}
+		
+		default: asserta(false);
+			}
+		}
+	}
+
 void cmd_reduce_alphabet()
 	{
 	const string &logoddsfn = g_Arg1;
@@ -176,26 +294,66 @@ void cmd_reduce_alphabet()
 		sumfreqs += freq;
 		}
 	asserta(sumfreqs > 0.99 && sumfreqs < 1.01);
-	double H = get_relative_entropy_flat(
-		in_freqmx, logoddsmx, in_alpha_size);
 
-	ProgressLog("Input ES=%.3g\n", H);
-
-	//vector<double> out_freqmx;
 	vector<uint> fullcode2reducedcode;
-
 	for (uint i = 0; i < in_alpha_size; ++i)
 		fullcode2reducedcode.push_back(i);
 
 	validate_map(fullcode2reducedcode);
-	for (uint AS = in_alpha_size; AS >= out_alpha_size; --AS)
+	double H = 0;
+	for (uint AS = in_alpha_size; AS > out_alpha_size; --AS)
 		{
 		uint best_i, best_j;
-		double H = find_best_ij(in_freqmx,
+		H = find_best_ij(in_freqmx,
 			AS, best_i, best_j, fullcode2reducedcode);
 		ProgressLog("[%3u]  %3u  %3u  H=%.4f\n",
-			AS, best_i, best_j, H);
+			AS-1, best_i, best_j, H);
 
 		upd_map(fullcode2reducedcode, best_i, best_j);
 		}
+	log_map(fullcode2reducedcode, H);
+
+	double bestH = H;
+	double H2 = getH(in_freqmx, fullcode2reducedcode);
+	asserta(feq(H2, bestH));
+
+	const uint ITERS = 10000;
+	vector<uint> fc;
+	for (uint iter = 0; iter < ITERS; ++iter)
+		{
+		ProgressStep(iter, ITERS, "Perturbing");
+		peturb(fullcode2reducedcode, fc);
+		double H2 = getH(in_freqmx, fc);
+		if (H2 > bestH)
+			{
+			ProgressLog("|%5u| %6.4f <<<\n", iter, H2);
+			fullcode2reducedcode = fc;
+			bestH = H2;
+			}
+		}
+	log_map(fullcode2reducedcode, H);
+
+	for (uint i = 0; i < in_alpha_size; ++i)
+		fc[i] = randu32()%out_alpha_size;
+
+	bestH = getH(in_freqmx, fc);
+	log_map(fc, bestH);
+
+	Progress("\n");
+	Progress("\n");
+	Progress("\n");
+	const uint ITERS_SHUFFLE = 10000;
+	for (uint iter = 0; iter < ITERS_SHUFFLE; ++iter)
+		{
+		ProgressStep(iter, ITERS_SHUFFLE, "Shuffle climb");
+		peturb(fullcode2reducedcode, fc);
+		double H2 = getH(in_freqmx, fc);
+		if (H2 > bestH)
+			{
+			ProgressLog("|%5u| %6.4f <<<\n", iter, H2);
+			fullcode2reducedcode = fc;
+			bestH = H2;
+			}
+		}
+	log_map(fullcode2reducedcode, H);
 	}
