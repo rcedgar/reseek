@@ -1,5 +1,9 @@
 #include "myutils.h"
 #include "flat_helpers.h"
+#include "hexintseq.h"
+#include "sort.h"
+#include "seqdb.h"
+#include <numeric>
 
 static uint get_maxreducedcode(
 	const vector<uint> &fullcode2reducedcode)
@@ -268,40 +272,84 @@ void peturb(
 		}
 	}
 
+static vector<vector<uint> > s_donevec;
+
+static void add_done(const vector<uint> &fc)
+	{
+	s_donevec.push_back(fc);
+	}
+
+static bool check_isdone(const vector<uint> &fc)
+	{
+	for (auto v : s_donevec)
+		if (fc == v)
+			return true;
+	return false;
+	}
+
+static void normalize_fc(vector<uint> &fc)
+	{
+	uint reducedAS = get_reducedAS(fc);
+	vector<uint> old2new(reducedAS, UINT_MAX);
+	uint newcode = 0;
+	for (uint i = 0; i < fc.size(); ++i)
+		{
+		uint reduced_code = fc[i];
+		if (old2new[reduced_code] == UINT_MAX)
+			old2new[reduced_code] = newcode++;
+		}
+	asserta(newcode == reducedAS);
+	for (uint i = 0; i < fc.size(); ++i)
+		{
+		uint reduced_code = fc[i];
+		fc[i] = old2new[reduced_code];
+		}
+	}
+
 void cmd_reduce_alphabet()
 	{
-	const string &logoddsfn = g_Arg1;
 	asserta(optset_alpha_size);
 	asserta(!optset_n);
-	const uint out_alpha_size = opt(alpha_size);
+
+	const string &logoddsfn = g_Arg1;
+	const uint reducedAS = opt(alpha_size);
+
+	vector<vector<uint> > fcvec;
+	vector<double> Hvec;
 
 	vector<double> logoddsmx, in_freqmx;
-	const uint in_alpha_size = 
+	const uint fullAS = 
 		read_logodds_and_freqmx(logoddsfn, logoddsmx, in_freqmx);
-	const uint AS2 = in_alpha_size*in_alpha_size;
+	asserta(fullAS <= 36);
+	const uint AS2 = fullAS*fullAS;
 	asserta(logoddsmx.size() == AS2);
 	asserta(in_freqmx.size() == AS2);
-	asserta(out_alpha_size < in_alpha_size);
+	asserta(reducedAS < fullAS);
+	asserta(fullAS <= 36);
 
-	vector<double> freqs(in_alpha_size);
+	SeqDB DB;
+	if (optset_input)
+		DB.FromFasta(opt(input));
+
+	vector<double> freqs(fullAS);
 	double sumfreqs = 0;
-	for (uint i = 0; i < in_alpha_size; ++i)
+	for (uint i = 0; i < fullAS; ++i)
 		{
 		double freq = 0;
-		for (uint j = 0; j < in_alpha_size; ++j)
-			freq += in_freqmx[in_alpha_size*i + j];
+		for (uint j = 0; j < fullAS; ++j)
+			freq += in_freqmx[fullAS*i + j];
 		freqs[i] = freq;
 		sumfreqs += freq;
 		}
 	asserta(sumfreqs > 0.99 && sumfreqs < 1.01);
 
 	vector<uint> fullcode2reducedcode;
-	for (uint i = 0; i < in_alpha_size; ++i)
+	for (uint i = 0; i < fullAS; ++i)
 		fullcode2reducedcode.push_back(i);
 
 	validate_map(fullcode2reducedcode);
 	double H = 0;
-	for (uint AS = in_alpha_size; AS > out_alpha_size; --AS)
+	for (uint AS = fullAS; AS > reducedAS; --AS)
 		{
 		uint best_i, best_j;
 		H = find_best_ij(in_freqmx,
@@ -314,8 +362,12 @@ void cmd_reduce_alphabet()
 	log_map(fullcode2reducedcode, H);
 
 	double bestH = H;
+	normalize_fc(fullcode2reducedcode);
 	double H2 = getH(in_freqmx, fullcode2reducedcode);
 	asserta(feq(H2, bestH));
+
+	fcvec.push_back(fullcode2reducedcode);
+	Hvec.push_back(bestH);
 
 	const uint ITERS = 10000;
 	vector<uint> fc;
@@ -324,6 +376,13 @@ void cmd_reduce_alphabet()
 		ProgressStep(iter, ITERS, "Perturbing");
 		peturb(fullcode2reducedcode, fc);
 		double H2 = getH(in_freqmx, fc);
+		normalize_fc(fc);
+		double H3 = getH(in_freqmx, fc);
+		asserta(feq(H2, H3));
+
+		fcvec.push_back(fc);
+		Hvec.push_back(H2);
+
 		if (H2 > bestH)
 			{
 			ProgressLog("|%5u| %6.4f <<<\n", iter, H2);
@@ -333,8 +392,8 @@ void cmd_reduce_alphabet()
 		}
 	log_map(fullcode2reducedcode, H);
 
-	for (uint i = 0; i < in_alpha_size; ++i)
-		fc[i] = randu32()%out_alpha_size;
+	for (uint i = 0; i < fullAS; ++i)
+		fc[i] = randu32()%reducedAS;
 
 	bestH = getH(in_freqmx, fc);
 	log_map(fc, bestH);
@@ -348,6 +407,10 @@ void cmd_reduce_alphabet()
 		ProgressStep(iter, ITERS_SHUFFLE, "Shuffle climb");
 		peturb(fullcode2reducedcode, fc);
 		double H2 = getH(in_freqmx, fc);
+
+		fcvec.push_back(fc);
+		Hvec.push_back(H2);
+
 		if (H2 > bestH)
 			{
 			ProgressLog("|%5u| %6.4f <<<\n", iter, H2);
@@ -356,4 +419,113 @@ void cmd_reduce_alphabet()
 			}
 		}
 	log_map(fullcode2reducedcode, H);
+
+	const size_t n = fcvec.size();
+	asserta(Hvec.size() == n);
+	vector<uint> order(n);
+#if 1
+	iota(order.begin(), order.end(), 0u);
+	sort(order.begin(), order.end(),
+		[&](unsigned a, unsigned b) {
+			return Hvec[a] > Hvec[b];
+		});
+#else
+	QuickSortOrderDesc(Hvec.data(), uint(n), order.data());
+#endif
+	uint topn = 10;
+	if (optset_topn)
+		topn = opt(topn);
+	if (topn > n)
+		topn = uint(n);
+
+	vector<vector<uint> > output_fcs;
+	vector<double> output_Hs;
+	double lastH = DBL_MAX;
+	for (size_t k = 0; k < n; ++k)
+		{
+		uint i = order[k];
+		if (s_donevec.size() >= topn)
+			break;
+		double H = Hvec[i];
+		asserta(H <= lastH);
+		lastH = H;
+		const vector<uint> &fc = fcvec[i];
+		bool isdone = check_isdone(fc);
+		if (!isdone)
+			{
+			output_fcs.push_back(fc);
+			output_Hs.push_back(H);
+			add_done(fc);
+			Log("top[%3u] = %.4f\n", uint(s_donevec.size()), H);
+			}
+		}
+
+	if (optset_output)
+		{
+		FILE *fout = CreateStdioFile(opt(output));
+
+		for (size_t i = 0; i < output_fcs.size(); ++i)
+			{
+			double H = output_Hs[i];
+			const vector<uint> &fc = output_fcs[i];
+			fprintf(fout, "%.4f", H);
+			add_done(fc);
+			for (uint full_code = 0; full_code < fullAS; ++full_code)
+				fprintf(fout, "\t%u", fc[full_code]);
+			vector<vector<uint> > inv;
+			invert_map(fc, inv);
+			asserta(inv.size() == reducedAS);
+			for (uint reduced_code = 0; reduced_code < reducedAS;
+				++reduced_code)
+				{
+				const vector<uint> &v = inv[reduced_code];
+				fprintf(fout, "\t(");
+				for (uint k = 0; k < v.size(); ++k)
+					{
+					if (k > 0)
+						fprintf(fout, ",");
+					fprintf(fout, "%u", v[k]);
+					}
+				fprintf(fout, ")");
+				}
+			fprintf(fout, "\n");
+			}
+		ProgressLog("%u written\n", uint(output_fcs.size()));
+		CloseStdioFile(fout);
+		}
+
+	if (optset_output2)
+		{
+		asserta(optset_input);
+		const uint nseq = DB.GetSeqCount();
+		DB.ToLetters(g_CharToLetterMu);
+		const string prefix = opt(output2);
+		for (size_t i = 0; i < output_fcs.size(); ++i)
+			{
+			string fafn;
+			char c = 'A' + uint8_t(i);
+			Ps(fafn, "%s%c%u", prefix.c_str(), c, reducedAS);
+			ProgressLog("%s\n", fafn.c_str());
+			FILE *f = CreateStdioFile(fafn);
+			double H = output_Hs[i];
+			const vector<uint> &fc = output_fcs[i];
+			for (uint seqidx = 0; seqidx < nseq; ++seqidx)
+				{
+				const byte *byteseq = DB.GetByteSeq(seqidx);
+				uint L = DB.GetSeqLength(seqidx);
+				const string &label = DB.GetLabel(seqidx);
+				string outseq;
+				for (uint pos = 0; pos < L; ++pos)
+					{
+					uint8_t full_code = byteseq[pos];
+					asserta(full_code < fullAS);
+					uint8_t reduced_code = fc[full_code];
+					char c = g_LetterToCharMu[reduced_code];
+					outseq += c;
+					}
+				SeqToFasta(f, label, outseq);
+				}
+			CloseStdioFile(f);
+			}
+		}
 	}
