@@ -564,6 +564,21 @@ void write_logoddsmx(FILE *f,
 		}
 	}
 
+void write_flat_logoddsmx(FILE *f,
+	const vector<float> &logoddsmx,
+	uint alpha_size,
+	bool asintegers)
+	{
+	vector<vector<double> > mx2d(alpha_size);
+	for (uint i = 0; i < alpha_size; ++i)
+		{
+		mx2d[i].resize(alpha_size, FLT_MAX);
+		for (uint j = 0; j < alpha_size; ++j)
+			mx2d[i][j] = logoddsmx[alpha_size*i + j];
+		}
+	write_logoddsmx(f, mx2d, asintegers);
+	}
+
 void cmd_flat_train_discrete()
 	{
 	asserta(optset_output);

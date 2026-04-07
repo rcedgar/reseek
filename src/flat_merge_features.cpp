@@ -6,6 +6,8 @@
 // with combined alphabet size <= 36
 void cmd_flat_merge_features()
 	{
+	asserta(!optset_mxpattern); // does not merge logodds
+
 	const string &feature_names_str = g_Arg1;
 	vector<string> feature_names;
 	Split(feature_names_str, feature_names, '+');
@@ -14,7 +16,6 @@ void cmd_flat_merge_features()
 	FILE *ffa = CreateStdioFile(opt(fasta));
 	FILE *fhexfa = CreateStdioFile(opt(hexfasta));
 	const string &fafnpattern = opt(fapattern);
-	const string &logoddsfnpattern = opt(mxpattern);
 
 	vector<string> fafns(nfeat);
 	vector<uint> alpha_sizes(nfeat);

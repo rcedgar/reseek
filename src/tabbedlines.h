@@ -84,6 +84,18 @@ public:
 		return v;
 		}
 
+	void put_float_flat_square_mx(uint n, const float *v)
+		{
+		for (uint i = 0; i < n; ++i)
+			{
+			string line;
+			Ps(line, "%u", i);
+			for (uint j = 0; j < n; ++j)
+				Psa(line, "\t%.4g", v[i*n + j]);
+			m_lines.push_back(line);
+			}
+		}
+
 	void get_float_flat_square_mx(uint n, float *v)
 		{
 		for (uint i = 0; i < n; ++i)

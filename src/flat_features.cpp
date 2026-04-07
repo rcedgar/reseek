@@ -21,6 +21,13 @@ void flat_features::init(const vector<string> &feature_names)
 		}
 	}
 
+void flat_features::logodds2lines(const vector<float> &logodds,
+	uint alpha_size, vector<string> &lines)
+	{
+	tabbedlines tl(lines);
+	tl.put_float_flat_square_mx(alpha_size, logodds.data());
+	}
+
 uint flat_features::lines2logoddsmx(
 	const vector<string> &lines,
 	vector<float> &logoddsmx)
@@ -32,6 +39,15 @@ uint flat_features::lines2logoddsmx(
 	logoddsmx.resize(alpha_size*alpha_size);
 	tl.get_float_flat_square_mx(alpha_size, logoddsmx.data());
 	return alpha_size;
+	}
+
+void flat_features::write_logodds(const string &fn,
+		const vector<float> &logodds, uint alpha_size)
+	{
+	vector<string> lines;
+	tabbedlines tl(lines);
+	tl.put_float_flat_square_mx(alpha_size, logodds.data());
+	tl.to_tsv(fn);
 	}
 
 uint flat_features::read_logodds(
@@ -365,4 +381,36 @@ float flat_features::get_compound_subst_score_slow(
 		score += logodds_row[code2s[fi]];
 		}
 	return score;
+	}
+
+void flat_features::get_compound_logodds_slow(vector<float> &logodds) const
+	{
+	uint compound_alpha_size = get_compound_alpha_size();
+	logodds.clear();
+	logodds.resize(compound_alpha_size*compound_alpha_size, FLT_MAX);
+	const uint nfeat = get_nfeat();
+	for (uint compound_code1 = 0; compound_code1 < compound_alpha_size;
+		++compound_code1)
+		{
+		for (uint compound_code2 = 0; compound_code2 < compound_alpha_size;
+			++compound_code2)
+			{
+			float score = get_compound_subst_score_slow(
+				compound_code1, compound_code2);
+			logodds[compound_code1*compound_alpha_size + compound_code2] = score;
+			}
+		}
+
+// check symmetry
+	for (uint compound_code1 = 0; compound_code1 < compound_alpha_size;
+		++compound_code1)
+		{
+		for (uint compound_code2 = 0; compound_code2 < compound_alpha_size;
+			++compound_code2)
+			{
+			float score12 = logodds[compound_code1*compound_alpha_size + compound_code2];
+			float score21 = logodds[compound_code2*compound_alpha_size + compound_code1];
+			asserta(feq(score12, score21));
+			}
+		}
 	}

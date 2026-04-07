@@ -86,11 +86,17 @@ public:
 	void set_symbolsvec();
 	void set_feature_block_offsets();
 
+	void get_compound_logodds_slow(vector<float> &logodds) const;
+
 public:
 	static void get_logodds_symbols(const float *logodds,
 		uint alpha_size, string &symbols);
 
 	static uint read_logodds(const string &fn, vector<float> &logodds);
+	static void write_logodds(const string &fn,
+		const vector<float> &logodds, uint alpha_size);
+	static void logodds2lines(const vector<float> &logodds,
+		uint alpha_size, vector<string> &lines);
 	static uint lines2logoddsmx(const vector<string> &lines,
 		vector<float> &logoddsmx);
 

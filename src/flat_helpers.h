@@ -114,6 +114,15 @@ uint read_logodds(
 	const string &fn,
 	vector<float> &logoddsmx);
 
+void write_logoddsmx(FILE *f,
+	const vector<vector<double> > &logoddsmx,
+	bool asintegers);
+
+void write_flat_logoddsmx(FILE *f,
+	const vector<float> &logoddsmx,
+	uint alpha_size,
+	bool asintegers);
+
 uint read_logodds_and_freqmx(
 	const string &fn,
 	vector<double> &logoddsmx,

@@ -107,11 +107,13 @@ C(entropy)
 C(entropy_greedy)
 C(train_fa2auc)
 C(flat_merge_features)
+C(flat_merge_logodds)
 C(fast_bench_hits)
 C(fast_bench_bits)
 C(fb_hits2bits)
 C(nu_threshold)
 C(mu_threshold)
 C(reduce_alphabet)
+C(mysegmask)
 
 #undef C
