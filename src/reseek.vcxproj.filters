@@ -707,6 +707,9 @@
     <ClCompile Include="flat_merge_logodds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kappa_mxdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

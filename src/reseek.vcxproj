@@ -334,6 +334,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="kappa_mxdata.cpp" />
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />

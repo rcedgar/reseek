@@ -208,6 +208,7 @@ FLAG_OPT(shuffle_profiles)
 FLAG_OPT(v2_8)
 FLAG_OPT(logmx)
 FLAG_OPT(scorefirst)
+FLAG_OPT(integers)
 
 #undef FLAG_OPT
 #undef UNS_OPT
