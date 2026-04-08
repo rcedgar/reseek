@@ -1,14 +1,16 @@
 #include "myutils.h"
 #include "dssparams.h"
-#include "prefiltermu.h"
-#include "prefiltermuparams.h"
+#include "prefilter_kappa.h"
+#include "kappa_mermx.h"
+#include "kappa_dex.h"
+#include "kappa_prefilter_params.h"
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
-static const MerMx *s_ptrScoreMx;
+static const kappa_mermx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const SeqDB *s_ptrTDB = 0;
-static const MuDex *s_ptrQKmerIndex = 0;
+static const kappa_dex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static time_t s_TimeLastProgress;
 
@@ -16,7 +18,7 @@ static void ThreadBody(uint ThreadIndex)
 	{
 	const uint TSeqCount = s_ptrTDB->GetSeqCount();
 
-	PrefilterMu Pref;
+	prefilter_kappa Pref;
 	Pref.m_ScoreMx = s_ptrScoreMx;
 	Pref.m_QKmerIndex = s_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
@@ -47,9 +49,9 @@ static void ThreadBody(uint ThreadIndex)
 		}
 	}
 
-void cmd_prefilter_mu()
+void cmd_prefilter_kappa()
 	{
-	const uint k = MuDex::m_k;
+	const uint k = kappa_dex::m_k;
 
 	const string &QueryMu_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
@@ -65,13 +67,14 @@ void cmd_prefilter_mu()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
-	PrefilterMu::m_RSB.Init(QSeqCount);
+	prefilter_kappa::m_RSB.m_B = DSSParams::m_rsb_size;
+	prefilter_kappa::m_RSB.Init(QSeqCount);
 
-	const MerMx &ScoreMx = GetMuMerMx(k);
+	const kappa_mermx &GetKappaMerMx(uint k);
+	const kappa_mermx &ScoreMx = GetKappaMerMx(k);
 	asserta(ScoreMx.m_k == k);
 
-	MuDex QKmerIndex;
+	kappa_dex QKmerIndex;
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
 	QKmerIndex.FromSeqDB(QDB);
@@ -79,7 +82,7 @@ void cmd_prefilter_mu()
 	QKmerIndex.Validate();
 #endif
 	asserta(QKmerIndex.m_k == k);
-	asserta(QKmerIndex.m_DictSize == PREFILTER_KMER_DICT_SIZE);
+	asserta(QKmerIndex.m_DictSize == KAPPA_PREFILTER_KMER_DICT_SIZE);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
 	s_ptrQDB = &QDB;
@@ -111,7 +114,7 @@ void cmd_prefilter_mu()
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));
-	PrefilterMu::m_RSB.ToTsv(fTsv);
+	prefilter_kappa::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
 	}
 
@@ -127,7 +130,7 @@ void cmd_prefilter_mu()
 
 		FILE *f = CreateStdioFile(opt(output2));
 		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
-			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
+			prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
 		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
 		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
 			{
@@ -157,7 +160,7 @@ void cmd_prefilter_mu()
 		for (uint i = 0; i < TSeqCount; ++i)
 			TLabels.push_back(TDB.GetLabel(i));
 		FILE *fTsv = CreateStdioFile(opt(output3));
-		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+		prefilter_kappa::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
 		}
 	}

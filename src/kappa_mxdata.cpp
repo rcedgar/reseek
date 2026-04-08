@@ -1,6 +1,18 @@
 #include "myutils.h"
+#include "kappa_mermx.h"
 
-const int logodds[1024] = {
+/***
+$src/2025-10_reseek_tune [f31f3ea]
+reseek [c04b808]
+	-flat_merge_logodds aa4=5.61E-01;pm2=2.94E-01;redsecO4=1.45E-01; \
+	-mxpattern ../ff_logodds/@.logodds \
+	-log flat_merge_logodds.log \
+	-integers \
+	-scalef 10 \
+	-output merge.logodds \
+	-output2 merge.cpp // << C++ source below
+***/
+extern const int16_t kappa32_flat_logodds[1024] = {
 19,2,1,-6,13,-3,-4,-11,11,-6,-7,-14,5,-11,-13,-19,15,-1,-3,-9,9,-7,-8,-15,16,-1,-2,-9,10,-6,-7,-14,
 2,7,3,1,-3,2,-3,-5,-6,-1,-5,-7,-11,-6,-11,-13,-1,4,-1,-3,-7,-2,-7,-9,-1,4,0,-2,-6,-1,-6,-8,
 1,3,8,-4,-4,-3,3,-10,-7,-5,0,-12,-13,-11,-6,-18,-3,-1,4,-8,-8,-7,-1,-14,-2,0,5,-7,-7,-6,0,-13,
@@ -33,3 +45,25 @@ const int logodds[1024] = {
 -6,-1,-6,-8,-1,4,0,-2,-6,-1,-5,-7,0,5,0,-2,-13,-8,-12,-14,-7,-2,-7,-9,-3,2,-3,-5,3,8,3,1,
 -7,-6,0,-13,-2,0,5,-7,-7,-5,0,-12,-1,0,6,-7,-14,-12,-7,-19,-8,-7,-1,-14,-4,-3,3,-10,1,3,8,-4,
 -14,-8,-13,1,-9,-2,-7,7,-14,-7,-12,2,-8,-2,-7,7,-21,-14,-19,-5,-15,-9,-14,0,-11,-5,-10,4,-5,1,-4,10};
+
+static kappa_mermx *s_ptrkappaMerMx = 0;
+
+const kappa_mermx &GetKappaMerMx(uint k)
+	{
+	if (s_ptrkappaMerMx != 0)
+		return *s_ptrkappaMerMx;
+	s_ptrkappaMerMx = new kappa_mermx;
+
+	const uint AS = 32;
+
+	short **MxPtrs = myalloc(short *, AS);
+	for (uint i = 0; i < AS; ++i)
+		{
+		short *Row = myalloc(short, AS);
+		for (uint j = 0; j < AS; ++j)
+			Row[j] = kappa32_flat_logodds[i*AS + j];
+		MxPtrs[i] = Row;
+		}
+	(*s_ptrkappaMerMx).Init(MxPtrs, k, AS, 2);
+	return *s_ptrkappaMerMx;
+	}

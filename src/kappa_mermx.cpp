@@ -1,17 +1,17 @@
 #include "myutils.h"
-#include "mermx.h"
+#include "kappa_mermx.h"
 #include "alpha.h"
 #include "sort.h"
-#include "prefiltermuparams.h"
+#include "kappa_prefilter_params.h"
 #include "dssparams.h"
 #include "quarts.h"
 
 static mutex g_Lock;
 static int64 g_HoodCallCount;
 
-const MerMx &GetMuMerMx(uint k);
+const kappa_mermx &GetKappaMerMx(uint k);
 
-void MerMx::KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const
+void kappa_mermx::KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const
 	{
 	Letters.clear();
 	for (uint i = 0; i < k; ++i)
@@ -22,7 +22,7 @@ void MerMx::KmerToLetters(uint Kmer, uint k, vector<byte> &Letters) const
 		}
 	}
 
-uint MerMx::StrToKmer(const string &s) const
+uint kappa_mermx::StrToKmer(const string &s) const
 	{
 	uint k = SIZE(s);
 	uint Kmer = 0;
@@ -38,7 +38,7 @@ uint MerMx::StrToKmer(const string &s) const
 	return Kmer;
 	}
 
-const char *MerMx::KmerToStr(uint Kmer, uint k, string &s) const
+const char *kappa_mermx::KmerToStr(uint Kmer, uint k, string &s) const
 	{
 	s.clear();
 	for (uint i = 0; i < k; ++i)
@@ -51,7 +51,7 @@ const char *MerMx::KmerToStr(uint Kmer, uint k, string &s) const
 	return s.c_str();
 	}
 
-int MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
+int kappa_mermx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
@@ -69,7 +69,7 @@ int MerMx::GetScoreKmerPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return sum;
 	}
 
-uint MerMx::GetMaxLetterCount(uint Kmer) const
+uint kappa_mermx::GetMaxLetterCount(uint Kmer) const
 	{
 	uint Counts[36];
 	zero_array(Counts, 36);
@@ -84,7 +84,7 @@ uint MerMx::GetMaxLetterCount(uint Kmer) const
 	return maxn;
 	}
 	
-short MerMx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
+short kappa_mermx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
@@ -120,7 +120,7 @@ short MerMx::GetScore2merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-int16_t MerMx::GetSelfScore6mer(uint Kmer) const
+int16_t kappa_mermx::GetSelfScore6mer(uint Kmer) const
 	{
 	assert(Kmer < m_AS_pow[6]);
 
@@ -138,7 +138,7 @@ int16_t MerMx::GetSelfScore6mer(uint Kmer) const
 	return Score16;
 	}
 
-int16_t MerMx::GetSelfScore5mer(uint Kmer) const
+int16_t kappa_mermx::GetSelfScore5mer(uint Kmer) const
 	{
 	int16_t Score16 = 0;
 	assert(m_k == 5);
@@ -151,7 +151,7 @@ int16_t MerMx::GetSelfScore5mer(uint Kmer) const
 	return Score16;
 	}
 
-int16_t MerMx::GetSelfScoreKmer(uint Kmer) const
+int16_t kappa_mermx::GetSelfScoreKmer(uint Kmer) const
 	{
 	int16_t Score16 = 0;
 	for (uint i = 0; i < m_k; ++i)
@@ -163,7 +163,7 @@ int16_t MerMx::GetSelfScoreKmer(uint Kmer) const
 	return Score16;
 	}
 
-short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
+short kappa_mermx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	{
 	uint Kmer_i = a_Kmer_i;
 	uint Kmer_j = a_Kmer_j;
@@ -214,7 +214,7 @@ short MerMx::GetScore3merPair(uint a_Kmer_i, uint a_Kmer_j) const
 	return Score;
 	}
 
-void MerMx::Init(const short * const *Mx, uint k, uint AS, uint n)
+void kappa_mermx::Init(const short * const *Mx, uint k, uint AS, uint n)
 	{
 	asserta(n == 2 || n == 3);
 	asserta(k > 1 && k < 8);
@@ -224,13 +224,13 @@ void MerMx::Init(const short * const *Mx, uint k, uint AS, uint n)
 		m_CharToLetter = g_CharToLetterAmino;
 		m_LetterToChar = g_LetterToCharAmino;
 		}
-	else if (AS == 36)
+	else if (AS == 32)
 		{
 		m_CharToLetter = g_CharToLetterMu;
 		m_LetterToChar = g_LetterToCharMu;
 		}
 	else
-		Die("MerMx::Init() AS=%d", AS);
+		Die("kappa_mermx::Init() AS=%d", AS);
 	m_Mx = Mx;
 	m_AS = AS;
 	m_AS2 = AS*AS;
@@ -287,7 +287,7 @@ void MerMx::Init(const short * const *Mx, uint k, uint AS, uint n)
 		}
 	}
 
-void MerMx::BuildRow1(uint Letter_i)
+void kappa_mermx::BuildRow1(uint Letter_i)
 	{
 	QuickSortOrderDesc<short>(m_Mx[Letter_i], m_AS, m_Order);
 	short LastScore = SHRT_MAX;
@@ -302,7 +302,7 @@ void MerMx::BuildRow1(uint Letter_i)
 		}
 	}
 
-void MerMx::BuildRow2(uint Kmer_i)
+void kappa_mermx::BuildRow2(uint Kmer_i)
 	{
 	vector<short> Scores;
 	Scores.reserve(m_AS2);
@@ -330,7 +330,7 @@ void MerMx::BuildRow2(uint Kmer_i)
 		}
 	}
 
-void MerMx::BuildRow3(uint Kmer_i)
+void kappa_mermx::BuildRow3(uint Kmer_i)
 	{
 	vector<short> Scores;
 	Scores.reserve(m_AS3);
@@ -358,7 +358,7 @@ void MerMx::BuildRow3(uint Kmer_i)
 		}
 	}
 
-void MerMx::LogMe() const
+void kappa_mermx::LogMe() const
 	{
 	Log("AS %u, AS2 %u, AS3 %u\n", m_AS, m_AS2, m_AS3);
 
@@ -425,7 +425,7 @@ void MerMx::LogMe() const
 		}
 	}
 
-uint MerMx::GetSubmer(uint a_Kmer, uint pos, uint s) const
+uint kappa_mermx::GetSubmer(uint a_Kmer, uint pos, uint s) const
 	{
 	string Tmp, Tmp1, Tmp2;
 	assert(pos + s <= m_k);
@@ -435,7 +435,7 @@ uint MerMx::GetSubmer(uint a_Kmer, uint pos, uint s) const
 	return Smer;
 	}
 
-short MerMx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
+short kappa_mermx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
 	{
 	uint Smer = GetSubmer(Kmer, pos, s);
 	if (s == 1)
@@ -458,7 +458,7 @@ short MerMx::GetMaxPairScoreSubmer(uint Kmer, uint pos, uint s) const
 	return 0;
 	}
 
-uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) const
+uint kappa_mermx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) const
 	{
 //  Query 5-mer is ABCDE
 //  Neigbor 5-mer is abcde
@@ -556,11 +556,11 @@ uint MerMx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers) cons
 				}
 			}
 		}
-	asserta(n <= PREFILTER_KMER_DICT_SIZE);
+	asserta(n <= KAPPA_PREFILTER_KMER_DICT_SIZE);
 	return n;
 	}
 
-uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) const
+uint kappa_mermx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) const
 	{
 	const uint First_3mera = GetSubmer(Sixmera, 0, 3);
 	const uint Second_3mera = GetSubmer(Sixmera, 3, 3);
@@ -590,7 +590,7 @@ uint MerMx::GetHighScoring6mers(uint Sixmera, short MinScore, uint *Sixmers) con
 	return n;
 	}
 
-uint MerMx::GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const
+uint kappa_mermx::GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const
 	{
 	g_Lock.lock();
 	++g_HoodCallCount;
@@ -605,7 +605,7 @@ uint MerMx::GetHighScoringKmers(uint Kmer, short MinScore, uint *Kmers) const
 	return UINT_MAX;
 	}
 
-uint MerMx::GetHighScoring4mers(uint Fourmera, short MinScore, uint *Fourmers) const
+uint kappa_mermx::GetHighScoring4mers(uint Fourmera, short MinScore, uint *Fourmers) const
 	{
 	const uint First_2mera = GetSubmer(Fourmera, 0, 2);
 	const uint Second_2mera = GetSubmer(Fourmera, 2, 2);
@@ -635,7 +635,7 @@ uint MerMx::GetHighScoring4mers(uint Fourmera, short MinScore, uint *Fourmers) c
 	return n;
 	}
 
-uint MerMx::GetHighScoring5mers_Brute(uint Fivemer, short MinScore, uint *Fivemers,
+uint kappa_mermx::GetHighScoring5mers_Brute(uint Fivemer, short MinScore, uint *Fivemers,
 									  bool Trace) const
 	{
 	uint n = 0;
@@ -658,7 +658,7 @@ uint MerMx::GetHighScoring5mers_Brute(uint Fivemer, short MinScore, uint *Fiveme
 	return n;
 	}
 
-uint MerMx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers,
+uint kappa_mermx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers,
 									  bool Trace) const
 	{
 	uint n = 0;
@@ -681,7 +681,7 @@ uint MerMx::GetHighScoring6mers_Brute(uint Sixmer, short MinScore, uint *Sixmers
 	return n;
 	}
 
-int16_t *MerMx::BuildSelfScores6mers() const
+int16_t *kappa_mermx::BuildSelfScores6mers() const
 	{
 	const uint AS6 = m_AS_pow[6];
 	int16_t *SelfScores = myalloc(int16_t, AS6);
@@ -690,7 +690,7 @@ int16_t *MerMx::BuildSelfScores6mers() const
 	return SelfScores;
 	}
 
-int16_t *MerMx::BuildSelfScores5mers() const
+int16_t *kappa_mermx::BuildSelfScores5mers() const
 	{
 	const uint AS5 = m_AS_pow[5];
 	int16_t *SelfScores = myalloc(int16_t, AS5);
@@ -699,7 +699,7 @@ int16_t *MerMx::BuildSelfScores5mers() const
 	return SelfScores;
 	}
 
-int16_t *MerMx::BuildSelfScores_Kmers() const
+int16_t *kappa_mermx::BuildSelfScores_Kmers() const
 	{
 	const uint ASk = m_AS_pow[m_k];
 	int16_t *SelfScores = myalloc(int16_t, ASk);
@@ -711,24 +711,67 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
 #define LOW_COMPLEXITY 0
 
 /***
+__________  Mu_____________________________
      60.5M  dict size
        92G  Total size of all neighborhoods
       1.2M  Kmers with low self score (1.9%)
      41.3k  Max size 'BBBBB' (41293)
       1521  Mean
        690  Median
+
+__________  Kappa__________________________
+DSSParams::m_PrefilterMinKappaKmerPairScore()=55
+     33.6M  KAPPA_PREFILTER_KMER_DICT_SIZE
+       23G  Total size of all neighborhoods
+     12.8M  Kmers with low self score (38.2%)
+     83.9k  Max size 'YYYYY' (83940)
+      1121  Mean
+       120  Median
+
+DSSParams::m_PrefilterMinKappaKmerPairScore()=54
+     33.6M  KAPPA_PREFILTER_KMER_DICT_SIZE
+       29G  Total size of all neighborhoods
+     10.9M  Kmers with low self score (32.4%)
+     96.0k  Max size 'YYYYY' (96025)
+      1278  Mean
+       139  Median
+
+DSSParams::m_PrefilterMinKappaKmerPairScore()=53
+     33.6M  KAPPA_PREFILTER_KMER_DICT_SIZE
+       36G  Total size of all neighborhoods
+      9.5M  Kmers with low self score (28.2%)
+    110.2k  Max size 'YYYYY' (110250)
+      1480  Mean
+       153  Median
+
+DSSParams::m_PrefilterMinKappaKmerPairScore()=52
+     33.6M  KAPPA_PREFILTER_KMER_DICT_SIZE
+       44G  Total size of all neighborhoods
+      8.6M  Kmers with low self score (25.5%)
+    125.0k  Max size 'YYYYY' (124955)
+      1753  Mean
+        47  Median
+
+DSSParams::m_PrefilterMinKappaKmerPairScore()=48
+     33.6M  KAPPA_PREFILTER_KMER_DICT_SIZE
+       98G  Total size of all neighborhoods
+      6.8M  Kmers with low self score (20.3%)
+    205.4k  Max size 'YYYYY' (205351)
+      3656  Mean
+       133  Median
 ***/
-void cmd_kmrnbh()
+
+void cmd_kappa_kmrnbh()
 	{
-	const MerMx &ScoreMx = GetMuMerMx(5);
-	uint *Kmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
-	uint MinScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
+	const kappa_mermx &ScoreMx = GetKappaMerMx(5);
+	uint *Kmers = myalloc(uint, KAPPA_PREFILTER_KMER_DICT_SIZE);
+	uint MinScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
 	uint64 Sumn = 0;
 	uint Maxn = 0;
 	uint MaxKmer = UINT_MAX;
-	const uint N = PREFILTER_KMER_DICT_SIZE;
+	const uint N = KAPPA_PREFILTER_KMER_DICT_SIZE;
 	vector<float> Sizes;
-	Sizes.reserve(PREFILTER_KMER_DICT_SIZE);
+	Sizes.reserve(KAPPA_PREFILTER_KMER_DICT_SIZE);
 	uint M = 0;
 	uint LowSelfScore = 0;
 #if LOW_COMPLEXITY
@@ -736,7 +779,7 @@ void cmd_kmrnbh()
 #endif
 	for (uint Kmer = 0; Kmer < N; ++Kmer)
 		{
-		ProgressStep(Kmer, PREFILTER_KMER_DICT_SIZE, "Neighborhood");
+		ProgressStep(Kmer, KAPPA_PREFILTER_KMER_DICT_SIZE, "Neighborhood");
 #if LOW_COMPLEXITY
 		uint mlc = ScoreMx.GetMaxLetterCount(Kmer);
 		if (mlc >= 3)
@@ -749,7 +792,7 @@ void cmd_kmrnbh()
 		if (n == 0)
 			{
 			short SelfScore = ScoreMx.GetScoreKmerPair(Kmer, Kmer);
-			asserta(SelfScore < DSSParams::m_PrefilterMinMuKmerPairScore);
+			asserta(SelfScore < DSSParams::m_PrefilterMinKappaKmerPairScore);
 			++LowSelfScore;
 			continue;
 			}
@@ -766,8 +809,11 @@ void cmd_kmrnbh()
 	QuartsFloat Q;
 	GetQuartsFloat(Sizes, Q);
 
+	ProgressLog("DSSParams::m_PrefilterMinKappaKmerPairScore()=%d\n",
+		DSSParams::m_PrefilterMinKappaKmerPairScore);
+
 	string TmpStr;
-	ProgressLog("%10.10s  PREFILTER_KMER_DICT_SIZE\n", IntToStr(PREFILTER_KMER_DICT_SIZE));
+	ProgressLog("%10.10s  KAPPA_PREFILTER_KMER_DICT_SIZE\n", IntToStr(KAPPA_PREFILTER_KMER_DICT_SIZE));
 
 	ProgressLog("%10.10s  Total size of all neighborhoods\n",
 				Int64ToStr(Sumn));

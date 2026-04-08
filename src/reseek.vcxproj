@@ -280,6 +280,7 @@
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="bitdope.cpp" />
+    <ClCompile Include="cmd_prefilterkappa.cpp" />
     <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fan.cpp" />
@@ -334,6 +335,8 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="kappa_dex.cpp" />
+    <ClCompile Include="kappa_mermx.cpp" />
     <ClCompile Include="kappa_mxdata.cpp" />
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="makebags.cpp" />
@@ -369,6 +372,7 @@
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="postmufilter_alternate.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
+    <ClCompile Include="prefilter_kappa.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
     <ClCompile Include="pwalndb.cpp" />
@@ -554,6 +558,9 @@
     <ClInclude Include="flat_type_names.h" />
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="hexintseq.h" />
+    <ClInclude Include="kappa_dex.h" />
+    <ClInclude Include="kappa_mermx.h" />
+    <ClInclude Include="kappa_prefilter_params.h" />
     <ClInclude Include="letteralndb.h" />
     <ClInclude Include="logmxptr.h" />
     <ClInclude Include="lookup.h" />

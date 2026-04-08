@@ -1,39 +1,39 @@
 #include "myutils.h"
 #include "alpha.h"
-#include "mudex.h"
-#include "mermx.h"
+#include "kappa_dex.h"
+#include "kappa_mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
-#include "prefiltermuparams.h"
+#include "kappa_prefilter_params.h"
 #include "dssparams.h"
 #include "binner.h"
 
 const MerMx &GetMuMerMx(uint k);
 
-const uint8_t *MuDex::m_Offsets = PREFILTER_KMER_ONES_OFFSETS;
-const uint32_t MuDex::m_DictSize = PREFILTER_KMER_DICT_SIZE; // 36^5 = 60466176 (60.4 M)
-const uint32_t MuDex::m_k = PREFILTER_KMER_NR_ONES;
-const uint32_t MuDex::m_K = PREFILTER_KMER_WIDTH;
+const uint8_t *kappa_dex::m_Offsets = KAPPA_PREFILTER_KMER_ONES_OFFSETS;
+const uint32_t kappa_dex::m_DictSize = KAPPA_PREFILTER_KMER_DICT_SIZE; // KAPPA_AS^5 = 33554432 (33.6M)
+const uint32_t kappa_dex::m_k = KAPPA_PREFILTER_KMER_NR_ONES;
+const uint32_t kappa_dex::m_K = KAPPA_PREFILTER_KMER_WIDTH;
 
 /***
-32 bits 2^5, 64 bits 2^6
+KAPPA_AS bits 2^5, 64 bits 2^6
 5 bits per aa letter
 6 bits per Mu letter
 8 bits per char
 ***/
-const uint32_t MuDex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
+const uint32_t kappa_dex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 #define TRACE	0
 
-void MuDex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
+void kappa_dex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
 	{
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	{
 	for (uint i = 0; i < L; ++i)
 		{
 		uint Letter = Seq[i];
-		if (Letter >= 36)
-			Die("MuDex::SetSeq(SeqIdx=%u, %s) Pos=%u, L=%u, Mu letter=%u",
+		if (Letter >= KAPPA_AS)
+			Die("kappa_dex::SetSeq(SeqIdx=%u, %s) Pos=%u, L=%u, Mu letter=%u",
 				SeqIdx, Label, i, L, Letter);
 		}
 	}
@@ -48,93 +48,93 @@ void MuDex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
 #endif
 	}
 
-uint MuDex::StrToKmer(const string &s) const
+uint kappa_dex::StrToKmer(const string &s) const
 	{
 	assert(SIZE(s) == m_k);
 	return StrToKmer(s.c_str());
 	}
 
-uint MuDex::BytesToKmer(const byte *s) const
+uint kappa_dex::BytesToKmer(const byte *s) const
 	{
 	uint Kmer = 0;
 	for (uint i = 0; i < m_k; ++i)
 		{
 		byte Letter = s[m_Offsets[i]];
-		Kmer = Kmer*36 + Letter;
+		Kmer = Kmer*KAPPA_AS + Letter;
 		}
 	return Kmer;
 	}
 
-uint MuDex::StrToKmer(const char *s) const
+uint kappa_dex::StrToKmer(const char *s) const
 	{
 	uint Kmer = 0;
 	for (uint i = 0; i < m_k; ++i)
 		{
-		Kmer *= 36;
+		Kmer *= KAPPA_AS;
 		byte c = s[i];
 		uint Letter = g_CharToLetterMu[c];
-		asserta(Letter < 36);
+		asserta(Letter < KAPPA_AS);
 		Kmer += Letter;
 		}
 	return Kmer;
 	}
 
-uint MuDex::GetKmerMaxLetterCount(uint Kmer)
+uint kappa_dex::GetKmerMaxLetterCount(uint Kmer)
 	{
-	uint8_t KmerLetterCounts[36];
-	memset((void *) KmerLetterCounts, 0, 36);
+	uint8_t KmerLetterCounts[KAPPA_AS];
+	memset((void *) KmerLetterCounts, 0, KAPPA_AS);
 	for (uint i = 0; i < m_k; ++i)
 		{
-		byte Letter = Kmer%36;
+		byte Letter = Kmer%KAPPA_AS;
 		KmerLetterCounts[Letter] += 1;
-		Kmer /= 36;
+		Kmer /= KAPPA_AS;
 		}
 
 	uint8_t maxn = 1;
-	for (uint Letter = 0; Letter < 36; ++Letter)
+	for (uint Letter = 0; Letter < KAPPA_AS; ++Letter)
 		maxn = max(maxn, KmerLetterCounts[Letter]);
 	return maxn;
 	}
 
-const char *MuDex::KmerToStr(uint Kmer, string &s) const
+const char *kappa_dex::KmerToStr(uint Kmer, string &s) const
 	{
 	s.clear();
 	for (uint i = 0; i < m_k; ++i)
 		{
-		byte Letter = Kmer%36;
+		byte Letter = Kmer%KAPPA_AS;
 		s.push_back(g_LetterToCharMu[Letter]);
-		Kmer /= 36;
+		Kmer /= KAPPA_AS;
 		}
 	reverse(s.begin(), s.end());
 	return s.c_str();
 	}
 
-void MuDex::Alloc_Pass1()
+void kappa_dex::Alloc_Pass1()
 	{
 	if (m_AddNeighborhood && m_NeighborKmers == 0)
-		m_NeighborKmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
+		m_NeighborKmers = myalloc(uint, KAPPA_PREFILTER_KMER_DICT_SIZE);
 
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
 	m_Finger = myalloc(uint32_t, m_DictSize + 2);
 	zero_array(m_Finger, m_DictSize+2);
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	m_KmerToCount1.resize(m_DictSize, 0);
 #endif
 	}
 
-void MuDex::Alloc_Pass2()
+void kappa_dex::Alloc_Pass2()
 	{
 // 6 bytes for uint32_t:uint16_t (SeqIdx:Pos)
 	const uint64_t Bytes = uint64(m_ItemSize)*m_Size;
 	m_Data = myalloc64(uint8_t, Bytes);
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	m_KmerToCount2.resize(m_DictSize, 0);
 	memset(m_Data, 0xff, Bytes);
 #endif
 	}
 
-void  MuDex::AddSeq_Pass1()
+void  kappa_dex::AddSeq_Pass1()
 	{
 #if TRACE
 	string Tmp;
@@ -157,7 +157,7 @@ void  MuDex::AddSeq_Pass1()
 		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 		++m_Size;
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
@@ -174,12 +174,12 @@ void  MuDex::AddSeq_Pass1()
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < PREFILTER_KMER_DICT_SIZE);
+				asserta(NeighborKmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
 				asserta(m_Size < UINT_MAX);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
 				++m_Size;
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 				m_KmerToCount1[NeighborKmer] += 1;
 #endif
 				}
@@ -187,7 +187,7 @@ void  MuDex::AddSeq_Pass1()
 		}
 	}
 
-void MuDex::AddSeq_Pass2()
+void kappa_dex::AddSeq_Pass2()
 	{
 #if TRACE
 	string Tmp;
@@ -208,7 +208,7 @@ void MuDex::AddSeq_Pass2()
 		Put(DataOffset, m_SeqIdx, SeqPos);
 		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
 		m_KmerToCount2[Kmer] += 1;
 #endif
@@ -223,12 +223,12 @@ void MuDex::AddSeq_Pass2()
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < PREFILTER_KMER_DICT_SIZE);
+				asserta(NeighborKmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
 				uint DataOffset = m_Finger[NeighborKmer+1];
 				Put(DataOffset, m_SeqIdx, SeqPos);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 				assert(m_KmerToDataStart[NeighborKmer] + 
 					   m_KmerToCount2[NeighborKmer] == DataOffset);
 				m_KmerToCount2[NeighborKmer] += 1;
@@ -238,7 +238,7 @@ void MuDex::AddSeq_Pass2()
 		}
 	}
 
-void MuDex::LogStats() const
+void kappa_dex::LogStats() const
 	{
 	vector<uint> RowSizes;
 	uint Sum = 0;
@@ -255,8 +255,8 @@ void MuDex::LogStats() const
 	Log("Total = %u (%s)\n", Sum, IntToStr(Sum));
 	}
 
-#if MU_DEBUG_CHECKS
-void MuDex::CheckAfterPass1() const
+#if DEBUG_CHECKS
+void kappa_dex::CheckAfterPass1() const
 	{
 	uint Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
@@ -275,7 +275,7 @@ void MuDex::CheckAfterPass1() const
 	ProgressLog("CheckAfterPass1 OK\n");
 	}
 
-void MuDex::CheckAfterAdjust() const
+void kappa_dex::CheckAfterAdjust() const
 	{
 	assert(m_Finger[m_DictSize+1] == m_Size);
 	uint Check_Size = 0;
@@ -295,7 +295,7 @@ void MuDex::CheckAfterAdjust() const
 	ProgressLog("CheckAfterAdjust OK\n");
 	}
 
-void MuDex::CheckAfterPass2() const
+void kappa_dex::CheckAfterPass2() const
 	{
 	uint Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
@@ -316,12 +316,12 @@ void MuDex::CheckAfterPass2() const
 	}
 #endif
 
-void MuDex::AdjustFinger()
+void kappa_dex::AdjustFinger()
 	{
 	uint Sum = 0;
 	for (uint Kmer = 0; Kmer <= m_DictSize; ++Kmer)
 		{
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 		m_KmerToDataStart.push_back(Sum);
 #endif
 		uint Kmer_Size = m_Finger[Kmer+1];
@@ -332,13 +332,13 @@ void MuDex::AdjustFinger()
 	asserta(Sum == m_Size);
 	}
 
-void MuDex::Validate() const
+void kappa_dex::Validate() const
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		ValidateKmer(Kmer);
 	}
 
-void MuDex::LogIndexKmer(uint Kmer) const
+void kappa_dex::LogIndexKmer(uint Kmer) const
 	{
 	uint n = GetRowSize(Kmer);
 	string Tmp;
@@ -357,7 +357,7 @@ void MuDex::LogIndexKmer(uint Kmer) const
 	Log("\n");
 	}
 
-void MuDex::ValidateKmer(uint Kmer) const
+void kappa_dex::ValidateKmer(uint Kmer) const
 	{
 	const uint QSeqCount = m_SeqDB->GetSeqCount();
 	uint n = GetRowSize(Kmer);
@@ -374,7 +374,7 @@ void MuDex::ValidateKmer(uint Kmer) const
 			Log("m_Finger[0x%x] = %u\n", Kmer, m_Finger[Kmer]);
 			Log("i=%u n=%u\n", i, n);
 			Log("QSeqIdx=%u, SeqPos=%u\n", SeqIdx, SeqPos);
-			Die("MuDex::ValidateKmer(Kmer=0x%x)", Kmer);
+			Die("kappa_dex::ValidateKmer(Kmer=0x%x)", Kmer);
 			}
 		uint QL = m_SeqDB->GetSeqLength(SeqIdx);
 		asserta(SeqPos < QL);
@@ -387,7 +387,7 @@ void MuDex::ValidateKmer(uint Kmer) const
 		}
 	}
 
-uint MuDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
+uint kappa_dex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	{
 	uint Kmer = BytesToKmer(Seq + SeqPos);
 	if (SelfScoreMask && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
@@ -395,7 +395,7 @@ uint MuDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	return Kmer;
 	}
 
-void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mers
+void kappa_dex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mers
 	{
 	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
@@ -405,26 +405,26 @@ void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mer
 	Alloc_Pass1();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
-		ProgressStep(SeqIdx, SeqCount, "MuDex pass 1");
+		ProgressStep(SeqIdx, SeqCount, "kappa_dex pass 1");
 		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
 		SetSeq(SeqIdx, Label, Seq, L);
 		AddSeq_Pass1();
 		}
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	CheckAfterPass1();
 #endif
 
 	AdjustFinger();
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	CheckAfterAdjust();
 #endif
 
 	Alloc_Pass2();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
-		ProgressStep(SeqIdx, SeqCount, "MuDex pass 2");
+		ProgressStep(SeqIdx, SeqCount, "kappa_dex pass 2");
 		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
@@ -432,11 +432,11 @@ void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mer
 		AddSeq_Pass2();
 		}
 	SetRowSizes();
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	CheckAfterPass2();
 #endif
 
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
@@ -453,7 +453,7 @@ void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mer
 #endif
 	}
 
-void MuDex::SetRowSizes()
+void kappa_dex::SetRowSizes()
 	{
 	//m_RowSizes = myalloc(uint16_t, m_DictSize);
 	m_RowSizes = myalloc(uint32_t, m_DictSize);
@@ -467,14 +467,14 @@ void MuDex::SetRowSizes()
 		}
 	}
 
-void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
+void kappa_dex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	{
 	assert(DataOffset < m_Size);
 	uint64 Bytes64 = uint64(m_ItemSize)*uint64(DataOffset);
 	uint8_t *ptr = m_Data + Bytes64;
 	*(uint32_t *) ptr = SeqIdx;
 	*(uint16_t *) (ptr + 4) = SeqPos;
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 	{
 	uint32_t Check_SeqIdx;
 	uint16_t Check_SeqPos;
@@ -485,14 +485,14 @@ void MuDex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 #endif
 	}
 
-void MuDex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
+void kappa_dex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 	{
 	const uint8_t *ptr = m_Data + m_ItemSize*uint64(DataOffset);
 	SeqIdx = *(uint32_t *) ptr;
 	SeqPos = *(uint16_t *) (ptr + 4);
 	}
 
-void MuDex::GetKmersAndSizes(const byte *Seq, uint L,
+void kappa_dex::GetKmersAndSizes(const byte *Seq, uint L,
 							 vector<uint> &Kmers, vector<uint> &Sizes) const
 	{
 	Kmers.reserve(L);
@@ -505,9 +505,9 @@ void MuDex::GetKmersAndSizes(const byte *Seq, uint L,
 		for (uint i = 0; i < m_k; ++i)
 			{
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
-			Kmer = Kmer*36 + Letter;
+			Kmer = Kmer*KAPPA_AS + Letter;
 			}
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
@@ -526,7 +526,7 @@ void MuDex::GetKmersAndSizes(const byte *Seq, uint L,
 		}
 	}
 
-void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
+void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 	{
 	Kmers.reserve(L);
 	Kmers.clear();
@@ -536,14 +536,14 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		for (uint i = 0; i < m_k; ++i)
 			{
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
-			assert(Letter < 36);
-			Kmer = Kmer*36 + Letter;
+			assert(Letter < KAPPA_AS);
+			Kmer = Kmer*KAPPA_AS + Letter;
 			}
-#if MU_DEBUG_CHECKS
+#if DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
-		assert(Kmer < PREFILTER_KMER_DICT_SIZE);
+		assert(Kmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else
@@ -551,16 +551,16 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		}
 	}
 
-void cmd_mudex()
+void cmd_kappa_dex()
 	{
 	SeqDB Input;
 	Input.FromFasta(g_Arg1);
 	Input.ToLetters(g_CharToLetterMu);
 
-	const MerMx &ScoreMx = GetMuMerMx(PREFILTER_KMER_NR_ONES);
-	asserta(ScoreMx.m_k == PREFILTER_KMER_NR_ONES);
+	const MerMx &ScoreMx = GetMuMerMx(KAPPA_PREFILTER_KMER_NR_ONES);
+	asserta(ScoreMx.m_k == KAPPA_PREFILTER_KMER_NR_ONES);
 
-	MuDex MD;
+	kappa_dex MD;
 	MD.FromSeqDB(Input);
 	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	MD.LogStats();
@@ -568,7 +568,7 @@ void cmd_mudex()
 	ProgressLog("Validate OK\n");
 
 	vector<uint> v;
-	for (uint i = 0; i < MuDex::m_DictSize; ++i)
+	for (uint i = 0; i < kappa_dex::m_DictSize; ++i)
 		{
 		uint score = MD.m_KmerSelfScores[i];
 		v.push_back(score);
@@ -582,7 +582,7 @@ void cmd_mudex()
 
 	vector<uint> Counts(6);
 	uint Total = 0;
-	for (uint Kmer = 0; Kmer < MuDex::m_DictSize; ++Kmer)
+	for (uint Kmer = 0; Kmer < kappa_dex::m_DictSize; ++Kmer)
 		{
 		uint n = MD.GetKmerMaxLetterCount(Kmer);
 		uint Size = MD.GetRowSize(Kmer);

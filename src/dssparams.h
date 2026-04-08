@@ -49,7 +49,8 @@ public:
 	static string m_MKFPatternStr;
 
 	static uint m_rsb_size;
-	static int m_PrefilterMinKmerPairScore;
+	static int m_PrefilterMinMuKmerPairScore;
+	static int m_PrefilterMinKappaKmerPairScore;
 	static uint m_MKFL;
 	static int m_MKF_X1;
 	static int m_MKF_X2;

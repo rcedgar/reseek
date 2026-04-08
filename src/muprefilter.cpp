@@ -105,7 +105,7 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 	MuDex QKmerIndex;
 	QKmerIndex.m_AddNeighborhood = g_QueryNeighborhood;
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinKmerPairScore;
+	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
 	QKmerIndex.FromSeqDB(QDB);
 	asserta(QKmerIndex.m_k == k);
 	asserta(QKmerIndex.m_DictSize == PREFILTER_KMER_DICT_SIZE);

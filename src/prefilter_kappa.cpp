@@ -1,18 +1,18 @@
 #include "myutils.h"
-#include "prefiltermu.h"
+#include "prefilter_kappa.h"
 #include "dssparams.h"
 #include "sort.h"
 
-static const uint MU_ALPHABET_SIZE = 36;
+static const uint KAPPA_AS = 32;
 
-mutex PrefilterMu::m_Lock;
-RankedScoresBag PrefilterMu::m_RSB;
+mutex prefilter_kappa::m_Lock;
+RankedScoresBag prefilter_kappa::m_RSB;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
 //////////////////////////////////////////////
-int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
+int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -35,9 +35,10 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 		assert(j < int(m_TL));
 		byte q = QSeq[i++];
 		byte t = m_TSeq[j++];
-		assert(q < MU_ALPHABET_SIZE);
-		assert(t < MU_ALPHABET_SIZE);
-		short Score = Mu_S_ij_i8[q][t];
+		assert(q < KAPPA_AS);
+		assert(t < KAPPA_AS);
+
+		short Score = kappa32_flat_logodds[q*32 + t];
 		F += Score;
 #if 0 // TRACE
 		if (DoTrace(QSeqIdx)) Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
@@ -54,7 +55,7 @@ int PrefilterMu::FindHSP(uint QSeqIdx, int Diag) const
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
 //////////////////////////////////////////////
-int PrefilterMu::FindHSP2(uint QSeqIdx,
+int prefilter_kappa::FindHSP2(uint QSeqIdx,
 						int Diag, int &Lo, int &Len) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
@@ -77,9 +78,9 @@ int PrefilterMu::FindHSP2(uint QSeqIdx,
 		assert(j < int(m_TL));
 		byte q = QSeq[i++];
 		byte t = m_TSeq[j++];
-		assert(q < MU_ALPHABET_SIZE);
-		assert(t < MU_ALPHABET_SIZE);
-		short Score = Mu_S_ij_i8[q][t];
+		assert(q < KAPPA_AS);
+		assert(t < KAPPA_AS);
+		short Score = kappa32_flat_logodds[q*32 + t];
 		F += Score;
 		if (F > B)
 			{
@@ -99,7 +100,7 @@ int PrefilterMu::FindHSP2(uint QSeqIdx,
 	return B;
 	}
 
-void PrefilterMu::SetQDB(const SeqDB &QDB)
+void prefilter_kappa::SetQDB(const SeqDB &QDB)
 	{
 	m_QDB = &QDB;
 	m_QSeqCount = QDB.GetSeqCount();
@@ -121,7 +122,7 @@ void PrefilterMu::SetQDB(const SeqDB &QDB)
 	m_NrQueriesWithTwoHitDiag = 0;
 	}
 
-void PrefilterMu::Search_TargetKmers()
+void prefilter_kappa::Search_TargetKmers()
 	{
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
@@ -150,7 +151,7 @@ void PrefilterMu::Search_TargetKmers()
 		}
 	}
 
-void PrefilterMu::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
+void prefilter_kappa::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL)
 	{
 	m_TSeqIdx = TSeqIdx;
@@ -169,7 +170,7 @@ void PrefilterMu::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 		}
 	}
 
-void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
+void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	{
 	if (Kmer == UINT_MAX)
 		return;
@@ -177,7 +178,7 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	m_TBaseKmer = Kmer;
 #endif
 	assert(Kmer < PREFILTER_KMER_DICT_SIZE);
-	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinMuKmerPairScore);
+	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinKappaKmerPairScore);
 	short MinKmerScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
 
 // Construct high-scoring neighborhood
@@ -196,7 +197,7 @@ void PrefilterMu::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 		}
 	}
 
-void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
+void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
 	{
 	uint RowSize = m_QKmerIndex->GetRowSize(TKmer);
 #if TRACE
@@ -246,7 +247,7 @@ void PrefilterMu::Search_TargetKmer(uint TKmer, uint TPos)
 		}
 	}
 	
-void PrefilterMu::FindTwoHitDiags()
+void prefilter_kappa::FindTwoHitDiags()
 	{
 	m_DiagBag.ClearDupes();
 	m_DiagBag.SetDupes();
@@ -255,7 +256,7 @@ void PrefilterMu::FindTwoHitDiags()
 #endif
 	}
 
-void PrefilterMu::GetResults(vector<uint> &QSeqIdxs,
+void prefilter_kappa::GetResults(vector<uint> &QSeqIdxs,
 						   vector<uint16_t> &DiagScores) const
 	{
 	QSeqIdxs.clear();
@@ -271,7 +272,7 @@ void PrefilterMu::GetResults(vector<uint> &QSeqIdxs,
 		}
 	}
 
-void PrefilterMu::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
+void prefilter_kappa::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
 		return;
@@ -298,7 +299,7 @@ void PrefilterMu::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 		}
 	}
 
-void PrefilterMu::ExtendTwoHitDiagsToHSPs()
+void prefilter_kappa::ExtendTwoHitDiagsToHSPs()
 	{
 	uint DupeCount = m_DiagBag.m_DupeCount;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -311,7 +312,7 @@ void PrefilterMu::ExtendTwoHitDiagsToHSPs()
 		}
 	}
 
-int PrefilterMu::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
+int prefilter_kappa::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -322,7 +323,7 @@ int PrefilterMu::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	return DiagScore;
 	}
 
-void PrefilterMu::Reset()
+void prefilter_kappa::Reset()
 	{
 	for (uint HitIdx = 0; HitIdx < m_NrQueriesWithTwoHitDiag; ++HitIdx)
 		{
@@ -341,7 +342,7 @@ void PrefilterMu::Reset()
 	m_DiagBag.Reset();
 	}
 
-void PrefilterMu::LogDiag(uint QSeqIdx, uint16_t Diag) const
+void prefilter_kappa::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -365,7 +366,7 @@ void PrefilterMu::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	asserta(Score2 == Score);
 	}
 
-void PrefilterMu::Search(uint TSeqIdx, const string &TLabel,
+void prefilter_kappa::Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL)
 	{
 	Search_TargetSeq(TSeqIdx, TLabel, TSeq, TL);
@@ -378,19 +379,19 @@ void PrefilterMu::Search(uint TSeqIdx, const string &TLabel,
 		}
 	}
 
-uint PrefilterMu::GetQKmer(uint QSeqIdx, uint QPos) const
+uint prefilter_kappa::GetQKmer(uint QSeqIdx, uint QPos) const
 	{
 	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
 	uint Kmer = m_QKmerIndex->BytesToKmer(Q + QPos);
 	return Kmer;
 	}
 
-void PrefilterMu::LogQueryKmers(uint QSeqIdx) const
+void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
 	{
 	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 	Log("\n");
-	Log("PrefilterMu::LogQueryKmers() QL=%u >%s\n", 
+	Log("prefilter_kappa::LogQueryKmers() QL=%u >%s\n", 
 		QL, m_QDB->GetLabel(QSeqIdx).c_str());
 	for (uint PosQ = 0; PosQ + PREFILTER_KMER_NR_ONES <= QL; ++PosQ)
 		{
@@ -401,10 +402,10 @@ void PrefilterMu::LogQueryKmers(uint QSeqIdx) const
 		}
 	}
 
-void PrefilterMu::LogTargetKmers() const
+void prefilter_kappa::LogTargetKmers() const
 	{
 	Log("\n");
-	Log("PrefilterMu::LogTargetKmers() TL=%u >%s\n", 
+	Log("prefilter_kappa::LogTargetKmers() TL=%u >%s\n", 
 		m_TL, m_TLabel);
 	for (uint PosT = 0; PosT + PREFILTER_KMER_NR_ONES <= m_TL; ++PosT)
 		{
@@ -415,7 +416,7 @@ void PrefilterMu::LogTargetKmers() const
 		}
 	}
 
-void PrefilterMu::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
+void prefilter_kappa::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
 	{
 	uint32_t SeqIdx16 = (SeqIdx & 0xffff);
 	asserta(SeqIdx16 == SeqIdx);
@@ -423,7 +424,7 @@ void PrefilterMu::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
 	m_OneHitDiags.insert(pair);
 	}
 
-void PrefilterMu::ExtendOneHitDiagsToHSPs()
+void prefilter_kappa::ExtendOneHitDiagsToHSPs()
 	{
 	for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
 		 iter != m_OneHitDiags.end(); ++iter)

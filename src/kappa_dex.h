@@ -2,12 +2,12 @@
 
 #include "mermx.h"
 
-#define MUDEX_DEBUG_CHECKS	0
+#define DEBUG_CHECKS	1
 
 class SeqDB;
 
 // Mu 5-mer index
-class MuDex
+class kappa_dex
 	{
 public:
 	static const uint32_t m_DictSize;
