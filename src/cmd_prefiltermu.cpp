@@ -2,6 +2,7 @@
 #include "dssparams.h"
 #include "prefiltermu.h"
 #include "prefiltermuparams.h"
+#include <chrono>
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -93,6 +94,7 @@ void cmd_prefilter_mu()
 	ProgressStep(0, TSeqCount, "Filtering");
 	time_t t_start = time(0);
 	s_TimeLastProgress = t_start;
+	auto chrono_start = std::chrono::high_resolution_clock::now();
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
@@ -110,7 +112,12 @@ void cmd_prefilter_mu()
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
 	double SeqsPerSec = double(TSeqCount)/filter_secs;
-	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
+	auto chrono_end = std::chrono::high_resolution_clock::now();
+
+	double elapsed_ms = std::chrono::duration<double, std::milli>
+		(chrono_end - chrono_start).count();
+	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
+	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));
