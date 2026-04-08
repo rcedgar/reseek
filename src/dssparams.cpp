@@ -20,11 +20,11 @@ int DSSParams::m_OmegaFwd16 = 500;
 ////////////////////////////////////////////////
 
 float DSSParams::m_MinFwdScore = 7;
-string DSSParams::m_MKFPatternStr =  "111";;
+string DSSParams::m_MKFPatternStr =  "111";
 float ***DSSParams::m_ScoreMxs = 0;
 
 int  DSSParams::m_PrefilterMinMuKmerPairScore = 36;
-int  DSSParams::m_PrefilterMinKappaKmerPairScore = 53;
+int  DSSParams::m_PrefilterMinKappaKmerPairScore = 36;
 uint DSSParams::m_rsb_size = 1500;
 uint DSSParams::m_MKFL = 500;
 int DSSParams::m_MKF_X1 = 8;

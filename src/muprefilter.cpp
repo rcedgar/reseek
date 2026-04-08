@@ -61,10 +61,8 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		}
 	}
 
-void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
-	map<uint, vector<uint> > &TargetIdxToQueryIdxs)
+void SetQueryNeighborhood(uint QSeqCount)
 	{
-	const uint QSeqCount = QDB.GetSeqCount();
 	if (opt(idxq))
 		g_QueryNeighborhood = true;
 	else if (opt(idxt))
@@ -77,6 +75,25 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 			g_QueryNeighborhood = false;
 		}
 	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
+	}
+
+void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
+	map<uint, vector<uint> > &TargetIdxToQueryIdxs)
+	{
+	const uint QSeqCount = QDB.GetSeqCount();
+	SetQueryNeighborhood(QSeqCount);
+	//if (opt(idxq))
+	//	g_QueryNeighborhood = true;
+	//else if (opt(idxt))
+	//	g_QueryNeighborhood = false;
+	//else
+	//	{
+	//	if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
+	//		g_QueryNeighborhood = true;
+	//	else
+	//		g_QueryNeighborhood = false;
+	//	}
+	//Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
 
 	s_SS = &FSS;
 	s_SS->m_ASCII = false;

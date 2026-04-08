@@ -2,7 +2,7 @@
 
 #include "mermx.h"
 
-#define DEBUG_CHECKS	1
+#define KAPPA_DEBUG_CHECKS	1
 
 class SeqDB;
 
@@ -47,7 +47,7 @@ After Pass 2:
 	Size(Kmer)
 		= m_Finger[Kmer+1] - m_Finger[Kmer]
 ***/
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	vector<uint> m_KmerToCount1;
 	vector<uint> m_KmerToCount2;
 	vector<uint> m_KmerToDataStart;
@@ -113,7 +113,7 @@ public:
 						  vector<uint> &Kmers, vector<uint> &Sizes) const;
 	uint GetKmerMaxLetterCount(uint Kmer);
 
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	void CheckAfterPass1() const;
 	void CheckAfterAdjust() const;
 	void CheckAfterPass2() const;

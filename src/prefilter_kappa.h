@@ -9,7 +9,7 @@
 #include "seqdb.h"
 #include "diag.h"
 #include "rankedscoresbag.h"
-#include "prefiltermuparams.h"
+#include "kappa_prefilter_params.h"
 
 const MerMx &GetMuMerMx(uint k);
 

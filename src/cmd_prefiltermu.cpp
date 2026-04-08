@@ -65,6 +65,9 @@ void cmd_prefilter_mu()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
+	void SetQueryNeighborhood(uint QSeqCount);
+	SetQueryNeighborhood(QSeqCount);
+
 	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
 	PrefilterMu::m_RSB.Init(QSeqCount);
 

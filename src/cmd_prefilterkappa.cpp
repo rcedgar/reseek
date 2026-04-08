@@ -4,6 +4,7 @@
 #include "kappa_mermx.h"
 #include "kappa_dex.h"
 #include "kappa_prefilter_params.h"
+#include <chrono>
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -53,19 +54,22 @@ void cmd_prefilter_kappa()
 	{
 	const uint k = kappa_dex::m_k;
 
-	const string &QueryMu_FN = g_Arg1;
+	const string &QueryKappa_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
 
 	SeqDB QDB;
 	SeqDB TDB;
 
-	QDB.FromFasta(QueryMu_FN);
+	QDB.FromFasta(QueryKappa_FN);
 	TDB.FromFasta(DB3Di_FN);
 
 	QDB.ToLetters(g_CharToLetterMu);
 	TDB.ToLetters(g_CharToLetterMu);
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
+
+	void SetQueryNeighborhood(uint QSeqCount);
+	SetQueryNeighborhood(QSeqCount);
 
 	prefilter_kappa::m_RSB.m_B = DSSParams::m_rsb_size;
 	prefilter_kappa::m_RSB.Init(QSeqCount);
@@ -76,7 +80,7 @@ void cmd_prefilter_kappa()
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
+	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG
 	QKmerIndex.Validate();
@@ -93,6 +97,7 @@ void cmd_prefilter_kappa()
 	ProgressStep(0, TSeqCount, "Filtering");
 	time_t t_start = time(0);
 	s_TimeLastProgress = t_start;
+	auto chrono_start = std::chrono::high_resolution_clock::now();
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
@@ -109,8 +114,12 @@ void cmd_prefilter_kappa()
 
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
-	double SeqsPerSec = double(TSeqCount)/filter_secs;
-	ProgressLog("Seqs/sec         %s\n", FloatToStr(SeqsPerSec));
+	auto chrono_end = std::chrono::high_resolution_clock::now();
+
+	double elapsed_ms = std::chrono::duration<double, std::milli>
+		(chrono_end - chrono_start).count();
+	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
+	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));

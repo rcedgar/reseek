@@ -27,7 +27,7 @@ const uint32_t kappa_dex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 void kappa_dex::SetSeq(uint SeqIdx, const char *Label, const byte *Seq, uint L)
 	{
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	{
 	for (uint i = 0; i < L; ++i)
 		{
@@ -118,7 +118,7 @@ void kappa_dex::Alloc_Pass1()
 	asserta(m_Finger == 0 && m_Data == 0);
 	m_Finger = myalloc(uint32_t, m_DictSize + 2);
 	zero_array(m_Finger, m_DictSize+2);
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	m_KmerToCount1.resize(m_DictSize, 0);
 #endif
 	}
@@ -128,7 +128,7 @@ void kappa_dex::Alloc_Pass2()
 // 6 bytes for uint32_t:uint16_t (SeqIdx:Pos)
 	const uint64_t Bytes = uint64(m_ItemSize)*m_Size;
 	m_Data = myalloc64(uint8_t, Bytes);
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	m_KmerToCount2.resize(m_DictSize, 0);
 	memset(m_Data, 0xff, Bytes);
 #endif
@@ -157,7 +157,7 @@ void  kappa_dex::AddSeq_Pass1()
 		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 		++m_Size;
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 		m_KmerToCount1[Kmer] += 1;
 #endif
 #if TRACE
@@ -179,7 +179,7 @@ void  kappa_dex::AddSeq_Pass1()
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
 				++m_Size;
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 				m_KmerToCount1[NeighborKmer] += 1;
 #endif
 				}
@@ -208,7 +208,7 @@ void kappa_dex::AddSeq_Pass2()
 		Put(DataOffset, m_SeqIdx, SeqPos);
 		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
 		m_KmerToCount2[Kmer] += 1;
 #endif
@@ -228,7 +228,7 @@ void kappa_dex::AddSeq_Pass2()
 				Put(DataOffset, m_SeqIdx, SeqPos);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 				assert(m_KmerToDataStart[NeighborKmer] + 
 					   m_KmerToCount2[NeighborKmer] == DataOffset);
 				m_KmerToCount2[NeighborKmer] += 1;
@@ -255,7 +255,7 @@ void kappa_dex::LogStats() const
 	Log("Total = %u (%s)\n", Sum, IntToStr(Sum));
 	}
 
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 void kappa_dex::CheckAfterPass1() const
 	{
 	uint Check_Size = 0;
@@ -321,7 +321,7 @@ void kappa_dex::AdjustFinger()
 	uint Sum = 0;
 	for (uint Kmer = 0; Kmer <= m_DictSize; ++Kmer)
 		{
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 		m_KmerToDataStart.push_back(Sum);
 #endif
 		uint Kmer_Size = m_Finger[Kmer+1];
@@ -412,12 +412,12 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k
 		SetSeq(SeqIdx, Label, Seq, L);
 		AddSeq_Pass1();
 		}
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	CheckAfterPass1();
 #endif
 
 	AdjustFinger();
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	CheckAfterAdjust();
 #endif
 
@@ -432,11 +432,11 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k
 		AddSeq_Pass2();
 		}
 	SetRowSizes();
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	CheckAfterPass2();
 #endif
 
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	{
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
@@ -474,7 +474,7 @@ void kappa_dex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	uint8_t *ptr = m_Data + Bytes64;
 	*(uint32_t *) ptr = SeqIdx;
 	*(uint16_t *) (ptr + 4) = SeqPos;
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 	{
 	uint32_t Check_SeqIdx;
 	uint16_t Check_SeqPos;
@@ -507,7 +507,7 @@ void kappa_dex::GetKmersAndSizes(const byte *Seq, uint L,
 			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
 			Kmer = Kmer*KAPPA_AS + Letter;
 			}
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
@@ -539,7 +539,7 @@ void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 			assert(Letter < KAPPA_AS);
 			Kmer = Kmer*KAPPA_AS + Letter;
 			}
-#if DEBUG_CHECKS
+#if KAPPA_DEBUG_CHECKS
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif

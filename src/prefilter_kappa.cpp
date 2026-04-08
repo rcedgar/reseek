@@ -3,8 +3,6 @@
 #include "dssparams.h"
 #include "sort.h"
 
-static const uint KAPPA_AS = 32;
-
 mutex prefilter_kappa::m_Lock;
 RankedScoresBag prefilter_kappa::m_RSB;
 
@@ -116,7 +114,7 @@ void prefilter_kappa::SetQDB(const SeqDB &QDB)
 
 	bool TargetNeighborhood = !g_QueryNeighborhood;
 	if (TargetNeighborhood)
-		m_NeighborKmers = myalloc(uint, PREFILTER_KMER_DICT_SIZE);
+		m_NeighborKmers = myalloc(uint, KAPPA_PREFILTER_KMER_DICT_SIZE);
 	else
 		m_NeighborKmers = 0;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -177,9 +175,9 @@ void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	assert(Kmer < PREFILTER_KMER_DICT_SIZE);
+	assert(Kmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
 	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinKappaKmerPairScore);
-	short MinKmerScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
+	short MinKmerScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
 
 // Construct high-scoring neighborhood
 	const uint HSKmerCount =
@@ -229,7 +227,7 @@ void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
 		uint QKmer = GetQKmer(QSeqIdx, QSeqPos);
 		m_QKmerIndex->KmerToStr(m_TBaseKmer, TKmerStr);
 		m_QKmerIndex->KmerToStr(QKmer, QKmerStr);
-		const MerMx &MM = GetMuMerMx(m_QKmerIndex->m_k);
+		const MerMx &MM = GetKappaMerMx(m_QKmerIndex->m_k);
 		int KmerPairScore = MM.GetScoreKmerPair(TKmer, QKmer);
 
 		Log("@K@  [%4u] %5s  [%4u] %5s  /%5u/  %+3d\n",
@@ -393,7 +391,7 @@ void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
 	Log("\n");
 	Log("prefilter_kappa::LogQueryKmers() QL=%u >%s\n", 
 		QL, m_QDB->GetLabel(QSeqIdx).c_str());
-	for (uint PosQ = 0; PosQ + PREFILTER_KMER_NR_ONES <= QL; ++PosQ)
+	for (uint PosQ = 0; PosQ + KAPPA_PREFILTER_KMER_NR_ONES <= QL; ++PosQ)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(Q + PosQ);
 		string tmp;
@@ -407,7 +405,7 @@ void prefilter_kappa::LogTargetKmers() const
 	Log("\n");
 	Log("prefilter_kappa::LogTargetKmers() TL=%u >%s\n", 
 		m_TL, m_TLabel);
-	for (uint PosT = 0; PosT + PREFILTER_KMER_NR_ONES <= m_TL; ++PosT)
+	for (uint PosT = 0; PosT + KAPPA_PREFILTER_KMER_NR_ONES <= m_TL; ++PosT)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(m_TSeq + PosT);
 		string tmp;
