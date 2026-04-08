@@ -114,7 +114,7 @@ void prefilter_kappa::SetQDB(const SeqDB &QDB)
 
 	bool TargetNeighborhood = !g_QueryNeighborhood;
 	if (TargetNeighborhood)
-		m_NeighborKmers = myalloc(uint, KAPPA_PREFILTER_KMER_DICT_SIZE);
+		m_NeighborKmers = myalloc(uint, DSSParams::m_PrefilterKappaDictSize);
 	else
 		m_NeighborKmers = 0;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -175,7 +175,7 @@ void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	assert(Kmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
+	assert(Kmer < DSSParams::m_PrefilterKappaDictSize);
 	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinKappaKmerPairScore);
 	short MinKmerScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
 
@@ -273,6 +273,8 @@ void prefilter_kappa::GetResults(vector<uint> &QSeqIdxs,
 void prefilter_kappa::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
+		return;
+	if (DiagScore < DSSParams::m_PrefilterMinKappaMinDiagScore)
 		return;
 	asserta(QSeqIdx < UINT16_MAX);
 	if (DiagScore >= UINT16_MAX)
@@ -391,7 +393,7 @@ void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
 	Log("\n");
 	Log("prefilter_kappa::LogQueryKmers() QL=%u >%s\n", 
 		QL, m_QDB->GetLabel(QSeqIdx).c_str());
-	for (uint PosQ = 0; PosQ + KAPPA_PREFILTER_KMER_NR_ONES <= QL; ++PosQ)
+	for (uint PosQ = 0; PosQ + kappa_dex::m_K <= QL; ++PosQ)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(Q + PosQ);
 		string tmp;
@@ -405,7 +407,7 @@ void prefilter_kappa::LogTargetKmers() const
 	Log("\n");
 	Log("prefilter_kappa::LogTargetKmers() TL=%u >%s\n", 
 		m_TL, m_TLabel);
-	for (uint PosT = 0; PosT + KAPPA_PREFILTER_KMER_NR_ONES <= m_TL; ++PosT)
+	for (uint PosT = 0; PosT + kappa_dex::m_K <= m_TL; ++PosT)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(m_TSeq + PosT);
 		string tmp;

@@ -6,15 +6,15 @@
 
 class SeqDB;
 
-// Mu 5-mer index
+// Kappa k-mer index
 class kappa_dex
 	{
 public:
-	static const uint32_t m_DictSize;
-	static const uint32_t m_ItemSize;
-	static const uint32_t m_k;
-	static const uint32_t m_K;
-	static const uint8_t *m_Offsets;
+	static uint32_t m_DictSize;
+	const static uint32_t m_ItemSize;
+	static uint32_t m_k;
+	static uint32_t m_K;
+	static uint8_t *m_Offsets;
 
 /***
 Finger index.
@@ -74,6 +74,7 @@ After Pass 2:
 	uint *m_NeighborKmers = 0;
 
 public:
+	void Init();
 	void FromSeqDB(const SeqDB &Input);
 	const char *KmerToStr(uint Kmer, string &s) const;
 	uint StrToKmer(const string &s) const;

@@ -8,19 +8,19 @@
 #include "dssparams.h"
 #include "binner.h"
 
-const MerMx &GetMuMerMx(uint k);
+uint8_t *kappa_dex::m_Offsets;
+uint32_t kappa_dex::m_DictSize;
+uint32_t kappa_dex::m_k;
+uint32_t kappa_dex::m_K;
 
-const uint8_t *kappa_dex::m_Offsets = KAPPA_PREFILTER_KMER_ONES_OFFSETS;
-const uint32_t kappa_dex::m_DictSize = KAPPA_PREFILTER_KMER_DICT_SIZE; // KAPPA_AS^5 = 33554432 (33.6M)
-const uint32_t kappa_dex::m_k = KAPPA_PREFILTER_KMER_NR_ONES;
-const uint32_t kappa_dex::m_K = KAPPA_PREFILTER_KMER_WIDTH;
+void kappa_dex::Init()
+	{
+	m_Offsets = DSSParams::m_PrefilterKappaKmerOnesOffsets;
+	m_DictSize = DSSParams::m_PrefilterKappaDictSize;
+	m_k = DSSParams::m_PrefilterKappaKmerNrOnes;
+	m_K = DSSParams::m_PrefilterKappaKmerWidth;
+	}
 
-/***
-KAPPA_AS bits 2^5, 64 bits 2^6
-5 bits per aa letter
-6 bits per Mu letter
-8 bits per char
-***/
 const uint32_t kappa_dex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
 
 #define TRACE	0
@@ -112,7 +112,7 @@ const char *kappa_dex::KmerToStr(uint Kmer, string &s) const
 void kappa_dex::Alloc_Pass1()
 	{
 	if (m_AddNeighborhood && m_NeighborKmers == 0)
-		m_NeighborKmers = myalloc(uint, KAPPA_PREFILTER_KMER_DICT_SIZE);
+		m_NeighborKmers = myalloc(uint, DSSParams::m_PrefilterKappaDictSize);
 
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
@@ -174,7 +174,7 @@ void  kappa_dex::AddSeq_Pass1()
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
+				asserta(NeighborKmer < DSSParams::m_PrefilterKappaDictSize);
 				asserta(m_Size < UINT_MAX);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
@@ -223,7 +223,7 @@ void kappa_dex::AddSeq_Pass2()
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
+				asserta(NeighborKmer < DSSParams::m_PrefilterKappaDictSize);
 				uint DataOffset = m_Finger[NeighborKmer+1];
 				Put(DataOffset, m_SeqIdx, SeqPos);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
@@ -543,71 +543,10 @@ void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
-		assert(Kmer < KAPPA_PREFILTER_KMER_DICT_SIZE);
+		assert(Kmer < DSSParams::m_PrefilterKappaDictSize);
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else
 			Kmers.push_back(Kmer%m_DictSize);
-		}
-	}
-
-void cmd_kappa_dex()
-	{
-	SeqDB Input;
-	Input.FromFasta(g_Arg1);
-	Input.ToLetters(g_CharToLetterMu);
-
-	const MerMx &ScoreMx = GetMuMerMx(KAPPA_PREFILTER_KMER_NR_ONES);
-	asserta(ScoreMx.m_k == KAPPA_PREFILTER_KMER_NR_ONES);
-
-	kappa_dex MD;
-	MD.FromSeqDB(Input);
-	MD.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	MD.LogStats();
-	MD.Validate();
-	ProgressLog("Validate OK\n");
-
-	vector<uint> v;
-	for (uint i = 0; i < kappa_dex::m_DictSize; ++i)
-		{
-		uint score = MD.m_KmerSelfScores[i];
-		v.push_back(score);
-		}
-	Quarts Q;
-	GetQuarts(v, Q);
-// k=5 SelfScores: 
-// N=60466176, Min=20, LoQ=43, Med=47, HiQ=51, Max=75, Avg=47.3611
-	Log("SelfScores: ");
-	Q.LogMe();
-
-	vector<uint> Counts(6);
-	uint Total = 0;
-	for (uint Kmer = 0; Kmer < kappa_dex::m_DictSize; ++Kmer)
-		{
-		uint n = MD.GetKmerMaxLetterCount(Kmer);
-		uint Size = MD.GetRowSize(Kmer);
-		Total += Size;
-		Counts[n] += Size;
-		}
-
-// SCOP40
-//Max letters [1] = 237643 (12.6%)
-//Max letters [2] = 1023722 (54.4%)
-//Max letters [3] = 463046 (24.6%)
-//Max letters [4] = 112057 (6.0%)
-//Max letters [5] = 44543 (2.4%)
-
-// Dictionary
-//Max letters [1] = 45239040 (74.8%)
-//Max letters [2] = 14779800 (24.4%)
-//Max letters [3] = 441000 (0.7%)
-//Max letters [4] = 6300 (0.0%)
-//Max letters [5] = 36 (0.0%)
-	for (uint i = 1; i <= 5; ++i)
-		{
-		uint n = Counts[i];
-		double Pct = GetPct(n, Total);
-		ProgressLog("Max letters [%u] = %u (%.1f%%)\n",
-					i, n, Pct);
 		}
 	}

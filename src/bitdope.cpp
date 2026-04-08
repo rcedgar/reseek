@@ -67,7 +67,7 @@ void cmd_bitdope()
 	while (ReadLineStdioFile(f, line))
 		{
 		Split(line, flds, '\t');
-		asserta(flds.size() == 2);
+		asserta(flds.size() >= 2);
 		const string &labelq = flds[0];
 		const string &labelt = flds[1];
 		uint idxq = look.get_domidx(labelq, true);

@@ -90,6 +90,7 @@ STR_OPT(units)
 STR_OPT(spec)
 STR_OPT(faprof)
 STR_OPT(hexfasta)
+STR_OPT(kappa_kmer_pattern)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

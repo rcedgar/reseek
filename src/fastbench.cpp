@@ -113,8 +113,16 @@ void FastBench::ReadHits(
 	vector<string> flds;
 	uint ntp = 0;
 	uint n = 0;
+	uint counter = 0;
+	uint64 FileSize = GetStdioFileSize64(f);
 	while (ReadLineStdioFile(f, line))
 		{
+		if (++counter%100000 == 0)
+			{
+			uint64 FilePos = GetStdioFilePos64(f);
+			double Pct = FilePos*100.0/FileSize;
+			Progress("Hits %.2f%%\r", Pct);
+			}
 		Split(line, flds, '\t');
 		asserta(flds.size() > maxidx);
 		const string &q = flds[qidx];
@@ -124,6 +132,8 @@ void FastBench::ReadHits(
 		if (qidx == tidx)
 			continue;
 		uint k = triangle_ij_to_k2(qidx, tidx, m_SeqCount);
+		if (m_dope && !in_dope(k))
+			continue;
 		assert(k < K);
 		if (m_Scores[k] == FLT_MAX)
 			{
@@ -134,6 +144,7 @@ void FastBench::ReadHits(
 			m_Scores[k] = score;
 			}
 		}
+	Progress("Hits 100.00%%\n");
 	ProgressLog("%u hits (%.3g%% of triangle), %u TPs\n",
 		n, GetPct(n, K), ntp);
 	CloseStdioFile(f);
@@ -209,6 +220,7 @@ void FastBench::SetLookupFromLabels()
 
 void FastBench::ReadLookup(const string &FN)
 	{
+	m_scores_are_evalues = opt(scores_are_evalues);
 	if (m_look == 0) m_look = new lookup;
 	m_look->from_tsv(FN);
 	m_SeqCount = m_look->get_ndom();
@@ -276,6 +288,8 @@ void cmd_fast_bench_hits()
 
 	FastBench FB;
 	FB.ReadLookup(opt(lookup));
+	if (optset_dope)
+		FB.ReadDope(opt(dope));
 	if (opt(scorefirst))
 		FB.ReadHits(hitsfn, 1, 2, 0);
 	else
@@ -291,7 +305,6 @@ void cmd_fast_bench_bits()
 	const string &bitsfn = g_Arg1;
 
 	FastBench FB;
-	FB.m_scores_are_evalues = opt(scores_are_evalues);
 	FB.ReadLookup(opt(lookup));
 	FB.ReadBits(bitsfn);
 	FB.SetScoreOrder();

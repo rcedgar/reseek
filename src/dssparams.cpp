@@ -23,8 +23,23 @@ float DSSParams::m_MinFwdScore = 7;
 string DSSParams::m_MKFPatternStr =  "111";
 float ***DSSParams::m_ScoreMxs = 0;
 
-int  DSSParams::m_PrefilterMinMuKmerPairScore = 36;
-int  DSSParams::m_PrefilterMinKappaKmerPairScore = 35;
+int DSSParams::m_PrefilterMinMuKmerPairScore = 36;
+
+/////////////////////////////////////////////////////
+// Kappa prefilter
+/////////////////////////////////////////////////////
+int DSSParams::m_PrefilterMinKappaKmerPairScore = 35;
+int DSSParams::m_PrefilterMinKappaMinDiagScore = 150;
+uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
+uint DSSParams::m_PrefilterKappaKmerWidth = 8;
+uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
+string DSSParams::m_PrefilterKappaPattern = "11010001";
+
+static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
+uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
+	KappaKmerOnesOffsets;
+/////////////////////////////////////////////////////
+
 uint DSSParams::m_rsb_size = 1500;
 uint DSSParams::m_MKFL = 500;
 int DSSParams::m_MKF_X1 = 8;

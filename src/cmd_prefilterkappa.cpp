@@ -15,6 +15,19 @@ static const kappa_dex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static time_t s_TimeLastProgress;
 
+static uint get_pattern_ones(const string &Str)
+	{
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Str); ++i)
+		{
+		char c = Str[i];
+		asserta(c == '0' || c == '1');
+		if (c == '1')
+			++n;
+		}
+	return n;
+	}
+
 static void ThreadBody(uint ThreadIndex)
 	{
 	const uint TSeqCount = s_ptrTDB->GetSeqCount();
@@ -52,8 +65,6 @@ static void ThreadBody(uint ThreadIndex)
 
 void cmd_prefilter_kappa()
 	{
-	const uint k = kappa_dex::m_k;
-
 	const string &QueryKappa_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
 
@@ -74,11 +85,26 @@ void cmd_prefilter_kappa()
 	prefilter_kappa::m_RSB.m_B = DSSParams::m_rsb_size;
 	prefilter_kappa::m_RSB.Init(QSeqCount);
 
+	if (optset_kappa_kmer_pattern)
+		{
+		const string s = opt(kappa_kmer_pattern);
+		uint k = get_pattern_ones(s);
+		uint K = uint(s.size());
+
+		DSSParams::m_PrefilterKappaPattern = s;
+		DSSParams::m_PrefilterKappaKmerNrOnes = k; 
+		DSSParams::m_PrefilterKappaKmerWidth = K;
+		DSSParams::m_PrefilterKappaDictSize = myipow(32, k);
+		}
+
+	kappa_dex QKmerIndex;
+	QKmerIndex.Init();
+	const uint k = kappa_dex::m_k;
+
 	const kappa_mermx &GetKappaMerMx(uint k);
 	const kappa_mermx &ScoreMx = GetKappaMerMx(k);
 	asserta(ScoreMx.m_k == k);
 
-	kappa_dex QKmerIndex;
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
 	QKmerIndex.FromSeqDB(QDB);
@@ -86,7 +112,7 @@ void cmd_prefilter_kappa()
 	QKmerIndex.Validate();
 #endif
 	asserta(QKmerIndex.m_k == k);
-	asserta(QKmerIndex.m_DictSize == KAPPA_PREFILTER_KMER_DICT_SIZE);
+	asserta(QKmerIndex.m_DictSize == DSSParams::m_PrefilterKappaDictSize);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
 	s_ptrQDB = &QDB;

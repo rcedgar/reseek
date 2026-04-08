@@ -162,7 +162,7 @@ void Pr(FILE *f, const char *Format, ...);
 
 // Stdio functions with size args:
 byte *ReadAllStdioFile32(FILE *f, uint32 &FileSize);
-byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize);
+byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize); 
 
 byte *ReadAllStdioFile(FILE *f, uint32 &FileSize);
 byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize);
