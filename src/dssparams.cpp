@@ -24,7 +24,7 @@ string DSSParams::m_MKFPatternStr =  "111";
 float ***DSSParams::m_ScoreMxs = 0;
 
 int  DSSParams::m_PrefilterMinMuKmerPairScore = 36;
-int  DSSParams::m_PrefilterMinKappaKmerPairScore = 36;
+int  DSSParams::m_PrefilterMinKappaKmerPairScore = 35;
 uint DSSParams::m_rsb_size = 1500;
 uint DSSParams::m_MKFL = 500;
 int DSSParams::m_MKF_X1 = 8;
