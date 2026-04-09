@@ -85,9 +85,9 @@ void cmd_prefilter_kappa()
 	prefilter_kappa::m_RSB.m_B = DSSParams::m_rsb_size;
 	prefilter_kappa::m_RSB.Init(QSeqCount);
 
-	if (optset_kappa_kmer_pattern)
+	if (optset_kappa_pattern)
 		{
-		const string s = opt(kappa_kmer_pattern);
+		const string s = opt(kappa_pattern);
 		uint k = get_pattern_ones(s);
 		uint K = uint(s.size());
 
@@ -96,6 +96,10 @@ void cmd_prefilter_kappa()
 		DSSParams::m_PrefilterKappaKmerWidth = K;
 		DSSParams::m_PrefilterKappaDictSize = myipow(32, k);
 		}
+	if (optset_kappa_minkmerscore)
+		DSSParams::m_PrefilterMinKappaKmerPairScore = opt(kappa_minkmerscore);
+	if (optset_kappa_mindiagscore)
+		DSSParams::m_PrefilterMinKappaMinDiagScore = opt(kappa_mindiagscore);
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.Init();
@@ -146,6 +150,8 @@ void cmd_prefilter_kappa()
 		(chrono_end - chrono_start).count();
 	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
 	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
+	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
+	ProgressLog("Prefilter hits  %u\n", total);
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));

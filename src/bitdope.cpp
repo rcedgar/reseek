@@ -64,6 +64,7 @@ void cmd_bitdope()
 	string line;
 	vector<string> flds;
 	uint nhit = 0;
+	uint ntp = 0;
 	while (ReadLineStdioFile(f, line))
 		{
 		Split(line, flds, '\t');
@@ -77,6 +78,8 @@ void cmd_bitdope()
 		uint minidx = min(idxq, idxt);
 		uint maxidx = max(idxq, idxt);
 		uint k = triangle_ij_to_k(minidx, maxidx, ndom);
+		if (look.is_tp_ij(minidx, maxidx))
+			++ntp;
 		const uint8_t thebit = (1 << (k%8));
 		if ((bitvec[k/8] & thebit) == 0)
 			{
@@ -96,7 +99,7 @@ void cmd_bitdope()
 				++nbit;
 			}
 		}
-	ProgressLog("nhit %u\n", nhit);
+	ProgressLog("nhit %u, ntp %u\n", nhit, ntp);
 	if (nbit != nhit)
 		Die("nbit %u, nhit %u", nbit, nhit);
 

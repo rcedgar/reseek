@@ -28,8 +28,8 @@ int DSSParams::m_PrefilterMinMuKmerPairScore = 36;
 /////////////////////////////////////////////////////
 // Kappa prefilter
 /////////////////////////////////////////////////////
-int DSSParams::m_PrefilterMinKappaKmerPairScore = 35;
-int DSSParams::m_PrefilterMinKappaMinDiagScore = 150;
+int DSSParams::m_PrefilterMinKappaKmerPairScore = 30;
+int DSSParams::m_PrefilterMinKappaMinDiagScore = 80;
 uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
 uint DSSParams::m_PrefilterKappaKmerWidth = 8;
 uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);

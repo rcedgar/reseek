@@ -119,4 +119,5 @@ public:
 	uint GetQKmer(uint QSeqIdx, uint QPos) const;
 	void LogTargetKmers() const;
 	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
+	void ToTsv(FILE *f) const;
 	};

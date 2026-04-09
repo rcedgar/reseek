@@ -82,18 +82,6 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 	{
 	const uint QSeqCount = QDB.GetSeqCount();
 	SetQueryNeighborhood(QSeqCount);
-	//if (opt(idxq))
-	//	g_QueryNeighborhood = true;
-	//else if (opt(idxt))
-	//	g_QueryNeighborhood = false;
-	//else
-	//	{
-	//	if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
-	//		g_QueryNeighborhood = true;
-	//	else
-	//		g_QueryNeighborhood = false;
-	//	}
-	//Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
 
 	s_SS = &FSS;
 	s_SS->m_ASCII = false;
@@ -151,6 +139,14 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 		delete ts[ThreadIndex];
 
 	uint Total = PrefilterMu::m_RSB.TruncateAllQueryVecs();
+	if (optset_output4)
+		{
+		const string fn = opt(output4);
+		FILE *f = CreateStdioFile(fn);
+		ProgressLog("Writing prefilter hits to %s\n", fn.c_str());
+		PrefilterMu::m_RSB.ToTsv(f);
+		CloseStdioFile(f);
+		}
 	ProgressLog("%s prefilter hits\n", FloatToStr(double(Total)));
 	PrefilterMu::m_RSB.GetTargetInfo(TargetIdxs, TargetIdxToQueryIdxs);
 	}

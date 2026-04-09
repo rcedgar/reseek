@@ -56,7 +56,7 @@ public:
 	void log_dope_ks() const;
 	bool in_dope(uint k) const
 		{
-		byte b = k/8;
+		byte b = m_dope[k/8];
 		return b & (1 << k%8);
 		}
 	};

@@ -3,6 +3,8 @@
 #include "fastbench.h"
 #include "sort.h"
 
+#define SAVE_NOT_IN_DOPE	0
+
 void FastBench::Alloc()
 	{
 	asserta(m_look);
@@ -102,6 +104,9 @@ void FastBench::ReadHits(
 	uint tidx,
 	uint scoreidx)
 	{
+#if SAVE_NOT_IN_DOPE
+	FILE *fnid = CreateStdioFile("../tmp/tpnotindope.tmp");
+#endif
 	const uint maxidx = max(max(qidx, tidx), scoreidx);
 	m_SeqCount = m_look->get_ndom();
 	Alloc();
@@ -114,14 +119,22 @@ void FastBench::ReadHits(
 	uint ntp = 0;
 	uint n = 0;
 	uint counter = 0;
+	uint ntp_dope = 0;
+	uint nfp_dope = 0;
 	uint64 FileSize = GetStdioFileSize64(f);
+	time_t lastt = time(0);
 	while (ReadLineStdioFile(f, line))
 		{
 		if (++counter%100000 == 0)
 			{
-			uint64 FilePos = GetStdioFilePos64(f);
-			double Pct = FilePos*100.0/FileSize;
-			Progress("Hits %.2f%%\r", Pct);
+			time_t t = time(0);
+			if (t - lastt > 0)
+				{
+				uint64 FilePos = GetStdioFilePos64(f);
+				double Pct = FilePos*100.0/FileSize;
+				Progress("Hits %.1f%%\r", Pct);
+				lastt = t;
+				}
 			}
 		Split(line, flds, '\t');
 		asserta(flds.size() > maxidx);
@@ -132,14 +145,34 @@ void FastBench::ReadHits(
 		if (qidx == tidx)
 			continue;
 		uint k = triangle_ij_to_k2(qidx, tidx, m_SeqCount);
-		if (m_dope && !in_dope(k))
-			continue;
 		assert(k < K);
 		if (m_Scores[k] == FLT_MAX)
 			{
 			++n;
 			bool tp = m_look->is_tp_k(k);
 			if (tp) ++ntp;
+			if (m_dope)
+				{
+				bool is_in_dope = in_dope(k);
+				if (is_in_dope)
+					{
+					if (tp)
+						++ntp_dope;
+					else
+						++nfp_dope;
+					}
+				else
+					{
+#if SAVE_NOT_IN_DOPE
+					if (tp)
+						{
+						fputs(line.c_str(), fnid);
+						fputc('\n', fnid);
+						}
+#endif
+					continue;
+					}
+				}
 			const float score = (float) StrToFloat(flds[scoreidx]);
 			m_Scores[k] = score;
 			}
@@ -147,7 +180,12 @@ void FastBench::ReadHits(
 	Progress("Hits 100.00%%\n");
 	ProgressLog("%u hits (%.3g%% of triangle), %u TPs\n",
 		n, GetPct(n, K), ntp);
+	if (m_dope)
+		ProgressLog("%u TPs, %u FPs in dope\n", ntp_dope, nfp_dope);
 	CloseStdioFile(f);
+#if SAVE_NOT_IN_DOPE
+	CloseStdioFile(fnid);
+#endif
 	}
 
 void FastBench::WriteBits(const string &FN) const

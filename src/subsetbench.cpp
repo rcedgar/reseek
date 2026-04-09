@@ -211,13 +211,6 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 	uint DopeSize = SIZE(LabelQs);
 	asserta(SIZE(LabelTs) == DopeSize);
 
-	ProgressLog("%10u  Total hits\n", HitCount);
-	ProgressLog("%10u  High E-value\n", HighEvalue);
-	ProgressLog("%10u  Not found\n", NotFound);
-	ProgressLog("%10u  Self-hits\n", SelfCount);
-	ProgressLog("%10u  Other triangle\n", GtCount);
-	ProgressLog("%10u  Hits saved to dope\n", DopeSize);
-
 	AllocDope(DopeSize);
 
 	uint NT = 0;
@@ -256,6 +249,14 @@ void SubsetBench::MakeDopeFromHits(const string &FN)
 		}
 
 	CloseStdioFile(f);
+
+	ProgressLog("%10u  Total hits\n", HitCount);
+	ProgressLog("%10u  High E-value\n", HighEvalue);
+	ProgressLog("%10u  Not found\n", NotFound);
+	ProgressLog("%10u  Self-hits\n", SelfCount);
+	ProgressLog("%10u  Other triangle\n", GtCount);
+	ProgressLog("%10u  Hits saved to dope\n", DopeSize);
+	ProgressLog("%10u  TPs in dope\n", NT);
 
 	ProgressLog("%u / %u doms in dope, %u TPs, %u FPs\n",
 		SIZE(m_DopeDomIdxs), SIZE(m_Doms), NT, NF);

@@ -435,3 +435,23 @@ void PrefilterMu::ExtendOneHitDiagsToHSPs()
 		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
 		}
 	}
+
+void PrefilterMu::ToTsv(FILE *fTsv) const
+	{
+	if (fTsv == 0)
+		return;
+ 	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
+		{
+		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
+		uint16_t DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
+		const string &QLabel = m_QDB->GetLabel(QSeqIdx);
+
+		m_Lock.lock();
+		fprintf(fTsv, "%s", m_TLabel.c_str());
+		fprintf(fTsv, "\t%s", QLabel.c_str());
+		fprintf(fTsv, "\t%d", DiagScore);
+		fprintf(fTsv, "\n");
+		m_Lock.unlock();
+		}
+	CloseStdioFile(fTsv);
+	}
