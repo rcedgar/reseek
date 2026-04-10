@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "rankedscoresbag.h"
 #include "sort.h"
+#include <algorithm>
 
 const vector<uint> &RankedScoresBag::GetTargetIdxs(uint QueryIdx) const
 	{
@@ -37,9 +38,8 @@ void RankedScoresBag::TruncateVecs(uint QueryIdx)
 	myfree(Order);
 	}
 
-void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
+void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score)
 	{
-	m_DataLock.lock();
 #if CHECK_SCORE_VECS
 	m_QueryIdxToFullTargetIdxVec[QueryIdx].push_back(TargetIdx);
 	m_QueryIdxToFullScoreVec[QueryIdx].push_back(Score);
@@ -63,7 +63,33 @@ void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
 		}
 #endif
 		}
+	}
+
+void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
+	{
+	m_DataLock.lock();
+	AddScore_unlocked(QueryIdx, TargetIdx, Score);
 	m_DataLock.unlock();
+	}
+
+void RankedScoresBag::AddScoresBatch(vector<RankedScoreBatchEntry> &Batch)
+	{
+	const uint N = SIZE(Batch);
+	if (N == 0)
+		return;
+	std::sort(Batch.begin(), Batch.end(),
+		 [](const RankedScoreBatchEntry &a, const RankedScoreBatchEntry &b)
+			{
+			return a.QueryIdx < b.QueryIdx;
+			});
+	m_DataLock.lock();
+	for (uint i = 0; i < N; ++i)
+		{
+		const RankedScoreBatchEntry &e = Batch[i];
+		AddScore_unlocked(e.QueryIdx, e.TargetIdx, e.Score);
+		}
+	m_DataLock.unlock();
+	Batch.clear();
 	}
 
 #if CHECK_SCORE_VECS

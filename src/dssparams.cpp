@@ -27,11 +27,16 @@ int DSSParams::m_PrefilterMinMuKmerPairScore = 36;
 
 /////////////////////////////////////////////////////
 // Kappa prefilter
+// $src/2025-10_reseek_tune [f8b7229]
+// reseek v2.9.i86linux64 [89b34d9]
 // C:\src\notebooks\2026-04-09_kappa_two_hit_diag_param_manual_explore.txt
-//__________________________________________________  Pattern  Kmer   Diag PFhits  PFTime
-//SEPQ0.1=0.290 SEPQ1=0.399 SEPQ10=0.499 Sum3=1.677 | Mu bitdope			 12 M   00:33
-//SEPQ0.1=0.296 SEPQ1=0.399 SEPQ10=0.493 Sum3=1.684 |     1111   28    100    9 M   00:11 <<== set these defaults 2026-04-09
-/////////////////////////////////////////////////////
+// C:\src\2025-10_reseek_tune\bash\test_kappa_prefilter_new_defaults_2026-04-09.bash
+// __________________________________________________  Pattern  Kmer   Diag  PFhits  PFTime
+// SEPQ0.1=0.296 SEPQ1=0.399 SEPQ10=0.493 Sum3=1.684 |    1111    28    100     9 M   00:11 <<== set these defaults 2026-04-09
+// SEPQ0.1=0.290 SEPQ1=0.399 SEPQ10=0.499 Sum3=1.677 | ......Mu bitdope....    12 M   00:33
+// 
+// Sum3 from hits (v2.7 verysensitive AND kappa filtered)
+/////////////////////////////////////////////////////////
 int DSSParams::m_PrefilterMinKappaKmerPairScore = 28;
 int DSSParams::m_PrefilterMinKappaMinDiagScore = 100;
 uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;

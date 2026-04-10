@@ -12,6 +12,13 @@
 #define	CHECK_SCORE_VECS	0
 #define STORE_PAIR_SCORES	1	// @@TODO
 
+struct RankedScoreBatchEntry
+	{
+	uint QueryIdx;
+	uint TargetIdx;
+	uint16_t Score;
+	};
+
 class RankedScoresBag
 	{
 public:
@@ -40,6 +47,10 @@ public:
 		map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
+	// Caller must hold m_DataLock (e.g. use AddScoresBatch for batched updates).
+	void AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score);
+	// Sorts by QueryIdx, applies under one lock, clears Batch.
+	void AddScoresBatch(vector<RankedScoreBatchEntry> &Batch);
 	void ToTsv(FILE *fTsv);
 	void ToLabelsTsv(FILE *fTsv,
 					 const vector<string> &QLabels,

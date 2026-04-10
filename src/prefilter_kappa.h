@@ -11,10 +11,6 @@
 #include "rankedscoresbag.h"
 #include "kappa_prefilter_params.h"
 
-const MerMx &GetMuMerMx(uint k);
-
-//extern int8_t kappa_S_ij_i8[32][32];
-
 extern const int16_t kappa32_flat_logodds[32*32];
 
 #define	TRACE			0
@@ -27,8 +23,9 @@ extern const int16_t kappa32_flat_logodds[32*32];
 class prefilter_kappa
 	{
 public:
-	static mutex m_Lock;
 	static RankedScoresBag m_RSB;
+	// Batched RSB updates: flush when this many entries are pending.
+	static const uint RSB_BATCH = 512;
 
 #if TRACE
 public:
@@ -89,14 +86,22 @@ public:
 	uint m_TL = UINT_MAX;
 	vector<uint> m_TKmers;
 
+	// Pending (query, target, score) for batched AddScoresBatch; not cleared per target.
+	vector<RankedScoreBatchEntry> m_RSBPending;
+
 public:
+	prefilter_kappa() = default;
+	~prefilter_kappa();
+
 	void SetQDB(const SeqDB &QDB);
 	void Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL);
 	void Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL);
 	int FindHSP(uint QSeqIdx, int Diag) const;
+	int FindHSP(const byte *QSeq, uint QL, int Diag) const;
 	int FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const;
+	int FindHSP2(const byte *QSeq, uint QL, int Diag, int &Lo, int &Len) const;
 	void Search_TargetKmers();
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
 	void Search_TargetKmer(uint Kmer, uint TPos);

@@ -3,44 +3,44 @@
 #include "dssparams.h"
 #include "sort.h"
 
-mutex prefilter_kappa::m_Lock;
 RankedScoresBag prefilter_kappa::m_RSB;
 
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
 //////////////////////////////////////////////
-int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
+int prefilter_kappa::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
-
 	asserta(Diag >= 0);
-#if 0 // TRACE
-	if (DoTrace(QSeqIdx)) Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
-#endif
+	const int LQ = int(QL);
+	const int LT = int(m_TL);
+	const int d = Diag;
+	int mini = LQ - d - 1;
+	if (mini < 0)
+		mini = 0;
+	int minj = d + 1 - LQ;
+	if (minj < 0)
+		minj = 0;
+	int maxi = LQ + LT - d - 2;
+	if (maxi >= LQ)
+		maxi = LQ - 1;
+	const int n = maxi - mini + 1;
+	asserta(n > 0);
 
-	diag dg(QL, m_TL);
-	int i = dg.getmini(Diag);
-	int j = dg.getminj(Diag);
-	int n = dg.getlen(Diag);
-
+	const byte *q = QSeq + mini;
+	const byte *t = m_TSeq + minj;
 	int B = 0;
 	int F = 0;
 	for (int k = 0; k < n; ++k)
 		{
-		assert(i < int(QL));
-		assert(j < int(m_TL));
-		byte q = QSeq[i++];
-		byte t = m_TSeq[j++];
-		assert(q < KAPPA_AS);
-		assert(t < KAPPA_AS);
-
-		short Score = kappa32_flat_logodds[q*32 + t];
-		F += Score;
-#if 0 // TRACE
-		if (DoTrace(QSeqIdx)) Log(" i=%u j=%u F=%d B=%d score=%d\n", i, j, F, B, Score);
+		const byte bq = *q++;
+		const byte bt = *t++;
+#if !defined(NDEBUG)
+		assert(bq < KAPPA_AS);
+		assert(bt < KAPPA_AS);
 #endif
+		const int Score = int(kappa32_flat_logodds[(unsigned) bq*32u + (unsigned) bt]);
+		F += Score;
 		if (F > B)
 			B = F;
 		else if (F < 0)
@@ -49,21 +49,42 @@ int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
 	return B;
 	}
 
+int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
+	{
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+#if TRACE
+	if (DoTrace(QSeqIdx))
+		Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
+#endif
+	return FindHSP(QSeq, QL, Diag);
+	}
+
 //////////////////////////////////////////////
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
 //////////////////////////////////////////////
-int prefilter_kappa::FindHSP2(uint QSeqIdx,
-						int Diag, int &Lo, int &Len) const
+int prefilter_kappa::FindHSP2(const byte *QSeq, uint QL, int Diag,
+							  int &Lo, int &Len) const
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	asserta(Diag >= 0);
+	const int LQ = int(QL);
+	const int LT = int(m_TL);
+	const int d = Diag;
+	int mini = LQ - d - 1;
+	if (mini < 0)
+		mini = 0;
+	int minj = d + 1 - LQ;
+	if (minj < 0)
+		minj = 0;
+	int maxi = LQ + LT - d - 2;
+	if (maxi >= LQ)
+		maxi = LQ - 1;
+	const int n = maxi - mini + 1;
+	asserta(n > 0);
 
-	diag dg(QL, m_TL);
-	int i = dg.getmini(Diag);
-	int j = dg.getminj(Diag);
-	int n = dg.getlen(Diag);
-
+	const byte *q = QSeq + mini;
+	const byte *t = m_TSeq + minj;
 	int B = 0;
 	int F = 0;
 	int CurrLen = 0;
@@ -72,13 +93,13 @@ int prefilter_kappa::FindHSP2(uint QSeqIdx,
 	int SuffixLo = 0;
 	for (int k = 0; k < n; ++k)
 		{
-		assert(i < int(QL));
-		assert(j < int(m_TL));
-		byte q = QSeq[i++];
-		byte t = m_TSeq[j++];
-		assert(q < KAPPA_AS);
-		assert(t < KAPPA_AS);
-		short Score = kappa32_flat_logodds[q*32 + t];
+		const byte bq = *q++;
+		const byte bt = *t++;
+#if !defined(NDEBUG)
+		assert(bq < KAPPA_AS);
+		assert(bt < KAPPA_AS);
+#endif
+		const int Score = int(kappa32_flat_logodds[(unsigned) bq*32u + (unsigned) bt]);
 		F += Score;
 		if (F > B)
 			{
@@ -98,10 +119,26 @@ int prefilter_kappa::FindHSP2(uint QSeqIdx,
 	return B;
 	}
 
+int prefilter_kappa::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
+	{
+	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	return FindHSP2(QSeq, QL, Diag, Lo, Len);
+	}
+
+prefilter_kappa::~prefilter_kappa()
+	{
+	if (!m_RSBPending.empty())
+		m_RSB.AddScoresBatch(m_RSBPending);
+	}
+
 void prefilter_kappa::SetQDB(const SeqDB &QDB)
 	{
 	m_QDB = &QDB;
 	m_QSeqCount = QDB.GetSeqCount();
+
+	m_RSBPending.clear();
+	m_RSBPending.reserve(RSB_BATCH);
 
 	m_QSeqIdxToBestDiagScore = myalloc(uint16_t, m_QSeqCount);
 	m_QSeqIdxsWithTwoHitDiag = myalloc(uint16_t, m_QSeqCount);
@@ -316,7 +353,7 @@ int prefilter_kappa::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
-	int DiagScore = FindHSP(QSeqIdx, Diag);
+	int DiagScore = FindHSP(QSeq, QL, Diag);
 #if TRACE
 	LogDiag(QSeqIdx, Diag);
 #endif
@@ -349,9 +386,9 @@ void prefilter_kappa::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	string QSeq_ascii;
 	for (uint i = 0; i < QL; ++i)
 		QSeq_ascii += g_LetterToCharMu[QSeq[i]];
-	int Score = FindHSP(QSeqIdx, Diag);
+	int Score = FindHSP(QSeq, QL, Diag);
 	int Lo, Len;
-	int Score2 = FindHSP2(QSeqIdx, Diag, Lo, Len);
+	int Score2 = FindHSP2(QSeq, QL, Diag, Lo, Len);
 	const string &QLabel = m_QDB->GetLabel(QSeqIdx);
 	Log("LogDiag(%s, %u) lo %d, len %d, score %d\n",
 		QLabel.c_str(), Diag, Lo, Len, Score);
@@ -375,7 +412,13 @@ void prefilter_kappa::Search(uint TSeqIdx, const string &TLabel,
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
 		uint16_t DiagScore = m_QSeqIdxToBestDiagScore[QSeqIdx];
-		m_RSB.AddScore(QSeqIdx, m_TSeqIdx, DiagScore);
+		RankedScoreBatchEntry e;
+		e.QueryIdx = QSeqIdx;
+		e.TargetIdx = m_TSeqIdx;
+		e.Score = DiagScore;
+		m_RSBPending.push_back(e);
+		if (m_RSBPending.size() >= RSB_BATCH)
+			m_RSB.AddScoresBatch(m_RSBPending);
 		}
 	}
 

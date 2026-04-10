@@ -2,7 +2,7 @@
 
 #include "mermx.h"
 
-#define KAPPA_DEBUG_CHECKS	1
+#define KAPPA_DEBUG_CHECKS	0
 
 class SeqDB;
 
