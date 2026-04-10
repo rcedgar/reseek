@@ -288,6 +288,22 @@ void chaq::get_packing_codeseq(cp_sid_t distmx, uint M, uint L,
 	Die("TODO");
 	}
 
+void chaq::get_turnd_values(cp_sid_t distmx, uint M, uint L, uint w,
+	uint16_t undef_value, p_uint16_t values)
+	{
+	for (uint pos = 0; pos < w; ++pos)
+		values[pos] = undef_value;
+
+	for (uint pos = w; pos < L-w; ++pos)
+		{
+		sid_t sid = distmx[banded_ij_to_k(M, pos-w, pos+w)];
+		values[pos] = sid;
+		}
+
+	for (uint pos = L-w; pos < L; ++pos)
+		values[pos] = undef_value;
+	}
+
 void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
 	uint maxsid, bool include_plus, bool include_minus,
 	p_uint16_t values)
@@ -587,7 +603,17 @@ void chaq::slow_get_values(
 		break;
 		}
 
-	default:	Die("update_counts(%s)", FAN2str(fan));
+	case FAN_turnd:
+		{
+		sid_t *distmx = myalloc(sid_t, L*M);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		static const uint16_t w = 5; //@@TODO param for w=5
+		static const uint16_t undef_value =  1540; // measured median
+		chaq::get_turnd_values(distmx, M, L, w, undef_value, values);
+		break;
+		}
+
+	default:	Die("slow_get_values(%s)", FAN2str(fan));
 		}
 
 	myfree(distmx);

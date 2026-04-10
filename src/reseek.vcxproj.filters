@@ -725,6 +725,9 @@
     <ClCompile Include="landmarks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="landmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1205,6 +1208,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="landmarks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landmark.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

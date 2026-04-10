@@ -17,5 +17,6 @@ f(pack)
 f(ppack)
 f(mpack)
 f(angle)
+f(turnd)
 
 #undef f

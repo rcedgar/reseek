@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 
 static const double MY_PI = 3.1415926535;
 
@@ -11,28 +12,30 @@ enum class sstype_t : uint8_t
 
 enum class landmark_cat_t : uint8_t
 	{
-	LM_None = 0,
+	LM_None = 0,		// 0='A'
 
 	// Geometry-first generic classes
-	LM_SpanClosure,
-	LM_HighCurvature,
-	LM_TorsionFlip,
+	LM_SpanClosure,		// 1='B'
+	LM_HighCurvature,	// 2='C'
+	LM_TorsionFlip,		// 3='D'
 
 	// Secondary-structure-informed classes
-	LM_StrandHairpinTurn,
-	LM_HelixKink,
-	LM_HelixToCoilTransition,
-	LM_CoilToHelixTransition,
-	LM_StrandToCoilTransition,
-	LM_CoilToStrandTransition,
+	LM_StrandHairpinTurn,	// 4='E'
+	LM_HelixKink,			// 5='F'
+	LM_HelixToCoilTransition,	// 6='G'
+	LM_CoilToHelixTransition,	// 7='H'
+	LM_StrandToCoilTransition,	// 8='I'
+	LM_CoilToStrandTransition,	// 9='J'
 
 	// Contextual classes
-	LM_LocalCompactnessPeak,
-	LM_NonlocalContactPeak,
+	LM_LocalCompactnessPeak,	// 10='K'
+	LM_NonlocalContactPeak,		// 11='L'
 
 	// for arrays
 	LM_N
 	};
+
+static const uint32_t LM_N = uint32_t(landmark_cat_t::LM_N);;
 
 struct xyz_t
 	{
@@ -335,3 +338,4 @@ static inline bool lm_has_chain_break(
 		}
 	return false;
 	}
+#endif // 0

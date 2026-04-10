@@ -87,6 +87,9 @@ public:
 		uint maxsid, bool include_plus, bool include_minus,
 		p_uint16_t values);
 
+	static void get_turnd_values(cp_sid_t distmx, uint M, uint L, uint w,
+		uint16_t undef_value, p_uint16_t values);
+
 	static void get_packing_codeseq(cp_sid_t distmx, uint M, uint L, 
 		uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq);
 

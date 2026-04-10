@@ -117,6 +117,6 @@ C(nu_threshold)
 C(mu_threshold)
 C(reduce_alphabet)
 C(mysegmask)
-C(landmarks)
+C(landmark)
 
 #undef C

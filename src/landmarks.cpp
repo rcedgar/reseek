@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "landmarks.h"
 #include "flat_chain.h"
@@ -547,20 +548,26 @@ static const char *cat2str(landmark_cat_t cat)
 	{
 	switch (cat)
 		{
+	case landmark_cat_t::LM_None:					return "(none)";
 	case landmark_cat_t::LM_SpanClosure:			return "spanclo";
-	case landmark_cat_t::LM_HighCurvature:			return "highcur";
-	case landmark_cat_t::LM_TorsionFlip:			return "torflip";
-	case landmark_cat_t::LM_StrandHairpinTurn:		return "sturn";
+	case landmark_cat_t::LM_HighCurvature:			return "curve";
+	case landmark_cat_t::LM_TorsionFlip:			return "flip";
+	case landmark_cat_t::LM_StrandHairpinTurn:		return "betahair";
 	case landmark_cat_t::LM_HelixKink:				return "hkink";
 	case landmark_cat_t::LM_LocalCompactnessPeak:	return "lcpeak";
 	case landmark_cat_t::LM_NonlocalContactPeak:	return "nlcpeak";
-	case landmark_cat_t::LM_HelixToCoilTransition:	return "hlx2coil";
-	case landmark_cat_t::LM_CoilToHelixTransition:	return "coil2hlx";
-	case landmark_cat_t::LM_StrandToCoilTransition:	return "strnd2coil";
-	case landmark_cat_t::LM_CoilToStrandTransition:	return "coil2strnd";
+	case landmark_cat_t::LM_HelixToCoilTransition:	return "H2L";
+	case landmark_cat_t::LM_CoilToHelixTransition:	return "L2H";
+	case landmark_cat_t::LM_StrandToCoilTransition:	return "S2L";
+	case landmark_cat_t::LM_CoilToStrandTransition:	return "L2S";
 		}
 	asserta(false);
 	return "?";
+	}
+
+static const char *cat2str(uint cati)
+	{
+	return cat2str(landmark_cat_t(cati));
 	}
 
 static const char cat2char(landmark_cat_t cat)
@@ -572,6 +579,7 @@ static double get_maxscore(landmark_cat_t cat)
 	{
 	switch (cat)
 		{
+	case landmark_cat_t::LM_None:					return 10;
 	case landmark_cat_t::LM_SpanClosure:			return 8;
 	case landmark_cat_t::LM_HighCurvature:			return 85;
 	case landmark_cat_t::LM_TorsionFlip:			return 270;
@@ -591,6 +599,9 @@ static double get_maxscore(landmark_cat_t cat)
 
 static const uint nbin = 100;
 static vector<vector<uint> > s_cat2counts;
+static vector<uint> s_cat2ntopcols;
+static vector<uint> s_cat2sumallcats;
+static vector<uint> s_cat2sumthiscat;
 
 static uint score2bin(landmark_cat_t cat, double score)
 	{
@@ -609,9 +620,11 @@ static double bin2score(landmark_cat_t cat, uint bin)
 
 static void alloc()
 	{
-	const uint N = uint(landmark_cat_t::LM_N);
-	s_cat2counts.resize(N);
-	for (uint i = 0; i < N; ++i)
+	s_cat2counts.resize(LM_N);
+	s_cat2ntopcols.resize(LM_N);
+	s_cat2sumallcats.resize(LM_N);
+	s_cat2sumthiscat.resize(LM_N);
+	for (uint i = 0; i < LM_N; ++i)
 		{
 		landmark_cat_t cat = landmark_cat_t(i);
 		s_cat2counts[i].resize(nbin+1);
@@ -624,6 +637,8 @@ static void analyze_landmarks_onecol(
 	if (landmarks.empty())
 		return;
 	const uint n = uint(landmarks.size());
+	vector<uint> counts_this_col(LM_N);
+	uint n_this_col = 0;
 	for (uint i = 0; i < n; ++i)
 		{
 		const landmark_candidate_t &lm = landmarks[i];
@@ -631,7 +646,27 @@ static void analyze_landmarks_onecol(
 		landmark_cat_t cat = lm.cat;
 		uint bin = score2bin(cat, score);
 		s_cat2counts[uint(cat)][bin] += 1;
+		n_this_col += 1;
+		counts_this_col[uint(cat)] += 1;
 		}
+	if (n_this_col < 1)
+		return;
+
+	uint top_cat = 0;
+	uint top_count = 0;
+	for (uint cati = 0; cati < LM_N; ++cati)
+		{
+		uint n = counts_this_col[cati];
+		if (n > top_count)
+			{
+			top_cat = cati;
+			top_count = n;
+			}
+		}
+	asserta(top_count <= n_this_col);
+	s_cat2ntopcols[top_cat] += 1;
+	s_cat2sumthiscat[top_cat] += top_count;
+	s_cat2sumallcats[top_cat] += n_this_col;
 	}
 
 static void analyze_col2landmarks(
@@ -822,14 +857,12 @@ void cmd_landmarks()
 	ProgressLog("n_ok_flanks %u, n_ok_span %u, n_ok_curv %u, n_emit %u\n",
 		n_ok_flanks, n_ok_span, n_ok_curv, n_emit);
 
-	const uint ncat = uint(landmark_cat_t::LM_N);
+	const uint ncat = LM_N;
 	FILE *f = CreateStdioFile(opt(output));
 	fprintf(f, "bin");
 	for (uint cati = 0; cati < ncat; ++cati)
 		{
 		landmark_cat_t cat = landmark_cat_t(cati);
-		if (cat == landmark_cat_t::LM_None)
-			continue;
 		fprintf(f, "\t%s_sc", cat2str(cat));
 		fprintf(f, "\t%s_N", cat2str(cat));
 		}
@@ -841,8 +874,6 @@ void cmd_landmarks()
 		for (uint cati = 0; cati < ncat; ++cati)
 			{
 			landmark_cat_t cat = landmark_cat_t(cati);
-			if (cat == landmark_cat_t::LM_None)
-				continue;
 			uint count = s_cat2counts[cati][binidx];
 			double score = bin2score(cat, binidx);
 			fprintf(f, "\t%.2f\t%u", score, count);
@@ -851,4 +882,18 @@ void cmd_landmarks()
 		}
 	CloseStdioFile(f);
 	CloseStdioFile(ffa);
+
+	for (uint cati = 0; cati < LM_N; ++cati)
+		{
+		uint ncols = s_cat2ntopcols[cati];
+		uint sumthis = s_cat2sumthiscat[cati];
+		uint sumall = s_cat2sumallcats[cati];
+		ProgressLog("%c  %8.8s  %8.8s  %8.8s  %.1f%%\n",
+			g_LetterToCharMu[cati],
+			cat2str(cati),
+			IntToStr(sumthis),
+			IntToStr(sumall),
+			GetPct(sumthis, sumall));
+		}
 	}
+#endif // 0
