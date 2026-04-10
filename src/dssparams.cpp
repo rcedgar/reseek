@@ -27,13 +27,17 @@ int DSSParams::m_PrefilterMinMuKmerPairScore = 36;
 
 /////////////////////////////////////////////////////
 // Kappa prefilter
+// C:\src\notebooks\2026-04-09_kappa_two_hit_diag_param_manual_explore.txt
+//__________________________________________________  Pattern  Kmer   Diag PFhits  PFTime
+//SEPQ0.1=0.290 SEPQ1=0.399 SEPQ10=0.499 Sum3=1.677 | Mu bitdope			 12 M   00:33
+//SEPQ0.1=0.296 SEPQ1=0.399 SEPQ10=0.493 Sum3=1.684 |     1111   28    100    9 M   00:11 <<== set these defaults 2026-04-09
 /////////////////////////////////////////////////////
-int DSSParams::m_PrefilterMinKappaKmerPairScore = 30;
-int DSSParams::m_PrefilterMinKappaMinDiagScore = 80;
+int DSSParams::m_PrefilterMinKappaKmerPairScore = 28;
+int DSSParams::m_PrefilterMinKappaMinDiagScore = 100;
 uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
-uint DSSParams::m_PrefilterKappaKmerWidth = 8;
+uint DSSParams::m_PrefilterKappaKmerWidth = 4;
 uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
-string DSSParams::m_PrefilterKappaPattern = "11010001";
+string DSSParams::m_PrefilterKappaPattern = "1111";
 
 static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
 uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
