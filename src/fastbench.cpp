@@ -208,7 +208,8 @@ void FastBench::ReadBits(const string &FN)
 	CloseStdioFile(f);
 	}
 
-void FastBench::WriteHits(const string &FN, bool IncludeSelf) const
+void FastBench::WriteHits(const string &FN, bool IncludeSelf,
+	bool UpperTriangleOnly) const
 	{
 	if (FN == "")
 		return;
@@ -234,10 +235,13 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf) const
 		fprintf(f, "\t%s", labels[j].c_str());
 		fprintf(f, "\n");
 
-		fprintf(f, "%.3g", Score);
-		fprintf(f, "\t%s", labels[j].c_str());
-		fprintf(f, "\t%s", labels[i].c_str());
-		fprintf(f, "\n");
+		if (!UpperTriangleOnly)
+			{
+			fprintf(f, "%.3g", Score);
+			fprintf(f, "\t%s", labels[j].c_str());
+			fprintf(f, "\t%s", labels[i].c_str());
+			fprintf(f, "\n");
+			}
 		}
 	CloseStdioFile(f);
 	}
