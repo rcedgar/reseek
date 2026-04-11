@@ -6,7 +6,7 @@ static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
 static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
 static const uint g_nr_thresholds = 4;
 
-double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
+double GetLDDT_muscle(const PDBChain &Q, const PDBChain &T,
   const vector<uint> &PosQs, const vector<uint> &PosTs,
   bool DaliScorerCompatible)
 	{
@@ -60,7 +60,7 @@ double GetLDDT_mu(const PDBChain &Q, const PDBChain &T,
 	return avg;
 	}
 
-double GetLDDT_mu_fast(const PDBChain &Q, const PDBChain &T,
+double GetLDDT_muscle_fast(const PDBChain &Q, const PDBChain &T,
   const vector<uint> &PosQs, const vector<uint> &PosTs)
 	{
 	const uint nr_cols = SIZE(PosQs);

@@ -204,7 +204,7 @@ const char *LocalCIGARToPath(const string &CIGAR, string &Path,
 	return Path.c_str();
 	}
 
-const char *CIGARToPath(const string &CIGAR, string &Path)
+const char *CIGARToPath(const string &CIGAR, string &Path, bool FlipDI)
 	{
 	Path.clear();
 
@@ -217,6 +217,13 @@ const char *CIGARToPath(const string &CIGAR, string &Path)
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
+		if (FlipDI)
+			{
+			if (Op == 'D')
+				Op = 'I';
+			else if (Op == 'I')
+				Op = 'D';
+			}
 		asserta(Op == 'M' || Op == 'D' || Op == 'I');
 		uint OpLength = OpLengths[i];
 		for (uint j = 0; j < OpLength; ++j)

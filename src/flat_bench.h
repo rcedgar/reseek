@@ -66,7 +66,7 @@ public:
 // All-vs-all for fast SCOP40 benchmakr score only
 	virtual void ThreadBody_All(uint ThreadIdx);
 
-// All-vs-all for fast SCOP40 benchmakr score only
+// All-vs-all for fast SCOP40 benchmark score only
 //	  with dope accelerator
 	virtual void ThreadBody_Dope(uint ThreadIdx);
 
@@ -78,6 +78,7 @@ public:
 		vector<float> &Weights,
 		vector<string> &ScalarNames,
 		vector<float> &ScalarValues);
+
 	static void StaticThreadBody(flat_bench *SB,
 		uint ThreadIdx, const string &how);;
 	};

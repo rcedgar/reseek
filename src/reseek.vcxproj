@@ -314,6 +314,7 @@
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
     <ClCompile Include="flat_bench_kmer.cpp" />
+    <ClCompile Include="flat_bench_struct_feature.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
@@ -321,6 +322,7 @@
     <ClCompile Include="flat_features.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
+    <ClCompile Include="flat_lddt.cpp" />
     <ClCompile Include="flat_merge_features.cpp" />
     <ClCompile Include="flat_merge_logodds.cpp" />
     <ClCompile Include="flat_profiles.cpp" />
@@ -342,6 +344,7 @@
     <ClCompile Include="kappa_mxdata.cpp" />
     <ClCompile Include="landmark.cpp" />
     <ClCompile Include="landmarks.cpp" />
+    <ClCompile Include="lddt_fa2.cpp" />
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
@@ -464,6 +467,7 @@
     <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
+    <ClCompile Include="structure_features.cpp" />
     <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="sw_flat.cpp" />
     <ClCompile Include="test.cpp" />
@@ -545,6 +549,7 @@
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_aligner.h" />
     <ClInclude Include="flat_bench_kmer.h" />
+    <ClInclude Include="flat_bench_struct_feature.h" />
     <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />
     <ClInclude Include="flat_bench.h" />

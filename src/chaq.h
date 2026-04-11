@@ -42,6 +42,11 @@ public:
 		uint M,
 		uint16_t *distmx);
 
+	static void fill_distmx(
+		const flat_chain_t *chain,
+		uint M,
+		uint16_t *distmx);
+
 	static void fill_nenvec(
 		cp_sid_t distmx,
 		uint L,

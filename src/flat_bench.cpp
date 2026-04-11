@@ -5,8 +5,6 @@
 #include "triangle.h"
 #include "flat_helpers.h"
 #include "flat_aligner.h"
-#include <unordered_map>
-#include <unordered_set>
 
 #define	SHOW_PROGRESS	1
 

@@ -89,6 +89,15 @@ void chaq::fill_distmx(
 	fill_flat_distmx(xyz, L, M, distmx);
 	}
 
+void chaq::fill_distmx(
+	const flat_chain_t *chain,
+	uint M,
+	uint16_t *distmx)
+	{
+	fill_flat_distmx(chain->m_xyz->m_data,
+		chain->get_length(), M, distmx);
+	}
+
 // 0=helix 1=strand 2=turn 3=loop
 // Method from sec_str() in TMalign.cpp Zhang & Skolnick 2005
 uint8_t chaq::get_ss4(const sid_t *distmx, uint M, uint L, uint pos)

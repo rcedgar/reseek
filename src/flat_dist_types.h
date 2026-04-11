@@ -55,6 +55,11 @@ static inline float sid2dist(sid_t sid)
 	return sqrtf(16.0f*sid)/10.0f;
 	}
 
+static inline float sid2dist2(sid_t sid)
+	{
+	return 16.0f*sid/100.0f;
+	}
+
 static inline sid_t icxyzpair2sid(
 	ic_t x1, ic_t y1, ic_t z1,
 	ic_t x2, ic_t y2, ic_t z2)

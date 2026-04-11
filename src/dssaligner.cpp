@@ -1240,12 +1240,12 @@ void DSSAligner::GetPosABs(vector<uint> &PosAs,
 
 float DSSAligner::GetLDDT() const
 	{
-	double GetLDDT_mu_fast(const PDBChain &Q, const PDBChain &T,
+	double GetLDDT_muscle_fast(const PDBChain &Q, const PDBChain &T,
 	  const vector<uint> &PosQs, const vector<uint> &PosTs);
 	vector<uint> PosAs;
 	vector<uint> PosBs;
 	GetPosABs(PosAs, PosBs);
-	double LDDT = GetLDDT_mu_fast(*m_ChainA, *m_ChainB, PosAs, PosBs);
+	double LDDT = GetLDDT_muscle_fast(*m_ChainA, *m_ChainB, PosAs, PosBs);
 	return (float) LDDT;
 	}
 

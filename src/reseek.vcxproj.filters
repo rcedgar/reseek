@@ -734,6 +734,18 @@
     <ClCompile Include="flat_align_selfrev_mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="structure_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_lddt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_bench_struct_feature.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lddt_fa2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1220,6 +1232,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="get_distinct_window_extrema.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench_struct_feature.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
