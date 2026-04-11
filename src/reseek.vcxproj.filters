@@ -1213,6 +1213,9 @@
     <ClInclude Include="landmark.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="get_distinct_window_extrema.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">

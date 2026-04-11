@@ -3,6 +3,7 @@
 #include "flat_chain.h"
 #include "chaq.h"
 #include "seqdb.h"
+#include "get_distinct_window_extrema.h"
 
 static const uint M = 32;
 static const uint MINL = 80;
@@ -33,11 +34,39 @@ static void load_msas(
 		}
 	}
 
+static void get_landmark_seq(
+	const flat_chain_t *chain,
+	const sid_t *distmx,
+	const string &ss,
+	string &landmark_seq)
+	{
+	const uint16_t median_turnd = 1540;
+	const uint L = chain->get_length();
+
+	landmark_seq.clear();
+	landmark_seq.resize(L, 'a');
+
+	const uint w = 5;
+	const uint W = 34;
+	uint16_t *values = myalloc(uint16_t, L);
+	chaq::get_turnd_values(distmx, M, L, w, median_turnd, values);
+
+	vector<uint32_t> &idxs =
+		get_distinct_window_extrema<uint16_t, true>(values, L, W);
+
+	for (auto idx : idxs)
+		{
+		assert(idx < L);
+		landmark_seq[idx] = 'B';
+		}
+	myfree(values);
+	}
+
 void cmd_landmark()
 	{
 	asserta(optset_input);
-	asserta(optset_output);
-	asserta(optset_output2);
+	//asserta(optset_output);
+	//asserta(optset_output2);
 	const string &chainsfn = g_Arg1;
 	const string &msafilesfn = opt(input);
 	FILE *ffa = CreateStdioFile(opt(fasta));
@@ -63,7 +92,7 @@ void cmd_landmark()
 	uint used = 0;
 	uint notfound = 0;
 	uint tooshort = 0;
-	vector<uint> pos2col;
+	//vector<uint> pos2col;
 	uint total_residues = 0;
 	uint total_landmarks = 0;
 	uint total_overlaps = 0;
@@ -76,7 +105,7 @@ void cmd_landmark()
 
 		const string &msastemname = msastemnames[msaidx];
 		string output_msafn = opt(output2) + msastemname;
-		FILE *foutmsa = CreateStdioFile(output_msafn);
+		FILE *foutmsa = optset_output2 ? CreateStdioFile(output_msafn) : 0;
 
 		SeqDB &MSA = *MSAs[msaidx];
 		const uint nrow = MSA.GetSeqCount();
@@ -113,6 +142,9 @@ void cmd_landmark()
 			chaq::get_ss4_str(distmx, M, L, ss_str);
 			asserta(ss_str.size() == L);
 
+			string landmark_seq;
+			get_landmark_seq(chain, distmx, ss_str, landmark_seq);
+
 			uint pos = 0;
 			string landmark_row;
 			landmark_row.resize(ncol, '!');
@@ -123,22 +155,16 @@ void cmd_landmark()
 					landmark_row[colidx] = '-';
 				else
 					{
-					landmark_row[colidx] = 'A';
-					pos2col.push_back(colidx);
+					landmark_row[colidx] = landmark_seq[pos++];
+					//pos2col.push_back(colidx);
 					}
 				}
 
-			string landmark_seq;
-			landmark_seq.resize(L, 'A');
 			SeqToFasta(ffa, label, landmark_seq);
 			SeqToFasta(foutmsa, label, landmark_row);
 			}
 		CloseStdioFile(foutmsa);
 		}
-	ProgressLog("total_residues %u, landmarks %u, overlaps %u\n",
-		total_residues, total_landmarks, total_overlaps);
-	ProgressLog("helix %u, strand %u, coil %u\n",
-		n_helix, n_strand, n_coil);
 	ProgressLog("%u notound, %u tooshort, %u used\n",
 		notfound, tooshort, used);
 
