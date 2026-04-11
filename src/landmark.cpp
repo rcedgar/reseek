@@ -51,7 +51,7 @@ static void get_landmark_seq(
 	uint16_t *values = myalloc(uint16_t, L);
 	chaq::get_turnd_values(distmx, M, L, w, median_turnd, values);
 
-	vector<uint32_t> &idxs =
+	vector<uint32_t> idxs =
 		get_distinct_window_extrema<uint16_t, true>(values, L, W);
 
 	for (auto idx : idxs)
