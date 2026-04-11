@@ -514,3 +514,50 @@ void cmd_para_scop40()
 		PS.m_look->m_NT);
 	PS.Bench(Msg);
 	}
+
+void cmd_nu_rev()
+	{
+	asserta(optset_mxpattern);
+	asserta(optset_lookup);
+	asserta(optset_output);
+
+	asserta(!optset_db);
+	asserta(!optset_intopen);
+	asserta(!optset_intext);
+	asserta(!optset_scalef);
+	asserta(!optset_scale);
+	asserta(!optset_alignmethod);
+
+	const string &DBFN = g_Arg1;
+
+	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
+	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
+
+	flat_features &ff = ParaSearch::m_ff;
+	ff.init(feature_names);
+	ff.read_logoddsvec_pattern(opt(mxpattern));
+
+	unordered_map<string, float> name2weight;
+	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+		name2weight[feature_names[fi]] = weights[fi];
+
+	const float Scale = 8.39f;
+	const int IntOpen = 23;
+	const int IntExt = 3;
+	const int IntSaturatedScore = 777;
+	Paralign::set_flat_compound(ff, name2weight,
+		Scale, IntOpen, IntExt, IntSaturatedScore);
+
+	ParaSearch PS;
+	PS.GetByteSeqs(DBFN, "nuletters");
+	PS.ReadLookup(opt(lookup));
+	PS.SetSelfScores_rev("para");
+	FILE *f = CreateStdioFile(opt(output));
+	const uint ndom = PS.m_look->get_ndom();
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		const string &label = PS.m_look->get_dom(domidx);
+		fprintf(f, "%s\t%.4g\n", label.c_str(), PS.m_SelfScores_rev[domidx]);
+		}
+	CloseStdioFile(f);
+	}
