@@ -2,6 +2,7 @@
 #include "flat_features.h"
 #include "flat_aligner.h"
 #include "flat_helpers.h"
+#include "cigar.h"
 
 void flat_aligner::alloc()
 	{
@@ -54,6 +55,19 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_ff->m_feature_block_offsets,
 		m_ff->m_nfeat, m_open, m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
+	}
+
+void flat_aligner::write_tsv(FILE *f) const
+	{
+	if (f == 0) return;
+	string CIGAR;
+	PathToCIGAR(m_path_buffer, CIGAR);
+
+	fprintf(f, "%s", m_labelQ.c_str());
+	fprintf(f, "\t%s", m_labelT.c_str());
+	fprintf(f, "\t%.4g", m_score);
+	fprintf(f, "\t%s", CIGAR.c_str());
+	fprintf(f, "\n");
 	}
 
 void flat_aligner::write_aln(FILE *f) const

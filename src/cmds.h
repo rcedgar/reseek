@@ -118,5 +118,6 @@ C(mu_threshold)
 C(reduce_alphabet)
 C(mysegmask)
 C(landmark)
+C(flat_align_allvsall_mega)
 
 #undef C

@@ -123,6 +123,60 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		}
 	}
 
+// Outputs tsv for TS training with CIGAR
+// Identical to ThreadBody_All() except for
+//			m_lock_tsv_all_vs_all.lock();
+//			fa.write_tsv(m_f_tsv_all_vs_all);
+//			m_lock_tsv_all_vs_all.unlock();
+void flat_bench::ThreadBody_AllVsAll(uint ThreadIdx)
+	{
+	asserta(m_f_tsv_all_vs_all != 0);
+	const uint NQ = SIZE(m_Labels);
+	const uint PairCount = triangle_get_K(NQ);
+	const uint nfeat = get_nfeat();
+	flat_aligner fa;
+	fa.m_ff = &m_ff;
+	fa.m_open = -m_Open;
+	fa.m_ext = -m_Ext;
+	fa.alloc();
+	for (;;)
+		{
+		uint DomIdxT = m_NextQueryIdx++;
+		if (DomIdxT >= NQ)
+			return;
+
+		const string &labelT = m_fp.get_label(DomIdxT);
+		const uint8_t *profT = m_fp.get_profile(DomIdxT);
+		const uint LT = m_fp.get_length(DomIdxT);
+		fa.cacheT(labelT, profT, LT);
+
+		// Includes self-score for santify checking and because
+		//   triangle*() functions include diagonal
+		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
+			{
+			const string &labelQ = m_fp.get_label(DomIdxQ);
+			const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
+			const uint LQ = m_fp.get_length(DomIdxQ);
+			fa.alignQ(labelQ, profQ, LQ);
+
+			m_lock_tsv_all_vs_all.lock();
+			fa.write_tsv(m_f_tsv_all_vs_all);
+			m_lock_tsv_all_vs_all.unlock();
+
+			float Score = fa.m_score;
+			asserta(!isnan(Score));
+			asserta(!isinf(Score));
+			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
+			uint progress_count = m_progress_counter++;
+#if SHOW_PROGRESS
+			if (progress_count%1000 == 0)
+				ProgressStep(progress_count, PairCount, "Aligning");
+#endif
+			AppendHit(DomIdxT, DomIdxQ, Score);
+			}
+		}
+	}
+
 void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
@@ -180,7 +234,7 @@ void flat_bench::Search(const string &how)
 	Alloc();
 
 #if SHOW_PROGRESS
-	if (how == "all")
+	if (how == "all" || how == "allvsall")
 		{
 		const uint NQ = SIZE(m_Labels);
 		const uint PairCount = triangle_get_K(NQ);
@@ -232,6 +286,8 @@ void flat_bench::StaticThreadBody(flat_bench *SB,
 	{
 	if (how == "all")
 		SB->ThreadBody_All(ThreadIdx);
+	if (how == "allvsall")
+		SB->ThreadBody_AllVsAll(ThreadIdx);
 	else if (how == "dope")
 		SB->ThreadBody_Dope(ThreadIdx);
 	else

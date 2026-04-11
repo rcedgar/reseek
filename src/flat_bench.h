@@ -31,6 +31,12 @@ public:
 	flat_profiles m_fp;
 	flat_features m_ff;
 
+//////////////////////////////
+// Support for all-vs-all
+//////////////////////////////
+	FILE *m_f_tsv_all_vs_all = 0;
+	mutex m_lock_tsv_all_vs_all;
+
 public:
 	static atomic<uint> m_progress_counter;
 	static atomic<uint> m_ncachehits;
@@ -53,7 +59,14 @@ public:
 	void align_pair(const string &labelQ, const string &labelT);
 
 public:
+// Outputs tsv for TS training with CIGAR
+	virtual void ThreadBody_AllVsAll(uint ThreadIdx);
+
+// All-vs-all for fast SCOP40 benchmakr score only
 	virtual void ThreadBody_All(uint ThreadIdx);
+
+// All-vs-all for fast SCOP40 benchmakr score only
+//	  with dope accelerator
 	virtual void ThreadBody_Dope(uint ThreadIdx);
 
 public:

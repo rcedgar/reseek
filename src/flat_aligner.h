@@ -38,4 +38,5 @@ public:
 	void cacheT(const string &labelT, const uint8_t *profT, uint LT);
 	void alignQ(const string &labelQ, const uint8_t *profQ, uint LQ);
 	void write_aln(FILE *f) const;
+	void write_tsv(FILE *f) const;
 	};
