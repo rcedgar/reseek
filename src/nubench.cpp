@@ -89,6 +89,6 @@ void cmd_nubench()
 	PS.SetLookupFromLabels();
 	PS.Search(AlignMethod, false);
 	PS.SetScoreOrder();
-	PS.WriteHits(opt(output), true, false);
+	PS.WriteHits(opt(output), true, true);
 	PS.Bench();
 	}
