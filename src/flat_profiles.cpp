@@ -193,3 +193,25 @@ void flat_profiles::check_profiles() const
 	for (uint i = 0; i < nprof; ++i)
 		check_profile(i);
 	}
+
+uint8_t *flat_profiles::get_rev_profile(uint i) const
+	{
+	asserta(m_ff != 0);
+	asserta(i < m_profiles.size());
+	const vector<uint8_t> &profile = m_profiles[i];
+	const uint n = SIZE(profile);
+	const uint nfeat = m_ff->m_nfeat;
+	asserta(n%nfeat == 0);
+	const uint L = n/nfeat;
+	uint8_t *rev_profile = myalloc(uint8_t, n);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint AS = m_ff->m_alpha_sizes[fi];
+		for (uint i = 0; i < L; ++i)
+			{
+			uint rev_i = L - i - 1;
+			rev_profile[fi*L + rev_i] = profile[fi*L + i];
+			}
+		}
+	return rev_profile;
+	}

@@ -80,6 +80,27 @@ void flat_bench::align_pair(
 	fa.write_aln(g_fLog);
 	}
 
+void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
+	{
+	if (f == 0)
+		return;
+
+	flat_aligner fa;
+	fa.m_ff = &m_ff;
+	fa.alloc();
+
+	const uint8_t *profT = m_fp.get_profile(DomIdx);
+	const string &label = m_look->get_dom(DomIdx);
+	const uint LT = m_fp.get_length(DomIdx);
+	fa.cacheT(label, profT, LT);
+
+	uint8_t *profQ = m_fp.get_rev_profile(DomIdx);
+	const uint LQ = m_fp.get_length(DomIdx);
+	fa.alignQ(label + "_rev", profQ, LQ);
+	fprintf(f, "%s\t%.4g\n", label.c_str(), fa.m_score);
+	myfree(profQ);
+	}
+
 void flat_bench::ThreadBody_All(uint ThreadIdx)
 	{
 	const uint NQ = SIZE(m_Labels);

@@ -57,6 +57,7 @@ public:
 		const string &logoddsfnpattern);
 	void ProgressLogParams() const;
 	void align_pair(const string &labelQ, const string &labelT);
+	void align_pair_selfrev(FILE *f, uint DomIdx);
 
 public:
 // Outputs tsv for TS training with CIGAR

@@ -119,5 +119,6 @@ C(reduce_alphabet)
 C(mysegmask)
 C(landmark)
 C(flat_align_allvsall_mega)
+C(flat_align_selfrev_mega)
 
 #undef C

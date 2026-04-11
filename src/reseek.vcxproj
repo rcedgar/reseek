@@ -310,6 +310,7 @@
     <ClCompile Include="flat_aligner.cpp" />
     <ClCompile Include="flat_align_allvsall_mega.cpp" />
     <ClCompile Include="flat_align_pair.cpp" />
+    <ClCompile Include="flat_align_selfrev_mega.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
     <ClCompile Include="flat_bench_kmer.cpp" />

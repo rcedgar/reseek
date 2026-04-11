@@ -28,6 +28,8 @@ public:
 		return m_profiles[i].data();
 		}
 
+	uint8_t *get_rev_profile(uint i) const;
+
 	uint32_t get_length(uint i) const
 		{
 		assert(m_ff != 0);
