@@ -4,7 +4,7 @@
 
 float g_DALI_D = 20.0f;
 float g_DALI_d0 = 0.2f;
-float g_DALI_Theta = 0.2f;
+float g_DALI_Theta = 1.0f;
 
 static const int TBLSZ = 100;
 static double *WeightLookup;

@@ -65,6 +65,49 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
+	const string &feat = opt(feature);
+	if (feat == "lddt")
+		return get_lddt(idxQ, idxT, fa);
+	else if (feat == "dali")
+		return get_dali(idxQ, idxT, fa);
+	Die("feat");
+	return 0;
+	}
+
+float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
+	const flat_aligner &fa) const
+	{
+	float flat_get_dali(
+		const string &path,
+		uint32_t loQ, uint32_t LQ,
+		uint32_t loT, uint32_t LT,
+		const sid_t *distmxQ,
+		const sid_t *distmxT,
+		const uint M);
+
+	asserta(idxQ < m_distmxs.size());
+	asserta(idxT < m_distmxs.size());
+
+	const sid_t *distmxQ = m_distmxs[idxQ];
+	const sid_t *distmxT = m_distmxs[idxT];
+
+	uint loQ = fa.m_loQ;
+	uint loT = fa.m_loT;
+	uint LQ = fa.m_LQ;
+	uint LT = fa.m_LT;
+
+	string path;
+	uint nmatch = fa.get_path_str(path);
+	uint ncol = uint(path.size());
+	float dali = flat_get_dali(
+		path, loQ, LQ, loT, LT,
+		distmxQ, distmxT, M);
+	return dali;
+	}
+
+float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
+	const flat_aligner &fa) const
+	{
 	float flat_getlddt_muscle_some_floats2(
 		const string &path,
 		uint32_t loQ, uint32_t LQ,
@@ -90,7 +133,7 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 	float lddt = flat_getlddt_muscle_some_floats2(
 		path, loQ, LQ, loT, LT,
 		distmxQ, distmxT, M);
-	uint maxL = max(LT, LQ) - 10;
+	float maxL = max(LT, LQ) - 20.0f;
 	float score = lddt*nmatch*2.0f/powf(maxL, 0.5);
 	return score;
 	}

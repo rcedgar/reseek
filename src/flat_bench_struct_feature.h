@@ -17,6 +17,12 @@ public:
 	float get_feature_value(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 
+	float get_lddt(uint idxQ, uint idxT,
+		const flat_aligner &fa) const;
+
+	float get_dali(uint idxQ, uint idxT,
+		const flat_aligner &fa) const;
+
 public:
 	virtual void ThreadBody_All(uint ThreadIdx) { Die("all"); }
 	virtual void ThreadBody_Dope(uint ThreadIdx);
