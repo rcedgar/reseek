@@ -24,6 +24,6 @@ public:
 		const flat_aligner &fa) const;
 
 public:
-	virtual void ThreadBody_All(uint ThreadIdx) { Die("all"); }
+	virtual void ThreadBody_All(uint ThreadIdx);
 	virtual void ThreadBody_Dope(uint ThreadIdx);
 	};

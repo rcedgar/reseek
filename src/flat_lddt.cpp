@@ -7,7 +7,7 @@
 static const float g_LDDT_R0 = 15;
 static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
 //static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
-static const float g_LDDT_thresholds[] = { 1.4 };
+static const float g_LDDT_thresholds[] = { 1.4f };
 
 #else
 
@@ -96,7 +96,8 @@ float flat_getlddt_muscle_some_floats(
 		total += score;
 		}
 	float avg = total/ncol;
-	return avg;
+	float lddt = avg;
+	return lddt;
 	}
 
 float flat_getlddt_muscle_some_floats2(

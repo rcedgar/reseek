@@ -1,6 +1,14 @@
 /***
 @@TODOs
 
+Use landmarks to make a composition vector
+	|----------|------------|----------|
+	 ^^^^^^^^^^
+	Frequency vector
+	of Kappa or Nu
+	=> dot product "BLOSUM" score for fast
+	domain identification, align to top few
+
 RNA structures
 
 Turn off exceptions

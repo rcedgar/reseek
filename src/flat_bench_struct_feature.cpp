@@ -10,6 +10,50 @@
 
 static const uint M = 64;
 
+void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
+	{
+	const uint NQ = SIZE(m_Labels);
+	const uint PairCount = triangle_get_K(NQ);
+	const uint nfeat = get_nfeat();
+	flat_aligner fa;
+	fa.m_ff = &m_ff;
+	fa.m_open = -m_Open;
+	fa.m_ext = -m_Ext;
+	fa.alloc();
+	for (;;)
+		{
+		uint DomIdxT = m_NextQueryIdx++;
+		if (DomIdxT >= NQ)
+			return;
+
+		const string &labelT = m_fp.get_label(DomIdxT);
+		const uint8_t *profT = m_fp.get_profile(DomIdxT);
+		const uint LT = m_fp.get_length(DomIdxT);
+		fa.cacheT(labelT, profT, LT);
+
+		// Includes self-score for santify checking and because
+		//   triangle*() functions include diagonal
+		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
+			{
+			const string &labelQ = m_fp.get_label(DomIdxQ);
+			const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
+			const uint LQ = m_fp.get_length(DomIdxQ);
+			fa.alignQ(labelQ, profQ, LQ);
+			float Score = get_feature_value(DomIdxQ, DomIdxT, fa);
+			if (isnan(Score))
+				Die("isnan(%s,%s)", fa.m_labelQ.c_str(), fa.m_labelT.c_str());
+			asserta(!isinf(Score));
+			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
+			uint progress_count = m_progress_counter++;
+#if SHOW_PROGRESS
+			if (progress_count%1000 == 0)
+				ProgressStep(progress_count, PairCount, "Aligning");
+#endif
+			AppendHit(DomIdxT, DomIdxQ, Score);
+			}
+		}
+	}
+
 void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
@@ -134,6 +178,9 @@ float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
 		path, loQ, LQ, loT, LT,
 		distmxQ, distmxT, M);
 	float maxL = max(LT, LQ) - 20.0f;
+	if (maxL < 80)
+		maxL = 80;
+	float length_term = float(nmatch)/maxL;
 	float score = lddt*nmatch*2.0f/powf(maxL, 0.5);
 	return score;
 	}
@@ -184,7 +231,6 @@ void flat_bench_struct_feature::read_chains(const string &fn)
 void cmd_flat_bench_struct_feature()
 	{
 	asserta(optset_lookup);
-	asserta(optset_dope);
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
 	asserta(optset_feature);
@@ -199,7 +245,6 @@ void cmd_flat_bench_struct_feature()
 	FB.ReadLookup(opt(lookup));
 	FB.read_chains(opt(input));
 	FB.set_distmxs(M);
-	ProgressLog("flat chains ok\n");
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
 

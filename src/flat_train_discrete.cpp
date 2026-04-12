@@ -248,8 +248,6 @@ void read_feature_fa_and_fa2(
 		const string &featseq2 = db_fa.GetSeq(featseqidx2);
 		asserta(SIZE(featseq1) == L1);
 		asserta(SIZE(featseq2) == L2);
-		//string featrow1;//@@
-		//string featrow2;//@@
 		for (uint colidx = 0; colidx < ncols; ++colidx)
 			{
 			char rowc1 = row1[colidx];
@@ -262,8 +260,6 @@ void read_feature_fa_and_fa2(
 				uint8_t code2 = char2letter[featc2];
 				if (code1 < alpha_size && code2 < alpha_size)
 					{
-					//featrow1 += featc1;
-					//featrow2 += featc2;
 					code1s.push_back(code1);
 					code2s.push_back(code2);
 					}
@@ -275,12 +271,6 @@ void read_feature_fa_and_fa2(
 			}
 		asserta(pos1 == L1);
 		asserta(pos2 == L2);
-		//Log("\n");
-		//Log("%s, %s\n", label1.c_str(), label2.c_str());
-		//Log("%s\n", row1.c_str());
-		//Log("%s\n", row2.c_str());
-		//Log("%s\n", featrow1.c_str());
-		//Log("%s\n", featrow2.c_str());
 		}
 	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %u missing, %u bad\n",
 		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, nmissing, bad_letters);

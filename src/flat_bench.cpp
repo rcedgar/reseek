@@ -305,7 +305,7 @@ void flat_bench::StaticThreadBody(flat_bench *SB,
 	{
 	if (how == "all")
 		SB->ThreadBody_All(ThreadIdx);
-	if (how == "allvsall")
+	else if (how == "allvsall")
 		SB->ThreadBody_AllVsAll(ThreadIdx);
 	else if (how == "dope")
 		SB->ThreadBody_Dope(ThreadIdx);
