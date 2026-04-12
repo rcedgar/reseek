@@ -114,8 +114,38 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 		return get_lddt(idxQ, idxT, fa);
 	else if (feat == "dali")
 		return get_dali(idxQ, idxT, fa);
+	else if (feat == "entropy")
+		return get_entropy(idxQ, idxT, fa);
 	Die("feat");
 	return 0;
+	}
+
+float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
+	const flat_aligner &fa) const
+	{
+	float flat_get_entropy(
+		const string &path,
+		uint32_t loQ, uint32_t LQ,
+		uint32_t loT, uint32_t LT,
+		const uint8_t *profQ,
+		const uint8_t *profT,
+		uint nfeat, uint fi);
+
+	const uint nfeat = m_ff.get_nfeat();
+	const uint fi = 3;
+	asserta(m_ff.m_feature_names[fi] == "sec32");
+
+	string path;
+	fa.get_path_str(path);
+
+	const uint8_t *profQ = m_fp.get_profile(idxQ);
+	const uint8_t *profT = m_fp.get_profile(idxT);
+
+	float H = flat_get_entropy(
+		path, fa.m_loQ, fa.m_LQ, fa.m_loT, fa.m_LT,
+		profQ, profT, nfeat, fi);
+
+	return H;
 	}
 
 float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
@@ -180,7 +210,6 @@ float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
 	float maxL = max(LT, LQ) - 20.0f;
 	if (maxL < 80)
 		maxL = 80;
-	float length_term = float(nmatch)/maxL;
 	float score = lddt*nmatch*2.0f/powf(maxL, 0.5);
 	return score;
 	}

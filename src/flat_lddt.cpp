@@ -224,7 +224,6 @@ float flat_get_dali(
 		uint loT, uint LT,
 		vector<uint> &posQs,
 		vector<uint> &posTs);
-	uint ncol = uint(posQs.size());
 	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
 	return flat_get_dali2(
 		loQ, LQ, loT, LT,
