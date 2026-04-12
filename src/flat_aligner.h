@@ -39,5 +39,5 @@ public:
 	void alignQ(const string &labelQ, const uint8_t *profQ, uint LQ);
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;
-	void get_path_str(string &path) const;
+	uint get_path_str(string &path) const;
 	};

@@ -57,12 +57,18 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_loQ, m_loT, m_path_buffer, m_ncol);
 	}
 
-void flat_aligner::get_path_str(string &path) const
+uint flat_aligner::get_path_str(string &path) const
 	{
+	uint m = 0;
 	path.clear();
 	path.reserve(m_ncol);
 	for (uint i = 0; i < m_ncol; ++i)
-		path.push_back(m_path_buffer[i]);
+		{
+		char c = m_path_buffer[i];
+		path.push_back(c);
+		if (c == 'M') ++m;
+		}
+	return m;
 	}
 
 void flat_aligner::write_tsv(FILE *f) const

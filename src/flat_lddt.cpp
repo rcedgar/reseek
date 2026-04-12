@@ -6,8 +6,8 @@
 
 static const float g_LDDT_R0 = 15;
 static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
-static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
-static const sid_t g_LDDT_R02 = 1406;
+//static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
+static const float g_LDDT_thresholds[] = { 1.4 };
 
 #else
 
@@ -16,7 +16,8 @@ static const sid_t g_LDDT_R02 = 200;
 
 #endif
 
-static const uint g_nr_thresholds = 4;
+static const uint g_nr_thresholds =
+	sizeof(g_LDDT_thresholds)/sizeof(g_LDDT_thresholds[0]);
 
 float flat_getlddt_muscle_some_floats(
 	const uint32_t *posQs,
@@ -107,6 +108,40 @@ float flat_getlddt_muscle_some_floats2(
 	const uint M)
 	{
 	const uint ncol2 = uint(posQs.size());
+	uint32_t *nr_considered_vec = myalloc(uint32_t, ncol2);
+	uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol2);
+	float lddt = 
+		flat_getlddt_muscle_some_floats(
+			posQs.data(), LQ, posTs.data(), LT, ncol2,
+			distmxQ, distmxT, M, nr_considered_vec, nr_preserved_vec);
+	myfree(nr_considered_vec);
+	myfree(nr_preserved_vec);
+	return lddt;
+	}
+
+float flat_getlddt_muscle_some_floats2(
+	const string &path,
+	uint32_t loQ, uint32_t LQ,
+	uint32_t loT, uint32_t LT,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M)
+	{
+	const uint ncol = uint(path.size());
+
+	vector<uint32_t> posQs;
+	vector<uint32_t> posTs;
+
+	void path2posvecs(
+		const string &path,
+		uint loQ, uint LQ,
+		uint loT, uint LT,
+		vector<uint> &posQs,
+		vector<uint> &posTs);
+	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+
+	const uint ncol2 = uint(posQs.size());
+	asserta(posTs.size() == ncol2);
 	uint32_t *nr_considered_vec = myalloc(uint32_t, ncol2);
 	uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol2);
 	float lddt = 
