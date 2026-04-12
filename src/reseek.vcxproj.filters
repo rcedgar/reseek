@@ -749,6 +749,9 @@
     <ClCompile Include="flat_entropy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="join_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

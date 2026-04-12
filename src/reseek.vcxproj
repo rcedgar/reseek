@@ -340,6 +340,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="join_features.cpp" />
     <ClCompile Include="kappa_dex.cpp" />
     <ClCompile Include="kappa_mermx.cpp" />
     <ClCompile Include="kappa_mxdata.cpp" />

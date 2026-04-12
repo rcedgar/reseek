@@ -46,7 +46,7 @@ public:
 		myfree(m_tpvec);
 		}
 
-	uint get_ndom() { return uint(m_doms.size()); }
+	uint get_ndom() const { return uint(m_doms.size()); }
 
 	void from_tsv(const string &fn);
 	void from_labels(const vector<string> &labels);
@@ -86,14 +86,14 @@ public:
 		return iter->second;
 		}
 
-	uint get_pair_count_upper_triangle_with_diagonal()
+	uint get_pair_count_upper_triangle_with_diagonal() const
 		{
 		uint K = triangle_get_K(get_ndom());
 		return K;
 		}
 
 	uint get_pair_idx_upper_triangle_with_diagonal(
-		uint domidx1, uint domidx2)
+		uint domidx1, uint domidx2) const
 		{
 		uint minidx = min(domidx1, domidx2);
 		uint maxidx = max(domidx1, domidx2);
