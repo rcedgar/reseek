@@ -184,7 +184,6 @@ static void SubClimb(
 		DSSParams::GetMegaAlphaSize(), Final_y, Final_xss.c_str());
 	Log("@TSV@");
 	Log("\t%.4g", Final_y);
-	Log("\t%u", DSSParams::GetMegaAlphaSize());
 	Log("\t%s", Final_xss.c_str());
 	Log("\n");
 	}

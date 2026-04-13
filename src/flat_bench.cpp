@@ -413,7 +413,6 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 void cmd_flat_bench()
 	{
 	asserta(optset_lookup);
-	asserta(optset_dope);
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
 
@@ -458,5 +457,5 @@ void cmd_flat_bench()
 		FB.Search("all");
 	FB.SetScoreOrder();
 	FB.Bench();
-	FB.WriteHits(opt(output), true);
+	FB.WriteHits(opt(output), true, opt(triangle));
 	}

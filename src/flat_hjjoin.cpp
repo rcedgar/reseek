@@ -11,48 +11,86 @@ float *read_join_data(
 static Peaker *s_Peaker;
 static float *s_join_data;
 static vector<string> s_join_names;
+static vector<string> s_var_names;
 static FastBench *s_FB;
 
 /***
-                mean_tp  mean_fp   std_tp  std_fp
-feature                                                                                 
-q_selfrev_mega  10.9941  11.5166   2.6009  3.2537	[0]
-t_selfrev_mega  10.9874  11.1899   2.6918  3.1715	[1]
-q_selfrev_nu   103.8626 103.1983  39.1769 37.6556	[2]
-t_selfrev_nu   102.4237 103.7084  36.6551 38.6891	[3]
-mega            33.4670   9.1704  35.2132  2.8570	[4]
-nu             298.1936  94.5640 272.5236 30.5869	[5]
-dali           151.3461  20.2054 208.7387 22.2518	[6]
-entropy        284.3277  51.2113 233.6193 57.6467	[7]
-lddt             7.0773   1.8915   5.3000  0.8488	[8]
+-rw-r--r-- 1 bob bob 744 Apr 13  2026 ../2026-04-12_ts_feature_vector/feature_stats.txt
+
+selfrev_mega  mean  14.01,  med  14.57,  min  11.22,  max  14.57
+  selfrev_nu  mean  11.56,  med  11.02,  min  4.786,  max  50.82
+        mega  mean  131.8,  med    115,  min    115,  max    216
+     megarev  mean  103.3,  med     96,  min     36,  max    589
+          nu  mean  10.16,  med   9.03,  min  0.929,  max    264
+        dali  mean  7.788,  med   7.79,  min    1.3,  max   19.1
+     entropy  mean  104.3,  med     93,  min      5,  max   1550
+        lddt  mean  32.02,  med     26,  min   -159,  max    841
 ***/
+
+static uint s_varidx_mega = UINT_MAX;
+static uint s_varidx_megarev = UINT_MAX;
+static uint s_varidx_megaselfrev = UINT_MAX;
+static uint s_varidx_entropy = UINT_MAX;
+static uint s_varidx_lddt = UINT_MAX;
+static uint s_varidx_dali = UINT_MAX;
+
+/***
+# tf join.tsv
+     1  query+target
+     2  q_selfrev_mega
+     3  t_selfrev_mega
+     4  q_selfrev_nu
+     5  t_selfrev_nu
+     6  mega
+     7  megarev
+     8  nu
+     9  dali
+    10  entropy
+    11  lddt
+    12  TP
+***/
+
+static uint s_joinidx_q_selfrev_mega = UINT_MAX;
+static uint s_joinidx_t_selfrev_mega = UINT_MAX;
+static uint s_joinidx_q_selfrev_nu = UINT_MAX;
+static uint s_joinidx_t_selfrev_nu = UINT_MAX;
+static uint s_joinidx_mega = UINT_MAX;
+static uint s_joinidx_megarev = UINT_MAX;
+static uint s_joinidx_nu = UINT_MAX;
+static uint s_joinidx_dali = UINT_MAX;
+static uint s_joinidx_lddt = UINT_MAX;
+static uint s_joinidx_entropy = UINT_MAX;
 
 static double calc_score(
 	const float *data,
 	vector<double> &weights)
 	{
-	asserta(weights.size() == 5);
+	const uint nvar = uint(s_var_names.size());
+	asserta(weights.size() == nvar);
 
-	//float w_nu = (float) weights[1];
-	//float w_nurev = (float) weights[6];
+#define x(nm)	float w_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) weights[s_varidx_##nm])
+	x(mega);
+	x(megarev);
+	x(megaselfrev);
+	x(entropy);
+	x(lddt);
+	x(dali);
+#undef x
 
-	float w_mega = (float) weights[0];
-	float w_dali = (float) weights[1];
-	float w_entropy = (float) weights[2];
-	float w_lddt = (float) weights[3];
-	float w_megarev = (float) weights[4];
+#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
+	x(q_selfrev_mega);
+	x(t_selfrev_mega);
+	x(q_selfrev_nu);
+	x(t_selfrev_nu);
+	x(mega);
+	x(megarev);
+	x(nu);
+	x(entropy);
+	x(lddt);
+	x(dali);
+#undef x
 
-	float q_selfrev_mega = data[0];
-	float t_selfrev_mega = data[1];
-	//float q_selfrev_nu = data[2];
-	//float t_selfrev_nu = data[3];
-	float mega = data[4];
-	float nu = data[5];
-	float dali  = data[6];
-	float entropy = data[7];
-	float lddt = data[8];
-
-	float megarev = (q_selfrev_mega + t_selfrev_mega)/2;
+	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
 	//float nurev = (q_selfrev_nu + t_selfrev_nu)/2;
 
 	float score = 0;
@@ -62,6 +100,7 @@ static double calc_score(
 	score += w_entropy*entropy/5;
 	score += w_lddt*lddt*20;
 	score -= w_megarev*megarev*20;
+	score -= w_megaselfrev*megaselfrev*20;
 	//score -= w_nurev*nurev*20;
 	return score;
 	}
@@ -78,17 +117,8 @@ static double get_value(
 static double EvalSum3(const vector<string> &xv)
 	{
 	asserta(s_FB);
-	asserta(xv.size() == 5);
-	vector<double> weights(5);
-
-	//weights[1] = get_value(xv, 1, "nu");
-	//weights[6] = get_value(xv, 6, "nurev");
-
-	weights[0] = get_value(xv, 0, "mega");
-	weights[1] = get_value(xv, 1, "dali");
-	weights[2] = get_value(xv, 2, "entropy");
-	weights[3] = get_value(xv, 3, "lddt");
-	weights[4] = get_value(xv, 4, "megarev");
+	vector<double> weights;
+	s_Peaker->xv2values(xv, weights);
 
 	uint nf = uint(s_join_names.size());
 	const uint npair =
@@ -207,7 +237,7 @@ static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
 void cmd_flat_hjjoin()
 	{
 	asserta(optset_lookup);
-	asserta(optset_lookup);
+	asserta(optset_spec);
 
 	const string &joinfn = g_Arg1;
 
@@ -217,19 +247,59 @@ void cmd_flat_hjjoin()
 	s_FB->Alloc();
 
 	s_join_data = read_join_data(joinfn, *s_FB->m_look, s_join_names);
+	for (uint i = 0; i < s_join_names.size(); ++i)
+		{
+		const string &name = s_join_names[i];
+		if (0) ;
+#define x(nm)	else if (name == #nm) s_joinidx_##nm = i
+		x(q_selfrev_mega);
+		x(t_selfrev_mega);
+		x(q_selfrev_nu);
+		x(t_selfrev_nu);
+		x(mega);
+		x(nu);
+		x(dali);
+		x(lddt);
+		x(entropy);
+#undef x
+		else Die("var=%s", name.c_str());
+		}
 
 	vector<string> SpecLines;
-	SpecLines.push_back("strategy=latinclimb;");
-	SpecLines.push_back("latin=16;");
-	SpecLines.push_back("rates=1.3,1.05;");
-	SpecLines.push_back("hj=1;");
-	SpecLines.push_back("var=mega;min=0;max=1;weight=yes;sigfig=3;");
-	SpecLines.push_back("var=dali;min=0;max=1;weight=yes;sigfig=3;");
-	SpecLines.push_back("var=entropy;min=0;max=1;weight=yes;sigfig=3;");
-	SpecLines.push_back("var=lddt;min=0;max=1;weight=yes;sigfig=3;");
-	SpecLines.push_back("var=megarev;min=0;max=1;weight=yes;sigfig=3;");
+	ReadLinesFromFile(opt(spec), SpecLines);
+	//SpecLines.push_back("strategy=latinclimb;");
+	//SpecLines.push_back("latin=16;");
+	//SpecLines.push_back("rates=1.3,1.05;");
+	//SpecLines.push_back("hj=1;");
+	//SpecLines.push_back("var=mega;min=0;max=1;weight=yes;sigfig=3;");
+	//SpecLines.push_back("var=dali;min=0;max=1;weight=yes;sigfig=3;");
+	//SpecLines.push_back("var=entropy;min=0;max=1;weight=yes;sigfig=3;");
+	//SpecLines.push_back("var=lddt;min=0;max=1;weight=yes;sigfig=3;");
+	//SpecLines.push_back("var=megarev;min=0;max=1;weight=yes;sigfig=3;");
+
+	Peaker::GetVarNames(SpecLines, s_var_names);
+	for (uint i = 0; i < s_var_names.size(); ++i)
+		{
+		const string &name = s_var_names[i];
+		if (0) ;
+#define x(nm)	else if (name == #nm) s_varidx_##nm = i
+		x(mega);
+		x(megarev);
+		x(megaselfrev);
+		x(entropy);
+		x(lddt);
+		x(dali);
+#undef x
+		else Die("var=%s", name.c_str());
+		}
 
 	double Best_y;
 	vector<string> Best_xv;
 	Optimize(SpecLines, Best_y, Best_xv);
+	string xstr;
+	s_Peaker->xv2xss(Best_xv, xstr);
+	Log("@TSV@");
+	Log("\t%.4g", Best_y);
+	Log("\t%s", xstr.c_str());
+	Log("\n");
 	}

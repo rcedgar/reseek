@@ -147,8 +147,8 @@ void cmd_join_features()
 			string sq = "q_" + namevec[nameidx];
 			string st = "t_" + namevec[nameidx];
 
-			fprintf(fout, "\tq_%s", sq.c_str());
-			fprintf(fout, "\tq_%s", st.c_str());
+			fprintf(fout, "\t%s", sq.c_str());
+			fprintf(fout, "\t%s", st.c_str());
 			nf += 2;
 
 			hdr += sq + ";";
