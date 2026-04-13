@@ -26,6 +26,20 @@ void flat_aligner::freemem()
 	myfree(m_path_buffer);	m_path_buffer = 0;
 	}
 
+void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT)
+	{
+	assert(m_ff != 0);
+	asserta(LT < m_maxL);
+	m_labelT = labelT;
+	m_profT = profT;
+	m_LT = LT;
+	fill_flat_pssm_reversed(profT, LT, m_ff->m_nfeat,
+		m_ff->m_alpha_sizes,
+		m_ff->m_feature_block_offsets,
+		m_ff->m_weighted_logoddsvec,
+		m_pssmT);
+	}
+
 void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 	{
 	assert(m_ff != 0);

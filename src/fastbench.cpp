@@ -56,6 +56,10 @@ void FastBench::AppendHit(uint i, uint j, float Score)
 
 void FastBench::SetScoreOrder()
 	{
+#if PARALLEL_SORT
+	SetScoreOrder_Parallel();
+	return;
+#endif
 	asserta(m_Scores);
 	uint K = triangle_get_K(m_SeqCount);
 	if (m_ScoreOrder != 0)

@@ -78,6 +78,33 @@ void fill_flat_pssm(
 		}
 	}
 
+void fill_flat_pssm_reversed(
+	const uint8_t * __restrict profQ,
+	uint32_t LQ,
+	uint32_t nfeat,
+	const uint32_t * __restrict alpha_sizes,
+	const uint32_t * __restrict feature_block_offsets,
+	const float *const * __restrict weighted_logoddsmxvec,
+	float * __restrict pssm)
+	{
+	for (uint32_t fi = 0; fi < nfeat; ++fi)
+		{
+		const uint32_t AS = alpha_sizes[fi];
+		const float * __restrict mx = weighted_logoddsmxvec[fi];
+		const uint8_t * __restrict profQ_fi = profQ + size_t(fi)*LQ;
+		float * __restrict pssm_fi = pssm + size_t(feature_block_offsets[fi])*LQ;
+
+		for (uint32_t a = 0; a < AS; ++a)
+			{
+			const float * __restrict mx_row = mx + size_t(a)*AS;
+			float * __restrict pssm_row = pssm_fi + size_t(a)*LQ;
+
+			for (uint32_t j = 0; j < LQ; ++j)
+				pssm_row[j] = mx_row[profQ_fi[LQ-j-1]];
+			}
+		}
+	}
+
 /***
 For feature fi, block starts at:
     pssm + feature_block_offsets[fi] * LB

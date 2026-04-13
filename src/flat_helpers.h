@@ -70,6 +70,15 @@ void fill_flat_pssm(
 	const float *const * __restrict weighted_logoddsvec,
 	float * __restrict pssm);
 
+void fill_flat_pssm_reversed(
+	const uint8_t * __restrict profQ,
+	uint32_t LQ,
+	uint32_t nfeat,
+	const uint32_t * __restrict alpha_sizes,
+	const uint32_t * __restrict feature_block_offsets,
+	const float *const * __restrict weighted_logoddsmxvec,
+	float * __restrict pssm);
+
 void fill_smx_using_flat_pssm(
 	const uint8_t * __restrict profA,
 	uint32_t LA,
