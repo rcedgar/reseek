@@ -257,6 +257,7 @@ void cmd_flat_hjjoin()
 		x(q_selfrev_nu);
 		x(t_selfrev_nu);
 		x(mega);
+		x(megarev);
 		x(nu);
 		x(dali);
 		x(lddt);
@@ -267,15 +268,6 @@ void cmd_flat_hjjoin()
 
 	vector<string> SpecLines;
 	ReadLinesFromFile(opt(spec), SpecLines);
-	//SpecLines.push_back("strategy=latinclimb;");
-	//SpecLines.push_back("latin=16;");
-	//SpecLines.push_back("rates=1.3,1.05;");
-	//SpecLines.push_back("hj=1;");
-	//SpecLines.push_back("var=mega;min=0;max=1;weight=yes;sigfig=3;");
-	//SpecLines.push_back("var=dali;min=0;max=1;weight=yes;sigfig=3;");
-	//SpecLines.push_back("var=entropy;min=0;max=1;weight=yes;sigfig=3;");
-	//SpecLines.push_back("var=lddt;min=0;max=1;weight=yes;sigfig=3;");
-	//SpecLines.push_back("var=megarev;min=0;max=1;weight=yes;sigfig=3;");
 
 	Peaker::GetVarNames(SpecLines, s_var_names);
 	for (uint i = 0; i < s_var_names.size(); ++i)
