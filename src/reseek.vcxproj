@@ -385,6 +385,7 @@
     <ClCompile Include="prefilter_kappa.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
+    <ClCompile Include="puu.cpp" />
     <ClCompile Include="pwalndb.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
@@ -635,6 +636,7 @@
     <ClInclude Include="primes.h" />
     <ClInclude Include="procstats.h" />
     <ClInclude Include="profileloader.h" />
+    <ClInclude Include="puu.h" />
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />

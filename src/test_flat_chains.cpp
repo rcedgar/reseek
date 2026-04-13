@@ -86,7 +86,7 @@ static double test_nn(const PDBChain &Chain, const flat_chain_t *chain)
 	uint16_t *nns = myalloc(uint16_t, L);
 	sid_t *nnsids = myalloc(sid_t, L);
 
-	chaq::fill_nenvec(distmx, L, M, m, nns, nnsids);
+	chaq::fill_nen_vecs(distmx, L, M, m, nns, nnsids);
 
 	uint nsame = 0;
 	uint ndiff = 0;

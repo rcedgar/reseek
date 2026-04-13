@@ -25,8 +25,8 @@ Squared distance sd(i,j) stored for all 1 < |i-j| <= M
     M pairs (j values) for typical i
     <M pairs close to the ends
 
-Flat matrix layout:
-    mx[M*i + j - i - 1] where j = i+1, i+2 ... i+M
+Flat distamx matrix layout:
+    distmx[M*i + j - i - 1] where j = i+1, i+2 ... i+M
     k   = M*(i-1) - 1 + j
 ***/
 

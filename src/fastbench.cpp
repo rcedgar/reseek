@@ -50,6 +50,17 @@ void FastBench::Alloc()
 void FastBench::AppendHit(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
+	if (m_dope)
+		{
+		if (!in_dope(k))
+			{
+			if (m_scores_are_evalues)
+				Score = 9999;
+			else
+				Score = -9999;
+			}
+		}
+
 	m_Scores[k] = Score;
 	SubclassAppendHit(i, j, Score);
 	}
@@ -359,12 +370,13 @@ void FastBench::ReadDope(const string &FN)
 
 void cmd_fast_bench_hits()
 	{
-	asserta(optset_lookup);
 	asserta(!optset_output);
 	const string &hitsfn = g_Arg1;
+	const string lookupfn =
+		(optset_lookup ? opt(lookup) : "../data/scop40c.lookup");
 
 	FastBench FB;
-	FB.ReadLookup(opt(lookup));
+	FB.ReadLookup(lookupfn);
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
 	if (opt(scorefirst))

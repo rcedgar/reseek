@@ -155,7 +155,7 @@ void chaq::get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t intseq)
 		intseq[pos] = get_ss4(distmx, M, L, pos);
 	}
 
-void chaq::fill_nenvec(
+void chaq::fill_nen_vecs(
 	cp_sid_t distmx,
 	uint L,
 	uint M,
@@ -190,6 +190,46 @@ void chaq::fill_nenvec(
 				{
 				nensid[j] = sid;
 				nen[j] = uint16_t(i);
+				}
+			}
+		}
+	}
+
+void chaq::fill_fen_vecs(
+	cp_sid_t distmx,
+	uint L,
+	uint M,
+	uint m,
+	p_uint16_t fen,
+	p_uint16_t fensid)
+	{
+	for (uint i = 0; i < L; ++i)
+		{
+		fen[i] = UINT16_MAX;
+		fensid[i] = 0;
+		}
+
+	for (uint i = 0; i < L; ++i)
+		{
+		uint dmax = L - 1 - i;
+		if (dmax > M)
+			dmax = M;
+
+		for (uint d = m; d <= dmax; ++d)
+			{
+			uint j = i + d;
+			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+
+			if (sid > fensid[i])
+				{
+				fensid[i] = sid;
+				fen[i] = uint16_t(j);
+				}
+
+			if (sid > fensid[j])
+				{
+				fensid[j] = sid;
+				fen[j] = uint16_t(i);
 				}
 			}
 		}
@@ -550,10 +590,12 @@ void chaq::slow_get_values(
 	uint16_t *mens = myalloc(uint16_t, L);
 	uint16_t *nens = myalloc(uint16_t, L);
 	uint16_t *rens = myalloc(uint16_t, L);
+	uint16_t *fens = myalloc(uint16_t, L);
 	sid_t *pensids = myalloc(sid_t, L);
 	sid_t *mensids = myalloc(sid_t, L);
 	sid_t *nensids = myalloc(sid_t, L);
 	sid_t *rensids = myalloc(sid_t, L);
+	sid_t *fensids = myalloc(sid_t, L);
 
 	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
 
@@ -565,6 +607,10 @@ void chaq::slow_get_values(
 		pens, mens, pensids, mensids, L,
 		nens, rens, nensids, rensids);
 
+	chaq::fill_fen_vecs(
+		distmx, L, M, m,
+		fens, fensids);
+
 	// Only "float" features, not aa, ss3 etc.
 	const size_t bytes = L*sizeof(uint16_t);
 	switch (fan)
@@ -573,6 +619,7 @@ void chaq::slow_get_values(
 	case FAN_rendist:	memcpy(values, rensids, bytes); break;
 	case FAN_pendist:	memcpy(values, pensids, bytes); break;
 	case FAN_mendist:	memcpy(values, mensids, bytes); break;
+	case FAN_fendist:	memcpy(values, fensids, bytes); break;
 
 	case FAN_pm:
 		{

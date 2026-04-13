@@ -128,5 +128,6 @@ C(flat_bench_struct_feature)
 C(join_features)
 C(join_stats)
 C(flat_hjjoin)
+C(puu)
 
 #undef C

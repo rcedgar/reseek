@@ -755,6 +755,9 @@
     <ClCompile Include="flat_hjjoin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="puu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1247,6 +1250,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="parallel_sort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="puu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

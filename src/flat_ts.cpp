@@ -69,6 +69,10 @@ static uint16_t ts_angle3[3-1] = {37104,53225};
 // [f696272] 2026-04-10
 static uint16_t ts_turnd16[16-1] = {515,748,956,1150,1321,1432,1489,1541,1663,1873,2144,2553,3114,3829,4839};
 
+// C:\src\reseek\src\Release\reseek.exe -flat_quantize ../data/scop40c.bca -alpha_size 32 -feature fendist -log flat_quantize_fendist.log -output fendist32.bins -fasta fendist32.fa -output2 fendist32.cpp
+// [b500136] 2026-04-13
+static uint16_t ts_fendist32[32-1] = {3186,3662,4017,4319,4595,4852,5097,5333,5566,5798,6032,6268,6507,6753,7006,7269,7543,7832,8138,8462,8812,9193,9613,10084,10619,11236,11980,12889,14107,15881,19194};
+
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
@@ -99,6 +103,8 @@ cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	x(mendist, 8);
 	x(mendist, 16);
 	x(mendist, 32);
+
+	x(fendist, 32);
 
 	x(pack, 3);
 	x(pack, 4);
@@ -140,6 +146,7 @@ static uint16_t median_pack = 31;
 static uint16_t median_ppack = 16;
 static uint16_t median_mpack = 17;
 static uint16_t median_turnd = 1540;
+static uint16_t median_fendist = 7269;
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
@@ -148,6 +155,7 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	x(rendist);
 	x(pendist);
 	x(mendist);
+	x(fendist);
 	x(pack);
 	x(ppack);
 	x(mpack);

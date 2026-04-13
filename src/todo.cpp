@@ -1,6 +1,10 @@
 /***
 @@TODOs
 
+FEN etc
+
+PUU
+
 Use landmarks to make a composition vector
 	|----------|------------|----------|
 	 ^^^^^^^^^^

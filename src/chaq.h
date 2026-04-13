@@ -27,6 +27,7 @@ public:
 		case FAN_rendist:
 		case FAN_pendist:
 		case FAN_mendist:
+		case FAN_fendist:
 		case FAN_pack:
 		case FAN_ppack:
 		case FAN_mpack:
@@ -47,7 +48,7 @@ public:
 		uint M,
 		uint16_t *distmx);
 
-	static void fill_nenvec(
+	static void fill_nen_vecs(
 		cp_sid_t distmx,
 		uint L,
 		uint M,
@@ -75,6 +76,14 @@ public:
 		p_uint16_t pensidvec,
 		p_uint16_t menvec,
 		p_uint16_t mensidvec);
+
+	static void fill_fen_vecs(
+		cp_sid_t distmx,
+		uint L,
+		uint M,
+		uint m,
+		p_uint16_t fenvec,
+		p_uint16_t fensidvec);
 
 	static uint8_t get_ss3(cp_sid_t distmx, uint M, uint L, uint pos);
 	static uint8_t get_ss4(cp_sid_t distmx, uint M, uint L, uint pos);

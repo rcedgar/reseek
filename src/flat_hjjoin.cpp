@@ -123,14 +123,19 @@ static double EvalSum3(const vector<string> &xv)
 	uint nf = uint(s_join_names.size());
 	const uint npair =
 		s_FB->m_look->get_pair_count_upper_triangle_with_diagonal();
-	for (uint i = 0; i < npair; ++i)
+	bool do_dope = (s_FB->m_dope != 0);
+	for (uint k = 0; k < npair; ++k)
 		{
-		float score = (float) calc_score(s_join_data + nf*i, weights);
-		s_FB->m_Scores[i] = score;
+		if (do_dope && !s_FB->in_dope(k))
+			{
+			s_FB->m_Scores[k] = -9999;
+			continue;
+			}
+		float score = (float) calc_score(s_join_data + nf*k, weights);
+		s_FB->m_Scores[k] = score;
 		}
-	ProgressLog("Sorting...");
+	Progress("Sorting...\r");
 	s_FB->SetScoreOrder_Parallel();
-	ProgressLog("\n");
 	s_FB->Bench();
 	float Sum3 = s_FB->m_Sum3;
 	return Sum3;
@@ -244,6 +249,8 @@ void cmd_flat_hjjoin()
 	s_FB = new FastBench;
 	s_FB->m_scores_are_evalues = opt(scores_are_evalues);
 	s_FB->ReadLookup(opt(lookup));
+	if (optset_dope)
+		s_FB->ReadDope(opt(dope));
 	s_FB->Alloc();
 
 	s_join_data = read_join_data(joinfn, *s_FB->m_look, s_join_names);
@@ -283,6 +290,18 @@ void cmd_flat_hjjoin()
 		x(dali);
 #undef x
 		else Die("var=%s", name.c_str());
+		}
+
+	if (optset_varstr)
+		{
+		Peaker &P = *new Peaker(0, "");
+		P.Init(SpecLines, EvalSum3);
+		s_Peaker = &P;
+
+		vector<string> xv;
+		s_Peaker->xss2xv(opt(varstr), xv);
+		EvalSum3(xv);
+		return;
 		}
 
 	double Best_y;
