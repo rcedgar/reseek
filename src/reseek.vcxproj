@@ -334,6 +334,7 @@
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hj.cpp" />
+    <ClCompile Include="flat_hjjoin.cpp" />
     <ClCompile Include="hjmega.cpp" />
     <ClCompile Include="hjmegasb.cpp" />
     <ClCompile Include="hjmumx.cpp" />
@@ -606,6 +607,7 @@
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />
+    <ClInclude Include="parallel_sort.h" />
     <ClInclude Include="parasearch.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />

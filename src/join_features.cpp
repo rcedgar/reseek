@@ -224,14 +224,13 @@ void cmd_join_features()
 	CloseStdioFile(fout2);
 	}
 
-void cmd_join_stats()
+float *read_join_data(
+	const string &fn,
+	const lookup &look,
+	vector<string> &names)
 	{
-	asserta(optset_lookup);
-	lookup look;
-	look.from_tsv(opt(lookup));
 	const uint npair =
 		look.get_pair_count_upper_triangle_with_diagonal();
-	const string &fn = g_Arg1;
 	FILE *f = OpenStdioFile(fn);
 	uint32_t nf;
 	ReadStdioFile(f, &nf, sizeof(nf));
@@ -239,7 +238,6 @@ void cmd_join_stats()
 	char hdr[101];
 	ReadStdioFile(f, hdr, 100);
 	hdr[100] = 0;
-	vector<string> names;
 	Split(hdr, names, ';');
 	const uint nname = uint(names.size());
 	ProgressLog("%u names\n", nname);
@@ -258,12 +256,25 @@ void cmd_join_stats()
 	ReadStdioFile(f, data, bytes);
 	ProgressLog("ok\n");
 	CloseStdioFile(f);
+	return data;
+	}
+
+void cmd_join_stats()
+	{
+	asserta(optset_lookup);
+	lookup look;
+	look.from_tsv(opt(lookup));
+	vector<string> names;
+	float *data = read_join_data(g_Arg1, look, names);
 
 	FastBench FB;
 	FB.m_scores_are_evalues = opt(scores_are_evalues);
 	FB.ReadLookup(opt(lookup));
 	FB.Alloc();
 
+	uint nf = uint(names.size());
+	const uint npair =
+		look.get_pair_count_upper_triangle_with_diagonal();
 	for (uint i = 0; i < npair; ++i)
 		{
 		float mega = data[nf*i + 4];

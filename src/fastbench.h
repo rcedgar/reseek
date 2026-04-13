@@ -2,6 +2,8 @@
 
 #include "lookup.h"
 
+#define PARALLEL_SORT	1
+
 class FastBench
 	{
 public:
@@ -13,12 +15,19 @@ public:
 	float m_SEPQ10 = FLT_MAX;
 	uint m_SeqCount = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
-	uint *m_ScoreOrder = 0;
 	vector<string> m_Labels;
 	lookup *m_look = 0;
 	uint8_t *m_dope = 0;
 	uint32_t m_dope_nhit = 0;
 	uint32_t *m_dope_ks = 0;
+
+#if PARALLEL_SORT
+	uint *m_ScoreOrder = 0;
+	uint  m_ScoreOrderCap = 0;
+	bool  m_ScoreOrderInitialized = false;
+#else
+	uint *m_ScoreOrder = 0;
+#endif
 
 public:
 	FastBench()
@@ -44,6 +53,9 @@ public:
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
+#if PARALLEL_SORT
+	void SetScoreOrder_Parallel();
+#endif
 	void ReadHits(
 		const string &FN,
 		uint qidx,

@@ -127,5 +127,6 @@ C(lddt_fa2)
 C(flat_bench_struct_feature)
 C(join_features)
 C(join_stats)
+C(flat_hjjoin)
 
 #undef C

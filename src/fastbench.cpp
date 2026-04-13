@@ -5,6 +5,37 @@
 
 #define SAVE_NOT_IN_DOPE	0
 
+#if PARALLEL_SORT
+
+#include "parallel_sort.h"
+
+void FastBench::SetScoreOrder_Parallel()
+{
+	asserta(m_Scores);
+	const uint K = triangle_get_K(m_SeqCount);
+
+	if (m_ScoreOrderCap < K)
+		{
+		if (m_ScoreOrder != 0)
+			myfree(m_ScoreOrder);
+		m_ScoreOrder = myalloc(uint, K);
+		m_ScoreOrderCap = K;
+
+		// first use: initialize identity permutation
+		for (uint i = 0; i < K; ++i)
+			m_ScoreOrder[i] = i;
+		}
+
+	// Reuse previous order on subsequent calls.
+	// This is the important part: do NOT reinitialize every time.
+
+	if (m_scores_are_evalues)
+		QuickSortOrder_Parallel(m_Scores, K, m_ScoreOrder);
+	else
+		QuickSortOrderDesc_Parallel(m_Scores, K, m_ScoreOrder);
+}
+#endif
+
 void FastBench::Alloc()
 	{
 	asserta(m_look);
@@ -27,7 +58,7 @@ void FastBench::SetScoreOrder()
 	{
 	asserta(m_Scores);
 	uint K = triangle_get_K(m_SeqCount);
-	if (m_ScoreOrder == 0)
+	if (m_ScoreOrder != 0)
 		myfree(m_ScoreOrder);
 	m_ScoreOrder = myalloc(uint, K);
 	if (m_scores_are_evalues)
