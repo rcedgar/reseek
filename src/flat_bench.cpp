@@ -170,7 +170,10 @@ void flat_bench::ThreadBody_AllVsAll(uint ThreadIdx)
 		const string &labelT = m_fp.get_label(DomIdxT);
 		const uint8_t *profT = m_fp.get_profile(DomIdxT);
 		const uint LT = m_fp.get_length(DomIdxT);
-		fa.cacheT(labelT, profT, LT);
+		if (opt(reverse))
+			fa.cacheT_reversed(labelT, profT, LT);
+		else
+			fa.cacheT(labelT, profT, LT);
 
 		// Includes self-score for santify checking and because
 		//   triangle*() functions include diagonal
