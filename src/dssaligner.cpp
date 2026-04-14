@@ -774,6 +774,21 @@ void DSSAligner::CalcEvalue()
 
 	m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
 	m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore - DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
+	//if (m_ChainA->m_Label != m_ChainB->m_Label && !EndsWith(m_ChainB->m_Label, ".rev"))
+	//	{
+	//	Log("A>%s\n", m_ChainA->m_Label.c_str());
+	//	Log("B>%s\n", m_ChainB->m_Label.c_str());
+	//	Log("L=%.3g\n", L);
+	//	Log("LDDT=%.3g\n", LDDT);
+	//	Log("m_AlnFwdScore=%.3g\n", m_AlnFwdScore);
+	//	Log("RevDPScore=%.3g\n", RevDPScore);
+	//	Log("DSSParams::m_dpw=%.3g\n", DSSParams::m_dpw);
+	//	Log("DSSParams::m_revtsw=%.3g\n", DSSParams::m_revtsw);
+	//	Log("DSSParams::m_ladd=%.3g\n", DSSParams::m_ladd);
+	//	Log("DSSParams::m_lddtw=%.3g\n", DSSParams::m_lddtw);
+	//	Log("TS=%.3g\n", m_NewTestStatisticA);
+	//	Die("TODO");
+	//	}
 
 	m_NewTestStatisticB = m_NewTestStatisticA;
 
@@ -806,8 +821,6 @@ void DSSAligner::ClearAlign()
 	m_EvalueB = FLT_MAX;
 	m_QualityA = FLT_MAX;
 	m_QualityB = FLT_MAX;
-	m_TestStatisticA = -FLT_MAX;
-	m_TestStatisticB = -FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_XDropScore = 0;
@@ -835,8 +848,6 @@ void DSSAligner::ClearAlign_ExceptMu()
 	m_EvalueB = FLT_MAX;
 	m_QualityA = FLT_MAX;
 	m_QualityB = FLT_MAX;
-	m_TestStatisticA = -FLT_MAX;
-	m_TestStatisticB = -FLT_MAX;
 	m_NewTestStatisticA = -FLT_MAX;
 	m_NewTestStatisticB = -FLT_MAX;
 	m_XDropScore = 0;

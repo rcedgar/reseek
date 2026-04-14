@@ -15,8 +15,10 @@ static void read_all(
 	FILE *f = OpenStdioFile(fn);
 	string line;
 	vector<string> flds;
+	ProgressFileInit(f, "Reading %s", fn.c_str());
 	while (ReadLineStdioFile(f, line))
 		{
+		ProgressFileStep();
 		Split(line, flds, '\t');
 		asserta(flds.size() > maxfldidx);
 		const string &q = flds[fldidxq];
@@ -30,6 +32,7 @@ static void read_all(
 		values[k] = value;
 		}
 	CloseStdioFile(f);
+	ProgressFileDone();
 
 	const uint npair =
 		look.get_pair_count_upper_triangle_with_diagonal();
@@ -136,7 +139,7 @@ void cmd_join_features()
 		}
 
 	const uint nname = uint(namevec.size());
-	fprintf(fout, "query+target");
+	fprintf(fout, "query\ttarget");
 	uint32_t nf = 0;
 	string hdr;
 	for (uint nameidx = 0; nameidx < nname; ++nameidx)
@@ -186,7 +189,7 @@ void cmd_join_features()
 			const string &t = look.get_dom(idxt);
 
 			fprintf(fout, "%s", q.c_str());
-			fprintf(fout, "+%s", t.c_str());
+			fprintf(fout, "\t%s", t.c_str());
 
 			for (uint nameidx = 0; nameidx < nname; ++nameidx)
 				{
@@ -266,6 +269,9 @@ void cmd_join_stats()
 	look.from_tsv(opt(lookup));
 	vector<string> names;
 	float *data = read_join_data(g_Arg1, look, names);
+	if (!optset_scorefieldnr)
+		return;
+	const uint scorefldnr = opt(scorefieldnr);
 
 	FastBench FB;
 	FB.m_scores_are_evalues = opt(scores_are_evalues);
@@ -277,11 +283,157 @@ void cmd_join_stats()
 		look.get_pair_count_upper_triangle_with_diagonal();
 	for (uint i = 0; i < npair; ++i)
 		{
-		float mega = data[nf*i + 4];
+		float mega = data[nf*i + scorefldnr];
 		FB.m_Scores[i] = mega;
 		}
 	ProgressLog("Sorting...");
-	FB.SetScoreOrder();
+	FB.SetScoreOrder_Serial();
 	ProgressLog("\n");
 	FB.Bench();
+	}
+
+void cmd_join_features1()
+	{
+	asserta(optset_lookup);
+	asserta(optset_output);
+	asserta(optset_output2);
+
+	asserta(!optset_filesdir);
+
+	FILE *fout = CreateStdioFile(opt(output));
+	FILE *fout2 = CreateStdioFile(opt(output2));
+
+	const string &hitsfn = g_Arg1;
+
+	lookup look;
+	look.from_tsv(opt(lookup));
+
+	const uint ndom = look.get_ndom();
+	const uint npair =
+		look.get_pair_count_upper_triangle_with_diagonal();
+
+	vector<string> namevec;
+	vector<uint> fldidxvec;
+//               0      1  2       3       4    5     6
+//	-columns query+target+l2+dpscore+selfrev+lddt+newts+pvalue
+	const uint fldidxq = 0;
+	const uint fldidxt = 1;
+
+	namevec.push_back("l2");
+	fldidxvec.push_back(2);
+
+	namevec.push_back("dpscore");
+	fldidxvec.push_back(3);
+
+	namevec.push_back("selfrev");
+	fldidxvec.push_back(4);
+
+	namevec.push_back("lddt");
+	fldidxvec.push_back(5);
+
+	namevec.push_back("newts");
+	fldidxvec.push_back(6);
+	uint maxfldidx = 6;
+
+	const uint32_t nfeat = uint(namevec.size());
+
+// FastBench ignores FLT_MAX
+	const float MISSING_VALUE = FLT_MAX;
+	vector<float *> valuevec(nfeat);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		valuevec[fi] = myalloc(float, npair);
+		for (uint i = 0; i < npair; ++i)
+			valuevec[fi][i] = MISSING_VALUE;
+		}
+
+	FILE *f = OpenStdioFile(hitsfn);
+	string msg;
+	Ps(msg, "Reading %s", hitsfn.c_str());
+	ProgressFileInit(f, msg.c_str());
+	string line;
+	vector<string> flds;
+	while (ReadLineStdioFile(f, line))
+		{
+		ProgressFileStep();
+		Split(line, flds, '\t');
+		asserta(flds.size() > maxfldidx);
+		const string &q = flds[fldidxq];
+		const string &t = flds[fldidxt];
+		uint domidxq = look.get_domidx(q);
+		uint domidxt = look.get_domidx(t);
+		uint k = look.
+			get_pair_idx_upper_triangle_with_diagonal(domidxq, domidxt);
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			const string &v = flds[fldidxvec[fi]];
+			float value = StrToFloatf(v);
+			valuevec[fi][k] = value;
+			}
+		}
+	ProgressFileDone();
+	CloseStdioFile(f);
+
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		uint nmiss = 0;
+		uint nfound = 0;
+		for (uint i = 0; i < npair; ++i)
+			if (valuevec[fi][i] == MISSING_VALUE) ++nmiss; else ++nfound;
+		if (nmiss > 0)
+			ProgressLog("%s: %u found, %u missing\n", namevec[fi].c_str(), nfound, nmiss);
+		}
+
+	fprintf(fout, "query\ttarget");
+	string hdr;
+	for (uint nameidx = 0; nameidx < nfeat; ++nameidx)
+		{
+		const string &s = namevec[nameidx];
+		fprintf(fout, "\t%s", s.c_str());
+		hdr += s + ";";
+		}
+	fprintf(fout, "\tTP");
+	fprintf(fout, "\n");
+
+	asserta(hdr.size() < 100);
+	hdr.resize(100);
+
+	WriteStdioFile(fout2, &nfeat, sizeof(nfeat));
+	WriteStdioFile(fout2, hdr.c_str(), 100);
+
+	uint counter = 0;
+	for (uint idxq = 0; idxq < ndom; ++idxq)
+		{
+		const string &q = look.get_dom(idxq);
+		for (uint idxt = idxq; idxt < ndom; ++idxt)
+			{
+			vector<float> vv;
+			uint k = look.
+				get_pair_idx_upper_triangle_with_diagonal(idxq, idxt);
+			ProgressStep(counter++, npair, "Writing output");
+
+			const string &t = look.get_dom(idxt);
+
+			fprintf(fout, "%s", q.c_str());
+			fprintf(fout, "\t%s", t.c_str());
+
+			for (uint nameidx = 0; nameidx < nfeat; ++nameidx)
+				{
+				float v = valuevec[nameidx][k];
+				fprintf(fout, "\t%.4g", v);
+
+				vv.push_back(v);
+				}
+
+			bool is_tp = look.is_tp_k(k);
+			fprintf(fout, "\t%d", int(is_tp));
+			fprintf(fout, "\n");
+
+			asserta(vv.size() == nfeat);
+			WriteStdioFile(fout2, vv.data(), nfeat*sizeof(float));
+			}
+		}
+
+	CloseStdioFile(fout);
+	CloseStdioFile(fout2);
 	}

@@ -35,6 +35,10 @@ static uint s_varidx_lddt = UINT_MAX;
 static uint s_varidx_dali = UINT_MAX;
 static uint s_varidx_lpow = UINT_MAX;
 static uint s_varidx_ladd = UINT_MAX;
+static uint s_varidx_dpw = UINT_MAX;
+static uint s_varidx_revtsw = UINT_MAX;
+static uint s_varidx_lddtw = UINT_MAX;
+static uint s_varidx_logladd = UINT_MAX;
 
 static uint s_joinidx_q_selfrev_mega = UINT_MAX;
 static uint s_joinidx_t_selfrev_mega = UINT_MAX;
@@ -49,15 +53,19 @@ static uint s_joinidx_nu = UINT_MAX;
 static uint s_joinidx_dali = UINT_MAX;
 static uint s_joinidx_lddt = UINT_MAX;
 static uint s_joinidx_entropy = UINT_MAX;
+static uint s_joinidx_l2 = UINT_MAX;
+static uint s_joinidx_dpscore = UINT_MAX;
+static uint s_joinidx_selfrev = UINT_MAX;
+static uint s_joinidx_newts = UINT_MAX;
 
-static double calc_score(
+static double calc_score_old_features(
 	const float *data,
-	vector<double> &weights)
+	vector<double> &values)
 	{
 	const uint nvar = uint(s_var_names.size());
-	asserta(weights.size() == nvar);
+	asserta(values.size() == nvar);
 
-#define x(nm)	float w_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) weights[s_varidx_##nm])
+#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
 	x(mega);
 	x(megarev);
 	x(megaselfrev);
@@ -66,13 +74,98 @@ static double calc_score(
 	x(dali);
 	x(lpow);
 	x(ladd);
+	x(logladd);
+	x(dpw);
+	x(revtsw);
+	x(lddtw);
 #undef x
+// dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;
+	asserta(s_varidx_dpw != UINT_MAX);
+	asserta(s_varidx_lddtw != UINT_MAX);
+	asserta(s_varidx_revtsw != UINT_MAX);
+	asserta(s_varidx_logladd != UINT_MAX);
 
 #define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
 	x(q_selfrev_mega);
 	x(t_selfrev_mega);
 	x(q_selfrev_nu);
 	x(t_selfrev_nu);
+	x(dpscore);
+	x(mega);
+	x(megarev);
+	x(selfrev);
+	x(nu);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(q_L);
+	x(t_L);
+	x(l2);
+#undef x
+
+//# tf best_verysensitive_join.tsv
+//     1  query
+//     2  target
+//     3  l2
+//     4  dpscore
+//     5  selfrev
+//     6  lddt
+//     7  newts
+//     8  TP
+
+// best_verysensitive_join.bin
+//[ 0]  l2
+//[ 1]  dpscore
+//[ 2]  selfrev
+//[ 3]  lddt
+//[ 4]  newts <== NOTUSED
+	asserta(s_joinidx_dpscore != UINT_MAX);
+	asserta(s_joinidx_selfrev != UINT_MAX);
+	asserta(s_joinidx_lddt != UINT_MAX);
+	asserta(s_joinidx_l2 != UINT_MAX);
+
+//	ts = lddtw*lddt
+//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
+
+	float score = 0;
+	score += value_lddtw*lddt;
+	score += (value_dpw*dpscore - value_revtsw*selfrev)/(l2 + powf(10.0f, value_logladd));
+	return score;
+	}
+
+static double calc_score_new_features_v2(
+	const float *data,
+	vector<double> &values)
+	{
+	const uint nvar = uint(s_var_names.size());
+	asserta(values.size() == nvar);
+
+#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
+	x(mega);
+	x(megarev);
+	x(megaselfrev);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(lpow);
+	x(ladd);
+	x(logladd);
+	x(dpw);
+	x(revtsw);
+	x(lddtw);
+#undef x
+
+	asserta(s_varidx_mega != UINT_MAX);
+	asserta(s_varidx_megaselfrev != UINT_MAX);
+	asserta(s_varidx_dali != UINT_MAX);
+	asserta(s_varidx_entropy != UINT_MAX);
+
+#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
+	x(q_selfrev_mega);
+	x(t_selfrev_mega);
+	x(q_selfrev_nu);
+	x(t_selfrev_nu);
+	x(dpscore);
 	x(mega);
 	x(megarev);
 	x(nu);
@@ -83,50 +176,166 @@ static double calc_score(
 	x(t_L);
 #undef x
 
-	if (s_varidx_lpow != UINT_MAX)
-		{
-		asserta(s_joinidx_q_L != UINT_MAX);
-		asserta(s_joinidx_t_L != UINT_MAX);
-		float L = (q_L + t_L)/2;
-		float score = mega*pow(L, w_lpow);
-		return score;
-		}
-
-	if (s_varidx_ladd != UINT_MAX &&
-		s_varidx_mega == UINT_MAX &&
-		s_varidx_megarev == UINT_MAX)
-		{
-		asserta(s_joinidx_q_L != UINT_MAX);
-		asserta(s_joinidx_t_L != UINT_MAX);
-		float L = (q_L + t_L)/2;
-		float score = mega/(L + w_ladd*500);
-		return score;
-		}
-
-	if (s_varidx_ladd != UINT_MAX &&
-		s_varidx_mega != UINT_MAX &&
-		s_varidx_megarev != UINT_MAX)
-		{
-		asserta(s_joinidx_q_L != UINT_MAX);
-		asserta(s_joinidx_t_L != UINT_MAX);
-		float L = (q_L + t_L)/2;
-		float score = (w_mega*mega - w_megarev*megarev)/(L + w_ladd*500);
-		return score;
-		}
+// join.bin
+//[ 0]  q_selfrev_mega
+//[ 1]  t_selfrev_mega
+//[ 2]  q_selfrev_nu
+//[ 3]  t_selfrev_nu
+//[ 4]  q_L
+//[ 5]  t_L
+//[ 6]  mega
+//[ 7]  megarev
+//[ 8]  nu
+//[ 9]  dali
+//[10]  entropy
+//[11]  lddt
+	asserta(s_joinidx_q_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_t_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_q_L != UINT_MAX);
+	asserta(s_joinidx_t_L != UINT_MAX);
+	asserta(s_joinidx_mega != UINT_MAX);
+	asserta(s_joinidx_megarev != UINT_MAX);
+	asserta(s_joinidx_dali != UINT_MAX);
+	asserta(s_joinidx_entropy != UINT_MAX);
+	asserta(s_joinidx_lddt != UINT_MAX);
 
 	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
-	//float nurev = (q_selfrev_nu + t_selfrev_nu)/2;
+
+//	FINAL [1.549]  mega=7.59E-01;megaselfrev=1.05E+00;dali=2.76E-01;entropy=6.65E-01;
+//		mega=0.759
+//		megaselfrev=1.05
+//		dali=0.276
+//		entropy=0.665
 
 	float score = 0;
-	score += w_mega*mega*20;
-	//score += w_nu*nu/3;
-	score += w_dali*dali/5;
-	score += w_entropy*entropy/5;
-	score += w_lddt*lddt*20;
-	score -= w_megarev*megarev*20;
-	score -= w_megaselfrev*megaselfrev*20;
-	//score -= w_nurev*nurev*20;
+	score += value_dali*dali*0.2f;
+	score += value_entropy*entropy/300.0f;
+	score += value_mega*mega;
+	score -= value_megaselfrev*megaselfrev;
 	return score;
+	}
+
+static double calc_score_new_features(
+	const float *data,
+	vector<double> &values)
+	{
+	const uint nvar = uint(s_var_names.size());
+	asserta(values.size() == nvar);
+
+#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
+	x(mega);
+	x(megarev);
+	x(megaselfrev);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(lpow);
+	x(ladd);
+	x(logladd);
+	x(dpw);
+	x(revtsw);
+	x(lddtw);
+#undef x
+//var=mega;min=0;max=1;weight=no;sigfig=3;
+//var=megarev;min=0;max=1;weight=no;sigfig=3;
+//var=megaselfrev;min=0;max=1;weight=no;sigfig=3;
+//var=dali;min=0;max=1;weight=no;sigfig=3;
+//var=entropy;min=0;max=1;weight=no;sigfig=3;
+//var=lddt;min=0;max=1;weight=no;sigfig=3;
+	asserta(s_varidx_mega != UINT_MAX);
+	asserta(s_varidx_megarev != UINT_MAX);
+	asserta(s_varidx_megaselfrev != UINT_MAX);
+	asserta(s_varidx_dali != UINT_MAX);
+	asserta(s_varidx_lddt != UINT_MAX);
+
+#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
+	x(q_selfrev_mega);
+	x(t_selfrev_mega);
+	x(q_selfrev_nu);
+	x(t_selfrev_nu);
+	x(dpscore);
+	x(mega);
+	x(megarev);
+	x(nu);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(q_L);
+	x(t_L);
+#undef x
+
+// join.bin
+//[ 0]  q_selfrev_mega
+//[ 1]  t_selfrev_mega
+//[ 2]  q_selfrev_nu
+//[ 3]  t_selfrev_nu
+//[ 4]  q_L
+//[ 5]  t_L
+//[ 6]  mega
+//[ 7]  megarev
+//[ 8]  nu
+//[ 9]  dali
+//[10]  entropy
+//[11]  lddt
+	asserta(s_joinidx_q_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_t_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_q_L != UINT_MAX);
+	asserta(s_joinidx_t_L != UINT_MAX);
+	asserta(s_joinidx_mega != UINT_MAX);
+	asserta(s_joinidx_megarev != UINT_MAX);
+	asserta(s_joinidx_dali != UINT_MAX);
+	asserta(s_joinidx_entropy != UINT_MAX);
+	asserta(s_joinidx_lddt != UINT_MAX);
+
+	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
+
+//	ts = lddtw*lddt
+//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
+
+/***************************************************************************************************************
+strategy=latinclimb;
+latin=32;
+rates=1.3,1.05;
+hj=2;
+var=mega;min=0;max=1;weight=no;sigfig=3;
+var=megarev;min=0;max=1;weight=no;sigfig=3;
+var=megaselfrev;min=0;max=1;weight=no;sigfig=3;
+var=dali;min=0;max=1;weight=no;sigfig=3;
+var=entropy;min=0;max=1;weight=no;sigfig=3;
+var=lddt;min=0;max=1;weight=no;sigfig=3;
+
+FINAL [1.564]  mega=8.24E-01;megarev=7.94E-01;megaselfrev=3.15E-01;dali=2.45E-01;entropy=7.34E-01;lddt=1.77E-01;
+mega=0.576
+megarev=0.57
+megaselfrev=0.387
+dali=0.147
+entropy=0.153
+lddt=0.0181
+	float score = 0;
+	score += value_lddtw*lddt/10;
+	score += value_dali*dali*0.2f;
+	score += value_entropy*entropy/300.0f;
+	score += value_mega*mega;
+	score -= value_megarev*megarev;
+	score -= value_megaselfrev*megaselfrev;
+	return score;
+***********************************************/
+
+	float score = 0;
+	score += value_lddtw*lddt/10;
+	score += value_dali*dali*0.2f;
+	score += value_entropy*entropy/300.0f;
+	score += value_mega*mega;
+	score -= value_megarev*megarev;
+	score -= value_megaselfrev*megaselfrev;
+	return score;
+	}
+
+static double calc_score(
+	const float *data,
+	vector<double> &values)
+	{
+	return calc_score_new_features_v2(data, values);
 	}
 
 static double get_value(
@@ -295,6 +504,10 @@ void cmd_flat_hjjoin()
 		x(entropy);
 		x(q_L);
 		x(t_L);
+		x(l2);
+		x(dpscore);
+		x(selfrev);
+		x(newts);
 #undef x
 		else Die("var=%s", name.c_str());
 		}
@@ -316,6 +529,10 @@ void cmd_flat_hjjoin()
 		x(dali);
 		x(lpow);
 		x(ladd);
+		x(dpw);
+		x(revtsw);
+		x(lddtw);
+		x(logladd);
 #undef x
 		else Die("var=%s", name.c_str());
 		}
@@ -343,6 +560,13 @@ void cmd_flat_hjjoin()
 	Log("\n");
 	Progress("\n");
 	Progress("\n");
-	Progress("FINAL [%.4g]  %s", Best_y, xstr.c_str());
+	ProgressLog("FINAL [%.4g]  %s", Best_y, xstr.c_str());
 	Progress("\n");
+	Progress("\n");
+	vector<double> best_values;
+	s_Peaker->xv2values(Best_xv, best_values);
+	for (uint i = 0; i < best_values.size(); ++i)
+		ProgressLog("%s=%.4g\n",
+			s_Peaker->m_VarNames[i].c_str(),
+			best_values[i]);
 	}

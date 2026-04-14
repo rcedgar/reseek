@@ -56,8 +56,8 @@ public:
 	float m_EvalueB = FLT_MAX;
 	float m_QualityA = FLT_MAX;
 	float m_QualityB = FLT_MAX;
-	float m_TestStatisticA = FLT_MAX;
-	float m_TestStatisticB = FLT_MAX;
+	//float m_TestStatisticA = FLT_MAX;
+	//float m_TestStatisticB = FLT_MAX;
 	float m_NewTestStatisticA = FLT_MAX;
 	float m_NewTestStatisticB = FLT_MAX;
 
@@ -198,7 +198,7 @@ public:
 	uint GetL(bool Top) const { return Top ? SIZE(m_ChainA->m_Seq) : SIZE(m_ChainB->m_Seq); }
 	double GetQCovPct(bool Top) const;
 	double GetTCovPct(bool Top) const;
-	float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
+	//float GetTestStatistic(bool Top) const { return Top ? m_TestStatisticA : m_TestStatisticB; }
 	float GetNewTestStatistic(bool Top) const { return Top ? m_NewTestStatisticA : m_NewTestStatisticB; }
 	float GetSBScore(SBSCORE SBS, bool Up) const;
 	//float GetAvgTestStatistic() const { return (m_TestStatisticA + m_TestStatisticB)/2; }

@@ -53,6 +53,7 @@ public:
 	void AppendHit(uint i, uint j, float Score);
 	void Bench(const string &Msg = "");
 	void SetScoreOrder();
+	void SetScoreOrder_Serial();
 #if PARALLEL_SORT
 	void SetScoreOrder_Parallel();
 #endif

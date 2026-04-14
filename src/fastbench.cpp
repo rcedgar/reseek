@@ -80,8 +80,13 @@ void FastBench::SetScoreOrder()
 	{
 #if PARALLEL_SORT
 	SetScoreOrder_Parallel();
-	return;
+#else
+	SetScoreOrder_Serial();
 #endif
+	}
+
+void FastBench::SetScoreOrder_Serial()
+	{
 	asserta(m_Scores);
 	uint K = triangle_get_K(m_SeqCount);
 	if (m_ScoreOrder != 0)
@@ -105,7 +110,7 @@ void FastBench::Bench(const string &Msg)
 	uint K = triangle_get_K(m_SeqCount);
 	uint nt = 0;
 	uint nf = 0;
-	float LastScore = m_scores_are_evalues ? -1 : FLT_MAX;
+	float LastScore = m_scores_are_evalues ? -9e9f : FLT_MAX;
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
@@ -161,10 +166,18 @@ void FastBench::ReadHits(
 	uint tidx,
 	uint scoreidx)
 	{
+	asserta(qidx > 0);
+	asserta(tidx > 0);
+	asserta(scoreidx > 0);
+	--qidx;
+	--tidx;
+	--scoreidx;
+	const uint maxidx = max(max(qidx, tidx), scoreidx);
+
 #if SAVE_NOT_IN_DOPE
 	FILE *fnid = CreateStdioFile("../tmp/tpnotindope.tmp");
 #endif
-	const uint maxidx = max(max(qidx, tidx), scoreidx);
+
 	m_SeqCount = m_look->get_ndom();
 	Alloc();
 	const uint K = m_PairCount;
@@ -196,6 +209,7 @@ void FastBench::ReadHits(
 		Split(line, flds, '\t');
 		asserta(flds.size() > maxidx);
 		const string &q = flds[qidx];
+		if (q == "query") continue;
 		const string &t = flds[tidx];
 		uint qidx = m_look->get_domidx(q);
 		uint tidx = m_look->get_domidx(t);
@@ -390,10 +404,13 @@ void cmd_fast_bench_hits()
 	FB.ReadLookup(lookupfn);
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
-	if (opt(scorefirst))
-		FB.ReadHits(hitsfn, 1, 2, 0);
-	else
-		FB.ReadHits(hitsfn, 0, 1, 2);
+	uint qidx = 1;
+	uint tidx = 2;
+	uint scoreidx = 3;
+	if (optset_qfield) qidx = opt(qfield);
+	if (optset_tfield) tidx = opt(tfield);
+	if (optset_scorefield) scoreidx = opt(scorefield);
+	FB.ReadHits(hitsfn, qidx, tidx, scoreidx);
 	FB.SetScoreOrder();
 	FB.Bench();
 	}
@@ -419,9 +436,9 @@ void cmd_fb_hits2bits()
 	const string &hitsfn = g_Arg1;
 	const string &outputfn = opt(output);
 
-	uint qidx = 0;
-	uint tidx = 1;
-	uint scoreidx = 2;
+	uint qidx = 1;
+	uint tidx = 2;
+	uint scoreidx = 3;
 	if (optset_qfield) qidx = opt(qfield);
 	if (optset_tfield) tidx = opt(tfield);
 	if (optset_scorefield) scoreidx = opt(scorefield);
