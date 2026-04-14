@@ -41,10 +41,21 @@ void FastBench::Alloc()
 	asserta(m_look);
 	const uint ndom = m_look->get_ndom();
 	const uint npair = m_look->get_pair_count_upper_triangle_with_diagonal();
+
+#if PARALLEL_SORT
+	if (m_Scores == 0)
+		{
+		m_Scores = myalloc(float, npair);
+		m_PairCount = npair;
+		}
+	else
+		asserta(m_PairCount == npair);
+#else
+	m_PairCount = npair;
 	myfree(m_Scores);
 	myfree(m_ScoreOrder);
-	m_PairCount = npair;
 	m_Scores = myalloc(float, npair);
+#endif
 	}
 
 void FastBench::AppendHit(uint i, uint j, float Score)

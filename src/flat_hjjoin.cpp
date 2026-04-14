@@ -33,27 +33,16 @@ static uint s_varidx_megaselfrev = UINT_MAX;
 static uint s_varidx_entropy = UINT_MAX;
 static uint s_varidx_lddt = UINT_MAX;
 static uint s_varidx_dali = UINT_MAX;
-
-/***
-# tf join.tsv
-     1  query+target
-     2  q_selfrev_mega
-     3  t_selfrev_mega
-     4  q_selfrev_nu
-     5  t_selfrev_nu
-     6  mega
-     7  megarev
-     8  nu
-     9  dali
-    10  entropy
-    11  lddt
-    12  TP
-***/
+static uint s_varidx_lpow = UINT_MAX;
+static uint s_varidx_ladd = UINT_MAX;
 
 static uint s_joinidx_q_selfrev_mega = UINT_MAX;
 static uint s_joinidx_t_selfrev_mega = UINT_MAX;
 static uint s_joinidx_q_selfrev_nu = UINT_MAX;
 static uint s_joinidx_t_selfrev_nu = UINT_MAX;
+static uint s_joinidx_q_L = UINT_MAX;
+static uint s_joinidx_t_L = UINT_MAX;
+
 static uint s_joinidx_mega = UINT_MAX;
 static uint s_joinidx_megarev = UINT_MAX;
 static uint s_joinidx_nu = UINT_MAX;
@@ -75,6 +64,8 @@ static double calc_score(
 	x(entropy);
 	x(lddt);
 	x(dali);
+	x(lpow);
+	x(ladd);
 #undef x
 
 #define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
@@ -88,7 +79,40 @@ static double calc_score(
 	x(entropy);
 	x(lddt);
 	x(dali);
+	x(q_L);
+	x(t_L);
 #undef x
+
+	if (s_varidx_lpow != UINT_MAX)
+		{
+		asserta(s_joinidx_q_L != UINT_MAX);
+		asserta(s_joinidx_t_L != UINT_MAX);
+		float L = (q_L + t_L)/2;
+		float score = mega*pow(L, w_lpow);
+		return score;
+		}
+
+	if (s_varidx_ladd != UINT_MAX &&
+		s_varidx_mega == UINT_MAX &&
+		s_varidx_megarev == UINT_MAX)
+		{
+		asserta(s_joinidx_q_L != UINT_MAX);
+		asserta(s_joinidx_t_L != UINT_MAX);
+		float L = (q_L + t_L)/2;
+		float score = mega/(L + w_ladd*500);
+		return score;
+		}
+
+	if (s_varidx_ladd != UINT_MAX &&
+		s_varidx_mega != UINT_MAX &&
+		s_varidx_megarev != UINT_MAX)
+		{
+		asserta(s_joinidx_q_L != UINT_MAX);
+		asserta(s_joinidx_t_L != UINT_MAX);
+		float L = (q_L + t_L)/2;
+		float score = (w_mega*mega - w_megarev*megarev)/(L + w_ladd*500);
+		return score;
+		}
 
 	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
 	//float nurev = (q_selfrev_nu + t_selfrev_nu)/2;
@@ -269,6 +293,8 @@ void cmd_flat_hjjoin()
 		x(dali);
 		x(lddt);
 		x(entropy);
+		x(q_L);
+		x(t_L);
 #undef x
 		else Die("var=%s", name.c_str());
 		}
@@ -288,6 +314,8 @@ void cmd_flat_hjjoin()
 		x(entropy);
 		x(lddt);
 		x(dali);
+		x(lpow);
+		x(ladd);
 #undef x
 		else Die("var=%s", name.c_str());
 		}
@@ -313,4 +341,8 @@ void cmd_flat_hjjoin()
 	Log("\t%.4g", Best_y);
 	Log("\t%s", xstr.c_str());
 	Log("\n");
+	Progress("\n");
+	Progress("\n");
+	Progress("FINAL [%.4g]  %s", Best_y, xstr.c_str());
+	Progress("\n");
 	}
