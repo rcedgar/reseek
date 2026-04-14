@@ -8,7 +8,7 @@
 
 void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
 	{
-	if (opt(mufilter))
+	if (opt(mufilteronly))
 		ptrDBS->ThreadBodySelf_MuFilterOnly(ThreadIndex);
 	else
 		ptrDBS->ThreadBodySelf(ThreadIndex);
@@ -16,6 +16,7 @@ void DBSearcher::StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS)
 
 void DBSearcher::ThreadBodySelf_MuFilterOnly(uint ThreadIndex)
 	{
+	ProgressLog("ThreadBodySelf_MuFilterOnly()\n");
 	asserta(ThreadIndex < SIZE(m_DAs));
 	uint PrevChainIndex1 = UINT_MAX;
 	DSSAligner &DA = *m_DAs[ThreadIndex];
@@ -50,14 +51,11 @@ void DBSearcher::ThreadBodySelf_MuFilterOnly(uint ThreadIndex)
 		float SelfRevScore2 = HasSelfRevScores ? m_DBSelfRevScores[ChainIndex2] : FLT_MAX;
 		DA.SetTarget(Chain2, ptrProfile2, ptrMuLetters2, ptrMuKmers2, SelfRevScore2);
 		bool PassedMuFilter = DA.MuFilter();
-		if (PassedMuFilter)
-			{
-			extern FILE *g_fTsv;
-			asserta(g_fTsv != 0);
+		extern FILE *g_fTsv;
+		if (PassedMuFilter && g_fTsv != 0)
 			fprintf(g_fTsv, "%s\t%s\n",
 				DA.m_ChainA->m_Label.c_str(),
 				DA.m_ChainB->m_Label.c_str());
-			}
 		PrevChainIndex1 = ChainIndex1;
 		}
 	}

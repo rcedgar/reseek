@@ -56,6 +56,7 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up)
 	case UF_pvalue:	fprintf(f, "%.3g", GetPvalue(Up)); break;
 	case UF_ql:		fprintf(f, "%u", GetQL(Up)); break;
 	case UF_tl:		fprintf(f, "%u", GetTL(Up)); break;
+	case UF_l2:		fprintf(f, "%u", (GetQL(Up) + GetTL(Up))/2); break;
 	case UF_qlo:	fprintf(f, "%u", GetLo(Up) + 1); break;
 	case UF_qhi:	fprintf(f, "%u", GetHi(Up) + 1); break;
 	case UF_tlo:	fprintf(f, "%u", GetLo(!Up) + 1); break;
