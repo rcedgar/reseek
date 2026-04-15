@@ -71,6 +71,14 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_loQ, m_loT, m_path_buffer, m_ncol);
 	}
 
+float flat_aligner::get_self_rev_score(
+	const string &labelQ, const uint8_t *profQ, uint LQ)
+	{
+	cacheT_reversed(labelQ + ".rev", profQ, LQ);
+	alignQ(labelQ, profQ, LQ);
+	return m_score;
+	}
+
 uint flat_aligner::get_path_str(string &path) const
 	{
 	uint m = 0;

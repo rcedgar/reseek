@@ -285,12 +285,14 @@ void cmd_flat_bench_struct_feature()
 	vector<string> scalar_names;
 	vector<float> weights;
 	vector<float> scalar_values;
+	float selfw = 0;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values);
+		scalar_names, scalar_values, selfw);
+	asserta(selfw == 0);
 
 	FB.load_alphas_and_profiles(
-		feature_names, weights, opt(fapattern), opt(mxpattern));
+		feature_names, weights, opt(fapattern), opt(mxpattern), selfw);
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();

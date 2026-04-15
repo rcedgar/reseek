@@ -308,7 +308,6 @@
     <ClCompile Include="featuretrainer2float.cpp" />
     <ClCompile Include="feature_attrs.cpp" />
     <ClCompile Include="flat_aligner.cpp" />
-    <ClCompile Include="flat_align_allvsall_mega.cpp" />
     <ClCompile Include="flat_align_pair.cpp" />
     <ClCompile Include="flat_align_selfrev_mega.cpp" />
     <ClCompile Include="flat_base.cpp" />

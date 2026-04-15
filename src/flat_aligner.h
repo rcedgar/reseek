@@ -7,6 +7,7 @@ class flat_aligner
 public:
 	flat_features *m_ff = 0;
 	float *__restrict m_pssmT = 0;
+	float m_rev_weight = 0;
 
 	string m_labelQ;
 	string m_labelT;
@@ -41,4 +42,5 @@ public:
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;
 	uint get_path_str(string &path) const;
+	float get_self_rev_score(const string &labelQ, const uint8_t *profQ, uint LQ);
 	};

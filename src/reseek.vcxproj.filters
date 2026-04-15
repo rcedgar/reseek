@@ -728,9 +728,6 @@
     <ClCompile Include="landmark.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_align_allvsall_mega.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="flat_align_selfrev_mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

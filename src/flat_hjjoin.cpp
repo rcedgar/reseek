@@ -27,6 +27,7 @@ selfrev_mega  mean  14.01,  med  14.57,  min  11.22,  max  14.57
         lddt  mean  32.02,  med     26,  min   -159,  max    841
 ***/
 
+static int s_icalc;
 static uint s_varidx_mega = UINT_MAX;
 static uint s_varidx_megarev = UINT_MAX;
 static uint s_varidx_megaselfrev = UINT_MAX;
@@ -130,6 +131,59 @@ static double calc_score_old_features(
 	float score = 0;
 	score += value_lddtw*lddt;
 	score += (value_dpw*dpscore - value_revtsw*selfrev)/(l2 + powf(10.0f, value_logladd));
+	return score;
+	}
+
+static double calc_score_old_features_v2(
+	const float *data,
+	vector<double> &values)
+	{
+	const uint nvar = uint(s_var_names.size());
+	asserta(values.size() == nvar);
+
+#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
+	x(mega);
+	x(megarev);
+	x(megaselfrev);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(lpow);
+	x(ladd);
+	x(logladd);
+	x(dpw);
+	x(revtsw);
+	x(lddtw);
+#undef x
+// dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;
+	asserta(s_varidx_dpw != UINT_MAX);
+	asserta(s_varidx_lddtw != UINT_MAX);
+	asserta(s_varidx_revtsw != UINT_MAX);
+
+#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
+	x(dpscore);
+	x(selfrev);
+	x(lddt);
+	x(l2);
+#undef x
+
+// best_verysensitive_join.bin
+//[ 0]  l2
+//[ 1]  dpscore		mean 10.78, med  8.296, min  1.442, max  209.9
+//[ 2]  selfrev		mean 22.42, med  21.4, min  12, max  114
+//[ 3]  lddt		mean 0.4248, med  0.3289, min  0, max  1
+//[ 4]  newts <== NOTUSED
+	asserta(s_joinidx_dpscore != UINT_MAX);
+	asserta(s_joinidx_selfrev != UINT_MAX);
+	asserta(s_joinidx_lddt != UINT_MAX);
+
+//	ts = lddtw*lddt
+//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
+
+	float score = 0;
+	score += value_dpw*dpscore;
+	score += value_lddtw*lddt*200;
+	score -= value_revtsw*selfrev;
 	return score;
 	}
 
@@ -335,7 +389,14 @@ static double calc_score(
 	const float *data,
 	vector<double> &values)
 	{
-	return calc_score_new_features_v2(data, values);
+	switch (s_icalc)
+		{
+	case 1: return calc_score_new_features_v2(data, values);
+	case 2: return calc_score_old_features_v2(data, values);
+	case 3: return calc_score_old_features(data, values);
+		}
+	Die("s_icalc=%d", s_icalc);
+	return FLT_MAX;
 	}
 
 static double get_value(
@@ -549,6 +610,12 @@ void cmd_flat_hjjoin()
 		return;
 		}
 
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+	s_icalc = Peaker::SpecGetInt(GlobalSpec, "calc", -1);
+	if (s_icalc < 0)
+		Die("calc in spec");
+
 	double Best_y;
 	vector<string> Best_xv;
 	Optimize(SpecLines, Best_y, Best_xv);
@@ -560,7 +627,7 @@ void cmd_flat_hjjoin()
 	Log("\n");
 	Progress("\n");
 	Progress("\n");
-	ProgressLog("FINAL [%.4g]  %s", Best_y, xstr.c_str());
+	ProgressLog("FINAL [%.4g]  %s\n", Best_y, xstr.c_str());
 	Progress("\n");
 	Progress("\n");
 	vector<double> best_values;

@@ -1023,7 +1023,10 @@ void SubsetBench::ClassifyParams(
 		{
 		const string &Name = Names[i];
 		float Value = Values[i];
-		if (Name == "open" || Name == "ext" || Name == "gap2")
+		if (Name == "open" \
+			|| Name == "ext" \
+			|| Name == "gap2"\
+			|| Name == "selfw")
 			{
 			ScalarNames.push_back(Name);
 			ScalarValues.push_back(Value);

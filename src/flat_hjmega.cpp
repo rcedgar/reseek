@@ -131,8 +131,6 @@ static void Climb(flat_bench &FullFB, const vector<string> &SpecLines)
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
 	Pfull.Init(SpecLines, EvalSum3);
-	//asserta(Pfull.GetVarCount() == VarCount);
-	//asserta(Pfull.m_VarNames == VarNames);
 	s_Peaker = &Pfull;
 
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
@@ -190,8 +188,10 @@ static void SubClimb(
 
 void get_feature_names_from_peaker_spec_file_lines(
 	vector<string> &lines,
-	vector<string> &feature_names)
+	vector<string> &feature_names,
+	bool &selfw_is_var)
 	{
+	selfw_is_var = false;
 	feature_names.clear();
 	vector<string> flds;
 	for (size_t i = 0; i < lines.size(); ++i)
@@ -203,7 +203,9 @@ void get_feature_names_from_peaker_spec_file_lines(
 		const string var_eq_name = flds[0];
 		Split(var_eq_name, flds, '=');
 		asserta(flds.size() == 2);
-		feature_names.push_back(flds[1]);
+		const string &name = flds[1];
+		if (name == "selfw") selfw_is_var = true;
+		feature_names.push_back(name);
 		}
 	}
 
@@ -219,8 +221,9 @@ void cmd_flat_hjmega()
 	ReadLinesFromFile(SpecFN, SpecLines);
 
 	vector<string> AlphaNames;
+	bool selfw_is_var = false;
 	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, AlphaNames);
+		SpecLines, AlphaNames, selfw_is_var);
 	const uint nfeat = uint(AlphaNames.size());
 	vector<float> Weights(nfeat, 1.0f);	// placeholders
 
@@ -231,7 +234,8 @@ void cmd_flat_hjmega()
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
 	FullFB.load_alphas_and_profiles(
-		AlphaNames, Weights, opt(fapattern), opt(mxpattern));
+		AlphaNames, Weights, opt(fapattern), opt(mxpattern),
+		selfw_is_var);
 	FullFB.ProgressLogParams();
 	FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
@@ -259,7 +263,8 @@ void cmd_flat_hjmega()
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
 		SubsetFB.load_alphas_and_profiles(
-			AlphaNames, Weights, opt(fapattern), opt(mxpattern));
+			AlphaNames, Weights, opt(fapattern), opt(mxpattern),
+			selfw_is_var);
 		SubsetFB.ProgressLogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();

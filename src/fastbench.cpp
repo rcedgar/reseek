@@ -46,6 +46,7 @@ void FastBench::Alloc()
 	if (m_Scores == 0)
 		{
 		m_Scores = myalloc(float, npair);
+		for (uint i = 0; i < npair; ++i) m_Scores[i] = FLT_MAX;
 		m_PairCount = npair;
 		}
 	else

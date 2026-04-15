@@ -292,11 +292,13 @@ void cmd_hjnumega()
 
 	void get_feature_names_from_peaker_spec_file_lines(
 		vector<string> &lines,
-		vector<string> &feature_names);
+		vector<string> &feature_names,
+		bool &selfw_is_var);
 
 	vector<string> feature_names;
+	bool selfw_is_var;
 	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, feature_names);
+		SpecLines, feature_names, selfw_is_var);
 
 	const uint FeatureCount = SIZE(feature_names);
 	asserta(FeatureCount > 0);

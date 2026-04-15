@@ -21,8 +21,6 @@ public:
 ////////////////////////////////
 	atomic<uint> m_NextQueryIdx = 0;
 	atomic<uint> m_NextDopeIdx = 0;
-	float *m_Scores = 0;
-	uint *m_ScoreOrder = 0;
 
 //////////////////////////////
 // Flat profiles
@@ -30,12 +28,8 @@ public:
 //////////////////////////////
 	flat_profiles m_fp;
 	flat_features m_ff;
-
-//////////////////////////////
-// Support for all-vs-all
-//////////////////////////////
-	FILE *m_f_tsv_all_vs_all = 0;
-	mutex m_lock_tsv_all_vs_all;
+	float *m_self_rev_scores = 0;
+	float m_self_rev_weight = 0;
 
 public:
 	static atomic<uint> m_progress_counter;
@@ -54,16 +48,16 @@ public:
 		const vector<string> &feature_names,
 		const vector<float> &weights,
 		const string &fafnpattern,
-		const string &logoddsfnpattern);
+		const string &logoddsfnpattern,
+		bool set_self_scores);
 	void ProgressLogParams() const;
 	void align_pair(const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
+	void set_selfrev_scores();
+	void set_selfrev_weight(float w) { m_self_rev_weight = w; }
 
 public:
-// Outputs tsv for TS training with CIGAR
-	virtual void ThreadBody_AllVsAll(uint ThreadIdx);
-
-// All-vs-all for fast SCOP40 benchmakr score only
+// All-vs-all for fast SCOP40 benchmark score only
 	virtual void ThreadBody_All(uint ThreadIdx);
 
 // All-vs-all for fast SCOP40 benchmark score only
@@ -77,7 +71,8 @@ public:
 		vector<string> &AlphaNames,
 		vector<float> &Weights,
 		vector<string> &ScalarNames,
-		vector<float> &ScalarValues);
+		vector<float> &ScalarValues,
+		float &selfw);
 
 	static void StaticThreadBody(flat_bench *SB,
 		uint ThreadIdx, const string &how);;
