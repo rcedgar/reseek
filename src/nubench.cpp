@@ -7,9 +7,11 @@ void GetFeatures(
 	const string &varstr,
 	vector<string> &feature_names,
 	vector<float> &weights,
-	float &selfw)
+	float &selfw,
+	float &revw)
 	{
 	selfw = 0;
+	revw = 0;
 
 	void ParseVarStr(
 		const string &VarStr,
@@ -26,7 +28,7 @@ void GetFeatures(
 	flat_bench::ClassifyParams(
 		names, values,
 		feature_names, weights,
-		scalar_names, scalar_values, selfw);
+		scalar_names, scalar_values, selfw, revw);
 	}
 
 void cmd_numx()
@@ -34,7 +36,8 @@ void cmd_numx()
 	vector<string> feature_names;
 	vector<float> weights;
 	float selfw;
-	GetFeatures(g_Arg1, feature_names, weights, selfw);
+	float revw;
+	GetFeatures(g_Arg1, feature_names, weights, selfw, revw);
 	asserta(selfw == 0);
 
 	const uint nfeat = uint(feature_names.size());
@@ -59,9 +62,10 @@ void cmd_nubench()
 	asserta(optset_mxpattern);
 	vector<string> feature_names;
 	vector<float> weights;
-	float selfw;
-	GetFeatures(g_Arg1, feature_names, weights, selfw);
+	float selfw, revw;
+	GetFeatures(g_Arg1, feature_names, weights, selfw, revw);
 	asserta(selfw == 0);
+	asserta(revw == 0);
 	const uint nfeat = uint(feature_names.size());
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);

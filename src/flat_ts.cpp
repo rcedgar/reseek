@@ -73,6 +73,10 @@ static uint16_t ts_turnd16[16-1] = {515,748,956,1150,1321,1432,1489,1541,1663,18
 // [b500136] 2026-04-13
 static uint16_t ts_fendist32[32-1] = {3186,3662,4017,4319,4595,4852,5097,5333,5566,5798,6032,6268,6507,6753,7006,7269,7543,7832,8138,8462,8812,9193,9613,10084,10619,11236,11980,12889,14107,15881,19194};
 
+// reseek -flat_quantize ../data/scop40c.bca -alpha_size 32 -feature pmdd -log ../tmp/flat_quantize_pmdd.log -output ../ff_bins/pmdd32.bins -fasta ../ff_fa/pmdd32.fa -output2 ../tmp/pmdd32.cpp
+// [123beff] 2026-04-15
+static uint16_t ts_pmdd32[32-1] = {503,806,1074,1318,1522,1697,1845,1966,2060,2135,2211,2287,2360,2427,2478,2508,2555,2617,2686,2759,2832,2903,2980,3084,3213,3365,3545,3754,3986,4236,4509};
+
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
@@ -130,6 +134,8 @@ cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	x(angle, 16);
 
 	x(turnd, 16);
+
+	x(pmdd, 32);
 #undef x
 
 	Die("chaq::get_thresholds(%s,%u)", FAN2str(fan), alpha_size);
@@ -147,6 +153,7 @@ static uint16_t median_ppack = 16;
 static uint16_t median_mpack = 17;
 static uint16_t median_turnd = 1540;
 static uint16_t median_fendist = 7269;
+static uint16_t median_pmdd = 2509;
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
@@ -161,6 +168,7 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	x(mpack);
 	x(angle);
 	x(turnd);
+	x(pmdd);
 
 	Die("get_undef_value(%s)", FAN2str(fan));
 	return 0;

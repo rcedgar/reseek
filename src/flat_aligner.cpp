@@ -10,6 +10,7 @@ void flat_aligner::alloc()
 	const uint nfeat = m_ff->m_nfeat;
 
 	m_pssmT = myalloc(float, m_maxL*m_ff->get_sum_alpha_sizes());
+	m_pssm_reverseT = myalloc(float, m_maxL*m_ff->get_sum_alpha_sizes());
 
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
@@ -20,6 +21,7 @@ void flat_aligner::alloc()
 void flat_aligner::freemem()
 	{
 	myfree(m_pssmT);		m_pssmT = 0;
+	myfree(m_pssm_reverseT);m_pssm_reverseT = 0;
 	myfree(m_scratch_rows);	m_scratch_rows = 0;
 	myfree(m_scratch_pssms);m_scratch_pssms = 0;
 	myfree(m_TB);			m_TB = 0;
@@ -38,6 +40,20 @@ void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, u
 		m_ff->m_feature_block_offsets,
 		m_ff->m_weighted_logoddsvec,
 		m_pssmT);
+	}
+
+void flat_aligner::cache_reverseT(const string &labelT, const uint8_t *profT, uint LT)
+	{
+	assert(m_ff != 0);
+	asserta(LT < m_maxL);
+	m_labelT = labelT;
+	m_profT = profT;
+	m_LT = LT;
+	fill_flat_pssm_reversed(profT, LT, m_ff->m_nfeat,
+		m_ff->m_alpha_sizes,
+		m_ff->m_feature_block_offsets,
+		m_ff->m_weighted_logoddsvec,
+		m_pssm_reverseT);
 	}
 
 void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
@@ -66,6 +82,23 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
+		m_ff->m_feature_block_offsets,
+		m_ff->m_nfeat, m_open, m_ext,
+		m_loQ, m_loT, m_path_buffer, m_ncol);
+	}
+
+void flat_aligner::alignQ_reverseT(const string &labelQ, const uint8_t *profQ, uint LQ)
+	{
+	assert(profQ != 0);
+	assert(LQ > 0);
+	m_labelQ = labelQ;
+	m_profQ = profQ;
+	m_LQ = LQ;
+	assert(m_ff != 0);
+	m_score = sw_flat_pssm(
+		m_scratch_rows, m_TB, m_scratch_pssms,
+		profQ, LQ,
+		m_pssm_reverseT, m_LT, 
 		m_ff->m_feature_block_offsets,
 		m_ff->m_nfeat, m_open, m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);

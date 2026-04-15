@@ -7,7 +7,7 @@ class flat_aligner
 public:
 	flat_features *m_ff = 0;
 	float *__restrict m_pssmT = 0;
-	float m_rev_weight = 0;
+	float *__restrict m_pssm_reverseT = 0;
 
 	string m_labelQ;
 	string m_labelT;
@@ -37,8 +37,15 @@ public:
 	void alloc();
 	void freemem();
 	void cacheT(const string &labelT, const uint8_t *profT, uint LT);
+
+	// cache reversed T instead of T (=> m_pssmT)
 	void cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT);
+
+	// case reverseT in addition to T (=> m_pssm_reverseT)
+	void cache_reverseT(const string &labelT, const uint8_t *profT, uint LT);
+
 	void alignQ(const string &labelQ, const uint8_t *profQ, uint LQ);
+	void alignQ_reverseT(const string &labelQ, const uint8_t *profQ, uint LQ);
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;
 	uint get_path_str(string &path) const;

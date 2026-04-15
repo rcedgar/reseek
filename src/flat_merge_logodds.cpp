@@ -31,9 +31,10 @@ void cmd_flat_merge_logodds()
 	vector<float> weights;
 	vector<float> scalar_values;
 	float selfw = 0;
+	float revw = 0;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values, selfw);
+		scalar_names, scalar_values, selfw, revw);
 	asserta(selfw == 0);
 
 	flat_features ff;

@@ -30,6 +30,7 @@ public:
 	flat_features m_ff;
 	float *m_self_rev_scores = 0;
 	float m_self_rev_weight = 0;
+	float m_rev_weight = 0;
 
 public:
 	static atomic<uint> m_progress_counter;
@@ -72,7 +73,8 @@ public:
 		vector<float> &Weights,
 		vector<string> &ScalarNames,
 		vector<float> &ScalarValues,
-		float &selfw);
+		float &selfw,
+		float &revw);
 
 	static void StaticThreadBody(flat_bench *SB,
 		uint ThreadIdx, const string &how);;

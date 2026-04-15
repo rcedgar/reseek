@@ -38,10 +38,10 @@ void cmd_flat_align_selfrev_mega()
 	vector<string> scalar_names;
 	vector<float> weights;
 	vector<float> scalar_values;
-	float selfw;
+	float selfw, revw;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values, selfw);
+		scalar_names, scalar_values, selfw, revw);
 
 	FB.load_alphas_and_profiles(
 		feature_names, weights, opt(fapattern), opt(mxpattern), selfw);
