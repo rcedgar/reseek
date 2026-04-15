@@ -32,6 +32,7 @@ public:
 		case FAN_ppack:
 		case FAN_mpack:
 		case FAN_angle:
+		case FAN_pmdd:
 			return true;
 			}
 		return false;
