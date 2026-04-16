@@ -23,6 +23,9 @@ public:
 	float get_dali(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 
+	float get_dalix(uint idxQ, uint idxT,
+		const flat_aligner &fa) const;
+
 	float get_entropy(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 

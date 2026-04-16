@@ -316,6 +316,7 @@
     <ClCompile Include="flat_bench_struct_feature.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
+    <ClCompile Include="flat_dali.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_entropy.cpp" />
     <ClCompile Include="flat_feat2fa.cpp" />
