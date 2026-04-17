@@ -2,6 +2,8 @@
 #include "lookup.h"
 #include "fastbench.h"
 
+static const uint HDR_SIZE = 256;
+
 static void read_all(
 	const string &fn,
 	const lookup &look,
@@ -169,11 +171,11 @@ void cmd_join_features()
 	fprintf(fout, "\tTP");
 	fprintf(fout, "\n");
 
-	asserta(hdr.size() < 100);
-	hdr.resize(100);
+	asserta(hdr.size() < HDR_SIZE);
+	hdr.resize(HDR_SIZE);
 
 	WriteStdioFile(fout2, &nf, sizeof(nf));
-	WriteStdioFile(fout2, hdr.c_str(), 100);
+	WriteStdioFile(fout2, hdr.c_str(), HDR_SIZE);
 
 	uint counter = 0;
 	for (uint idxq = 0; idxq < ndom; ++idxq)
@@ -238,9 +240,9 @@ float *read_join_data(
 	uint32_t nf;
 	ReadStdioFile(f, &nf, sizeof(nf));
 	ProgressLog("nf=%u\n", nf);
-	char hdr[101];
-	ReadStdioFile(f, hdr, 100);
-	hdr[100] = 0;
+	char hdr[HDR_SIZE+1];
+	ReadStdioFile(f, hdr, HDR_SIZE);
+	hdr[HDR_SIZE] = 0;
 	Split(hdr, names, ';');
 	const uint nname = uint(names.size());
 	ProgressLog("%u names\n", nname);
@@ -395,11 +397,11 @@ void cmd_join_features1()
 	fprintf(fout, "\tTP");
 	fprintf(fout, "\n");
 
-	asserta(hdr.size() < 100);
-	hdr.resize(100);
+	asserta(hdr.size() < 250);
+	hdr.resize(250);
 
 	WriteStdioFile(fout2, &nfeat, sizeof(nfeat));
-	WriteStdioFile(fout2, hdr.c_str(), 100);
+	WriteStdioFile(fout2, hdr.c_str(), HDR_SIZE);
 
 	uint counter = 0;
 	for (uint idxq = 0; idxq < ndom; ++idxq)

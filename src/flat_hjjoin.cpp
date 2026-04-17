@@ -14,26 +14,13 @@ static vector<string> s_join_names;
 static vector<string> s_var_names;
 static FastBench *s_FB;
 
-/***
--rw-r--r-- 1 bob bob 744 Apr 13  2026 ../2026-04-12_ts_feature_vector/feature_stats.txt
-
-selfrev_mega  mean  14.01,  med  14.57,  min  11.22,  max  14.57
-  selfrev_nu  mean  11.56,  med  11.02,  min  4.786,  max  50.82
-        mega  mean  131.8,  med    115,  min    115,  max    216
-     megarev  mean  103.3,  med     96,  min     36,  max    589
-          nu  mean  10.16,  med   9.03,  min  0.929,  max    264
-        dali  mean  7.788,  med   7.79,  min    1.3,  max   19.1
-     entropy  mean  104.3,  med     93,  min      5,  max   1550
-        lddt  mean  32.02,  med     26,  min   -159,  max    841
-***/
-
-static int s_icalc;
 static uint s_varidx_mega = UINT_MAX;
 static uint s_varidx_megarev = UINT_MAX;
 static uint s_varidx_megaselfrev = UINT_MAX;
 static uint s_varidx_entropy = UINT_MAX;
 static uint s_varidx_lddt = UINT_MAX;
 static uint s_varidx_dali = UINT_MAX;
+static uint s_varidx_dalix = UINT_MAX;
 static uint s_varidx_lpow = UINT_MAX;
 static uint s_varidx_ladd = UINT_MAX;
 static uint s_varidx_dpw = UINT_MAX;
@@ -52,351 +39,85 @@ static uint s_joinidx_mega = UINT_MAX;
 static uint s_joinidx_megarev = UINT_MAX;
 static uint s_joinidx_nu = UINT_MAX;
 static uint s_joinidx_dali = UINT_MAX;
+static uint s_joinidx_dalix = UINT_MAX;
 static uint s_joinidx_lddt = UINT_MAX;
 static uint s_joinidx_entropy = UINT_MAX;
 static uint s_joinidx_l2 = UINT_MAX;
+static uint s_joinidx_l = UINT_MAX;
 static uint s_joinidx_dpscore = UINT_MAX;
 static uint s_joinidx_selfrev = UINT_MAX;
 static uint s_joinidx_newts = UINT_MAX;
-
-static double calc_score_old_features(
-	const float *data,
-	vector<double> &values)
-	{
-	const uint nvar = uint(s_var_names.size());
-	asserta(values.size() == nvar);
-
-#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
-	x(mega);
-	x(megarev);
-	x(megaselfrev);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(lpow);
-	x(ladd);
-	x(logladd);
-	x(dpw);
-	x(revtsw);
-	x(lddtw);
-#undef x
-// dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;
-	asserta(s_varidx_dpw != UINT_MAX);
-	asserta(s_varidx_lddtw != UINT_MAX);
-	asserta(s_varidx_revtsw != UINT_MAX);
-	asserta(s_varidx_logladd != UINT_MAX);
-
-#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
-	x(q_selfrev_mega);
-	x(t_selfrev_mega);
-	x(q_selfrev_nu);
-	x(t_selfrev_nu);
-	x(dpscore);
-	x(mega);
-	x(megarev);
-	x(selfrev);
-	x(nu);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(q_L);
-	x(t_L);
-	x(l2);
-#undef x
-
-//# tf best_verysensitive_join.tsv
-//     1  query
-//     2  target
-//     3  l2
-//     4  dpscore
-//     5  selfrev
-//     6  lddt
-//     7  newts
-//     8  TP
-
-// best_verysensitive_join.bin
-//[ 0]  l2
-//[ 1]  dpscore
-//[ 2]  selfrev
-//[ 3]  lddt
-//[ 4]  newts <== NOTUSED
-	asserta(s_joinidx_dpscore != UINT_MAX);
-	asserta(s_joinidx_selfrev != UINT_MAX);
-	asserta(s_joinidx_lddt != UINT_MAX);
-	asserta(s_joinidx_l2 != UINT_MAX);
-
-//	ts = lddtw*lddt
-//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
-
-	float score = 0;
-	score += value_lddtw*lddt;
-	score += (value_dpw*dpscore - value_revtsw*selfrev)/(l2 + powf(10.0f, value_logladd));
-	return score;
-	}
-
-static double calc_score_old_features_v2(
-	const float *data,
-	vector<double> &values)
-	{
-	const uint nvar = uint(s_var_names.size());
-	asserta(values.size() == nvar);
-
-#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
-	x(mega);
-	x(megarev);
-	x(megaselfrev);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(lpow);
-	x(ladd);
-	x(logladd);
-	x(dpw);
-	x(revtsw);
-	x(lddtw);
-#undef x
-// dpw=2.18E+00;lddtw=1.23E-01;revtsw=1.88E+00;logladd=2.74E+00;
-	asserta(s_varidx_dpw != UINT_MAX);
-	asserta(s_varidx_lddtw != UINT_MAX);
-	asserta(s_varidx_revtsw != UINT_MAX);
-
-#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
-	x(dpscore);
-	x(selfrev);
-	x(lddt);
-	x(l2);
-#undef x
-
-// best_verysensitive_join.bin
-//[ 0]  l2
-//[ 1]  dpscore		mean 10.78, med  8.296, min  1.442, max  209.9
-//[ 2]  selfrev		mean 22.42, med  21.4, min  12, max  114
-//[ 3]  lddt		mean 0.4248, med  0.3289, min  0, max  1
-//[ 4]  newts <== NOTUSED
-	asserta(s_joinidx_dpscore != UINT_MAX);
-	asserta(s_joinidx_selfrev != UINT_MAX);
-	asserta(s_joinidx_lddt != UINT_MAX);
-
-//	ts = lddtw*lddt
-//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
-
-	float score = 0;
-	score += value_dpw*dpscore;
-	score += value_lddtw*lddt*200;
-	score -= value_revtsw*selfrev;
-	return score;
-	}
-
-static double calc_score_new_features_v2(
-	const float *data,
-	vector<double> &values)
-	{
-	const uint nvar = uint(s_var_names.size());
-	asserta(values.size() == nvar);
-
-#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
-	x(mega);
-	x(megarev);
-	x(megaselfrev);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(lpow);
-	x(ladd);
-	x(logladd);
-	x(dpw);
-	x(revtsw);
-	x(lddtw);
-#undef x
-
-	asserta(s_varidx_mega != UINT_MAX);
-	asserta(s_varidx_megaselfrev != UINT_MAX);
-	asserta(s_varidx_dali != UINT_MAX);
-	asserta(s_varidx_entropy != UINT_MAX);
-
-#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
-	x(q_selfrev_mega);
-	x(t_selfrev_mega);
-	x(q_selfrev_nu);
-	x(t_selfrev_nu);
-	x(dpscore);
-	x(mega);
-	x(megarev);
-	x(nu);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(q_L);
-	x(t_L);
-#undef x
-
-// join.bin
-//[ 0]  q_selfrev_mega
-//[ 1]  t_selfrev_mega
-//[ 2]  q_selfrev_nu
-//[ 3]  t_selfrev_nu
-//[ 4]  q_L
-//[ 5]  t_L
-//[ 6]  mega
-//[ 7]  megarev
-//[ 8]  nu
-//[ 9]  dali
-//[10]  entropy
-//[11]  lddt
-	asserta(s_joinidx_q_selfrev_mega != UINT_MAX);
-	asserta(s_joinidx_t_selfrev_mega != UINT_MAX);
-	asserta(s_joinidx_q_L != UINT_MAX);
-	asserta(s_joinidx_t_L != UINT_MAX);
-	asserta(s_joinidx_mega != UINT_MAX);
-	asserta(s_joinidx_megarev != UINT_MAX);
-	asserta(s_joinidx_dali != UINT_MAX);
-	asserta(s_joinidx_entropy != UINT_MAX);
-	asserta(s_joinidx_lddt != UINT_MAX);
-
-	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
-
-//	FINAL [1.549]  mega=7.59E-01;megaselfrev=1.05E+00;dali=2.76E-01;entropy=6.65E-01;
-//		mega=0.759
-//		megaselfrev=1.05
-//		dali=0.276
-//		entropy=0.665
-
-	float score = 0;
-	score += value_dali*dali*0.2f;
-	score += value_entropy*entropy/300.0f;
-	score += value_mega*mega;
-	score -= value_megaselfrev*megaselfrev;
-	return score;
-	}
-
-static double calc_score_new_features(
-	const float *data,
-	vector<double> &values)
-	{
-	const uint nvar = uint(s_var_names.size());
-	asserta(values.size() == nvar);
-
-#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
-	x(mega);
-	x(megarev);
-	x(megaselfrev);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(lpow);
-	x(ladd);
-	x(logladd);
-	x(dpw);
-	x(revtsw);
-	x(lddtw);
-#undef x
-//var=mega;min=0;max=1;weight=no;sigfig=3;
-//var=megarev;min=0;max=1;weight=no;sigfig=3;
-//var=megaselfrev;min=0;max=1;weight=no;sigfig=3;
-//var=dali;min=0;max=1;weight=no;sigfig=3;
-//var=entropy;min=0;max=1;weight=no;sigfig=3;
-//var=lddt;min=0;max=1;weight=no;sigfig=3;
-	asserta(s_varidx_mega != UINT_MAX);
-	asserta(s_varidx_megarev != UINT_MAX);
-	asserta(s_varidx_megaselfrev != UINT_MAX);
-	asserta(s_varidx_dali != UINT_MAX);
-	asserta(s_varidx_lddt != UINT_MAX);
-
-#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
-	x(q_selfrev_mega);
-	x(t_selfrev_mega);
-	x(q_selfrev_nu);
-	x(t_selfrev_nu);
-	x(dpscore);
-	x(mega);
-	x(megarev);
-	x(nu);
-	x(entropy);
-	x(lddt);
-	x(dali);
-	x(q_L);
-	x(t_L);
-#undef x
-
-// join.bin
-//[ 0]  q_selfrev_mega
-//[ 1]  t_selfrev_mega
-//[ 2]  q_selfrev_nu
-//[ 3]  t_selfrev_nu
-//[ 4]  q_L
-//[ 5]  t_L
-//[ 6]  mega
-//[ 7]  megarev
-//[ 8]  nu
-//[ 9]  dali
-//[10]  entropy
-//[11]  lddt
-	asserta(s_joinidx_q_selfrev_mega != UINT_MAX);
-	asserta(s_joinidx_t_selfrev_mega != UINT_MAX);
-	asserta(s_joinidx_q_L != UINT_MAX);
-	asserta(s_joinidx_t_L != UINT_MAX);
-	asserta(s_joinidx_mega != UINT_MAX);
-	asserta(s_joinidx_megarev != UINT_MAX);
-	asserta(s_joinidx_dali != UINT_MAX);
-	asserta(s_joinidx_entropy != UINT_MAX);
-	asserta(s_joinidx_lddt != UINT_MAX);
-
-	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
-
-//	ts = lddtw*lddt
-//	ts += (dpw*dpscore - revtsw*selfrev)/(l2 + ladd)
-
-/***************************************************************************************************************
-strategy=latinclimb;
-latin=32;
-rates=1.3,1.05;
-hj=2;
-var=mega;min=0;max=1;weight=no;sigfig=3;
-var=megarev;min=0;max=1;weight=no;sigfig=3;
-var=megaselfrev;min=0;max=1;weight=no;sigfig=3;
-var=dali;min=0;max=1;weight=no;sigfig=3;
-var=entropy;min=0;max=1;weight=no;sigfig=3;
-var=lddt;min=0;max=1;weight=no;sigfig=3;
-
-FINAL [1.564]  mega=8.24E-01;megarev=7.94E-01;megaselfrev=3.15E-01;dali=2.45E-01;entropy=7.34E-01;lddt=1.77E-01;
-mega=0.576
-megarev=0.57
-megaselfrev=0.387
-dali=0.147
-entropy=0.153
-lddt=0.0181
-	float score = 0;
-	score += value_lddtw*lddt/10;
-	score += value_dali*dali*0.2f;
-	score += value_entropy*entropy/300.0f;
-	score += value_mega*mega;
-	score -= value_megarev*megarev;
-	score -= value_megaselfrev*megaselfrev;
-	return score;
-***********************************************/
-
-	float score = 0;
-	score += value_lddtw*lddt/10;
-	score += value_dali*dali*0.2f;
-	score += value_entropy*entropy/300.0f;
-	score += value_mega*mega;
-	score -= value_megarev*megarev;
-	score -= value_megaselfrev*megaselfrev;
-	return score;
-	}
 
 static double calc_score(
 	const float *data,
 	vector<double> &values)
 	{
-	switch (s_icalc)
-		{
-	case 1: return calc_score_new_features_v2(data, values);
-	case 2: return calc_score_old_features_v2(data, values);
-	case 3: return calc_score_old_features(data, values);
-		}
-	Die("s_icalc=%d", s_icalc);
-	return FLT_MAX;
+	const uint nvar = uint(s_var_names.size());
+	asserta(values.size() == nvar);
+
+#define x(nm)	float value_##nm = (s_varidx_##nm == UINT_MAX ? 0 : (float) values[s_varidx_##nm])
+	x(mega);
+	x(megarev);
+	x(megaselfrev);
+	x(dalix);
+	x(entropy);
+	x(lddt);
+#undef x
+
+//[ 0]  q_selfrev_mega
+//[ 1]  t_selfrev_mega
+//[ 2]  q_selfrev_nu
+//[ 3]  t_selfrev_nu
+//[ 4]  q_L
+//[ 5]  t_L
+//[ 6]  mega
+//[ 7]  megarev
+//[ 8]  nu
+//[ 9]  dali
+//[10]  dalix
+//[11]  entropy
+//[12]  lddt
+#define x(nm)	float nm = (s_joinidx_##nm == UINT_MAX ? 0 : data[s_joinidx_##nm]);
+	x(q_selfrev_mega);
+	x(t_selfrev_mega);
+	x(q_selfrev_nu);
+	x(t_selfrev_nu);
+	x(dpscore);
+	x(mega);
+	x(megarev);
+	x(nu);
+	x(entropy);
+	x(lddt);
+	x(dali);
+	x(dalix);
+	x(q_L);
+	x(t_L);
+#undef x
+
+	asserta(s_joinidx_q_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_t_selfrev_mega != UINT_MAX);
+	asserta(s_joinidx_mega != UINT_MAX);
+	asserta(s_joinidx_megarev != UINT_MAX);
+	asserta(s_joinidx_dalix != UINT_MAX);
+	asserta(s_joinidx_entropy != UINT_MAX);
+	asserta(s_joinidx_lddt != UINT_MAX);
+
+	//asserta(s_varidx_mega != UINT_MAX);
+	asserta(s_varidx_megaselfrev != UINT_MAX);
+	asserta(s_varidx_dalix != UINT_MAX);
+	asserta(s_varidx_entropy != UINT_MAX);
+
+	float megaselfrev = (q_selfrev_mega + t_selfrev_mega)/2;
+
+	float score = mega;
+	score -= value_megarev*megarev;
+	score -= value_megaselfrev*megaselfrev;
+	score += value_entropy*entropy/1000;
+	score += value_dalix*dalix;
+	score += value_lddt*lddt/2;
+
+	asserta(!isnan(score));
+	return score;
 	}
 
 static double get_value(
@@ -536,7 +257,7 @@ static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
 void cmd_flat_hjjoin()
 	{
 	asserta(optset_lookup);
-	asserta(optset_spec);
+	asserta(!optset_spec);
 
 	const string &joinfn = g_Arg1;
 
@@ -561,11 +282,13 @@ void cmd_flat_hjjoin()
 		x(megarev);
 		x(nu);
 		x(dali);
+		x(dalix);
 		x(lddt);
 		x(entropy);
 		x(q_L);
 		x(t_L);
 		x(l2);
+		x(l);
 		x(dpscore);
 		x(selfrev);
 		x(newts);
@@ -574,7 +297,16 @@ void cmd_flat_hjjoin()
 		}
 
 	vector<string> SpecLines;
-	ReadLinesFromFile(opt(spec), SpecLines);
+	SpecLines.push_back("strategy=latinclimb;");
+	SpecLines.push_back("latin=32;");
+	SpecLines.push_back("rates=1.3,1.05;");
+	SpecLines.push_back("hj=1;");
+	//SpecLines.push_back("var=mega;min=0;max=1;weight=no;sigfig=3;");
+	SpecLines.push_back("var=megarev;min=0;max=1;weight=no;sigfig=3;");
+	SpecLines.push_back("var=megaselfrev;min=0;max=1;weight=no;sigfig=3;");
+	SpecLines.push_back("var=dalix;min=0;max=1;weight=no;sigfig=3;");
+	SpecLines.push_back("var=entropy;min=0;max=1;weight=no;sigfig=3;");
+	SpecLines.push_back("var=lddt;min=0;max=1;weight=no;sigfig=3;");
 
 	Peaker::GetVarNames(SpecLines, s_var_names);
 	for (uint i = 0; i < s_var_names.size(); ++i)
@@ -588,6 +320,7 @@ void cmd_flat_hjjoin()
 		x(entropy);
 		x(lddt);
 		x(dali);
+		x(dalix);
 		x(lpow);
 		x(ladd);
 		x(dpw);
@@ -612,9 +345,6 @@ void cmd_flat_hjjoin()
 
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-	s_icalc = Peaker::SpecGetInt(GlobalSpec, "calc", -1);
-	if (s_icalc < 0)
-		Die("calc in spec");
 
 	double Best_y;
 	vector<string> Best_xv;
