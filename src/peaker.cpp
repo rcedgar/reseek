@@ -189,7 +189,7 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 	asserta(BinCount > 0);
 	if (VarIsConstant(VarIdx))
 		{
-		double Value = VarSpecGetFloat(VarIdx, "init", DBL_MAX);
+		double Value = VarSpecGetFloat(VarIdx, "constant", DBL_MAX);
 		asserta(Value != DBL_MAX);
 		return Value;
 		}
@@ -253,9 +253,9 @@ const string &Peaker::GetVarSpec(uint VarIdx) const
 
 bool Peaker::VarIsConstant(uint VarIdx) const
 	{
-	string yes;
-	VarSpecGetStr(VarIdx, "constant", yes, "no");
-	return yes == "yes";
+	string value;
+	VarSpecGetStr(VarIdx, "constant", value, "");
+	return value != "";
 	}
 
 bool Peaker::VarIsInt(uint VarIdx) const

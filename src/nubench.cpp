@@ -8,7 +8,8 @@ void GetFeatures(
 	vector<string> &feature_names,
 	vector<float> &weights,
 	float &selfw,
-	float &revw)
+	float &revw,
+	bool &need_distmxs)
 	{
 	selfw = 0;
 	revw = 0;
@@ -28,7 +29,8 @@ void GetFeatures(
 	flat_bench::ClassifyParams(
 		names, values,
 		feature_names, weights,
-		scalar_names, scalar_values, selfw, revw);
+		scalar_names, scalar_values,
+		selfw, revw, need_distmxs);
 	}
 
 void cmd_numx()
@@ -37,8 +39,11 @@ void cmd_numx()
 	vector<float> weights;
 	float selfw;
 	float revw;
-	GetFeatures(g_Arg1, feature_names, weights, selfw, revw);
+	bool need_distmxs;
+	GetFeatures(g_Arg1, feature_names, weights, selfw, revw, need_distmxs);
 	asserta(selfw == 0);
+	asserta(revw == 0);
+	asserta(!need_distmxs);
 
 	const uint nfeat = uint(feature_names.size());
 	asserta(nfeat > 0);
@@ -63,9 +68,13 @@ void cmd_nubench()
 	vector<string> feature_names;
 	vector<float> weights;
 	float selfw, revw;
-	GetFeatures(g_Arg1, feature_names, weights, selfw, revw);
+	bool need_distmxs;
+	GetFeatures(g_Arg1, feature_names, weights,
+		selfw, revw, need_distmxs);
 	asserta(selfw == 0);
 	asserta(revw == 0);
+	asserta(!need_distmxs);
+
 	const uint nfeat = uint(feature_names.size());
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);

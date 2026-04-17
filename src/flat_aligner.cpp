@@ -1,7 +1,9 @@
 #include "myutils.h"
+#include "flat_params.h"
 #include "flat_features.h"
 #include "flat_aligner.h"
 #include "flat_helpers.h"
+#include "flat_alignx.h"
 #include "cigar.h"
 
 void flat_aligner::alloc()
@@ -72,8 +74,6 @@ void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 
 void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 	{
-	assert(profQ != 0);
-	assert(LQ > 0);
 	m_labelQ = labelQ;
 	m_profQ = profQ;
 	m_LQ = LQ;
@@ -82,26 +82,28 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
-		m_ff->m_feature_block_offsets,
-		m_ff->m_nfeat, m_open, m_ext,
+		m_ff->m_feature_block_offsets, m_ff->m_nfeat,
+		-flat_params::m_open, 
+		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
+	m_reverse_score_set = false;
 	}
 
-void flat_aligner::alignQ_reverseT(const string &labelQ, const uint8_t *profQ, uint LQ)
+void flat_aligner::align_reverse()
 	{
-	assert(profQ != 0);
-	assert(LQ > 0);
-	m_labelQ = labelQ;
-	m_profQ = profQ;
-	m_LQ = LQ;
+	assert(m_profQ != 0);
+	assert(m_LQ > 0);
 	assert(m_ff != 0);
-	m_score = sw_flat_pssm(
+	m_reverse_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
-		profQ, LQ,
+		m_profQ, m_LQ,
 		m_pssm_reverseT, m_LT, 
 		m_ff->m_feature_block_offsets,
-		m_ff->m_nfeat, m_open, m_ext,
+		m_ff->m_nfeat,
+		-flat_params::m_open, 
+		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
+	m_reverse_score_set = true;
 	}
 
 float flat_aligner::get_self_rev_score(
@@ -109,6 +111,7 @@ float flat_aligner::get_self_rev_score(
 	{
 	cacheT_reversed(labelQ + ".rev", profQ, LQ);
 	alignQ(labelQ, profQ, LQ);
+	m_reverse_score_set = false;
 	return m_score;
 	}
 

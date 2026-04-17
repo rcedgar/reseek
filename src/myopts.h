@@ -142,6 +142,7 @@ UNS_OPT(tfield)
 UNS_OPT(scorefield)
 UNS_OPT(kappa_minkmerscore)
 UNS_OPT(kappa_mindiagscore)
+UNS_OPT(entropyfi)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

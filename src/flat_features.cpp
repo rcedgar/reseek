@@ -3,6 +3,19 @@
 #include "flat_helpers.h"
 #include "flat_features.h"
 
+uint32 flat_features::m_nfeat;
+uint32 flat_features::m_entropyfi = UINT_MAX;
+vector<string> flat_features::m_feature_names;
+uint32_t *flat_features::m_alpha_sizes;
+float **flat_features::m_unweighted_logoddsvec;
+float **flat_features::m_weighted_logoddsvec;
+float *flat_features::m_weights;
+uint32_t *flat_features::m_feature_block_offsets;
+uint32_t flat_features::m_sum_alpha_sizes;
+uint32_t flat_features::m_compound_alpha_size;
+uint32_t *flat_features::m_axes;
+vector<string> flat_features::m_symbolsvec;
+
 void flat_features::init(const vector<string> &feature_names)
 	{
 	asserta(m_nfeat == 0);
@@ -10,10 +23,14 @@ void flat_features::init(const vector<string> &feature_names)
 	m_feature_names = feature_names;
 	m_sum_alpha_sizes = 0;
 	m_compound_alpha_size = 1;
+	m_entropyfi = UINT_MAX;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
+		const string &feature_name = feature_names[fi];
+		if (StartsWith(feature_name, "sec"))
+			m_entropyfi = fi;
 		uint alpha_size =
-			get_alpha_size_from_feature_name(feature_names[fi]);
+			get_alpha_size_from_feature_name(feature_name);
 		m_alpha_sizes[fi] = alpha_size;
 		m_sum_alpha_sizes += alpha_size;
 		m_axes[fi] = m_compound_alpha_size;

@@ -20,7 +20,7 @@ static double EvalSum3(const vector<string> &xv)
 	s_FB->UpdateParamsFromVarStr(VarStr);
 	s_FB->ClearHitsAndResults();
 	s_FB->Search("dope");
-	s_FB->SetScoreOrder();
+	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	return s_FB->m_Sum3;
 	}
@@ -30,8 +30,9 @@ static void EvalSum3_VarStr(flat_bench &FullFB, const string &VarStr)
 	s_FB = &FullFB;
 	s_FB->ClearHitsAndResults();
 	s_FB->UpdateParamsFromVarStr(VarStr);
+	s_FB->ProgressLogParams();//@@
 	s_FB->Search("dope");
-	s_FB->SetScoreOrder();
+	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	s_FB->WriteHits(opt(output));
 	}
@@ -188,24 +189,31 @@ static void SubClimb(
 
 void get_feature_names_from_peaker_spec_file_lines(
 	vector<string> &lines,
-	vector<string> &feature_names,
-	bool &selfw_is_var)
+	vector<string> &alpha_names,
+	bool &selfw_is_var, bool &need_distmxs)
 	{
 	selfw_is_var = false;
-	feature_names.clear();
+	alpha_names.clear();
 	vector<string> flds;
 	for (size_t i = 0; i < lines.size(); ++i)
 		{
 		const string &line = lines[i];
-		if (!StartsWith(line, "var=") || line.find("weight=yes") == string::npos)
+		if (!StartsWith(line, "var="))
 			continue;
 		Split(line, flds, ';');
 		const string var_eq_name = flds[0];
 		Split(var_eq_name, flds, '=');
 		asserta(flds.size() == 2);
 		const string &name = flds[1];
-		if (name == "selfw") selfw_is_var = true;
-		feature_names.push_back(name);
+		if (name == "selfw")
+			selfw_is_var = true;
+		else if (name == "dali" ||
+			name == "dalix" ||
+			name == "lddt" ||
+			name == "entropy")
+			need_distmxs = true;
+		if (line.find("isalpha=yes;") != string::npos)
+			alpha_names.push_back(name);
 		}
 	}
 
@@ -222,8 +230,9 @@ void cmd_flat_hjmega()
 
 	vector<string> AlphaNames;
 	bool selfw_is_var = false;
+	bool need_distmxs = false;
 	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, AlphaNames, selfw_is_var);
+		SpecLines, AlphaNames, selfw_is_var, need_distmxs);
 	const uint nfeat = uint(AlphaNames.size());
 	vector<float> Weights(nfeat, 1.0f);	// placeholders
 
@@ -236,7 +245,8 @@ void cmd_flat_hjmega()
 	FullFB.load_alphas_and_profiles(
 		AlphaNames, Weights, opt(fapattern), opt(mxpattern),
 		selfw_is_var);
-	FullFB.ProgressLogParams();
+	if (need_distmxs)
+		FullFB.set_distmxs(opt(input));
 	FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
 	if (optset_varstr)
@@ -268,6 +278,8 @@ void cmd_flat_hjmega()
 		SubsetFB.ProgressLogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();
+		if (need_distmxs)
+			SubsetFB.set_distmxs(opt(input));
 		SubClimb(FullFB, SubsetFB, SpecLines);
 		}
 	else if (Strategy == "latinclimb")

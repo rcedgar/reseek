@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_chain.h"
 #include "flat_distmx.h"
+#include "flat_aligner.h"
 #include "sort.h"
 
 static const float tx = 1.25;//@@TODO param
@@ -82,6 +83,19 @@ float flat_get_dali(
 		posQs, posTs,
 		distmxQ, distmxT, M);
 	}
+
+float flat_get_dali3(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M)
+	{
+	return flat_get_dali(string(fa.m_path_buffer),
+		fa.m_loQ, fa.m_LQ,
+		fa.m_loT, fa.m_LT,
+		distmxQ, distmxT, M);
+	}
+
 
 float flat_get_dalix2(
 	uint32_t loQ, uint32_t LQ,
@@ -207,4 +221,32 @@ float flat_get_dalix(
 		loQ, LQ, loT, LT,
 		posQs, posTs,
 		distmxQ, distmxT, M, colscores);
+	}
+
+float flat_get_dalix3(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M,
+	float *colscores)
+	{
+	return flat_get_dalix(
+		string(fa.m_path_buffer),
+		fa.m_loQ, fa.m_LQ,
+		fa.m_loT, fa.m_LT,
+		distmxQ, distmxT,
+		M, colscores);
+	}
+
+float flat_get_dalix(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M)
+	{
+	return flat_get_dali(
+		string(fa.m_path_buffer),
+		fa.m_loQ, fa.m_loT,
+		fa.m_LQ, fa.m_LT,
+		distmxQ, distmxT, M);
 	}

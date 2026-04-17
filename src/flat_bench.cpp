@@ -3,8 +3,12 @@
 #include "alpha.h"
 #include "sort.h"
 #include "triangle.h"
+#include "flat_params.h"
 #include "flat_helpers.h"
+#include "flat_alignx.h"
 #include "flat_aligner.h"
+
+static const uint M = 64;
 
 #define	SHOW_PROGRESS	1
 
@@ -76,6 +80,8 @@ void flat_bench::align_pair(
 	const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
 	const uint LQ = m_fp.get_length(DomIdxQ);
 	fa.alignQ(labelQ, profQ, LQ);
+	float score = fa.m_score;
+	//float score2 = calc_aln_weights(fa, DomIdxQ, DomIdxT);//@@TODO
 
 	fa.write_aln(stdout);
 	fa.write_aln(g_fLog);
@@ -105,13 +111,12 @@ void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
 
 void flat_bench::ThreadBody_All(uint ThreadIdx)
 	{
+	asserta(!optset_reverse);
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = get_nfeat();
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
-	fa.m_open = -m_Open;
-	fa.m_ext = -m_Ext;
 	fa.alloc();
 	for (;;)
 		{
@@ -122,14 +127,9 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		const string &labelT = m_fp.get_label(DomIdxT);
 		const uint8_t *profT = m_fp.get_profile(DomIdxT);
 		const uint LT = m_fp.get_length(DomIdxT);
-		if (opt(reverse))
-			fa.cacheT_reversed(labelT, profT, LT);
-		else
-			{
-			fa.cacheT(labelT, profT, LT);
-			if (m_rev_weight > 0)
-				fa.cache_reverseT(labelT, profT, LT);
-			}
+		fa.cacheT(labelT, profT, LT);
+		if (flat_params::m_rev_w > 0)
+			fa.cache_reverseT(labelT, profT, LT);
 
 		// Includes self-score for santify checking and because
 		//   triangle*() functions include diagonal
@@ -140,6 +140,8 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 			const uint LQ = m_fp.get_length(DomIdxQ);
 			fa.alignQ(labelQ, profQ, LQ);
 			float Score = fa.m_score;
+			if (flat_params::need_reverse())
+				fa.align_reverse();
 			asserta(!isnan(Score));
 			asserta(!isinf(Score));
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
@@ -148,18 +150,18 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
 #endif
-			if (m_rev_weight > 0)
+			const sid_t *distmxQ = 0;
+			const sid_t *distmxT = 0;
+			float selfQ = FLT_MAX;
+			float selfT = FLT_MAX;
+			if (flat_params::need_distmx())
 				{
-				fa.alignQ_reverseT(labelQ, profQ, LQ);
-				Score -= m_rev_weight*fa.m_score;
+				assert(!m_distmxs.empty());
+				distmxQ = m_distmxs[DomIdxQ];
+				distmxT = m_distmxs[DomIdxT];
 				}
-
-			if (m_self_rev_weight > 0)
-				{
-				float selfT = m_self_rev_scores[DomIdxT];
-				float selfQ = m_self_rev_scores[DomIdxQ];
-				Score -= m_self_rev_weight*(selfT + selfQ);
-				}
+			Score += flat_alignx::alignx(
+				fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
 			AppendHit(DomIdxT, DomIdxQ, Score);
 			}
 		}
@@ -172,8 +174,8 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	const uint nfeat = get_nfeat();
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
-	fa.m_open = -m_Open;
-	fa.m_ext = -m_Ext;
+	const float open = -flat_params::m_open;
+	const float ext = -flat_params::m_ext;
 	fa.alloc();
 	uint CurrentDomIdxT = UINT_MAX;
 	for (;;)
@@ -201,7 +203,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 			const uint8_t *profT = m_fp.get_profile(DomIdxT);
 			const uint LT = m_fp.get_length(DomIdxT);
 			fa.cacheT(labelT, profT, LT);
-			if (m_rev_weight > 0)
+			if (flat_params::m_rev_w > 0)
 				fa.cache_reverseT(labelT, profT, LT);
 			CurrentDomIdxT = DomIdxT;
 			}
@@ -216,19 +218,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
 		uint progress_count = m_progress_counter++;
 
-		if (m_rev_weight > 0)
-			{
-			fa.alignQ_reverseT(labelQ, profQ, LQ);
-			Score -= m_rev_weight*fa.m_score;
-			}
-
-		if (m_self_rev_weight > 0)
-			{
-			float selfT = m_self_rev_scores[DomIdxT];
-			float selfQ = m_self_rev_scores[DomIdxQ];
-			Score -= m_self_rev_weight*(selfT + selfQ);
-			}
-
+//		Score += calc_aln_weights(fa, DomIdxQ, DomIdxT);
 		AppendHit(DomIdxT, DomIdxQ, Score);
 		}
 	}
@@ -300,29 +290,7 @@ void flat_bench::SetScalarParams(
 	const vector<string> &Names,
 	const vector<float> &Values)
 	{
-	m_Open = FLT_MAX;
-	m_Ext = FLT_MAX;
-	for (uint i = 0; i < SIZE(Names); ++i)
-		{
-		const string &Name = Names[i];
-		float Value = Values[i];
-		if (Name == "open")
-			m_Open = Value;
-		else if (Name == "ext")
-			m_Ext = Value;
-		else if (Name == "selfw")
-			m_self_rev_weight = Value;
-		else if (Name == "revw")
-			m_rev_weight = Value;
-		else if (Name == "gap2")
-			{
-			m_Open = Value;
-			m_Ext = Value/10;
-			}
-		else
-			Die("flat_bench::SetScalarParams() Name=%s", Name.c_str());
-		}
-	asserta(m_Open != FLT_MAX && m_Ext != FLT_MAX);
+	flat_params::set_params(Names, Values);
 	}
 
 void flat_bench::ClassifyParams(
@@ -333,10 +301,12 @@ void flat_bench::ClassifyParams(
 	vector<string> &ScalarNames,
 	vector<float> &ScalarValues,
 	float &selfw,
-	float &revw)
+	float &revw,
+	bool &need_distmxs)
 	{
 	selfw = 0;
 	revw = 0;
+	need_distmxs = false;
 
 	for (uint i = 0; i < SIZE(Names); ++i)
 		{
@@ -346,6 +316,10 @@ void flat_bench::ClassifyParams(
 			|| Name == "ext" \
 			|| Name == "gap2" \
 			|| Name == "selfw" \
+			|| Name == "dali" \
+			|| Name == "dalix" \
+			|| Name == "lddt" \
+			|| Name == "entropy" \
 			|| Name == "revw")
 			{
 			ScalarNames.push_back(Name);
@@ -354,6 +328,12 @@ void flat_bench::ClassifyParams(
 				selfw = Value;
 			else if (Name == "revw")
 				revw = Value;
+
+			if (Name == "dali" \
+				|| Name == "dalix" \
+				|| Name == "lddt" \
+				|| Name == "entropy")
+				need_distmxs = true;
 			}
 		else
 			{
@@ -371,8 +351,8 @@ void flat_bench::ApplyWeightsToLogOdds(
 
 void flat_bench::ProgressLogParams() const
 	{
-	ProgressLog("open=%.3g;", m_Open);
-	ProgressLog("ext=%.3g;", m_Ext);
+	ProgressLog("open=%.3g;", flat_params::m_open);
+	ProgressLog("ext=%.3g;", flat_params::m_ext);
 	uint nfeat = m_ff.get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		ProgressLog("%s=%.3g;",
@@ -393,9 +373,14 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	vector<float> ScalarValues;
 	float selfw = 0;
 	float revw = 0;
+	bool need_distmxs;
 	flat_bench::ClassifyParams(
 		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues,
-		selfw, revw);
+		selfw, revw, need_distmxs);
+	flat_params::m_rev_w = revw;
+	flat_params::m_self_w = selfw;
+
+	if (need_distmxs) asserta(!m_distmxs.empty());
 
 	SetScalarParams(ScalarNames, ScalarValues);
 
@@ -406,16 +391,16 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 		NameToWeight[AlphaNames[i]] = Weights[i];
 	ApplyWeightsToLogOdds(NameToWeight);
 
-	m_rev_weight = revw;
-	m_self_rev_weight = selfw;
 	if (selfw != 0)
 		set_selfrev_scores();
 	}
 
 void flat_bench::set_selfrev_scores()
 	{
+	if (m_self_rev_scores != 0)
+		return;
 	uint ndom = m_look->get_ndom();
-	if (m_self_rev_scores == 0) m_self_rev_scores = myalloc(float, ndom);
+	m_self_rev_scores = myalloc(float, ndom);
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
 	fa.alloc();
@@ -426,6 +411,29 @@ void flat_bench::set_selfrev_scores()
 		const uint8_t *prof = m_fp.get_profile(domidx);
 		m_self_rev_scores[domidx] =
 			fa.get_self_rev_score(label, prof, L);
+		}
+	fa.freemem();
+	}
+
+void flat_bench::set_distmxs(const string &chainfn)
+	{
+	vector<flat_chain_t *> chains;
+	read_flat_chains(chainfn, chains);
+	int nchain = int(chains.size());
+	const uint ndom = m_look->get_ndom();
+	m_distmxs.clear();
+	m_distmxs.resize(ndom);
+	for (int i = 0; i < nchain; ++i)
+		{
+		flat_chain_t *chain = chains[i];
+		const string &label = chain->m_label;
+		uint domidx = m_look->get_domidx(label, true);
+		if (domidx == UINT_MAX)
+			continue;
+		uint L = chain->get_length();
+		sid_t *distmx = myalloc(sid_t, L*M);
+		chaq::fill_distmx(chain, M, distmx);
+		m_distmxs[domidx] = distmx;
 		}
 	}
 
@@ -444,6 +452,8 @@ void cmd_flat_bench()
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
+	if (optset_input)
+		FB.set_distmxs(opt(input));
 
 	vector<string> param_names;
 	vector<float> param_values;
@@ -455,9 +465,14 @@ void cmd_flat_bench()
 	vector<float> scalar_values;
 	float selfw = 0;
 	float revw = 0;
+	bool need_distmxs = false;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values, selfw, revw);
+		scalar_names, scalar_values,
+		selfw, revw, need_distmxs);
+	if (need_distmxs)
+		asserta(optset_input);
+
 	bool set_self_scores = (selfw != 0);
 
 	FB.load_alphas_and_profiles(
@@ -466,9 +481,11 @@ void cmd_flat_bench()
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();
-	FB.set_selfrev_scores();
-	FB.m_self_rev_weight = selfw;
-	FB.m_rev_weight = revw;
+	if (set_self_scores)
+		FB.set_selfrev_scores();
+	//FB.m_self_rev_weight = selfw;
+	//FB.m_rev_weight = revw;
+	FB.SetScalarParams(scalar_names, scalar_values);
 
 	if (optset_label1)
 		{

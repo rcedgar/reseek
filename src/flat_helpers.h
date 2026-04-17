@@ -1,5 +1,8 @@
 #pragma once
 #include "alpha.h"
+#include "flat_dist_types.h"
+
+class flat_aligner;
 
 using colscorefn = float(uint i, uint j);
 float sw_flat(
@@ -177,3 +180,40 @@ static inline const uint8_t *get_char2letter(const string &feature_name)
 	uint alpha_size = get_alpha_size_from_feature_name(feature_name);
 	return (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 	}
+
+float flat_get_dalix3(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M,
+	float *colscores);
+
+float flat_get_dali3(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M);
+
+float flat_getlddt_muscle_some_floats(
+	const uint32_t *posQs,
+	const uint32_t LQ,
+	const uint32_t *posTs,
+	const uint32_t LT,
+	const uint ncol,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M,
+	uint32_t *nr_considered_vec,
+	uint32_t *nr_preserved_vec);
+
+float flat_getlddt_muscle_some_floats4(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M);
+
+float flat_get_entropy2(
+	const flat_aligner &fa,
+	const uint8_t *profQ,
+	const uint8_t *profT,
+	uint nfeat, uint fi);

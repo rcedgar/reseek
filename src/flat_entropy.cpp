@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_chain.h"
+#include "flat_aligner.h"
 
 static float get_entropy(
 	const vector<uint8_t> &codes, uint start, uint W)
@@ -35,6 +36,7 @@ float flat_get_entropy(
 	const uint8_t *profT,
 	uint nfeat, uint fi)
 	{
+	asserta(fi < nfeat);
 	const uint pathlen = uint(path.size());
 
 	vector<uint32_t> posQs;
@@ -75,4 +77,17 @@ float flat_get_entropy(
 		HT += get_entropy(codeTs, start, W);
 		}
 	return HQ + HT;
+	}
+
+float flat_get_entropy2(
+	const flat_aligner &fa,
+	const uint8_t *profQ,
+	const uint8_t *profT,
+	uint nfeat, uint fi)
+	{
+	return flat_get_entropy(
+		string(fa.m_path_buffer),
+		fa.m_loQ, fa.m_LQ,
+		fa.m_loT, fa.m_LT,
+		profQ, profT, nfeat, fi);
 	}

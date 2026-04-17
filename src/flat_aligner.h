@@ -22,12 +22,11 @@ public:
 	float *m_scratch_rows = 0;
 	uint8_t *__restrict m_TB = 0;
 
-	float m_open = -3;
-	float m_ext = -1;
-
 	uint m_maxL = 4000;
 
 	float m_score = 0;
+	float m_reverse_score = 0;
+	bool m_reverse_score_set = false;
 	uint m_loQ = UINT_MAX;
 	uint m_loT = UINT_MAX;
 	char *m_path_buffer = 0;
@@ -45,7 +44,7 @@ public:
 	void cache_reverseT(const string &labelT, const uint8_t *profT, uint LT);
 
 	void alignQ(const string &labelQ, const uint8_t *profQ, uint LQ);
-	void alignQ_reverseT(const string &labelQ, const uint8_t *profQ, uint LQ);
+	void align_reverse();
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;
 	uint get_path_str(string &path) const;

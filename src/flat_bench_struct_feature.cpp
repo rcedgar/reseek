@@ -17,8 +17,6 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 	const uint nfeat = get_nfeat();
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
-	fa.m_open = -m_Open;
-	fa.m_ext = -m_Ext;
 	fa.alloc();
 	for (;;)
 		{
@@ -61,8 +59,6 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 	const uint nfeat = get_nfeat();
 	flat_aligner fa;
 	fa.m_ff = &m_ff;
-	fa.m_open = -m_Open;
-	fa.m_ext = -m_Ext;
 	fa.alloc();
 	uint CurrentDomIdxT = UINT_MAX;
 	for (;;)
@@ -218,14 +214,6 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
-	float flat_getlddt_muscle_some_floats2(
-		const string &path,
-		uint32_t loQ, uint32_t LQ,
-		uint32_t loT, uint32_t LT,
-		const sid_t *distmxQ,
-		const sid_t *distmxT,
-		const uint M);
-
 	asserta(idxQ < m_distmxs.size());
 	asserta(idxT < m_distmxs.size());
 
@@ -240,9 +228,8 @@ float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
 	string path;
 	uint nmatch = fa.get_path_str(path);
 	uint ncol = uint(path.size());
-	float lddt = flat_getlddt_muscle_some_floats2(
-		path, loQ, LQ, loT, LT,
-		distmxQ, distmxT, M);
+	float lddt = flat_getlddt_muscle_some_floats4(
+		fa, distmxQ, distmxT, M);
 	float maxL = max(LT, LQ) - 20.0f;
 	if (maxL < 80)
 		maxL = 80;
@@ -323,12 +310,14 @@ void cmd_flat_bench_struct_feature()
 	vector<float> scalar_values;
 	float selfw = 0;
 	float revw = 0;
+	bool need_distmxs;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
 		scalar_names, scalar_values,
-		selfw, revw);
+		selfw, revw, need_distmxs);
 	asserta(selfw == 0);
 	asserta(revw == 0);
+	asserta(!need_distmxs);
 
 	FB.load_alphas_and_profiles(
 		feature_names, weights, opt(fapattern), opt(mxpattern), selfw);

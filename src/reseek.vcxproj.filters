@@ -584,9 +584,6 @@
     <ClCompile Include="flat_chain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_chain_reader.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="chaq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -635,9 +632,6 @@
     <ClCompile Include="enum_paths.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_subsetbench.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="flat_bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -649,9 +643,6 @@
     </ClCompile>
     <ClCompile Include="flat_profiles.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="flat_aligner.cpp">
-      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="bitdope.cpp">
       <Filter>Source Files</Filter>
@@ -756,6 +747,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_dali.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_alignx.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_alignx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_params.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_chain_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_aligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1192,9 +1198,6 @@
     <ClInclude Include="flat_sw_pssm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_subsetbench.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="flat_bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1253,6 +1256,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="puu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

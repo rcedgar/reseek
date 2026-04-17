@@ -12,8 +12,6 @@ public:
 // Hard-coded score-like not Evalue-like
 //	SBSCORE m_SBS = SBS_Evalue;
 
-	float m_Open = -999;
-	float m_Ext = -999;
 	uint m_ThreadCount = 0;
 
 ////////////////////////////////
@@ -29,8 +27,13 @@ public:
 	flat_profiles m_fp;
 	flat_features m_ff;
 	float *m_self_rev_scores = 0;
-	float m_self_rev_weight = 0;
-	float m_rev_weight = 0;
+
+//////////////////////////////
+// Distance matrices for
+// structure features:
+//	lddt, entropy, dali
+//////////////////////////////
+	vector<sid_t *> m_distmxs;
 
 public:
 	static atomic<uint> m_progress_counter;
@@ -55,7 +58,7 @@ public:
 	void align_pair(const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
-	void set_selfrev_weight(float w) { m_self_rev_weight = w; }
+	void set_distmxs(const string &chainfn);
 
 public:
 // All-vs-all for fast SCOP40 benchmark score only
@@ -74,7 +77,8 @@ public:
 		vector<string> &ScalarNames,
 		vector<float> &ScalarValues,
 		float &selfw,
-		float &revw);
+		float &revw,
+		bool &need_distmxs);
 
 	static void StaticThreadBody(flat_bench *SB,
 		uint ThreadIdx, const string &how);;

@@ -9,17 +9,18 @@ static const float MAX_SANE_SCORE = 1000;
 class flat_features
 	{
 public:
-	uint32 m_nfeat = 0;
-	vector<string> m_feature_names;
-	uint32_t *m_alpha_sizes = 0;
-	float **m_unweighted_logoddsvec = 0;
-	float **m_weighted_logoddsvec = 0;
-	float *m_weights = 0;
-	uint32_t *m_feature_block_offsets = 0;
-	uint32_t m_sum_alpha_sizes = 0;
-	uint32_t m_compound_alpha_size = 0;
-	uint32_t *m_axes = 0;
-	vector<string> m_symbolsvec;
+	static uint32 m_nfeat;
+	static uint32 m_entropyfi;
+	static vector<string> m_feature_names;
+	static uint32_t *m_alpha_sizes;
+	static float **m_unweighted_logoddsvec;
+	static float **m_weighted_logoddsvec;
+	static float *m_weights;
+	static uint32_t *m_feature_block_offsets;
+	static uint32_t m_sum_alpha_sizes;
+	static uint32_t m_compound_alpha_size;
+	static uint32_t *m_axes;
+	static vector<string> m_symbolsvec;
 
 public:
 	uint get_nfeat() const { asserta(m_nfeat != 0); return m_nfeat; }

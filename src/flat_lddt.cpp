@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_chain.h"
 #include "flat_distmx.h"
+#include "flat_aligner.h"
 
 #if 1
 
@@ -120,7 +121,7 @@ float flat_getlddt_muscle_some_floats2(
 	return lddt;
 	}
 
-float flat_getlddt_muscle_some_floats2(
+float flat_getlddt_muscle_some_floats3(
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -152,4 +153,17 @@ float flat_getlddt_muscle_some_floats2(
 	myfree(nr_considered_vec);
 	myfree(nr_preserved_vec);
 	return lddt;
+	}
+
+float flat_getlddt_muscle_some_floats4(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M)
+	{
+	return flat_getlddt_muscle_some_floats3(
+		string(fa.m_path_buffer),
+		fa.m_loQ, fa.m_LQ,
+		fa.m_loT, fa.m_LT,
+		distmxQ, distmxT, M);
 	}

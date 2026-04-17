@@ -1,6 +1,13 @@
 /***
 @@TODOs
 
+DALI score
+	Optimize by gapless hsp pairs in nu d.p. mx, greedily build?
+	Transition to DALI score for low mega, better for fold recognition
+	Weight DALI score by SS/SEC alphabet match
+
+TM-score, how to do without Kabsch?
+
 FEN etc
 
 PUU
