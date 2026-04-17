@@ -112,9 +112,9 @@ static double calc_score(
 	float score = mega;
 	score -= value_megarev*megarev;
 	score -= value_megaselfrev*megaselfrev;
-	score += value_entropy*entropy/1000;
-	score += value_dalix*dalix;
-	score += value_lddt*lddt/2;
+	score += value_entropy*entropy/250;
+	score += value_dalix*dalix*10;
+	score += value_lddt*lddt/4;
 
 	asserta(!isnan(score));
 	return score;
