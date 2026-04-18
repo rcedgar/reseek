@@ -72,7 +72,21 @@ public:
 	void log_dope_ks() const;
 	bool in_dope(uint k) const
 		{
+		if (m_dope == 0) return true;
 		byte b = m_dope[k/8];
 		return b & (1 << k%8);
+		}
+	bool in_dope(uint i, uint j) const
+		{
+		if (m_dope == 0) return true;
+		uint k = triangle_ij_to_k2(i, j, m_SeqCount);
+		return in_dope(k);
+		}
+	float get_missing_score() const
+		{
+		if (m_scores_are_evalues)
+			return 9999;
+		else
+			return -9999;
 		}
 	};

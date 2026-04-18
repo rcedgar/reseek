@@ -21,29 +21,20 @@ void ParseVarStr(
 	vector<string> &Names,
 	vector<float> &Values);
 
-void flat_bench::load_alphas_and_profiles(
-	const vector<string> &feature_names,
-	const vector<float> &weights,
+void flat_bench::load_profiles(
 	const string &fafnpattern,
-	const string &logoddsfnpattern,
 	bool set_self_scores)
 	{
-	const uint nfeat = uint(feature_names.size());
-	asserta(weights.size() == nfeat);
+	const uint nfeat = flat_features::get_nfeat();
 
 	vector<string> fafns(nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			fafnpattern,
-			feature_names[fi],
+			flat_features::m_feature_names[fi],
 			fafns[fi]);
 
-	m_ff.init(feature_names);
-	m_fp.m_ff = &m_ff;
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
-	m_ff.read_logoddsvec_pattern(logoddsfnpattern);
-	m_ff.set_feature_block_offsets();
-	m_ff.set_symbolsvec();
 
 	m_Labels = m_fp.m_labels;
 	m_SeqCount = uint(m_Labels.size());
@@ -51,11 +42,39 @@ void flat_bench::load_alphas_and_profiles(
 		set_selfrev_scores();
 	}
 
+//void flat_bench::load_alphas_and_profiles(
+//	const vector<string> &feature_names,
+//	const vector<float> &weights,
+//	const string &fafnpattern,
+//	const string &logoddsfnpattern,
+//	bool set_self_scores)
+//	{
+//	const uint nfeat = uint(feature_names.size());
+//	asserta(weights.size() == nfeat);
+//
+//	vector<string> fafns(nfeat);
+//	for (uint fi = 0; fi < nfeat; ++fi)
+//		make_fn_pattern(
+//			fafnpattern,
+//			feature_names[fi],
+//			fafns[fi]);
+//
+//	flat_features::init(feature_names);
+//	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
+//	flat_features::read_logoddsvec_pattern(logoddsfnpattern);
+//	flat_features::set_feature_block_offsets();
+//	flat_features::set_symbolsvec();
+//
+//	m_Labels = m_fp.m_labels;
+//	m_SeqCount = uint(m_Labels.size());
+//	if (set_self_scores)
+//		set_selfrev_scores();
+//	}
+
 void flat_bench::align_pair(
 	const string &labelQ, const string &labelT)
 	{
 	flat_aligner fa;
-	fa.m_ff = &m_ff;
 	fa.alloc();
 
 	uint DomIdxQ = UINT_MAX;
@@ -81,10 +100,15 @@ void flat_bench::align_pair(
 	const uint LQ = m_fp.get_length(DomIdxQ);
 	fa.alignQ(labelQ, profQ, LQ);
 	float score = fa.m_score;
-	//float score2 = calc_aln_weights(fa, DomIdxQ, DomIdxT);//@@TODO
-
-	fa.write_aln(stdout);
+	asserta(!flat_params::need_alignx());
 	fa.write_aln(g_fLog);
+	if (optset_output)
+		{
+		FILE *f = CreateStdioFile(opt(output));
+		fprintf(f, "%.3g\t%s\t%s\n",
+			score, labelQ.c_str(), labelT.c_str());
+		CloseStdioFile(f);
+		}
 	}
 
 void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
@@ -93,7 +117,6 @@ void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
 		return;
 
 	flat_aligner fa;
-	fa.m_ff = &m_ff;
 	fa.alloc();
 
 	const uint8_t *profT = m_fp.get_profile(DomIdx);
@@ -109,14 +132,65 @@ void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
 	fa.freemem();
 	}
 
+void flat_bench::doT(flat_aligner &fa, uint domidxT)
+	{
+	const string &labelT = m_fp.get_label(domidxT);
+	const uint8_t *profT = m_fp.get_profile(domidxT);
+	const uint LT = m_fp.get_length(domidxT);
+	fa.cacheT(labelT, profT, LT);
+	if (flat_params::m_rev_w > 0)
+		fa.cache_reverseT(labelT, profT, LT);
+	}
+
+void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
+	{
+	if (!in_dope(domidxQ, domidxT))
+		{
+		AppendHit(domidxQ, domidxT, get_missing_score());
+		return;
+		}
+
+	const string &labelQ = m_fp.get_label(domidxQ);
+	const uint8_t *profQ = m_fp.get_profile(domidxQ);
+	const uint8_t *profT = m_fp.get_profile(domidxT);
+	const uint LQ = m_fp.get_length(domidxQ);
+	fa.alignQ(labelQ, profQ, LQ);
+	float Score = fa.m_score;
+	if (flat_params::need_reverse())
+		fa.align_reverse();
+	asserta(!isnan(Score));
+	asserta(!isinf(Score));
+
+	const sid_t *distmxQ = 0;
+	const sid_t *distmxT = 0;
+	float selfQ = FLT_MAX;
+	float selfT = FLT_MAX;
+	if (flat_params::need_distmx())
+		{
+		assert(!m_distmxs.empty());
+		distmxQ = m_distmxs[domidxQ];
+		distmxT = m_distmxs[domidxT];
+		}
+	if (flat_params::need_self())
+		{
+		assert(m_self_rev_scores != 0);
+		selfQ = m_self_rev_scores[domidxQ];
+		selfT = m_self_rev_scores[domidxQ];
+		}
+	Score += flat_alignx::alignx(
+		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
+	asserta(!isnan(Score));
+	asserta(!isinf(Score));
+
+	AppendHit(domidxT, domidxQ, Score);
+	}
+
 void flat_bench::ThreadBody_All(uint ThreadIdx)
 	{
-	asserta(!optset_reverse);
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = get_nfeat();
+	const uint nfeat = flat_features::get_nfeat();
 	flat_aligner fa;
-	fa.m_ff = &m_ff;
 	fa.alloc();
 	for (;;)
 		{
@@ -124,45 +198,18 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		if (DomIdxT >= NQ)
 			return;
 
-		const string &labelT = m_fp.get_label(DomIdxT);
-		const uint8_t *profT = m_fp.get_profile(DomIdxT);
-		const uint LT = m_fp.get_length(DomIdxT);
-		fa.cacheT(labelT, profT, LT);
-		if (flat_params::m_rev_w > 0)
-			fa.cache_reverseT(labelT, profT, LT);
-
+		doT(fa, DomIdxT);
 		// Includes self-score for santify checking and because
 		//   triangle*() functions include diagonal
 		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
 			{
-			const string &labelQ = m_fp.get_label(DomIdxQ);
-			const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
-			const uint LQ = m_fp.get_length(DomIdxQ);
-			fa.alignQ(labelQ, profQ, LQ);
-			float Score = fa.m_score;
-			if (flat_params::need_reverse())
-				fa.align_reverse();
-			asserta(!isnan(Score));
-			asserta(!isinf(Score));
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
 			uint progress_count = m_progress_counter++;
 #if SHOW_PROGRESS
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
 #endif
-			const sid_t *distmxQ = 0;
-			const sid_t *distmxT = 0;
-			float selfQ = FLT_MAX;
-			float selfT = FLT_MAX;
-			if (flat_params::need_distmx())
-				{
-				assert(!m_distmxs.empty());
-				distmxQ = m_distmxs[DomIdxQ];
-				distmxT = m_distmxs[DomIdxT];
-				}
-			Score += flat_alignx::alignx(
-				fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
-			AppendHit(DomIdxT, DomIdxQ, Score);
+			doQ(fa, DomIdxQ, DomIdxT);
 			}
 		}
 	}
@@ -171,9 +218,8 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = get_nfeat();
+	const uint nfeat = flat_features::get_nfeat();
 	flat_aligner fa;
-	fa.m_ff = &m_ff;
 	const float open = -flat_params::m_open;
 	const float ext = -flat_params::m_ext;
 	fa.alloc();
@@ -199,27 +245,11 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		else
 			{
 			++m_ncachemisses;
-			const string &labelT = m_fp.get_label(DomIdxT);
-			const uint8_t *profT = m_fp.get_profile(DomIdxT);
-			const uint LT = m_fp.get_length(DomIdxT);
-			fa.cacheT(labelT, profT, LT);
-			if (flat_params::m_rev_w > 0)
-				fa.cache_reverseT(labelT, profT, LT);
+			doT(fa, DomIdxT);
 			CurrentDomIdxT = DomIdxT;
 			}
-
-		const string &labelQ = m_fp.get_label(DomIdxQ);
-		const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
-		const uint LQ = m_fp.get_length(DomIdxQ);
-		fa.alignQ(labelQ, profQ, LQ);
-		float Score = fa.m_score;
-		asserta(!isnan(Score));
-		asserta(!isinf(Score));
-		uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
 		uint progress_count = m_progress_counter++;
-
-//		Score += calc_aln_weights(fa, DomIdxQ, DomIdxT);
-		AppendHit(DomIdxT, DomIdxQ, Score);
+		doQ(fa, DomIdxQ, DomIdxT);
 		}
 	}
 
@@ -346,18 +376,18 @@ void flat_bench::ClassifyParams(
 void flat_bench::ApplyWeightsToLogOdds(
 	const unordered_map<string, float> &NameToWeight)
 	{
-	m_ff.apply_weights(NameToWeight);
+	flat_features::apply_weights(NameToWeight);
 	}
 
 void flat_bench::ProgressLogParams() const
 	{
 	ProgressLog("open=%.3g;", flat_params::m_open);
 	ProgressLog("ext=%.3g;", flat_params::m_ext);
-	uint nfeat = m_ff.get_nfeat();
+	uint nfeat = flat_features::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		ProgressLog("%s=%.3g;",
-			m_ff.m_feature_names[fi].c_str(),
-			m_ff.m_weights[fi]);
+			flat_features::m_feature_names[fi].c_str(),
+			flat_features::m_weights[fi]);
 	ProgressLog("\n");
 	}
 
@@ -373,7 +403,7 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	vector<float> ScalarValues;
 	float selfw = 0;
 	float revw = 0;
-	bool need_distmxs;
+	bool need_distmxs = false;
 	flat_bench::ClassifyParams(
 		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues,
 		selfw, revw, need_distmxs);
@@ -402,7 +432,6 @@ void flat_bench::set_selfrev_scores()
 	uint ndom = m_look->get_ndom();
 	m_self_rev_scores = myalloc(float, ndom);
 	flat_aligner fa;
-	fa.m_ff = &m_ff;
 	fa.alloc();
 	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
@@ -475,16 +504,14 @@ void cmd_flat_bench()
 
 	bool set_self_scores = (selfw != 0);
 
-	FB.load_alphas_and_profiles(
-		feature_names, weights, opt(fapattern), opt(mxpattern),
-		set_self_scores);
+	flat_features::load_alphas(feature_names, opt(mxpattern));
+
+	FB.load_profiles(opt(fapattern), set_self_scores);
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();
 	if (set_self_scores)
 		FB.set_selfrev_scores();
-	//FB.m_self_rev_weight = selfw;
-	//FB.m_rev_weight = revw;
 	FB.SetScalarParams(scalar_names, scalar_values);
 
 	if (optset_label1)
@@ -500,5 +527,5 @@ void cmd_flat_bench()
 		FB.Search("all");
 	FB.SetScoreOrder();
 	FB.Bench();
-	FB.WriteHits(opt(output), true, opt(triangle));
+	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
 	}

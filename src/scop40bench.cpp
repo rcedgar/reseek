@@ -387,6 +387,13 @@ void SCOP40Bench::OnAln(DSSAligner &DA, bool Up)
 		return;
 
 	float Score = DA.GetSBScore(m_SBS, Up);
+	if (opt(triangle))
+		{
+		StoreScore(ChainIndexA, ChainIndexB, Score);
+		StoreScore(ChainIndexB, ChainIndexA, Score);
+		return;
+		}
+
 	if (Up)
 		{
 		WriteFasta2s(DA);
@@ -606,6 +613,11 @@ void SCOP40Bench::WriteSortedHits(const string &FN) const
 		asserta(i < HitCount);
 		uint DomIdx1 = m_DomIdx1s[i];
 		uint DomIdx2 = m_DomIdx2s[i];
+		if (m_dope)
+			{
+			if (!DBSearcher::in_dope(DomIdx1, DomIdx2))
+				continue;
+			}
 		float Score = m_Scores[i];
 		bool TF = m_TFs[i];
 		const string &Dom1 = m_Doms[DomIdx1];
@@ -682,6 +694,23 @@ void cmd_scop40bench()
 		MaxFPR = (float) opt(maxfpr);
 
 	OpenOutputFiles();
+
+	if (optset_label1)
+		{
+		asserta(optset_label2);
+		const string &label1 = opt(label1);
+		const string &label2 = opt(label2);
+		uint domidx1 = SB.GetDomIdx(label1);
+		uint domidx2 = SB.GetDomIdx(label2);
+		uint lo1, lo2;
+		string path;
+		SB.AlignDomPair(0, domidx1, domidx2, lo1, lo2, path);
+		SB.BaseOnAln(*SB.m_DAs[0], true);
+		return;
+		}
+
+	if (optset_dope)
+		SB.ReadDope(opt(dope));
 
 	ResetTimers();
 	SB.m_QuerySelf = true;

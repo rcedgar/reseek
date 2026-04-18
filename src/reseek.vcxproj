@@ -281,6 +281,7 @@
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
+    <ClCompile Include="dss_logodds.cpp" />
     <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fan.cpp" />

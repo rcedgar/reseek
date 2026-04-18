@@ -749,9 +749,6 @@
     <ClCompile Include="flat_dali.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_alignx.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="flat_alignx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -762,6 +759,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_aligner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dss_logodds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

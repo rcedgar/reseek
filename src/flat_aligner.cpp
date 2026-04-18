@@ -8,11 +8,10 @@
 
 void flat_aligner::alloc()
 	{
-	assert(m_ff != 0);
-	const uint nfeat = m_ff->m_nfeat;
+	const uint nfeat = flat_features::m_nfeat;
 
-	m_pssmT = myalloc(float, m_maxL*m_ff->get_sum_alpha_sizes());
-	m_pssm_reverseT = myalloc(float, m_maxL*m_ff->get_sum_alpha_sizes());
+	m_pssmT = myalloc(float, m_maxL*flat_features::get_sum_alpha_sizes());
+	m_pssm_reverseT = myalloc(float, m_maxL*flat_features::get_sum_alpha_sizes());
 
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
@@ -32,43 +31,40 @@ void flat_aligner::freemem()
 
 void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT)
 	{
-	assert(m_ff != 0);
 	asserta(LT < m_maxL);
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, m_ff->m_nfeat,
-		m_ff->m_alpha_sizes,
-		m_ff->m_feature_block_offsets,
-		m_ff->m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, flat_features::m_nfeat,
+		flat_features::m_alpha_sizes,
+		flat_features::m_feature_block_offsets,
+		flat_features::m_weighted_logoddsvec,
 		m_pssmT);
 	}
 
 void flat_aligner::cache_reverseT(const string &labelT, const uint8_t *profT, uint LT)
 	{
-	assert(m_ff != 0);
 	asserta(LT < m_maxL);
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, m_ff->m_nfeat,
-		m_ff->m_alpha_sizes,
-		m_ff->m_feature_block_offsets,
-		m_ff->m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, flat_features::m_nfeat,
+		flat_features::m_alpha_sizes,
+		flat_features::m_feature_block_offsets,
+		flat_features::m_weighted_logoddsvec,
 		m_pssm_reverseT);
 	}
 
 void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 	{
-	assert(m_ff != 0);
 	asserta(LT < m_maxL);
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm(profT, LT, m_ff->m_nfeat,
-		m_ff->m_alpha_sizes,
-		m_ff->m_feature_block_offsets,
-		m_ff->m_weighted_logoddsvec,
+	fill_flat_pssm(profT, LT, flat_features::m_nfeat,
+		flat_features::m_alpha_sizes,
+		flat_features::m_feature_block_offsets,
+		flat_features::m_weighted_logoddsvec,
 		m_pssmT);
 	}
 
@@ -77,12 +73,11 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 	m_labelQ = labelQ;
 	m_profQ = profQ;
 	m_LQ = LQ;
-	assert(m_ff != 0);
 	m_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
-		m_ff->m_feature_block_offsets, m_ff->m_nfeat,
+		flat_features::m_feature_block_offsets, flat_features::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
@@ -93,13 +88,12 @@ void flat_aligner::align_reverse()
 	{
 	assert(m_profQ != 0);
 	assert(m_LQ > 0);
-	assert(m_ff != 0);
 	m_reverse_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		m_profQ, m_LQ,
 		m_pssm_reverseT, m_LT, 
-		m_ff->m_feature_block_offsets,
-		m_ff->m_nfeat,
+		flat_features::m_feature_block_offsets,
+		flat_features::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
@@ -151,11 +145,11 @@ void flat_aligner::write_aln(FILE *f) const
 	if (f == 0)
 		return;
 	fprintf(f, "\n");
-	uint nfeat = m_ff->m_nfeat;
+	uint nfeat = flat_features::m_nfeat;
 	assert(nfeat > 0);
-	const uint32_t *alpha_sizes = m_ff->m_alpha_sizes;
-	const vector<string> &feature_names = m_ff->m_feature_names;
-	const vector<string> &symbolsvec = m_ff->m_symbolsvec;
+	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
+	const vector<string> &feature_names = flat_features::m_feature_names;
+	const vector<string> &symbolsvec = flat_features::m_symbolsvec;
 
 	vector<string> feature_rowsQ(nfeat);
 	vector<string> feature_rowsT(nfeat);

@@ -128,5 +128,6 @@ C(join_features1)
 C(join_stats)
 C(flat_hjjoin)
 C(puu)
+C(dss_logodds)
 
 #undef C

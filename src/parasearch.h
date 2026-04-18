@@ -27,9 +27,6 @@ public:
 	bool m_DoReverse = false;
 
 public:
-	static flat_features m_ff;
-
-public:
 	virtual void SubclassClearHitsAndResults();
 	virtual void SubclassAppendHit(uint i, uint j, float Score);
 

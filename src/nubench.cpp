@@ -49,15 +49,14 @@ void cmd_numx()
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);
 
-	flat_features ff;
-	ff.init(feature_names);
-	asserta(ff.m_nfeat == nfeat);
+	flat_features::init(feature_names);
+	asserta(flat_features::m_nfeat == nfeat);
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
-	Paralign::set_flat_compound(ff, name2weight, 1, 1, 1, 1);
+	Paralign::set_flat_compound(name2weight, 1, 1, 1, 1);
 	Paralign::LogMatrix();
 	Paralign::LogSWFastMatrix();
 	}
@@ -80,13 +79,12 @@ void cmd_nubench()
 	asserta(weights.size() == nfeat);
 	asserta(!optset_scale);
 
-	flat_features &ff = ParaSearch::m_ff;
-	ff.init(feature_names);
-	asserta(ff.m_nfeat == nfeat);
-	ff.read_logoddsvec_pattern(opt(mxpattern));
+	flat_features::init(feature_names);
+	asserta(flat_features::m_nfeat == nfeat);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	string AlignMethod = "para";
@@ -102,7 +100,7 @@ void cmd_nubench()
 	if (optset_scalef) Scale = float(opt(scalef));
 	if (optset_intopen) IntOpen = opt(intopen);
 	if (optset_intext) IntExt = opt(intext);
-	Paralign::set_flat_compound(ff, name2weight, Scale, 
+	Paralign::set_flat_compound(name2weight, Scale, 
 		IntOpen, IntExt, 777);
 
 	ParaSearch PS;

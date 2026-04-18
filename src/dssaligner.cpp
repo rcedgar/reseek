@@ -1055,6 +1055,14 @@ uint DSSAligner::GetU(const vector<uint> &Kmers1, const vector<uint> &Kmers2) co
 	return U;
 	}
 
+void DSSAligner::GetAcc(bool Top, string &acc) const
+	{
+	void trunc_label(const string &Label,
+		string &TruncatedLabel);
+	const string &label = (Top ? m_ChainA->m_Label : m_ChainB->m_Label);
+	trunc_label(label, acc);
+	}
+
 double DSSAligner::GetQCovPct(bool Top) const
 	{
 	uint QL = GetQL(Top);

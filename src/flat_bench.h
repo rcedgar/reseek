@@ -25,7 +25,6 @@ public:
 // May be superset of lookup
 //////////////////////////////
 	flat_profiles m_fp;
-	flat_features m_ff;
 	float *m_self_rev_scores = 0;
 
 //////////////////////////////
@@ -41,24 +40,21 @@ public:
 	static atomic<uint> m_ncachemisses;
 
 public:
-	uint get_nfeat() const { return m_ff.get_nfeat(); }
 	void Search(const string &how);
 	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
 	void SetScalarParams(
 		const vector<string> &Names,
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
-	void load_alphas_and_profiles(
-		const vector<string> &feature_names,
-		const vector<float> &weights,
-		const string &fafnpattern,
-		const string &logoddsfnpattern,
-		bool set_self_scores);
+	void load_profiles(const string &fafnpattern, bool set_self_scores);
 	void ProgressLogParams() const;
 	void align_pair(const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
 	void set_distmxs(const string &chainfn);
+	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
+	void doT(flat_aligner &fa, uint domidxT);
+
 
 public:
 // All-vs-all for fast SCOP40 benchmark score only

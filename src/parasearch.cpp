@@ -38,8 +38,6 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 		}
 	}
 
-flat_features ParaSearch::m_ff;
-
 void ParaSearch::AppendHit_rev(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
@@ -295,7 +293,7 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 
 void ParaSearch::GetByteSeqs_nu(const string &hexfastafn)
 	{
-	uint alpha_size = m_ff.get_compound_alpha_size();
+	uint alpha_size = flat_features::get_compound_alpha_size();
 	map<string, uint> label2seqidx;
 	ReadHexIntSeqs<uint8_t>(
 		alpha_size,
@@ -533,19 +531,18 @@ void cmd_nu_rev()
 	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
 	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
 
-	flat_features &ff = ParaSearch::m_ff;
-	ff.init(feature_names);
-	ff.read_logoddsvec_pattern(opt(mxpattern));
+	flat_features::init(feature_names);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	const float Scale = 8.39f;
 	const int IntOpen = 23;
 	const int IntExt = 3;
 	const int IntSaturatedScore = 777;
-	Paralign::set_flat_compound(ff, name2weight,
+	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 
 	ParaSearch PS;

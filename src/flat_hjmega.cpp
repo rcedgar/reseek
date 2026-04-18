@@ -9,6 +9,7 @@ void ParseVarStr(
 
 static flat_bench *s_FB;
 static Peaker *s_Peaker;
+static bool s_set_self_scores = false;
 
 static double EvalSum3(const vector<string> &xv)
 	{
@@ -19,7 +20,10 @@ static double EvalSum3(const vector<string> &xv)
 	s_Peaker->xv2xss(xv, VarStr);
 	s_FB->UpdateParamsFromVarStr(VarStr);
 	s_FB->ClearHitsAndResults();
-	s_FB->Search("dope");
+	if (optset_dope)
+		s_FB->Search("dope");
+	else
+		s_FB->Search("all");
 	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	return s_FB->m_Sum3;
@@ -30,8 +34,10 @@ static void EvalSum3_VarStr(flat_bench &FullFB, const string &VarStr)
 	s_FB = &FullFB;
 	s_FB->ClearHitsAndResults();
 	s_FB->UpdateParamsFromVarStr(VarStr);
-	s_FB->ProgressLogParams();//@@
-	s_FB->Search("dope");
+	if (optset_dope)
+		s_FB->Search("dope");
+	else
+		s_FB->Search("all");
 	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	s_FB->WriteHits(opt(output));
@@ -179,8 +185,7 @@ static void SubClimb(
 		}
 
 	ProgressLog("\n");
-	ProgressLog("FINAL subclimb AS=%u [%.4g] %s\n",
-		DSSParams::GetMegaAlphaSize(), Final_y, Final_xss.c_str());
+	ProgressLog("FINAL subclimb [%.4g] %s\n", Final_y, Final_xss.c_str());
 	Log("@TSV@");
 	Log("\t%.4g", Final_y);
 	Log("\t%s", Final_xss.c_str());
@@ -221,7 +226,7 @@ void cmd_flat_hjmega()
 	{
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
-	asserta(optset_dope);
+	asserta(!optset_varstr); // must assert agrees with spec
 
 	const string SpecFN = g_Arg1;
 	Log("SpecFN=%s\n", SpecFN.c_str());
@@ -229,12 +234,9 @@ void cmd_flat_hjmega()
 	ReadLinesFromFile(SpecFN, SpecLines);
 
 	vector<string> AlphaNames;
-	bool selfw_is_var = false;
 	bool need_distmxs = false;
 	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, AlphaNames, selfw_is_var, need_distmxs);
-	const uint nfeat = uint(AlphaNames.size());
-	vector<float> Weights(nfeat, 1.0f);	// placeholders
+		SpecLines, AlphaNames, s_set_self_scores, need_distmxs);
 
 	void OpenOutputFiles();
 	OpenOutputFiles();
@@ -242,18 +244,13 @@ void cmd_flat_hjmega()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	FullFB.load_alphas_and_profiles(
-		AlphaNames, Weights, opt(fapattern), opt(mxpattern),
-		selfw_is_var);
+	flat_features::load_alphas(AlphaNames, opt(mxpattern));
+	FullFB.load_profiles(opt(fapattern), s_set_self_scores);
 	if (need_distmxs)
 		FullFB.set_distmxs(opt(input));
-	FullFB.ReadDope(opt(dope));
+	if (optset_dope)
+		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
-	if (optset_varstr)
-		{
-		EvalSum3_VarStr(FullFB, opt(varstr));
-		return;
-		}
 
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -272,9 +269,7 @@ void cmd_flat_hjmega()
 
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
-		SubsetFB.load_alphas_and_profiles(
-			AlphaNames, Weights, opt(fapattern), opt(mxpattern),
-			selfw_is_var);
+		SubsetFB.load_profiles(opt(fapattern), s_set_self_scores);
 		SubsetFB.ProgressLogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();

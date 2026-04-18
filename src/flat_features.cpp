@@ -159,7 +159,7 @@ void flat_features::read_logoddsvec_pattern(
 	read_logoddsvec(fns);
 	}
 
-void flat_features::check_sane_scores() const
+void flat_features::check_sane_scores()
 	{
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
@@ -253,7 +253,7 @@ void flat_features::set_feature_block_offsets()
 			m_nfeat, m_alpha_sizes, m_feature_block_offsets);
 	}
 
-const uint32_t *flat_features::get_feature_block_offsets() const
+const uint32_t *flat_features::get_feature_block_offsets()
 	{
 	assert(m_feature_block_offsets != 0);
 	return m_feature_block_offsets;
@@ -321,7 +321,7 @@ void flat_features::apply_unit_weights()
 
 float flat_features::prof_col_score(
 	const uint8_t *profQ, uint LQ, uint posQ,
-	const uint8_t *profT, uint LT, uint posT) const
+	const uint8_t *profT, uint LT, uint posT)
 	{
 	assert(posQ < LQ);
 	assert(posT < LT);
@@ -341,7 +341,7 @@ float flat_features::prof_col_score(
 	}
 
 uint8_t flat_features::component_codes_to_compound_code(
-	const vector<uint8_t> &component_codes) const
+	const vector<uint8_t> &component_codes)
 	{
 	uint compound_code = 0;
 	asserta(SIZE(component_codes) == m_nfeat);
@@ -356,7 +356,7 @@ uint8_t flat_features::component_codes_to_compound_code(
 	}
 
 void flat_features::compound_code_to_component_codes(
-	uint8_t compound_code, vector<uint8_t> &codes) const
+	uint8_t compound_code, vector<uint8_t> &codes)
 	{
 	codes.clear();
 	codes.resize(m_nfeat, 0);
@@ -373,7 +373,7 @@ void flat_features::compound_code_to_component_codes(
 	}
 
 float flat_features::get_compound_subst_score_slow(
-	uint8_t code1, uint8_t code2) const
+	uint8_t code1, uint8_t code2)
 	{
 	vector<uint8_t> code1s;
 	vector<uint8_t> code2s;
@@ -400,7 +400,7 @@ float flat_features::get_compound_subst_score_slow(
 	return score;
 	}
 
-void flat_features::get_compound_logodds_slow(vector<float> &logodds) const
+void flat_features::get_compound_logodds_slow(vector<float> &logodds)
 	{
 	uint compound_alpha_size = get_compound_alpha_size();
 	logodds.clear();
@@ -430,4 +430,15 @@ void flat_features::get_compound_logodds_slow(vector<float> &logodds) const
 			asserta(feq(score12, score21));
 			}
 		}
+	}
+
+void flat_features::load_alphas(
+	const vector<string> &feature_names,
+	const string &logoddsfnpattern)
+	{
+
+	flat_features::init(feature_names);
+	flat_features::read_logoddsvec_pattern(logoddsfnpattern);
+	flat_features::set_feature_block_offsets();
+	flat_features::set_symbolsvec();
 	}

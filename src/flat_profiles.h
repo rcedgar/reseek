@@ -5,7 +5,6 @@
 class flat_profiles
 	{
 public:
-	flat_features *m_ff = 0;
 	vector<string> m_labels;
 	vector<vector<uint8_t> > m_profiles;
 	unordered_map<string, uint> m_label2idx;
@@ -32,12 +31,11 @@ public:
 
 	uint32_t get_length(uint i) const
 		{
-		assert(m_ff != 0);
-		assert(m_ff->m_nfeat > 0);
+		assert(flat_features::m_nfeat > 0);
 		assert(i < m_profiles.size());
 		uint32_t Ln = uint32_t(m_profiles[i].size());
-		assert(Ln%m_ff->m_nfeat == 0);
-		uint32_t L = Ln/m_ff->m_nfeat;
+		assert(Ln%flat_features::m_nfeat == 0);
+		uint32_t L = Ln/flat_features::m_nfeat;
 		return L;
 		}
 

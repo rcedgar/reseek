@@ -41,18 +41,17 @@ void cmd_flat_merge_logodds()
 	asserta(revw == 0);
 	asserta(!need_distmxs);
 
-	flat_features ff;
-	ff.init(feature_names);
-	ff.read_logoddsvec_pattern(opt(mxpattern));
-	ff.apply_weights(weights);
-	const uint compound_alpha_size = ff.get_compound_alpha_size();
+	flat_features::init(feature_names);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
+	flat_features::apply_weights(weights);
+	const uint compound_alpha_size = flat_features::get_compound_alpha_size();
 	const uint AS = compound_alpha_size;
 	const uint AS2 = compound_alpha_size*compound_alpha_size;
 
 	ProgressLog("compound alpha_size %u\n", compound_alpha_size);
 
 	vector<float> logodds;
-	ff.get_compound_logodds_slow(logodds);
+	flat_features::get_compound_logodds_slow(logodds);
 
 	for (uint i = 0; i < AS2; ++i)
 		logodds[i] *= scalef;

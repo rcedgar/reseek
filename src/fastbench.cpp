@@ -62,17 +62,6 @@ void FastBench::Alloc()
 void FastBench::AppendHit(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
-	if (m_dope)
-		{
-		if (!in_dope(k))
-			{
-			if (m_scores_are_evalues)
-				Score = 9999;
-			else
-				Score = -9999;
-			}
-		}
-
 	m_Scores[k] = Score;
 	SubclassAppendHit(i, j, Score);
 	}

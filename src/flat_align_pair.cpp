@@ -153,14 +153,12 @@ void cmd_flat_align_pairs_faprof()
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
 	fp.read_profiles_faprof(faproffn, feature_names);
-	fp.m_ff = new flat_features;
-	fp.m_ff->init(feature_names);
-	fp.m_ff->read_logoddsvec_pattern(opt(mxpattern));
-	fp.m_ff->apply_unit_weights();
+	flat_features::init(feature_names);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
+	flat_features::apply_unit_weights();
 	fp.check_profiles();
 
 	flat_aligner fa;
-	fa.m_ff = fp.m_ff;
 	fa.alloc();
 
 	const uint nprof = fp.get_nprof();

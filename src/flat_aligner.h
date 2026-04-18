@@ -5,7 +5,6 @@ class flat_features;
 class flat_aligner
 	{
 public:
-	flat_features *m_ff = 0;
 	float *__restrict m_pssmT = 0;
 	float *__restrict m_pssm_reverseT = 0;
 

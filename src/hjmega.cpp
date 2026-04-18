@@ -227,8 +227,7 @@ static void SubClimb(SCOP40Bench &FullSB, const vector<string> &SpecLines)
 		}
 
 	ProgressLog("\n");
-	ProgressLog("FINAL subclimb AS=%u [%.4g] %s\n",
-		DSSParams::GetMegaAlphaSize(), Final_y, Final_xss.c_str());
+	ProgressLog("FINAL subclimb [%.4g] %s\n", Final_y, Final_xss.c_str());
 	Log("@TSV@");
 	Log("\t%.4g", Final_y);
 	Log("\t%u", DSSParams::GetMegaAlphaSize());

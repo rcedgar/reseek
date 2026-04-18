@@ -3,7 +3,9 @@
 #endif
 
 x(query)
+x(qacc)
 x(target)
+x(tacc)
 x(pvalue)
 x(evalue)
 x(qlo)

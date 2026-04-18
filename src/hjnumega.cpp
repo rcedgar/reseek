@@ -5,7 +5,6 @@
 
 static ParaSearch *s_PS;
 static Peaker *s_Peaker;
-static flat_features *s_ff;
 
 void GetFeatures(
 	const string &varstr,
@@ -93,8 +92,7 @@ static double EvalSum3(const vector<string> &xv)
 	set_params_from_varstr(
 		varstr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
-	asserta(s_ff);
-	Paralign::set_flat_compound(*s_ff, name2weight,
+	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 	if (opt(logmx))
 		{
@@ -118,8 +116,7 @@ static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 	set_params_from_varstr(
 		VarStr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
-	asserta(s_ff);
-	Paralign::set_flat_compound(*s_ff, name2weight,
+	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para", false);
@@ -305,14 +302,12 @@ void cmd_hjnumega()
 	asserta(FeatureCount > 0);
 	vector<float> weights(FeatureCount, 1.0f); // placeholder
 
-	flat_features &ff = ParaSearch::m_ff;
-	ff.init(feature_names);
-	asserta(ff.m_nfeat == FeatureCount);
-	ff.read_logoddsvec_pattern(opt(mxpattern));
-	s_ff = &ff;
+	flat_features::init(feature_names);
+	asserta(flat_features::m_nfeat == FeatureCount);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	asserta(optset_db);

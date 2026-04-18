@@ -65,7 +65,6 @@ static double EvalSum3(const vector<string> &xv)
 
 static double EvalSum3_VarStr(
 	ParaSearch &PS,
-	flat_features &ff,
 	const string &VarStr)
 	{
 	vector<string> Fields, Fields2;
@@ -96,7 +95,7 @@ static double EvalSum3_VarStr(
 			name2weight[VarName] = StrToFloatf(sValue);
 		}
 
-	Paralign::set_flat_compound(ff,  name2weight,
+	Paralign::set_flat_compound(name2weight,
 		ScaleFactor, Open, Ext, SaturatedScore);
 	PS.ClearHitsAndResults();
 	PS.Search("para", true);
@@ -225,19 +224,18 @@ void cmd_hjnumegarev()
 	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
 	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
 
-	flat_features &ff = ParaSearch::m_ff;
-	ff.init(feature_names);
-	ff.read_logoddsvec_pattern(opt(mxpattern));
+	flat_features::init(feature_names);
+	flat_features::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < ff.m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	const float Scale = 8.39f;
 	const int IntOpen = 23;
 	const int IntExt = 3;
 	const int IntSaturatedScore = 777;
-	Paralign::set_flat_compound(ff, name2weight,
+	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 
 	ParaSearch PS;

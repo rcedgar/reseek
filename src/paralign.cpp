@@ -968,7 +968,6 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	}
 
 void Paralign::set_flat_compound(
-	flat_features &ff,
 	const unordered_map<string, float> &name2weight,
 	float ScaleFactor,
 	int Open,
@@ -976,8 +975,8 @@ void Paralign::set_flat_compound(
 	int SaturatedScore)
 	{
 	asserta(ScaleFactor > 0.1);
-	ff.apply_weights(name2weight);
-	const uint compound_alpha_size = ff.get_compound_alpha_size();
+	flat_features::apply_weights(name2weight);
+	const uint compound_alpha_size = flat_features::get_compound_alpha_size();
 
 	m_SWFastSubstMx.clear();
 	m_SWFastSubstMx.resize(compound_alpha_size);
@@ -992,7 +991,7 @@ void Paralign::set_flat_compound(
 			{
 			const uint8_t code_j = uint8_t(j);
 			float Score = ScaleFactor*
-				ff.get_compound_subst_score_slow(code_i, code_j);
+				flat_features::get_compound_subst_score_slow(code_i, code_j);
 			m_SWFastSubstMx[i][j] = Score;
 			int IntScore = int(round(Score));
 			IntScoreMx[i][j] = IntScore;

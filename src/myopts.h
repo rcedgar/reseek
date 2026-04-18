@@ -216,6 +216,7 @@ FLAG_OPT(logmx)
 FLAG_OPT(scorefirst)
 FLAG_OPT(integers)
 FLAG_OPT(triangle)
+FLAG_OPT(include_self)
 
 #undef FLAG_OPT
 #undef UNS_OPT

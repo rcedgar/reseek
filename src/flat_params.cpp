@@ -10,6 +10,20 @@ float flat_params::m_dali_w;
 float flat_params::m_dalix_w;
 float flat_params::m_entropy_w;
 
+//m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
+//m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore -
+//	DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
+//float DSSParams::m_dpw = 1.7f;
+//float DSSParams::m_lddtw = 0.13f;
+//float DSSParams::m_ladd = 250.0f;
+//float DSSParams::m_revtsw = 2.0f;
+
+bool flat_params::m_oldts = false;
+float flat_params::m_oldts_dpw;
+float flat_params::m_oldts_lddtw;
+float flat_params::m_oldts_revtsw;
+float flat_params::m_oldts_ladd;
+
 void flat_params::set_params(
 	const vector<string> &names,
 	const vector<float> &values)
@@ -69,5 +83,13 @@ bool flat_params::need_self()
 
 bool flat_params::need_reverse()
 	{
-	return flat_params::m_self_w > 0;
+	return flat_params::m_rev_w > 0;
+	}
+
+bool flat_params::need_alignx()
+	{
+	return
+		need_prof() ||
+		need_self() ||
+		need_reverse();
 	}
