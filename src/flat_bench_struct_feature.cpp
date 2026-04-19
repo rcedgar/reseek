@@ -313,7 +313,7 @@ void cmd_flat_bench_struct_feature()
 	flat_features::load_alphas(feature_names, opt(mxpattern));
 	FB.load_profiles(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
-	FB.ProgressLogParams();
+	FB.LogParams();
 	FB.Alloc();
 
 	if (optset_dope)

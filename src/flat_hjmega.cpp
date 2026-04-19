@@ -9,7 +9,6 @@ void ParseVarStr(
 
 static flat_bench *s_FB;
 static Peaker *s_Peaker;
-static bool s_set_self_scores = false;
 
 static double EvalSum3(const vector<string> &xv)
 	{
@@ -260,7 +259,7 @@ void cmd_flat_hjmega()
 		SubsetFB.ReadLookup(opt(sublookup));
 		SubsetFB.load_profiles(opt(fapattern));
 		SubsetFB.set_distmxs(opt(input));
-		SubsetFB.ProgressLogParams();
+		SubsetFB.LogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();
 		SubClimb(FullFB, SubsetFB, SpecLines);

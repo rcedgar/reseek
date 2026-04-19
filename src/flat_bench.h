@@ -47,7 +47,7 @@ public:
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
 	void load_profiles(const string &fafnpattern);
-	void ProgressLogParams() const;
+	void LogParams(bool show_progress = false) const;
 	void align_pair(const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();

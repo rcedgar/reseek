@@ -31,6 +31,19 @@ double Peaker::GetGlobalRateFactor()
 	return Rate;
 	}
 
+bool Peaker::CanReduceGlobalRateFactor()
+	{
+	string s;
+	GetGlobalStr("rates", s, "1.1");
+	vector<string> Fields;
+	Split(s, Fields, ',');
+	const uint n = SIZE(Fields);
+	asserta(m_GlobalVarRateFactorIdx < n);
+	if (m_GlobalVarRateFactorIdx + 1 == n)
+		return false;
+	return true;
+	}
+
 bool Peaker::ReduceGlobalRateFactor()
 	{
 	string s;
@@ -240,6 +253,14 @@ bool Peaker::HJ_Iter()
 		m_Name.c_str(), m_Best_y, Height, Pct, GetGlobalRateFactor());
 	if (Height > 0)
 		{
+		if (Pct < 0.1 && CanReduceGlobalRateFactor())
+			{
+			ProgressLogNoPrefix("%s: HJ_Iter() small (<0.1) height pct %.3g%%\n",
+				m_Name.c_str(), Pct);
+			bool ok = ReduceGlobalRateFactor();
+			asserta(ok);
+			return true;
+			}
 		if (GetGlobalBool("extend", false))
 			HJ_Extend();
 		return true;

@@ -146,7 +146,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		{
 		assert(m_self_rev_scores != 0);
 		selfQ = m_self_rev_scores[domidxQ];
-		selfT = m_self_rev_scores[domidxQ];
+		selfT = m_self_rev_scores[domidxT];
 		}
 	Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, M, selfT, selfQ);
@@ -166,14 +166,15 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
           
 	// qacc+tacc+dpscore+selfrevq+selfrevt+selfrev+lddt+l2+newts
 	Ps(line, "%s", qacc.c_str());
-	Ps(line, "\t%s", tacc.c_str());
-	Ps(line, "\t%.3g", dpscore);
-	Ps(line, "\t%.3g", selfT);
-	Ps(line, "\t%.3g", selfQ);
-	Ps(line, "\t%.3g", (selfQ + selfT)/2);
-	Ps(line, "\t%.3g", lddt);
-	Ps(line, "\t%u", l2);
-	Ps(line, "\t%.3g", Score);
+	Psa(line, "\t%s", tacc.c_str());
+	Psa(line, "\t%.3g", dpscore);
+	Psa(line, "\t%.3g", selfT);
+	Psa(line, "\t%.3g", selfQ);
+	Psa(line, "\t%.3g", (selfQ + selfT)/2);
+	Psa(line, "\t%.3g", lddt);
+	Psa(line, "\t%u", l2);
+	Psa(line, "\t%.3g", Score);
+	line += '\n';
 
 	s_ftsv_lock.lock();
 	fputs(line.c_str(), s_ftsv);
@@ -358,16 +359,18 @@ void flat_bench::ApplyWeightsToLogOdds(
 	flat_features::apply_weights(NameToWeight);
 	}
 
-void flat_bench::ProgressLogParams() const
+void flat_bench::LogParams(bool show_progress) const
 	{
-	ProgressLog("open=%.3g;", flat_params::m_open);
-	ProgressLog("ext=%.3g;", flat_params::m_ext);
+	typedef void (*t_fn)(const char *Format, ...);
+	t_fn fn = (show_progress ? ProgressLog : Log);
+	fn("open=%.3g;", flat_params::m_open);
+	fn("ext=%.3g;", flat_params::m_ext);
 	uint nfeat = flat_features::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
-		ProgressLog("%s=%.3g;",
+		fn("%s=%.3g;",
 			flat_features::m_feature_names[fi].c_str(),
 			flat_features::m_weights[fi]);
-	ProgressLog("\n");
+	fn("\n");
 	}
 
 void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
@@ -395,14 +398,15 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	for (uint i = 0; i < n; ++i)
 		NameToWeight[AlphaNames[i]] = Weights[i];
 	ApplyWeightsToLogOdds(NameToWeight);
+
+	set_selfrev_scores();
 	}
 
 void flat_bench::set_selfrev_scores()
 	{
-	if (m_self_rev_scores != 0)
-		return;
 	uint ndom = m_look->get_ndom();
-	m_self_rev_scores = myalloc(float, ndom);
+	if (m_self_rev_scores == 0)
+		m_self_rev_scores = myalloc(float, ndom);
 	flat_aligner fa;
 	fa.alloc();
 	for (uint domidx = 0; domidx < ndom; ++domidx)
@@ -481,7 +485,7 @@ void cmd_flat_bench()
 	FB.load_profiles(opt(fapattern));
 	FB.set_distmxs(opt(input));
 	FB.UpdateParamsFromVarStr(VarStr);
-	FB.ProgressLogParams();
+	FB.LogParams();
 	FB.Alloc();
 	if (flat_params::need_self())
 		FB.set_selfrev_scores();

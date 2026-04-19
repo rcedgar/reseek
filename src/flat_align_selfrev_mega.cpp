@@ -46,7 +46,7 @@ void cmd_flat_align_selfrev_mega()
 	flat_features::load_alphas(feature_names, opt(mxpattern));
 	FB.load_profiles(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
-	FB.ProgressLogParams();
+	FB.LogParams();
 
 	FILE *f = CreateStdioFile(opt(output));
 	const uint ndom = FB.m_look->get_ndom();
