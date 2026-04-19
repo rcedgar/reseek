@@ -613,11 +613,6 @@ void SCOP40Bench::WriteSortedHits(const string &FN) const
 		asserta(i < HitCount);
 		uint DomIdx1 = m_DomIdx1s[i];
 		uint DomIdx2 = m_DomIdx2s[i];
-		if (m_dope)
-			{
-			if (!DBSearcher::in_dope(DomIdx1, DomIdx2))
-				continue;
-			}
 		float Score = m_Scores[i];
 		bool TF = m_TFs[i];
 		const string &Dom1 = m_Doms[DomIdx1];
@@ -678,6 +673,8 @@ void SCOP40Bench::WriteOutput(const string &Msg)
 
 void cmd_scop40bench()
 	{
+	asserta(!optset_dope);
+
 	string DBFN = g_Arg1;
 	DSSParams::Init(DM_UseCommandLineOption);
 
@@ -708,9 +705,6 @@ void cmd_scop40bench()
 		SB.BaseOnAln(*SB.m_DAs[0], true);
 		return;
 		}
-
-	if (optset_dope)
-		SB.ReadDope(opt(dope));
 
 	ResetTimers();
 	SB.m_QuerySelf = true;

@@ -1,6 +1,8 @@
 /***
 @@TODOs
 
+reverse profiles not chains (handedness)
+
 DALI score
 	Optimize by gapless hsp pairs in nu d.p. mx, greedily build?
 	Transition to DALI score for low mega, better for fold recognition

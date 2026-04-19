@@ -326,11 +326,13 @@
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
     <ClCompile Include="flat_lddt.cpp" />
+    <ClCompile Include="flat_lddt_old.cpp" />
     <ClCompile Include="flat_merge_features.cpp" />
     <ClCompile Include="flat_merge_logodds.cpp" />
     <ClCompile Include="flat_params.cpp" />
     <ClCompile Include="flat_profiles.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
+    <ClCompile Include="flat_selfrev.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="flat_ts.cpp" />
     <ClCompile Include="fragaligner.cpp" />

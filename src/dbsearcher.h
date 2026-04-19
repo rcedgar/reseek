@@ -57,11 +57,6 @@ public:
 
 	bool m_RecalcSelfRevScores = false;
 
-	uint8_t *m_dope = 0;
-	uint32_t m_dope_nhit = 0;
-	uint32_t *m_dope_ks = 0;
-
-
 public:
 	void Setup();
 	void InitEmpty();
@@ -84,26 +79,6 @@ public:
 	  vector<byte> *ptrMuLetters);
 	void ShuffleProfiles();
 	void ShuffleProfile(vector<vector<byte> > &Profile);
-
-	void ReadDope(const string &FN);
-	bool in_dope(uint k) const
-		{
-		if (m_dope == 0) return true;
-		byte b = m_dope[k/8];
-		return b & (1 << k%8);
-		}
-
-	bool in_dope(uint i, uint j) const
-		{
-		if (m_dope == 0) return true;
-		uint k = triangle_ij_to_k2(i, j, SIZE(m_DBChains));
-		return in_dope(k);
-		}
-
-	virtual bool in_dope_labels(const string &label_i, const string &label_j) const
-		{
-		return false;
-		}
 
 	float get_missing_score() const
 		{

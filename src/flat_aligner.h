@@ -47,5 +47,7 @@ public:
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;
 	uint get_path_str(string &path) const;
-	float get_self_rev_score(const string &labelQ, const uint8_t *profQ, uint LQ);
+	float get_self_rev_score(
+		const string &labelQ, 
+		const uint8_t *profQ, uint LQ);
 	};

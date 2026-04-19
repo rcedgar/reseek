@@ -32,14 +32,9 @@ void cmd_flat_merge_logodds()
 	vector<float> scalar_values;
 	float selfw = 0;
 	float revw = 0;
-	bool need_distmxs;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values,
-		selfw, revw, need_distmxs);
-	asserta(selfw == 0);
-	asserta(revw == 0);
-	asserta(!need_distmxs);
+		scalar_names, scalar_values);
 
 	flat_features::init(feature_names);
 	flat_features::read_logoddsvec_pattern(opt(mxpattern));

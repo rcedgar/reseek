@@ -46,7 +46,7 @@ public:
 		const vector<string> &Names,
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
-	void load_profiles(const string &fafnpattern, bool set_self_scores);
+	void load_profiles(const string &fafnpattern);
 	void ProgressLogParams() const;
 	void align_pair(const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
@@ -71,10 +71,7 @@ public:
 		vector<string> &AlphaNames,
 		vector<float> &Weights,
 		vector<string> &ScalarNames,
-		vector<float> &ScalarValues,
-		float &selfw,
-		float &revw,
-		bool &need_distmxs);
+		vector<float> &ScalarValues);
 
 	static void StaticThreadBody(flat_bench *SB,
 		uint ThreadIdx, const string &how);;

@@ -4,7 +4,13 @@
 #include "flat_features.h"
 #include "flat_alignx.h"
 
-float flat_alignx::alignx(
+// float L = float(LA + LB)/2;
+//if (m_SelfRevScoreA != FLT_MAX && m_SelfRevScoreB != FLT_MAX)
+//	RevDPScore = (m_SelfRevScoreA + m_SelfRevScoreB)/2;
+//m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
+//m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore -
+//	DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
+static float oldts(
 	const flat_aligner &fa,
 	const uint8_t *profQ,
 	const uint8_t *profT,
@@ -14,7 +20,31 @@ float flat_alignx::alignx(
 	float selfQ,
 	uint M)
 	{
-	float Score = 0;
+	asserta(distmxQ != 0);
+	asserta(distmxT != 0);
+	float LQ = (float) fa.m_LQ;
+	float LT = (float) fa.m_LT;
+	asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
+	float RevDPScore = (selfT + selfQ)/2;
+	float LDDT = flat_getlddt_old(fa, distmxQ, distmxT, M);
+	float AlnFwdScore = fa.m_score;
+	float L = (LQ + LT)/2;
+	float TS = flat_params::m_oldts_lddtw*LDDT;
+	TS += (flat_params::m_oldts_dpw*AlnFwdScore - 
+			flat_params::m_oldts_revtsw*RevDPScore)/(L + flat_params::m_oldts_ladd);
+	return TS;
+	}
+
+float flat_alignx::alignx(
+	const flat_aligner &fa,
+	const uint8_t *profQ, const uint8_t *profT,
+	const sid_t *distmxQ, const sid_t *distmxT, uint M,
+	float selfT, float selfQ)
+	{
+	float Score = fa.m_score;
+	if (flat_params::m_oldts)
+		return oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
+
 	if (flat_params::m_rev_w > 0)
 		{
 		asserta(fa.m_reverse_score_set);

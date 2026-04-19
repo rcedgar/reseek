@@ -620,6 +620,8 @@ bool DSSAligner::DoMKF() const
 		return false;
 	uint LA = m_ChainA->GetSeqLength();
 	uint LB = m_ChainB->GetSeqLength();
+	if (optset_mkfl)
+		return LA > opt(mkfl) || LB >= opt(mkfl);
 	if (LA >= DSSParams::m_MKFL)
 		return true;
 	if (LB >= DSSParams::m_MKFL)
@@ -774,22 +776,6 @@ void DSSAligner::CalcEvalue()
 
 	m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
 	m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore - DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
-	//if (m_ChainA->m_Label != m_ChainB->m_Label && !EndsWith(m_ChainB->m_Label, ".rev"))
-	//	{
-	//	Log("A>%s\n", m_ChainA->m_Label.c_str());
-	//	Log("B>%s\n", m_ChainB->m_Label.c_str());
-	//	Log("L=%.3g\n", L);
-	//	Log("LDDT=%.3g\n", LDDT);
-	//	Log("m_AlnFwdScore=%.3g\n", m_AlnFwdScore);
-	//	Log("RevDPScore=%.3g\n", RevDPScore);
-	//	Log("DSSParams::m_dpw=%.3g\n", DSSParams::m_dpw);
-	//	Log("DSSParams::m_revtsw=%.3g\n", DSSParams::m_revtsw);
-	//	Log("DSSParams::m_ladd=%.3g\n", DSSParams::m_ladd);
-	//	Log("DSSParams::m_lddtw=%.3g\n", DSSParams::m_lddtw);
-	//	Log("TS=%.3g\n", m_NewTestStatisticA);
-	//	Die("TODO");
-	//	}
-
 	m_NewTestStatisticB = m_NewTestStatisticA;
 
 	float Pval = (float) StatSig::GetPvalue(m_NewTestStatisticA);

@@ -129,5 +129,6 @@ C(join_stats)
 C(flat_hjjoin)
 C(puu)
 C(dss_logodds)
+C(flat_selfrev)
 
 #undef C

@@ -4,7 +4,48 @@
 #include "tabbedlines.h"
 #include "flat_helpers.h"
 #include "features.h"
+#include "triangle.h"
 #include "dss.h"
+
+void flat_reverse_profile(
+	const uint8_t *prof,
+	uint32_t L,
+	uint32_t nfeat,
+	uint8_t *revprof)
+	{
+	for (uint32_t fi = 0; fi < nfeat; ++fi)
+		{
+		const uint8_t *row = prof + fi*L;
+		uint8_t *revrow = revprof + fi*L;
+		for (uint32_t pos = 0; pos < L; ++pos)
+			{
+			assert(fi*L + pos < L*nfeat);
+			assert(fi*L + (L-1-pos) < L*nfeat);
+			uint8_t code = row[L - 1 - pos];
+			revrow[pos] = code;
+			}
+		}
+	}
+
+void flat_reverse_distmx(
+	cp_sid_t distmx,
+	uint32_t L,
+	uint32_t M,
+	p_sid_t reversed_distmx)
+	{
+	for (uint32_t i = 0; i < L; ++i)
+		{
+		const uint32_t jend = min(i + M, L - 1);
+		for (uint32_t j = i + 1; j <= jend; ++j)
+			{
+			uint32_t k_src = banded_ij_to_k(M, i, j);
+			uint32_t ir = L - 1 - j;
+			uint32_t jr = L - 1 - i;
+			uint32_t k_dst = banded_ij_to_k(M, ir, jr);
+			reversed_distmx[k_dst] = distmx[k_src];
+			}
+		}
+	}
 
 void read_fasta_label2idx(
 	const string &fafn,
@@ -431,6 +472,26 @@ void read_profiles_and_logoddsvec(
 	asserta(SIZE(logoddsvec) == nfeat);
 
 	read_profiles_from_fastas(fafns, alpha_sizes, labels, profiles);
+	}
+
+void log_profile(
+	const string &label,
+	const uint8_t *prof,
+	uint nfeat,
+	uint L)
+	{
+	Log("log_profile(%s) L=%u nfeat=%u\n", label.c_str(), L, nfeat);
+	Log("  pos  ");
+	for (uint fi = 0; fi < nfeat; ++fi)
+		Log(" %2u", fi);
+	Log("\n");
+	for (uint pos = 0; pos < L; ++pos)
+		{
+		Log("[%4u] ", pos);
+		for (uint fi = 0; fi < nfeat; ++fi)
+			Log(" %2x", prof[fi*L + pos]);
+		Log("\n");
+		}
 	}
 
 void cmd_flat_profiles()

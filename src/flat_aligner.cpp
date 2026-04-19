@@ -103,9 +103,13 @@ void flat_aligner::align_reverse()
 float flat_aligner::get_self_rev_score(
 	const string &labelQ, const uint8_t *profQ, uint LQ)
 	{
-	cacheT_reversed(labelQ + ".rev", profQ, LQ);
-	alignQ(labelQ, profQ, LQ);
 	m_reverse_score_set = false;
+	const uint nfeat = flat_features::get_nfeat();
+	uint8_t *revprofQ = myalloc(uint8_t, LQ*nfeat);
+	flat_reverse_profile(profQ, LQ, nfeat, revprofQ);
+	cacheT(labelQ + ".rev", revprofQ, LQ);
+	alignQ(labelQ, profQ, LQ);
+	myfree(revprofQ);
 	return m_score;
 	}
 

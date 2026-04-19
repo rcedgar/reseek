@@ -26,7 +26,7 @@ public:
 	static vector<string> m_symbolsvec;
 
 public:
-	static uint get_nfeat() { asserta(m_nfeat != 0); return m_nfeat; }
+	static uint get_nfeat() { assert(m_nfeat != 0); return m_nfeat; }
 	
 	static void alloc(uint32 nfeat);
 

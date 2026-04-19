@@ -194,10 +194,8 @@ static void SubClimb(
 
 void get_feature_names_from_peaker_spec_file_lines(
 	vector<string> &lines,
-	vector<string> &alpha_names,
-	bool &selfw_is_var, bool &need_distmxs)
+	vector<string> &alpha_names)
 	{
-	selfw_is_var = false;
 	alpha_names.clear();
 	vector<string> flds;
 	for (size_t i = 0; i < lines.size(); ++i)
@@ -210,13 +208,6 @@ void get_feature_names_from_peaker_spec_file_lines(
 		Split(var_eq_name, flds, '=');
 		asserta(flds.size() == 2);
 		const string &name = flds[1];
-		if (name == "selfw")
-			selfw_is_var = true;
-		else if (name == "dali" ||
-			name == "dalix" ||
-			name == "lddt" ||
-			name == "entropy")
-			need_distmxs = true;
 		if (line.find("isalpha=yes;") != string::npos)
 			alpha_names.push_back(name);
 		}
@@ -234,9 +225,8 @@ void cmd_flat_hjmega()
 	ReadLinesFromFile(SpecFN, SpecLines);
 
 	vector<string> AlphaNames;
-	bool need_distmxs = false;
 	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, AlphaNames, s_set_self_scores, need_distmxs);
+		SpecLines, AlphaNames);
 
 	void OpenOutputFiles();
 	OpenOutputFiles();
@@ -245,9 +235,8 @@ void cmd_flat_hjmega()
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
 	flat_features::load_alphas(AlphaNames, opt(mxpattern));
-	FullFB.load_profiles(opt(fapattern), s_set_self_scores);
-	if (need_distmxs)
-		FullFB.set_distmxs(opt(input));
+	FullFB.load_profiles(opt(fapattern));
+	FullFB.set_distmxs(opt(input));
 	if (optset_dope)
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
@@ -269,12 +258,11 @@ void cmd_flat_hjmega()
 
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
-		SubsetFB.load_profiles(opt(fapattern), s_set_self_scores);
+		SubsetFB.load_profiles(opt(fapattern));
+		SubsetFB.set_distmxs(opt(input));
 		SubsetFB.ProgressLogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();
-		if (need_distmxs)
-			SubsetFB.set_distmxs(opt(input));
 		SubClimb(FullFB, SubsetFB, SpecLines);
 		}
 	else if (Strategy == "latinclimb")

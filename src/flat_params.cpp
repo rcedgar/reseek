@@ -10,14 +10,6 @@ float flat_params::m_dali_w;
 float flat_params::m_dalix_w;
 float flat_params::m_entropy_w;
 
-//m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
-//m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore -
-//	DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
-//float DSSParams::m_dpw = 1.7f;
-//float DSSParams::m_lddtw = 0.13f;
-//float DSSParams::m_ladd = 250.0f;
-//float DSSParams::m_revtsw = 2.0f;
-
 bool flat_params::m_oldts = false;
 float flat_params::m_oldts_dpw;
 float flat_params::m_oldts_lddtw;
@@ -54,6 +46,26 @@ void flat_params::set_params(
 			m_open = value;
 			m_ext = value/10;
 			}
+		else if (name == "oldts_dpw")
+			{
+			m_oldts = true;
+			m_oldts_dpw = value;
+			}
+		else if (name == "oldts_revtsw")
+			{
+			m_oldts = true;
+			m_oldts_revtsw = value;
+			}
+		else if (name == "oldts_lddtw")
+			{
+			m_oldts = true;
+			m_oldts_lddtw = value;
+			}
+		else if (name == "oldts_ladd")
+			{
+			m_oldts = true;
+			m_oldts_ladd = value;
+			}
 		else
 			Die("flat_params::setparams() %s=%.3g",
 				name.c_str(), value);
@@ -68,7 +80,8 @@ bool flat_params::need_distmx()
 		flat_params::m_dalix_w > 0 ||
 		flat_params::m_dali_w > 0 ||
 		flat_params::m_lddt_w > 0 ||
-		flat_params::m_entropy_w > 0;
+		flat_params::m_entropy_w > 0 ||
+		flat_params::m_oldts_lddtw > 0;
 	}
 
 bool flat_params::need_prof()
@@ -78,7 +91,7 @@ bool flat_params::need_prof()
 
 bool flat_params::need_self()
 	{
-	return flat_params::m_self_w > 0;
+	return flat_params::m_self_w > 0 || flat_params::m_oldts_revtsw;
 	}
 
 bool flat_params::need_reverse()

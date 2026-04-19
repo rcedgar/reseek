@@ -89,13 +89,7 @@ void DBSearcher::ThreadBodySelf(uint ThreadIndex)
 		if (opt(noself) && ChainIndex1 == ChainIndex2)
 			continue;
 
-
 		const PDBChain &Chain2 = *m_DBChains[ChainIndex2];
-		if (m_dope)
-			{
-			if (!in_dope_labels(DA.m_ChainA->m_Label, Chain2.m_Label))
-				continue;
-			}
 		const vector<vector<byte> > *ptrProfile2 = m_DBProfiles[ChainIndex2];
 		const vector<byte> *ptrMuLetters2 = (m_DBMuLettersVec.empty() ? 0 : m_DBMuLettersVec[ChainIndex2]);
 		const vector<uint> *ptrMuKmers2 = (m_DBMuKmersVec.empty() ? 0 : m_DBMuKmersVec[ChainIndex2]);

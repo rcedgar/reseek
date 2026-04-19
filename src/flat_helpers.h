@@ -1,6 +1,7 @@
 #pragma once
 #include "alpha.h"
 #include "flat_dist_types.h"
+#include "flat_distmx.h"
 
 class flat_aligner;
 
@@ -22,6 +23,12 @@ float sw_flat_pssm(
 	uint nfeat,
 	float Open, float Ext, uint &Loi, uint &Loj,
 	char *path_buffer, uint &ncol);
+
+void log_profile(
+	const string &label,
+	const uint8_t *prof,
+	uint nfeat,
+	uint L);
 
 void profiles2faprof(
 	const string &fn,
@@ -206,6 +213,12 @@ float flat_getlddt_muscle_some_floats(
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
+float flat_getlddt_old(
+	const flat_aligner &fa,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	const uint M);
+
 float flat_getlddt_muscle_some_floats4(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
@@ -217,3 +230,15 @@ float flat_get_entropy2(
 	const uint8_t *profQ,
 	const uint8_t *profT,
 	uint nfeat, uint fi);
+
+void flat_reverse_profile(
+	const uint8_t *prof,
+	uint32_t L,
+	uint32_t nfeat,
+	uint8_t *revprof);
+
+void flat_reverse_distmx(
+	cp_sid_t distmx, uint32_t L, uint32_t M,
+	p_sid_t reversed_distmx);
+
+void trunc_label(const string &label, string &tlabel);

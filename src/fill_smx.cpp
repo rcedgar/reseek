@@ -60,6 +60,7 @@ void fill_flat_pssm(
 	const float *const * __restrict weighted_logoddsmxvec,
 	float * __restrict pssm)
 	{
+	assert(pssm != 0);
 	for (uint32_t fi = 0; fi < nfeat; ++fi)
 		{
 		const uint32_t AS = alpha_sizes[fi];
@@ -87,6 +88,7 @@ void fill_flat_pssm_reversed(
 	const float *const * __restrict weighted_logoddsmxvec,
 	float * __restrict pssm)
 	{
+	assert(pssm != 0);
 	for (uint32_t fi = 0; fi < nfeat; ++fi)
 		{
 		const uint32_t AS = alpha_sizes[fi];
@@ -121,6 +123,8 @@ void fill_smx_using_flat_pssm(
 	const float * __restrict pssm,
 	float * __restrict smx)
 	{
+	assert(smx != 0);
+	assert(pssm != 0);
 // Feature 0 handled as special case, note = instead of +=
 	{
 	const uint8_t * __restrict profA_f0 = profA;
@@ -164,6 +168,7 @@ void fill_smx(
 	const float *const * __restrict weighted_logoddsmxvec,
 	float * __restrict smx)
 	{
+	assert(smx != 0);
 
 // Feature 0 handled as special case, note = instead of +=
 	const uint32_t AS_0 = alpha_sizes[0];

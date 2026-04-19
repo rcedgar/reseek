@@ -72,6 +72,8 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up)
 	case UF_cols:	fprintf(f, "%u", SIZE(m_Path)); break;
 	case UF_muscore:	fprintf(f, "%.3g", GetMuScore()); break;
 	case UF_selfrev:	fprintf(f, "%.3g", (m_SelfRevScoreA + m_SelfRevScoreB)/2); break;
+	case UF_selfrevq:	fprintf(f, "%.3g", (Up ? m_SelfRevScoreA : m_SelfRevScoreB)); break;
+	case UF_selfrevt:	fprintf(f, "%.3g", (Up ? m_SelfRevScoreB : m_SelfRevScoreA)); break;
 
 	case UF_qacc:
 		{

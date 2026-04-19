@@ -140,13 +140,6 @@ public:
 	void RoundScores();
 	void SetArea();
 
-	virtual bool in_dope(const string &label_i, const string &label_j) const
-		{
-		uint i = GetDomIdx(label_i);
-		uint j = GetDomIdx(label_j);
-		return DBSearcher::in_dope(i, j);
-		}
-
 public:
 	virtual bool Reject(DSSAligner &DA, bool Up) const { return false; }
 	virtual void OnSetup();

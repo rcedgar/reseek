@@ -5,6 +5,7 @@
 #include "triangle.h"
 #include "flat_helpers.h"
 #include "flat_aligner.h"
+#include "flat_params.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -38,18 +39,12 @@ void cmd_flat_align_selfrev_mega()
 	vector<string> scalar_names;
 	vector<float> weights;
 	vector<float> scalar_values;
-	float selfw, revw;
-	bool need_distmxs;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values,
-		selfw, revw, need_distmxs);
+		scalar_names, scalar_values);
 
 	flat_features::load_alphas(feature_names, opt(mxpattern));
-	FB.load_profiles(opt(fapattern), selfw);
-
-	//FB.load_alphas_and_profiles(
-	//	feature_names, weights, opt(fapattern), opt(mxpattern), selfw);
+	FB.load_profiles(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 

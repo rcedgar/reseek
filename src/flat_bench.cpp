@@ -16,14 +16,15 @@ atomic<uint> flat_bench::m_progress_counter;
 atomic<uint> flat_bench::m_ncachehits;
 atomic<uint> flat_bench::m_ncachemisses;
 
+static FILE *s_ftsv;
+static mutex s_ftsv_lock;
+
 void ParseVarStr(
 	const string &VarStr,
 	vector<string> &Names,
 	vector<float> &Values);
 
-void flat_bench::load_profiles(
-	const string &fafnpattern,
-	bool set_self_scores)
+void flat_bench::load_profiles(const string &fafnpattern)
 	{
 	const uint nfeat = flat_features::get_nfeat();
 
@@ -38,38 +39,7 @@ void flat_bench::load_profiles(
 
 	m_Labels = m_fp.m_labels;
 	m_SeqCount = uint(m_Labels.size());
-	if (set_self_scores)
-		set_selfrev_scores();
 	}
-
-//void flat_bench::load_alphas_and_profiles(
-//	const vector<string> &feature_names,
-//	const vector<float> &weights,
-//	const string &fafnpattern,
-//	const string &logoddsfnpattern,
-//	bool set_self_scores)
-//	{
-//	const uint nfeat = uint(feature_names.size());
-//	asserta(weights.size() == nfeat);
-//
-//	vector<string> fafns(nfeat);
-//	for (uint fi = 0; fi < nfeat; ++fi)
-//		make_fn_pattern(
-//			fafnpattern,
-//			feature_names[fi],
-//			fafns[fi]);
-//
-//	flat_features::init(feature_names);
-//	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
-//	flat_features::read_logoddsvec_pattern(logoddsfnpattern);
-//	flat_features::set_feature_block_offsets();
-//	flat_features::set_symbolsvec();
-//
-//	m_Labels = m_fp.m_labels;
-//	m_SeqCount = uint(m_Labels.size());
-//	if (set_self_scores)
-//		set_selfrev_scores();
-//	}
 
 void flat_bench::align_pair(
 	const string &labelQ, const string &labelT)
@@ -155,6 +125,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	const uint8_t *profT = m_fp.get_profile(domidxT);
 	const uint LQ = m_fp.get_length(domidxQ);
 	fa.alignQ(labelQ, profQ, LQ);
+	float dpscore = fa.m_score;
 	float Score = fa.m_score;
 	if (flat_params::need_reverse())
 		fa.align_reverse();
@@ -177,12 +148,36 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxQ];
 		}
-	Score += flat_alignx::alignx(
-		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
+	Score = flat_alignx::alignx(
+		fa, profQ, profT, distmxQ, distmxT, M, selfT, selfQ);
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 
 	AppendHit(domidxT, domidxQ, Score);
+
+	if (!s_ftsv) return;
+
+	string qacc, tacc;
+	string line;
+	trunc_label(fa.m_labelQ, qacc);
+	trunc_label(fa.m_labelT, tacc);
+	float lddt = flat_getlddt_old(fa, distmxQ, distmxT, M);
+	uint l2 = (LQ + fa.m_LT)/2;
+          
+	// qacc+tacc+dpscore+selfrevq+selfrevt+selfrev+lddt+l2+newts
+	Ps(line, "%s", qacc.c_str());
+	Ps(line, "\t%s", tacc.c_str());
+	Ps(line, "\t%.3g", dpscore);
+	Ps(line, "\t%.3g", selfT);
+	Ps(line, "\t%.3g", selfQ);
+	Ps(line, "\t%.3g", (selfQ + selfT)/2);
+	Ps(line, "\t%.3g", lddt);
+	Ps(line, "\t%u", l2);
+	Ps(line, "\t%.3g", Score);
+
+	s_ftsv_lock.lock();
+	fputs(line.c_str(), s_ftsv);
+	s_ftsv_lock.unlock();
 	}
 
 void flat_bench::ThreadBody_All(uint ThreadIdx)
@@ -329,15 +324,8 @@ void flat_bench::ClassifyParams(
 	vector<string> &AlphaNames,
 	vector<float> &Weights,
 	vector<string> &ScalarNames,
-	vector<float> &ScalarValues,
-	float &selfw,
-	float &revw,
-	bool &need_distmxs)
+	vector<float> &ScalarValues)
 	{
-	selfw = 0;
-	revw = 0;
-	need_distmxs = false;
-
 	for (uint i = 0; i < SIZE(Names); ++i)
 		{
 		const string &Name = Names[i];
@@ -350,20 +338,11 @@ void flat_bench::ClassifyParams(
 			|| Name == "dalix" \
 			|| Name == "lddt" \
 			|| Name == "entropy" \
-			|| Name == "revw")
+			|| Name == "revw" \
+			|| StartsWith(Name, "oldts_"))
 			{
 			ScalarNames.push_back(Name);
 			ScalarValues.push_back(Value);
-			if (Name == "selfw")
-				selfw = Value;
-			else if (Name == "revw")
-				revw = Value;
-
-			if (Name == "dali" \
-				|| Name == "dalix" \
-				|| Name == "lddt" \
-				|| Name == "entropy")
-				need_distmxs = true;
 			}
 		else
 			{
@@ -405,12 +384,8 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	float revw = 0;
 	bool need_distmxs = false;
 	flat_bench::ClassifyParams(
-		Names, Values, AlphaNames, Weights, ScalarNames, ScalarValues,
-		selfw, revw, need_distmxs);
-	flat_params::m_rev_w = revw;
-	flat_params::m_self_w = selfw;
-
-	if (need_distmxs) asserta(!m_distmxs.empty());
+		Names, Values, AlphaNames,
+		Weights, ScalarNames, ScalarValues);
 
 	SetScalarParams(ScalarNames, ScalarValues);
 
@@ -420,9 +395,6 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	for (uint i = 0; i < n; ++i)
 		NameToWeight[AlphaNames[i]] = Weights[i];
 	ApplyWeightsToLogOdds(NameToWeight);
-
-	if (selfw != 0)
-		set_selfrev_scores();
 	}
 
 void flat_bench::set_selfrev_scores()
@@ -438,6 +410,9 @@ void flat_bench::set_selfrev_scores()
 		const string &label = m_look->get_dom(domidx);
 		uint L = m_fp.get_length(domidx);
 		const uint8_t *prof = m_fp.get_profile(domidx);
+		sid_t *distmx = 0;
+		if (!m_distmxs.empty())
+			distmx = m_distmxs[domidx];
 		m_self_rev_scores[domidx] =
 			fa.get_self_rev_score(label, prof, L);
 		}
@@ -477,6 +452,8 @@ void cmd_flat_bench()
 
 	const string &VarStr = g_Arg1;
 
+	if (optset_output2) s_ftsv = CreateStdioFile(opt(output2));
+
 	flat_bench FB;
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
@@ -497,20 +474,16 @@ void cmd_flat_bench()
 	bool need_distmxs = false;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
-		scalar_names, scalar_values,
-		selfw, revw, need_distmxs);
-	if (need_distmxs)
-		asserta(optset_input);
-
-	bool set_self_scores = (selfw != 0);
+		scalar_names, scalar_values);
 
 	flat_features::load_alphas(feature_names, opt(mxpattern));
 
-	FB.load_profiles(opt(fapattern), set_self_scores);
+	FB.load_profiles(opt(fapattern));
+	FB.set_distmxs(opt(input));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.ProgressLogParams();
 	FB.Alloc();
-	if (set_self_scores)
+	if (flat_params::need_self())
 		FB.set_selfrev_scores();
 	FB.SetScalarParams(scalar_names, scalar_values);
 
@@ -528,4 +501,5 @@ void cmd_flat_bench()
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
+	CloseStdioFile(s_ftsv);
 	}

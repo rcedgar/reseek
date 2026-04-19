@@ -215,33 +215,3 @@ void DBSearcher::ShuffleProfile(vector<vector<byte> > &Profile)
 			swap(Profile[FeatIdx][i], Profile[FeatIdx][j]);
 		}
 	}
-
-void DBSearcher::ReadDope(const string &FN)
-	{
-	uint8_t *read_bitdope(const string &fn, uint32_t &ndom, uint32_t &nhit);
-
-	uint32_t ndom;
-	m_dope = read_bitdope(FN, ndom, m_dope_nhit);
-	asserta(ndom == SIZE(m_DBChains));
-	m_dope_ks = myalloc(uint32_t, m_dope_nhit);
-	const uint K = triangle_get_K(ndom);
-
-	uint32_t bytes = (K + 7)/8;
-	uint nhit = 0;
-	for (uint i = 0; i < bytes; ++i)
-		{
-		uint8_t b = m_dope[i];
-		for (uint j = 0; j < 8; ++j)
-			{
-			if (b & (1 << j))
-				{
-				uint k = i*8 + j;
-				uint domidx_i, domidx_j;
-				triangle_k_to_ij(k, ndom, domidx_i, domidx_j);
-				assert(k < K);
-				m_dope_ks[nhit++] = k;
-				}
-			}
-		}
-	asserta(nhit == m_dope_nhit);
-	}
