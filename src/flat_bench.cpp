@@ -450,6 +450,7 @@ void cmd_flat_bench()
 	asserta(optset_lookup);
 	asserta(optset_fapattern);
 	asserta(optset_mxpattern);
+	asserta(optset_input);
 
 	asserta(!optset_spec);
 	asserta(!optset_varstr);
@@ -462,8 +463,6 @@ void cmd_flat_bench()
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
-	if (optset_input)
-		FB.set_distmxs(opt(input));
 
 	vector<string> param_names;
 	vector<float> param_values;

@@ -10,6 +10,7 @@
 //m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
 //m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore -
 //	DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
+#if 0
 static float oldts(
 	const flat_aligner &fa,
 	const uint8_t *profQ,
@@ -34,6 +35,33 @@ static float oldts(
 			flat_params::m_oldts_revtsw*RevDPScore)/(L + flat_params::m_oldts_ladd);
 	return TS;
 	}
+#else
+static float oldts(
+	const flat_aligner &fa,
+	const uint8_t *profQ,
+	const uint8_t *profT,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	float selfT,
+	float selfQ,
+	uint M)
+	{
+	asserta(distmxQ != 0);
+	asserta(distmxT != 0);
+	float LQ = (float) fa.m_LQ;
+	float LT = (float) fa.m_LT;
+	asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
+	float RevDPScore = (selfT + selfQ)/2;
+	float LDDT = flat_getlddt_old(fa, distmxQ, distmxT, M);
+	float AlnFwdScore = fa.m_score;
+	float L = (LQ + LT)/2;
+	uint match_count = fa.get_match_count();
+	float TS = flat_params::m_oldts_lddtw*LDDT;
+	TS += (flat_params::m_oldts_dpw*AlnFwdScore - 
+			flat_params::m_oldts_revtsw*RevDPScore)/match_count;
+	return TS;
+	}
+#endif
 
 float flat_alignx::alignx(
 	const flat_aligner &fa,

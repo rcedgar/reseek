@@ -113,6 +113,14 @@ float flat_aligner::get_self_rev_score(
 	return m_score;
 	}
 
+uint flat_aligner::get_match_count() const
+	{
+	uint m = 0;
+	for (uint i = 0; i < m_ncol; ++i)
+		if (m_path_buffer[i] == 'M') ++m;
+	return m;
+	}
+
 uint flat_aligner::get_path_str(string &path) const
 	{
 	uint m = 0;
