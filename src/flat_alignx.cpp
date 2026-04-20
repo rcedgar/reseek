@@ -43,7 +43,7 @@ float flat_alignx::alignx(
 	{
 	float Score = fa.m_score;
 	if (flat_params::m_oldts)
-		return oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
+		Score = oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
 
 	if (flat_params::m_rev_w > 0)
 		{

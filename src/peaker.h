@@ -43,6 +43,8 @@ public:
 // Hooke-Jeeves parameters
 	uint m_HJ_MaxExtendIters = 100;
 	uint m_HJ_MaxIters = 100;
+	double m_ConvergePct = 0.01;
+	double m_ConvergeReducePct = 0.1;
 
 // Hooke-Jeeves state
 	uint m_HJ_Direction = UINT_MAX;		// current axis
@@ -143,6 +145,7 @@ public:
 		vector<string> &Try_xv);
 
 	bool ReduceGlobalRateFactor();
+	bool CanReduceGlobalRateFactor();
 	double GetGlobalRateFactor();
 	double GetRateFactor(bool Plus);
 	double GetIncreaseRateFactor();

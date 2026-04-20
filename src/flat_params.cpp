@@ -20,6 +20,7 @@ void flat_params::set_params(
 	const vector<string> &names,
 	const vector<float> &values)
 	{
+	m_oldts = false;
 	assert(names.size() == values.size());
 	for (size_t i = 0; i < names.size(); ++i)
 		{

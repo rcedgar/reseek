@@ -253,7 +253,10 @@ bool Peaker::HJ_Iter()
 		m_Name.c_str(), m_Best_y, Height, Pct, GetGlobalRateFactor());
 	if (Height > 0)
 		{
-		if (Pct < 0.1 && CanReduceGlobalRateFactor())
+		bool CanReduce = CanReduceGlobalRateFactor();
+		if (Pct < m_ConvergePct && !CanReduce)
+			return false;
+		if (Pct < m_ConvergeReducePct && CanReduce)
 			{
 			ProgressLogNoPrefix("%s: HJ_Iter() small (<0.1) height pct %.3g%%\n",
 				m_Name.c_str(), Pct);

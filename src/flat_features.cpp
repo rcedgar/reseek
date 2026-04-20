@@ -27,7 +27,7 @@ void flat_features::init(const vector<string> &feature_names)
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
 		const string &feature_name = feature_names[fi];
-		if (StartsWith(feature_name, "sec"))
+		if (StartsWith(feature_name, "sec") || feature_name == "Conf")
 			m_entropyfi = fi;
 		uint alpha_size =
 			get_alpha_size_from_feature_name(feature_name);
