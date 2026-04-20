@@ -10,7 +10,7 @@
 //m_NewTestStatisticA = DSSParams::m_lddtw*LDDT;
 //m_NewTestStatisticA += (DSSParams::m_dpw*m_AlnFwdScore -
 //	DSSParams::m_revtsw*RevDPScore)/(L + DSSParams::m_ladd);
-#if 0
+#if 1
 static float oldts(
 	const flat_aligner &fa,
 	const uint8_t *profQ,

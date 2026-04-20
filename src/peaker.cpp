@@ -482,7 +482,7 @@ void Peaker::Init(const vector<string> &SpecLines, PTR_EVAL_FUNC EF)
 		const string &Line = SpecLines[i];
 		if (Line.empty() || StartsWith(Line, "#"))
 			continue;
-		asserta(EndsWith(Line, ";"));
+//		asserta(EndsWith(Line, ";"));
 		if (StartsWith(Line, "var="))
 			m_VarSpecs.push_back(Line);
 		else
