@@ -417,9 +417,9 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	xv2xss(xv, xss);
 	if (dy > 0)
 		ProgressPrefixLog("\n");
-	ProgressPrefixLog("%s%.2g[%.6g] %s /%.2f/ %s\n",
+	ProgressPrefixLog("%s%.2g%%[%.6g] %s /%.2f/ %s\n",
 		(dy > 0 ? ">>>" : ""),
-		dy,
+		GetPct(dy, m_Best_y),
 		m_Best_y,
 		desc.c_str(),
 		GetGlobalRateFactor(),

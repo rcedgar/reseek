@@ -49,6 +49,8 @@ public:
 // Hooke-Jeeves state
 	uint m_HJ_Direction = UINT_MAX;		// current axis
 	bool m_HJ_ExtendPlus = false;	// +/- direction
+	uint m_HJIter = 0;
+	vector<uint> varidx2last_improved_hjiter;
 
 public:
 	Peaker(const Peaker *Parent, const string &Name)
@@ -137,12 +139,14 @@ public:
 
 // Hooke-Jeeves
 	void HJ_RunHookeJeeves();
-	void HJ_Explore();
+	void HJ_Explore(bool try_stalled, bool stalled_only);
 	void HJ_Extend();
 	bool HJ_Iter();
 	double HJ_TryDelta(const string &reason,
 		const vector<string> &Start_xv, uint VarIdx, bool Plus,
 		vector<string> &Try_xv);
+	bool VarIsStalled(uint VarIdx) const;
+	bool AnyStalledVars() const;
 
 	bool ReduceGlobalRateFactor();
 	bool CanReduceGlobalRateFactor();

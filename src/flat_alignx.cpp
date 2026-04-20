@@ -52,11 +52,11 @@ static float oldts(
 	float LT = (float) fa.m_LT;
 	asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
 	float RevDPScore = (selfT + selfQ)/2;
-	//float LDDT = flat_getlddt_old(fa, distmxQ, distmxT, M);
 	float LDDT = flat_getlddt_muscle_some_floats4(fa, distmxQ, distmxT, M);
 	float AlnFwdScore = fa.m_score;
 	float L = (LQ + LT)/2;
-	float TS = flat_params::m_oldts_lddtw*LDDT*(L + flat_params::m_oldts_ladd);
+	//float TS = flat_params::m_oldts_lddtw*LDDT*(L + flat_params::m_oldts_ladd);
+	float TS = flat_params::m_oldts_lddtw*500*LDDT;
 	TS += (flat_params::m_oldts_dpw*AlnFwdScore - flat_params::m_oldts_revtsw*RevDPScore);
 	return TS;
 	}
@@ -87,7 +87,7 @@ float flat_alignx::alignx(
 	if (flat_params::m_self_w > 0)
 		{
 		asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
-		Score -= flat_params::m_self_w*(selfT + selfQ);
+		Score -= flat_params::m_self_w*(selfT + selfQ)/2;
 		}
 
 	if (flat_params::m_lddt_w > 0)
