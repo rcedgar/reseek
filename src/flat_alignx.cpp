@@ -56,8 +56,7 @@ static float oldts(
 	float LDDT = flat_getlddt_muscle_some_floats4(fa, distmxQ, distmxT, M);
 	float AlnFwdScore = fa.m_score;
 	float L = (LQ + LT)/2;
-	// float TS = flat_params::m_oldts_lddtw*LDDT*(L + flat_params::m_oldts_ladd);
-	float TS = flat_params::m_oldts_lddtw*sqrtf(LDDT)*500;
+	float TS = flat_params::m_oldts_lddtw*LDDT*(L + flat_params::m_oldts_ladd);
 	TS += (flat_params::m_oldts_dpw*AlnFwdScore - flat_params::m_oldts_revtsw*RevDPScore);
 	return TS;
 	}
