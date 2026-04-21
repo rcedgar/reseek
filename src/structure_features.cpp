@@ -53,6 +53,36 @@ void path2posvecs(
 		}
 	}
 
+uint path2posvecs2(
+	const string &path,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	uint32_t *posQs,
+	uint32_t *posTs)
+	{
+	const uint colcount = uint(path.size());
+	uint posQ = loQ;
+	uint posT = loT;
+	uint m = 0;
+	for (uint col = 0; col < colcount; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			assert(posQ < LQ);
+			assert(posT < LT);
+			posQs[m] = posQ;
+			posTs[m] = posT;
+			++m;
+			}
+		if (c == 'M' || c == 'D')
+			posQ++;
+		if (c == 'M' || c == 'I')
+			posT++;
+		}
+	return m;
+	}
+
 static const uint M = 64;
 
 static void structure_features(

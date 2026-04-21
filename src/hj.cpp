@@ -129,6 +129,8 @@ void Peaker::HJ_Explore(bool stalled_only)
 			}
 		if (!stalled && stalled_only)
 			continue;
+		if (stalled)
+			ProgressLog("{{ %s stalled di=%u try }}\n", GetVarName(VarIdx), di);
 		LastVarIdx = VarIdx;
 		double Saved_Best_y = m_Best_y;
 		string reason;
@@ -303,10 +305,9 @@ double Peaker::HJ_TryDelta(const string &reason,
 bool Peaker::HJ_Iter()
 	{
 	double Saved_Best_y = m_Best_y;
-	bool try_stalled = (m_HJIter%4 == 0);
 	HJ_Explore(false);
 	double Height = m_Best_y - Saved_Best_y;
-	if (Height == 0 && !try_stalled)
+	if (Height == 0)
 		{
 		HJ_Explore(true);
 		Height = m_Best_y - Saved_Best_y;

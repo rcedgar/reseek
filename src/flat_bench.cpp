@@ -127,8 +127,6 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	fa.alignQ(labelQ, profQ, LQ);
 	float dpscore = fa.m_score;
 	float Score = fa.m_score;
-	if (flat_params::need_reverse())
-		fa.align_reverse();
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 
@@ -150,6 +148,16 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		}
 	Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, M, selfT, selfQ);
+	if (flat_params::need_reverse())
+		{
+		asserta(flat_params::m_rev_w > 0);
+		fa.align_reverse();
+		if (flat_params::m_rev_w > 0)
+			{
+			asserta(fa.m_reverse_score_set);
+			Score -= flat_params::m_rev_w*fa.m_reverse_score;
+			}
+		}
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 

@@ -78,12 +78,6 @@ float flat_alignx::alignx(
 	if (flat_params::m_oldts)
 		Score = oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
 
-	if (flat_params::m_rev_w > 0)
-		{
-		asserta(fa.m_reverse_score_set);
-		Score -= flat_params::m_rev_w*fa.m_reverse_score;
-		}
-
 	if (flat_params::m_self_w > 0)
 		{
 		asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
