@@ -139,13 +139,13 @@ public:
 
 // Hooke-Jeeves
 	void HJ_RunHookeJeeves();
-	void HJ_Explore(bool try_stalled, bool stalled_only);
+	void HJ_Explore(bool stalled_only);
 	void HJ_Extend();
 	bool HJ_Iter();
 	double HJ_TryDelta(const string &reason,
 		const vector<string> &Start_xv, uint VarIdx, bool Plus,
 		vector<string> &Try_xv);
-	bool VarIsStalled(uint VarIdx) const;
+	uint VarItersSinceLastImprove(uint VarIdx) const;
 	bool AnyStalledVars() const;
 
 	bool ReduceGlobalRateFactor();

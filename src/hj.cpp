@@ -76,25 +76,24 @@ double Peaker::GetRateFactor(bool Plus)
 		return GetDecreaseRateFactor();
 	}
 
-bool Peaker::VarIsStalled(uint VarIdx) const
+uint Peaker::VarItersSinceLastImprove(uint VarIdx) const
 	{
 	asserta(VarIdx < SIZE(varidx2last_improved_hjiter));
 	uint n = varidx2last_improved_hjiter[VarIdx];
-	return m_HJIter - n >= 3;
+	return m_HJIter - n;
 	}
 
 bool Peaker::AnyStalledVars() const
 	{
 	const uint VarCount = GetVarCount();
 	for (uint i = 0; i < VarCount; ++i)
-		if (VarIsStalled(i)) return true;
+		if (VarItersSinceLastImprove(i) >= 3) return true;
 	return false;
 	}
 
-void Peaker::HJ_Explore(bool try_stalled, bool stalled_only)
+void Peaker::HJ_Explore(bool stalled_only)
 	{
 	const uint VarCount = GetVarCount();
-	if (stalled_only) try_stalled = true;
 
 	uint BestNewDirection = UINT_MAX;
 	m_HJ_ExtendPlus = false;
@@ -121,14 +120,11 @@ void Peaker::HJ_Explore(bool try_stalled, bool stalled_only)
 			continue;
 		if (VarIsConstant(VarIdx))
 			continue;
-		bool stalled = VarIsStalled(VarIdx);
-		if (stalled)
+		uint di = VarItersSinceLastImprove(VarIdx);
+		bool stalled = (di >= 3);
+		if (stalled && !stalled_only)
 			{
-			ProgressLog("{{ %s stalled", GetVarName(VarIdx));
-			if (try_stalled)
-				ProgressLog(" ... try }}\n");
-			else
-				ProgressLog(" ... skip }}\n");
+			ProgressLog("{{ %s stalled di=%u skip }}\n", GetVarName(VarIdx), di);
 			continue;
 			}
 		if (!stalled && stalled_only)
@@ -191,19 +187,19 @@ void Peaker::HJ_Explore(bool try_stalled, bool stalled_only)
 		double pct_minus = GetPct(abs(dy_minus), m_Best_y);
 		char sign_plus = pom(dy_plus >= 0);
 		char sign_minus = pom(dy_minus >= 0);
-		bool VarIsStalled(VarIdx);
-		uint di = varidx2last_improved_hjiter[VarIdx] - m_HJIter;
+		uint di = m_HJIter - varidx2last_improved_hjiter[VarIdx];
+		const string &value_str = m_Best_xv[VarIdx];
+		double value = StrToFloat(value_str);
 
 		ProgressLogNoPrefix("%c%5.2f%%", sign_plus, pct_plus);
-		ProgressLogNoPrefix("  <%-10.10s", strs_minus[VarIdx].c_str());
 		ProgressLogNoPrefix("  %c%5.2f%%", sign_minus, pct_minus);
-		ProgressLogNoPrefix("  %s", GetVarName(VarIdx));
+		ProgressLogNoPrefix("  %s=%.3g", GetVarName(VarIdx), value);
 		if (dys_plus[VarIdx] > 0 || dys_minus[VarIdx] > 0)
 			ProgressLogNoPrefix(" +++ improved");
 		else
 			{
 			ProgressLogNoPrefix("  di=%u", di);
-			if (VarIsStalled)
+			if (di >= 3)
 				ProgressLogNoPrefix(" STALLED");
 			}
 		ProgressLogNoPrefix("\n");
@@ -308,11 +304,11 @@ bool Peaker::HJ_Iter()
 	{
 	double Saved_Best_y = m_Best_y;
 	bool try_stalled = (m_HJIter%4 == 0);
-	HJ_Explore(true, false);
+	HJ_Explore(false);
 	double Height = m_Best_y - Saved_Best_y;
 	if (Height == 0 && !try_stalled)
 		{
-		HJ_Explore(false, true);
+		HJ_Explore(true);
 		Height = m_Best_y - Saved_Best_y;
 		}
 
