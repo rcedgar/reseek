@@ -27,7 +27,6 @@ Squared distance sd(i,j) stored for all 1 < |i-j| <= M
 
 Flat distamx matrix layout:
     distmx[M*i + j - i - 1] where j = i+1, i+2 ... i+M
-    k   = M*(i-1) - 1 + j
 ***/
 
 using ic_t = uint16_t;	// 1/10th Angstrom units

@@ -270,6 +270,7 @@ double Peaker::HJ_TryDelta(const string &reason,
 	DeltaVar(VarIdx, Plus, OldStr, NewStr);
 	if (NewStr == OldStr)
 		{
+		Try_xv = Start_xv;
 		ProgressLogNoPrefix("%s: HJ_TryDelta(%s%c) DeltaVar %s=%s no change\n",
 			m_Name.c_str(), reason.c_str(), pom(Plus), VarName, OldStr.c_str());
 		return Start_y;

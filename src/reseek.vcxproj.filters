@@ -1267,6 +1267,9 @@
     <ClInclude Include="flat_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rotfreetm_v2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">

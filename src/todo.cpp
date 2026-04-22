@@ -9,6 +9,11 @@ DALI score
 	Weight DALI score by SS/SEC alphabet match
 
 TM-score, how to do without Kabsch?
+	rotfreetm.cpp/h
+	binning longer distances possibly improves speed of refinement
+	  (but not calculation given alignment)
+	re-define alignment without 1:1, e.g. residue-> 3D 
+	  coordinate of chain defined by C-alpha links.
 
 FEN etc
 

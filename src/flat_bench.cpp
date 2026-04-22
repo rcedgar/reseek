@@ -404,7 +404,12 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	asserta(SIZE(Weights) == n);
 	unordered_map<string, float> NameToWeight;
 	for (uint i = 0; i < n; ++i)
-		NameToWeight[AlphaNames[i]] = Weights[i];
+		{
+		const string &name = AlphaNames[i];
+		if (NameToWeight.find(name) != NameToWeight.end())
+			Die("Dupe name in spec '%s'", name.c_str());
+		NameToWeight[name] = Weights[i];
+		}
 	ApplyWeightsToLogOdds(NameToWeight);
 
 	set_selfrev_scores();
