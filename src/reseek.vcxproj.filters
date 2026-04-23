@@ -770,6 +770,9 @@
     <ClCompile Include="flat_selfrev.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alignself.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

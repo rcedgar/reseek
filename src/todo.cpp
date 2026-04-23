@@ -8,7 +8,19 @@ DALI score
 	Transition to DALI score for low mega, better for fold recognition
 	Weight DALI score by SS/SEC alphabet match
 
-Fold recognition by image recognition of Reseek similarity matrix
+Fold recognition by image recognition of Reseek similarity matrix (NO)
+
+Fold recognition:
+	Consensus fold represented as "contact map" of SSEs (inc. loop)
+	  separated by linkers
+	Each segment of the structure has feature vector
+		Frequency of sec32 letters
+		mean & stdev length
+	Each cell in the map has relation e.g.
+		non-local contact (for pair of SSEs)
+		if adjacent then { linear, hairpin, kink... }
+	
+	Learn consensus from MStA
 
 TM-score, how to do without Kabsch?
 	rotfreetm.cpp/h

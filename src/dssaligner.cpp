@@ -1471,7 +1471,7 @@ void DSSAligner::WriteSMx(FILE *f) const
 		}
 	}
 
-void DSSAligner::WriteDPMx(FILE *f) const
+void DSSAligner::WriteDPMx(FILE *f, bool NonSelf) const
 	{
 	const uint LA = m_ChainA->GetSeqLength();
 	const uint LB = m_ChainB->GetSeqLength();
@@ -1482,14 +1482,25 @@ void DSSAligner::WriteDPMx(FILE *f) const
 	XDPMem Mem;
 	string Path;
 	uint LoA, LoB;
+
 	float SWFast_returnDPmatrix(
 		XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
 		float Open, float Ext, 
 		uint &Loi, uint &Loj, uint &Leni, uint &Lenj, string &Path,
 		vector<vector<float> > &DPMx);
-	float AlnScore = SWFast_returnDPmatrix(Mem, GetSMxData(), LA, LB,
-	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
-	  LoA, LoB, Leni, Lenj, Path, DPMx);
+	float SWFast_returnDPmatrix_nonself(
+		XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
+		float Open, float Ext, 
+		uint &Loi, uint &Loj, uint &Leni, uint &Lenj, string &Path,
+		vector<vector<float> > &DPMx);
+
+	float AlnScore = NonSelf ?
+		SWFast_returnDPmatrix_nonself(Mem, GetSMxData(), LA, LB,
+		  DSSParams::m_GapOpen, DSSParams::m_GapExt,
+		  LoA, LoB, Leni, Lenj, Path, DPMx) :
+		SWFast_returnDPmatrix(Mem, GetSMxData(), LA, LB,
+		  DSSParams::m_GapOpen, DSSParams::m_GapExt,
+		  LoA, LoB, Leni, Lenj, Path, DPMx);
 	for (uint PosA = 0; PosA < LA; ++PosA)
 		{
 		fprintf(f, "%c", A[PosA]);

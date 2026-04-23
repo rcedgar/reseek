@@ -130,5 +130,6 @@ C(flat_hjjoin)
 C(puu)
 C(dss_logodds)
 C(flat_selfrev)
+C(alignself)
 
 #undef C
