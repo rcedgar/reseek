@@ -97,6 +97,18 @@ static float AlignPair1(DSS &D, DSSAligner &DA,
 	float Score = DA.m_AlnFwdScore;
 	if (DoOutput)
 		{
+		if (optset_output4)
+			{
+			FILE *f = CreateStdioFile(opt(output4));
+			DA.WriteDPMx(f);
+			CloseStdioFile(f);
+			}
+		if (optset_output3)
+			{
+			FILE *f = CreateStdioFile(opt(output3));
+			DA.WriteSMx(f);
+			CloseStdioFile(f);
+			}
 		if (optset_aln)
 			{
 			FILE *f = CreateStdioFile(opt(aln));

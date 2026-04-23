@@ -235,6 +235,8 @@ public:
 				   const ChainBag &BagB);
 	bool DoMKF_Bags(const ChainBag &BagA,
 					const ChainBag &BagB) const;
+	void WriteSMx(FILE *f) const;
+	void WriteDPMx(FILE *f) const;
 
 public:
 	static void Stats();

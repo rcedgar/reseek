@@ -8,6 +8,8 @@ DALI score
 	Transition to DALI score for low mega, better for fold recognition
 	Weight DALI score by SS/SEC alphabet match
 
+Fold recognition by image recognition of Reseek similarity matrix
+
 TM-score, how to do without Kabsch?
 	rotfreetm.cpp/h
 	binning longer distances possibly improves speed of refinement
@@ -17,7 +19,7 @@ TM-score, how to do without Kabsch?
 
 FEN etc
 
-PUU
+PUU domain detection
 
 Use landmarks to make a composition vector
 	|----------|------------|----------|
