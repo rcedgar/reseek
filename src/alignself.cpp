@@ -35,6 +35,7 @@ void cmd_alignself()
 		D.GetProfile(Profile);
 		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
 		DA.SetTarget(*Chain, &Profile, 0, 0, FLT_MAX);
+		DA.AlignQueryTarget();
 		DA.WriteDPMx(fOut, true);
 		}
 	CloseStdioFile(fOut);

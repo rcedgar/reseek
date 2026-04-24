@@ -430,7 +430,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	if (m_fTsv != 0)
 		{
 		fprintf(m_fTsv, "%.6g", y);
-		fprintf(m_fTsv, "\t%s", dy > 0 ? ">>" : "..");
+		fprintf(m_fTsv, "\t%s", why.c_str());
 		fprintf(m_fTsv, "\t%.2g", dy);
 		fprintf(m_fTsv, "\t%s", desc.c_str());
 		fprintf(m_fTsv, "\t%s", xss.c_str());
@@ -457,6 +457,21 @@ double Peaker::Evaluate(const vector<string> &axv, const string &awhy)
 		y = Calc(xv);
 	AppendResult(xv, y, why);
 	return y;
+	}
+
+double Peaker::Evaluate(const string &varstr, const string &why)
+	{
+	vector<string> flds;
+	Split(varstr, flds, ';');
+	vector<string> xv;
+	for (size_t i = 0; i < flds.size(); ++i)
+		{
+		vector<string> flds2;
+		Split(flds[i], flds2, '=');
+		asserta(flds2.size() == 2);
+		xv.push_back(flds2[1]);
+		}
+	return Evaluate(xv, why);
 	}
 
 void Peaker::GetVarNames(
@@ -982,4 +997,143 @@ void Peaker::RunLatinClimb1()
 	RunLatin(LatinBinCount);
 	HJ_RunHookeJeeves();
 	WriteFinalResults(g_fLog);
+	}
+
+void Peaker::LoadTSV(const string &fn)
+	{
+	const uint nvar = GetVarCount();
+	FILE *f = OpenStdioFile(fn);
+	string line;
+	vector<string> flds;
+	// 1=y 2=why 3=dy 4=desc 5=varstr
+	while (ReadLineStdioFile(f, line))
+		{
+		Split(line, flds, '\t');
+		asserta(flds.size() == 5);
+		double y = StrToFloat(flds[0]);
+		const string &why = flds[1];
+		const string &varstr = flds[4];
+		vector<string> xv;
+		xss2xv(varstr, xv);
+		AppendResult(xv, y, why);
+		}
+	CloseStdioFile(f);
+	}
+
+static double get_random_float(double minx, double maxx)
+	{
+	const uint M = 1000;
+	uint i = randu32()%M;
+	double r = minx + (i*(maxx - minx)/(M-1));
+	asserta(r >= minx && r <= maxx);
+	return r;
+	}
+
+double Peaker::Bracket_FindNeighbor(
+	uint VarIdx,
+	bool Plus,
+	double mindy_pct,
+	double maxdy_pct,
+	uint max_iters,
+	string &value_str,
+	double &rate)
+	{
+	vector<string> &saved_bestxv = m_Best_xv;
+	const double saved_besty = m_Best_y;
+	const string &start_str = saved_bestxv[VarIdx];
+	double start_value = VarStrToFloat(VarIdx, start_str);
+
+	if (rate == FLT_MAX) rate = 0.05;
+	double upper_rate = FLT_MAX;
+	double lower_rate = FLT_MAX;
+	for (uint iter = 0; iter < max_iters; ++iter)
+		{
+		double old_rate = rate;
+		vector<string> xv = saved_bestxv;
+
+		double try_value = Plus ?
+			start_value*(1 + rate) :
+			start_value*(1 - rate);
+
+		string try_str;
+		Ps(try_str, "%.5g", try_value);
+		xv[VarIdx] = try_str;
+	
+		double y = Evaluate(xv, "bktnbr");
+		double dy = y - saved_besty;
+		double pct = GetPct(abs(dy), y);
+		ProgressLog("Bracket_FindNeighbor %c%s", pom(Plus), GetVarName(VarIdx));
+		ProgressLog(" [%.5g]  y=%.5g", saved_besty, y);
+		ProgressLog(" dy=%.5g (%.2f%%)", dy, pct);
+		if (pct < mindy_pct)
+			{
+			lower_rate = rate;
+			rate *= (1 + get_random_float(0.4, 0.8));
+			if (upper_rate != FLT_MAX && rate > upper_rate)
+				rate = (lower_rate + upper_rate)/2;
+			ProgressLog(" iter %u/%u too small (min=%.3g%%) rate %.5g -> %.5g\n",
+				iter+1, max_iters, mindy_pct, old_rate, rate);
+			}
+		else if (pct > maxdy_pct)
+			{
+			upper_rate = rate;
+			rate /= (1 + get_random_float(0.4, 0.8));
+			if (lower_rate != FLT_MAX && rate < lower_rate)
+				rate = (lower_rate + upper_rate)/2;
+			ProgressLog(" iter %u/%u too large (max=%.3g%%) rate %.5g -> %.5g\n",
+				iter+1, max_iters, maxdy_pct, old_rate, rate);
+			}
+		else
+			{
+			ProgressLog(" OK\n");
+			value_str = try_str;
+			return y;
+			}
+		if (iter+1 == max_iters && y != saved_besty)
+			{
+			value_str = try_str;
+			ProgressLog(" quit (iters)\n");
+			return y;
+			}
+		}
+	value_str = "";
+	ProgressLog(" quit (dy=0)\n");
+	return DBL_MAX;
+	}
+
+void Peaker::Bracket_FindNeighbors(
+	double mindy_pct, double maxdy_pct, uint max_iters,
+	vector<string> &plus_value_strs,
+	vector<string> &minus_value_strs,
+	vector<double> &plus_ys,
+	vector<double> &minus_ys,
+	vector<double> &rates)
+	{
+	asserta(mindy_pct < maxdy_pct);
+	plus_value_strs.clear();
+	minus_value_strs.clear();
+	plus_ys.clear();
+	minus_ys.clear();
+
+	const uint VarCount = GetVarCount();
+
+	plus_value_strs.resize(VarCount);
+	minus_value_strs.resize(VarCount);
+	plus_ys.resize(VarCount);
+	minus_ys.resize(VarCount);
+
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		ProgressLog("\n=== Neighbor %u/%u %s ===\n",
+			VarIdx+1, VarCount, GetVarName(VarIdx));
+		plus_ys[VarIdx] = 
+			Bracket_FindNeighbor(
+				VarIdx, true, mindy_pct, maxdy_pct,
+				max_iters, plus_value_strs[VarIdx], rates[VarIdx]);
+
+		minus_ys[VarIdx] = 
+			Bracket_FindNeighbor(
+				VarIdx, false, mindy_pct, maxdy_pct,
+				max_iters, minus_value_strs[VarIdx], rates[VarIdx]);
+		}
 	}

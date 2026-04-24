@@ -66,6 +66,7 @@ public:
 	void LogSpec() const;
 	void LogState() const;
 	void InitRates();
+	void LoadTSV(const string &fn);
 
 	// Child
 	void GetPeakerPathStr(string &s) const;
@@ -76,6 +77,7 @@ public:
 	uint GetVarIdx(const string &Name, bool FailOk = false) const;
 	uint GetVarCount() const { return SIZE(m_VarSpecs); }
 
+	double Evaluate(const string &varstr, const string &why);
 	double Evaluate(const vector<string> &xv, const string &why);
 	double Calc(const vector<string> &xv);
 	void RunLatinClimb1();
@@ -90,6 +92,7 @@ public:
 
 	bool GetNearestNeighbor(const vector<string> &xv,
 		uint VarIdx, bool Plus, vector<string> &Neighbor_xv, double &y) const;
+
 	void WriteFinalPeak(FILE *f) const;
 
 	// Latin
@@ -154,6 +157,23 @@ public:
 	double GetRateFactor(bool Plus);
 	double GetIncreaseRateFactor();
 	double GetDecreaseRateFactor();
+
+	double Bracket_FindNeighbor(
+		uint VarIdx,
+		bool Plus,
+		double mindy_pct,
+		double maxdy_pct,
+		uint max_iters,
+		string &value_str,
+		double &rate);
+
+	void Bracket_FindNeighbors(
+		double mindy_pct, double maxdy_pct, uint max_iters,
+		vector<string> &plus_value_strs,
+		vector<string> &minus_value_strs,
+		vector<double> &plus_ys,
+		vector<double> &minus_ys,
+		vector<double> &rates);
 
 public:
 	static void GetGlobalSpec(const vector<string> &SpecLines,

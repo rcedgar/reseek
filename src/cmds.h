@@ -131,5 +131,6 @@ C(puu)
 C(dss_logodds)
 C(flat_selfrev)
 C(alignself)
+C(flat_hjmega_bracket)
 
 #undef C

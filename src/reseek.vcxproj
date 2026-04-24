@@ -326,6 +326,7 @@
     <ClCompile Include="flat_features.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
+    <ClCompile Include="flat_hjmega_bracket.cpp" />
     <ClCompile Include="flat_lddt.cpp" />
     <ClCompile Include="flat_lddt_old.cpp" />
     <ClCompile Include="flat_merge_features.cpp" />

@@ -485,9 +485,6 @@ void cmd_flat_bench()
 	vector<string> scalar_names;
 	vector<float> weights;
 	vector<float> scalar_values;
-	float selfw = 0;
-	float revw = 0;
-	bool need_distmxs = false;
 	flat_bench::ClassifyParams(param_names, param_values,
 		feature_names, weights,
 		scalar_names, scalar_values);

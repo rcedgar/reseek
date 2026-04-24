@@ -28,20 +28,6 @@ static double EvalSum3(const vector<string> &xv)
 	return s_FB->m_Sum3;
 	}
 
-static void EvalSum3_VarStr(flat_bench &FullFB, const string &VarStr)
-	{
-	s_FB = &FullFB;
-	s_FB->ClearHitsAndResults();
-	s_FB->UpdateParamsFromVarStr(VarStr);
-	if (optset_dope)
-		s_FB->Search("dope");
-	else
-		s_FB->Search("all");
-	s_FB->SetScoreOrder_Parallel();
-	s_FB->Bench();
-	s_FB->WriteHits(opt(output));
-	}
-
 static void Optimize(
 	const string &OptName,
 	const vector<string> &SpecLines,
