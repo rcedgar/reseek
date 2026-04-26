@@ -10,7 +10,7 @@ void flat_chain_t::set_xyz(const vector<float> &Xs,
 	const vector<float> &Ys, const vector<float> &Zs)
 	{
 	const uint32_t L = SIZE(Xs);
-	m_xyz->falloc(L);
+	//m_xyz->falloc(L);
 	for (uint32_t i = 0; i < L; ++i)
 		{
 		uint16_t ic_x = PDBChain::CoordToIC(Xs[i]);
@@ -25,13 +25,14 @@ void flat_chain_t::set_xyz(const vector<float> &Xs,
 void flat_chain_t::set_aa(const vector<char> &aas)
 	{
 	const uint32_t L = SIZE(aas);
-	m_aa->falloc(L);
+	//m_aa->falloc(L);
 	memcpy(m_aa->m_data, aas.data(), L);
 	}
 
 bool flat_chain_t::from_pdb_lines(const string &label,
 	const vector<string> &lines, bool save_lines)
 	{
+	asserta(m_L == 0);
 	if (save_lines)
 		m_lines = lines;
 	m_label = label;
@@ -73,6 +74,8 @@ bool flat_chain_t::from_pdb_lines(const string &label,
 		Ys.push_back(Y);
 		Zs.push_back(Z);
 		}
+	const uint L = uint(aas.size());
+	falloc(L);
 	set_xyz(Xs, Ys, Zs);
 	set_aa(aas);
 

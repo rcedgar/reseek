@@ -2,10 +2,6 @@
 
 typedef double (*PTR_EVAL_FUNC)(const vector<string> &xv);
 
-static const uint MIN_RATE = 1;
-static const uint MED_RATE = 3;
-static const uint MAX_RATE = 5;
-
 class Peaker
 	{
 public:

@@ -5,8 +5,8 @@
 
 void log_flat_stats(const string &msg = "");
 
-#define TRACK_ACTIVE	1
-#define TRACK_SRC		1
+#define TRACK_ACTIVE	0
+#define TRACK_SRC		0
 
 // Global atomics shared by all threads
 // Simpler, faster and smaller compared to ObjMgr
@@ -45,9 +45,11 @@ protected:
 		{
 		m_size = n;
 		m_data = n == 0 ? 0 : (T*) aligned_malloc(n*sizeof(T));
+#if TRACK_ACTIVE
 		++g_flat_creates[fe];
 		g_flat_bytes[fe] += n*sizeof(T);
 		m_refcount = 1;
+#endif
 #if TRACK_SRC
 		m_srcfile = 0;
 		m_srcline = 0;
@@ -61,8 +63,10 @@ protected:
 	~flat_base()
 		{
 		asserta(m_refcount == 0);
+#if TRACK_ACTIVE
 		++g_flat_destroys[fe];
 		g_flat_bytes[fe] -= m_size*sizeof(T);
+#endif
 		if (m_data) aligned_free(m_data);
 #if TRACK_SRC
 		if (m_srcfile)
@@ -99,7 +103,9 @@ public:
 		asserta(m_size == 0);
 		m_size = n;
 		m_data = (T*) aligned_malloc(m_size*sizeof(T));
+#if TRACK_ACTIVE
 		g_flat_bytes[fe] += n*sizeof(T);
+#endif
 		}
 
 public:
@@ -169,5 +175,5 @@ public:
 #if TRACK_SRC
 #define newflat(...) newflat_src(__VA_ARGS__, __FILE__, __LINE__)
 #else
-#define newflat(...) newflat(__VA_ARGS)
+#define newflat(...) newflat(__VA_ARGS__)
 #endif

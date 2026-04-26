@@ -413,7 +413,14 @@ void get_logoddsmx_from_freqs(
 		double f_i = freqs[i];
 		for (uint j = 0; j < alpha_size; ++j)
 			{
+			bool small = false;
 			double f_j = freqs[j];
+			if (f_j < 1e-6)
+				{
+				Warning("f_ij[%u][%u] = %.3g", i, j, f_j);
+				small = true;
+				}
+
 			double f_ij = freqmx[i][j];
 			if (!feq(freqmx[j][i], f_ij))
 				Warning("f_[%d][%d] = %.3g != f_[%u][%u] = %.3g",
@@ -423,7 +430,12 @@ void get_logoddsmx_from_freqs(
 			if (f_ij < 1e-6)
 				{
 				Warning("f_ij[%u][%u] = %.3g", i, j, f_ij);
-				f_ij = 1e-6;
+				small = true;
+				}
+			if (small)
+				{
+				logoddsmx[i][j] = 0;
+				continue;
 				}
 			if (units == "bits")
 				logoddsmx[i][j] = log2(f_ij) - log2(f_i) - log2(f_j);
