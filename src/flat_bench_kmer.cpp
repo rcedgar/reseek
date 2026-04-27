@@ -81,7 +81,7 @@ void flat_bench_kmer::ThreadBody_All(uint ThreadIdx)
 		for (uint DomIdxQ = DomIdxT+1; DomIdxQ < ndom; ++DomIdxQ)
 			{
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
-			uint progress_count = m_progress_counter++;
+			uint progress_count = m_aligned_pair_count++;
 #if SHOW_PROGRESS
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, npair, "Aligning");

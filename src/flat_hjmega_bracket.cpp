@@ -20,9 +20,7 @@ static double EvalSum3(const vector<string> &xv)
 	s_FB->UpdateParamsFromVarStr(VarStr);
 	s_FB->ClearHitsAndResults();
 	if (optset_dope)
-		s_FB->Search("dope");
-	else
-		s_FB->Search("all");
+	s_FB->Search(opt(dope));
 	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	return s_FB->m_Sum3;

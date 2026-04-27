@@ -12,9 +12,10 @@ static const uint M = 64;
 
 #define	SHOW_PROGRESS	1
 
-atomic<uint> flat_bench::m_progress_counter;
+atomic<uint> flat_bench::m_aligned_pair_count;
 atomic<uint> flat_bench::m_ncachehits;
 atomic<uint> flat_bench::m_ncachemisses;
+atomic<bool> flat_bench::m_max_secs_exceeded;
 
 static FILE *s_ftsv;
 static mutex s_ftsv_lock;
@@ -23,6 +24,16 @@ void ParseVarStr(
 	const string &VarStr,
 	vector<string> &Names,
 	vector<float> &Values);
+
+void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
+	{
+	asserta(MaxSecs > 0);
+	m_max_secs_exceeded = false;
+	if (MaxSecs == UINT_MAX)
+		return;
+	std::this_thread::sleep_for(std::chrono::seconds(MaxSecs));
+	m_max_secs_exceeded = true;
+	}
 
 void flat_bench::load_profiles(const string &fafnpattern)
 	{
@@ -189,8 +200,41 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	s_ftsv_lock.unlock();
 	}
 
+void flat_bench::Launch(bool UseDope, uint MaxSecs)
+	{
+	asserta(MaxSecs != 0);
+	m_ThreadCount = GetRequestedThreadCount();
+	m_NextQueryIdx = 0;
+	m_NextDopeIdx = 0;
+	m_aligned_pair_count = 0;
+	m_ncachehits = 0;
+	m_ncachemisses = 0;
+	
+	thread *max_secs_thread = 0;
+	if (MaxSecs != UINT_MAX)
+		max_secs_thread = new thread(StaticThreadBody_MaxSecs, MaxSecs);
+
+	vector<thread *> ts;
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(StaticThreadBody, this, ThreadIndex, UseDope);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+	if (max_secs_thread != 0)
+		{
+		max_secs_thread->join();
+		delete max_secs_thread;
+		}
+	}
+
+
 void flat_bench::ThreadBody_All(uint ThreadIdx)
 	{
+	m_aligned_pair_count = 0;
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = flat_features::get_nfeat();
@@ -207,13 +251,15 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		//   triangle*() functions include diagonal
 		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
 			{
+			if (m_max_secs_exceeded)
+				return;
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
-			uint progress_count = m_progress_counter++;
+			doQ(fa, DomIdxQ, DomIdxT);
+			uint progress_count = m_aligned_pair_count++;
 #if SHOW_PROGRESS
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
 #endif
-			doQ(fa, DomIdxQ, DomIdxT);
 			}
 		}
 	}
@@ -221,6 +267,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
+	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
 	const uint nfeat = flat_features::get_nfeat();
 	flat_aligner fa;
@@ -230,6 +277,8 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	uint CurrentDomIdxT = UINT_MAX;
 	for (;;)
 		{
+		if (m_max_secs_exceeded)
+			return;
 		uint dopeidx = m_NextDopeIdx++;
 		if (dopeidx >= m_dope_nhit)
 			{
@@ -252,53 +301,30 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 			doT(fa, DomIdxT);
 			CurrentDomIdxT = DomIdxT;
 			}
-		uint progress_count = m_progress_counter++;
 		doQ(fa, DomIdxQ, DomIdxT);
+		++m_aligned_pair_count;
 		}
 	}
 
-void flat_bench::Search(const string &how)
+void flat_bench::Search(bool UseDope, uint MaxSecs)
 	{
 	Alloc();
 
 #if SHOW_PROGRESS
-	if (how == "all")
+	if (UseDope)
+		ProgressStep(0, m_dope_nhit, "Aligning");
+	else
 		{
 		const uint NQ = SIZE(m_Labels);
 		const uint PairCount = triangle_get_K(NQ);
 		ProgressStep(0, PairCount, "Aligning");
 		}
-	else if (how == "dope")
-		{
-		ProgressStep(0, m_dope_nhit, "Aligning");
-		}
 #endif
 
-	m_ThreadCount = GetRequestedThreadCount();
-	m_NextQueryIdx = 0;
-	m_NextDopeIdx = 0;
-	m_progress_counter = 0;
-	m_ncachehits = 0;
-	m_ncachemisses = 0;
-	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
-		{
-		thread *t = new thread(StaticThreadBody, this, ThreadIndex, how);
-		ts.push_back(t);
-		}
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
-		ts[ThreadIndex]->join();
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
-		delete ts[ThreadIndex];
+	Launch(UseDope, MaxSecs);
 
 #if SHOW_PROGRESS
-	if (how == "all")
-		{
-		const uint NQ = SIZE(m_Labels);
-		const uint PairCount = triangle_get_K(NQ);
-		ProgressStep(PairCount-1, PairCount, "Aligning");
-		}
-	else if (how == "dope")
+	if (UseDope)
 		{
 		ProgressStep(m_dope_nhit-1, m_dope_nhit, "Aligning");
 		uint hits = m_ncachehits;
@@ -306,18 +332,28 @@ void flat_bench::Search(const string &how)
 		ProgressLog("Cache misses %u, hits %u (%.1f%%)\n",
 			misses, hits, GetPct(hits, hits+misses));
 		}
+	else
+		{
+		const uint NQ = SIZE(m_Labels);
+		const uint PairCount = triangle_get_K(NQ);
+		ProgressStep(PairCount-1, PairCount, "Aligning");
+		}
 #endif
+	if (MaxSecs != UINT_MAX)
+		{
+		uint n = m_aligned_pair_count;
+		ProgressLog("%u threads %u (%s) alignments\n",
+			opt_threads, n, IntToStr(n));
+		}
 	}
 
 void flat_bench::StaticThreadBody(flat_bench *SB,
-	uint ThreadIdx, const string &how)
+	uint ThreadIdx, bool UseDope)
 	{
-	if (how == "all")
-		SB->ThreadBody_All(ThreadIdx);
-	else if (how == "dope")
+	if (UseDope)
 		SB->ThreadBody_Dope(ThreadIdx);
 	else
-		Die("how=%s", how.c_str());
+		SB->ThreadBody_All(ThreadIdx);
 	}
 
 void flat_bench::SetScalarParams(
@@ -507,10 +543,37 @@ void cmd_flat_bench()
 		return;
 		}
 
+	if (optset_thread_counts)
+		{
+		asserta(!optset_threads);
+		const uint max_secs = optset_maxsecs ? opt(maxsecs) : 5;
+		const uint iters = optset_iters ? opt(iters) : 5;
+		vector<string> flds;
+		Split(opt(thread_counts), flds, ',');
+		for (size_t i = 0; i < flds.size(); ++i)
+			{
+			vector<uint> alns;
+			for (uint iter = 0; iter < iters; ++iter)
+				{
+				const uint nt = StrToUint(flds[i]);
+				opt_threads = nt;
+				optset_threads = true;
+				FB.Search(true, max_secs);
+				alns.push_back(FB.m_aligned_pair_count);
+				}
+			vector<uint> order(iters);
+			QuickSortOrderDesc(alns.data(), iters, order.data());
+			uint median = alns[order[iters/2]];
+			ProgressLog("%u threads median %u (%s) alignments\n",
+				opt_threads, median, IntToStr(median));
+			}
+		return;
+		}
+
 	if (optset_dope)
-		FB.Search("dope");
+		FB.Search(true);
 	else
-		FB.Search("all");
+		FB.Search(false);
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));

@@ -35,12 +35,14 @@ public:
 	vector<sid_t *> m_distmxs;
 
 public:
-	static atomic<uint> m_progress_counter;
+	static atomic<uint> m_aligned_pair_count;
 	static atomic<uint> m_ncachehits;
 	static atomic<uint> m_ncachemisses;
+	static atomic<bool> m_max_secs_exceeded;
 
 public:
-	void Search(const string &how);
+	void Search(bool UseDope, uint MaxSecs = UINT_MAX);
+	void Launch(bool UseDope, uint MaxSecs);
 	void ApplyWeightsToLogOdds(const unordered_map<string, float> &Weights);
 	void SetScalarParams(
 		const vector<string> &Names,
@@ -54,7 +56,6 @@ public:
 	void set_distmxs(const string &chainfn);
 	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
 	void doT(flat_aligner &fa, uint domidxT);
-
 
 public:
 // All-vs-all for fast SCOP40 benchmark score only
@@ -74,7 +75,8 @@ public:
 		vector<float> &ScalarValues);
 
 	static void StaticThreadBody(flat_bench *SB,
-		uint ThreadIdx, const string &how);;
+		uint ThreadIdx, bool UseDope);
+	static void StaticThreadBody_MaxSecs(uint MaxSecs);
 	};
 
 void ParseVarStr(

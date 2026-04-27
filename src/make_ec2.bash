@@ -1,6 +1,6 @@
 mkdir -p ../bin
 
-python3 $src/vcxproj_make/vcxproj_make.py --git_hash --ec2 --openmp --bash 2> make.stderr
+python3 $src/vcxproj_make/vcxproj_make.py --git_hash --openmp --bash --ec2 --binary reseek_ec2 2> make.stderr
 rc=$?
 
 echo
@@ -20,4 +20,4 @@ else
 fi
 echo
 
-ls -lh ../bin/reseek
+ls -lh ../bin/reseek_ec2

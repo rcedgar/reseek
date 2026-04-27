@@ -41,7 +41,7 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 				Die("isnan(%s,%s)", fa.m_labelQ.c_str(), fa.m_labelT.c_str());
 			asserta(!isinf(Score));
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
-			uint progress_count = m_progress_counter++;
+			uint progress_count = m_aligned_pair_count++;
 #if SHOW_PROGRESS
 			if (progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
@@ -91,11 +91,11 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 		const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
 		const uint LQ = m_fp.get_length(DomIdxQ);
 		fa.alignQ(labelQ, profQ, LQ);
+		++m_aligned_pair_count;
 		float Score = get_feature_value(DomIdxQ, DomIdxT, fa);
 		asserta(!isnan(Score));
 		asserta(!isinf(Score));
 		uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, ndom);
-		uint progress_count = m_progress_counter++;
 		AppendHit(DomIdxT, DomIdxQ, Score);
 		}
 	}
@@ -316,10 +316,7 @@ void cmd_flat_bench_struct_feature()
 	FB.LogParams();
 	FB.Alloc();
 
-	if (optset_dope)
-		FB.Search("dope");
-	else
-		FB.Search("all");
+	FB.Search(opt(dope), UINT_MAX);
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), true);
