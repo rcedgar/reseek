@@ -316,7 +316,8 @@ void cmd_flat_bench_struct_feature()
 	FB.LogParams();
 	FB.Alloc();
 
-	FB.Search(opt(dope), UINT_MAX);
+	uint ThreadCount = GetRequestedThreadCount();
+	FB.Search(ThreadCount, false, opt(dope), UINT_MAX);
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), true);

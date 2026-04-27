@@ -686,9 +686,6 @@
     <ClCompile Include="nu_threshold.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_bench_kmer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reduce_alphabet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1240,9 +1237,6 @@
     <ClInclude Include="entropy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_bench_kmer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="kappa_mermx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1275,6 +1269,9 @@
     </ClInclude>
     <ClInclude Include="rotfreetm_v2.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_affinity.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

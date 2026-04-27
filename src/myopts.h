@@ -221,6 +221,7 @@ FLAG_OPT(scorefirst)
 FLAG_OPT(integers)
 FLAG_OPT(triangle)
 FLAG_OPT(include_self)
+FLAG_OPT(no_thread_pin)
 
 #undef FLAG_OPT
 #undef UNS_OPT

@@ -315,7 +315,6 @@
     <ClCompile Include="flat_align_selfrev_mega.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
-    <ClCompile Include="flat_bench_kmer.cpp" />
     <ClCompile Include="flat_bench_struct_feature.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
@@ -558,7 +557,6 @@
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="flat_aligner.h" />
-    <ClInclude Include="flat_bench_kmer.h" />
     <ClInclude Include="flat_bench_struct_feature.h" />
     <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />
@@ -659,6 +657,7 @@
     <ClInclude Include="subsetbench.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="tabbedlines.h" />
+    <ClInclude Include="thread_affinity.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="tracebit.h" />

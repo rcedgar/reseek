@@ -7,6 +7,7 @@
 #include "flat_helpers.h"
 #include "flat_alignx.h"
 #include "flat_aligner.h"
+#include "thread_affinity.h"
 
 static const uint M = 64;
 
@@ -200,29 +201,34 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	s_ftsv_lock.unlock();
 	}
 
-void flat_bench::Launch(bool UseDope, uint MaxSecs)
+void flat_bench::Launch(
+	uint ThreadCount, bool PinThreads, bool UseDope, uint MaxSecs)
 	{
 	asserta(MaxSecs != 0);
-	m_ThreadCount = GetRequestedThreadCount();
 	m_NextQueryIdx = 0;
 	m_NextDopeIdx = 0;
 	m_aligned_pair_count = 0;
 	m_ncachehits = 0;
 	m_ncachemisses = 0;
+
+	ProgressLog("%u threads, pin=%c\n", ThreadCount, tof(PinThreads));
 	
 	thread *max_secs_thread = 0;
 	if (MaxSecs != UINT_MAX)
 		max_secs_thread = new thread(StaticThreadBody_MaxSecs, MaxSecs);
 
+	thread_affinity ta;
 	vector<thread *> ts;
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		thread *t = new thread(StaticThreadBody, this, ThreadIndex, UseDope);
+		if (PinThreads)
+			ta.pinThread(*t, ThreadIndex);
 		ts.push_back(t);
 		}
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		ts[ThreadIndex]->join();
-	for (uint ThreadIndex = 0; ThreadIndex < m_ThreadCount; ++ThreadIndex)
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	if (max_secs_thread != 0)
 		{
@@ -306,7 +312,8 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		}
 	}
 
-void flat_bench::Search(bool UseDope, uint MaxSecs)
+void flat_bench::Search(
+	uint ThreadCount, bool PinThreads, bool UseDope, uint MaxSecs)
 	{
 	Alloc();
 
@@ -321,7 +328,7 @@ void flat_bench::Search(bool UseDope, uint MaxSecs)
 		}
 #endif
 
-	Launch(UseDope, MaxSecs);
+	Launch(ThreadCount, PinThreads, UseDope, MaxSecs);
 
 #if SHOW_PROGRESS
 	if (UseDope)
@@ -343,7 +350,7 @@ void flat_bench::Search(bool UseDope, uint MaxSecs)
 		{
 		uint n = m_aligned_pair_count;
 		ProgressLog("%u threads %u (%s) alignments\n",
-			opt_threads, n, IntToStr(n));
+			ThreadCount, n, IntToStr(n));
 		}
 	}
 
@@ -546,34 +553,48 @@ void cmd_flat_bench()
 	if (optset_thread_counts)
 		{
 		asserta(!optset_threads);
+		const uint WARMUP_SECS = 60;
+		time_t t0 = time(0);
+		uint nt = GetCPUCoreCount();
+		for (;;)
+			{
+			time_t now = time(0);
+			uint elapsed_so_far = uint(now - t0);
+			if (elapsed_so_far >= WARMUP_SECS)
+				break;
+			const uint max_secs = WARMUP_SECS - elapsed_so_far;
+			ProgressLog("\nWARMUP +%u secs\n", max_secs);
+			FB.Search(nt, false, optset_dope, max_secs);
+			}
+		ProgressLog("\nWARMUP DONE\n");
 		const uint max_secs = optset_maxsecs ? opt(maxsecs) : 5;
 		const uint iters = optset_iters ? opt(iters) : 5;
 		vector<string> flds;
 		Split(opt(thread_counts), flds, ',');
+		thread_affinity ta;
 		for (size_t i = 0; i < flds.size(); ++i)
 			{
+			const uint ThreadCount = StrToUint(flds[i]);
+			bool pin = opt(no_thread_pin) ? false : ta.shouldPin(ThreadCount);
 			vector<uint> alns;
 			for (uint iter = 0; iter < iters; ++iter)
 				{
-				const uint nt = StrToUint(flds[i]);
-				opt_threads = nt;
-				optset_threads = true;
-				FB.Search(true, max_secs);
+				FB.Search(ThreadCount, pin, optset_dope, max_secs);
 				alns.push_back(FB.m_aligned_pair_count);
 				}
 			vector<uint> order(iters);
 			QuickSortOrderDesc(alns.data(), iters, order.data());
 			uint median = alns[order[iters/2]];
-			ProgressLog("%u threads median %u (%s) alignments\n",
-				opt_threads, median, IntToStr(median));
+			ProgressLog("%u threads median %u (%s) alignments pin %c\n",
+				ThreadCount, median, IntToStr(median), yon(pin));
 			}
 		return;
 		}
 
-	if (optset_dope)
-		FB.Search(true);
-	else
-		FB.Search(false);
+	uint ThreadCount = GetRequestedThreadCount();
+	thread_affinity ta;
+	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(ThreadCount);
+	FB.Search(ThreadCount, pin, optset_dope, UINT_MAX);
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
