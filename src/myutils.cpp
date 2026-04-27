@@ -913,18 +913,39 @@ double GetPhysMemBytes()
 
 double GetMemUseBytes()
 {
-    double total;
+	// Report resident set size (RSS) on Linux so progress memory
+	// reflects actual process footprint rather than glibc arena growth.
+	// arena/hblkhd can monotonically increase with thread churn.
+	double total = 0.0;
+	FILE *f = fopen("/proc/self/status", "r");
+	if (f != 0)
+		{
+		char Line[256];
+		while (fgets(Line, sizeof(Line), f))
+			{
+			unsigned long kb = 0;
+			if (sscanf(Line, "VmRSS: %lu kB", &kb) == 1)
+				{
+				total = double(kb)*1024.0;
+				break;
+				}
+			}
+		fclose(f);
+		}
 
+	if (total <= 0.0)
+		{
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
-    struct mallinfo2 mi = mallinfo2();
-    total = double(mi.arena) + double(mi.hblkhd);
+		struct mallinfo2 mi = mallinfo2();
+		total = double(mi.arena) + double(mi.hblkhd);
 #else
-    struct mallinfo mi = mallinfo();
-    total = double(mi.arena) + double(mi.hblkhd);
+		struct mallinfo mi = mallinfo();
+		total = double(mi.arena) + double(mi.hblkhd);
 #endif
+		}
 
-    UpdMemUse(total);
-    return total;
+	UpdMemUse(total);
+	return total;
 }
 
 #elif defined(__MACH__)

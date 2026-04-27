@@ -250,7 +250,10 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		{
 		uint DomIdxT = m_NextQueryIdx++;
 		if (DomIdxT >= NQ)
+			{
+			fa.freemem();
 			return;
+			}
 
 		doT(fa, DomIdxT);
 		// Includes self-score for santify checking and because
@@ -258,7 +261,10 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
 			{
 			if (m_max_secs_exceeded)
+				{
+				fa.freemem();
 				return;
+				}
 			uint PairIdx = triangle_ij_to_k(DomIdxT, DomIdxQ, NQ);
 			doQ(fa, DomIdxQ, DomIdxT);
 			uint progress_count = m_aligned_pair_count++;
@@ -268,6 +274,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 #endif
 			}
 		}
+	fa.freemem();
 	}
 
 void flat_bench::ThreadBody_Dope(uint ThreadIdx)
@@ -310,6 +317,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 		doQ(fa, DomIdxQ, DomIdxT);
 		++m_aligned_pair_count;
 		}
+	fa.freemem();
 	}
 
 void flat_bench::Search(
