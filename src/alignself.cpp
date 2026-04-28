@@ -2,6 +2,28 @@
 #include "dssaligner.h"
 #include "chainreader2.h"
 
+//static void DumpDSSFloatFeature(DSS &D, FEATURE F)
+//	{
+//	const uint L = D.m_Chain->GetSeqLength();
+//
+//	for (uint Pos = 0; Pos < L; ++Pos)
+//		{
+//		float v = D.GetFloatFeature(F, Pos);
+//		Log("pos=%u", Pos);
+//		uint pen = D.GetPEN(Pos);
+//		uint men = D.GetMEN(Pos);
+//		float pdist = pen == UINT_MAX ? 0 : D.m_Chain->GetDist(Pos, pen);
+//		float mdist = men == UINT_MAX ? 0 : D.m_Chain->GetDist(Pos, men);
+//
+//		Log(" pen=%u", pen);
+//		Log(" men=%u", men);
+//		Log(" pdist=%.3g", pdist);
+//		Log(" mdist=%.3g", mdist);
+//		Log(" diff=%.3g", pdist - mdist);
+//		Log("\n");
+//		}
+//	}
+
 void cmd_alignself()
 	{
 	const string &QFN = g_Arg1;
@@ -32,6 +54,7 @@ void cmd_alignself()
 
 		DSS D;
 		D.Init(*Chain);
+		//DumpDSSFloatFeature(D, FEATURE_PMDistDiff);
 		D.GetProfile(Profile);
 		DA.SetQuery(*Chain, &Profile, 0, 0, FLT_MAX);
 		DA.SetTarget(*Chain, &Profile, 0, 0, FLT_MAX);

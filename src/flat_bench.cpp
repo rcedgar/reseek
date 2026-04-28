@@ -211,8 +211,6 @@ void flat_bench::Launch(
 	m_ncachehits = 0;
 	m_ncachemisses = 0;
 
-	ProgressLog("%u threads, pin=%c\n", ThreadCount, tof(PinThreads));
-	
 	thread *max_secs_thread = 0;
 	if (MaxSecs != UINT_MAX)
 		max_secs_thread = new thread(StaticThreadBody_MaxSecs, MaxSecs);

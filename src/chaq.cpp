@@ -621,6 +621,30 @@ void chaq::slow_get_values(
 	case FAN_mendist:	memcpy(values, mensids, bytes); break;
 	case FAN_fendist:	memcpy(values, fensids, bytes); break;
 
+	case FAN_pmdiff:
+		{
+		for (uint i = 0; i < L; ++i)
+			{
+			const sid_t ic_40A = 20400;//@@TODO param?
+			sid_t pensid = pensids[i];
+			sid_t mensid = mensids[i];
+			ic_t penic = sid2ic[pensid];
+			ic_t menic = sid2ic[mensid];
+			sid_t pmdiff = UINT16_MAX;
+			if (pensid == UINT16_MAX || mensid == UINT16_MAX)
+				pmdiff = ic_40A; // pensid==mensid
+			else
+				{
+				pensid = min(pensid, ic_40A);
+				mensid = min(mensid, ic_40A);
+				pmdiff = ic_40A + pensid - mensid;
+				assert(pmdiff <= 2*ic_40A);
+				}
+			values[i] = pmdiff;
+			}
+		break;
+		}
+
 	case FAN_pmdd:
 		{
 		// # python /mnt/c/src/py/angstroms_to_ic_and_sid.py 20
