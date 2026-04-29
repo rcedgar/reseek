@@ -117,7 +117,8 @@ uint Peaker::SpecGetInt(const string &Spec, const string &Name, uint Default)
 	return StrToUint(s);
 	}
 
-void Peaker::xss2xv(const string &xstr, vector<string> &xv) const
+// err_ok=true for resuming, tsv may be prematurely truncated
+bool Peaker::xss2xv(const string &xstr, vector<string> &xv, bool err_ok) const
 	{
 	xv.clear();
 	vector<string> Fields;
@@ -126,20 +127,27 @@ void Peaker::xss2xv(const string &xstr, vector<string> &xv) const
 	const uint VarCount = GetVarCount();
 	xv.resize(VarCount);
 	if (n != VarCount)
+		{
+		if (err_ok) return false;
 		Die("%u/%u xss2xv(%s)", n, VarCount, xstr.c_str());
+		}
 	for (uint k = 0; k < VarCount; ++k)
 		{
 		const string &NameEqValue = Fields[k];
 		vector<string> Fields2;
 		Split(NameEqValue, Fields2, '=');
 		if (SIZE(Fields2) != 2)
+			{
+			if (err_ok) return false;
 			Die("Bad name=value %s xss2xv(%s)",
 				NameEqValue.c_str(), xstr.c_str());
+			}
 		uint VarIdx = GetVarIdx(Fields2[0]);
 		asserta(VarIdx < SIZE(xv));
 		asserta(xv[VarIdx] == "");
 		xv[VarIdx] = Fields2[1];
 		}
+	return true;
 	}
 
 const char *Peaker::xv2xss(const vector<string> &xv, string &s) const

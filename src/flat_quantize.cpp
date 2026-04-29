@@ -7,47 +7,6 @@
 static uint M = 64;
 static const uint m = 12;
 
-//static void dmp_pmdiff16(flat_chain_t *chain)
-//	{
-//	const uint L = chain->get_length();
-//	sid_t *pensids = myalloc(sid_t, L);
-//	sid_t *mensids = myalloc(sid_t, L);
-//	sid_t *values = myalloc(sid_t, L);
-//	uint16_t *distmx = myalloc(sid_t, L*M);
-//	uint16_t *pens = myalloc(uint16_t, L);
-//	uint16_t *mens = myalloc(uint16_t, L);
-//
-//	for (uint i = 0; i < L; ++i)
-//		values[i] = UINT16_MAX-1;
-//
-//	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
-//	chaq::slow_get_values(chain, FAN_pmdd, 16, M, m, values);
-//	chaq::fill_pen_men_vecs(
-//		distmx, L, M, m,
-//		pens, pensids, mens, mensids);
-//
-//	for (uint i = 0; i < L; ++i)
-//		{
-//		const sid_t sid_20A = 2500;//@@TODO param?
-//		sid_t pensid = pensids[i];
-//		sid_t mensid = mensids[i];
-//		sid_t pmdd = UINT16_MAX;
-//		float pdist = sid2dist(pensid);
-//		float mdist = sid2dist(mensid);
-//		float diff = pdist - mdist;
-//		Log("pos=%u", i);
-//		Log(" pen=%u", pens[i]);
-//		Log(" men=%u", mens[i]);
-//		Log(" pdist=%.3g", pdist);
-//		Log(" mdist=%.3g", mdist);
-//		Log(" diff=%.3g", diff);
-//		Log("\n");
-//		}
-//	myfree(pensids);
-//	myfree(mensids);
-//	}
-
-
 static void update_counts(
 	const flat_chain_t *chain,
 	FAN fan,
@@ -91,7 +50,6 @@ void cmd_flat_quantize()
 	for (uint i = 0; i < nchain; ++i)
 		{
 		ProgressStep(i, nchain, "Counting");
-		//dmp_pmdiff16(chains[i]);
 		update_counts(chains[i], fan, alpha_size, counts.data());
 		}
 

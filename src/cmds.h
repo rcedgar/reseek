@@ -131,5 +131,7 @@ C(dss_logodds)
 C(flat_selfrev)
 C(alignself)
 C(flat_hjmega_bracket)
+C(dump_dss)
+C(dump_chaq)
 
 #undef C

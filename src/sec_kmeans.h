@@ -566,5 +566,6 @@ public:
 	static void get_sec16_lines(vector<string> &lines);
 	static void get_sec32_lines(vector<string> &lines);
 	static void get_sec_lines(uint alpha_size, vector<string> &lines);
+	static void get_conf_lines(vector<string> &lines);
 	static sec_kmeans *get_SK(uint alpha_size, uint M);
 	};

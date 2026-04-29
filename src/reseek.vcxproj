@@ -283,6 +283,8 @@
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
     <ClCompile Include="dss_logodds.cpp" />
+    <ClCompile Include="dump_chaq.cpp" />
+    <ClCompile Include="dump_dss.cpp" />
     <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fan.cpp" />
@@ -463,7 +465,7 @@
     <ClCompile Include="logodds.cpp" />
     <ClCompile Include="mergefwdback.cpp" />
     <ClCompile Include="msa2cmp.cpp" />
-    <ClCompile Include="myss.cpp" />
+    <ClCompile Include="conf.cpp" />
     <ClCompile Include="prettyaln.cpp" />
     <ClCompile Include="scop40bench.cpp" />
     <ClCompile Include="scop40benchroc.cpp" />

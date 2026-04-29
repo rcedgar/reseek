@@ -116,7 +116,7 @@ public:
 
 	// xv vector of strings, xss is semi-colon string
 	void xv2values(const vector<string> &xv, vector<double> &Values) const;
-	void xss2xv(const string &xstr, vector<string> &xv) const;
+	bool xss2xv(const string &xstr, vector<string> &xv, bool err_ok = false) const;
 	const char *xv2xss(const vector<string> &xv, string &xstr) const;
 	uint Find_xv(const vector<string> &xv) const;
 

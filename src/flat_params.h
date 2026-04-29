@@ -18,6 +18,8 @@ public:
 	static float m_oldts_revtsw;
 	static float m_oldts_ladd;
 
+	static uint32_t m_nn_w;
+
 public:
 	static void set_params(
 		const vector<string> &names,

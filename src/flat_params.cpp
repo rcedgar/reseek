@@ -16,6 +16,8 @@ float flat_params::m_oldts_lddtw;
 float flat_params::m_oldts_revtsw;
 float flat_params::m_oldts_ladd;
 
+uint32_t flat_params::m_nn_w = 12;
+
 void flat_params::set_params(
 	const vector<string> &names,
 	const vector<float> &values)

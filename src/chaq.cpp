@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_base.h"
+#include "flat_params.h"
 #include "chaq.h"
 #include "flat_distmx.h"
 #include "sec_kmeans.h"
@@ -294,6 +295,9 @@ void chaq::fill_pen_men_vecs(
 		for (uint d = m; d <= dmax; ++d)
 			{
 			uint j = i + d;
+			if (uint32_t(abs(int(i)-int(j))) < flat_params::m_nn_w)
+				continue;
+
 			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
 
 			// forward for i: j > i

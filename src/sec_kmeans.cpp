@@ -79,6 +79,16 @@ void sec_kmeans::get_sec16_lines(vector<string> &lines)
 	lines.push_back("mean	80	246	168	192	193	613	1029	596	271	258	2177	1126	645	279	284	2463	326	200	229	234	832	233	224	228	241	289	533	421	216	216	827	792	470	274	270	1822	1018	601	262	236	1869	863	561	198	207	619	646	403	268	261	1504	936	575	211	215	984	958	583	241	235	1426	435	232	253	256	1132	619	450	245	238	1181	301	429	212	212	635	542	433	208	227	325");
 	}
 
+void sec_kmeans::get_conf_lines(vector<string> &lines)
+	{
+	lines.clear();
+	lines.push_back("sec	16");
+	lines.push_back("dim	9");
+	lines.push_back("offs1	9	-2	-2	-2	-1	-1	0	-3	0	-3");
+	lines.push_back("offs2	9	0	1	2	1	2	2	3	3	0");
+	lines.push_back("mean	144	187	170	248	187	171	188	620	177	169	269	578	977	271	569	264	1989	531	575	295	658	1129	294	655	292	2416	640	645	225	408	677	252	496	268	1484	560	488	210	428	710	256	540	268	929	530	219	271	579	1011	274	605	287	1505	578	369	265	549	765	271	427	201	801	204	499	194	192	278	187	183	189	759	197	429	202	358	545	235	449	221	403	311	204	258	447	350	203	203	188	648	206	517	275	558	894	257	510	221	1356	282	574	187	204	346	195	268	227	900	456	196	194	180	240	202	356	234	287	496	246	255	474	499	211	257	228	1099	461	513	215	246	455	214	433	262	732	514	455	265	358	250	201	194	200	276	331	482");
+	}
+
 void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
 	{
 	switch (alpha_size)
@@ -92,7 +102,8 @@ void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
 	case 8:
 		get_sec8_lines(lines); return;
 	case 16:
-		get_sec16_lines(lines); return;
+		//get_sec16_lines(lines); return;
+		get_conf_lines(lines); return;
 	case 32:
 		get_sec32_lines(lines); return;
 		}

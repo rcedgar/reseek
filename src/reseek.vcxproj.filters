@@ -98,7 +98,7 @@
     <ClCompile Include="trainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="myss.cpp">
+    <ClCompile Include="conf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="logaln.cpp">
@@ -771,6 +771,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_hjmega_bracket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dump_dss.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dump_chaq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

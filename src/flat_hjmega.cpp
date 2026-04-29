@@ -128,6 +128,23 @@ static void Climb(flat_bench &FullFB, const vector<string> &SpecLines)
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
+static void Resume(flat_bench &FullFB, const vector<string> &SpecLines)
+	{
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+
+	s_FB = &FullFB;	
+	string PeakerName;
+	Ps(PeakerName, "climb");
+	Peaker Pfull(0, PeakerName);
+	Pfull.Init(SpecLines, EvalSum3);
+	Pfull.LoadTSV(opt(input2));
+	s_Peaker = &Pfull;
+
+	Pfull.HJ_RunHookeJeeves();
+	Pfull.WriteFinalResults(g_fLog);
+	}
+
 static void SubClimb(
 	flat_bench &FullFB, 
 	flat_bench &SubsetFB, 
@@ -224,11 +241,19 @@ void cmd_flat_hjmega()
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
 
+	if (optset_input2)
+		{
+		Resume(FullFB, SpecLines);
+		CloseStdioFile(Peaker::m_fTsv);
+		return;
+		}
+
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
 
 	string Strategy;
 	Peaker::SpecGetStr(GlobalSpec, "strategy", Strategy, "");
+
 	if (Strategy == "")
 		Die("Missing strategy=");
 
