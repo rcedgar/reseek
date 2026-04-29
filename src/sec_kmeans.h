@@ -15,7 +15,6 @@ public:
 	/////////////
 	uint m_K = 0;				// number of clusters for K-means
 	uint m_D = 0;				// dimension of feature vector, length of m_i/jvalues
-	uint m_M = 0;				// band width for distance matrix (e.g. 64)
 	int m_w = 0;				// band width for sec (e.g. 3), max index in m_i/jvalues
 	int* m_off1s = 0;			// +/- offsets from position
 	int* m_off2s = 0;			// +/- offsets from position
@@ -38,7 +37,6 @@ public:
 		{
 		m_K = 0;
 		m_D = 0;
-		m_M = 0;
 		m_w = 0;
 		myfree(m_tmpv);
 		myfree(m_off1s);
@@ -139,7 +137,7 @@ public:
 
 	void log_params() const
 		{
-		Log("K %u, N %u, D %u, M %u, w %u\n", m_K, m_N, m_D, m_M, m_w);
+		Log("K %u, N %u, D %u, w %u\n", m_K, m_N, m_D, m_w);
 		Log("off1s[%u] =", m_D);
 		for (uint i = 0; i < m_D; ++i)
 			{
@@ -229,7 +227,7 @@ public:
 			int ifirst_pos = int(pos)+i;
 			assert(ifirst_pos >= 0 && ifirst_pos + 1 < L);
 			uint32_t first_pos = uint32_t(ifirst_pos);
-			uint k = banded_ij_to_k(m_M, first_pos, first_pos+1);
+			uint k = banded_ij_to_k(first_pos, first_pos+1);
 			sid_t sid = distmx[k];
 			if (sid < min_backbone_sid || sid > max_backbone_sid)
 				return false;
@@ -244,7 +242,7 @@ public:
 			{
 			int off1 = m_off1s[m];
 			int off2 = m_off2s[m];
-			uint k = banded_ij_to_k(m_M, pos+off1, pos+off2);
+			uint k = banded_ij_to_k(pos+off1, pos+off2);
 			sid_t sid = distmx[k];
 			v[m] = sid;
 			}
@@ -411,7 +409,6 @@ public:
 		const vector<int> &off2s)
 		{
 		m_K = K;
-		m_M = M;
 
 		m_D = SIZE(off1s);
 		asserta(SIZE(off2s) == m_D);
@@ -436,6 +433,7 @@ public:
 
 	void set_vs(const vector<flat_chain_t *> &chains)
 		{
+		const uint M = flat_params::m_distmx_bandwidth;
 		m_N = 0;
 		m_chains = &chains;
 		asserta(m_D > 0);
@@ -462,8 +460,8 @@ public:
 			const flat_chain_t* chain = chains[chain_idx];
 			const int L = (int) chain->get_length();
 
-			sid_t *distmx = myalloc(sid_t, L*m_M);
-			chaq::fill_distmx(chain->m_xyz->m_data, L, m_M, distmx);
+			sid_t *distmx = myalloc(sid_t, L*M);
+			chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 			for (int pos = m_w; pos < L - m_w; ++pos)
 				{
 				bool ok = check_backbone(chain_idx, distmx, pos, L);
@@ -512,6 +510,7 @@ public:
 
 	void ss4stats()
 		{
+		const uint M = flat_params::m_distmx_bandwidth;
 		assert(m_chains);
 		vector<vector<uint> > countmx(m_K);
 		for (uint i = 0; i < m_K; ++i)
@@ -522,14 +521,14 @@ public:
 			{
 			const flat_chain_t* chain =(*m_chains)[chainidx];
 			const uint L = chain->get_length();
-			sid_t *distmx = myalloc(sid_t, L*m_M);
-			chaq::fill_distmx(chain->m_xyz->m_data, L, m_M, distmx);
+			sid_t *distmx = myalloc(sid_t, L*M);
+			chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 
 			uint8_t *codeseq = myalloc(uint8_t, L);
 			get_codeseq(distmx, L, codeseq);
 
 			uint8_t *ss4codeseq = myalloc(uint8_t, L);
-			chaq::get_ss4_codeseq(distmx, m_M, L, ss4codeseq);
+			chaq::get_ss4_codeseq(distmx, L, ss4codeseq);
 
 			for (uint pos = 2; pos < L - 2; ++pos)
 				{

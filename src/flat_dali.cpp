@@ -13,9 +13,9 @@ float flat_get_dali2(
 	const vector<uint> &posQs,
 	const vector<uint> &posTs,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
 	const uint ncol = uint(posQs.size());
 
 	extern float g_DALI_Theta;
@@ -42,8 +42,8 @@ float flat_get_dali2(
 			int diffij_T = abs(int(posTi) - int(posTj));
 			if (diffij_Q > int(M) || diffij_T > int(M))
 				continue;
-			uint kQ = banded_ij_to_k(M, posQi, posQj);
-			uint kT = banded_ij_to_k(M, posTi, posTj);
+			uint kQ = banded_ij_to_k(posQi, posQj);
+			uint kT = banded_ij_to_k(posTi, posTj);
 			sid_t sid_dQ_squared = distmxQ[kQ];
 			sid_t sid_dT_squared = distmxT[kT];
 			float dQ_squared = sid2dist2(sid_dQ_squared);
@@ -63,8 +63,7 @@ float flat_get_dali(
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
 	const uint pathlen = uint(path.size());
 
@@ -81,19 +80,18 @@ float flat_get_dali(
 	return flat_get_dali2(
 		loQ, LQ, loT, LT,
 		posQs, posTs,
-		distmxQ, distmxT, M);
+		distmxQ, distmxT);
 	}
 
 float flat_get_dali3(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
 	return flat_get_dali(string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,
-		distmxQ, distmxT, M);
+		distmxQ, distmxT);
 	}
 
 
@@ -104,10 +102,10 @@ float flat_get_dalix2(
 	const vector<uint> &posTs,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	float *colscores)
 	{
 	const uint ncol = uint(posQs.size());
+	const uint M = flat_params::m_distmx_bandwidth;
 
 	uint nlo = 0;
 	for (uint coli = 0; coli < ncol; ++coli)
@@ -135,8 +133,8 @@ float flat_get_dalix2(
 			int diffij_T = abs(int(posTi) - int(posTj));
 			if (diffij_Q > int(M) || diffij_T > int(M))
 				continue;
-			uint kQ = banded_ij_to_k(M, posQi, posQj);
-			uint kT = banded_ij_to_k(M, posTi, posTj);
+			uint kQ = banded_ij_to_k(posQi, posQj);
+			uint kT = banded_ij_to_k(posTi, posTj);
 			sid_t sid_dQ_squared = distmxQ[kQ];
 			sid_t sid_dT_squared = distmxT[kT];
 			float dQ_squared = sid2dist2(sid_dQ_squared);
@@ -179,8 +177,8 @@ float flat_get_dalix2(
 			int diffij_T = abs(int(posTi) - int(posTj));
 			if (diffij_Q > int(M) || diffij_T > int(M))
 				continue;
-			uint kQ = banded_ij_to_k(M, posQi, posQj);
-			uint kT = banded_ij_to_k(M, posTi, posTj);
+			uint kQ = banded_ij_to_k(posQi, posQj);
+			uint kT = banded_ij_to_k(posTi, posTj);
 			sid_t sid_dQ_squared = distmxQ[kQ];
 			sid_t sid_dT_squared = distmxT[kT];
 			float dQ_squared = sid2dist2(sid_dQ_squared);
@@ -202,7 +200,6 @@ float flat_get_dalix(
 	uint32_t loT, uint32_t LT,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	float *colscores)
 	{
 	const uint pathlen = uint(path.size());
@@ -220,14 +217,13 @@ float flat_get_dalix(
 	return flat_get_dalix2(
 		loQ, LQ, loT, LT,
 		posQs, posTs,
-		distmxQ, distmxT, M, colscores);
+		distmxQ, distmxT, colscores);
 	}
 
 float flat_get_dalix3(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	float *colscores)
 	{
 	return flat_get_dalix(
@@ -235,18 +231,17 @@ float flat_get_dalix3(
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,
 		distmxQ, distmxT,
-		M, colscores);
+		colscores);
 	}
 
 float flat_get_dalix(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
 	return flat_get_dali(
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_loT,
 		fa.m_LQ, fa.m_LT,
-		distmxQ, distmxT, M);
+		distmxQ, distmxT);
 	}

@@ -38,10 +38,10 @@ void flat_reverse_distmx(
 		const uint32_t jend = min(i + M, L - 1);
 		for (uint32_t j = i + 1; j <= jend; ++j)
 			{
-			uint32_t k_src = banded_ij_to_k(M, i, j);
+			uint32_t k_src = banded_ij_to_k(i, j);
 			uint32_t ir = L - 1 - j;
 			uint32_t jr = L - 1 - i;
-			uint32_t k_dst = banded_ij_to_k(M, ir, jr);
+			uint32_t k_dst = banded_ij_to_k(ir, jr);
 			reversed_distmx[k_dst] = distmx[k_src];
 			}
 		}

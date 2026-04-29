@@ -39,10 +39,10 @@ void cmd_flat_feat2fa()
 		char *charseq = myalloc(char, L);
 		if (binned)
 			chaq::slow_get_charseq_binned(chain, fan, alpha_size,
-				M, m, thresholds, undef_value, charseq);
+				thresholds, undef_value, charseq);
 		else
 			chaq::slow_get_charseq_discrete(chain, fan, alpha_size,
-				M, m, undef_code, charseq);
+				undef_code, charseq);
 		SeqToFasta(f, chains[i]->m_label.c_str(), charseq, L);
 		myfree(charseq);
 		}

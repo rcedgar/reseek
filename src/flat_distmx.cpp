@@ -15,14 +15,14 @@ void test_indexing(uint32_t M)
 			{
 			if (abs(i-j) > int(M))
 				continue;
-			uint32_t k = banded_ij_to_k(M, i, j);
+			uint32_t k = banded_ij_to_k(i, j);
 			asserta(k < K);
 
 			asserta(!touched_plus[k]);
 			touched_plus[k] = true;
 
 			uint32_t i2, j2;
-			banded_k_to_ij(M, k, i2, j2);
+			banded_k_to_ij(k, i2, j2);
 			if (i2 != i)
 				Die("i2=%u i=%u j=%u", i2, i, j);
 			if (j2 != j)
@@ -37,13 +37,13 @@ void test_indexing(uint32_t M)
 			{
 			if (abs(i-j) > int(M))
 				continue;
-			uint32_t k = banded_ij_to_k(M, i, j);
+			uint32_t k = banded_ij_to_k(i, j);
 			asserta(k < K);
 
 			asserta(!touched_minus[k]);
 			touched_minus[k] = true;
 			uint32_t i2, j2;
-			banded_k_to_ij(M, k, i2, j2);
+			banded_k_to_ij(k, i2, j2);
 			if (i2 != i)
 				Die("i2=%u i=%u j=%u", i2, i, j);
 			if (j2 != j)
@@ -69,7 +69,7 @@ static inline void fill_pen(sid_t *__restrict sdmx,
 		uint32_t k = i*M + m - 1;
 		for (uint32_t j = i + m; j <= jend; ++j)
 			{
-			assert(k == banded_ij_to_k(M, i, j));
+			assert(k == banded_ij_to_k(i, j));
 			uint32_t sd = sdmx[k++];
 			if (sd < min_sd)
 				{
@@ -82,8 +82,10 @@ static inline void fill_pen(sid_t *__restrict sdmx,
 	}
 
 static inline void fill_men(sid_t *__restrict sdmx,
-	uint32_t L, uint32_t M, uint32_t m, uint16_t *men)
+	uint32_t L, uint16_t *men)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 	for (int i = 0; i < int(L); ++i)
 		{
 		const uint32_t jstart = min(i+M, L-1);
@@ -91,7 +93,7 @@ static inline void fill_men(sid_t *__restrict sdmx,
 		uint32_t min_sd = UINT32_MAX;
 		for (int j = max(0,i-int(M)); j <= i-int(m); ++j)
 			{
-			uint32_t k = banded_ij_to_k(M, i, j);
+			uint32_t k = banded_ij_to_k(i, j);
 			uint32_t sd = sdmx[k];
 			if (sd < min_sd)
 				{
@@ -103,9 +105,10 @@ static inline void fill_men(sid_t *__restrict sdmx,
 		}
 	}
 
-static uint compare_fill(const flat_chain_t &chain, uint32_t M,
-	const sid_t *sdmx)
+static uint compare_fill(const flat_chain_t &chain, const sid_t *sdmx)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 	const uint L = chain.get_length();
 	uint diffs = 0;
 	for (int i = 0; i < int(L); ++i)
@@ -124,7 +127,7 @@ static uint compare_fill(const flat_chain_t &chain, uint32_t M,
 				icx_i, icy_i, icz_i,
 				icx_j, icy_j, icz_j);
 
-			uint k = banded_ij_to_k(M, i, j);
+			uint k = banded_ij_to_k(i, j);
 			uint32_t sid2 = sdmx[k];
 			if (sid2 != sid)
 				++diffs;
@@ -172,9 +175,10 @@ static uint compare_pen(const flat_chain_t &chain, uint M, uint m,
 	return diffs;
 	}
 
-static uint compare_men(const flat_chain_t &chain, uint M, uint m,
-	const uint16_t *men)
+static uint compare_men(const flat_chain_t &chain, const uint16_t *men)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 	const uint L = chain.get_length();
 	uint diffs = 0;
 	for (int i = 0; i < int(L); ++i)
@@ -213,10 +217,10 @@ static void test_distmx(const vector<flat_chain_t *> &chains, uint M)
 		const uint K = L*M;
 		sid_t *sdmx = myalloc(sid_t, K);
 		TICKS t1 = GetClockTicks();
-		fill_flat_distmx(chain.m_xyz->m_data, L, M, sdmx);
+		fill_flat_distmx(chain.m_xyz->m_data, L, sdmx);
 		TICKS t2 = GetClockTicks();
 		total_ticks += t2 - t1;
-		uint diffs = compare_fill(chain, M, sdmx);
+		uint diffs = compare_fill(chain, sdmx);
 		total_diffs += diffs;
 		}
 	ProgressLog("%.3g ticks, %u diffs sd\n", double(total_ticks), total_diffs);
@@ -236,7 +240,7 @@ static void test_pen(const vector<flat_chain_t *> &chains, uint M, uint m)
 		const uint K = L*M;
 		const uint16_t *xyz = chain.m_xyz->m_data;
 		sid_t *sdmx = myalloc(sid_t, K);
-		fill_flat_distmx(xyz, L, M, sdmx);
+		fill_flat_distmx(xyz, L, sdmx);
 
 		uint16_t *pen = myalloc(uint16_t, L);
 
@@ -265,16 +269,16 @@ static void test_men(const vector<flat_chain_t *> &chains, uint M, uint m)
 		const uint K = L*M;
 		const uint16_t *xyz = chain.m_xyz->m_data;
 		sid_t *sdmx = myalloc(sid_t, K);
-		fill_flat_distmx(xyz, L, M, sdmx);
+		fill_flat_distmx(xyz, L, sdmx);
 
 		uint16_t *men = myalloc(uint16_t, L);
 
 		TICKS t1 = GetClockTicks();
-		fill_men(sdmx, L, m, M, men);
+		fill_men(sdmx, L, men);
 		TICKS t2 = GetClockTicks();
 
 		total_ticks += t2 - t1;
-		uint diffs = compare_men(chain, m, M, men);
+		uint diffs = compare_men(chain, men);
 		total_diffs += diffs;
 		}
 	ProgressLog("%.3g ticks, %u diffs men\n", double(total_ticks), total_diffs);
@@ -282,7 +286,7 @@ static void test_men(const vector<flat_chain_t *> &chains, uint M, uint m)
 
 void cmd_test_flat_distmx()
 	{
-	uint32_t M = 48;
+	const uint M = flat_params::m_distmx_bandwidth;
 	test_indexing(M);
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);

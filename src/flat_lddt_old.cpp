@@ -17,12 +17,12 @@ static float flat_getlddt_old_some_floats(
 	const uint ncol,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec)
 	{
 	if (ncol == 0)
 		return 0;
+	const uint M = flat_params::m_distmx_bandwidth;
 	zero_array(nr_considered_vec, ncol);
 	zero_array(nr_preserved_vec, ncol);
 	for (uint coli = 0; coli < ncol; ++coli)
@@ -47,8 +47,8 @@ static float flat_getlddt_old_some_floats(
 			int diffij_T = abs(int(posTi) - int(posTj));
 			if (diffij_Q > int(M) || diffij_T > int(M))
 				continue;
-			uint kQ = banded_ij_to_k(M, posQi, posQj);
-			uint kT = banded_ij_to_k(M, posTi, posTj);
+			uint kQ = banded_ij_to_k(posQi, posQj);
+			uint kT = banded_ij_to_k(posTi, posTj);
 			sid_t sid_dQ_squared = distmxQ[kQ];
 			sid_t sid_dT_squared = distmxT[kT];
 			float dQ_squared = sid2dist2(sid_dQ_squared);
@@ -104,7 +104,7 @@ static float flat_getlddt_muscle_some_floats2(
 	float lddt = 
 		flat_getlddt_old_some_floats(
 			posQs.data(), LQ, posTs.data(), LT, ncol2,
-			distmxQ, distmxT, M, nr_considered_vec, nr_preserved_vec);
+			distmxQ, distmxT, nr_considered_vec, nr_preserved_vec);
 	myfree(nr_considered_vec);
 	myfree(nr_preserved_vec);
 	return lddt;
@@ -115,8 +115,7 @@ float flat_getlddt_old_some_floats3(
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
 	const uint ncol = uint(path.size());
 
@@ -138,7 +137,7 @@ float flat_getlddt_old_some_floats3(
 	float lddt = 
 		flat_getlddt_old_some_floats(
 			posQs.data(), LQ, posTs.data(), LT, ncol2,
-			distmxQ, distmxT, M, nr_considered_vec, nr_preserved_vec);
+			distmxQ, distmxT, nr_considered_vec, nr_preserved_vec);
 	myfree(nr_considered_vec);
 	myfree(nr_preserved_vec);
 	return lddt;
@@ -147,12 +146,11 @@ float flat_getlddt_old_some_floats3(
 float flat_getlddt_old(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M)
+	const sid_t *distmxT)
 	{
 	return flat_getlddt_old_some_floats3(
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,
-		distmxQ, distmxT, M);
+		distmxQ, distmxT);
 	}

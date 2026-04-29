@@ -42,19 +42,15 @@ public:
 	static void fill_distmx(
 		cp_ic_t xyz,
 		uint L,
-		uint M,
 		uint16_t *distmx);
 
 	static void fill_distmx(
 		const flat_chain_t *chain,
-		uint M,
 		uint16_t *distmx);
 
 	static void fill_nen_vecs(
 		cp_sid_t distmx,
 		uint L,
-		uint M,
-		uint m,
 		p_uint16_t nnvec,
 		p_uint16_t nnsidvec);
 
@@ -72,8 +68,6 @@ public:
 	static void fill_pen_men_vecs(
 		cp_sid_t distmx,
 		uint L,
-		uint M,
-		uint m,
 		p_uint16_t penvec,
 		p_uint16_t pensidvec,
 		p_uint16_t menvec,
@@ -82,55 +76,47 @@ public:
 	static void fill_fen_vecs(
 		cp_sid_t distmx,
 		uint L,
-		uint M,
-		uint m,
 		p_uint16_t fenvec,
 		p_uint16_t fensidvec);
 
-	static uint8_t get_ss3(cp_sid_t distmx, uint M, uint L, uint pos);
-	static uint8_t get_ss4(cp_sid_t distmx, uint M, uint L, uint pos);
-	static void get_ss4_str(cp_sid_t distmx, uint M, uint L, string &ss);
+	static uint8_t get_ss3(cp_sid_t distmx, uint L, uint pos);
+	static uint8_t get_ss4(cp_sid_t distmx, uint L, uint pos);
+	static void get_ss4_str(cp_sid_t distmx, uint L, string &ss);
 
-	static void get_ss3_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
-	static void get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t codeseq);
+	static void get_ss3_codeseq(cp_sid_t distmx, uint L, p_uint8_t codeseq);
+	static void get_ss4_codeseq(cp_sid_t distmx, uint L, p_uint8_t codeseq);
 
 	static void get_aa3_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
 	static void get_aa4_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
 
 	static void get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq);
 
-	static void get_packing_values(cp_sid_t distmx, uint M, uint L,
+	static void get_packing_values(cp_sid_t distmx, uint L,
 		uint maxsid, bool include_plus, bool include_minus,
 		p_uint16_t values);
 
-	static void get_turnd_values(cp_sid_t distmx, uint M, uint L, uint w,
+	static void get_turnd_values(cp_sid_t distmx, uint L,
 		uint16_t undef_value, p_uint16_t values);
 
-	static void get_packing_codeseq(cp_sid_t distmx, uint M, uint L, 
+	static void get_packing_codeseq(cp_sid_t distmx, uint L, 
 		uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq);
 
 	static void slow_get_values(
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
-		uint M,
-		uint m,
 		p_uint16_t values);
 
 	static void slow_get_codeseq_binned(
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
-		uint M,
-		uint m,
 		p_uint8_t codeseq);
 
 	static void slow_get_codeseq_discrete(
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
-		uint M,
-		uint m,
 		uint8_t undef_code,
 		p_uint8_t codeseq);
 
@@ -138,8 +124,6 @@ public:
 		const flat_chain_t *chain,
 		FAN fan,
 		uint8_t alpha_size,
-		uint M,
-		uint m,
 		cp_uint16_t thresholds,
 		uint16_t undef_value,
 		char *charseq);
@@ -148,15 +132,12 @@ public:
 		const flat_chain_t *chain,
 		FAN fan,
 		uint8_t alpha_size,
-		uint M,
-		uint m,
 		uint8_t undef_code,
 		char *charseq);
 
 	static void get_sec_codeseq(
 		uint alpha_size,
 		cp_sid_t distmx,
-		uint M,
 		uint L,
 		p_uint8_t codeseq);
 

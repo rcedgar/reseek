@@ -152,8 +152,7 @@ float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
 		uint32_t loQ, uint32_t LQ,
 		uint32_t loT, uint32_t LT,
 		const sid_t *distmxQ,
-		const sid_t *distmxT,
-		const uint M);
+		const sid_t *distmxT);
 
 	asserta(idxQ < m_distmxs.size());
 	asserta(idxT < m_distmxs.size());
@@ -171,7 +170,7 @@ float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
 	uint ncol = uint(path.size());
 	float dali = flat_get_dali(
 		path, loQ, LQ, loT, LT,
-		distmxQ, distmxT, M);
+		distmxQ, distmxT);
 	return dali;
 	}
 
@@ -184,7 +183,6 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 		uint32_t loT, uint32_t LT,
 		const sid_t *distmxQ,
 		const sid_t *distmxT,
-		const uint M,
 		float *colscores);
 
 	asserta(idxQ < m_distmxs.size());
@@ -204,7 +202,7 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 	float *colscores = myalloc(float, nmatch);
 	float dali = flat_get_dalix(
 		path, loQ, LQ, loT, LT,
-		distmxQ, distmxT, M, colscores);
+		distmxQ, distmxT, colscores);
 	myfree(colscores);
 	return dali;
 	}
@@ -227,7 +225,7 @@ float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
 	uint nmatch = fa.get_path_str(path);
 	uint ncol = uint(path.size());
 	float lddt = flat_getlddt_muscle_some_floats4(
-		fa, distmxQ, distmxT, M);
+		fa, distmxQ, distmxT);
 	float maxL = max(LT, LQ) - 20.0f;
 	if (maxL < 80)
 		maxL = 80;
@@ -247,7 +245,7 @@ void flat_bench_struct_feature::set_distmxs(uint M)
 		flat_chain_t *chain = m_chains[domidx];
 		uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain, M, distmx);
+		chaq::fill_distmx(chain, distmx);
 		m_distmxs.push_back(distmx);
 		}
 	}

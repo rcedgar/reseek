@@ -95,7 +95,7 @@ void cmd_lddt_fa2()
 		const flat_chain_t *flat_chain = flat_chains[flatidx];
 		const uint L = flat_chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(flat_chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(flat_chain->m_xyz->m_data, L, distmx);
 		distmxs[flatidx] = distmx;
 		}
 

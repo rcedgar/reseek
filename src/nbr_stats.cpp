@@ -21,7 +21,7 @@ static void upd_nen_di(const sid_t *distmx,
 			continue;
 		if (di < int(m))
 			continue;
-		uint k = banded_ij_to_k(M, i, j);
+		uint k = banded_ij_to_k(i, j);
 		sid_t sid = distmx[k];
 		if (sid < minsid)
 			{
@@ -46,7 +46,7 @@ static void upd_fen_di(const sid_t *distmx,
 			continue;
 		if (di < int(m))
 			continue;
-		uint k = banded_ij_to_k(M, i, j);
+		uint k = banded_ij_to_k(i, j);
 		sid_t sid = distmx[k];
 		if (sid > maxsid)
 			{
@@ -71,7 +71,7 @@ static void upd_nen_dx(const sid_t *distmx,
 			continue;
 		if (di < int(m))
 			continue;
-		uint k = banded_ij_to_k(M, i, j);
+		uint k = banded_ij_to_k(i, j);
 		sid_t sid = distmx[k];
 		if (sid < minsid)
 			{
@@ -97,7 +97,7 @@ static void upd_fen_dx(const sid_t *distmx,
 			continue;
 		if (di < int(m))
 			continue;
-		uint k = banded_ij_to_k(M, i, j);
+		uint k = banded_ij_to_k(i, j);
 		sid_t sid = distmx[k];
 		if (sid > maxsid)
 			{
@@ -158,7 +158,7 @@ static void get_dms(const vector<flat_chain_t *> &chains,
 			continue;
 
 		dms[chidx] = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, dms[chidx]);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, dms[chidx]);
 		}
 	}
 

@@ -1346,10 +1346,10 @@ void DSSAligner::PostAlignMKF()
 
 	incac(postaligntryxdrops);
 	float MegaHSPTotal = 0;
-	const uint M = SIZE(m_MKF.m_ChainHSPLois);
+	const uint nrhsps = SIZE(m_MKF.m_ChainHSPLois);
 	float BestMegaScore = 0;
 	uint BestMegaIdx = 0;
-	for (uint Idx = 0; Idx < M; ++Idx)
+	for (uint Idx = 0; Idx < nrhsps; ++Idx)
 		{
 		uint Loi = (uint) m_MKF.m_ChainHSPLois[Idx];
 		uint Loj = (uint) m_MKF.m_ChainHSPLojs[Idx];

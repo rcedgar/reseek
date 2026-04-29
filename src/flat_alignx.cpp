@@ -43,8 +43,7 @@ static float oldts(
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
 	float selfT,
-	float selfQ,
-	uint M)
+	float selfQ)
 	{
 	asserta(distmxQ != 0);
 	asserta(distmxT != 0);
@@ -52,7 +51,7 @@ static float oldts(
 	float LT = (float) fa.m_LT;
 	asserta(selfT != FLT_MAX && selfQ != FLT_MAX);
 	float RevDPScore = (selfT + selfQ)/2;
-	float LDDT = flat_getlddt_muscle_some_floats4(fa, distmxQ, distmxT, M);
+	float LDDT = flat_getlddt_muscle_some_floats4(fa, distmxQ, distmxT);
 	float AlnFwdScore = fa.m_score;
 	float L = (LQ + LT)/2;
 	//float TS = flat_params::m_oldts_lddtw*LDDT*(L + flat_params::m_oldts_ladd);
@@ -65,7 +64,7 @@ static float oldts(
 float flat_alignx::alignx(
 	const flat_aligner &fa,
 	const uint8_t *profQ, const uint8_t *profT,
-	const sid_t *distmxQ, const sid_t *distmxT, uint M,
+	const sid_t *distmxQ, const sid_t *distmxT,
 	float selfT, float selfQ)
 	{
 	//asserta(!flat_params::m_oldts);
@@ -76,7 +75,7 @@ float flat_alignx::alignx(
 
 	float Score = fa.m_score;
 	if (flat_params::m_oldts)
-		Score = oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ, M);
+		Score = oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 
 	if (flat_params::m_self_w > 0)
 		{
@@ -88,7 +87,7 @@ float flat_alignx::alignx(
 		{
 		asserta(distmxQ != 0 && distmxT != 0);
 		float lddt = flat_getlddt_muscle_some_floats4(
-			fa, distmxQ, distmxT, M);
+			fa, distmxQ, distmxT);
 		Score += flat_params::m_lddt_w*lddt*500;
 		}
 
@@ -97,7 +96,7 @@ float flat_alignx::alignx(
 		asserta(distmxQ != 0 && distmxT != 0);
 		uint n = uint(fa.m_ncol);
 		float dali = 
-			flat_get_dali3(fa, distmxQ, distmxT, M);
+			flat_get_dali3(fa, distmxQ, distmxT);
 		Score += flat_params::m_dali_w*dali*10;
 		}
 
@@ -107,7 +106,7 @@ float flat_alignx::alignx(
 		uint n = uint(fa.m_ncol);
 		float *colscores = myalloc(float, n);
 		float dalix = 
-			flat_get_dalix3(fa, distmxQ, distmxT, M, colscores);
+			flat_get_dalix3(fa, distmxQ, distmxT, colscores);
 		Score += flat_params::m_dalix_w*dalix*10;
 		myfree(colscores);
 		}

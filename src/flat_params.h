@@ -18,7 +18,9 @@ public:
 	static float m_oldts_revtsw;
 	static float m_oldts_ladd;
 
-	static uint32_t m_nn_w;
+	static uint32_t m_nn_min_offset;
+	static uint32_t m_distmx_bandwidth;
+	static uint32_t m_turnd_w;
 
 public:
 	static void set_params(

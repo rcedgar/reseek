@@ -18,7 +18,6 @@ float flat_getlddt_muscle_some_floats(
 	const uint ncol,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
@@ -121,7 +120,6 @@ static void structure_features(
 			ncol,
 			distmxQ,
 			distmxT,
-			M,
 			nr_considered_vec,
 			nr_preserved_vec);
 		myfree(nr_considered_vec);
@@ -153,7 +151,7 @@ void cmd_structure_features()
 		const uint L = chain->get_length();
 		Ls.push_back(L);
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		distmxs.push_back(distmx);
 		}
 

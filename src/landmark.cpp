@@ -1,11 +1,11 @@
 #include "myutils.h"
 #include "landmark.h"
 #include "flat_chain.h"
+#include "flat_params.h"
 #include "chaq.h"
 #include "seqdb.h"
 #include "get_distinct_window_extrema.h"
 
-static const uint M = 32;
 static const uint MINL = 80;
 static const uint MAXL = 1000;
 
@@ -49,7 +49,7 @@ static void get_landmark_seq(
 	const uint w = 5;
 	const uint W = 34;
 	uint16_t *values = myalloc(uint16_t, L);
-	chaq::get_turnd_values(distmx, M, L, w, median_turnd, values);
+	chaq::get_turnd_values(distmx, L, median_turnd, values);
 
 	vector<uint32_t> idxs =
 		get_distinct_window_extrema<uint16_t, true>(values, L, W);
@@ -70,6 +70,7 @@ void cmd_landmark()
 	const string &chainsfn = g_Arg1;
 	const string &msafilesfn = opt(input);
 	FILE *ffa = CreateStdioFile(opt(fasta));
+	const uint M = flat_params::m_distmx_bandwidth;
 
 	vector<SeqDB *> MSAs;
 	vector<string> msastemnames;
@@ -136,10 +137,10 @@ void cmd_landmark()
 
 			total_residues += L;
 			const ic_t *xyz = chain->m_xyz->m_data;
-			chaq::fill_distmx(xyz, L, M, distmx);
+			chaq::fill_distmx(xyz, L, distmx);
 
 			string ss_str;
-			chaq::get_ss4_str(distmx, M, L, ss_str);
+			chaq::get_ss4_str(distmx, L, ss_str);
 			asserta(ss_str.size() == L);
 
 			string landmark_seq;

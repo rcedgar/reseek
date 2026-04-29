@@ -192,14 +192,12 @@ float flat_get_dalix3(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	float *colscores);
 
 float flat_get_dali3(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M);
+	const sid_t *distmxT);
 
 float flat_getlddt_muscle_some_floats(
 	const uint32_t *posQs,
@@ -209,21 +207,18 @@ float flat_getlddt_muscle_some_floats(
 	const uint ncol,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
 float flat_getlddt_old(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M);
+	const sid_t *distmxT);
 
 float flat_getlddt_muscle_some_floats4(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
-	const sid_t *distmxT,
-	const uint M);
+	const sid_t *distmxT);
 
 float flat_get_entropy2(
 	const flat_aligner &fa,
@@ -238,7 +233,6 @@ void flat_reverse_profile(
 	uint8_t *revprof);
 
 void flat_reverse_distmx(
-	cp_sid_t distmx, uint32_t L, uint32_t M,
-	p_sid_t reversed_distmx);
+	cp_sid_t distmx, uint32_t L, p_sid_t reversed_distmx);
 
 void trunc_label(const string &label, string &tlabel);

@@ -12,10 +12,13 @@ static const uint M = 256;
 
 static bool test_dist_mx(const PDBChain &Chain, const flat_chain_t* chain)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	uint L = Chain.GetSeqLength();
 	asserta(chain->get_length() == L);
 	uint16_t *distmx = myalloc(sid_t, L*M);
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 	const int Li = L;
 	uint counter = 0;
 	uint same = 0;
@@ -29,7 +32,7 @@ static bool test_dist_mx(const PDBChain &Chain, const flat_chain_t* chain)
 				continue;
 			++counter;
 			float d = Chain.GetDist(uint(i), uint(j));
-			uint k = banded_ij_to_k(M, i, j);
+			uint k = banded_ij_to_k(i, j);
 			asserta(k < L*M);
 			sid_t sid = distmx[k];
 			float d2 = sid2dist(sid);
@@ -86,7 +89,7 @@ static double test_nn(const PDBChain &Chain, const flat_chain_t *chain)
 	uint16_t *nns = myalloc(uint16_t, L);
 	sid_t *nnsids = myalloc(sid_t, L);
 
-	chaq::fill_nen_vecs(distmx, L, M, m, nns, nnsids);
+	chaq::fill_nen_vecs(distmx, L, nns, nnsids);
 
 	uint nsame = 0;
 	uint ndiff = 0;

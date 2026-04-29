@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
+#include "flat_params.h"
 #include "alpha.h"
 #include "quantize.h"
 
@@ -13,11 +14,14 @@ static void update_counts(
 	uint alpha_size,
 	uint16_t *counts)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	const uint L = chain->get_length();
 	uint16_t *values = myalloc(uint16_t, L);
 	for (uint i = 0; i < L; ++i)
 		values[i] = UINT16_MAX-1;
-	chaq::slow_get_values(chain, fan, alpha_size, M, m, values);
+	chaq::slow_get_values(chain, fan, alpha_size, values);
 
 	for (uint i = 0; i < L; ++i)
 		{
@@ -31,6 +35,9 @@ static void update_counts(
 
 void cmd_flat_quantize()
 	{
+	uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	const string &chainfn = g_Arg1;
 	vector<vector<uint8_t> > codeseqs;
 	asserta(optset_alpha_size);
@@ -129,7 +136,7 @@ void cmd_flat_quantize()
 			{
 			uint L = chains[i]->get_length();
 			char *Seq = myalloc(char, L);
-			chaq::slow_get_charseq_binned(chains[i], fan, alpha_size, M, m,
+			chaq::slow_get_charseq_binned(chains[i], fan, alpha_size,
 				ts.data(), QR.median_value, Seq);
 			SeqToFasta(f, chains[i]->m_label.c_str(), Seq, L);
 			myfree(Seq);

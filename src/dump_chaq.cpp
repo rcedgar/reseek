@@ -2,11 +2,9 @@
 #include "chaq.h"
 #include "flat_chain.h"
 #include "flat_distmx.h"
+#include "flat_params.h"
 #include "alpha.h"
 #include "quantize.h"
-
-static uint M = 64;
-static const uint m = 12;
 
 static void dump_int16(FILE *f, uint16_t i)
 	{
@@ -21,7 +19,8 @@ static void dump_int16(FILE *f, uint16_t i)
 static void log_nen(flat_chain_t *chain, uint pos)
 	{
 	// int DSSParams::m_NEN_w = 12;
-	const int w = 12;
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 
 	const uint L = chain->get_length();
 	sid_t *nensids = myalloc(sid_t, L);
@@ -45,27 +44,25 @@ static void log_nen(flat_chain_t *chain, uint pos)
 	memset(mensids, 0xff, L*sizeof(nensids[0]));
 	memset(distmx, 0xff, L*M*sizeof(distmx[0]));
 
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 
 	chaq::fill_pen_men_vecs(
-		distmx, L, M, m,
-		pens, pensids, mens, mensids);
+		distmx, L, pens, pensids, mens, mensids);
 
 	chaq::fill_nen_ren_vecs(pens, mens, pensids, mensids, L,
 		nens, rens, nensids, rensids);
 
-	const uint L = chain->get_length();
 	uint nen = nens[pos];
 	uint nen2 = UINT_MAX;
 	uint minsid = UINT16_MAX;
 	for (uint i = 0; i < L; ++i)
 		{
-		if (abs(int(pos) - int(i)) < w)
+		if (abs(int(pos) - int(i)) < int(m))
 			{
 			Log("[%3u]  (too close)\n", i);
 			continue;
 			}
-		uint k = banded_ij_to_k(M, i, pos);
+		uint k = banded_ij_to_k(i, pos);
 		uint sid = distmx[k];
 		float d = sid2dist(sid);
 		Log("[%3u]  %5u  %7.1f\n", i, sid, d);
@@ -81,6 +78,8 @@ static void log_nen(flat_chain_t *chain, uint pos)
 
 static void dump_chaq(FILE *f, flat_chain_t *chain)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 	const uint L = chain->get_length();
 	sid_t *nensids = myalloc(sid_t, L);
 	sid_t *rensids = myalloc(sid_t, L);
@@ -103,11 +102,10 @@ static void dump_chaq(FILE *f, flat_chain_t *chain)
 	memset(mensids, 0xff, L*sizeof(nensids[0]));
 	memset(distmx, 0xff, L*M*sizeof(distmx[0]));
 
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 
 	chaq::fill_pen_men_vecs(
-		distmx, L, M, m,
-		pens, pensids, mens, mensids);
+		distmx, L, pens, pensids, mens, mensids);
 
 	chaq::fill_nen_ren_vecs(pens, mens, pensids, mensids, L,
 		nens, rens, nensids, rensids);
@@ -174,7 +172,7 @@ void cmd_dump_chaq()
 	{
 	const string &chainfn = g_Arg1;
 	vector<vector<uint8_t> > codeseqs;
-	if (optset_bandwidth) M = opt(bandwidth);
+	if (optset_bandwidth) flat_params::m_distmx_bandwidth = opt(bandwidth);
 	FILE *f = CreateStdioFile(opt(output));
 
 	vector<flat_chain_t *> chains;

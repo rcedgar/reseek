@@ -20,9 +20,9 @@ void cmd_packing()
 		const flat_chain_t* chain = chains[chain_idx];
 		const uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		uint16_t *values = myalloc(uint16_t, L);
-		chaq::get_packing_values(distmx, M, L, maxsid, true, true, values);
+		chaq::get_packing_values(distmx, L, maxsid, true, true, values);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint n = values[i];

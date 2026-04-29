@@ -9,8 +9,6 @@
 #include "flat_aligner.h"
 #include "thread_affinity.h"
 
-static const uint M = 64;
-
 #define	SHOW_PROGRESS	1
 
 atomic<uint> flat_bench::m_aligned_pair_count;
@@ -159,7 +157,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfT = m_self_rev_scores[domidxT];
 		}
 	Score = flat_alignx::alignx(
-		fa, profQ, profT, distmxQ, distmxT, M, selfT, selfQ);
+		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (flat_params::need_reverse())
 		{
 		asserta(flat_params::m_rev_w > 0);
@@ -181,7 +179,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	string line;
 	trunc_label(fa.m_labelQ, qacc);
 	trunc_label(fa.m_labelT, tacc);
-	float lddt = flat_getlddt_old(fa, distmxQ, distmxT, M);
+	float lddt = flat_getlddt_old(fa, distmxQ, distmxT);
 	uint l2 = (LQ + fa.m_LT)/2;
           
 	// qacc+tacc+dpscore+selfrevq+selfrevt+selfrev+lddt+l2+newts
@@ -487,6 +485,7 @@ void flat_bench::set_selfrev_scores()
 
 void flat_bench::set_distmxs(const string &chainfn)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainfn, chains);
 	int nchain = int(chains.size());
@@ -502,7 +501,7 @@ void flat_bench::set_distmxs(const string &chainfn)
 			continue;
 		uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain, M, distmx);
+		chaq::fill_distmx(chain, distmx);
 		m_distmxs[domidx] = distmx;
 		}
 	}

@@ -14,6 +14,7 @@ double GetLDDT_muscle(const PDBChain &Q, const PDBChain &T,
   bool DaliScorerCompatible);
 double GetLDDT_muscle_fast(const PDBChain &Q, const PDBChain &T,
   const vector<uint> &PosQs, const vector<uint> &PosTs);
+
 float flat_getlddt_muscle_some_floats(
 	const uint32_t *posQs,
 	const uint32_t LQ,
@@ -22,7 +23,6 @@ float flat_getlddt_muscle_some_floats(
 	const uint ncol,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
-	const uint M,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
@@ -75,7 +75,7 @@ void cmd_lddt_bench()
 		const flat_chain_t *flat_chain = flat_chains[flat_chainidx];
 		const uint L = flat_chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(flat_chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(flat_chain->m_xyz->m_data, L, distmx);
 		distmxs.push_back(distmx);
 		}
 
@@ -140,7 +140,6 @@ void cmd_lddt_bench()
 				ncol,
 				distmx1,
 				distmx2,
-				M,
 				nr_considered_vec,
 				nr_preserved_vec);
 			myfree(nr_considered_vec);

@@ -79,6 +79,7 @@ void sec_kmeans::get_sec16_lines(vector<string> &lines)
 	lines.push_back("mean	80	246	168	192	193	613	1029	596	271	258	2177	1126	645	279	284	2463	326	200	229	234	832	233	224	228	241	289	533	421	216	216	827	792	470	274	270	1822	1018	601	262	236	1869	863	561	198	207	619	646	403	268	261	1504	936	575	211	215	984	958	583	241	235	1426	435	232	253	256	1132	619	450	245	238	1181	301	429	212	212	635	542	433	208	227	325");
 	}
 
+// Conf from reseek v2 converted to flat
 void sec_kmeans::get_conf_lines(vector<string> &lines)
 	{
 	lines.clear();
@@ -102,8 +103,7 @@ void sec_kmeans::get_sec_lines(uint alpha_size, vector<string> &lines)
 	case 8:
 		get_sec8_lines(lines); return;
 	case 16:
-		//get_sec16_lines(lines); return;
-		get_conf_lines(lines); return;
+		get_sec16_lines(lines); return;
 	case 32:
 		get_sec32_lines(lines); return;
 		}
@@ -131,7 +131,6 @@ sec_kmeans *sec_kmeans::get_SK(uint alpha_size, uint M)
 		get_sec_lines(alpha_size, lines);
 		SK->from_lines(lines);
 		assert(SK->m_K == alpha_size);
-		SK->m_M = M;
 		*ptrSK = SK;
 		}
 	SK = *ptrSK;
@@ -233,7 +232,7 @@ void codeseq2fasta(FILE *f, const string &label, const uint8_t *codeseq, uint L)
 
 void cmd_sec_fasta()
 	{
-	const uint M = 32;
+	const uint M = flat_params::m_distmx_bandwidth;
 
 	vector<flat_chain_t *>chains;
 	read_flat_chains(g_Arg1, chains);
@@ -241,7 +240,6 @@ void cmd_sec_fasta()
 
 	sec_kmeans SK;
 	SK.from_tsv(opt(input));
-	SK.m_M = M;
 
 	FILE *ffa = CreateStdioFile(opt(output));
 
@@ -250,7 +248,7 @@ void cmd_sec_fasta()
 		const flat_chain_t* chain = chains[chainidx];
 		const uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		uint8_t *codeseq = myalloc(uint8_t, L);
 		SK.get_codeseq(distmx, L, codeseq);
 		codeseq2fasta(ffa, chain->m_label, codeseq, L);
@@ -512,7 +510,7 @@ void cmd_sec_kmeans()
 			const flat_chain_t* chain = chains[chainidx];
 			const uint L = chain->get_length();
 			sid_t *distmx = myalloc(sid_t, L*M);
-			chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+			chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 			uint8_t *codeseq = myalloc(uint8_t, L);
 			SK.get_codeseq(distmx, L, codeseq);
 			codeseq2fasta(ffa, chain->m_label, codeseq, L);
@@ -543,14 +541,13 @@ void cmd_flat_secn()
 
 	sec_kmeans SK;
 	SK.from_sec_n(alpha_size);
-	SK.m_M = M;
 
 	for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
 		{
 		const flat_chain_t* chain = chains[chainidx];
 		const uint L = chain->get_length();
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		uint8_t *codeseq = myalloc(uint8_t, L);
 		SK.get_codeseq(distmx, L, codeseq);
 		codeseq2fasta(ffa, chain->m_label, codeseq, L);

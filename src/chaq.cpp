@@ -84,34 +84,32 @@ static uint8_t get_aa3code(char c)
 void chaq::fill_distmx(
 	cp_ic_t xyz,
 	uint L,
-	uint M,
 	uint16_t *distmx)
 	{
-	fill_flat_distmx(xyz, L, M, distmx);
+	fill_flat_distmx(xyz, L, distmx);
 	}
 
 void chaq::fill_distmx(
 	const flat_chain_t *chain,
-	uint M,
 	uint16_t *distmx)
 	{
 	fill_flat_distmx(chain->m_xyz->m_data,
-		chain->get_length(), M, distmx);
+		chain->get_length(), distmx);
 	}
 
 // 0=helix 1=strand 2=turn 3=loop
 // Method from sec_str() in TMalign.cpp Zhang & Skolnick 2005
-uint8_t chaq::get_ss4(const sid_t *distmx, uint M, uint L, uint pos)
+uint8_t chaq::get_ss4(const sid_t *distmx, uint L, uint pos)
 	{
 	if (pos < 2 || pos + 2 >= L)
 		return 3;
 
-	float dis13 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos-2, pos)]);
-	float dis14 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos-2, pos+1)]);
-	float dis15 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos-2, pos+2)]);
-	float dis24 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos-1, pos+1)]);
-	float dis25 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos-1, pos+2)]);
-	float dis35 = sid2dist(distmx[banded_i_lt_j_to_k(M, pos, pos+2)]);
+	float dis13 = sid2dist(distmx[banded_i_lt_j_to_k(pos-2, pos)]);
+	float dis14 = sid2dist(distmx[banded_i_lt_j_to_k(pos-2, pos+1)]);
+	float dis15 = sid2dist(distmx[banded_i_lt_j_to_k(pos-2, pos+2)]);
+	float dis24 = sid2dist(distmx[banded_i_lt_j_to_k(pos-1, pos+1)]);
+	float dis25 = sid2dist(distmx[banded_i_lt_j_to_k(pos-1, pos+2)]);
+	float dis35 = sid2dist(distmx[banded_i_lt_j_to_k(pos, pos+2)]);
 
 	const float DH = 2.1f;
 	if (fabs(dis15 - 6.37f) < DH && fabs(dis14 - 5.18f) < DH &&
@@ -132,38 +130,39 @@ uint8_t chaq::get_ss4(const sid_t *distmx, uint M, uint L, uint pos)
 	}
 
 // 0=helix 1=strand 2=other
-uint8_t chaq::get_ss3(const sid_t * __restrict distmx, uint M, uint L, uint pos)
+uint8_t chaq::get_ss3(const sid_t * __restrict distmx, uint L, uint pos)
 	{
-	uint8_t ss4 = get_ss4(distmx, M, L, pos);
+	uint8_t ss4 = get_ss4(distmx, L, pos);
 	return ss4 <= 2 ? ss4 : 2;
 	}
 
-void chaq::get_ss4_str(const sid_t * __restrict distmx, uint M, uint L, string &ss)
+void chaq::get_ss4_str(const sid_t * __restrict distmx, uint L, string &ss)
 	{
 	ss.clear();
 	ss.reserve(L);
 	for (uint pos = 0; pos < L; ++pos)
 		{
-		uint8_t letter = get_ss4(distmx, M, L, pos);
+		uint8_t letter = get_ss4(distmx, L, pos);
 		assert(letter < 4);
 		ss += "hst~"[letter];
 		}
 	}
 
-void chaq::get_ss4_codeseq(cp_sid_t distmx, uint M, uint L, p_uint8_t intseq)
+void chaq::get_ss4_codeseq(cp_sid_t distmx, uint L, p_uint8_t intseq)
 	{
 	for (uint pos = 0; pos < L; ++pos)
-		intseq[pos] = get_ss4(distmx, M, L, pos);
+		intseq[pos] = get_ss4(distmx, L, pos);
 	}
 
 void chaq::fill_nen_vecs(
 	cp_sid_t distmx,
 	uint L,
-	uint M,
-	uint m,
 	p_uint16_t nen,
 	p_uint16_t nensid)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	for (uint i = 0; i < L; ++i)
 		{
 		nen[i] = UINT16_MAX;
@@ -179,7 +178,7 @@ void chaq::fill_nen_vecs(
 		for (uint d = m; d <= dmax; ++d)
 			{
 			uint j = i + d;
-			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+			sid_t sid = distmx[banded_ij_to_k(i, j)];
 
 			if (sid < nensid[i])
 				{
@@ -199,11 +198,11 @@ void chaq::fill_nen_vecs(
 void chaq::fill_fen_vecs(
 	cp_sid_t distmx,
 	uint L,
-	uint M,
-	uint m,
 	p_uint16_t fen,
 	p_uint16_t fensid)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 	for (uint i = 0; i < L; ++i)
 		{
 		fen[i] = UINT16_MAX;
@@ -219,7 +218,7 @@ void chaq::fill_fen_vecs(
 		for (uint d = m; d <= dmax; ++d)
 			{
 			uint j = i + d;
-			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+			sid_t sid = distmx[banded_ij_to_k(i, j)];
 
 			if (sid > fensid[i])
 				{
@@ -271,13 +270,14 @@ void chaq::fill_nen_ren_vecs(
 void chaq::fill_pen_men_vecs(
 	cp_sid_t distmx,
 	uint L,
-	uint M,
-	uint m,
 	p_uint16_t pen,
 	p_uint16_t pensid,
 	p_uint16_t men,
 	p_uint16_t mensid)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	for (uint i = 0; i < L; ++i)
 		{
 		pen[i]  = UINT16_MAX;
@@ -288,17 +288,11 @@ void chaq::fill_pen_men_vecs(
 
 	for (uint i = 0; i < L; ++i)
 		{
-		uint dmax = L - 1 - i;
-		if (dmax > M)
-			dmax = M;
-
+		uint dmax = min(L - 1 - i, M);
 		for (uint d = m; d <= dmax; ++d)
 			{
 			uint j = i + d;
-			if (uint32_t(abs(int(i)-int(j))) < flat_params::m_nn_w)
-				continue;
-
-			sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+			sid_t sid = distmx[banded_ij_to_k(i, j)];
 
 			// forward for i: j > i
 			if (sid < pensid[i])
@@ -335,21 +329,23 @@ void chaq::get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t 
 		codeseq[i] = (pensids[i] <= mensids[i] ? 0 : 1);
 	}
 
-void chaq::get_packing_codeseq(cp_sid_t distmx, uint M, uint L,
+void chaq::get_packing_codeseq(cp_sid_t distmx, uint L,
 	uint maxsid, bool include_plus, bool include_minus, p_uint8_t codeseq)
 	{
 	Die("TODO");
 	}
 
-void chaq::get_turnd_values(cp_sid_t distmx, uint M, uint L, uint w,
+void chaq::get_turnd_values(cp_sid_t distmx, uint L,
 	uint16_t undef_value, p_uint16_t values)
 	{
+	const uint w = flat_params::m_turnd_w;
+
 	for (uint pos = 0; pos < w; ++pos)
 		values[pos] = undef_value;
 
 	for (uint pos = w; pos < L-w; ++pos)
 		{
-		sid_t sid = distmx[banded_ij_to_k(M, pos-w, pos+w)];
+		sid_t sid = distmx[banded_ij_to_k(pos-w, pos+w)];
 		values[pos] = sid;
 		}
 
@@ -357,10 +353,13 @@ void chaq::get_turnd_values(cp_sid_t distmx, uint M, uint L, uint w,
 		values[pos] = undef_value;
 	}
 
-void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
+void chaq::get_packing_values(cp_sid_t distmx, uint L,
 	uint maxsid, bool include_plus, bool include_minus,
 	p_uint16_t values)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	for (uint i = 0; i < L; ++i)
 		{
 		uint32_t n = 0;
@@ -370,7 +369,7 @@ void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
 			if (jmin < 0) jmin = 0;
 			for (uint j = jmin; j < i; ++j)
 				{
-				sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+				sid_t sid = distmx[banded_ij_to_k(i, j)];
 				if (sid <= maxsid)
 					++n;
 				}
@@ -382,7 +381,7 @@ void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
 			if (jmax >= L) jmax = L - 1;
 			for (uint j = i+1; j < jmax; ++j)
 				{
-				sid_t sid = distmx[banded_ij_to_k(M, i, j)];
+				sid_t sid = distmx[banded_ij_to_k(i, j)];
 				if (sid <= maxsid)
 					++n;
 				}
@@ -395,13 +394,14 @@ void chaq::get_packing_values(cp_sid_t distmx, uint M, uint L,
 void chaq::get_sec_codeseq(
 	uint alpha_size,
 	cp_sid_t distmx,
-	uint M,
 	uint L,
 	p_uint8_t codeseq)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	const sec_kmeans *SK = sec_kmeans::get_SK(alpha_size, M);
 	assert(SK->m_K == alpha_size);
-	assert(SK->m_M == M);
 	SK->get_codeseq(distmx, L, codeseq);
 	}
 
@@ -409,11 +409,12 @@ void chaq::slow_get_codeseq_discrete(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
-	uint M,
-	uint m,
 	uint8_t undef_code,
 	p_uint8_t codeseq)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	const uint L = chain->get_length();
 	if (fan == FAN_aa)
 		{
@@ -448,11 +449,10 @@ void chaq::slow_get_codeseq_discrete(
 	sid_t *rensids = myalloc(sid_t, L);
 	uint8_t *sec_codeseq = myalloc(uint8_t, L);
 
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 
 	chaq::fill_pen_men_vecs(
-		distmx, L, M, m,
-		pens, pensids, mens, mensids);
+		distmx, L, pens, pensids, mens, mensids);
 
 	chaq::fill_nen_ren_vecs(
 		pens, mens, pensids, mensids, L,
@@ -471,7 +471,7 @@ void chaq::slow_get_codeseq_discrete(
 
 	if (need_sec_codeseq)
 		{
-		chaq::get_sec_codeseq(alpha_size, distmx, M, L, sec_codeseq);
+		chaq::get_sec_codeseq(alpha_size, distmx, L, sec_codeseq);
 #if DEBUG
 		{
 		for (uint i = 0; i < L; ++i)
@@ -548,7 +548,7 @@ void chaq::slow_get_codeseq_discrete(
 	case FAN_pack:
 	case FAN_ppack:
 	case FAN_mpack:
-		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, M, m, codeseq);
+		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, codeseq);
 		break;
 
 	default:	Die("slow_get_codeseq_discrete(%s)", FAN2str(fan));
@@ -576,10 +576,11 @@ void chaq::slow_get_values(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
-	uint M,
-	uint m,
 	p_uint16_t values)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	if (fan == FAN_angle)
 		{
 		const uint n = 4; // TODO@@
@@ -601,19 +602,17 @@ void chaq::slow_get_values(
 	sid_t *rensids = myalloc(sid_t, L);
 	sid_t *fensids = myalloc(sid_t, L);
 
-	chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 
 	chaq::fill_pen_men_vecs(
-		distmx, L, M, m,
-		pens, pensids, mens, mensids);
+		distmx, L, pens, pensids, mens, mensids);
 
 	chaq::fill_nen_ren_vecs(
 		pens, mens, pensids, mensids, L,
 		nens, rens, nensids, rensids);
 
 	chaq::fill_fen_vecs(
-		distmx, L, M, m,
-		fens, fensids);
+		distmx, L, fens, fensids);
 
 	// Only "float" features, not aa, ss3 etc.
 	const size_t bytes = L*sizeof(uint16_t);
@@ -689,37 +688,37 @@ void chaq::slow_get_values(
 	case FAN_pack:
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
-		chaq::get_packing_values(distmx, M, L, maxsid, true, true, values);
+		chaq::get_packing_values(distmx, L, maxsid, true, true, values);
 		break;
 		}
 
 	case FAN_ppack:
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
-		chaq::get_packing_values(distmx, M, L, maxsid, true, false, values);
+		chaq::get_packing_values(distmx, L, maxsid, true, false, values);
 		break;
 		}
 
 	case FAN_mpack:
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
-		chaq::get_packing_values(distmx, M, L, maxsid, false, true, values);
+		chaq::get_packing_values(distmx, L, maxsid, false, true, values);
 		break;
 		}
 
 	case FAN_turnd:
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
-		chaq::fill_distmx(chain->m_xyz->m_data, L, M, distmx);
+		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t w = 5; //@@TODO param for w=5
 		static const uint16_t undef_value =  1540; // measured median
-		chaq::get_turnd_values(distmx, M, L, w, undef_value, values);
+		chaq::get_turnd_values(distmx, L, undef_value, values);
 		break;
 		}
 
@@ -772,16 +771,17 @@ void chaq::slow_get_charseq_discrete(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint8_t alpha_size,
-	uint M,
-	uint m,
 	uint8_t undef_code,
 	char *charseq)
 	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
+
 	const uint L = chain->get_length();
 	assert(L > 0);
 	uint8_t *codeseq = myalloc(uint8_t, L);
 	slow_get_codeseq_discrete(
-		chain, fan, alpha_size, M, m, undef_code, codeseq);
+		chain, fan, alpha_size, undef_code, codeseq);
 	codeseq2charseq(codeseq, L, alpha_size, charseq);
 	myfree(codeseq);
 	}
@@ -790,8 +790,6 @@ void chaq::slow_get_codeseq_binned(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
-	uint M,
-	uint m,
 	p_uint8_t codeseq)
 	{
 	const uint L = chain->get_length();
@@ -800,7 +798,7 @@ void chaq::slow_get_codeseq_binned(
 	const uint16_t undef_value = get_undef_value(fan, alpha_size);
 
 	uint16_t *values = myalloc(uint16_t, L);
-	chaq::slow_get_values(chain, fan, alpha_size, M, m, values);
+	chaq::slow_get_values(chain, fan, alpha_size, values);
 	for (uint i = 0; i < L; ++i)
 		{
 		uint16_t value = values[i];
@@ -817,16 +815,16 @@ void chaq::slow_get_charseq_binned(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint8_t alpha_size,
-	uint M,
-	uint m,
 	cp_uint16_t thresholds,
 	uint16_t undef_value,
 	char *charseq)
 	{
-	const uint L = chain->get_length();
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint m = flat_params::m_nn_min_offset;
 
+	const uint L = chain->get_length();
 	uint16_t *values = myalloc(uint16_t, L);
-	chaq::slow_get_values(chain, fan, alpha_size, M, m, values);
+	chaq::slow_get_values(chain, fan, alpha_size, values);
 	for (uint i = 0; i < L; ++i)
 		{
 		uint16_t value = values[i];
