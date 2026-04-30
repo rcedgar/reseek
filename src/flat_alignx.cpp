@@ -67,12 +67,6 @@ float flat_alignx::alignx(
 	const sid_t *distmxQ, const sid_t *distmxT,
 	float selfT, float selfQ)
 	{
-	//asserta(!flat_params::m_oldts);
-	//asserta(flat_params::m_oldts_dpw == 0);
-	//asserta(flat_params::m_oldts_lddtw == 0);
-	//asserta(flat_params::m_oldts_ladd == 0);
-	//asserta(flat_params::m_oldts_revtsw == 0);
-
 	float Score = fa.m_score;
 	if (flat_params::m_oldts)
 		Score = oldts(fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);

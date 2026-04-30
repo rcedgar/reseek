@@ -10,6 +10,7 @@
 #include "thread_affinity.h"
 
 #define	SHOW_PROGRESS	1
+#define	OUTPUT_STRUCTURE_SCORES	1
 
 atomic<uint> flat_bench::m_aligned_pair_count;
 atomic<uint> flat_bench::m_ncachehits;
@@ -156,7 +157,33 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxT];
 		}
-	Score = flat_alignx::alignx(
+#if OUTPUT_STRUCTURE_SCORES
+		{
+		static mutex s_lock;
+		asserta(distmxQ && distmxT);
+		float lddt = flat_getlddt_muscle_some_floats4(
+			fa, distmxQ, distmxT);
+		float dali = 
+			flat_get_dali3(fa, distmxQ, distmxT);
+		uint n = uint(fa.m_ncol);
+		float *colscores = myalloc(float, n);
+		float dalix = 
+			flat_get_dalix3(fa, distmxQ, distmxT, colscores);
+		myfree(colscores);
+		static FILE *f;
+		s_lock.lock();
+		if (f == 0)
+			{
+			f = CreateStdioFile("struct.tsv");
+			fprintf(f, "q\tt\tlddt\tdali\tdalix\n");
+			}
+		fprintf(f, "%s\t%s\t%.3g\t%.3g\t%.3g\n",
+			fa.m_labelQ.c_str(), fa.m_labelT.c_str(), lddt, dali, dalix);
+		fflush(f);
+		s_lock.unlock();
+		}
+#endif
+		Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (flat_params::need_reverse())
 		{

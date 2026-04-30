@@ -183,8 +183,11 @@ void FastBench::ReadHits(
 	uint nfp_dope = 0;
 	uint64 FileSize = GetStdioFileSize64(f);
 	time_t lastt = time(0);
+	set<string> missing;
 	while (ReadLineStdioFile(f, line))
 		{
+		if (StartsWith("line", "# ") || StartsWith(line, "q"))
+			continue;
 		if (++counter%100000 == 0)
 			{
 			time_t t = time(0);
@@ -201,8 +204,14 @@ void FastBench::ReadHits(
 		const string &q = flds[qidx];
 		if (q == "query") continue;
 		const string &t = flds[tidx];
-		uint qidx = m_look->get_domidx(q);
-		uint tidx = m_look->get_domidx(t);
+		uint qidx = m_look->get_domidx(q, true);
+		uint tidx = m_look->get_domidx(t, true);
+		if (qidx == UINT_MAX)
+			missing.insert(q);
+		if (tidx == UINT_MAX)
+			missing.insert(t);
+		if (qidx == UINT_MAX || tidx == UINT_MAX)
+			continue;
 		if (qidx == tidx)
 			continue;
 		uint k = triangle_ij_to_k2(qidx, tidx, m_SeqCount);
@@ -243,6 +252,13 @@ void FastBench::ReadHits(
 		n, GetPct(n, K), ntp);
 	if (m_dope)
 		ProgressLog("%u TPs, %u FPs in dope\n", ntp_dope, nfp_dope);
+	size_t nmiss = missing.size();
+	if (nmiss > 0)
+		{
+		ProgressLog("%u domains not in lookup\n", uint(nmiss));
+		for (auto dom : missing)
+			Log(">%s\n", dom.c_str());
+		}
 	CloseStdioFile(f);
 #if SAVE_NOT_IN_DOPE
 	CloseStdioFile(fnid);
