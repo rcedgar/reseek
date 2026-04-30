@@ -19,6 +19,7 @@ float flat_params::m_oldts_ladd;
 uint32_t flat_params::m_nn_min_offset = 12;
 uint32_t flat_params::m_distmx_bandwidth = 256;
 uint32_t flat_params::m_turnd_w = 5;
+uint32_t flat_params::m_angle_n = 4;
 
 void flat_params::set_params(
 	const vector<string> &names,

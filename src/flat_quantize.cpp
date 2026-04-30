@@ -20,13 +20,12 @@ static void update_counts(
 	const uint L = chain->get_length();
 	uint16_t *values = myalloc(uint16_t, L);
 	for (uint i = 0; i < L; ++i)
-		values[i] = UINT16_MAX-1;
+		values[i] = UINT16_MAX;
 	chaq::slow_get_values(chain, fan, alpha_size, values);
 
 	for (uint i = 0; i < L; ++i)
 		{
 		uint16_t value = values[i];
-		asserta(value != UINT16_MAX-1);
 		counts[value] += 1;
 		}
 

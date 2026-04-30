@@ -583,7 +583,7 @@ void chaq::slow_get_values(
 
 	if (fan == FAN_angle)
 		{
-		const uint n = 4; // TODO@@
+		const uint n = flat_params::m_angle_n;
 		slow_get_angle_values(chain, n, alpha_size, values);
 		return;
 		}
