@@ -15,6 +15,7 @@ echo "#define GIT_HASH \"$h\"" > /tmp/git_hash.h
 
 if [[ ! -s git_hash.h || `sum git_hash.h` != `sum /tmp/git_hash.h` ]] ; then
 	echo Update git_hash.h
+	/bin/mv -v /tmp/git_hash.h .
 else
 	echo No change git_hash.h
 fi
