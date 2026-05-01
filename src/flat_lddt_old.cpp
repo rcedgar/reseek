@@ -9,7 +9,7 @@ static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
 
 static const uint g_nr_thresholds = 4;
 
-static float flat_getlddt_old_some_floats(
+float flat_getlddt_old_some_floats(
 	const uint32_t *posQs,
 	const uint32_t LQ,
 	const uint32_t *posTs,
@@ -90,13 +90,12 @@ static float flat_getlddt_old_some_floats(
 	return lddt;
 	}
 
-static float flat_getlddt_muscle_some_floats2(
+float flat_getlddt_muscle_some_floats2(
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
 	uint LQ, uint LT,
 	const vector<uint32_t> &posQs,
-	const vector<uint32_t> &posTs,
-	const uint M)
+	const vector<uint32_t> &posTs)
 	{
 	const uint ncol2 = uint(posQs.size());
 	uint32_t *nr_considered_vec = myalloc(uint32_t, ncol2);

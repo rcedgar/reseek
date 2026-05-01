@@ -10,7 +10,8 @@
 #include "thread_affinity.h"
 
 #define	SHOW_PROGRESS	1
-#define	OUTPUT_STRUCTURE_SCORES	1
+
+static FILE *s_f3;	// structure feature scores
 
 atomic<uint> flat_bench::m_aligned_pair_count;
 atomic<uint> flat_bench::m_ncachehits;
@@ -157,7 +158,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxT];
 		}
-#if OUTPUT_STRUCTURE_SCORES
+	if (s_f3 != 0)
 		{
 		static mutex s_lock;
 		asserta(distmxQ && distmxT);
@@ -170,19 +171,19 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		float dalix = 
 			flat_get_dalix3(fa, distmxQ, distmxT, colscores);
 		myfree(colscores);
-		static FILE *f;
+		float LQ = (float) fa.m_LQ;
+		float LT = (float) fa.m_LT;
+		float L = (LQ + LT)/2.0f + 50;
+
+		uint ncol = uint(fa.m_ncol);
+		float Lfactor = ncol/L;
+		float lddtx = lddt*Lfactor;
+
 		s_lock.lock();
-		if (f == 0)
-			{
-			f = CreateStdioFile("struct.tsv");
-			fprintf(f, "q\tt\tlddt\tdali\tdalix\n");
-			}
-		fprintf(f, "%s\t%s\t%.3g\t%.3g\t%.3g\n",
-			fa.m_labelQ.c_str(), fa.m_labelT.c_str(), lddt, dali, dalix);
-		fflush(f);
+		fprintf(s_f3, "%s\t%s\t%.3g\t%.3g\t%.3g\n",
+			fa.m_labelQ.c_str(), fa.m_labelT.c_str(), lddtx, dali, dalix);
 		s_lock.unlock();
 		}
-#endif
 		Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (flat_params::need_reverse())
@@ -420,6 +421,7 @@ void flat_bench::ClassifyParams(
 			|| Name == "dali" \
 			|| Name == "dalix" \
 			|| Name == "lddt" \
+			|| Name == "lddtx" \
 			|| Name == "entropy" \
 			|| Name == "revw" \
 			|| StartsWith(Name, "oldts_"))
@@ -546,6 +548,9 @@ void cmd_flat_bench()
 	const string &VarStr = g_Arg1;
 
 	if (optset_output2) s_ftsv = CreateStdioFile(opt(output2));
+
+// structure features
+	if (optset_output3) s_f3 = CreateStdioFile(opt(output3));
 
 	flat_bench FB;
 	FB.ReadLookup(opt(lookup));

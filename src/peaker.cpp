@@ -377,12 +377,23 @@ void Peaker::NormalizeWeights(const vector<string> &xv,
 
 void Peaker::WriteFinalResults(FILE *f) const
 	{
+	string best_xss;
+	xv2xss(m_Best_xv, best_xss);
+	if (m_fTsv != 0)
+		{
+		fprintf(m_fTsv, "%.6g", m_Best_y);
+		fprintf(m_fTsv, "\t%s", "FINAL");
+		fprintf(m_fTsv, "\t.");
+		fprintf(m_fTsv, "\t%s", (m_Name + ".FINAL").c_str());
+		fprintf(m_fTsv, "\t%s", best_xss.c_str());
+		fprintf(m_fTsv, "\n");
+		fflush(m_fTsv);
+		}
+
 	if (f == 0)
 		return;
 
 	fprintf(f, "\n_____________________________________________\n");
-	string best_xss;
-	xv2xss(m_Best_xv, best_xss);
 	fprintf(f, "FINAL %s [%.6g] %s\n",
 		m_Name.c_str(), m_Best_y, best_xss.c_str());
 	fprintf(f, "\n_____________________________________________\n");
@@ -424,16 +435,34 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	string xss;
 	xv2xss(xv, xss);
 	if (dy > 0)
-		ProgressPrefixLog("\n");
-	ProgressPrefixLog("%s%.2g%%[%.6g] %s /%.2f/ %s\n",
-		(dy > 0 ? ">>>" : ""),
-		GetPct(dy, m_Best_y),
-		m_Best_y,
-		desc.c_str(),
-		GetGlobalRateFactor(),
-		xss.c_str());
+		Progress("\n");
 	if (dy > 0)
-		ProgressPrefixLog("\n");
+		{
+		double Pct = GetPct(dy, m_Best_y);
+		Progress("\033[7m");
+		if (Pct > 10)
+			Progress("               ");
+		else if (Pct > 5)
+			Progress("       ");
+		else if (Pct > 1)
+			Progress("     ");
+		else if (Pct > 0.1)
+			Progress("     ");
+		else
+			Progress("  ");
+		Progress("\033[7m          %+.2g%% %.4g\033[0m",
+			Pct, m_Best_y);
+		}
+	else
+		Progress(" \033[7m %.4g \033[0m", m_Best_y);
+	Progress(" %s", desc.c_str());
+	Progress(" /%.2f/", GetGlobalRateFactor());
+	Progress("\n");
+
+	if (dy > 0)
+		Log(">>> ");
+	Log("%+.2g%% %.4g %s\n",
+		GetPct(dy, m_Best_y), m_Best_y, xss.c_str());
 
 	if (m_fTsv != 0)
 		{

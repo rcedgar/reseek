@@ -478,7 +478,7 @@
     <ClCompile Include="ssslib.cpp" />
     <ClCompile Include="sssv_scop40.cpp" />
     <ClCompile Include="statsig.cpp" />
-    <ClCompile Include="structure_features.cpp" />
+    <ClCompile Include="bench_structure_feature.cpp" />
     <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="sw_flat.cpp" />
     <ClCompile Include="test.cpp" />

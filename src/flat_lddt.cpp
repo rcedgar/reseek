@@ -3,22 +3,15 @@
 #include "flat_distmx.h"
 #include "flat_aligner.h"
 
-#if 1
+// TODO float -> sid_t
 
-static const float g_LDDT_R0 = 15;
-static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
-//static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
-static const float g_LDDT_thresholds[] = { 1.4f };
-
-#else
-
-static const sid_t g_LDDT_thresholds2[4] = { 2, 6, 25, 100 };
-static const sid_t g_LDDT_R02 = 200;
-
-#endif
-
-static const uint g_nr_thresholds =
-	sizeof(g_LDDT_thresholds)/sizeof(g_LDDT_thresholds[0]);
+//static const float R0 = 15;
+//static const float g_LDDT_R0_squared = R0*R0;
+////static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
+//static const float g_LDDT_thresholds[] = { 1.4f };
+//
+//static const uint g_nr_thresholds =
+//	sizeof(g_LDDT_thresholds)/sizeof(g_LDDT_thresholds[0]);
 
 float flat_getlddt_muscle_some_floats(
 	const uint32_t *posQs,
@@ -33,7 +26,11 @@ float flat_getlddt_muscle_some_floats(
 	{
 	if (ncol == 0)
 		return 0;
+	const float R0 = flat_params::m_LDDT_R0;
+	const float R02 = R0*R0;
+	const uint nr_thresholds = flat_params::m_LDDT_nr_thresholds;
 	const uint M = flat_params::m_distmx_bandwidth;
+	const float *LDDT_thresholds = flat_params::m_LDDT_thresholds;
 	zero_array(nr_considered_vec, ncol);
 	zero_array(nr_preserved_vec, ncol);
 	for (uint coli = 0; coli < ncol; ++coli)
@@ -66,13 +63,13 @@ float flat_getlddt_muscle_some_floats(
 			float dT_squared = sid2dist2(sid_dT_squared);
 			float dQ = sqrtf(dQ_squared);
 			float dT = sqrtf(dT_squared);
-			if (dQ > g_LDDT_R0 && dT > g_LDDT_R0)
+			if (dQ > R0 && dT > R0)
 				continue;
 
-			for (uint k = 0; k < g_nr_thresholds; ++k)
+			for (uint k = 0; k < nr_thresholds; ++k)
 				{
 				// sid_t t = g_LDDT_thresholds2[k];
-				float t = g_LDDT_thresholds[k];
+				float t = LDDT_thresholds[k];
 				//uint16_t diff = abs(uint16(dQ_squared) - uint16(dT_squared));
 				float diff = fabs(dQ - dT);
 				if (diff <= t)
@@ -81,8 +78,8 @@ float flat_getlddt_muscle_some_floats(
 					nr_preserved_vec[colj] += 1;
 					}
 				}
-			nr_considered_vec[coli] += g_nr_thresholds;
-			nr_considered_vec[colj] += g_nr_thresholds;
+			nr_considered_vec[coli] += nr_thresholds;
+			nr_considered_vec[colj] += nr_thresholds;
 			}
 		}
 

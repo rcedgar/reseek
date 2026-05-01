@@ -719,7 +719,7 @@
     <ClCompile Include="flat_align_selfrev_mega.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="structure_features.cpp">
+    <ClCompile Include="bench_structure_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_lddt.cpp">

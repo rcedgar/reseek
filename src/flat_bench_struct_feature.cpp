@@ -8,8 +8,6 @@
 
 #define SHOW_PROGRESS 1
 
-static const uint M = 64;
-
 void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 	{
 	const uint NQ = SIZE(m_Labels);
@@ -292,7 +290,7 @@ void cmd_flat_bench_struct_feature()
 	flat_bench_struct_feature FB;
 	FB.ReadLookup(opt(lookup));
 	FB.read_chains(opt(input));
-	FB.set_distmxs(M);
+	FB.set_distmxs(flat_params::m_distmx_bandwidth);
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
 

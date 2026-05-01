@@ -188,6 +188,21 @@ static inline const uint8_t *get_char2letter(const string &feature_name)
 	return (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 	}
 
+float flat_get_dali(
+	const string &path,
+	uint32_t loQ, uint32_t LQ,
+	uint32_t loT, uint32_t LT,
+	const sid_t *distmxQ,
+	const sid_t *distmxT);
+
+float flat_get_dalix(
+	const string &path,
+	uint32_t loQ, uint32_t LQ,
+	uint32_t loT, uint32_t LT,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	float *colscores);
+
 float flat_get_dalix3(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,
@@ -236,3 +251,21 @@ void flat_reverse_distmx(
 	cp_sid_t distmx, uint32_t L, p_sid_t reversed_distmx);
 
 void trunc_label(const string &label, string &tlabel);
+
+float flat_getlddt_muscle_some_floats2(
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	uint LQ, uint LT,
+	const vector<uint32_t> &posQs,
+	const vector<uint32_t> &posTs);
+
+float flat_getlddt_old_some_floats(
+	const uint32_t *posQs,
+	const uint32_t LQ,
+	const uint32_t *posTs,
+	const uint32_t LT,
+	const uint ncol,
+	const sid_t *distmxQ,
+	const sid_t *distmxT,
+	uint32_t *nr_considered_vec,
+	uint32_t *nr_preserved_vec);

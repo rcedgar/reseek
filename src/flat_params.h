@@ -8,20 +8,19 @@ public:
 	static float m_self_w;
 	static float m_rev_w;
 	static float m_lddt_w;
+	static float m_lddtx_w;
 	static float m_dali_w;
 	static float m_dalix_w;
 	static float m_entropy_w;
-
-	static bool m_oldts;
-	static float m_oldts_dpw;
-	static float m_oldts_lddtw;
-	static float m_oldts_revtsw;
-	static float m_oldts_ladd;
 
 	static uint32_t m_nn_min_offset;
 	static uint32_t m_distmx_bandwidth;
 	static uint32_t m_turnd_w;
 	static uint32_t m_angle_n;
+
+	static float m_LDDT_R0;
+	static const float *m_LDDT_thresholds;
+	static uint m_LDDT_nr_thresholds;
 
 public:
 	static void set_params(
