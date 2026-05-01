@@ -6,6 +6,7 @@
 #include "cigar.h"
 #include "chaq.h"
 #include <deque>
+#include <condition_variable>
 
 static string s_feature;
 static FastBench *s_FB;

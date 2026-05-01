@@ -53,9 +53,13 @@ float flat_bench_struct_feature::get_rotfreetm(uint idxQ, uint idxT,
 	flat_sidmx_t DM_Q(distmxQ, LQ, M);
 	flat_sidmx_t DM_T(distmxT, LT, M);
 
+	vector<uint32_t> posQs;
+	vector<uint32_t> posTs;
+	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+
 	align_path_t Path;
-	Path.A = AliA;
-	Path.B = AliB;
+	Path.A = posQs.data();
+	Path.B = posTs.data();
 	Path.K = K;
 
 	rotfree_tm_params_t P;
@@ -66,6 +70,6 @@ float flat_bench_struct_feature::get_rotfreetm(uint idxQ, uint idxT,
 	P.Lnorm = K;
 
 	rotfree_tm_scorer Scorer;
-	float score = Scorer.ScoreAlignment(DM_A, DM_B, Path, P);
+	float score = Scorer.ScoreAlignment(DM_Q, DM_T, Path, P);
 	return score;
 	}
