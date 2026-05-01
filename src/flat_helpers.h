@@ -269,3 +269,10 @@ float flat_getlddt_old_some_floats(
 	const sid_t *distmxT,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
+
+void path2posvecs(
+	const string &path,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	vector<uint> &posQs,
+	vector<uint> &posTs);

@@ -17,6 +17,9 @@ public:
 	float get_feature_value(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 
+	float get_lddtpow(uint idxQ, uint idxT,
+		const flat_aligner &fa) const;
+
 	float get_lddt(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 
@@ -24,6 +27,9 @@ public:
 		const flat_aligner &fa) const;
 
 	float get_dalix(uint idxQ, uint idxT,
+		const flat_aligner &fa) const;
+
+	float get_rotfreetm(uint idxQ, uint idxT,
 		const flat_aligner &fa) const;
 
 	float get_entropy(uint idxQ, uint idxT,

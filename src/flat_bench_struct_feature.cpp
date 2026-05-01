@@ -104,6 +104,8 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 	const string &feat = opt(feature);
 	if (feat == "lddt")
 		return get_lddt(idxQ, idxT, fa);
+	else if (feat == "lddtpow")
+		return get_lddtpow(idxQ, idxT, fa);
 	else if (feat == "dali")
 		return get_dali(idxQ, idxT, fa);
 	else if (feat == "dalix")
@@ -126,8 +128,17 @@ float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 		uint nfeat, uint fi);
 
 	const uint nfeat = flat_features::get_nfeat();
-	const uint fi = 3;
-	asserta(flat_features::m_feature_names[fi] == "sec32");
+	uint fi = UINT_MAX;
+	for (uint i = 0; i < nfeat; ++i)
+		{
+		if (flat_features::m_feature_names[i] == "sec32")
+			{
+			fi = i;
+			break;
+			}
+		}
+	if (fi == UINT_MAX)
+		Die("entropy needs sec32");
 
 	string path;
 	fa.get_path_str(path);
@@ -145,13 +156,6 @@ float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
-	float flat_get_dali(
-		const string &path,
-		uint32_t loQ, uint32_t LQ,
-		uint32_t loT, uint32_t LT,
-		const sid_t *distmxQ,
-		const sid_t *distmxT);
-
 	asserta(idxQ < m_distmxs.size());
 	asserta(idxT < m_distmxs.size());
 
@@ -175,14 +179,6 @@ float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
 float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
-	float flat_get_dalix(
-		const string &path,
-		uint32_t loQ, uint32_t LQ,
-		uint32_t loT, uint32_t LT,
-		const sid_t *distmxQ,
-		const sid_t *distmxT,
-		float *colscores);
-
 	asserta(idxQ < m_distmxs.size());
 	asserta(idxT < m_distmxs.size());
 
@@ -206,6 +202,25 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 	}
 
 float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,
+	const flat_aligner &fa) const
+	{
+	asserta(idxQ < m_distmxs.size());
+	asserta(idxT < m_distmxs.size());
+
+	const sid_t *distmxQ = m_distmxs[idxQ];
+	const sid_t *distmxT = m_distmxs[idxT];
+
+	uint loQ = fa.m_loQ;
+	uint loT = fa.m_loT;
+	uint LQ = fa.m_LQ;
+	uint LT = fa.m_LT;
+
+	float lddt = flat_getlddt_muscle_some_floats4(
+		fa, distmxQ, distmxT);
+	return lddt;
+	}
+
+float flat_bench_struct_feature::get_lddtpow(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
 	asserta(idxQ < m_distmxs.size());

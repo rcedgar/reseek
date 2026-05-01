@@ -422,6 +422,7 @@ void flat_bench::ClassifyParams(
 			|| Name == "dalix" \
 			|| Name == "lddt" \
 			|| Name == "lddtx" \
+			|| Name == "lddtpow" \
 			|| Name == "entropy" \
 			|| Name == "revw" \
 			|| StartsWith(Name, "oldts_"))

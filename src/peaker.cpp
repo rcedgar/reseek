@@ -441,20 +441,17 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		double Pct = GetPct(dy, m_Best_y);
 		Progress("\033[7m");
 		if (Pct > 10)
-			Progress("               ");
+			Progress("             ");
 		else if (Pct > 5)
-			Progress("       ");
+			Progress("        ");
 		else if (Pct > 1)
-			Progress("     ");
+			Progress("    ");
 		else if (Pct > 0.1)
-			Progress("     ");
-		else
 			Progress("  ");
-		Progress("\033[7m          %+.2g%% %.4g\033[0m",
-			Pct, m_Best_y);
+		Progress("%+.2g %% %.4g\033[0m", Pct, m_Best_y);
 		}
 	else
-		Progress(" \033[7m %.4g \033[0m", m_Best_y);
+		Progress("-%.2g%% \033[7m %.4g \033[0m", GetPct(-dy, m_Best_y), m_Best_y);
 	Progress(" %s", desc.c_str());
 	Progress(" /%.2f/", GetGlobalRateFactor());
 	Progress("\n");

@@ -7,6 +7,7 @@ float flat_params::m_self_w;
 float flat_params::m_rev_w;
 float flat_params::m_lddt_w;
 float flat_params::m_lddtx_w;
+float flat_params::m_lddtpow_w;
 float flat_params::m_dali_w;
 float flat_params::m_dalix_w;
 float flat_params::m_entropy_w;
@@ -47,6 +48,8 @@ void flat_params::set_params(
 			m_lddt_w = value;
 		else if (name == "lddtx")
 			m_lddtx_w = value;
+		else if (name == "lddtpow")
+			m_lddtpow_w = value;
 		else if (name == "entropy")
 			m_entropy_w = value;
 		else if (name == "gap2")
@@ -69,6 +72,7 @@ bool flat_params::need_distmx()
 		flat_params::m_dali_w > 0 ||
 		flat_params::m_lddt_w > 0 ||
 		flat_params::m_lddtx_w > 0 ||
+		flat_params::m_lddtpow_w > 0 ||
 		flat_params::m_entropy_w > 0;
 	}
 

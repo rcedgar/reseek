@@ -17,8 +17,8 @@ typedef uint32_t uint;
 // -------------------------------------------------------------------
 struct align_path_t
 {
-	const uint16_t *A = 0;
-	const uint16_t *B = 0;
+	const uint32_t *A = 0;
+	const uint32_t *B = 0;
 	uint K = 0;
 
 	bool IsValid() const

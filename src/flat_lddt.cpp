@@ -2,6 +2,7 @@
 #include "flat_chain.h"
 #include "flat_distmx.h"
 #include "flat_aligner.h"
+#include "flat_helpers.h"
 
 // TODO float -> sid_t
 
@@ -129,13 +130,6 @@ float flat_getlddt_muscle_some_floats3(
 
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
-
-	void path2posvecs(
-		const string &path,
-		uint loQ, uint LQ,
-		uint loT, uint LT,
-		vector<uint> &posQs,
-		vector<uint> &posTs);
 	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
 
 	const uint ncol2 = uint(posQs.size());

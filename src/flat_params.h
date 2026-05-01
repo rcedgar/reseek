@@ -9,6 +9,7 @@ public:
 	static float m_rev_w;
 	static float m_lddt_w;
 	static float m_lddtx_w;
+	static float m_lddtpow_w;
 	static float m_dali_w;
 	static float m_dalix_w;
 	static float m_entropy_w;

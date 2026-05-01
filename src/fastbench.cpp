@@ -133,9 +133,31 @@ void FastBench::Bench(const string &Msg)
 		}
 	float EPQ = 2*float(nf)/m_SeqCount;
 	float Sens = 2*float(nt)/m_look->m_NT;
-	if (m_SEPQ0_1 == FLT_MAX) m_SEPQ0_1 = Sens;
-	if (m_SEPQ1 == FLT_MAX)   m_SEPQ1   = Sens;
-	if (m_SEPQ10 == FLT_MAX)  m_SEPQ10  = Sens;
+
+	if (m_SEPQ0_1 == FLT_MAX)
+		{
+		if (EPQ <= 0.1)	
+			m_SEPQ0_1 = Sens;
+		else
+			m_SEPQ0_1 = 0;
+		}
+
+	if (m_SEPQ1 == FLT_MAX)
+		{
+		if (EPQ <= 1)	
+			m_SEPQ1 = Sens;
+		else
+			m_SEPQ1 = 0;
+		}
+
+	if (m_SEPQ10 == FLT_MAX)
+		{
+		if (EPQ <= 0.1)	
+			m_SEPQ10 = Sens;
+		else
+			m_SEPQ10 = 0;
+		}
+
 	m_Sum3 = m_SEPQ0_1*2 + m_SEPQ1*3/2 + m_SEPQ10;
 
 	if (Msg != "noshow")

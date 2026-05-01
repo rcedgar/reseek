@@ -136,6 +136,34 @@ static float get_score(
 			nr_preserved_vec);
 		myfree(nr_considered_vec);
 		myfree(nr_preserved_vec);
+		return lddt;
+		}
+	else if (s_feature == "lddtpow")
+		{
+		vector<uint> posQs, posTs;
+		path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+		const uint ncol = uint(posQs.size());
+		assert(posTs.size() == ncol);
+		uint32_t *nr_considered_vec = myalloc(uint32_t, ncol);
+		uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol);
+		float lddt = flat_getlddt_muscle_some_floats(
+			posQs.data(), LQ,
+			posTs.data(), LT,
+			ncol,
+			distmxQ,
+			distmxT,
+			nr_considered_vec,
+			nr_preserved_vec);
+		myfree(nr_considered_vec);
+		myfree(nr_preserved_vec);
+		float maxL = max(LT, LQ) - 20.0f;
+		if (maxL < 80)
+			maxL = 80;
+		uint nmatch = 0;
+		for (auto c : path)
+			if (c == 'M') ++nmatch;
+		float score = lddt*nmatch*2.0f/powf(maxL, 0.5);
+		return score;
 		}
 	else if (s_feature == "lddtx")
 		{
