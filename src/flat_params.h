@@ -13,6 +13,7 @@ public:
 	static float m_dali_w;
 	static float m_dalix_w;
 	static float m_entropy_w;
+	static float m_rotfreetm_w;
 
 	static uint32_t m_nn_min_offset;
 	static uint32_t m_distmx_bandwidth;

@@ -349,6 +349,8 @@
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
     <ClCompile Include="join_features.cpp" />
+    <ClCompile Include="kabsch_quad.cpp" />
+    <ClCompile Include="kabsch_quad_fit.cpp" />
     <ClCompile Include="kappa_dex.cpp" />
     <ClCompile Include="kappa_mermx.cpp" />
     <ClCompile Include="kappa_mxdata.cpp" />
@@ -401,6 +403,7 @@
     <ClCompile Include="reduce_alphabet.cpp" />
     <ClCompile Include="retrainmu.cpp" />
     <ClCompile Include="rocauc.cpp" />
+    <ClCompile Include="rotfreetm.cpp" />
     <ClCompile Include="scop40benchsubset.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
@@ -578,6 +581,8 @@
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="get_distinct_window_extrema.h" />
     <ClInclude Include="hexintseq.h" />
+    <ClInclude Include="kabsch.h" />
+    <ClInclude Include="kabsch_quad.h" />
     <ClInclude Include="kappa_dex.h" />
     <ClInclude Include="kappa_mermx.h" />
     <ClInclude Include="kappa_prefilter_params.h" />
@@ -646,7 +651,6 @@
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
-    <ClInclude Include="rotfreetm_v2.h" />
     <ClInclude Include="round3sigfig.h" />
     <ClInclude Include="scalarparams.h" />
     <ClInclude Include="scop40bench.h" />

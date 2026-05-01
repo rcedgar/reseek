@@ -53,26 +53,28 @@ void flat_bench::load_profiles(const string &fafnpattern)
 	m_SeqCount = uint(m_Labels.size());
 	}
 
-void flat_bench::align_pair(
+void flat_bench::align_pair(flat_aligner &fa,
 	const string &labelQ, const string &labelT)
 	{
-	flat_aligner fa;
 	fa.alloc();
 
+	string labQ, labT;
+	trunc_label(labelQ, labQ);
+	trunc_label(labelT, labT);
 	uint DomIdxQ = UINT_MAX;
 	uint DomIdxT = UINT_MAX;
 	for (uint i = 0; i < uint(m_Labels.size()); ++i)
 		{
-		if (m_Labels[i] == labelQ)
+		if (m_Labels[i] == labQ)
 			DomIdxQ = i;
-		if (m_Labels[i] == labelT)
+		if (m_Labels[i] == labT)
 			DomIdxT = i;
 		}
 	asserta(DomIdxQ != UINT_MAX);
 	asserta(DomIdxT != UINT_MAX);
 
-	m_fp.profile_to_fasta(g_fLog, DomIdxQ);
-	m_fp.profile_to_fasta(g_fLog, DomIdxT);
+	//m_fp.profile_to_fasta(g_fLog, DomIdxQ);
+	//m_fp.profile_to_fasta(g_fLog, DomIdxT);
 
 	const uint8_t *profT = m_fp.get_profile(DomIdxT);
 	const uint LT = m_fp.get_length(DomIdxT);
@@ -424,6 +426,7 @@ void flat_bench::ClassifyParams(
 			|| Name == "lddtx" \
 			|| Name == "lddtpow" \
 			|| Name == "entropy" \
+			|| Name == "rotfreetm" \
 			|| Name == "revw" \
 			|| StartsWith(Name, "oldts_"))
 			{
@@ -489,7 +492,8 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 		}
 	ApplyWeightsToLogOdds(NameToWeight);
 
-	set_selfrev_scores();
+	if (flat_params::need_self())
+		set_selfrev_scores();
 	}
 
 void flat_bench::set_selfrev_scores()
@@ -584,7 +588,8 @@ void cmd_flat_bench()
 	if (optset_label1)
 		{
 		asserta(optset_label2);
-		FB.align_pair(opt(label1), opt(label2));
+		flat_aligner fa;
+		FB.align_pair(fa, opt(label1), opt(label2));
 		return;
 		}
 

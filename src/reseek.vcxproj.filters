@@ -779,6 +779,15 @@
     <ClCompile Include="dump_chaq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rotfreetm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kabsch_triangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kabsch_triangle_fit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1273,11 +1282,14 @@
     <ClInclude Include="flat_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rotfreetm_v2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="thread_affinity.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kabsch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kabsch_triangle.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

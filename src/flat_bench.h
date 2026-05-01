@@ -50,7 +50,10 @@ public:
 	void UpdateParamsFromVarStr(const string &VarStr);
 	void load_profiles(const string &fafnpattern);
 	void LogParams(bool show_progress = false) const;
-	void align_pair(const string &labelQ, const string &labelT);
+	void align_pair(flat_aligner &fa,
+		const string &labelQ, const string &labelT);
+	void align_pair_rotfreetm(flat_aligner &fa,
+		const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
 	void set_distmxs(const string &chainfn);

@@ -11,6 +11,7 @@ float flat_params::m_lddtpow_w;
 float flat_params::m_dali_w;
 float flat_params::m_dalix_w;
 float flat_params::m_entropy_w;
+float flat_params::m_rotfreetm_w;
 
 uint32_t flat_params::m_nn_min_offset = 12;
 uint32_t flat_params::m_distmx_bandwidth = 256;
@@ -52,6 +53,8 @@ void flat_params::set_params(
 			m_lddtpow_w = value;
 		else if (name == "entropy")
 			m_entropy_w = value;
+		else if (name == "rotfreetm")
+			m_rotfreetm_w = value;
 		else if (name == "gap2")
 			{
 			m_open = value;

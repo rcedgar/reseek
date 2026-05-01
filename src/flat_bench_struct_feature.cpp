@@ -112,6 +112,8 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 		return get_dalix(idxQ, idxT, fa);
 	else if (feat == "entropy")
 		return get_entropy(idxQ, idxT, fa);
+	else if (feat == "rotfreetm")
+		return get_rotfreetm(idxQ, idxT, fa);
 	Die("feat");
 	return 0;
 	}

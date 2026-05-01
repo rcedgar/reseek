@@ -133,5 +133,6 @@ C(flat_hjmega_bracket)
 C(dump_dss)
 C(dump_chaq)
 C(bench_structure_feature)
+C(kabsch_quad)
 
 #undef C
