@@ -623,28 +623,46 @@ bool ReadLineStdioFile(FILE *f, char *Line, uint32 Bytes)
 	return true;
 	}
 
+static void AppendLineChunkSkipCr(string &Line, const char *Begin, const char *End)
+	{
+	while (Begin < End)
+		{
+		while (Begin < End && *Begin == '\r')
+			++Begin;
+		if (Begin >= End)
+			break;
+		const char *RunStart = Begin;
+		while (Begin < End && *Begin != '\r')
+			++Begin;
+		Line.append(RunStart, Begin - RunStart);
+		}
+	}
+
 // Return false on EOF, true if line successfully read.
 bool ReadLineStdioFile(FILE *f, string &Line)
 	{
 	Line.clear();
+	char Buffer[64*1024];
 	for (;;)
 		{
-		int c = fgetc(f);
-		if (c == -1)
+		if (NULL == fgets(Buffer, (int) sizeof(Buffer), f))
 			{
 			if (feof(f))
-				{
-				if (!Line.empty())
-					return true;
-				return false;
-				}
-			Die("ReadLineStdioFile, errno=%d", errno);
+				return !Line.empty();
+			if (ferror(f))
+				Die("ReadLineStdioFile, errno=%d", errno);
+			Die("ReadLineStdioFile: fgets=0, feof=0, ferror=0");
 			}
-		if (c == '\r')
-			continue;
-		if (c == '\n')
+		char *Newline = strchr(Buffer, '\n');
+		if (NULL != Newline)
+			{
+			AppendLineChunkSkipCr(Line, Buffer, Newline);
 			return true;
-		Line.push_back((char) c);
+			}
+		size_t ChunkBytes = strlen(Buffer);
+		AppendLineChunkSkipCr(Line, Buffer, Buffer + ChunkBytes);
+		if (ChunkBytes + 1 < sizeof(Buffer))
+			return true;
 		}
 	}
 

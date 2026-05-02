@@ -2,24 +2,57 @@
 
 #include "triangle.h"
 
+enum LOOK_TRUTH
+	{
+	LT_Undef,
+	LT_SAME_SF,
+	LT_DIFF_SF_SAME_FOLD,
+	LT_SAME_FOLD
+	};
+
 class lookup
 	{
 public:
 	vector<string> m_doms;
 	vector<string> m_sfs;
+	vector<string> m_folds;
 	unordered_map<string, uint> m_dom2idx;
 	unordered_map<string, uint> m_sf2idx;
+	unordered_map<string, uint> m_fold2idx;
 	vector<uint> m_domidx2sfidx;
+	vector<uint> m_domidx2foldidx;
 	vector<uint> m_sfidx2ndom;
-	bool *m_tpvec = 0;
+	vector<uint> m_foldidx2ndom;
+	//bool *m_tpvec_sf = 0;
+	//bool *m_tpvec_fold = 0;
 	uint m_NT = 0;
 	uint m_NF = 0;
+	uint m_NI = 0;
 	uint m_pair_count = 0;
+	LOOK_TRUTH m_LT = LT_SAME_SF;
 
 public:
+	lookup()
+		{
+		m_LT = LT_SAME_SF;
+		if (optset_truth)
+			{
+			const string &t = opt(truth);
+			if (t == "sf")
+				m_LT = LT_SAME_SF;
+			else if (t == "fold")
+				m_LT = LT_SAME_FOLD;
+			else if (t == "dssf")
+				m_LT = LT_DIFF_SF_SAME_FOLD;
+			else
+				Die("Invalid -truth '%s'", t.c_str());
+			}
+		}
+
 	~lookup()
 		{
-		myfree(m_tpvec);
+		//myfree(m_tpvec_sf);
+		//myfree(m_tpvec_fold);
 		}
 
 	void reserve()
@@ -43,7 +76,21 @@ public:
 		m_sf2idx.clear();
 		m_domidx2sfidx.clear();
 		m_sfidx2ndom.clear();
-		myfree(m_tpvec);
+		//myfree(m_tpvec_sf);
+		//myfree(m_tpvec_fold);
+		}
+
+	const char *get_truthstr() const
+		{
+		if (m_LT == LT_SAME_SF)
+			return "sf";
+		else if (m_LT == LT_SAME_FOLD)
+			return "fold";
+		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
+			return "dssf";
+		else
+			Die("get_truthstr()");
+		return "ERROR";
 		}
 
 	uint get_ndom() const { return uint(m_doms.size()); }
@@ -52,6 +99,9 @@ public:
 	void from_labels(const vector<string> &labels);
 	void to_tsv(const string &fn);
 	void fill();
+	void fill_sf();
+	void fill_fold();
+	void fill_dssf();
 	void stats();
 
 	const string &get_dom(uint domidx) const
@@ -102,18 +152,70 @@ public:
 		return k;
 		}
 
-	bool is_tp_ij(uint domidx1, uint domidx2)
+	bool same_sf_ij(uint i, uint j) const
 		{
-		assert(domidx1 < m_domidx2sfidx.size());
-		assert(domidx2 < m_domidx2sfidx.size());
-		uint sfidx1 = m_domidx2sfidx[domidx1];
-		uint sfidx2 = m_domidx2sfidx[domidx2];
-		return sfidx1 == sfidx2;
+		uint sfidx_i = m_domidx2sfidx[i];
+		uint sfidx_j = m_domidx2sfidx[j];
+		return sfidx_i == sfidx_j;
 		}
 
-	bool is_tp_k(uint k)
+	bool same_sf_k(uint k) const
 		{
-		assert(k < m_pair_count);
-		return m_tpvec[k];
+		uint i, j;
+		triangle_k_to_ij(k, uint(m_doms.size()), i, j);
+		return same_sf_ij(i, j);
+		}
+
+	bool same_fold_ij(uint i, uint j) const
+		{
+		uint foldidx_i = m_domidx2foldidx[i];
+		uint foldidx_j = m_domidx2foldidx[j];
+		return foldidx_i == foldidx_j;
+		}
+
+	bool same_fold_k(uint k) const
+		{
+		uint i, j;
+		triangle_k_to_ij(k, uint(m_doms.size()), i, j);
+		return same_fold_ij(i, j);
+		}
+
+	bool is_ignored_ij(uint i, uint j) const
+		{
+		if (m_LT == LT_DIFF_SF_SAME_FOLD)
+			{
+			uint foldidx_i = m_domidx2foldidx[i];
+			uint foldidx_j = m_domidx2foldidx[j];
+			uint sfidx_i = m_domidx2sfidx[i];
+			uint sfidx_j = m_domidx2sfidx[j];
+			return sfidx_i == sfidx_j && foldidx_i == foldidx_j;
+			}
+		else
+			return false;
+		}
+
+	bool is_ignored_k(uint k) const
+		{
+		uint i, j;
+		triangle_k_to_ij(k, uint(m_doms.size()), i, j);
+		return is_ignored_ij(i, j);
+		}
+
+	bool is_tp_ij(uint i, uint j) const
+		{
+		if (m_LT == LT_SAME_SF)
+			return same_sf_ij(i, j);
+		else if (m_LT == LT_SAME_FOLD)
+			return same_fold_ij(i, j);
+		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
+			return !same_sf_ij(i, j) && same_fold_ij(i, j);;
+		return false;
+		}
+
+	bool is_tp_k(uint k) const
+		{
+		uint i, j;
+		triangle_k_to_ij(k, uint(m_doms.size()), i, j);
+		return is_tp_ij(i, j);
 		}
 	};

@@ -119,9 +119,9 @@ void cmd_flat_hjmega_bracket()
 	ProgressLog("FINAL BRACKET\n\n");
 	ProgressLog("%12.12s", "var");
 	ProgressLog("  %12.12s", "+value");
-	ProgressLog("  %9.9s", "+dy%%");
+	ProgressLog("  %9.9s", "+dy%");
 	ProgressLog("  %12.12s", "-value");
-	ProgressLog("  %9.9s", "-dy%%");
+	ProgressLog("  %9.9s", "-dy%");
 	ProgressLog("  %12.12s", "rate");
 	ProgressLog("\n");
 	for (uint VarIdx = 0; VarIdx < nvar; ++VarIdx)

@@ -69,6 +69,7 @@ public:
 	void ReadBits(const string &FN);
 	void WriteBits(const string &FN) const;
 	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;
+	bool IsIgnored(uint LabelIdx_i, uint LabelIdx_j) const;
 	void log_dope_ks() const;
 	bool in_dope(uint k) const
 		{

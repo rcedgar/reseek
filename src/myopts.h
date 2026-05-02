@@ -94,6 +94,7 @@ STR_OPT(faprof)
 STR_OPT(hexfasta)
 STR_OPT(kappa_pattern)
 STR_OPT(thread_counts)
+STR_OPT(truth)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

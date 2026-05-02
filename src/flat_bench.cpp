@@ -186,7 +186,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 			fa.m_labelQ.c_str(), fa.m_labelT.c_str(), lddtx, dali, dalix);
 		s_lock.unlock();
 		}
-		Score = flat_alignx::alignx(
+	Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (flat_params::need_reverse())
 		{

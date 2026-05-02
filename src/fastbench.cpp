@@ -88,6 +88,12 @@ void FastBench::SetScoreOrder_Serial()
 		QuickSortOrderDesc(m_Scores, K, m_ScoreOrder);
 	}
 
+bool FastBench::IsIgnored(uint LabelIdx_i, uint LabelIdx_j) const
+	{
+	assert(m_look);
+	return m_look->is_ignored_ij(LabelIdx_i, LabelIdx_j);
+	}
+
 bool FastBench::IsTP(uint LabelIdx_i, uint LabelIdx_j) const
 	{
 	assert(m_look);
@@ -126,10 +132,13 @@ void FastBench::Bench(const string &Msg)
 			if (m_SEPQ10 == FLT_MAX  && EPQ >= 10)  m_SEPQ10  = Sens;
 			LastScore = Score;
 			}
-		if (IsTP(LabelIdx_i, LabelIdx_j))
-			++nt;
-		else
-			++nf;
+		if (!IsIgnored(LabelIdx_i, LabelIdx_j))
+			{
+			if (IsTP(LabelIdx_i, LabelIdx_j))
+				++nt;
+			else
+				++nf;
+			}
 		}
 	float EPQ = 2*float(nf)/m_SeqCount;
 	float Sens = 2*float(nt)/m_look->m_NT;
@@ -168,6 +177,7 @@ void FastBench::Bench(const string &Msg)
 		ProgressLog(" SEPQ1=%.3f", m_SEPQ1);
 		ProgressLog(" SEPQ10=%.3f", m_SEPQ10);
 		ProgressLog(" Sum3=%.3f", m_Sum3);
+		ProgressLog(" %s", m_look->get_truthstr());
 		ProgressLog("\n");
 		}
 	}
