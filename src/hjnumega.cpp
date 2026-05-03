@@ -69,7 +69,7 @@ static void set_params_from_varstr(
 		else if (VarName == "scale")
 			ScaleFactor = (float) StrToFloat(sValue);
 		else if (VarName == "gap2")
-			Die("var=scale not supported");
+			Die("var=gap2 not supported");
 		else
 			name2weight[VarName] = (float) StrToFloat(sValue);
 		}

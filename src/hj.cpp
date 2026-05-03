@@ -308,7 +308,7 @@ bool Peaker::HJ_Iter()
 	double Saved_Best_y = m_Best_y;
 	HJ_Explore(false);
 	double Height = m_Best_y - Saved_Best_y;
-	if (Height == 0)
+	if (Height == 0 || AnyStalledVars())
 		{
 		HJ_Explore(true);
 		Height = m_Best_y - Saved_Best_y;
