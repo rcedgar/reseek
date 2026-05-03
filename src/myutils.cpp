@@ -2466,6 +2466,10 @@ void Psa(string &Str, const char *Format, ...)
 
 unsigned GetRequestedThreadCount()
 	{
+	const char *env = std::getenv("RESEEK_THREADS");
+	if (env != 0)
+		return StrToInt(env);
+
 	static unsigned N = 1;
 	static bool Done = false;
 	if (Done)
