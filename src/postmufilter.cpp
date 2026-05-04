@@ -34,7 +34,7 @@ static double s_MinTS = 9e9;
 static FILE *s_fTsv;
 static FILE *s_fAln;
 
-static bool Accept(const DSSAligner &DA)//@@TODO compare Search
+static bool Accept(const DSSAligner &DA)//TODO compare Search
 	{
 	if (DA.m_EvalueA <= s_MaxEvalue)
 		return true;

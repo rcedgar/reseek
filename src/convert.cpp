@@ -84,6 +84,7 @@ static void ThreadBody(uint ThreadIndex)
 		ptrD = new DSS;
 
 	ChainReader2 CR;
+	CR.m_Trace = opt(trace_filescanner);
 	CR.Open(*s_ptrFS);
 	if (optset_pdboutdir)
 		CR.m_SaveLines = true;

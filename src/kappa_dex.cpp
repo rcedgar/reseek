@@ -395,7 +395,7 @@ uint kappa_dex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) con
 	return Kmer;
 	}
 
-void kappa_dex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mers
+void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-mers
 	{
 	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();

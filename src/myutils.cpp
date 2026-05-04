@@ -133,41 +133,27 @@ void GetBaseName(const string &PathName, string &Base)
 //								vvvvvvvvvvvv basename
 //		/home/user/fred/project/somefile.txt
 //								^^^^^^^^ stem
-// Used only for informatinal messages, this is cosmetic.
+// Used for PDB and CIF fall-back label
 void GetStemName(const string &PathName, string &Stem)
 	{
 	string Base;
 	GetBaseName(PathName, Base);
 	vector<string> Fields;
 	Split(Base, Fields, '.');
-	Stem = Fields[0];
-
-	const uint n = SIZE(Fields);
-	if (n == 0)
-		{
-		Stem.clear();
-		return;
-		}
+	uint n = SIZE(Fields);
 	if (n == 1)
 		{
 		Stem = Fields[0];
 		return;
 		}
-
-	uint upto = n - 1;
-	if (Fields[n-1] == "gz" && n > 2)
-		upto = n - 2;
-
-	Stem.clear();
-	for (uint i = 0; i < upto; ++i)
+	if (Fields[n-1] == "gz")
+		--n;
+	for (uint i = 0; i + 1 < n; ++i)
 		{
 		if (i > 0)
-			Stem.push_back('.');
-		Stem = Fields[i];
+			Stem += '.';
+		Stem += Fields[i];
 		}
-
-	if (Stem.empty())
-		Stem = Fields[0];
 	}
 
 void GetExtFromPathName(const string &PathName, string &Ext)
@@ -2468,7 +2454,12 @@ unsigned GetRequestedThreadCount()
 	{
 	const char *env = std::getenv("RESEEK_THREADS");
 	if (env != 0)
-		return StrToInt(env);
+		{
+		uint N = StrToInt(env);
+		if (N == 0)
+			Die("RESEEK_THREADS=0");
+		Progress("RESEEK_THREADS=%u\n", N);
+		}
 
 	static unsigned N = 1;
 	static bool Done = false;

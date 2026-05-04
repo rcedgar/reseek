@@ -48,7 +48,7 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	case FAN_pack:
 	case FAN_mpack:
 	case FAN_ppack:
-	// roughly median value, @@TODO?
+	// roughly median value, TODO?
 		return alpha_size/2;
 
 	case FAN_aa:
@@ -628,7 +628,7 @@ void chaq::slow_get_values(
 		{
 		for (uint i = 0; i < L; ++i)
 			{
-			const sid_t ic_40A = 20400;//@@TODO param?
+			const sid_t ic_40A = 20400;//TODO param?
 			sid_t pensid = pensids[i];
 			sid_t mensid = mensids[i];
 			ic_t penic = sid2ic[pensid];
@@ -656,7 +656,7 @@ void chaq::slow_get_values(
 
 		for (uint i = 0; i < L; ++i)
 			{
-			const sid_t sid_20A = 2500;//@@TODO param?
+			const sid_t sid_20A = 2500;//TODO param?
 			sid_t pensid = pensids[i];
 			sid_t mensid = mensids[i];
 			sid_t pmdd = UINT16_MAX;
@@ -689,7 +689,7 @@ void chaq::slow_get_values(
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
-		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
+		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, true, true, values);
 		break;
 		}
@@ -698,7 +698,7 @@ void chaq::slow_get_values(
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
-		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
+		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, true, false, values);
 		break;
 		}
@@ -707,7 +707,7 @@ void chaq::slow_get_values(
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
-		static const uint16_t maxsid = dist2sid(15.0f);//@@TODO param for 15.0f
+		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, false, true, values);
 		break;
 		}
@@ -716,7 +716,7 @@ void chaq::slow_get_values(
 		{
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
-		static const uint16_t w = 5; //@@TODO param for w=5
+		static const uint16_t w = 5; //TODO param for w=5
 		static const uint16_t undef_value =  1540; // measured median
 		chaq::get_turnd_values(distmx, L, undef_value, values);
 		break;

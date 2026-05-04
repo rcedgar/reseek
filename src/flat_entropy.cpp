@@ -68,7 +68,7 @@ float flat_get_entropy(
 		codeTs.push_back(codeT);
 		}
 
-	const uint W = 10;//@@TODO param
+	const uint W = 10;//TODO param
 	float HQ = 0;
 	float HT = 0;
 	for (uint start = 0; start + W <= ncol; ++start)

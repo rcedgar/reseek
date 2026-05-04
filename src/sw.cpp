@@ -589,7 +589,7 @@ float sw_flat(
 	asserta(Open <= 0);
 	asserta(Ext <= 0);
 
-	memset(TB, 0, LA*LB);//@@TODO
+	memset(TB, 0, LA*LB);//TODO
 
 	float *Mrow = scratch_rows + 1;
 	float *Drow = scratch_rows + LB + 2;

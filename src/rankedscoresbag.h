@@ -10,7 +10,7 @@
 ///////////////////////////////////////
 
 #define	CHECK_SCORE_VECS	0
-#define STORE_PAIR_SCORES	1	// @@TODO
+#define STORE_PAIR_SCORES	1	// TODO
 
 struct RankedScoreBatchEntry
 	{

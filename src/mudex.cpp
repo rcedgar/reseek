@@ -395,7 +395,7 @@ uint MuDex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const
 	return Kmer;
 	}
 
-void MuDex::FromSeqDB(const SeqDB &Input)//@@TODO FromBags already have Mu k-mers
+void MuDex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-mers
 	{
 	m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();

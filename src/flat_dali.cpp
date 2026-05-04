@@ -4,7 +4,7 @@
 #include "flat_aligner.h"
 #include "sort.h"
 
-static const float tx = 1.25;//@@TODO param
+static const float tx = 1.25;//TODO param
 //static float s_DALI_Theta = 0;
 
 float flat_get_dali2(

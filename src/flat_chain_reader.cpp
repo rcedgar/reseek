@@ -178,24 +178,6 @@ flat_chain_t* flat_chain_reader::GetNextLo1()
 	return 0;
 	}
 
-void flat_chain_reader::GetFallbackLabelFromFN(const string &FN, string &Label)
-	{
-	GetStemName(FN, Label);
-	string Ext;
-	GetExtFromPathName(FN, Ext);
-	ToLower(Ext);
-
-// Special-case for downloaded PDB files e.g. pdb1iv1.ent
-	if (Ext == "pdb" || Ext == "ent" || Ext == "pdb.gz" || Ext == "ent.gz")
-		{
-		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
-			{
-			Label = Label.substr(3, string::npos);
-			ToUpper(Label);
-			}
-		}
-	}
-
 flat_chain_t* flat_chain_reader::GetFirst_BCA(const string &FN)
 	{
 	m_BCA.Open(FN);

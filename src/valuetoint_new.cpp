@@ -36,7 +36,7 @@ uint DSSParams::ValueToInt_Feature(FEATURE F, float Value)
 	assert(AS > 0);
 	const vector<float> &BinTs = s_BinTsVec[F];
 
-	if (opt(force_undef))//@@TODO remove this for production
+	if (opt(force_undef))//TODO remove this for production
 		{
 		uint Letter = ValueToIntTpl<true>(Value, AS, BinTs, UINT_MAX);
 		assert(Letter < AS || Letter == UINT_MAX);

@@ -595,7 +595,7 @@ float DSS::GetFloat_PENDist(uint Pos)
 		{
 		if (opt(force_undef))
 			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;//@@TODO train default
+		return (float) DSSParams::m_DefaultNENDist;//TODO train default
 		}
 	float d = m_Chain->GetDist(Pos, PEN);
 	return d;
@@ -654,7 +654,7 @@ float DSS::GetFloat_MENDist(uint Pos)
 		{
 		if (opt(force_undef))
 			return FLT_MAX;
-		return (float) DSSParams::m_DefaultNENDist;//@@TODO train default
+		return (float) DSSParams::m_DefaultNENDist;//TODO train default
 		}
 	float d = m_Chain->GetDist(Pos, MEN);
 	return d;
@@ -830,7 +830,7 @@ void DSS::GetProfile(vector<vector<byte> > &Profile)
 			{
 			uint Letter = GetFeature(Feature, Pos);
 			if (Letter == UINT_MAX)
-				ProfRow.push_back(0);//@@TODO
+				ProfRow.push_back(0);//TODO
 			else
 				{
 				//asserta(Letter < 31);

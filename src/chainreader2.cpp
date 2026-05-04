@@ -4,6 +4,36 @@
 uint ChainReader2::m_CRGlobalChainCount;
 uint ChainReader2::m_CRGlobalFormatErrors;
 
+void GetFallbackLabelFromFN(const string &FN, string &Label)
+	{
+	GetStemName(FN, Label);
+
+/***
+Special case for anomalous SCOP40 domain names
+
+	d1dnu.1.pdb
+	01234567890
+
+d1dnu.1 d3n55.1 d1o7d.2 d1r8o.1 d1dy9.1 d1ko6.1 d1f8v.1 d1o7d.3 d1pyo.1
+d1qtn.1 d1sc3.1 d1f2t.1 d1xew.1 d1q7l.1 d1wht.1 d1w2w.1 d1k3b.1 d1or0.1
+d1gk9.1 d1k2x.1 d1apy.1 d2dg5.1 d1pya.1 d1mtp.1
+***/
+
+	string Ext;
+	GetExtFromPathName(FN, Ext);
+	ToLower(Ext);
+
+// Special-case for downloaded PDB files e.g. pdb1iv1.ent
+	if (Ext == "pdb" || Ext == "ent" || Ext == "pdb.gz" || Ext == "ent.gz")
+		{
+		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
+			{
+			Label = Label.substr(3, string::npos);
+			ToUpper(Label);
+			}
+		}
+	}
+
 void ChainReader2::Close()
 	{
 	m_CRGlobalLock.lock();
@@ -183,23 +213,6 @@ PDBChain *ChainReader2::GetNextLo1()
 	return 0;
 	}
 
-void ChainReader2::GetFallbackLabelFromFN(const string &FN, string &Label)
-	{
-	GetStemName(FN, Label);
-	string Ext;
-	GetExtFromPathName(FN, Ext);
-	ToLower(Ext);
-
-// Special-case for downloaded PDB files e.g. pdb1iv1.ent
-	if (Ext == "pdb" || Ext == "ent" || Ext == "pdb.gz" || Ext == "ent.gz")
-		{
-		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
-			{
-			Label = Label.substr(3, string::npos);
-			ToUpper(Label);
-			}
-		}
-	}
 
 PDBChain *ChainReader2::GetFirst_BCA(const string &FN)
 	{

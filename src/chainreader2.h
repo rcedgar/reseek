@@ -83,5 +83,6 @@ private:
 	void IncFormatErrors();
 
 public:
-	static void GetFallbackLabelFromFN(const string &FN, string &Label);
 	};
+
+void GetFallbackLabelFromFN(const string &FN, string &Label);

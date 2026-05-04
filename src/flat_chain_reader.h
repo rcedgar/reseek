@@ -80,7 +80,6 @@ private:
 	bool IsChainEndLine_PDB(const string &Line) const;
 	uint GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name);
 	void IncFormatErrors();
-
-public:
-	static void GetFallbackLabelFromFN(const string &FN, string &Label);
 	};
+
+void GetFallbackLabelFromFN(const string &FN, string &Label);
