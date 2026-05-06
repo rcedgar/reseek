@@ -8,6 +8,11 @@ void flat_profiles::read_profiles_from_fastas(
 	const vector<string> &fafns,
 	const unordered_map<string, uint> &label2idx)
 	{
+	asserta(m_labels.empty());
+	asserta(m_lengths.empty());
+	asserta(m_profiles.empty());
+	asserta(m_label2idx.empty());
+
 	m_label2idx = label2idx;
 	const uint nfeat = flat_features::m_nfeat;
 	asserta(nfeat);
@@ -24,14 +29,16 @@ void flat_profiles::read_profiles_from_fastas(
 
 	m_profiles.resize(nprof);
 	m_labels.resize(nprof);
+	m_lengths.resize(nprof);
 	for (auto iter : label2idx)
 		{
 		string label = iter.first;
 		uint idx = iter.second;
-		m_labels[idx] = label;
-		vector<uint8_t> &profile = m_profiles[idx];
+		//vector<uint8_t> &profile = m_profiles[idx];
 		uint L = SIZE(codeseqsvec[0][idx]);
-		profile.resize(nfeat*L, 0xff);
+		uint8_t *profile = myalloc(uint8_t, nfeat*L);
+		memset(profile, 0xff, nfeat*L);
+		//profile.resize(nfeat*L, 0xff);
 		for (uint fi = 0; fi < nfeat; ++fi)
 			{
 			const vector<uint8_t> &codeseq = codeseqsvec[fi][idx];
@@ -42,6 +49,10 @@ void flat_profiles::read_profiles_from_fastas(
 			}
 		for (uint i = 0; i < nfeat*L; ++i)
 			asserta(profile[i] != 0xff);
+
+		m_labels[idx] = label;
+		m_profiles[idx] = profile;
+		m_lengths[idx] = L;
 		}
 	}
 
@@ -104,8 +115,9 @@ void flat_profiles::read_profiles_faprof(
 		{
 		uint L = DB.GetSeqLength(nfeat*profidx);
 		uint profile_length = nfeat*L;
-		vector<uint8_t> &profile = m_profiles[profidx];
-		profile.resize(profile_length);
+		uint8_t *profile = myalloc(uint8_t, nfeat*L);
+		m_profiles[profidx] = profile;
+		//profile.resize(profile_length);
 		uint k = 0;
 		for (uint fi = 0; fi < nfeat; ++fi)
 			{
@@ -117,7 +129,7 @@ void flat_profiles::read_profiles_faprof(
 			const string &acc = flds[0];
 			if (fi == 0)
 				{
-				m_labels.push_back(acc);
+				m_labels.push_back(acc.c_str());
 				m_label2idx[acc] = profidx;
 				}
 			else
@@ -140,12 +152,10 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 		return;
 	asserta(i < m_profiles.size());
 	asserta(i < m_labels.size());
-	const vector<uint8_t> &profile = m_profiles[i];
+	const uint8_t *profile = m_profiles[i];
 	const string &label = m_labels[i];
-	const uint n = SIZE(profile);
+	const uint L = m_lengths[i];
 	const uint nfeat = flat_features::m_nfeat;
-	asserta(n%nfeat == 0);
-	const uint L = n/nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		uint alpha_size = flat_features::m_alpha_sizes[fi];
@@ -169,11 +179,9 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 void flat_profiles::check_profile(uint i) const
 	{
 	asserta(i < m_profiles.size());
-	const vector<uint8_t> &profile = m_profiles[i];
-	const uint n = SIZE(profile);
+	const uint8_t *profile = m_profiles[i];
+	const uint L = m_lengths[i];
 	const uint nfeat = flat_features::m_nfeat;
-	asserta(n%nfeat == 0);
-	const uint L = n/nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		uint AS = flat_features::m_alpha_sizes[fi];
@@ -192,12 +200,10 @@ void flat_profiles::check_profiles() const
 uint8_t *flat_profiles::get_rev_profile(uint i) const
 	{
 	asserta(i < m_profiles.size());
-	const vector<uint8_t> &profile = m_profiles[i];
-	const uint n = SIZE(profile);
+	const uint8_t *profile = m_profiles[i];
+	const uint L = m_lengths[i];
 	const uint nfeat = flat_features::m_nfeat;
-	asserta(n%nfeat == 0);
-	const uint L = n/nfeat;
-	uint8_t *rev_profile = myalloc(uint8_t, n);
+	uint8_t *rev_profile = myalloc(uint8_t, L*nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		uint AS = flat_features::m_alpha_sizes[fi];
@@ -208,4 +214,32 @@ uint8_t *flat_profiles::get_rev_profile(uint i) const
 			}
 		}
 	return rev_profile;
+	}
+
+void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
+	{
+	asserta(m_labels.empty());
+	asserta(m_profiles.empty());
+	asserta(m_label2idx.empty());
+
+	const uint nchain = uint(chains.size());
+	const uint nfeat = flat_features::m_nfeat;
+	asserta(nfeat);
+	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
+
+	m_profiles.resize(nchain);
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		const flat_chain_t &chain = *chains[chainidx];
+		m_labels.push_back(chain.m_label.c_str());
+		const uint L = chain.get_length();
+		if (L == 0) continue;
+		m_profiles[chainidx] = make_profile(chain);
+		}
+	}
+
+uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
+	{
+	Die("TODO");
+	return 0;
 	}

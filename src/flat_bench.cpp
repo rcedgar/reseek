@@ -295,7 +295,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 			doQ(fa, DomIdxQ, DomIdxT);
 			uint progress_count = m_aligned_pair_count++;
 #if SHOW_PROGRESS
-			if (progress_count%1000 == 0)
+			if (ThreadIdx == 0 && progress_count%1000 == 0)
 				ProgressStep(progress_count, PairCount, "Aligning");
 #endif
 			}
@@ -325,7 +325,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 			return;
 			}
 #if SHOW_PROGRESS
-		if (dopeidx%1000 == 0)
+		if (ThreadIdx == 0 && dopeidx%1000 == 0)
 			ProgressStep(dopeidx, m_dope_nhit, "Aligning");
 #endif
 		uint k = m_dope_ks[dopeidx];

@@ -6,10 +6,13 @@ class flat_profiles
 	{
 public:
 	vector<string> m_labels;
-	vector<vector<uint8_t> > m_profiles;
+	vector<uint> m_lengths;
+	vector<uint8_t *> m_profiles;
 	unordered_map<string, uint> m_label2idx;
 
 public:
+	void from_chains(const vector<flat_chain_t *> &chains);
+
 	void read_profiles_faprof(
 		const string &faproffn,
 		vector<string> &feature_names);
@@ -24,7 +27,7 @@ public:
 	const uint8_t *get_profile(uint i) const
 		{
 		assert(i < m_profiles.size());
-		return m_profiles[i].data();
+		return m_profiles[i];
 		}
 
 	uint8_t *get_rev_profile(uint i) const;
@@ -33,9 +36,7 @@ public:
 		{
 		assert(flat_features::m_nfeat > 0);
 		assert(i < m_profiles.size());
-		uint32_t Ln = uint32_t(m_profiles[i].size());
-		assert(Ln%flat_features::m_nfeat == 0);
-		uint32_t L = Ln/flat_features::m_nfeat;
+		uint32_t L = uint32_t(m_lengths[i]);
 		return L;
 		}
 
@@ -48,4 +49,6 @@ public:
 	uint get_nprof() const { return uint(m_profiles.size()); }
 
 	void profile_to_fasta(FILE *f, uint i) const;
+
+	uint8_t *make_profile(const flat_chain_t &chain) const;
 	};
