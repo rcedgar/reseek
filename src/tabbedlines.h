@@ -49,15 +49,69 @@ public:
 		return StrToUint(m_flds[1]);
 		}
 
-	void get_int_vec(const string &fld0, uint n,
-		vector<uint> &v)
+	float get_float(const string &fld0)
+		{
+		get();
+		asserta(SIZE(m_flds) == 2);
+		asserta(m_flds[0] == fld0);
+		return StrToFloatf(m_flds[1]);
+		}
+
+	void get_int_vec(const string &fld0, uint n, vector<uint> &v)
 		{
 		v.clear();
 		get();
 		asserta(SIZE(m_flds) == n+1);
 		asserta(m_flds[0] == fld0);
 		for (uint i = 0; i < n; ++i)
-			v.push_back(StrToUint(m_flds[i+1]));
+			v.push_back(StrToUint(m_flds[i+2]));
+		}
+
+	uint8_t *get_int8_vec(const string &fld0, uint &n)
+		{
+		get();
+		uint nfld = SIZE(m_flds);
+		asserta(nfld > 2);
+		asserta(m_flds[0] == fld0);
+		n = nfld - 2;
+		uint8_t *v = myalloc(uint8_t, n);
+		for (uint i = 0; i < n; ++i)
+			{
+			uint value = StrToUint(m_flds[i+2]);
+			asserta(value <= UINT8_MAX);
+			v[i] = value;
+			}
+		return v;
+		}
+
+	uint16_t *get_int16_vec(const string &fld0, uint &n)
+		{
+		get();
+		uint nfld = SIZE(m_flds);
+		asserta(nfld > 2);
+		asserta(m_flds[0] == fld0);
+		n = nfld - 2;
+		uint16_t *v = myalloc(uint16_t, n);
+		for (uint i = 0; i < n; ++i)
+			{
+			uint value = StrToUint(m_flds[i+2]);
+			asserta(value <= UINT16_MAX);
+			v[i] = value;
+			}
+		return v;
+		}
+
+	uint *get_int_vec(const string &fld0, uint &n)
+		{
+		get();
+		uint nfld = SIZE(m_flds);
+		asserta(nfld > 2);
+		n = nfld - 2;
+		asserta(m_flds[0] == fld0);
+		uint *v = myalloc(uint, n);
+		for (uint i = 0; i < n; ++i)
+			v[i] = StrToUint(m_flds[i+2]);
+		return v;
 		}
 
 	void get_signed_int_vec(const string &fld0, uint n,
@@ -84,6 +138,35 @@ public:
 		return v;
 		}
 
+	float *get_float_vec(const string &name, uint &n)
+		{
+		get();
+		asserta(m_flds[0] == name);
+		uint nfld = uint(m_flds.size());
+		asserta(nfld > 2);
+		n = nfld - 2;
+		float *v = myalloc(float, n);
+		for (uint i = 0; i < n; ++i)
+			v[i] = StrToFloatf(m_flds[2+i]);
+		return v;
+		}
+
+	void get_str_vec(const string &name, vector<string> &v)
+		{
+		get();
+		asserta(m_flds[0] == name);
+		uint nfld = uint(m_flds.size());
+		asserta(nfld > 2);
+		uint n = nfld - 2;
+		v.clear();
+		v.reserve(n);
+		for (uint i = 0; i < n; ++i)
+			{
+			const string &s = m_flds[2+i];
+			v.push_back(s);
+			}
+		}
+
 	void put_float_flat_square_mx(
 		const string &name, uint n, const float *v)
 		{
@@ -98,9 +181,23 @@ public:
 			string line;
 			Ps(line, "%u", i);
 			for (uint j = 0; j < n; ++j)
-				Psa(line, "\t%.4g", v[i*n + j]);
+				{
+				float x = v[i*n + j];
+				if (x == FLT_MAX)
+					Psa(line, "\t*");
+				else
+					Psa(line, "\t%.4g", x);
+				}
 			m_lines.push_back(line);
 			}
+		}
+
+	float *get_float_flat_square_mx(const string &name, uint &n)
+		{
+		n = get_int(name);
+		float *v = myalloc(float, n*n);
+		get_float_flat_square_mx(n, v);
+		return v;
 		}
 
 	void get_float_flat_square_mx(uint n, float *v)
@@ -166,6 +263,24 @@ public:
 			Ps(line, "%s\tUINT_MAX", name.c_str(), i);
 		else
 			Ps(line, "%s\t%u", name.c_str(), i);
+		m_lines.push_back(line);
+		}
+
+	void put_int8_vec(const string &name, const uint8_t *v, uint n)
+		{
+		string line;
+		Ps(line, "%s\t%u", name.c_str(), n);
+		for (uint i = 0; i < n; ++i)
+			Psa(line, "\t%u", v[i]);
+		m_lines.push_back(line);
+		}
+
+	void put_int16_vec(const string &name, const uint16_t *v, uint n)
+		{
+		string line;
+		Ps(line, "%s\t%u", name.c_str(), n);
+		for (uint i = 0; i < n; ++i)
+			Psa(line, "\t%u", v[i]);
 		m_lines.push_back(line);
 		}
 

@@ -224,11 +224,11 @@ void cmd_hjnumegarev()
 	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
 	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
 
-	flat_features::init(feature_names);
-	flat_features::read_logoddsvec_pattern(opt(mxpattern));
+	flat_params::init(feature_names);
+	flat_params::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	const float Scale = 8.39f;

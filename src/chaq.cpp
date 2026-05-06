@@ -2,7 +2,7 @@
 #include "flat_base.h"
 #include "flat_params.h"
 #include "flat_distmx.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "chaq.h"
 #include "sec_kmeans.h"
 #include "quantize.h"
@@ -408,6 +408,15 @@ void chaq::get_sec_codeseq(
 
 void chaq::slow_get_codeseq_discrete(
 	const flat_chain_t *chain,
+	uint fi,
+	uint8_t undef_code,
+	p_uint8_t codeseq)
+	{
+	Die("TODO");
+	}
+
+void chaq::slow_get_codeseq_discrete(
+	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
 	uint8_t undef_code,
@@ -787,6 +796,30 @@ void chaq::slow_get_charseq_discrete(
 	myfree(codeseq);
 	}
 
+void chaq::slow_get_codeseq_binned_fi(
+	const flat_chain_t *chain, uint fi, p_uint8_t codeseq)
+	{
+	const uint L = chain->get_length();
+
+	const FAN fan = flat_params::get_fan(fi);
+	const uint alpha_size = flat_params::get_alpha_size(fi);
+	const uint16_t undef_value = flat_params::get_undef_value(fi);
+	cp_uint16_t thresholds = flat_params::get_thresholds(fi);
+
+	uint16_t *values = myalloc(uint16_t, L);
+	chaq::slow_get_values(chain, fan, alpha_size, values);
+	for (uint i = 0; i < L; ++i)
+		{
+		uint16_t value = values[i];
+		if (value == UINT16_MAX)
+			value = undef_value;
+		uint8_t code = get_bin(value, alpha_size, thresholds);
+		assert(code < alpha_size);
+		codeseq[i] = g_LetterToCharMu[code];
+		}
+	myfree(values);
+	}
+
 void chaq::slow_get_codeseq_binned(
 	const flat_chain_t *chain,
 	FAN fan,
@@ -795,8 +828,8 @@ void chaq::slow_get_codeseq_binned(
 	{
 	const uint L = chain->get_length();
 
-	cp_uint16_t thresholds = get_thresholds(fan, alpha_size);
-	const uint16_t undef_value = get_undef_value(fan, alpha_size);
+	cp_uint16_t thresholds = get_hard_coded_thresholds(fan, alpha_size);
+	const uint16_t undef_value = get_undef_value(fan);
 
 	uint16_t *values = myalloc(uint16_t, L);
 	chaq::slow_get_values(chain, fan, alpha_size, values);
@@ -886,7 +919,7 @@ void chaq::slow_get_codeseq(
 	uint alpha_size,
 	p_uint8_t codeseq)
 	{
-	const bool binned = chaq::feature_is_binned(fan);
+	const bool binned = flat_params::feature_is_binned(fan);
 	if (binned)
 		chaq::slow_get_codeseq_binned(
 			chain, fan, alpha_size, codeseq);
@@ -902,13 +935,13 @@ uint8_t *chaq::make_profile(
 	const flat_chain_t &chain,
 	uint8_t *scratch, uint32_t scratch_bytes)
 	{
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_params::m_nfeat;
 	const uint L = chain.get_length();
 	uint8_t *profile = myalloc(uint8_t, nfeat*L);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		FAN fan = flat_features::m_fans[fi];
-		uint alpha_size = flat_features::m_alpha_sizes[fi];
+		FAN fan = flat_params::m_fans[fi];
+		uint alpha_size = flat_params::m_alpha_sizes[fi];
 		slow_get_codeseq(&chain, fan, alpha_size, profile + fi*L);
 		}
 	return profile;

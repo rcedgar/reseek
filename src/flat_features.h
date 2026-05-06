@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "chaq.h"
@@ -6,10 +7,10 @@ static const float BAD_SCORE = -9999;
 static const float MIN_SANE_SCORE = -1000;
 static const float MAX_SANE_SCORE = 1000;
 
-class flat_features
+class flat_params
 	{
 private:
-	flat_features();
+	flat_params();
 
 public:
 	static uint32 m_nfeat;
@@ -25,6 +26,27 @@ public:
 	static uint32_t m_compound_alpha_size;
 	static uint32_t *m_axes;
 	static vector<string> m_symbolsvec;
+
+	static float m_open;
+	static float m_ext;
+	static float m_self_w;
+	static float m_rev_w;
+	static float m_lddt_w;
+	static float m_lddtx_w;
+	static float m_lddtpow_w;
+	static float m_dali_w;
+	static float m_dalix_w;
+	static float m_entropy_w;
+	static float m_rotfreetm_w;
+
+	static uint32_t m_nn_min_offset;
+	static uint32_t m_distmx_bandwidth;
+	static uint32_t m_turnd_w;
+	static uint32_t m_angle_n;
+
+	static float m_LDDT_R0;
+	static const float *m_LDDT_thresholds;
+	static uint m_LDDT_nr_thresholds;
 
 public:
 	static uint get_nfeat() { assert(m_nfeat != 0); return m_nfeat; }
@@ -116,7 +138,18 @@ public:
 
 	static void set_alphas(const vector<string> &feature_names);
 	static void write_config(FILE *f);
+	static void read_config(FILE *f);
 	static void get_fan_name(
 		const string &feature_name, 
 		string &fan_name);
+	static void set_params(
+		const vector<string> &names,
+		const vector<float> &values);
+
+	static bool need_reverse();
+	static bool need_distmx();
+	static bool need_prof();
+	static bool need_self();
+	static bool need_alignx();
 	};
+#endif

@@ -8,7 +8,7 @@
 #include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
 #include "flat_helpers.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "flat_profiles.h"
 #include "flat_aligner.h"
 #include "getticks.h"
@@ -153,9 +153,9 @@ void cmd_flat_align_pairs_faprof()
 	vector<string> feature_names;
 	vector<uint> alpha_sizes;
 	fp.read_profiles_faprof(faproffn, feature_names);
-	flat_features::init(feature_names);
-	flat_features::read_logoddsvec_pattern(opt(mxpattern));
-	flat_features::apply_unit_weights();
+	flat_params::init(feature_names);
+	flat_params::read_logoddsvec_pattern(opt(mxpattern));
+	flat_params::apply_unit_weights();
 	fp.check_profiles();
 
 	flat_aligner fa;

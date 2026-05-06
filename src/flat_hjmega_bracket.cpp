@@ -51,7 +51,7 @@ void cmd_flat_hjmega_bracket()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_features::load_alphas(alpha_names, opt(mxpattern));
+	flat_params::load_alphas(alpha_names, opt(mxpattern));
 	FullFB.load_profiles(opt(fapattern));
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);

@@ -113,7 +113,7 @@ void cmd_rotfreetm()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_features::load_alphas(feature_names, opt(mxpattern));
+	flat_params::load_alphas(feature_names, opt(mxpattern));
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
+#include "flat_params.h"
 #include "alpha.h"
 #include "quantize.h"
 
@@ -23,11 +24,11 @@ void cmd_flat_feat2fa()
 	cp_uint16_t thresholds = 0;
 	uint16_t undef_value = 0;
 	uint8_t undef_code = 0;
-	const bool binned = chaq::feature_is_binned(fan);
+	const bool binned = flat_params::feature_is_binned(fan);
 	if (binned)
 		{
-		thresholds = chaq::get_thresholds(fan, alpha_size);
-		undef_value = chaq::get_undef_value(fan, alpha_size);
+		thresholds = chaq::get_hard_coded_thresholds(fan, alpha_size);
+		undef_value = chaq::get_undef_value(fan);
 		}
 	else
 		undef_code = chaq::get_undef_code(fan, alpha_size);

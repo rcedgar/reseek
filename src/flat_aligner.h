@@ -1,6 +1,6 @@
 #pragma once
 
-class flat_features;
+class flat_params;
 
 class flat_aligner
 	{

@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_chain.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "flat_helpers.h"
 #include "alpha.h"
 #include "chaq.h"
@@ -278,6 +278,7 @@ void entropy::read_logoddsvec(const vector<string> &fns)
 	asserta(m_feature_names.size() == nfeat);
 	asserta(m_alpha_sizes.empty());
 	m_weighted_logoddsvec = myalloc(float *, nfeat);
+	m_unweighted_logoddsvec = myalloc(float *, nfeat);
 	m_unweighted_logoddsvec = myalloc(float *, nfeat);
 	m_alpha_sizes.resize(nfeat);
 	for (uint i = 0; i < nfeat; ++i)

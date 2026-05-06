@@ -4,7 +4,7 @@
 #include "seqdb.h"
 #include "alpha.h"
 #include "cigar.h"
-#include "flat_features.h"
+#include "flat_params.h"
 
 void ExpandParaCigar_reverseDI(const string &s, string &Path);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
@@ -975,8 +975,8 @@ void Paralign::set_flat_compound(
 	int SaturatedScore)
 	{
 	asserta(ScaleFactor > 0.1);
-	flat_features::apply_weights(name2weight);
-	const uint compound_alpha_size = flat_features::get_compound_alpha_size();
+	flat_params::apply_weights(name2weight);
+	const uint compound_alpha_size = flat_params::get_compound_alpha_size();
 
 	m_SWFastSubstMx.clear();
 	m_SWFastSubstMx.resize(compound_alpha_size);
@@ -991,7 +991,7 @@ void Paralign::set_flat_compound(
 			{
 			const uint8_t code_j = uint8_t(j);
 			float Score = ScaleFactor*
-				flat_features::get_compound_subst_score_slow(code_i, code_j);
+				flat_params::get_compound_subst_score_slow(code_i, code_j);
 			m_SWFastSubstMx[i][j] = Score;
 			int IntScore = int(round(Score));
 			IntScoreMx[i][j] = IntScore;

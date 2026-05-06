@@ -19,26 +19,6 @@ private:
 	chaq() = delete;
 
 public:
-	static bool feature_is_binned(FAN fan) // TODO should be in flat_features
-		{
-		switch (fan)
-			{
-		case FAN_nendist:
-		case FAN_rendist:
-		case FAN_pendist:
-		case FAN_mendist:
-		case FAN_fendist:
-		case FAN_pack:
-		case FAN_ppack:
-		case FAN_mpack:
-		case FAN_angle:
-		case FAN_pmdd:
-		case FAN_pmdiff:
-			return true;
-			}
-		return false;
-		}
-
 	static void fill_distmx(
 		cp_ic_t xyz,
 		uint L,
@@ -106,6 +86,16 @@ public:
 		FAN fan,
 		uint alpha_size,
 		p_uint16_t values);
+
+	static void slow_get_codeseq_binned_fi(
+		const flat_chain_t *chain,
+		uint fi, p_uint8_t codeseq);
+
+	static void slow_get_codeseq_discrete(
+		const flat_chain_t *chain,
+		uint fi,
+		uint8_t undef_code,
+		p_uint8_t codeseq);
 
 	static void slow_get_codeseq_binned(
 		const flat_chain_t *chain,
@@ -175,8 +165,9 @@ public:
 		uint alpha_size,
 		p_uint16_t values);
 
-	static cp_uint16_t get_thresholds(FAN fan, uint alpha_size);
-	static uint16_t get_undef_value(FAN fan, uint alpha_size);
+	static p_uint16_t get_hard_coded_thresholds(FAN fan, uint alpha_size);
+	static void set_thresholds(FAN fan, uint alpha_size, cp_uint16_t ts);
+	static uint16_t get_undef_value(FAN fan);
 	static uint8_t get_undef_code(FAN fan, uint alpha_size);
 
 	static uint8_t *make_profile(

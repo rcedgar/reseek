@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "seqdb.h"
 #include "flat_chain.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "lookup.h"
 #include "alpha.h"
 #include "entropy.h"

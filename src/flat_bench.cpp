@@ -38,13 +38,13 @@ void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
 
 void flat_bench::load_profiles(const string &fafnpattern)
 	{
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 
 	vector<string> fafns(nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			fafnpattern,
-			flat_features::m_feature_names[fi],
+			flat_params::m_feature_names[fi],
 			fafns[fi]);
 
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
@@ -269,7 +269,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	m_aligned_pair_count = 0;
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	for (;;)
@@ -308,7 +308,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	assert(m_look);
 	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 	flat_aligner fa;
 	const float open = -flat_params::m_open;
 	const float ext = -flat_params::m_ext;
@@ -444,7 +444,7 @@ void flat_bench::ClassifyParams(
 void flat_bench::ApplyWeightsToLogOdds(
 	const unordered_map<string, float> &NameToWeight)
 	{
-	flat_features::apply_weights(NameToWeight);
+	flat_params::apply_weights(NameToWeight);
 	}
 
 void flat_bench::LogParams(bool show_progress) const
@@ -453,11 +453,11 @@ void flat_bench::LogParams(bool show_progress) const
 	t_fn fn = (show_progress ? ProgressLog : Log);
 	fn("open=%.3g;", flat_params::m_open);
 	fn("ext=%.3g;", flat_params::m_ext);
-	uint nfeat = flat_features::get_nfeat();
+	uint nfeat = flat_params::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		fn("%s=%.3g;",
-			flat_features::m_feature_names[fi].c_str(),
-			flat_features::m_weights[fi]);
+			flat_params::m_feature_names[fi].c_str(),
+			flat_params::m_weights[fi]);
 	fn("\n");
 	}
 
@@ -577,12 +577,12 @@ void cmd_flat_bench()
 	if (optset_fapattern || optset_mxpattern)
 		{
 		asserta(optset_fapattern && optset_mxpattern);
-		flat_features::load_alphas(feature_names, opt(mxpattern));
+		flat_params::load_alphas(feature_names, opt(mxpattern));
 		FB.load_profiles(opt(fapattern));
 		}
 	else
 		{
-		flat_features::set_alphas(feature_names);
+		flat_params::set_alphas(feature_names);
 		FB.m_fp.from_chains(chains, true);//TODO hard-coded make reverse here
 		}
 	FB.set_distmxs(chains);

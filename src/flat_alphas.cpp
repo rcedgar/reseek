@@ -1,24 +1,26 @@
 #include "myutils.h"
 #include "tabbedlines.h"
 #include "flat_helpers.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "chaq.h"
 
-uint32 flat_features::m_nfeat;
-uint32 flat_features::m_entropyfi = UINT_MAX;
-vector<string> flat_features::m_feature_names;
-vector<FAN> flat_features::m_fans;
-uint32_t *flat_features::m_alpha_sizes;
-float **flat_features::m_unweighted_logoddsvec;
-float **flat_features::m_weighted_logoddsvec;
-float *flat_features::m_weights;
-uint32_t *flat_features::m_feature_block_offsets;
-uint32_t flat_features::m_sum_alpha_sizes;
-uint32_t flat_features::m_compound_alpha_size;
-uint32_t *flat_features::m_axes;
-vector<string> flat_features::m_symbolsvec;
+uint32 flat_params::m_nfeat;
+uint32 flat_params::m_entropyfi = UINT_MAX;
+vector<string> flat_params::m_feature_names;
+vector<FAN> flat_params::m_fans;
+uint32_t *flat_params::m_alpha_sizes;
+uint16_t *flat_params::m_undef_values;
+uint16_t **flat_params::m_thresholds;
+float **flat_params::m_unweighted_logoddsvec;
+float **flat_params::m_weighted_logoddsvec;
+float *flat_params::m_weights;
+uint32_t *flat_params::m_feature_block_offsets;
+uint32_t flat_params::m_sum_alpha_sizes;
+uint32_t flat_params::m_compound_alpha_size;
+uint32_t *flat_params::m_axes;
+vector<string> flat_params::m_symbolsvec;
 
-void flat_features::get_fan_name(
+void flat_params::get_fan_name(
 	const string &feature_name,
 	string &fan_name)
 	{
@@ -29,7 +31,7 @@ void flat_features::get_fan_name(
 	asserta(!fan_name.empty());
 	}
 
-void flat_features::init(const vector<string> &feature_names)
+void flat_params::init(const vector<string> &feature_names)
 	{
 	asserta(m_nfeat == 0);
 	alloc(uint(feature_names.size()));
@@ -53,17 +55,30 @@ void flat_features::init(const vector<string> &feature_names)
 		m_sum_alpha_sizes += alpha_size;
 		m_axes[fi] = m_compound_alpha_size;
 		m_compound_alpha_size *= alpha_size;
+		if (flat_params::feature_is_binned(fan))
+			{
+			m_undef_values[fi] = chaq::get_undef_value(fan);
+			uint16_t *p = chaq::get_hard_coded_thresholds(fan, alpha_size);
+			uint16_t *q = myalloc(uint16_t, alpha_size-1);
+			memcpy(q, p, (alpha_size-1)*sizeof(uint16_t));
+			m_thresholds[fi] = q;
+			}
+		else
+			{
+			m_undef_values[fi] = UINT16_MAX;
+			m_thresholds[fi] = 0;
+			}
 		}
 	}
 
-void flat_features::logodds2lines(const vector<float> &logodds,
+void flat_params::logodds2lines(const vector<float> &logodds,
 	uint alpha_size, vector<string> &lines)
 	{
 	tabbedlines tl(lines);
 	tl.put_float_flat_square_mx(alpha_size, logodds.data());
 	}
 
-uint flat_features::lines2logoddsmx(
+uint flat_params::lines2logoddsmx(
 	const vector<string> &lines,
 	vector<float> &logoddsmx)
 	{
@@ -76,7 +91,7 @@ uint flat_features::lines2logoddsmx(
 	return alpha_size;
 	}
 
-void flat_features::write_logodds(const string &fn,
+void flat_params::write_logodds(const string &fn,
 		const vector<float> &logodds, uint alpha_size)
 	{
 	vector<string> lines;
@@ -85,7 +100,7 @@ void flat_features::write_logodds(const string &fn,
 	tl.to_tsv(fn);
 	}
 
-uint flat_features::read_logodds(
+uint flat_params::read_logodds(
 	const string &fn,
 	vector<float> &logoddsmx)
 	{
@@ -94,7 +109,7 @@ uint flat_features::read_logodds(
 	return lines2logoddsmx(lines, logoddsmx);
 	}
 
-void flat_features::alloc(uint32 nfeat)
+void flat_params::alloc(uint32 nfeat)
 	{
 	if (nfeat == m_nfeat)
 		return;
@@ -104,6 +119,7 @@ void flat_features::alloc(uint32 nfeat)
 	assert(m_unweighted_logoddsvec == 0);
 	assert(m_weighted_logoddsvec == 0);
 	assert(m_feature_block_offsets == 0);
+	assert(m_undef_values == 0);
 
 	m_nfeat = nfeat;
 	m_weights = myalloc(float, m_nfeat);
@@ -111,10 +127,12 @@ void flat_features::alloc(uint32 nfeat)
 	m_unweighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_weighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
+	m_undef_values = myalloc(uint16_t, m_nfeat);
+	m_thresholds = myalloc(uint16_t *, m_nfeat);
 	m_axes = myalloc(uint32_t, m_nfeat);
 	}
 
-void flat_features::read_logoddsvec(const vector<string> &fns)
+void flat_params::read_logoddsvec(const vector<string> &fns)
 	{
 	uint nfeat = uint(fns.size());
 	alloc(nfeat);
@@ -137,7 +155,7 @@ void flat_features::read_logoddsvec(const vector<string> &fns)
 		}
 	}
 
-void flat_features::read_logoddsvec_pattern(
+void flat_params::read_logoddsvec_pattern(
 	const string &fnpattern,
 	const vector<string> &feature_names,
 	const vector<uint> &alpha_sizes)
@@ -166,7 +184,7 @@ void flat_features::read_logoddsvec_pattern(
 	read_logoddsvec(fns);
 	}
 
-void flat_features::read_logoddsvec_pattern(
+void flat_params::read_logoddsvec_pattern(
 	const string &fnpattern)
 	{
 	asserta(m_nfeat > 0);
@@ -182,7 +200,7 @@ void flat_features::read_logoddsvec_pattern(
 	read_logoddsvec(fns);
 	}
 
-void flat_features::check_sane_scores()
+void flat_params::check_sane_scores()
 	{
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
@@ -199,7 +217,7 @@ void flat_features::check_sane_scores()
 		}
 	}
 
-void flat_features::set_symbolsvec()
+void flat_params::set_symbolsvec()
 	{
 	asserta(m_nfeat > 0);
 	m_symbolsvec.clear();
@@ -211,7 +229,7 @@ void flat_features::set_symbolsvec()
 			m_symbolsvec[fi]);
 	}
 
-const string &flat_features::get_symbols(uint fi)
+const string &flat_params::get_symbols(uint fi)
 	{
 	asserta(fi < m_nfeat);
 	if (m_symbolsvec.empty())
@@ -221,7 +239,7 @@ const string &flat_features::get_symbols(uint fi)
 	}
 
 // @=name, %=AS
-void flat_features::make_logoddsfn_pattern(
+void flat_params::make_logoddsfn_pattern(
 	const string &fnpattern,
 	const string &feature_name,
 	uint alpha_size,
@@ -239,7 +257,7 @@ void flat_features::make_logoddsfn_pattern(
 		}
 	}
 
-void flat_features::get_logodds_symbols(
+void flat_params::get_logodds_symbols(
 	const float *logodds, uint alpha_size, string &symbols)
 	{
 	symbols.clear();
@@ -267,7 +285,7 @@ void flat_features::get_logodds_symbols(
 		}
 	}
 
-void flat_features::set_feature_block_offsets()
+void flat_params::set_feature_block_offsets()
 	{
 	assert(m_feature_block_offsets != 0);
 	assert(m_nfeat > 0);
@@ -276,13 +294,13 @@ void flat_features::set_feature_block_offsets()
 			m_nfeat, m_alpha_sizes, m_feature_block_offsets);
 	}
 
-const uint32_t *flat_features::get_feature_block_offsets()
+const uint32_t *flat_params::get_feature_block_offsets()
 	{
 	assert(m_feature_block_offsets != 0);
 	return m_feature_block_offsets;
 	}
 
-void flat_features::apply_weights(
+void flat_params::apply_weights(
 	const unordered_map<string, float> &NameToWeight)
 	{
 	asserta(SIZE(NameToWeight) == m_nfeat);
@@ -309,7 +327,7 @@ void flat_features::apply_weights(
 	check_sane_scores();
 	}
 
-void flat_features::apply_weights(const vector<float> &weights)
+void flat_params::apply_weights(const vector<float> &weights)
 	{
 	assert(m_weights != 0);
 	memcpy(m_weights, weights.data(), m_nfeat*sizeof(float));
@@ -336,13 +354,13 @@ void flat_features::apply_weights(const vector<float> &weights)
 	check_sane_scores();
 	}
 
-void flat_features::apply_unit_weights()
+void flat_params::apply_unit_weights()
 	{
 	vector<float> w(m_nfeat, 1);
 	apply_weights(w);
 	}
 
-float flat_features::prof_col_score(
+float flat_params::prof_col_score(
 	const uint8_t *profQ, uint LQ, uint posQ,
 	const uint8_t *profT, uint LT, uint posT)
 	{
@@ -363,7 +381,7 @@ float flat_features::prof_col_score(
 	return score;
 	}
 
-uint8_t flat_features::component_codes_to_compound_code(
+uint8_t flat_params::component_codes_to_compound_code(
 	const vector<uint8_t> &component_codes)
 	{
 	uint compound_code = 0;
@@ -378,7 +396,7 @@ uint8_t flat_features::component_codes_to_compound_code(
 	return b;
 	}
 
-void flat_features::compound_code_to_component_codes(
+void flat_params::compound_code_to_component_codes(
 	uint8_t compound_code, vector<uint8_t> &codes)
 	{
 	codes.clear();
@@ -395,7 +413,7 @@ void flat_features::compound_code_to_component_codes(
 		}
 	}
 
-float flat_features::get_compound_subst_score_slow(
+float flat_params::get_compound_subst_score_slow(
 	uint8_t code1, uint8_t code2)
 	{
 	vector<uint8_t> code1s;
@@ -423,7 +441,7 @@ float flat_features::get_compound_subst_score_slow(
 	return score;
 	}
 
-void flat_features::get_compound_logodds_slow(vector<float> &logodds)
+void flat_params::get_compound_logodds_slow(vector<float> &logodds)
 	{
 	uint compound_alpha_size = get_compound_alpha_size();
 	logodds.clear();
@@ -455,49 +473,17 @@ void flat_features::get_compound_logodds_slow(vector<float> &logodds)
 		}
 	}
 
-void flat_features::load_alphas(
+void flat_params::load_alphas(
 	const vector<string> &feature_names,
 	const string &logoddsfnpattern)
 	{
-	flat_features::init(feature_names);
-	flat_features::read_logoddsvec_pattern(logoddsfnpattern);
-	flat_features::set_feature_block_offsets();
-	flat_features::set_symbolsvec();
+	flat_params::init(feature_names);
+	flat_params::read_logoddsvec_pattern(logoddsfnpattern);
+	flat_params::set_feature_block_offsets();
+	flat_params::set_symbolsvec();
 	}
 
-void flat_features::set_alphas(const vector<string> &feature_names)
+void flat_params::set_alphas(const vector<string> &feature_names)
 	{
 	Die("TODO");
-	}
-
-void flat_features::write_config(FILE *f)
-	{
-	if (f == 0) return;
-	const uint nfeat = flat_features::get_nfeat();
-
-	tabbedlines tl;
-	tl.put_int("nfeat", nfeat);
-	tl.put_str_vec("alpha_names", flat_features::m_feature_names);
-	tl.put_int_vec("alpha_sizes", flat_features::m_alpha_sizes, nfeat);
-	tl.put_float_vec("alpha_weights", flat_features::m_weights, nfeat);
-
-	for (uint fi = 0; fi < nfeat; ++fi)
-		{
-		const string &feature_name = flat_features::m_feature_names[fi];
-		string fan_name;
-		get_fan_name(feature_name, fan_name);
-		FAN fan = str2FAN(fan_name.c_str());
-
-		uint AS = m_alpha_sizes[fi];
-		const string name = "unweighted_logodds_" + feature_name;
-		tl.put_float_flat_square_mx(name, AS, m_unweighted_logoddsvec[fi]);
-		if (chaq::feature_is_binned(fan))
-			{
-			const string tname = "thresholds_" + feature_name;
-			cp_uint16_t thresholds = chaq::get_thresholds(fan, AS);
-			tl.put_int16_flat_vec(tname, thresholds, AS-1);
-			}
-		}
-
-	tl.to_tsv(f);
 	}

@@ -324,7 +324,7 @@
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_entropy.cpp" />
     <ClCompile Include="flat_feat2fa.cpp" />
-    <ClCompile Include="flat_features.cpp" />
+    <ClCompile Include="flat_alphas.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
     <ClCompile Include="flat_hjmega_bracket.cpp" />

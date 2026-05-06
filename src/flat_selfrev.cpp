@@ -2,7 +2,7 @@
 #include "flat_chain.h"
 #include "flat_bench.h"
 #include "flat_params.h"
-#include "flat_features.h"
+#include "flat_params.h"
 #include "flat_helpers.h"
 #include "flat_aligner.h"
 
@@ -37,12 +37,12 @@ void cmd_flat_selfrev()
 		scalar_names, scalar_values);
 	flat_params::set_params(scalar_names, scalar_values);
 
-	flat_features::load_alphas(feature_names, opt(mxpattern));
-	const uint nfeat = flat_features::get_nfeat();
+	flat_params::load_alphas(feature_names, opt(mxpattern));
+	const uint nfeat = flat_params::get_nfeat();
 	unordered_map<string, float> NameToWeight;
 	for (uint i = 0; i < nfeat; ++i)
 		NameToWeight[feature_names[i]] = weights[i];
-	flat_features::apply_weights(NameToWeight);
+	flat_params::apply_weights(NameToWeight);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainfn, chains);
@@ -59,7 +59,7 @@ void cmd_flat_selfrev()
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			opt(fapattern),
-			flat_features::m_feature_names[fi],
+			flat_params::m_feature_names[fi],
 			fafns[fi]);
 
 	flat_profiles fp;

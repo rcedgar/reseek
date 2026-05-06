@@ -43,7 +43,7 @@ void cmd_flat_align_selfrev_mega()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_features::load_alphas(feature_names, opt(mxpattern));
+	flat_params::load_alphas(feature_names, opt(mxpattern));
 	FB.load_profiles(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();

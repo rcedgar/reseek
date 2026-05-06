@@ -82,7 +82,12 @@ static uint16_t ts_fendist32[32-1] = {3186,3662,4017,4319,4595,4852,5097,5333,55
 // [123beff] 2026-04-15
 static uint16_t ts_pmdd32[32-1] = {503,806,1074,1318,1522,1697,1845,1966,2060,2135,2211,2287,2360,2427,2478,2508,2555,2617,2686,2759,2832,2903,2980,3084,3213,3365,3545,3754,3986,4236,4509};
 
-cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
+void chaq::set_thresholds(FAN fan, uint alpha_size, cp_uint16_t ts)
+	{
+	Die("TODO");
+	}
+
+p_uint16_t chaq::get_hard_coded_thresholds(FAN fan, uint alpha_size)
 	{
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
 	x(nendist, 3);
@@ -164,7 +169,7 @@ static uint16_t median_turnd = 1540;
 static uint16_t median_fendist = 7269;
 static uint16_t median_pmdd = 2509;
 
-uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
+uint16_t chaq::get_undef_value(FAN fan)
 	{
 #define x(name)		if (fan == FAN_##name) return median_##name
 	x(nendist);
