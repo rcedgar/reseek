@@ -128,7 +128,10 @@ void Peaker::HJ_Explore(bool stalled_only)
 			continue;
 			}
 		if (!stalled && stalled_only)
+			{
+			ProgressLog("{{ %s not stalled di=%u skip }}\n", GetVarName(VarIdx), di);
 			continue;
+			}
 		if (stalled)
 			ProgressLog("{{ %s stalled di=%u try }}\n", GetVarName(VarIdx), di);
 		LastVarIdx = VarIdx;

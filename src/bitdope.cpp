@@ -36,6 +36,13 @@ uint8_t *read_bitdope(const string &fn,
 	return bitvec;
 	}
 
+void cmd_bitdope_stats()
+	{
+	uint ndom, nhit;
+	read_bitdope(g_Arg1, ndom, nhit);
+	ProgressLog("ndom=%u  nhit=%u  %s\n", ndom, nhit, g_Arg1.c_str());
+	}
+
 /***
 The -bitdope command creates a bit-vector file representing an 
 all-vs-all search. A bit is 1/0 if hit is/not present.

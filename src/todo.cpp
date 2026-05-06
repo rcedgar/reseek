@@ -3,6 +3,9 @@ TODOs
 
 reverse profiles not chains (handedness)
 
+Classify pair as fam / sf / fold, re-align
+	this is good if it improves accuracy by all truth standards.
+
 DALI score
 	Optimize by gapless hsp pairs in nu d.p. mx, greedily build?
 	Transition to DALI score for low mega, better for fold recognition
@@ -10,7 +13,7 @@ DALI score
 
 Fold recognition by image recognition of Reseek similarity matrix (NO)
 
-Fold recognition:
+Fold recognition by "tableaux":
 	Consensus fold represented as "contact map" of SSEs (inc. loop)
 	  separated by linkers
 	Each segment of the structure has feature vector

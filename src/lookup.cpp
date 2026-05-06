@@ -34,13 +34,27 @@ void lookup::from_labels(const vector<string> &labels)
 		const string &dom = flds[0];
 		asserta(m_dom2idx.find(dom) == m_dom2idx.end());
 
-		const string &scopid = flds[1];
-		Split(scopid, flds2, '.');
+		const string &fam = flds[1];
+		Split(fam, flds2, '.');
 		asserta(flds2.size() >= 3);
 		const string fold = flds2[0] + string(".") + flds2[1];
 		const string sf = fold + string(".") + flds2[2];
+		uint famidx = UINT_MAX;
 		uint sfidx = UINT_MAX;
 		uint foldidx = UINT_MAX;
+
+		unordered_map<string, uint>::const_iterator iterfam =
+			m_fam2idx.find(fam);
+		if (iterfam == m_fam2idx.end())
+			{
+			famidx = uint(m_fams.size());
+			m_fams.push_back(fam);
+			m_fam2idx[fam] = famidx;
+			}
+		else
+			famidx = iterfam->second;
+		asserta(famidx < m_fams.size());
+
 		unordered_map<string, uint>::const_iterator itersf =
 			m_sf2idx.find(sf);
 		if (itersf == m_sf2idx.end())
@@ -67,6 +81,7 @@ void lookup::from_labels(const vector<string> &labels)
 
 		m_doms.push_back(dom);
 		m_dom2idx[dom] = domidx;
+		m_domidx2famidx.push_back(famidx);
 		m_domidx2sfidx.push_back(sfidx);
 		m_domidx2foldidx.push_back(foldidx);
 		}
@@ -112,6 +127,57 @@ void lookup::fill_sf()
 		uint sfndom = m_sfidx2ndom[sfidx];
 		asserta(sfndom > 0);
 		m_NT += (sfndom*(sfndom - 1))/2;
+		}
+	m_NT *= 2;
+	m_NF = ndom*(ndom-1) - m_NT;
+	m_NI = 0;
+
+	m_pair_count = get_pair_count_upper_triangle_with_diagonal();
+	uint k = 0;
+	uint NTcheck = 0;
+	uint NFcheck = 0;
+	for (uint i = 0; i < ndom; ++i)
+		{
+		for (uint j = i; j < ndom; ++j)
+			{
+			assert(k < m_pair_count);
+			assert(k == triangle_ij_to_k(i, j, ndom));
+			if (is_tp_ij(i, j))
+				{
+				if (i != j)
+					++NTcheck;
+				}
+			else
+				++NFcheck;
+			++k;
+			}
+		}
+	asserta(k == m_pair_count);
+	asserta(NTcheck*2 == m_NT);
+	asserta(NFcheck*2 == m_NF);
+	stats();
+	}
+
+void lookup::fill_fam()
+	{
+	const uint ndom = uint(m_doms.size());
+	const uint nfam = uint(m_fams.size());
+	m_famidx2ndom.clear();
+	m_famidx2ndom.resize(nfam);
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		uint famidx = m_domidx2famidx[domidx];
+		asserta(famidx < nfam);
+		++m_famidx2ndom[famidx];
+		}
+
+	m_NT = 0;
+	m_NF = 0;
+	for (uint famidx = 0; famidx < nfam ; ++famidx)
+		{
+		uint famndom = m_famidx2ndom[famidx];
+		asserta(famndom > 0);
+		m_NT += (famndom*(famndom - 1))/2;
 		}
 	m_NT *= 2;
 	m_NF = ndom*(ndom-1) - m_NT;
@@ -244,7 +310,9 @@ void lookup::fill_fold()
 
 void lookup::fill()
 	{
-	if (m_LT == LT_SAME_SF)
+	if (m_LT == LT_SAME_FAM)
+		fill_fam();
+	else if (m_LT == LT_SAME_SF)
 		fill_sf();
 	else if (m_LT == LT_SAME_FOLD)
 		fill_fold();

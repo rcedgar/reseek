@@ -5,6 +5,7 @@
 enum LOOK_TRUTH
 	{
 	LT_Undef,
+	LT_SAME_FAM,
 	LT_SAME_SF,
 	LT_DIFF_SF_SAME_FOLD,
 	LT_SAME_FOLD
@@ -14,17 +15,19 @@ class lookup
 	{
 public:
 	vector<string> m_doms;
+	vector<string> m_fams;
 	vector<string> m_sfs;
 	vector<string> m_folds;
 	unordered_map<string, uint> m_dom2idx;
+	unordered_map<string, uint> m_fam2idx;
 	unordered_map<string, uint> m_sf2idx;
 	unordered_map<string, uint> m_fold2idx;
+	vector<uint> m_domidx2famidx;
 	vector<uint> m_domidx2sfidx;
 	vector<uint> m_domidx2foldidx;
+	vector<uint> m_famidx2ndom;
 	vector<uint> m_sfidx2ndom;
 	vector<uint> m_foldidx2ndom;
-	//bool *m_tpvec_sf = 0;
-	//bool *m_tpvec_fold = 0;
 	uint m_NT = 0;
 	uint m_NF = 0;
 	uint m_NI = 0;
@@ -38,7 +41,9 @@ public:
 		if (optset_truth)
 			{
 			const string &t = opt(truth);
-			if (t == "sf")
+			if (t == "fam")
+				m_LT = LT_SAME_FAM;
+			else if (t == "sf")
 				m_LT = LT_SAME_SF;
 			else if (t == "fold")
 				m_LT = LT_SAME_FOLD;
@@ -51,8 +56,6 @@ public:
 
 	~lookup()
 		{
-		//myfree(m_tpvec_sf);
-		//myfree(m_tpvec_fold);
 		}
 
 	void reserve()
@@ -76,13 +79,13 @@ public:
 		m_sf2idx.clear();
 		m_domidx2sfidx.clear();
 		m_sfidx2ndom.clear();
-		//myfree(m_tpvec_sf);
-		//myfree(m_tpvec_fold);
 		}
 
 	const char *get_truthstr() const
 		{
-		if (m_LT == LT_SAME_SF)
+		if (m_LT == LT_SAME_FAM)
+			return "fam";
+		else if (m_LT == LT_SAME_SF)
 			return "sf";
 		else if (m_LT == LT_SAME_FOLD)
 			return "fold";
@@ -99,6 +102,7 @@ public:
 	void from_labels(const vector<string> &labels);
 	void to_tsv(const string &fn);
 	void fill();
+	void fill_fam();
 	void fill_sf();
 	void fill_fold();
 	void fill_dssf();
@@ -159,6 +163,13 @@ public:
 		return sfidx_i == sfidx_j;
 		}
 
+	bool same_fam_ij(uint i, uint j) const
+		{
+		uint famidx_i = m_domidx2famidx[i];
+		uint famidx_j = m_domidx2famidx[j];
+		return famidx_i == famidx_j;
+		}
+
 	bool same_sf_k(uint k) const
 		{
 		uint i, j;
@@ -205,6 +216,8 @@ public:
 		{
 		if (m_LT == LT_SAME_SF)
 			return same_sf_ij(i, j);
+		else if (m_LT == LT_SAME_FAM)
+			return same_fam_ij(i, j);
 		else if (m_LT == LT_SAME_FOLD)
 			return same_fold_ij(i, j);
 		else if (m_LT == LT_DIFF_SF_SAME_FOLD)

@@ -2452,21 +2452,26 @@ void Psa(string &Str, const char *Format, ...)
 
 unsigned GetRequestedThreadCount()
 	{
-	const char *env = std::getenv("RESEEK_THREADS");
-	if (env != 0)
-		{
-		uint N = StrToInt(env);
-		if (N == 0)
-			Die("RESEEK_THREADS=0");
-		Progress("RESEEK_THREADS=%u\n", N);
-		}
-
 	static unsigned N = 1;
 	static bool Done = false;
 	if (Done)
 		return N;
+	static bool MsgDone = false;
+	const char *env = std::getenv("RESEEK_THREADS");
+	if (env != 0)
+		{
+		N = StrToInt(env);
+		if (N == 0)
+			Die("RESEEK_THREADS=0");
+		if (!MsgDone)
+			{
+			Progress("RESEEK_THREADS=%u\n", N);
+			MsgDone = true;
+			}
+		Done = true;
+		return N;
+		}
 	unsigned CoreCount = GetCPUCoreCount();
-	bool MsgDone = false;
 	if (optset_threads)
 		N = opt(threads);
 	else
