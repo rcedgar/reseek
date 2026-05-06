@@ -53,7 +53,9 @@ void cmd_flat_hjmega_bracket()
 	FullFB.ReadLookup(opt(lookup));
 	flat_features::load_alphas(alpha_names, opt(mxpattern));
 	FullFB.load_profiles(opt(fapattern));
-	FullFB.set_distmxs(opt(input));
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+	FullFB.set_distmxs(chains);
 	if (optset_dope)
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();

@@ -360,6 +360,7 @@
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="makebags.cpp" />
     <ClCompile Include="letteralndb.cpp" />
+    <ClCompile Include="write_config.cpp" />
     <ClCompile Include="mysegmask.cpp" />
     <ClCompile Include="nbr_stats.cpp" />
     <ClCompile Include="nn_primary_chain_dist.cpp" />

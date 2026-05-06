@@ -1,8 +1,9 @@
 #include "myutils.h"
 #include "flat_base.h"
 #include "flat_params.h"
-#include "chaq.h"
 #include "flat_distmx.h"
+#include "flat_features.h"
+#include "chaq.h"
 #include "sec_kmeans.h"
 #include "quantize.h"
 #include "abcxyz.h"
@@ -877,4 +878,38 @@ void chaq::slow_get_angle_values(
 
 	for (uint pos = L - n - 1; pos < L; ++pos)
 		values[pos] = undef_value;
+	}
+
+void chaq::slow_get_codeseq(
+	const flat_chain_t *chain,
+	FAN fan,
+	uint alpha_size,
+	p_uint8_t codeseq)
+	{
+	const bool binned = chaq::feature_is_binned(fan);
+	if (binned)
+		chaq::slow_get_codeseq_binned(
+			chain, fan, alpha_size, codeseq);
+	else
+		{
+		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
+		chaq::slow_get_codeseq_discrete(
+			chain, fan, alpha_size, undef_code, codeseq);
+		}
+	}
+
+uint8_t *chaq::make_profile(
+	const flat_chain_t &chain,
+	uint8_t *scratch, uint32_t scratch_bytes)
+	{
+	const uint nfeat = flat_features::m_nfeat;
+	const uint L = chain.get_length();
+	uint8_t *profile = myalloc(uint8_t, nfeat*L);
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		FAN fan = flat_features::m_fans[fi];
+		uint alpha_size = flat_features::m_alpha_sizes[fi];
+		slow_get_codeseq(&chain, fan, alpha_size, profile + fi*L);
+		}
+	return profile;
 	}

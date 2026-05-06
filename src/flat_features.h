@@ -15,6 +15,7 @@ public:
 	static uint32 m_nfeat;
 	static uint32 m_entropyfi;
 	static vector<string> m_feature_names;
+	static vector<FAN> m_fans;
 	static uint32_t *m_alpha_sizes;
 	static float **m_unweighted_logoddsvec;
 	static float **m_weighted_logoddsvec;
@@ -112,4 +113,10 @@ public:
 	static void load_alphas(
 		const vector<string> &feature_names,
 		const string &logoddsfnpattern);
+
+	static void set_alphas(const vector<string> &feature_names);
+	static void write_config(FILE *f);
+	static void get_fan_name(
+		const string &feature_name, 
+		string &fan_name);
 	};

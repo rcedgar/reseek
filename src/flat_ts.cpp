@@ -58,12 +58,17 @@ static uint16_t ts_mpack3[3-1] = {11,20};
 
 // C:\src\reseek\src\Release\reseek.exe -flat_quantize ../data/scop40c.bca -alpha_size 16 -feature angle -log flat_quantize.log -output angle.bins -fasta angle.fa -output2 angle.cpp
 // [41b07af] 2026-04-05
-static uint16_t median_angle = 44933;
-static uint16_t ts_angle32[32-1] = {12334,18064,21422,24325,26836,28942,30861,32691,34439,36079,37608,39078,40523,41953,43435,44933,46466,48034,49615,51181,52718,54222,55700,57201,58636,59846,60736,61440,62071,62717,63504};
+//static uint16_t median_angle = 44933;
+//static uint16_t ts_angle32[32-1] = {12334,18064,21422,24325,26836,28942,30861,32691,34439,36079,37608,39078,40523,41953,43435,44933,46466,48034,49615,51181,52718,54222,55700,57201,58636,59846,60736,61440,62071,62717,63504};
 static uint16_t ts_angle16[16-1] = {18064,24326,28943,32691,36079,39078,41953,44932,48033,51180,54221,57199,59845,61439,62716};
 static uint16_t ts_angle6[6-1] = {27571,37104,44933,53225,60463};
 static uint16_t ts_angle4[4-1] = {32692,44933,57199};
 static uint16_t ts_angle3[3-1] = {37104,53225};
+
+// reseek -flat_quantize ../data/scop40x.bca -alpha_size 32 -feature angle -log ../log/quantize_angle32.log -output ../alpha_bins/angle32.bins -fasta ../alpha_fa/angle32.fa -output2 ../alpha_cpp/angle32.cpp
+// [03d7260] 2026-05-04
+static uint16_t median_angle = 45009;
+static uint16_t ts_angle32[32-1] = {12663,18274,21635,24531,27014,29106,31011,32826,34561,36185,37703,39165,40603,42026,43511,45010,46549,48129,49719,51307,52854,54365,55850,57358,58784,59948,60803,61483,62101,62739,63518};
 
 // reseek -flat_quantize ../data/scop40c.bca -alpha_size 16 -feature turnd -log flat_quantize_turnd.log -output ../ff_bins/turnd16.bins -fasta ../ff_fa/turnd16.fa -output2 ../tmp/turnd16.cpp
 // [f696272] 2026-04-10
@@ -131,7 +136,11 @@ cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	x(mpack, 16);
 	x(mpack, 32);
 
+	x(angle, 3);
+	x(angle, 4);
+	x(angle, 6);
 	x(angle, 16);
+	x(angle, 32);
 
 	x(turnd, 16);
 

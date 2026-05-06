@@ -8,10 +8,11 @@ public:
 	vector<string> m_labels;
 	vector<uint> m_lengths;
 	vector<uint8_t *> m_profiles;
+	vector<uint8_t *> m_rev_profiles;
 	unordered_map<string, uint> m_label2idx;
 
 public:
-	void from_chains(const vector<flat_chain_t *> &chains);
+	void from_chains(const vector<flat_chain_t *> &chains, bool rev);
 
 	void read_profiles_faprof(
 		const string &faproffn,
@@ -30,6 +31,7 @@ public:
 		return m_profiles[i];
 		}
 
+	uint8_t *make_rev_profile(uint i) const;
 	uint8_t *get_rev_profile(uint i) const;
 
 	uint32_t get_length(uint i) const
@@ -49,6 +51,4 @@ public:
 	uint get_nprof() const { return uint(m_profiles.size()); }
 
 	void profile_to_fasta(FILE *f, uint i) const;
-
-	uint8_t *make_profile(const flat_chain_t &chain) const;
 	};

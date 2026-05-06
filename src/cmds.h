@@ -135,5 +135,6 @@ C(dump_chaq)
 C(bench_structure_feature)
 C(kabsch_quad)
 C(bitdope_stats)
+C(write_config)
 
 #undef C

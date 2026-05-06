@@ -34,4 +34,5 @@ public:
 	static bool need_prof();
 	static bool need_self();
 	static bool need_alignx();
+	static void write_config(FILE *f);
 	};

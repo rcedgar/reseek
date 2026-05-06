@@ -2,6 +2,7 @@
 #include "flat_profiles.h"
 #include "flat_features.h"
 #include "flat_helpers.h"
+#include "chaq.h"
 #include "seqdb.h"
 
 void flat_profiles::read_profiles_from_fastas(
@@ -199,6 +200,12 @@ void flat_profiles::check_profiles() const
 
 uint8_t *flat_profiles::get_rev_profile(uint i) const
 	{
+	asserta(i < m_rev_profiles.size());
+	return m_rev_profiles[i];
+	}
+
+uint8_t *flat_profiles::make_rev_profile(uint i) const
+	{
 	asserta(i < m_profiles.size());
 	const uint8_t *profile = m_profiles[i];
 	const uint L = m_lengths[i];
@@ -216,7 +223,8 @@ uint8_t *flat_profiles::get_rev_profile(uint i) const
 	return rev_profile;
 	}
 
-void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
+void flat_profiles::from_chains(
+	const vector<flat_chain_t *> &chains, bool rev)
 	{
 	asserta(m_labels.empty());
 	asserta(m_profiles.empty());
@@ -226,20 +234,18 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 	const uint nfeat = flat_features::m_nfeat;
 	asserta(nfeat);
 	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
+	const uint32_t scratch_bytes = 1024*1024;//TODO
+	uint8_t *scratch = myalloc(uint8_t, scratch_bytes);
 
 	m_profiles.resize(nchain);
+	if (rev) m_rev_profiles.resize(nchain);
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
 		const flat_chain_t &chain = *chains[chainidx];
 		m_labels.push_back(chain.m_label.c_str());
 		const uint L = chain.get_length();
 		if (L == 0) continue;
-		m_profiles[chainidx] = make_profile(chain);
+		m_profiles[chainidx] = chaq::make_profile(chain, scratch, scratch_bytes);
+		if (rev) m_rev_profiles[chainidx] = make_rev_profile(chainidx);
 		}
-	}
-
-uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
-	{
-	Die("TODO");
-	return 0;
 	}

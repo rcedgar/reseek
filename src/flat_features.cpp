@@ -2,10 +2,12 @@
 #include "tabbedlines.h"
 #include "flat_helpers.h"
 #include "flat_features.h"
+#include "chaq.h"
 
 uint32 flat_features::m_nfeat;
 uint32 flat_features::m_entropyfi = UINT_MAX;
 vector<string> flat_features::m_feature_names;
+vector<FAN> flat_features::m_fans;
 uint32_t *flat_features::m_alpha_sizes;
 float **flat_features::m_unweighted_logoddsvec;
 float **flat_features::m_weighted_logoddsvec;
@@ -16,17 +18,33 @@ uint32_t flat_features::m_compound_alpha_size;
 uint32_t *flat_features::m_axes;
 vector<string> flat_features::m_symbolsvec;
 
+void flat_features::get_fan_name(
+	const string &feature_name,
+	string &fan_name)
+	{
+	fan_name = feature_name;
+	int n = int(fan_name.size());
+	while (n > 0 && isdigit(fan_name[n-1]))
+		fan_name.resize(--n);
+	asserta(!fan_name.empty());
+	}
+
 void flat_features::init(const vector<string> &feature_names)
 	{
 	asserta(m_nfeat == 0);
 	alloc(uint(feature_names.size()));
 	m_feature_names = feature_names;
+	m_fans.clear();
 	m_sum_alpha_sizes = 0;
 	m_compound_alpha_size = 1;
 	m_entropyfi = UINT_MAX;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
 		const string &feature_name = feature_names[fi];
+		string fan_name;
+		get_fan_name(feature_name, fan_name);
+		FAN fan = str2FAN(fan_name.c_str());
+		m_fans.push_back(fan);
 		if (StartsWith(feature_name, "sec") || feature_name == "Conf")
 			m_entropyfi = fi;
 		uint alpha_size =
@@ -129,17 +147,22 @@ void flat_features::read_logoddsvec_pattern(
 	alloc(nfeat);
 
 	m_feature_names = feature_names;
+	m_fans.clear();
 
 	memcpy(m_alpha_sizes, alpha_sizes.data(),
 		nfeat*sizeof(m_alpha_sizes[0]));
 
 	vector<string> fns(m_nfeat);
 	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		FAN fan = str2FAN(feature_names[fi].c_str());
+		m_fans.push_back(fan);
 		make_logoddsfn_pattern(
 			fnpattern,
 			feature_names[fi],
 			alpha_sizes[fi],
 			fns[fi]);
+		}
 	read_logoddsvec(fns);
 	}
 
@@ -436,9 +459,45 @@ void flat_features::load_alphas(
 	const vector<string> &feature_names,
 	const string &logoddsfnpattern)
 	{
-
 	flat_features::init(feature_names);
 	flat_features::read_logoddsvec_pattern(logoddsfnpattern);
 	flat_features::set_feature_block_offsets();
 	flat_features::set_symbolsvec();
+	}
+
+void flat_features::set_alphas(const vector<string> &feature_names)
+	{
+	Die("TODO");
+	}
+
+void flat_features::write_config(FILE *f)
+	{
+	if (f == 0) return;
+	const uint nfeat = flat_features::get_nfeat();
+
+	tabbedlines tl;
+	tl.put_int("nfeat", nfeat);
+	tl.put_str_vec("alpha_names", flat_features::m_feature_names);
+	tl.put_int_vec("alpha_sizes", flat_features::m_alpha_sizes, nfeat);
+	tl.put_float_vec("alpha_weights", flat_features::m_weights, nfeat);
+
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		const string &feature_name = flat_features::m_feature_names[fi];
+		string fan_name;
+		get_fan_name(feature_name, fan_name);
+		FAN fan = str2FAN(fan_name.c_str());
+
+		uint AS = m_alpha_sizes[fi];
+		const string name = "unweighted_logodds_" + feature_name;
+		tl.put_float_flat_square_mx(name, AS, m_unweighted_logoddsvec[fi]);
+		if (chaq::feature_is_binned(fan))
+			{
+			const string tname = "thresholds_" + feature_name;
+			cp_uint16_t thresholds = chaq::get_thresholds(fan, AS);
+			tl.put_int16_flat_vec(tname, thresholds, AS-1);
+			}
+		}
+
+	tl.to_tsv(f);
 	}

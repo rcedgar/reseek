@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
+#include "tabbedlines.h"
 
 float flat_params::m_open = FLT_MAX;
 float flat_params::m_ext = FLT_MAX;
@@ -100,4 +101,35 @@ bool flat_params::need_alignx()
 		need_prof() ||
 		need_self() ||
 		need_reverse();
+	}
+
+void flat_params::write_config(FILE *f)
+	{
+	if (f == 0) return;
+	tabbedlines tl;
+
+#define x(name)	tl.put_float(#name, m_##name)
+	x(open);
+	x(ext);
+	x(self_w);
+	x(rev_w);
+	x(lddt_w);
+	x(lddtx_w);
+	x(lddtpow_w);
+	x(dali_w);
+	x(entropy_w);
+	x(rotfreetm_w);
+	x(LDDT_R0);
+#undef x
+
+#define x(name)	tl.put_int(#name, m_##name)
+	x(nn_min_offset);
+	x(distmx_bandwidth);
+	x(turnd_w);
+	x(angle_n);
+	x(LDDT_nr_thresholds);
+#undef x
+
+	tl.put_float_vec("LDDT_thresholds",
+		m_LDDT_thresholds, m_LDDT_nr_thresholds);
 	}

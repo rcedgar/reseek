@@ -11,7 +11,7 @@ class sec_kmeans;
 Chain quantizer / quantifier
 All member functions are static.
 Function arguments are pointers to data, not to flat_base objects.
-Consuming code responsible for memory ownership and lifefime.
+Consuming code is responsible for memory ownership and lifefime.
 ***/
 class chaq
 	{
@@ -19,7 +19,7 @@ private:
 	chaq() = delete;
 
 public:
-	static bool feature_is_binned(FAN fan)
+	static bool feature_is_binned(FAN fan) // TODO should be in flat_features
 		{
 		switch (fan)
 			{
@@ -120,6 +120,12 @@ public:
 		uint8_t undef_code,
 		p_uint8_t codeseq);
 
+	static void slow_get_codeseq(
+		const flat_chain_t *chain,
+		FAN fan,
+		uint alpha_size,
+		p_uint8_t codeseq);
+
 	static void slow_get_charseq_binned(
 		const flat_chain_t *chain,
 		FAN fan,
@@ -172,4 +178,8 @@ public:
 	static cp_uint16_t get_thresholds(FAN fan, uint alpha_size);
 	static uint16_t get_undef_value(FAN fan, uint alpha_size);
 	static uint8_t get_undef_code(FAN fan, uint alpha_size);
+
+	static uint8_t *make_profile(
+		const flat_chain_t &chain,
+		uint8_t *scratch, uint32_t scratch_bytes);
 	};

@@ -115,8 +115,11 @@ void cmd_rotfreetm()
 
 	flat_features::load_alphas(feature_names, opt(mxpattern));
 
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+
 	FB.load_profiles(opt(fapattern));
-	FB.set_distmxs(opt(input));
+	FB.set_distmxs(chains);
 	FB.UpdateParamsFromVarStr(VarStr);
 
 	flat_aligner fa;

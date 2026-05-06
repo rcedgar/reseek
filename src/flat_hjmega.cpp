@@ -236,7 +236,9 @@ void cmd_flat_hjmega()
 	FullFB.ReadLookup(opt(lookup));
 	flat_features::load_alphas(AlphaNames, opt(mxpattern));
 	FullFB.load_profiles(opt(fapattern));
-	FullFB.set_distmxs(opt(input));
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+	FullFB.set_distmxs(chains);
 	if (optset_dope)
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
@@ -267,7 +269,7 @@ void cmd_flat_hjmega()
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
 		SubsetFB.load_profiles(opt(fapattern));
-		SubsetFB.set_distmxs(opt(input));
+		SubsetFB.set_distmxs(chains);
 		SubsetFB.LogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();

@@ -84,6 +84,13 @@ public:
 		return v;
 		}
 
+	void put_float_flat_square_mx(
+		const string &name, uint n, const float *v)
+		{
+		put_int(name, n);
+		put_float_flat_square_mx(n, v);
+		}
+
 	void put_float_flat_square_mx(uint n, const float *v)
 		{
 		for (uint i = 0; i < n; ++i)
@@ -142,10 +149,23 @@ public:
 		return m_flds[i];
 		}
 
+	void put_float(const string &name, float x)
+		{
+		string line;
+		if (x == FLT_MAX)
+			Ps(line, "%s\tFLT_MAX", name.c_str(), x);
+		else
+			Ps(line, "%s\t%.4g", name.c_str(), x);
+		m_lines.push_back(line);
+		}
+
 	void put_int(const string &name, uint i)
 		{
 		string line;
-		Ps(line, "%s\t%u", name.c_str(), i);
+		if (i == UINT_MAX)
+			Ps(line, "%s\tUINT_MAX", name.c_str(), i);
+		else
+			Ps(line, "%s\t%u", name.c_str(), i);
 		m_lines.push_back(line);
 		}
 
@@ -155,6 +175,33 @@ public:
 		Ps(line, "%s\t%u", name.c_str(), SIZE(v));
 		for (uint i = 0; i < SIZE(v); ++i)
 			Psa(line, "\t%u", v[i]);
+		m_lines.push_back(line);
+		}
+
+	void put_int_vec(const string &name, uint32_t *v, size_t n)
+		{
+		string line;
+		Ps(line, "%s\t%u", name.c_str(), n);
+		for (uint i = 0; i < n; ++i)
+			Psa(line, "\t%u", v[i]);
+		m_lines.push_back(line);
+		}
+
+	void put_float_vec(const string &name, const float *v, size_t n)
+		{
+		string line;
+		Ps(line, "%s\t%u", name.c_str(), n);
+		for (uint i = 0; i < n; ++i)
+			Psa(line, "\t%.4g", v[i]);
+		m_lines.push_back(line);
+		}
+
+	void put_str_vec(const string &name, const vector<string> &v)
+		{
+		string line;
+		Ps(line, "%s\t%u", name.c_str(), SIZE(v));
+		for (uint i = 0; i < SIZE(v); ++i)
+			Psa(line, "\t%s", v[i].c_str());
 		m_lines.push_back(line);
 		}
 
