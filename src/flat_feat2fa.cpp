@@ -43,7 +43,7 @@ void cmd_flat_feat2fa()
 				thresholds, undef_value, charseq);
 		else
 			chaq::slow_get_charseq_discrete(chain, fan, alpha_size,
-				undef_code, charseq);
+				UINT_MAX, undef_code, charseq);
 		SeqToFasta(f, chains[i]->m_label.c_str(), charseq, L);
 		myfree(charseq);
 		}

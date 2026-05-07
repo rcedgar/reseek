@@ -19,6 +19,8 @@ private:
 	chaq() = delete;
 
 public:
+	static bool m_enable_hard_coded_parameters;
+
 	static void fill_distmx(
 		cp_ic_t xyz,
 		uint L,
@@ -87,26 +89,39 @@ public:
 		uint alpha_size,
 		p_uint16_t values);
 
-	static void slow_get_codeseq_binned_fi(
+	////////////////////////////////////////
+	// *_fi() variants for flat_params loaded
+	// from config file
+	////////////////////////////////////////
+	static void slow_get_codeseq_fi(
 		const flat_chain_t *chain,
-		uint fi, p_uint8_t codeseq);
+		uint fi,
+		p_uint8_t codeseq);
 
-	static void slow_get_codeseq_discrete(
+	static void slow_get_codeseq_discrete_fi(
 		const flat_chain_t *chain,
 		uint fi,
 		uint8_t undef_code,
 		p_uint8_t codeseq);
 
+	static void slow_get_codeseq_binned_fi(
+		const flat_chain_t *chain,
+		uint fi,
+		p_uint8_t codeseq);
+	//////////////////////////////////////////
+
 	static void slow_get_codeseq_binned(
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
+		uint fi,
 		p_uint8_t codeseq);
 
 	static void slow_get_codeseq_discrete(
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
+		uint fi,
 		uint8_t undef_code,
 		p_uint8_t codeseq);
 
@@ -114,6 +129,7 @@ public:
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
+		uint fi,
 		p_uint8_t codeseq);
 
 	static void slow_get_charseq_binned(
@@ -128,6 +144,7 @@ public:
 		const flat_chain_t *chain,
 		FAN fan,
 		uint8_t alpha_size,
+		uint fi,
 		uint8_t undef_code,
 		char *charseq);
 
@@ -166,7 +183,6 @@ public:
 		p_uint16_t values);
 
 	static p_uint16_t get_hard_coded_thresholds(FAN fan, uint alpha_size);
-	static void set_thresholds(FAN fan, uint alpha_size, cp_uint16_t ts);
 	static uint16_t get_undef_value(FAN fan);
 	static uint8_t get_undef_code(FAN fan, uint alpha_size);
 

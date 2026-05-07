@@ -10,6 +10,7 @@
 #include <cmath>
 
 static const uint16_t s_packing_maxsid = dist2sid(15.0f);
+bool chaq::m_enable_hard_coded_parameters = false;
 
 static inline uint16_t radians_to_uint16(float theta)
 	{
@@ -49,14 +50,26 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	case FAN_pack:
 	case FAN_mpack:
 	case FAN_ppack:
-	// roughly median value, TODO?
+
+	case FAN_turnd:
+
+	case FAN_nendist:
+	case FAN_rendist:
+	case FAN_pendist:
+	case FAN_mendist:
+
+	case FAN_pmdiff:
+	case FAN_pmdd:
+
+	case FAN_angle:
+		// roughly median value, TODO?
 		return alpha_size/2;
 
 	case FAN_aa:
 	case FAN_pm:
 		return 0;
 		}
-	Die("get_undef_code(%s)", FAN2str(fan));
+	Die("chaq::get_undef_code(%s)", FAN2str(fan));
 	return 0;
 	}
 
@@ -406,22 +419,39 @@ void chaq::get_sec_codeseq(
 	SK->get_codeseq(distmx, L, codeseq);
 	}
 
-void chaq::slow_get_codeseq_discrete(
+void chaq::slow_get_codeseq_discrete_fi(
 	const flat_chain_t *chain,
 	uint fi,
 	uint8_t undef_code,
 	p_uint8_t codeseq)
 	{
-	Die("TODO");
+	assert(fi < flat_params::m_nfeat);
+	FAN fan = flat_params::m_fans[fi];
+	uint alpha_size = flat_params::m_alpha_sizes[fi];
+	if (flat_params::feature_is_binned_fi(fi))
+		asserta(undef_code < alpha_size);
+	slow_get_codeseq_discrete(chain, fan, alpha_size, fi, undef_code, codeseq);
 	}
 
 void chaq::slow_get_codeseq_discrete(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
+	uint fi,
 	uint8_t undef_code,
 	p_uint8_t codeseq)
 	{
+	if (fi == UINT_MAX)
+		{
+		if (flat_params::feature_is_binned(fan))
+			asserta(undef_code < alpha_size);
+		}
+	else
+		{
+		if (flat_params::feature_is_binned_fi(fi))
+			asserta(undef_code < alpha_size);
+		}
+
 	const uint M = flat_params::m_distmx_bandwidth;
 	const uint m = flat_params::m_nn_min_offset;
 
@@ -506,7 +536,7 @@ void chaq::slow_get_codeseq_discrete(
 			asserta(xen < L || xen == UINT16_MAX);
 			uint8_t code = (xen == UINT16_MAX) ?
 				undef_code : sec_codeseq[xen];
-			asserta(undef_code < alpha_size);
+			assert(code < alpha_size);
 			codeseq[i] = code;
 			}
 		break;
@@ -519,7 +549,7 @@ void chaq::slow_get_codeseq_discrete(
 			asserta(xen < L || xen == UINT16_MAX);
 			uint8_t code = (xen == UINT16_MAX) ?
 				undef_code : sec_codeseq[xen];
-			asserta(undef_code < alpha_size);
+			assert(code < alpha_size);
 			codeseq[i] = code;
 			}
 		break;
@@ -532,7 +562,7 @@ void chaq::slow_get_codeseq_discrete(
 			asserta(xen < L || xen == UINT16_MAX);
 			uint8_t code = (xen == UINT16_MAX) ?
 				undef_code : sec_codeseq[xen];
-			asserta(undef_code < alpha_size);
+			asserta(code < alpha_size);
 			codeseq[i] = code;
 			}
 		break;
@@ -545,7 +575,7 @@ void chaq::slow_get_codeseq_discrete(
 			asserta(xen < L || xen == UINT16_MAX);
 			uint8_t code = (xen == UINT16_MAX) ?
 				undef_code : sec_codeseq[xen];
-			asserta(undef_code < alpha_size);
+			asserta(code < alpha_size);
 			codeseq[i] = code;
 			}
 		break;
@@ -558,7 +588,8 @@ void chaq::slow_get_codeseq_discrete(
 	case FAN_pack:
 	case FAN_ppack:
 	case FAN_mpack:
-		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, codeseq);
+	case FAN_turnd:
+		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, fi, codeseq);
 		break;
 
 	default:	Die("slow_get_codeseq_discrete(%s)", FAN2str(fan));
@@ -697,38 +728,42 @@ void chaq::slow_get_values(
 
 	case FAN_pack:
 		{
-		sid_t *distmx = myalloc(sid_t, L*M);
+		//sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, true, true, values);
+		//myfree(distmx);
 		break;
 		}
 
 	case FAN_ppack:
 		{
-		sid_t *distmx = myalloc(sid_t, L*M);
+		//sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, true, false, values);
+		//myfree(distmx);
 		break;
 		}
 
 	case FAN_mpack:
 		{
-		sid_t *distmx = myalloc(sid_t, L*M);
+		//sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t maxsid = dist2sid(15.0f);//TODO param for 15.0f
 		chaq::get_packing_values(distmx, L, maxsid, false, true, values);
+		//myfree(distmx);
 		break;
 		}
 
 	case FAN_turnd:
 		{
-		sid_t *distmx = myalloc(sid_t, L*M);
+		//sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		static const uint16_t w = 5; //TODO param for w=5
 		static const uint16_t undef_value =  1540; // measured median
 		chaq::get_turnd_values(distmx, L, undef_value, values);
+		//myfree(distmx);
 		break;
 		}
 
@@ -740,10 +775,12 @@ void chaq::slow_get_values(
 	myfree(mens);
 	myfree(nens);
 	myfree(rens);
+	myfree(fens);
 	myfree(pensids);
 	myfree(mensids);
 	myfree(nensids);
 	myfree(rensids);
+	myfree(fensids);
 	}
 
 void chaq::codeseq2charseq(
@@ -781,6 +818,7 @@ void chaq::slow_get_charseq_discrete(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint8_t alpha_size,
+	uint fi,
 	uint8_t undef_code,
 	char *charseq)
 	{
@@ -791,7 +829,7 @@ void chaq::slow_get_charseq_discrete(
 	assert(L > 0);
 	uint8_t *codeseq = myalloc(uint8_t, L);
 	slow_get_codeseq_discrete(
-		chain, fan, alpha_size, undef_code, codeseq);
+		chain, fan, alpha_size, fi, undef_code, codeseq);
 	codeseq2charseq(codeseq, L, alpha_size, charseq);
 	myfree(codeseq);
 	}
@@ -824,12 +862,25 @@ void chaq::slow_get_codeseq_binned(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
+	uint fi,
 	p_uint8_t codeseq)
 	{
 	const uint L = chain->get_length();
 
-	cp_uint16_t thresholds = get_hard_coded_thresholds(fan, alpha_size);
-	const uint16_t undef_value = get_undef_value(fan);
+	cp_uint16_t thresholds = 0;
+	uint16_t undef_value = 0;
+	
+	if (fi == UINT_MAX)
+		{
+		asserta(m_enable_hard_coded_parameters);
+		undef_value = chaq::get_undef_value(fan);
+		thresholds = get_hard_coded_thresholds(fan, alpha_size);
+		}
+	else
+		{
+		undef_value = flat_params::get_undef_value(fi);
+		thresholds = flat_params::get_thresholds(fi);
+		}
 
 	uint16_t *values = myalloc(uint16_t, L);
 	chaq::slow_get_values(chain, fan, alpha_size, values);
@@ -913,21 +964,42 @@ void chaq::slow_get_angle_values(
 		values[pos] = undef_value;
 	}
 
+void chaq::slow_get_codeseq_fi(
+	const flat_chain_t *chain,
+	uint fi,
+	p_uint8_t codeseq)
+	{
+	const bool binned = flat_params::feature_is_binned_fi(fi);
+	if (binned)
+		chaq::slow_get_codeseq_binned_fi(
+			chain, fi, codeseq);
+	else
+		{
+		uint alpha_size = flat_params::get_alpha_size(fi);
+		uint8_t undef_code = flat_params::get_undef_code(fi);
+		if (flat_params::feature_is_binned_fi(fi))
+			asserta(undef_code < alpha_size);
+		chaq::slow_get_codeseq_discrete_fi(
+			chain, fi, undef_code, codeseq);
+		}
+	}
+
 void chaq::slow_get_codeseq(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
+	uint fi,
 	p_uint8_t codeseq)
 	{
 	const bool binned = flat_params::feature_is_binned(fan);
 	if (binned)
 		chaq::slow_get_codeseq_binned(
-			chain, fan, alpha_size, codeseq);
+			chain, fan, alpha_size, fi, codeseq);
 	else
 		{
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
 		chaq::slow_get_codeseq_discrete(
-			chain, fan, alpha_size, undef_code, codeseq);
+			chain, fan, alpha_size, fi, undef_code, codeseq);
 		}
 	}
 
@@ -940,9 +1012,8 @@ uint8_t *chaq::make_profile(
 	uint8_t *profile = myalloc(uint8_t, nfeat*L);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		FAN fan = flat_params::m_fans[fi];
-		uint alpha_size = flat_params::m_alpha_sizes[fi];
-		slow_get_codeseq(&chain, fan, alpha_size, profile + fi*L);
+		dbrk(fi == 1);//@@
+		slow_get_codeseq_fi(&chain, fi, profile + fi*L);
 		}
 	return profile;
 	}

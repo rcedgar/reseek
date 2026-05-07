@@ -18,6 +18,7 @@ public:
 	static vector<FAN> m_fans;
 	static uint32_t *m_alpha_sizes;
 	static uint16_t *m_undef_values;
+	static uint8_t *m_undef_codes;
 	static uint16_t **m_thresholds;
 	static float **m_unweighted_logoddsvec;
 	static float **m_weighted_logoddsvec;
@@ -231,13 +232,26 @@ public:
 		return m_undef_values[fi];
 		}
 
+	static uint8_t flat_params::get_undef_code(uint fi)
+		{
+		assert(fi < m_nfeat);
+		return m_undef_codes[fi];
+		}
+
 	static cp_uint16_t get_thresholds(uint fi)
 		{
 		assert(fi < m_nfeat);
 		return m_thresholds[fi];
 		}
 
-	static bool feature_is_binned(FAN fan) // TODO should be in flat_params
+	static bool feature_is_binned_fi(uint fi)
+		{
+		assert(fi < m_nfeat);
+		FAN fan = m_fans[fi];
+		return feature_is_binned(fan);
+		}
+
+	static bool feature_is_binned(FAN fan)
 		{
 		switch (fan)
 			{
@@ -252,6 +266,7 @@ public:
 		case FAN_angle:
 		case FAN_pmdd:
 		case FAN_pmdiff:
+		case FAN_turnd:
 			return true;
 			}
 		return false;

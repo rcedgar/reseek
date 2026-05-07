@@ -110,6 +110,12 @@ float flat_aligner::get_self_rev_score(
 	flat_reverse_profile(profQ, LQ, nfeat, revprofQ);
 	cacheT(labelQ + ".rev", revprofQ, LQ);
 	alignQ(labelQ, profQ, LQ);
+
+	{//@@TODO
+	log_profile(labelQ, profQ, nfeat, LQ);
+	log_profile(labelQ + ".rev", revprofQ, nfeat, LQ);
+	Die("TODO");
+	}
 	myfree(revprofQ);
 	return m_score;
 	}

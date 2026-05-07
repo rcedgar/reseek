@@ -53,6 +53,9 @@ void flat_params::read_config(const string &fn)
 	flat_params::m_undef_values = tl.get_int16_vec("undef_values", n);
 	asserta(n == m_nfeat);
 
+	flat_params::m_undef_codes = tl.get_int8_vec("undef_codes", n);
+	asserta(n == m_nfeat);
+
 	flat_params::m_weights = tl.get_float_vec("alpha_weights", n);
 	asserta(n == m_nfeat);
 
@@ -155,6 +158,7 @@ void flat_params::write_config(const string &fn)
 	tl.put_str_vec("alpha_names", flat_params::m_feature_names);
 	tl.put_int_vec("alpha_sizes", flat_params::m_alpha_sizes, nfeat);
 	tl.put_int16_vec("undef_values", flat_params::m_undef_values, nfeat);
+	tl.put_int8_vec("undef_codes", flat_params::m_undef_codes, nfeat);
 	tl.put_float_vec("alpha_weights", flat_params::m_weights, nfeat);
 
 	for (uint fi = 0; fi < nfeat; ++fi)
@@ -195,6 +199,8 @@ void cmd_write_config()
 	vector<string> param_names;
 	vector<float> param_values;
 	ParseVarStr(VarStr, param_names, param_values);
+
+	chaq::m_enable_hard_coded_parameters = true;
 
 	vector<string> feature_names;
 	vector<string> scalar_names;

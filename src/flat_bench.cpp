@@ -455,9 +455,40 @@ void flat_bench::LogParams(bool show_progress) const
 	fn("ext=%.3g;", flat_params::m_ext);
 	uint nfeat = flat_params::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
-		fn("%s=%.3g;",
+		{
+		fn("%s=%.3g;ts=",
 			flat_params::m_feature_names[fi].c_str(),
 			flat_params::m_weights[fi]);
+		if (flat_params::feature_is_binned_fi(fi))
+			{
+			const uint alpha_size = flat_params::get_alpha_size(fi);
+			const uint16_t *ts = flat_params::get_thresholds(fi);
+			for (uint i = 0; i + 1 < alpha_size; ++i)
+				fn("|%u", ts[i]);
+			fn(";");
+			}
+		fn("\n");
+		}
+	fn("self_w=%.4g;", flat_params::m_self_w);
+	fn("rev_w=%.4g;", flat_params::m_rev_w);
+	fn("lddt_w=%.4g;", flat_params::m_lddt_w);
+	fn("lddtx_w=%.4g;", flat_params::m_lddtx_w);
+	fn("lddtpow_w=%.4g;", flat_params::m_lddtpow_w);
+	fn("dali_w=%.4g;", flat_params::m_dali_w);
+	fn("dalix_w=%.4g;", flat_params::m_dalix_w);
+	fn("entropy_w=%.4g;", flat_params::m_entropy_w);
+	fn("rotfreetm_w=%.4g;", flat_params::m_rotfreetm_w);
+	fn("\n");
+	fn("LDDT_R0=%.4g;", flat_params::m_LDDT_R0);
+	fn("LDDT_nr_thr=%u;", flat_params::m_LDDT_nr_thresholds);
+	for (uint i = 0; i < flat_params::m_LDDT_nr_thresholds; ++i)
+		fn("LDDT_thr%u=%.4g;", i, flat_params::m_LDDT_thresholds[i]);
+	fn("\n");
+	fn("dmxbw=%u;ofs=%u;turnd_w=%u;angle_n=%u;",
+	flat_params::m_distmx_bandwidth,
+	flat_params::m_nn_min_offset,
+	flat_params::m_turnd_w,
+	flat_params::m_angle_n);
 	fn("\n");
 	}
 
@@ -491,6 +522,7 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 		NameToWeight[name] = Weights[i];
 		}
 	ApplyWeightsToLogOdds(NameToWeight);
+	LogParams();//@@TODO
 
 	if (flat_params::need_self())
 		set_selfrev_scores();
@@ -584,6 +616,7 @@ void cmd_flat_bench()
 		const string configfn = g_Arg1.substr(1);
 		flat_params::load_config(configfn);
 		FB.set_profiles(chains, true);//TODO hard-coded make reverse here
+		FB.LogParams();
 		}
 	else
 		{
@@ -591,6 +624,8 @@ void cmd_flat_bench()
 		vector<string> param_names;
 		vector<float> param_values;
 		ParseVarStr(VarStr, param_names, param_values);
+
+		chaq::m_enable_hard_coded_parameters = true;
 
 		vector<string> feature_names;
 		vector<string> scalar_names;
@@ -606,7 +641,6 @@ void cmd_flat_bench()
 		FB.UpdateParamsFromVarStr(VarStr);
 		}
 
-	FB.LogParams();
 	FB.Alloc();
 	if (flat_params::need_self())
 		FB.set_selfrev_scores();

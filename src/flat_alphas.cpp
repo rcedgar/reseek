@@ -10,6 +10,7 @@ vector<string> flat_params::m_feature_names;
 vector<FAN> flat_params::m_fans;
 uint32_t *flat_params::m_alpha_sizes;
 uint16_t *flat_params::m_undef_values;
+uint8_t *flat_params::m_undef_codes;
 uint16_t **flat_params::m_thresholds;
 float **flat_params::m_unweighted_logoddsvec;
 float **flat_params::m_weighted_logoddsvec;
@@ -55,6 +56,7 @@ void flat_params::init(const vector<string> &feature_names)
 		m_sum_alpha_sizes += alpha_size;
 		m_axes[fi] = m_compound_alpha_size;
 		m_compound_alpha_size *= alpha_size;
+		m_undef_codes[fi] = chaq::get_undef_code(fan, alpha_size);
 		if (flat_params::feature_is_binned(fan))
 			{
 			m_undef_values[fi] = chaq::get_undef_value(fan);
@@ -65,7 +67,7 @@ void flat_params::init(const vector<string> &feature_names)
 			}
 		else
 			{
-			m_undef_values[fi] = UINT16_MAX;
+			m_undef_values[fi] = UINT8_MAX;
 			m_thresholds[fi] = 0;
 			}
 		}
@@ -120,6 +122,7 @@ void flat_params::alloc(uint32 nfeat)
 	assert(m_weighted_logoddsvec == 0);
 	assert(m_feature_block_offsets == 0);
 	assert(m_undef_values == 0);
+	assert(m_undef_codes == 0);
 
 	m_nfeat = nfeat;
 	m_weights = myalloc(float, m_nfeat);
@@ -129,8 +132,21 @@ void flat_params::alloc(uint32 nfeat)
 	m_weighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
 	m_undef_values = myalloc(uint16_t, m_nfeat);
+	m_undef_codes = myalloc(uint8_t, m_nfeat);
 	m_thresholds = myalloc(uint16_t *, m_nfeat);
 	m_axes = myalloc(uint32_t, m_nfeat);
+
+#define x(name)	memset(name, 0, m_nfeat*sizeof(name[0]))
+	x(m_weights);
+	x(m_alpha_sizes);
+	x(m_unweighted_logoddsvec);
+	x(m_weighted_logoddsvec);
+	x(m_feature_block_offsets);
+	x(m_undef_values);
+	x(m_undef_codes);
+	x(m_thresholds);
+	x(m_axes);
+#undef x
 	}
 
 void flat_params::read_logoddsvec(const vector<string> &fns)

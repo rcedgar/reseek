@@ -2,6 +2,18 @@
 #include "chaq.h"
 #include "quantize.h"
 
+/***
+#######################
+WARNING WARNING WARNING
+#######################
+All alpha parameters should be
+	 EITHER	loaded from PER-ALPHA files using patterned filenames
+	 OR		loaded from a SINGLE config file
+
+Here, thresholds and medians are hard-coded while per-alpha
+log-odds and fastas are loaded from patterned filenames.
+***/
+
 // src/2025-10_reseek_tune/2026-03-25_logodds_and_bins
 // [428f078]+ Fix bug in flat_quantize for nen/rendist
 
@@ -74,6 +86,9 @@ static uint16_t ts_angle32[32-1] = {12663,18274,21635,24531,27014,29106,31011,32
 // [f696272] 2026-04-10
 static uint16_t ts_turnd16[16-1] = {515,748,956,1150,1321,1432,1489,1541,1663,1873,2144,2553,3114,3829,4839};
 
+static const uint16_t undef_value =  1540; // measured median
+static uint16_t ts_turnd32[32-1] = {344,520,647,750,854,957,1058,1150,1236,1319,1388,1431,1461,1488,1517,1540,1587,1656,1749,1859,1977,2119,2299,2517,2775,3072,3402,3782,4240,4790,5503};
+
 // C:\src\reseek\src\Release\reseek.exe -flat_quantize ../data/scop40c.bca -alpha_size 32 -feature fendist -log flat_quantize_fendist.log -output fendist32.bins -fasta fendist32.fa -output2 fendist32.cpp
 // [b500136] 2026-04-13
 static uint16_t ts_fendist32[32-1] = {3186,3662,4017,4319,4595,4852,5097,5333,5566,5798,6032,6268,6507,6753,7006,7269,7543,7832,8138,8462,8812,9193,9613,10084,10619,11236,11980,12889,14107,15881,19194};
@@ -82,13 +97,15 @@ static uint16_t ts_fendist32[32-1] = {3186,3662,4017,4319,4595,4852,5097,5333,55
 // [123beff] 2026-04-15
 static uint16_t ts_pmdd32[32-1] = {503,806,1074,1318,1522,1697,1845,1966,2060,2135,2211,2287,2360,2427,2478,2508,2555,2617,2686,2759,2832,2903,2980,3084,3213,3365,3545,3754,3986,4236,4509};
 
-void chaq::set_thresholds(FAN fan, uint alpha_size, cp_uint16_t ts)
-	{
-	Die("TODO");
-	}
+// reseek -flat_quantize ../data/scop40x.bca -alpha_size 32 -feature pmdiff -log ../log/quantize_pmdiff32.log -output ../alpha_bins/pmdiff32.bins -fasta ../alpha_fa/pmdiff32.fa -output2 ../alpha_cpp/pmdiff32.cpp
+// [03d7260] 2026-05-04
+static uint16_t median_pmdiff = 20409;
+static uint16_t ts_pmdiff32[32-1] = {17801,18613,19011,19342,19585,19765,19891,19978,20047,20114,20179,20240,20298,20346,20381,20408,20441,20485,20539,20597,20659,20723,20789,20856,20956,21095,21282,21529,21859,22216,22916};
 
 p_uint16_t chaq::get_hard_coded_thresholds(FAN fan, uint alpha_size)
 	{
+	asserta(m_enable_hard_coded_parameters);
+
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
 	x(nendist, 3);
 	x(nendist, 4);
@@ -148,8 +165,11 @@ p_uint16_t chaq::get_hard_coded_thresholds(FAN fan, uint alpha_size)
 	x(angle, 32);
 
 	x(turnd, 16);
+	x(turnd, 32);
 
 	x(pmdd, 32);
+
+	x(pmdiff, 32);
 #undef x
 
 	Die("chaq::get_thresholds(%s,%u)", FAN2str(fan), alpha_size);
@@ -171,6 +191,11 @@ static uint16_t median_pmdd = 2509;
 
 uint16_t chaq::get_undef_value(FAN fan)
 	{
+	asserta(m_enable_hard_coded_parameters);
+
+	if (fan == FAN_aa)
+		return 0;
+
 #define x(name)		if (fan == FAN_##name) return median_##name
 	x(nendist);
 	x(rendist);
@@ -183,6 +208,7 @@ uint16_t chaq::get_undef_value(FAN fan)
 	x(angle);
 	x(turnd);
 	x(pmdd);
+	x(pmdiff);
 
 	Die("get_undef_value(%s)", FAN2str(fan));
 	return 0;
