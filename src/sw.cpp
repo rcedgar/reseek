@@ -817,7 +817,13 @@ float sw_flat_pssm(
 		}
 
 	if (BestScore == 0.0f)
+		{
+		ncol = 0;
+		path_buffer[0] = 0;
+		loQ = 0;
+		loT = 0;
 		return 0.0f;
+		}
 
 	uint Leni = UINT_MAX;
 	uint Lenj = UINT_MAX;

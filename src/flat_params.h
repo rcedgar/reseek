@@ -120,6 +120,7 @@ public:
 
 	static void read_logoddsvec_pattern(const string &fnpattern);
 
+	static void apply_current_weights();
 	static void apply_weights(const vector<float> &weights);
 
 	static void apply_weights(const unordered_map<string, float> &name2weight);
@@ -193,9 +194,12 @@ public:
 		const vector<string> &feature_names,
 		const string &logoddsfnpattern);
 
-	static void set_alphas(const vector<string> &feature_names);
+	//static void set_alphas(const vector<string> &feature_names);
 	static void write_config(const string &fn);
 	static void read_config(const string &fn);
+	static void load_config(const string &fn);
+	static void post_config_setup();
+
 	static void get_fan_name(
 		const string &feature_name, 
 		string &fan_name);

@@ -160,7 +160,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxT];
 		}
-	if (s_f3 != 0)
+	if (s_f3 != 0 && fa.m_score > 0)
 		{
 		static mutex s_lock;
 		asserta(distmxQ && distmxT);
@@ -517,6 +517,23 @@ void flat_bench::set_selfrev_scores()
 	fa.freemem();
 	}
 
+void flat_bench::set_profiles(
+	const vector<flat_chain_t *> &chains, bool rev)
+	{
+	int nchain = int(chains.size());
+	const uint ndom = m_look->get_ndom();
+	vector<flat_chain_t *> chains_in_dom_order(ndom);
+	for (int i = 0; i < nchain; ++i)
+		{
+		flat_chain_t *chain = chains[i];
+		const string &label = chain->m_label;
+		uint domidx = m_look->get_domidx(label, true);
+		if (domidx != UINT_MAX)
+			chains_in_dom_order[domidx] = chain;
+		}
+	m_fp.from_chains(chains_in_dom_order, rev);
+	}
+
 void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 	{
 	const uint M = flat_params::m_distmx_bandwidth;
@@ -548,51 +565,51 @@ void cmd_flat_bench()
 	asserta(!optset_spec);
 	asserta(!optset_varstr);
 
-	const string &VarStr = g_Arg1;
-
 	if (optset_output2) s_ftsv = CreateStdioFile(opt(output2));
 
 // structure features
 	if (optset_output3) s_f3 = CreateStdioFile(opt(output3));
 
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+
 	flat_bench FB;
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
+	FB.set_distmxs(chains);
 
-	vector<string> param_names;
-	vector<float> param_values;
-	ParseVarStr(VarStr, param_names, param_values);
-
-	vector<string> feature_names;
-	vector<string> scalar_names;
-	vector<float> weights;
-	vector<float> scalar_values;
-	flat_bench::ClassifyParams(param_names, param_values,
-		feature_names, weights,
-		scalar_names, scalar_values);
-
-	vector<flat_chain_t *> chains;
-	read_flat_chains(opt(input), chains);
-	if (optset_fapattern || optset_mxpattern)
+	if (g_Arg1[0] == '@')
 		{
-		asserta(optset_fapattern && optset_mxpattern);
-		flat_params::load_alphas(feature_names, opt(mxpattern));
-		FB.load_profiles(opt(fapattern));
+		const string configfn = g_Arg1.substr(1);
+		flat_params::load_config(configfn);
+		FB.set_profiles(chains, true);//TODO hard-coded make reverse here
 		}
 	else
 		{
-		flat_params::set_alphas(feature_names);
-		FB.m_fp.from_chains(chains, true);//TODO hard-coded make reverse here
-		}
-	FB.set_distmxs(chains);
+		const string &VarStr = g_Arg1;
+		vector<string> param_names;
+		vector<float> param_values;
+		ParseVarStr(VarStr, param_names, param_values);
 
-	FB.UpdateParamsFromVarStr(VarStr);
+		vector<string> feature_names;
+		vector<string> scalar_names;
+		vector<float> weights;
+		vector<float> scalar_values;
+		flat_bench::ClassifyParams(param_names, param_values,
+			feature_names, weights,
+			scalar_names, scalar_values);
+		asserta(optset_fapattern && optset_mxpattern);
+		flat_params::load_alphas(feature_names, opt(mxpattern));
+		FB.load_profiles(opt(fapattern));
+		FB.SetScalarParams(scalar_names, scalar_values);
+		FB.UpdateParamsFromVarStr(VarStr);
+		}
+
 	FB.LogParams();
 	FB.Alloc();
 	if (flat_params::need_self())
 		FB.set_selfrev_scores();
-	FB.SetScalarParams(scalar_names, scalar_values);
 
 	if (optset_label1)
 		{

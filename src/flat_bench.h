@@ -56,6 +56,7 @@ public:
 		const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
+	void set_profiles(const vector<flat_chain_t *> &chains, bool rev);
 	void set_distmxs(const vector<flat_chain_t *> &chains);
 	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
 	void doT(flat_aligner &fa, uint domidxT);

@@ -232,7 +232,7 @@ void flat_profiles::from_chains(
 
 	const uint nchain = uint(chains.size());
 	const uint nfeat = flat_params::m_nfeat;
-	asserta(nfeat);
+	asserta(nfeat > 0);
 	const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
 	const uint32_t scratch_bytes = 1024*1024;//TODO
 	uint8_t *scratch = myalloc(uint8_t, scratch_bytes);
@@ -242,9 +242,11 @@ void flat_profiles::from_chains(
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
 		const flat_chain_t &chain = *chains[chainidx];
-		m_labels.push_back(chain.m_label.c_str());
+		const string &label = chain.m_label;
+		m_labels.push_back(label);
 		const uint L = chain.get_length();
 		if (L == 0) continue;
+		m_lengths.push_back(L);
 		m_profiles[chainidx] = chaq::make_profile(chain, scratch, scratch_bytes);
 		if (rev) m_rev_profiles[chainidx] = make_rev_profile(chainidx);
 		}

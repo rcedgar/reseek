@@ -815,7 +815,7 @@ void chaq::slow_get_codeseq_binned_fi(
 			value = undef_value;
 		uint8_t code = get_bin(value, alpha_size, thresholds);
 		assert(code < alpha_size);
-		codeseq[i] = g_LetterToCharMu[code];
+		codeseq[i] = code;
 		}
 	myfree(values);
 	}
@@ -840,7 +840,7 @@ void chaq::slow_get_codeseq_binned(
 			value = undef_value;
 		uint8_t code = get_bin(value, alpha_size, thresholds);
 		assert(code < alpha_size);
-		codeseq[i] = g_LetterToCharMu[code];
+		codeseq[i] = code;
 		}
 	myfree(values);
 	}

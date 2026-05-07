@@ -73,6 +73,7 @@ void flat_params::read_config(const string &fn)
 		uint alpha_size = m_alpha_sizes[fi];
 		uint AS2;
 		m_unweighted_logoddsvec[fi] = tl.get_float_flat_square_mx(name, AS2);
+		m_weighted_logoddsvec[fi] = myalloc(float, AS*AS);
 		asserta(AS2 == alpha_size);
 		if (flat_params::feature_is_binned(fan))
 			{
@@ -84,6 +85,38 @@ void flat_params::read_config(const string &fn)
 		}
 
 	CloseStdioFile(f);
+	}
+
+void flat_params::post_config_setup()
+	{
+	m_sum_alpha_sizes = 0;
+	m_compound_alpha_size = 1;
+	m_entropyfi = UINT_MAX;
+	m_axes = myalloc(uint32_t, m_nfeat);//TODO consolidate alloc
+	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
+
+	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		const string &feature_name = m_feature_names[fi];
+		string fan_name;
+		get_fan_name(feature_name, fan_name);
+		FAN fan = str2FAN(fan_name.c_str());
+ 		if (StartsWith(feature_name, "sec") || feature_name == "Conf")
+			m_entropyfi = fi;
+		uint alpha_size = m_alpha_sizes[fi];
+		m_sum_alpha_sizes += alpha_size;
+		m_axes[fi] = m_compound_alpha_size;
+		m_compound_alpha_size *= alpha_size;
+		}
+
+	set_feature_block_offsets();
+	}
+
+void flat_params::load_config(const string &fn)
+	{
+	read_config(fn);
+	post_config_setup();
+	apply_current_weights();
 	}
 
 void flat_params::write_config(const string &fn)

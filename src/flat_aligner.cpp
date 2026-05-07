@@ -10,8 +10,9 @@ void flat_aligner::alloc()
 	{
 	const uint nfeat = flat_params::m_nfeat;
 
-	m_pssmT = myalloc(float, m_maxL*flat_params::get_sum_alpha_sizes());
-	m_pssm_reverseT = myalloc(float, m_maxL*flat_params::get_sum_alpha_sizes());
+	const uint n = flat_params::get_sum_alpha_sizes();
+	m_pssmT = myalloc(float, m_maxL*n);
+	m_pssm_reverseT = myalloc(float, m_maxL*n);
 
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);

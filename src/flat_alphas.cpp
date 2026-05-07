@@ -124,6 +124,7 @@ void flat_params::alloc(uint32 nfeat)
 	m_nfeat = nfeat;
 	m_weights = myalloc(float, m_nfeat);
 	m_alpha_sizes = myalloc(uint32_t, m_nfeat);
+	m_axes = myalloc(uint32_t, m_nfeat);
 	m_unweighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_weighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
@@ -327,6 +328,32 @@ void flat_params::apply_weights(
 	check_sane_scores();
 	}
 
+//////////////////////////////////////////////
+// WARNING -- do not normalize here!
+// apply_current_weights() is on load_config()
+// execution path, rounding errors can make a
+// big // difference.
+//////////////////////////////////////////////
+void flat_params::apply_current_weights()
+	{
+	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		uint AS = m_alpha_sizes[fi];
+		uint N = AS*AS;
+		for (uint k = 0; k < N; ++k)
+			{
+			float uwscore = m_unweighted_logoddsvec[fi][k];
+			assert(uwscore >= MIN_SANE_SCORE && uwscore <= MAX_SANE_SCORE);
+
+			float wscore = uwscore*m_weights[fi];
+			assert(wscore >= MIN_SANE_SCORE && wscore <= MAX_SANE_SCORE);
+
+			m_weighted_logoddsvec[fi][k] = wscore;
+			}
+		}
+	check_sane_scores();
+	}
+
 void flat_params::apply_weights(const vector<float> &weights)
 	{
 	assert(m_weights != 0);
@@ -483,7 +510,7 @@ void flat_params::load_alphas(
 	flat_params::set_symbolsvec();
 	}
 
-void flat_params::set_alphas(const vector<string> &feature_names)
-	{
-	Die("TODO");
-	}
+//void flat_params::set_alphas(const vector<string> &feature_names)
+//	{
+//	Die("TODO");
+//	}
