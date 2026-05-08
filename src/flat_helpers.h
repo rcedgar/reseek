@@ -277,13 +277,6 @@ void path2posvecs(
 	vector<uint> &posQs,
 	vector<uint> &posTs);
 
-void load_alphadir(
-	const string &alphadir);
-
-void load_alphadir_names(
-	const string &alphadir,
-	const vector<string> &alpha_names);
-
 uint16_t *read_quantize(
 	const string &fn,
 	uint alpha_size,

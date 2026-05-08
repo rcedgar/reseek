@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
+#include "flat_alphas.h"
 #include "flat_helpers.h"
 #include "alpha.h"
 #include "quantize.h"
@@ -12,14 +13,18 @@ void cmd_flat_quantized2fa()
 	asserta(optset_feature);
 	asserta(optset_alphadir);
 	const string alphadir = string(opt(alphadir));
-	load_alphadir(alphadir);
+	const string &feature = opt(feature);
 	const uint alpha_size = opt(alpha_size);
+	vector<string> alpha_names;
+	string alpha_name;
+	Ps(alpha_name, "%s%u", feature.c_str(), alpha_size);
+	alpha_names.push_back(alpha_name);
+	flat_alphas::init_from_alphadir(alphadir, alpha_names);
 	const string &chainfn = g_Arg1;
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainfn, chains);
 	uint nchain = SIZE(chains);
 	FILE *f = CreateStdioFile(opt(fasta));
-	const string &feature = opt(feature);
 	FAN fan = str2FAN(feature.c_str());
 
 	asserta(is_quantized(fan));

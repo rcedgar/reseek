@@ -2,6 +2,8 @@
 
 #include "chaq.h"
 
+class collect;
+
 static const float BAD_SCORE = -9999;
 static const float MIN_SANE_SCORE = -1000;
 static const float MAX_SANE_SCORE = 1000;
@@ -26,14 +28,17 @@ public:
 	static uint32_t m_sum_alpha_sizes;
 	static uint32_t m_compound_alpha_size;
 	static uint32_t *m_axes;
+	static uint16_t *m_medians;
+	static uint16_t **m_thresholds;
 	static vector<string> m_symbolsvec;
+
+private:
+	static void set_names(const vector<string> &alpha_names);
 
 public:
 	static uint get_nfeat() { assert(m_nfeat != 0); return m_nfeat; }
 	
 	static void alloc(uint32 nfeat);
-
-	static void init(const vector<string> &alpha_names);
 
 	static void read_logoddsvec(const vector<string> &fns);
 
@@ -102,5 +107,13 @@ public:
 
 	static void init_from_alphadir(
 		const string &arg_alphadir,
+		const vector<string> &alpha_names);
+
+	static void init_from_fnprefixes(
+		const vector<string> &alpha_names,
+		const vector<string> &fnprefixes);
+
+	static void init_from_collect(
+		const collect &C,
 		const vector<string> &alpha_names);
 	};

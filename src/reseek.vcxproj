@@ -282,6 +282,7 @@
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
+    <ClCompile Include="collect.cpp" />
     <ClCompile Include="dss_logodds.cpp" />
     <ClCompile Include="dump_chaq.cpp" />
     <ClCompile Include="dump_dss.cpp" />
@@ -549,6 +550,7 @@
     <ClInclude Include="cigar.h" />
     <ClInclude Include="cigar_template.h" />
     <ClInclude Include="cmprof.h" />
+    <ClInclude Include="collect.h" />
     <ClInclude Include="daliscorer.h" />
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />

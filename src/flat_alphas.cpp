@@ -15,9 +15,11 @@ uint32_t *flat_alphas::m_feature_block_offsets;
 uint32_t flat_alphas::m_sum_alpha_sizes;
 uint32_t flat_alphas::m_compound_alpha_size;
 uint32_t *flat_alphas::m_axes;
+uint16_t *flat_alphas::m_medians;
+uint16_t **flat_alphas::m_thresholds;
 vector<string> flat_alphas::m_symbolsvec;
 
-void flat_alphas::init(const vector<string> &alpha_names)
+void flat_alphas::set_names(const vector<string> &alpha_names)
 	{
 	asserta(m_nfeat == 0);
 	alloc(uint(alpha_names.size()));
@@ -82,14 +84,17 @@ uint flat_alphas::read_logodds(
 
 void flat_alphas::alloc(uint32 nfeat)
 	{
-	if (nfeat == m_nfeat)
-		return;
 	assert(nfeat > 0);
 	assert(m_nfeat == 0);
 	assert(m_weights == 0);
+	assert(m_axes == 0);
+	assert(m_medians == 0);
 	assert(m_unweighted_logoddsvec == 0);
 	assert(m_weighted_logoddsvec == 0);
 	assert(m_feature_block_offsets == 0);
+	asserta(m_alpha_names.empty());
+	asserta(m_fans.empty());
+	asserta(m_symbolsvec.empty());
 
 	m_nfeat = nfeat;
 	m_weights = myalloc(float, m_nfeat);
@@ -98,6 +103,24 @@ void flat_alphas::alloc(uint32 nfeat)
 	m_weighted_logoddsvec = myalloc(float *, m_nfeat);
 	m_feature_block_offsets = myalloc(uint32_t, m_nfeat);
 	m_axes = myalloc(uint32_t, m_nfeat);
+	m_medians = myalloc(uint16_t, m_nfeat);
+	m_thresholds = myalloc(uint16_t *, m_nfeat);
+
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		m_weights[fi] = FLT_MAX;
+		m_alpha_sizes[fi] = UINT_MAX;
+		m_unweighted_logoddsvec[fi] = 0;
+		m_weighted_logoddsvec[fi] = 0;
+		m_feature_block_offsets[fi] = UINT_MAX;
+		m_axes[fi] = UINT_MAX;
+		m_medians[fi] = UINT16_MAX;
+		m_thresholds[fi] = 0;
+		}
+
+	m_alpha_names.resize(nfeat, "");
+	m_fans.resize(nfeat, FAN_COUNT);
+	m_symbolsvec.resize(nfeat);
 	}
 
 void flat_alphas::read_logoddsvec(const vector<string> &fns)

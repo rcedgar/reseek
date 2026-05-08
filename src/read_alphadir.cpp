@@ -2,66 +2,166 @@
 #include "flat_helpers.h"
 #include "flat_alphas.h"
 #include "tabbedlines.h"
+#include "collect.h"
 #include "chaq.h"
 #include "fan.h"
 
-/***
-# C:\src\reseek\src\Release\reseek.exe -flat_quantize ../data/scop40x.bca ...
-# [2544ec1-dirty] 2026-05-07
-fan	turnd
-alpha_size	32
-median	1540
-thresholds	31	344	520	647	750	854	...
-***/
+uint16_t *read_quantize(const string &fn, uint alpha_size, uint16_t &median)
+	{
+	tabbedlines tl(fn);
+	string s = tl.get_str("fan");
+	FAN fan = str2FAN(s);
+	uint alpha_size2 = tl.get_int("alpha_size");
+	asserta(alpha_size2 == alpha_size);
+	median = tl.get_int("median");
+	uint16_t *thresholds = tl.get_int16_flat_vec("thresholds", alpha_size-1);
+	return thresholds;
+	}
 
-static vector<FAN> s_fans;
-static vector<uint> s_alpha_sizes;
-static vector<uint16_t> s_medians;
-static vector<uint16_t *> s_thresholds;
+uint16_t *quantize_from_lines(const vector<string> &lines,
+	FAN &fan, uint &alpha_size, uint16_t &median)
+	{
 
-void flat_alphas::init_from_alphadir(
-	const string &arg_alphadir,
+	uint16_t *thresholds = 0;
+	alpha_size = UINT_MAX;
+	median = UINT16_MAX;
+	fan = FAN_COUNT;
+
+	const size_t n = lines.size();
+	vector<string> flds;
+	for (size_t i = 0; i < n; ++i)
+		{
+		const string &line = lines[i];
+		if (StartsWith(line, "#"))
+			continue;
+		Split(line, flds, '\t');
+		const string &f0 = flds[0];
+		if (f0 == "fan")
+			{
+			asserta(flds.size() == 2);
+			fan = str2FAN(flds[1]);
+			}
+		else if (f0 == "alpha_size")
+			{
+			asserta(flds.size() == 2);
+			alpha_size = StrToUint(flds[1]);
+			}
+		else if (f0 == "median")
+			{
+			asserta(flds.size() == 2);
+			uint umedian = StrToUint(flds[1]);
+			asserta(umedian < UINT16_MAX);
+			median = uint16_t(umedian);
+			}
+		else if (f0 == "thresholds")
+			{
+			asserta(flds.size() == alpha_size + 1);
+			asserta(StrToUint(flds[1]) == alpha_size - 1);
+			thresholds = myalloc(uint16_t, alpha_size - 1);
+			for (uint j = 0; j < alpha_size - 1; ++j)
+				thresholds[j] = StrToUint(flds[j+2]);
+			}
+		else
+			Die("quantize_from_lines(f0=%s)", f0.c_str());
+		}
+
+	asserta(thresholds != 0);
+	asserta(fan != FAN_COUNT);
+	asserta(alpha_size != UINT_MAX);
+	asserta(median != UINT16_MAX);
+
+	return thresholds;
+	}
+
+void flat_alphas::init_from_collect(
+	const collect &C,
 	const vector<string> &alpha_names)
 	{
 	asserta(!alpha_names.empty());
 
-	string alphadir = arg_alphadir;
-	Dirize(alphadir);
-
-	s_fans.clear();
-	s_alpha_sizes.clear();
-	s_medians.clear();
-	s_thresholds.clear();
-
-	const uint nfeat = uint(alpha_names.size());
-	alloc(nfeat);
-	m_alpha_names = alpha_names;
-	m_sum_alpha_sizes = 0;
-	m_compound_alpha_size = 1;
-	m_entropyfi = UINT_MAX;
+	set_names(alpha_names);
 
 	string compound;
-	for (uint fi = 0; fi < nfeat; ++fi)
+	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
 		const string &alpha_name = alpha_names[fi];
+		uint alpha_size = m_alpha_sizes[fi];
+		FAN fan = m_fans[fi];
+
 		if (fi > 0)
 			compound += "+";
 		compound += alpha_name;
-		uint alpha_size = 0;
-		FAN fan = parse_alpha_name(alpha_name, alpha_size);
-		m_fans.push_back(fan);
-
-		m_alpha_sizes[fi] = alpha_size;
-		if (StartsWith(alpha_name, "sec") || alpha_name == "Conf")
-			m_entropyfi = fi;
-
-		m_axes[fi] = m_compound_alpha_size;
-		m_compound_alpha_size *= alpha_size;
-		m_sum_alpha_sizes += alpha_size;
 
 		string logoddsfn;
-		Ps(logoddsfn, "%s/%s%u.logodds",
-			alphadir.c_str(), FAN2str(fan), alpha_size);
+		Ps(logoddsfn, "%s.logodds", alpha_name.c_str());
+
+		vector<float> logodds;
+		const vector<string> &logodds_lines = C.get_lines(logoddsfn);
+		uint alpha_size2 = lines2logoddsmx(logodds_lines, logodds);
+		asserta(alpha_size2 == alpha_size);
+
+		const uint n = alpha_size*alpha_size;
+		m_unweighted_logoddsvec[fi] = myalloc(float, n);
+		m_weighted_logoddsvec[fi] = myalloc(float, n);
+		for (uint k = 0; k < n; ++k)
+			{
+			const float score = logodds[k];
+			asserta(score >= MIN_SANE_SCORE && score <= MAX_SANE_SCORE);
+			m_unweighted_logoddsvec[fi][k] = score;
+			m_weighted_logoddsvec[fi][k] = BAD_SCORE;
+			}
+
+		uint16_t median = UINT16_MAX;
+		uint16_t *thresholds = 0;
+		if (is_quantized(fan))
+			{
+			string quantizefn;
+			Ps(quantizefn, "%s.quantize", alpha_name.c_str());
+			const vector<string> &quantize_lines = C.get_lines(quantizefn);
+			//thresholds = read_quantize(quantizefn, alpha_size, median);
+			FAN fan2 = FAN_COUNT;
+			uint alpha_size2 = UINT_MAX;
+			thresholds = quantize_from_lines(quantize_lines, fan2, alpha_size2, median);
+			asserta(fan2 == fan);
+			asserta(alpha_size2 == alpha_size);
+			}
+
+		m_fans[fi] = fan;
+		m_alpha_sizes[fi] = alpha_size;
+		m_medians[fi] = median;
+		m_thresholds[fi] = thresholds;
+		}
+
+	apply_unit_weights();
+	set_feature_block_offsets();
+	set_symbolsvec();
+
+	ProgressLog("Loaded %s\n", compound.c_str());
+	}
+
+void flat_alphas::init_from_fnprefixes(
+	const vector<string> &alpha_names,
+	const vector<string> &fnprefixes)
+	{
+	asserta(!alpha_names.empty());
+	asserta(fnprefixes.size() == alpha_names.size());
+
+	set_names(alpha_names);
+
+	string compound;
+	for (uint fi = 0; fi < m_nfeat; ++fi)
+		{
+		const string &alpha_name = alpha_names[fi];
+		const string &fnprefix = fnprefixes[fi];
+		FAN fan = m_fans[fi];
+		uint alpha_size = m_alpha_sizes[fi];
+
+		if (fi > 0)
+			compound += "+";
+		compound += alpha_name;
+
+		string logoddsfn;
+		Ps(logoddsfn, "%s.logodds", fnprefix.c_str());
 
 		vector<float> logodds;
 		uint alpha_size2 = read_logodds(logoddsfn, logodds);
@@ -83,15 +183,14 @@ void flat_alphas::init_from_alphadir(
 		if (is_quantized(fan))
 			{
 			string quantizefn;
-			Ps(quantizefn, "%s/%s%u.quantize",
-				alphadir.c_str(), FAN2str(fan), alpha_size);
+			Ps(quantizefn, "%s.quantize", fnprefix.c_str());
 			thresholds = read_quantize(quantizefn, alpha_size, median);
 			}
 
-		s_fans.push_back(fan);
-		s_alpha_sizes.push_back(alpha_size);
-		s_medians.push_back(median);
-		s_thresholds.push_back(thresholds);
+		m_fans[fi] = fan;
+		m_alpha_sizes[fi] = alpha_size;
+		m_medians[fi] = median;
+		m_thresholds[fi] = thresholds;
 		}
 
 	apply_unit_weights();
@@ -101,17 +200,33 @@ void flat_alphas::init_from_alphadir(
 	ProgressLog("Loaded %s\n", compound.c_str());
 	}
 
+void flat_alphas::init_from_alphadir(
+	const string &arg_alphadir,
+	const vector<string> &alpha_names)
+	{
+	asserta(!alpha_names.empty());
+
+	string alphadir = arg_alphadir;
+	Dirize(alphadir);
+
+	vector<string> fnprefixes;
+	for (uint fi = 0; fi < uint(alpha_names.size()); ++fi)
+		{
+		string fnprefix;
+		Ps(fnprefix, "%s%s", alphadir, alpha_names[fi].c_str());
+		fnprefixes.push_back(fnprefix);
+		}
+	init_from_fnprefixes(alpha_names, fnprefixes);
+	}
+
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
-	const size_t n = s_fans.size();
-	assert(s_alpha_sizes.size() == n);
-	assert(s_medians.size() == n);
-	assert(s_thresholds.size() == n);
-	for (size_t i = 0; i < n; ++i)
+	for (size_t i = 0; i < flat_alphas::m_nfeat; ++i)
 		{
-		if (s_fans[i] == fan && s_alpha_sizes[i] == alpha_size)
+		if (flat_alphas::m_fans[i] == fan &&
+			flat_alphas::m_alpha_sizes[i] == alpha_size)
 			{
-			uint16_t median = s_medians[i];
+			uint16_t median = flat_alphas::m_medians[i];
 			if (median == UINT16_MAX)
 				Die("chaq::get_undef_value(%s, %u) median=UINT16_MAX",
 					FAN2str(fan), alpha_size);
@@ -125,14 +240,11 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
-	const size_t n = s_fans.size();
-	assert(s_alpha_sizes.size() == n);
-	assert(s_medians.size() == n);
-	assert(s_thresholds.size() == n);
+	const size_t n = flat_alphas::m_fans.size();
 	for (size_t i = 0; i < n; ++i)
 		{
-		if (s_fans[i] == fan && s_alpha_sizes[i] == alpha_size)
-			return s_thresholds[i];
+		if (flat_alphas::m_fans[i] == fan && flat_alphas::m_alpha_sizes[i] == alpha_size)
+			return flat_alphas::m_thresholds[i];
 		}
 	Die("chaq::get_thresholds(%s, %u)", FAN2str(fan), alpha_size);
 	return 0;
@@ -159,43 +271,6 @@ FAN parse_alpha_name(const string &alpha_name, uint &alpha_size)
 	return FAN_COUNT;
 	}
 
-uint16_t *read_quantize(const string &fn, uint alpha_size, uint16_t &median)
-	{
-	tabbedlines tl(fn);
-	string s = tl.get_str("fan");
-	FAN fan = str2FAN(s);
-	uint alpha_size2 = tl.get_int("alpha_size");
-	asserta(alpha_size2 == alpha_size);
-	median = tl.get_int("median");
-	uint16_t *thresholds = tl.get_int16_flat_vec("thresholds", alpha_size-1);
-	return thresholds;
-	}
-
-static void load(const string &alphadir, FAN fan, uint alpha_size)
-	{
-	string logoddsfn;
-	Ps(logoddsfn, "%s/%s%u.logodds",
-		alphadir.c_str(), FAN2str(fan), alpha_size);
-
-	vector<float> logodds;
-	uint alpha_size2 = read_logodds(logoddsfn, logodds);
-	asserta(alpha_size2 == alpha_size);
-
-	uint16_t median = UINT16_MAX;
-	uint16_t *thresholds = 0;
-	if (is_quantized(fan))
-		{
-		string quantizefn;
-		Ps(quantizefn, "%s/%s%u.quantize",
-			alphadir.c_str(), FAN2str(fan), alpha_size);
-		thresholds = read_quantize(quantizefn, alpha_size, median);
-		}
-	s_fans.push_back(fan);
-	s_alpha_sizes.push_back(alpha_size);
-	s_medians.push_back(median);
-	s_thresholds.push_back(thresholds);
-	}
-
 void load_alphadir(const string &arg_alphadir)
 	{
 	string alphadir = arg_alphadir;
@@ -205,8 +280,8 @@ void load_alphadir(const string &arg_alphadir)
 	vector<bool> subdirs;
 	mylistdir(alphadir, fns, subdirs);
 
-	const size_t n = fns.size();
-	for (uint i = 0; i < n; ++i)
+	vector<string> alpha_names;
+	for (size_t i = 0; i < fns.size(); ++i)
 		{
 		if (subdirs[i]) continue;
 		const string &fn = fns[i];
@@ -214,31 +289,10 @@ void load_alphadir(const string &arg_alphadir)
 			{
 			size_t n = fn.size() - strlen(".logodds");
 			string alpha_name = fn.substr(0, n);
-			uint alpha_size;
-			FAN fan = parse_alpha_name(alpha_name, alpha_size);
-			load(alphadir, fan, alpha_size);
+			alpha_names.push_back(alpha_name);
 			}
 		}
-	ProgressLog("Loaded %s, %u alphabets found\n",
-		alphadir.c_str(), uint(s_fans.size()));
-	}
-
-void load_alphadir_names(
-	const string &arg_alphadir,
-	const vector<string> &alpha_names)
-	{
-	string alphadir = arg_alphadir;
-	Dirize(alphadir);
-	const size_t n = alpha_names.size();
-	for (uint i = 0; i < n; ++i)
-		{
-		const string &alpha_name = alpha_names[i];
-		uint alpha_size;
-		FAN fan = parse_alpha_name(alpha_name, alpha_size);
-		load(alphadir, fan, alpha_size);
-		}
-	ProgressLog("Loaded %s, %u alphabets found\n",
-		alphadir.c_str(), uint(s_fans.size()));
+	flat_alphas::init_from_alphadir(alphadir, alpha_names);
 	}
 
 void cmd_read_alphadir()

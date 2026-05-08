@@ -36,7 +36,8 @@ void cmd_numx()
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);
 
-	flat_alphas::init(feature_names);
+	Die("TODO");
+	//flat_alphas::init(feature_names);
 	asserta(flat_alphas::m_nfeat == nfeat);
 
 	unordered_map<string, float> name2weight;
@@ -60,9 +61,9 @@ void cmd_nubench()
 	asserta(weights.size() == nfeat);
 	asserta(!optset_scale);
 
-	flat_alphas::init(feature_names);
 	asserta(flat_alphas::m_nfeat == nfeat);
 	Die("TODO");
+	//flat_alphas::init(feature_names);
 	//flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;

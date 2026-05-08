@@ -36,8 +36,8 @@ void cmd_flat_merge_logodds()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_alphas::init(feature_names);
 	Die("TODO");
+	//flat_alphas::init(feature_names);
 	//flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
 	flat_alphas::apply_weights(weights);
 	const uint compound_alpha_size = flat_alphas::get_compound_alpha_size();

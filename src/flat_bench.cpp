@@ -2,6 +2,7 @@
 #include "flat_bench.h"
 #include "alpha.h"
 #include "sort.h"
+#include "collect.h"
 #include "triangle.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
@@ -582,10 +583,17 @@ void cmd_flat_bench()
 		alpha_names, weights,
 		scalar_names, scalar_values);
 
-//	load_alphadir_names(opt(alphadir), feature_names);
-	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
+	const string &alphadir = opt(alphadir);
+	if (StartsWith(alphadir, "@"))
+		{
+		const string fn = alphadir.substr(1);
+		collect C;
+		C.from_file(fn);
+		flat_alphas::init_from_collect(C, alpha_names);
+		}
+	else
+		flat_alphas::init_from_alphadir(alphadir, alpha_names);
 
-	//FB.load_profiles_fapattern(opt(fapattern));
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);
 	FB.set_distmxs(chains);
