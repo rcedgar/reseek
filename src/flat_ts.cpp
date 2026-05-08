@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chaq.h"
 #include "quantize.h"
@@ -175,3 +176,4 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	Die("get_undef_value(%s)", FAN2str(fan));
 	return 0;
 	}
+#endif

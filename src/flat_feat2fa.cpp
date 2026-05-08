@@ -1,15 +1,18 @@
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
+#include "flat_helpers.h"
 #include "alpha.h"
 #include "quantize.h"
 
 void cmd_flat_quantized2fa()
 	{
-	Die("TODO");
 	asserta(optset_fasta);
 	asserta(optset_alpha_size);
 	asserta(optset_feature);
+	asserta(optset_alphadir);
+	const string alphadir = string(opt(alphadir));
+	load_alphadir(alphadir);
 	const uint alpha_size = opt(alpha_size);
 	const string &chainfn = g_Arg1;
 	vector<flat_chain_t *> chains;

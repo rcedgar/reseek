@@ -276,3 +276,6 @@ void path2posvecs(
 	uint loT, uint LT,
 	vector<uint> &posQs,
 	vector<uint> &posTs);
+
+void load_alphadir(
+	const string &arg_alphadir);

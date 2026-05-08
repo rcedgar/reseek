@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 #include "tabbedlines.h"
+#include "chaq.h"
 #include "fan.h"
 
 /***
@@ -16,6 +17,43 @@ static vector<FAN> s_fans;
 static vector<uint> s_alpha_sizes;
 static vector<uint16_t> s_medians;
 static vector<uint16_t *> s_thresholds;
+
+uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
+	{
+	const size_t n = s_fans.size();
+	assert(s_alpha_sizes.size() == n);
+	assert(s_medians.size() == n);
+	assert(s_thresholds.size() == n);
+	for (size_t i = 0; i < n; ++i)
+		{
+		if (s_fans[i] == fan && s_alpha_sizes[i] == alpha_size)
+			{
+			uint16_t median = s_medians[i];
+			if (median == UINT16_MAX)
+				Die("chaq::get_undef_value(%s, %u) median=UINT16_MAX",
+					FAN2str(fan), alpha_size);
+			return median;
+			}
+		}
+	Die("chaq::get_undef_value(%s, %u) not found",
+		FAN2str(fan), alpha_size);
+	return UINT16_MAX;
+	}
+
+cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
+	{
+	const size_t n = s_fans.size();
+	assert(s_alpha_sizes.size() == n);
+	assert(s_medians.size() == n);
+	assert(s_thresholds.size() == n);
+	for (size_t i = 0; i < n; ++i)
+		{
+		if (s_fans[i] == fan && s_alpha_sizes[i] == alpha_size)
+			return s_thresholds[i];
+		}
+	Die("chaq::get_thresholds(%s, %u)", FAN2str(fan), alpha_size);
+	return 0;
+	}
 
 FAN parse_alpha_name(const string &alpha_name, uint &alpha_size)
 	{
@@ -59,7 +97,6 @@ static void load(const string &alphadir, FAN fan, uint alpha_size)
 	vector<float> logodds;
 	uint alpha_size2 = read_logodds(logoddsfn, logodds);
 	asserta(alpha_size2 == alpha_size);
-	ProgressLog("  logodds\n");
 
 	uint16_t median = UINT16_MAX;
 	uint16_t *thresholds = 0;
@@ -69,7 +106,6 @@ static void load(const string &alphadir, FAN fan, uint alpha_size)
 		Ps(quantizefn, "%s/%s%u.quantize",
 			alphadir.c_str(), FAN2str(fan), alpha_size);
 		thresholds = read_quantize(quantizefn, alpha_size, median);
-		ProgressLog("  quantize\n");
 		}
 	s_fans.push_back(fan);
 	s_alpha_sizes.push_back(alpha_size);
@@ -98,9 +134,10 @@ void load_alphadir(const string &arg_alphadir)
 			uint alpha_size;
 			FAN fan = parse_alpha_name(alpha_name, alpha_size);
 			load(alphadir, fan, alpha_size);
-			ProgressLog("%s [%u]\n", alpha_name.c_str(), alpha_size);
 			}
 		}
+	ProgressLog("Loaded %s, %u alphabets found\n",
+		alphadir.c_str(), uint(s_fans.size()));
 	}
 
 void cmd_read_alphadir()
