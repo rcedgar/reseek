@@ -435,8 +435,6 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	string xss;
 	xv2xss(xv, xss);
 	if (dy > 0)
-		Progress("\n");
-	if (dy > 0)
 		{
 		double Pct = GetPct(dy, m_Best_y);
 		Progress("\033[7m");

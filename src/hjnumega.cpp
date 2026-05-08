@@ -287,26 +287,25 @@ void cmd_hjnumega()
 	vector<string> SpecLines;
 	ReadLinesFromFile(SpecFN, SpecLines);
 
-	void get_feature_names_from_peaker_spec_file_lines(
+	void get_alpha_names_from_peaker_spec_file_lines(
 		vector<string> &lines,
-		vector<string> &feature_names);
+		vector<string> &alpha_names);
 
-	vector<string> feature_names;
-	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, feature_names);
+	vector<string> alpha_names;
+	get_alpha_names_from_peaker_spec_file_lines(
+		SpecLines, alpha_names);
 
-	const uint FeatureCount = SIZE(feature_names);
-	asserta(FeatureCount > 0);
-	vector<float> weights(FeatureCount, 1.0f); // placeholder
+	const uint AlphaCount = SIZE(alpha_names);
+	asserta(AlphaCount > 0);
+	vector<float> weights(AlphaCount, 1.0f); // placeholder
 
-	flat_alphas::init(feature_names);
-	asserta(flat_alphas::m_nfeat == FeatureCount);
-	Die("TODO");
-	//flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
+	flat_alphas::init(alpha_names);
+	asserta(flat_alphas::m_nfeat == AlphaCount);
+	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
 
-	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
-		name2weight[feature_names[fi]] = weights[fi];
+	//unordered_map<string, float> name2weight;
+	//for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+	//	name2weight[feature_names[fi]] = weights[fi];
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);

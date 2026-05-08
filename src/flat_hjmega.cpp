@@ -193,7 +193,7 @@ static void SubClimb(
 	Log("\n");
 	}
 
-void get_feature_names_from_peaker_spec_file_lines(
+void get_alpha_names_from_peaker_spec_file_lines(
 	vector<string> &lines,
 	vector<string> &alpha_names)
 	{
@@ -227,9 +227,9 @@ void cmd_flat_hjmega()
 	vector<string> SpecLines;
 	ReadLinesFromFile(SpecFN, SpecLines);
 
-	vector<string> AlphaNames;
-	get_feature_names_from_peaker_spec_file_lines(
-		SpecLines, AlphaNames);
+	vector<string> alpha_names;
+	get_alpha_names_from_peaker_spec_file_lines(
+		SpecLines, alpha_names);
 
 	void OpenOutputFiles();
 	OpenOutputFiles();
@@ -237,8 +237,8 @@ void cmd_flat_hjmega()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	load_alphadir_names(opt(alphadir), AlphaNames);
-	//FullFB.load_profiles_fapattern(opt(fapattern));
+	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
+
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);
 	FullFB.load_profiles_chains(chains);
@@ -272,7 +272,7 @@ void cmd_flat_hjmega()
 
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
-		SubsetFB.load_profiles_fapattern(opt(fapattern));
+		SubsetFB.load_profiles_chains(chains);
 		SubsetFB.set_distmxs(chains);
 		SubsetFB.LogParams();
 		SubsetFB.ReadDope(opt(subdope));
