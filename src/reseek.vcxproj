@@ -314,7 +314,6 @@
     <ClCompile Include="flat_aligner.cpp" />
     <ClCompile Include="flat_alignx.cpp" />
     <ClCompile Include="flat_align_pair.cpp" />
-    <ClCompile Include="flat_align_selfrev_mega.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
     <ClCompile Include="flat_bench_struct_feature.cpp" />
@@ -324,7 +323,7 @@
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_entropy.cpp" />
     <ClCompile Include="flat_feat2fa.cpp" />
-    <ClCompile Include="flat_features.cpp" />
+    <ClCompile Include="flat_alphas.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
     <ClCompile Include="flat_hjmega_bracket.cpp" />
@@ -335,7 +334,6 @@
     <ClCompile Include="flat_params.cpp" />
     <ClCompile Include="flat_profiles.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
-    <ClCompile Include="flat_selfrev.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="flat_ts.cpp" />
     <ClCompile Include="fragaligner.cpp" />
@@ -404,7 +402,6 @@
     <ClCompile Include="reduce_alphabet.cpp" />
     <ClCompile Include="retrainmu.cpp" />
     <ClCompile Include="rocauc.cpp" />
-    <ClCompile Include="rotfreetm.cpp" />
     <ClCompile Include="scop40benchsubset.cpp" />
     <ClCompile Include="search.cpp" />
     <ClCompile Include="blosum.cpp" />
@@ -573,7 +570,7 @@
     <ClInclude Include="flat_chain_reader.h" />
     <ClInclude Include="flat_dist_types.h" />
     <ClInclude Include="flat_enum.h" />
-    <ClInclude Include="flat_features.h" />
+    <ClInclude Include="flat_alphas.h" />
     <ClInclude Include="flat_helpers.h" />
     <ClInclude Include="flat_params.h" />
     <ClInclude Include="flat_profiles.h" />

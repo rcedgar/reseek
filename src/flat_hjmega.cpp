@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_bench.h"
+#include "flat_helpers.h"
 #include "peaker.h"
 
 void ParseVarStr(
@@ -215,8 +216,10 @@ void get_feature_names_from_peaker_spec_file_lines(
 
 void cmd_flat_hjmega()
 	{
-	asserta(optset_fapattern);
-	asserta(optset_mxpattern);
+	asserta(optset_alphadir);
+
+	asserta(!optset_fapattern);
+	asserta(!optset_mxpattern);
 	asserta(!optset_varstr); // must assert agrees with spec
 
 	const string SpecFN = g_Arg1;
@@ -234,9 +237,12 @@ void cmd_flat_hjmega()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_features::load_alphas(AlphaNames, opt(mxpattern));
-	FullFB.load_profiles(opt(fapattern));
-	FullFB.set_distmxs(opt(input));
+	load_alphadir_names(opt(alphadir), AlphaNames);
+	//FullFB.load_profiles_fapattern(opt(fapattern));
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+	FullFB.load_profiles_chains(chains);
+	FullFB.set_distmxs(chains);
 	if (optset_dope)
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
@@ -266,8 +272,8 @@ void cmd_flat_hjmega()
 
 		flat_bench SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
-		SubsetFB.load_profiles(opt(fapattern));
-		SubsetFB.set_distmxs(opt(input));
+		SubsetFB.load_profiles_fapattern(opt(fapattern));
+		SubsetFB.set_distmxs(chains);
 		SubsetFB.LogParams();
 		SubsetFB.ReadDope(opt(subdope));
 		SubsetFB.Alloc();

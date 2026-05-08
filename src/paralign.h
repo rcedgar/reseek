@@ -5,7 +5,7 @@
 #include "features.h"
 #include <omp.h>
 
-class flat_features;
+class flat_alphas;
 
 class Paralign
 	{

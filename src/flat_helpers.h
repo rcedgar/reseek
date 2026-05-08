@@ -278,4 +278,8 @@ void path2posvecs(
 	vector<uint> &posTs);
 
 void load_alphadir(
-	const string &arg_alphadir);
+	const string &alphadir);
+
+void load_alphadir_names(
+	const string &alphadir,
+	const vector<string> &alpha_names);

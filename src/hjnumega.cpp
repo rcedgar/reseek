@@ -299,12 +299,12 @@ void cmd_hjnumega()
 	asserta(FeatureCount > 0);
 	vector<float> weights(FeatureCount, 1.0f); // placeholder
 
-	flat_features::init(feature_names);
-	asserta(flat_features::m_nfeat == FeatureCount);
-	flat_features::read_logoddsvec_pattern(opt(mxpattern));
+	flat_alphas::init(feature_names);
+	asserta(flat_alphas::m_nfeat == FeatureCount);
+	flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	asserta(optset_db);

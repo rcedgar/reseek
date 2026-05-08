@@ -6,10 +6,12 @@ static const float BAD_SCORE = -9999;
 static const float MIN_SANE_SCORE = -1000;
 static const float MAX_SANE_SCORE = 1000;
 
-class flat_features
+// active alphabets
+// alphabet = feature + alphabet_size + logodds...
+class flat_alphas
 	{
 private:
-	flat_features();
+	flat_alphas();
 
 public:
 	static uint32 m_nfeat;
@@ -109,7 +111,9 @@ public:
 		uint alpha_size,
 		string &fn);
 
-	static void load_alphas(
+	static void load_alphas_obsolete(
 		const vector<string> &feature_names,
 		const string &logoddsfnpattern);
+
+	static void init_from_alphadir(const vector<string> &alpha_names);
 	};

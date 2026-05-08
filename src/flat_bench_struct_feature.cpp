@@ -12,7 +12,7 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 	{
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	for (;;)
@@ -53,7 +53,7 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	uint CurrentDomIdxT = UINT_MAX;
@@ -112,8 +112,6 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 		return get_dalix(idxQ, idxT, fa);
 	else if (feat == "entropy")
 		return get_entropy(idxQ, idxT, fa);
-	else if (feat == "rotfreetm")
-		return get_rotfreetm(idxQ, idxT, fa);
 	Die("feat");
 	return 0;
 	}
@@ -129,11 +127,11 @@ float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 		const uint8_t *profT,
 		uint nfeat, uint fi);
 
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	uint fi = UINT_MAX;
 	for (uint i = 0; i < nfeat; ++i)
 		{
-		if (flat_features::m_feature_names[i] == "sec32")
+		if (flat_alphas::m_feature_names[i] == "sec32")
 			{
 			fi = i;
 			break;
@@ -323,8 +321,8 @@ void cmd_flat_bench_struct_feature()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_features::load_alphas(feature_names, opt(mxpattern));
-	FB.load_profiles(opt(fapattern));
+	flat_alphas::load_alphas_obsolete(feature_names, opt(mxpattern));
+	FB.load_profiles_fapattern(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
 	FB.Alloc();

@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 #include "flat_params.h"
-#include "flat_features.h"
+#include "flat_alphas.h"
 #include "flat_alignx.h"
 
 float flat_alignx::alignx(
@@ -84,8 +84,8 @@ float flat_alignx::alignx(
 		asserta(profQ != 0 && profT != 0);
 		float entropy = flat_get_entropy2(
 			fa, profQ, profT,
-			flat_features::m_nfeat,
-			flat_features::m_entropyfi);
+			flat_alphas::m_nfeat,
+			flat_alphas::m_entropyfi);
 		Score += flat_params::m_entropy_w*entropy/250;
 		}
 	return Score;

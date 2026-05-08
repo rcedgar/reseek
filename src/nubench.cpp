@@ -36,11 +36,11 @@ void cmd_numx()
 	asserta(nfeat > 0);
 	asserta(weights.size() == nfeat);
 
-	flat_features::init(feature_names);
-	asserta(flat_features::m_nfeat == nfeat);
+	flat_alphas::init(feature_names);
+	asserta(flat_alphas::m_nfeat == nfeat);
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	Paralign::set_flat_compound(name2weight, 1, 1, 1, 1);
@@ -60,12 +60,12 @@ void cmd_nubench()
 	asserta(weights.size() == nfeat);
 	asserta(!optset_scale);
 
-	flat_features::init(feature_names);
-	asserta(flat_features::m_nfeat == nfeat);
-	flat_features::read_logoddsvec_pattern(opt(mxpattern));
+	flat_alphas::init(feature_names);
+	asserta(flat_alphas::m_nfeat == nfeat);
+	flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_features::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
 		name2weight[feature_names[fi]] = weights[fi];
 
 	string AlignMethod = "para";

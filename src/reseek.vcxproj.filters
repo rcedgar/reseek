@@ -638,7 +638,7 @@
     <ClCompile Include="flat_align_pair.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_features.cpp">
+    <ClCompile Include="flat_alphas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_profiles.cpp">
@@ -716,9 +716,6 @@
     <ClCompile Include="landmark.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_align_selfrev_mega.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bench_structure_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -764,9 +761,6 @@
     <ClCompile Include="flat_lddt_old.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="flat_selfrev.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="alignself.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -777,9 +771,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dump_chaq.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="rotfreetm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="kabsch_quad.cpp">
@@ -1231,7 +1222,7 @@
     <ClInclude Include="flat_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flat_features.h">
+    <ClInclude Include="flat_alphas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_profiles.h">

@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
-#include "flat_features.h"
+#include "flat_alphas.h"
 #include "flat_aligner.h"
 #include "flat_helpers.h"
 #include "flat_alignx.h"
@@ -8,10 +8,10 @@
 
 void flat_aligner::alloc()
 	{
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 
-	m_pssmT = myalloc(float, m_maxL*flat_features::get_sum_alpha_sizes());
-	m_pssm_reverseT = myalloc(float, m_maxL*flat_features::get_sum_alpha_sizes());
+	m_pssmT = myalloc(float, m_maxL*flat_alphas::get_sum_alpha_sizes());
+	m_pssm_reverseT = myalloc(float, m_maxL*flat_alphas::get_sum_alpha_sizes());
 
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
@@ -35,10 +35,10 @@ void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, u
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, flat_features::m_nfeat,
-		flat_features::m_alpha_sizes,
-		flat_features::m_feature_block_offsets,
-		flat_features::m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, flat_alphas::m_nfeat,
+		flat_alphas::m_alpha_sizes,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
 	}
 
@@ -48,10 +48,10 @@ void flat_aligner::cache_reverseT(const string &labelT, const uint8_t *profT, ui
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, flat_features::m_nfeat,
-		flat_features::m_alpha_sizes,
-		flat_features::m_feature_block_offsets,
-		flat_features::m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, flat_alphas::m_nfeat,
+		flat_alphas::m_alpha_sizes,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_weighted_logoddsvec,
 		m_pssm_reverseT);
 	}
 
@@ -61,10 +61,10 @@ void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm(profT, LT, flat_features::m_nfeat,
-		flat_features::m_alpha_sizes,
-		flat_features::m_feature_block_offsets,
-		flat_features::m_weighted_logoddsvec,
+	fill_flat_pssm(profT, LT, flat_alphas::m_nfeat,
+		flat_alphas::m_alpha_sizes,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
 	}
 
@@ -77,7 +77,7 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
-		flat_features::m_feature_block_offsets, flat_features::m_nfeat,
+		flat_alphas::m_feature_block_offsets, flat_alphas::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
@@ -92,8 +92,8 @@ void flat_aligner::align_reverse()
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		m_profQ, m_LQ,
 		m_pssm_reverseT, m_LT, 
-		flat_features::m_feature_block_offsets,
-		flat_features::m_nfeat,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
@@ -104,7 +104,7 @@ float flat_aligner::get_self_rev_score(
 	const string &labelQ, const uint8_t *profQ, uint LQ)
 	{
 	m_reverse_score_set = false;
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	uint8_t *revprofQ = myalloc(uint8_t, LQ*nfeat);
 	flat_reverse_profile(profQ, LQ, nfeat, revprofQ);
 	cacheT(labelQ + ".rev", revprofQ, LQ);
@@ -157,11 +157,11 @@ void flat_aligner::write_aln(FILE *f) const
 	if (f == 0)
 		return;
 	fprintf(f, "\n");
-	uint nfeat = flat_features::m_nfeat;
+	uint nfeat = flat_alphas::m_nfeat;
 	assert(nfeat > 0);
-	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
-	const vector<string> &feature_names = flat_features::m_feature_names;
-	const vector<string> &symbolsvec = flat_features::m_symbolsvec;
+	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
+	const vector<string> &feature_names = flat_alphas::m_feature_names;
+	const vector<string> &symbolsvec = flat_alphas::m_symbolsvec;
 
 	vector<string> feature_rowsQ(nfeat);
 	vector<string> feature_rowsT(nfeat);

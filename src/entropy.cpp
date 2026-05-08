@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_chain.h"
-#include "flat_features.h"
+#include "flat_alphas.h"
 #include "flat_helpers.h"
 #include "alpha.h"
 #include "chaq.h"

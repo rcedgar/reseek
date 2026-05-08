@@ -4,7 +4,7 @@
 #include "fastbench.h"
 #include "flat_profiles.h"
 #include "flat_aligner.h"
-#include "flat_features.h"
+#include "flat_alphas.h"
 
 class flat_bench : public FastBench
 	{
@@ -48,7 +48,8 @@ public:
 		const vector<string> &Names,
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
-	void load_profiles(const string &fafnpattern);
+	void load_profiles_fapattern(const string &fafnpattern);
+	void load_profiles_chains(const vector<flat_chain_t *> &chains);
 	void LogParams(bool show_progress = false) const;
 	void align_pair(flat_aligner &fa,
 		const string &labelQ, const string &labelT);
@@ -56,7 +57,7 @@ public:
 		const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
-	void set_distmxs(const string &chainfn);
+	void set_distmxs(const vector<flat_chain_t *> &chains);
 	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
 	void doT(flat_aligner &fa, uint domidxT);
 

@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_profiles.h"
-#include "flat_features.h"
+#include "flat_alphas.h"
 #include "flat_helpers.h"
 #include "seqdb.h"
 
@@ -14,10 +14,10 @@ void flat_profiles::read_profiles_from_fastas(
 	asserta(m_label2idx.empty());
 
 	m_label2idx = label2idx;
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 	asserta(nfeat);
 	asserta(fafns.size() == nfeat);
-	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
+	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
 
 	vector<vector<vector<uint8_t> > > codeseqsvec(nfeat);
 
@@ -155,11 +155,11 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 	const uint8_t *profile = m_profiles[i];
 	const string &label = m_labels[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint alpha_size = flat_features::m_alpha_sizes[fi];
-		const string &feature_name = flat_features::m_feature_names[fi];
+		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+		const string &feature_name = flat_alphas::m_feature_names[fi];
 		const uint8_t *letter2char = get_letter2char(alpha_size);
 
 		string seq;
@@ -181,10 +181,10 @@ void flat_profiles::check_profile(uint i) const
 	asserta(i < m_profiles.size());
 	const uint8_t *profile = m_profiles[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint AS = flat_features::m_alpha_sizes[fi];
+		uint AS = flat_alphas::m_alpha_sizes[fi];
 		for (uint i = 0; i < L; ++i)
 			asserta(profile[fi*L + i] < AS);
 		}
@@ -202,11 +202,11 @@ uint8_t *flat_profiles::get_rev_profile(uint i) const
 	asserta(i < m_profiles.size());
 	const uint8_t *profile = m_profiles[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 	uint8_t *rev_profile = myalloc(uint8_t, L*nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint AS = flat_features::m_alpha_sizes[fi];
+		uint AS = flat_alphas::m_alpha_sizes[fi];
 		for (uint i = 0; i < L; ++i)
 			{
 			uint rev_i = L - i - 1;
@@ -223,9 +223,9 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 	asserta(m_label2idx.empty());
 
 	const uint nchain = uint(chains.size());
-	const uint nfeat = flat_features::m_nfeat;
+	const uint nfeat = flat_alphas::m_nfeat;
 	asserta(nfeat);
-	const uint32_t *alpha_sizes = flat_features::m_alpha_sizes;
+	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
 
 	m_profiles.resize(nchain);
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)

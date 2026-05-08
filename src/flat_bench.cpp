@@ -36,15 +36,22 @@ void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
 	m_max_secs_exceeded = true;
 	}
 
-void flat_bench::load_profiles(const string &fafnpattern)
+void flat_bench::load_profiles_chains(
+	const vector<flat_chain_t *> &chains)
 	{
-	const uint nfeat = flat_features::get_nfeat();
+	Die("TODO -- not must be domidx'd");
+	}
+
+void flat_bench::load_profiles_fapattern(const string &fafnpattern)
+	{
+	Die("flat_bench::load_profiles() obsoleted");
+	const uint nfeat = flat_alphas::get_nfeat();
 
 	vector<string> fafns(nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			fafnpattern,
-			flat_features::m_feature_names[fi],
+			flat_alphas::m_feature_names[fi],
 			fafns[fi]);
 
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
@@ -269,7 +276,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	m_aligned_pair_count = 0;
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	for (;;)
@@ -308,7 +315,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	assert(m_look);
 	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = flat_features::get_nfeat();
+	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
 	const float open = -flat_params::m_open;
 	const float ext = -flat_params::m_ext;
@@ -444,7 +451,7 @@ void flat_bench::ClassifyParams(
 void flat_bench::ApplyWeightsToLogOdds(
 	const unordered_map<string, float> &NameToWeight)
 	{
-	flat_features::apply_weights(NameToWeight);
+	flat_alphas::apply_weights(NameToWeight);
 	}
 
 void flat_bench::LogParams(bool show_progress) const
@@ -453,11 +460,11 @@ void flat_bench::LogParams(bool show_progress) const
 	t_fn fn = (show_progress ? ProgressLog : Log);
 	fn("open=%.3g;", flat_params::m_open);
 	fn("ext=%.3g;", flat_params::m_ext);
-	uint nfeat = flat_features::get_nfeat();
+	uint nfeat = flat_alphas::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		fn("%s=%.3g;",
-			flat_features::m_feature_names[fi].c_str(),
-			flat_features::m_weights[fi]);
+			flat_alphas::m_feature_names[fi].c_str(),
+			flat_alphas::m_weights[fi]);
 	fn("\n");
 	}
 
@@ -517,11 +524,9 @@ void flat_bench::set_selfrev_scores()
 	fa.freemem();
 	}
 
-void flat_bench::set_distmxs(const string &chainfn)
+void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 	{
 	const uint M = flat_params::m_distmx_bandwidth;
-	vector<flat_chain_t *> chains;
-	read_flat_chains(chainfn, chains);
 	int nchain = int(chains.size());
 	const uint ndom = m_look->get_ndom();
 	m_distmxs.clear();
@@ -542,11 +547,12 @@ void flat_bench::set_distmxs(const string &chainfn)
 
 void cmd_flat_bench()
 	{
+	asserta(optset_alphadir);
 	asserta(optset_lookup);
-	asserta(optset_fapattern);
-	asserta(optset_mxpattern);
 	asserta(optset_input);
 
+	asserta(!optset_fapattern);
+	asserta(!optset_mxpattern);
 	asserta(!optset_spec);
 	asserta(!optset_varstr);
 
@@ -574,10 +580,13 @@ void cmd_flat_bench()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_features::load_alphas(feature_names, opt(mxpattern));
+	load_alphadir_names(opt(alphadir), feature_names);
 
-	FB.load_profiles(opt(fapattern));
-	FB.set_distmxs(opt(input));
+	//FB.load_profiles_fapattern(opt(fapattern));
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+	FB.set_distmxs(chains);
+	FB.load_profiles_chains(chains);
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
 	FB.Alloc();

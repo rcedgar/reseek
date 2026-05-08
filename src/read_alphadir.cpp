@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_helpers.h"
+#include "flat_alphas.h"
 #include "tabbedlines.h"
 #include "chaq.h"
 #include "fan.h"
@@ -17,6 +18,11 @@ static vector<FAN> s_fans;
 static vector<uint> s_alpha_sizes;
 static vector<uint16_t> s_medians;
 static vector<uint16_t *> s_thresholds;
+
+void flat_alphas::init_from_alphadir(const vector<string> &alpha_names)
+	{
+	Die("TODO");
+	}
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
@@ -135,6 +141,24 @@ void load_alphadir(const string &arg_alphadir)
 			FAN fan = parse_alpha_name(alpha_name, alpha_size);
 			load(alphadir, fan, alpha_size);
 			}
+		}
+	ProgressLog("Loaded %s, %u alphabets found\n",
+		alphadir.c_str(), uint(s_fans.size()));
+	}
+
+void load_alphadir_names(
+	const string &arg_alphadir,
+	const vector<string> &alpha_names)
+	{
+	string alphadir = arg_alphadir;
+	Dirize(alphadir);
+	const size_t n = alpha_names.size();
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &alpha_name = alpha_names[i];
+		uint alpha_size;
+		FAN fan = parse_alpha_name(alpha_name, alpha_size);
+		load(alphadir, fan, alpha_size);
 		}
 	ProgressLog("Loaded %s, %u alphabets found\n",
 		alphadir.c_str(), uint(s_fans.size()));

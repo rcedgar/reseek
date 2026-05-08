@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_bench.h"
+#include "flat_helpers.h"
 #include "peaker.h"
 
 void ParseVarStr(
@@ -28,8 +29,10 @@ static double EvalSum3(const vector<string> &xv)
 
 void cmd_flat_hjmega_bracket()
 	{
-	asserta(optset_fapattern);
-	asserta(optset_mxpattern);
+	asserta(optset_alphadir);
+
+	asserta(!optset_fapattern);
+	asserta(!optset_mxpattern);
 
 	const string &VarStr = g_Arg1;
 
@@ -49,11 +52,15 @@ void cmd_flat_hjmega_bracket()
 	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
+	vector<flat_chain_t *> chains;
+	read_flat_chains(opt(input), chains);
+
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_features::load_alphas(alpha_names, opt(mxpattern));
-	FullFB.load_profiles(opt(fapattern));
-	FullFB.set_distmxs(opt(input));
+	load_alphadir_names(opt(alphadir), alpha_names);
+	//FullFB.load_profiles_fapattern(opt(fapattern));
+	FullFB.load_profiles_chains(chains);
+	FullFB.set_distmxs(chains);
 	if (optset_dope)
 		FullFB.ReadDope(opt(dope));
 	FullFB.Alloc();
