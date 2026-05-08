@@ -3,6 +3,7 @@
 
 void collect::from_file(const string &fn)
 	{
+	m_name = fn;
 	vector<string> lines;
 	vector<string> flds;
 	ReadLinesFromFile(fn, lines);

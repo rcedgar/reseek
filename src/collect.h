@@ -3,6 +3,8 @@
 
 class collect
 	{
+public:
+	string m_name;
 	unordered_map<string, vector<string> > m_name2lines;
 
 public:

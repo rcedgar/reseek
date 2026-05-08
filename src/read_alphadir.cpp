@@ -136,7 +136,7 @@ void flat_alphas::init_from_collect(
 	set_feature_block_offsets();
 	set_symbolsvec();
 
-	ProgressLog("Loaded %s\n", compound.c_str());
+	ProgressLog("%s (%s)\n", compound.c_str(), C.m_name.c_str());
 	}
 
 void flat_alphas::init_from_fnprefixes(
@@ -205,6 +205,15 @@ void flat_alphas::init_from_alphadir(
 	const vector<string> &alpha_names)
 	{
 	asserta(!alpha_names.empty());
+
+	if (StartsWith(arg_alphadir, "@"))
+		{
+		const string fn = arg_alphadir.substr(1);
+		collect C;
+		C.from_file(fn);
+		flat_alphas::init_from_collect(C, alpha_names);
+		return;
+		}
 
 	string alphadir = arg_alphadir;
 	Dirize(alphadir);

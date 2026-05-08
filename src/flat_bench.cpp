@@ -584,15 +584,7 @@ void cmd_flat_bench()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	if (StartsWith(alphadir, "@"))
-		{
-		const string fn = alphadir.substr(1);
-		collect C;
-		C.from_file(fn);
-		flat_alphas::init_from_collect(C, alpha_names);
-		}
-	else
-		flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_alphas::init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);
