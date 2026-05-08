@@ -225,7 +225,8 @@ void cmd_hjnumegarev()
 	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
 
 	flat_alphas::init(feature_names);
-	flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
+	Die("TODO");
+	//flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
 
 	unordered_map<string, float> name2weight;
 	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)

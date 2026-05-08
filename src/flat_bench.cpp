@@ -39,7 +39,9 @@ void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
 void flat_bench::load_profiles_chains(
 	const vector<flat_chain_t *> &chains)
 	{
-	Die("TODO -- not must be domidx'd");
+	m_fp.from_chains_lookup(*m_look, chains);
+	m_Labels = m_fp.m_labels;
+	m_SeqCount = uint(m_Labels.size());
 	}
 
 void flat_bench::load_profiles_fapattern(const string &fafnpattern)
@@ -51,7 +53,7 @@ void flat_bench::load_profiles_fapattern(const string &fafnpattern)
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			fafnpattern,
-			flat_alphas::m_feature_names[fi],
+			flat_alphas::m_alpha_names[fi],
 			fafns[fi]);
 
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
@@ -463,7 +465,7 @@ void flat_bench::LogParams(bool show_progress) const
 	uint nfeat = flat_alphas::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		fn("%s=%.3g;",
-			flat_alphas::m_feature_names[fi].c_str(),
+			flat_alphas::m_alpha_names[fi].c_str(),
 			flat_alphas::m_weights[fi]);
 	fn("\n");
 	}
@@ -572,15 +574,16 @@ void cmd_flat_bench()
 	vector<float> param_values;
 	ParseVarStr(VarStr, param_names, param_values);
 
-	vector<string> feature_names;
+	vector<string> alpha_names;
 	vector<string> scalar_names;
 	vector<float> weights;
 	vector<float> scalar_values;
 	flat_bench::ClassifyParams(param_names, param_values,
-		feature_names, weights,
+		alpha_names, weights,
 		scalar_names, scalar_values);
 
-	load_alphadir_names(opt(alphadir), feature_names);
+//	load_alphadir_names(opt(alphadir), feature_names);
+	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
 
 	//FB.load_profiles_fapattern(opt(fapattern));
 	vector<flat_chain_t *> chains;

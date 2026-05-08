@@ -5,7 +5,8 @@
 
 uint32 flat_alphas::m_nfeat;
 uint32 flat_alphas::m_entropyfi = UINT_MAX;
-vector<string> flat_alphas::m_feature_names;
+vector<string> flat_alphas::m_alpha_names;
+vector<FAN> flat_alphas::m_fans;
 uint32_t *flat_alphas::m_alpha_sizes;
 float **flat_alphas::m_unweighted_logoddsvec;
 float **flat_alphas::m_weighted_logoddsvec;
@@ -16,21 +17,24 @@ uint32_t flat_alphas::m_compound_alpha_size;
 uint32_t *flat_alphas::m_axes;
 vector<string> flat_alphas::m_symbolsvec;
 
-void flat_alphas::init(const vector<string> &feature_names)
+void flat_alphas::init(const vector<string> &alpha_names)
 	{
 	asserta(m_nfeat == 0);
-	alloc(uint(feature_names.size()));
-	m_feature_names = feature_names;
+	alloc(uint(alpha_names.size()));
+	m_alpha_names = alpha_names;
+	m_fans.clear();
 	m_sum_alpha_sizes = 0;
 	m_compound_alpha_size = 1;
 	m_entropyfi = UINT_MAX;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
 		{
-		const string &feature_name = feature_names[fi];
-		if (StartsWith(feature_name, "sec") || feature_name == "Conf")
+		const string &alpha_name = alpha_names[fi];
+		if (StartsWith(alpha_name, "sec") || alpha_name == "Conf")
 			m_entropyfi = fi;
-		uint alpha_size =
-			get_alpha_size_from_feature_name(feature_name);
+		string feature_name;
+		uint alpha_size;
+		FAN fan = parse_alpha_name(alpha_name, alpha_size);
+		m_fans.push_back(fan);
 		m_alpha_sizes[fi] = alpha_size;
 		m_sum_alpha_sizes += alpha_size;
 		m_axes[fi] = m_compound_alpha_size;
@@ -119,46 +123,6 @@ void flat_alphas::read_logoddsvec(const vector<string> &fns)
 		}
 	}
 
-void flat_alphas::read_logoddsvec_pattern(
-	const string &fnpattern,
-	const vector<string> &feature_names,
-	const vector<uint> &alpha_sizes)
-	{
-	uint nfeat = SIZE(feature_names);
-	asserta(SIZE(alpha_sizes) == nfeat);
-	alloc(nfeat);
-
-	m_feature_names = feature_names;
-
-	memcpy(m_alpha_sizes, alpha_sizes.data(),
-		nfeat*sizeof(m_alpha_sizes[0]));
-
-	vector<string> fns(m_nfeat);
-	for (uint fi = 0; fi < m_nfeat; ++fi)
-		make_logoddsfn_pattern(
-			fnpattern,
-			feature_names[fi],
-			alpha_sizes[fi],
-			fns[fi]);
-	read_logoddsvec(fns);
-	}
-
-void flat_alphas::read_logoddsvec_pattern(
-	const string &fnpattern)
-	{
-	asserta(m_nfeat > 0);
-	vector<string> fns(m_nfeat);
-	for (uint fi = 0; fi < m_nfeat; ++fi)
-		{
-		make_logoddsfn_pattern(
-			fnpattern,
-			m_feature_names[fi],
-			m_alpha_sizes[fi],
-			fns[fi]);
-		}
-	read_logoddsvec(fns);
-	}
-
 void flat_alphas::check_sane_scores()
 	{
 	for (uint fi = 0; fi < m_nfeat; ++fi)
@@ -195,25 +159,6 @@ const string &flat_alphas::get_symbols(uint fi)
 		set_symbolsvec();
 	asserta(m_symbolsvec.size() == m_nfeat);
 	return m_symbolsvec[fi];
-	}
-
-// @=name, %=AS
-void flat_alphas::make_logoddsfn_pattern(
-	const string &fnpattern,
-	const string &feature_name,
-	uint alpha_size,
-	string &fn)
-	{
-	fn.clear();
-	for (auto c : fnpattern)
-		{
-		if (c == '@')
-			fn += feature_name;
-		else if (c == '%')
-			fn += to_string(alpha_size);
-		else
-			fn += c;
-		}
 	}
 
 void flat_alphas::get_logodds_symbols(
@@ -265,7 +210,7 @@ void flat_alphas::apply_weights(
 	asserta(SIZE(NameToWeight) == m_nfeat);
 	unordered_map<string, uint> NameToIdx;
 	for (uint idx = 0; idx < m_nfeat; ++idx)
-		NameToIdx[m_feature_names[idx]] = idx;
+		NameToIdx[m_alpha_names[idx]] = idx;
 
 	for (unordered_map<string, float>::const_iterator iter = NameToWeight.begin();
 		iter != NameToWeight.end(); ++iter)
@@ -430,14 +375,4 @@ void flat_alphas::get_compound_logodds_slow(vector<float> &logodds)
 			asserta(feq(score12, score21));
 			}
 		}
-	}
-
-void flat_alphas::load_alphas_obsolete(
-	const vector<string> &feature_names,
-	const string &logoddsfnpattern)
-	{
-	flat_alphas::init(feature_names);
-	flat_alphas::read_logoddsvec_pattern(logoddsfnpattern);
-	flat_alphas::set_feature_block_offsets();
-	flat_alphas::set_symbolsvec();
 	}

@@ -131,7 +131,7 @@ float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 	uint fi = UINT_MAX;
 	for (uint i = 0; i < nfeat; ++i)
 		{
-		if (flat_alphas::m_feature_names[i] == "sec32")
+		if (flat_alphas::m_alpha_names[i] == "sec32")
 			{
 			fi = i;
 			break;
@@ -321,8 +321,9 @@ void cmd_flat_bench_struct_feature()
 		feature_names, weights,
 		scalar_names, scalar_values);
 
-	flat_alphas::load_alphas_obsolete(feature_names, opt(mxpattern));
-	FB.load_profiles_fapattern(opt(fapattern));
+	Die("TODO");
+	//flat_alphas::load_alphas_obsolete(feature_names, opt(mxpattern));
+	//FB.load_profiles_fapattern(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
 	FB.Alloc();

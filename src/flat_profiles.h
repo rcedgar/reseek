@@ -1,6 +1,7 @@
 #pragma once
 
 #include "flat_alphas.h"
+#include "lookup.h"
 
 class flat_profiles
 	{
@@ -12,6 +13,8 @@ public:
 
 public:
 	void from_chains(const vector<flat_chain_t *> &chains);
+	void from_chains_lookup(const lookup &look,
+		const vector<flat_chain_t *> &chains);
 
 	void read_profiles_faprof(
 		const string &faproffn,

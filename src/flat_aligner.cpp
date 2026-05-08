@@ -160,7 +160,7 @@ void flat_aligner::write_aln(FILE *f) const
 	uint nfeat = flat_alphas::m_nfeat;
 	assert(nfeat > 0);
 	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
-	const vector<string> &feature_names = flat_alphas::m_feature_names;
+	const vector<string> &alpha_names = flat_alphas::m_alpha_names;
 	const vector<string> &symbolsvec = flat_alphas::m_symbolsvec;
 
 	vector<string> feature_rowsQ(nfeat);
@@ -217,13 +217,13 @@ void flat_aligner::write_aln(FILE *f) const
 			}
 		fprintf(f, "\n");
 		fprintf(f, "%s", feature_rowQ.c_str());
-		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %8.8s*%2u", alpha_names[fi].c_str(), alpha_sizes[fi]);
 		fprintf(f, "  %s\n", m_labelQ.c_str());
 
 		fprintf(f, "%s\n", annot_row.c_str());
 
 		fprintf(f, "%s", feature_rowT.c_str());
-		fprintf(f, "  %8.8s*%2u", feature_names[fi].c_str(), alpha_sizes[fi]);
+		fprintf(f, "  %8.8s*%2u", alpha_names[fi].c_str(), alpha_sizes[fi]);
 		fprintf(f, "  %s\n", m_labelT.c_str());
 
 		if (fi == 0)

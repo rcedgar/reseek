@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 #include "chaq.h"
@@ -187,3 +188,4 @@ void cmd_flat_align_pairs_faprof()
 			}
 		}
 	}
+#endif // 0

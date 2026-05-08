@@ -159,7 +159,7 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
 		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
-		const string &feature_name = flat_alphas::m_feature_names[fi];
+		const string &alpha_name = flat_alphas::m_alpha_names[fi];
 		const uint8_t *letter2char = get_letter2char(alpha_size);
 
 		string seq;
@@ -171,7 +171,7 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 		string label_feat;
 		Psa(label_feat, "%s:%s",
 			label.c_str(),
-			feature_name.c_str());
+			alpha_name.c_str());
 		SeqToFasta(f, label_feat, seq, L);
 		}
 	}
@@ -216,6 +216,51 @@ uint8_t *flat_profiles::get_rev_profile(uint i) const
 	return rev_profile;
 	}
 
+void flat_profiles::from_chains_lookup(const lookup &look,
+	const vector<flat_chain_t *> &chains)
+	{
+	const uint ndom = look.get_ndom();
+	const uint nfeat = flat_alphas::m_nfeat;
+	asserta(nfeat > 0);
+
+	// Allocate in lookup/domidx order so all downstream code can index by domidx.
+	m_labels.clear();
+	m_lengths.clear();
+	m_profiles.clear();
+	m_label2idx.clear();
+
+	m_labels.resize(ndom);
+	m_lengths.resize(ndom, 0);
+	m_profiles.resize(ndom, 0);
+
+	vector<bool> found(ndom, false);
+
+	for (uint i = 0; i < uint(chains.size()); ++i)
+		{
+		const flat_chain_t *chain = chains[i];
+		if (chain == 0)
+			continue;
+
+		string label = chain->m_label;
+		trunc_label(label);
+		uint domidx = look.get_domidx(label, true);
+		if (domidx == UINT_MAX)
+			continue; // chain not in lookup: ignore
+		m_profiles[domidx] = make_profile(*chain);
+		found[domidx] = true;
+		m_lengths[domidx] = chain->get_length();
+		}
+
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		if (!found[domidx])
+			Die("Missing chain >%s",
+				look.get_dom(domidx).c_str());
+		}
+
+	check_profiles();
+	}
+
 void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 	{
 	asserta(m_labels.empty());
@@ -240,6 +285,35 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 
 uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
 	{
-	Die("TODO");
-	return 0;
+	const uint L = chain.get_length();
+	asserta(L > 0);
+
+	const uint nfeat = flat_alphas::m_nfeat;
+	asserta(nfeat > 0);
+
+	uint8_t *profile = myalloc(uint8_t, nfeat*L);
+	memset(profile, 0xff, nfeat*L);
+
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		const FAN fan = flat_alphas::m_fans[fi];
+		const uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+
+		uint8_t *codeseq = profile + fi*L;
+		if (is_quantized(fan))
+			chaq::slow_get_codeseq_binned(&chain, fan, alpha_size, codeseq);
+		else
+			{
+			const uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
+			chaq::slow_get_codeseq_discrete(
+				&chain, fan, alpha_size, undef_code, codeseq);
+			}
+
+#if DEBUG
+		for (uint pos = 0; pos < L; ++pos)
+			assert(codeseq[pos] < alpha_size);
+#endif
+		}
+
+	return profile;
 	}

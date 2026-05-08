@@ -283,3 +283,9 @@ void load_alphadir(
 void load_alphadir_names(
 	const string &alphadir,
 	const vector<string> &alpha_names);
+
+uint16_t *read_quantize(
+	const string &fn,
+	uint alpha_size,
+	uint16_t &median);
+

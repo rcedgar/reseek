@@ -16,7 +16,8 @@ private:
 public:
 	static uint32 m_nfeat;
 	static uint32 m_entropyfi;
-	static vector<string> m_feature_names;
+	static vector<string> m_alpha_names;
+	static vector<FAN> m_fans;
 	static uint32_t *m_alpha_sizes;
 	static float **m_unweighted_logoddsvec;
 	static float **m_weighted_logoddsvec;
@@ -32,15 +33,9 @@ public:
 	
 	static void alloc(uint32 nfeat);
 
-	static void init(const vector<string> &feature_names);
+	static void init(const vector<string> &alpha_names);
 
 	static void read_logoddsvec(const vector<string> &fns);
-
-	static void read_logoddsvec_pattern(const string &fnpattern,
-		const vector<string> &feature_names,
-		const vector<uint> &alpha_sizes);
-
-	static void read_logoddsvec_pattern(const string &fnpattern);
 
 	static void apply_weights(const vector<float> &weights);
 
@@ -105,15 +100,7 @@ public:
 	static uint lines2logoddsmx(const vector<string> &lines,
 		vector<float> &logoddsmx);
 
-	static void make_logoddsfn_pattern(
-		const string &fnpattern,
-		const string &feature_name,
-		uint alpha_size,
-		string &fn);
-
-	static void load_alphas_obsolete(
-		const vector<string> &feature_names,
-		const string &logoddsfnpattern);
-
-	static void init_from_alphadir(const vector<string> &alpha_names);
+	static void init_from_alphadir(
+		const string &arg_alphadir,
+		const vector<string> &alpha_names);
 	};

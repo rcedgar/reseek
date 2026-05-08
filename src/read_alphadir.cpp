@@ -19,9 +19,86 @@ static vector<uint> s_alpha_sizes;
 static vector<uint16_t> s_medians;
 static vector<uint16_t *> s_thresholds;
 
-void flat_alphas::init_from_alphadir(const vector<string> &alpha_names)
+void flat_alphas::init_from_alphadir(
+	const string &arg_alphadir,
+	const vector<string> &alpha_names)
 	{
-	Die("TODO");
+	asserta(!alpha_names.empty());
+
+	string alphadir = arg_alphadir;
+	Dirize(alphadir);
+
+	s_fans.clear();
+	s_alpha_sizes.clear();
+	s_medians.clear();
+	s_thresholds.clear();
+
+	const uint nfeat = uint(alpha_names.size());
+	alloc(nfeat);
+	m_alpha_names = alpha_names;
+	m_sum_alpha_sizes = 0;
+	m_compound_alpha_size = 1;
+	m_entropyfi = UINT_MAX;
+
+	string compound;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		const string &alpha_name = alpha_names[fi];
+		if (fi > 0)
+			compound += "+";
+		compound += alpha_name;
+		uint alpha_size = 0;
+		FAN fan = parse_alpha_name(alpha_name, alpha_size);
+		m_fans.push_back(fan);
+
+		m_alpha_sizes[fi] = alpha_size;
+		if (StartsWith(alpha_name, "sec") || alpha_name == "Conf")
+			m_entropyfi = fi;
+
+		m_axes[fi] = m_compound_alpha_size;
+		m_compound_alpha_size *= alpha_size;
+		m_sum_alpha_sizes += alpha_size;
+
+		string logoddsfn;
+		Ps(logoddsfn, "%s/%s%u.logodds",
+			alphadir.c_str(), FAN2str(fan), alpha_size);
+
+		vector<float> logodds;
+		uint alpha_size2 = read_logodds(logoddsfn, logodds);
+		asserta(alpha_size2 == alpha_size);
+
+		const uint n = alpha_size*alpha_size;
+		m_unweighted_logoddsvec[fi] = myalloc(float, n);
+		m_weighted_logoddsvec[fi] = myalloc(float, n);
+		for (uint k = 0; k < n; ++k)
+			{
+			const float score = logodds[k];
+			asserta(score >= MIN_SANE_SCORE && score <= MAX_SANE_SCORE);
+			m_unweighted_logoddsvec[fi][k] = score;
+			m_weighted_logoddsvec[fi][k] = BAD_SCORE;
+			}
+
+		uint16_t median = UINT16_MAX;
+		uint16_t *thresholds = 0;
+		if (is_quantized(fan))
+			{
+			string quantizefn;
+			Ps(quantizefn, "%s/%s%u.quantize",
+				alphadir.c_str(), FAN2str(fan), alpha_size);
+			thresholds = read_quantize(quantizefn, alpha_size, median);
+			}
+
+		s_fans.push_back(fan);
+		s_alpha_sizes.push_back(alpha_size);
+		s_medians.push_back(median);
+		s_thresholds.push_back(thresholds);
+		}
+
+	apply_unit_weights();
+	set_feature_block_offsets();
+	set_symbolsvec();
+
+	ProgressLog("Loaded %s\n", compound.c_str());
 	}
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
