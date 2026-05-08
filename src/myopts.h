@@ -95,6 +95,7 @@ STR_OPT(hexfasta)
 STR_OPT(kappa_pattern)
 STR_OPT(thread_counts)
 STR_OPT(truth)
+STR_OPT(alphadir)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

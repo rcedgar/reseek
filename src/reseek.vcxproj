@@ -400,6 +400,7 @@
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
+    <ClCompile Include="read_alphadir.cpp" />
     <ClCompile Include="reduce_alphabet.cpp" />
     <ClCompile Include="retrainmu.cpp" />
     <ClCompile Include="rocauc.cpp" />

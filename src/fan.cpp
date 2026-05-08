@@ -19,3 +19,40 @@ FAN str2FAN(const char *s)
 	Die("str2FA(%s)",s);
 	return FAN_COUNT;
 	}
+
+FAN str2FAN(const string &s)
+	{
+	return str2FAN(s.c_str());
+	}
+
+bool is_quantized(FAN fan)
+	{
+	switch (fan)
+		{
+	case FAN_aa:
+	case FAN_pm:
+	case FAN_sec:
+	case FAN_nensec:
+	case FAN_rensec:
+	case FAN_pensec:
+	case FAN_mensec:
+		return false;
+
+	case FAN_nendist:
+	case FAN_rendist:
+	case FAN_pendist:
+	case FAN_mendist:
+	case FAN_fendist:
+	case FAN_pmdd:
+	case FAN_pmdiff:
+	case FAN_pack:
+	case FAN_ppack:
+	case FAN_mpack:
+	case FAN_angle:
+	case FAN_turnd:
+		return true;
+		}
+
+	Die("is_quantized(%u=%s)", uint(fan), FAN2str(fan));
+	return false;
+	}

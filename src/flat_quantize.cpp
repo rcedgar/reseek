@@ -5,8 +5,12 @@
 #include "alpha.h"
 #include "quantize.h"
 
-static uint M = 64;
-static const uint m = 12;
+void make_alpha_fnprefix(FAN fan, uint alpha_size, string &fnprefix)
+	{
+	string alphadir = optset_alphadir ? opt(alphadir) : "../alphadir";
+	Dirize(alphadir);
+	Ps(fnprefix, "%s%s%u", alphadir.c_str(), FAN2str(fan), alpha_size);
+	}
 
 static void update_counts(
 	const flat_chain_t *chain,
@@ -34,6 +38,12 @@ static void update_counts(
 
 void cmd_flat_quantize()
 	{
+	asserta(optset_alphadir);
+
+	asserta(!optset_output);
+	asserta(!optset_output2);
+	asserta(!optset_fasta);
+
 	uint M = flat_params::m_distmx_bandwidth;
 	const uint m = flat_params::m_nn_min_offset;
 
@@ -97,49 +107,37 @@ void cmd_flat_quantize()
 		GetPct(mean_diff, ideal_bin_size),
 		QR.median_value);
 
-	if (optset_output)	// tsv
-		{
-		FILE *f = CreateStdioFile(opt(output));
-		fprintf(f, "# %s\n", cmd.c_str());
-		fprintf(f, "# [%s] %s\n", GIT_HASH, timeString);
-		fprintf(f, "# median %u\n", QR.median_value);
-		fprintf(f, "bins\t%u\n", alpha_size);
-		for (uint i = 0; i + 1 < alpha_size; ++i)
-			fprintf(f, "%u\t%u\n", i, ts[i]);
-		CloseStdioFile(f);
-		}
+	// quantize
+	string fnprefix;
+	make_alpha_fnprefix(fan, alpha_size, fnprefix);
 
-	if (optset_output2)	// cpp
-		{
-		FILE *f = CreateStdioFile(opt(output2));
-		fprintf(f, "// %s\n", cmd.c_str());
-		fprintf(f, "// [%s] %s\n", GIT_HASH, timeString);
-		fprintf(f, "static uint16_t median_%s = %u;\n",
-			feature_name.c_str(), QR.median_value); // depends on FAN not alpha_size
-		fprintf(f, "static uint16_t ts_%s%u[%u-1] = {",
-			feature_name.c_str(), alpha_size, alpha_size);
-		for (uint i = 0; i + 1 < alpha_size; ++i)
-			{
-			if (i > 0)
-				fprintf(f, ",");
-			fprintf(f, "%u", ts[i]);
-			}
-		fprintf(f, "};\n");
-		CloseStdioFile(f);
-		}
+	const string fnq = fnprefix + ".quantize";
+	Progress("%s\n", fnq.c_str());
+	FILE *fq = CreateStdioFile(fnq);
+	fprintf(fq, "# %s\n", cmd.c_str());
+	fprintf(fq, "# [%s] %s\n", GIT_HASH, timeString);
+	fprintf(fq, "fan\t%s\n", FAN2str(fan));
+	fprintf(fq, "alpha_size\t%u\n", alpha_size);
+	fprintf(fq, "median\t%u\n", QR.median_value);
+	fprintf(fq, "thresholds\t%u", alpha_size-1);
+	for (uint i = 0; i + 1 < alpha_size; ++i)
+		fprintf(fq, "\t%u", ts[i]);
+	fprintf(fq, "\n");
+	CloseStdioFile(fq);
+	fq = 0;
 
-	if (optset_fasta)
+	const string fna = fnprefix + ".fasta";
+	Progress("%s\n", fna.c_str());
+	FILE *ffa = CreateStdioFile(fna);
+	for (uint i = 0; i < nchain; ++i)
 		{
-		FILE *f = CreateStdioFile(opt(fasta));
-		for (uint i = 0; i < nchain; ++i)
-			{
-			uint L = chains[i]->get_length();
-			char *Seq = myalloc(char, L);
-			chaq::slow_get_charseq_binned(chains[i], fan, alpha_size,
-				ts.data(), QR.median_value, Seq);
-			SeqToFasta(f, chains[i]->m_label.c_str(), Seq, L);
-			myfree(Seq);
-			}
-		CloseStdioFile(f);
+		uint L = chains[i]->get_length();
+		char *Seq = myalloc(char, L);
+		chaq::slow_get_charseq_binned(chains[i], fan, alpha_size,
+			ts.data(), QR.median_value, Seq);
+		SeqToFasta(ffa, chains[i]->m_label.c_str(), Seq, L);
+		myfree(Seq);
 		}
+	CloseStdioFile(ffa);
+	ffa = 0;
 	}

@@ -19,25 +19,25 @@ private:
 	chaq() = delete;
 
 public:
-	static bool feature_is_binned(FAN fan)
-		{
-		switch (fan)
-			{
-		case FAN_nendist:
-		case FAN_rendist:
-		case FAN_pendist:
-		case FAN_mendist:
-		case FAN_fendist:
-		case FAN_pack:
-		case FAN_ppack:
-		case FAN_mpack:
-		case FAN_angle:
-		case FAN_pmdd:
-		case FAN_pmdiff:
-			return true;
-			}
-		return false;
-		}
+	//static bool feature_is_binned(FAN fan)
+	//	{
+	//	switch (fan)
+	//		{
+	//	case FAN_nendist:
+	//	case FAN_rendist:
+	//	case FAN_pendist:
+	//	case FAN_mendist:
+	//	case FAN_fendist:
+	//	case FAN_pack:
+	//	case FAN_ppack:
+	//	case FAN_mpack:
+	//	case FAN_angle:
+	//	case FAN_pmdd:
+	//	case FAN_pmdiff:
+	//		return true;
+	//		}
+	//	return false;
+	//	}
 
 	static void fill_distmx(
 		cp_ic_t xyz,

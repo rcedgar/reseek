@@ -9,3 +9,5 @@ enum FAN
 
 const char *FAN2str(FAN fan);
 FAN str2FAN(const char *s);
+FAN str2FAN(const string &s);
+bool is_quantized(FAN fan);

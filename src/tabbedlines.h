@@ -15,6 +15,12 @@ public:
 		m_linenr = 0;
 		}
 
+	tabbedlines(const string fn)	// for reading
+		{
+		ReadLinesFromFile(fn, m_lines);
+		m_linenr = 0;
+		}
+
 	void get_eof() const
 		{
 		asserta(m_linenr == SIZE(m_lines));
@@ -25,7 +31,7 @@ public:
 		for (;;)
 			{
 			asserta(m_linenr < m_lines.size());
-			const string& line = m_lines[m_linenr++];
+			const string &line = m_lines[m_linenr++];
 			if (StartsWith(line, "#"))
 				continue;
 			Split(line, m_flds, '\t');

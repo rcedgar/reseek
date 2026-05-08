@@ -272,8 +272,8 @@ void read_feature_fa_and_fa2(
 		asserta(pos1 == L1);
 		asserta(pos2 == L2);
 		}
-	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %u missing, %u bad\n",
-		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, nmissing, bad_letters);
+	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %.3g%% missing, %u bad\n",
+		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, GetPct(nmissing, nfa2), bad_letters);
 	}
 
 void get_countmx_from_code_pairs(

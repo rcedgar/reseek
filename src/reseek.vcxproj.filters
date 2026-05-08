@@ -782,10 +782,13 @@
     <ClCompile Include="rotfreetm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kabsch_triangle.cpp">
+    <ClCompile Include="kabsch_quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kabsch_triangle_fit.cpp">
+    <ClCompile Include="kabsch_quad_fit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="read_alphadir.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1288,7 +1291,7 @@
     <ClInclude Include="kabsch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kabsch_triangle.h">
+    <ClInclude Include="kabsch_quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

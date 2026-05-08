@@ -79,6 +79,7 @@ static uint16_t ts_pmdd32[32-1] = {503,806,1074,1318,1522,1697,1845,1966,2060,21
 
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
+	Die("chaq::get_thresholds()");
 #define x(name, size)	if (fan == FAN_##name && alpha_size == size) return ts_##name##size
 	x(nendist, 3);
 	x(nendist, 4);
@@ -157,6 +158,7 @@ static uint16_t median_pmdd = 2509;
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
+	Die("chaq::get_undef_value()");
 #define x(name)		if (fan == FAN_##name) return median_##name
 	x(nendist);
 	x(rendist);
