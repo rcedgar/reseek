@@ -59,6 +59,23 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	return 0;
 	}
 
+//// AHPST,CFILMVWY,DEKNQR,G
+//uint DSS::Get_AA4(uint Pos)
+//	{
+//	const string &Seq = m_Chain->m_Seq;
+//	asserta(Pos < SIZE(Seq));
+//	char c = Seq[Pos];
+//	if (c == 'G')
+//		return 0;
+//	if (strchr("AHPST", c) != 0)
+//		return 1;
+//	if (strchr("CFILMVWY", c) != 0)
+//		return 2;
+//	if (strchr("DEKNQR", c) != 0)
+//		return 3;
+//	return UNDEFINED_ZERO_OVERLOAD;
+//	}
+
 static uint8_t get_aa4code(char c)
 	{
 	c = toupper(c);

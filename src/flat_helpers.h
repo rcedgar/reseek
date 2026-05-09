@@ -282,3 +282,11 @@ uint16_t *read_quantize(
 	uint alpha_size,
 	uint16_t &median);
 
+void get_alpha_names_from_peaker_spec_file_lines(
+	vector<string> &lines,
+	vector<string> &alpha_names);
+
+void GetFeatures(
+	const string &varstr,
+	vector<string> &feature_names,
+	vector<float> &weights);

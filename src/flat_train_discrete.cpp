@@ -159,10 +159,14 @@ void read_feature_fa_and_fa2(
 	uint min_length,
 	uint alpha_size,
 	vector<uint8_t> &code1s,
-	vector<uint8_t> &code2s)
+	vector<uint8_t> &code2s,
+	vector<uint> &pctid2count,
+	double &fract_identical)
 	{
 	code1s.clear();
 	code2s.clear();
+	pctid2count.clear();
+	pctid2count.resize(101);
 
 	const uint8_t *char2letter = (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 
@@ -192,6 +196,8 @@ void read_feature_fa_and_fa2(
 	uint npairs = 0;
 	uint nmissing = 0;
 	uint bad_letters = 0;
+	uint total_identical = 0;
+	uint total_upper = 0;
 	for (uint i = 0; i < nfa2; i += 2)
 		{
 		uint ncols = db_fa2.GetSeqLength(i);
@@ -248,6 +254,8 @@ void read_feature_fa_and_fa2(
 		const string &featseq2 = db_fa.GetSeq(featseqidx2);
 		asserta(SIZE(featseq1) == L1);
 		asserta(SIZE(featseq2) == L2);
+		uint nupper = 0;
+		uint nidentical = 0;
 		for (uint colidx = 0; colidx < ncols; ++colidx)
 			{
 			char rowc1 = row1[colidx];
@@ -262,6 +270,13 @@ void read_feature_fa_and_fa2(
 					{
 					code1s.push_back(code1);
 					code2s.push_back(code2);
+					++nupper;
+					++total_upper;
+					if (code1 == code2) 
+						{
+						++nidentical;
+						++total_identical;
+						}
 					}
 				else
 					++bad_letters;
@@ -271,9 +286,16 @@ void read_feature_fa_and_fa2(
 			}
 		asserta(pos1 == L1);
 		asserta(pos2 == L2);
+		if (nupper > 0)
+			{
+			uint pctid = (100*nidentical)/nupper;
+			asserta(pctid >= 0 && pctid <= 100);
+			pctid2count[pctid] += 1;
+			}
 		}
-	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %.3g%% missing, %u bad\n",
-		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, GetPct(nmissing, nfa2), bad_letters);
+	fract_identical = double(total_identical)/double(total_upper+0.1);
+	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %.3g%% missing, %u bad, %.2f%% identical\n",
+		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, GetPct(nmissing, nfa2), bad_letters, 100*fract_identical);
 	}
 
 void get_countmx_from_code_pairs(
@@ -593,8 +615,10 @@ void cmd_flat_train_discrete()
 
 	vector<uint8_t> code1s;
 	vector<uint8_t> code2s;
+	vector<uint> pctid2count;
+	double fract_identical;
 	read_feature_fa_and_fa2(fafn, fa2fn, min_length, alpha_size,
-		code1s, code2s);
+		code1s, code2s, pctid2count, fract_identical);
 
 	vector<vector<uint> > countmx;
 	get_countmx_from_code_pairs(code1s, code2s, alpha_size, countmx);
@@ -651,4 +675,13 @@ void cmd_flat_train_discrete()
 	double Hrel = get_relative_entropy(freqmx, logoddsmx);
 	fprintf(f, "# ES=%.3g Hrel=%.3g\n", ES, Hrel);
 	CloseStdioFile(f);
+
+	if (optset_output2)
+		{
+		FILE *f = CreateStdioFile(opt(output2));
+		fprintf(f, "# %.1f%% identical\n", 100*fract_identical);
+		for (uint pctid = 0; pctid <= 100; ++pctid)
+			fprintf(f, "%u\t%u\n", pctid, pctid2count[pctid]);
+		CloseStdioFile(f);
+		}
 	}

@@ -112,7 +112,7 @@ void cmd_flat_quantize()
 	make_alpha_fnprefix(fan, alpha_size, fnprefix);
 
 	const string fnq = fnprefix + ".quantize";
-	Progress("%s\n", fnq.c_str());
+	ProgressLog("quantize: %s\n", fnq.c_str());
 	FILE *fq = CreateStdioFile(fnq);
 	fprintf(fq, "# %s\n", cmd.c_str());
 	fprintf(fq, "# [%s] %s\n", GIT_HASH, timeString);
@@ -127,7 +127,7 @@ void cmd_flat_quantize()
 	fq = 0;
 
 	const string fna = fnprefix + ".fasta";
-	Progress("%s\n", fna.c_str());
+	ProgressLog("fasta %s\n", fna.c_str());
 	FILE *ffa = CreateStdioFile(fna);
 	for (uint i = 0; i < nchain; ++i)
 		{
