@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include <list>
 void cmd_hjnugaps()
 	{
@@ -8,7 +8,7 @@ void cmd_hjnugaps()
 	}
 
 #if 0
-static ParaSearch *s_PS;
+static ParaBench *s_PS;
 static double s_BestSum3 = -999;
 static int s_BestOpen = -999;
 static int s_BestExt = -999;
@@ -174,7 +174,7 @@ void cmd_hjnugaps()
 	Die("TODO");
 	GetFeatures(g_Arg1, s_Fs, s_Weights);
 
-	s_PS = new ParaSearch;
+	s_PS = new ParaBench;
 	s_PS->m_NuFs = s_Fs;
 	s_PS->GetByteSeqs(opt(db), "nuletters");
 	s_PS->SetLookupFromLabels();

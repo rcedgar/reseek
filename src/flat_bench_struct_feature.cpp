@@ -10,6 +10,7 @@
 
 void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 	{
+	asserta(!m_nu_filter);
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = flat_alphas::get_nfeat();
@@ -24,7 +25,7 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 		const string &labelT = m_fp.get_label(DomIdxT);
 		const uint8_t *profT = m_fp.get_profile(DomIdxT);
 		const uint LT = m_fp.get_length(DomIdxT);
-		fa.cacheT(labelT, profT, LT);
+		fa.cacheT(labelT, profT, 0, LT);
 
 		// Includes self-score for santify checking and because
 		//   triangle*() functions include diagonal
@@ -33,7 +34,7 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 			const string &labelQ = m_fp.get_label(DomIdxQ);
 			const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
 			const uint LQ = m_fp.get_length(DomIdxQ);
-			fa.alignQ(labelQ, profQ, LQ);
+			fa.alignQ(labelQ, profQ, 0, LQ);
 			float Score = get_feature_value(DomIdxQ, DomIdxT, fa);
 			if (isnan(Score))
 				Die("isnan(%s,%s)", fa.m_labelQ.c_str(), fa.m_labelT.c_str());
@@ -81,14 +82,14 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 			const string &labelT = m_fp.get_label(DomIdxT);
 			const uint8_t *profT = m_fp.get_profile(DomIdxT);
 			const uint LT = m_fp.get_length(DomIdxT);
-			fa.cacheT(labelT, profT, LT);
+			fa.cacheT(labelT, profT, 0, LT);
 			CurrentDomIdxT = DomIdxT;
 			}
 
 		const string &labelQ = m_fp.get_label(DomIdxQ);
 		const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
 		const uint LQ = m_fp.get_length(DomIdxQ);
-		fa.alignQ(labelQ, profQ, LQ);
+		fa.alignQ(labelQ, profQ, 0, LQ);
 		++m_aligned_pair_count;
 		float Score = get_feature_value(DomIdxQ, DomIdxT, fa);
 		asserta(!isnan(Score));

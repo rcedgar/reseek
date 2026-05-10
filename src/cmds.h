@@ -133,5 +133,7 @@ C(bench_structure_feature)
 C(kabsch_quad)
 C(bitdope_stats)
 C(read_alphadir)
+C(test_nu_codeseqs)
+C(make_nu_parasail_matrix)
 
 #undef C

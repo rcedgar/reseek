@@ -3,6 +3,7 @@
 #include "hexintseq.h"
 #include "sort.h"
 #include "seqdb.h"
+#include "alpha.h"
 #include <numeric>
 
 static uint get_maxreducedcode(
@@ -464,6 +465,8 @@ void cmd_reduce_alphabet()
 		{
 		FILE *fout = CreateStdioFile(opt(output));
 
+		asserta(fullAS <= 36);
+		const byte *letter2char = (fullAS == 20 ? g_LetterToCharAmino : g_LetterToCharMu);
 		for (size_t i = 0; i < output_fcs.size(); ++i)
 			{
 			double H = output_Hs[i];
@@ -475,19 +478,33 @@ void cmd_reduce_alphabet()
 			vector<vector<uint> > inv;
 			invert_map(fc, inv);
 			asserta(inv.size() == reducedAS);
-			for (uint reduced_code = 0; reduced_code < reducedAS;
-				++reduced_code)
+			vector<string> reduced_strings;
+			for (uint reduced_code = 0; reduced_code < reducedAS; ++reduced_code)
 				{
+				string s;
 				const vector<uint> &v = inv[reduced_code];
 				fprintf(fout, "\t(");
 				for (uint k = 0; k < v.size(); ++k)
 					{
 					if (k > 0)
 						fprintf(fout, ",");
-					fprintf(fout, "%u", v[k]);
+
+					uint code = v[k];
+					asserta(code < fullAS);
+					s += letter2char[code];
+					fprintf(fout, "%u", code);
 					}
+				reduced_strings.push_back(s);
 				fprintf(fout, ")");
 				}
+			fprintf(fout, "\t");
+			for (uint reduced_code = 0; reduced_code < reducedAS; ++reduced_code)
+				{
+				if (reduced_code > 0)
+					fprintf(fout, "+");
+				fprintf(fout, "%s", reduced_strings[reduced_code].c_str());
+				}
+
 			fprintf(fout, "\n");
 			}
 		ProgressLog("%u written\n", uint(output_fcs.size()));

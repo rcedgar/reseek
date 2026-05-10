@@ -397,7 +397,7 @@ void Peaker::WriteFinalResults(FILE *f) const
 	fprintf(f, "FINAL %s [%.6g] %s\n",
 		m_Name.c_str(), m_Best_y, best_xss.c_str());
 	fprintf(f, "\n_____________________________________________\n");
-	WriteFinalPeak(f);
+//	WriteFinalPeak(f);
 	fflush(f);
 	}
 
@@ -436,7 +436,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	xv2xss(xv, xss);
 	if (dy > 0)
 		{
-		double Pct = GetPct(dy, m_Best_y);
+		double Pct = GetPct(dy, Saved_Best_y);
 		Progress("\033[7m");
 		if (Pct > 10)
 			Progress("             ");
@@ -446,10 +446,11 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 			Progress("    ");
 		else if (Pct > 0.1)
 			Progress("  ");
-		Progress("%+.2f %% %.4g\033[0m", Pct, m_Best_y);
+		Progress("%.4g\033[0m %+.2f%%", m_Best_y, Pct);
 		}
 	else
-		Progress("-%.2g%% \033[7m %.4g \033[0m", GetPct(-dy, m_Best_y), m_Best_y);
+		Progress("\033[7m %.4g \033[0m -%.2g%% ",
+			m_Best_y, GetPct(-dy, Saved_Best_y));
 	Progress(" %s", desc.c_str());
 	Progress(" /%.2f/", GetGlobalRateFactor());
 	Progress("\n");
@@ -457,7 +458,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 	if (dy > 0)
 		Log(">>> ");
 	Log("%+.2g%% %.4g %s\n",
-		GetPct(dy, m_Best_y), m_Best_y, xss.c_str());
+		GetPct(dy, Saved_Best_y), m_Best_y, xss.c_str());
 
 	if (m_fTsv != 0)
 		{

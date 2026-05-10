@@ -1,6 +1,7 @@
 #pragma once
 
 class flat_alphas;
+class Paralign;
 
 class flat_aligner
 	{
@@ -31,18 +32,34 @@ public:
 	char *m_path_buffer = 0;
 	uint m_ncol = 0;
 
+	bool m_nufilter = false;
+	Paralign *m_pa = 0;
+
 public:
 	void alloc();
 	void freemem();
-	void cacheT(const string &labelT, const uint8_t *profT, uint LT);
+	void cacheT(
+		const string &labelT,
+		const uint8_t *profT,
+		const uint8_t *nu_codeseq,
+		uint LT);
 
 	// cache reversed T instead of T (=> m_pssmT)
 	void cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT);
 
 	// case reverseT in addition to T (=> m_pssm_reverseT)
-	void cache_reverseT(const string &labelT, const uint8_t *profT, uint LT);
+	void cache_reverseT(
+		const string &labelT,
+		const uint8_t *profT,
+		const uint8_t *nu_codeseq_rev,
+		uint LT);
 
-	void alignQ(const string &labelQ, const uint8_t *profQ, uint LQ);
+	void alignQ(
+		const string &labelQ,
+		const uint8_t *profQ,
+		const uint8_t *nu_codeseqQ,
+		uint LQ);
+
 	void align_reverse();
 	void write_aln(FILE *f) const;
 	void write_tsv(FILE *f) const;

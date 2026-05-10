@@ -19,6 +19,9 @@ private:
 	chaq() = delete;
 
 public:
+	static uint8_t m_aacode2aa4code[20];
+
+public:
 	static void fill_distmx(
 		cp_ic_t xyz,
 		uint L,
@@ -152,4 +155,6 @@ public:
 	static cp_uint16_t get_thresholds(FAN fan, uint alpha_size);
 	static uint16_t get_undef_value(FAN fan, uint alpha_size);
 	static uint8_t get_undef_code(FAN fan, uint alpha_size);
+
+	static void set_aagroups(const string &aagroups);
 	};

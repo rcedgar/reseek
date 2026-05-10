@@ -374,7 +374,7 @@
     <ClCompile Include="packing.cpp" />
     <ClCompile Include="paralign.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
-    <ClCompile Include="parasearch.cpp" />
+    <ClCompile Include="parabench.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />
@@ -485,6 +485,7 @@
     <ClCompile Include="sw_flat.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_flat_chains.cpp" />
+    <ClCompile Include="test_nu_codeseqs.cpp" />
     <ClCompile Include="test_sw.cpp" />
     <ClCompile Include="test_sw_enum.cpp" />
     <ClCompile Include="timing.cpp" />
@@ -620,7 +621,7 @@
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />
     <ClInclude Include="parallel_sort.h" />
-    <ClInclude Include="parasearch.h" />
+    <ClInclude Include="parabench.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />

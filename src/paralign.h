@@ -73,6 +73,8 @@ public:
 	static void SetCompoundMx(
 		const vector<FEATURE> &Fs, const vector<float> &Weights,
 		int ScaleFactor, int Open, int Ext, int SaturatedScore);
+	static void set_nu();
+
 	static void set_flat_compound(
 		const unordered_map<string, float> &name2weight,
 		float ScaleFactor,

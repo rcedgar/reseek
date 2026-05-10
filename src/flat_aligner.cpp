@@ -4,6 +4,7 @@
 #include "flat_aligner.h"
 #include "flat_helpers.h"
 #include "flat_alignx.h"
+#include "paralign.h"
 #include "cigar.h"
 
 void flat_aligner::alloc()
@@ -42,7 +43,11 @@ void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, u
 		m_pssmT);
 	}
 
-void flat_aligner::cache_reverseT(const string &labelT, const uint8_t *profT, uint LT)
+void flat_aligner::cache_reverseT(
+	const string &labelT,
+	const uint8_t *profT,
+	const uint8_t *nu_codeseq_rev,
+	uint LT)
 	{
 	asserta(LT < m_maxL);
 	m_labelT = labelT;
@@ -53,9 +58,19 @@ void flat_aligner::cache_reverseT(const string &labelT, const uint8_t *profT, ui
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssm_reverseT);
+	if (m_nufilter)
+		{
+		assert(m_pa);
+		assert(nu_codeseq_rev);
+		m_pa->SetQueryProfile_rev(nu_codeseq_rev, LT);
+		}
 	}
 
-void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
+void flat_aligner::cacheT(
+	const string &labelT,
+	const uint8_t *profT,
+	const uint8_t *nu_codeseq,
+	uint LT)
 	{
 	asserta(LT < m_maxL);
 	m_labelT = labelT;
@@ -66,9 +81,19 @@ void flat_aligner::cacheT(const string &labelT, const uint8_t *profT, uint LT)
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
+	if (m_nufilter)
+		{
+		assert(m_pa);
+		assert(nu_codeseq);
+		m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
+		}
 	}
 
-void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
+void flat_aligner::alignQ(
+	const string &labelQ,
+	const uint8_t *profQ,
+	const uint8_t *nu_codeseqQ,
+	uint LQ)
 	{
 	m_labelQ = labelQ;
 	m_profQ = profQ;
@@ -81,6 +106,13 @@ void flat_aligner::alignQ(const string &labelQ, const uint8_t *profQ, uint LQ)
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
+	if (m_nufilter)
+		{
+		assert(m_pa);
+		assert(nu_codeseqQ);
+		m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
+		Die("TODO combine scores");
+		}
 	m_reverse_score_set = false;
 	}
 
@@ -107,8 +139,8 @@ float flat_aligner::get_self_rev_score(
 	const uint nfeat = flat_alphas::get_nfeat();
 	uint8_t *revprofQ = myalloc(uint8_t, LQ*nfeat);
 	flat_reverse_profile(profQ, LQ, nfeat, revprofQ);
-	cacheT(labelQ + ".rev", revprofQ, LQ);
-	alignQ(labelQ, profQ, LQ);
+	cacheT(labelQ + ".rev", revprofQ, 0, LQ);
+	alignQ(labelQ, profQ, 0, LQ);
 	myfree(revprofQ);
 	return m_score;
 	}

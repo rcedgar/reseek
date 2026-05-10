@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "statsig.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include "flat_bench.h"
 
 void GetFeatures(
@@ -86,7 +86,7 @@ void cmd_nubench()
 	Paralign::set_flat_compound(name2weight, Scale, 
 		IntOpen, IntExt, 777);
 
-	ParaSearch PS;
+	ParaBench PS;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
 	PS.Search(AlignMethod, false);

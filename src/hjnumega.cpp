@@ -1,10 +1,10 @@
 #include "myutils.h"
 #include "statsig.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include "peaker.h"
 #include "flat_helpers.h"
 
-static ParaSearch *s_PS;
+static ParaBench *s_PS;
 static Peaker *s_Peaker;
 
 static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
@@ -102,7 +102,7 @@ static double EvalSum3(const vector<string> &xv)
 	return s_PS->m_Sum3;
 	}
 
-static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
+static double EvalSum3_VarStr(ParaBench &PS, const string &VarStr)
 	{
 	unordered_map<string, float> name2weight;
 	int IntOpen;
@@ -124,7 +124,7 @@ static double EvalSum3_VarStr(ParaSearch &PS, const string &VarStr)
 static void Optimize(
 	const string &OptName,
 	const vector<string> &SpecLines,
-	ParaSearch &PS,
+	ParaBench &PS,
 	double &Best_y,
 	vector<string> &Best_xv)
 	{
@@ -180,7 +180,7 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
-static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
+static void Climb(ParaBench &FullPS, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -225,7 +225,7 @@ static void Climb(ParaSearch &FullPS, const vector<string> &SpecLines)
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
-static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
+static void SubClimb(ParaBench &FullPS, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -237,7 +237,7 @@ static void SubClimb(ParaSearch &FullPS, const vector<string> &SpecLines)
 	double Final_y = -1;
 	string Final_xss;
 
-	ParaSearch &Subset = *new ParaSearch;
+	ParaBench &Subset = *new ParaBench;
 	for (uint SubsetIter = 1; SubsetIter <= SubsetIters; ++SubsetIter)
 		{
 		double Best_y;
@@ -301,7 +301,7 @@ void cmd_hjnumega()
 	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
-	ParaSearch FullPS;
+	ParaBench FullPS;
 	FullPS.GetByteSeqs(DBFN, "nuletters");
 	FullPS.SetLookupFromLabels();
 	if (optset_varstr)

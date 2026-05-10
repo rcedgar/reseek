@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "statsig.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include "peaker.h"
 
 float *read_join_data(
@@ -213,7 +213,7 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
-static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
+static void Climb(ParaBench &PS, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);

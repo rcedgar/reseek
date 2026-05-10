@@ -967,6 +967,34 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 	return true;
 	}
 
+void Paralign::set_nu()
+	{
+	//unordered_map<string, float> name2weight;
+	//name2weight["aa4"] = 0.481f;
+	//name2weight["pm2"] = 0.301f;
+	//name2weight["sec32"] = 0.219f;
+	const float scale_factor = 8.39f;
+	const int intopen = 23;
+	const int intext = 3;
+	const int saturated_score = 999;
+	const uint compound_alpha_size = 256;
+	vector<vector<int> > IntScoreMx(compound_alpha_size);
+	for (uint i = 0; i < compound_alpha_size; ++i)
+		{
+		IntScoreMx[i].resize(compound_alpha_size);
+		const uint8_t code_i = uint8_t(i);
+		for (uint j = 0; j < compound_alpha_size; ++j)
+			{
+			const uint8_t code_j = uint8_t(j);
+			float Score = scale_factor*
+				flat_alphas::get_compound_subst_score_slow(code_i, code_j);
+			int IntScore = int(round(Score));
+			IntScoreMx[i][j] = IntScore;
+			}
+		}
+	SetMatrix(IntScoreMx, intopen, intext, saturated_score, false);
+	}
+
 void Paralign::set_flat_compound(
 	const unordered_map<string, float> &name2weight,
 	float ScaleFactor,
@@ -1000,10 +1028,7 @@ void Paralign::set_flat_compound(
 	bool SetSWFastMx = false;
 	if (opt(roundmx))
 		SetSWFastMx = true;
-	const int ScaledOpen = Open;
-	const int ScaledExt = Ext;
-	SetMatrix(IntScoreMx, ScaledOpen, ScaledExt,
-		SaturatedScore, SetSWFastMx);
+	SetMatrix(IntScoreMx, Open, Ext, SaturatedScore, SetSWFastMx);
 	if (opt(logmx))
 		{
 		LogMatrix();

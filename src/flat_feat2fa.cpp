@@ -57,6 +57,8 @@ void cmd_flat_discrete2fa()
 	FILE *f = CreateStdioFile(opt(fasta));
 	const string &feature = opt(feature);
 	FAN fan = str2FAN(feature.c_str());
+	if (optset_aagroups)
+		chaq::set_aagroups(opt(aagroups));
 
 	asserta(!is_quantized(fan));
 	uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);

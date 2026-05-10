@@ -6,7 +6,40 @@
 #include "sec_kmeans.h"
 #include "quantize.h"
 #include "abcxyz.h"
+#include "alpha.h"
 #include <cmath>
+
+/***
+Murphy–Wallqvist–Levy 4-letter alphabet
+    0       1         2     3
+AGPST / CILMV / DEHKNQR / FWY
+Murphy LR, Wallqvist A, Levy RM. Simplified amino acid alphabets for
+protein fold recognition and implications for folding.
+Protein Eng. 2000;13(3):149-152. doi:10.1093/protein/13.3.149
+***/
+uint8_t chaq::m_aacode2aa4code[20] =
+	{
+	0,	//'A'
+	1,  //'C'
+	2,  //'D'
+	2,  //'E'
+	3,  //'F'
+	0,  //'G'
+	2,  //'H'
+	1,  //'I'
+	2,  //'K'
+	1,  //'L'
+	1,  //'M'
+	2,  //'N'
+	0,  //'P'
+	2,  //'Q'
+	2,  //'R'
+	0,  //'S'
+	0,  //'T'
+	1,  //'V'
+	3,  //'W'
+	3,  //'Y'
+	};
 
 static const uint16_t s_packing_maxsid = dist2sid(15.0f);
 
@@ -76,16 +109,23 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 //	return UNDEFINED_ZERO_OVERLOAD;
 //	}
 
+//static uint8_t get_aa4code(char c)
+//	{
+//	c = toupper(c);
+//	if (c == 'G')
+//		return 0;
+//	if (strchr("AHPST", c) != 0)
+//		return 1;
+//	if (strchr("DEKNQR", c) != 0)
+//		return 2;
+//	return 3;
+//	}
+
 static uint8_t get_aa4code(char c)
 	{
-	c = toupper(c);
-	if (c == 'G')
-		return 0;
-	if (strchr("AHPST", c) != 0)
-		return 1;
-	if (strchr("DEKNQR", c) != 0)
-		return 2;
-	return 3;
+	uint8_t aacode = g_CharToLetterAmino[c];
+	if (aacode >= 20) return 0;
+	return chaq::m_aacode2aa4code[aacode];
 	}
 
 static uint8_t get_aa3code(char c)
@@ -894,4 +934,28 @@ void chaq::slow_get_angle_values(
 
 	for (uint pos = L - n - 1; pos < L; ++pos)
 		values[pos] = undef_value;
+	}
+
+void chaq::set_aagroups(const string &aagroups)
+	{
+	vector<string> flds;
+	Split(aagroups, flds, '-');
+	asserta(flds.size() == 4);
+
+	for (uint i = 0; i < 4; ++i)
+		m_aacode2aa4code[i] = 0xff;
+
+	for (uint aa4code = 0; aa4code < 4; ++aa4code)
+		{
+		const string &group = flds[aa4code];
+		for (auto c : group)
+			{
+			uint8_t aacode = g_CharToLetterAmino[c];
+			asserta(aacode < 20);
+			m_aacode2aa4code[aacode] = aa4code;
+			}
+		}
+
+	for (uint i = 0; i < 4; ++i)
+		asserta(m_aacode2aa4code[i] < 4);
 	}

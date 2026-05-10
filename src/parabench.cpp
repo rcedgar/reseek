@@ -1,5 +1,5 @@
 #include "myutils.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include "triangle.h"
 #include "nu.h"
 #include "sort.h"
@@ -38,13 +38,13 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 		}
 	}
 
-void ParaSearch::AppendHit_rev(uint i, uint j, float Score)
+void ParaBench::AppendHit_rev(uint i, uint j, float Score)
 	{
 	uint k = triangle_ij_to_k(i, j, m_SeqCount);
 	m_Scores_rev[k] = Score;
 	}
 
-void ParaSearch::SubclassAppendHit(uint i, uint j, float Score)
+void ParaBench::SubclassAppendHit(uint i, uint j, float Score)
 	{
 	if (m_DoReverse)
 		{
@@ -53,7 +53,7 @@ void ParaSearch::SubclassAppendHit(uint i, uint j, float Score)
 		}
 	}
 
-float ParaSearch::GetSelfScore_rev(Paralign &PA, uint ChainIdx)
+float ParaBench::GetSelfScore_rev(Paralign &PA, uint ChainIdx)
 	{
 	asserta(m_AlignMethod == "para");
 	const string &Label = m_Labels[ChainIdx];
@@ -67,7 +67,7 @@ float ParaSearch::GetSelfScore_rev(Paralign &PA, uint ChainIdx)
 	return (float) PA.m_Score_rev;
 	}
 
-void ParaSearch::SetSelfScores_rev(const string &AlignMethod)
+void ParaBench::SetSelfScores_rev(const string &AlignMethod)
 	{
 	InitThreads(AlignMethod, true);
 	if (m_SelfScores_rev != 0)
@@ -81,7 +81,7 @@ void ParaSearch::SetSelfScores_rev(const string &AlignMethod)
 	Progress("done\n");
 	}
 
-void ParaSearch::Align(uint ThreadIdx, uint i, uint j)
+void ParaBench::Align(uint ThreadIdx, uint i, uint j)
 	{
 	const string &Label_j = m_Labels[j];
 	const vector<byte> &ByteSeq_j = m_ByteSeqs[j];
@@ -118,7 +118,7 @@ void ParaSearch::Align(uint ThreadIdx, uint i, uint j)
 		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
 	}
 
-void ParaSearch::SetQuery(uint ThreadIdx, uint i)
+void ParaBench::SetQuery(uint ThreadIdx, uint i)
 	{
 	const string &Label_i = m_Labels[i];
 	const vector<byte> &ByteSeq_i = m_ByteSeqs[i];
@@ -139,7 +139,7 @@ void ParaSearch::SetQuery(uint ThreadIdx, uint i)
 		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
 	}
 
-void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
+void ParaBench::InitThreads(const string &AlignMethod, bool DoReverse)
 	{
 	FastBench::Alloc();
 
@@ -175,7 +175,7 @@ void ParaSearch::InitThreads(const string &AlignMethod, bool DoReverse)
 		}
 	}
 
-void ParaSearch::Search(const string &AlignMethod, bool DoReverse)
+void ParaBench::Search(const string &AlignMethod, bool DoReverse)
 	{
 	InitThreads(AlignMethod, DoReverse);
 	atomic<uint> Counter = 0;
@@ -211,7 +211,7 @@ void ParaSearch::Search(const string &AlignMethod, bool DoReverse)
 		Paralign::m_CountSWFast.load());
 	}
 
-void ParaSearch::GetByteSeqs(const string &FN, const string &Method)
+void ParaBench::GetByteSeqs(const string &FN, const string &Method)
 	{
 	m_ByteSeqMethod = Method;
 	if (Method == "muletters")
@@ -233,8 +233,8 @@ void ParaSearch::GetByteSeqs(const string &FN, const string &Method)
 
 // Construct Mu from components to validate that it
 // reproduces DSS::GetMu(). Otherwise this is redundant,
-// better to use ParaSearch::GetByteSeqs_DSS().
-void ParaSearch::GetByteSeqs_dss3(const string &FN)
+// better to use ParaBench::GetByteSeqs_DSS().
+void ParaBench::GetByteSeqs_dss3(const string &FN)
 	{
 	ReadChains(FN, m_Chains);
 	const uint ChainCount = SIZE(m_Chains);
@@ -267,7 +267,7 @@ void ParaSearch::GetByteSeqs_dss3(const string &FN)
 	}
 
 // Use DSS::GetMuLetters()
-void ParaSearch::GetByteSeqs_muletters(const string &FN)
+void ParaBench::GetByteSeqs_muletters(const string &FN)
 	{
 	ReadChains(FN, m_Chains);
 	const uint ChainCount = SIZE(m_Chains);
@@ -291,7 +291,7 @@ void ParaSearch::GetByteSeqs_muletters(const string &FN)
 	m_look->from_labels(Labels);
 	}
 
-void ParaSearch::GetByteSeqs_nu(const string &hexfastafn)
+void ParaBench::GetByteSeqs_nu(const string &hexfastafn)
 	{
 	uint alpha_size = flat_alphas::get_compound_alpha_size();
 	map<string, uint> label2seqidx;
@@ -303,7 +303,7 @@ void ParaSearch::GetByteSeqs_nu(const string &hexfastafn)
 		label2seqidx);
 	}
 
-void ParaSearch::GetByteSeqs_3Di(const string &FN)
+void ParaBench::GetByteSeqs_3Di(const string &FN)
 	{
 	m_ByteSeqs.clear();
 	m_Labels.clear();
@@ -327,7 +327,7 @@ void ParaSearch::GetByteSeqs_3Di(const string &FN)
 		}
 	}
 
-void ParaSearch::GetByteSeqs_numu(const string &FN)
+void ParaBench::GetByteSeqs_numu(const string &FN)
 	{
 	m_ByteSeqs.clear();
 	m_Labels.clear();
@@ -351,7 +351,7 @@ void ParaSearch::GetByteSeqs_numu(const string &FN)
 		}
 	}
 
-void ParaSearch::BenchRev(const string &Msg, 
+void ParaBench::BenchRev(const string &Msg, 
 	float SelfWeight, float RevWeight)
 	{
 	asserta(m_DoReverse);
@@ -379,7 +379,7 @@ void ParaSearch::BenchRev(const string &Msg,
 	Bench(Msg);
 	}
 
-void ParaSearch::WriteRevTsv(const string &FN) const
+void ParaBench::WriteRevTsv(const string &FN) const
 	{
 	asserta(m_DoReverse);
 	if (FN == "")
@@ -415,7 +415,7 @@ void ParaSearch::WriteRevTsv(const string &FN) const
 	CloseStdioFile(f);
 	}
 
-void ParaSearch::ClearHitsAndResults()
+void ParaBench::ClearHitsAndResults()
 	{
 	Paralign::ClearStats();
 	myfree(m_Scores);
@@ -432,13 +432,13 @@ void ParaSearch::ClearHitsAndResults()
 	m_PAs.clear();
 	}
 
-void ParaSearch::SetGapParams(int Open, int Ext)
+void ParaBench::SetGapParams(int Open, int Ext)
 	{
 	Paralign::m_Open = Open;
 	Paralign::m_Ext = Ext;
 	}
 
-void ParaSearch::MakeSubset(ParaSearch &Subset, uint SubsetPct)
+void ParaBench::MakeSubset(ParaBench &Subset, uint SubsetPct)
 	{
 	vector<uint> ChainIdxs;
 	const uint ChainCount = SIZE(m_Labels);
@@ -474,7 +474,7 @@ void ParaSearch::MakeSubset(ParaSearch &Subset, uint SubsetPct)
 	Subset.SetLookupFromLabels();
 	}
 
-void ParaSearch::SubclassClearHitsAndResults()
+void ParaBench::SubclassClearHitsAndResults()
 	{
 	Paralign::ClearStats();
 	myfree(m_Scores_fwd);
@@ -493,7 +493,7 @@ void ParaSearch::SubclassClearHitsAndResults()
 // -mxname			Mu_S_k_i8 | Mu_scop40_tm0_6_0_8_fa2 | musubstmx
 void cmd_para_scop40()
 	{
-	ParaSearch PS;
+	ParaBench PS;
 	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
 	PS.SetLookupFromLabels();
 	Paralign::SetSubstMxByName(opt(mxname));
@@ -546,7 +546,7 @@ void cmd_nu_rev()
 	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 
-	ParaSearch PS;
+	ParaBench PS;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.ReadLookup(opt(lookup));
 	PS.SetSelfScores_rev("para");

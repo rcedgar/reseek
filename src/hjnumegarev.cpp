@@ -1,9 +1,9 @@
 #include "myutils.h"
 #include "statsig.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include "peaker.h"
 
-static ParaSearch *s_PS;
+static ParaBench *s_PS;
 static Peaker *s_Peaker;
 
 static void GetFeatures(const string &s,
@@ -64,7 +64,7 @@ static double EvalSum3(const vector<string> &xv)
 	}
 
 static double EvalSum3_VarStr(
-	ParaSearch &PS,
+	ParaBench &PS,
 	const string &VarStr)
 	{
 	vector<string> Fields, Fields2;
@@ -106,7 +106,7 @@ static double EvalSum3_VarStr(
 
 static void Optimize(
 	const vector<string> &SpecLines,
-	ParaSearch &PS,
+	ParaBench &PS,
 	double &Best_y,
 	vector<string> &Best_xv)
 	{
@@ -163,7 +163,7 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
-static void Climb(ParaSearch &PS, const vector<string> &SpecLines)
+static void Climb(ParaBench &PS, const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -239,7 +239,7 @@ void cmd_hjnumegarev()
 	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 
-	ParaSearch PS;
+	ParaBench PS;
 	PS.GetByteSeqs(DBFN, "nuletters");
 	PS.SetLookupFromLabels();
 	PS.m_DoReverse = true;

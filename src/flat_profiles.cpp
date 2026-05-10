@@ -317,3 +317,80 @@ uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
 
 	return profile;
 	}
+
+// Nu		aa4+pm2+sec32
+void flat_profiles::set_nu_codeseqs()
+	{
+	uint fi_aa20 = flat_alphas::get_fi(FAN_aa, 20);
+	uint fi_pm2 = flat_alphas::get_fi(FAN_pm, 2);
+	uint fi_sec32 = flat_alphas::get_fi(FAN_sec, 32);
+	uint nprof = get_nprof();
+	for (uint i = 0; i < nprof; ++i) 
+		set_nu_codeseq(fi_aa20, fi_pm2, fi_sec32, i);
+	}
+
+//static uint8_t get_aa4code(char c)
+//	{
+//	c = toupper(c);
+//	if (c == 'G')
+//		return 0;
+//	if (strchr("AHPST", c) != 0)
+//		return 1;
+//	if (strchr("DEKNQR", c) != 0)
+//		return 2;
+//	return 3;
+//	}
+//static uint8_t g_code_aa20_to_aa4_code[20]
+//	{
+//	1,	//'A'
+//	3,  //'C'
+//	2,  //'D'
+//	2,  //'E'
+//	3,  //'F'
+//	0,  //'G'
+//	1,  //'H'
+//	3,  //'I'
+//	2,  //'K'
+//	3,  //'L'
+//	3,  //'M'
+//	2,  //'N'
+//	1,  //'P'
+//	2,  //'Q'
+//	2,  //'R'
+//	1,  //'S'
+//	1,  //'T'
+//	3,  //'V'
+//	3,  //'W'
+//	3,  //'Y'
+//	};
+
+void flat_profiles::set_nu_codeseq(
+	uint fi_aa20, uint fi_pm2, uint fi_sec32, uint idx)
+	{
+	assert(idx < m_profiles.size());
+	const uint8_t *profile = m_profiles[idx];
+	uint L = get_length(idx);
+	uint8_t *codeseq = myalloc(uint8_t, L);
+	const uint8_t *prof_aa20 = profile + size_t(fi_aa20)*L;
+	const uint8_t *prof_pm2 = profile + size_t(fi_pm2)*L;
+	const uint8_t *prof_sec32 = profile + size_t(fi_sec32)*L;
+
+	for (uint pos = 0; pos < L; ++pos)
+		{
+		uint8_t code_aa20 = prof_aa20[pos];
+		uint8_t code_pm2 = prof_pm2[pos];
+		uint8_t code_sec32 = prof_sec32[pos];
+		assert(code_aa20 < 20);
+		assert(code_pm2 < 2);
+		assert(code_sec32 < 32);
+		uint8_t code_aa4 = chaq::m_aacode2aa4code[code_aa20];
+#if DEBUG
+		uint32 code_nu = code_aa4 + code_pm2*4 + code_sec32*4*2;
+		assert(code_nu < 256);
+		codeseq[pos] = int8_t(code_nu);
+#else
+		uint8_t code_nu = code_aa4 + code_pm2*4 + code_sec32*4*2;
+		codeseq[pos] = code_nu;
+#endif
+		}
+	}

@@ -86,6 +86,7 @@ bool flat_chain_t::from_pdb_lines(const string &label,
 
 void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains)
 	{
+	Progress("Read chains %s ...", fn.c_str());
 	PDBFileScanner FS;
 	FS.Open(fn);
 
@@ -98,6 +99,7 @@ void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains)
 			break;
 		chains.push_back(chain);
 		}
+	Progress("done\n");
 	}
 
 void read_flat_chains_idx(

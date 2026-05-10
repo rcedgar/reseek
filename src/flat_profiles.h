@@ -10,6 +10,7 @@ public:
 	vector<uint> m_lengths;
 	vector<uint8_t *> m_profiles;
 	unordered_map<string, uint> m_label2idx;
+	vector<uint8_t *> m_nu_codeseqs;
 
 public:
 	void from_chains(const vector<flat_chain_t *> &chains);
@@ -54,4 +55,7 @@ public:
 	void profile_to_fasta(FILE *f, uint i) const;
 
 	uint8_t *make_profile(const flat_chain_t &chain) const;
+
+	void set_nu_codeseqs();
+	void set_nu_codeseq(uint fi_aa20, uint fi_pm2, uint fi_sec32, uint idx);
 	};

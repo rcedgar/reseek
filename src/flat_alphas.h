@@ -58,6 +58,17 @@ public:
 
 	static uint32_t get_compound_alpha_size() { return m_compound_alpha_size; }
 
+	static uint32_t get_fi(FAN fan, uint alpha_size, bool errok = false)
+		{
+		for (uint i = 0; i < m_nfeat; ++i)
+			if (m_fans[i] == fan && m_alpha_sizes[i] == alpha_size)
+				return i;
+		if (!errok)
+			Die("get_fi(%u=%s, alpha_size=%u)",
+				fan, FAN2str(fan), alpha_size);
+		return UINT_MAX;
+		}
+
 	static uint32_t get_sum_alpha_sizes()
 		{
 		assert(m_sum_alpha_sizes > 0);

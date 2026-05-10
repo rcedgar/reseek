@@ -6,7 +6,7 @@
 
 class PDBChain;
 
-class ParaSearch : public FastBench
+class ParaBench : public FastBench
 	{
 public:
 	vector<PDBChain *> m_Chains;
@@ -39,7 +39,7 @@ public:
 	void SetQuery(uint ThreadIdx, uint i);
 	void Align(uint ThreadIdx, uint i, uint j);
 	void WriteRevTsv(const string &FN) const;
-	void MakeSubset(ParaSearch &Subset, uint SubsetPct);
+	void MakeSubset(ParaBench &Subset, uint SubsetPct);
 
 	void SetSelfScores_rev(const string &AlignMethod);
 	float GetSelfScore_rev(Paralign &PA, uint ChainIdx);

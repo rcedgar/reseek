@@ -29,7 +29,7 @@ void ByteVecDB::Init(
 		D.Init(Chain);
 		D.GetByteVec(F, m_ByteVecs[ChainIdx]);
 		}
-	Progress("done.\n");
+	Progress("done\n");
 	}
 
 uint ByteVecDB::GetTotalLetterCount() const

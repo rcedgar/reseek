@@ -1,9 +1,9 @@
 #include "myutils.h"
 #include "featuretrainer2.h"
-#include "parasearch.h"
+#include "parabench.h"
 #include <list>
 
-static ParaSearch *s_PS;
+static ParaBench *s_PS;
 static double s_BestSum3 = DBL_MAX;
 static int s_BestOpen = -999;
 static int s_BestExt = -999;
@@ -215,7 +215,7 @@ void cmd_hjmumx()
 	string SeqsMethod = "muletters";
 	if (optset_seqsmethod)
 		SeqsMethod = opt(seqsmethod);
-	s_PS = new ParaSearch;
+	s_PS = new ParaBench;
 	s_PS->GetByteSeqs(opt(input2), SeqsMethod);
 	s_PS->SetLookupFromLabels();
 

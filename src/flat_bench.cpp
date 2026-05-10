@@ -40,9 +40,11 @@ void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
 void flat_bench::load_profiles_chains(
 	const vector<flat_chain_t *> &chains)
 	{
+	Progress("load_profiles_chains ...");
 	m_fp.from_chains_lookup(*m_look, chains);
 	m_Labels = m_fp.m_labels;
 	m_SeqCount = uint(m_Labels.size());
+	Progress("done\n");
 	}
 
 void flat_bench::load_profiles_fapattern(const string &fafnpattern)
@@ -88,11 +90,13 @@ void flat_bench::align_pair(flat_aligner &fa,
 
 	const uint8_t *profT = m_fp.get_profile(DomIdxT);
 	const uint LT = m_fp.get_length(DomIdxT);
-	fa.cacheT(labelT, profT, LT);
+	const uint8_t *nu_codeseqT = get_nu_codeseq(DomIdxT);
+	fa.cacheT(labelT, profT, nu_codeseqT, LT);
 
 	const uint8_t *profQ = m_fp.get_profile(DomIdxQ);
+	const uint8_t *nu_codeseqQ = get_nu_codeseq(DomIdxQ);
 	const uint LQ = m_fp.get_length(DomIdxQ);
-	fa.alignQ(labelQ, profQ, LQ);
+	fa.alignQ(labelQ, profQ, nu_codeseqQ, LQ);
 	float score = fa.m_score;
 	asserta(!flat_params::need_alignx());
 	fa.write_aln(g_fLog);
@@ -116,11 +120,13 @@ void flat_bench::align_pair_selfrev(FILE *f, uint DomIdx)
 	const uint8_t *profT = m_fp.get_profile(DomIdx);
 	const string &label = m_look->get_dom(DomIdx);
 	const uint LT = m_fp.get_length(DomIdx);
-	fa.cacheT(label, profT, LT);
+	const uint8_t *nu_codeseq = get_nu_codeseq(DomIdx);
+	fa.cacheT(label, profT, nu_codeseq, LT);
 
 	uint8_t *profQ = m_fp.get_rev_profile(DomIdx);
 	const uint LQ = m_fp.get_length(DomIdx);
-	fa.alignQ(label + "_rev", profQ, LQ);
+	asserta(!m_nu_filter);// need to construct rev nu_codeseq
+	fa.alignQ(label + "_rev", profQ, 0, LQ);
 	fprintf(f, "%s\t%.4g\n", label.c_str(), fa.m_score);
 	myfree(profQ);
 	fa.freemem();
@@ -131,9 +137,13 @@ void flat_bench::doT(flat_aligner &fa, uint domidxT)
 	const string &labelT = m_fp.get_label(domidxT);
 	const uint8_t *profT = m_fp.get_profile(domidxT);
 	const uint LT = m_fp.get_length(domidxT);
-	fa.cacheT(labelT, profT, LT);
+	const uint8_t *nu_codeseqT = get_nu_codeseq(domidxT);
+	fa.cacheT(labelT, profT, nu_codeseqT, LT);
 	if (flat_params::m_rev_w > 0)
-		fa.cache_reverseT(labelT, profT, LT);
+		{
+		asserta(!m_nu_filter);
+		fa.cache_reverseT(labelT, profT, 0, LT);
+		}
 	}
 
 void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
@@ -148,7 +158,8 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	const uint8_t *profQ = m_fp.get_profile(domidxQ);
 	const uint8_t *profT = m_fp.get_profile(domidxT);
 	const uint LQ = m_fp.get_length(domidxQ);
-	fa.alignQ(labelQ, profQ, LQ);
+	const uint8_t *nu_codeseqQ = get_nu_codeseq(domidxQ);
+	fa.alignQ(labelQ, profQ, nu_codeseqQ, LQ);
 	float dpscore = fa.m_score;
 	float Score = fa.m_score;
 	asserta(!isnan(Score));
@@ -281,6 +292,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
+	Paralign *pa = m_nu_filter ? new Paralign : 0;
 	fa.alloc();
 	for (;;)
 		{
@@ -292,6 +304,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 			}
 
 		doT(fa, DomIdxT);
+
 		// Includes self-score for santify checking and because
 		//   triangle*() functions include diagonal
 		for (uint DomIdxQ = DomIdxT; DomIdxQ < NQ; ++DomIdxQ)
@@ -316,6 +329,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
+	asserta(!m_nu_filter);
 	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
 	const uint nfeat = flat_alphas::get_nfeat();
@@ -529,6 +543,7 @@ void flat_bench::set_selfrev_scores()
 
 void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 	{
+	Progress("set_distmxs ... ");
 	const uint M = flat_params::m_distmx_bandwidth;
 	int nchain = int(chains.size());
 	const uint ndom = m_look->get_ndom();
@@ -546,6 +561,23 @@ void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 		chaq::fill_distmx(chain, distmx);
 		m_distmxs[domidx] = distmx;
 		}
+	Progress("done\n");
+	}
+
+/***
+Nu		aa4+pm2+sec32
+---------------------
+Component weights for compound aa4+pm2+sec32, fwd only optimized by -hjnumega
+src/2025-10_reseek_tune/2026-04-01_hjnumega_parasail/hjnumega.log
+hjnumega.log:FINAL climb [1.24933] intopen=2.30E+01;intext=3.00E+00;scale=8.39E+00;aa4=4.81E-01;pm2=3.01E-01;sec32=2.19E-01;
+=> aa4=0.481;pm2=0.301;sec32=0.219;intopen=23;intext=3;scale=8.39;
+***/
+bool flat_bench::m_nu_filter = false;
+void flat_bench::init_nu_filter()
+	{
+	Paralign::set_nu();
+	m_nu_filter = true;
+	m_fp.set_nu_codeseqs();
 	}
 
 void cmd_flat_bench()
@@ -559,6 +591,8 @@ void cmd_flat_bench()
 	asserta(!optset_spec);
 	asserta(!optset_varstr);
 
+	asserta(!(optset_dope && optset_nufilter));
+
 	const string &VarStr = g_Arg1;
 
 	if (optset_output2) s_ftsv = CreateStdioFile(opt(output2));
@@ -567,6 +601,7 @@ void cmd_flat_bench()
 	if (optset_output3) s_f3 = CreateStdioFile(opt(output3));
 
 	flat_bench FB;
+	FB.m_nu_filter = opt(nufilter);
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
@@ -590,6 +625,8 @@ void cmd_flat_bench()
 	read_flat_chains(opt(input), chains);
 	FB.set_distmxs(chains);
 	FB.load_profiles_chains(chains);
+	if (opt(nufilter))
+		FB.init_nu_filter();
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
 	FB.Alloc();

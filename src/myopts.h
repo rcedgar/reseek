@@ -96,6 +96,7 @@ STR_OPT(kappa_pattern)
 STR_OPT(thread_counts)
 STR_OPT(truth)
 STR_OPT(alphadir)
+STR_OPT(aagroups)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
@@ -224,6 +225,7 @@ FLAG_OPT(integers)
 FLAG_OPT(triangle)
 FLAG_OPT(include_self)
 FLAG_OPT(no_thread_pin)
+FLAG_OPT(nufilter)
 
 #undef FLAG_OPT
 #undef UNS_OPT
