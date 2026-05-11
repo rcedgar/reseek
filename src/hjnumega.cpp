@@ -4,7 +4,7 @@
 #include "peaker.h"
 #include "flat_helpers.h"
 
-static ParaBench *s_PS;
+static ParaBench *s_PB;
 static Peaker *s_Peaker;
 
 static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
@@ -90,20 +90,16 @@ static double EvalSum3(const vector<string> &xv)
 
 	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
-	if (opt(logmx))
-		{
-		Paralign::LogMatrix();
-		Die("-logmx");
-		}
-	s_PS->ClearHitsAndResults();
-	s_PS->Search("para", false);
-	s_PS->SetScoreOrder();
-	s_PS->Bench();
-	return s_PS->m_Sum3;
+	s_PB->ClearHitsAndResults();
+	s_PB->Search("para", false);
+	s_PB->SetScoreOrder();
+	s_PB->Bench();
+	return s_PB->m_Sum3;
 	}
 
-static double EvalSum3_VarStr(ParaBench &PS, const string &VarStr)
+static double EvalSum3_VarStr(ParaBench &PB, const string &VarStr)
 	{
+	s_PB = &PB;
 	unordered_map<string, float> name2weight;
 	int IntOpen;
 	int IntExt;
@@ -114,17 +110,17 @@ static double EvalSum3_VarStr(ParaBench &PS, const string &VarStr)
 
 	Paralign::set_flat_compound(name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
-	s_PS->ClearHitsAndResults();
-	s_PS->Search("para", false);
-	s_PS->SetScoreOrder();
-	s_PS->Bench();
-	return s_PS->m_Sum3;
+	s_PB->ClearHitsAndResults();
+	s_PB->Search("para", false);
+	s_PB->SetScoreOrder();
+	s_PB->Bench();
+	return s_PB->m_Sum3;
 	}
 
 static void Optimize(
 	const string &OptName,
 	const vector<string> &SpecLines,
-	ParaBench &PS,
+	ParaBench &PB,
 	double &Best_y,
 	vector<string> &Best_xv)
 	{
@@ -139,7 +135,7 @@ static void Optimize(
 	Peaker &P = *new Peaker(0, OptName);
 	P.Init(SpecLines, EvalSum3);
 	s_Peaker = &P;
-	s_PS = &PS;
+	s_PB = &PB;
 
 	ProgressLog("=========================================\n");
 	ProgressLog("%s latin (%u)\n", OptName.c_str(), LatinBinCount);
@@ -210,7 +206,7 @@ static void Climb(ParaBench &FullPS, const vector<string> &SpecLines)
 		}
 	const uint VarCount = SIZE(VarNames);
 
-	s_PS = &FullPS;	
+	s_PB = &FullPS;	
 	string PeakerName;
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
@@ -249,7 +245,7 @@ static void SubClimb(ParaBench &FullPS, const vector<string> &SpecLines)
 		Ps(OptName, "sub%u", SubsetIter);
 		Optimize(OptName, SpecLines, Subset, Best_y, Best_xv);
 
-		s_PS = &FullPS;	
+		s_PB = &FullPS;	
 		string PeakerName;
 		Ps(PeakerName, "all%u", SubsetIter);
 		Peaker Pfull(0, PeakerName);
@@ -306,7 +302,11 @@ void cmd_hjnumega()
 	FullPS.SetLookupFromLabels();
 	if (optset_varstr)
 		{
+		Peaker &P = *new Peaker(0, "varstr");
+		P.Init(SpecLines, EvalSum3);
+		s_Peaker = &P;
 		EvalSum3_VarStr(FullPS, opt(varstr));
+		Paralign::LogMatrix();
 		return;
 		}
 
@@ -334,4 +334,5 @@ void cmd_hjnumega()
 		Die("Bad strategy=%s", Strategy.c_str());
 
 	CloseStdioFile(Peaker::m_fTsv);
+	Paralign::LogMatrix();
 	}

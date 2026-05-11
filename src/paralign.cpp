@@ -668,7 +668,7 @@ void Paralign::LogMatrix()
 		m_matrix.size,
 		m_matrix.length);
 
-	Log("int Paralign_IntMx[36*36] = {\n");
+	Log("int Paralign_IntMx[%u*%u] = {\n", AS, AS);
 	for (int i = 0; i < AS; ++i)
 		{
 		for (int j = 0; j < AS; ++j)

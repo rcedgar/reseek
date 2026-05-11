@@ -325,6 +325,7 @@ void flat_profiles::set_nu_codeseqs()
 	uint fi_pm2 = flat_alphas::get_fi(FAN_pm, 2);
 	uint fi_sec32 = flat_alphas::get_fi(FAN_sec, 32);
 	uint nprof = get_nprof();
+	m_nu_codeseqs.resize(nprof, 0);
 	for (uint i = 0; i < nprof; ++i) 
 		set_nu_codeseq(fi_aa20, fi_pm2, fi_sec32, i);
 	}
@@ -393,4 +394,5 @@ void flat_profiles::set_nu_codeseq(
 		codeseq[pos] = code_nu;
 #endif
 		}
+	m_nu_codeseqs[idx] = codeseq;
 	}

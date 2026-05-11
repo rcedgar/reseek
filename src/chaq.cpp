@@ -10,35 +10,32 @@
 #include <cmath>
 
 /***
-Murphy–Wallqvist–Levy 4-letter alphabet
-    0       1         2     3
-AGPST / CILMV / DEHKNQR / FWY
-Murphy LR, Wallqvist A, Levy RM. Simplified amino acid alphabets for
-protein fold recognition and implications for folding.
-Protein Eng. 2000;13(3):149-152. doi:10.1093/protein/13.3.149
+Groups sweep by $src/reseek_tune2/bash/aa4s_mix.bash
+     0      1       2 3
+ACHPST-DEKNQR-FILMVWY-G
 ***/
 uint8_t chaq::m_aacode2aa4code[20] =
 	{
 	0,	//'A'
-	1,  //'C'
-	2,  //'D'
-	2,  //'E'
-	3,  //'F'
-	0,  //'G'
-	2,  //'H'
-	1,  //'I'
-	2,  //'K'
-	1,  //'L'
-	1,  //'M'
-	2,  //'N'
+	0,  //'C'
+	1,  //'D'
+	1,  //'E'
+	2,  //'F'
+	3,  //'G'
+	0,  //'H'
+	2,  //'I'
+	1,  //'K'
+	2,  //'L'
+	2,  //'M'
+	1,  //'N'
 	0,  //'P'
-	2,  //'Q'
-	2,  //'R'
+	1,  //'Q'
+	1,  //'R'
 	0,  //'S'
 	0,  //'T'
-	1,  //'V'
-	3,  //'W'
-	3,  //'Y'
+	2,  //'V'
+	2,  //'W'
+	2,  //'Y'
 	};
 
 static const uint16_t s_packing_maxsid = dist2sid(15.0f);

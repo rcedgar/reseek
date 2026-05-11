@@ -564,14 +564,6 @@ void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 	Progress("done\n");
 	}
 
-/***
-Nu		aa4+pm2+sec32
----------------------
-Component weights for compound aa4+pm2+sec32, fwd only optimized by -hjnumega
-src/2025-10_reseek_tune/2026-04-01_hjnumega_parasail/hjnumega.log
-hjnumega.log:FINAL climb [1.24933] intopen=2.30E+01;intext=3.00E+00;scale=8.39E+00;aa4=4.81E-01;pm2=3.01E-01;sec32=2.19E-01;
-=> aa4=0.481;pm2=0.301;sec32=0.219;intopen=23;intext=3;scale=8.39;
-***/
 bool flat_bench::m_nu_filter = false;
 void flat_bench::init_nu_filter()
 	{

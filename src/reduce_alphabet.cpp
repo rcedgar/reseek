@@ -501,7 +501,7 @@ void cmd_reduce_alphabet()
 			for (uint reduced_code = 0; reduced_code < reducedAS; ++reduced_code)
 				{
 				if (reduced_code > 0)
-					fprintf(fout, "+");
+					fprintf(fout, "-");
 				fprintf(fout, "%s", reduced_strings[reduced_code].c_str());
 				}
 

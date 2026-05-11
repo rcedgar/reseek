@@ -441,11 +441,11 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 		if (Pct > 10)
 			Progress("             ");
 		else if (Pct > 5)
-			Progress("        ");
+			Progress("          ");
 		else if (Pct > 1)
-			Progress("    ");
+			Progress("      ");
 		else if (Pct > 0.1)
-			Progress("  ");
+			Progress("   ");
 		Progress("%.4g\033[0m %+.2f%%", m_Best_y, Pct);
 		}
 	else
