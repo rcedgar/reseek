@@ -18,6 +18,7 @@ atomic<uint> flat_bench::m_aligned_pair_count;
 atomic<uint> flat_bench::m_ncachehits;
 atomic<uint> flat_bench::m_ncachemisses;
 atomic<bool> flat_bench::m_max_secs_exceeded;
+bool flat_bench::m_nu_only;
 
 static FILE *s_ftsv;
 static mutex s_ftsv_lock;
@@ -165,6 +166,9 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 
+	if (m_nu_only)
+		AppendHit(domidxT, domidxQ, Score);
+
 	const sid_t *distmxQ = 0;
 	const sid_t *distmxT = 0;
 	float selfQ = FLT_MAX;
@@ -284,7 +288,6 @@ void flat_bench::Launch(
 		}
 	}
 
-
 void flat_bench::ThreadBody_All(uint ThreadIdx)
 	{
 	m_aligned_pair_count = 0;
@@ -292,7 +295,9 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
-	Paralign *pa = m_nu_filter ? new Paralign : 0;
+	fa.m_nu_only = m_nu_only;
+	if (m_nu_filter || m_nu_only)
+		fa.m_pa = new Paralign;
 	fa.alloc();
 	for (;;)
 		{
@@ -330,6 +335,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
 	asserta(!m_nu_filter);
+	asserta(!m_nu_only);
 	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
 	const uint nfeat = flat_alphas::get_nfeat();
@@ -565,11 +571,11 @@ void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 	}
 
 bool flat_bench::m_nu_filter = false;
-void flat_bench::init_nu_filter()
+void flat_bench::init_nu_filter(const string &hexfastafn)
 	{
 	Paralign::set_nu();
 	m_nu_filter = true;
-	m_fp.set_nu_codeseqs();
+	m_fp.set_nu_codeseqs(hexfastafn);
 	}
 
 void cmd_flat_bench()
@@ -617,8 +623,11 @@ void cmd_flat_bench()
 	read_flat_chains(opt(input), chains);
 	FB.set_distmxs(chains);
 	FB.load_profiles_chains(chains);
-	if (opt(nufilter))
-		FB.init_nu_filter();
+	const bool nufilter = opt(nufilter);
+	const bool nuonly = opt(nuonly);
+	FB.m_nu_only = nuonly;
+	if (nufilter || nuonly)
+		FB.init_nu_filter(opt(hexfasta));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
 	FB.Alloc();

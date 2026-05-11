@@ -436,7 +436,7 @@ void cmd_fast_bench_hits()
 	asserta(!optset_output);
 	const string &hitsfn = g_Arg1;
 	const string lookupfn =
-		(optset_lookup ? opt(lookup) : "../data/scop40c.lookup");
+		(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
 
 	FastBench FB;
 	FB.ReadLookup(lookupfn);

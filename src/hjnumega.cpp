@@ -293,19 +293,21 @@ void cmd_hjnumega()
 	asserta(optset_db);
 	const string &DBFN = opt(db);
 
-	void OpenOutputFiles();
-	OpenOutputFiles();
+	//void OpenOutputFiles();
+	//OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
 	ParaBench FullPS;
 	FullPS.GetByteSeqs(DBFN, "nuletters");
 	FullPS.SetLookupFromLabels();
+	FullPS.to_hexfasta(opt(hexfasta));
 	if (optset_varstr)
 		{
 		Peaker &P = *new Peaker(0, "varstr");
 		P.Init(SpecLines, EvalSum3);
 		s_Peaker = &P;
 		EvalSum3_VarStr(FullPS, opt(varstr));
+		FullPS.WriteHits(opt(output));
 		Paralign::LogMatrix();
 		return;
 		}

@@ -64,6 +64,7 @@ public:
 	static void SetMu_musubstmx();
 	static void SetMu_parasail_mu_8();
 	static void SetMu_scop40_tm0_6_0_8_fa2();
+	static void set_final_nu();
 	static void SetBlosum62();
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,

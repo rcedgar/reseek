@@ -37,6 +37,7 @@ public:
 // Nu support
 //////////////////////////////
 	static bool m_nu_filter;
+	static bool m_nu_only;
 
 public:
 	static atomic<uint> m_aligned_pair_count;
@@ -64,7 +65,7 @@ public:
 	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
 	void doT(flat_aligner &fa, uint domidxT);
 
-	void init_nu_filter();
+	void init_nu_filter(const string &hexfafn = "");
 
 	const uint8_t *get_nu_codeseq(uint domidx) const
 		{

@@ -562,6 +562,7 @@
     <ClInclude Include="entropy.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="featuretrainer2.h" />
+    <ClInclude Include="final_nu_matrix.h" />
     <ClInclude Include="flat_aligner.h" />
     <ClInclude Include="flat_bench_struct_feature.h" />
     <ClInclude Include="flat_featlist.h" />

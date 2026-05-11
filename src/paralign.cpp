@@ -618,6 +618,39 @@ static int scop40_tm0_6_0_8_fa2[36*36] = {
     -12,   -6,   -7,  -12,  -13,   -8,   -9,   -8,   -6,   -9,   -6,   -4,   -7,   -8,   -3,   -6,   -3,   -1,   -5,   -2,   -2,   -4,   -4,   -1,   -2,    0,    1,   -3,    1,    2,    0,    0,    4,    1,    3,    6 ,
 };
 
+#include "final_nu_matrix.h"
+
+/***
+$src/reseek_tune2/bash/final_nu_matrix.bash
+                                 vvvvvvvvvvvvvv--- scale pre-built into matrix
+intopen=2.90E+01;intext=3.00E+00;scale=8.81E+00;aa4=5.15E-01;pm2=2.84E-01;sec32=2.00E-01;
+***/
+void Paralign::set_final_nu()
+	{
+	m_Open = 29;
+	m_Ext = 3;
+	int MinScore = 0;
+	int MaxScore = 0;
+	for (uint i = 0; i < 256*256; ++i)
+		{
+		int Score = s_final_nu_matrix[i];
+		if (i == 0 || Score < MinScore) MinScore = Score;
+		if (i == 0 || Score > MaxScore) MaxScore = Score;
+		}
+	m_matrix.size = 256;
+	m_matrix.length = 256;
+	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	m_matrix.matrix = s_final_nu_matrix;
+	m_matrix.min = MinScore;
+	m_matrix.max = MaxScore;
+	int *Mapper = myalloc(int, 256);
+	memset(Mapper, 0, 256*sizeof(int));
+	for (int i = 0; i < 256; ++i)
+		Mapper[i] = i;
+	m_matrix.mapper = Mapper;
+	m_Bits = 16;
+	}
+
 void Paralign::SetMu_scop40_tm0_6_0_8_fa2()
 	{
 	m_Open = 16;

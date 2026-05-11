@@ -58,7 +58,7 @@ void flat_aligner::cache_reverseT(
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssm_reverseT);
-	if (m_nufilter)
+	if (m_nu_filter)
 		{
 		assert(m_pa);
 		assert(nu_codeseq_rev);
@@ -76,12 +76,22 @@ void flat_aligner::cacheT(
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
+
+	if (m_nu_only)
+		{
+		//TODO query<->target
+		assert(m_pa);
+		assert(nu_codeseq);
+		m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
+		return;
+		}
+
 	fill_flat_pssm(profT, LT, flat_alphas::m_nfeat,
 		flat_alphas::m_alpha_sizes,
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
-	if (m_nufilter)
+	if (m_nu_filter)
 		{
 		assert(m_pa);
 		assert(nu_codeseq);
@@ -98,6 +108,16 @@ void flat_aligner::alignQ(
 	m_labelQ = labelQ;
 	m_profQ = profQ;
 	m_LQ = LQ;
+
+	if (m_nu_only)
+		{
+		assert(m_pa);
+		assert(nu_codeseqQ);
+		m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
+		m_score = float(m_pa->m_Score);
+		return;
+		}
+
 	m_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
@@ -106,7 +126,7 @@ void flat_aligner::alignQ(
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
-	if (m_nufilter)
+	if (m_nu_filter)
 		{
 		assert(m_pa);
 		assert(nu_codeseqQ);

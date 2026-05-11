@@ -249,6 +249,7 @@ void flat_profiles::from_chains_lookup(const lookup &look,
 		m_profiles[domidx] = make_profile(*chain);
 		found[domidx] = true;
 		m_lengths[domidx] = chain->get_length();
+		m_labels[domidx] = label;
 		}
 
 	for (uint domidx = 0; domidx < ndom; ++domidx)
@@ -276,7 +277,7 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
 		const flat_chain_t &chain = *chains[chainidx];
-		m_labels.push_back(chain.m_label.c_str());
+		m_labels.push_back(chain.m_label);
 		const uint L = chain.get_length();
 		if (L == 0) continue;
 		m_profiles[chainidx] = make_profile(chain);
@@ -319,7 +320,7 @@ uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
 	}
 
 // Nu		aa4+pm2+sec32
-void flat_profiles::set_nu_codeseqs()
+void flat_profiles::set_nu_codeseqs(const string &hexfastafn)
 	{
 	uint fi_aa20 = flat_alphas::get_fi(FAN_aa, 20);
 	uint fi_pm2 = flat_alphas::get_fi(FAN_pm, 2);
@@ -328,6 +329,22 @@ void flat_profiles::set_nu_codeseqs()
 	m_nu_codeseqs.resize(nprof, 0);
 	for (uint i = 0; i < nprof; ++i) 
 		set_nu_codeseq(fi_aa20, fi_pm2, fi_sec32, i);
+	if (hexfastafn != "")
+		{
+		FILE *f = CreateStdioFile(hexfastafn);
+		for (uint i = 0; i < nprof; ++i)
+			{
+			const uint8_t *codeseq = m_nu_codeseqs[i];
+			const uint L = get_length(i);
+			string hexseq;
+			hexseq.reserve(L);
+			for (uint pos = 0; pos < L; ++pos)
+				Psa(hexseq, "%02x", codeseq[pos]);
+			const string &label = m_labels[i];
+			SeqToFasta(f, label, hexseq);
+			}
+		CloseStdioFile(f);
+		}
 	}
 
 //static uint8_t get_aa4code(char c)

@@ -211,6 +211,27 @@ void ParaBench::Search(const string &AlignMethod, bool DoReverse)
 		Paralign::m_CountSWFast.load());
 	}
 
+void ParaBench::to_hexfasta(const string &hexfastafn) const
+	{
+	if (hexfastafn == "")
+		return;
+	ProgressLog("Writing %s\n", hexfastafn.c_str());
+	FILE *f = CreateStdioFile(hexfastafn);
+	const uint n = uint(m_ByteSeqs.size());
+	for (uint i = 0; i < n; ++i)
+		{
+		const byte *byteseq = m_ByteSeqs[i].data();
+		const string &label = m_look->get_dom(i);
+		const uint L = uint(m_ByteSeqs[i].size());
+		string hexseq;
+		hexseq.reserve(L);
+		for (uint pos = 0; pos < L; ++pos)
+			Psa(hexseq, "%02x", byteseq[pos]);
+		SeqToFasta(f, label, hexseq);
+		}
+	CloseStdioFile(f);
+	}
+
 void ParaBench::GetByteSeqs(const string &FN, const string &Method)
 	{
 	m_ByteSeqMethod = Method;
@@ -293,7 +314,7 @@ void ParaBench::GetByteSeqs_muletters(const string &FN)
 
 void ParaBench::GetByteSeqs_nu(const string &hexfastafn)
 	{
-	uint alpha_size = flat_alphas::get_compound_alpha_size();
+	uint alpha_size = 256; // flat_alphas::get_compound_alpha_size();
 	map<string, uint> label2seqidx;
 	ReadHexIntSeqs<uint8_t>(
 		alpha_size,

@@ -32,7 +32,8 @@ public:
 	char *m_path_buffer = 0;
 	uint m_ncol = 0;
 
-	bool m_nufilter = false;
+	bool m_nu_only = false;
+	bool m_nu_filter = false;
 	Paralign *m_pa = 0;
 
 public:

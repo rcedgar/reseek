@@ -1,96 +1,60 @@
 #include "myutils.h"
 #include "statsig.h"
 #include "parabench.h"
-#include "flat_bench.h"
-
-void GetFeatures(
-	const string &varstr,
-	vector<string> &feature_names,
-	vector<float> &weights)
-	{
-	void ParseVarStr(
-		const string &VarStr,
-		vector<string> &Names,
-		vector<float> &Values);
-
-	vector<string> names;
-	vector<float> values;
-	ParseVarStr(varstr, names, values);
-	vector<string> AlphaNames;
-
-	vector<string> scalar_names;
-	vector<float> scalar_values;
-	flat_bench::ClassifyParams(
-		names, values,
-		feature_names, weights,
-		scalar_names, scalar_values);
-	}
-
-void cmd_numx()
-	{
-	vector<string> feature_names;
-	vector<float> weights;
-	GetFeatures(g_Arg1, feature_names, weights);
-
-	const uint nfeat = uint(feature_names.size());
-	asserta(nfeat > 0);
-	asserta(weights.size() == nfeat);
-
-	Die("TODO");
-	//flat_alphas::init(feature_names);
-	asserta(flat_alphas::m_nfeat == nfeat);
-
-	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
-		name2weight[feature_names[fi]] = weights[fi];
-
-	Paralign::set_flat_compound(name2weight, 1, 1, 1, 1);
-	Paralign::LogMatrix();
-	Paralign::LogSWFastMatrix();
-	}
+#include "flat_profiles.h"
 
 void cmd_nubench()
 	{
-	asserta(optset_mxpattern);
-	vector<string> feature_names;
-	vector<float> weights;
-	GetFeatures(g_Arg1, feature_names, weights);
+	string chainfn, hexfafn;
+	if (EndsWith(g_Arg1, ".hexfa"))
+		hexfafn = g_Arg1;
+	else if (EndsWith(g_Arg1, ".bca"))
+		chainfn = g_Arg1;
+	else
+		Die("must be .hexfa or .bca");
 
-	const uint nfeat = uint(feature_names.size());
-	asserta(nfeat > 0);
-	asserta(weights.size() == nfeat);
-	asserta(!optset_scale);
-
-	asserta(flat_alphas::m_nfeat == nfeat);
-	Die("TODO");
-	//flat_alphas::init(feature_names);
-	//flat_alphas::read_logoddsvec_pattern(opt(mxpattern));
-
-	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
-		name2weight[feature_names[fi]] = weights[fi];
-
-	string AlignMethod = "para";
-	if (optset_alignmethod)
-		AlignMethod = string(opt(alignmethod));
-
-	asserta(optset_db);
-	const string &DBFN = opt(db);
-
-	float Scale = 1.0f;
-	int IntOpen = 2;
-	int IntExt = 1;
-	if (optset_scalef) Scale = float(opt(scalef));
-	if (optset_intopen) IntOpen = opt(intopen);
-	if (optset_intext) IntExt = opt(intext);
-	Paralign::set_flat_compound(name2weight, Scale, 
-		IntOpen, IntExt, 777);
+	Paralign::set_final_nu();
+	Paralign::LogMatrix();
 
 	ParaBench PS;
-	PS.GetByteSeqs(DBFN, "nuletters");
-	PS.SetLookupFromLabels();
-	PS.Search(AlignMethod, false);
+	if (optset_lookup)
+		PS.ReadLookup(opt(lookup));
+
+	flat_profiles fp;
+	vector<flat_chain_t *> chains;
+	if (chainfn != "")
+		{
+		vector<string> alpha_names;
+		alpha_names.push_back("aa20");
+		alpha_names.push_back("aa4");
+		alpha_names.push_back("pm2");
+		alpha_names.push_back("sec32");
+		flat_alphas::set_names(alpha_names);
+		asserta(optset_lookup);
+		read_flat_chains(chainfn, chains);
+		fp.from_chains_lookup(*PS.m_look, chains);
+		fp.set_nu_codeseqs();
+		PS.m_ByteSeqs.clear();
+		uint ndom = PS.m_look->get_ndom();
+		PS.m_ByteSeqs.resize(ndom);
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			const uint8_t *codeseq = fp.m_nu_codeseqs[domidx];
+			const uint L = fp.get_length(domidx);
+			PS.m_ByteSeqs[domidx].reserve(L);
+			for (uint pos = 0; pos < L; ++pos)
+				PS.m_ByteSeqs[domidx].push_back(codeseq[pos]);
+			}
+		}
+	else if (hexfafn != "")
+		PS.GetByteSeqs(hexfafn, "nuletters"); // hexfa
+	else
+		asserta(false);
+
+	if (!optset_lookup)
+		PS.SetLookupFromLabels();
+	PS.Search("para", false);
 	PS.SetScoreOrder();
-	PS.WriteHits(opt(output), true, true);
 	PS.Bench();
+	PS.WriteHits(opt(output), true, true);
 	}

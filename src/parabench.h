@@ -40,6 +40,7 @@ public:
 	void Align(uint ThreadIdx, uint i, uint j);
 	void WriteRevTsv(const string &FN) const;
 	void MakeSubset(ParaBench &Subset, uint SubsetPct);
+	void to_hexfasta(const string &hexfastafn) const;
 
 	void SetSelfScores_rev(const string &AlignMethod);
 	float GetSelfScore_rev(Paralign &PA, uint ChainIdx);

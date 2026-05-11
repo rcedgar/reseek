@@ -32,10 +32,9 @@ public:
 	static uint16_t **m_thresholds;
 	static vector<string> m_symbolsvec;
 
-private:
+public:
 	static void set_names(const vector<string> &alpha_names);
 
-public:
 	static uint get_nfeat() { assert(m_nfeat != 0); return m_nfeat; }
 	
 	static void alloc(uint32 nfeat);

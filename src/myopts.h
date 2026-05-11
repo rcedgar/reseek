@@ -226,6 +226,7 @@ FLAG_OPT(triangle)
 FLAG_OPT(include_self)
 FLAG_OPT(no_thread_pin)
 FLAG_OPT(nufilter)
+FLAG_OPT(nuonly)
 
 #undef FLAG_OPT
 #undef UNS_OPT
