@@ -56,5 +56,5 @@ void cmd_nubench()
 	PS.Search("para", false);
 	PS.SetScoreOrder();
 	PS.Bench();
-	PS.WriteHits(opt(output), true, true);
+	PS.WriteHits(opt(output), opt(include_self), opt(triangle));
 	}

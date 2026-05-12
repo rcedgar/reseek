@@ -319,7 +319,25 @@ uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
 	return profile;
 	}
 
-// Nu		aa4+pm2+sec32
+void flat_profiles::write_nu_hexfasta(const string &fn) const
+	{
+	if (fn == "") return;
+	FILE *f = CreateStdioFile(fn);
+	const uint nprof = uint(m_nu_codeseqs.size());
+	for (uint i = 0; i < nprof; ++i)
+		{
+		const uint8_t *codeseq = m_nu_codeseqs[i];
+		const uint L = get_length(i);
+		string hexseq;
+		hexseq.reserve(L);
+		for (uint pos = 0; pos < L; ++pos)
+			Psa(hexseq, "%02x", codeseq[pos]);
+		const string &label = m_labels[i];
+		SeqToFasta(f, label, hexseq);
+		}
+	CloseStdioFile(f);
+	}
+
 void flat_profiles::set_nu_codeseqs(const string &hexfastafn)
 	{
 	uint fi_aa20 = flat_alphas::get_fi(FAN_aa, 20);
@@ -329,58 +347,8 @@ void flat_profiles::set_nu_codeseqs(const string &hexfastafn)
 	m_nu_codeseqs.resize(nprof, 0);
 	for (uint i = 0; i < nprof; ++i) 
 		set_nu_codeseq(fi_aa20, fi_pm2, fi_sec32, i);
-	if (hexfastafn != "")
-		{
-		FILE *f = CreateStdioFile(hexfastafn);
-		for (uint i = 0; i < nprof; ++i)
-			{
-			const uint8_t *codeseq = m_nu_codeseqs[i];
-			const uint L = get_length(i);
-			string hexseq;
-			hexseq.reserve(L);
-			for (uint pos = 0; pos < L; ++pos)
-				Psa(hexseq, "%02x", codeseq[pos]);
-			const string &label = m_labels[i];
-			SeqToFasta(f, label, hexseq);
-			}
-		CloseStdioFile(f);
-		}
+	write_nu_hexfasta(hexfastafn);
 	}
-
-//static uint8_t get_aa4code(char c)
-//	{
-//	c = toupper(c);
-//	if (c == 'G')
-//		return 0;
-//	if (strchr("AHPST", c) != 0)
-//		return 1;
-//	if (strchr("DEKNQR", c) != 0)
-//		return 2;
-//	return 3;
-//	}
-//static uint8_t g_code_aa20_to_aa4_code[20]
-//	{
-//	1,	//'A'
-//	3,  //'C'
-//	2,  //'D'
-//	2,  //'E'
-//	3,  //'F'
-//	0,  //'G'
-//	1,  //'H'
-//	3,  //'I'
-//	2,  //'K'
-//	3,  //'L'
-//	3,  //'M'
-//	2,  //'N'
-//	1,  //'P'
-//	2,  //'Q'
-//	2,  //'R'
-//	1,  //'S'
-//	1,  //'T'
-//	3,  //'V'
-//	3,  //'W'
-//	3,  //'Y'
-//	};
 
 void flat_profiles::set_nu_codeseq(
 	uint fi_aa20, uint fi_pm2, uint fi_sec32, uint idx)

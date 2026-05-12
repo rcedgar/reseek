@@ -43,6 +43,7 @@ void flat_bench::load_profiles_chains(
 	{
 	Progress("load_profiles_chains ...");
 	m_fp.from_chains_lookup(*m_look, chains);
+	asserta(m_Labels == m_fp.m_labels);
 	m_Labels = m_fp.m_labels;
 	m_SeqCount = uint(m_Labels.size());
 	Progress("done\n");
@@ -167,7 +168,10 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	asserta(!isinf(Score));
 
 	if (m_nu_only)
+		{
 		AppendHit(domidxT, domidxQ, Score);
+		return;
+		}
 
 	const sid_t *distmxQ = 0;
 	const sid_t *distmxT = 0;
@@ -573,7 +577,7 @@ void flat_bench::set_distmxs(const vector<flat_chain_t *> &chains)
 bool flat_bench::m_nu_filter = false;
 void flat_bench::init_nu_filter(const string &hexfastafn)
 	{
-	Paralign::set_nu();
+	Paralign::set_final_nu();
 	m_nu_filter = true;
 	m_fp.set_nu_codeseqs(hexfastafn);
 	}
@@ -600,6 +604,8 @@ void cmd_flat_bench()
 
 	flat_bench FB;
 	FB.m_nu_filter = opt(nufilter);
+	Paralign::set_final_nu();
+
 	FB.ReadLookup(opt(lookup));
 	if (optset_dope)
 		FB.ReadDope(opt(dope));

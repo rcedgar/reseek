@@ -17,6 +17,8 @@ public:
 	void from_chains_lookup(const lookup &look,
 		const vector<flat_chain_t *> &chains);
 
+	void write_nu_hexfasta(const string &fn) const;
+
 	void read_profiles_faprof(
 		const string &faproffn,
 		vector<string> &feature_names);

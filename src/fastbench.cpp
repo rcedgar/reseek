@@ -326,7 +326,7 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 
 	FILE *f = CreateStdioFile(FN);
 	uint K = triangle_get_K(m_SeqCount);
-	const vector<string> labels = m_look->m_doms;
+	const vector<string> &labels = m_look->m_doms;
 	for (uint k = 0; k < K; ++k)
 		{
 		ProgressStep(k, K, "Writing %s", FN.c_str());

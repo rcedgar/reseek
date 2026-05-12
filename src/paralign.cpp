@@ -1002,6 +1002,7 @@ bool Paralign::Align_Path(const string &LabelT, const byte *T, uint LT)
 
 void Paralign::set_nu()
 	{
+	Die("Obsolete");
 	//unordered_map<string, float> name2weight;
 	//name2weight["aa4"] = 0.481f;
 	//name2weight["pm2"] = 0.301f;
