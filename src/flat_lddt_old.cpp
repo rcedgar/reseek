@@ -2,6 +2,7 @@
 #include "flat_chain.h"
 #include "flat_distmx.h"
 #include "flat_aligner.h"
+#include "flat_helpers.h"
 
 static const float g_LDDT_R0 = 15;
 static const float g_LDDT_R0_squared = g_LDDT_R0*g_LDDT_R0;
@@ -10,6 +11,7 @@ static const float g_LDDT_thresholds[4] = { 0.5, 1, 2, 4 };
 static const uint g_nr_thresholds = 4;
 
 float flat_getlddt_old_some_floats(
+	const string &labelQ, const string &labelT,
 	const uint32_t *posQs,
 	const uint32_t LQ,
 	const uint32_t *posTs,
@@ -91,6 +93,8 @@ float flat_getlddt_old_some_floats(
 	}
 
 float flat_getlddt_muscle_some_floats2(
+	const string &labelQ,
+	const string &labelT,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
 	uint LQ, uint LT,
@@ -102,6 +106,7 @@ float flat_getlddt_muscle_some_floats2(
 	uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol2);
 	float lddt = 
 		flat_getlddt_old_some_floats(
+			labelQ, labelT,
 			posQs.data(), LQ, posTs.data(), LT, ncol2,
 			distmxQ, distmxT, nr_considered_vec, nr_preserved_vec);
 	myfree(nr_considered_vec);
@@ -110,6 +115,7 @@ float flat_getlddt_muscle_some_floats2(
 	}
 
 float flat_getlddt_old_some_floats3(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -121,13 +127,7 @@ float flat_getlddt_old_some_floats3(
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 
-	void path2posvecs(
-		const string &path,
-		uint loQ, uint LQ,
-		uint loT, uint LT,
-		vector<uint> &posQs,
-		vector<uint> &posTs);
-	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 
 	const uint ncol2 = uint(posQs.size());
 	asserta(posTs.size() == ncol2);
@@ -135,6 +135,7 @@ float flat_getlddt_old_some_floats3(
 	uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol2);
 	float lddt = 
 		flat_getlddt_old_some_floats(
+			labelQ, labelT,
 			posQs.data(), LQ, posTs.data(), LT, ncol2,
 			distmxQ, distmxT, nr_considered_vec, nr_preserved_vec);
 	myfree(nr_considered_vec);
@@ -148,6 +149,7 @@ float flat_getlddt_old(
 	const sid_t *distmxT)
 	{
 	return flat_getlddt_old_some_floats3(
+		fa.m_labelQ, fa.m_labelT,
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,

@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_chain.h"
 #include "flat_aligner.h"
+#include "flat_helpers.h"
 
 static float get_entropy(
 	const vector<uint8_t> &codes, uint start, uint W)
@@ -29,6 +30,7 @@ static float get_entropy(
 	}
 
 float flat_get_entropy(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -42,13 +44,7 @@ float flat_get_entropy(
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 
-	void path2posvecs(
-		const string &path,
-		uint loQ, uint LQ,
-		uint loT, uint LT,
-		vector<uint> &posQs,
-		vector<uint> &posTs);
-	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 	const uint ncol = uint(posQs.size());
 
 	vector<uint8_t> codeQs;
@@ -86,6 +82,7 @@ float flat_get_entropy2(
 	uint nfeat, uint fi)
 	{
 	return flat_get_entropy(
+		fa.m_labelQ, fa.m_labelT,
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,

@@ -30,6 +30,7 @@ float flat_getlddt_muscle_some_floats(
 	uint32_t *nr_preserved_vec);
 
 void path2posvecs(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint loQ, uint LQ,
 	uint loT, uint LT,
@@ -61,6 +62,7 @@ void path2posvecs(
 	}
 
 uint path2posvecs2(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint loQ, uint LQ,
 	uint loT, uint LT,
@@ -98,13 +100,14 @@ static float get_score(
 	if (s_feature == "lddt_old")
 		{
 		vector<uint> posQs, posTs;
-		path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+		path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 		const uint ncol = uint(posQs.size());
 		assert(posTs.size() == ncol);
 
 		uint32_t *nr_considered_vec = myalloc(uint32_t, ncol);
 		uint32_t *nr_preserved_vec = myalloc(uint32_t, ncol);
 		float lddt = flat_getlddt_old_some_floats(
+			labelQ, labelT,
 			posQs.data(), LQ,
 			posTs.data(), LT,
 			ncol,
@@ -116,13 +119,13 @@ static float get_score(
 		myfree(nr_preserved_vec);
 
 		float lddt_old = flat_getlddt_muscle_some_floats2(
-			distmxQ, distmxT, LQ, LT, posQs, posTs);
+			labelQ, labelT, distmxQ, distmxT, LQ, LT, posQs, posTs);
 		return lddt_old;
 		}
 	else if (s_feature == "lddt")
 		{
 		vector<uint> posQs, posTs;
-		path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+		path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 		const uint ncol = uint(posQs.size());
 		assert(posTs.size() == ncol);
 		uint32_t *nr_considered_vec = myalloc(uint32_t, ncol);
@@ -142,7 +145,7 @@ static float get_score(
 	else if (s_feature == "lddtpow")
 		{
 		vector<uint> posQs, posTs;
-		path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+		path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 		const uint ncol = uint(posQs.size());
 		assert(posTs.size() == ncol);
 		uint32_t *nr_considered_vec = myalloc(uint32_t, ncol);
@@ -171,7 +174,7 @@ static float get_score(
 		float L = (LQ + LT)/2.0f + 50;
 
 		vector<uint> posQs, posTs;
-		path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+		path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 		const uint ncol = uint(posQs.size());
 		assert(posTs.size() == ncol);
 		uint32_t *nr_considered_vec = myalloc(uint32_t, ncol);
@@ -194,10 +197,12 @@ static float get_score(
 		}
 	else if (s_feature == "dali")
 		{
-		float dali = flat_get_dali(path, 
-				loQ, LQ,
-				loT, LT,
-				distmxQ, distmxT);
+		float dali = flat_get_dali(
+			labelQ, labelT,
+			path, 
+			loQ, LQ,
+			loT, LT,
+			distmxQ, distmxT);
 		return dali;
 		}
 	else if (s_feature == "dalix")
@@ -205,10 +210,11 @@ static float get_score(
 		uint ncol = uint(path.size());
 		float *colscores = myalloc(float, ncol);
 		float dalix = flat_get_dalix(path, 
-				loQ, LQ,
-				loT, LT,
-				distmxQ, distmxT,
-				colscores);
+			labelQ, labelT,
+			loQ, LQ,
+			loT, LT,
+			distmxQ, distmxT,
+			colscores);
 		myfree(colscores);
 		return dalix;
 		}

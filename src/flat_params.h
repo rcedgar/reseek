@@ -24,6 +24,8 @@ public:
 	static const float *m_LDDT_thresholds;
 	static uint m_LDDT_nr_thresholds;
 
+	static int m_min_nu_fwd_score;
+
 public:
 	static void set_params(
 		const vector<string> &names,

@@ -34,7 +34,12 @@ public:
 
 	bool m_nu_only = false;
 	bool m_nu_filter = false;
+	bool m_nu_filter_reject = false;
 	Paralign *m_pa = 0;
+
+public:
+	static atomic<uint> m_nu_filter_reject_count;
+	static atomic<uint> m_aln_count;
 
 public:
 	void alloc();
@@ -44,6 +49,17 @@ public:
 		const uint8_t *profT,
 		const uint8_t *nu_codeseq,
 		uint LT);
+
+	void clear_align()
+		{
+		m_loQ = UINT_MAX;
+		m_loT = UINT_MAX;
+		m_ncol = 0;
+		m_score = 0;
+		m_reverse_score = 0;
+		m_reverse_score_set = false;
+		m_nu_filter_reject = false;
+		}
 
 	// cache reversed T instead of T (=> m_pssmT)
 	void cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT);
@@ -69,4 +85,5 @@ public:
 	float get_self_rev_score(
 		const string &labelQ, 
 		const uint8_t *profQ, uint LQ);
+	void validate_path() const;
 	};

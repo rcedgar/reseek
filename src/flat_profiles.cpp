@@ -345,6 +345,7 @@ void flat_profiles::set_nu_codeseqs(const string &hexfastafn)
 	uint fi_sec32 = flat_alphas::get_fi(FAN_sec, 32);
 	uint nprof = get_nprof();
 	m_nu_codeseqs.resize(nprof, 0);
+	m_nu_codeseqs_rev.resize(nprof, 0);
 	for (uint i = 0; i < nprof; ++i) 
 		set_nu_codeseq(fi_aa20, fi_pm2, fi_sec32, i);
 	write_nu_hexfasta(hexfastafn);
@@ -357,6 +358,7 @@ void flat_profiles::set_nu_codeseq(
 	const uint8_t *profile = m_profiles[idx];
 	uint L = get_length(idx);
 	uint8_t *codeseq = myalloc(uint8_t, L);
+	uint8_t *codeseq_rev = myalloc(uint8_t, L);
 	const uint8_t *prof_aa20 = profile + size_t(fi_aa20)*L;
 	const uint8_t *prof_pm2 = profile + size_t(fi_pm2)*L;
 	const uint8_t *prof_sec32 = profile + size_t(fi_sec32)*L;
@@ -374,10 +376,13 @@ void flat_profiles::set_nu_codeseq(
 		uint32 code_nu = code_aa4 + code_pm2*4 + code_sec32*4*2;
 		assert(code_nu < 256);
 		codeseq[pos] = int8_t(code_nu);
+		codeseq_rev[L-pos-1] = int8_t(code_nu);
 #else
 		uint8_t code_nu = code_aa4 + code_pm2*4 + code_sec32*4*2;
 		codeseq[pos] = code_nu;
+		codeseq_rev[L-pos-1] = int8_t(code_nu);
 #endif
 		}
 	m_nu_codeseqs[idx] = codeseq;
+	m_nu_codeseqs_rev[idx] = codeseq_rev;
 	}

@@ -2,6 +2,7 @@
 #include "flat_chain.h"
 #include "flat_distmx.h"
 #include "flat_aligner.h"
+#include "flat_helpers.h"
 #include "sort.h"
 
 static const float tx = 1.25;//TODO param
@@ -59,6 +60,7 @@ float flat_get_dali2(
 	}
 
 float flat_get_dali(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -69,14 +71,7 @@ float flat_get_dali(
 
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
-
-	void path2posvecs(
-		const string &path,
-		uint loQ, uint LQ,
-		uint loT, uint LT,
-		vector<uint> &posQs,
-		vector<uint> &posTs);
-	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 	return flat_get_dali2(
 		loQ, LQ, loT, LT,
 		posQs, posTs,
@@ -88,7 +83,9 @@ float flat_get_dali3(
 	const sid_t *distmxQ,
 	const sid_t *distmxT)
 	{
-	return flat_get_dali(string(fa.m_path_buffer),
+	return flat_get_dali(
+		fa.m_labelQ, fa.m_labelT,
+		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,
 		distmxQ, distmxT);
@@ -195,6 +192,7 @@ float flat_get_dalix2(
 	}
 
 float flat_get_dalix(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -207,13 +205,7 @@ float flat_get_dalix(
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 
-	void path2posvecs(
-		const string &path,
-		uint loQ, uint LQ,
-		uint loT, uint LT,
-		vector<uint> &posQs,
-		vector<uint> &posTs);
-	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 	return flat_get_dalix2(
 		loQ, LQ, loT, LT,
 		posQs, posTs,
@@ -227,6 +219,7 @@ float flat_get_dalix3(
 	float *colscores)
 	{
 	return flat_get_dalix(
+		fa.m_labelQ, fa.m_labelT,
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,
@@ -240,6 +233,7 @@ float flat_get_dalix(
 	const sid_t *distmxT)
 	{
 	return flat_get_dali(
+		fa.m_labelQ, fa.m_labelT,
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_loT,
 		fa.m_LQ, fa.m_LT,

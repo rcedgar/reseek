@@ -120,14 +120,6 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
-	float flat_get_entropy(
-		const string &path,
-		uint32_t loQ, uint32_t LQ,
-		uint32_t loT, uint32_t LT,
-		const uint8_t *profQ,
-		const uint8_t *profT,
-		uint nfeat, uint fi);
-
 	const uint nfeat = flat_alphas::get_nfeat();
 	uint fi = UINT_MAX;
 	for (uint i = 0; i < nfeat; ++i)
@@ -148,6 +140,7 @@ float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 	const uint8_t *profT = m_fp.get_profile(idxT);
 
 	float H = flat_get_entropy(
+		fa.m_labelQ, fa.m_labelT,
 		path, fa.m_loQ, fa.m_LQ, fa.m_loT, fa.m_LT,
 		profQ, profT, nfeat, fi);
 
@@ -172,6 +165,7 @@ float flat_bench_struct_feature::get_dali(uint idxQ, uint idxT,
 	uint nmatch = fa.get_path_str(path);
 	uint ncol = uint(path.size());
 	float dali = flat_get_dali(
+		fa.m_labelQ, fa.m_labelT,
 		path, loQ, LQ, loT, LT,
 		distmxQ, distmxT);
 	return dali;
@@ -196,6 +190,7 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 	uint ncol = uint(path.size());
 	float *colscores = myalloc(float, nmatch);
 	float dali = flat_get_dalix(
+		fa.m_labelQ, fa.m_labelT,
 		path, loQ, LQ, loT, LT,
 		distmxQ, distmxT, colscores);
 	myfree(colscores);

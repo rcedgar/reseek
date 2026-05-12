@@ -72,6 +72,11 @@ public:
 		return (m_nu_filter ? m_fp.m_nu_codeseqs[domidx] : 0);
 		}
 
+	const uint8_t *get_nu_codeseq_rev(uint domidx) const
+		{
+		return (m_nu_filter ? m_fp.m_nu_codeseqs_rev[domidx] : 0);
+		}
+
 public:
 	virtual void ThreadBody_All(uint ThreadIdx);
 	virtual void ThreadBody_Dope(uint ThreadIdx);

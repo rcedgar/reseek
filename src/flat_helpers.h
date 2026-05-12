@@ -189,6 +189,7 @@ static inline const uint8_t *get_char2letter(const string &feature_name)
 	}
 
 float flat_get_dali(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -196,6 +197,7 @@ float flat_get_dali(
 	const sid_t *distmxT);
 
 float flat_get_dalix(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -253,6 +255,7 @@ void flat_reverse_distmx(
 void trunc_label(const string &label, string &tlabel);
 
 float flat_getlddt_muscle_some_floats2(
+	const string &labelQ, const string &labelT,
 	const sid_t *distmxQ,
 	const sid_t *distmxT,
 	uint LQ, uint LT,
@@ -260,6 +263,7 @@ float flat_getlddt_muscle_some_floats2(
 	const vector<uint32_t> &posTs);
 
 float flat_getlddt_old_some_floats(
+	const string &labelQ, const string &labelT,
 	const uint32_t *posQs,
 	const uint32_t LQ,
 	const uint32_t *posTs,
@@ -269,13 +273,6 @@ float flat_getlddt_old_some_floats(
 	const sid_t *distmxT,
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
-
-void path2posvecs(
-	const string &path,
-	uint loQ, uint LQ,
-	uint loT, uint LT,
-	vector<uint> &posQs,
-	vector<uint> &posTs);
 
 uint16_t *read_quantize(
 	const string &fn,
@@ -290,3 +287,20 @@ void GetFeatures(
 	const string &varstr,
 	vector<string> &feature_names,
 	vector<float> &weights);
+
+void path2posvecs(
+	const string &labelQ, const string &labelT,
+	const string &path,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	vector<uint> &posQs,
+	vector<uint> &posTs);
+
+float flat_get_entropy(
+	const string &labelQ, const string &labelT,
+	const string &path,
+	uint32_t loQ, uint32_t LQ,
+	uint32_t loT, uint32_t LT,
+	const uint8_t *profQ,
+	const uint8_t *profT,
+	uint nfeat, uint fi);

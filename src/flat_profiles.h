@@ -11,6 +11,7 @@ public:
 	vector<uint8_t *> m_profiles;
 	unordered_map<string, uint> m_label2idx;
 	vector<uint8_t *> m_nu_codeseqs;
+	vector<uint8_t *> m_nu_codeseqs_rev;
 
 public:
 	void from_chains(const vector<flat_chain_t *> &chains);

@@ -143,14 +143,14 @@ void flat_bench::doT(flat_aligner &fa, uint domidxT)
 	fa.cacheT(labelT, profT, nu_codeseqT, LT);
 	if (flat_params::m_rev_w > 0)
 		{
-		asserta(!m_nu_filter);
-		fa.cache_reverseT(labelT, profT, 0, LT);
+		const uint8_t *nu_codeseq_revT = get_nu_codeseq_rev(domidxT);
+		fa.cache_reverseT(labelT, profT, nu_codeseq_revT, LT);
 		}
 	}
 
 void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	{
-	if (!in_dope(domidxQ, domidxT))
+	if (!in_dope(domidxT, domidxQ))//TODO Q<->T
 		{
 		AppendHit(domidxQ, domidxT, get_missing_score());
 		return;
@@ -162,6 +162,12 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	const uint LQ = m_fp.get_length(domidxQ);
 	const uint8_t *nu_codeseqQ = get_nu_codeseq(domidxQ);
 	fa.alignQ(labelQ, profQ, nu_codeseqQ, LQ);
+	if (fa.m_nu_filter_reject)
+		{
+		AppendHit(domidxT, domidxQ, get_missing_score());
+		return;
+		}
+
 	float dpscore = fa.m_score;
 	float Score = fa.m_score;
 	asserta(!isnan(Score));
@@ -169,7 +175,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 
 	if (m_nu_only)
 		{
-		AppendHit(domidxT, domidxQ, Score);
+		AppendHit(domidxT, domidxQ, Score);//TODO Q<->T
 		return;
 		}
 
@@ -189,32 +195,6 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxT];
 		}
-	if (s_f3 != 0)
-		{
-		static mutex s_lock;
-		asserta(distmxQ && distmxT);
-		float lddt = flat_getlddt_muscle_some_floats4(
-			fa, distmxQ, distmxT);
-		float dali = 
-			flat_get_dali3(fa, distmxQ, distmxT);
-		uint n = uint(fa.m_ncol);
-		float *colscores = myalloc(float, n);
-		float dalix = 
-			flat_get_dalix3(fa, distmxQ, distmxT, colscores);
-		myfree(colscores);
-		float LQ = (float) fa.m_LQ;
-		float LT = (float) fa.m_LT;
-		float L = (LQ + LT)/2.0f + 50;
-
-		uint ncol = uint(fa.m_ncol);
-		float Lfactor = ncol/L;
-		float lddtx = lddt*Lfactor;
-
-		s_lock.lock();
-		fprintf(s_f3, "%s\t%s\t%.3g\t%.3g\t%.3g\n",
-			fa.m_labelQ.c_str(), fa.m_labelT.c_str(), lddtx, dali, dalix);
-		s_lock.unlock();
-		}
 	Score = flat_alignx::alignx(
 		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (flat_params::need_reverse())
@@ -230,7 +210,7 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 
-	AppendHit(domidxT, domidxQ, Score);
+	AppendHit(domidxT, domidxQ, Score);//TODO Q<->T
 
 	if (!s_ftsv) return;
 
@@ -301,7 +281,10 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	flat_aligner fa;
 	fa.m_nu_only = m_nu_only;
 	if (m_nu_filter || m_nu_only)
+		{
 		fa.m_pa = new Paralign;
+		fa.m_nu_filter = m_nu_filter;
+		}
 	fa.alloc();
 	for (;;)
 		{
@@ -694,6 +677,11 @@ void cmd_flat_bench()
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(ThreadCount);
 	FB.Search(ThreadCount, pin, optset_dope, UINT_MAX);
+	uint nu_filter_reject_count = flat_aligner::m_nu_filter_reject_count;
+	uint aln_count = flat_aligner::m_aln_count;
+	ProgressLog("%u/%u nu filter rejects (%.1f%%)\n",
+		nu_filter_reject_count, aln_count,
+		GetPct(nu_filter_reject_count, aln_count));
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));

@@ -120,6 +120,7 @@ float flat_getlddt_muscle_some_floats2(
 	}
 
 float flat_getlddt_muscle_some_floats3(
+	const string &labelQ, const string &labelT,
 	const string &path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
@@ -130,7 +131,7 @@ float flat_getlddt_muscle_some_floats3(
 
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
-	path2posvecs(path, loQ, LQ, loT, LT, posQs, posTs);
+	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
 
 	const uint ncol2 = uint(posQs.size());
 	asserta(posTs.size() == ncol2);
@@ -151,6 +152,7 @@ float flat_getlddt_muscle_some_floats4(
 	const sid_t *distmxT)
 	{
 	return flat_getlddt_muscle_some_floats3(
+		fa.m_labelQ, fa.m_labelT,
 		string(fa.m_path_buffer),
 		fa.m_loQ, fa.m_LQ,
 		fa.m_loT, fa.m_LT,

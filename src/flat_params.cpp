@@ -23,6 +23,7 @@ static const float thresholds[] = { 0.5, 1, 2, 4 };
 const float *flat_params::m_LDDT_thresholds = thresholds;
 uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
+int flat_params::m_min_nu_fwd_score = 100;
 
 void flat_params::set_params(
 	const vector<string> &names,

@@ -7,6 +7,9 @@
 #include "paralign.h"
 #include "cigar.h"
 
+atomic<uint> flat_aligner::m_nu_filter_reject_count;
+atomic<uint> flat_aligner::m_aln_count;
+
 void flat_aligner::alloc()
 	{
 	const uint nfeat = flat_alphas::m_nfeat;
@@ -77,13 +80,14 @@ void flat_aligner::cacheT(
 	m_profT = profT;
 	m_LT = LT;
 
-	if (m_nu_only)
+	if (m_nu_only || m_nu_filter)
 		{
 		//TODO query<->target
 		assert(m_pa);
 		assert(nu_codeseq);
 		m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
-		return;
+		if (m_nu_only)
+			return;
 		}
 
 	fill_flat_pssm(profT, LT, flat_alphas::m_nfeat,
@@ -91,6 +95,7 @@ void flat_aligner::cacheT(
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
+
 	if (m_nu_filter)
 		{
 		assert(m_pa);
@@ -105,35 +110,41 @@ void flat_aligner::alignQ(
 	const uint8_t *nu_codeseqQ,
 	uint LQ)
 	{
+	clear_align();
+
 	m_labelQ = labelQ;
 	m_profQ = profQ;
 	m_LQ = LQ;
 
-	if (m_nu_only)
+	++m_aln_count;
+	if (m_nu_only || m_nu_filter)
 		{
 		assert(m_pa);
 		assert(nu_codeseqQ);
 		m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
 		m_score = float(m_pa->m_Score);
-		return;
+		if (m_nu_only)
+			return;
+		if (m_pa->m_Score < flat_params::m_min_nu_fwd_score)
+			{
+			m_nu_filter_reject = true;
+			++m_nu_filter_reject_count;
+			return;
+			}
 		}
-
+	m_nu_filter_reject = false;
 	m_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
-		flat_alphas::m_feature_block_offsets, flat_alphas::m_nfeat,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
-	if (m_nu_filter)
-		{
-		assert(m_pa);
-		assert(nu_codeseqQ);
-		m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
-		Die("TODO combine scores");
-		}
-	m_reverse_score_set = false;
+#if DEBUG
+	validate_path();
+#endif
 	}
 
 void flat_aligner::align_reverse()
@@ -163,6 +174,37 @@ float flat_aligner::get_self_rev_score(
 	alignQ(labelQ, profQ, 0, LQ);
 	myfree(revprofQ);
 	return m_score;
+	}
+
+void flat_aligner::validate_path() const
+	{
+	asserta(m_loQ < m_LQ);
+	asserta(m_loT < m_LT);
+	uint posQ = m_loQ;
+	uint posT = m_loT;
+	for (uint i = 0; i < m_ncol; ++i)
+		{
+		char c = m_path_buffer[i];
+		if (c == 'M')
+			{
+			asserta(posQ < m_LQ);
+			asserta(posT < m_LT);
+			++posQ;
+			++posT;
+			}
+		else if (c == 'D')
+			{
+			asserta(posQ < m_LQ);
+			++posQ;
+			}
+		else if (c == 'I')
+			{
+			asserta(posT < m_LT);
+			++posT;
+			}
+		else
+			asserta(false);
+		}
 	}
 
 uint flat_aligner::get_match_count() const

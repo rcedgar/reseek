@@ -136,7 +136,7 @@ void flat_alphas::init_from_collect(
 	set_feature_block_offsets();
 	set_symbolsvec();
 
-	ProgressLog("%s (%s)\n", compound.c_str(), C.m_name.c_str());
+	ProgressLog("%s:\n%s\n", C.m_name.c_str(), compound.c_str());
 	}
 
 void flat_alphas::init_from_fnprefixes(
