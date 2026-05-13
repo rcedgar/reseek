@@ -791,6 +791,12 @@
     <ClCompile Include="flat_nu_aligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="qdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1301,6 +1307,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_nu_aligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="qdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tdata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

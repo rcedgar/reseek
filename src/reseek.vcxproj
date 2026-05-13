@@ -396,6 +396,7 @@
     <ClCompile Include="profiletolines.cpp" />
     <ClCompile Include="puu.cpp" />
     <ClCompile Include="pwalndb.cpp" />
+    <ClCompile Include="qdata.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
@@ -484,6 +485,7 @@
     <ClCompile Include="bench_structure_feature.cpp" />
     <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="sw_flat.cpp" />
+    <ClCompile Include="tdata.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_flat_chains.cpp" />
     <ClCompile Include="test_nu_codeseqs.cpp" />
@@ -653,6 +655,7 @@
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="puu.h" />
     <ClInclude Include="pwalndb.h" />
+    <ClInclude Include="qdata.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="round3sigfig.h" />
@@ -667,6 +670,7 @@
     <ClInclude Include="subsetbench.h" />
     <ClInclude Include="swtrace.h" />
     <ClInclude Include="tabbedlines.h" />
+    <ClInclude Include="tdata.h" />
     <ClInclude Include="thread_affinity.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
