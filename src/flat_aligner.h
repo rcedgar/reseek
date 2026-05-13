@@ -32,13 +32,13 @@ public:
 	char *m_path_buffer = 0;
 	uint m_ncol = 0;
 
-	bool m_nu_only = false;
-	bool m_nu_filter = false;
-	bool m_nu_filter_reject = false;
-	Paralign *m_pa = 0;
-
-public:
-	static atomic<uint> m_nu_filter_reject_count;
+//	bool m_nu_only = false;
+//	bool m_nu_filter = false;
+//	bool m_nu_filter_reject = false;
+//	Paralign *m_pa = 0;
+//
+//public:
+//	static atomic<uint> m_nu_filter_reject_count;
 	static atomic<uint> m_aln_count;
 
 public:
@@ -58,7 +58,7 @@ public:
 		m_score = 0;
 		m_reverse_score = 0;
 		m_reverse_score_set = false;
-		m_nu_filter_reject = false;
+		//m_nu_filter_reject = false;
 		}
 
 	// cache reversed T instead of T (=> m_pssmT)

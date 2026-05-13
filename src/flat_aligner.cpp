@@ -7,7 +7,7 @@
 #include "paralign.h"
 #include "cigar.h"
 
-atomic<uint> flat_aligner::m_nu_filter_reject_count;
+//atomic<uint> flat_aligner::m_nu_filter_reject_count;
 atomic<uint> flat_aligner::m_aln_count;
 
 void flat_aligner::alloc()
@@ -61,12 +61,12 @@ void flat_aligner::cache_reverseT(
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssm_reverseT);
-	if (m_nu_filter)
-		{
-		assert(m_pa);
-		assert(nu_codeseq_rev);
-		m_pa->SetQueryProfile_rev(nu_codeseq_rev, LT);
-		}
+	//if (m_nu_filter)
+	//	{
+	//	assert(m_pa);
+	//	assert(nu_codeseq_rev);
+	//	m_pa->SetQueryProfile_rev(nu_codeseq_rev, LT);
+	//	}
 	}
 
 void flat_aligner::cacheT(
@@ -80,15 +80,15 @@ void flat_aligner::cacheT(
 	m_profT = profT;
 	m_LT = LT;
 
-	if (m_nu_only || m_nu_filter)
-		{
-		//TODO query<->target
-		assert(m_pa);
-		assert(nu_codeseq);
-		m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
-		if (m_nu_only)
-			return;
-		}
+	//if (m_nu_only || m_nu_filter)
+	//	{
+	//	//TODO query<->target
+	//	assert(m_pa);
+	//	assert(nu_codeseq);
+	//	m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
+	//	if (m_nu_only)
+	//		return;
+	//	}
 
 	fill_flat_pssm(profT, LT, flat_alphas::m_nfeat,
 		flat_alphas::m_alpha_sizes,
@@ -96,12 +96,12 @@ void flat_aligner::cacheT(
 		flat_alphas::m_weighted_logoddsvec,
 		m_pssmT);
 
-	if (m_nu_filter)
-		{
-		assert(m_pa);
-		assert(nu_codeseq);
-		m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
-		}
+	//if (m_nu_filter)
+	//	{
+	//	assert(m_pa);
+	//	assert(nu_codeseq);
+	//	m_pa->SetQueryProfile(m_labelT, nu_codeseq, LT);
+	//	}
 	}
 
 void flat_aligner::alignQ(
@@ -117,22 +117,22 @@ void flat_aligner::alignQ(
 	m_LQ = LQ;
 
 	++m_aln_count;
-	if (m_nu_only || m_nu_filter)
-		{
-		assert(m_pa);
-		assert(nu_codeseqQ);
-		m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
-		m_score = float(m_pa->m_Score);
-		if (m_nu_only)
-			return;
-		if (m_pa->m_Score < flat_params::m_min_nu_fwd_score)
-			{
-			m_nu_filter_reject = true;
-			++m_nu_filter_reject_count;
-			return;
-			}
-		}
-	m_nu_filter_reject = false;
+	//if (m_nu_only || m_nu_filter)
+	//	{
+	//	assert(m_pa);
+	//	assert(nu_codeseqQ);
+	//	m_pa->Align_ScoreOnly(labelQ, nu_codeseqQ, LQ);
+	//	m_score = float(m_pa->m_Score);
+	//	if (m_nu_only)
+	//		return;
+	//	if (m_pa->m_Score < flat_params::m_min_nu_fwd_score)
+	//		{
+	//		m_nu_filter_reject = true;
+	//		++m_nu_filter_reject_count;
+	//		return;
+	//		}
+	//	}
+	//m_nu_filter_reject = false;
 	m_score = sw_flat_pssm(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,

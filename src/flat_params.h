@@ -9,11 +9,11 @@ public:
 	static float m_rev_w;
 	static float m_lddt_w;
 	static float m_lddtx_w;
-	static float m_lddtpow_w;
 	static float m_dali_w;
 	static float m_dalix_w;
-	static float m_entropy_w;
-	static float m_rotfreetm_w;
+
+	static float m_nu_filter_self_w;
+	static float m_nu_filter_rev_w;
 
 	static uint32_t m_nn_min_offset;
 	static uint32_t m_distmx_bandwidth;
@@ -33,7 +33,7 @@ public:
 
 	static bool need_reverse();
 	static bool need_distmx();
-	static bool need_prof();
 	static bool need_self();
+	static bool need_nu_self();
 	static bool need_alignx();
 	};

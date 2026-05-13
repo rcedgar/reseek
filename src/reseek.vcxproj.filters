@@ -494,9 +494,6 @@
     <ClCompile Include="fa2_lddt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parasearch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hjmumx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -780,6 +777,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="read_alphadir.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="collect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parabench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_nu_codeseqs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_nu_aligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1123,9 +1132,6 @@
     <ClInclude Include="daliscorer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parasearch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="fragaligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1283,6 +1289,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kabsch_quad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="collect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="final_nu_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parabench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_nu_aligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -162,22 +162,22 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 	const uint LQ = m_fp.get_length(domidxQ);
 	const uint8_t *nu_codeseqQ = get_nu_codeseq(domidxQ);
 	fa.alignQ(labelQ, profQ, nu_codeseqQ, LQ);
-	if (fa.m_nu_filter_reject)
-		{
-		AppendHit(domidxT, domidxQ, get_missing_score());
-		return;
-		}
+	//if (fa.m_nu_filter_reject)
+	//	{
+	//	AppendHit(domidxT, domidxQ, get_missing_score());
+	//	return;
+	//	}
 
 	float dpscore = fa.m_score;
 	float Score = fa.m_score;
 	asserta(!isnan(Score));
 	asserta(!isinf(Score));
 
-	if (m_nu_only)
-		{
-		AppendHit(domidxT, domidxQ, Score);//TODO Q<->T
-		return;
-		}
+	//if (m_nu_only)
+	//	{
+	//	AppendHit(domidxT, domidxQ, Score);//TODO Q<->T
+	//	return;
+	//	}
 
 	const sid_t *distmxQ = 0;
 	const sid_t *distmxT = 0;
@@ -279,12 +279,12 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	const uint PairCount = triangle_get_K(NQ);
 	const uint nfeat = flat_alphas::get_nfeat();
 	flat_aligner fa;
-	fa.m_nu_only = m_nu_only;
-	if (m_nu_filter || m_nu_only)
-		{
-		fa.m_pa = new Paralign;
-		fa.m_nu_filter = m_nu_filter;
-		}
+	//fa.m_nu_only = m_nu_only;
+	//if (m_nu_filter || m_nu_only)
+	//	{
+	//	fa.m_pa = new Paralign;
+	//	fa.m_nu_filter = m_nu_filter;
+	//	}
 	fa.alloc();
 	for (;;)
 		{
@@ -513,6 +513,25 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 		set_selfrev_scores();
 	}
 
+void flat_bench::set_nu_selfrev_scores()
+	{
+	uint ndom = m_look->get_ndom();
+	if (m_nu_self_rev_scores == 0)
+		m_nu_self_rev_scores = myalloc(float, ndom);
+	Paralign pa;
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		const string &label = m_look->get_dom(domidx);
+		uint L = m_fp.get_length(domidx);
+		const uint8_t *nu_codeseq = get_nu_codeseq(domidx);
+		const uint8_t *nu_codeseq_rev = get_nu_codeseq_rev(domidx);
+
+		pa.SetQueryProfile(m_Labels[domidx], nu_codeseq, L);
+		pa.Align_ScoreOnly(m_Labels[domidx] + ".rev", nu_codeseq_rev, L);
+		m_nu_self_rev_scores[domidx] = float(pa.m_Score);
+		}
+	}
+
 void flat_bench::set_selfrev_scores()
 	{
 	uint ndom = m_look->get_ndom();
@@ -525,9 +544,6 @@ void flat_bench::set_selfrev_scores()
 		const string &label = m_look->get_dom(domidx);
 		uint L = m_fp.get_length(domidx);
 		const uint8_t *prof = m_fp.get_profile(domidx);
-		sid_t *distmx = 0;
-		if (!m_distmxs.empty())
-			distmx = m_distmxs[domidx];
 		m_self_rev_scores[domidx] =
 			fa.get_self_rev_score(label, prof, L);
 		}
@@ -622,6 +638,8 @@ void cmd_flat_bench()
 	FB.Alloc();
 	if (flat_params::need_self())
 		FB.set_selfrev_scores();
+	if (flat_params::need_nu_self())
+		FB.set_nu_selfrev_scores();
 	FB.SetScalarParams(scalar_names, scalar_values);
 
 	if (optset_label1)
@@ -677,11 +695,11 @@ void cmd_flat_bench()
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(ThreadCount);
 	FB.Search(ThreadCount, pin, optset_dope, UINT_MAX);
-	uint nu_filter_reject_count = flat_aligner::m_nu_filter_reject_count;
-	uint aln_count = flat_aligner::m_aln_count;
-	ProgressLog("%u/%u nu filter rejects (%.1f%%)\n",
-		nu_filter_reject_count, aln_count,
-		GetPct(nu_filter_reject_count, aln_count));
+	//uint nu_filter_reject_count = flat_aligner::m_nu_filter_reject_count;
+	//uint aln_count = flat_aligner::m_aln_count;
+	//ProgressLog("%u/%u nu filter rejects (%.1f%%)\n",
+	//	nu_filter_reject_count, aln_count,
+	//	GetPct(nu_filter_reject_count, aln_count));
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));

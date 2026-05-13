@@ -1,18 +1,33 @@
 #include "myutils.h"
 #include "flat_params.h"
 
+// Gap parameters
 float flat_params::m_open = FLT_MAX;
 float flat_params::m_ext = FLT_MAX;
+
+// Test statistic weights
 float flat_params::m_self_w;
 float flat_params::m_rev_w;
 float flat_params::m_lddt_w;
 float flat_params::m_lddtx_w;
-float flat_params::m_lddtpow_w;
 float flat_params::m_dali_w;
 float flat_params::m_dalix_w;
-float flat_params::m_entropy_w;
-float flat_params::m_rotfreetm_w;
 
+/***
+Nu self & rev weighting
+=======================
+Optimal parameters for compound aa4+pm2+sec32, fixed weights from above, fwd&rev:
+	m_Scores[HitIdx] = Score_fwd - RevWeight*Score_rev -
+		SelfWeight*(SelfScore_rev_i + SelfScore_rev_j);
+	numegarev.log:05:42 527Mb  >>>0.00016[1.38512] latinclimb:HJ2/2:explore+selfw /1.30/ selfw=5.0E-01;revw=2.7E-01;
+	=>selfw=0.5;revw=0.27;
+***/
+// Nu filter
+float flat_params::m_nu_filter_self_w = 0.5;
+float flat_params::m_nu_filter_rev_w;
+int flat_params::m_min_nu_fwd_score = 130;
+
+// Chain quantization
 uint32_t flat_params::m_nn_min_offset = 12;
 uint32_t flat_params::m_distmx_bandwidth = 256;
 uint32_t flat_params::m_turnd_w = 5;
@@ -23,7 +38,6 @@ static const float thresholds[] = { 0.5, 1, 2, 4 };
 const float *flat_params::m_LDDT_thresholds = thresholds;
 uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
-int flat_params::m_min_nu_fwd_score = 100;
 
 void flat_params::set_params(
 	const vector<string> &names,
@@ -50,12 +64,10 @@ void flat_params::set_params(
 			m_lddt_w = value;
 		else if (name == "lddtx")
 			m_lddtx_w = value;
-		else if (name == "lddtpow")
-			m_lddtpow_w = value;
-		else if (name == "entropy")
-			m_entropy_w = value;
-		else if (name == "rotfreetm")
-			m_rotfreetm_w = value;
+		else if (name == "nfselfw")
+			m_nu_filter_self_w = value;
+		else if (name == "nfrevw")
+			m_nu_filter_rev_w = value;
 		else if (name == "gap2")
 			{
 			m_open = value;
@@ -75,19 +87,17 @@ bool flat_params::need_distmx()
 		flat_params::m_dalix_w > 0 ||
 		flat_params::m_dali_w > 0 ||
 		flat_params::m_lddt_w > 0 ||
-		flat_params::m_lddtx_w > 0 ||
-		flat_params::m_lddtpow_w > 0 ||
-		flat_params::m_entropy_w > 0;
-	}
-
-bool flat_params::need_prof()
-	{
-	return flat_params::m_entropy_w > 0;
+		flat_params::m_lddtx_w > 0;
 	}
 
 bool flat_params::need_self()
 	{
 	return flat_params::m_self_w > 0;
+	}
+
+bool flat_params::need_nu_self()
+	{
+	return flat_params::m_nu_filter_self_w > 0;
 	}
 
 bool flat_params::need_reverse()
@@ -98,7 +108,6 @@ bool flat_params::need_reverse()
 bool flat_params::need_alignx()
 	{
 	return
-		need_prof() ||
 		need_self() ||
 		need_reverse();
 	}

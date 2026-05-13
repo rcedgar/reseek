@@ -25,6 +25,7 @@ public:
 //////////////////////////////
 	flat_profiles m_fp;
 	float *m_self_rev_scores = 0;
+	float *m_nu_self_rev_scores = 0;
 
 //////////////////////////////
 // Distance matrices for
@@ -60,6 +61,7 @@ public:
 		const string &labelQ, const string &labelT);
 	void align_pair_selfrev(FILE *f, uint DomIdx);
 	void set_selfrev_scores();
+	void set_nu_selfrev_scores();
 	void set_distmxs(const vector<flat_chain_t *> &chains);
 
 	void doQ(flat_aligner &fa, uint domidxQ, uint domidxT);
