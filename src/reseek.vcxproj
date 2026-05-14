@@ -281,6 +281,7 @@
     <ClCompile Include="alignself.cpp" />
     <ClCompile Include="alignselfrev.cpp" />
     <ClCompile Include="align_bag.cpp" />
+    <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
     <ClCompile Include="collect.cpp" />
@@ -528,6 +529,7 @@
     <ClCompile Include="seqsource.cpp" />
     <ClCompile Include="sfasta.cpp" />
     <ClCompile Include="sort.cpp" />
+    <ClCompile Include="varstr.cpp" />
     <ClCompile Include="viterbifastmem.cpp" />
     <ClCompile Include="writelocalaln.cpp" />
     <ClCompile Include="xdropbwd.cpp" />

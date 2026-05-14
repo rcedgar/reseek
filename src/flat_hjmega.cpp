@@ -3,11 +3,6 @@
 #include "flat_helpers.h"
 #include "peaker.h"
 
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Values);
-
 static flat_bench *s_FB;
 static Peaker *s_Peaker;
 

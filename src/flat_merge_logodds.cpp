@@ -24,7 +24,7 @@ void cmd_flat_merge_logodds()
 	flat_bench FB;
 	vector<string> param_names;
 	vector<float> param_values;
-	ParseVarStr(VarStr, param_names, param_values);
+	parse_varstr(VarStr, param_names, param_values);
 
 	vector<string> feature_names;
 	vector<string> scalar_names;

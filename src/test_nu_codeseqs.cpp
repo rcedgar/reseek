@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_bench.h"
+#include "flat_helpers.h"
 
 /***
 $src/reseek_tune2/bash/reduce_aa4.bash
@@ -48,7 +49,7 @@ void cmd_test_nu_codeseqs()
 
 	vector<string> param_names;
 	vector<float> param_values;
-	ParseVarStr(VarStr_aa20, param_names, param_values);
+	parse_varstr(VarStr_aa20, param_names, param_values);
 
 	vector<string> alpha_names;
 	vector<string> scalar_names;

@@ -1,6 +1,5 @@
 #pragma once
 
-
 class collect
 	{
 public:
@@ -9,5 +8,6 @@ public:
 
 public:
 	void from_file(const string &fn);
+	void from_lines(const vector<string> &lines);
 	const vector<string> &get_lines(const string &name) const;
 	};

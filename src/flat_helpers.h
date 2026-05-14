@@ -304,3 +304,8 @@ float flat_get_entropy(
 	const uint8_t *profQ,
 	const uint8_t *profT,
 	uint nfeat, uint fi);
+
+void parse_varstr(
+	const string &VarStr,
+	vector<string> &Names,
+	vector<float> &Values);

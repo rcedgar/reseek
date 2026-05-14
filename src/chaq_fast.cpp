@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
+#include "flat_helpers.h"
 #include "flat_alphas.h"
 #include "flat_bench.h"
 #include "chaq.h"
@@ -264,7 +265,7 @@ void cmd_test_chaq_fast()
 	FAN fan = str2FAN(opt(feature));
 	uint alpha_size = opt(alpha_size);
 
-	ParseVarStr(opt(varstr), param_names, param_values);
+	parse_varstr(opt(varstr), param_names, param_values);
 	const uint32_t M = flat_params::m_distmx_bandwidth;
 
 	vector<string> alpha_names;

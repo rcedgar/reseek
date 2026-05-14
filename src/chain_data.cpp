@@ -9,11 +9,6 @@
 #include "scratch_mem.h"
 #include "fan.h"
 
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Values);
-
 static uint32_t s_bits;
 static const vector<flat_chain_t *> *s_chains;
 static chain_data **s_cdvec;
@@ -499,12 +494,11 @@ void chain_data::write_fastas(
 
 void cmd_test_chain_data()
 	{
-	asserta(optset_alphadir);
-	asserta(optset_varstr);
+	//asserta(optset_varstr);
 	vector<string> param_names;
 	vector<float> param_values;
 
-	ParseVarStr(opt(varstr), param_names, param_values);
+	parse_varstr(opt(varstr), param_names, param_values);
 
 	vector<string> alpha_names;
 	vector<string> scalar_names;

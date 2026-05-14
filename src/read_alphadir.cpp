@@ -204,6 +204,15 @@ void flat_alphas::init_from_alphadir(
 	const string &arg_alphadir,
 	const vector<string> &alpha_names)
 	{
+	extern const vector<string> g_alpha_collect_lines;
+	if (arg_alphadir == "")
+		{
+		collect C;
+		C.from_lines(g_alpha_collect_lines);
+		flat_alphas::init_from_collect(C, alpha_names);
+		return;
+		}
+
 	asserta(!alpha_names.empty());
 
 	if (StartsWith(arg_alphadir, "@"))

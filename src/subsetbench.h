@@ -131,8 +131,3 @@ public:
 	static void StaticThreadBody(SubsetBench *SB, uint ThreadIdx);
 	static void StaticThreadBodyAll(SubsetBench *SB, uint ThreadIdx);
 	};
-
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Weights);

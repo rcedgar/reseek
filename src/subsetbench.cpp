@@ -3,6 +3,7 @@
 #include "alpha.h"
 #include "sort.h"
 #include "triangle.h"
+#include "flat_helpers.h"
 
 static const uint MAGIC1 = 0xd06e1;
 static const uint MAGIC2 = 0xd06e2;
@@ -26,34 +27,6 @@ void SubPattern(const string &Pattern, const string &x,	string &s)
 			s += c;
 		}
 	asserta(Found);
-	}
-
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Values)
-	{
-	Names.clear();
-	Values.clear();
-
-	vector<string> Fields;
-	Split(VarStr, Fields, ';');
-
-	const uint n = SIZE(Fields);
-	for (uint i = 0; i < n; ++i)
-		{
-		const string &NameEqValue = Fields[i];
-		vector<string> Fields2;
-		Split(NameEqValue, Fields2, '=');
-		if (SIZE(Fields2) != 2)
-			Die("SubsetBench::ParseVarStr(%s) not name=value '%s'",
-				VarStr.c_str(), Fields[i].c_str());
-		const string &Name = Fields2[0];
-		const string &ValueStr = Fields2[1];
-		float Weight = StrToFloatf(ValueStr);
-		Names.push_back(Name);
-		Values.push_back(Weight);
-		}
 	}
 
 void SubsetBench::AddDom(const string &Dom, const string &ScopId)
@@ -1043,7 +1016,7 @@ void SubsetBench::UpdateParamsFromVarStr(const string &VarStr)
 	{
 	vector<string> Names;
 	vector<float> Values;
-	ParseVarStr(VarStr, Names, Values);
+	parse_varstr(VarStr, Names, Values);
 
 	vector<string> AlphaNames;
 	vector<float> Weights;
@@ -1080,7 +1053,7 @@ void cmd_subset_bench()
 
 	vector<string> Names;
 	vector<float> Values;
-	ParseVarStr(VarStr, Names, Values);
+	parse_varstr(VarStr, Names, Values);
 
 	vector<string> AlphaNames;
 	vector<float> Weights;

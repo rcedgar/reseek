@@ -3,11 +3,6 @@
 #include "flat_helpers.h"
 #include "peaker.h"
 
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Values);
-
 static flat_bench *s_FB;
 static Peaker *s_Peaker;
 
@@ -18,7 +13,10 @@ static double EvalSum3(const vector<string> &xv)
 	asserta(SIZE(xv) == VarCount);
 	string VarStr;
 	s_Peaker->xv2xss(xv, VarStr);
-	s_FB->UpdateParamsFromVarStr(VarStr);
+	vector<string> names;
+	vector<float> values;
+	parse_varstr(VarStr, names, values);
+	s_FB->UpdateParamsFromVarStr(names, values);
 	s_FB->ClearHitsAndResults();
 	uint ThreadCount = GetRequestedThreadCount();
 	s_FB->Search(ThreadCount, false, optset_dope, UINT_MAX);
@@ -38,7 +36,7 @@ void cmd_flat_hjmega_bracket()
 
 	vector<string> param_names;
 	vector<float> param_values;
-	ParseVarStr(VarStr, param_names, param_values);
+	parse_varstr(VarStr, param_names, param_values);
 
 	vector<string> alpha_names;
 	vector<string> scalar_names;

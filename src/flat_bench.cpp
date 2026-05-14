@@ -23,11 +23,6 @@ bool flat_bench::m_nu_only;
 static FILE *s_ftsv;
 static mutex s_ftsv_lock;
 
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Values);
-
 void flat_bench::StaticThreadBody_MaxSecs(uint MaxSecs)
 	{
 	asserta(MaxSecs > 0);
@@ -482,8 +477,14 @@ void flat_bench::UpdateParamsFromVarStr(const string &VarStr)
 	{
 	vector<string> Names;
 	vector<float> Values;
-	ParseVarStr(VarStr, Names, Values);
+	parse_varstr(VarStr, Names, Values);
+	UpdateParamsFromVarStr(Names, Values);
+	}
 
+void flat_bench::UpdateParamsFromVarStr(
+	const vector<string> &Names,
+	const vector<float> &Values)
+	{
 	vector<string> AlphaNames;
 	vector<float> Weights;
 	vector<string> ScalarNames;
@@ -583,10 +584,10 @@ void flat_bench::init_nu_filter(const string &hexfastafn)
 
 void cmd_flat_bench()
 	{
-	asserta(optset_alphadir);
+//	asserta(optset_alphadir);
 	asserta(optset_lookup);
-	asserta(optset_input);
 
+	asserta(!optset_input);
 	asserta(!optset_fapattern);
 	asserta(!optset_mxpattern);
 	asserta(!optset_spec);
@@ -594,7 +595,7 @@ void cmd_flat_bench()
 
 	asserta(!(optset_dope && optset_nufilter));
 
-	const string &VarStr = g_Arg1;
+	//const string &VarStr = g_Arg1;
 
 	if (optset_output2) s_ftsv = CreateStdioFile(opt(output2));
 
@@ -611,7 +612,7 @@ void cmd_flat_bench()
 
 	vector<string> param_names;
 	vector<float> param_values;
-	ParseVarStr(VarStr, param_names, param_values);
+	parse_varstr(opt(varstr), param_names, param_values);
 
 	vector<string> alpha_names;
 	vector<string> scalar_names;
@@ -625,7 +626,7 @@ void cmd_flat_bench()
 	flat_alphas::init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
-	read_flat_chains(opt(input), chains);
+	read_flat_chains(g_Arg1, chains);
 	FB.set_distmxs(chains);
 	FB.load_profiles_chains(chains);
 	const bool nufilter = opt(nufilter);
@@ -633,7 +634,7 @@ void cmd_flat_bench()
 	FB.m_nu_only = nuonly;
 	if (nufilter || nuonly)
 		FB.init_nu_filter(opt(hexfasta));
-	FB.UpdateParamsFromVarStr(VarStr);
+	FB.UpdateParamsFromVarStr(param_names, param_values);
 	FB.LogParams();
 	FB.Alloc();
 	if (flat_params::need_self())

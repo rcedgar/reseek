@@ -54,6 +54,8 @@ public:
 		const vector<string> &Names,
 		const vector<float> &Values);
 	void UpdateParamsFromVarStr(const string &VarStr);
+	void UpdateParamsFromVarStr(
+		const vector<string> &names, const vector<float> &values);
 	void load_profiles_fapattern(const string &fafnpattern);
 	void load_profiles_chains(const vector<flat_chain_t *> &chains);
 	void LogParams(bool show_progress = false) const;
@@ -97,10 +99,5 @@ public:
 
 	static void StaticThreadBody_MaxSecs(uint MaxSecs);
 	};
-
-void ParseVarStr(
-	const string &VarStr,
-	vector<string> &Names,
-	vector<float> &Weights);
 
 void TruncLabel(string &Label);

@@ -1,14 +1,11 @@
 #include "myutils.h"
 #include "collect.h"
 
-void collect::from_file(const string &fn)
+void collect::from_lines(const vector<string> &lines)
 	{
-	m_name = fn;
-	vector<string> lines;
-	vector<string> flds;
-	ReadLinesFromFile(fn, lines);
 	const size_t N = lines.size();
 	size_t i = 0;
+	vector<string> flds;
 	while (i < N)
 		{
 		const string &line = lines[i];
@@ -24,6 +21,14 @@ void collect::from_file(const string &fn)
 		m_name2lines[name] = name_lines;
 		i += n + 1;
 		}
+	}
+
+void collect::from_file(const string &fn)
+	{
+	m_name = fn;
+	vector<string> lines;
+	ReadLinesFromFile(fn, lines);
+	from_lines(lines);
 	}
 
 const vector<string> &collect::get_lines(const string &name) const

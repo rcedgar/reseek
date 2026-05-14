@@ -797,6 +797,12 @@
     <ClCompile Include="chaq_fast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alpha_collect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="varstr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
