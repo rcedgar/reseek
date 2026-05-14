@@ -291,16 +291,16 @@ void cmd_test_chaq_fast()
 		uint8_t *slow_codeseq = myalloc(uint8_t, L);
 		uint8_t *fast_codeseq = myalloc(uint8_t, L);
 
-		size_t scratch_bytes1 = chaq::get_fill_chaq_vecs_scratch_bytes_per_pos();
-		scratch_mem scratch1(scratch_bytes1*L);
+		size_t mem_bytes1 = chaq::get_fill_chaq_vecs_bytes_per_pos();
+		scratch_mem mem1(mem_bytes1*L);
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain, distmx);
 
 		chaq_vecs cv;
-		chaq::fill_chaq_vecs(distmx, L, cv, scratch1);
+		chaq::fill_chaq_vecs(distmx, L, cv, mem1);
 
 		size_t scratch_bytes2 = chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
-		scratch_mem scratch2(scratch_bytes1*L);
+		scratch_mem scratch2(scratch_bytes2*L);
 
 		chaq::slow_get_codeseq(chain, fan, alpha_size, slow_codeseq);
 		chaq::fast_get_codeseq(chain, distmx, &cv, fan, alpha_size, fast_codeseq, scratch2);

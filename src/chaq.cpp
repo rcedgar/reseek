@@ -76,16 +76,21 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	// lowest frequency code
 		return alpha_size - 1;
 
-	case FAN_pack:
-	case FAN_mpack:
-	case FAN_ppack:
-	// roughly median value, TODO?
-		return alpha_size/2;
+	//case FAN_pack:
+	//case FAN_mpack:
+	//case FAN_ppack:
+	//case FAN_angle:
+	//// roughly median value, TODO?
+	//	return alpha_size/2;
 
 	case FAN_aa:
 	case FAN_pm:
 		return 0;
 		}
+
+	// roughly median value, TODO?
+	if (is_quantized(fan))
+		return alpha_size/2;
 	Die("get_undef_code(%s)", FAN2str(fan));
 	return 0;
 	}
@@ -976,7 +981,7 @@ size_t chaq::get_fast_get_codeseq_scratch_bytes_per_pos()
 	return sizeof(uint16_t);	// values
 	}
 
-size_t chaq::get_fill_chaq_vecs_scratch_bytes_per_pos()
+size_t chaq::get_fill_chaq_vecs_bytes_per_pos()
 	{
 	return 4*sizeof(uint16_t)	// Xenss
 		+ 4*sizeof(sid_t)		// Xensids
@@ -987,17 +992,17 @@ void chaq::fill_chaq_vecs(
 	cp_sid_t distmx,
 	uint L,
 	chaq_vecs &cv,
-	scratch_mem &scratch)
+	scratch_mem &mem)
 	{
-	cv.nens = scratch.get<uint16_t>(L);
-	cv.rens = scratch.get<uint16_t>(L);
-	cv.pens = scratch.get<uint16_t>(L);
-	cv.mens = scratch.get<uint16_t>(L);
-	cv.nensids = scratch.get<sid_t>(L);
-	cv.rensids = scratch.get<sid_t>(L);
-	cv.pensids = scratch.get<sid_t>(L);
-	cv.mensids = scratch.get<sid_t>(L);
-	cv.sec32_codeseq = scratch.get<uint8_t>(L);
+	cv.nens = mem.get<uint16_t>(L);
+	cv.rens = mem.get<uint16_t>(L);
+	cv.pens = mem.get<uint16_t>(L);
+	cv.mens = mem.get<uint16_t>(L);
+	cv.nensids = mem.get<sid_t>(L);
+	cv.rensids = mem.get<sid_t>(L);
+	cv.pensids = mem.get<sid_t>(L);
+	cv.mensids = mem.get<sid_t>(L);
+	cv.sec32_codeseq = mem.get<uint8_t>(L);
 
 	fill_pen_men_vecs(distmx, L,
 		cv.pens, cv.pensids,

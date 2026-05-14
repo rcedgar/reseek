@@ -178,14 +178,14 @@ public:
 
 	static void set_aagroups(const string &aagroups);
 
-	static size_t get_fill_chaq_vecs_scratch_bytes_per_pos();
+	static size_t get_fill_chaq_vecs_bytes_per_pos();
 	static size_t get_fast_get_codeseq_scratch_bytes_per_pos();
 
 	static void fill_chaq_vecs(
 		cp_sid_t distmx,
 		uint L,
 		chaq_vecs &cv,
-		scratch_mem &scratch);
+		scratch_mem &mem);
 
 	static void fast_get_codeseq(
 		const flat_chain_t *chain,

@@ -14,16 +14,18 @@ void ParseVarStr(
 	vector<string> &Names,
 	vector<float> &Values);
 
-static uint32_t s_members;
+static uint32_t s_bits;
 static const vector<flat_chain_t *> *s_chains;
 static chain_data **s_cdvec;
 static uint s_nchain;
 static atomic<uint> s_next;
-static size_t s_memory_bytes;
-static size_t s_memory_bytes_per_pos;
-static uint8_t *s_memory_base = nullptr;
-static size_t s_memory_bytes_total = 0;
-static std::atomic<size_t> s_memory_next{0}; // bump offset in bytes
+static size_t s_mem_bytes;
+static uint8_t *s_mem_base = nullptr;
+static size_t s_mem_bytes_total = 0;
+static std::atomic<size_t> s_mem_next{0}; // bump offset in bytes
+
+static size_t s_mem_bytes_per_pos;
+static size_t s_scratch_bytes_per_pos;
 
 const uint32_t chain_data::m_maxL = 4000;
 
@@ -31,12 +33,7 @@ static void thread_body(uint threadidx)
 	{
 	const vector<flat_chain_t *> &chains = *s_chains;
 
-	uint scratch_bytes_per_pos =
-		4*sizeof(sid_t) +		// chaq_vecs::Xensids
-		4*sizeof(uint16_t) +	// chaq_vecs::Xens
-		sizeof(uint8_t);		// chaq_vecs::sec32_codeseq
-	uint scratch_bytes = chain_data::m_maxL*scratch_bytes_per_pos;
-	scratch_mem scratch(scratch_bytes);
+	scratch_mem scratch(chain_data::m_maxL*s_scratch_bytes_per_pos);
 
 	for (;;)
 		{
@@ -44,21 +41,22 @@ static void thread_body(uint threadidx)
 		if (chainidx >= s_nchain)
 			return;
 
-		const uint32_t L = chains[chainidx]->get_length(); // or ->m_L if that's your API
-		const size_t nbytes = size_t(s_memory_bytes_per_pos) * size_t(L);
+		const uint32_t L = chains[chainidx]->get_length();
+		const size_t nbytes = L*s_mem_bytes_per_pos;
 
-		const size_t off = s_memory_next.fetch_add(nbytes, std::memory_order_relaxed);
-		asserta(off + nbytes <= s_memory_bytes_total);
+		const size_t off = s_mem_next.fetch_add(nbytes, std::memory_order_relaxed);
+		asserta(off + nbytes <= s_mem_bytes_total);
 
-		uint8_t *const mem = s_memory_base + off;
+		uint8_t *ptr_mem = s_mem_base + off;
+		scratch_mem mem(ptr_mem, nbytes);
 
 		if (threadidx == 0)
 			ProgressStep(chainidx, s_nchain, "fill_chain_data_vec");
 
 		s_cdvec[chainidx] =
 			chain_data::from_chain(
-				*chains[chainidx], s_members,
-				mem, nbytes, scratch);
+				*chains[chainidx], s_bits,
+				mem, scratch);
 		}
 	}
 
@@ -91,6 +89,7 @@ void chain_data::make_mega_prof(
 	const sid_t *distmx,
 	uint8_t *mega_prof,
 	size_t bytes,
+	scratch_mem &mem,
 	scratch_mem &scratch)
 	{
 	const uint L = chain.get_length();
@@ -101,7 +100,7 @@ void chain_data::make_mega_prof(
 	asserta(bytes >= nfeat*L);
 
 	chaq_vecs cv;
-	chaq::fill_chaq_vecs(distmx, L, cv, scratch);
+	chaq::fill_chaq_vecs(distmx, L, cv, mem);
 
 #if DEBUG
 	memset(mega_prof, 0xff, nfeat*L);
@@ -127,32 +126,41 @@ void chain_data::make_mega_prof(
 		}
 	}
 
-size_t chain_data::get_bytes_per_pos(uint32_t bits)
+void chain_data::get_from_chain_bytes_per_pos(
+	uint32_t bits,
+	size_t &mem_bytes_per_pos,
+	size_t &scratch_bytes_per_pos)
 	{
 	const uint32_t M = flat_params::m_distmx_bandwidth;
 	const uint32_t nfeat = flat_alphas::m_nfeat;
 
-	size_t bytes = 0;
-	if ((bit_distmx & bits) != 0)			{ bytes += M*sizeof(sid_t); }
-	if ((bit_mega_pssm & bits) != 0)		{ bytes += flat_alphas::m_sum_alpha_sizes*sizeof(float); }
-	if ((bit_mega_pssm_rev & bits) != 0)	{ bytes += flat_alphas::m_sum_alpha_sizes*sizeof(float); }
-	if ((bit_mega_prof & bits) != 0)		{ bytes += nfeat; }
-	if ((bit_mega_prof_rev & bits) != 0)	{ bytes += nfeat; }
-	if ((bit_parasail_prof & bits) != 0)	{ bytes += 0; } // parasail calls malloc
-	if ((bit_parasail_prof_rev & bits) != 0){ bytes += 0; } // parasail calls malloc
-	if ((bit_nu_codeseq & bits) != 0)		{ bytes += 1; }
-	if ((bit_nu_codeseq_rev & bits) != 0)	{ bytes += 1; }
-	return bytes;
+	size_t fill_chaq_vecs_bytes_per_pos =
+		chaq::get_fill_chaq_vecs_bytes_per_pos();
+
+	size_t fast_get_codeseq_scratch_bytes_per_pos =
+		chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
+
+	uint n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq;
+	get_object_counts(bits, n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq);
+
+	mem_bytes_per_pos = 0;
+	mem_bytes_per_pos += n_distmx*M;
+	mem_bytes_per_pos += n_mega_prof*nfeat;
+	mem_bytes_per_pos += n_mega_pssm*nfeat*sizeof(float);
+	mem_bytes_per_pos += n_nu_codeseq;
+
+	scratch_bytes_per_pos = 0;
+	scratch_bytes_per_pos += fill_chaq_vecs_bytes_per_pos;
+	if (n_nu_codeseq > 0) scratch_bytes_per_pos += fast_get_codeseq_scratch_bytes_per_pos;
 	}
 
 chain_data *chain_data::from_chain(
 	const flat_chain_t &chain,
 	uint32_t bits,
-	uint8_t *memory,
-	size_t memory_bytes,
+	scratch_mem &mem,
 	scratch_mem &scratch)
 	{
-	uint8_t *memory_ptr = memory;
+	asserta(bits & bit_distmx);
 
 	const uint32_t L = chain.get_length();
 	asserta(L > 0);
@@ -166,8 +174,7 @@ chain_data *chain_data::from_chain(
 	const uint32_t nfeat = flat_alphas::m_nfeat;
 
 	asserta(bits & bit_distmx);
-	cd->m_distmx = (sid_t *) memory_ptr;
-	memory_ptr += L*M;
+	cd->m_distmx = mem.get<sid_t>(L);
 	chaq::fill_distmx(chain.m_xyz->m_data, L, cd->m_distmx);
 
 	const bool want_mega_prof = (bits & bit_mega_prof) != 0;
@@ -179,19 +186,16 @@ chain_data *chain_data::from_chain(
 
 	asserta(want_mega_prof);
 	size_t prof_bytes = L*nfeat;
-	cd->m_mega_prof = memory_ptr;
-	memory_ptr += prof_bytes;
+	cd->m_mega_prof = mem.get<uint8_t>(L*nfeat);
 	make_mega_prof(chain, cd->m_distmx,
-		cd->m_mega_prof, prof_bytes, scratch);
+		cd->m_mega_prof, prof_bytes, mem, scratch);
 
 	if (want_mega_prof_rev)
 		{
 		asserta(cd->m_mega_prof != 0);
 		const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
-		cd->m_mega_prof_rev = memory_ptr;
-		memory_ptr += nfeat*L;
-		flat_reverse_profile(
-			cd->m_mega_prof, L, nfeat, cd->m_mega_prof_rev);
+		cd->m_mega_prof_rev = mem.get<uint8_t>(L*nfeat);
+		flat_reverse_profile(cd->m_mega_prof, L, nfeat, cd->m_mega_prof_rev);
 		}
 
 	if (want_pssm_fwd || want_pssm_rev)
@@ -201,8 +205,7 @@ chain_data *chain_data::from_chain(
 		const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
 		const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
 
-		cd->m_mega_pssm = (float *) memory_ptr;
-		memory_ptr += nr_pssm_floats*sizeof(float);
+		cd->m_mega_pssm = mem.get<float>(nr_pssm_floats);
 		fill_flat_pssm(
 			cd->m_mega_prof, L, nfeat, alpha_sizes,
 			flat_alphas::m_feature_block_offsets,
@@ -211,8 +214,7 @@ chain_data *chain_data::from_chain(
 
 		if (want_pssm_rev)
 			{
-			cd->m_mega_pssm_rev = (float *) memory_ptr;
-			memory_ptr += nr_pssm_floats*sizeof(float);
+			cd->m_mega_pssm_rev = mem.get<float>(nr_pssm_floats);
 			fill_flat_pssm_reversed(
 				cd->m_mega_prof, L, nfeat, alpha_sizes,
 				flat_alphas::m_feature_block_offsets,
@@ -233,11 +235,8 @@ chain_data *chain_data::from_chain(
 		const uint8_t *prof_pm2 = cd->m_mega_prof + L*size_t(fi_pm2);
 		const uint8_t *prof_sec32 = cd->m_mega_prof + L*size_t(fi_sec32);
 
-		cd->m_codeseq_nu = memory_ptr;
-		memory_ptr += L;
-
-		cd->m_codeseq_nu_rev = memory_ptr;
-		memory_ptr += L;
+		cd->m_codeseq_nu = mem.get<uint8_t>(L);
+		cd->m_codeseq_nu_rev = mem.get<uint8_t>(L);
 
 		for (uint32_t pos = 0; pos < L; ++pos)
 			{
@@ -272,10 +271,28 @@ chain_data *chain_data::from_chain(
 			(const char *) cd->m_codeseq_nu_rev, L, &flat_nu_aligner::m_matrix);
 		}
 
-	size_t bump = size_t(memory_ptr - memory);
-	if (bump > memory_bytes)
-		Die("bump=%u, memory_bytes %u", uint(bump), uint(memory_bytes));
 	return cd;
+	}
+
+void chain_data::get_object_counts(
+	uint32_t bits,
+	uint &n_distmx,
+	uint &n_mega_prof,
+	uint &n_mega_pssm,
+	uint &n_nu_codeseq)
+	{
+	n_distmx = 0;
+	n_mega_prof = 0;
+	n_mega_pssm = 0;
+	n_nu_codeseq = 0;
+
+	if (bits & bit_distmx) ++n_distmx;
+	if (bits & bit_mega_prof) ++n_mega_prof;
+	if (bits & bit_mega_prof_rev) ++n_mega_prof;
+	if (bits & bit_mega_pssm) ++n_mega_pssm;
+	if (bits & bit_mega_pssm_rev) ++n_mega_pssm;
+	if (bits & bit_nu_codeseq) ++n_nu_codeseq;
+	if (bits & bit_nu_codeseq_rev) ++n_nu_codeseq;
 	}
 
 void chain_data::fill_chain_data_vec(
@@ -286,14 +303,15 @@ void chain_data::fill_chain_data_vec(
 	s_chains = &chains;
 	s_nchain = uint(chains.size());
 	s_cdvec = cdvec;
-	s_members = bits;
+	s_bits = bits;
 
 	size_t total_length = 0;
 	for (auto chain : chains) total_length += chain->m_L;
 
-	s_memory_bytes_per_pos = get_bytes_per_pos(bits);
-	s_memory_bytes_total = s_memory_bytes_per_pos*total_length;
-	s_memory_base = myalloc64(uint8_t, s_memory_bytes_total);
+	get_from_chain_bytes_per_pos(bits, s_mem_bytes_per_pos, s_scratch_bytes_per_pos);
+
+	s_mem_bytes_total = s_mem_bytes_per_pos*total_length;
+	s_mem_base = myalloc64(uint8_t, s_mem_bytes_total);
 
 	const uint nthread = GetRequestedThreadCount();
 	ProgressStep(0, s_nchain, "fill_chain_data_vec");
