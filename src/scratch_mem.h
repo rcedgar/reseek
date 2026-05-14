@@ -7,6 +7,9 @@ public:
 	size_t size = 0;
 	uint8_t *ptr = 0;
 	bool owner = false;
+#if DEBUG
+	size_t used = 0;
+#endif
 
 public:
 	scratch_mem(size_t n)
@@ -16,6 +19,10 @@ public:
 		size = n;
 		ptr = mem;
 		owner = true;
+#if DEBUG
+		memset(mem, 0xff, n);
+		used = 0;
+#endif
 		}
 
 	scratch_mem(uint8_t *buffer, size_t n)
@@ -25,6 +32,9 @@ public:
 		size = n;
 		ptr = buffer;
 		owner = false;
+#if DEBUG
+		used = 0;
+#endif
 		}
 
 	~scratch_mem()
@@ -33,10 +43,21 @@ public:
 			myfree(mem);
 		}
 
+	void reset()
+		{
+		ptr = mem;
+#if DEBUG
+		used = 0;
+#endif
+		}
+
 	template<class t> t *get(uint n)
 		{
 		uint8_t *tmp_ptr = ptr;
 		ptr += n*sizeof(t);
+#if DEBUG
+		used += n*sizeof(t);
+#endif
 		asserta(size_t(ptr - mem) <= size);
 		return (t *) tmp_ptr;
 		}

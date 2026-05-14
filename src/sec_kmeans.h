@@ -30,7 +30,6 @@ public:
 	uint* m_size_order = 0;
 	uint m_zero_count = 0;
 	uint m_nrchanges = 0;
-	sid_t *m_tmpv = 0;
 
 public:
 	void clear_params()
@@ -38,10 +37,8 @@ public:
 		m_K = 0;
 		m_D = 0;
 		m_w = 0;
-		myfree(m_tmpv);
 		myfree(m_off1s);
 		myfree(m_off2s);
-		m_tmpv = 0;
 		m_off1s = 0;
 		m_off2s = 0;		// +/- offsets from position
 		}
@@ -112,8 +109,6 @@ public:
 		{
 		asserta(m_D > 0);
 		asserta(m_K > 0);
-		asserta(m_tmpv == 0);
-		m_tmpv = myalloc(sid_t, m_D);
 		}
 
 	void from_sec_n(uint alpha_size);
@@ -427,8 +422,6 @@ public:
 			}
 		myfree(m_means);
 		m_means = myalloc(sid_t, m_K*m_D);
-		myfree(m_tmpv);
-		m_tmpv = myalloc(sid_t, m_D);
 		}
 
 	void set_vs(const vector<flat_chain_t *> &chains)
@@ -479,7 +472,10 @@ public:
 		ProgressLog("%u / %u bad backbones\n", bad_backbones, m_N);
 		}
 
-	void get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const;
+	void get_codeseq(
+		const sid_t *distmx,
+		uint L,
+		uint8_t *codeseq) const;
 
 	void run_iter()
 		{

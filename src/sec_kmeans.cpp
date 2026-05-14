@@ -346,21 +346,25 @@ static void get_random_offs(const string &spec,
 	asserta(off2s.size() == D);
 	}
 
-void sec_kmeans::get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) const
+void sec_kmeans::get_codeseq(
+	const sid_t *distmx,
+	uint L, 
+	uint8_t *codeseq) const
 	{
 	if (int(L) < 2*m_w + 1)
 		{
 		memset(codeseq, m_K-1, L);
 		return;
 		}
+	sid_t tmpv[32];
+	assert(m_D <= 32);
 
-	assert(m_tmpv);
 #if DEBUG
 	memset(codeseq, UINT8_MAX, L);
 #endif
 
-	get_v(distmx, m_w, L, m_tmpv);
-	int8_t letter_lo = assign_cluster(m_tmpv);
+	get_v(distmx, m_w, L, tmpv);
+	int8_t letter_lo = assign_cluster(tmpv);
 	for (int pos = 0; pos <= m_w; ++pos)
 		{
 #if DEBUG
@@ -372,15 +376,15 @@ void sec_kmeans::get_codeseq(const sid_t *distmx, uint L, uint8_t *codeseq) cons
 	int pos_hi = L - m_w - 1;
 	for (int pos = m_w + 1; pos < pos_hi; ++pos)
 		{
-		get_v(distmx, pos, L, m_tmpv);
+		get_v(distmx, pos, L, tmpv);
 #if DEBUG
 		assert(codeseq[pos] == UINT8_MAX);
 #endif
-		codeseq[pos] = assign_cluster(m_tmpv);
+		codeseq[pos] = assign_cluster(tmpv);
 		}
 
-	get_v(distmx, pos_hi, L, m_tmpv);
-	int8_t letter_hi = assign_cluster(m_tmpv);
+	get_v(distmx, pos_hi, L, tmpv);
+	int8_t letter_hi = assign_cluster(tmpv);
 	for (int pos = pos_hi; pos < int(L); ++pos)
 		{
 #if DEBUG
@@ -504,7 +508,6 @@ void cmd_sec_kmeans()
 	if (optset_fasta)
 		{
 		FILE *ffa = CreateStdioFile(opt(fasta));
-
 		for (uint chainidx = 0; chainidx < nrchains; ++chainidx)
 			{
 			const flat_chain_t* chain = chains[chainidx];

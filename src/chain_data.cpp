@@ -42,6 +42,7 @@ static void thread_body(uint threadidx)
 			return;
 
 		const uint32_t L = chains[chainidx]->get_length();
+		asserta(L <= chain_data::m_maxL);
 		const size_t nbytes = L*s_mem_bytes_per_pos;
 
 		const size_t off = s_mem_next.fetch_add(nbytes, std::memory_order_relaxed);
@@ -57,6 +58,8 @@ static void thread_body(uint threadidx)
 			chain_data::from_chain(
 				*chains[chainidx], s_bits,
 				mem, scratch);
+
+		scratch.reset();
 		}
 	}
 
@@ -89,7 +92,6 @@ void chain_data::make_mega_prof(
 	const sid_t *distmx,
 	uint8_t *mega_prof,
 	size_t bytes,
-	scratch_mem &mem,
 	scratch_mem &scratch)
 	{
 	const uint L = chain.get_length();
@@ -100,7 +102,7 @@ void chain_data::make_mega_prof(
 	asserta(bytes >= nfeat*L);
 
 	chaq_vecs cv;
-	chaq::fill_chaq_vecs(distmx, L, cv, mem);
+	chaq::fill_chaq_vecs(distmx, L, cv, scratch);
 
 #if DEBUG
 	memset(mega_prof, 0xff, nfeat*L);
@@ -110,9 +112,6 @@ void chain_data::make_mega_prof(
 		{
 		const FAN fan = flat_alphas::m_fans[fi];
 		const uint alpha_size = flat_alphas::m_alpha_sizes[fi];
-
-		uint8_t *get_codeseq_scratch_mem = 0;
-		size_t get_codeseq_scratch_bytes = 0;
 
 		uint8_t *codeseq = mega_prof + fi*L;
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
@@ -143,14 +142,17 @@ void chain_data::get_from_chain_bytes_per_pos(
 	uint n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq;
 	get_object_counts(bits, n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq);
 
+	const uint nr_pssm_floats_per_pos = flat_alphas::m_sum_alpha_sizes;
+
 	mem_bytes_per_pos = 0;
-	mem_bytes_per_pos += n_distmx*M;
+	mem_bytes_per_pos += n_distmx*M*sizeof(sid_t);
 	mem_bytes_per_pos += n_mega_prof*nfeat;
-	mem_bytes_per_pos += n_mega_pssm*nfeat*sizeof(float);
+	mem_bytes_per_pos += n_mega_pssm*nr_pssm_floats_per_pos*sizeof(float);
 	mem_bytes_per_pos += n_nu_codeseq;
 
 	scratch_bytes_per_pos = 0;
 	scratch_bytes_per_pos += fill_chaq_vecs_bytes_per_pos;
+
 	if (n_nu_codeseq > 0) scratch_bytes_per_pos += fast_get_codeseq_scratch_bytes_per_pos;
 	}
 
@@ -164,6 +166,7 @@ chain_data *chain_data::from_chain(
 
 	const uint32_t L = chain.get_length();
 	asserta(L > 0);
+	asserta(L <= m_maxL);
 
 	chain_data *cd = new chain_data;
 	cd->m_label = chain.m_label;
@@ -174,7 +177,7 @@ chain_data *chain_data::from_chain(
 	const uint32_t nfeat = flat_alphas::m_nfeat;
 
 	asserta(bits & bit_distmx);
-	cd->m_distmx = mem.get<sid_t>(L);
+	cd->m_distmx = mem.get<sid_t>(L*M);
 	chaq::fill_distmx(chain.m_xyz->m_data, L, cd->m_distmx);
 
 	const bool want_mega_prof = (bits & bit_mega_prof) != 0;
@@ -188,7 +191,7 @@ chain_data *chain_data::from_chain(
 	size_t prof_bytes = L*nfeat;
 	cd->m_mega_prof = mem.get<uint8_t>(L*nfeat);
 	make_mega_prof(chain, cd->m_distmx,
-		cd->m_mega_prof, prof_bytes, mem, scratch);
+		cd->m_mega_prof, prof_bytes, scratch);
 
 	if (want_mega_prof_rev)
 		{
@@ -206,7 +209,7 @@ chain_data *chain_data::from_chain(
 		const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
 
 		cd->m_mega_pssm = mem.get<float>(nr_pssm_floats);
-		fill_flat_pssm(
+			fill_flat_pssm(
 			cd->m_mega_prof, L, nfeat, alpha_sizes,
 			flat_alphas::m_feature_block_offsets,
 			flat_alphas::m_weighted_logoddsvec,
@@ -312,6 +315,9 @@ void chain_data::fill_chain_data_vec(
 
 	s_mem_bytes_total = s_mem_bytes_per_pos*total_length;
 	s_mem_base = myalloc64(uint8_t, s_mem_bytes_total);
+#if DEBUG
+	memset(s_mem_base, 0xff, s_mem_bytes_total);
+#endif
 
 	const uint nthread = GetRequestedThreadCount();
 	ProgressStep(0, s_nchain, "fill_chain_data_vec");
@@ -360,6 +366,7 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 		{
 		const chain_data *cd = cdvec[idx];
 		uint L = cd->m_L;
+		asserta(L <= m_maxL);
 		if (cd->m_distmx != 0)
 			{
 			++n_distmx;
@@ -431,18 +438,63 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 #define do(x)	Log("%10u  %12.12s  %6.1f%%  %s\n", \
 	n_##x, MemBytesToStr(bytes_##x), GetPct(double(bytes_##x), double(bytes_total)), #x)
 
-	do(distmx);
 	do(codeseq_nu);
 	do(codeseq_nu_rev);
 	do(mega_prof); 
 	do(mega_prof_rev);
-	do(mega_pssm);
-	do(mega_pssm_rev);
+	do(distmx);
 	do(parasail_prof);
 	do(parasail_prof_rev);
+	do(mega_pssm);
+	do(mega_pssm_rev);
 #undef x
 	Log("%10u  %12.12s   100.0%%\n",
 		nchain, MemBytesToStr(bytes_total));
+	}
+
+void chain_data::write_fastas(
+	const string &fnprefix,
+	const chain_data *const *cdvec,
+	uint nchain)
+	{
+	if (fnprefix == "") return;
+	const uint nfeat = flat_alphas::m_nfeat;
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		FAN fan = flat_alphas::m_fans[fi];
+		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+		asserta(alpha_size <= 32);
+		string fn;
+		Ps(fn, "%s.%s%u.fasta",
+			fnprefix.c_str(),
+			string(FAN2str(fan)).c_str(),
+			alpha_size);
+		ProgressStep(fi, nfeat, "%s", fn.c_str());
+
+		FILE *f = CreateStdioFile(fn);
+		for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+			{
+			const chain_data *cd = cdvec[chainidx];
+			const string &label = cd->m_label;
+			const uint L = cd->m_L;
+			const uint8_t *mega_prof = cd->m_mega_prof;
+			asserta(mega_prof != 0);
+			string seq;
+			seq.reserve(L);
+			const uint8_t *code2char =
+				(fan == FAN_aa && alpha_size == 20 ?
+				g_LetterToCharAmino : g_LetterToCharMu);
+			for (uint pos = 0; pos < L; ++pos)
+				{
+				uint8_t code = mega_prof[L*fi + pos];
+				asserta(code < alpha_size);
+				char c = code2char[code];
+				seq += c;
+				}
+			SeqToFasta(f, label, seq);
+			}
+		CloseStdioFile(f);
+		}
 	}
 
 void cmd_test_chain_data()
@@ -469,7 +521,9 @@ void cmd_test_chain_data()
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
 	const uint nchain = uint(chains.size());
+
 	chain_data **cdvec = myalloc(chain_data *, nchain);
 	chain_data::fill_chain_data_vec(chains, bits_query, cdvec);
 	chain_data::log_mem_stats(cdvec, nchain);
+	chain_data::write_fastas(opt(fasta), cdvec, nchain);
 	}

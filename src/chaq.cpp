@@ -992,17 +992,17 @@ void chaq::fill_chaq_vecs(
 	cp_sid_t distmx,
 	uint L,
 	chaq_vecs &cv,
-	scratch_mem &mem)
+	scratch_mem &scratch)
 	{
-	cv.nens = mem.get<uint16_t>(L);
-	cv.rens = mem.get<uint16_t>(L);
-	cv.pens = mem.get<uint16_t>(L);
-	cv.mens = mem.get<uint16_t>(L);
-	cv.nensids = mem.get<sid_t>(L);
-	cv.rensids = mem.get<sid_t>(L);
-	cv.pensids = mem.get<sid_t>(L);
-	cv.mensids = mem.get<sid_t>(L);
-	cv.sec32_codeseq = mem.get<uint8_t>(L);
+	cv.nens = scratch.get<uint16_t>(L);
+	cv.rens = scratch.get<uint16_t>(L);
+	cv.pens = scratch.get<uint16_t>(L);
+	cv.mens = scratch.get<uint16_t>(L);
+	cv.nensids = scratch.get<sid_t>(L);
+	cv.rensids = scratch.get<sid_t>(L);
+	cv.pensids = scratch.get<sid_t>(L);
+	cv.mensids = scratch.get<sid_t>(L);
+	cv.sec32_codeseq = scratch.get<uint8_t>(L);
 
 	fill_pen_men_vecs(distmx, L,
 		cv.pens, cv.pensids,

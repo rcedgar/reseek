@@ -16,6 +16,7 @@ static const uint32_t bit_nu_codeseq =			(1 << 7);
 static const uint32_t bit_nu_codeseq_rev =		(1 << 8);
 
 static const uint32_t bits_query =
+	bit_distmx |
 	bit_mega_pssm |
 	bit_mega_prof |
 	bit_parasail_prof |
@@ -24,6 +25,7 @@ static const uint32_t bits_query =
 	bit_nu_codeseq_rev;
 
 static const uint32_t bits_target =
+	bit_distmx |
 	bit_mega_prof |
 	bit_nu_codeseq |
 	bit_nu_codeseq_rev;
@@ -71,15 +73,17 @@ public:
 		size_t &mem_bytes_per_pos,
 		size_t &scratch_bytes_per_pos);
 
-	//static size_t get_make_mega_prof_scratch_bytes_per_pos(uint32_t bits);
-
 	static void make_mega_prof(
 		const flat_chain_t &chain,
 		const sid_t *distmx,
 		uint8_t *mega_prof,
 		size_t bytes,
-		scratch_mem &mem,
 		scratch_mem &scratch);
+
+	static void write_fastas(
+		const string &fnprefix,
+		const chain_data *const *cdvec,
+		uint n);
 
 	static void log_mem_stats(chain_data **cdvec, uint n);
 	};
