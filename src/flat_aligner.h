@@ -22,7 +22,7 @@ public:
 	float *m_scratch_rows = 0;
 	uint8_t *__restrict m_TB = 0;
 
-	uint m_maxL = 4000;
+	uint m_maxL = 4000;//@@TODO
 
 	float m_score = 0;
 	float m_reverse_score = 0;

@@ -791,10 +791,10 @@
     <ClCompile Include="flat_nu_aligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="qdata.cpp">
+    <ClCompile Include="chain_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tdata.cpp">
+    <ClCompile Include="chaq_fast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1309,10 +1309,10 @@
     <ClInclude Include="flat_nu_aligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="qdata.h">
+    <ClInclude Include="chain_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tdata.h">
+    <ClInclude Include="scratch_mem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

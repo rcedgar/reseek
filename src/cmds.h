@@ -135,5 +135,7 @@ C(bitdope_stats)
 C(read_alphadir)
 C(test_nu_codeseqs)
 C(make_nu_parasail_matrix)
+C(test_chain_data)
+C(test_chaq_fast)
 
 #undef C

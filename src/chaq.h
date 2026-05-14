@@ -4,8 +4,22 @@
 #include "flat_chain.h"
 #include "fan.h"
 #include "alpha.h"
+#include "scratch_mem.h"
 
 class sec_kmeans;
+
+struct chaq_vecs
+	{
+	p_uint16_t nens;
+	p_uint16_t rens;
+	p_uint16_t pens;
+	p_uint16_t mens;
+	p_sid_t nensids;
+	p_sid_t rensids;
+	p_sid_t pensids;
+	p_sid_t mensids;
+	p_uint8_t sec32_codeseq;
+	};
 
 /***
 Chain quantizer / quantifier
@@ -25,11 +39,11 @@ public:
 	static void fill_distmx(
 		cp_ic_t xyz,
 		uint L,
-		uint16_t *distmx);
+		sid_t *distmx);
 
 	static void fill_distmx(
 		const flat_chain_t *chain,
-		uint16_t *distmx);
+		sid_t *distmx);
 
 	static void fill_nen_vecs(
 		cp_sid_t distmx,
@@ -45,8 +59,8 @@ public:
 		uint L,
 		p_uint16_t nens,
 		p_uint16_t rens,
-		p_uint16_t nensids,
-		p_uint16_t rensids);
+		p_sid_t nensids,
+		p_sid_t rensids);
 
 	static void fill_pen_men_vecs(
 		cp_sid_t distmx,
@@ -71,6 +85,7 @@ public:
 
 	static void get_aa3_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
 	static void get_aa4_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq);
+	static void get_aa20_codeseq(const flat_chain_t *chain, p_uint8_t codeseq);
 
 	static void get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq);
 
@@ -90,6 +105,12 @@ public:
 		uint alpha_size,
 		p_uint16_t values);
 
+	static void slow_get_codeseq(
+		const flat_chain_t *chain,
+		FAN fan,
+		uint alpha_size,
+		p_uint8_t codeseq);
+
 	static void slow_get_codeseq_binned(
 		const flat_chain_t *chain,
 		FAN fan,
@@ -100,7 +121,6 @@ public:
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
-		uint8_t undef_code,
 		p_uint8_t codeseq);
 
 	static void slow_get_charseq_binned(
@@ -157,4 +177,30 @@ public:
 	static uint8_t get_undef_code(FAN fan, uint alpha_size);
 
 	static void set_aagroups(const string &aagroups);
+
+	static size_t get_fill_chaq_vecs_scratch_bytes_per_pos();
+	static size_t get_fast_get_codeseq_scratch_bytes_per_pos();
+
+	static void fill_chaq_vecs(
+		cp_sid_t distmx,
+		uint L,
+		chaq_vecs &cv,
+		scratch_mem &scratch);
+
+	static void fast_get_codeseq(
+		const flat_chain_t *chain,
+		const sid_t *distmx,
+		const chaq_vecs *cv,
+		FAN fan,
+		uint alpha_size,
+		p_uint8_t codeseq,
+		scratch_mem &scratch);
+
+	static void fast_get_values(
+		const sid_t *distmx,
+		const chaq_vecs *cv,
+		const flat_chain_t *chain,
+		FAN fan,
+		uint alpha_size,
+		p_uint16_t values);
 	};

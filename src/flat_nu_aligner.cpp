@@ -34,15 +34,11 @@ bool flat_nu_aligner::init()
 	m_matrix.matrix = s_final_nu_matrix;
 	m_matrix.min = minscore;
 	m_matrix.max = maxscore;
-#if DEBUG
 	int *mapper = myalloc(int, 256);
 	memset(mapper, 0, 256*sizeof(int));
 	for (int i = 0; i < 256; ++i)
 		mapper[i] = i;
 	m_matrix.mapper = mapper;
-#else
-	m_matrix.mapper = 0;
-#endif
 	return true;
 	}
 static bool init_done = flat_nu_aligner::init();

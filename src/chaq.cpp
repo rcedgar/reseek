@@ -1,13 +1,14 @@
 #include "myutils.h"
 #include "flat_base.h"
 #include "flat_params.h"
-#include "chaq.h"
+#include "flat_bench.h"
 #include "flat_distmx.h"
 #include "sec_kmeans.h"
+#include "scratch_mem.h"
 #include "quantize.h"
 #include "abcxyz.h"
 #include "alpha.h"
-#include <cmath>
+#include "chaq.h"
 
 /***
 Groups sweep by $src/reseek_tune2/bash/aa4s_mix.bash
@@ -89,35 +90,6 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 	return 0;
 	}
 
-//// AHPST,CFILMVWY,DEKNQR,G
-//uint DSS::Get_AA4(uint Pos)
-//	{
-//	const string &Seq = m_Chain->m_Seq;
-//	asserta(Pos < SIZE(Seq));
-//	char c = Seq[Pos];
-//	if (c == 'G')
-//		return 0;
-//	if (strchr("AHPST", c) != 0)
-//		return 1;
-//	if (strchr("CFILMVWY", c) != 0)
-//		return 2;
-//	if (strchr("DEKNQR", c) != 0)
-//		return 3;
-//	return UNDEFINED_ZERO_OVERLOAD;
-//	}
-
-//static uint8_t get_aa4code(char c)
-//	{
-//	c = toupper(c);
-//	if (c == 'G')
-//		return 0;
-//	if (strchr("AHPST", c) != 0)
-//		return 1;
-//	if (strchr("DEKNQR", c) != 0)
-//		return 2;
-//	return 3;
-//	}
-
 static uint8_t get_aa4code(char c)
 	{
 	uint8_t aacode = g_CharToLetterAmino[c];
@@ -138,14 +110,14 @@ static uint8_t get_aa3code(char c)
 void chaq::fill_distmx(
 	cp_ic_t xyz,
 	uint L,
-	uint16_t *distmx)
+	sid_t *distmx)
 	{
 	fill_flat_distmx(xyz, L, distmx);
 	}
 
 void chaq::fill_distmx(
 	const flat_chain_t *chain,
-	uint16_t *distmx)
+	sid_t *distmx)
 	{
 	fill_flat_distmx(chain->m_xyz->m_data,
 		chain->get_length(), distmx);
@@ -297,8 +269,8 @@ void chaq::fill_nen_ren_vecs(
 	uint L,
 	p_uint16_t nens,
 	p_uint16_t rens,
-	p_uint16_t nensids,
-	p_uint16_t rensids)
+	p_sid_t nensids,
+	p_sid_t rensids)
 	{
 	for (uint i = 0; i < L; ++i)
 		{
@@ -375,6 +347,22 @@ void chaq::get_aa4_codeseq(const char *aacharseq, uint L, p_uint8_t codeseq)
 	{
 	for (uint i = 0; i < L; ++i)
 		codeseq[i] = get_aa4code(aacharseq[i]);
+	}
+
+void chaq::get_aa20_codeseq(const flat_chain_t *chain, p_uint8_t codeseq)
+	{
+	uint8_t undef_code = get_undef_code(FAN_aa, 20);
+	const char *charseq = chain->m_aa->m_data;
+	const uint L = chain->get_length();
+	for (uint i = 0; i < L; ++i)
+		{
+		char c = charseq[i];
+		uint8_t code = g_CharToLetterAmino[c];
+		if (code == 0xff)
+			code = 0;
+		assert(code < 20);
+		codeseq[i] = code;
+		}
 	}
 
 void chaq::get_pm_codeseq(cp_sid_t pensids, cp_sid_t mensids, uint L, p_uint8_t codeseq)
@@ -459,11 +447,11 @@ void chaq::get_sec_codeseq(
 	SK->get_codeseq(distmx, L, codeseq);
 	}
 
+
 void chaq::slow_get_codeseq_discrete(
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
-	uint8_t undef_code,
 	p_uint8_t codeseq)
 	{
 	const uint M = flat_params::m_distmx_bandwidth;
@@ -472,6 +460,7 @@ void chaq::slow_get_codeseq_discrete(
 	const uint L = chain->get_length();
 	if (fan == FAN_aa)
 		{
+		uint8_t undef_code = get_undef_code(fan, alpha_size);
 		switch (alpha_size)
 			{
 		case 3:	get_aa3_codeseq(chain->m_aa->m_data, L, codeseq); return;
@@ -543,7 +532,9 @@ void chaq::slow_get_codeseq_discrete(
 		break;
 
 	case FAN_nensec:
+		{
 		assert(need_sec_codeseq);
+		uint8_t undef_code = get_undef_code(fan, alpha_size);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = nens[i];
@@ -554,9 +545,12 @@ void chaq::slow_get_codeseq_discrete(
 			codeseq[i] = code;
 			}
 		break;
+		}
 
 	case FAN_rensec:
+		{
 		assert(need_sec_codeseq);
+		uint8_t undef_code = get_undef_code(fan, alpha_size);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t xen = rens[i];
@@ -567,8 +561,11 @@ void chaq::slow_get_codeseq_discrete(
 			codeseq[i] = code;
 			}
 		break;
+		}
 
 	case FAN_pensec:
+		{
+		uint8_t undef_code = get_undef_code(fan, alpha_size);
 		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
@@ -580,8 +577,11 @@ void chaq::slow_get_codeseq_discrete(
 			codeseq[i] = code;
 			}
 		break;
+		}
 
 	case FAN_mensec:
+		{
+		uint8_t undef_code = get_undef_code(fan, alpha_size);
 		assert(need_sec_codeseq);
 		for (uint i = 0; i < L; ++i)
 			{
@@ -593,6 +593,7 @@ void chaq::slow_get_codeseq_discrete(
 			codeseq[i] = code;
 			}
 		break;
+		}
 
 	case FAN_pm:
 		asserta(alpha_size == 2);
@@ -834,8 +835,7 @@ void chaq::slow_get_charseq_discrete(
 	const uint L = chain->get_length();
 	assert(L > 0);
 	uint8_t *codeseq = myalloc(uint8_t, L);
-	slow_get_codeseq_discrete(
-		chain, fan, alpha_size, undef_code, codeseq);
+	slow_get_codeseq_discrete(chain, fan, alpha_size, codeseq);
 	codeseq2charseq(codeseq, L, alpha_size, charseq);
 	myfree(codeseq);
 	}
@@ -863,6 +863,20 @@ void chaq::slow_get_codeseq_binned(
 		codeseq[i] = code;
 		}
 	myfree(values);
+	}
+
+void chaq::slow_get_codeseq(
+	const flat_chain_t *chain,
+	FAN fan,
+	uint alpha_size,
+	p_uint8_t codeseq)
+	{
+	const uint L = chain->get_length();
+
+	if (is_quantized(fan))
+		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, codeseq);
+	else
+		chaq::slow_get_codeseq_discrete(chain, fan, alpha_size, codeseq);
 	}
 
 void chaq::slow_get_charseq_binned(
@@ -955,4 +969,45 @@ void chaq::set_aagroups(const string &aagroups)
 
 	for (uint i = 0; i < 4; ++i)
 		asserta(m_aacode2aa4code[i] < 4);
+	}
+
+size_t chaq::get_fast_get_codeseq_scratch_bytes_per_pos()
+	{
+	return sizeof(uint16_t);	// values
+	}
+
+size_t chaq::get_fill_chaq_vecs_scratch_bytes_per_pos()
+	{
+	return 4*sizeof(uint16_t)	// Xenss
+		+ 4*sizeof(sid_t)		// Xensids
+		+ sizeof(uint8_t);		// sec32_codeseq
+	}
+
+void chaq::fill_chaq_vecs(
+	cp_sid_t distmx,
+	uint L,
+	chaq_vecs &cv,
+	scratch_mem &scratch)
+	{
+	cv.nens = scratch.get<uint16_t>(L);
+	cv.rens = scratch.get<uint16_t>(L);
+	cv.pens = scratch.get<uint16_t>(L);
+	cv.mens = scratch.get<uint16_t>(L);
+	cv.nensids = scratch.get<sid_t>(L);
+	cv.rensids = scratch.get<sid_t>(L);
+	cv.pensids = scratch.get<sid_t>(L);
+	cv.mensids = scratch.get<sid_t>(L);
+	cv.sec32_codeseq = scratch.get<uint8_t>(L);
+
+	fill_pen_men_vecs(distmx, L,
+		cv.pens, cv.pensids,
+		cv.mens, cv.mensids);
+
+	fill_nen_ren_vecs(
+		cv.pens, cv.mens,
+		cv.pensids, cv.mensids, L,
+		cv.nens, cv.rens,
+		cv.nensids, cv.rensids);
+
+	get_sec_codeseq(32, distmx, L, cv.sec32_codeseq);
 	}

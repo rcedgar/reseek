@@ -57,8 +57,9 @@ public:
 
 	void profile_to_fasta(FILE *f, uint i) const;
 
-	uint8_t *make_profile(const flat_chain_t &chain) const;
-
 	void set_nu_codeseqs(const string &hexfastafn = "");
 	void set_nu_codeseq(uint fi_aa20, uint fi_pm2, uint fi_sec32, uint idx);
+
+public:
+	static uint8_t *make_profile(const flat_chain_t &chain);
 	};

@@ -284,7 +284,7 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 		}
 	}
 
-uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
+uint8_t *flat_profiles::make_profile(const flat_chain_t &chain)
 	{
 	const uint L = chain.get_length();
 	asserta(L > 0);
@@ -306,8 +306,7 @@ uint8_t *flat_profiles::make_profile(const flat_chain_t &chain) const
 		else
 			{
 			const uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
-			chaq::slow_get_codeseq_discrete(
-				&chain, fan, alpha_size, undef_code, codeseq);
+			chaq::slow_get_codeseq_discrete(&chain, fan, alpha_size, codeseq);
 			}
 
 #if DEBUG
