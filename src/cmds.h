@@ -137,5 +137,6 @@ C(test_nu_codeseqs)
 C(make_nu_parasail_matrix)
 C(test_chain_data)
 C(test_chaq_fast)
+C(flat_bench2)
 
 #undef C

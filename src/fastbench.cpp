@@ -369,8 +369,9 @@ void FastBench::SetLookupFromLabels()
 	m_look->from_labels(m_Labels);
 	}
 
-void FastBench::ReadLookup(const string &FN)
+void FastBench::ReadLookup(const string &argFN)
 	{
+	const string &FN = (argFN == "" ? "../data/scop40x.lookup" : argFN);
 	m_scores_are_evalues = opt(scores_are_evalues);
 	if (m_look == 0) m_look = new lookup;
 	m_look->from_tsv(FN);

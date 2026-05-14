@@ -320,6 +320,7 @@
     <ClCompile Include="flat_align_pair.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
+    <ClCompile Include="flat_bench2.cpp" />
     <ClCompile Include="flat_bench_struct_feature.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
@@ -570,6 +571,7 @@
     <ClInclude Include="featuretrainer2.h" />
     <ClInclude Include="final_nu_matrix.h" />
     <ClInclude Include="flat_aligner.h" />
+    <ClInclude Include="flat_bench2.h" />
     <ClInclude Include="flat_bench_struct_feature.h" />
     <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />

@@ -309,3 +309,11 @@ void parse_varstr(
 	const string &VarStr,
 	vector<string> &Names,
 	vector<float> &Values);
+
+void flat_classify_params(
+	const vector<string> &names,
+	const vector<float> &values,
+	vector<string> &alphan_ames,
+	vector<float> &weights,
+	vector<string> &scalar_names,
+	vector<float> &scalar_values);

@@ -32,3 +32,40 @@ void parse_varstr(
 		Values.push_back(Weight);
 		}
 	}
+
+void flat_classify_params(
+	const vector<string> &Names,
+	const vector<float> &Values,
+	vector<string> &AlphaNames,
+	vector<float> &Weights,
+	vector<string> &ScalarNames,
+	vector<float> &ScalarValues)
+	{
+	for (uint i = 0; i < SIZE(Names); ++i)
+		{
+		const string &Name = Names[i];
+		float Value = Values[i];
+		if (Name == "open" \
+			|| Name == "ext" \
+			|| Name == "gap2" \
+			|| Name == "selfw" \
+			|| Name == "dali" \
+			|| Name == "dalix" \
+			|| Name == "lddt" \
+			|| Name == "lddtx" \
+			|| Name == "lddtpow" \
+			|| Name == "entropy" \
+			|| Name == "rotfreetm" \
+			|| Name == "revw" \
+			|| StartsWith(Name, "oldts_"))
+			{
+			ScalarNames.push_back(Name);
+			ScalarValues.push_back(Value);
+			}
+		else
+			{
+			AlphaNames.push_back(Name);
+			Weights.push_back(Value);
+			}
+		}
+	}
