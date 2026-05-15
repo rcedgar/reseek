@@ -115,7 +115,7 @@ void flat_bench2::align_pair(
 
 	const chain_data *cd_i = m_cdvec[i];
 	const chain_data *cd_j = m_cdvec[j];
-	
+
 	string label_i = cd_i->m_label;
 	string label_j = cd_j->m_label;
 	trunc_label(label_i);
@@ -128,6 +128,23 @@ void flat_bench2::align_pair(
 	asserta(L_i <= m_maxL);
 	asserta(L_j <= m_maxL);
 
+	if (flat_params::m_min_nu_fwd_score > 0)
+		{
+		const int open = Paralign::m_Open;
+		const int ext = Paralign::m_Ext;
+
+		if (TD.m_parasail_result != 0)
+			parasail_result_free(TD.m_parasail_result);
+		parasail_profile_t *prof_i = cd_i->m_parasail_prof;
+		asserta(prof_i != 0);
+		const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
+		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+		if (TD.m_parasail_result->score < flat_params::m_min_nu_fwd_score)
+			return;
+		}
+	
 	const uint8_t *prof_i = cd_i->m_mega_prof;
 	const float *pssm_j = cd_j->m_mega_pssm;
 
