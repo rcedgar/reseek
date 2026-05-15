@@ -21,7 +21,6 @@ uint16_t *read_quantize(const string &fn, uint alpha_size, uint16_t &median)
 uint16_t *quantize_from_lines(const vector<string> &lines,
 	FAN &fan, uint &alpha_size, uint16_t &median)
 	{
-
 	uint16_t *thresholds = 0;
 	alpha_size = UINT_MAX;
 	median = UINT16_MAX;

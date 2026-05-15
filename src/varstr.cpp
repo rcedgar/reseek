@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "flat_helpers.h"
 
 /***
 [scalar] 0.000435  dali
@@ -21,10 +22,48 @@
  nendist32    0.116  ■■■■■■■■■
       aa20    0.529  ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
      Total    1.000
+
+float flat_params::m_nu_filter_self_w = 0.5f;
+float flat_params::m_nu_filter_rev_w = 0.27f;
+int flat_params::m_nu_filter_min_fwd_score = 120;
+int flat_params::m_nu_filter_min_combined_score = 43;
 ***/
 
+static const string default_alpha_weights =
+	"aa20=5.29E-01;"
+	"angle32=8.66E-02;"
+	"mendist32=9.01E-03;"
+	"nendist32=1.16E-01;"
+	"nensec32=1.58E-02;"
+	"pack32=8.87E-02;"
+	"pendist32=1.37E-02;"
+	"pm2=1.40E-02;"
+	"pmdd32=8.04E-03;"
+	"ppack32=1.77E-03;"
+	"rendist32=2.25E-02;"
+	"sec32=5.97E-02;"
+	"turnd32=3.49E-02;";
+
+static const string default_gaps =
+	"gap2=8.94E-01;";
+
+static const string default_test_statistic_weights =
+	"dali=4.35E-04;"
+	"lddt=4.66E-02;"
+	"revw=6.72E-01;"
+	"selfw=9.62E-01;";
+
+static const string default_nu_filter =
+	"nfselfw=0.5;"
+	"nfrevw=0.27;"
+	"nfminfwd=120;"
+	"nfmincmb=43;";
+
 static const string default_varstr =
-"aa20=5.29E-01;angle32=8.66E-02;dali=4.35E-04;gap2=8.94E-01;lddt=4.66E-02;mendist32=9.01E-03;nendist32=1.16E-01;nensec32=1.58E-02;pack32=8.87E-02;pendist32=1.37E-02;pm2=1.40E-02;pmdd32=8.04E-03;ppack32=1.77E-03;rendist32=2.25E-02;revw=6.72E-01;sec32=5.97E-02;selfw=9.62E-01;turnd32=3.49E-02;";
+	default_alpha_weights + 
+	default_gaps +
+	default_test_statistic_weights +
+	default_nu_filter;
 
 void parse_varstr(
 	const string &arg_VarStr,
@@ -34,7 +73,29 @@ void parse_varstr(
 	Names.clear();
 	Values.clear();
 
-	const string &VarStr = (arg_VarStr == "" ? default_varstr : arg_VarStr);
+	//const string &VarStr = (arg_VarStr == "" ? default_varstr : arg_VarStr);
+	string VarStr;
+	if (arg_VarStr == "")
+		VarStr = default_varstr;
+	else
+		{
+		if (StartsWith(arg_VarStr, "@"))
+			{
+			const string fn = arg_VarStr.substr(1);
+			vector<string> lines;
+			ReadLinesFromFile(fn, lines);
+			for (auto line : lines)
+				{
+				if (StartsWith(line, "#"))
+					continue;
+				StripWhiteSpace(line);
+				asserta(EndsWith(line, ";"));
+				VarStr += line;
+				}
+			}
+		else
+			VarStr = arg_VarStr;
+		}
 
 	vector<string> Fields;
 	Split(VarStr, Fields, ';');
@@ -50,45 +111,40 @@ void parse_varstr(
 				VarStr.c_str(), Fields[i].c_str());
 		const string &Name = Fields2[0];
 		const string &ValueStr = Fields2[1];
-		float Weight = StrToFloatf(ValueStr);
+		float Value = StrToFloatf(ValueStr);
 		Names.push_back(Name);
-		Values.push_back(Weight);
+		Values.push_back(Value);
 		}
 	}
 
 void flat_classify_params(
-	const vector<string> &Names,
-	const vector<float> &Values,
-	vector<string> &AlphaNames,
-	vector<float> &Weights,
-	vector<string> &ScalarNames,
-	vector<float> &ScalarValues)
+	const vector<string> &names,
+	const vector<float> &values,
+	vector<string> &alpha_names,
+	vector<float> &alpaha_weights,
+	vector<string> &scalar_names,
+	vector<float> &scalar_values)
 	{
-	for (uint i = 0; i < SIZE(Names); ++i)
+	for (uint i = 0; i < SIZE(names); ++i)
 		{
-		const string &Name = Names[i];
-		float Value = Values[i];
-		if (Name == "open" \
-			|| Name == "ext" \
-			|| Name == "gap2" \
-			|| Name == "selfw" \
-			|| Name == "dali" \
-			|| Name == "dalix" \
-			|| Name == "lddt" \
-			|| Name == "lddtx" \
-			|| Name == "lddtpow" \
-			|| Name == "entropy" \
-			|| Name == "rotfreetm" \
-			|| Name == "revw" \
-			|| StartsWith(Name, "oldts_"))
+		const string &name = names[i];
+		float Value = values[i];
+		bool is_scalar = false;
+
+		if (name == "gap2") {is_scalar = true; }
+#define x(param_name, m_name)	else if (name == #param_name) {is_scalar = true; }
+#include "tunable_flat_params.h"
+		if (is_scalar)
 			{
-			ScalarNames.push_back(Name);
-			ScalarValues.push_back(Value);
+			scalar_names.push_back(name);
+			scalar_values.push_back(Value);
 			}
 		else
 			{
-			AlphaNames.push_back(Name);
-			Weights.push_back(Value);
+			uint alpha_size = 0;
+			FAN fan = parse_alpha_name(name, alpha_size);
+			alpha_names.push_back(name);
+			alpaha_weights.push_back(Value);
 			}
 		}
 	}

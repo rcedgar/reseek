@@ -24,8 +24,8 @@ public:
 	static const float *m_LDDT_thresholds;
 	static uint m_LDDT_nr_thresholds;
 
-	static int m_min_nu_fwd_score;
-	static int m_min_nu_combined_score;
+	static float m_nu_filter_min_fwd_score;
+	static float m_nu_filter_min_combined_score;
 
 public:
 	static void set_params(

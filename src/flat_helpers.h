@@ -2,6 +2,7 @@
 #include "alpha.h"
 #include "flat_dist_types.h"
 #include "flat_distmx.h"
+#include "fan.h"
 
 class flat_aligner;
 
@@ -325,3 +326,7 @@ void flat_classify_params(
 	vector<float> &weights,
 	vector<string> &scalar_names,
 	vector<float> &scalar_values);
+
+FAN parse_alpha_name(
+	const string &alpha_name,
+	uint &alpha_size);

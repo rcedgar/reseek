@@ -21,6 +21,8 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 	m_mu_fwd_reject_count = 0;
 	m_mu_combined_reject_count = 0;
 
+	time_t t1 = time(0);
+
 	thread_affinity ta;
 	vector<thread *> ts;
 	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
@@ -35,6 +37,9 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
 		delete ts[threadidx];
 	ProgressStep(PairCount-1, PairCount, "Aligning");
+
+	time_t t2 = time(0);
+	ProgressLog("Search time %.0f secs.\n", double(t2 - t1));
 	}
 
 void flat_bench2::static_thread_body(flat_bench2 *FB, uint threadidx)
@@ -162,7 +167,7 @@ void flat_bench2::align_pair(
 	asserta(L_i <= m_maxL);
 	asserta(L_j <= m_maxL);
 
-	if (flat_params::m_min_nu_fwd_score > 0)
+	if (flat_params::m_nu_filter_min_fwd_score > 0)
 		{
 		const int open = Paralign::m_Open;
 		const int ext = Paralign::m_Ext;
@@ -176,7 +181,7 @@ void flat_bench2::align_pair(
 			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
 		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
 		int fwd_score = TD.m_parasail_result->score;
-		if (fwd_score < flat_params::m_min_nu_fwd_score)
+		if (fwd_score < flat_params::m_nu_filter_min_fwd_score)
 			{
 			++m_mu_fwd_reject_count;
 			return;
@@ -200,7 +205,7 @@ void flat_bench2::align_pair(
 			float(fwd_score) -
 			selfw*self_score -
 			revw*float(rev_score);
-		if (nu_combined_score < flat_params::m_min_nu_combined_score)
+		if (nu_combined_score < flat_params::m_nu_filter_min_combined_score)
 			{
 			++m_mu_combined_reject_count;
 			return;
@@ -361,7 +366,8 @@ void cmd_flat_bench2()
 	double align_count = double(FB.m_aln_count);
 	double mu_fwd_reject_count= double(FB.m_mu_fwd_reject_count);
 	double mu_combined_reject_count= double(FB.m_mu_combined_reject_count);
-	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%\n",
+	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%%\n",
 		GetPct(mu_fwd_reject_count, align_count),
-		GetPct(mu_combined_reject_count, align_count));
+		GetPct(mu_combined_reject_count, align_count),
+		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count));
 	}

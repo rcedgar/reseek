@@ -125,7 +125,7 @@ void flat_aligner::alignQ(
 	//	m_score = float(m_pa->m_Score);
 	//	if (m_nu_only)
 	//		return;
-	//	if (m_pa->m_Score < flat_params::m_min_nu_fwd_score)
+	//	if (m_pa->m_Score < flat_params::m_nu_filter_min_fwd_score)
 	//		{
 	//		m_nu_filter_reject = true;
 	//		++m_nu_filter_reject_count;

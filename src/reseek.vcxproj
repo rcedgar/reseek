@@ -683,6 +683,7 @@
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="triangle.h" />
+    <ClInclude Include="tunable_flat_params.h" />
     <ClInclude Include="twohitdiag.h" />
     <ClInclude Include="usage.h" />
     <ClInclude Include="userfieldnames.h" />
