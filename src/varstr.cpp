@@ -53,6 +53,9 @@ static const string default_test_statistic_weights =
 	"revw=6.72E-01;"
 	"selfw=9.62E-01;";
 
+static const string default_mega_filter =
+	"minfwd=20;";
+
 static const string default_nu_filter =
 	"nfselfw=0.5;"
 	"nfrevw=0.27;"
@@ -63,6 +66,7 @@ static const string default_varstr =
 	default_alpha_weights + 
 	default_gaps +
 	default_test_statistic_weights +
+	default_mega_filter +
 	default_nu_filter;
 
 void parse_varstr(

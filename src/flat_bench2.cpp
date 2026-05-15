@@ -148,6 +148,8 @@ void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	m_Scores[pairidx] = 0;
+
 	uint NQ = uint(m_Labels.size());
 	uint i, j;
 	triangle_k_to_ij(pairidx, NQ, i, j);
@@ -226,6 +228,11 @@ void flat_bench2::align_pair(
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 	const string path = string(TD.m_path_buffer);
+	if (score < flat_params::m_mega_filter_min_fwd)
+		{
+		++m_mega_fwd_reject_count;
+		return;
+		}
 
 	const sid_t *distmx_i = cd_i->m_distmx;
 	const sid_t *distmx_j = cd_j->m_distmx;
@@ -364,10 +371,12 @@ void cmd_flat_bench2()
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
 
 	double align_count = double(FB.m_aln_count);
-	double mu_fwd_reject_count= double(FB.m_mu_fwd_reject_count);
-	double mu_combined_reject_count= double(FB.m_mu_combined_reject_count);
-	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%%\n",
+	double mega_fwd_reject_count = double(FB.m_mega_fwd_reject_count);
+	double mu_fwd_reject_count = double(FB.m_mu_fwd_reject_count);
+	double mu_combined_reject_count = double(FB.m_mu_combined_reject_count);
+	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%% mega=%.1f%%\n",
 		GetPct(mu_fwd_reject_count, align_count),
 		GetPct(mu_combined_reject_count, align_count),
-		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count));
+		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count),
+		GetPct(mega_fwd_reject_count, align_count));
 	}

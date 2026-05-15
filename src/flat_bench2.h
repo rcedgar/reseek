@@ -56,7 +56,8 @@ public:
 	bool m_nu_filter = true;
 	bool m_nu_only = false;
 	atomic<uint> m_aln_count = 0;
-	atomic<uint> m_mu_fwd_reject_count= 0;
+	atomic<uint> m_mega_fwd_reject_count= 0;
+	atomic<uint> m_mu_fwd_reject_count = 0;
 	atomic<uint> m_mu_combined_reject_count= 0;
 
 public:

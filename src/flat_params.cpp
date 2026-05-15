@@ -34,6 +34,9 @@ float flat_params::m_lddtx_w = 0;
 float flat_params::m_dali_w = 0;
 float flat_params::m_dalix_w = 0;
 
+// Mega filter
+float flat_params::m_mega_filter_min_fwd = 0;
+
 // Nu filter
 float flat_params::m_nu_filter_self_w = 0;
 float flat_params::m_nu_filter_rev_w = 0;

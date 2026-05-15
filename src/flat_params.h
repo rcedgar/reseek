@@ -12,6 +12,8 @@ public:
 	static float m_dali_w;
 	static float m_dalix_w;
 
+	static float m_mega_filter_min_fwd;
+
 	static float m_nu_filter_self_w;
 	static float m_nu_filter_rev_w;
 
