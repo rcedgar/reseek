@@ -2,6 +2,7 @@
 #include "tabbedlines.h"
 #include "flat_helpers.h"
 #include "flat_alphas.h"
+#include "sort.h"
 
 uint32 flat_alphas::m_nfeat;
 uint32 flat_alphas::m_entropyfi = UINT_MAX;
@@ -18,6 +19,25 @@ uint32_t *flat_alphas::m_axes;
 uint16_t *flat_alphas::m_medians;
 uint16_t **flat_alphas::m_thresholds;
 vector<string> flat_alphas::m_symbolsvec;
+
+void flat_alphas::logme()
+	{
+	vector<uint> order(m_nfeat);
+	QuickSortOrderDesc(m_weights, m_nfeat, order.data());
+	Log("\n");
+	Log("%u alphas, sum_sizes=%u\n", m_nfeat, m_sum_alpha_sizes);
+	for (uint k = 0; k < m_nfeat; ++k)
+		{
+		uint i = order[k];
+		float w = m_weights[i];
+		Log("%10.10s  %7.3f  ", m_alpha_names[i].c_str(), w);
+		uint H = uint(w*80);
+		for (uint h = 0; h < H; ++h)
+			Log("■");
+		if (H == 0) Log("o");
+		Log("\n");
+		}
+	}
 
 void flat_alphas::set_names(const vector<string> &alpha_names)
 	{

@@ -23,7 +23,7 @@ Optimal parameters for compound aa4+pm2+sec32, fixed weights from above, fwd&rev
 	=>selfw=0.5;revw=0.27;
 ***/
 // Nu filter
-float flat_params::m_nu_filter_self_w = 0.5;
+float flat_params::m_nu_filter_self_w;
 float flat_params::m_nu_filter_rev_w;
 int flat_params::m_min_nu_fwd_score = 130;
 
@@ -110,4 +110,34 @@ bool flat_params::need_alignx()
 	return
 		need_self() ||
 		need_reverse();
+	}
+
+void flat_params::logme()
+	{
+	Log("\n");
+#define w(x)	Log("%10.3g  %s\n", m_##x, #x)
+	w(open);
+	w(ext);
+	w(self_w);
+	w(rev_w);
+	w(lddt_w);
+	w(lddtx_w);
+	w(dali_w);
+	w(dalix_w);
+	w(nu_filter_self_w);
+	w(nu_filter_rev_w);
+#undef w
+
+#define w(x)	Log("%10u  %s\n", m_##x, #x)
+	w(nn_min_offset);
+	w(distmx_bandwidth);
+	w(turnd_w);
+	w(angle_n);
+	w(min_nu_fwd_score);
+#undef x
+
+	Log("LDDT: R0=%.3g thresholds", m_LDDT_R0);
+	for (uint i = 0; i < m_LDDT_nr_thresholds; ++i)
+		Log(" %.1f", m_LDDT_thresholds[i]);
+	Log("\n");
 	}

@@ -126,4 +126,6 @@ public:
 	static void init_from_collect(
 		const collect &C,
 		const vector<string> &alpha_names);
+
+	static void logme();
 	};

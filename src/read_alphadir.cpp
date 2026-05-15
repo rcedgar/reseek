@@ -209,6 +209,7 @@ void flat_alphas::init_from_alphadir(
 		{
 		collect C;
 		C.from_lines(g_alpha_collect_lines);
+		C.m_name = "[default]";
 		flat_alphas::init_from_collect(C, alpha_names);
 		return;
 		}

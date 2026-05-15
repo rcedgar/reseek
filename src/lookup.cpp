@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "lookup.h"
+#include "flat_chain.h"
 
 void lookup::from_tsv(const string &fn)
 	{
@@ -329,4 +330,21 @@ void lookup::stats()
 	ProgressLog(" NT=%u", m_NT);
 	ProgressLog(" NF=%u", m_NF);
 	ProgressLog("\n");
+	}
+
+void lookup::sort_chains(
+	const vector<flat_chain_t *> &chains,
+	vector<flat_chain_t *> &sorted_chains) const
+	{
+	const uint nchain = uint(chains.size());
+	sorted_chains.clear();
+	sorted_chains.resize(nchain, nullptr);
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		flat_chain_t *chain = chains[chainidx];
+		const string &label = chain->m_label;
+		uint domidx = get_domidx(label);
+		asserta(sorted_chains[domidx] == 0);
+		sorted_chains[domidx] = chain;
+		}
 	}

@@ -11,6 +11,8 @@ enum LOOK_TRUTH
 	LT_SAME_FOLD
 	};
 
+class flat_chain_t;
+
 class lookup
 	{
 public:
@@ -231,4 +233,8 @@ public:
 		triangle_k_to_ij(k, uint(m_doms.size()), i, j);
 		return is_tp_ij(i, j);
 		}
+
+	void sort_chains(
+		const vector<flat_chain_t *> &chains,
+		vector<flat_chain_t *> &sorted_chains) const;
 	};

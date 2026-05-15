@@ -4,6 +4,14 @@
 #include "chain_data.h"
 #include "flat_alphas.h"
 
+struct flat_bench2_thread_data
+	{
+	const float **m_scratch_pssms = 0;
+	float *m_scratch_rows = 0;
+	uint8_t *m_TB = 0;
+	char *m_path_buffer = 0;
+	};
+
 class flat_bench2 : public FastBench
 	{
 public:
@@ -20,25 +28,10 @@ public:
 	bool m_nu_filter = true;
 	bool m_nu_only = false;
 	atomic<uint> m_aligned_pair_count = 0;
-	const float **__restrict m_scratch_pssms = 0;
-	float *m_scratch_rows = 0;
-	uint8_t *__restrict m_TB = 0;
-	char *m_path_buffer = 0;
-
-public:
-	flat_bench2()
-		{
-		uint nfeat = flat_alphas::m_nfeat;
-		asserta(nfeat > 0);
-		m_scratch_rows = myalloc(float, 2*m_maxL + 2);
-		m_scratch_pssms = myalloc(const float *, nfeat);
-		m_TB = myalloc(uint8_t, m_maxL*m_maxL);
-		m_path_buffer = myalloc(char, 2*m_maxL);
-		}
 
 public:
 	void search(uint nthread, bool pin_threads);
-	void align_pair(uint pairidx);
+	void align_pair(uint pairidx, flat_bench2_thread_data &TD);
 	void load_chains(const vector<flat_chain_t *> &chains);
 	void thread_body(uint ThreadIdx);
 	void update_params(

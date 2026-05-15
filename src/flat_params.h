@@ -36,4 +36,6 @@ public:
 	static bool need_self();
 	static bool need_nu_self();
 	static bool need_alignx();
+
+	static void logme();
 	};

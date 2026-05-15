@@ -585,13 +585,12 @@ void flat_bench::init_nu_filter(const string &hexfastafn)
 void cmd_flat_bench()
 	{
 //	asserta(optset_alphadir);
-	asserta(optset_lookup);
+//	asserta(optset_lookup);
 
 	asserta(!optset_input);
 	asserta(!optset_fapattern);
 	asserta(!optset_mxpattern);
 	asserta(!optset_spec);
-	asserta(!optset_varstr);
 
 	asserta(!(optset_dope && optset_nufilter));
 
@@ -642,6 +641,9 @@ void cmd_flat_bench()
 	if (flat_params::need_nu_self())
 		FB.set_nu_selfrev_scores();
 	FB.SetScalarParams(scalar_names, scalar_values);
+
+	flat_alphas::logme();
+	flat_params::logme();
 
 	if (optset_label1)
 		{

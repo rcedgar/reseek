@@ -45,6 +45,15 @@ void flat_bench2::thread_body(uint threadidx)
 	const uint NQ = SIZE(m_Labels);
 	const uint npair = triangle_get_K(NQ);
 
+	uint nfeat = flat_alphas::m_nfeat;
+	asserta(nfeat > 0);
+
+	flat_bench2_thread_data TD;
+	TD.m_scratch_rows = myalloc(float, 2*m_maxL + 2);
+	TD.m_scratch_pssms = myalloc(const float *, nfeat);
+	TD.m_TB = myalloc(uint8_t, m_maxL*m_maxL);
+	TD.m_path_buffer = myalloc(char, 2*m_maxL);
+
 	for (;;)
 		{
 		uint pairidx = m_next_pairidx++;
@@ -53,7 +62,7 @@ void flat_bench2::thread_body(uint threadidx)
 		uint progress_count = m_aligned_pair_count++;
 		if (threadidx == 0 && progress_count%1000 == 0)
 			ProgressStep(progress_count, npair, "Aligning");
-		align_pair(pairidx);
+		align_pair(pairidx, TD);
 		}
 	}
 
@@ -61,10 +70,13 @@ void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 	{
 	uint nchain = uint(chains.size());
 	m_cdvec = myalloc(chain_data *, nchain);
-	chain_data::fill_chain_data_vec(chains, bits_query, m_cdvec);
+	vector<flat_chain_t *> sorted_chains;
+	m_look->sort_chains(chains, sorted_chains);
+	chain_data::fill_chain_data_vec(sorted_chains, bits_query, m_cdvec);
 	}
 
-void flat_bench2::align_pair(uint pairidx)
+void flat_bench2::align_pair(
+	uint pairidx, flat_bench2_thread_data &TD)
 	{
 	uint NQ = uint(m_Labels.size());
 	uint i, j;
@@ -72,6 +84,13 @@ void flat_bench2::align_pair(uint pairidx)
 
 	const chain_data *cd_i = m_cdvec[i];
 	const chain_data *cd_j = m_cdvec[j];
+	
+	string label_i = cd_i->m_label;
+	string label_j = cd_j->m_label;
+	trunc_label(label_i);
+	trunc_label(label_j);
+	asserta(label_i == m_look->get_dom(i));
+	asserta(label_j == m_look->get_dom(j));
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
@@ -83,14 +102,14 @@ void flat_bench2::align_pair(uint pairidx)
 
 	uint lo_i, lo_j, ncol;
 	float score = sw_flat_pssm(
-		m_scratch_rows, m_TB, m_scratch_pssms,
+		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof_i, L_i,
 		pssm_j, L_j, 
 		flat_alphas::m_feature_block_offsets,
 		flat_alphas::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
-		lo_i, lo_j, m_path_buffer, ncol);
+		lo_i, lo_j, TD.m_path_buffer, ncol);
 
 	m_Scores[pairidx] = score;
 	}
@@ -151,6 +170,9 @@ void cmd_flat_bench2()
 	FB.ReadLookup(opt(lookup));
 	FB.update_params(param_names, param_values);
 	FB.load_chains(chains);
+
+	flat_alphas::logme();
+	flat_params::logme();
 
 	uint nthread = GetRequestedThreadCount();
 	thread_affinity ta;
