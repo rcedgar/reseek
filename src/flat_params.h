@@ -25,6 +25,7 @@ public:
 	static uint m_LDDT_nr_thresholds;
 
 	static int m_min_nu_fwd_score;
+	static int m_min_nu_combined_score;
 
 public:
 	static void set_params(

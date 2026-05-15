@@ -17,7 +17,9 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 
 	ProgressStep(0, PairCount, "Aligning");
 	m_next_pairidx = 0;
-	m_aligned_pair_count = 0;
+	m_aln_count = 0;
+	m_mu_fwd_reject_count = 0;
+	m_mu_combined_reject_count = 0;
 
 	thread_affinity ta;
 	vector<thread *> ts;
@@ -54,10 +56,43 @@ void flat_bench2::thread_body(uint threadidx)
 		uint pairidx = m_next_pairidx++;
 		if (pairidx >= npair)
 			return;
-		uint progress_count = m_aligned_pair_count++;
+		uint progress_count = m_aln_count++;
 		if (threadidx == 0 && progress_count%1000 == 0)
 			ProgressStep(progress_count, npair, "Aligning");
 		align_pair(pairidx, TD);
+		}
+	}
+
+void flat_bench2::set_nu_self_rev_scores()
+	{
+	if (!flat_params::need_nu_self())
+		{
+		asserta(m_nu_self_rev_scores == 0);
+		return;
+		}
+
+	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
+	const uint ndom = m_look->get_ndom();
+	if (m_nu_self_rev_scores == 0)
+		m_nu_self_rev_scores = myalloc(float, ndom);
+
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		ProgressStep(domidx, ndom, "Nu self-rev");
+		const chain_data *cd = m_cdvec[domidx];
+		const int open = Paralign::m_Open;
+		const int ext = Paralign::m_Ext;
+
+		if (TD.m_parasail_result != 0)
+			parasail_result_free(TD.m_parasail_result);
+		parasail_profile_t *prof = cd->m_parasail_prof;
+		asserta(prof != 0);
+		const uint8_t *codeseq_nu_rev = cd->m_codeseq_nu_rev;
+		asserta(codeseq_nu_rev != 0);
+		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+			prof, (const char *) codeseq_nu_rev, cd->m_L, open, ext);
+		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+		m_nu_self_rev_scores[domidx] = float(TD.m_parasail_result->score);
 		}
 	}
 
@@ -70,14 +105,13 @@ void flat_bench2::set_self_rev_scores()
 		}
 
 	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
-	//TD.alloc(m_maxL, flat_alphas::m_nfeat);
 	const uint ndom = m_look->get_ndom();
-	if (!m_self_rev_scores != 0)
+	if (m_self_rev_scores == 0)
 		m_self_rev_scores = myalloc(float, ndom);
 
 	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
-		ProgressStep(domidx, ndom, "self-rev");
+		ProgressStep(domidx, ndom, "Mega self-rev");
 		const chain_data *cd = m_cdvec[domidx];
 		const uint8_t *prof = cd->m_mega_prof_rev;
 		const float *pssm = cd->m_mega_pssm;
@@ -141,8 +175,36 @@ void flat_bench2::align_pair(
 		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
 			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
 		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
-		if (TD.m_parasail_result->score < flat_params::m_min_nu_fwd_score)
+		int fwd_score = TD.m_parasail_result->score;
+		if (fwd_score < flat_params::m_min_nu_fwd_score)
+			{
+			++m_mu_fwd_reject_count;
 			return;
+			}
+
+		parasail_result_free(TD.m_parasail_result);
+		parasail_profile_t *prof_i_rev = cd_i->m_parasail_prof_rev;
+		asserta(prof_i_rev != 0);
+		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+		int rev_score = TD.m_parasail_result->score;
+
+		float self_score = (m_nu_self_rev_scores[i] + 
+			m_nu_self_rev_scores[j])/2.0f;
+
+		const float revw = flat_params::m_nu_filter_rev_w;
+		const float selfw = flat_params::m_nu_filter_self_w;
+
+		float nu_combined_score =
+			float(fwd_score) -
+			selfw*self_score -
+			revw*float(rev_score);
+		if (nu_combined_score < flat_params::m_min_nu_combined_score)
+			{
+			++m_mu_combined_reject_count;
+			return;
+			}
 		}
 	
 	const uint8_t *prof_i = cd_i->m_mega_prof;
@@ -253,6 +315,8 @@ void flat_bench2::update_params(
 	chain_data::update_pssms(m_cdvec, m_look->get_ndom());
 	if (flat_params::need_self())
 		set_self_rev_scores();
+	if (flat_params::need_nu_self())
+		set_nu_self_rev_scores();
 	}
 
 void cmd_flat_bench2()
@@ -293,4 +357,11 @@ void cmd_flat_bench2()
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
+
+	double align_count = double(FB.m_aln_count);
+	double mu_fwd_reject_count= double(FB.m_mu_fwd_reject_count);
+	double mu_combined_reject_count= double(FB.m_mu_combined_reject_count);
+	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%\n",
+		GetPct(mu_fwd_reject_count, align_count),
+		GetPct(mu_combined_reject_count, align_count));
 	}

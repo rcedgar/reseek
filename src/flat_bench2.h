@@ -55,7 +55,9 @@ public:
 	float *m_nu_self_rev_scores = 0;
 	bool m_nu_filter = true;
 	bool m_nu_only = false;
-	atomic<uint> m_aligned_pair_count = 0;
+	atomic<uint> m_aln_count = 0;
+	atomic<uint> m_mu_fwd_reject_count= 0;
+	atomic<uint> m_mu_combined_reject_count= 0;
 
 public:
 	void search(uint nthread, bool pin_threads);
@@ -66,6 +68,7 @@ public:
 		const vector<string> &names,
 		const vector<float> &values);
 	void set_self_rev_scores();
+	void set_nu_self_rev_scores();
 
 public:
 	static void static_thread_body(flat_bench2 *SB, uint threadidx);

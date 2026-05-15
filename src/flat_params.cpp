@@ -23,9 +23,11 @@ Optimal parameters for compound aa4+pm2+sec32, fixed weights from above, fwd&rev
 	=>selfw=0.5;revw=0.27;
 ***/
 // Nu filter
-float flat_params::m_nu_filter_self_w;
-float flat_params::m_nu_filter_rev_w;
+// selfw=5.0E-01;revw=2.7E-01;
+float flat_params::m_nu_filter_self_w = 0.5f;
+float flat_params::m_nu_filter_rev_w = 0.27f;
 int flat_params::m_min_nu_fwd_score = 130;
+int flat_params::m_min_nu_combined_score = 40;
 
 // Chain quantization
 uint32_t flat_params::m_nn_min_offset = 12;
