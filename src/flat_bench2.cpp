@@ -48,12 +48,7 @@ void flat_bench2::thread_body(uint threadidx)
 	uint nfeat = flat_alphas::m_nfeat;
 	asserta(nfeat > 0);
 
-	flat_bench2_thread_data TD;
-	TD.m_scratch_rows = myalloc(float, 2*m_maxL + 2);
-	TD.m_scratch_pssms = myalloc(const float *, nfeat);
-	TD.m_TB = myalloc(uint8_t, m_maxL*m_maxL);
-	TD.m_path_buffer = myalloc(char, 2*m_maxL);
-
+	flat_bench2_thread_data TD(m_maxL, nfeat);
 	for (;;)
 		{
 		uint pairidx = m_next_pairidx++;
@@ -63,6 +58,42 @@ void flat_bench2::thread_body(uint threadidx)
 		if (threadidx == 0 && progress_count%1000 == 0)
 			ProgressStep(progress_count, npair, "Aligning");
 		align_pair(pairidx, TD);
+		}
+	}
+
+void flat_bench2::set_self_rev_scores()
+	{
+	if (!flat_params::need_self())
+		{
+		asserta(m_self_rev_scores == 0);
+		return;
+		}
+
+	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
+	//TD.alloc(m_maxL, flat_alphas::m_nfeat);
+	const uint ndom = m_look->get_ndom();
+	if (!m_self_rev_scores != 0)
+		m_self_rev_scores = myalloc(float, ndom);
+
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		ProgressStep(domidx, ndom, "self-rev");
+		const chain_data *cd = m_cdvec[domidx];
+		const uint8_t *prof = cd->m_mega_prof_rev;
+		const float *pssm = cd->m_mega_pssm;
+		asserta(prof != 0);
+		asserta(pssm != 0);
+		const uint L = cd->m_L;
+		uint lo_i, lo_j, ncol;
+		float score = sw_flat_pssm(
+			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
+			prof, L, pssm, L, 
+			flat_alphas::m_feature_block_offsets,
+			flat_alphas::m_nfeat,
+			-flat_params::m_open, 
+			-flat_params::m_ext,
+			lo_i, lo_j, TD.m_path_buffer, ncol);
+		m_self_rev_scores[domidx] = score;
 		}
 	}
 
@@ -110,6 +141,69 @@ void flat_bench2::align_pair(
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
+	const string path = string(TD.m_path_buffer);
+
+	const sid_t *distmx_i = cd_i->m_distmx;
+	const sid_t *distmx_j = cd_j->m_distmx;
+	assert(distmx_i != 0 && distmx_j != 0);
+
+	const float revw = flat_params::m_rev_w;
+	if (revw > 0)
+		{
+		uint ncol_rev, lo_i_rev, lo_j_rev;
+		const uint8_t *rev_prof_i = cd_i->m_mega_prof_rev;
+		asserta(rev_prof_i != 0);
+		float rev_score = sw_flat_pssm(
+			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
+			rev_prof_i, L_i,
+			pssm_j, L_j, 
+			flat_alphas::m_feature_block_offsets,
+			flat_alphas::m_nfeat,
+			-flat_params::m_open, 
+			-flat_params::m_ext,
+			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
+		score -= revw*rev_score;
+		}
+
+	const float selfw = flat_params::m_self_w;
+	if (selfw > 0)
+		score -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+
+	if (flat_params::m_lddt_w > 0)
+		{
+		float lddt = flat_getlddt_muscle_some_floats3(
+			label_i, label_j, path,
+			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		score += flat_params::m_lddt_w*lddt*500;
+		}
+
+	if (flat_params::m_lddtx_w > 0)
+		{
+		float L = (L_i + L_j)/2.0f + 50;
+		float Lfactor = float(ncol)/L;
+
+		float lddt = flat_getlddt_muscle_some_floats3(
+			label_i, label_j, path,
+			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		score += flat_params::m_lddtx_w*lddt*500*Lfactor;
+		}
+
+	if (flat_params::m_dali_w > 0)
+		{
+		float dali = flat_get_dali(
+			label_i, label_j, path,
+			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		score += flat_params::m_dali_w*dali*10;
+		}
+
+	if (flat_params::m_dalix_w > 0)
+		{
+		float dalix = flat_get_dalix(
+			label_i, label_j, path,
+			lo_i, L_i, lo_j, L_j,
+			distmx_i, distmx_j, TD.m_colscores);
+		score += flat_params::m_dalix_w*dalix*10;
+		}
 
 	m_Scores[pairidx] = score;
 	}
@@ -139,8 +233,9 @@ void flat_bench2::update_params(
 		NameToWeight[name] = weights[i];
 		}
 	flat_alphas::apply_weights(NameToWeight);
+	chain_data::update_pssms(m_cdvec, m_look->get_ndom());
 	if (flat_params::need_self())
-		Warning("self scores not implemented");
+		set_self_rev_scores();
 	}
 
 void cmd_flat_bench2()
@@ -168,8 +263,8 @@ void cmd_flat_bench2()
 
 	flat_bench2 FB;
 	FB.ReadLookup(opt(lookup));
-	FB.update_params(param_names, param_values);
 	FB.load_chains(chains);
+	FB.update_params(param_names, param_values);
 
 	flat_alphas::logme();
 	flat_params::logme();

@@ -129,6 +129,7 @@ float flat_getlddt_muscle_some_floats3(
 	{
 	const uint ncol = uint(path.size());
 
+//@@TODO -- std::vector and malloc here
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);

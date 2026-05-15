@@ -136,7 +136,7 @@ void flat_alphas::init_from_collect(
 	set_feature_block_offsets();
 	set_symbolsvec();
 
-	ProgressLog("%s:\n%s\n", C.m_name.c_str(), compound.c_str());
+	ProgressLog("%s: %s\n", C.m_name.c_str(), compound.c_str());
 	}
 
 void flat_alphas::init_from_fnprefixes(
@@ -209,7 +209,7 @@ void flat_alphas::init_from_alphadir(
 		{
 		collect C;
 		C.from_lines(g_alpha_collect_lines);
-		C.m_name = "[default]";
+		C.m_name = "[default_alphadir]";
 		flat_alphas::init_from_collect(C, alpha_names);
 		return;
 		}

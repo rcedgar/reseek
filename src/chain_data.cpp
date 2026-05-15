@@ -151,6 +151,32 @@ void chain_data::get_from_chain_bytes_per_pos(
 	if (n_nu_codeseq > 0) scratch_bytes_per_pos += fast_get_codeseq_scratch_bytes_per_pos;
 	}
 
+void chain_data::update_pssms(chain_data **cdvec, uint n)
+	{
+	for (uint i = 0; i < n; ++i) update_pssms_cd(cdvec[i]);
+	}
+
+void chain_data::update_pssms_cd(chain_data *cd)
+	{
+	const uint L = cd->m_L;
+	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
+	const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
+	const uint nfeat = flat_alphas::m_nfeat;
+
+	fill_flat_pssm(
+		cd->m_mega_prof, L, nfeat, alpha_sizes,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_weighted_logoddsvec,
+		cd->m_mega_pssm);
+
+	if (cd->m_mega_pssm_rev)
+		fill_flat_pssm_reversed(
+			cd->m_mega_prof, L, nfeat, alpha_sizes,
+			flat_alphas::m_feature_block_offsets,
+			flat_alphas::m_weighted_logoddsvec,
+			cd->m_mega_pssm_rev);
+	}
+
 chain_data *chain_data::from_chain(
 	const flat_chain_t &chain,
 	uint32_t bits,
@@ -204,7 +230,7 @@ chain_data *chain_data::from_chain(
 		const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
 
 		cd->m_mega_pssm = mem.get<float>(nr_pssm_floats);
-			fill_flat_pssm(
+		fill_flat_pssm(
 			cd->m_mega_prof, L, nfeat, alpha_sizes,
 			flat_alphas::m_feature_block_offsets,
 			flat_alphas::m_weighted_logoddsvec,

@@ -69,6 +69,7 @@ float flat_get_dali(
 	{
 	const uint pathlen = uint(path.size());
 
+// @@TODO std::vector here
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 	path2posvecs(labelQ, labelT, path, loQ, LQ, loT, LT, posQs, posTs);
@@ -202,6 +203,7 @@ float flat_get_dalix(
 	{
 	const uint pathlen = uint(path.size());
 
+// @@TODO std::vector here
 	vector<uint32_t> posQs;
 	vector<uint32_t> posTs;
 

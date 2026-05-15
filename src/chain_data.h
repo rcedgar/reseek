@@ -19,6 +19,7 @@ static const uint32_t bits_query =
 	bit_distmx |
 	bit_mega_pssm |
 	bit_mega_prof |
+	bit_mega_prof_rev |
 	bit_parasail_prof |
 	bit_parasail_prof_rev |
 	bit_nu_codeseq |
@@ -27,6 +28,7 @@ static const uint32_t bits_query =
 static const uint32_t bits_target =
 	bit_distmx |
 	bit_mega_prof |
+	bit_mega_prof_rev |
 	bit_nu_codeseq |
 	bit_nu_codeseq_rev;
 
@@ -55,6 +57,9 @@ public:
 		uint32_t bits,
 		scratch_mem &mem,
 		scratch_mem &scratch);
+
+	static void update_pssms_cd(chain_data *cd);
+	static void update_pssms(chain_data **cdvec, uint n);
 
 	static void fill_chain_data_vec(
 		const vector<flat_chain_t *> &chains,

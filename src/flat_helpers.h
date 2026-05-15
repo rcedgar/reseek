@@ -227,6 +227,14 @@ float flat_getlddt_muscle_some_floats(
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
+float flat_getlddt_muscle_some_floats3(
+	const string &labelQ, const string &labelT,
+	const string &path,
+	uint32_t loQ, uint32_t LQ,
+	uint32_t loT, uint32_t LT,
+	const sid_t *distmxQ,
+	const sid_t *distmxT);
+
 float flat_getlddt_old(
 	const flat_aligner &fa,
 	const sid_t *distmxQ,

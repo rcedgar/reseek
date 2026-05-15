@@ -1,5 +1,28 @@
 #include "myutils.h"
 
+/***
+[scalar] 0.000435  dali
+[scalar]    0.894  gap2
+[scalar]   0.0466  lddt
+[scalar]    0.672  revw
+[scalar]    0.962  selfw
+
+   ppack32    0.002  o
+    pmdd32    0.008  o
+ mendist32    0.009  o
+ pendist32    0.014  ■
+       pm2    0.014  ■
+  nensec32    0.016  ■
+ rendist32    0.022  ■
+   turnd32    0.035  ■■
+     sec32    0.060  ■■■■
+   angle32    0.087  ■■■■■■
+    pack32    0.089  ■■■■■■■
+ nendist32    0.116  ■■■■■■■■■
+      aa20    0.529  ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     Total    1.000
+***/
+
 static const string default_varstr =
 "aa20=5.29E-01;angle32=8.66E-02;dali=4.35E-04;gap2=8.94E-01;lddt=4.66E-02;mendist32=9.01E-03;nendist32=1.16E-01;nensec32=1.58E-02;pack32=8.87E-02;pendist32=1.37E-02;pm2=1.40E-02;pmdd32=8.04E-03;ppack32=1.77E-03;rendist32=2.25E-02;revw=6.72E-01;sec32=5.97E-02;selfw=9.62E-01;turnd32=3.49E-02;";
 
