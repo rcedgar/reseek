@@ -2517,6 +2517,13 @@ void TruncateAtFirstWhiteSpace(string &Str)
 		}
 	}
 
+void StripAllWhiteSpace(string &Str)
+	{
+	string tmp;
+	for (auto c : Str) if (!isspace(c)) tmp += c;
+	Str = tmp;
+	}
+
 void StripWhiteSpace(string &Str)
 	{
 	unsigned n = SIZE(Str);

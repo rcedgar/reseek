@@ -330,3 +330,9 @@ void flat_classify_params(
 FAN parse_alpha_name(
 	const string &alpha_name,
 	uint &alpha_size);
+
+void flat_make_varstr(
+	string &varstr);
+
+void flat_make_peaker_spec(
+	vector<string> &lines);

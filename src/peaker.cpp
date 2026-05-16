@@ -226,6 +226,20 @@ double Peaker::GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) co
 	return Value;
 	}
 
+void Peaker::GetAllConst_xv(vector<string> &xv) const
+	{
+	const uint VarCount = GetVarCount();
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		asserta(VarIsConstant(VarIdx));
+		double Value = VarSpecGetFloat(VarIdx, "constant", DBL_MAX);
+		asserta(Value != DBL_MAX);
+		string ValueStr;
+		VarFloatToStr(VarIdx, Value, ValueStr);
+		xv.push_back(ValueStr);
+		}
+	}
+
 void Peaker::GetLatinHypercube(uint BinCount,
 	vector<vector<string > > &xvs) const
 	{

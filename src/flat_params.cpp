@@ -33,6 +33,7 @@ float flat_params::m_lddt_w = 0;
 float flat_params::m_lddtx_w = 0;
 float flat_params::m_dali_w = 0;
 float flat_params::m_dalix_w = 0;
+float flat_params::m_nurev_w = 0;
 
 // Mega filter
 float flat_params::m_mega_filter_min_fwd = 0;
@@ -114,6 +115,8 @@ void flat_params::logme()
 	w(dalix_w);
 	w(nu_filter_self_w);
 	w(nu_filter_rev_w);
+	w(nu_filter_min_fwd_score);
+	w(nu_filter_min_combined_score);
 #undef w
 
 #define w(x)	Log("%10u  %s\n", m_##x, #x)
@@ -121,8 +124,6 @@ void flat_params::logme()
 	w(distmx_bandwidth);
 	w(turnd_w);
 	w(angle_n);
-	w(nu_filter_min_fwd_score);
-	w(nu_filter_min_combined_score);
 #undef x
 
 	Log("LDDT: R0=%.3g thresholds", m_LDDT_R0);

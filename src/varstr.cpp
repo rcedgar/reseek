@@ -1,5 +1,7 @@
 #include "myutils.h"
 #include "flat_helpers.h"
+#include "flat_alphas.h"
+#include "flat_params.h"
 
 /***
 [scalar] 0.000435  dali
@@ -54,13 +56,13 @@ static const string default_test_statistic_weights =
 	"selfw=9.62E-01;";
 
 static const string default_mega_filter =
-	"minfwd=20;";
+	"minfwd=15;";
 
 static const string default_nu_filter =
 	"nfselfw=0.5;"
 	"nfrevw=0.27;"
 	"nfminfwd=120;"
-	"nfmincmb=43;";
+	"nfmincmb=40;";
 
 static const string default_varstr =
 	default_alpha_weights + 
@@ -68,6 +70,12 @@ static const string default_varstr =
 	default_test_statistic_weights +
 	default_mega_filter +
 	default_nu_filter;
+
+// C:\src\reseek_tune2\bash\flat_bench2_mufilter_sweep.bash
+// Sum3   Secs  
+// 1.761    10  minmufwd120.minmucmb60.minmgfwd20
+// 1.792	23	minmufwd120.minmucmb43.minmgfwd0			
+// 1.796	25	minmufwd120.minmucmb40.minmgfwd15			
 
 void parse_varstr(
 	const string &arg_VarStr,
@@ -77,7 +85,6 @@ void parse_varstr(
 	Names.clear();
 	Values.clear();
 
-	//const string &VarStr = (arg_VarStr == "" ? default_varstr : arg_VarStr);
 	string VarStr;
 	if (arg_VarStr == "")
 		VarStr = default_varstr;
@@ -100,6 +107,8 @@ void parse_varstr(
 		else
 			VarStr = arg_VarStr;
 		}
+
+	StripAllWhiteSpace(VarStr);
 
 	vector<string> Fields;
 	Split(VarStr, Fields, ';');
@@ -150,5 +159,64 @@ void flat_classify_params(
 			alpha_names.push_back(name);
 			alpaha_weights.push_back(Value);
 			}
+		}
+	}
+
+void flat_make_varstr(string &varstr)
+	{
+	varstr.clear();
+
+	if (feq(flat_params::m_open, flat_params::m_ext*10))
+		Psa(varstr, "gap2=%.4g;\n", flat_params::m_open);
+	else
+		{
+		Psa(varstr, "open=%.4g;\n", flat_params::m_open);
+		Psa(varstr, "ext=%.4g;\n", flat_params::m_ext);
+		}
+
+#define x(param_name, member_name)	\
+	if (string(#param_name) != "open" && string(#param_name) != "ext") \
+		Psa(varstr, "%s=%.4g;\n", #param_name, flat_params::member_name);
+#include "tunable_flat_params.h"
+
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+		{
+		Psa(varstr, "%s=%.4g;\n",
+			flat_alphas::m_alpha_names[fi],
+			flat_alphas::m_weights[fi]);
+		}
+	}
+
+void flat_make_peaker_spec(vector<string> &lines)
+	{
+	lines.clear();
+
+	string line;
+	if (feq(flat_params::m_open, flat_params::m_ext*10))
+		{
+		Ps(line, "var=gap2;constant=%.4g;", flat_params::m_open);
+		lines.push_back(line);
+		}
+	else
+		{
+		Ps(line, "var=open;constant=%.4g;", flat_params::m_open);
+		lines.push_back(line);
+
+		Ps(line, "var=ext;constant=%.4g", flat_params::m_ext);
+		lines.push_back(line);
+		}
+
+#define x(param_name, member_name)	\
+	if (string(#param_name) != "open" && string(#param_name) != "ext") { \
+		Ps(line, "var=%s;constant=%.4g;", #param_name, flat_params::member_name); \
+		lines.push_back(line); }
+#include "tunable_flat_params.h"
+
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+		{
+		Ps(line, "var=%s;constant=%.4g;isalpha=yes;",
+			flat_alphas::m_alpha_names[fi],
+			flat_alphas::m_weights[fi]);
+		lines.push_back(line);
 		}
 	}

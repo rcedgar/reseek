@@ -46,7 +46,7 @@ public:
 // Hard-coded score-like not Evalue-like
 //	SBSCORE m_SBS = SBS_Evalue;
 
-	static chain_data **m_cdvec;
+	chain_data **m_cdvec = 0;
 	static uint m_maxL;
 
 public:
@@ -56,9 +56,10 @@ public:
 	bool m_nu_filter = true;
 	bool m_nu_only = false;
 	atomic<uint> m_aln_count = 0;
-	atomic<uint> m_mega_fwd_reject_count= 0;
+	atomic<uint> m_mega_fwd_test_count= 0;
+	atomic<uint> m_mega_fwd_pass_count= 0;
 	atomic<uint> m_mu_fwd_reject_count = 0;
-	atomic<uint> m_mu_combined_reject_count= 0;
+	atomic<uint> m_mu_combined_reject_count = 0;
 
 public:
 	void search(uint nthread, bool pin_threads);

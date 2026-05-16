@@ -22,8 +22,8 @@ extern int parasail_mu_8[36*36];
 extern int IntScoreMx_3Di[20*20];
 
 parasail_matrix_t Paralign::m_matrix;
-int Paralign::m_Open = INT_MAX;	// penalty > 0
-int Paralign::m_Ext = INT_MAX;	// penalty > 0
+int Paralign::m_Open = INT_MIN;	// penalty > 0
+int Paralign::m_Ext = INT_MIN;	// penalty > 0
 int Paralign::m_SaturatedScore = INT_MAX;
 int Paralign::m_Bits = 16;
 string Paralign::m_SubstMxName = "_NOT_SET_";
@@ -650,6 +650,13 @@ void Paralign::set_final_nu()
 	m_matrix.mapper = Mapper;
 	m_Bits = 16;
 	}
+
+static bool do_init()
+	{
+	Paralign::set_final_nu();
+	return true;
+	}
+static bool s_init_done = do_init();
 
 void Paralign::SetMu_scop40_tm0_6_0_8_fa2()
 	{

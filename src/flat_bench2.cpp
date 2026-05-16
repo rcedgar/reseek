@@ -5,7 +5,6 @@
 #include "flat_alphas.h"
 #include "paralign.h"
 
-chain_data **flat_bench2::m_cdvec;
 uint flat_bench2::m_maxL = 4000;
 
 void flat_bench2::search(uint nthread, bool pin_threads)
@@ -109,14 +108,19 @@ void flat_bench2::set_self_rev_scores()
 		return;
 		}
 
-	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
 	const uint ndom = m_look->get_ndom();
 	if (m_self_rev_scores == 0)
 		m_self_rev_scores = myalloc(float, ndom);
 
-	for (uint domidx = 0; domidx < ndom; ++domidx)
+	const uint ThreadCount = GetRequestedThreadCount();
+
+#pragma omp parallel num_threads(ThreadCount)
+	{
+	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
+
+#pragma omp for schedule(dynamic)
+	for (int domidx = 0; domidx < (int)ndom; ++domidx)
 		{
-		ProgressStep(domidx, ndom, "Mega self-rev");
 		const chain_data *cd = m_cdvec[domidx];
 		const uint8_t *prof = cd->m_mega_prof_rev;
 		const float *pssm = cd->m_mega_pssm;
@@ -126,20 +130,24 @@ void flat_bench2::set_self_rev_scores()
 		uint lo_i, lo_j, ncol;
 		float score = sw_flat_pssm(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
-			prof, L, pssm, L, 
+			prof, L, pssm, L,
 			flat_alphas::m_feature_block_offsets,
 			flat_alphas::m_nfeat,
-			-flat_params::m_open, 
+			-flat_params::m_open,
 			-flat_params::m_ext,
 			lo_i, lo_j, TD.m_path_buffer, ncol);
 		m_self_rev_scores[domidx] = score;
 		}
+	}  // each thread destroys its TD here
 	}
 
 void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 	{
 	uint nchain = uint(chains.size());
-	m_cdvec = myalloc(chain_data *, nchain);
+	uint ndom = m_look->get_ndom();
+	asserta(nchain >= ndom);
+	m_cdvec = myalloc(chain_data *, ndom);
+	memset(m_cdvec, 0, ndom*sizeof(m_cdvec[0]));
 	vector<flat_chain_t *> sorted_chains;
 	m_look->sort_chains(chains, sorted_chains);
 	chain_data::fill_chain_data_vec(sorted_chains, bits_query, m_cdvec);
@@ -169,6 +177,7 @@ void flat_bench2::align_pair(
 	asserta(L_i <= m_maxL);
 	asserta(L_j <= m_maxL);
 
+	float nu_rev_score = 0;
 	if (flat_params::m_nu_filter_min_fwd_score > 0)
 		{
 		const int open = Paralign::m_Open;
@@ -193,9 +202,9 @@ void flat_bench2::align_pair(
 		parasail_profile_t *prof_i_rev = cd_i->m_parasail_prof_rev;
 		asserta(prof_i_rev != 0);
 		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
-			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+			prof_i_rev, (const char *) codeseq_nu_j, L_j, open, ext);
 		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
-		int rev_score = TD.m_parasail_result->score;
+		nu_rev_score = (float) TD.m_parasail_result->score;
 
 		float self_score = (m_nu_self_rev_scores[i] + 
 			m_nu_self_rev_scores[j])/2.0f;
@@ -206,7 +215,7 @@ void flat_bench2::align_pair(
 		float nu_combined_score =
 			float(fwd_score) -
 			selfw*self_score -
-			revw*float(rev_score);
+			revw*nu_rev_score;
 		if (nu_combined_score < flat_params::m_nu_filter_min_combined_score)
 			{
 			++m_mu_combined_reject_count;
@@ -228,11 +237,10 @@ void flat_bench2::align_pair(
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 	const string path = string(TD.m_path_buffer);
+	++m_mega_fwd_test_count;
 	if (score < flat_params::m_mega_filter_min_fwd)
-		{
-		++m_mega_fwd_reject_count;
 		return;
-		}
+	++m_mega_fwd_pass_count;
 
 	const sid_t *distmx_i = cd_i->m_distmx;
 	const sid_t *distmx_j = cd_j->m_distmx;
@@ -255,6 +263,7 @@ void flat_bench2::align_pair(
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
 		score -= revw*rev_score;
 		}
+	score += flat_params::m_nurev_w*nu_rev_score;
 
 	const float selfw = flat_params::m_self_w;
 	if (selfw > 0)
@@ -303,6 +312,7 @@ void flat_bench2::update_params(
 	const vector<string> &names,
 	const vector<float> &values)
 	{
+	asserta(m_cdvec != 0);
 	vector<string> alpha_names;
 	vector<float> weights;
 	vector<string> scalar_names;
@@ -362,6 +372,16 @@ void cmd_flat_bench2()
 	flat_alphas::logme();
 	flat_params::logme();
 
+	string varstr2;
+	flat_make_varstr(varstr2);
+	Log("varstr2=\n");
+	Log("%s\n", varstr2.c_str());
+
+	vector<string> peaker_spec_lines;
+	flat_make_peaker_spec(peaker_spec_lines);
+	for (uint i = 0; i < uint(peaker_spec_lines.size()); ++i)
+		Log("%s\n", peaker_spec_lines[i].c_str());
+
 	uint nthread = GetRequestedThreadCount();
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(nthread);
@@ -371,12 +391,14 @@ void cmd_flat_bench2()
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
 
 	double align_count = double(FB.m_aln_count);
-	double mega_fwd_reject_count = double(FB.m_mega_fwd_reject_count);
+	double mega_fwd_test_count = double(FB.m_mega_fwd_test_count);
+	double mega_fwd_pass_count = double(FB.m_mega_fwd_pass_count);
 	double mu_fwd_reject_count = double(FB.m_mu_fwd_reject_count);
 	double mu_combined_reject_count = double(FB.m_mu_combined_reject_count);
-	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%% mega=%.1f%%\n",
+	double mega_passed_pct = GetPct(mega_fwd_pass_count, mega_fwd_test_count);
+	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%%\n",
 		GetPct(mu_fwd_reject_count, align_count),
 		GetPct(mu_combined_reject_count, align_count),
-		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count),
-		GetPct(mega_fwd_reject_count, align_count));
+		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count));
+	ProgressLog("Mega fwd filter passed %.1f%%\n", mega_passed_pct);
 	}

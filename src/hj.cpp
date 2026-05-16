@@ -363,11 +363,6 @@ void Peaker::HJ_RunHookeJeeves()
 		}
 	}
 
-void Peaker::GetInitialVarStr(string &Str) const
-	{
-	Str.clear();
-	}
-
 void Peaker::NormalizeVarStr(uint VarIdx, const string &Str,
 	string &NormalizedStr) const
 	{

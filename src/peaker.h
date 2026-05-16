@@ -91,6 +91,8 @@ public:
 
 	void WriteFinalPeak(FILE *f) const;
 
+	void GetAllConst_xv(vector<string> &xv) const;
+
 	// Latin
 	void GetLatinHypercube(uint BinCount, vector<vector<string> > &xvs) const;
 	double GetLatinValueByBinIdx(uint VarIdx, uint BinIdx, uint BinCount) const;
@@ -124,7 +126,6 @@ public:
 	void VarFloatToStr(uint VarIdx, double Value, string &s) const;
 	double VarStrToFloat(uint VarIdx, const string &ValueStr) const;
 
-	void GetInitialVarStr(string &Str) const;
 	void NormalizeVarStr(uint VarIdx, const string &Str,
 		string &NormalizedStr) const;
 	double GetEuclideanDist(const vector<string> &xv1,

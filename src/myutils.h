@@ -387,6 +387,7 @@ void RevCompSeq(string &Seq);
 void StripGaps(string &Seq);
 void ToLower(string &Str);
 void StripWhiteSpace(string &Str);
+void StripAllWhiteSpace(string &Str);
 void TruncateAtFirstWhiteSpace(string &Str);
 char GetOneFromThree(const string &AAA);
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines);

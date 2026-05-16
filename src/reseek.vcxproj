@@ -331,6 +331,7 @@
     <ClCompile Include="flat_alphas.cpp" />
     <ClCompile Include="flat_helpers.cpp" />
     <ClCompile Include="flat_hjmega.cpp" />
+    <ClCompile Include="flat_hjmega2.cpp" />
     <ClCompile Include="flat_hjmega_bracket.cpp" />
     <ClCompile Include="flat_lddt.cpp" />
     <ClCompile Include="flat_lddt_old.cpp" />

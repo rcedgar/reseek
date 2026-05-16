@@ -153,11 +153,13 @@ void chain_data::get_from_chain_bytes_per_pos(
 
 void chain_data::update_pssms(chain_data **cdvec, uint n)
 	{
+	asserta(cdvec != 0);
 	for (uint i = 0; i < n; ++i) update_pssms_cd(cdvec[i]);
 	}
 
 void chain_data::update_pssms_cd(chain_data *cd)
 	{
+	asserta(cd != 0);
 	const uint L = cd->m_L;
 	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
 	const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
@@ -343,6 +345,8 @@ void chain_data::fill_chain_data_vec(
 	const uint nthread = GetRequestedThreadCount();
 	ProgressStep(0, s_nchain, "fill_chain_data_vec");
 
+	s_next = 0;
+	s_mem_next = 0;
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
