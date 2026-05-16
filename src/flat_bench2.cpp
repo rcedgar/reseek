@@ -82,7 +82,6 @@ void flat_bench2::set_nu_self_rev_scores()
 
 	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
-		ProgressStep(domidx, ndom, "Nu self-rev");
 		const chain_data *cd = m_cdvec[domidx];
 		const int open = Paralign::m_Open;
 		const int ext = Paralign::m_Ext;
@@ -343,8 +342,6 @@ void flat_bench2::update_params(
 
 void cmd_flat_bench2()
 	{
-	Paralign::set_final_nu();
-
 	vector<string> param_names;
 	vector<float> param_values;
 	parse_varstr(opt(varstr), param_names, param_values);

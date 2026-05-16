@@ -461,7 +461,7 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 	Log("%u chains\n", nchain);
 
 #define do(x)	Log("%10u  %12.12s  %6.1f%%  %s\n", \
-	n_##x, MemBytesToStr(bytes_##x), GetPct(double(bytes_##x), double(bytes_total)), #x)
+	n_##x, MemBytesToStr(double(bytes_##x)), GetPct(double(bytes_##x), double(bytes_total)), #x)
 
 	do(codeseq_nu);
 	do(codeseq_nu_rev);
@@ -474,7 +474,7 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 	do(mega_pssm_rev);
 #undef x
 	Log("%10u  %12.12s   100.0%%\n",
-		nchain, MemBytesToStr(bytes_total));
+		nchain, MemBytesToStr(double(bytes_total)));
 	}
 
 void chain_data::write_fastas(

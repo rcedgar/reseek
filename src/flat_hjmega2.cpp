@@ -28,16 +28,6 @@ static double EvalSum3(const vector<string> &xv)
 	uint ThreadCount = GetRequestedThreadCount();
 	s_FB->search(ThreadCount, false);
 
-	double align_count = double(s_FB->m_aln_count);
-	double mega_fwd_reject_count = double(s_FB->m_mega_fwd_pass_count);
-	double mu_fwd_reject_count = double(s_FB->m_mu_fwd_reject_count);
-	double mu_combined_reject_count = double(s_FB->m_mu_combined_reject_count);
-	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%% mega=%.1f%%\n",
-		GetPct(mu_fwd_reject_count, align_count),
-		GetPct(mu_combined_reject_count, align_count),
-		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count),
-		GetPct(mega_fwd_reject_count, align_count));
-
 	s_FB->SetScoreOrder_Parallel();
 	s_FB->Bench();
 	return s_FB->m_Sum3;
@@ -48,7 +38,8 @@ static void Optimize(
 	const vector<string> &SpecLines,
 	flat_bench2 &FB,
 	double &Best_y,
-	vector<string> &Best_xv)
+	vector<string> &Best_xv,
+	double ConvergePct = 0.01)
 	{
 	string GlobalSpec;
 	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
@@ -61,6 +52,7 @@ static void Optimize(
 	Peaker &P = *new Peaker(0, OptName);
 	P.Init(SpecLines, EvalSum3);
 	s_Peaker = &P;
+	P.m_ConvergePct = ConvergePct;
 	s_FB = &FB;
 
 	ProgressLog("=========================================\n");
@@ -201,10 +193,9 @@ static void SubClimb(
 		{
 		double Best_y;
 		vector<string> Best_xv;
-//		ProgressLog("Subset %u chains\n", SubsetFB.m_fp.get_nprof());
 		string OptName;
 		Ps(OptName, "sub%u", SubsetIter);
-		Optimize(OptName, SpecLines, SubsetFB, Best_y, Best_xv);
+		Optimize(OptName, SpecLines, SubsetFB, Best_y, Best_xv, 0.2);
 
 		s_FB = &FullFB;	
 		string PeakerName;
