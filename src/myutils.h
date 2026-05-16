@@ -322,7 +322,6 @@ void PrintCopyright(FILE *f);
 extern string g_ShortCmdLine;
 
 const char *MemBytesToStr(double Bytes);
-static inline const char *MemBytesToStr(uint64 Bytes) { return MemBytesToStr((double) Bytes); }
 unsigned StrToUint(const char *s);
 unsigned StrToUint_err(const char *s);
 unsigned StrToUint(const string &s);
