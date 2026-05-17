@@ -170,6 +170,8 @@ FLT_OPT(maxpctid)
 FLT_OPT(undef_value)
 FLT_OPT(rate_factor)
 FLT_OPT(scalef)
+FLT_OPT(mindypct)
+FLT_OPT(maxdypct)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
@@ -227,8 +229,6 @@ FLAG_OPT(include_self)
 FLAG_OPT(no_thread_pin)
 FLAG_OPT(nufilter)
 FLAG_OPT(nuonly)
-FLAG_OPT(mindypct)
-FLAG_OPT(maxdypct)
 
 #undef FLAG_OPT
 #undef UNS_OPT
