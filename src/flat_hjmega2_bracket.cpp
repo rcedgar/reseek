@@ -135,9 +135,9 @@ void cmd_flat_hjmega2_bracket()
 		double plusy_pct = GetPct(besty - plusy, besty);
 		double minusy_pct = GetPct(besty - minusy, besty);
 		ProgressLog("%12.12s", Pfull.GetVarName(VarIdx));
-		ProgressLog("  %12.12s", plus_value_strs[VarIdx]);
+		ProgressLog("  %12.12s", plus_value_strs[VarIdx].c_str());
 		ProgressLog("  %8.2f%%", plusy_pct);
-		ProgressLog("  %12.12s", minus_value_strs[VarIdx]);
+		ProgressLog("  %12.12s", minus_value_strs[VarIdx].c_str());
 		ProgressLog("  %8.2f%%", minusy_pct);
 		ProgressLog("  %10.5g", rates[VarIdx]);
 		ProgressLog("\n");
