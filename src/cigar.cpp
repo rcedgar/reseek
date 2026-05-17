@@ -3,6 +3,12 @@
 
 const int SIZE_32 = 32;
 
+// NOTE -- sometimes parasail_cigar_decode returns
+// cig_rev->beg_query=0, cig_rev->beg_ref=0 and
+// a CIGAR string which begins with Ds or Is
+// This is a quirk more than a bug, it's a non-
+// standard way to represent local alignment
+
 /***
 https://samtools.github.io/hts-specs/SAMv1.pdf
  
@@ -425,3 +431,51 @@ void ExpandParaCigar_reverseDI(const string &s, string &Path)
 			Path += Op;
 		}
 	}
+
+//// Collapse = / X / M into M; merge adjacent runs of the same op.
+//void cigar_convert_mismatches_to_M(const string& cigar, string &out)
+//	{
+//	out.reserve(cigar.size());
+//
+//	auto flush = [&](uint32_t len, char op) {
+//		if (len == 0) return;
+//		out += to_string(len);
+//		out += op;
+//		};
+//
+//	uint32_t run_len = 0;
+//	char run_op = '\0';
+//
+//	size_t i = 0;
+//	const size_t n = cigar.size();
+//	while (i < n) {
+//		if (!isdigit(static_cast<unsigned char>(cigar[i]))) {
+//			Die("cigar_convert_mismatches_to_M(%s)", cigar.c_str()); // invalid
+//			}
+//		uint32_t len = 0;
+//		while (i < n && isdigit(static_cast<unsigned char>(cigar[i]))) {
+//			len = len * 10u + static_cast<uint32_t>(cigar[i] - '0');
+//			++i;
+//			}
+//		if (i >= n) return;
+//		char op = cigar[i++];
+//
+//		if (op == '=' || op == 'X' || op == 'M') {
+//			op = 'M';
+//			}
+//
+//		if (run_op == '\0') {
+//			run_op = op;
+//			run_len = len;
+//			}
+//		else if (op == run_op) {
+//			run_len += len;
+//			}
+//		else {
+//			flush(run_len, run_op);
+//			run_op = op;
+//			run_len = len;
+//			}
+//		}
+//	flush(run_len, run_op);
+//	}

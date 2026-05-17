@@ -4,8 +4,11 @@
 #include "flat_helpers.h"
 #include "flat_alphas.h"
 #include "paralign.h"
+#include "cigar.h"
 
 uint flat_bench2::m_maxL = 4000;
+
+static FILE *s_f_nu_paths;
 
 void flat_bench2::search(uint nthread, bool pin_threads)
 	{
@@ -224,9 +227,146 @@ float flat_bench2::score_path(
 	return score;
 	}
 
+void flat_bench2::align_pair_nu_paths(
+	uint pairidx, flat_bench2_thread_data &TD)
+	{
+	asserta(s_f_nu_paths);
+	uint NQ = uint(m_Labels.size());
+	uint i, j;
+	triangle_k_to_ij(pairidx, NQ, i, j);
+
+	const chain_data *cd_i = m_cdvec[i];
+	const chain_data *cd_j = m_cdvec[j];
+
+	string label_i = cd_i->m_label;
+	string label_j = cd_j->m_label;
+	trunc_label(label_i);
+	trunc_label(label_j);
+	asserta(label_i == m_look->get_dom(i));
+	asserta(label_j == m_look->get_dom(j));
+
+	const uint L_i = cd_i->m_L;
+	const uint L_j = cd_j->m_L;
+	asserta(L_i <= m_maxL);
+	asserta(L_j <= m_maxL);
+
+	const int open = Paralign::m_Open;
+	const int ext = Paralign::m_Ext;
+
+	if (TD.m_parasail_result != 0)
+		{
+		parasail_result_free(TD.m_parasail_result);
+		TD.m_parasail_result = 0;
+		}
+
+	parasail_profile_t *prof_i = cd_i->m_parasail_prof;
+	asserta(prof_i != 0);
+
+	const uint8_t *codeseq_nu_i = cd_i->m_codeseq_nu;
+	const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
+	const uint8_t *codeseq_nu_j_rev = cd_j->m_codeseq_nu_rev;
+	asserta(codeseq_nu_i != 0);
+	asserta(codeseq_nu_j != 0);
+	asserta(codeseq_nu_j_rev != 0);
+
+	string cigar, cigar_rev;
+	uint Lo_i, Lo_j, Lo_i_rev, Lo_j_rev;
+	int fwd_score, rev_score;
+	string fwd_path;
+	string rev_path;
+	string fwd_compact_cigar;
+	string rev_compact_cigar;
+	{
+	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
+		prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+	fwd_score = TD.m_parasail_result->score;
+
+	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
+		TD.m_parasail_result,
+		(const char *) codeseq_nu_i, L_i,
+		(const char *) codeseq_nu_j, L_j,
+		&Paralign::m_matrix, 1, 0);
+
+	char *cig_str = parasail_cigar_decode(cig);
+	cigar = string(cig_str);
+	Lo_i = (uint) cig->beg_query;
+	Lo_j = (uint) cig->beg_ref;
+	free(cig_str);
+	parasail_cigar_free(cig);
+	parasail_result_free(TD.m_parasail_result);
+	TD.m_parasail_result = 0;
+
+	ExpandParaCigar_reverseDI(cigar, fwd_path);
+
+	int check_score_fwd = Paralign::score_nu_path(
+		label_i, codeseq_nu_i, Lo_i, L_i,
+		label_j, codeseq_nu_j, Lo_j, L_j,
+		fwd_path);
+
+	PathToCIGAR(fwd_path.c_str(), fwd_compact_cigar);
+	}
+
+	{
+	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
+		prof_i, (const char *) codeseq_nu_j_rev, L_j, open, ext);
+	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+	rev_score = TD.m_parasail_result->score;
+
+	parasail_cigar_t* cig_rev = parasail_result_get_cigar_extra(
+		TD.m_parasail_result,
+		(const char *) codeseq_nu_i, L_i,
+		(const char *) codeseq_nu_j_rev, L_j,
+		&Paralign::m_matrix, 1, 0);
+	char *cig_str_rev = parasail_cigar_decode(cig_rev);
+	cigar_rev = string(cig_str_rev);
+	Lo_i_rev = (uint) cig_rev->beg_query;
+	Lo_j_rev = (uint) cig_rev->beg_ref;
+	free(cig_str_rev);
+	parasail_cigar_free(cig_rev);
+	parasail_result_free(TD.m_parasail_result);
+	TD.m_parasail_result = 0;
+
+	ExpandParaCigar_reverseDI(cigar_rev, rev_path);
+
+	int check_score_rev = Paralign::score_nu_path(
+		label_i, codeseq_nu_i, Lo_i_rev, L_i,
+		label_j, codeseq_nu_j_rev, Lo_j_rev, L_j,
+		rev_path);
+
+	PathToCIGAR(rev_path.c_str(), rev_compact_cigar);
+	}
+
+// NOTE -- sometimes parasail_cigar_decode returns
+// cig_rev->beg_query=0, cig_rev->beg_ref=0 and
+// a CIGAR string which begins with Ds or Is
+// This is a quirk more than a bug, it's a non-
+// standard way to represent local alignment
+	static mutex lock;
+	FILE *f = s_f_nu_paths;
+	lock.lock();
+	fprintf(f, "%s", label_i.c_str());
+	fprintf(f, "\t%s", label_j.c_str());
+	fprintf(f, "\t%u", Lo_i);
+	fprintf(f, "\t%u", Lo_j);
+	fprintf(f, "\t%s", fwd_compact_cigar.c_str());
+	fprintf(f, "\t%d", fwd_score);
+	fprintf(f, "\t%u", Lo_i_rev);
+	fprintf(f, "\t%u", Lo_j_rev);
+	fprintf(f, "\t%s", rev_compact_cigar.c_str());
+	fprintf(f, "\t%d", rev_score);
+	fprintf(f, "\n");
+	lock.unlock();
+	}
+
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	if (m_nu_paths)
+		{
+		align_pair_nu_paths(pairidx, TD);
+		return;
+		}
 	m_Scores[pairidx] = 0;
 
 	uint NQ = uint(m_Labels.size());
@@ -420,6 +560,10 @@ void flat_bench2::update_params(
 
 void cmd_flat_bench2()
 	{
+	const bool nu_paths = optset_output2;
+	if (nu_paths)
+		s_f_nu_paths = CreateStdioFile(opt(output2));
+
 	vector<string> param_names;
 	vector<float> param_values;
 	parse_varstr(opt(varstr), param_names, param_values);
@@ -460,7 +604,14 @@ void cmd_flat_bench2()
 	uint nthread = GetRequestedThreadCount();
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(nthread);
+	FB.m_nu_paths = nu_paths;
 	FB.search(nthread, pin);
+	if (nu_paths)
+		{
+		CloseStdioFile(s_f_nu_paths);
+		return;
+		}
+
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));

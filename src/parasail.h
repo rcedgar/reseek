@@ -347,3 +347,8 @@ parasail_result_t* parasail_sw_striped_profile_avx2_256_16(
         const parasail_profile_t * const restrict profile,
         const char * const restrict s2, const int s2Len,
         const int open, const int gap);
+
+parasail_result_t* parasail_sw_trace_striped_profile_avx2_256_16(
+        const parasail_profile_t * const restrict profile,
+        const char * const restrict s2, const int s2Len,
+        const int open, const int gap);

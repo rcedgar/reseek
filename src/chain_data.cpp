@@ -46,7 +46,7 @@ static void thread_body(uint threadidx)
 		uint8_t *ptr_mem = s_mem_base + off;
 		scratch_mem mem(ptr_mem, nbytes);
 
-		if (threadidx == 0)
+		if (threadidx == 0 && chainidx + 1 < s_nchain)
 			ProgressStep(chainidx, s_nchain, "fill_chain_data_vec");
 
 		s_cdvec[chainidx] =

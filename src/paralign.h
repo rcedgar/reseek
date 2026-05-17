@@ -90,6 +90,11 @@ public:
 		int Open, int Ext, bool DisableParasail);
 	static int GetSubstScore(uint LetterQ, uint LetterT);
 
+	static int score_nu_path(
+		const string &label_i, const uint8_t *nu_codeseq_i, uint lo_i, uint L_i,
+		const string &label_j, const uint8_t *nu_codeseq_j, uint lo_j, uint L_j,
+		const string &path);
+
 public:
 	void ClearResult()
 		{

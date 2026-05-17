@@ -152,6 +152,48 @@ int Paralign::GetSubstScore(uint LetterQ, uint LetterT)
 	return m_matrix.matrix[LetterQ*AS + LetterT];
 	}
 
+int Paralign::score_nu_path(
+	const string &label_i, const uint8_t *nu_codeseq_i, uint lo_i, uint L_i,
+	const string &label_j, const uint8_t *nu_codeseq_j, uint lo_j, uint L_j,
+	const string &path)
+	{
+	uint pos_i = lo_i;
+	uint pos_j = lo_j;
+	uint score = 0;
+	const uint ncol = uint(path.size());
+	bool in_gap = false;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			asserta(pos_i < L_i);
+			asserta(pos_j < L_j);
+			uint8_t code_i = nu_codeseq_i[pos_i];
+			uint8_t code_j = nu_codeseq_j[pos_j];
+			score += m_matrix.matrix[code_i*256 + code_j];
+			++pos_i;
+			++pos_j;
+			in_gap = false;
+			}
+		else if (c == 'D')
+			++pos_i;
+		else if (c == 'I')
+			++pos_j;
+		if (c == 'D' || c == 'I')
+			{
+			if (in_gap)
+				score -= m_Ext;
+			else
+				{
+				score -= m_Open;
+				in_gap = true;
+				}
+			}
+		}
+	return score;
+	}
+
 const char *Paralign::GetLetterToChar() const
 	{
 	return m_matrix.alphabet;

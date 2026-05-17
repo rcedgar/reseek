@@ -4,40 +4,36 @@
 #include "flat_params.h"
 
 /***
-[scalar] 0.000435  dali
-[scalar]    0.894  gap2
-[scalar]   0.0466  lddt
-[scalar]    0.672  revw
-[scalar]    0.962  selfw
+[scalar]     0.89  gap2
+[scalar]     0.95  selfw
+[scalar]     0.64  revw
+[scalar]    0.058  nurevw
+[scalar] 0.0001755  dali
+[scalar]    0.045  lddt
+[scalar]    16.19  minfwd
+[scalar]      0.5  nfselfw
+[scalar]   0.2899  nfrevw
+[scalar]    113.8  nfminfwd
+[scalar]    33.82  nfmincmb
 
    ppack32    0.002  o
     pmdd32    0.008  o
- mendist32    0.009  o
- pendist32    0.014  ■
+ mendist32    0.008  o
        pm2    0.014  ■
+ pendist32    0.015  ■
   nensec32    0.016  ■
  rendist32    0.022  ■
    turnd32    0.035  ■■
-     sec32    0.060  ■■■■
+     sec32    0.059  ■■■■
    angle32    0.087  ■■■■■■
-    pack32    0.089  ■■■■■■■
- nendist32    0.116  ■■■■■■■■■
-      aa20    0.529  ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    pack32    0.088  ■■■■■■■
+ nendist32    0.118  ■■■■■■■■■
+      aa20    0.528  ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
      Total    1.000
-
-float flat_params::m_nu_filter_self_w = 0.5f;
-float flat_params::m_nu_filter_rev_w = 0.27f;
-int flat_params::m_nu_filter_min_fwd_score = 120;
-int flat_params::m_nu_filter_min_combined_score = 43;
 ***/
 
 static const string default_varstr =
 "gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=33.82;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;";
-
-// Sum3   Secs  
-// 1.761    10  minmufwd120.minmucmb60.minmgfwd20
-// 1.792	23	minmufwd120.minmucmb43.minmgfwd0			
-// 1.796	25	minmufwd120.minmucmb40.minmgfwd15			
 
 void parse_varstr(
 	const string &arg_VarStr,

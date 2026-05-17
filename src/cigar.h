@@ -1,5 +1,11 @@
 #pragma once
 
+// NOTE -- sometimes parasail_cigar_decode returns
+// cig_rev->beg_query=0, cig_rev->beg_ref=0 and
+// a CIGAR string which begins with Ds or Is
+// This is a quirk more than a bug, it's a non-
+// standard way to represent local alignment
+
 void LocalPathToCIGAR(const char *Path, uint LoQ, uint LoR, string &CIGAR,
   bool FlipDI);
 void PathToCIGAR(const char *Path, string &CIGAR, bool FlipDI = false);
@@ -12,3 +18,4 @@ void PathToLs(const string &Path, uint &QL, uint &TL);
 void ExpandParaCigar(const string &s, string &Path);
 void ExpandParaCigar_reverseDI(const string &s, string &Path);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+//void cigar_convert_mismatches_to_M(const string& cigar, string &out);
