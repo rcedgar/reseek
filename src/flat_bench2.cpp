@@ -152,6 +152,78 @@ void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 	chain_data::fill_chain_data_vec(sorted_chains, bits_query, m_cdvec);
 	}
 
+float flat_bench2::score_pos_pair(
+	const uint8_t *mega_prof_i, uint pos_i, uint L_i,
+	const uint8_t *mega_prof_j, uint pos_j, uint L_j) const
+	{
+	float score = 0;
+	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+		{
+		const float *weighted_logoddsvec =
+			flat_alphas::m_weighted_logoddsvec[fi];
+		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+		assert(weighted_logoddsvec != 0);
+		uint8_t code_i = mega_prof_i[fi*L_i + pos_i];
+		uint8_t code_j = mega_prof_j[fi*L_j + pos_j];
+		assert(code_i < alpha_size);
+		assert(code_j < alpha_size);
+		score += weighted_logoddsvec[code_i*alpha_size + code_j];
+		}
+	return score;
+	}
+
+float flat_bench2::score_path(
+	const chain_data &cd_i,
+	uint lo_i,
+	const chain_data &cd_j,
+	uint lo_j,
+	const char *path,
+	uint ncol) const
+	{
+	const uint L_i = cd_i.m_L;
+	const uint L_j = cd_j.m_L;
+	uint pos_i = lo_i;
+	uint pos_j = lo_j;
+	bool in_gap = false;
+	const float open = -flat_params::m_open;
+	const float ext = -flat_params::m_ext;
+	asserta(open <= 0);
+	asserta(ext <= 0);
+	float score= 0;
+	const uint8_t *mega_prof_i = cd_i.m_mega_prof;
+	const uint8_t *mega_prof_j = cd_j.m_mega_prof;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			assert(pos_i < L_i);
+			in_gap = false;
+			score += score_pos_pair(
+				cd_i.m_mega_prof, pos_i, L_i,
+				cd_j.m_mega_prof, pos_j, L_j);
+			++pos_i;
+			++pos_j;
+			}
+		else if (c == 'D')
+			++pos_i;
+		else if (c == 'I')
+			++pos_j;
+
+		if (c == 'D' || c == 'I')
+			{
+			if (in_gap)
+				score += ext;
+			else
+				{
+				score += open;
+				in_gap = true;
+				}
+			}
+		}
+	return score;
+	}
+
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
@@ -226,7 +298,8 @@ void flat_bench2::align_pair(
 	const float *pssm_j = cd_j->m_mega_pssm;
 
 	uint lo_i, lo_j, ncol;
-	float score = sw_flat_pssm(
+	float score = 0;
+	float mega_fwd_score = sw_flat_pssm(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof_i, L_i,
 		pssm_j, L_j, 
@@ -237,9 +310,14 @@ void flat_bench2::align_pair(
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 	const string path = string(TD.m_path_buffer);
 	++m_mega_fwd_test_count;
-	if (score < flat_params::m_mega_filter_min_fwd)
+	if (mega_fwd_score < flat_params::m_mega_filter_min_fwd)
 		return;
+	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
+
+	//float score2 = score_path(
+	//	*cd_i, lo_i, *cd_j, lo_j, TD.m_path_buffer, ncol);
+	//asserta(score2 == mega_fwd_score);
 
 	const sid_t *distmx_i = cd_i->m_distmx;
 	const sid_t *distmx_j = cd_j->m_distmx;

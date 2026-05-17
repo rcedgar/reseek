@@ -71,6 +71,16 @@ public:
 		const vector<float> &values);
 	void set_self_rev_scores();
 	void set_nu_self_rev_scores();
+	float score_path(
+		const chain_data &cd_i,
+		uint lo_i,
+		const chain_data &cd_j,
+		uint lo_j,
+		const char *path,
+		uint ncol) const;
+	float score_pos_pair(
+		const uint8_t *mega_prof_i, uint pos_i, uint L_i,
+		const uint8_t *mega_prof_j, uint pos_j, uint L_j) const;
 
 public:
 	static void static_thread_body(flat_bench2 *SB, uint threadidx);

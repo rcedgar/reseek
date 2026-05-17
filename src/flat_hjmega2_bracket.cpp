@@ -94,11 +94,14 @@ void cmd_flat_hjmega2_bracket()
 	vector<double> minus_ys;
 	vector<double> rates(nvar, FLT_MAX);
 
+	const double mindypct = (optset_mindypct ? opt(mindypct) : 0.02f);
+	const double maxdypct = (optset_mindypct ? opt(mindypct) : 0.2f);
+
 	for (;;)
 		{
 		double saved_besty = Pfull.m_Best_y;
 		Pfull.Bracket_FindNeighbors(
-			0.02, 0.2, 5, 
+			mindypct, maxdypct, 5, 
 			plus_value_strs, minus_value_strs,
 			plus_ys, minus_ys,
 			rates);
