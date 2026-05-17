@@ -95,7 +95,7 @@ void cmd_flat_hjmega2_bracket()
 	vector<double> rates(nvar, FLT_MAX);
 
 	const double mindypct = (optset_mindypct ? opt(mindypct) : 0.02f);
-	const double maxdypct = (optset_mindypct ? opt(mindypct) : 0.2f);
+	const double maxdypct = (optset_mindypct ? opt(maxdypct) : 0.2f);
 
 	for (;;)
 		{
