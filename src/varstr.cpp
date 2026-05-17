@@ -31,47 +31,9 @@ int flat_params::m_nu_filter_min_fwd_score = 120;
 int flat_params::m_nu_filter_min_combined_score = 43;
 ***/
 
-static const string default_alpha_weights =
-	"aa20=5.29E-01;"
-	"angle32=8.66E-02;"
-	"mendist32=9.01E-03;"
-	"nendist32=1.16E-01;"
-	"nensec32=1.58E-02;"
-	"pack32=8.87E-02;"
-	"pendist32=1.37E-02;"
-	"pm2=1.40E-02;"
-	"pmdd32=8.04E-03;"
-	"ppack32=1.77E-03;"
-	"rendist32=2.25E-02;"
-	"sec32=5.97E-02;"
-	"turnd32=3.49E-02;";
-
-static const string default_gaps =
-	"gap2=8.94E-01;";
-
-static const string default_test_statistic_weights =
-	"dali=4.35E-04;"
-	"lddt=4.66E-02;"
-	"revw=6.72E-01;"
-	"selfw=9.62E-01;";
-
-static const string default_mega_filter =
-	"minfwd=15;";
-
-static const string default_nu_filter =
-	"nfselfw=0.5;"
-	"nfrevw=0.27;"
-	"nfminfwd=120;"
-	"nfmincmb=40;";
-
 static const string default_varstr =
-	default_alpha_weights + 
-	default_gaps +
-	default_test_statistic_weights +
-	default_mega_filter +
-	default_nu_filter;
+"gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=33.82;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;";
 
-// C:\src\reseek_tune2\bash\flat_bench2_mufilter_sweep.bash
 // Sum3   Secs  
 // 1.761    10  minmufwd120.minmucmb60.minmgfwd20
 // 1.792	23	minmufwd120.minmucmb43.minmgfwd0			
