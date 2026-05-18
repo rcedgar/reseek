@@ -380,8 +380,10 @@
     <ClCompile Include="optimizearea.cpp" />
     <ClCompile Include="packing.cpp" />
     <ClCompile Include="paralign.cpp" />
+    <ClCompile Include="parasail_cigar_rce.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
     <ClCompile Include="parabench.cpp" />
+    <ClCompile Include="parasail_result_to_path.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="create_foldseekdb.cpp" />

@@ -61,7 +61,7 @@ public:
 	atomic<uint> m_mu_fwd_reject_count = 0;
 	atomic<uint> m_mu_combined_reject_count = 0;
 
-	bool m_nu_paths = false;
+	bool m_output_nu_paths = false;
 
 public:
 	void search(uint nthread, bool pin_threads);

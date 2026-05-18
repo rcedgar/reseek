@@ -812,6 +812,12 @@
     <ClCompile Include="flat_hjmega2_bracket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parasail_cigar_rce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail_result_to_path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

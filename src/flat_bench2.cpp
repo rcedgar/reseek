@@ -230,6 +230,14 @@ float flat_bench2::score_path(
 void flat_bench2::align_pair_nu_paths(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	void parasail_result_to_path(
+		parasail_result_t *result,
+		int lena,
+		int lenb,
+		uint &lo_i,
+		uint &lo_j,
+		string &path);
+
 	asserta(s_f_nu_paths);
 	uint NQ = uint(m_Labels.size());
 	uint i, j;
@@ -269,18 +277,23 @@ void flat_bench2::align_pair_nu_paths(
 	asserta(codeseq_nu_j != 0);
 	asserta(codeseq_nu_j_rev != 0);
 
-	string cigar, cigar_rev;
-	uint Lo_i, Lo_j, Lo_i_rev, Lo_j_rev;
-	int fwd_score, rev_score;
-	string fwd_path;
-	string rev_path;
-	string fwd_compact_cigar;
-	string rev_compact_cigar;
+	string para_cigar_fwd;
+	string para_cigar_rev;
+	uint lo_i_fwd = UINT_MAX;
+	uint lo_j_fwd = UINT_MAX;
+	uint lo_i_rev = UINT_MAX;
+	uint lo_j_rev = UINT_MAX;
+	int score_fwd = 0;
+	int score_rev = 0;
+	string path_fwd;
+	string path_rev;
+	string compact_cigar_fwd;
+	string compact_cigar_rev;
 	{
 	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
 		prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
 	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
-	fwd_score = TD.m_parasail_result->score;
+	score_fwd = TD.m_parasail_result->score;
 
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
 		TD.m_parasail_result,
@@ -289,29 +302,42 @@ void flat_bench2::align_pair_nu_paths(
 		&Paralign::m_matrix, 1, 0);
 
 	char *cig_str = parasail_cigar_decode(cig);
-	cigar = string(cig_str);
-	Lo_i = (uint) cig->beg_query;
-	Lo_j = (uint) cig->beg_ref;
+	para_cigar_fwd = string(cig_str);
+	uint para_lo_i_fwd = (uint) cig->beg_query;
+	uint para_lo_j_fwd = (uint) cig->beg_ref;
 	free(cig_str);
 	parasail_cigar_free(cig);
+
+	string path_fwd2;
+	uint lo_i_fwd2, lo_j_fwd2;
+	parasail_result_to_path(TD.m_parasail_result,
+		L_i, L_j, lo_i_fwd2, lo_j_fwd2, path_fwd2);
+
 	parasail_result_free(TD.m_parasail_result);
 	TD.m_parasail_result = 0;
 
-	ExpandParaCigar_reverseDI(cigar, fwd_path);
+	parasail_cigar_to_path(para_cigar_fwd,
+		para_lo_i_fwd, para_lo_j_fwd,
+		lo_i_fwd, lo_j_fwd, path_fwd);
+
+	asserta(lo_i_fwd2 == lo_i_fwd);
+	asserta(lo_j_fwd2 == lo_j_fwd);
+	asserta(path_fwd2 == path_fwd);
 
 	int check_score_fwd = Paralign::score_nu_path(
-		label_i, codeseq_nu_i, Lo_i, L_i,
-		label_j, codeseq_nu_j, Lo_j, L_j,
-		fwd_path);
+		label_i, codeseq_nu_i, lo_i_fwd, L_i,
+		label_j, codeseq_nu_j, lo_j_fwd, L_j,
+		path_fwd);
+	asserta(check_score_fwd == score_fwd);
 
-	PathToCIGAR(fwd_path.c_str(), fwd_compact_cigar);
+	PathToCIGAR(path_fwd.c_str(), compact_cigar_fwd);
 	}
 
 	{
 	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
 		prof_i, (const char *) codeseq_nu_j_rev, L_j, open, ext);
 	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
-	rev_score = TD.m_parasail_result->score;
+	score_rev = TD.m_parasail_result->score;
 
 	parasail_cigar_t* cig_rev = parasail_result_get_cigar_extra(
 		TD.m_parasail_result,
@@ -319,22 +345,34 @@ void flat_bench2::align_pair_nu_paths(
 		(const char *) codeseq_nu_j_rev, L_j,
 		&Paralign::m_matrix, 1, 0);
 	char *cig_str_rev = parasail_cigar_decode(cig_rev);
-	cigar_rev = string(cig_str_rev);
-	Lo_i_rev = (uint) cig_rev->beg_query;
-	Lo_j_rev = (uint) cig_rev->beg_ref;
+	para_cigar_rev = string(cig_str_rev);
+	uint para_lo_i_rev = (uint) cig_rev->beg_query;
+	uint para_lo_j_rev = (uint) cig_rev->beg_ref;
 	free(cig_str_rev);
 	parasail_cigar_free(cig_rev);
+
+	string path_rev2;
+	uint lo_i_rev2, lo_j_rev2;
+	parasail_result_to_path(TD.m_parasail_result,
+		L_i, L_j, lo_i_rev2, lo_j_rev2, path_rev2);
+
 	parasail_result_free(TD.m_parasail_result);
 	TD.m_parasail_result = 0;
 
-	ExpandParaCigar_reverseDI(cigar_rev, rev_path);
+	parasail_cigar_to_path(para_cigar_rev,
+		para_lo_i_rev, para_lo_j_rev,
+		lo_i_rev, lo_j_rev, path_rev);
+
+	asserta(lo_i_rev2 == lo_i_rev);
+	asserta(lo_j_rev2 == lo_j_rev);
+	asserta(path_rev2 == path_rev);
 
 	int check_score_rev = Paralign::score_nu_path(
-		label_i, codeseq_nu_i, Lo_i_rev, L_i,
-		label_j, codeseq_nu_j_rev, Lo_j_rev, L_j,
-		rev_path);
+		label_i, codeseq_nu_i, lo_i_rev, L_i,
+		label_j, codeseq_nu_j_rev, lo_j_rev, L_j,
+		path_rev);
 
-	PathToCIGAR(rev_path.c_str(), rev_compact_cigar);
+	PathToCIGAR(path_rev.c_str(), compact_cigar_rev);
 	}
 
 // NOTE -- sometimes parasail_cigar_decode returns
@@ -347,14 +385,14 @@ void flat_bench2::align_pair_nu_paths(
 	lock.lock();
 	fprintf(f, "%s", label_i.c_str());
 	fprintf(f, "\t%s", label_j.c_str());
-	fprintf(f, "\t%u", Lo_i);
-	fprintf(f, "\t%u", Lo_j);
-	fprintf(f, "\t%s", fwd_compact_cigar.c_str());
-	fprintf(f, "\t%d", fwd_score);
-	fprintf(f, "\t%u", Lo_i_rev);
-	fprintf(f, "\t%u", Lo_j_rev);
-	fprintf(f, "\t%s", rev_compact_cigar.c_str());
-	fprintf(f, "\t%d", rev_score);
+	fprintf(f, "\t%u", lo_i_fwd);
+	fprintf(f, "\t%u", lo_j_fwd);
+	fprintf(f, "\t%s", compact_cigar_fwd.c_str());
+	fprintf(f, "\t%d", score_fwd);
+	fprintf(f, "\t%u", lo_i_rev);
+	fprintf(f, "\t%u", lo_j_rev);
+	fprintf(f, "\t%s", compact_cigar_rev.c_str());
+	fprintf(f, "\t%d", score_rev);
 	fprintf(f, "\n");
 	lock.unlock();
 	}
@@ -362,7 +400,7 @@ void flat_bench2::align_pair_nu_paths(
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
-	if (m_nu_paths)
+	if (m_output_nu_paths)
 		{
 		align_pair_nu_paths(pairidx, TD);
 		return;
@@ -469,7 +507,7 @@ void flat_bench2::align_pair(
 		uint ncol_rev, lo_i_rev, lo_j_rev;
 		const uint8_t *rev_prof_i = cd_i->m_mega_prof_rev;
 		asserta(rev_prof_i != 0);
-		float rev_score = sw_flat_pssm(
+		float score_rev = sw_flat_pssm(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			rev_prof_i, L_i,
 			pssm_j, L_j, 
@@ -478,7 +516,7 @@ void flat_bench2::align_pair(
 			-flat_params::m_open, 
 			-flat_params::m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
-		score -= revw*rev_score;
+		score -= revw*score_rev;
 		}
 	score += flat_params::m_nurev_w*nu_rev_score;
 
@@ -604,7 +642,7 @@ void cmd_flat_bench2()
 	uint nthread = GetRequestedThreadCount();
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(nthread);
-	FB.m_nu_paths = nu_paths;
+	FB.m_output_nu_paths = nu_paths;
 	FB.search(nthread, pin);
 	if (nu_paths)
 		{

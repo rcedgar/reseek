@@ -189,6 +189,8 @@ const char *LocalCIGARToPath(const string &CIGAR, string &Path,
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
+		if (Op == '=' || Op == 'X')
+			Op = 'M';
 		if (FlipDI)
 			{
 			if (Op == 'D')
@@ -432,50 +434,52 @@ void ExpandParaCigar_reverseDI(const string &s, string &Path)
 		}
 	}
 
-//// Collapse = / X / M into M; merge adjacent runs of the same op.
-//void cigar_convert_mismatches_to_M(const string& cigar, string &out)
-//	{
-//	out.reserve(cigar.size());
-//
-//	auto flush = [&](uint32_t len, char op) {
-//		if (len == 0) return;
-//		out += to_string(len);
-//		out += op;
-//		};
-//
-//	uint32_t run_len = 0;
-//	char run_op = '\0';
-//
-//	size_t i = 0;
-//	const size_t n = cigar.size();
-//	while (i < n) {
-//		if (!isdigit(static_cast<unsigned char>(cigar[i]))) {
-//			Die("cigar_convert_mismatches_to_M(%s)", cigar.c_str()); // invalid
-//			}
-//		uint32_t len = 0;
-//		while (i < n && isdigit(static_cast<unsigned char>(cigar[i]))) {
-//			len = len * 10u + static_cast<uint32_t>(cigar[i] - '0');
-//			++i;
-//			}
-//		if (i >= n) return;
-//		char op = cigar[i++];
-//
-//		if (op == '=' || op == 'X' || op == 'M') {
-//			op = 'M';
-//			}
-//
-//		if (run_op == '\0') {
-//			run_op = op;
-//			run_len = len;
-//			}
-//		else if (op == run_op) {
-//			run_len += len;
-//			}
-//		else {
-//			flush(run_len, run_op);
-//			run_op = op;
-//			run_len = len;
-//			}
-//		}
-//	flush(run_len, run_op);
-//	}
+void parasail_cigar_to_path(
+	const string &para_cigar,
+	uint para_loi, uint para_loj,
+	uint &loi, uint &loj,
+	string &path)
+	{
+	path.clear();
+	path.reserve(1000);
+	asserta(!para_cigar.empty());
+	string ops;
+	vector<uint> ns;
+	CIGARGetOps(para_cigar, ops, ns);
+	const uint N = uint(ns.size());
+	loi = para_loi;
+	loj = para_loj;
+	asserta(N > 0);
+	uint i0 = 0;
+	char op0 = ops[0];
+	if (op0 == 'D')
+		{
+		asserta(para_loi == 0);
+		asserta(para_loj == 0);
+		loj += ns[0];
+		i0 = 1;
+		}
+	else if (op0 == 'I')
+		{
+		asserta(para_loi == 0);
+		asserta(para_loj == 0);
+		loi += ns[0];
+		i0 = 1;
+		}
+
+	for (uint i = i0; i < N; ++i)
+		{
+		char op = ops[i];
+		if (op == '=' || op == 'X')
+			op = 'M';
+		else if (op == 'D')
+			op = 'I';
+		else if (op == 'I')
+			op = 'D';
+		else
+			Die("op=%c", op);
+		uint n = ns[i];
+		for (uint k = 0; k < ns[i]; ++k)
+			path += op;
+		}
+	}
