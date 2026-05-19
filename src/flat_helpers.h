@@ -25,6 +25,14 @@ float sw_flat_pssm(
 	float Open, float Ext, uint &Loi, uint &Loj,
 	char *path_buffer, uint &ncol);
 
+float sw_flat_pssm_scoreonly(
+	float *__restrict scratch_rows,
+	const float ** __restrict scratch_ppsms,
+	const uint8_t *__restrict profQ, uint LQ,
+	const float *__restrict pssmT, uint LT,
+	const uint32_t * __restrict feature_block_offsets,
+	uint nfeat, float Open, float Ext);
+
 void log_profile(
 	const string &label,
 	const uint8_t *prof,

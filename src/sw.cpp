@@ -836,6 +836,115 @@ float sw_flat_pssm(
 	return BestScore;
 	}
 
+float sw_flat_pssm_scoreonly(
+	float *__restrict scratch_rows,
+	const float ** __restrict scratch_ppsms,
+	const uint8_t *__restrict profQ, uint LQ,
+	const float *__restrict pssmT, uint LT,
+	const uint32_t * __restrict feature_block_offsets,
+	uint nfeat, float Open, float Ext)
+	{
+	asserta(Open <= 0);
+	asserta(Ext <= 0);
+
+	float *Mrow = scratch_rows + 1;
+	float *Drow = scratch_rows + LT + 2;
+
+// Use Mrow[-1], so...
+	Mrow[-1] = MINUS_INFINITY;
+
+	for (uint j = 0; j <= LT; ++j)
+		{
+		Mrow[j] = MINUS_INFINITY;
+		Drow[j] = MINUS_INFINITY;
+		TRACE_M(0, j, MINUS_INFINITY);
+		TRACE_D(0, j, MINUS_INFINITY);
+		}
+
+	float BestScore = 0.0f;
+	uint Besti = UINT_MAX;
+	uint Bestj = UINT_MAX;
+
+// Main loop
+	float M0 = float(0);
+	for (uint i = 0; i < LQ; ++i)
+		{
+		// Select one PSSM row per feature for this i.
+		for (uint fi = 0; fi < nfeat; ++fi)
+			{
+			const uint8_t codeA = profQ[size_t(fi)*LQ + i];
+			const float * __restrict pssm_fi =
+				pssmT + size_t(feature_block_offsets[fi])*LT;
+			scratch_ppsms[fi] = pssm_fi + size_t(codeA)*LT;
+			}
+
+		float I0 = MINUS_INFINITY;
+		for (uint j = 0; j < LT; ++j)
+			{
+			float SavedM0 = M0;
+
+		// MATCH
+			{
+			float xM = M0;
+			if (Drow[j] > xM)
+				{
+				xM = Drow[j];
+				}
+			if (I0 > xM)
+				{
+				xM = I0;
+				}
+			if (0.0f >= xM)
+				{
+				xM = 0.0f;
+				}
+
+			M0 = Mrow[j];
+
+			float Score = 0.0f;
+			for (uint fi = 0; fi < nfeat; ++fi)
+				Score += scratch_ppsms[fi][j];
+
+			xM += Score;
+
+			if (xM > BestScore)
+				{
+				BestScore = xM;
+				Besti = i;
+				Bestj = j;
+				}
+
+			Mrow[j] = xM;
+			}
+
+		// DELETE
+			{
+			float md = SavedM0 + Open;
+			Drow[j] += Ext;
+			if (md >= Drow[j])
+				{
+				Drow[j] = md;
+				}
+			}
+
+		// INSERT
+			{
+			float mi = SavedM0 + Open;
+			I0 += Ext;
+			if (mi >= I0)
+				{
+				I0 = mi;
+				}
+			}
+
+			}
+
+		M0 = MINUS_INFINITY;
+		}
+
+	return BestScore;
+	}
+
 float SWFast_returnDPmatrix(
 	XDPMem &Mem, const float * const *SMxData, uint LA, uint LB,
 	float Open, float Ext, 

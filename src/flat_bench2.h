@@ -4,41 +4,7 @@
 #include "chain_data.h"
 #include "flat_alphas.h"
 #include "parasail.h"
-
-class flat_bench2_thread_data
-	{
-public:
-	const float **m_scratch_pssms = 0;
-	float *m_scratch_rows = 0;
-	uint8_t *m_TB = 0;
-	char *m_path_buffer = 0;
-	float *m_colscores = 0;
-	parasail_result_t *m_parasail_result = 0;
-
-private:
-	flat_bench2_thread_data() = delete;
-
-public:
-	flat_bench2_thread_data(uint maxL, uint nfeat)
-		{
-		m_scratch_rows = myalloc(float, 2*maxL + 2);
-		m_scratch_pssms = myalloc(const float *, nfeat);
-		m_TB = myalloc(uint8_t, maxL*maxL);
-		m_path_buffer = myalloc(char, 2*maxL);
-		m_colscores = myalloc(float, 2*maxL);
-		m_parasail_result = 0;
-		}
-
-	~flat_bench2_thread_data()
-		{
-		myfree(m_scratch_pssms);
-		myfree(m_scratch_rows);
-		myfree(m_TB);
-		myfree(m_path_buffer);
-		if (m_parasail_result != 0)
-			parasail_result_free(m_parasail_result);
-		}
-	};
+#include "flat_bench2_thread_data.h"
 
 class flat_bench2 : public FastBench
 	{
@@ -53,8 +19,8 @@ public:
 	atomic<uint> m_next_pairidx = 0;
 	float *m_self_rev_scores = 0;
 	float *m_nu_self_rev_scores = 0;
-	bool m_nu_filter = true;
 	bool m_nu_only = false;
+	bool m_timealn = false;
 	atomic<uint> m_aln_count = 0;
 	atomic<uint> m_mega_fwd_test_count= 0;
 	atomic<uint> m_mega_fwd_pass_count= 0;
@@ -78,6 +44,8 @@ public:
 public:
 	void search(uint nthread, bool pin_threads);
 	void align_pair(uint pairidx, flat_bench2_thread_data &TD);
+	void align_pair_timealn(uint pairidx, flat_bench2_thread_data &TD);
+	void align_pair_nu_only(uint pairidx, flat_bench2_thread_data &TD);
 	void align_pair_output_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
 	void align_pair_input_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
 	void load_chains(const vector<flat_chain_t *> &chains);

@@ -5,10 +5,12 @@
 #include "flat_alphas.h"
 #include "paralign.h"
 #include "cigar.h"
+#include "getticks.h"
 
 uint flat_bench2::m_maxL = 4000;
 
 static FILE *s_f_nu_paths;
+static FILE *s_f_mega_paths;
 
 void flat_bench2::search(uint nthread, bool pin_threads)
 	{
@@ -278,13 +280,6 @@ void flat_bench2::align_pair_output_nu_paths(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
 	const float MIN_FWD_SCORE = float(optset_minscore ? opt(minscore) : 120);
-	void parasail_result_to_path(
-		parasail_result_t *result,
-		int lena,
-		int lenb,
-		uint &lo_i,
-		uint &lo_j,
-		string &path);
 
 	asserta(s_f_nu_paths);
 	uint NQ = uint(m_Labels.size());
@@ -456,9 +451,188 @@ void flat_bench2::align_pair_output_nu_paths(
 	lock.unlock();
 	}
 
+void flat_bench2::align_pair_nu_only(
+	uint pairidx, flat_bench2_thread_data &TD)
+	{
+	m_Scores[pairidx] = 0;
+
+	uint NQ = uint(m_Labels.size());
+	uint i, j;
+	triangle_k_to_ij(pairidx, NQ, i, j);
+
+	const chain_data *cd_i = m_cdvec[i];
+	const chain_data *cd_j = m_cdvec[j];
+
+	string label_i = cd_i->m_label;
+	string label_j = cd_j->m_label;
+	trunc_label(label_i);
+	trunc_label(label_j);
+	asserta(label_i == m_look->get_dom(i));
+	asserta(label_j == m_look->get_dom(j));
+
+	const uint L_i = cd_i->m_L;
+	const uint L_j = cd_j->m_L;
+	asserta(L_i <= m_maxL);
+	asserta(L_j <= m_maxL);
+
+	float nu_rev_score = 0;
+	const int open = Paralign::m_Open;
+	const int ext = Paralign::m_Ext;
+
+	if (TD.m_parasail_result != 0)
+		parasail_result_free(TD.m_parasail_result);
+	parasail_profile_t *prof_i = cd_i->m_parasail_prof;
+	asserta(prof_i != 0);
+	const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
+	TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+		prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+	int fwd_score = TD.m_parasail_result->score;
+	if (fwd_score < flat_params::m_nu_filter_min_fwd_score)
+		{
+		++m_mu_fwd_reject_count;
+		return;
+		}
+
+	parasail_result_free(TD.m_parasail_result);
+	parasail_profile_t *prof_i_rev = cd_i->m_parasail_prof_rev;
+	asserta(prof_i_rev != 0);
+	TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+		prof_i_rev, (const char *) codeseq_nu_j, L_j, open, ext);
+	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+	nu_rev_score = (float) TD.m_parasail_result->score;
+
+	float self_score = (m_nu_self_rev_scores[i] + 
+		m_nu_self_rev_scores[j])/2.0f;
+
+	const float revw = flat_params::m_nu_filter_rev_w;
+	const float selfw = flat_params::m_nu_filter_self_w;
+
+	float nu_combined_score =
+		float(fwd_score) -
+		selfw*self_score -
+		revw*nu_rev_score;
+	if (nu_combined_score < flat_params::m_nu_filter_min_combined_score)
+		{
+		++m_mu_combined_reject_count;
+		return;
+		}
+	m_Scores[pairidx] = nu_combined_score;
+	}
+
+void flat_bench2::align_pair_timealn(
+	uint pairidx, flat_bench2_thread_data &TD)
+	{
+	static mutex lock;
+	lock.lock();
+	static uint counter = 0;
+	static TICKS sumticks_nu_scoreonly = 0;
+	static TICKS sumticks_nu_path = 0;
+	static TICKS sumticks_mega_scoreonly = 0;
+	static TICKS sumticks_mega_path = 0;
+
+	if (counter > 0 && counter%10000 == 0)
+		{
+		double nu_scoreonly = double(sumticks_nu_scoreonly);
+		double nu_path = double(sumticks_nu_path);
+		double mega_scoreonly = double(sumticks_mega_scoreonly);
+		double mega_path = double(sumticks_mega_path);
+
+		ProgressLog("\n");
+		ProgressLog("nu_scoreonly    %8.3g  %6.2f x\n", nu_scoreonly, mega_path/nu_scoreonly);
+		ProgressLog("nu_path         %8.3g  %6.2f x\n", nu_path, mega_path/nu_path);
+		ProgressLog("mega_scoreonly  %8.3g  %6.2f x\n", mega_scoreonly, mega_path/mega_scoreonly);
+		ProgressLog("mega_path       %8.3g  %6.2f x\n", mega_path, 1.0);
+		ProgressLog("\n");
+		if (counter == 40000)
+			Die("timealn done");
+		}
+
+	++counter;
+	uint NQ = uint(m_Labels.size());
+	uint i, j;
+	triangle_k_to_ij(pairidx, NQ, i, j);
+
+	const chain_data *cd_i = m_cdvec[i];
+	const chain_data *cd_j = m_cdvec[j];
+
+	string label_i = cd_i->m_label;
+	string label_j = cd_j->m_label;
+	trunc_label(label_i);
+	trunc_label(label_j);
+	asserta(label_i == m_look->get_dom(i));
+	asserta(label_j == m_look->get_dom(j));
+
+	const uint L_i = cd_i->m_L;
+	const uint L_j = cd_j->m_L;
+	asserta(L_i <= m_maxL);
+	asserta(L_j <= m_maxL);
+
+	const int open = Paralign::m_Open;
+	const int ext = Paralign::m_Ext;
+
+	TICKS t1 = GetClockTicks();
+	if (TD.m_parasail_result != 0)
+		parasail_result_free(TD.m_parasail_result);
+	parasail_profile_t *para_prof_i = cd_i->m_parasail_prof;
+	asserta(para_prof_i != 0);
+	const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
+	TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
+		para_prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+	TICKS t2 = GetClockTicks();
+	sumticks_nu_scoreonly += (t2 - t1);
+
+	if (TD.m_parasail_result != 0)
+		parasail_result_free(TD.m_parasail_result);
+	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
+		para_prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+
+	TICKS t3 = GetClockTicks();
+	sumticks_nu_path += (t3 - t2);
+
+	const uint8_t *mega_prof_i = cd_i->m_mega_prof;
+	const float *pssm_j = cd_j->m_mega_pssm;
+
+	uint lo_i, lo_j, ncol;
+	sw_flat_pssm(
+		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
+		mega_prof_i, L_i,
+		pssm_j, L_j, 
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_nfeat,
+		-flat_params::m_open, 
+		-flat_params::m_ext,
+		lo_i, lo_j, TD.m_path_buffer, ncol);
+	TICKS t4 = GetClockTicks();
+	sumticks_mega_path += (t4 - t3);
+
+	sw_flat_pssm_scoreonly(
+		TD.m_scratch_rows, TD.m_scratch_pssms,
+		mega_prof_i, L_i,
+		pssm_j, L_j, 
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_nfeat,
+		-flat_params::m_open, 
+		-flat_params::m_ext);
+	TICKS t5 = GetClockTicks();
+	sumticks_mega_scoreonly += (t5 - t4);
+
+	lock.unlock();
+	}
+
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	if (m_timealn)
+		{
+		align_pair_timealn(pairidx, TD);
+		return;
+		}
+	if (m_nu_only)
+		{
+		align_pair_nu_only(pairidx, TD);
+		return;
+		}
 	if (m_output_nu_paths)
 		{
 		align_pair_output_nu_paths(pairidx, TD);
@@ -559,9 +733,86 @@ void flat_bench2::align_pair(
 	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
 
-	//float score2 = score_path(
-	//	*cd_i, lo_i, *cd_j, lo_j, TD.m_path_buffer, ncol);
-	//asserta(score2 == mega_fwd_score);
+	if (s_f_mega_paths != 0 && i != j &&
+		mega_fwd_score > 79 && mega_fwd_score < 81)
+		{
+		float score2 = score_path(
+			*cd_i, lo_i, *cd_j, lo_j, TD.m_path_buffer, ncol);
+		asserta(score2 == mega_fwd_score);
+		string cigar;
+		PathToCIGAR(path.c_str(), cigar);
+
+		const int open = Paralign::m_Open;
+		const int ext = Paralign::m_Ext;
+
+		if (TD.m_parasail_result != 0)
+			parasail_result_free(TD.m_parasail_result);
+		parasail_profile_t *prof_i = cd_i->m_parasail_prof;
+		asserta(prof_i != 0);
+		const uint8_t *codeseq_nu_i = cd_i->m_codeseq_nu;
+		const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
+
+		TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
+			prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
+		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
+		int para_score = TD.m_parasail_result->score;
+
+		parasail_cigar_t* cig = parasail_result_get_cigar_extra(
+			TD.m_parasail_result,
+			(const char *) codeseq_nu_i, L_i,
+			(const char *) codeseq_nu_j, L_j,
+			&Paralign::m_matrix, 1, 0);
+
+		string para_path;
+		uint para_lo_i, para_lo_j;
+		parasail_result_to_path(TD.m_parasail_result,
+			L_i, L_j, para_lo_i, para_lo_j, para_path);
+
+		string para_cigar;
+		PathToCIGAR(para_path.c_str(), para_cigar);
+
+		parasail_result_free(TD.m_parasail_result);
+		TD.m_parasail_result = 0;
+
+		uint sfidx_i = m_look->m_domidx2sfidx[i];
+		uint sfidx_j = m_look->m_domidx2sfidx[j];
+		string &sf_i = m_look->m_sfs[sfidx_i];
+		string &sf_j = m_look->m_sfs[sfidx_j];
+	
+		//1. labelA
+		//2. labelB
+		//3. loA
+		//4. loB
+		//5. LA
+		//6. LB
+		//7. CIGAR
+		//8. name
+		static mutex lock;
+		FILE *f = s_f_mega_paths;
+		lock.lock();
+		fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());
+		fprintf(f, "\t%s/%s", label_j.c_str(), sf_j.c_str());
+		fprintf(f, "\t%u", lo_i);
+		fprintf(f, "\t%u", lo_j);
+		fprintf(f, "\t%u", L_i);
+		fprintf(f, "\t%u", L_j);
+		fprintf(f, "\t%s", cigar.c_str());
+		fprintf(f, "\t%.1f", mega_fwd_score);
+		fprintf(f, "\tmega");
+		fprintf(f, "\n");
+
+		fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());
+		fprintf(f, "\t%s/%s", label_j.c_str(), sf_j.c_str());
+		fprintf(f, "\t%u", para_lo_i);
+		fprintf(f, "\t%u", para_lo_j);
+		fprintf(f, "\t%u", L_i);
+		fprintf(f, "\t%u", L_j);
+		fprintf(f, "\t%s", para_cigar.c_str());
+		fprintf(f, "\t%d", para_score);
+		fprintf(f, "\tpara");
+		fprintf(f, "\n");
+		lock.unlock();
+		}
 
 	const sid_t *distmx_i = cd_i->m_distmx;
 	const sid_t *distmx_j = cd_j->m_distmx;
@@ -725,6 +976,8 @@ void cmd_flat_bench2()
 	const bool input_nu_paths = optset_input2;
 	if (output_nu_paths)
 		s_f_nu_paths = CreateStdioFile(opt(output2));
+	if (optset_output3)
+		s_f_mega_paths = CreateStdioFile(opt(output3));
 
 	vector<string> param_names;
 	vector<float> param_values;
@@ -749,6 +1002,8 @@ void cmd_flat_bench2()
 	FB.ReadLookup(opt(lookup));
 	FB.load_chains(chains);
 	FB.update_params(param_names, param_values);
+	FB.m_nu_only = opt(nuonly);
+	FB.m_timealn = opt(timealn);
 
 	flat_alphas::logme();
 	flat_params::logme();
@@ -785,6 +1040,7 @@ void cmd_flat_bench2()
 		CloseStdioFile(s_f_nu_paths);
 		return;
 		}
+	CloseStdioFile(s_f_mega_paths);
 
 	FB.SetScoreOrder();
 	FB.Bench();

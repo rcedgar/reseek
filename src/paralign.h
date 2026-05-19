@@ -134,3 +134,11 @@ public:
 		m_SaturatedCount = 0;
 		}
 	};
+
+void parasail_result_to_path(
+	parasail_result_t *result,
+	int lena,
+	int lenb,
+	uint &lo_i,
+	uint &lo_j,
+	string &path);

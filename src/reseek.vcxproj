@@ -576,6 +576,7 @@
     <ClInclude Include="final_nu_matrix.h" />
     <ClInclude Include="flat_aligner.h" />
     <ClInclude Include="flat_bench2.h" />
+    <ClInclude Include="flat_bench2_thread_data.h" />
     <ClInclude Include="flat_bench_struct_feature.h" />
     <ClInclude Include="flat_featlist.h" />
     <ClInclude Include="fan.h" />

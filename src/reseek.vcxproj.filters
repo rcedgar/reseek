@@ -1342,6 +1342,9 @@
     <ClInclude Include="tunable_flat_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="flat_bench2_thread_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">
