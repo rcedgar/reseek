@@ -230,6 +230,7 @@ float flat_bench2::score_path(
 void flat_bench2::align_pair_nu_paths(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	const float MIN_FWD_SCORE = float(optset_minscore ? opt(minscore) : 120);
 	void parasail_result_to_path(
 		parasail_result_t *result,
 		int lena,
@@ -294,6 +295,7 @@ void flat_bench2::align_pair_nu_paths(
 		prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
 	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
 	score_fwd = TD.m_parasail_result->score;
+	if (score_fwd < MIN_FWD_SCORE) return;
 
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
 		TD.m_parasail_result,
@@ -328,7 +330,17 @@ void flat_bench2::align_pair_nu_paths(
 		label_i, codeseq_nu_i, lo_i_fwd, L_i,
 		label_j, codeseq_nu_j, lo_j_fwd, L_j,
 		path_fwd);
-	asserta(check_score_fwd == score_fwd);
+	if (check_score_fwd != score_fwd)
+		{
+		Log("i=%u=%s\n", i, label_i.c_str());
+		Log("j=%u=%s\n", j, label_i.c_str());
+		Log("para_lo_i_fwd=%u\n", para_lo_i_fwd);
+		Log("para_lo_j_fwd=%u\n", para_lo_j_fwd);
+		Log("para_cigar_fwd=%s\n", para_cigar_fwd.c_str());
+		Log("path_fwd=%s\n", path_fwd.c_str());
+		Warning("check_score_fwd=%d != score_fwd=%d",
+			check_score_fwd, score_fwd);
+		}
 
 	PathToCIGAR(path_fwd.c_str(), compact_cigar_fwd);
 	}

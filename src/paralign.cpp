@@ -152,6 +152,8 @@ int Paralign::GetSubstScore(uint LetterQ, uint LetterT)
 	return m_matrix.matrix[LetterQ*AS + LetterT];
 	}
 
+// Note paralign generates paths with DI and ID transitions,
+// these are scored with gapopen
 int Paralign::score_nu_path(
 	const string &label_i, const uint8_t *nu_codeseq_i, uint lo_i, uint L_i,
 	const string &label_j, const uint8_t *nu_codeseq_j, uint lo_j, uint L_j,
@@ -161,7 +163,7 @@ int Paralign::score_nu_path(
 	uint pos_j = lo_j;
 	uint score = 0;
 	const uint ncol = uint(path.size());
-	bool in_gap = false;
+	char last_c = 'M';
 	for (uint col = 0; col < ncol; ++col)
 		{
 		char c = path[col];
@@ -174,7 +176,7 @@ int Paralign::score_nu_path(
 			score += m_matrix.matrix[code_i*256 + code_j];
 			++pos_i;
 			++pos_j;
-			in_gap = false;
+			last_c = 'M';
 			}
 		else if (c == 'D')
 			++pos_i;
@@ -182,14 +184,12 @@ int Paralign::score_nu_path(
 			++pos_j;
 		if (c == 'D' || c == 'I')
 			{
-			if (in_gap)
+			if (last_c == c)
 				score -= m_Ext;
 			else
-				{
 				score -= m_Open;
-				in_gap = true;
-				}
 			}
+		last_c = c;
 		}
 	return score;
 	}
