@@ -204,25 +204,15 @@ chain_data *chain_data::from_chain(
 	chaq::fill_distmx(chain.m_xyz->m_data, L, cd->m_distmx);
 
 	const bool want_mega_prof = (bits & bit_mega_prof) != 0;
-	const bool want_mega_prof_rev = (bits & bit_mega_prof_rev) != 0;
 	const bool want_pssm_fwd = (bits & bit_mega_pssm) != 0;
 	const bool want_pssm_rev = (bits & bit_mega_pssm_rev) != 0;
-	const bool want_nu = (bits & (bit_nu_codeseq | bit_nu_codeseq_rev)) != 0;
-	const bool want_parasail = (bits & (bit_parasail_prof | bit_parasail_prof_rev)) != 0;
+	const bool want_nu_codeseq = (bits & bit_nu_codeseq) != 0;
 
 	asserta(want_mega_prof);
 	size_t prof_bytes = L*nfeat;
 	cd->m_mega_prof = mem.get<uint8_t>(L*nfeat);
 	make_mega_prof(chain, cd->m_distmx,
 		cd->m_mega_prof, prof_bytes, scratch);
-
-	if (want_mega_prof_rev)
-		{
-		asserta(cd->m_mega_prof != 0);
-		const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
-		cd->m_mega_prof_rev = mem.get<uint8_t>(L*nfeat);
-		flat_reverse_profile(cd->m_mega_prof, L, nfeat, cd->m_mega_prof_rev);
-		}
 
 	if (want_pssm_fwd || want_pssm_rev)
 		{
@@ -249,7 +239,7 @@ chain_data *chain_data::from_chain(
 			}
 		}
 
-	if (want_nu || want_parasail)
+	if (want_nu_codeseq)
 		{
 		asserta(cd->m_mega_prof != 0);
 
@@ -279,7 +269,7 @@ chain_data *chain_data::from_chain(
 			assert(code_nu < 256);
 
 			cd->m_codeseq_nu[pos] = code_nu;
-			cd->m_codeseq_nu_rev[L - pos - 1] = code_nu;
+			cd->m_codeseq_nu_rev[L-pos-1] = code_nu;
 			}
 		}
 
@@ -292,7 +282,7 @@ chain_data *chain_data::from_chain(
 
 	if (bits & bit_parasail_prof_rev)
 		{
-		asserta(cd->m_codeseq_nu_rev != 0);
+		asserta(cd->m_codeseq_nu != 0);
 		cd->m_parasail_prof_rev = parasail_profile_create_avx_256_16(
 			(const char *) cd->m_codeseq_nu_rev, L, &flat_nu_aligner::m_matrix);
 		}
@@ -314,7 +304,6 @@ void chain_data::get_object_counts(
 
 	if (bits & bit_distmx) ++n_distmx;
 	if (bits & bit_mega_prof) ++n_mega_prof;
-	if (bits & bit_mega_prof_rev) ++n_mega_prof;
 	if (bits & bit_mega_pssm) ++n_mega_pssm;
 	if (bits & bit_mega_pssm_rev) ++n_mega_pssm;
 	if (bits & bit_nu_codeseq) ++n_nu_codeseq;
@@ -404,12 +393,6 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 			bytes_mega_prof += L*nfeat*sizeof(cd->m_mega_prof[0]);
 			}
 
-		if (cd->m_mega_prof_rev != 0)
-			{
-			++n_mega_prof_rev;
-			bytes_mega_prof_rev += L*nfeat*sizeof(cd->m_mega_prof[0]);
-			}
-
 		if (cd->m_mega_pssm != 0)
 			{
 			++n_mega_pssm;
@@ -426,12 +409,6 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 			{
 			++n_codeseq_nu;
 			bytes_codeseq_nu += L*sizeof(cd->m_codeseq_nu[0]);
-			}
-
-		if (cd->m_codeseq_nu_rev != 0)
-			{
-			++n_codeseq_nu_rev;
-			bytes_codeseq_nu_rev += L*sizeof(cd->m_codeseq_nu_rev[0]);
 			}
 
 		if (cd->m_parasail_prof != 0)

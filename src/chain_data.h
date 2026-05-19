@@ -7,7 +7,7 @@
 
 static const uint32_t bit_distmx =				(1 << 0);
 static const uint32_t bit_mega_prof =			(1 << 1);
-static const uint32_t bit_mega_prof_rev =		(1 << 2);
+//static const uint32_t bit_mega_prof_rev =		(1 << 2);
 static const uint32_t bit_mega_pssm =			(1 << 3);
 static const uint32_t bit_mega_pssm_rev =		(1 << 4);
 static const uint32_t bit_parasail_prof =		(1 << 5);
@@ -18,18 +18,17 @@ static const uint32_t bit_nu_codeseq_rev =		(1 << 8);
 static const uint32_t bits_query =
 	bit_distmx |
 	bit_mega_pssm |
+	bit_mega_pssm_rev |
 	bit_mega_prof |
-	bit_mega_prof_rev |
 	bit_parasail_prof |
 	bit_parasail_prof_rev |
-	bit_nu_codeseq |
+	bit_nu_codeseq | 
 	bit_nu_codeseq_rev;
 
 static const uint32_t bits_target =
 	bit_distmx |
 	bit_mega_prof |
-	bit_mega_prof_rev |
-	bit_nu_codeseq |
+	bit_nu_codeseq | 
 	bit_nu_codeseq_rev;
 
 class chain_data
@@ -45,7 +44,6 @@ public:
 	uint8_t *m_codeseq_nu = 0;
 	uint8_t *m_codeseq_nu_rev = 0;
 	uint8_t *m_mega_prof = 0;
-	uint8_t *m_mega_prof_rev = 0;
 	float *m_mega_pssm = 0;
 	float *m_mega_pssm_rev = 0;
 	parasail_profile_t *m_parasail_prof = 0;

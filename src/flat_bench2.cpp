@@ -91,12 +91,12 @@ void flat_bench2::set_nu_self_rev_scores()
 
 		if (TD.m_parasail_result != 0)
 			parasail_result_free(TD.m_parasail_result);
-		parasail_profile_t *prof = cd->m_parasail_prof;
-		asserta(prof != 0);
-		const uint8_t *codeseq_nu_rev = cd->m_codeseq_nu_rev;
-		asserta(codeseq_nu_rev != 0);
+		parasail_profile_t *prof_rev = cd->m_parasail_prof_rev;
+		asserta(prof_rev != 0);
+		const uint8_t *codeseq_nu = cd->m_codeseq_nu;
+		asserta(codeseq_nu != 0);
 		TD.m_parasail_result = parasail_sw_striped_profile_avx2_256_16(
-			prof, (const char *) codeseq_nu_rev, cd->m_L, open, ext);
+			prof_rev, (const char *) codeseq_nu, cd->m_L, open, ext);
 		asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
 		m_nu_self_rev_scores[domidx] = float(TD.m_parasail_result->score);
 		}
@@ -124,8 +124,8 @@ void flat_bench2::set_self_rev_scores()
 	for (int domidx = 0; domidx < (int)ndom; ++domidx)
 		{
 		const chain_data *cd = m_cdvec[domidx];
-		const uint8_t *prof = cd->m_mega_prof_rev;
-		const float *pssm = cd->m_mega_pssm;
+		const uint8_t *prof = cd->m_mega_prof;
+		const float *pssm = cd->m_mega_pssm_rev;
 		asserta(prof != 0);
 		asserta(pssm != 0);
 		const uint L = cd->m_L;
@@ -269,14 +269,14 @@ void flat_bench2::align_pair_nu_paths(
 		}
 
 	parasail_profile_t *prof_i = cd_i->m_parasail_prof;
+	parasail_profile_t *prof_i_rev = cd_i->m_parasail_prof_rev;
 	asserta(prof_i != 0);
+	asserta(prof_i_rev != 0);
 
 	const uint8_t *codeseq_nu_i = cd_i->m_codeseq_nu;
 	const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
-	const uint8_t *codeseq_nu_j_rev = cd_j->m_codeseq_nu_rev;
 	asserta(codeseq_nu_i != 0);
 	asserta(codeseq_nu_j != 0);
-	asserta(codeseq_nu_j_rev != 0);
 
 	string para_cigar_fwd;
 	string para_cigar_rev;
@@ -347,21 +347,21 @@ void flat_bench2::align_pair_nu_paths(
 
 	{
 	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
-		prof_i, (const char *) codeseq_nu_j_rev, L_j, open, ext);
+		prof_i_rev, (const char *) codeseq_nu_j, L_j, open, ext);
 	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
 	score_rev = TD.m_parasail_result->score;
 
-	parasail_cigar_t* cig_rev = parasail_result_get_cigar_extra(
-		TD.m_parasail_result,
-		(const char *) codeseq_nu_i, L_i,
-		(const char *) codeseq_nu_j_rev, L_j,
-		&Paralign::m_matrix, 1, 0);
-	char *cig_str_rev = parasail_cigar_decode(cig_rev);
-	para_cigar_rev = string(cig_str_rev);
-	uint para_lo_i_rev = (uint) cig_rev->beg_query;
-	uint para_lo_j_rev = (uint) cig_rev->beg_ref;
-	free(cig_str_rev);
-	parasail_cigar_free(cig_rev);
+	//parasail_cigar_t* cig_rev = parasail_result_get_cigar_extra(
+	//	TD.m_parasail_result,
+	//	(const char *) codeseq_nu_i, L_i,
+	//	(const char *) codeseq_nu_j_rev, L_j,
+	//	&Paralign::m_matrix, 1, 0);
+	//char *cig_str_rev = parasail_cigar_decode(cig_rev);
+	//para_cigar_rev = string(cig_str_rev);
+	//uint para_lo_i_rev = (uint) cig_rev->beg_query;
+	//uint para_lo_j_rev = (uint) cig_rev->beg_ref;
+	//free(cig_str_rev);
+	//parasail_cigar_free(cig_rev);
 
 	string path_rev2;
 	uint lo_i_rev2, lo_j_rev2;
@@ -371,18 +371,18 @@ void flat_bench2::align_pair_nu_paths(
 	parasail_result_free(TD.m_parasail_result);
 	TD.m_parasail_result = 0;
 
-	parasail_cigar_to_path(para_cigar_rev,
-		para_lo_i_rev, para_lo_j_rev,
-		lo_i_rev, lo_j_rev, path_rev);
+	//parasail_cigar_to_path(para_cigar_rev,
+	//	para_lo_i_rev, para_lo_j_rev,
+	//	lo_i_rev, lo_j_rev, path_rev);
 
 	asserta(lo_i_rev2 == lo_i_rev);
 	asserta(lo_j_rev2 == lo_j_rev);
 	asserta(path_rev2 == path_rev);
 
-	int check_score_rev = Paralign::score_nu_path(
-		label_i, codeseq_nu_i, lo_i_rev, L_i,
-		label_j, codeseq_nu_j_rev, lo_j_rev, L_j,
-		path_rev);
+	//int check_score_rev = Paralign::score_nu_path(
+	//	label_i, codeseq_nu_i, lo_i_rev, L_i,
+	//	label_j, codeseq_nu_j_rev, lo_j_rev, L_j,
+	//	path_rev);
 
 	PathToCIGAR(path_rev.c_str(), compact_cigar_rev);
 	}
@@ -486,6 +486,7 @@ void flat_bench2::align_pair(
 	
 	const uint8_t *prof_i = cd_i->m_mega_prof;
 	const float *pssm_j = cd_j->m_mega_pssm;
+	const float *pssm_j_rev = cd_j->m_mega_pssm_rev;
 
 	uint lo_i, lo_j, ncol;
 	float score = 0;
@@ -517,12 +518,10 @@ void flat_bench2::align_pair(
 	if (revw > 0)
 		{
 		uint ncol_rev, lo_i_rev, lo_j_rev;
-		const uint8_t *rev_prof_i = cd_i->m_mega_prof_rev;
-		asserta(rev_prof_i != 0);
 		float score_rev = sw_flat_pssm(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
-			rev_prof_i, L_i,
-			pssm_j, L_j, 
+			prof_i, L_i,
+			pssm_j_rev, L_j, 
 			flat_alphas::m_feature_block_offsets,
 			flat_alphas::m_nfeat,
 			-flat_params::m_open, 
