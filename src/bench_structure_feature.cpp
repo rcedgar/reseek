@@ -29,6 +29,38 @@ float flat_getlddt_muscle_some_floats(
 	uint32_t *nr_considered_vec,
 	uint32_t *nr_preserved_vec);
 
+uint path2posvecs3(
+	const char *path, uint ncol,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	uint *posQs,
+	uint *posTs,
+	uint bufnpos)
+	{
+	uint posQ = loQ;
+	uint posT = loT;
+	uint nmatch = 0;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			assert(nmatch < bufnpos);
+			assert(posQ < LQ);
+			assert(posT < LT);
+			posQs[nmatch] = posQ;
+			posTs[nmatch] = posT;
+			++nmatch;
+			}
+		if (c == 'M' || c == 'D')
+			posQ++;
+		if (c == 'M' || c == 'I')
+			posT++;
+		}
+	asserta(nmatch < bufnpos);
+	return nmatch;
+	}
+
 void path2posvecs(
 	const string &labelQ, const string &labelT,
 	const string &path,
@@ -207,16 +239,17 @@ static float get_score(
 		}
 	else if (s_feature == "dalix")
 		{
+		Die("TODO");
 		uint ncol = uint(path.size());
 		float *colscores = myalloc(float, ncol);
-		float dalix = flat_get_dalix(path, 
-			labelQ, labelT,
-			loQ, LQ,
-			loT, LT,
-			distmxQ, distmxT,
-			colscores);
+		//float dalix = flat_get_dalix(path, 
+		//	labelQ, labelT,
+		//	loQ, LQ,
+		//	loT, LT,
+		//	distmxQ, distmxT,
+		//	colscores);
 		myfree(colscores);
-		return dalix;
+		return 0;
 		}
 	else
 		Die("feature='%s'", s_feature.c_str());

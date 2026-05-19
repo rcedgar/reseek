@@ -737,13 +737,6 @@ void flat_bench2::align_pair(
 	const chain_data *cd_i = m_cdvec[i];
 	const chain_data *cd_j = m_cdvec[j];
 
-	string label_i = cd_i->m_label;
-	string label_j = cd_j->m_label;
-	trunc_label(label_i);
-	trunc_label(label_j);
-	asserta(label_i == m_look->get_dom(i));
-	asserta(label_j == m_look->get_dom(j));
-
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
 	asserta(L_i <= m_maxL);
@@ -755,8 +748,6 @@ void flat_bench2::align_pair(
 		const int open = Paralign::m_Open;
 		const int ext = Paralign::m_Ext;
 
-		if (TD.m_parasail_result != 0)
-			parasail_result_free(TD.m_parasail_result);
 		parasail_profile_t *prof_i = cd_i->m_parasail_prof;
 		asserta(prof_i != 0);
 		const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
@@ -807,12 +798,15 @@ void flat_bench2::align_pair(
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
-	const string path = string(TD.m_path_buffer);
+	//const string path = string(TD.m_path_buffer);
 	++m_mega_fwd_test_count;
 	if (mega_fwd_score < flat_params::m_mega_filter_min_fwd)
 		return;
 	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
+
+	uint nmatch = path2posvecs3(TD.m_path_buffer, ncol,
+		lo_i, L_i, lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
 
 	if (s_f_mega_paths != 0)
 		{
@@ -820,7 +814,7 @@ void flat_bench2::align_pair(
 			*cd_i, lo_i, *cd_j, lo_j, TD.m_path_buffer, ncol);
 		asserta(score2 == mega_fwd_score);
 		string cigar;
-		PathToCIGAR(path.c_str(), cigar);
+		PathToCIGAR(TD.m_path_buffer, cigar);
 
 		uint lo_i_rev, lo_j_rev, ncol_rev;
 		float mega_score_rev = sw_flat_pssm(
@@ -839,6 +833,13 @@ void flat_bench2::align_pair(
 		uint sfidx_j = m_look->m_domidx2sfidx[j];
 		string &sf_i = m_look->m_sfs[sfidx_i];
 		string &sf_j = m_look->m_sfs[sfidx_j];
+
+		string label_i = cd_i->m_label;
+		string label_j = cd_j->m_label;
+		trunc_label(label_i);
+		trunc_label(label_j);
+		asserta(label_i == m_look->get_dom(i));
+		asserta(label_j == m_look->get_dom(j));
 	
 		static mutex lock;
 		FILE *f = s_f_mega_paths;
@@ -886,9 +887,11 @@ void flat_bench2::align_pair(
 
 	if (flat_params::m_lddt_w > 0)
 		{
-		float lddt = flat_getlddt_muscle_some_floats3(
-			label_i, label_j, path,
-			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		float lddt = flat_getlddt_muscle_some_floats(
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j,
+			TD.m_considered_vec, TD.m_preserved_vec);
 		score += flat_params::m_lddt_w*lddt*500;
 		}
 
@@ -897,27 +900,31 @@ void flat_bench2::align_pair(
 		float L = (L_i + L_j)/2.0f + 50;
 		float Lfactor = float(ncol)/L;
 
-		float lddt = flat_getlddt_muscle_some_floats3(
-			label_i, label_j, path,
-			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		float lddt = flat_getlddt_muscle_some_floats( // TODO this is not lddtx!?
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j,
+			TD.m_considered_vec, TD.m_preserved_vec);
 		score += flat_params::m_lddtx_w*lddt*500*Lfactor;
 		}
 
 	if (flat_params::m_dali_w > 0)
 		{
-		float dali = flat_get_dali(
-			label_i, label_j, path,
-			lo_i, L_i, lo_j, L_j, distmx_i, distmx_j);
+		float dali = flat_get_dali4(
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j);
 		score += flat_params::m_dali_w*dali*10;
 		}
 
 	if (flat_params::m_dalix_w > 0)
 		{
-		float dalix = flat_get_dalix(
-			label_i, label_j, path,
-			lo_i, L_i, lo_j, L_j,
-			distmx_i, distmx_j, TD.m_colscores);
-		score += flat_params::m_dalix_w*dalix*10;
+		Die("TODO");
+		//float dalix = flat_get_dalix(
+		//	label_i, label_j, path,
+		//	lo_i, L_i, lo_j, L_j,
+		//	distmx_i, distmx_j, TD.m_colscores);
+		//score += flat_params::m_dalix_w*dalix*10;
 		}
 
 	m_Scores[pairidx] = score;

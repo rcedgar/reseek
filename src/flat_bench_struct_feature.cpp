@@ -189,12 +189,14 @@ float flat_bench_struct_feature::get_dalix(uint idxQ, uint idxT,
 	uint nmatch = fa.get_path_str(path);
 	uint ncol = uint(path.size());
 	float *colscores = myalloc(float, nmatch);
-	float dali = flat_get_dalix(
-		fa.m_labelQ, fa.m_labelT,
-		path, loQ, LQ, loT, LT,
-		distmxQ, distmxT, colscores);
-	myfree(colscores);
-	return dali;
+	//float dali = flat_get_dalix(
+	//	fa.m_labelQ, fa.m_labelT,
+	//	path, loQ, LQ, loT, LT,
+	//	distmxQ, distmxT, colscores);
+	//myfree(colscores);
+	//return dali;
+	Die("TODO");
+	return 0;
 	}
 
 float flat_bench_struct_feature::get_lddt(uint idxQ, uint idxT,

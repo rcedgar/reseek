@@ -206,8 +206,7 @@ float flat_get_dali(
 	const sid_t *distmxT);
 
 float flat_get_dalix(
-	const string &labelQ, const string &labelT,
-	const string &path,
+	const char *path,
 	uint32_t loQ, uint32_t LQ,
 	uint32_t loT, uint32_t LT,
 	const sid_t *distmxQ,
@@ -344,3 +343,16 @@ void flat_make_varstr(
 
 void flat_make_peaker_spec(
 	vector<string> &lines);
+
+uint path2posvecs3(
+	const char *path, uint ncol,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	uint *posQs,
+	uint *posTs,
+	uint bufnpos);
+
+float flat_get_dali4(
+	const uint *posQs, uint LQ, 
+	const uint *posTs, uint LT, uint nmatch,
+	const sid_t *distmxQ, const sid_t *distmxT);

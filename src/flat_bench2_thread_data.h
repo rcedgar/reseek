@@ -4,6 +4,7 @@
 class flat_bench2_thread_data
 	{
 public:
+	const uint m_maxL = 4000;
 	const float **m_scratch_pssms = 0;
 	float *m_scratch_rows = 0;
 	uint8_t *m_TB = 0;
@@ -12,7 +13,10 @@ public:
 	parasail_result_t *m_parasail_result = 0;
 	uint8_t *m_parasail_nomalloc_workspace = 0;
 	uint m_parasail_nomalloc_workspace_bytes = 0;
-	const uint m_maxL = 4000;
+	uint *m_pos_is = 0;
+	uint *m_pos_js = 0;
+	uint *m_considered_vec = 0;
+	uint *m_preserved_vec = 0;
 
 private:
 	flat_bench2_thread_data() = delete;
@@ -30,6 +34,10 @@ public:
 			parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
 		m_parasail_nomalloc_workspace =
 			myalloc(uint8_t, m_parasail_nomalloc_workspace_bytes);
+		m_pos_is = myalloc(uint, m_maxL);
+		m_pos_js = myalloc(uint, m_maxL);
+		m_considered_vec = myalloc(uint, m_maxL);
+		m_preserved_vec = myalloc(uint, m_maxL);
 		}
 
 	~flat_bench2_thread_data()
