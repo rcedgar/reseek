@@ -227,7 +227,48 @@ float flat_bench2::score_path(
 	return score;
 	}
 
-void flat_bench2::align_pair_nu_paths(
+void flat_bench2::align_pair_input_nu_paths(
+	uint pairidx, flat_bench2_thread_data &TD)
+	{
+	const string &cigar = m_nu_path_cigar_fwds[pairidx];
+	if (cigar.empty())
+		{
+		m_Scores[pairidx] = 0;
+		return;
+		}
+
+	uint i, j;
+	uint NQ = uint(m_Labels.size());
+	triangle_k_to_ij(pairidx, NQ, i, j);
+	uint lo_i = m_nu_path_lo_i_fwds[pairidx];
+	uint lo_j = m_nu_path_lo_j_fwds[pairidx];
+	int score = m_nu_path_score_fwds[pairidx];
+	string path;
+	CIGARToPath(cigar, path, true);
+
+	const chain_data *cd_i = m_cdvec[i];
+	const chain_data *cd_j = m_cdvec[j];
+
+	string label_i = cd_i->m_label;
+	string label_j = cd_j->m_label;
+	trunc_label(label_i);
+	trunc_label(label_j);
+	asserta(label_i == m_look->get_dom(i));
+	asserta(label_j == m_look->get_dom(j));
+
+	const uint L_i = cd_i->m_L;
+	const uint L_j = cd_j->m_L;
+	asserta(L_i <= m_maxL);
+	asserta(L_j <= m_maxL);
+
+	int check_score_fwd = Paralign::score_nu_path(
+		label_i, cd_i->m_codeseq_nu, lo_i, L_i,
+		label_j, cd_j->m_codeseq_nu, lo_j, L_j,
+		path);
+	asserta(check_score_fwd == score);
+	}
+
+void flat_bench2::align_pair_output_nu_paths(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
 	const float MIN_FWD_SCORE = float(optset_minscore ? opt(minscore) : 120);
@@ -414,9 +455,15 @@ void flat_bench2::align_pair(
 	{
 	if (m_output_nu_paths)
 		{
-		align_pair_nu_paths(pairidx, TD);
+		align_pair_output_nu_paths(pairidx, TD);
 		return;
 		}
+	else if (m_input_nu_paths)
+		{
+		align_pair_input_nu_paths(pairidx, TD);
+		return;
+		}
+
 	m_Scores[pairidx] = 0;
 
 	uint NQ = uint(m_Labels.size());
@@ -607,10 +654,70 @@ void flat_bench2::update_params(
 		set_nu_self_rev_scores();
 	}
 
+	//fprintf(f, "%s", label_i.c_str());				0
+	//fprintf(f, "\t%s", label_j.c_str());				1
+	//fprintf(f, "\t%u", lo_i_fwd);						2
+	//fprintf(f, "\t%u", lo_j_fwd);						3
+	//fprintf(f, "\t%s", compact_cigar_fwd.c_str());	4
+	//fprintf(f, "\t%d", score_fwd);					5
+	//fprintf(f, "\t%u", lo_i_rev);						6
+	//fprintf(f, "\t%u", lo_j_rev);						7
+	//fprintf(f, "\t%s", compact_cigar_rev.c_str());	8
+	//fprintf(f, "\t%d", score_rev);					9
+	//fprintf(f, "\n");
+void flat_bench2::load_nu_paths(const string &fn)
+	{
+	Alloc();
+	const uint NQ = SIZE(m_Labels);
+	const uint npair = triangle_get_K(NQ);
+	for (uint i = 0; i < npair; ++i)
+		m_Scores[i] = 0;
+
+	m_nu_path_is.resize(npair);
+	m_nu_path_js.resize(npair);
+	m_nu_path_lo_i_fwds.resize(npair);
+	m_nu_path_lo_j_fwds.resize(npair);
+	m_nu_path_cigar_fwds.resize(npair);
+	m_nu_path_score_fwds.resize(npair);
+	m_nu_path_lo_i_revs.resize(npair);
+	m_nu_path_lo_j_revs.resize(npair);
+	m_nu_path_cigar_revs.resize(npair);
+	m_nu_path_score_revs.resize(npair);
+
+	FILE *f = OpenStdioFile(fn);
+	string line;
+	vector<string> flds;
+	while (ReadLineStdioFile(f, line))
+		{
+		Split(line, flds, '\t');
+		asserta(flds.size() == 10);
+		const string &dom_i = flds[0];
+		const string &dom_j = flds[1];
+		uint i = m_look->get_domidx(dom_i);
+		uint j = m_look->get_domidx(dom_j);
+		uint k = triangle_ij_to_k2(i, j, NQ);
+		int score_fwd = StrToInt(flds[5]);
+		m_Scores[k] = float(score_fwd);
+
+		m_nu_path_is[k] = i;
+		m_nu_path_js[k] = j;
+		m_nu_path_lo_i_fwds[k] = StrToUint(flds[2]);
+		m_nu_path_lo_j_fwds[k] = StrToUint(flds[3]);
+		m_nu_path_cigar_fwds[k] = flds[4];
+		m_nu_path_score_fwds[k] = score_fwd;
+		m_nu_path_lo_i_revs[k] = StrToUint(flds[6]);
+		m_nu_path_lo_j_revs[k] = StrToUint(flds[7]);
+		m_nu_path_cigar_revs[k] = flds[8];
+		m_nu_path_score_revs[k] = StrToInt(flds[9]);
+		}
+	CloseStdioFile(f);
+	}
+
 void cmd_flat_bench2()
 	{
-	const bool nu_paths = optset_output2;
-	if (nu_paths)
+	const bool output_nu_paths = optset_output2;
+	const bool input_nu_paths = optset_input2;
+	if (output_nu_paths)
 		s_f_nu_paths = CreateStdioFile(opt(output2));
 
 	vector<string> param_names;
@@ -653,9 +760,19 @@ void cmd_flat_bench2()
 	uint nthread = GetRequestedThreadCount();
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(nthread);
-	FB.m_output_nu_paths = nu_paths;
+	if (input_nu_paths)
+		{
+		FB.m_input_nu_paths = true;
+		FB.load_nu_paths(opt(input2));
+		FB.SetScoreOrder();
+		FB.Bench();
+		FB.search(nthread, pin);
+		return;
+		}
+
+	FB.m_output_nu_paths = output_nu_paths;
 	FB.search(nthread, pin);
-	if (nu_paths)
+	if (output_nu_paths)
 		{
 		CloseStdioFile(s_f_nu_paths);
 		return;

@@ -62,11 +62,24 @@ public:
 	atomic<uint> m_mu_combined_reject_count = 0;
 
 	bool m_output_nu_paths = false;
+	bool m_input_nu_paths = false;
+
+	vector<uint> m_nu_path_is;
+	vector<uint> m_nu_path_js;
+	vector<uint> m_nu_path_lo_i_fwds;
+	vector<uint> m_nu_path_lo_j_fwds;
+	vector<uint> m_nu_path_lo_i_revs;
+	vector<uint> m_nu_path_lo_j_revs;
+	vector<string> m_nu_path_cigar_fwds;
+	vector<string> m_nu_path_cigar_revs;
+	vector<int> m_nu_path_score_fwds;
+	vector<int> m_nu_path_score_revs;
 
 public:
 	void search(uint nthread, bool pin_threads);
 	void align_pair(uint pairidx, flat_bench2_thread_data &TD);
-	void align_pair_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
+	void align_pair_output_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
+	void align_pair_input_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
 	void load_chains(const vector<flat_chain_t *> &chains);
 	void thread_body(uint ThreadIdx);
 	void update_params(
@@ -84,6 +97,7 @@ public:
 	float score_pos_pair(
 		const uint8_t *mega_prof_i, uint pos_i, uint L_i,
 		const uint8_t *mega_prof_j, uint pos_j, uint L_j) const;
+	void load_nu_paths(const string &fn);
 
 public:
 	static void static_thread_body(flat_bench2 *SB, uint threadidx);
