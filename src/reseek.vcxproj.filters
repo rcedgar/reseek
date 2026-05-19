@@ -818,6 +818,9 @@
     <ClCompile Include="parasail_result_to_path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parasail_nomalloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1343,6 +1346,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_bench2_thread_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parasail_nomalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "parasail.h"
-#include "timing.h"
+//#include "timing.h"
 
 /***
 This source code is partly derived from the parasail library

@@ -1,4 +1,5 @@
 #pragma once
+#include "parasail_nomalloc.h"
 
 class flat_bench2_thread_data
 	{
@@ -9,6 +10,9 @@ public:
 	char *m_path_buffer = 0;
 	float *m_colscores = 0;
 	parasail_result_t *m_parasail_result = 0;
+	uint8_t *m_parasail_nomalloc_workspace = 0;
+	uint m_parasail_nomalloc_workspace_bytes = 0;
+	const uint m_maxL = 4000;
 
 private:
 	flat_bench2_thread_data() = delete;
@@ -22,6 +26,10 @@ public:
 		m_path_buffer = myalloc(char, 2*maxL);
 		m_colscores = myalloc(float, 2*maxL);
 		m_parasail_result = 0;
+		m_parasail_nomalloc_workspace_bytes = (uint)
+			parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
+		m_parasail_nomalloc_workspace =
+			myalloc(uint8_t, m_parasail_nomalloc_workspace_bytes);
 		}
 
 	~flat_bench2_thread_data()

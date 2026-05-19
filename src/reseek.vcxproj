@@ -383,6 +383,7 @@
     <ClCompile Include="parasail_cigar_rce.cpp" />
     <ClCompile Include="parasail_mu16.cpp" />
     <ClCompile Include="parabench.cpp" />
+    <ClCompile Include="parasail_nomalloc.cpp" />
     <ClCompile Include="parasail_result_to_path.cpp" />
     <ClCompile Include="peaker.cpp" />
     <ClCompile Include="convert_foldseekdb.cpp" />
@@ -637,6 +638,7 @@
     <ClInclude Include="paralign.h" />
     <ClInclude Include="parallel_sort.h" />
     <ClInclude Include="parabench.h" />
+    <ClInclude Include="parasail_nomalloc.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="filler.h" />
     <ClInclude Include="floatfeatures.h" />
