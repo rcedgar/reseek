@@ -266,6 +266,12 @@ void flat_bench2::align_pair_input_nu_paths(
 		label_j, cd_j->m_codeseq_nu, lo_j, L_j,
 		path);
 	asserta(check_score_fwd == score);
+	
+	float mega_score = score_path(
+		*cd_i, lo_i,
+		*cd_j, lo_j,
+		path.c_str(), uint(path.size()));
+	m_Scores[pairidx] = mega_score;
 	}
 
 void flat_bench2::align_pair_output_nu_paths(
@@ -767,6 +773,8 @@ void cmd_flat_bench2()
 		FB.SetScoreOrder();
 		FB.Bench();
 		FB.search(nthread, pin);
+		FB.SetScoreOrder();
+		FB.Bench();
 		return;
 		}
 
