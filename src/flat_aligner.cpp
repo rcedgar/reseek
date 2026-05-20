@@ -12,10 +12,10 @@ atomic<uint> flat_aligner::m_aln_count;
 
 void flat_aligner::alloc()
 	{
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 
-	m_pssmT = myalloc(float, m_maxL*flat_params::get_sum_alpha_sizes());
-	m_pssm_reverseT = myalloc(float, m_maxL*flat_params::get_sum_alpha_sizes());
+	m_pssmT = myalloc(float, m_maxL*m_params->get_sum_alpha_sizes());
+	m_pssm_reverseT = myalloc(float, m_maxL*m_params->get_sum_alpha_sizes());
 
 	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
@@ -39,10 +39,10 @@ void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, u
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, flat_params::m_nfeat,
-		flat_params::m_alpha_sizes,
-		flat_params::m_feature_block_offsets,
-		flat_params::m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, m_params->m_nfeat,
+		m_params->m_alpha_sizes,
+		m_params->m_feature_block_offsets,
+		m_params->m_weighted_logoddsvec,
 		m_pssmT);
 	}
 
@@ -56,10 +56,10 @@ void flat_aligner::cache_reverseT(
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
-	fill_flat_pssm_reversed(profT, LT, flat_params::m_nfeat,
-		flat_params::m_alpha_sizes,
-		flat_params::m_feature_block_offsets,
-		flat_params::m_weighted_logoddsvec,
+	fill_flat_pssm_reversed(profT, LT, m_params->m_nfeat,
+		m_params->m_alpha_sizes,
+		m_params->m_feature_block_offsets,
+		m_params->m_weighted_logoddsvec,
 		m_pssm_reverseT);
 	//if (m_nu_filter)
 	//	{
@@ -90,10 +90,10 @@ void flat_aligner::cacheT(
 	//		return;
 	//	}
 
-	fill_flat_pssm(profT, LT, flat_params::m_nfeat,
-		flat_params::m_alpha_sizes,
-		flat_params::m_feature_block_offsets,
-		flat_params::m_weighted_logoddsvec,
+	fill_flat_pssm(profT, LT, m_params->m_nfeat,
+		m_params->m_alpha_sizes,
+		m_params->m_feature_block_offsets,
+		m_params->m_weighted_logoddsvec,
 		m_pssmT);
 
 	//if (m_nu_filter)
@@ -125,7 +125,7 @@ void flat_aligner::alignQ(
 	//	m_score = float(m_pa->m_Score);
 	//	if (m_nu_only)
 	//		return;
-	//	if (m_pa->m_Score < flat_params::m_nu_filter_min_fwd_score)
+	//	if (m_pa->m_Score < m_params->m_nu_filter_min_fwd_score)
 	//		{
 	//		m_nu_filter_reject = true;
 	//		++m_nu_filter_reject_count;
@@ -137,10 +137,10 @@ void flat_aligner::alignQ(
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		profQ, LQ,
 		m_pssmT, m_LT, 
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open, 
-		-flat_params::m_ext,
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open, 
+		-m_params->m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
 #if DEBUG
 	validate_path();
@@ -155,10 +155,10 @@ void flat_aligner::align_reverse()
 		m_scratch_rows, m_TB, m_scratch_pssms,
 		m_profQ, m_LQ,
 		m_pssm_reverseT, m_LT, 
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open, 
-		-flat_params::m_ext,
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open, 
+		-m_params->m_ext,
 		m_loQ, m_loT, m_path_buffer, m_ncol);
 	m_reverse_score_set = true;
 	}
@@ -167,7 +167,7 @@ float flat_aligner::get_self_rev_score(
 	const string &labelQ, const uint8_t *profQ, uint LQ)
 	{
 	m_reverse_score_set = false;
-	const uint nfeat = flat_params::get_nfeat();
+	const uint nfeat = m_params->get_nfeat();
 	uint8_t *revprofQ = myalloc(uint8_t, LQ*nfeat);
 	flat_reverse_profile(profQ, LQ, nfeat, revprofQ);
 	cacheT(labelQ + ".rev", revprofQ, 0, LQ);
@@ -251,11 +251,11 @@ void flat_aligner::write_aln(FILE *f) const
 	if (f == 0)
 		return;
 	fprintf(f, "\n");
-	uint nfeat = flat_params::m_nfeat;
+	uint nfeat = m_params->m_nfeat;
 	assert(nfeat > 0);
-	const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
-	const vector<string> &alpha_names = flat_params::m_alpha_names;
-	const vector<string> &symbolsvec = flat_params::m_symbolsvec;
+	const uint32_t *alpha_sizes = m_params->m_alpha_sizes;
+	const vector<string> &alpha_names = m_params->m_alpha_names;
+	const vector<string> &symbolsvec = m_params->m_symbolsvec;
 
 	vector<string> feature_rowsQ(nfeat);
 	vector<string> feature_rowsT(nfeat);

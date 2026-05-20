@@ -46,18 +46,19 @@ void cmd_flat_hjmega2_bracket()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	flat_params params;
+	params.init_from_alphadir(alphadir, alpha_names);
+	params.logme();
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
 
 	flat_bench2 FB;
+	FB.m_params = &params;
 	FB.ReadLookup(opt(lookup));
 	FB.load_chains(chains);
 	FB.update_params(param_names, param_values);
 
-	flat_params::logme();
-	flat_params::logme();
 
 	vector<string> spec_lines;
 	const uint nalpha = uint(alpha_names.size());

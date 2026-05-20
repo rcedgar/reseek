@@ -7,6 +7,7 @@ class flat_aligner;
 class flat_bench_struct_feature : public flat_bench
 	{
 public:
+	flat_params *m_params = 0;
 	vector<flat_chain_t *> m_chains;
 	vector<sid_t *> m_distmxs;
 

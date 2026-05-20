@@ -5,6 +5,7 @@
 
 static flat_bench *s_FB;
 static Peaker *s_Peaker;
+static flat_params *s_params = 0;
 
 static double EvalSum3(const vector<string> &xv)
 	{
@@ -232,7 +233,9 @@ void cmd_flat_hjmega()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
+	flat_params params;
+	params.init_from_alphadir(opt(alphadir), alpha_names);
+	s_params = &params;
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);

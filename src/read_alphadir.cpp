@@ -78,7 +78,7 @@ void flat_params::init_from_collect(
 	{
 	asserta(!alpha_names.empty());
 
-	set_names(alpha_names);
+	set_alpha_names(alpha_names);
 
 	string compound;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
@@ -145,7 +145,7 @@ void flat_params::init_from_fnprefixes(
 	asserta(!alpha_names.empty());
 	asserta(fnprefixes.size() == alpha_names.size());
 
-	set_names(alpha_names);
+	set_alpha_names(alpha_names);
 
 	string compound;
 	for (uint fi = 0; fi < m_nfeat; ++fi)
@@ -289,7 +289,7 @@ FAN parse_alpha_name(const string &alpha_name, uint &alpha_size)
 	return FAN_COUNT;
 	}
 
-void load_alphadir(const string &arg_alphadir)
+static void load_alphadir(flat_params &params, const string &arg_alphadir)
 	{
 	string alphadir = arg_alphadir;
 	Dirize(alphadir);
@@ -310,10 +310,11 @@ void load_alphadir(const string &arg_alphadir)
 			alpha_names.push_back(alpha_name);
 			}
 		}
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	params.init_from_alphadir(alphadir, alpha_names);
 	}
 
 void cmd_read_alphadir()
 	{
-	load_alphadir(g_Arg1);
+	flat_params params;
+	load_alphadir(params, g_Arg1);
 	}

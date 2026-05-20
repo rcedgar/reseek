@@ -61,7 +61,7 @@ void flat_bench2::thread_body_set_mega_self_rev_scores(uint threadidx)
 	{
 	const uint ndom = m_look->get_ndom();
 
-	uint nfeat = flat_params::m_nfeat;
+	uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
 
 	flat_bench2_thread_data TD(m_maxL, nfeat);
@@ -79,7 +79,7 @@ void flat_bench2::thread_body(uint threadidx)
 	const uint NQ = SIZE(m_Labels);
 	const uint npair = triangle_get_K(NQ);
 
-	uint nfeat = flat_params::m_nfeat;
+	uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
 
 	flat_bench2_thread_data TD(m_maxL, nfeat);
@@ -97,13 +97,13 @@ void flat_bench2::thread_body(uint threadidx)
 
 void flat_bench2::set_nu_self_rev_scores()
 	{
-	if (!flat_params::need_nu_self())
+	if (!m_params->need_nu_self())
 		{
 		asserta(m_nu_self_rev_scores == 0);
 		return;
 		}
 
-	flat_bench2_thread_data TD(m_maxL, flat_params::m_nfeat);
+	flat_bench2_thread_data TD(m_maxL, m_params->m_nfeat);
 	const uint ndom = m_look->get_ndom();
 	if (m_nu_self_rev_scores == 0)
 		m_nu_self_rev_scores = myalloc(float, ndom);
@@ -141,10 +141,10 @@ void flat_bench2::set_mega_self_rev_score(
 	float score = sw_flat_pssm(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof, L, pssm, L,
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open,
-		-flat_params::m_ext,
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open,
+		-m_params->m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 
 	m_self_rev_scores[domidx] = score;
@@ -153,7 +153,7 @@ void flat_bench2::set_mega_self_rev_score(
 void flat_bench2::set_mega_self_rev_scores()
 	{
 #if 0
-	if (!flat_params::need_self())
+	if (!m_params->need_self())
 		{
 		asserta(m_self_rev_scores == 0);
 		return;
@@ -167,7 +167,7 @@ void flat_bench2::set_mega_self_rev_scores()
 
 #pragma omp parallel num_threads(ThreadCount)
 	{
-	flat_bench2_thread_data TD(m_maxL, flat_params::m_nfeat);
+	flat_bench2_thread_data TD(m_maxL, m_params->m_nfeat);
 
 #pragma omp for schedule(dynamic)
 	for (int domidx = 0; domidx < (int)ndom; ++domidx)
@@ -182,10 +182,10 @@ void flat_bench2::set_mega_self_rev_scores()
 		float score = sw_flat_pssm(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof, L, pssm, L,
-			flat_params::m_feature_block_offsets,
-			flat_params::m_nfeat,
-			-flat_params::m_open,
-			-flat_params::m_ext,
+			m_params->m_feature_block_offsets,
+			m_params->m_nfeat,
+			-m_params->m_open,
+			-m_params->m_ext,
 			lo_i, lo_j, TD.m_path_buffer, ncol);
 		m_self_rev_scores[domidx] = score;
 		}
@@ -217,19 +217,20 @@ void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 	memset(m_cdvec, 0, ndom*sizeof(m_cdvec[0]));
 	vector<flat_chain_t *> sorted_chains;
 	m_look->sort_chains(chains, sorted_chains);
-	chain_data::fill_chain_data_vec(sorted_chains, bits_query, m_cdvec);
+	chain_data::fill_chain_data_vec(
+		*m_params, sorted_chains, bits_query, m_cdvec);
 	}
 
 float flat_bench2::score_pos_pair(
 	const uint8_t *mega_prof_i, uint pos_i, uint L_i,
-	const uint8_t *mega_prof_j, uint pos_j, uint L_j)
+	const uint8_t *mega_prof_j, uint pos_j, uint L_j) const
 	{
 	float score = 0;
-	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	for (uint fi = 0; fi < m_params->m_nfeat; ++fi)
 		{
 		const float *weighted_logoddsvec =
-			flat_params::m_weighted_logoddsvec[fi];
-		uint alpha_size = flat_params::m_alpha_sizes[fi];
+			m_params->m_weighted_logoddsvec[fi];
+		uint alpha_size = m_params->m_alpha_sizes[fi];
 		assert(weighted_logoddsvec != 0);
 		uint8_t code_i = mega_prof_i[fi*L_i + pos_i];
 		uint8_t code_j = mega_prof_j[fi*L_j + pos_j];
@@ -262,7 +263,7 @@ float flat_bench2::calc_ts(
 	const sid_t *distmx_j = cd_j.m_distmx;
 
 	float ts = 0;
-	const float revw = flat_params::m_rev_w;
+	const float revw = m_params->m_rev_w;
 	if (revw > 0)
 		{
 		float score_rev = score_path(
@@ -278,29 +279,29 @@ float flat_bench2::calc_ts(
 		fwd_lo_i, L_i, fwd_lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
 
 	float nu_rev_score = 0;//@@TODO
-	ts += flat_params::m_nurev_w*nu_rev_score;
+	ts += m_params->m_nurev_w*nu_rev_score;
 	asserta(!isnan(ts));//@@TODO
 	asserta(!isinf(ts));//@@TODO
 
-	const float selfw = flat_params::m_self_w;
+	const float selfw = m_params->m_self_w;
 	if (selfw > 0)
 		ts -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
 	asserta(!isnan(ts));//@@TODO
 	asserta(!isinf(ts));//@@TODO
 
-	if (flat_params::m_lddt_w > 0)
+	if (m_params->m_lddt_w > 0)
 		{
 		float lddt = flat_getlddt_muscle_some_floats(
 			TD.m_pos_is, L_i,
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
-		ts += flat_params::m_lddt_w*lddt*500;
+		ts += m_params->m_lddt_w*lddt*500;
 		asserta(!isnan(ts));//@@TODO
 		asserta(!isinf(ts));//@@TODO
 		}
 
-	if (flat_params::m_lddtx_w > 0)
+	if (m_params->m_lddtx_w > 0)
 		{
 		float L = (L_i + L_j)/2.0f + 50;
 		float Lfactor = float(fwd_ncol)/L;
@@ -310,30 +311,30 @@ float flat_bench2::calc_ts(
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
-		ts += flat_params::m_lddtx_w*lddt*500*Lfactor;
+		ts += m_params->m_lddtx_w*lddt*500*Lfactor;
 		asserta(!isnan(ts));//@@TODO
 		asserta(!isinf(ts));//@@TODO
 		}
 
-	if (flat_params::m_dali_w > 0)
+	if (m_params->m_dali_w > 0)
 		{
 		float dali = flat_get_dali4(
 			TD.m_pos_is, L_i,
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j);
-		ts += flat_params::m_dali_w*dali*10;
+		ts += m_params->m_dali_w*dali*10;
 		asserta(!isnan(ts));//@@TODO
 		asserta(!isinf(ts));//@@TODO
 		}
 
-	if (flat_params::m_dalix_w > 0)
+	if (m_params->m_dalix_w > 0)
 		{
 		Die("TODO");
 		//float dalix = flat_get_dalix(
 		//	label_i, label_j, path,
 		//	lo_i, L_i, lo_j, L_j,
 		//	distmx_i, distmx_j, TD.m_colscores);
-		//ts += flat_params::m_dalix_w*dalix*10;
+		//ts += m_params->m_dalix_w*dalix*10;
 		}
 
 	asserta(!isnan(ts));//@@TODO
@@ -347,15 +348,15 @@ float flat_bench2::score_path(
 	const chain_data &cd_j,
 	uint lo_j,
 	const char *path,
-	uint ncol)
+	uint ncol) const
 	{
 	const uint L_i = cd_i.m_L;
 	const uint L_j = cd_j.m_L;
 	uint pos_i = lo_i;
 	uint pos_j = lo_j;
 	bool in_gap = false;
-	const float open = -flat_params::m_open;
-	const float ext = -flat_params::m_ext;
+	const float open = -m_params->m_open;
+	const float ext = -m_params->m_ext;
 	asserta(open <= 0);
 	asserta(ext <= 0);
 	float score= 0;
@@ -664,7 +665,7 @@ void flat_bench2::align_pair_nu_only(
 	int fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
 		prof_i, (const char *) codeseq_nu_j, L_j, open, ext,
 		TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes);
-	if (fwd_score < flat_params::m_nu_filter_min_fwd_score)
+	if (fwd_score < m_params->m_nu_filter_min_fwd_score)
 		{
 		++m_mu_fwd_reject_count;
 		return;
@@ -679,14 +680,14 @@ void flat_bench2::align_pair_nu_only(
 	float self_score = (m_nu_self_rev_scores[i] + 
 		m_nu_self_rev_scores[j])/2.0f;
 
-	const float revw = flat_params::m_nu_filter_rev_w;
-	const float selfw = flat_params::m_nu_filter_self_w;
+	const float revw = m_params->m_nu_filter_rev_w;
+	const float selfw = m_params->m_nu_filter_self_w;
 
 	float nu_combined_score =
 		float(fwd_score) -
 		selfw*self_score -
 		revw*nu_rev_score;
-	if (nu_combined_score < flat_params::m_nu_filter_min_combined_score)
+	if (nu_combined_score < m_params->m_nu_filter_min_combined_score)
 		{
 		++m_mu_combined_reject_count;
 		return;
@@ -780,10 +781,10 @@ void flat_bench2::align_pair_timealn(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		mega_prof_i, L_i,
 		pssm_j, L_j, 
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open, 
-		-flat_params::m_ext,
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open, 
+		-m_params->m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 	TICKS t4 = GetClockTicks();
 	sumticks_mega_path += (t4 - t3);
@@ -792,10 +793,10 @@ void flat_bench2::align_pair_timealn(
 		TD.m_scratch_rows, TD.m_scratch_pssms,
 		mega_prof_i, L_i,
 		pssm_j, L_j, 
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open, 
-		-flat_params::m_ext);
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open, 
+		-m_params->m_ext);
 	TICKS t5 = GetClockTicks();
 	sumticks_mega_scoreonly += (t5 - t4);
 
@@ -841,7 +842,7 @@ void flat_bench2::align_pair(
 	asserta(L_j <= m_maxL);
 
 	float nu_rev_score = 0;
-	if (flat_params::m_nu_filter_min_fwd_score > 0)
+	if (m_params->m_nu_filter_min_fwd_score > 0)
 		{
 		const int open = Paralign::m_Open;
 		const int ext = Paralign::m_Ext;
@@ -852,7 +853,7 @@ void flat_bench2::align_pair(
 		int fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
 			prof_i, (const char *) codeseq_nu_j, L_j, open, ext,
 			TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes);
-		if (fwd_score < flat_params::m_nu_filter_min_fwd_score)
+		if (fwd_score < m_params->m_nu_filter_min_fwd_score)
 			{
 			++m_mu_fwd_reject_count;
 			return;
@@ -867,14 +868,14 @@ void flat_bench2::align_pair(
 		float self_score = (m_nu_self_rev_scores[i] + 
 			m_nu_self_rev_scores[j])/2.0f;
 
-		const float revw = flat_params::m_nu_filter_rev_w;
-		const float selfw = flat_params::m_nu_filter_self_w;
+		const float revw = m_params->m_nu_filter_rev_w;
+		const float selfw = m_params->m_nu_filter_self_w;
 
 		float nu_combined_score =
 			float(fwd_score) -
 			selfw*self_score -
 			revw*nu_rev_score;
-		if (nu_combined_score < flat_params::m_nu_filter_min_combined_score)
+		if (nu_combined_score < m_params->m_nu_filter_min_combined_score)
 			{
 			++m_mu_combined_reject_count;
 			return;
@@ -891,14 +892,14 @@ void flat_bench2::align_pair(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof_i, L_i,
 		pssm_j, L_j, 
-		flat_params::m_feature_block_offsets,
-		flat_params::m_nfeat,
-		-flat_params::m_open, 
-		-flat_params::m_ext,
+		m_params->m_feature_block_offsets,
+		m_params->m_nfeat,
+		-m_params->m_open, 
+		-m_params->m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 	//const string path = string(TD.m_path_buffer);
 	++m_mega_fwd_test_count;
-	if (mega_fwd_score < flat_params::m_mega_filter_min_fwd)
+	if (mega_fwd_score < m_params->m_mega_filter_min_fwd)
 		return;
 	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
@@ -919,10 +920,10 @@ void flat_bench2::align_pair(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof_i, L_i,
 			pssm_j_rev, L_j, 
-			flat_params::m_feature_block_offsets,
-			flat_params::m_nfeat,
-			-flat_params::m_open, 
-			-flat_params::m_ext,
+			m_params->m_feature_block_offsets,
+			m_params->m_nfeat,
+			-m_params->m_open, 
+			-m_params->m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
 		string cigar_rev;
 		PathToCIGAR(TD.m_path_buffer, cigar_rev);
@@ -962,7 +963,7 @@ void flat_bench2::align_pair(
 	const sid_t *distmx_j = cd_j->m_distmx;
 	assert(distmx_i != 0 && distmx_j != 0);
 
-	const float revw = flat_params::m_rev_w;
+	const float revw = m_params->m_rev_w;
 	if (revw > 0)
 		{
 		uint ncol_rev, lo_i_rev, lo_j_rev;
@@ -970,30 +971,30 @@ void flat_bench2::align_pair(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof_i, L_i,
 			pssm_j_rev, L_j, 
-			flat_params::m_feature_block_offsets,
-			flat_params::m_nfeat,
-			-flat_params::m_open, 
-			-flat_params::m_ext,
+			m_params->m_feature_block_offsets,
+			m_params->m_nfeat,
+			-m_params->m_open, 
+			-m_params->m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
 		score -= revw*score_rev;
 		}
-	score += flat_params::m_nurev_w*nu_rev_score;
+	score += m_params->m_nurev_w*nu_rev_score;
 
-	const float selfw = flat_params::m_self_w;
+	const float selfw = m_params->m_self_w;
 	if (selfw > 0)
 		score -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
 
-	if (flat_params::m_lddt_w > 0)
+	if (m_params->m_lddt_w > 0)
 		{
 		float lddt = flat_getlddt_muscle_some_floats(
 			TD.m_pos_is, L_i,
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
-		score += flat_params::m_lddt_w*lddt*500;
+		score += m_params->m_lddt_w*lddt*500;
 		}
 
-	if (flat_params::m_lddtx_w > 0)
+	if (m_params->m_lddtx_w > 0)
 		{
 		float L = (L_i + L_j)/2.0f + 50;
 		float Lfactor = float(ncol)/L;
@@ -1003,26 +1004,26 @@ void flat_bench2::align_pair(
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
-		score += flat_params::m_lddtx_w*lddt*500*Lfactor;
+		score += m_params->m_lddtx_w*lddt*500*Lfactor;
 		}
 
-	if (flat_params::m_dali_w > 0)
+	if (m_params->m_dali_w > 0)
 		{
 		float dali = flat_get_dali4(
 			TD.m_pos_is, L_i,
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j);
-		score += flat_params::m_dali_w*dali*10;
+		score += m_params->m_dali_w*dali*10;
 		}
 
-	if (flat_params::m_dalix_w > 0)
+	if (m_params->m_dalix_w > 0)
 		{
 		Die("TODO");
 		//float dalix = flat_get_dalix(
 		//	label_i, label_j, path,
 		//	lo_i, L_i, lo_j, L_j,
 		//	distmx_i, distmx_j, TD.m_colscores);
-		//score += flat_params::m_dalix_w*dalix*10;
+		//score += m_params->m_dalix_w*dalix*10;
 		}
 
 	m_Scores[pairidx] = score;
@@ -1041,7 +1042,7 @@ void flat_bench2::update_params(
 		names, values, alpha_names,
 		weights, scalar_names, scalar_values);
 
-	flat_params::set_params(scalar_names, scalar_values);
+	m_params->set_params(scalar_names, scalar_values);
 
 	uint n = SIZE(alpha_names);
 	asserta(SIZE(weights) == n);
@@ -1053,11 +1054,11 @@ void flat_bench2::update_params(
 			Die("Dupe name in spec '%s'", name.c_str());
 		NameToWeight[name] = weights[i];
 		}
-	flat_params::apply_weights(NameToWeight);
-	chain_data::update_pssms(m_cdvec, m_look->get_ndom());
-	if (flat_params::need_self())
+	m_params->apply_weights(NameToWeight);
+	chain_data::update_pssms(*m_params, m_cdvec, m_look->get_ndom());
+	if (m_params->need_self())
 		set_mega_self_rev_scores();
-	if (flat_params::need_nu_self())
+	if (m_params->need_nu_self())
 		set_nu_self_rev_scores();
 	}
 
@@ -1146,19 +1147,21 @@ void cmd_flat_bench2()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	flat_params params;
+	params.init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
 
 	flat_bench2 FB;
+	FB.m_params = &params;
 	FB.ReadLookup(opt(lookup));
 	FB.load_chains(chains);
 	FB.update_params(param_names, param_values);
 	FB.m_nu_only = opt(nuonly);
 	FB.m_timealn = opt(timealn);
 
-	flat_params::logme();
+	FB.m_params->logme();
 
 	string varstr2;
 	flat_make_varstr(varstr2);

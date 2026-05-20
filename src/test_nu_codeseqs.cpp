@@ -60,7 +60,8 @@ void cmd_test_nu_codeseqs()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	flat_params params;
+	params.init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainsfn, chains);
@@ -98,9 +99,10 @@ void cmd_make_nu_parasail_matrix()
 
 	const vector<string> alpha_names = { "aa4", "pm2", "sec32" };
 
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	flat_params params;
+	params.init_from_alphadir(alphadir, alpha_names);
 
-	Paralign::set_flat_compound(name2weight,
+	Paralign::set_flat_compound(params, name2weight,
 		scale, intopen, intext, saturated_score);
 	Paralign::LogMatrix();
 	}

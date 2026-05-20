@@ -1,11 +1,12 @@
 #pragma once
 
-class flat_alphas;
+class flat_params;
 class Paralign;
 
 class flat_aligner
 	{
 public:
+	flat_params *m_params = 0;
 	float *__restrict m_pssmT = 0;
 	float *__restrict m_pssm_reverseT = 0;
 

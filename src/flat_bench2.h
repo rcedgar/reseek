@@ -12,6 +12,8 @@ public:
 // Hard-coded score-like not Evalue-like
 //	SBSCORE m_SBS = SBS_Evalue;
 
+	flat_params *m_params = 0;
+
 	static uint m_maxL;
 
 public:
@@ -80,15 +82,15 @@ public:
 		uint rev_ncol,
 		flat_bench2_thread_data &TD);
 
-	static float score_path(
+	float score_path(
 		const chain_data &cd_i,
 		uint lo_i,
 		const chain_data &cd_j,
 		uint lo_j,
 		const char *path,
-		uint ncol);
+		uint ncol) const;
 
-	static float score_pos_pair(
+	float score_pos_pair(
 		const uint8_t *mega_prof_i, uint pos_i, uint L_i,
-		const uint8_t *mega_prof_j, uint pos_j, uint L_j);
+		const uint8_t *mega_prof_j, uint pos_j, uint L_j) const;
 	};

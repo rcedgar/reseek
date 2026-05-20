@@ -3,6 +3,7 @@
 #include "parasail.h"
 #include "xdpmem.h"
 #include "features.h"
+#include "flat_params.h"
 #include <omp.h>
 
 class flat_alphas;
@@ -77,6 +78,7 @@ public:
 	static void set_nu();
 
 	static void set_flat_compound(
+		flat_params &params,
 		const unordered_map<string, float> &name2weight,
 		float ScaleFactor,
 		int Open,

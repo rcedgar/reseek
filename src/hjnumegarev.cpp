@@ -5,6 +5,7 @@
 
 static ParaBench *s_PS;
 static Peaker *s_Peaker;
+static flat_params *s_params;
 
 static void GetFeatures(const string &s,
 	vector<FEATURE> &Fs, vector<float> &Weights)
@@ -95,7 +96,7 @@ static double EvalSum3_VarStr(
 			name2weight[VarName] = StrToFloatf(sValue);
 		}
 
-	Paralign::set_flat_compound(name2weight,
+	Paralign::set_flat_compound(*s_params, name2weight,
 		ScaleFactor, Open, Ext, SaturatedScore);
 	PS.ClearHitsAndResults();
 	PS.Search("para", true);
@@ -236,7 +237,7 @@ void cmd_hjnumegarev()
 	const int IntOpen = 23;
 	const int IntExt = 3;
 	const int IntSaturatedScore = 777;
-	Paralign::set_flat_compound(name2weight,
+	Paralign::set_flat_compound(*s_params, name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 
 	ParaBench PS;

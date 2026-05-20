@@ -238,14 +238,18 @@ void cmd_flat_hjmega2()
 	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
+
 	flat_bench2 FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
+
+	flat_params params;
+	params.init_from_alphadir(opt(alphadir), alpha_names);
+	FullFB.m_params = &params;
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);
 	FullFB.load_chains(chains);
-	chain_data::log_mem_stats(FullFB.m_cdvec, FullFB.m_look->get_ndom());
+	chain_data::log_mem_stats(params, FullFB.m_cdvec, FullFB.m_look->get_ndom());
 	FullFB.Alloc();
 
 	if (optset_input2)

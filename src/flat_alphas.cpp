@@ -19,7 +19,7 @@ uint16_t *flat_params::m_medians;
 uint16_t **flat_params::m_thresholds;
 vector<string> flat_params::m_symbolsvec;
 
-void flat_params::set_names(const vector<string> &alpha_names)
+void flat_params::set_alpha_names(const vector<string> &alpha_names)
 	{
 	asserta(m_nfeat == 0);
 	alloc(uint(alpha_names.size()));
@@ -218,7 +218,7 @@ void flat_params::set_feature_block_offsets()
 			m_nfeat, m_alpha_sizes, m_feature_block_offsets);
 	}
 
-const uint32_t *flat_params::get_feature_block_offsets()
+const uint32_t *flat_params::get_feature_block_offsets() const
 	{
 	assert(m_feature_block_offsets != 0);
 	return m_feature_block_offsets;
@@ -286,7 +286,7 @@ void flat_params::apply_unit_weights()
 
 float flat_params::prof_col_score(
 	const uint8_t *profQ, uint LQ, uint posQ,
-	const uint8_t *profT, uint LT, uint posT)
+	const uint8_t *profT, uint LT, uint posT) const
 	{
 	assert(posQ < LQ);
 	assert(posT < LT);

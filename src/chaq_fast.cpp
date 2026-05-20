@@ -277,7 +277,8 @@ void cmd_test_chaq_fast()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_params::init_from_alphadir(alphadir, alpha_names);
+	flat_params params;
+	params.init_from_alphadir(alphadir, alpha_names);
 	Paralign::set_final_nu();
 
 	vector<flat_chain_t *> chains;

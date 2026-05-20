@@ -13,6 +13,8 @@ void cmd_nubench()
 	else
 		Die("must be .hexfa or .bca");
 
+	flat_params params;
+
 	Paralign::set_final_nu();
 	Paralign::LogMatrix();
 
@@ -29,7 +31,7 @@ void cmd_nubench()
 		alpha_names.push_back("aa4");
 		alpha_names.push_back("pm2");
 		alpha_names.push_back("sec32");
-		flat_params::set_names(alpha_names);
+		params.set_alpha_names(alpha_names);
 		asserta(optset_lookup);
 		read_flat_chains(chainfn, chains);
 		fp.from_chains_lookup(*PS.m_look, chains);

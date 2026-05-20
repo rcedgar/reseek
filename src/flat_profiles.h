@@ -6,6 +6,7 @@
 class flat_profiles
 	{
 public:
+	flat_params *m_params = 0;
 	vector<string> m_labels;
 	vector<uint> m_lengths;
 	vector<uint8_t *> m_profiles;
@@ -61,5 +62,6 @@ public:
 	void set_nu_codeseq(uint fi_aa20, uint fi_pm2, uint fi_sec32, uint idx);
 
 public:
-	static uint8_t *make_profile(const flat_chain_t &chain);
+	static uint8_t *make_profile(
+		const flat_params &params,const flat_chain_t &chain);
 	};

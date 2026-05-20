@@ -14,10 +14,10 @@ void flat_profiles::read_profiles_from_fastas(
 	asserta(m_label2idx.empty());
 
 	m_label2idx = label2idx;
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	asserta(nfeat);
 	asserta(fafns.size() == nfeat);
-	const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
+	const uint32_t *alpha_sizes = m_params->m_alpha_sizes;
 
 	vector<vector<vector<uint8_t> > > codeseqsvec(nfeat);
 
@@ -155,11 +155,11 @@ void flat_profiles::profile_to_fasta(FILE *f, uint i) const
 	const uint8_t *profile = m_profiles[i];
 	const string &label = m_labels[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint alpha_size = flat_params::m_alpha_sizes[fi];
-		const string &alpha_name = flat_params::m_alpha_names[fi];
+		uint alpha_size = m_params->m_alpha_sizes[fi];
+		const string &alpha_name = m_params->m_alpha_names[fi];
 		const uint8_t *letter2char = get_letter2char(alpha_size);
 
 		string seq;
@@ -181,10 +181,10 @@ void flat_profiles::check_profile(uint i) const
 	asserta(i < m_profiles.size());
 	const uint8_t *profile = m_profiles[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint AS = flat_params::m_alpha_sizes[fi];
+		uint AS = m_params->m_alpha_sizes[fi];
 		for (uint i = 0; i < L; ++i)
 			asserta(profile[fi*L + i] < AS);
 		}
@@ -202,11 +202,11 @@ uint8_t *flat_profiles::get_rev_profile(uint i) const
 	asserta(i < m_profiles.size());
 	const uint8_t *profile = m_profiles[i];
 	const uint L = m_lengths[i];
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	uint8_t *rev_profile = myalloc(uint8_t, L*nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		uint AS = flat_params::m_alpha_sizes[fi];
+		uint AS = m_params->m_alpha_sizes[fi];
 		for (uint i = 0; i < L; ++i)
 			{
 			uint rev_i = L - i - 1;
@@ -220,7 +220,7 @@ void flat_profiles::from_chains_lookup(const lookup &look,
 	const vector<flat_chain_t *> &chains)
 	{
 	const uint ndom = look.get_ndom();
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
 
 	// Allocate in lookup/domidx order so all downstream code can index by domidx.
@@ -246,7 +246,7 @@ void flat_profiles::from_chains_lookup(const lookup &look,
 		uint domidx = look.get_domidx(label, true);
 		if (domidx == UINT_MAX)
 			continue; // chain not in lookup: ignore
-		m_profiles[domidx] = make_profile(*chain);
+		m_profiles[domidx] = make_profile(*m_params, *chain);
 		found[domidx] = true;
 		m_lengths[domidx] = chain->get_length();
 		m_labels[domidx] = label;
@@ -269,9 +269,9 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 	asserta(m_label2idx.empty());
 
 	const uint nchain = uint(chains.size());
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = m_params->m_nfeat;
 	asserta(nfeat);
-	const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
+	const uint32_t *alpha_sizes = m_params->m_alpha_sizes;
 
 	m_profiles.resize(nchain);
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
@@ -280,16 +280,17 @@ void flat_profiles::from_chains(const vector<flat_chain_t *> &chains)
 		m_labels.push_back(chain.m_label);
 		const uint L = chain.get_length();
 		if (L == 0) continue;
-		m_profiles[chainidx] = make_profile(chain);
+		m_profiles[chainidx] = make_profile(*m_params, chain);
 		}
 	}
 
-uint8_t *flat_profiles::make_profile(const flat_chain_t &chain)
+uint8_t *flat_profiles::make_profile(
+	const flat_params &params, const flat_chain_t &chain)
 	{
 	const uint L = chain.get_length();
 	asserta(L > 0);
 
-	const uint nfeat = flat_params::m_nfeat;
+	const uint nfeat = params.m_nfeat;
 	asserta(nfeat > 0);
 
 	uint8_t *profile = myalloc(uint8_t, nfeat*L);
@@ -297,8 +298,8 @@ uint8_t *flat_profiles::make_profile(const flat_chain_t &chain)
 
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		const FAN fan = flat_params::m_fans[fi];
-		const uint alpha_size = flat_params::m_alpha_sizes[fi];
+		const FAN fan = params.m_fans[fi];
+		const uint alpha_size = params.m_alpha_sizes[fi];
 
 		uint8_t *codeseq = profile + fi*L;
 		if (is_quantized(fan))
@@ -339,9 +340,9 @@ void flat_profiles::write_nu_hexfasta(const string &fn) const
 
 void flat_profiles::set_nu_codeseqs(const string &hexfastafn)
 	{
-	uint fi_aa20 = flat_params::get_fi(FAN_aa, 20);
-	uint fi_pm2 = flat_params::get_fi(FAN_pm, 2);
-	uint fi_sec32 = flat_params::get_fi(FAN_sec, 32);
+	uint fi_aa20 = m_params->get_fi(FAN_aa, 20);
+	uint fi_pm2 = m_params->get_fi(FAN_pm, 2);
+	uint fi_sec32 = m_params->get_fi(FAN_sec, 32);
 	uint nprof = get_nprof();
 	m_nu_codeseqs.resize(nprof, 0);
 	m_nu_codeseqs_rev.resize(nprof, 0);

@@ -564,8 +564,9 @@ void cmd_nu_rev()
 	const int IntOpen = 23;
 	const int IntExt = 3;
 	const int IntSaturatedScore = 777;
-	Paralign::set_flat_compound(name2weight,
-		Scale, IntOpen, IntExt, IntSaturatedScore);
+	Die("TODO");
+	//Paralign::set_flat_compound(*s_params, name2weight,
+	//	Scale, IntOpen, IntExt, IntSaturatedScore);
 
 	ParaBench PS;
 	PS.GetByteSeqs(DBFN, "nuletters");

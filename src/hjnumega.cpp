@@ -6,6 +6,7 @@
 
 static ParaBench *s_PB;
 static Peaker *s_Peaker;
+static flat_params *s_params;
 
 static void GetFeaturesFromVarNames(const Peaker &P, vector<FEATURE> &Fs)
 	{
@@ -88,7 +89,7 @@ static double EvalSum3(const vector<string> &xv)
 	set_params_from_varstr(
 		varstr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
-	Paralign::set_flat_compound(name2weight,
+	Paralign::set_flat_compound(*s_params, name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 	s_PB->ClearHitsAndResults();
 	s_PB->Search("para", false);
@@ -108,7 +109,7 @@ static double EvalSum3_VarStr(ParaBench &PB, const string &VarStr)
 	set_params_from_varstr(
 		VarStr, name2weight, IntOpen, IntExt, Scale, IntSaturatedScore);
 
-	Paralign::set_flat_compound(name2weight,
+	Paralign::set_flat_compound(*s_params, name2weight,
 		Scale, IntOpen, IntExt, IntSaturatedScore);
 	s_PB->ClearHitsAndResults();
 	s_PB->Search("para", false);
@@ -287,8 +288,9 @@ void cmd_hjnumega()
 	asserta(AlphaCount > 0);
 	vector<float> weights(AlphaCount, 1.0f); // placeholder
 
-	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
-	asserta(flat_params::m_nfeat == AlphaCount);
+	flat_params params;
+	params.init_from_alphadir(opt(alphadir), alpha_names);
+	asserta(params.m_nfeat == AlphaCount);
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);

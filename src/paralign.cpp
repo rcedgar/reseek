@@ -1069,16 +1069,18 @@ void Paralign::set_nu()
 		for (uint j = 0; j < compound_alpha_size; ++j)
 			{
 			const uint8_t code_j = uint8_t(j);
-			float Score = scale_factor*
-				flat_params::get_compound_subst_score_slow(code_i, code_j);
-			int IntScore = int(round(Score));
-			IntScoreMx[i][j] = IntScore;
+			Die("TODO");
+			//float Score = scale_factor*
+			//	flat_params::get_compound_subst_score_slow(code_i, code_j);
+			//int IntScore = int(round(Score));
+			//IntScoreMx[i][j] = IntScore;
 			}
 		}
 	SetMatrix(IntScoreMx, intopen, intext, saturated_score, false);
 	}
 
 void Paralign::set_flat_compound(
+	flat_params &params,
 	const unordered_map<string, float> &name2weight,
 	float ScaleFactor,
 	int Open,
@@ -1086,8 +1088,8 @@ void Paralign::set_flat_compound(
 	int SaturatedScore)
 	{
 	asserta(ScaleFactor > 0.1);
-	flat_params::apply_weights(name2weight);
-	const uint compound_alpha_size = flat_params::get_compound_alpha_size();
+	params.apply_weights(name2weight);
+	const uint compound_alpha_size = params.get_compound_alpha_size();
 
 	m_SWFastSubstMx.clear();
 	m_SWFastSubstMx.resize(compound_alpha_size);
@@ -1102,7 +1104,7 @@ void Paralign::set_flat_compound(
 			{
 			const uint8_t code_j = uint8_t(j);
 			float Score = ScaleFactor*
-				flat_params::get_compound_subst_score_slow(code_i, code_j);
+				params.get_compound_subst_score_slow(code_i, code_j);
 			m_SWFastSubstMx[i][j] = Score;
 			int IntScore = int(round(Score));
 			IntScoreMx[i][j] = IntScore;

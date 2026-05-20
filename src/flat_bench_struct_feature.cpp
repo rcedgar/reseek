@@ -13,7 +13,7 @@ void flat_bench_struct_feature::ThreadBody_All(uint ThreadIdx)
 	asserta(!m_nu_filter);
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = flat_params::get_nfeat();
+	const uint nfeat = m_params->get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	for (;;)
@@ -54,7 +54,7 @@ void flat_bench_struct_feature::ThreadBody_Dope(uint ThreadIdx)
 	{
 	assert(m_look);
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = flat_params::get_nfeat();
+	const uint nfeat = m_params->get_nfeat();
 	flat_aligner fa;
 	fa.alloc();
 	uint CurrentDomIdxT = UINT_MAX;
@@ -120,11 +120,11 @@ float flat_bench_struct_feature::get_feature_value(uint idxQ, uint idxT,
 float flat_bench_struct_feature::get_entropy(uint idxQ, uint idxT,
 	const flat_aligner &fa) const
 	{
-	const uint nfeat = flat_params::get_nfeat();
+	const uint nfeat = m_params->get_nfeat();
 	uint fi = UINT_MAX;
 	for (uint i = 0; i < nfeat; ++i)
 		{
-		if (flat_params::m_alpha_names[i] == "sec32")
+		if (m_params->m_alpha_names[i] == "sec32")
 			{
 			fi = i;
 			break;
@@ -300,10 +300,13 @@ void cmd_flat_bench_struct_feature()
 
 	const string &VarStr = g_Arg1;
 
+	Die("TODO");
+	flat_params params;
+
 	flat_bench_struct_feature FB;
 	FB.ReadLookup(opt(lookup));
 	FB.read_chains(opt(input));
-	FB.set_distmxs(flat_params::m_distmx_bandwidth);
+	FB.set_distmxs(params.m_distmx_bandwidth);
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
 
@@ -320,7 +323,7 @@ void cmd_flat_bench_struct_feature()
 		scalar_names, scalar_values);
 
 	Die("TODO");
-	//flat_params::load_alphas_obsolete(feature_names, opt(mxpattern));
+	//m_params->load_alphas_obsolete(feature_names, opt(mxpattern));
 	//FB.load_profiles_fapattern(opt(fapattern));
 	FB.UpdateParamsFromVarStr(VarStr);
 	FB.LogParams();
