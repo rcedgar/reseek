@@ -241,6 +241,7 @@ float flat_bench2::score_pos_pair(
 	}
 
 float flat_bench2::calc_ts(
+	uint i, uint j,
 	const chain_data &cd_i,
 	const chain_data &cd_j,
 	uint fwd_lo_i, uint fwd_lo_j,
@@ -251,70 +252,93 @@ float flat_bench2::calc_ts(
 	uint rev_ncol,
 	flat_bench2_thread_data &TD)
 	{
-	Die("TODO");
-	return 0;
 	//const string &label_i = cd_i.m_label;
 	//const string &label_j = cd_j.m_label;
 
-	//const uint L_i = cd_i.m_L;
-	//const uint L_j = cd_j.m_L;
+	const uint L_i = cd_i.m_L;
+	const uint L_j = cd_j.m_L;
 
-	//const sid_t *distmx_i = cd_i.m_distmx;
-	//const sid_t *distmx_j = cd_j.m_distmx;
+	const sid_t *distmx_i = cd_i.m_distmx;
+	const sid_t *distmx_j = cd_j.m_distmx;
 
-	//float ts = 0;
-	//const float revw = flat_params::m_rev_w;
-	//if (revw > 0)
-	//	{
-	//	uint ncol_rev, lo_i_rev, lo_j_rev;
-	//	float score_rev = score_path(
-	//		cd_i, fwd_lo_i,
-	//		cd_j, fwd_lo_j,
-	//		fwd_path, fwd_ncol);
-	//	ts -= revw*score_rev;
-	//	}
-	//ts += flat_params::m_nurev_w*nu_rev_score;
+	float ts = 0;
+	const float revw = flat_params::m_rev_w;
+	if (revw > 0)
+		{
+		float score_rev = score_path(
+			cd_i, rev_lo_i,
+			cd_j, rev_lo_j,
+			rev_path, rev_ncol);
+		ts -= revw*score_rev;
+		asserta(!isnan(ts));//@@TODO
+		asserta(!isinf(ts));//@@TODO
+		}
 
-	//const float selfw = flat_params::m_self_w;
-	//if (selfw > 0)
-	//	ts -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+	uint nmatch = path2posvecs3(TD.m_path_buffer, fwd_ncol,
+		fwd_lo_i, L_i, fwd_lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
 
-	//if (flat_params::m_lddt_w > 0)
-	//	{
-	//	float lddt = flat_getlddt_muscle_some_floats3(
-	//		label_i, label_j, fwd_path,
-	//		fwd_lo_i, L_i, fwd_lo_j, L_j, distmx_i, distmx_j);
-	//	ts += flat_params::m_lddt_w*lddt*500;
-	//	}
+	float nu_rev_score = 0;//@@TODO
+	ts += flat_params::m_nurev_w*nu_rev_score;
+	asserta(!isnan(ts));//@@TODO
+	asserta(!isinf(ts));//@@TODO
 
-	//if (flat_params::m_lddtx_w > 0)
-	//	{
-	//	float L = (L_i + L_j)/2.0f + 50;
-	//	float Lfactor = float(fwd_ncol)/L;
+	const float selfw = flat_params::m_self_w;
+	if (selfw > 0)
+		ts -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+	asserta(!isnan(ts));//@@TODO
+	asserta(!isinf(ts));//@@TODO
 
-	//	float lddt = flat_getlddt_muscle_some_floats3(
-	//		label_i, label_j, fwd_path,
-	//		fwd_lo_i, L_i, fwd_lo_j, L_j, distmx_i, distmx_j);
-	//	ts += flat_params::m_lddtx_w*lddt*500*Lfactor;
-	//	}
+	if (flat_params::m_lddt_w > 0)
+		{
+		float lddt = flat_getlddt_muscle_some_floats(
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j,
+			TD.m_considered_vec, TD.m_preserved_vec);
+		ts += flat_params::m_lddt_w*lddt*500;
+		asserta(!isnan(ts));//@@TODO
+		asserta(!isinf(ts));//@@TODO
+		}
 
-	//if (flat_params::m_dali_w > 0)
-	//	{
-	//	float dali = flat_get_dali(
-	//		label_i, label_j, fwd_path,
-	//		fwd_lo_i, L_i, fwd_lo_j, L_j, distmx_i, distmx_j);
-	//	ts += flat_params::m_dali_w*dali*10;
-	//	}
+	if (flat_params::m_lddtx_w > 0)
+		{
+		float L = (L_i + L_j)/2.0f + 50;
+		float Lfactor = float(fwd_ncol)/L;
 
-	//if (flat_params::m_dalix_w > 0)
-	//	{
-	//	float dalix = flat_get_dalix(
-	//		label_i, label_j, fwd_path,
-	//		fwd_lo_i, L_i, fwd_lo_j, L_j,
-	//		distmx_i, distmx_j, TD.m_colscores);
-	//	ts += flat_params::m_dalix_w*dalix*10;
-	//	}
-	//return ts;
+		float lddt = flat_getlddt_muscle_some_floats( // TODO this is not lddtx!?
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j,
+			TD.m_considered_vec, TD.m_preserved_vec);
+		ts += flat_params::m_lddtx_w*lddt*500*Lfactor;
+		asserta(!isnan(ts));//@@TODO
+		asserta(!isinf(ts));//@@TODO
+		}
+
+	if (flat_params::m_dali_w > 0)
+		{
+		float dali = flat_get_dali4(
+			TD.m_pos_is, L_i,
+			TD.m_pos_js, L_j,
+			nmatch, distmx_i, distmx_j);
+		ts += flat_params::m_dali_w*dali*10;
+		asserta(!isnan(ts));//@@TODO
+		asserta(!isinf(ts));//@@TODO
+		}
+
+	if (flat_params::m_dalix_w > 0)
+		{
+		Die("TODO");
+		//float dalix = flat_get_dalix(
+		//	label_i, label_j, path,
+		//	lo_i, L_i, lo_j, L_j,
+		//	distmx_i, distmx_j, TD.m_colscores);
+		//ts += flat_params::m_dalix_w*dalix*10;
+		}
+
+	asserta(!isnan(ts));//@@TODO
+	asserta(!isinf(ts));//@@TODO
+	return ts;
 	}
 
 float flat_bench2::score_path(
@@ -372,8 +396,8 @@ float flat_bench2::score_path(
 void flat_bench2::align_pair_input_mega_paths(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
-	const string &cigar = m_mega_path_cigar_fwds[pairidx];
-	if (cigar.empty())
+	const string &fwd_cigar = m_mega_path_cigar_fwds[pairidx];
+	if (fwd_cigar.empty())
 		{
 		m_Scores[pairidx] = 0;
 		return;
@@ -382,11 +406,19 @@ void flat_bench2::align_pair_input_mega_paths(
 	uint i, j;
 	uint NQ = uint(m_Labels.size());
 	triangle_k_to_ij(pairidx, NQ, i, j);
-	uint lo_i = m_mega_path_lo_i_fwds[pairidx];
-	uint lo_j = m_mega_path_lo_j_fwds[pairidx];
-	float score = m_mega_path_score_fwds[pairidx];
-	string path;
-	CIGARToPath(cigar, path, true);
+
+	const string &rev_cigar = m_mega_path_cigar_revs[pairidx];
+
+	uint fwd_lo_i = m_mega_path_lo_i_fwds[pairidx];
+	uint fwd_lo_j = m_mega_path_lo_j_fwds[pairidx];
+
+	uint rev_lo_i = m_mega_path_lo_i_revs[pairidx];
+	uint rev_lo_j = m_mega_path_lo_j_revs[pairidx];
+
+	string fwd_path, rev_path;
+	CIGARToPath(fwd_cigar, fwd_path, true);
+	CIGARToPath(rev_cigar, rev_path, true);
+
 
 	const chain_data *cd_i = m_cdvec[i];
 	const chain_data *cd_j = m_cdvec[j];
@@ -403,17 +435,22 @@ void flat_bench2::align_pair_input_mega_paths(
 	asserta(L_i <= m_maxL);
 	asserta(L_j <= m_maxL);
 
-	float check_score_fwd = score_path(
-		*cd_i, lo_i,
-		*cd_j, lo_j,
-		path.c_str(), uint(path.size()));
-	asserta(feq(check_score_fwd, score));
-	
-	float mega_score = score_path(
-		*cd_i, lo_i,
-		*cd_j, lo_j,
-		path.c_str(), uint(path.size()));
-	m_Scores[pairidx] = mega_score;
+	//float mega_score = score_path(
+	//	*cd_i, lo_i,
+	//	*cd_j, lo_j,
+	//	path.c_str(), uint(path.size()));
+
+	float ts = calc_ts(
+		i, j, *cd_i, *cd_j,
+		fwd_lo_i, fwd_lo_j,
+		fwd_path.c_str(), uint(fwd_path.size()),
+		rev_lo_i, rev_lo_j,
+		rev_path.c_str(), uint(rev_path.size()),
+		TD);
+
+	asserta(!isnan(ts));
+	asserta(!isinf(ts));
+	m_Scores[pairidx] = ts;
 	}
 
 void flat_bench2::align_pair_output_nu_paths(
@@ -1141,8 +1178,8 @@ void cmd_flat_bench2()
 		{
 		FB.m_input_mega_paths = true;
 		FB.load_mega_paths(opt(input2));
-		FB.SetScoreOrder();
-		FB.Bench();
+		//FB.SetScoreOrder();
+		//FB.Bench();
 		FB.search(nthread, pin);
 		FB.SetScoreOrder();
 		FB.Bench();

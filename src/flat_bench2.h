@@ -68,7 +68,8 @@ public:
 	static void static_thread_body_set_mega_self_rev_scores(
 		flat_bench2 *SB, uint threadidx);
 
-	static float calc_ts(
+	float calc_ts(
+		uint i, uint j,
 		const chain_data &cd_i,
 		const chain_data &cd_j,
 		uint fwd_lo_i, uint fwd_lo_j,
