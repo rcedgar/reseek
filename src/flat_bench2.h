@@ -17,6 +17,7 @@ public:
 public:
 	chain_data **m_cdvec = 0;
 	atomic<uint> m_next_pairidx = 0;
+	atomic<uint> m_next_domidx = 0;
 	float *m_self_rev_scores = 0;
 	float *m_nu_self_rev_scores = 0;
 	bool m_nu_only = false;
@@ -50,15 +51,21 @@ public:
 	void align_pair_input_mega_paths(uint pairidx, flat_bench2_thread_data &TD);
 	void load_chains(const vector<flat_chain_t *> &chains);
 	void thread_body(uint ThreadIdx);
+	void thread_body_set_mega_self_rev_scores(uint ThreadIdx);
 	void update_params(
 		const vector<string> &names,
 		const vector<float> &values);
-	void set_self_rev_scores();
+	void set_mega_self_rev_score(
+		uint domidx, flat_bench2_thread_data &TD);
+	void set_mega_self_rev_scores();
 	void set_nu_self_rev_scores();
 	void load_mega_paths(const string &fn);
 
 public:
 	static void static_thread_body(
+		flat_bench2 *SB, uint threadidx);
+
+	static void static_thread_body_set_mega_self_rev_scores(
 		flat_bench2 *SB, uint threadidx);
 
 	static float calc_ts(

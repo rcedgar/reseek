@@ -52,6 +52,28 @@ void flat_bench2::static_thread_body(flat_bench2 *FB, uint threadidx)
 	FB->thread_body(threadidx);
 	}
 
+void flat_bench2::static_thread_body_set_mega_self_rev_scores(flat_bench2 *FB, uint threadidx)
+	{
+	FB->thread_body_set_mega_self_rev_scores(threadidx);
+	}
+
+void flat_bench2::thread_body_set_mega_self_rev_scores(uint threadidx)
+	{
+	const uint ndom = m_look->get_ndom();
+
+	uint nfeat = flat_alphas::m_nfeat;
+	asserta(nfeat > 0);
+
+	flat_bench2_thread_data TD(m_maxL, nfeat);
+	for (;;)
+		{
+		uint domidx = m_next_domidx++;
+		if (domidx  >= ndom)
+			return;
+		set_mega_self_rev_score(domidx, TD);
+		}
+	}
+
 void flat_bench2::thread_body(uint threadidx)
 	{
 	const uint NQ = SIZE(m_Labels);
@@ -106,8 +128,31 @@ void flat_bench2::set_nu_self_rev_scores()
 		}
 	}
 
-void flat_bench2::set_self_rev_scores()
+void flat_bench2::set_mega_self_rev_score(
+	uint domidx, flat_bench2_thread_data &TD)
 	{
+	const chain_data *cd = m_cdvec[domidx];
+	const uint8_t *prof = cd->m_mega_prof;
+	const float *pssm = cd->m_mega_pssm_rev;
+	asserta(prof != 0);
+	asserta(pssm != 0);
+	const uint L = cd->m_L;
+	uint lo_i, lo_j, ncol;
+	float score = sw_flat_pssm(
+		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
+		prof, L, pssm, L,
+		flat_alphas::m_feature_block_offsets,
+		flat_alphas::m_nfeat,
+		-flat_params::m_open,
+		-flat_params::m_ext,
+		lo_i, lo_j, TD.m_path_buffer, ncol);
+
+	m_self_rev_scores[domidx] = score;
+	}
+
+void flat_bench2::set_mega_self_rev_scores()
+	{
+#if 0
 	if (!flat_params::need_self())
 		{
 		asserta(m_self_rev_scores == 0);
@@ -145,6 +190,22 @@ void flat_bench2::set_self_rev_scores()
 		m_self_rev_scores[domidx] = score;
 		}
 	}  // each thread destroys its TD here
+#else
+	const uint nthread = GetRequestedThreadCount();
+	const uint ndom = m_look->get_ndom();
+	m_self_rev_scores = myalloc(float, ndom);
+
+	vector<thread *> ts;
+	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
+		{
+		thread *t = new thread(static_thread_body_set_mega_self_rev_scores, this, threadidx);
+		ts.push_back(t);
+		}
+	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
+		ts[threadidx]->join();
+	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
+		delete ts[threadidx];
+#endif
 	}
 
 void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
@@ -958,7 +1019,7 @@ void flat_bench2::update_params(
 	flat_alphas::apply_weights(NameToWeight);
 	chain_data::update_pssms(m_cdvec, m_look->get_ndom());
 	if (flat_params::need_self())
-		set_self_rev_scores();
+		set_mega_self_rev_scores();
 	if (flat_params::need_nu_self())
 		set_nu_self_rev_scores();
 	}
