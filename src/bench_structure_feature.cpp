@@ -10,6 +10,7 @@
 
 static string s_feature;
 static FastBench *s_FB;
+static flat_params *s_params = 0;
 
 void trunc_label(string &Label);
 
@@ -125,6 +126,7 @@ uint path2posvecs2(
 	}
 
 static float get_score(
+	const flat_params &params,
 	const string &labelQ, const string &labelT,
 	const sid_t *distmxQ, const sid_t *distmxT,
 	const string &path, uint loQ, uint LQ, uint loT, uint LT)
@@ -224,7 +226,7 @@ static float get_score(
 		myfree(nr_considered_vec);
 		myfree(nr_preserved_vec);
 
-		float lddtx = flat_params::m_lddtx_w*lddt*500*Lfactor;
+		float lddtx = params.m_lddtx_w*lddt*500*Lfactor;
 		return lddtx;
 		}
 	else if (s_feature == "dali")
@@ -257,6 +259,7 @@ static float get_score(
 	}
 
 static void do_pair(
+	const flat_params &params,
 	flat_chain_t *chainQ,
 	flat_chain_t *chainT,
 	const sid_t *distmxQ,
@@ -279,6 +282,7 @@ static void do_pair(
 	CIGARToPath(CIGAR, path, false);
 
 	float score = get_score(
+		params,
 		labelQ, labelT,
 		distmxQ, distmxT,
 		path, loQ, LQ, loT, LT);
@@ -362,6 +366,7 @@ static void read_hits(
 				const sid_t *distmxQ = distmxs[chainidxQ];
 				const sid_t *distmxT = distmxs[chainidxT];
 				do_pair(
+					*s_params,
 					chainQ, chainT, distmxQ, distmxT,
 					work.task.loQ - 1, work.task.LQ,
 					work.task.loT - 1, work.task.LT,
@@ -464,6 +469,9 @@ void cmd_bench_structure_feature()
 	FB.ReadLookup(opt(lookup));
 	FB.Alloc();
 
+	flat_params params;
+	s_params = &params;
+
 	s_FB = &FB;
 
 	vector<flat_chain_t *> chains;
@@ -481,7 +489,7 @@ void cmd_bench_structure_feature()
 		const flat_chain_t *chain = chains[chainidx];
 		const uint L = chain->get_length();
 		Ls.push_back(L);
-		sid_t *distmx = myalloc(sid_t, L*flat_params::m_distmx_bandwidth);
+		sid_t *distmx = myalloc(sid_t, L*params.m_distmx_bandwidth);
 		chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
 		distmxs.push_back(distmx);
 		}

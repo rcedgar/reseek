@@ -1,12 +1,12 @@
 #include "myutils.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_params.h"
 #include "flat_bench.h"
 #include "chaq.h"
 #include "quantize.h"
 
 void chaq::fast_get_values(
+	const flat_params &params,
 	const sid_t *distmx,
 	const chaq_vecs *cv,
 	const flat_chain_t *chain,
@@ -117,6 +117,7 @@ void chaq::fast_get_values(
 	}
 
 void chaq::fast_get_codeseq(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	const sid_t *distmx,
 	const chaq_vecs *cv,
@@ -231,10 +232,10 @@ void chaq::fast_get_codeseq(
 	case FAN_angle:
 	case FAN_turnd:
 		{
-		cp_uint16_t thresholds = get_thresholds(fan, alpha_size);
-		const uint16_t undef_value = get_undef_value(fan, alpha_size);
+		cp_uint16_t thresholds = get_thresholds(params, fan, alpha_size);
+		const uint16_t undef_value = get_undef_value(params, fan, alpha_size);
 		uint16_t *values = scratch.get<uint16_t>(L);
-		chaq::fast_get_values(distmx, cv, chain, fan, alpha_size, values);
+		chaq::fast_get_values(params, distmx, cv, chain, fan, alpha_size, values);
 		for (uint i = 0; i < L; ++i)
 			{
 			uint16_t value = values[i];
@@ -304,8 +305,10 @@ void cmd_test_chaq_fast()
 		size_t scratch_bytes2 = chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
 		scratch_mem scratch2(scratch_bytes2*L);
 
-		chaq::slow_get_codeseq(chain, fan, alpha_size, slow_codeseq);
-		chaq::fast_get_codeseq(chain, distmx, &cv, fan, alpha_size, fast_codeseq, scratch2);
+		chaq::slow_get_codeseq(
+			params, chain, fan, alpha_size, slow_codeseq);
+		chaq::fast_get_codeseq(
+			params, chain, distmx, &cv, fan, alpha_size, fast_codeseq, scratch2);
 
 		for (uint pos = 0; pos < L; ++pos)
 			{

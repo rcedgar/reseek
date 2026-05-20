@@ -42,7 +42,6 @@ public:
 
 	uint32_t get_length(uint i) const
 		{
-		assert(flat_params::m_nfeat > 0);
 		assert(i < m_profiles.size());
 		uint32_t L = uint32_t(m_lengths[i]);
 		return L;

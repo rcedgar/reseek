@@ -556,9 +556,9 @@ void cmd_nu_rev()
 	//flat_params::init(feature_names);
 	//flat_params::read_logoddsvec_pattern(opt(mxpattern));
 
-	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
-		name2weight[feature_names[fi]] = weights[fi];
+	//unordered_map<string, float> name2weight;
+	//for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	//	name2weight[feature_names[fi]] = weights[fi];
 
 	const float Scale = 8.39f;
 	const int IntOpen = 23;

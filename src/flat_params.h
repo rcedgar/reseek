@@ -25,43 +25,43 @@ public:
 
 public:
 	// alignment
-	static float m_open;
-	static float m_ext;
+	float m_open = FLT_MAX;
+	float m_ext = FLT_MAX;
 
 	// test statistic
-	static float m_self_w;
-	static float m_rev_w;
-	static float m_lddt_w;
-	static float m_lddtx_w;
-	static float m_dali_w;
-	static float m_dalix_w;
-	static float m_nurev_w;
+	float m_self_w = FLT_MAX;
+	float m_rev_w = FLT_MAX;
+	float m_lddt_w = FLT_MAX;
+	float m_lddtx_w = FLT_MAX;
+	float m_dali_w = FLT_MAX;
+	float m_dalix_w = FLT_MAX;
+	float m_nurev_w = FLT_MAX;
 
 	// filters
-	static float m_mega_filter_min_fwd;
-	static float m_nu_filter_self_w;
-	static float m_nu_filter_rev_w;
-	static float m_nu_filter_min_fwd_score;
-	static float m_nu_filter_min_combined_score;
+	float m_mega_filter_min_fwd = FLT_MAX;
+	float m_nu_filter_self_w = FLT_MAX;
+	float m_nu_filter_rev_w = FLT_MAX;
+	float m_nu_filter_min_fwd_score = FLT_MAX;
+	float m_nu_filter_min_combined_score = FLT_MAX;
 
 	// alphabets
-	static uint32 m_nfeat;
-	static vector<string> m_alpha_names;
-	static vector<FAN> m_fans;
-	static uint32_t *m_alpha_sizes;
-	static float **m_unweighted_logoddsvec;
-	static float **m_weighted_logoddsvec;
-	static float *m_weights;
-	static uint32_t *m_feature_block_offsets;
-	static uint32_t m_sum_alpha_sizes;
-	static uint32_t m_compound_alpha_size;
-	static uint32_t *m_axes;
-	static uint16_t *m_medians;
-	static uint16_t **m_thresholds;
-	static vector<string> m_symbolsvec;
+	uint32 m_nfeat = UINT_MAX;
+	vector<string> m_alpha_names;
+	vector<FAN> m_fans;
+	uint32_t *m_alpha_sizes = 0;
+	float **m_unweighted_logoddsvec = 0;
+	float **m_weighted_logoddsvec = 0;
+	float *m_weights = 0;
+	uint32_t *m_feature_block_offsets = 0;
+	uint32_t m_sum_alpha_sizes = UINT_MAX;
+	uint32_t m_compound_alpha_size = UINT_MAX;
+	uint32_t *m_axes = 0;
+	uint16_t *m_medians = 0;
+	uint16_t **m_thresholds = 0;
+	vector<string> m_symbolsvec;
 
 public:
-	void set_params(
+	void set_scalars(
 		const vector<string> &names,
 		const vector<float> &values);
 

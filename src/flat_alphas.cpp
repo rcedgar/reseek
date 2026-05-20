@@ -4,24 +4,9 @@
 #include "flat_params.h"
 #include "sort.h"
 
-uint32 flat_params::m_nfeat;
-vector<string> flat_params::m_alpha_names;
-vector<FAN> flat_params::m_fans;
-uint32_t *flat_params::m_alpha_sizes;
-float **flat_params::m_unweighted_logoddsvec;
-float **flat_params::m_weighted_logoddsvec;
-float *flat_params::m_weights;
-uint32_t *flat_params::m_feature_block_offsets;
-uint32_t flat_params::m_sum_alpha_sizes;
-uint32_t flat_params::m_compound_alpha_size;
-uint32_t *flat_params::m_axes;
-uint16_t *flat_params::m_medians;
-uint16_t **flat_params::m_thresholds;
-vector<string> flat_params::m_symbolsvec;
-
 void flat_params::set_alpha_names(const vector<string> &alpha_names)
 	{
-	asserta(m_nfeat == 0);
+	asserta(m_nfeat == UINT_MAX);
 	alloc(uint(alpha_names.size()));
 	m_alpha_names = alpha_names;
 	m_fans.clear();
@@ -82,7 +67,7 @@ uint flat_params::read_logodds(
 void flat_params::alloc(uint32 nfeat)
 	{
 	assert(nfeat > 0);
-	assert(m_nfeat == 0);
+	assert(m_nfeat == UINT_MAX);
 	assert(m_weights == 0);
 	assert(m_axes == 0);
 	assert(m_medians == 0);

@@ -44,6 +44,8 @@ void cmd_flat_quantize()
 	asserta(!optset_output2);
 	asserta(!optset_fasta);
 
+	flat_params params;
+
 	uint M = flat_params::m_distmx_bandwidth;
 	const uint m = flat_params::m_nn_min_offset;
 
@@ -133,7 +135,7 @@ void cmd_flat_quantize()
 		{
 		uint L = chains[i]->get_length();
 		char *Seq = myalloc(char, L);
-		chaq::slow_get_charseq_binned(chains[i], fan, alpha_size,
+		chaq::slow_get_charseq_binned(params, chains[i], fan, alpha_size,
 			ts.data(), QR.median_value, Seq);
 		SeqToFasta(ffa, chains[i]->m_label.c_str(), Seq, L);
 		myfree(Seq);

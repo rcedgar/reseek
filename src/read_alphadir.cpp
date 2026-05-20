@@ -237,14 +237,14 @@ void flat_params::init_from_alphadir(
 	init_from_fnprefixes(alpha_names, fnprefixes);
 	}
 
-uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
+uint16_t chaq::get_undef_value(const flat_params &params, FAN fan, uint alpha_size)
 	{
-	for (size_t i = 0; i < flat_params::m_nfeat; ++i)
+	for (size_t i = 0; i < params.m_nfeat; ++i)
 		{
-		if (flat_params::m_fans[i] == fan &&
-			flat_params::m_alpha_sizes[i] == alpha_size)
+		if (params.m_fans[i] == fan &&
+			params.m_alpha_sizes[i] == alpha_size)
 			{
-			uint16_t median = flat_params::m_medians[i];
+			uint16_t median = params.m_medians[i];
 			if (median == UINT16_MAX)
 				Die("chaq::get_undef_value(%s, %u) median=UINT16_MAX",
 					FAN2str(fan), alpha_size);
@@ -256,13 +256,13 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	return UINT16_MAX;
 	}
 
-cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
+cp_uint16_t chaq::get_thresholds(const flat_params &params, FAN fan, uint alpha_size)
 	{
-	const size_t n = flat_params::m_fans.size();
+	const size_t n = params.m_fans.size();
 	for (size_t i = 0; i < n; ++i)
 		{
-		if (flat_params::m_fans[i] == fan && flat_params::m_alpha_sizes[i] == alpha_size)
-			return flat_params::m_thresholds[i];
+		if (params.m_fans[i] == fan && params.m_alpha_sizes[i] == alpha_size)
+			return params.m_thresholds[i];
 		}
 	Die("chaq::get_thresholds(%s, %u)", FAN2str(fan), alpha_size);
 	return 0;

@@ -303,11 +303,14 @@ uint8_t *flat_profiles::make_profile(
 
 		uint8_t *codeseq = profile + fi*L;
 		if (is_quantized(fan))
-			chaq::slow_get_codeseq_binned(&chain, fan, alpha_size, codeseq);
+			chaq::slow_get_codeseq_binned(
+				params, &chain, fan, alpha_size, codeseq);
 		else
 			{
-			const uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
-			chaq::slow_get_codeseq_discrete(&chain, fan, alpha_size, codeseq);
+			const uint8_t undef_code =
+				chaq::get_undef_code(fan, alpha_size);
+			chaq::slow_get_codeseq_discrete(
+				params, &chain, fan, alpha_size, codeseq);
 			}
 
 #if DEBUG

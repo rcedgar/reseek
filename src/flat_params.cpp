@@ -21,36 +21,29 @@ uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
 ///////////////////////////////////////////////
 
-////////////////////////////////////////////////////
-// TUNABLE WITHOUT RETRAINING THRESHOLDS AND LOGODDS
-// Gap parameters
-float flat_params::m_open = FLT_MAX;
-float flat_params::m_ext = FLT_MAX;
-
-// Test statistic weights
-float flat_params::m_self_w = 0;
-float flat_params::m_rev_w = 0;
-float flat_params::m_lddt_w = 0;
-float flat_params::m_lddtx_w = 0;
-float flat_params::m_dali_w = 0;
-float flat_params::m_dalix_w = 0;
-float flat_params::m_nurev_w = 0;
-
-// Mega filter
-float flat_params::m_mega_filter_min_fwd = 0;
-
-// Nu filter
-float flat_params::m_nu_filter_self_w = 0;
-float flat_params::m_nu_filter_rev_w = 0;
-float flat_params::m_nu_filter_min_fwd_score = -9999;
-float flat_params::m_nu_filter_min_combined_score = -9999;
-/////////////////////////////////////////////////////
-
-void flat_params::set_params(
+// non-alpha
+void flat_params::set_scalars(
 	const vector<string> &names,
 	const vector<float> &values)
 	{
 	assert(names.size() == values.size());
+
+	// test statistic
+	m_self_w = 0;
+	m_rev_w = 0;
+	m_lddt_w = 0;
+	m_lddtx_w = 0;
+	m_dali_w = 0;
+	m_dalix_w = 0;
+	m_nurev_w = 0;
+
+	// filters
+	m_mega_filter_min_fwd = -999;
+	m_nu_filter_self_w = 0;
+	m_nu_filter_rev_w = 0;
+	m_nu_filter_min_fwd_score = -999;
+	m_nu_filter_min_combined_score = -999;
+
 	for (size_t i = 0; i < names.size(); ++i)
 		{
 		const string &name = names[i];

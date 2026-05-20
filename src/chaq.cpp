@@ -454,6 +454,7 @@ void chaq::get_sec_codeseq(
 
 
 void chaq::slow_get_codeseq_discrete(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
@@ -608,7 +609,8 @@ void chaq::slow_get_codeseq_discrete(
 	case FAN_pack:
 	case FAN_ppack:
 	case FAN_mpack:
-		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, codeseq);
+		chaq::slow_get_codeseq_binned(
+			params, chain, fan, alpha_size, codeseq);
 		break;
 
 	default:	Die("slow_get_codeseq_discrete(%s)", FAN2str(fan));
@@ -828,6 +830,7 @@ void chaq::charseq2codeseq(
 	}
 
 void chaq::slow_get_charseq_discrete(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint8_t alpha_size,
@@ -840,12 +843,13 @@ void chaq::slow_get_charseq_discrete(
 	const uint L = chain->get_length();
 	assert(L > 0);
 	uint8_t *codeseq = myalloc(uint8_t, L);
-	slow_get_codeseq_discrete(chain, fan, alpha_size, codeseq);
+	slow_get_codeseq_discrete(params, chain, fan, alpha_size, codeseq);
 	codeseq2charseq(codeseq, L, alpha_size, charseq);
 	myfree(codeseq);
 	}
 
 void chaq::slow_get_codeseq_binned(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
@@ -853,8 +857,8 @@ void chaq::slow_get_codeseq_binned(
 	{
 	const uint L = chain->get_length();
 
-	cp_uint16_t thresholds = get_thresholds(fan, alpha_size);
-	const uint16_t undef_value = get_undef_value(fan, alpha_size);
+	cp_uint16_t thresholds = get_thresholds(params, fan, alpha_size);
+	const uint16_t undef_value = get_undef_value(params, fan, alpha_size);
 
 	uint16_t *values = myalloc(uint16_t, L);
 	chaq::slow_get_values(chain, fan, alpha_size, values);
@@ -871,6 +875,7 @@ void chaq::slow_get_codeseq_binned(
 	}
 
 void chaq::slow_get_codeseq(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
@@ -879,12 +884,13 @@ void chaq::slow_get_codeseq(
 	const uint L = chain->get_length();
 
 	if (is_quantized(fan))
-		chaq::slow_get_codeseq_binned(chain, fan, alpha_size, codeseq);
+		chaq::slow_get_codeseq_binned(params, chain, fan, alpha_size, codeseq);
 	else
-		chaq::slow_get_codeseq_discrete(chain, fan, alpha_size, codeseq);
+		chaq::slow_get_codeseq_discrete(params, chain, fan, alpha_size, codeseq);
 	}
 
 void chaq::slow_get_charseq_binned(
+	const flat_params &params,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint8_t alpha_size,

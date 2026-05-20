@@ -339,9 +339,11 @@ FAN parse_alpha_name(
 	uint &alpha_size);
 
 void flat_make_varstr(
+	const flat_params &params,
 	string &varstr);
 
 void flat_make_peaker_spec(
+	const flat_params &params,
 	vector<string> &lines);
 
 uint path2posvecs3(

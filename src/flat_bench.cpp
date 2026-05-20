@@ -413,7 +413,7 @@ void flat_bench::SetScalarParams(
 	const vector<string> &Names,
 	const vector<float> &Values)
 	{
-	m_params->set_params(Names, Values);
+	m_params->set_scalars(Names, Values);
 	}
 
 void flat_bench::ClassifyParams(

@@ -18,7 +18,7 @@ static size_t s_mem_bytes;
 static uint8_t *s_mem_base = nullptr;
 static size_t s_mem_bytes_total = 0;
 static atomic<size_t> s_mem_next{0}; // bump offset in bytes
-static flat_params *s_params = 0;
+static const flat_params *s_params = 0;
 
 static size_t s_mem_bytes_per_pos;
 static size_t s_scratch_bytes_per_pos;
@@ -113,7 +113,9 @@ void chain_data::make_mega_prof(
 
 		uint8_t *codeseq = mega_prof + fi*L;
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
-		chaq::fast_get_codeseq(&chain, distmx, &cv, fan, alpha_size,
+		chaq::fast_get_codeseq(
+			params, &chain, distmx,
+			&cv, fan, alpha_size,
 			codeseq, scratch);
 
 #if DEBUG
@@ -325,6 +327,7 @@ void chain_data::fill_chain_data_vec(
 	s_nchain = uint(chains.size());
 	s_cdvec = cdvec;
 	s_bits = bits;
+	s_params = &params;
 
 	size_t total_length = 0;
 	for (auto chain : chains) total_length += chain->m_L;

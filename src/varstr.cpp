@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 #include "flat_params.h"
-#include "flat_params.h"
 
 /***
 [scalar]     0.89  gap2
@@ -132,61 +131,61 @@ void flat_classify_params(
 		}
 	}
 
-void flat_make_varstr(string &varstr)
+void flat_make_varstr(const flat_params &params, string &varstr)
 	{
 	varstr.clear();
 
-	if (feq(flat_params::m_open, flat_params::m_ext*10))
-		Psa(varstr, "gap2=%.4g;\n", flat_params::m_open);
+	if (feq(params.m_open, params.m_ext*10))
+		Psa(varstr, "gap2=%.4g;\n", params.m_open);
 	else
 		{
-		Psa(varstr, "open=%.4g;\n", flat_params::m_open);
-		Psa(varstr, "ext=%.4g;\n", flat_params::m_ext);
+		Psa(varstr, "open=%.4g;\n", params.m_open);
+		Psa(varstr, "ext=%.4g;\n", params.m_ext);
 		}
 
 #define x(param_name, member_name)	\
 	if (string(#param_name) != "open" && string(#param_name) != "ext") \
-		Psa(varstr, "%s=%.4g;\n", #param_name, flat_params::member_name);
+		Psa(varstr, "%s=%.4g;\n", #param_name, params.member_name);
 #include "tunable_flat_params.h"
 
-	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	for (uint fi = 0; fi < params.m_nfeat; ++fi)
 		{
 		Psa(varstr, "%s=%.4g;\n",
-			flat_params::m_alpha_names[fi],
-			flat_params::m_weights[fi]);
+			params.m_alpha_names[fi],
+			params.m_weights[fi]);
 		}
 	}
 
-void flat_make_peaker_spec(vector<string> &lines)
+void flat_make_peaker_spec(const flat_params &params, vector<string> &lines)
 	{
 	lines.clear();
 
 	string line;
-	if (feq(flat_params::m_open, flat_params::m_ext*10))
+	if (feq(params.m_open, params.m_ext*10))
 		{
-		Ps(line, "var=gap2;constant=%.4g;", flat_params::m_open);
+		Ps(line, "var=gap2;constant=%.4g;", params.m_open);
 		lines.push_back(line);
 		}
 	else
 		{
-		Ps(line, "var=open;constant=%.4g;", flat_params::m_open);
+		Ps(line, "var=open;constant=%.4g;", params.m_open);
 		lines.push_back(line);
 
-		Ps(line, "var=ext;constant=%.4g", flat_params::m_ext);
+		Ps(line, "var=ext;constant=%.4g", params.m_ext);
 		lines.push_back(line);
 		}
 
 #define x(param_name, member_name)	\
 	if (string(#param_name) != "open" && string(#param_name) != "ext") { \
-		Ps(line, "var=%s;constant=%.4g;", #param_name, flat_params::member_name); \
+		Ps(line, "var=%s;constant=%.4g;", #param_name, params.member_name); \
 		lines.push_back(line); }
 #include "tunable_flat_params.h"
 
-	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	for (uint fi = 0; fi < params.m_nfeat; ++fi)
 		{
 		Ps(line, "var=%s;constant=%.4g;isalpha=yes;",
-			flat_params::m_alpha_names[fi],
-			flat_params::m_weights[fi]);
+			params.m_alpha_names[fi],
+			params.m_weights[fi]);
 		lines.push_back(line);
 		}
 	}

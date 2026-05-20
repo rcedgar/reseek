@@ -7,6 +7,7 @@
 #include "scratch_mem.h"
 
 class sec_kmeans;
+class flat_params;
 
 struct chaq_vecs
 	{
@@ -106,24 +107,28 @@ public:
 		p_uint16_t values);
 
 	static void slow_get_codeseq(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
 		p_uint8_t codeseq);
 
 	static void slow_get_codeseq_binned(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
 		p_uint8_t codeseq);
 
 	static void slow_get_codeseq_discrete(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,
 		p_uint8_t codeseq);
 
 	static void slow_get_charseq_binned(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint8_t alpha_size,
@@ -132,6 +137,7 @@ public:
 		char *charseq);
 
 	static void slow_get_charseq_discrete(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint8_t alpha_size,
@@ -172,9 +178,12 @@ public:
 		uint alpha_size,
 		p_uint16_t values);
 
-	static cp_uint16_t get_thresholds(FAN fan, uint alpha_size);
-	static uint16_t get_undef_value(FAN fan, uint alpha_size);
-	static uint8_t get_undef_code(FAN fan, uint alpha_size);
+	static cp_uint16_t get_thresholds(
+		const flat_params &params, FAN fan, uint alpha_size);
+	static uint16_t get_undef_value(
+		const flat_params &params, FAN fan, uint alpha_size);
+	static uint8_t get_undef_code(
+		FAN fan, uint alpha_size);
 
 	static void set_aagroups(const string &aagroups);
 
@@ -188,6 +197,7 @@ public:
 		scratch_mem &mem);
 
 	static void fast_get_codeseq(
+		const flat_params &params,
 		const flat_chain_t *chain,
 		const sid_t *distmx,
 		const chaq_vecs *cv,
@@ -197,6 +207,7 @@ public:
 		scratch_mem &scratch);
 
 	static void fast_get_values(
+		const flat_params &params,
 		const sid_t *distmx,
 		const chaq_vecs *cv,
 		const flat_chain_t *chain,

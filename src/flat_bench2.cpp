@@ -1042,7 +1042,7 @@ void flat_bench2::update_params(
 		names, values, alpha_names,
 		weights, scalar_names, scalar_values);
 
-	m_params->set_params(scalar_names, scalar_values);
+	m_params->set_scalars(scalar_names, scalar_values);
 
 	uint n = SIZE(alpha_names);
 	asserta(SIZE(weights) == n);
@@ -1148,6 +1148,7 @@ void cmd_flat_bench2()
 
 	const string &alphadir = opt(alphadir);
 	flat_params params;
+	params.set_scalars(scalar_names, scalar_values);
 	params.init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
@@ -1164,12 +1165,12 @@ void cmd_flat_bench2()
 	FB.m_params->logme();
 
 	string varstr2;
-	flat_make_varstr(varstr2);
+	flat_make_varstr(params, varstr2);
 	Log("varstr2=\n");
 	Log("%s\n", varstr2.c_str());
 
 	vector<string> peaker_spec_lines;
-	flat_make_peaker_spec(peaker_spec_lines);
+	flat_make_peaker_spec(params, peaker_spec_lines);
 	for (uint i = 0; i < uint(peaker_spec_lines.size()); ++i)
 		Log("%s\n", peaker_spec_lines[i].c_str());
 

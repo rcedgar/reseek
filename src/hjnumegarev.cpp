@@ -229,39 +229,39 @@ void cmd_hjnumegarev()
 	//flat_params::init(feature_names);
 	//flat_params::read_logoddsvec_pattern(opt(mxpattern));
 
-	unordered_map<string, float> name2weight;
-	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
-		name2weight[feature_names[fi]] = weights[fi];
+	//unordered_map<string, float> name2weight;
+	//for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	//	name2weight[feature_names[fi]] = weights[fi];
 
-	const float Scale = 8.39f;
-	const int IntOpen = 23;
-	const int IntExt = 3;
-	const int IntSaturatedScore = 777;
-	Paralign::set_flat_compound(*s_params, name2weight,
-		Scale, IntOpen, IntExt, IntSaturatedScore);
+	//const float Scale = 8.39f;
+	//const int IntOpen = 23;
+	//const int IntExt = 3;
+	//const int IntSaturatedScore = 777;
+	//Paralign::set_flat_compound(*s_params, name2weight,
+	//	Scale, IntOpen, IntExt, IntSaturatedScore);
 
-	ParaBench PS;
-	PS.GetByteSeqs(DBFN, "nuletters");
-	PS.SetLookupFromLabels();
-	PS.m_DoReverse = true;
-	PS.SetSelfScores_rev("para");
-	PS.Search("para", true);
-	PS.SetScoreOrder();
-	PS.WriteRevTsv(opt(output2));
-	PS.Bench("Bench()");
-	PS.BenchRev("BenchRev(0, 0)", 0, 0);
+	//ParaBench PS;
+	//PS.GetByteSeqs(DBFN, "nuletters");
+	//PS.SetLookupFromLabels();
+	//PS.m_DoReverse = true;
+	//PS.SetSelfScores_rev("para");
+	//PS.Search("para", true);
+	//PS.SetScoreOrder();
+	//PS.WriteRevTsv(opt(output2));
+	//PS.Bench("Bench()");
+	//PS.BenchRev("BenchRev(0, 0)", 0, 0);
 
-	vector<string> SpecLines;
-	SpecLines.push_back("latin=32;");
-	SpecLines.push_back("rates=1.3,1.05,1.02;");
-	SpecLines.push_back("hj=2;");
-	SpecLines.push_back("var=selfw;min=0;max=1;");
+	//vector<string> SpecLines;
+	//SpecLines.push_back("latin=32;");
+	//SpecLines.push_back("rates=1.3,1.05,1.02;");
+	//SpecLines.push_back("hj=2;");
+	//SpecLines.push_back("var=selfw;min=0;max=1;");
 
-	double Best_y;
-	vector<string> Best_xv;
-	if (!opt(selfonly))
-		SpecLines.push_back	("var=revw;min=0;max=1;");
+	//double Best_y;
+	//vector<string> Best_xv;
+	//if (!opt(selfonly))
+	//	SpecLines.push_back	("var=revw;min=0;max=1;");
 
-	Optimize(SpecLines, PS, Best_y, Best_xv);
-	PS.WriteHits(opt(output));
+	//Optimize(SpecLines, PS, Best_y, Best_xv);
+	//PS.WriteHits(opt(output));
 	}

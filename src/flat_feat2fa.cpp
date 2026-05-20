@@ -29,15 +29,15 @@ void cmd_flat_quantized2fa()
 	FAN fan = str2FAN(feature.c_str());
 
 	asserta(is_quantized(fan));
-	const uint16_t *thresholds = chaq::get_thresholds(fan, alpha_size);
-	const uint16_t undef_value = chaq::get_undef_value(fan, alpha_size);
+	const uint16_t *thresholds = chaq::get_thresholds(params, fan, alpha_size);
+	const uint16_t undef_value = chaq::get_undef_value(params, fan, alpha_size);
 
 	for (uint i = 0; i < nchain; ++i)
 		{
 		const flat_chain_t *chain = chains[i];
 		uint L = chain->get_length();
 		char *charseq = myalloc(char, L);
-		chaq::slow_get_charseq_binned(chain, fan, alpha_size,
+		chaq::slow_get_charseq_binned(params, chain, fan, alpha_size,
 				thresholds, undef_value, charseq);
 		SeqToFasta(f, chains[i]->m_label.c_str(), charseq, L);
 		myfree(charseq);
@@ -61,6 +61,8 @@ void cmd_flat_discrete2fa()
 	if (optset_aagroups)
 		chaq::set_aagroups(opt(aagroups));
 
+	flat_params params;
+
 	asserta(!is_quantized(fan));
 	uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
 
@@ -69,7 +71,7 @@ void cmd_flat_discrete2fa()
 		const flat_chain_t *chain = chains[i];
 		uint L = chain->get_length();
 		char *charseq = myalloc(char, L);
-		chaq::slow_get_charseq_discrete(chain, fan, alpha_size,
+		chaq::slow_get_charseq_discrete(params, chain, fan, alpha_size,
 				undef_code, charseq);
 		SeqToFasta(f, chains[i]->m_label.c_str(), charseq, L);
 		myfree(charseq);
