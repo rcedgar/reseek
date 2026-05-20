@@ -3,7 +3,7 @@
 #include "chaq.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "flat_bench.h"
 #include "flat_nu_aligner.h"
 #include "scratch_mem.h"
@@ -92,7 +92,7 @@ void chain_data::make_mega_prof(
 	const uint L = chain.get_length();
 	asserta(L > 0);
 
-	const uint nfeat = flat_alphas::m_nfeat;
+	const uint nfeat = flat_params::m_nfeat;
 	asserta(nfeat > 0);
 	asserta(bytes >= nfeat*L);
 
@@ -105,8 +105,8 @@ void chain_data::make_mega_prof(
 
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		const FAN fan = flat_alphas::m_fans[fi];
-		const uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+		const FAN fan = flat_params::m_fans[fi];
+		const uint alpha_size = flat_params::m_alpha_sizes[fi];
 
 		uint8_t *codeseq = mega_prof + fi*L;
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
@@ -126,7 +126,7 @@ void chain_data::get_from_chain_bytes_per_pos(
 	size_t &scratch_bytes_per_pos)
 	{
 	const uint32_t M = flat_params::m_distmx_bandwidth;
-	const uint32_t nfeat = flat_alphas::m_nfeat;
+	const uint32_t nfeat = flat_params::m_nfeat;
 
 	size_t fill_chaq_vecs_bytes_per_pos =
 		chaq::get_fill_chaq_vecs_bytes_per_pos();
@@ -137,7 +137,7 @@ void chain_data::get_from_chain_bytes_per_pos(
 	uint n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq;
 	get_object_counts(bits, n_distmx, n_mega_prof, n_mega_pssm, n_nu_codeseq);
 
-	const uint nr_pssm_floats_per_pos = flat_alphas::m_sum_alpha_sizes;
+	const uint nr_pssm_floats_per_pos = flat_params::m_sum_alpha_sizes;
 
 	mem_bytes_per_pos = 0;
 	mem_bytes_per_pos += n_distmx*M*sizeof(sid_t);
@@ -161,21 +161,21 @@ void chain_data::update_pssms_cd(chain_data *cd)
 	{
 	asserta(cd != 0);
 	const uint L = cd->m_L;
-	const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
-	const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
-	const uint nfeat = flat_alphas::m_nfeat;
+	const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
+	const uint nr_pssm_floats = L*flat_params::m_sum_alpha_sizes;
+	const uint nfeat = flat_params::m_nfeat;
 
 	fill_flat_pssm(
 		cd->m_mega_prof, L, nfeat, alpha_sizes,
-		flat_alphas::m_feature_block_offsets,
-		flat_alphas::m_weighted_logoddsvec,
+		flat_params::m_feature_block_offsets,
+		flat_params::m_weighted_logoddsvec,
 		cd->m_mega_pssm);
 
 	if (cd->m_mega_pssm_rev)
 		fill_flat_pssm_reversed(
 			cd->m_mega_prof, L, nfeat, alpha_sizes,
-			flat_alphas::m_feature_block_offsets,
-			flat_alphas::m_weighted_logoddsvec,
+			flat_params::m_feature_block_offsets,
+			flat_params::m_weighted_logoddsvec,
 			cd->m_mega_pssm_rev);
 	}
 
@@ -197,7 +197,7 @@ chain_data *chain_data::from_chain(
 	cd->m_L = L;
 
 	const uint32_t M = flat_params::m_distmx_bandwidth;
-	const uint32_t nfeat = flat_alphas::m_nfeat;
+	const uint32_t nfeat = flat_params::m_nfeat;
 
 	asserta(bits & bit_distmx);
 	cd->m_distmx = mem.get<sid_t>(L*M);
@@ -218,14 +218,14 @@ chain_data *chain_data::from_chain(
 		{
 		asserta(want_pssm_fwd);
 		asserta(cd->m_mega_prof != 0);
-		const uint32_t *alpha_sizes = flat_alphas::m_alpha_sizes;
-		const uint nr_pssm_floats = L*flat_alphas::m_sum_alpha_sizes;
+		const uint32_t *alpha_sizes = flat_params::m_alpha_sizes;
+		const uint nr_pssm_floats = L*flat_params::m_sum_alpha_sizes;
 
 		cd->m_mega_pssm = mem.get<float>(nr_pssm_floats);
 		fill_flat_pssm(
 			cd->m_mega_prof, L, nfeat, alpha_sizes,
-			flat_alphas::m_feature_block_offsets,
-			flat_alphas::m_weighted_logoddsvec,
+			flat_params::m_feature_block_offsets,
+			flat_params::m_weighted_logoddsvec,
 			cd->m_mega_pssm);
 
 		if (want_pssm_rev)
@@ -233,8 +233,8 @@ chain_data *chain_data::from_chain(
 			cd->m_mega_pssm_rev = mem.get<float>(nr_pssm_floats);
 			fill_flat_pssm_reversed(
 				cd->m_mega_prof, L, nfeat, alpha_sizes,
-				flat_alphas::m_feature_block_offsets,
-				flat_alphas::m_weighted_logoddsvec,
+				flat_params::m_feature_block_offsets,
+				flat_params::m_weighted_logoddsvec,
 				cd->m_mega_pssm_rev);
 			}
 		}
@@ -243,9 +243,9 @@ chain_data *chain_data::from_chain(
 		{
 		asserta(cd->m_mega_prof != 0);
 
-		const uint32_t fi_aa20 = flat_alphas::get_fi(FAN_aa, 20);
-		const uint32_t fi_pm2 = flat_alphas::get_fi(FAN_pm, 2);
-		const uint32_t fi_sec32 = flat_alphas::get_fi(FAN_sec, 32);
+		const uint32_t fi_aa20 = flat_params::get_fi(FAN_aa, 20);
+		const uint32_t fi_pm2 = flat_params::get_fi(FAN_pm, 2);
+		const uint32_t fi_sec32 = flat_params::get_fi(FAN_sec, 32);
 
 		const uint8_t *prof_aa20 = cd->m_mega_prof + L*size_t(fi_aa20);
 		const uint8_t *prof_pm2 = cd->m_mega_prof + L*size_t(fi_pm2);
@@ -374,7 +374,7 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 	size_t bytes_parasail_prof_rev = 0;
 
 	const uint32_t M = flat_params::m_distmx_bandwidth;
-	const uint32_t nfeat = flat_alphas::m_nfeat;
+	const uint32_t nfeat = flat_params::m_nfeat;
 
 	for (uint idx = 0; idx < nchain; ++idx)
 		{
@@ -396,13 +396,13 @@ void chain_data::log_mem_stats(chain_data **cdvec, uint nchain)
 		if (cd->m_mega_pssm != 0)
 			{
 			++n_mega_pssm;
-			bytes_mega_pssm += L*flat_alphas::m_sum_alpha_sizes*sizeof(m_mega_pssm[0]);
+			bytes_mega_pssm += L*flat_params::m_sum_alpha_sizes*sizeof(m_mega_pssm[0]);
 			}
 
 		if (cd->m_mega_pssm_rev != 0)
 			{
 			++n_mega_pssm_rev;
-			bytes_mega_pssm_rev += L*flat_alphas::m_sum_alpha_sizes*sizeof(m_mega_pssm[0]);
+			bytes_mega_pssm_rev += L*flat_params::m_sum_alpha_sizes*sizeof(m_mega_pssm[0]);
 			}
 
 		if (cd->m_codeseq_nu != 0)
@@ -460,11 +460,11 @@ void chain_data::write_fastas(
 	uint nchain)
 	{
 	if (fnprefix == "") return;
-	const uint nfeat = flat_alphas::m_nfeat;
+	const uint nfeat = flat_params::m_nfeat;
 	for (uint fi = 0; fi < nfeat; ++fi)
 		{
-		FAN fan = flat_alphas::m_fans[fi];
-		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+		FAN fan = flat_params::m_fans[fi];
+		uint alpha_size = flat_params::m_alpha_sizes[fi];
 		asserta(alpha_size <= 32);
 		string fn;
 		Ps(fn, "%s.%s%u.fasta",
@@ -516,7 +516,7 @@ void cmd_test_chain_data()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 	Paralign::set_final_nu();
 
 	vector<flat_chain_t *> chains;

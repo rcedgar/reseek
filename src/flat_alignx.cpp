@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 #include "flat_params.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "flat_alignx.h"
 
 float flat_alignx::alignx(

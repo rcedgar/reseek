@@ -2,7 +2,7 @@
 
 #include "fastbench.h"
 #include "paralign.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 
 class PDBChain;
 

@@ -4,7 +4,7 @@
 #include "fastbench.h"
 #include "flat_profiles.h"
 #include "flat_aligner.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "paralign.h"
 
 class flat_bench : public FastBench

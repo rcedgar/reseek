@@ -240,7 +240,7 @@ void cmd_flat_hjmega2()
 
 	flat_bench2 FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
+	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);

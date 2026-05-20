@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_helpers.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "tabbedlines.h"
 #include "collect.h"
 #include "chaq.h"
@@ -72,7 +72,7 @@ uint16_t *quantize_from_lines(const vector<string> &lines,
 	return thresholds;
 	}
 
-void flat_alphas::init_from_collect(
+void flat_params::init_from_collect(
 	const collect &C,
 	const vector<string> &alpha_names)
 	{
@@ -138,7 +138,7 @@ void flat_alphas::init_from_collect(
 	ProgressLog("%s: %s\n", C.m_name.c_str(), compound.c_str());
 	}
 
-void flat_alphas::init_from_fnprefixes(
+void flat_params::init_from_fnprefixes(
 	const vector<string> &alpha_names,
 	const vector<string> &fnprefixes)
 	{
@@ -199,7 +199,7 @@ void flat_alphas::init_from_fnprefixes(
 	ProgressLog("Loaded %s\n", compound.c_str());
 	}
 
-void flat_alphas::init_from_alphadir(
+void flat_params::init_from_alphadir(
 	const string &arg_alphadir,
 	const vector<string> &alpha_names)
 	{
@@ -209,7 +209,7 @@ void flat_alphas::init_from_alphadir(
 		collect C;
 		C.from_lines(g_alpha_collect_lines);
 		C.m_name = "[default_alphadir]";
-		flat_alphas::init_from_collect(C, alpha_names);
+		flat_params::init_from_collect(C, alpha_names);
 		return;
 		}
 
@@ -220,7 +220,7 @@ void flat_alphas::init_from_alphadir(
 		const string fn = arg_alphadir.substr(1);
 		collect C;
 		C.from_file(fn);
-		flat_alphas::init_from_collect(C, alpha_names);
+		flat_params::init_from_collect(C, alpha_names);
 		return;
 		}
 
@@ -239,12 +239,12 @@ void flat_alphas::init_from_alphadir(
 
 uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 	{
-	for (size_t i = 0; i < flat_alphas::m_nfeat; ++i)
+	for (size_t i = 0; i < flat_params::m_nfeat; ++i)
 		{
-		if (flat_alphas::m_fans[i] == fan &&
-			flat_alphas::m_alpha_sizes[i] == alpha_size)
+		if (flat_params::m_fans[i] == fan &&
+			flat_params::m_alpha_sizes[i] == alpha_size)
 			{
-			uint16_t median = flat_alphas::m_medians[i];
+			uint16_t median = flat_params::m_medians[i];
 			if (median == UINT16_MAX)
 				Die("chaq::get_undef_value(%s, %u) median=UINT16_MAX",
 					FAN2str(fan), alpha_size);
@@ -258,11 +258,11 @@ uint16_t chaq::get_undef_value(FAN fan, uint alpha_size)
 
 cp_uint16_t chaq::get_thresholds(FAN fan, uint alpha_size)
 	{
-	const size_t n = flat_alphas::m_fans.size();
+	const size_t n = flat_params::m_fans.size();
 	for (size_t i = 0; i < n; ++i)
 		{
-		if (flat_alphas::m_fans[i] == fan && flat_alphas::m_alpha_sizes[i] == alpha_size)
-			return flat_alphas::m_thresholds[i];
+		if (flat_params::m_fans[i] == fan && flat_params::m_alpha_sizes[i] == alpha_size)
+			return flat_params::m_thresholds[i];
 		}
 	Die("chaq::get_thresholds(%s, %u)", FAN2str(fan), alpha_size);
 	return 0;
@@ -310,7 +310,7 @@ void load_alphadir(const string &arg_alphadir)
 			alpha_names.push_back(alpha_name);
 			}
 		}
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 	}
 
 void cmd_read_alphadir()

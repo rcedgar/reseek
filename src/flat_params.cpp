@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
+#include "sort.h"
 
 /////////////////////
 // Chain quantization
@@ -130,4 +131,20 @@ void flat_params::logme()
 	for (uint i = 0; i < m_LDDT_nr_thresholds; ++i)
 		Log(" %.1f", m_LDDT_thresholds[i]);
 	Log("\n");
+	vector<uint> order(m_nfeat);
+
+	QuickSortOrderDesc(m_weights, m_nfeat, order.data());
+	Log("\n");
+	Log("%u alphas, sum_sizes=%u\n", m_nfeat, m_sum_alpha_sizes);
+	for (uint k = 0; k < m_nfeat; ++k)
+		{
+		uint i = order[k];
+		float w = m_weights[i];
+		Log("%10.10s  %7.3f  ", m_alpha_names[i].c_str(), w);
+		uint H = uint(w*80);
+		for (uint h = 0; h < H; ++h)
+			Log("■");
+		if (H == 0) Log("o");
+		Log("\n");
+		}
 	}

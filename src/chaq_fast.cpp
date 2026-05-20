@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "flat_bench.h"
 #include "chaq.h"
 #include "quantize.h"
@@ -277,7 +277,7 @@ void cmd_test_chaq_fast()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 	Paralign::set_final_nu();
 
 	vector<flat_chain_t *> chains;

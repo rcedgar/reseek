@@ -29,7 +29,7 @@ void cmd_nubench()
 		alpha_names.push_back("aa4");
 		alpha_names.push_back("pm2");
 		alpha_names.push_back("sec32");
-		flat_alphas::set_names(alpha_names);
+		flat_params::set_names(alpha_names);
 		asserta(optset_lookup);
 		read_flat_chains(chainfn, chains);
 		fp.from_chains_lookup(*PS.m_look, chains);

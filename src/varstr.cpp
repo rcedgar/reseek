@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "flat_helpers.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "flat_params.h"
 
 /***
@@ -149,11 +149,11 @@ void flat_make_varstr(string &varstr)
 		Psa(varstr, "%s=%.4g;\n", #param_name, flat_params::member_name);
 #include "tunable_flat_params.h"
 
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
 		{
 		Psa(varstr, "%s=%.4g;\n",
-			flat_alphas::m_alpha_names[fi],
-			flat_alphas::m_weights[fi]);
+			flat_params::m_alpha_names[fi],
+			flat_params::m_weights[fi]);
 		}
 	}
 
@@ -182,11 +182,11 @@ void flat_make_peaker_spec(vector<string> &lines)
 		lines.push_back(line); }
 #include "tunable_flat_params.h"
 
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
 		{
 		Ps(line, "var=%s;constant=%.4g;isalpha=yes;",
-			flat_alphas::m_alpha_names[fi],
-			flat_alphas::m_weights[fi]);
+			flat_params::m_alpha_names[fi],
+			flat_params::m_weights[fi]);
 		lines.push_back(line);
 		}
 	}

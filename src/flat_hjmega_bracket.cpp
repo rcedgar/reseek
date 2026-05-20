@@ -55,7 +55,7 @@ void cmd_flat_hjmega_bracket()
 
 	flat_bench FullFB;
 	FullFB.ReadLookup(opt(lookup));
-	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
+	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
 	FullFB.load_profiles_chains(chains);
 	FullFB.set_distmxs(chains);
 	if (optset_dope)

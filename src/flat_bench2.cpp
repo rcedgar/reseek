@@ -2,7 +2,7 @@
 #include "flat_bench2.h"
 #include "thread_affinity.h"
 #include "flat_helpers.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "paralign.h"
 #include "parasail_nomalloc.h"
 #include "cigar.h"
@@ -61,7 +61,7 @@ void flat_bench2::thread_body_set_mega_self_rev_scores(uint threadidx)
 	{
 	const uint ndom = m_look->get_ndom();
 
-	uint nfeat = flat_alphas::m_nfeat;
+	uint nfeat = flat_params::m_nfeat;
 	asserta(nfeat > 0);
 
 	flat_bench2_thread_data TD(m_maxL, nfeat);
@@ -79,7 +79,7 @@ void flat_bench2::thread_body(uint threadidx)
 	const uint NQ = SIZE(m_Labels);
 	const uint npair = triangle_get_K(NQ);
 
-	uint nfeat = flat_alphas::m_nfeat;
+	uint nfeat = flat_params::m_nfeat;
 	asserta(nfeat > 0);
 
 	flat_bench2_thread_data TD(m_maxL, nfeat);
@@ -103,7 +103,7 @@ void flat_bench2::set_nu_self_rev_scores()
 		return;
 		}
 
-	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
+	flat_bench2_thread_data TD(m_maxL, flat_params::m_nfeat);
 	const uint ndom = m_look->get_ndom();
 	if (m_nu_self_rev_scores == 0)
 		m_nu_self_rev_scores = myalloc(float, ndom);
@@ -141,8 +141,8 @@ void flat_bench2::set_mega_self_rev_score(
 	float score = sw_flat_pssm(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof, L, pssm, L,
-		flat_alphas::m_feature_block_offsets,
-		flat_alphas::m_nfeat,
+		flat_params::m_feature_block_offsets,
+		flat_params::m_nfeat,
 		-flat_params::m_open,
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
@@ -167,7 +167,7 @@ void flat_bench2::set_mega_self_rev_scores()
 
 #pragma omp parallel num_threads(ThreadCount)
 	{
-	flat_bench2_thread_data TD(m_maxL, flat_alphas::m_nfeat);
+	flat_bench2_thread_data TD(m_maxL, flat_params::m_nfeat);
 
 #pragma omp for schedule(dynamic)
 	for (int domidx = 0; domidx < (int)ndom; ++domidx)
@@ -182,8 +182,8 @@ void flat_bench2::set_mega_self_rev_scores()
 		float score = sw_flat_pssm(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof, L, pssm, L,
-			flat_alphas::m_feature_block_offsets,
-			flat_alphas::m_nfeat,
+			flat_params::m_feature_block_offsets,
+			flat_params::m_nfeat,
 			-flat_params::m_open,
 			-flat_params::m_ext,
 			lo_i, lo_j, TD.m_path_buffer, ncol);
@@ -225,11 +225,11 @@ float flat_bench2::score_pos_pair(
 	const uint8_t *mega_prof_j, uint pos_j, uint L_j)
 	{
 	float score = 0;
-	for (uint fi = 0; fi < flat_alphas::m_nfeat; ++fi)
+	for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
 		{
 		const float *weighted_logoddsvec =
-			flat_alphas::m_weighted_logoddsvec[fi];
-		uint alpha_size = flat_alphas::m_alpha_sizes[fi];
+			flat_params::m_weighted_logoddsvec[fi];
+		uint alpha_size = flat_params::m_alpha_sizes[fi];
 		assert(weighted_logoddsvec != 0);
 		uint8_t code_i = mega_prof_i[fi*L_i + pos_i];
 		uint8_t code_j = mega_prof_j[fi*L_j + pos_j];
@@ -780,8 +780,8 @@ void flat_bench2::align_pair_timealn(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		mega_prof_i, L_i,
 		pssm_j, L_j, 
-		flat_alphas::m_feature_block_offsets,
-		flat_alphas::m_nfeat,
+		flat_params::m_feature_block_offsets,
+		flat_params::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
@@ -792,8 +792,8 @@ void flat_bench2::align_pair_timealn(
 		TD.m_scratch_rows, TD.m_scratch_pssms,
 		mega_prof_i, L_i,
 		pssm_j, L_j, 
-		flat_alphas::m_feature_block_offsets,
-		flat_alphas::m_nfeat,
+		flat_params::m_feature_block_offsets,
+		flat_params::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext);
 	TICKS t5 = GetClockTicks();
@@ -891,8 +891,8 @@ void flat_bench2::align_pair(
 		TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 		prof_i, L_i,
 		pssm_j, L_j, 
-		flat_alphas::m_feature_block_offsets,
-		flat_alphas::m_nfeat,
+		flat_params::m_feature_block_offsets,
+		flat_params::m_nfeat,
 		-flat_params::m_open, 
 		-flat_params::m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
@@ -919,8 +919,8 @@ void flat_bench2::align_pair(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof_i, L_i,
 			pssm_j_rev, L_j, 
-			flat_alphas::m_feature_block_offsets,
-			flat_alphas::m_nfeat,
+			flat_params::m_feature_block_offsets,
+			flat_params::m_nfeat,
 			-flat_params::m_open, 
 			-flat_params::m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
@@ -970,8 +970,8 @@ void flat_bench2::align_pair(
 			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
 			prof_i, L_i,
 			pssm_j_rev, L_j, 
-			flat_alphas::m_feature_block_offsets,
-			flat_alphas::m_nfeat,
+			flat_params::m_feature_block_offsets,
+			flat_params::m_nfeat,
 			-flat_params::m_open, 
 			-flat_params::m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
@@ -1053,7 +1053,7 @@ void flat_bench2::update_params(
 			Die("Dupe name in spec '%s'", name.c_str());
 		NameToWeight[name] = weights[i];
 		}
-	flat_alphas::apply_weights(NameToWeight);
+	flat_params::apply_weights(NameToWeight);
 	chain_data::update_pssms(m_cdvec, m_look->get_ndom());
 	if (flat_params::need_self())
 		set_mega_self_rev_scores();
@@ -1146,7 +1146,7 @@ void cmd_flat_bench2()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
@@ -1158,7 +1158,6 @@ void cmd_flat_bench2()
 	FB.m_nu_only = opt(nuonly);
 	FB.m_timealn = opt(timealn);
 
-	flat_alphas::logme();
 	flat_params::logme();
 
 	string varstr2;

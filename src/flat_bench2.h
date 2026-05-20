@@ -2,7 +2,7 @@
 
 #include "fastbench.h"
 #include "chain_data.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "parasail.h"
 #include "flat_bench2_thread_data.h"
 

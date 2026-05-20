@@ -1,7 +1,7 @@
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
-#include "flat_alphas.h"
+#include "flat_params.h"
 #include "flat_helpers.h"
 #include "alpha.h"
 #include "quantize.h"
@@ -19,7 +19,7 @@ void cmd_flat_quantized2fa()
 	string alpha_name;
 	Ps(alpha_name, "%s%u", feature.c_str(), alpha_size);
 	alpha_names.push_back(alpha_name);
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 	const string &chainfn = g_Arg1;
 	vector<flat_chain_t *> chains;
 	read_flat_chains(chainfn, chains);

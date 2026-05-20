@@ -1,5 +1,7 @@
 #pragma once
 
+#error "flat_alphas"
+
 #include "chaq.h"
 
 class collect;
@@ -17,7 +19,6 @@ private:
 
 public:
 	static uint32 m_nfeat;
-	static uint32 m_entropyfi;
 	static vector<string> m_alpha_names;
 	static vector<FAN> m_fans;
 	static uint32_t *m_alpha_sizes;

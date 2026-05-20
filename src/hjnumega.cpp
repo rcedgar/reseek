@@ -287,8 +287,8 @@ void cmd_hjnumega()
 	asserta(AlphaCount > 0);
 	vector<float> weights(AlphaCount, 1.0f); // placeholder
 
-	flat_alphas::init_from_alphadir(opt(alphadir), alpha_names);
-	asserta(flat_alphas::m_nfeat == AlphaCount);
+	flat_params::init_from_alphadir(opt(alphadir), alpha_names);
+	asserta(flat_params::m_nfeat == AlphaCount);
 
 	asserta(optset_db);
 	const string &DBFN = opt(db);

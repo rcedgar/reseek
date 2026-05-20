@@ -47,13 +47,13 @@ void flat_bench::load_profiles_chains(
 void flat_bench::load_profiles_fapattern(const string &fafnpattern)
 	{
 	Die("flat_bench::load_profiles() obsoleted");
-	const uint nfeat = flat_alphas::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 
 	vector<string> fafns(nfeat);
 	for (uint fi = 0; fi < nfeat; ++fi)
 		make_fn_pattern(
 			fafnpattern,
-			flat_alphas::m_alpha_names[fi],
+			flat_params::m_alpha_names[fi],
 			fafns[fi]);
 
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
@@ -272,7 +272,7 @@ void flat_bench::ThreadBody_All(uint ThreadIdx)
 	m_aligned_pair_count = 0;
 	const uint NQ = SIZE(m_Labels);
 	const uint PairCount = triangle_get_K(NQ);
-	const uint nfeat = flat_alphas::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 	flat_aligner fa;
 	//fa.m_nu_only = m_nu_only;
 	//if (m_nu_filter || m_nu_only)
@@ -320,7 +320,7 @@ void flat_bench::ThreadBody_Dope(uint ThreadIdx)
 	asserta(!m_nu_only);
 	m_aligned_pair_count = 0;
 	const uint ndom = m_look->get_ndom();
-	const uint nfeat = flat_alphas::get_nfeat();
+	const uint nfeat = flat_params::get_nfeat();
 	flat_aligner fa;
 	const float open = -flat_params::m_open;
 	const float ext = -flat_params::m_ext;
@@ -456,7 +456,7 @@ void flat_bench::ClassifyParams(
 void flat_bench::ApplyWeightsToLogOdds(
 	const unordered_map<string, float> &NameToWeight)
 	{
-	flat_alphas::apply_weights(NameToWeight);
+	flat_params::apply_weights(NameToWeight);
 	}
 
 void flat_bench::LogParams(bool show_progress) const
@@ -465,11 +465,11 @@ void flat_bench::LogParams(bool show_progress) const
 	t_fn fn = (show_progress ? ProgressLog : Log);
 	fn("open=%.3g;", flat_params::m_open);
 	fn("ext=%.3g;", flat_params::m_ext);
-	uint nfeat = flat_alphas::get_nfeat();
+	uint nfeat = flat_params::get_nfeat();
 	for (uint fi = 0; fi < nfeat; ++fi)
 		fn("%s=%.3g;",
-			flat_alphas::m_alpha_names[fi].c_str(),
-			flat_alphas::m_weights[fi]);
+			flat_params::m_alpha_names[fi].c_str(),
+			flat_params::m_weights[fi]);
 	fn("\n");
 	}
 
@@ -622,7 +622,7 @@ void cmd_flat_bench()
 		scalar_names, scalar_values);
 
 	const string &alphadir = opt(alphadir);
-	flat_alphas::init_from_alphadir(alphadir, alpha_names);
+	flat_params::init_from_alphadir(alphadir, alpha_names);
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(g_Arg1, chains);
@@ -642,7 +642,7 @@ void cmd_flat_bench()
 		FB.set_nu_selfrev_scores();
 	FB.SetScalarParams(scalar_names, scalar_values);
 
-	flat_alphas::logme();
+	flat_params::logme();
 	flat_params::logme();
 
 	if (optset_label1)
