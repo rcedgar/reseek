@@ -41,10 +41,10 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 		ts[threadidx]->join();
 	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
 		delete ts[threadidx];
-	ProgressStep(PairCount-1, PairCount, "Aligning");
 
 	time_t t2 = time(0);
-	ProgressLog("Search time %.0f secs.\n", double(t2 - t1));
+	ProgressStep(PairCount-1, PairCount,
+		"Search time %.0f secs", double(t2 - t1));
 	}
 
 void flat_bench2::static_thread_body(flat_bench2 *FB, uint threadidx)
@@ -68,7 +68,7 @@ void flat_bench2::thread_body_set_mega_self_rev_scores(uint threadidx)
 	for (;;)
 		{
 		uint domidx = m_next_domidx++;
-		if (domidx  >= ndom)
+		if (domidx >= ndom)
 			return;
 		set_mega_self_rev_score(domidx, TD);
 		}
@@ -147,54 +147,20 @@ void flat_bench2::set_mega_self_rev_score(
 		-m_params->m_ext,
 		lo_i, lo_j, TD.m_path_buffer, ncol);
 
+	asserta(!isinf(score));
+	asserta(!isnan(score));
 	m_self_rev_scores[domidx] = score;
 	}
 
 void flat_bench2::set_mega_self_rev_scores()
 	{
-#if 0
-	if (!m_params->need_self())
-		{
-		asserta(m_self_rev_scores == 0);
-		return;
-		}
-
+	const uint nthread = GetRequestedThreadCount();
 	const uint ndom = m_look->get_ndom();
 	if (m_self_rev_scores == 0)
 		m_self_rev_scores = myalloc(float, ndom);
+	memset(m_self_rev_scores, 0xff, ndom*sizeof(float));
 
-	const uint ThreadCount = GetRequestedThreadCount();
-
-#pragma omp parallel num_threads(ThreadCount)
-	{
-	flat_bench2_thread_data TD(m_maxL, m_params->m_nfeat);
-
-#pragma omp for schedule(dynamic)
-	for (int domidx = 0; domidx < (int)ndom; ++domidx)
-		{
-		const chain_data *cd = m_cdvec[domidx];
-		const uint8_t *prof = cd->m_mega_prof;
-		const float *pssm = cd->m_mega_pssm_rev;
-		asserta(prof != 0);
-		asserta(pssm != 0);
-		const uint L = cd->m_L;
-		uint lo_i, lo_j, ncol;
-		float score = sw_flat_pssm(
-			TD.m_scratch_rows, TD.m_TB, TD.m_scratch_pssms,
-			prof, L, pssm, L,
-			m_params->m_feature_block_offsets,
-			m_params->m_nfeat,
-			-m_params->m_open,
-			-m_params->m_ext,
-			lo_i, lo_j, TD.m_path_buffer, ncol);
-		m_self_rev_scores[domidx] = score;
-		}
-	}  // each thread destroys its TD here
-#else
-	const uint nthread = GetRequestedThreadCount();
-	const uint ndom = m_look->get_ndom();
-	m_self_rev_scores = myalloc(float, ndom);
-
+	m_next_domidx = 0;
 	vector<thread *> ts;
 	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
 		{
@@ -205,7 +171,13 @@ void flat_bench2::set_mega_self_rev_scores()
 		ts[threadidx]->join();
 	for (uint threadidx = 0; threadidx < nthread; ++threadidx)
 		delete ts[threadidx];
-#endif
+
+	for (uint i = 0; i < ndom; ++i)
+		{
+		float score = m_self_rev_scores[i];
+		asserta(!isnan(score));
+		asserta(!isinf(score));
+		}
 	}
 
 void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
@@ -511,11 +483,14 @@ void flat_bench2::align_pair_output_nu_paths(
 	string compact_cigar_fwd;
 	string compact_cigar_rev;
 	{
+	if (TD.m_parasail_result != 0)
+		parasail_result_free(TD.m_parasail_result);
 	TD.m_parasail_result = parasail_sw_trace_striped_profile_avx2_256_16(
 		prof_i, (const char *) codeseq_nu_j, L_j, open, ext);
 	asserta(!(TD.m_parasail_result->flag & PARASAIL_FLAG_SATURATED));
 	score_fwd = TD.m_parasail_result->score;
-	if (score_fwd < MIN_FWD_SCORE) return;
+	if (score_fwd < MIN_FWD_SCORE)
+		return;
 
 	parasail_cigar_t* cig = parasail_result_get_cigar_extra(
 		TD.m_parasail_result,
@@ -692,6 +667,8 @@ void flat_bench2::align_pair_nu_only(
 		++m_mu_combined_reject_count;
 		return;
 		}
+	asserta(!isnan(nu_combined_score));
+	asserta(!isinf(nu_combined_score));
 	m_Scores[pairidx] = nu_combined_score;
 	}
 
@@ -901,6 +878,10 @@ void flat_bench2::align_pair(
 	++m_mega_fwd_test_count;
 	if (mega_fwd_score < m_params->m_mega_filter_min_fwd)
 		return;
+	asserta(!isnan(mega_fwd_score));
+	asserta(!isinf(mega_fwd_score));
+	asserta(!isnan(score));
+	asserta(!isinf(score));
 	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
 
@@ -977,12 +958,27 @@ void flat_bench2::align_pair(
 			-m_params->m_ext,
 			lo_i_rev, lo_j_rev, TD.m_path_buffer, ncol_rev);
 		score -= revw*score_rev;
+		asserta(!isnan(score_rev));
+		asserta(!isinf(score_rev));
+		asserta(!isnan(score));
+		asserta(!isinf(score));
 		}
 	score += m_params->m_nurev_w*nu_rev_score;
+	asserta(!isnan(nu_rev_score));
+	asserta(!isinf(nu_rev_score));
+	asserta(!isnan(score));
+	asserta(!isinf(score));
 
 	const float selfw = m_params->m_self_w;
 	if (selfw > 0)
+		{
 		score -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+		asserta(!isnan(m_self_rev_scores[i]));
+		asserta(!isnan(m_self_rev_scores[j]));
+		asserta(!isinf(score));
+		asserta(!isnan(score));
+		asserta(!isinf(score));
+		}
 
 	if (m_params->m_lddt_w > 0)
 		{
@@ -992,6 +988,10 @@ void flat_bench2::align_pair(
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
 		score += m_params->m_lddt_w*lddt*500;
+		asserta(!isnan(lddt));
+		asserta(!isinf(lddt));
+		asserta(!isnan(score));
+		asserta(!isinf(score));
 		}
 
 	if (m_params->m_lddtx_w > 0)
@@ -1004,7 +1004,11 @@ void flat_bench2::align_pair(
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
+		asserta(!isnan(lddt));
+		asserta(!isinf(lddt));
 		score += m_params->m_lddtx_w*lddt*500*Lfactor;
+		asserta(!isnan(score));
+		asserta(!isinf(score));
 		}
 
 	if (m_params->m_dali_w > 0)
@@ -1013,7 +1017,11 @@ void flat_bench2::align_pair(
 			TD.m_pos_is, L_i,
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j);
+		asserta(!isnan(dali));
+		asserta(!isinf(dali));
 		score += m_params->m_dali_w*dali*10;
+		asserta(!isnan(score));
+		asserta(!isinf(score));
 		}
 
 	if (m_params->m_dalix_w > 0)
@@ -1026,6 +1034,8 @@ void flat_bench2::align_pair(
 		//score += m_params->m_dalix_w*dalix*10;
 		}
 
+	asserta(!isnan(score));
+	asserta(!isinf(score));
 	m_Scores[pairidx] = score;
 	}
 
@@ -1060,6 +1070,7 @@ void flat_bench2::update_params(
 		set_mega_self_rev_scores();
 	if (m_params->need_nu_self())
 		set_nu_self_rev_scores();
+	m_params->logme();
 	}
 
 //fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());	0
@@ -1119,6 +1130,8 @@ void flat_bench2::load_mega_paths(const string &fn)
 		m_mega_path_score_fwds[k] = score_fwd;
 		m_mega_path_score_revs[k] = StrToFloatf(flds[11]);
 
+		asserta(!isnan(score_fwd));
+		asserta(!isinf(score_fwd));
 		m_Scores[k] = float(score_fwd);
 		}
 	CloseStdioFile(f);
@@ -1170,7 +1183,13 @@ void cmd_flat_bench2()
 	Log("%s\n", varstr2.c_str());
 
 	vector<string> peaker_spec_lines;
-	flat_make_peaker_spec(params, peaker_spec_lines);
+	flat_make_peaker_spec_const(params, peaker_spec_lines);
+	Log("\n# const spec\n");
+	for (uint i = 0; i < uint(peaker_spec_lines.size()); ++i)
+		Log("%s\n", peaker_spec_lines[i].c_str());
+
+	flat_make_peaker_spec_range(params, peaker_spec_lines);
+	Log("\n# range spec\n");
 	for (uint i = 0; i < uint(peaker_spec_lines.size()); ++i)
 		Log("%s\n", peaker_spec_lines[i].c_str());
 

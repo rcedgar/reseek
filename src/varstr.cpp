@@ -31,16 +31,35 @@
      Total    1.000
 ***/
 
+/***
+secs          sum3  C:\src\reseek_tune2\flat_bench2_nufilter_sweep2\report2.txt
+16	1.7760	1.7800	minmufwd140.minmucmb70.minmgfwd20	1.7%
+124	1.8110	1.8110	minmufwd80.minmucmb30.minmgfwd15	0.0%
+***/
+
 static const string default_varstr =
 // "gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=33.82;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;";
-"gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;";
+"gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;lddtx=0;dalix=0";
 
+static const string fast_varstr_sf =
+// "gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=33.82;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;";
+"minfwd=20;nfminfwd=140;nfmincmb=70;gap2=8.9E-01;selfw=9.5E-01;revw=6.4E-01;nurevw=5.8E-02;dali=0.00017545;lddt=4.5E-02;nfselfw=5.0E-01;nfrevw=0.28992;aa20=5.2848E-01;angle32=8.6751E-02;mendist32=7.9881E-03;nendist32=1.1838E-01;nensec32=1.5953E-02;pack32=8.8342E-02;pendist32=1.4577E-02;pm2=1.3725E-02;pmdd32=7.9770E-03;ppack32=1.6439E-03;rendist32=2.1936E-02;sec32=5.9344E-02;turnd32=3.4900E-02;lddtx=0;dalix=0";
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 static const string best_varstr_fold =
-"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;aa20=0.0001;pm2=0.0001;revw=9.96E-01; selfw=9.16E-01; gap2=7.07E-01; lddt=1.10E-01; dali=6.52E-03; nensec32=2.71E-01; aa4=1.84E-01; sec32=1.00E-01; nendist32=8.82E-02; mendist32=1.13E-01; ppack32=1.01E-01; pmdd32=1.32E-02; mpack32=6.72E-02; angle32=1.65E-02; pendist32=4.49E-02;";
+"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;aa20=0.0001;pm2=0.0001;revw=9.96E-01;selfw=9.16E-01;gap2=7.07E-01;lddt=1.10E-01;dali=6.52E-03;nensec32=2.71E-01;aa4=1.84E-01;sec32=1.00E-01;nendist32=8.82E-02;mendist32=1.13E-01;ppack32=1.01E-01;pmdd32=1.32E-02;mpack32=6.72E-02;angle32=1.65E-02;pendist32=4.49E-02;lddtx=0;dalix=0;nurevw=0;";
+
+static const string fast_varstr_fold =
+"minfwd=20;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=140;nfmincmb=70;aa20=0.0001;pm2=0.0001;revw=9.96E-01;selfw=9.16E-01;gap2=7.07E-01;lddt=1.10E-01;dali=6.52E-03;nensec32=2.71E-01;aa4=1.84E-01;sec32=1.00E-01;nendist32=8.82E-02;mendist32=1.13E-01;ppack32=1.01E-01;pmdd32=1.32E-02;mpack32=6.72E-02;angle32=1.65E-02;pendist32=4.49E-02;lddtx=0;dalix=0;nurevw=0;";
+//^^^^^^^^                                ^^^^^^^^^^^^^^^^^^^^^^^^
 
 static const string best_varstr_fam =
 //"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;";
-"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;";
+"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0";
+
+static const string fast_varstr_fam =
+//"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;";
+"minfwd=20;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=140;nfmincmb=70;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0";
+//^^^^^^^^                                ^^^^^^^^^^^^^^^^^^^^^^^^
 
 void parse_varstr(
 	const string &arg_VarStr,
@@ -53,10 +72,16 @@ void parse_varstr(
 	string VarStr;
 	if (arg_VarStr == "")
 		VarStr = default_varstr;
+	else if (arg_VarStr == "=fastsf")
+		VarStr = fast_varstr_sf;
 	else if (arg_VarStr == "=fold")
 		VarStr = best_varstr_fold;
+	else if (arg_VarStr == "=fastfold")
+		VarStr = fast_varstr_fold;
 	else if (arg_VarStr == "=fam")
 		VarStr = best_varstr_fam;
+	else if (arg_VarStr == "=fastfam")
+		VarStr = fast_varstr_fam;
 	else
 		{
 		if (StartsWith(arg_VarStr, "@"))
@@ -156,7 +181,8 @@ void flat_make_varstr(const flat_params &params, string &varstr)
 		}
 	}
 
-void flat_make_peaker_spec(const flat_params &params, vector<string> &lines)
+void flat_make_peaker_spec_const(
+	const flat_params &params, vector<string> &lines)
 	{
 	lines.clear();
 
@@ -186,6 +212,51 @@ void flat_make_peaker_spec(const flat_params &params, vector<string> &lines)
 		Ps(line, "var=%s;constant=%.4g;isalpha=yes;",
 			params.m_alpha_names[fi],
 			params.m_weights[fi]);
+		lines.push_back(line);
+		}
+	}
+
+void flat_make_peaker_spec_range(
+	const flat_params &params,
+	vector<string> &lines,
+	double rate)
+	{
+	lines.clear();
+
+	string line;
+	if (feq(params.m_open, params.m_ext*10))
+		{
+		Ps(line, "var=gap2;min=%.4g;max=%.4g;",
+			params.m_open/rate, params.m_open*rate);
+		lines.push_back(line);
+		}
+	else
+		{
+		Ps(line, "var=open;min=%.4g;max=%.4g;",
+			params.m_open/rate, params.m_open*rate);
+		lines.push_back(line);
+
+		Ps(line, "var=ext;constant=%.4g",
+			params.m_ext/rate, params.m_ext*rate);
+		lines.push_back(line);
+		}
+
+#define x(param_name, member_name)	\
+	if (string(#param_name) != "open" && string(#param_name) != "ext") { \
+		if (params.member_name == 0) \
+			Ps(line, "var=%s;constant=0;", #param_name); \
+		else \
+			Ps(line, "var=%s;min=%.4g;max=%.4g;", #param_name, \
+		params.member_name/rate, params.member_name*rate); \
+		lines.push_back(line); }
+#include "tunable_flat_params.h"
+
+	for (uint fi = 0; fi < params.m_nfeat; ++fi)
+		{
+		Ps(line, "var=%s;min=%.4g;max=%.4g;isalpha=yes;",
+			params.m_alpha_names[fi],
+			params.m_weights[fi]/rate,
+			params.m_weights[fi]*rate);
 		lines.push_back(line);
 		}
 	}

@@ -460,7 +460,7 @@ void Peaker::AppendResult(const vector<string> &xv, double y,
 			Progress("      ");
 		else if (Pct > 0.1)
 			Progress("   ");
-		Progress("%.4g\033[0m %+.2f%%", m_Best_y, Pct);
+		Progress(" %.4g \033[0m %+.2f%%", m_Best_y, Pct);
 		}
 	else
 		Progress("\033[7m %.4g \033[0m -%.2g%% ",

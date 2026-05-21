@@ -234,10 +234,7 @@ void cmd_flat_hjmega2()
 	get_alpha_names_from_peaker_spec_file_lines(
 		SpecLines, alpha_names);
 
-	void OpenOutputFiles();
-	OpenOutputFiles();
-	Peaker::m_fTsv = CreateStdioFile(opt(output2));
-
+	Peaker::m_fTsv = CreateStdioFile(opt(output));
 
 	flat_bench2 FullFB;
 	FullFB.ReadLookup(opt(lookup));
@@ -277,6 +274,7 @@ void cmd_flat_hjmega2()
 		asserta(optset_sublookup);
 
 		flat_bench2 SubsetFB;
+		SubsetFB.m_params = &params;
 		SubsetFB.ReadLookup(opt(sublookup));
 		SubsetFB.load_chains(chains);
 		SubsetFB.Alloc();

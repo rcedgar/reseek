@@ -29,20 +29,20 @@ void flat_params::set_scalars(
 	assert(names.size() == values.size());
 
 	// test statistic
-	m_self_w = 0;
-	m_rev_w = 0;
-	m_lddt_w = 0;
-	m_lddtx_w = 0;
-	m_dali_w = 0;
-	m_dalix_w = 0;
-	m_nurev_w = 0;
+	m_self_w = FLT_MAX;
+	m_rev_w = FLT_MAX;
+	m_lddt_w = FLT_MAX;
+	m_lddtx_w = FLT_MAX;
+	m_dali_w = FLT_MAX;
+	m_dalix_w = FLT_MAX;
+	m_nurev_w = FLT_MAX;
 
 	// filters
-	m_mega_filter_min_fwd = -999;
-	m_nu_filter_self_w = 0;
-	m_nu_filter_rev_w = 0;
-	m_nu_filter_min_fwd_score = -999;
-	m_nu_filter_min_combined_score = -999;
+	m_mega_filter_min_fwd = FLT_MAX;
+	m_nu_filter_self_w = FLT_MAX;
+	m_nu_filter_rev_w = FLT_MAX;
+	m_nu_filter_min_fwd_score = FLT_MAX;
+	m_nu_filter_min_combined_score = FLT_MAX;
 
 	for (size_t i = 0; i < names.size(); ++i)
 		{
@@ -62,6 +62,18 @@ void flat_params::set_scalars(
 		}
 	asserta(m_open != FLT_MAX);
 	asserta(m_ext != FLT_MAX);
+	asserta(m_self_w != FLT_MAX);
+	asserta(m_rev_w != FLT_MAX);
+	asserta(m_lddt_w != FLT_MAX);
+	asserta(m_lddtx_w != FLT_MAX);
+	asserta(m_dali_w != FLT_MAX);
+	asserta(m_dalix_w != FLT_MAX);
+	asserta(m_nurev_w != FLT_MAX);
+	asserta(m_mega_filter_min_fwd != FLT_MAX);
+	asserta(m_nu_filter_self_w != FLT_MAX);
+	asserta(m_nu_filter_rev_w != FLT_MAX);
+	asserta(m_nu_filter_min_fwd_score != FLT_MAX);
+	asserta(m_nu_filter_min_combined_score != FLT_MAX);
 	}
 
 bool flat_params::need_distmx()

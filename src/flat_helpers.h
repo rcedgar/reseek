@@ -342,9 +342,14 @@ void flat_make_varstr(
 	const flat_params &params,
 	string &varstr);
 
-void flat_make_peaker_spec(
+void flat_make_peaker_spec_const(
 	const flat_params &params,
 	vector<string> &lines);
+
+void flat_make_peaker_spec_range(
+	const flat_params &params,
+	vector<string> &lines,
+	double rate = 1.1);
 
 uint path2posvecs3(
 	const char *path, uint ncol,

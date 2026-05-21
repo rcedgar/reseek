@@ -44,6 +44,11 @@ public:
 		{
 		myfree(m_scratch_pssms);
 		myfree(m_scratch_rows);
+		myfree(m_colscores);
+		myfree(m_pos_is);
+		myfree(m_pos_js);
+		myfree(m_considered_vec);
+		myfree(m_preserved_vec);
 		myfree(m_TB);
 		myfree(m_path_buffer);
 		if (m_parasail_result != 0)
