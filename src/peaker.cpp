@@ -618,7 +618,6 @@ void Peaker::RunLatin(uint BinCount)
 	GetLatinHypercube(BinCount, xvs);
 	const uint n = SIZE(xvs);
 	asserta(n > 0);
-	const uint m = GetVarCount();
 
 	Log("Latin=%u\n", n);
 	for (uint i = 0; i < n; ++i)

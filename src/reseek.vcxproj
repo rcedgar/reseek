@@ -494,6 +494,7 @@
     <ClCompile Include="bench_structure_feature.cpp" />
     <ClCompile Include="subsetbench.cpp" />
     <ClCompile Include="sw_flat.cpp" />
+    <ClCompile Include="sw_flat_pssm_xdrop.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_flat_chains.cpp" />
     <ClCompile Include="test_nu_codeseqs.cpp" />
@@ -682,6 +683,7 @@
     <ClInclude Include="statsig.h" />
     <ClInclude Include="subsetbench.h" />
     <ClInclude Include="swtrace.h" />
+    <ClInclude Include="sw_flat_pssm_xdrop.h" />
     <ClInclude Include="tabbedlines.h" />
     <ClInclude Include="thread_affinity.h" />
     <ClInclude Include="timers.h" />

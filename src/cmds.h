@@ -140,5 +140,6 @@ C(test_chain_data)
 C(test_chaq_fast)
 C(flat_bench2)
 C(flat_hjmega2)
+C(test_flat_xdrop)
 
 #undef C

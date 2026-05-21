@@ -292,6 +292,8 @@ inline bool feq(double x, double y, double epsilon)
 
 inline bool feq(double x, double y)
 	{
+	if (fabs(x) < 1e-9 && fabs(y) < 1e-9)
+		return true;
 	if (x < -1e6 && y < -1e6)
 		return true;
 	return fabs(x - y)/fabs(x + y) < 0.01;

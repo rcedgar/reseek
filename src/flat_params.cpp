@@ -141,10 +141,12 @@ void flat_params::logme()
 	QuickSortOrderDesc(m_weights, m_nfeat, order.data());
 	Log("\n");
 	Log("%u alphas, sum_sizes=%u\n", m_nfeat, m_sum_alpha_sizes);
+	float sumw = 0;
 	for (uint k = 0; k < m_nfeat; ++k)
 		{
 		uint i = order[k];
 		float w = m_weights[i];
+		sumw += w;
 		Log("%10.10s  %7.3f  ", m_alpha_names[i].c_str(), w);
 		uint H = uint(w*80);
 		for (uint h = 0; h < H; ++h)
@@ -152,4 +154,5 @@ void flat_params::logme()
 		if (H == 0) Log("o");
 		Log("\n");
 		}
+	Log("%10.10s  %7.3f\n", "TOTAL", sumw);
 	}

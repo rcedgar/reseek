@@ -821,6 +821,9 @@
     <ClCompile Include="parasail_nomalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sw_flat_pssm_xdrop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1349,6 +1352,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="parasail_nomalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sw_flat_pssm_xdrop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
