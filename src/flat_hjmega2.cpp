@@ -29,8 +29,8 @@ static double EvalSum3(const vector<string> &xv)
 	s_FB->search(ThreadCount, false);
 
 	s_FB->SetScoreOrder_Parallel();
-	s_FB->Bench();
-	return s_FB->m_Sum3;
+	double Sum3 = s_FB->Bench();
+	return Sum3;
 	}
 
 static void Optimize(

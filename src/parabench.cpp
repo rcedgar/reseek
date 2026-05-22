@@ -447,7 +447,8 @@ void ParaBench::ClearHitsAndResults()
 	m_Scores_fwd = 0;
 	m_Scores_rev = 0;
 	m_SelfScores_rev = 0;
-	m_Sum3 = FLT_MAX;
+	m_CVESum3 = FLT_MAX;
+	m_TopSum3 = FLT_MAX;
 	for (uint i = 0; i < SIZE(m_PAs); ++i)
 		delete m_PAs[i];
 	m_PAs.clear();

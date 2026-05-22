@@ -230,6 +230,7 @@ FLAG_OPT(no_thread_pin)
 FLAG_OPT(nufilter)
 FLAG_OPT(nuonly)
 FLAG_OPT(timealn)
+FLAG_OPT(top3)
 
 #undef FLAG_OPT
 #undef UNS_OPT

@@ -94,8 +94,8 @@ static double EvalSum3(const vector<string> &xv)
 	s_PB->ClearHitsAndResults();
 	s_PB->Search("para", false);
 	s_PB->SetScoreOrder();
-	s_PB->Bench();
-	return s_PB->m_Sum3;
+	double Sum3 = s_PB->Bench();
+	return Sum3;
 	}
 
 static double EvalSum3_VarStr(ParaBench &PB, const string &VarStr)
@@ -114,8 +114,8 @@ static double EvalSum3_VarStr(ParaBench &PB, const string &VarStr)
 	s_PB->ClearHitsAndResults();
 	s_PB->Search("para", false);
 	s_PB->SetScoreOrder();
-	s_PB->Bench();
-	return s_PB->m_Sum3;
+	double Sum3 = s_PB->Bench();
+	return Sum3;
 	}
 
 static void Optimize(

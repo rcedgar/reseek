@@ -151,8 +151,7 @@ static double EvalSum3(const vector<string> &xv)
 		}
 	Progress("Sorting...\r");
 	s_FB->SetScoreOrder_Parallel();
-	s_FB->Bench();
-	float Sum3 = s_FB->m_Sum3;
+	double Sum3 = s_FB->Bench();
 	return Sum3;
 	}
 

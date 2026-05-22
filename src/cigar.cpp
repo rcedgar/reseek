@@ -483,3 +483,45 @@ void parasail_cigar_to_path(
 			path += op;
 		}
 	}
+
+uint find_closest_point(
+	const string &cigar,
+	uint loQ, uint loT,
+	uint LQ, uint LT,
+	uint posQ, uint posT,
+	uint &closest_posQ, uint &closest_posT)
+	{
+	string path;
+	CIGARToPath(cigar, path, true);
+	closest_posQ = loQ;
+	closest_posT = loT;
+	uint pQ = loQ;
+	uint pT = loT;
+	int mind = abs(int(closest_posQ - posQ)) + abs(int(closest_posT - posT));
+	const uint n = uint(path.size());
+	for (uint i = 0; i < n; ++i)
+		{
+		char c = path[i];
+		asserta(pQ < LQ);
+		asserta(pT < LT);
+		if (c == 'M')
+			{
+			int d = abs(int(posQ - pQ)) + abs(int(posT - pT));
+			if (d < mind)
+				{
+				closest_posQ = pQ;
+				closest_posT = pT;
+				mind = d;
+				}
+			++pQ;
+			++pT;
+			}
+		else if (c == 'D')
+			++pQ;
+		else if (c == 'I')
+			++pT;
+		else
+			Die("c=%c", c);
+		}
+	return mind;
+	}

@@ -9,10 +9,14 @@ class FastBench
 public:
 	bool m_scores_are_evalues = false;
 	float *m_Scores = 0;
-	float m_Sum3 = FLT_MAX;
+	float m_CVESum3 = FLT_MAX;
+	float m_TopSum3 = FLT_MAX;
 	float m_SEPQ0_1 = FLT_MAX;
 	float m_SEPQ1 = FLT_MAX;
 	float m_SEPQ10 = FLT_MAX;
+	float m_top_SEPQ0_001 = FLT_MAX;
+	float m_top_SEPQ0_01 = FLT_MAX;
+	float m_top_SEPQ0_1 = FLT_MAX;
 	uint m_SeqCount = UINT_MAX;
 	uint m_PairCount = UINT_MAX;
 	vector<string> m_Labels;
@@ -20,6 +24,8 @@ public:
 	uint8_t *m_dope = 0;
 	uint32_t m_dope_nhit = 0;
 	uint32_t *m_dope_ks = 0;
+	float *m_score_top_TP = 0;
+	float *m_score_top_FP = 0;
 
 #if PARALLEL_SORT
 	uint *m_ScoreOrder = 0;
@@ -51,7 +57,7 @@ public:
 	void ReadDope(const string &FN);
 	void SetLookupFromLabels();
 	void AppendHit(uint i, uint j, float Score);
-	void Bench(const string &Msg = "");
+	double Bench(const string &Msg = "");
 	void SetScoreOrder();
 	void SetScoreOrder_Serial();
 #if PARALLEL_SORT

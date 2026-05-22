@@ -128,6 +128,7 @@ void lookup::fill_sf()
 		{
 		uint sfndom = m_sfidx2ndom[sfidx];
 		asserta(sfndom > 0);
+		if (sfndom == 1) ++m_singleton_count;
 		m_NT += (sfndom*(sfndom - 1))/2;
 		}
 	m_NT *= 2;
@@ -179,6 +180,7 @@ void lookup::fill_fam()
 		{
 		uint famndom = m_famidx2ndom[famidx];
 		asserta(famndom > 0);
+		if (famndom == 1) ++m_singleton_count;
 		m_NT += (famndom*(famndom - 1))/2;
 		}
 	m_NT *= 2;
@@ -277,6 +279,7 @@ void lookup::fill_fold()
 		{
 		uint foldndom = m_foldidx2ndom[foldidx];
 		asserta(foldndom > 0);
+		if (foldndom == 1) ++m_singleton_count;
 		m_NT += (foldndom*(foldndom - 1))/2;
 		}
 	m_NT *= 2;

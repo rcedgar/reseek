@@ -34,6 +34,7 @@ public:
 	uint m_NF = 0;
 	uint m_NI = 0;
 	uint m_pair_count = 0;
+	uint m_singleton_count = 0;
 	LOOK_TRUTH m_LT = LT_SAME_SF;
 
 public:

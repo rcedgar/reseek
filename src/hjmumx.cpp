@@ -20,8 +20,8 @@ static double EvalSum3(int IntOpen, int IntExt)
 	s_PS->SetGapParams(IntOpen, IntExt);
 	s_PS->ClearHitsAndResults();
 	s_PS->Search("para", false);
-	s_PS->Bench();
-	return s_PS->m_Sum3;
+	double Sum3 = s_PS->Bench();
+	return Sum3;
 	}
 
 static void TrainMx(const string &ChainFN,

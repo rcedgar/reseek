@@ -21,8 +21,8 @@ static double EvalSum3(const vector<string> &xv)
 	uint ThreadCount = GetRequestedThreadCount();
 	s_FB->Search(ThreadCount, false, optset_dope, UINT_MAX);
 	s_FB->SetScoreOrder_Parallel();
-	s_FB->Bench();
-	return s_FB->m_Sum3;
+	double Sum3 = s_FB->Bench();
+	return Sum3;
 	}
 
 void cmd_flat_hjmega_bracket()

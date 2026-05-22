@@ -66,9 +66,9 @@ void cmd_mu_threshold()
 		n += 1;
 		}
 	FB_t.SetScoreOrder();
-	FB_t.Bench();
+	double Sum3 = FB_t.Bench();
 	ProgressLog("t=mufilter;");
-	ProgressLog("Sum3=%.4f;", FB_t.m_Sum3);
+	ProgressLog("Sum3=%.4f;", Sum3);
 	ProgressLog("n=%u;", n);
 	ProgressLog("pct=%.3g%%;", GetPct(n, npair));
 	ProgressLog("\n");
@@ -133,11 +133,11 @@ void cmd_nu_threshold()
 				FB_t.m_Scores[i] = FLT_MAX;
 			}
 		FB_t.SetScoreOrder();
-		FB_t.Bench("noshow");
+		double Sum3 = FB_t.Bench("noshow");
 
 	//mufilter  1.6358  n=1890353   5.43%
 		double pct = GetPct(n, npair);
-		double sum3 = FB_t.m_Sum3;
+		double sum3 = Sum3;
 		double speedx = 5.43/pct;
 		double sum3x = sum3/1.6358;
 
@@ -150,7 +150,7 @@ void cmd_nu_threshold()
 		ProgressLog("  |  SEPQ0.1=%.3f", FB_t.m_SEPQ0_1);
 		ProgressLog(" SEPQ1=%.3f", FB_t.m_SEPQ1);
 		ProgressLog(" SEPQ10=%.3f", FB_t.m_SEPQ10);
-		ProgressLog(" Sum3=%.3f", FB_t.m_Sum3);
+		ProgressLog(" Sum3=%.3f", FB_t.m_CVESum3);
 		ProgressLog("\n");
 		}
 	}

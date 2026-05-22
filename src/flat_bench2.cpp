@@ -45,6 +45,7 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 	time_t t2 = time(0);
 	ProgressStep(PairCount-1, PairCount,
 		"Search time %.0f secs", double(t2 - t1));
+	Log("Search time %.0f secs\n", double(t2 - t1));
 	}
 
 void flat_bench2::static_thread_body(flat_bench2 *FB, uint threadidx)
@@ -391,7 +392,6 @@ void flat_bench2::align_pair_input_mega_paths(
 	string fwd_path, rev_path;
 	CIGARToPath(fwd_cigar, fwd_path, true);
 	CIGARToPath(rev_cigar, rev_path, true);
-
 
 	const chain_data *cd_i = m_cdvec[i];
 	const chain_data *cd_j = m_cdvec[j];
@@ -819,6 +819,8 @@ void flat_bench2::align_pair(
 	asserta(L_j <= m_maxL);
 
 	float nu_rev_score = 0;
+	int nu_fwd_hi_i = -1;
+	int nu_fwd_hi_j = -1;
 	if (m_params->m_nu_filter_min_fwd_score > 0)
 		{
 		const int open = Paralign::m_Open;
@@ -829,7 +831,8 @@ void flat_bench2::align_pair(
 		const uint8_t *codeseq_nu_j = cd_j->m_codeseq_nu;
 		int fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
 			prof_i, (const char *) codeseq_nu_j, L_j, open, ext,
-			TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes);
+			TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes,
+			&nu_fwd_hi_i, &nu_fwd_hi_j);
 		if (fwd_score < m_params->m_nu_filter_min_fwd_score)
 			{
 			++m_mu_fwd_reject_count;
@@ -920,22 +923,34 @@ void flat_bench2::align_pair(
 		trunc_label(label_j);
 		asserta(label_i == m_look->get_dom(i));
 		asserta(label_j == m_look->get_dom(j));
+
+		uint cl_i = UINT_MAX;
+		uint cl_j = UINT_MAX;
+		uint d = find_closest_point(
+			cigar, lo_i, lo_j, L_i, L_j,
+			nu_fwd_hi_i, nu_fwd_hi_j,
+			cl_i, cl_j);
 	
 		static mutex lock;
 		FILE *f = s_f_mega_paths;
 		lock.lock();
-		fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());
-		fprintf(f, "\t%s/%s", label_j.c_str(), sf_j.c_str());
-		fprintf(f, "\t%u", L_i);
-		fprintf(f, "\t%u", L_j);
-		fprintf(f, "\t%u", lo_i);
-		fprintf(f, "\t%u", lo_j);
-		fprintf(f, "\t%u", lo_i_rev);
-		fprintf(f, "\t%u", lo_j_rev);
-		fprintf(f, "\t%s", cigar.c_str());
-		fprintf(f, "\t%s", cigar_rev.c_str());
-		fprintf(f, "\t%.1f", mega_fwd_score);
-		fprintf(f, "\t%.1f", mega_score_rev);
+		fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());  // 0
+		fprintf(f, "\t%s/%s", label_j.c_str(), sf_j.c_str());  // 1
+		fprintf(f, "\t%u", L_i);  // 2
+		fprintf(f, "\t%u", L_j);  // 3
+		fprintf(f, "\t%u", lo_i);  // 4
+		fprintf(f, "\t%u", lo_j);  // 5
+		fprintf(f, "\t%u", lo_i_rev);  // 6
+		fprintf(f, "\t%u", lo_j_rev);  // 7
+		fprintf(f, "\t%s", cigar.c_str());  // 8
+		fprintf(f, "\t%s", cigar_rev.c_str());  // 9
+		fprintf(f, "\t%d", nu_fwd_hi_i);  // 10
+		fprintf(f, "\t%d", nu_fwd_hi_j);  // 11
+		fprintf(f, "\t%u", cl_i);  // 12
+		fprintf(f, "\t%u", cl_j);  // 13
+		fprintf(f, "\t%u", d);  // 14
+		fprintf(f, "\t%.1f", mega_fwd_score);  // 15
+		fprintf(f, "\t%.1f", mega_score_rev);  // 16
 		fprintf(f, "\n");
 		lock.unlock();
 		}
@@ -1070,7 +1085,6 @@ void flat_bench2::update_params(
 		set_mega_self_rev_scores();
 	if (m_params->need_nu_self())
 		set_nu_self_rev_scores();
-	m_params->logme();
 	}
 
 //fprintf(f, "%s/%s", label_i.c_str(), sf_i.c_str());	0

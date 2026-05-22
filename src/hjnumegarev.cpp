@@ -61,7 +61,8 @@ static double EvalSum3(const vector<string> &xv)
 		float RevWeight = StrToFloatf(xv[1]);
 		s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
 		}
-	return s_PS->m_Sum3;
+	asserta(!opt(top3));
+	return s_PS->m_CVESum3;
 	}
 
 static double EvalSum3_VarStr(
@@ -101,8 +102,8 @@ static double EvalSum3_VarStr(
 	PS.ClearHitsAndResults();
 	PS.Search("para", true);
 	PS.SetScoreOrder();
-	PS.Bench();
-	return PS.m_Sum3;
+	double Sum3 = PS.Bench();
+	return Sum3;
 	}
 
 static void Optimize(
