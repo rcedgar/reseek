@@ -141,5 +141,8 @@ C(test_chaq_fast)
 C(flat_bench2)
 C(flat_hjmega2)
 C(test_flat_xdrop)
+C(top_bench_hits)
+C(top_bench_tophits)
+C(top_bench)
 
 #undef C

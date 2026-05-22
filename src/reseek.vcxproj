@@ -502,6 +502,7 @@
     <ClCompile Include="test_sw_enum.cpp" />
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="todo.cpp" />
+    <ClCompile Include="top_bench.cpp" />
     <ClCompile Include="tracealn.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
     <ClCompile Include="trained_features.cpp" />
@@ -688,6 +689,7 @@
     <ClInclude Include="thread_affinity.h" />
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
+    <ClInclude Include="top_bench.h" />
     <ClInclude Include="tracebit.h" />
     <ClInclude Include="trainer.h" />
     <ClInclude Include="trees.h" />

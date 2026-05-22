@@ -26,6 +26,8 @@ public:
 	uint32_t *m_dope_ks = 0;
 	float *m_score_top_TP = 0;
 	float *m_score_top_FP = 0;
+	uint *m_domidx_top_TP = 0;
+	uint *m_domidx_top_FP = 0;
 
 #if PARALLEL_SORT
 	uint *m_ScoreOrder = 0;
@@ -72,6 +74,7 @@ public:
 		const string &FN,
 		bool IncludeSelf = false,
 		bool UpperTriangleOnly = false) const;
+	void WriteTopHits(const string &FN) const;
 	void ReadBits(const string &FN);
 	void WriteBits(const string &FN) const;
 	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;

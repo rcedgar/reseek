@@ -824,6 +824,9 @@
     <ClCompile Include="sw_flat_pssm_xdrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="top_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1355,6 +1358,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sw_flat_pssm_xdrop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="top_bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

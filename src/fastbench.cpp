@@ -9,6 +9,57 @@
 
 #include "parallel_sort.h"
 
+void FastBench::WriteTopHits(const string &fn) const
+	{
+	if (fn == "")
+		return;
+	FILE *f = CreateStdioFile(fn);
+	const uint ndom = m_look->get_ndom();
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		const string &domq = m_look->get_dom(domidx);
+		float score_top_tp = m_score_top_TP[domidx];
+		float score_top_fp = m_score_top_FP[domidx];
+		uint domidx_top_tp = m_domidx_top_TP[domidx];
+		uint domidx_top_fp = m_domidx_top_FP[domidx];
+
+		uint famidxq = m_look->m_domidx2famidx[domidx];
+
+		fprintf(f, "%s/%s",
+			domq.c_str(), m_look->m_fams[famidxq].c_str());
+
+		if (domidx_top_tp == UINT_MAX)
+			{
+			asserta(score_top_tp == FLT_MAX);
+			fprintf(f, "\t.\t.");
+			}
+		else
+			{
+			const string &domt = m_look->get_dom(domidx_top_tp);
+			uint famidxt = m_look->m_domidx2famidx[domidx_top_tp];
+			fprintf(f, "\t%s/%s\t%.3g",
+				domt.c_str(), m_look->m_fams[famidxt].c_str(),
+				score_top_tp);
+			}
+
+		if (domidx_top_fp == UINT_MAX)
+			{
+			asserta(score_top_fp == FLT_MAX);
+			fprintf(f, "\t.\t.");
+			}
+		else
+			{
+			const string &domt = m_look->get_dom(domidx_top_fp);
+			uint famidxt = m_look->m_domidx2famidx[domidx_top_fp];
+			fprintf(f, "\t%s/%s\t%.3g",
+				domt.c_str(), m_look->m_fams[famidxt].c_str(),
+				score_top_fp);
+			}
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
+
 void FastBench::SetScoreOrder_Parallel()
 {
 	asserta(m_Scores);
@@ -47,6 +98,8 @@ void FastBench::Alloc()
 		asserta(m_score_top_TP == 0);
 		m_score_top_TP = myalloc(float, ndom);
 		m_score_top_FP = myalloc(float, ndom);
+		m_domidx_top_TP = myalloc(uint, ndom);
+		m_domidx_top_FP = myalloc(uint, ndom);
 		}
 
 #if PARALLEL_SORT
@@ -117,10 +170,20 @@ double FastBench::Bench(const string &Msg)
 	uint nt_top = 0;
 	uint nf_top = 0;
 
-	for (uint i = 0; i < ndom; ++i)
+	m_CVESum3 = FLT_MAX;
+	m_TopSum3 = FLT_MAX;
+	m_SEPQ0_1 = FLT_MAX;
+	m_SEPQ1 = FLT_MAX;
+	m_SEPQ10 = FLT_MAX;
+	m_top_SEPQ0_001 = FLT_MAX;
+	m_top_SEPQ0_01 = FLT_MAX;
+	m_top_SEPQ0_1 = FLT_MAX;
+	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
-		m_score_top_TP[i] = FLT_MAX;
-		m_score_top_FP[i] = FLT_MAX;
+		m_score_top_TP[domidx] = FLT_MAX;
+		m_score_top_FP[domidx] = FLT_MAX;
+		m_domidx_top_TP[domidx] = UINT_MAX;
+		m_domidx_top_FP[domidx] = UINT_MAX;
 		}
 
 	float LastScore = m_scores_are_evalues ? -9e9f : FLT_MAX;
@@ -140,6 +203,8 @@ double FastBench::Bench(const string &Msg)
 		triangle_k_to_ij(HitIdx, ndom, domidx_i, domidx_j);
 		if (domidx_i == domidx_j)
 			continue;
+		dbrk(domidx_i==8287&&domidx_j==1329);//@@TODO
+		dbrk(domidx_j==8287&&domidx_i==1329);//@@TODO
 		float Score = m_Scores[HitIdx];
 		if (Score == FLT_MAX) continue;
 		if (Score != LastScore)
@@ -162,39 +227,47 @@ double FastBench::Bench(const string &Msg)
 
 			LastScore = Score;
 			}
-		if (!IsIgnored(domidx_i, domidx_j))
+		if (IsIgnored(domidx_i, domidx_j))
+			continue;
+
+		if (IsTP(domidx_i, domidx_j))
 			{
-			if (IsTP(domidx_i, domidx_j))
+			++nt;
+			if (m_score_top_TP[domidx_i] == FLT_MAX ||
+				Score > m_score_top_TP[domidx_i])
 				{
-				++nt;
-				if (m_score_top_TP[domidx_i] == FLT_MAX)
-					{
-					m_score_top_TP[domidx_i] = Score;
-					++nt_top;
-					asserta(nt_top <= ndom);
-					}
-				if (m_score_top_TP[domidx_j] == FLT_MAX)
-					{
-					m_score_top_TP[domidx_j] = Score;
-					++nt_top;
-					asserta(nt_top <= ndom);
-					}
+				m_score_top_TP[domidx_i] = Score;
+				m_domidx_top_TP[domidx_i] = domidx_j;
+				++nt_top;
+				asserta(nt_top <= ndom);
 				}
-			else
+			if (m_score_top_TP[domidx_j] == FLT_MAX ||
+				Score > m_score_top_TP[domidx_j])
 				{
-				++nf;
-				if (m_score_top_FP[domidx_i] == FLT_MAX)
-					{
-					m_score_top_FP[domidx_i] = Score;
-					++nf_top;
-					asserta(nf_top <= ndom);
-					}
-				if (m_score_top_FP[domidx_j] == FLT_MAX)
-					{
-					m_score_top_FP[domidx_j] = Score;
-					++nf_top;
-					asserta(nf_top <= ndom);
-					}
+				m_score_top_TP[domidx_j] = Score;
+				m_domidx_top_TP[domidx_j] = domidx_i;
+				++nt_top;
+				asserta(nt_top <= ndom);
+				}
+			}
+		else
+			{
+			++nf;
+			if (m_score_top_FP[domidx_i] == FLT_MAX ||
+				Score > m_score_top_FP[domidx_i])
+				{
+				m_score_top_FP[domidx_i] = Score;
+				m_domidx_top_FP[domidx_i] = domidx_j;
+				++nf_top;
+				asserta(nf_top <= ndom);
+				}
+			if (m_score_top_FP[domidx_j] == FLT_MAX ||
+				Score > m_score_top_FP[domidx_j])
+				{
+				m_score_top_FP[domidx_j] = Score;
+				m_domidx_top_FP[domidx_j] = domidx_i;
+				++nf_top;
+				asserta(nf_top <= ndom);
 				}
 			}
 		}
@@ -336,6 +409,10 @@ void FastBench::ReadHits(
 		const string &t = flds[tidx];
 		uint qidx = m_look->get_domidx(q, true);
 		uint tidx = m_look->get_domidx(t, true);
+		// d1vfia1=8287
+		// d2efka1=1329
+		dbrk(qidx==8287&&tidx==1329);//@@TODO
+		dbrk(tidx==8287&&qidx==1329);//@@TODO
 		if (qidx == UINT_MAX)
 			missing.insert(q);
 		if (tidx == UINT_MAX)
@@ -391,7 +468,10 @@ void FastBench::ReadHits(
 			{
 			Log(">%s\n", dom.c_str());
 			if (++n > 10)
+				{
 				Log("... %u more\n", nmiss - n);
+				break;
+				}
 			}
 		}
 	CloseStdioFile(f);
@@ -460,11 +540,22 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 
 void FastBench::ClearHitsAndResults()
 	{
-	//myfree(m_Scores);
-	//m_Scores = 0;
 	m_CVESum3 = FLT_MAX;
 	m_TopSum3 = FLT_MAX;
+	m_SEPQ0_1 = FLT_MAX;
+	m_SEPQ1 = FLT_MAX;
+	m_SEPQ10 = FLT_MAX;
+	m_top_SEPQ0_001 = FLT_MAX;
+	m_top_SEPQ0_01 = FLT_MAX;
+	m_top_SEPQ0_1 = FLT_MAX;
 	const uint ndom = m_look->get_ndom();
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		m_score_top_TP[domidx] = FLT_MAX;
+		m_score_top_FP[domidx] = FLT_MAX;
+		m_domidx_top_TP[domidx] = UINT_MAX;
+		m_domidx_top_FP[domidx] = UINT_MAX;
+		}
 	SubclassClearHitsAndResults();
 	}
 
@@ -557,6 +648,7 @@ void cmd_fast_bench_hits()
 	FB.ReadHits(hitsfn, qidx, tidx, scoreidx);
 	FB.SetScoreOrder();
 	FB.Bench();
+	FB.WriteTopHits(opt(output2));
 	}
 
 void cmd_fast_bench_bits()
