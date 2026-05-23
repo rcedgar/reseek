@@ -311,7 +311,7 @@ static void traceback_flat_local(
 	for (;;)
 		{
 		path_buffer[ncol++] = State;
-		byte t;
+		uint8_t t;
 		switch (State)
 			{
 		case 'M':
@@ -524,7 +524,7 @@ static float sw_flat_pssm_xdrop_fill(
 					feature_block_offsets, nfeat, posQ, posT,
 					i_abs, j);
 
-			byte TraceBits = 0;
+			uint8_t TraceBits = 0;
 			SavedM0 = M0;
 
 			// MATCH

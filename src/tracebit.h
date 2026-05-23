@@ -1,12 +1,9 @@
-#ifndef tracebit_h
-#define tracebit_h
+#pragma once
 
-const byte TRACEBITS_MM = 0x00;
-const byte TRACEBITS_DM = 0x01;
-const byte TRACEBITS_IM = 0x02;
-const byte TRACEBITS_MD = 0x04;
-const byte TRACEBITS_MI = 0x08;
-const byte TRACEBITS_SM = 0x10;
-const byte TRACEBITS_UNINIT = ~0x1f;
-
-#endif // tracebit_h
+const uint8_t TRACEBITS_MM = 0x00;
+const uint8_t TRACEBITS_DM = 0x01;
+const uint8_t TRACEBITS_IM = 0x02;
+const uint8_t TRACEBITS_MD = 0x04;
+const uint8_t TRACEBITS_MI = 0x08;
+const uint8_t TRACEBITS_SM = 0x10;
+const uint8_t TRACEBITS_UNINIT = ~0x1f;
