@@ -7,6 +7,7 @@ enum LOOK_TRUTH
 	LT_Undef,
 	LT_SAME_FAM,
 	LT_SAME_SF,
+	LT_DIFF_FAM_SAME_SF,
 	LT_DIFF_SF_SAME_FOLD,
 	LT_SAME_FOLD
 	};
@@ -48,6 +49,8 @@ public:
 				m_LT = LT_SAME_FAM;
 			else if (t == "sf")
 				m_LT = LT_SAME_SF;
+			else if (t == "dfss")
+				m_LT = LT_DIFF_FAM_SAME_SF;
 			else if (t == "fold")
 				m_LT = LT_SAME_FOLD;
 			else if (t == "dssf")
@@ -90,6 +93,8 @@ public:
 			return "fam";
 		else if (m_LT == LT_SAME_SF)
 			return "sf";
+		else if (m_LT == LT_DIFF_FAM_SAME_SF)
+			return "dfsf";
 		else if (m_LT == LT_SAME_FOLD)
 			return "fold";
 		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
@@ -106,6 +111,7 @@ public:
 	void to_tsv(const string &fn);
 	void fill();
 	void fill_fam();
+	void fill_dfss();
 	void fill_sf();
 	void fill_fold();
 	void fill_dssf();
@@ -204,6 +210,12 @@ public:
 			uint sfidx_j = m_domidx2sfidx[j];
 			return sfidx_i == sfidx_j && foldidx_i == foldidx_j;
 			}
+		else if (m_LT == LT_DIFF_FAM_SAME_SF)
+			{
+			uint famidx_i = m_domidx2famidx[i];
+			uint famidx_j = m_domidx2famidx[j];
+			return famidx_i == famidx_j;
+			}
 		else
 			return false;
 		}
@@ -223,8 +235,10 @@ public:
 			return same_fam_ij(i, j);
 		else if (m_LT == LT_SAME_FOLD)
 			return same_fold_ij(i, j);
+		else if (m_LT == LT_DIFF_FAM_SAME_SF)
+			return !same_fam_ij(i, j) && same_sf_ij(i, j);
 		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
-			return !same_sf_ij(i, j) && same_fold_ij(i, j);;
+			return !same_sf_ij(i, j) && same_fold_ij(i, j);
 		return false;
 		}
 

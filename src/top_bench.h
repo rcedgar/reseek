@@ -31,6 +31,14 @@ public:
 		}
 
 public:
+	bool better(float score1, float score2) const
+		{
+		if (m_scores_are_evalues)
+			return score1 < score2;
+		else
+			return score1 > score2;
+		}
+
 	void alloc();
 	void clear_hits_and_results();
 	double bench(const string &msg = "");
@@ -57,7 +65,17 @@ public:
 	bool is_tp(uint domIdx_i, uint domIdx_j) const
 		{
 		assert(m_look);
+		if (m_look->is_ignored_ij(domIdx_i, domIdx_j))
+			return false;
 		return m_look->is_tp_ij(domIdx_i, domIdx_j);
+		}
+
+	bool is_fp(uint domIdx_i, uint domIdx_j) const
+		{
+		assert(m_look);
+		if (m_look->is_ignored_ij(domIdx_i, domIdx_j))
+			return false;
+		return !m_look->is_tp_ij(domIdx_i, domIdx_j);
 		}
 
 	float get_missing_score() const

@@ -213,6 +213,52 @@ void lookup::fill_fam()
 	stats();
 	}
 
+void lookup::fill_dfss()
+	{
+	const uint ndom = uint(m_doms.size());
+	const uint nsf = uint(m_sfs.size());
+	m_sfidx2ndom.clear();
+	m_sfidx2ndom.resize(nsf);
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		uint sfidx = m_domidx2sfidx[domidx];
+		asserta(sfidx < nsf);
+		++m_sfidx2ndom[sfidx];
+		}
+
+	const uint nfold = uint(m_folds.size());
+	m_foldidx2ndom.clear();
+	m_foldidx2ndom.resize(nfold);
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		uint foldidx = m_domidx2foldidx[domidx];
+		asserta(foldidx < nfold);
+		++m_foldidx2ndom[foldidx];
+		}
+
+	m_NT = 0;
+	m_NF = 0;
+	m_NI = 0;
+	m_pair_count = 0;
+	for (uint i = 0; i < ndom; ++i)
+		{
+		for (uint j = i; j < ndom; ++j)
+			{
+			if (is_ignored_ij(i, j))
+				continue;
+			if (is_tp_ij(i, j))
+				{
+				if (i != j)
+					++m_NT;
+				}
+			else
+				++m_NF;
+			++m_pair_count;
+			}
+		}
+	stats();
+	}
+
 void lookup::fill_dssf()
 	{
 	const uint ndom = uint(m_doms.size());
@@ -319,6 +365,8 @@ void lookup::fill()
 		fill_fam();
 	else if (m_LT == LT_SAME_SF)
 		fill_sf();
+	else if (m_LT == LT_DIFF_FAM_SAME_SF)
+		fill_dfss();
 	else if (m_LT == LT_SAME_FOLD)
 		fill_fold();
 	else if (m_LT == LT_DIFF_SF_SAME_FOLD)

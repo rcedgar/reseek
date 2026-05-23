@@ -7,6 +7,11 @@ void trunc_label(const string &Label,
 
 void top_bench::read_lookup(const string &arg_fn)
 	{
+	if (!optset_truth)
+		{
+		optset_truth = true;
+		opt_truth = "dfss";
+		}
 	asserta(m_look == 0);
 	m_look = new lookup;
 	const string &fn =
@@ -159,24 +164,24 @@ void top_bench::read_hits(
 		if (ignore) continue;
 
 		float score = (float) StrToFloat(flds[scoreidx]);
-		if (m_scores_are_evalues)
-			score = -log10f(score + 1e-20f);
 
 		const float top_score_tpq = m_score_top_tp[domidxq];
 		const float top_score_fpq = m_score_top_fp[domidxq];
 		bool tp = is_tp(domidxq, domidxt);
+		bool fp = is_fp(domidxq, domidxt);
+		asserta(!(tp && fp));
 
 		if (tp)
 			{
-			if (top_score_tpq == FLT_MAX || score > top_score_tpq)
+			if (top_score_tpq == FLT_MAX || better(score, top_score_tpq))
 				{
 				m_score_top_tp[domidxq] = score;
 				m_domidx_top_tp[domidxq] = domidxt;
 				}
 			}
-		else
+		if (fp)
 			{
-			if (top_score_fpq == FLT_MAX || score > top_score_fpq)
+			if (top_score_fpq == FLT_MAX || better(score, top_score_fpq))
 				{
 				m_score_top_fp[domidxq] = score;
 				m_domidx_top_fp[domidxq] = domidxt;
@@ -188,7 +193,7 @@ void top_bench::read_hits(
 		const float top_score_fpt = m_score_top_fp[domidxt];
 		if (tp)
 			{
-			if (top_score_tpt == FLT_MAX || score > top_score_tpt)
+			if (top_score_tpt == FLT_MAX || better(score, top_score_tpt))
 				{
 				m_score_top_tp[domidxt] = score;
 				m_domidx_top_tp[domidxt] = domidxq;
@@ -196,7 +201,7 @@ void top_bench::read_hits(
 			}
 		else
 			{
-			if (top_score_fpt == FLT_MAX || score > top_score_fpt)
+			if (top_score_fpt == FLT_MAX || better(score, top_score_fpt))
 				{
 				m_score_top_fp[domidxt] = score;
 				m_domidx_top_fp[domidxt] = domidxq;
@@ -242,7 +247,10 @@ double top_bench::bench(const string &msg)
 		m_tps[2*domidx+1] = false;
 		}
 
-	QuickSortOrderDesc<float>(m_scores, 2*ndom, m_order);
+	if (m_scores_are_evalues)
+		QuickSortOrder<float>(m_scores, 2*ndom, m_order);
+	else
+		QuickSortOrderDesc<float>(m_scores, 2*ndom, m_order);
 
 	uint nt_top = 0;
 	uint nf_top = 0;
@@ -255,7 +263,7 @@ double top_bench::bench(const string &msg)
 		bool tp = m_tps[scoreidx];
 		if (score != last_score)
 			{
-			asserta(score < last_score);
+			asserta(better(last_score, score));
 			float top_EPQ = float(nf_top)/ndom;
 			float top_Sens = float(nt_top)/non_singleton_count;
 			if (m_top_SEPQ0_001 == FLT_MAX && top_EPQ >= 0.001) m_top_SEPQ0_001 = top_Sens;
