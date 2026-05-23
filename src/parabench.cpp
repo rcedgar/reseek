@@ -40,7 +40,7 @@ void FixMuByteSeq(vector<byte> &ByteSeq)
 
 void ParaBench::AppendHit_rev(uint i, uint j, float Score)
 	{
-	uint k = triangle_ij_to_k(i, j, m_SeqCount);
+	uint k = triangle_ij_to_k(i, j, m_ndom);
 	m_Scores_rev[k] = Score;
 	}
 
@@ -48,7 +48,7 @@ void ParaBench::SubclassAppendHit(uint i, uint j, float Score)
 	{
 	if (m_DoReverse)
 		{
-		uint k = triangle_ij_to_k(i, j, m_SeqCount);
+		uint k = triangle_ij_to_k(i, j, m_ndom);
 		m_Scores_fwd[k] = Score;
 		}
 	}
@@ -72,11 +72,11 @@ void ParaBench::SetSelfScores_rev(const string &AlignMethod)
 	InitThreads(AlignMethod, true);
 	if (m_SelfScores_rev != 0)
 		myfree(m_SelfScores_rev);
-	m_SelfScores_rev = myalloc(float, m_SeqCount);
+	m_SelfScores_rev = myalloc(float, m_ndom);
 	Paralign PA;
 	PA.m_DoReverse = true;
 	Progress("Self scores... ");
-	for (uint i = 0; i < m_SeqCount; ++i)
+	for (uint i = 0; i < m_ndom; ++i)
 		m_SelfScores_rev[i] = GetSelfScore_rev(PA, i);
 	Progress("done\n");
 	}
@@ -150,18 +150,18 @@ void ParaBench::InitThreads(const string &AlignMethod, bool DoReverse)
 		m_SubstMxName.c_str(),
 		m_ByteSeqMethod.c_str());
 
-	asserta(m_Chains.empty() || m_SeqCount == SIZE(m_Chains));
-	asserta(m_SeqCount == SIZE(m_ByteSeqs));
-	uint PairCount2 = triangle_get_K(m_SeqCount);
-	asserta(m_PairCount == PairCount2);
+	asserta(m_Chains.empty() || m_ndom == SIZE(m_Chains));
+	asserta(m_ndom == SIZE(m_ByteSeqs));
+	uint PairCount2 = triangle_get_K(m_ndom);
+	asserta(m_npair == PairCount2);
 	if (m_Scores_fwd != 0)
 		myfree(m_Scores_fwd);
 	if (m_Scores_rev != 0)
 		myfree(m_Scores_rev);
 	if (m_DoReverse)
 		{
-		m_Scores_fwd = myalloc(float, m_PairCount);
-		m_Scores_rev = myalloc(float, m_PairCount);
+		m_Scores_fwd = myalloc(float, m_npair);
+		m_Scores_rev = myalloc(float, m_npair);
 		}
 	const uint ThreadCount = GetRequestedThreadCount();
 	m_PAs.clear();
@@ -179,31 +179,31 @@ void ParaBench::Search(const string &AlignMethod, bool DoReverse)
 	{
 	InitThreads(AlignMethod, DoReverse);
 	atomic<uint> Counter = 0;
-	ProgressStep(0, m_PairCount, "Aligning");
+	ProgressStep(0, m_npair, "Aligning");
 
 	const uint ThreadCount = GetRequestedThreadCount();
 #pragma omp parallel num_threads(ThreadCount)
 	{
 	uint ThreadIdx = GetThreadIndex();
 #pragma omp for
-	for (int PairIdx = 0; PairIdx < int(m_PairCount); ++PairIdx)
+	for (int PairIdx = 0; PairIdx < int(m_npair); ++PairIdx)
 		{
 		++Counter;
 		if (Counter.load()%1000 == 0)
 			{
 #pragma omp critical
 				{
-				ProgressStep(Counter.load(), m_PairCount, "Aligning");
+				ProgressStep(Counter.load(), m_npair, "Aligning");
 				}
 			}
 
 		uint i, j;
-		triangle_k_to_ij(PairIdx, m_SeqCount, i, j);
+		triangle_k_to_ij(PairIdx, m_ndom, i, j);
 		Align(ThreadIdx, i, j);
 		}
 	}
 
-	ProgressStep(m_PairCount-1, m_PairCount, "Aligning");
+	ProgressStep(m_npair-1, m_npair, "Aligning");
 	ProgressLog("%u saturated, %u 8-bit, %u 16-bit, %u SW\n",
 		Paralign::m_SaturatedCount.load(),
 		Paralign::m_Count8.load(),
@@ -248,8 +248,8 @@ void ParaBench::GetByteSeqs(const string &FN, const string &Method)
 	else
 		Die("GetByteSeqs(%s)", Method.c_str());
 
-	m_SeqCount = SIZE(m_ByteSeqs);
-	m_PairCount = m_SeqCount*(m_SeqCount-1)/2 + m_SeqCount;
+	m_ndom = SIZE(m_ByteSeqs);
+	m_npair = m_ndom*(m_ndom-1)/2 + m_ndom;
 	}
 
 // Construct Mu from components to validate that it
@@ -381,11 +381,11 @@ void ParaBench::BenchRev(const string &Msg,
 	asserta(m_Scores_rev != 0);
 	asserta(m_Scores != 0);
 
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	for (uint HitIdx = 0; HitIdx < K; ++HitIdx)
 		{
 		uint LabelIdx_i, LabelIdx_j;
-		triangle_k_to_ij(HitIdx, m_SeqCount, LabelIdx_i, LabelIdx_j);
+		triangle_k_to_ij(HitIdx, m_ndom, LabelIdx_i, LabelIdx_j);
 		if (LabelIdx_i == LabelIdx_j)
 			continue;
 		float SelfScore_rev_i = m_SelfScores_rev[LabelIdx_i];
@@ -412,18 +412,18 @@ void ParaBench::WriteRevTsv(const string &FN) const
 
 	FILE *f = CreateStdioFile(FN);
 
-	fprintf(f, "%u\n", m_SeqCount);
-	for (uint i = 0; i < m_SeqCount; ++i)
+	fprintf(f, "%u\n", m_ndom);
+	for (uint i = 0; i < m_ndom; ++i)
 		fprintf(f, "%u\t%s\t%.3g\n",
 			i, m_Labels[i].c_str(), m_SelfScores_rev[i]);
 
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	for (uint k = 0; k < K; ++k)
 		{
 		ProgressStep(k, K, "Writing %s", FN.c_str());
 		uint HitIdx = m_ScoreOrder[k];
 		uint i, j;
-		triangle_k_to_ij(HitIdx, m_SeqCount, i, j);
+		triangle_k_to_ij(HitIdx, m_ndom, i, j);
 		if (i == j)
 			continue;
 
@@ -447,8 +447,7 @@ void ParaBench::ClearHitsAndResults()
 	m_Scores_fwd = 0;
 	m_Scores_rev = 0;
 	m_SelfScores_rev = 0;
-	m_CVESum3 = FLT_MAX;
-	m_TopSum3 = FLT_MAX;
+	m_Sum3 = FLT_MAX;
 	for (uint i = 0; i < SIZE(m_PAs); ++i)
 		delete m_PAs[i];
 	m_PAs.clear();
@@ -470,8 +469,8 @@ void ParaBench::MakeSubset(ParaBench &Subset, uint SubsetPct)
 		ChainIdxs.push_back(i);
 	Shuffle(ChainIdxs);
 
-	Subset.m_SeqCount = SubsetChainCount;
-	Subset.m_PairCount = SubsetChainCount*(SubsetChainCount-1)/2 + SubsetChainCount;
+	Subset.m_ndom = SubsetChainCount;
+	Subset.m_npair = SubsetChainCount*(SubsetChainCount-1)/2 + SubsetChainCount;
 	Subset.m_AlignMethod = m_AlignMethod;
 	Subset.m_SubstMxName = m_SubstMxName;
 	Subset.m_ByteSeqMethod = m_ByteSeqMethod;
@@ -530,7 +529,7 @@ void cmd_para_scop40()
 		PS.m_ByteSeqMethod.c_str(),
 		Paralign::m_Open,
 		Paralign::m_Ext,
-		PS.m_SeqCount,
+		PS.m_ndom,
 		PS.m_look->m_NT);
 	PS.Bench(Msg);
 	}

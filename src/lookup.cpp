@@ -128,7 +128,6 @@ void lookup::fill_sf()
 		{
 		uint sfndom = m_sfidx2ndom[sfidx];
 		asserta(sfndom > 0);
-		if (sfndom == 1) ++m_singleton_count;
 		m_NT += (sfndom*(sfndom - 1))/2;
 		}
 	m_NT *= 2;
@@ -180,7 +179,6 @@ void lookup::fill_fam()
 		{
 		uint famndom = m_famidx2ndom[famidx];
 		asserta(famndom > 0);
-		if (famndom == 1) ++m_singleton_count;
 		m_NT += (famndom*(famndom - 1))/2;
 		}
 	m_NT *= 2;
@@ -213,7 +211,7 @@ void lookup::fill_fam()
 	stats();
 	}
 
-void lookup::fill_dfss()
+void lookup::fill_sfx()
 	{
 	const uint ndom = uint(m_doms.size());
 	const uint nsf = uint(m_sfs.size());
@@ -259,7 +257,93 @@ void lookup::fill_dfss()
 	stats();
 	}
 
-void lookup::fill_dssf()
+uint lookup::get_singleton_count() const
+	{
+	uint n = 0;
+	switch (m_LT)
+		{
+	case LT_SAME_FAM:
+		{
+		vector<uint> famidx2ndom(m_fams.size());
+		for (size_t domidx = 0; domidx < m_domidx2famidx.size(); ++domidx)
+			{
+			uint famidx = m_domidx2famidx[domidx];
+			famidx2ndom[famidx] += 1;
+			}
+		for (size_t famidx = 0; famidx < m_fams.size(); ++famidx)
+			if (famidx2ndom[famidx] == 1) ++n;
+		return n;
+		}
+
+	case LT_SAME_SF:
+		{
+		vector<uint> sfidx2ndom(m_sfs.size());
+		for (size_t domidx = 0; domidx < m_domidx2sfidx.size(); ++domidx)
+			{
+			uint sfidx = m_domidx2sfidx[domidx];
+			sfidx2ndom[sfidx] += 1;
+			}
+		for (size_t sfidx = 0; sfidx < m_sfs.size(); ++sfidx)
+			if (sfidx2ndom[sfidx] == 1) ++n;
+		return n;
+		}
+
+	case LT_SAME_FOLD:
+		{
+		vector<uint> foldidx2ndom(m_folds.size());
+		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
+			{
+			uint foldidx = m_domidx2foldidx[domidx];
+			foldidx2ndom[foldidx] += 1;
+			}
+		for (size_t foldidx = 0; foldidx < m_folds.size(); ++foldidx)
+			if (foldidx2ndom[foldidx] == 1) ++n;
+		return n;
+		}
+
+	case LT_DIFF_FAM_SAME_SF:
+		{
+		vector<set<uint> > sfidx2famset(m_sfs.size());
+		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
+			{
+			uint sfidx = m_domidx2sfidx[domidx];
+			uint famidx = m_domidx2famidx[domidx];
+			sfidx2famset[sfidx].insert(famidx);
+			}
+		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
+			{
+			uint sfidx = m_domidx2sfidx[domidx];
+			if (sfidx2famset[sfidx].size() == 1) ++n;
+			}
+		return n;
+		}
+
+	case LT_DIFF_SF_SAME_FOLD:
+		{
+		vector<set<uint> > foldidx2sfset(m_folds.size());
+		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
+			{
+			uint foldidx = m_domidx2foldidx[domidx];
+			uint sfidx = m_domidx2sfidx[domidx];
+			foldidx2sfset[foldidx].insert(sfidx);
+			}
+		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
+			{
+			uint foldidx = m_domidx2foldidx[domidx];
+			if (foldidx2sfset[foldidx].size() == 1) ++n;
+			}
+		return n;
+		}
+
+	default:
+		break;
+		}
+
+	asserta(false);
+	return 0;
+	}
+
+void lookup::fill_foldx()
 	{
 	const uint ndom = uint(m_doms.size());
 	const uint nsf = uint(m_sfs.size());
@@ -325,7 +409,6 @@ void lookup::fill_fold()
 		{
 		uint foldndom = m_foldidx2ndom[foldidx];
 		asserta(foldndom > 0);
-		if (foldndom == 1) ++m_singleton_count;
 		m_NT += (foldndom*(foldndom - 1))/2;
 		}
 	m_NT *= 2;
@@ -366,11 +449,11 @@ void lookup::fill()
 	else if (m_LT == LT_SAME_SF)
 		fill_sf();
 	else if (m_LT == LT_DIFF_FAM_SAME_SF)
-		fill_dfss();
+		fill_sfx();
 	else if (m_LT == LT_SAME_FOLD)
 		fill_fold();
 	else if (m_LT == LT_DIFF_SF_SAME_FOLD)
-		fill_dssf();
+		fill_foldx();
 	else
 		Die("fill");
 	}

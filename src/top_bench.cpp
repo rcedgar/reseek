@@ -10,10 +10,9 @@ void top_bench::read_lookup(const string &arg_fn)
 	if (!optset_truth)
 		{
 		optset_truth = true;
-		opt_truth = "dfss";
+		opt_truth = mystrsave("sfx");
 		}
 	asserta(m_look == 0);
-	m_look = new lookup;
 	const string &fn =
 		(arg_fn == "" ? "../data/scop40x.lookup" : arg_fn);
 	m_scores_are_evalues = opt(scores_are_evalues);
@@ -32,6 +31,8 @@ void top_bench::alloc()
 	m_domidx_top_fp = myalloc(uint, ndom);
 	m_scores = myalloc(float, 2*ndom);
 	m_tps = myalloc(bool, 2*ndom);
+	m_qs = myalloc(uint, 2*ndom);
+	m_ts = myalloc(uint, 2*ndom);
 	m_order = myalloc(uint, 2*ndom);
 	}
 
@@ -48,13 +49,14 @@ void top_bench::clear_hits_and_results()
 		m_domidx_top_fp[domidx] = UINT_MAX;
 		}
 	m_topsum3 = FLT_MAX;
-	m_top_SEPQ0_001 = FLT_MAX;
-	m_top_SEPQ0_01 = FLT_MAX;
-	m_top_SEPQ0_1 = FLT_MAX;
+	m_S0_001 = FLT_MAX;
+	m_S0_01 = FLT_MAX;
+	m_S0_1 = FLT_MAX;
 	}
 
 void top_bench::read_tophits(const string &fn)
 	{
+	Die("TODO");
 	FILE *f = OpenStdioFile(fn);
 	string line;
 	vector<string> flds;
@@ -107,12 +109,7 @@ void top_bench::read_hits(
 	uint scoreidx,
 	bool triangle)
 	{
-	asserta(qidx > 0);
-	asserta(tidx > 0);
-	asserta(scoreidx > 0);
-	--qidx;
-	--tidx;
-	--scoreidx;
+	GetStemName(FN, m_name);
 	const uint maxidx = max(max(qidx, tidx), scoreidx);
 
 	alloc();
@@ -228,154 +225,114 @@ void top_bench::read_hits(
 	CloseStdioFile(f);
 	}
 
-double top_bench::bench(const string &msg)
+double top_bench::bench(const string &fn, const string &msg)
 	{
+	FILE *f = 0;
+	if (fn != "")
+		f = CreateStdioFile(fn);
+
 	asserta(m_score_top_tp != 0);
 	asserta(m_score_top_fp != 0);
 	const uint ndom = m_look->get_ndom();
-	const uint non_singleton_count = ndom - m_look->m_singleton_count;
+	const uint nsingle = m_look->get_singleton_count();
+	const uint non_singleton_count = ndom - nsingle;
+	
+	m_S0_001 = FLT_MAX;
+	m_S0_01 = FLT_MAX;
+	m_S0_1 = FLT_MAX;
 
-	m_top_SEPQ0_001 = FLT_MAX;
-	m_top_SEPQ0_01 = FLT_MAX;
-
+	uint n = 0;
 	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
-		m_scores[2*domidx] = m_score_top_tp[domidx];
-		m_tps[2*domidx] = true;
+		float score_tp = m_score_top_tp[domidx];
+		float score_fp = m_score_top_fp[domidx];
+		if (score_tp != FLT_MAX)
+			{
+			m_scores[n] = score_tp;
+			m_tps[n] = true;
+			m_qs[n] = domidx;
+			m_ts[n] = m_domidx_top_tp[domidx];
+			++n;
+			}
 
-		m_scores[2*domidx+1] = m_score_top_fp[domidx];
-		m_tps[2*domidx+1] = false;
+		if (score_fp != FLT_MAX)
+			{
+			m_scores[n] = score_fp;
+			m_tps[n] = false;
+			m_qs[n] = domidx;
+			m_ts[n] = m_domidx_top_fp[domidx];
+			++n;
+			}
 		}
+	const uint N = n;
 
 	if (m_scores_are_evalues)
-		QuickSortOrder<float>(m_scores, 2*ndom, m_order);
+		QuickSortOrder<float>(m_scores, N, m_order);
 	else
-		QuickSortOrderDesc<float>(m_scores, 2*ndom, m_order);
+		QuickSortOrderDesc<float>(m_scores, N, m_order);
 
 	uint nt_top = 0;
 	uint nf_top = 0;
+	float top_EPQ = 0;
+	float top_Sens = 0;
 	float last_score = m_scores[m_order[0]];
-	for (uint k = 0; k < 2*ndom; ++k)
+	for (uint orderidx = 0; orderidx < N; ++orderidx)
 		{
-		uint scoreidx = m_order[k];
+		uint scoreidx = m_order[orderidx];
 		float score = m_scores[scoreidx];
-		if (score == FLT_MAX) continue;
+		asserta(score != FLT_MAX);
 		bool tp = m_tps[scoreidx];
 		if (score != last_score)
 			{
 			asserta(better(last_score, score));
-			float top_EPQ = float(nf_top)/ndom;
-			float top_Sens = float(nt_top)/non_singleton_count;
-			if (m_top_SEPQ0_001 == FLT_MAX && top_EPQ >= 0.001) m_top_SEPQ0_001 = top_Sens;
-			if (m_top_SEPQ0_01 == FLT_MAX   && top_EPQ >= 0.01) m_top_SEPQ0_01   = top_Sens;
-			if (m_top_SEPQ0_1 == FLT_MAX    && top_EPQ >= 0.1)  m_top_SEPQ0_1   = top_Sens;
+			if (top_EPQ <= 0.001) m_S0_001 = top_Sens;
+			if (top_EPQ <= 0.01) m_S0_01   = top_Sens;
+			if (top_EPQ <= 0.1)  m_S0_1    = top_Sens;
 
 			last_score = score;
 			}
 		if (tp)
-			{
 			++nt_top;
-			asserta(nt_top <= ndom);
-			}
 		else
-			{
 			++nf_top;
-			asserta(nf_top <= ndom);
-			}
-		}
-	float top_EPQ = 2*float(nf_top)/ndom;
-	float top_Sens = 2*float(nt_top)/non_singleton_count;
 
-	if (m_top_SEPQ0_001 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.001)	
-			m_top_SEPQ0_001 = top_Sens;
-		else
-			m_top_SEPQ0_001 = 0;
-		}
+		top_EPQ = float(nf_top)/ndom;
+		top_Sens = float(nt_top)/non_singleton_count;
 
-	if (m_top_SEPQ0_01 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.01)
-			m_top_SEPQ0_01 = top_Sens;
-		else
-			m_top_SEPQ0_01 = 0;
+		if (f == 0) continue;
+		uint domidxq = m_qs[scoreidx];
+		uint domidxt = m_ts[scoreidx];
+		uint famidxq = m_look->m_domidx2famidx[domidxq];
+		uint famidxt = m_look->m_domidx2famidx[domidxt];
+		const string &q = m_look->get_dom(domidxq);
+		const string &t = m_look->get_dom(domidxt);
+		fprintf(f, "%s/%s", q.c_str(), m_look->m_fams[famidxq].c_str());
+		fprintf(f, "\t%s/%s", t.c_str(), m_look->m_fams[famidxt].c_str());
+		fprintf(f, "\t%.3g", m_scores[scoreidx]);
+		fprintf(f, "\t%c", m_tps[scoreidx] ? 'T' : 'F');
+		fprintf(f, "\t%.3g", top_Sens);
+		fprintf(f, "\t%.3g", top_EPQ);
+		fprintf(f, "\n");
 		}
 
-	if (m_top_SEPQ0_1 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.1)	
-			m_top_SEPQ0_1 = top_Sens;
-		else
-			m_top_SEPQ0_1 = 0;
-		}
-
-	m_topsum3 = m_top_SEPQ0_001*2 + m_top_SEPQ0_01*3/2 + m_top_SEPQ0_1;
+	m_topsum3 = m_S0_001*2 + m_S0_01*3/2 + m_S0_1;
 
 	if (msg != "noshow")
 		{
 		if (msg != "")
 			ProgressLog("%s ", msg.c_str());
-		ProgressLog("TOPQ0.001=%.3f", m_top_SEPQ0_001);
-		ProgressLog(" TOPQ0.01=%.3f", m_top_SEPQ0_01);
-		ProgressLog(" TOPQ0.1=%.3f", m_top_SEPQ0_1);
+		ProgressLog("S_0.001=%.3f", m_S0_001);
+		ProgressLog(" S_0.01=%.3f", m_S0_01);
+		ProgressLog(" S_0.1=%.3f", m_S0_1);
 		ProgressLog(" Top3=%.3f", m_topsum3);
 		ProgressLog(" %s", m_look->get_truthstr());
+		if (m_name != "")
+			ProgressLog(" %s", m_name.c_str());
 		ProgressLog("\n");
 		}
 
-	return m_topsum3;
-	}
-
-void top_bench::write_top_hits(const string &fn) const
-	{
-	if (fn == "")
-		return;
-	FILE *f = CreateStdioFile(fn);
-	const uint ndom = m_look->get_ndom();
-	for (uint domidx = 0; domidx < ndom; ++domidx)
-		{
-		const string &domq = m_look->get_dom(domidx);
-		float score_top_tp = m_score_top_tp[domidx];
-		float score_top_fp = m_score_top_fp[domidx];
-		uint domidx_top_tp = m_domidx_top_tp[domidx];
-		uint domidx_top_fp = m_domidx_top_fp[domidx];
-
-		uint famidxq = m_look->m_domidx2famidx[domidx];
-
-		fprintf(f, "%s/%s",
-			domq.c_str(), m_look->m_fams[famidxq].c_str());
-
-		if (domidx_top_tp == UINT_MAX)
-			{
-			asserta(score_top_tp == FLT_MAX);
-			fprintf(f, "\t.\t.");
-			}
-		else
-			{
-			const string &domt = m_look->get_dom(domidx_top_tp);
-			uint famidxt = m_look->m_domidx2famidx[domidx_top_tp];
-			fprintf(f, "\t%s/%s\t%.3g",
-				domt.c_str(), m_look->m_fams[famidxt].c_str(),
-				score_top_tp);
-			}
-
-		if (domidx_top_fp == UINT_MAX)
-			{
-			asserta(score_top_fp == FLT_MAX);
-			fprintf(f, "\t.\t.");
-			}
-		else
-			{
-			const string &domt = m_look->get_dom(domidx_top_fp);
-			uint famidxt = m_look->m_domidx2famidx[domidx_top_fp];
-			fprintf(f, "\t%s/%s\t%.3g",
-				domt.c_str(), m_look->m_fams[famidxt].c_str(),
-				score_top_fp);
-			}
-		fprintf(f, "\n");
-		}
 	CloseStdioFile(f);
+	return m_topsum3;
 	}
 
 void cmd_top_bench_tophits()
@@ -388,8 +345,7 @@ void cmd_top_bench_tophits()
 	TB.read_lookup(lookupfn);
 	TB.alloc();
 	TB.read_tophits(hitsfn);
-	TB.bench();
-	TB.write_top_hits(opt(output));
+	TB.bench(opt(output));
 	}
 
 void cmd_top_bench_hits()
@@ -400,16 +356,27 @@ void cmd_top_bench_hits()
 
 	top_bench TB;
 	TB.read_lookup(lookupfn);
-	uint qidx = 1;
-	uint tidx = 2;
-	uint scoreidx = 3;
-	if (optset_qfield) qidx = opt(qfield);
-	if (optset_tfield) tidx = opt(tfield);
-	if (optset_scorefield) scoreidx = opt(scorefield);
-	TB.m_scores_are_evalues = opt(scores_are_evalues);
+	uint qidx = UINT_MAX;
+	uint tidx = UINT_MAX;
+	uint scoreidx = UINT_MAX;
+	if (optset_qfield)
+		{
+		asserta(optset_tfield);
+		asserta(optset_scorefield);
+		qidx = opt(qfield) - 1;
+		tidx = opt(tfield) - 1;
+		scoreidx = opt(scorefield) - 1;
+		}
+	else
+		guess_fields(
+			hitsfn, qidx, tidx, scoreidx, TB.m_scores_are_evalues);
+
+	ProgressLog("hits %u,%u,%u %s\n",
+		qidx+1, tidx+1, scoreidx+1,
+		TB.m_scores_are_evalues ? "E-values" : "scores");
+
 	TB.read_hits(hitsfn, qidx, tidx, scoreidx, opt(triangle));
-	TB.bench();
-	TB.write_top_hits(opt(output));
+	TB.bench(opt(output));
 	}
 
 void cmd_top_bench()

@@ -5,17 +5,20 @@
 class top_bench
 	{
 public:
+	string m_name;
 	bool m_scores_are_evalues = false;
 	float m_topsum3 = FLT_MAX;
-	float m_top_SEPQ0_001 = FLT_MAX;
-	float m_top_SEPQ0_01 = FLT_MAX;
-	float m_top_SEPQ0_1 = FLT_MAX;
+	float m_S0_001 = FLT_MAX;
+	float m_S0_01 = FLT_MAX;
+	float m_S0_1 = FLT_MAX;
 	lookup *m_look = 0;
 	float *m_score_top_tp = 0;
 	float *m_score_top_fp = 0;
 	uint *m_domidx_top_tp = 0;
 	uint *m_domidx_top_fp = 0;
 	float *m_scores = 0;
+	uint *m_qs = 0;
+	uint *m_ts = 0;
 	bool *m_tps = 0;
 	uint *m_order = 0;
 
@@ -28,6 +31,14 @@ public:
 		{
 		myfree(m_score_top_tp);
 		myfree(m_score_top_fp);
+		myfree(m_domidx_top_tp);
+		myfree(m_domidx_top_fp);
+		myfree(m_scores);
+		myfree(m_qs);
+		myfree(m_ts);
+		myfree(m_tps);
+		myfree(m_order);
+		if (m_look) delete m_look;
 		}
 
 public:
@@ -41,7 +52,7 @@ public:
 
 	void alloc();
 	void clear_hits_and_results();
-	double bench(const string &msg = "");
+	double bench(const string &fn, const string &msg = "");
 
 	void read_lookup(const string &fn);
 
@@ -53,8 +64,6 @@ public:
 		bool triangle);
 
 	void read_tophits(const string &fn);
-
-	void write_top_hits(const string &fn) const;
 
 	bool is_ignored(uint domIdx_i, uint domIdx_j) const
 		{
@@ -86,3 +95,8 @@ public:
 			return -9999;
 		}
 	};
+
+void guess_fields(
+		const string &hitsfn,
+		uint &qfi, uint &tfi, uint &sfi,
+		bool &scores_are_evalues);

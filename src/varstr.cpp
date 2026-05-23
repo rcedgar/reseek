@@ -70,7 +70,7 @@ void parse_varstr(
 	Values.clear();
 
 	string VarStr;
-	if (arg_VarStr == "")
+	if (arg_VarStr == "" || arg_VarStr == "=sf")
 		VarStr = default_varstr;
 	else if (arg_VarStr == "=fastsf")
 		VarStr = fast_varstr_sf;

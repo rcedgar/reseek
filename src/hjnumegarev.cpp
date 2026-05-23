@@ -62,7 +62,7 @@ static double EvalSum3(const vector<string> &xv)
 		s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
 		}
 	asserta(!opt(top3));
-	return s_PS->m_CVESum3;
+	return s_PS->m_Sum3;
 	}
 
 static double EvalSum3_VarStr(

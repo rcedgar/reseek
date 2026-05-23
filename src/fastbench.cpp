@@ -9,61 +9,10 @@
 
 #include "parallel_sort.h"
 
-void FastBench::WriteTopHits(const string &fn) const
-	{
-	if (fn == "")
-		return;
-	FILE *f = CreateStdioFile(fn);
-	const uint ndom = m_look->get_ndom();
-	for (uint domidx = 0; domidx < ndom; ++domidx)
-		{
-		const string &domq = m_look->get_dom(domidx);
-		float score_top_tp = m_score_top_TP[domidx];
-		float score_top_fp = m_score_top_FP[domidx];
-		uint domidx_top_tp = m_domidx_top_TP[domidx];
-		uint domidx_top_fp = m_domidx_top_FP[domidx];
-
-		uint famidxq = m_look->m_domidx2famidx[domidx];
-
-		fprintf(f, "%s/%s",
-			domq.c_str(), m_look->m_fams[famidxq].c_str());
-
-		if (domidx_top_tp == UINT_MAX)
-			{
-			asserta(score_top_tp == FLT_MAX);
-			fprintf(f, "\t.\t.");
-			}
-		else
-			{
-			const string &domt = m_look->get_dom(domidx_top_tp);
-			uint famidxt = m_look->m_domidx2famidx[domidx_top_tp];
-			fprintf(f, "\t%s/%s\t%.3g",
-				domt.c_str(), m_look->m_fams[famidxt].c_str(),
-				score_top_tp);
-			}
-
-		if (domidx_top_fp == UINT_MAX)
-			{
-			asserta(score_top_fp == FLT_MAX);
-			fprintf(f, "\t.\t.");
-			}
-		else
-			{
-			const string &domt = m_look->get_dom(domidx_top_fp);
-			uint famidxt = m_look->m_domidx2famidx[domidx_top_fp];
-			fprintf(f, "\t%s/%s\t%.3g",
-				domt.c_str(), m_look->m_fams[famidxt].c_str(),
-				score_top_fp);
-			}
-		fprintf(f, "\n");
-		}
-	CloseStdioFile(f);
-	}
-
 void FastBench::SetScoreOrder_Parallel()
 {
 	asserta(m_Scores);
-	const uint K = triangle_get_K(m_SeqCount);
+	const uint K = triangle_get_K(m_ndom);
 
 	if (m_ScoreOrderCap < K)
 		{
@@ -93,24 +42,15 @@ void FastBench::Alloc()
 	const uint ndom = m_look->get_ndom();
 	const uint npair = m_look->get_pair_count_upper_triangle_with_diagonal();
 
-	if (m_score_top_FP == 0)
-		{
-		asserta(m_score_top_TP == 0);
-		m_score_top_TP = myalloc(float, ndom);
-		m_score_top_FP = myalloc(float, ndom);
-		m_domidx_top_TP = myalloc(uint, ndom);
-		m_domidx_top_FP = myalloc(uint, ndom);
-		}
-
 #if PARALLEL_SORT
 	if (m_Scores == 0)
 		{
 		m_Scores = myalloc(float, npair);
 		for (uint i = 0; i < npair; ++i) m_Scores[i] = FLT_MAX;
-		m_PairCount = npair;
+		m_npair = npair;
 		}
 	else
-		asserta(m_PairCount == npair);
+		asserta(m_npair == npair);
 #else
 	m_PairCount = npair;
 	myfree(m_Scores);
@@ -121,7 +61,7 @@ void FastBench::Alloc()
 
 void FastBench::AppendHit(uint i, uint j, float Score)
 	{
-	uint k = triangle_ij_to_k(i, j, m_SeqCount);
+	uint k = triangle_ij_to_k(i, j, m_ndom);
 	m_Scores[k] = Score;
 	SubclassAppendHit(i, j, Score);
 	}
@@ -138,7 +78,7 @@ void FastBench::SetScoreOrder()
 void FastBench::SetScoreOrder_Serial()
 	{
 	asserta(m_Scores);
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	if (m_ScoreOrder != 0)
 		myfree(m_ScoreOrder);
 	m_ScoreOrder = myalloc(uint, K);
@@ -170,31 +110,18 @@ double FastBench::Bench(const string &Msg)
 	uint nt_top = 0;
 	uint nf_top = 0;
 
-	m_CVESum3 = FLT_MAX;
-	m_TopSum3 = FLT_MAX;
+	m_Sum3 = FLT_MAX;
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
-	m_top_SEPQ0_001 = FLT_MAX;
-	m_top_SEPQ0_01 = FLT_MAX;
-	m_top_SEPQ0_1 = FLT_MAX;
-	for (uint domidx = 0; domidx < ndom; ++domidx)
-		{
-		m_score_top_TP[domidx] = FLT_MAX;
-		m_score_top_FP[domidx] = FLT_MAX;
-		m_domidx_top_TP[domidx] = UINT_MAX;
-		m_domidx_top_FP[domidx] = UINT_MAX;
-		}
 
 	float LastScore = m_scores_are_evalues ? -9e9f : FLT_MAX;
-	const uint non_singleton_count = ndom - m_look->m_singleton_count;
+	const uint non_singleton_count =
+		ndom - m_look->get_singleton_count();
 
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
-
-	m_top_SEPQ0_001 = FLT_MAX;
-	m_top_SEPQ0_01 = FLT_MAX;
 
 	bool triangle = opt(triangle);
 	for (uint k = 0; k < K; ++k)
@@ -214,9 +141,9 @@ double FastBench::Bench(const string &Msg)
 				asserta(Score < LastScore);
 			float EPQ = 2*float(nf)/ndom;
 			float Sens = 2*float(nt)/m_look->m_NT;
-			if (m_SEPQ0_1 == FLT_MAX && EPQ >= 0.1) m_SEPQ0_1 = Sens;
-			if (m_SEPQ1 == FLT_MAX   && EPQ >= 1)   m_SEPQ1   = Sens;
-			if (m_SEPQ10 == FLT_MAX  && EPQ >= 10)  m_SEPQ10  = Sens;
+			if (EPQ <= 0.1) m_SEPQ0_1 = Sens;
+			if (EPQ <= 1)   m_SEPQ1   = Sens;
+			if (EPQ <= 10)  m_SEPQ10  = Sens;
 
 			LastScore = Score;
 			}
@@ -224,73 +151,14 @@ double FastBench::Bench(const string &Msg)
 			continue;
 
 		if (IsTP(domidx_i, domidx_j))
-			{
 			++nt;
-			if (m_score_top_TP[domidx_i] == FLT_MAX ||
-				Score > m_score_top_TP[domidx_i])
-				{
-				m_score_top_TP[domidx_i] = Score;
-				m_domidx_top_TP[domidx_i] = domidx_j;
-				}
-			if (triangle)
-				{
-				if (m_score_top_TP[domidx_j] == FLT_MAX ||
-					Score > m_score_top_TP[domidx_j])
-					{
-					m_score_top_TP[domidx_j] = Score;
-					m_domidx_top_TP[domidx_j] = domidx_i;
-					}
-				}
-			}
 		else
-			{
 			++nf;
-			if (m_score_top_FP[domidx_i] == FLT_MAX ||
-				Score > m_score_top_FP[domidx_i])
-				{
-				m_score_top_FP[domidx_i] = Score;
-				m_domidx_top_FP[domidx_i] = domidx_j;
-				}
-			if (triangle)
-				{
-				if (m_score_top_FP[domidx_j] == FLT_MAX ||
-					Score > m_score_top_FP[domidx_j])
-					{
-					m_score_top_FP[domidx_j] = Score;
-					m_domidx_top_FP[domidx_j] = domidx_i;
-					}
-				}
-			}
 		}
 	float EPQ = 2*float(nf)/ndom;
 	float Sens = 2*float(nt)/m_look->m_NT;
 
-	if (m_SEPQ0_1 == FLT_MAX)
-		{
-		if (EPQ <= 0.1)	
-			m_SEPQ0_1 = Sens;
-		else
-			m_SEPQ0_1 = 0;
-		}
-
-	if (m_SEPQ1 == FLT_MAX)
-		{
-		if (EPQ <= 1)	
-			m_SEPQ1 = Sens;
-		else
-			m_SEPQ1 = 0;
-		}
-
-	if (m_SEPQ10 == FLT_MAX)
-		{
-		if (EPQ <= 0.1)	
-			m_SEPQ10 = Sens;
-		else
-			m_SEPQ10 = 0;
-		}
-
-	m_CVESum3 = m_SEPQ0_1*2 + m_SEPQ1*3/2 + m_SEPQ10;
-	//m_TopSum3 = m_top_SEPQ0_001*2 + m_top_SEPQ0_01*3/2 + m_top_SEPQ0_1;
+	m_Sum3 = m_SEPQ0_1*2 + m_SEPQ1*3/2 + m_SEPQ10;
 
 	if (Msg != "noshow")
 		{
@@ -299,23 +167,15 @@ double FastBench::Bench(const string &Msg)
 		ProgressLog("SEPQ0.1=%.3f", m_SEPQ0_1);
 		ProgressLog(" SEPQ1=%.3f", m_SEPQ1);
 		ProgressLog(" SEPQ10=%.3f", m_SEPQ10);
-		ProgressLog(" Sum3=%.3f", m_CVESum3);
+		ProgressLog(" Sum3=%.3f", m_Sum3);
 		ProgressLog(" %s", m_look->get_truthstr());
+		if (m_name != "")
+			ProgressLog(" %s", m_name.c_str());
 		ProgressLog("\n");
-
-		//ProgressLog("TOPQ0.001=%.3f", m_top_SEPQ0_001);
-		//ProgressLog(" TOPQ0.01=%.3f", m_top_SEPQ0_01);
-		//ProgressLog(" TOPQ0.1=%.3f", m_top_SEPQ0_1);
-		//ProgressLog(" Top3=%.3f", m_TopSum3);
-		//ProgressLog(" %s", m_look->get_truthstr());
-		//ProgressLog("\n");
 		}
 
 	asserta(!optset_top3);
-	if (opt(top3))
-		return m_TopSum3;
-	else
-		return m_CVESum3;
+	return m_Sum3;
 	}
 
 void FastBench::ReadHits(
@@ -324,21 +184,16 @@ void FastBench::ReadHits(
 	uint tidx,
 	uint scoreidx)
 	{
-	asserta(qidx > 0);
-	asserta(tidx > 0);
-	asserta(scoreidx > 0);
-	--qidx;
-	--tidx;
-	--scoreidx;
+	GetStemName(FN, m_name);
 	const uint maxidx = max(max(qidx, tidx), scoreidx);
 
 #if SAVE_NOT_IN_DOPE
 	FILE *fnid = CreateStdioFile("../tmp/tpnotindope.tmp");
 #endif
 
-	m_SeqCount = m_look->get_ndom();
+	m_ndom = m_look->get_ndom();
 	Alloc();
-	const uint K = m_PairCount;
+	const uint K = m_npair;
 	for (uint i = 0; i < K; ++i)
 		m_Scores[i] = FLT_MAX;
 	FILE *f = OpenStdioFile(FN);
@@ -382,7 +237,7 @@ void FastBench::ReadHits(
 			continue;
 		if (qidx == tidx)
 			continue;
-		uint k = triangle_ij_to_k2(qidx, tidx, m_SeqCount);
+		uint k = triangle_ij_to_k2(qidx, tidx, m_ndom);
 		assert(k < K);
 		if (m_Scores[k] == FLT_MAX)
 			{
@@ -415,7 +270,7 @@ void FastBench::ReadHits(
 			m_Scores[k] = score;
 			}
 		}
-	Progress("Hits 100.00%%\n");
+	Progress("Hits 100.00%% (%s)\n", MemBytesToStr(n));
 	ProgressLog("%u hits (%.3g%% of triangle), %u TPs\n",
 		n, GetPct(n, K), ntp);
 	if (m_dope)
@@ -446,7 +301,7 @@ void FastBench::WriteBits(const string &FN) const
 	if (FN == "")
 		return;
 	FILE *f = CreateStdioFile(FN);
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	WriteStdioFile(f, m_Scores, K*sizeof(m_Scores[0]));
 	CloseStdioFile(f);
 	}
@@ -456,7 +311,7 @@ void FastBench::ReadBits(const string &FN)
 	asserta(m_look);
 	Alloc();
 	FILE *f = OpenStdioFile(FN);
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	ReadStdioFile(f, m_Scores, K*sizeof(m_Scores[0]));
 	CloseStdioFile(f);
 	}
@@ -469,14 +324,14 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 	asserta(m_ScoreOrder != 0);
 
 	FILE *f = CreateStdioFile(FN);
-	uint K = triangle_get_K(m_SeqCount);
+	uint K = triangle_get_K(m_ndom);
 	const vector<string> &labels = m_look->m_doms;
 	for (uint k = 0; k < K; ++k)
 		{
 		ProgressStep(k, K, "Writing %s", FN.c_str());
 		uint HitIdx = m_ScoreOrder[k];
 		uint i, j;
-		triangle_k_to_ij(HitIdx, m_SeqCount, i, j);
+		triangle_k_to_ij(HitIdx, m_ndom, i, j);
 		if (i == j && !IncludeSelf)
 			continue;
 
@@ -501,22 +356,10 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 
 void FastBench::ClearHitsAndResults()
 	{
-	m_CVESum3 = FLT_MAX;
-	m_TopSum3 = FLT_MAX;
+	m_Sum3 = FLT_MAX;
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
-	m_top_SEPQ0_001 = FLT_MAX;
-	m_top_SEPQ0_01 = FLT_MAX;
-	m_top_SEPQ0_1 = FLT_MAX;
-	const uint ndom = m_look->get_ndom();
-	for (uint domidx = 0; domidx < ndom; ++domidx)
-		{
-		m_score_top_TP[domidx] = FLT_MAX;
-		m_score_top_FP[domidx] = FLT_MAX;
-		m_domidx_top_TP[domidx] = UINT_MAX;
-		m_domidx_top_FP[domidx] = UINT_MAX;
-		}
 	SubclassClearHitsAndResults();
 	}
 
@@ -529,11 +372,10 @@ void FastBench::SetLookupFromLabels()
 void FastBench::ReadLookup(const string &argFN)
 	{
 	const string &FN = (argFN == "" ? "../data/scop40x.lookup" : argFN);
-	m_scores_are_evalues = opt(scores_are_evalues);
 	if (m_look == 0) m_look = new lookup;
 	m_look->from_tsv(FN);
-	m_SeqCount = m_look->get_ndom();
-	m_PairCount = m_look->get_pair_count_upper_triangle_with_diagonal();
+	m_ndom = m_look->get_ndom();
+	m_npair = m_look->get_pair_count_upper_triangle_with_diagonal();
 	m_Labels = m_look->m_doms;
 	}
 
@@ -589,6 +431,46 @@ void FastBench::ReadDope(const string &FN)
 	asserta(nhit == m_dope_nhit);
 	}
 
+void guess_fields(
+	const string &hitsfn,
+	uint &qfi, uint &tfi, uint &sfi,
+	bool &scores_are_evalues)
+	{
+	qfi = tfi = sfi = UINT_MAX;
+	scores_are_evalues = false;
+
+	FILE *f = OpenStdioFile(hitsfn);
+	string line;
+	vector<string> flds;
+	for (uint i = 0; i < 100; ++i)
+		{
+		bool ok = ReadLineStdioFile(f, line);
+		asserta(ok);
+		Split(line, flds, '\t');
+		asserta(flds.size() >= 3);
+		if (flds[0] == flds[1])
+			{
+			qfi = 0;
+			tfi = 1;
+			sfi = 2;
+			float score = StrToFloatf(flds[sfi]);
+			scores_are_evalues = (score < 1);
+			break;
+			}
+		else if (flds[1] == flds[2])
+			{
+			qfi = 1;
+			tfi = 2;
+			sfi = 0;
+			float score = StrToFloatf(flds[sfi]);
+			scores_are_evalues = (score < 1);
+			}
+		}
+	CloseStdioFile(f);
+	if (qfi == UINT_MAX)
+		Die("guess_fields");
+	}
+
 void cmd_fast_bench_hits()
 	{
 	asserta(!optset_output);
@@ -600,16 +482,28 @@ void cmd_fast_bench_hits()
 	FB.ReadLookup(lookupfn);
 	if (optset_dope)
 		FB.ReadDope(opt(dope));
-	uint qidx = 1;
-	uint tidx = 2;
-	uint scoreidx = 3;
-	if (optset_qfield) qidx = opt(qfield);
-	if (optset_tfield) tidx = opt(tfield);
-	if (optset_scorefield) scoreidx = opt(scorefield);
+	uint qidx = UINT_MAX;
+	uint tidx = UINT_MAX;
+	uint scoreidx = UINT_MAX;
+	if (optset_qfield)
+		{
+		asserta(optset_tfield);
+		asserta(optset_scorefield);
+		qidx = opt(qfield) - 1;
+		tidx = opt(tfield) - 1;
+		scoreidx = opt(scorefield) - 1;
+		}
+	else
+		guess_fields(
+			hitsfn, qidx, tidx, scoreidx, FB.m_scores_are_evalues);
+
+	ProgressLog("%s(%u,%u,%u)\n",
+		FB.m_scores_are_evalues ? "E-values" : "scores",
+		qidx+1, tidx+1, scoreidx+1);
+
 	FB.ReadHits(hitsfn, qidx, tidx, scoreidx);
 	FB.SetScoreOrder();
 	FB.Bench();
-	FB.WriteTopHits(opt(output2));
 	}
 
 void cmd_fast_bench_bits()
@@ -623,30 +517,4 @@ void cmd_fast_bench_bits()
 	FB.ReadBits(bitsfn);
 	FB.SetScoreOrder();
 	FB.Bench();
-	}
-
-void cmd_fb_hits2bits()
-	{
-	asserta(!optset_scorefirst);
-	asserta(optset_lookup);
-	asserta(optset_output);
-	const string &hitsfn = g_Arg1;
-	const string &outputfn = opt(output);
-
-	uint qidx = 1;
-	uint tidx = 2;
-	uint scoreidx = 3;
-	if (optset_qfield) qidx = opt(qfield);
-	if (optset_tfield) tidx = opt(tfield);
-	if (optset_scorefield) scoreidx = opt(scorefield);
-
-	FastBench FB;
-	FB.m_scores_are_evalues = opt(scores_are_evalues);
-	FB.ReadLookup(opt(lookup));
-	FB.ReadHits(hitsfn, qidx, tidx, scoreidx);
-	FB.SetScoreOrder();
-	FB.Bench();
-
-	ProgressLog("Write %s\n", outputfn.c_str());
-	FB.WriteBits(outputfn);
 	}

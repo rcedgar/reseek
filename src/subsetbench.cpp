@@ -840,7 +840,7 @@ void SubsetBench::BenchAll(const string &Msg)
 	m_FB.SetScoreOrder();
 	m_FB.Bench(FBMsg);
 	asserta(!opt(top3));
-	m_Sum3 = m_FB.m_CVESum3;
+	m_Sum3 = m_FB.m_Sum3;
 	}
 
 void SubsetBench::Bench(const string &Msg)

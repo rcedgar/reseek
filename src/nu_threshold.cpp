@@ -52,7 +52,7 @@ void cmd_mu_threshold()
 	FB_t.ReadDope(opt(dope));
 	FB_t.Alloc();
 	FB_t.m_scores_are_evalues = true;
-	const uint npair = FB_vs.m_PairCount;
+	const uint npair = FB_vs.m_npair;
 	for (uint i = 0; i < npair; ++i)
 		FB_t.m_Scores[i] = FLT_MAX;
 
@@ -100,7 +100,7 @@ void cmd_nu_threshold()
 	FB_vs.SetScoreOrder();
 	FB_vs.Bench();
 
-	const uint npair = FB_vs.m_PairCount;
+	const uint npair = FB_vs.m_npair;
 	const vector<float> ts =
 		{ 1, 10, 20, 30, 40, 50, 60, 70, 72, 74, 76, 78, 80, 90, 100, 110, 125, 150, 200 };
 
@@ -150,7 +150,7 @@ void cmd_nu_threshold()
 		ProgressLog("  |  SEPQ0.1=%.3f", FB_t.m_SEPQ0_1);
 		ProgressLog(" SEPQ1=%.3f", FB_t.m_SEPQ1);
 		ProgressLog(" SEPQ10=%.3f", FB_t.m_SEPQ10);
-		ProgressLog(" Sum3=%.3f", FB_t.m_CVESum3);
+		ProgressLog(" Sum3=%.3f", FB_t.m_Sum3);
 		ProgressLog("\n");
 		}
 	}

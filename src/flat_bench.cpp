@@ -40,7 +40,7 @@ void flat_bench::load_profiles_chains(
 	m_fp.from_chains_lookup(*m_look, chains);
 	asserta(m_Labels == m_fp.m_labels);
 	m_Labels = m_fp.m_labels;
-	m_SeqCount = uint(m_Labels.size());
+	m_npair = uint(m_Labels.size());
 	Progress("done\n");
 	}
 
@@ -59,7 +59,7 @@ void flat_bench::load_profiles_fapattern(const string &fafnpattern)
 	m_fp.read_profiles_from_fastas(fafns, m_look->m_dom2idx);
 
 	m_Labels = m_fp.m_labels;
-	m_SeqCount = uint(m_Labels.size());
+	m_ndom = uint(m_Labels.size());
 	}
 
 void flat_bench::align_pair(flat_aligner &fa,

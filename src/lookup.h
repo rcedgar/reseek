@@ -35,7 +35,6 @@ public:
 	uint m_NF = 0;
 	uint m_NI = 0;
 	uint m_pair_count = 0;
-	uint m_singleton_count = 0;
 	LOOK_TRUTH m_LT = LT_SAME_SF;
 
 public:
@@ -49,11 +48,11 @@ public:
 				m_LT = LT_SAME_FAM;
 			else if (t == "sf")
 				m_LT = LT_SAME_SF;
-			else if (t == "dfss")
+			else if (t == "sfx")
 				m_LT = LT_DIFF_FAM_SAME_SF;
 			else if (t == "fold")
 				m_LT = LT_SAME_FOLD;
-			else if (t == "dssf")
+			else if (t == "foldx")
 				m_LT = LT_DIFF_SF_SAME_FOLD;
 			else
 				Die("Invalid -truth '%s'", t.c_str());
@@ -94,11 +93,11 @@ public:
 		else if (m_LT == LT_SAME_SF)
 			return "sf";
 		else if (m_LT == LT_DIFF_FAM_SAME_SF)
-			return "dfsf";
+			return "sfx";
 		else if (m_LT == LT_SAME_FOLD)
 			return "fold";
 		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
-			return "dssf";
+			return "foldx";
 		else
 			Die("get_truthstr()");
 		return "ERROR";
@@ -111,11 +110,13 @@ public:
 	void to_tsv(const string &fn);
 	void fill();
 	void fill_fam();
-	void fill_dfss();
+	void fill_sfx();
 	void fill_sf();
 	void fill_fold();
-	void fill_dssf();
+	void fill_foldx();
 	void stats();
+
+	uint get_singleton_count() const;
 
 	const string &get_dom(uint domidx) const
 		{
