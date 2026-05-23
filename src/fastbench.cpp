@@ -196,6 +196,7 @@ double FastBench::Bench(const string &Msg)
 	m_top_SEPQ0_001 = FLT_MAX;
 	m_top_SEPQ0_01 = FLT_MAX;
 
+	bool triangle = opt(triangle);
 	for (uint k = 0; k < K; ++k)
 		{
 		uint HitIdx = m_ScoreOrder[k];
@@ -203,8 +204,6 @@ double FastBench::Bench(const string &Msg)
 		triangle_k_to_ij(HitIdx, ndom, domidx_i, domidx_j);
 		if (domidx_i == domidx_j)
 			continue;
-		dbrk(domidx_i==8287&&domidx_j==1329);//@@TODO
-		dbrk(domidx_j==8287&&domidx_i==1329);//@@TODO
 		float Score = m_Scores[HitIdx];
 		if (Score == FLT_MAX) continue;
 		if (Score != LastScore)
@@ -219,12 +218,6 @@ double FastBench::Bench(const string &Msg)
 			if (m_SEPQ1 == FLT_MAX   && EPQ >= 1)   m_SEPQ1   = Sens;
 			if (m_SEPQ10 == FLT_MAX  && EPQ >= 10)  m_SEPQ10  = Sens;
 
-			float top_EPQ = float(nf_top)/ndom;
-			float top_Sens = float(nt_top)/non_singleton_count;
-			if (m_top_SEPQ0_001 == FLT_MAX && top_EPQ >= 0.001) m_top_SEPQ0_001 = top_Sens;
-			if (m_top_SEPQ0_01 == FLT_MAX   && top_EPQ >= 0.01) m_top_SEPQ0_01   = top_Sens;
-			if (m_top_SEPQ0_1 == FLT_MAX    && top_EPQ >= 0.1)  m_top_SEPQ0_1   = top_Sens;
-
 			LastScore = Score;
 			}
 		if (IsIgnored(domidx_i, domidx_j))
@@ -238,16 +231,15 @@ double FastBench::Bench(const string &Msg)
 				{
 				m_score_top_TP[domidx_i] = Score;
 				m_domidx_top_TP[domidx_i] = domidx_j;
-				++nt_top;
-				asserta(nt_top <= ndom);
 				}
-			if (m_score_top_TP[domidx_j] == FLT_MAX ||
-				Score > m_score_top_TP[domidx_j])
+			if (triangle)
 				{
-				m_score_top_TP[domidx_j] = Score;
-				m_domidx_top_TP[domidx_j] = domidx_i;
-				++nt_top;
-				asserta(nt_top <= ndom);
+				if (m_score_top_TP[domidx_j] == FLT_MAX ||
+					Score > m_score_top_TP[domidx_j])
+					{
+					m_score_top_TP[domidx_j] = Score;
+					m_domidx_top_TP[domidx_j] = domidx_i;
+					}
 				}
 			}
 		else
@@ -258,24 +250,20 @@ double FastBench::Bench(const string &Msg)
 				{
 				m_score_top_FP[domidx_i] = Score;
 				m_domidx_top_FP[domidx_i] = domidx_j;
-				++nf_top;
-				asserta(nf_top <= ndom);
 				}
-			if (m_score_top_FP[domidx_j] == FLT_MAX ||
-				Score > m_score_top_FP[domidx_j])
+			if (triangle)
 				{
-				m_score_top_FP[domidx_j] = Score;
-				m_domidx_top_FP[domidx_j] = domidx_i;
-				++nf_top;
-				asserta(nf_top <= ndom);
+				if (m_score_top_FP[domidx_j] == FLT_MAX ||
+					Score > m_score_top_FP[domidx_j])
+					{
+					m_score_top_FP[domidx_j] = Score;
+					m_domidx_top_FP[domidx_j] = domidx_i;
+					}
 				}
 			}
 		}
 	float EPQ = 2*float(nf)/ndom;
 	float Sens = 2*float(nt)/m_look->m_NT;
-
-	float top_EPQ = 2*float(nf_top)/ndom;
-	float top_Sens = 2*float(nt_top)/non_singleton_count;
 
 	if (m_SEPQ0_1 == FLT_MAX)
 		{
@@ -301,32 +289,8 @@ double FastBench::Bench(const string &Msg)
 			m_SEPQ10 = 0;
 		}
 
-	if (m_top_SEPQ0_001 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.001)	
-			m_top_SEPQ0_001 = top_Sens;
-		else
-			m_top_SEPQ0_001 = 0;
-		}
-
-	if (m_top_SEPQ0_01 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.01)
-			m_top_SEPQ0_01 = top_Sens;
-		else
-			m_top_SEPQ0_01 = 0;
-		}
-
-	if (m_top_SEPQ0_1 == FLT_MAX)
-		{
-		if (top_EPQ <= 0.1)	
-			m_top_SEPQ0_1 = top_Sens;
-		else
-			m_top_SEPQ0_1 = 0;
-		}
-
 	m_CVESum3 = m_SEPQ0_1*2 + m_SEPQ1*3/2 + m_SEPQ10;
-	m_TopSum3 = m_top_SEPQ0_001*2 + m_top_SEPQ0_01*3/2 + m_top_SEPQ0_1;
+	//m_TopSum3 = m_top_SEPQ0_001*2 + m_top_SEPQ0_01*3/2 + m_top_SEPQ0_1;
 
 	if (Msg != "noshow")
 		{
@@ -339,14 +303,15 @@ double FastBench::Bench(const string &Msg)
 		ProgressLog(" %s", m_look->get_truthstr());
 		ProgressLog("\n");
 
-		ProgressLog("TOPQ0.001=%.3f", m_top_SEPQ0_001);
-		ProgressLog(" TOPQ0.01=%.3f", m_top_SEPQ0_01);
-		ProgressLog(" TOPQ0.1=%.3f", m_top_SEPQ0_1);
-		ProgressLog(" Top3=%.3f", m_TopSum3);
-		ProgressLog(" %s", m_look->get_truthstr());
-		ProgressLog("\n");
+		//ProgressLog("TOPQ0.001=%.3f", m_top_SEPQ0_001);
+		//ProgressLog(" TOPQ0.01=%.3f", m_top_SEPQ0_01);
+		//ProgressLog(" TOPQ0.1=%.3f", m_top_SEPQ0_1);
+		//ProgressLog(" Top3=%.3f", m_TopSum3);
+		//ProgressLog(" %s", m_look->get_truthstr());
+		//ProgressLog("\n");
 		}
 
+	asserta(!optset_top3);
 	if (opt(top3))
 		return m_TopSum3;
 	else
@@ -409,10 +374,6 @@ void FastBench::ReadHits(
 		const string &t = flds[tidx];
 		uint qidx = m_look->get_domidx(q, true);
 		uint tidx = m_look->get_domidx(t, true);
-		// d1vfia1=8287
-		// d2efka1=1329
-		dbrk(qidx==8287&&tidx==1329);//@@TODO
-		dbrk(tidx==8287&&qidx==1329);//@@TODO
 		if (qidx == UINT_MAX)
 			missing.insert(q);
 		if (tidx == UINT_MAX)

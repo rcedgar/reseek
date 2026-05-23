@@ -158,7 +158,9 @@ void top_bench::read_hits(
 		bool ignore = is_ignored(domidxq, domidxt);
 		if (ignore) continue;
 
-		const float score = (float) StrToFloat(flds[scoreidx]);
+		float score = (float) StrToFloat(flds[scoreidx]);
+		if (m_scores_are_evalues)
+			score = -log10f(score + 1e-20f);
 
 		const float top_score_tpq = m_score_top_tp[domidxq];
 		const float top_score_fpq = m_score_top_fp[domidxq];
@@ -240,14 +242,11 @@ double top_bench::bench(const string &msg)
 		m_tps[2*domidx+1] = false;
 		}
 
-	if (m_scores_are_evalues)
-		QuickSortOrder<float>(m_scores, 2*ndom, m_order);
-	else
-		QuickSortOrderDesc<float>(m_scores, 2*ndom, m_order);
+	QuickSortOrderDesc<float>(m_scores, 2*ndom, m_order);
 
 	uint nt_top = 0;
 	uint nf_top = 0;
-	float last_score = m_scores_are_evalues ? -9e9f : FLT_MAX;
+	float last_score = m_scores[m_order[0]];
 	for (uint k = 0; k < 2*ndom; ++k)
 		{
 		uint scoreidx = m_order[k];
@@ -256,11 +255,7 @@ double top_bench::bench(const string &msg)
 		bool tp = m_tps[scoreidx];
 		if (score != last_score)
 			{
-			if (m_scores_are_evalues)
-				asserta(score > last_score);
-			else
-				asserta(score < last_score);
-
+			asserta(score < last_score);
 			float top_EPQ = float(nf_top)/ndom;
 			float top_Sens = float(nt_top)/non_singleton_count;
 			if (m_top_SEPQ0_001 == FLT_MAX && top_EPQ >= 0.001) m_top_SEPQ0_001 = top_Sens;
@@ -403,6 +398,7 @@ void cmd_top_bench_hits()
 	if (optset_qfield) qidx = opt(qfield);
 	if (optset_tfield) tidx = opt(tfield);
 	if (optset_scorefield) scoreidx = opt(scorefield);
+	TB.m_scores_are_evalues = opt(scores_are_evalues);
 	TB.read_hits(hitsfn, qidx, tidx, scoreidx, opt(triangle));
 	TB.bench();
 	TB.write_top_hits(opt(output));
