@@ -133,6 +133,9 @@ double FastBench::Bench(const string &Msg)
 			continue;
 		float Score = m_Scores[HitIdx];
 		if (Score == FLT_MAX) continue;
+
+		// must check when score changes
+		// to avoid sort artifacts!
 		if (Score != LastScore)
 			{
 			if (m_scores_are_evalues)
