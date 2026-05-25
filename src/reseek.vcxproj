@@ -357,6 +357,7 @@
     <ClCompile Include="join_features.cpp" />
     <ClCompile Include="kabsch_quad.cpp" />
     <ClCompile Include="kabsch_quad_fit.cpp" />
+    <ClCompile Include="kappa.cpp" />
     <ClCompile Include="kappa_dex.cpp" />
     <ClCompile Include="kappa_mermx.cpp" />
     <ClCompile Include="kappa_mxdata.cpp" />

@@ -11,15 +11,32 @@ class flat_params;
 
 struct chaq_vecs
 	{
-	p_uint16_t nens;
-	p_uint16_t rens;
-	p_uint16_t pens;
-	p_uint16_t mens;
-	p_sid_t nensids;
-	p_sid_t rensids;
-	p_sid_t pensids;
-	p_sid_t mensids;
-	p_uint8_t sec32_codeseq;
+	p_uint16_t nens = 0;
+	p_uint16_t rens = 0;
+	p_uint16_t pens = 0;
+	p_uint16_t mens = 0;
+	p_sid_t nensids = 0;
+	p_sid_t rensids = 0;
+	p_sid_t pensids = 0;
+	p_sid_t mensids = 0;
+	p_uint8_t sec32_codeseq = 0;
+	};
+
+// To keep a vector, copy pointer and set it 
+// to zero in chaq_vecs2 object
+struct chaq_vecs2
+	{
+	p_uint16_t nens = 0;
+	p_uint16_t rens = 0;
+	p_uint16_t pens = 0;
+	p_uint16_t mens = 0;
+	p_sid_t nensids = 0;
+	p_sid_t rensids = 0;
+	p_sid_t pensids = 0;
+	p_sid_t mensids = 0;
+	p_uint8_t pm2_codeseq = 0;
+	p_uint8_t sec32_codeseq = 0;
+	uint maxL = 0;
 	};
 
 /***
@@ -190,7 +207,17 @@ public:
 	static size_t get_fill_chaq_vecs_bytes_per_pos();
 	static size_t get_fast_get_codeseq_scratch_bytes_per_pos();
 
-	static void fill_chaq_vecs(
+	// To keep a vector, copy pointer and set it 
+	// to zero in chaq_vecs2 object
+	static void alloc_chaq_vecs2(chaq_vecs2 &cv, uint L);
+	static void free_chaq_vecs2(chaq_vecs2 &cv);
+
+	static void fill_chaq_vecs2(
+		cp_sid_t distmx,
+		uint L,
+		chaq_vecs2 &cv);
+
+	static void fill_chaq_vecs_scratch_mem(
 		cp_sid_t distmx,
 		uint L,
 		chaq_vecs &cv,
@@ -214,4 +241,20 @@ public:
 		FAN fan,
 		uint alpha_size,
 		p_uint16_t values);
+
+	static void sec32_codeseq_to_sec4(
+		const uint8_t *codeseq_sec32, uint L,
+		uint8_t *codeseq_sec4);
+
+	static void codeseq_nu_to_kappa(
+		const uint8_t *codeseq_nu, uint L,
+		uint8_t *codeseq_kappa, size_t codeseq_kappa_bytes);
+
+	static void fill_codeseq_nu(
+		const char *charseq_aa20,
+		const uint8_t *codeseq_pm2,
+		const uint8_t *codeseq_sec32,
+		const uint L,
+		uint8_t *codeseq_nu,
+		size_t codeseq_nu_bytes);
 	};

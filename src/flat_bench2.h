@@ -62,6 +62,7 @@ public:
 	void set_mega_self_rev_scores();
 	void set_nu_self_rev_scores();
 	void load_mega_paths(const string &fn);
+	void write_nu_hexfasta(const string &fn);
 
 public:
 	static void static_thread_body(

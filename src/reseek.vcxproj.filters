@@ -827,6 +827,9 @@
     <ClCompile Include="top_bench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kappa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

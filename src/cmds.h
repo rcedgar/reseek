@@ -143,5 +143,6 @@ C(test_flat_xdrop)
 C(top_bench_hits)
 C(top_bench_tophits)
 C(top_bench)
+C(test_kappa)
 
 #undef C

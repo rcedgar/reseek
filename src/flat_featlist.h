@@ -21,5 +21,7 @@ f(ppack)
 f(mpack)
 f(angle)
 f(turnd)
+f(nu)
+f(kappa)
 
 #undef f

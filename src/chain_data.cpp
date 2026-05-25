@@ -100,7 +100,7 @@ void chain_data::make_mega_prof(
 	asserta(bytes >= nfeat*L);
 
 	chaq_vecs cv;
-	chaq::fill_chaq_vecs(distmx, L, cv, scratch);
+	chaq::fill_chaq_vecs_scratch_mem(distmx, L, cv, scratch);
 
 #if DEBUG
 	memset(mega_prof, 0xff, nfeat*L);

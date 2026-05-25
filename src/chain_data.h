@@ -27,7 +27,7 @@ static const uint32_t bits_query =
 	bit_nu_codeseq | 
 	bit_nu_codeseq_rev;
 
-static const uint32_t bits_target =
+static const uint32_t bits_db =
 	bit_distmx |
 	bit_mega_prof |
 	bit_nu_codeseq | 

@@ -136,14 +136,18 @@ void chaq::fast_get_codeseq(
 		case 3:		get_aa3_codeseq(chain->m_aa->m_data, L, codeseq);	return;
 		case 4:		get_aa4_codeseq(chain->m_aa->m_data, L, codeseq);	return;
 		case 20:	get_aa20_codeseq(chain, codeseq);					return;
-		Die("chaq::fast_get_codeseq(aa, alpha_size=%u)", alpha_size);
 			}
+		Die("chaq::fast_get_codeseq(aa, alpha_size=%u)", alpha_size);	return;
 		}
 
 	case FAN_sec:
 		{
-		asserta(alpha_size == 32);
-		memcpy(codeseq, cv->sec32_codeseq, L);
+		if (alpha_size == 32)
+			memcpy(codeseq, cv->sec32_codeseq, L);
+		else if (alpha_size == 4)
+			sec32_codeseq_to_sec4(cv->sec32_codeseq, L, codeseq);
+		else
+			Die("chaq::fast_get_codeseq(sec) alpha_size=%u", alpha_size);
 		return;
 		}
 
@@ -249,8 +253,15 @@ void chaq::fast_get_codeseq(
 		}
 	///////////////////////////////////////////////////////////////
 
+	case FAN_kappa:
+		{
+		asserta(alpha_size == 32);//@@TODO
+		slow_get_codeseq(params, chain, FAN_kappa, 32, codeseq);//@@TODO
+		return;
+		}
+
 	default:
-		Die("chaq::fast_get_codeseq(fan=%d (%s)", fan, FAN2str(fan));
+		Die("chaq::fast_get_codeseq(fan=%d %s)", fan, FAN2str(fan));
 		}
 	}
 
@@ -300,7 +311,7 @@ void cmd_test_chaq_fast()
 		chaq::fill_distmx(chain, distmx);
 
 		chaq_vecs cv;
-		chaq::fill_chaq_vecs(distmx, L, cv, mem1);
+		chaq::fill_chaq_vecs_scratch_mem(distmx, L, cv, mem1);
 
 		size_t scratch_bytes2 = chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
 		scratch_mem scratch2(scratch_bytes2*L);

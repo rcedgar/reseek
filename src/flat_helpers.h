@@ -363,3 +363,9 @@ float flat_get_dali4(
 	const uint *posQs, uint LQ, 
 	const uint *posTs, uint LT, uint nmatch,
 	const sid_t *distmxQ, const sid_t *distmxT);
+
+void codeseq_to_hexfasta(FILE *f, const string &label,
+	const uint8_t *codeseq, uint L);
+
+void codeseq_to_fasta(FILE *f, const string &label,
+	const uint8_t *codeseq, uint L, uint alpha_size);

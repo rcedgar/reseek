@@ -85,6 +85,8 @@ uint8_t chaq::get_undef_code(FAN fan, uint alpha_size)
 
 	case FAN_aa:
 	case FAN_pm:
+	case FAN_nu:
+	case FAN_kappa:
 		return 0;
 		}
 
@@ -515,6 +517,8 @@ void chaq::slow_get_codeseq_discrete(
 	case FAN_rensec:
 	case FAN_pensec:
 	case FAN_mensec:
+	case FAN_nu:
+	case FAN_kappa:
 		need_sec_codeseq = true;
 		}
 
@@ -533,8 +537,71 @@ void chaq::slow_get_codeseq_discrete(
 	const size_t bytes = L*sizeof(uint16_t);
 	switch (fan)
 		{
+	case FAN_nu:
+		{
+		asserta(alpha_size == 256);
+		const char *aacharseq = chain->m_aa->m_data;
+		uint8_t *pm2_codeseq = myalloc(uint8_t, L);
+		chaq::get_pm_codeseq(pensids, mensids, L, pm2_codeseq);
+		for (uint32_t pos = 0; pos < L; ++pos)
+			{
+			uint8_t aa = aacharseq[pos];
+			uint8_t code_aa20 = g_CharToLetterAmino[aa];
+			if (code_aa20 >= 20) code_aa20 = 0;
+			const uint8_t code_pm2 = pm2_codeseq[pos];
+			const uint8_t code_sec32 = sec_codeseq[pos];
+
+			assert(code_aa20 < 20);
+			assert(code_pm2 < 2);
+			assert(code_sec32 < 32);
+
+			const uint8_t code_aa4 = chaq::m_aacode2aa4code[code_aa20];
+			const uint8_t code_nu = uint8_t(code_aa4 + 4*code_pm2 + 4*2*code_sec32);
+			assert(code_nu < 256);
+
+			codeseq[pos] = code_nu;
+			}
+		myfree(pm2_codeseq);
+		return;
+		}
+
+	case FAN_kappa:
+		{
+		extern uint8_t g_nucode_to_kappacode[256];
+		asserta(alpha_size == 32);
+		const char *aacharseq = chain->m_aa->m_data;
+		uint8_t *pm2_codeseq = myalloc(uint8_t, L);
+		chaq::get_pm_codeseq(pensids, mensids, L, pm2_codeseq);
+		for (uint32_t pos = 0; pos < L; ++pos)
+			{
+			uint8_t aa = aacharseq[pos];
+			uint8_t code_aa20 = g_CharToLetterAmino[aa];
+			if (code_aa20 >= 20) code_aa20 = 0;
+			const uint8_t code_pm2 = pm2_codeseq[pos];
+			const uint8_t code_sec32 = sec_codeseq[pos];
+
+			assert(code_aa20 < 20);
+			assert(code_pm2 < 2);
+			assert(code_sec32 < 32);
+
+			const uint8_t code_aa4 = chaq::m_aacode2aa4code[code_aa20];
+			const uint8_t code_nu = uint8_t(code_aa4 + 4*code_pm2 + 4*2*code_sec32);
+			assert(code_nu < 256);
+			const uint8_t code_kappa = g_nucode_to_kappacode[code_nu];
+			assert(code_kappa < 32);
+			codeseq[pos] = code_kappa;
+			}
+		myfree(pm2_codeseq);
+		return;
+		}
+
 	case FAN_sec:
-		memcpy(codeseq, sec_codeseq, L);
+		if (alpha_size == 32)
+			memcpy(codeseq, sec_codeseq, L);
+		else if (alpha_size == 4)
+			sec32_codeseq_to_sec4(sec_codeseq, L, codeseq);
+		else
+			Die("chaq::slow_get_codeseq(sec) alpha_size=%u", alpha_size);
 		break;
 
 	case FAN_nensec:
@@ -994,7 +1061,37 @@ size_t chaq::get_fill_chaq_vecs_bytes_per_pos()
 		+ sizeof(uint8_t);		// sec32_codeseq
 	}
 
-void chaq::fill_chaq_vecs(
+void chaq::alloc_chaq_vecs2(chaq_vecs2 &cv, uint maxL)
+	{
+	cv.nens = myalloc(uint16_t, maxL);
+	cv.rens = myalloc(uint16_t, maxL);
+	cv.pens = myalloc(uint16_t, maxL);
+	cv.mens = myalloc(uint16_t, maxL);
+	cv.nensids = myalloc(sid_t, maxL);
+	cv.rensids = myalloc(sid_t, maxL);
+	cv.pensids = myalloc(sid_t, maxL);
+	cv.mensids = myalloc(sid_t, maxL);
+	cv.sec32_codeseq = myalloc(uint8_t, maxL);
+	cv.pm2_codeseq = myalloc(uint8_t, maxL);
+	cv.maxL = maxL;
+	}
+
+void chaq::free_chaq_vecs2(chaq_vecs2 &cv)
+	{
+	myfree(cv.nens);
+	myfree(cv.rens);
+	myfree(cv.pens);
+	myfree(cv.mens);
+	myfree(cv.nensids);
+	myfree(cv.rensids);
+	myfree(cv.pensids);
+	myfree(cv.mensids);
+	myfree(cv.sec32_codeseq);
+	myfree(cv.pm2_codeseq);
+	cv.maxL = 0;
+	}
+
+void chaq::fill_chaq_vecs_scratch_mem(
 	cp_sid_t distmx,
 	uint L,
 	chaq_vecs &cv,
@@ -1021,4 +1118,24 @@ void chaq::fill_chaq_vecs(
 		cv.nensids, cv.rensids);
 
 	get_sec_codeseq(32, distmx, L, cv.sec32_codeseq);
+	}
+
+void chaq::fill_chaq_vecs2(
+	cp_sid_t distmx,
+	uint L,
+	chaq_vecs2 &cv)
+	{
+	asserta(L <= cv.maxL);
+	fill_pen_men_vecs(distmx, L,
+		cv.pens, cv.pensids,
+		cv.mens, cv.mensids);
+
+	fill_nen_ren_vecs(
+		cv.pens, cv.mens,
+		cv.pensids, cv.mensids, L,
+		cv.nens, cv.rens,
+		cv.nensids, cv.rensids);
+
+	get_sec_codeseq(32, distmx, L, cv.sec32_codeseq);
+	get_pm_codeseq(cv.pensids, cv.mensids, L, cv.pm2_codeseq);
 	}

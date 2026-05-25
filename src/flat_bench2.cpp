@@ -181,6 +181,21 @@ void flat_bench2::set_mega_self_rev_scores()
 		}
 	}
 
+void flat_bench2::write_nu_hexfasta(const string &fn)
+	{
+	if (fn == "") return;
+	const uint ndom = m_look->get_ndom();
+	FILE *f = CreateStdioFile(fn);
+	for (uint i = 0; i < ndom; ++i)
+		{
+		const chain_data *cd = m_cdvec[i];
+		const string &label = cd->m_label;
+		const uint8_t *codeseq_nu = cd->m_codeseq_nu;
+		codeseq_to_hexfasta(f, label, codeseq_nu, cd->m_L);
+		}
+	CloseStdioFile(f);
+	}
+
 void flat_bench2::load_chains(const vector<flat_chain_t *> &chains)
 	{
 	uint nchain = uint(chains.size());
@@ -1185,6 +1200,7 @@ void cmd_flat_bench2()
 	FB.m_params = &params;
 	FB.ReadLookup(opt(lookup));
 	FB.load_chains(chains);
+	FB.write_nu_hexfasta(opt(hexfasta));
 	FB.update_params(param_names, param_values);
 	FB.m_nu_only = opt(nuonly);
 	FB.m_timealn = opt(timealn);

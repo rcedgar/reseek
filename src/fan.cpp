@@ -36,6 +36,8 @@ bool is_quantized(FAN fan)
 	case FAN_rensec:
 	case FAN_pensec:
 	case FAN_mensec:
+	case FAN_nu:
+	case FAN_kappa:
 		return false;
 
 	case FAN_nendist:

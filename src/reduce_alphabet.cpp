@@ -288,7 +288,7 @@ static bool check_isdone(const vector<uint> &fc)
 	return false;
 	}
 
-static void normalize_fc(vector<uint> &fc)
+static bool normalize_fc(vector<uint> &fc)
 	{
 	uint reducedAS = get_reducedAS(fc);
 	vector<uint> old2new(reducedAS, UINT_MAX);
@@ -299,12 +299,15 @@ static void normalize_fc(vector<uint> &fc)
 		if (old2new[reduced_code] == UINT_MAX)
 			old2new[reduced_code] = newcode++;
 		}
-	asserta(newcode == reducedAS);
+	asserta(newcode <= reducedAS);
+	if (newcode < reducedAS)
+		return false;
 	for (uint i = 0; i < fc.size(); ++i)
 		{
 		uint reduced_code = fc[i];
 		fc[i] = old2new[reduced_code];
 		}
+	return true;
 	}
 
 void cmd_reduce_alphabet()
@@ -363,7 +366,8 @@ void cmd_reduce_alphabet()
 	log_map(fullcode2reducedcode, H);
 
 	double bestH = H;
-	normalize_fc(fullcode2reducedcode);
+	bool ok = normalize_fc(fullcode2reducedcode);
+	asserta(ok);
 	double H2 = getH(in_freqmx, fullcode2reducedcode);
 	asserta(feq(H2, bestH));
 
