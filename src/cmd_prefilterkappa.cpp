@@ -29,11 +29,12 @@ int DSSParams::m_PrefilterMinKappaMinDiagScore = 150;
 uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
 uint DSSParams::m_PrefilterKappaKmerWidth = 4;
 uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
-string DSSParams::m_PrefilterKappaPattern = "1111";
+string DSSParams::m_PrefilterKappaPattern = "11010001";
 
-static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
-uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
-	KappaKmerOnesOffsets;
+//static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
+//uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
+//	KappaKmerOnesOffsets;
+uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets = 0;
 /////////////////////////////////////////////////////
 
 static uint s_NextTIdx = 0;
@@ -45,7 +46,19 @@ static const kappa_dex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static time_t s_TimeLastProgress;
 
-static uint get_pattern_ones(const string &Str)
+static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
+	{
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Str); ++i)
+		{
+		char c = Str[i];
+		asserta(c == '0' || c == '1');
+		if (c == '1')
+			offsets[n++] = i;
+		}
+	}
+
+static uint get_nr_pattern_ones(const string &Str)
 	{
 	uint n = 0;
 	for (uint i = 0; i < SIZE(Str); ++i)
@@ -134,16 +147,17 @@ void cmd_prefilter_kappa()
 	prefilter_kappa::m_RSB.Init(QSeqCount);
 
 	if (optset_kappa_pattern)
-		{
-		const string s = opt(kappa_pattern);
-		uint k = get_pattern_ones(s);
-		uint K = uint(s.size());
+		DSSParams::m_PrefilterKappaPattern = opt(kappa_pattern);
+	uint k = get_nr_pattern_ones(DSSParams::m_PrefilterKappaPattern);
+	uint K = uint(DSSParams::m_PrefilterKappaPattern.size());
+	DSSParams::m_PrefilterKappaKmerOnesOffsets = myalloc(uint8_t, k);
+	fill_pattern_offsets(DSSParams::m_PrefilterKappaPattern,
+		DSSParams::m_PrefilterKappaKmerOnesOffsets);
 
-		DSSParams::m_PrefilterKappaPattern = s;
-		DSSParams::m_PrefilterKappaKmerNrOnes = k; 
-		DSSParams::m_PrefilterKappaKmerWidth = K;
-		DSSParams::m_PrefilterKappaDictSize = myipow(32, k);
-		}
+	DSSParams::m_PrefilterKappaKmerNrOnes = k; 
+	DSSParams::m_PrefilterKappaKmerWidth = K;
+	DSSParams::m_PrefilterKappaDictSize = myipow(32, k);
+
 	if (optset_kappa_minkmerscore)
 		DSSParams::m_PrefilterMinKappaKmerPairScore = opt(kappa_minkmerscore);
 	if (optset_kappa_mindiagscore)
@@ -151,7 +165,6 @@ void cmd_prefilter_kappa()
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.Init();
-	const uint k = kappa_dex::m_k;
 
 	const kappa_mermx &GetKappaMerMx(uint k);
 	const kappa_mermx &ScoreMx = GetKappaMerMx(k);

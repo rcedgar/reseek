@@ -528,6 +528,12 @@ void kappa_dex::GetKmersAndSizes(const byte *Seq, uint L,
 
 void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 	{
+#if DEBUG
+	{
+	for (uint i = 0; i < L; ++i)
+		assert(Seq[i] < KAPPA_AS);
+	}
+#endif
 	Kmers.reserve(L);
 	Kmers.clear();
 	for (uint KmerStartPos = 0; KmerStartPos + m_K <= L; ++KmerStartPos)
@@ -535,7 +541,9 @@ void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		uint Kmer = 0;
 		for (uint i = 0; i < m_k; ++i)
 			{
-			byte Letter = Seq[KmerStartPos + m_Offsets[i]];
+			uint off = m_Offsets[i];
+			assert(KmerStartPos + off < L);
+			byte Letter = Seq[KmerStartPos + off];
 			assert(Letter < KAPPA_AS);
 			Kmer = Kmer*KAPPA_AS + Letter;
 			}
