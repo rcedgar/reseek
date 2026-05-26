@@ -2,6 +2,8 @@
 #include "dssparams.h"
 #include "prefiltermu.h"
 #include "prefiltermuparams.h"
+#include "lookup.h"
+#include "bitdope.h"
 #include <chrono>
 
 static uint s_NextTIdx = 0;
@@ -12,6 +14,7 @@ static const SeqDB *s_ptrTDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static time_t s_TimeLastProgress;
+static atomic<uint> s_TotalPassedFilter;
 
 static void ThreadBody(uint ThreadIndex)
 	{
@@ -38,7 +41,10 @@ static void ThreadBody(uint ThreadIndex)
 			}
 		m_NextTIdxLock.unlock();
 		if (TSeqIdx == TSeqCount)
+			{
+			s_TotalPassedFilter += Pref.m_NrQueriesWithTwoHitDiag;
 			return;
+			}
 
 		Pref.m_TSeqIdx = TSeqIdx;
 		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
@@ -50,6 +56,19 @@ static void ThreadBody(uint ThreadIndex)
 
 void cmd_prefilter_mu()
 	{
+	lookup look;
+	bitdope dope;
+	if (optset_dope)
+		{
+		const string &lookupfn =
+			(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
+		look.from_tsv(lookupfn);
+		dope.m_look = &look;
+		dope.from_file(opt(dope));
+		dope.set_square();
+		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
+		}
+
 	const uint k = MuDex::m_k;
 
 	const string &QueryMu_FN = g_Arg1;
@@ -117,6 +136,7 @@ void cmd_prefilter_mu()
 	double elapsed_ms = std::chrono::duration<double, std::milli>
 		(chrono_end - chrono_start).count();
 	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
+	ProgressLog("Passed          %s\n", FloatToStr(s_TotalPassedFilter));
 	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
 
 	{
@@ -169,5 +189,37 @@ void cmd_prefilter_mu()
 		FILE *fTsv = CreateStdioFile(opt(output3));
 		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
+		}
+
+	if (optset_dope)
+		{
+		uint nhit = 0;
+		uint nindope = 0;
+		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
+		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+			{
+			const string &q = QDB.GetLabel(qidx);
+			uint qdomidx = look.get_domidx(q);
+			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+				{
+				uint16_t score = row[tidx];
+				if (score > 0)
+					{
+					const string &t = TDB.GetLabel(tidx);
+					uint tdomidx = look.get_domidx(t);
+					++nhit;
+					if (dope.in_square_ij(qidx, tidx))
+						++nindope;
+					}
+				}
+			}
+		ProgressLog("%u / %u filter hits also in dope\n",
+			nindope, nhit);
+
+		ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
+			nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
 		}
 	}

@@ -4,7 +4,37 @@
 #include "kappa_mermx.h"
 #include "kappa_dex.h"
 #include "kappa_prefilter_params.h"
+#include "bitdope.h"
+#include "lookup.h"
 #include <chrono>
+
+/////////////////////////////////////////////////////
+// Kappa prefilter
+// $src/2025-10_reseek_tune [f8b7229]
+// reseek v2.9.i86linux64 [89b34d9]
+// C:\src\notebooks\2026-04-09_kappa_two_hit_diag_param_manual_explore.txt
+// C:\src\2025-10_reseek_tune\bash\test_kappa_prefilter_new_defaults_2026-04-09.bash
+// __________________________________________________  Pattern  Kmer   Diag  PFhits  PFTime
+// SEPQ0.1=0.296 SEPQ1=0.399 SEPQ10=0.493 Sum3=1.684 |    1111    28    100     9 M   00:11 <<== set these defaults 2026-04-09
+// SEPQ0.1=0.290 SEPQ1=0.399 SEPQ10=0.499 Sum3=1.677 | ......Mu bitdope....    12 M   00:33
+// 
+// Sum3 from hits (v2.7 verysensitive AND kappa filtered)
+/////////////////////////////////////////////////////////
+
+//int DSSParams::m_PrefilterMinKappaKmerPairScore = 28;
+//int DSSParams::m_PrefilterMinKappaMinDiagScore = 100;
+int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
+int DSSParams::m_PrefilterMinKappaMinDiagScore = 150;
+
+uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
+uint DSSParams::m_PrefilterKappaKmerWidth = 4;
+uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
+string DSSParams::m_PrefilterKappaPattern = "1111";
+
+static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
+uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
+	KappaKmerOnesOffsets;
+/////////////////////////////////////////////////////
 
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
@@ -65,6 +95,24 @@ static void ThreadBody(uint ThreadIndex)
 
 void cmd_prefilter_kappa()
 	{
+	lookup look;
+	bitdope dope;
+	if (optset_dope)
+		{
+		const string &lookupfn =
+			(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
+		look.from_tsv(lookupfn);
+		dope.m_look = &look;
+		dope.from_file(opt(dope));
+		dope.set_square();
+		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
+		}
+
+	asserta(optset_logodds);
+	const double scalef = (optset_scalef ? opt(scalef) : 10);
+	void load_kappa_integer_logodds(const string &fn, double scalef);
+	load_kappa_integer_logodds(opt(logodds), scalef);
+
 	const string &QueryKappa_FN = g_Arg1;
 	const string &DB3Di_FN = opt(db);
 
@@ -151,7 +199,7 @@ void cmd_prefilter_kappa()
 	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
 	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
 	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
-	ProgressLog("Prefilter hits  %u\n", total);
+	ProgressLog("Prefilter hits  %s\n", FloatToStr(total));
 
 	{
 	FILE *fTsv = CreateStdioFile(opt(output));
@@ -203,5 +251,37 @@ void cmd_prefilter_kappa()
 		FILE *fTsv = CreateStdioFile(opt(output3));
 		prefilter_kappa::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 		CloseStdioFile(s_fTsv);
+		}
+
+	if (optset_dope)
+		{
+		uint nhit = 0;
+		uint nindope = 0;
+		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+			prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
+		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+			{
+			const string &q = QDB.GetLabel(qidx);
+			uint qdomidx = look.get_domidx(q);
+			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+				{
+				uint16_t score = row[tidx];
+				if (score > 0)
+					{
+					const string &t = TDB.GetLabel(tidx);
+					uint tdomidx = look.get_domidx(t);
+					++nhit;
+					if (dope.in_square_ij(qidx, tidx))
+						++nindope;
+					}
+				}
+			}
+		ProgressLog("%u / %u filter hits also in dope\n",
+			nindope, nhit);
+
+		ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
+			nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
 		}
 	}

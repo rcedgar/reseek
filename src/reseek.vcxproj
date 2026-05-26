@@ -551,6 +551,7 @@
     <ClInclude Include="alphadata.h" />
     <ClInclude Include="bcadata.h" />
     <ClInclude Include="binner.h" />
+    <ClInclude Include="bitdope.h" />
     <ClInclude Include="bytevecdb.h" />
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />

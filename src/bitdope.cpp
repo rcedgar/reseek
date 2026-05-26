@@ -1,46 +1,51 @@
 #include "myutils.h"
 #include "triangle.h"
 #include "lookup.h"
+#include "bitdope.h"
 
 void trunc_label(string &Label);
-
-static const uint32_t MAGIC	= 0xd05e;
 
 uint8_t *read_bitdope(const string &fn,
 	uint32_t &ndom, uint32_t &nhit)
 	{
-	uint32_t magic;
-	FILE *f = OpenStdioFile(fn);
-	ReadStdioFile(f, &magic, sizeof(magic));
-	asserta(magic == MAGIC);
-	ReadStdioFile(f, &ndom, sizeof(ndom));
-	uint32_t K = triangle_get_K(ndom);
-	uint32_t bytes = (K + 7)/8;
-	uint8_t *bitvec = myalloc(uint8_t, bytes);
+	//uint32_t magic;
+	//FILE *f = OpenStdioFile(fn);
+	//ReadStdioFile(f, &magic, sizeof(magic));
+	//asserta(magic == MAGIC);
+	//ReadStdioFile(f, &ndom, sizeof(ndom));
+	//uint32_t K = triangle_get_K(ndom);
+	//uint32_t bytes = (K + 7)/8;
+	//uint8_t *bitvec = myalloc(uint8_t, bytes);
 
-	ReadStdioFile(f, bitvec, bytes);
-	ReadStdioFile(f, &magic, sizeof(magic));
-	asserta(magic == MAGIC);
-	CloseStdioFile(f);
+	//ReadStdioFile(f, bitvec, bytes);
+	//ReadStdioFile(f, &magic, sizeof(magic));
+	//asserta(magic == MAGIC);
+	//CloseStdioFile(f);
 
-	nhit = 0;
-	for (uint i = 0; i < bytes; ++i)
-		{
-		uint8_t b = bitvec[i];
-		for (uint j = 0; j < 8; ++j)
-			{
-			if (b & (1 << j))
-				++nhit;
-			}
-		}
-	return bitvec;
+	//nhit = 0;
+	//for (uint i = 0; i < bytes; ++i)
+	//	{
+	//	uint8_t b = bitvec[i];
+	//	for (uint j = 0; j < 8; ++j)
+	//		{
+	//		if (b & (1 << j))
+	//			++nhit;
+	//		}
+	//	}
+	//return bitvec;
+	bitdope dope;
+	dope.from_file(fn);
+	ndom = dope.m_ndom;
+	nhit = dope.m_nhit;
+	return dope.m_dope;
 	}
 
 void cmd_bitdope_stats()
 	{
-	uint ndom, nhit;
-	read_bitdope(g_Arg1, ndom, nhit);
-	ProgressLog("ndom=%u  nhit=%u  %s\n", ndom, nhit, g_Arg1.c_str());
+	bitdope dope;
+	dope.from_file(g_Arg1);
+	ProgressLog("ndom=%u  nhit=%u  %s\n",
+		dope.m_ndom, dope.m_nhit, g_Arg1.c_str());
 	}
 
 /***
@@ -117,10 +122,13 @@ void cmd_bitdope()
 	WriteStdioFile(fOut, &MAGIC, sizeof(MAGIC));
 	CloseStdioFile(fOut);
 
-	uint32_t ndom2, nhit2;
-	const uint8_t *bitvec2 =
-		read_bitdope(opt(output), ndom2, nhit2);
-	asserta(ndom2 == ndom);
-	if (nhit2 != nhit)
-		Die("nhit2 %u, nhit %u", nhit2, nhit);
+	//uint32_t ndom2, nhit2;
+	//const uint8_t *bitvec2 =
+	//	read_bitdope(opt(output), ndom2, nhit2);
+
+	bitdope dope2;
+	dope2.from_file(opt(output));
+	asserta(dope2.m_ndom == ndom);
+	if (dope2.m_nhit != nhit)
+		Die("nhit2 %u, nhit %u", dope2.m_nhit, nhit);
 	}

@@ -1369,6 +1369,9 @@
     <ClInclude Include="prefilter_kappa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bitdope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="train_features2cpp.py">
