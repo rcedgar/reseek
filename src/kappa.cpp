@@ -234,7 +234,7 @@ void cmd_kappa_fasta()
 		g_nucode_to_kappacode[nu] = kappa;
 		Log(" %2u,", kappa);
 		}
-	Log("};");
+	Log("\n};");
 
 	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
