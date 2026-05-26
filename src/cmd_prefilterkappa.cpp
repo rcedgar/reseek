@@ -291,12 +291,19 @@ void cmd_prefilter_kappa()
 					}
 				}
 			}
-		ProgressLog("%u / %u filter hits also in dope\n",
-			nindope, nhit);
-
 		double pct = GetPct(nindope, 2*dope.m_nhit);
-		ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
-			nindope, 2*dope.m_nhit, pct);
+
+		//ProgressLog("%u / %u filter hits also in dope\n",
+		//	nindope, nhit);
+		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
+		//	nindope, 2*dope.m_nhit, pct);
+
+		Progress("pct=%.1f", pct);
+		Progress(" secs=%u", filter_secs);
+		Progress(" pattern=%s", DSSParams::m_PrefilterKappaPattern.c_str());
+		Progress(" kmer=%d", DSSParams::m_PrefilterMinKappaKmerPairScore);
+		Progress(" diag=%d", DSSParams::m_PrefilterMinKappaMinDiagScore);
+		Progress("\n");
 
 		Log("@FEV@");
 		Log("\tpct=%.1f", pct);
