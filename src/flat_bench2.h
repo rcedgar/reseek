@@ -5,6 +5,7 @@
 #include "flat_params.h"
 #include "parasail.h"
 #include "flat_bench2_thread_data.h"
+#include "xdpmem.h"
 
 class flat_bench2 : public FastBench
 	{
@@ -17,6 +18,14 @@ public:
 	static uint m_maxL;
 
 public:
+	bool m_single_feature = false;
+	uint8_t **m_feature_codeseq_vec = 0;
+	uint *m_feature_codeseq_lengths = 0;
+	uint m_feature_alpha_size = UINT_MAX;
+	float m_feature_gap_open = FLT_MAX;
+	float m_feature_gap_ext = FLT_MAX;
+	float *m_feature_logodds = 0;
+
 	chain_data **m_cdvec = 0;
 	atomic<uint> m_next_pairidx = 0;
 	atomic<uint> m_next_domidx = 0;
@@ -47,6 +56,7 @@ public:
 public:
 	void search(uint nthread, bool pin_threads);
 	void align_pair(uint pairidx, flat_bench2_thread_data &TD);
+	void align_pair_single_feature(uint pairidx);
 	void align_pair_timealn(uint pairidx, flat_bench2_thread_data &TD);
 	void align_pair_nu_only(uint pairidx, flat_bench2_thread_data &TD);
 	void align_pair_output_nu_paths(uint pairidx, flat_bench2_thread_data &TD);
@@ -63,6 +73,10 @@ public:
 	void set_nu_self_rev_scores();
 	void load_mega_paths(const string &fn);
 	void write_nu_hexfasta(const string &fn);
+	void load_single_feature(
+		const string &fn,
+		const string &logoddsfn,
+		float gap_open, float gap_ext);
 
 public:
 	static void static_thread_body(

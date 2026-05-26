@@ -67,7 +67,8 @@ public:
 	void WriteHits(
 		const string &FN,
 		bool IncludeSelf = false,
-		bool UpperTriangleOnly = false) const;
+		bool UpperTriangleOnly = false,
+		bool IncludeFam = false) const;
 	void ReadBits(const string &FN);
 	void WriteBits(const string &FN) const;
 	bool IsTP(uint LabelIdx_i, uint LabelIdx_j) const;

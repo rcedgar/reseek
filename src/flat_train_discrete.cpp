@@ -161,12 +161,15 @@ void read_feature_fa_and_fa2(
 	vector<uint8_t> &code1s,
 	vector<uint8_t> &code2s,
 	vector<uint> &pctid2count,
+	const string &converted_fa2_fn,
 	double &fract_identical)
 	{
 	code1s.clear();
 	code2s.clear();
 	pctid2count.clear();
 	pctid2count.resize(101);
+
+	FILE *f = CreateStdioFile(converted_fa2_fn);
 
 	const uint8_t *char2letter = (alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
 
@@ -292,10 +295,55 @@ void read_feature_fa_and_fa2(
 			asserta(pctid >= 0 && pctid <= 100);
 			pctid2count[pctid] += 1;
 			}
+
+		if (f != 0)
+			{
+			string aligned_featseq1;
+			string aligned_featseq2;
+			pos1 = 0;
+			pos2 = 0;
+			for (uint colidx = 0; colidx < ncols; ++colidx)
+				{
+				char rowc1 = row1[colidx];
+				char rowc2 = row2[colidx];
+				if (isalpha(rowc1) && isalpha(rowc2))
+					{
+					char featc1 = featseq1[pos1];
+					char featc2 = featseq2[pos2];
+					if (islower(rowc1))
+						{
+						asserta(islower(rowc2));
+						featc1 = tolower(featc1);
+						featc2 = tolower(featc2);
+						}
+					aligned_featseq1 += featc1;
+					aligned_featseq2 += featc2;
+					}
+				else if (isgap(rowc1))
+					{
+					aligned_featseq1 += '-';
+					aligned_featseq2 += featseq2[pos2];
+					}
+				else if (isgap(rowc2))
+					{
+					aligned_featseq1 += featseq1[pos1];
+					aligned_featseq2 += '-';
+					}
+				else
+					asserta(false);
+				if (!isgap(rowc1)) ++pos1;
+				if (!isgap(rowc2)) ++pos2;
+				}
+			fprintf(f, ">%s [1]\n", full_label1.c_str());
+			fprintf(f, "%s\n", aligned_featseq1.c_str());
+			fprintf(f, ">%s [2]\n", full_label2.c_str());
+			fprintf(f, "%s\n", aligned_featseq2.c_str());
+			}
 		}
 	fract_identical = double(total_identical)/double(total_upper+0.1);
 	ProgressLog("%u seq pairs, %s letter pairs, %u length mismatches, %.3g%% missing, %u bad, %.2f%% identical\n",
 		npairs, IntToStr(SIZE(code1s)), length_mismatch_count, GetPct(nmissing, nfa2), bad_letters, 100*fract_identical);
+	CloseStdioFile(f);
 	}
 
 void get_countmx_from_code_pairs(
@@ -618,7 +666,7 @@ void cmd_flat_train_discrete()
 	vector<uint> pctid2count;
 	double fract_identical;
 	read_feature_fa_and_fa2(fafn, fa2fn, min_length, alpha_size,
-		code1s, code2s, pctid2count, fract_identical);
+		code1s, code2s, pctid2count, opt(output3),fract_identical);
 
 	vector<vector<uint> > countmx;
 	get_countmx_from_code_pairs(code1s, code2s, alpha_size, countmx);

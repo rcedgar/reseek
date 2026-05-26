@@ -1273,3 +1273,102 @@ float SWFast_returnDPmatrix_nonself(
 
 	return BestScore;
 	}
+
+float sw_flatmx_scoreonly(XDPMem &Mem,
+	const uint8_t *A, uint LA,
+	const uint8_t *B, uint LB,
+	const float *flatmx, uint alpha_size,
+	float Open, float Ext)
+	{
+	asserta(Open <= 0);
+	asserta(Ext <= 0);
+
+	Mem.Clear();
+	Mem.Alloc(LA+32, LB+32);
+
+	float *Mrow = Mem.GetDPRow1();
+	float *Drow = Mem.GetDPRow2();
+	uint8_t **TB = Mem.GetTBBit();
+
+// Use Mrow[-1], so...
+	Mrow[-1] = MINUS_INFINITY;
+
+	for (uint j = 0; j <= LB; ++j)
+		{
+		Mrow[j] = MINUS_INFINITY;
+		Drow[j] = MINUS_INFINITY;
+		}
+	
+	float BestScore = 0.0f;
+	uint Besti = UINT_MAX;
+	uint Bestj = UINT_MAX;
+
+// Main loop
+	float M0 = float (0);
+	for (uint i = 0; i < LA; ++i)
+		{
+		uint8_t LetterA = A[i];
+		//const float *SMxRow = SubstMx[LetterA].data();
+		float I0 = MINUS_INFINITY;
+		for (uint j = 0; j < LB; ++j)
+			{
+			float SavedM0 = M0;
+
+		// MATCH
+			{
+		// M0 = DPM[i][j]
+		// I0 = DPI[i][j]
+		// Drow[j] = DPD[i][j]
+			float xM = M0;
+			if (Drow[j] > xM)
+				{
+				xM = Drow[j];
+				}
+			if (I0 > xM)
+				{
+				xM = I0;
+				}
+			if (0.0f >= xM)
+				{
+				xM = 0.0f;
+				}
+
+			uint8_t LetterB = B[j];
+			M0 = Mrow[j];
+			xM += flatmx[alpha_size*LetterA + LetterB];
+			if (xM > BestScore)
+				{
+				BestScore = xM;
+				Besti = i;
+				Bestj = j;
+				}
+
+			Mrow[j] = xM;
+			}
+			
+		// DELETE
+			{
+			float md = SavedM0 + Open;
+			Drow[j] += Ext;
+			if (md >= Drow[j])
+				{
+				Drow[j] = md;
+				}
+			}
+			
+		// INSERT
+			{
+			float mi = SavedM0 + Open;
+			I0 += Ext;
+			if (mi >= I0)
+				{
+				I0 = mi;
+				}
+			}
+			}
+		
+		M0 = MINUS_INFINITY;
+		}
+
+	return BestScore;
+	}

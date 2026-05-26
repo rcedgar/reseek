@@ -337,6 +337,8 @@ double StrToFloat(const char *s);
 double StrToFloat_err(const char *s);
 const char *GetElapsedTimeStr(string &s);
 const char *GetMaxRAMStr(string &s);
+bool IsValidFloatStr(const string &s);
+bool IsValidFloatStr(const char *s);
 
 const char *GetBaseName(const char *PathName);
 void GetBaseName(const string &PathName, string &Base);

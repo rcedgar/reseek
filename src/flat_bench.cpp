@@ -699,11 +699,6 @@ void cmd_flat_bench()
 	thread_affinity ta;
 	bool pin = opt(no_thread_pin) ? false : ta.shouldPin(ThreadCount);
 	FB.Search(ThreadCount, pin, optset_dope, UINT_MAX);
-	//uint nu_filter_reject_count = flat_aligner::m_nu_filter_reject_count;
-	//uint aln_count = flat_aligner::m_aln_count;
-	//ProgressLog("%u/%u nu filter rejects (%.1f%%)\n",
-	//	nu_filter_reject_count, aln_count,
-	//	GetPct(nu_filter_reject_count, aln_count));
 	FB.SetScoreOrder();
 	FB.Bench();
 	FB.WriteHits(opt(output), opt(include_self), opt(triangle));

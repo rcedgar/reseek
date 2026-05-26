@@ -279,10 +279,12 @@ void SeqDB::TruncLabels()
 	uint SeqCount = GetSeqCount();
 	for (unsigned SeqIndex = 0; SeqIndex < SeqCount; ++SeqIndex)
 		{
-		const string &Label = m_Labels[SeqIndex];
-		size_t n = Label.find(' ');
-		if (n != string::npos && n > 0)
-			m_Labels[SeqIndex][n] = 0;
+		//const string &Label = m_Labels[SeqIndex];
+		//size_t n = Label.find(' ');
+		//if (n != string::npos && n > 0)
+		//	m_Labels[SeqIndex][n] = 0;
+		void trunc_label(string &Label);
+		trunc_label(m_Labels[SeqIndex]);
 		}
 	}
 

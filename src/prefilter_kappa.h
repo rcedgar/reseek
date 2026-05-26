@@ -11,7 +11,7 @@
 #include "rankedscoresbag.h"
 #include "kappa_prefilter_params.h"
 
-extern const int16_t kappa32_flat_logodds[32*32];
+extern int16_t kappa32_flat_logodds[32*32];
 
 #define	TRACE			0
 

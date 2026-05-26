@@ -73,9 +73,6 @@ public:
 
 	void logme();
 
-///////////////////
-// from flat_alphas
-///////////////////
 	void set_alpha_names(const vector<string> &alpha_names);
 
 	uint get_nfeat() { assert(m_nfeat != 0); return m_nfeat; }
@@ -150,13 +147,10 @@ public:
 	void get_logodds_symbols(const float *logodds,
 		uint alpha_size, string &symbols);
 
-	uint read_logodds(const string &fn, vector<float> &logodds);
 	void write_logodds(const string &fn,
 		const vector<float> &logodds, uint alpha_size);
 	void logodds2lines(const vector<float> &logodds,
 		uint alpha_size, vector<string> &lines);
-	uint lines2logoddsmx(const vector<string> &lines,
-		vector<float> &logoddsmx);
 
 	void init_from_alphadir(
 		const string &arg_alphadir,
@@ -169,4 +163,10 @@ public:
 	void init_from_collect(
 		const collect &C,
 		const vector<string> &alpha_names);
+
+public:
+	static uint read_logodds(const string &fn, vector<float> &logodds);
+	static uint lines2logoddsmx(const vector<string> &lines,
+		vector<float> &logoddsmx);
+
 	};

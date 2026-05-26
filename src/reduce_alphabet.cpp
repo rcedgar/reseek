@@ -322,8 +322,23 @@ void cmd_reduce_alphabet()
 	vector<double> Hvec;
 
 	vector<double> logoddsmx, in_freqmx;
-	const uint fullAS = 
-		read_logodds_and_freqmx(logoddsfn, logoddsmx, in_freqmx);
+	uint fullAS = UINT_MAX;
+	if (logoddsfn[0] == '@')
+		{
+		string alpha_name = logoddsfn.substr(1);
+		extern const vector<string> g_alpha_collect_lines;
+		collect C;
+		C.from_lines(g_alpha_collect_lines);
+		string logoddsfn;
+		Ps(logoddsfn, "%s.logodds", alpha_name.c_str());
+
+		vector<float> logodds;
+		const vector<string> &logodds_lines = C.get_lines(logoddsfn);
+		fullAS = logodds_and_freqmx_from_lines(
+			logodds_lines, logoddsmx, in_freqmx);
+		}
+	else
+		fullAS = read_logodds_and_freqmx(logoddsfn, logoddsmx, in_freqmx);
 	asserta(fullAS <= 36);
 	const uint AS2 = fullAS*fullAS;
 	asserta(logoddsmx.size() == AS2);

@@ -320,7 +320,7 @@ void FastBench::ReadBits(const string &FN)
 	}
 
 void FastBench::WriteHits(const string &FN, bool IncludeSelf,
-	bool UpperTriangleOnly) const
+	bool UpperTriangleOnly, bool IncludeFam) const
 	{
 	if (FN == "")
 		return;
@@ -331,7 +331,8 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 	const vector<string> &labels = m_look->m_doms;
 	for (uint k = 0; k < K; ++k)
 		{
-		ProgressStep(k, K, "Writing %s", FN.c_str());
+		ProgressStep(k, K, "Writing %s include_self=%c triangle=%c fam=%c",
+			FN.c_str(), tof(IncludeSelf), tof(UpperTriangleOnly), tof(IncludeFam));
 		uint HitIdx = m_ScoreOrder[k];
 		uint i, j;
 		triangle_k_to_ij(HitIdx, m_ndom, i, j);
@@ -343,14 +344,22 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 
 		fprintf(f, "%.3g", Score);
 		fprintf(f, "\t%s", labels[i].c_str());
+		if (IncludeFam)
+			fprintf(f, "/%s", m_look->get_fam(i));
 		fprintf(f, "\t%s", labels[j].c_str());
+		if (IncludeFam)
+			fprintf(f, "/%s", m_look->get_fam(j));
 		fprintf(f, "\n");
 
 		if (!UpperTriangleOnly)
 			{
 			fprintf(f, "%.3g", Score);
 			fprintf(f, "\t%s", labels[j].c_str());
+			if (IncludeFam)
+				fprintf(f, "/%s", m_look->get_fam(j));
 			fprintf(f, "\t%s", labels[i].c_str());
+			if (IncludeFam)
+				fprintf(f, "/%s", m_look->get_fam(i));
 			fprintf(f, "\n");
 			}
 		}
@@ -445,31 +454,52 @@ void guess_fields(
 	FILE *f = OpenStdioFile(hitsfn);
 	string line;
 	vector<string> flds;
+	uint n0 = 0;
+	uint n1 = 0;
+	uint n2 = 0;
+	uint nlt1 = 0;
 	for (uint i = 0; i < 100; ++i)
 		{
 		bool ok = ReadLineStdioFile(f, line);
 		asserta(ok);
 		Split(line, flds, '\t');
 		asserta(flds.size() >= 3);
-		if (flds[0] == flds[1])
+		if (IsValidFloatStr(flds[0]))
 			{
-			qfi = 0;
-			tfi = 1;
-			sfi = 2;
-			float score = StrToFloatf(flds[sfi]);
-			scores_are_evalues = (score < 1);
-			break;
+			++n0;
+			if (StrToFloat(flds[0]) < 1)
+				++nlt1;
 			}
-		else if (flds[1] == flds[2])
+		if (IsValidFloatStr(flds[1]))
 			{
-			qfi = 1;
-			tfi = 2;
-			sfi = 0;
-			float score = StrToFloatf(flds[sfi]);
-			scores_are_evalues = (score < 1);
+			++n1;
+			if (StrToFloat(flds[1]) < 1)
+				++nlt1;
+			}
+		if (IsValidFloatStr(flds[2]))
+			{
+			++n2;
+			if (StrToFloat(flds[2]) < 1)
+				++nlt1;
 			}
 		}
 	CloseStdioFile(f);
+	if (n0 == 0 && n1 == 0 && n2 == 100)
+		{
+		qfi = 0;
+		tfi = 1;
+		sfi = 2;
+		}
+	else if (n0 == 100 && n1 == 0 && n2 == 0)
+		{
+		qfi = 1;
+		tfi = 2;
+		sfi = 0;
+		}
+	if (opt(scores_are_evalues))
+		scores_are_evalues = true;
+	else
+		scores_are_evalues = (nlt1 > 10);
 	if (qfi == UINT_MAX)
 		Die("guess_fields");
 	}

@@ -25,7 +25,32 @@ uint8_t g_nucode_to_kappacode[256] = {
 };
 
 uint8_t s_sec32_to_sec4[32] =
-	{ 0, 1, 2, 3, 3, 0, 3, 0, 1, 3, 0, 3, 0, 3, 0, 3, 2, 0, 1, 0, 0, 0, 1, 1, 0, 3, 3, 0, 3, 0, 3, 1 };
+	{ 0, 1, 2, 3, 3, 0, 3, 0, 1, 3, 0, 3, 0, 3, 0, 3,
+	2, 0, 1, 0, 0, 0, 1, 1, 0, 3, 3, 0, 3, 0, 3, 1 };
+
+// -sec4_groups AB-CDGHINQZ-EFJLKMTcde-OPRSUVWXYabf
+void set_sec4_groups(const string &sec4_groups)
+	{
+	vector<string> flds;
+	Split(sec4_groups, flds, '-');
+	asserta(flds.size() == 4);
+	for (uint i = 0; i < 32; ++i)
+		s_sec32_to_sec4[i] = 0xff;
+	for (uint code_sec4 = 0; code_sec4 < 4; ++code_sec4)
+		{
+		const string &fld = flds[code_sec4];
+		asserta(fld.size() > 0);
+		for (size_t j = 0; j < fld.size(); ++j)
+			{
+			char c = fld[j];
+			uint8_t code_sec32 = g_CharToLetterMu[c];
+			asserta(code_sec32 < 32);
+			s_sec32_to_sec4[code_sec32] = code_sec4;
+			}
+		}
+	for (uint code_sec32 = 0; code_sec32 < 32; ++code_sec32)
+		asserta(s_sec32_to_sec4[code_sec32] < 32);
+	}
 
 static uint8_t components_to_nu(
 	uint8_t aa4, uint8_t pm2, uint8_t sec32)
@@ -170,9 +195,12 @@ void codeseq_to_fasta(FILE *f, const string &label,
 	SeqToFasta(f, label, hexseq);
 	}
 
-void cmd_test_kappa()
+void cmd_kappa_fasta()
 	{
 	const string &chainfn = g_Arg1;
+	asserta(!optset_fasta);
+	if (optset_sec4_groups)
+		set_sec4_groups(opt(sec4_groups));
 
 	vector<string> param_names;
 	vector<float> param_values;
@@ -196,22 +224,17 @@ void cmd_test_kappa()
 	read_flat_chains(chainfn, chains);
 	const uint nchain = uint(chains.size());
 
-	FILE *f = g_fLog;
-	if (f != 0)
+	Log("static const uint8_t nucode_to_kappacode[256] = {\n");
+	for (uint code = 0; code < 256; ++code)
 		{
-		fprintf(f, "static const uint8_t nucode_to_kappacode[256] = {\n");
-		for (uint code = 0; code < 256; ++code)
-			{
-			uint8_t nu = uint8_t(code);
-			if (nu > 0 && nu%16 == 0)
-				fprintf(f, "\n");
-			uint8_t kappa = nu_to_kappa(nu);
-			g_nucode_to_kappacode[nu] = kappa;
-			fprintf(f, " %2u,", kappa);
-			}
-		fprintf(f, "};");
-		CloseStdioFile(f);
+		uint8_t nu = uint8_t(code);
+		if (nu > 0 && nu%16 == 0)
+			Log("\n");
+		uint8_t kappa = nu_to_kappa(nu);
+		g_nucode_to_kappacode[nu] = kappa;
+		Log(" %2u,", kappa);
 		}
+	Log("};");
 
 	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
@@ -220,11 +243,15 @@ void cmd_test_kappa()
 	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
 	chaq_vecs2 cv;
 	chaq::alloc_chaq_vecs2(cv, maxL);
-	FILE *fnu = CreateStdioFile("nu.hexfa");
-	FILE *fkappa = CreateStdioFile("kappa.fa");
+	FILE *fnu = 0;
+	if (optset_hexfasta)
+		fnu = CreateStdioFile(opt(hexfasta));
+	FILE *fkappa = 0;
+	if (optset_output)
+		fkappa = CreateStdioFile(opt(output));
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
-		ProgressStep(chainidx, nchain, "Writing nu.hexfa and kappa.fa");
+		ProgressStep(chainidx, nchain, "Writing hex/fasta");
 		const flat_chain_t *chain = chains[chainidx];
 		const char *charseq_aa20 = chain->m_aa->m_data;
 		const uint L = chain->get_length();

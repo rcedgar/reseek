@@ -124,6 +124,15 @@ public:
 		return m_doms[domidx];
 		}
 
+	const char *get_fam(uint domidx) const
+		{
+		assert(domidx < m_doms.size());
+		assert(domidx < m_domidx2famidx.size());
+		uint famidx = m_domidx2famidx[domidx];
+		assert(famidx < m_fams.size());
+		return m_fams[famidx].c_str();
+		}
+	
 	void get_dom_scopid(uint domidx, string &label) const
 		{
 		assert(domidx < m_doms.size());

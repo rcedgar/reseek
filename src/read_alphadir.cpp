@@ -203,23 +203,36 @@ void flat_params::init_from_alphadir(
 	const string &arg_alphadir,
 	const vector<string> &alpha_names)
 	{
+	asserta(!alpha_names.empty());
+
+	bool has_kappa = false;
+	for (size_t i = 0; i < alpha_names.size(); ++i)
+		if (alpha_names[i] == "kappa32")
+			{
+			has_kappa = true;
+			break;
+			}
 	extern const vector<string> g_alpha_collect_lines;
 	if (arg_alphadir == "")
 		{
 		collect C;
 		C.from_lines(g_alpha_collect_lines);
+		if (has_kappa)
+			C.append_kappa();
+		if (has_kappa)
 		C.m_name = "[default_alphadir]";
 		flat_params::init_from_collect(C, alpha_names);
 		return;
 		}
 
-	asserta(!alpha_names.empty());
-
+	asserta(!has_kappa);
 	if (StartsWith(arg_alphadir, "@"))
 		{
 		const string fn = arg_alphadir.substr(1);
 		collect C;
 		C.from_file(fn);
+		if (has_kappa)
+			C.append_kappa();
 		flat_params::init_from_collect(C, alpha_names);
 		return;
 		}

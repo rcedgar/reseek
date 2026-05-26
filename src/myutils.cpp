@@ -1186,6 +1186,18 @@ double StrToFloat_err(const char *s)
 	return d;
 	}
 
+bool IsValidFloatStr(const char *s)
+	{
+	char *p;
+	double d = strtod(s, &p);
+	return (*p == 0);
+	}
+
+bool IsValidFloatStr(const string &s)
+	{
+	return IsValidFloatStr(s.c_str());
+	}
+
 double StrToFloat(const char *s)
 	{
 	char *p;

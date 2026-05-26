@@ -173,13 +173,11 @@ uint read_logodds(
 	return lines2logoddsmx(lines, logoddsmx);
 	}
 
-uint read_logodds_and_freqmx(
-	const string &fn,
+uint logodds_and_freqmx_from_lines(
+	const vector<string> &lines,
 	vector<double> &logoddsmx,
 	vector<double> &freqmx)
 	{
-	vector<string> lines;
-	ReadLinesFromFile(fn, lines);
 	logoddsmx.clear();
 	tabbedlines tl(lines);
 	uint alpha_size = tl.get_int("logodds");
@@ -191,6 +189,18 @@ uint read_logodds_and_freqmx(
 	uint alpha_size2 = tl.get_int("freqs");
 	asserta(alpha_size2 == alpha_size);
 	tl.get_double_flat_square_mx(alpha_size, freqmx.data());
+	return alpha_size;
+	}
+
+uint read_logodds_and_freqmx(
+	const string &fn,
+	vector<double> &logoddsmx,
+	vector<double> &freqmx)
+	{
+	vector<string> lines;
+	ReadLinesFromFile(fn, lines);
+	uint alpha_size = logodds_and_freqmx_from_lines(
+		lines, logoddsmx, freqmx);
 	return alpha_size;
 	}
 

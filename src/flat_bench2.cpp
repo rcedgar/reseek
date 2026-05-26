@@ -6,6 +6,7 @@
 #include "paralign.h"
 #include "parasail_nomalloc.h"
 #include "cigar.h"
+#include "seqdb.h"
 #include "getticks.h"
 
 uint flat_bench2::m_maxL = 4000;
@@ -259,23 +260,18 @@ float flat_bench2::calc_ts(
 			cd_j, rev_lo_j,
 			rev_path, rev_ncol);
 		ts -= revw*score_rev;
-		asserta(!isnan(ts));//@@TODO
-		asserta(!isinf(ts));//@@TODO
 		}
 
 	uint nmatch = path2posvecs3(TD.m_path_buffer, fwd_ncol,
 		fwd_lo_i, L_i, fwd_lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
 
 	float nu_rev_score = 0;//@@TODO
+	asserta(m_params->m_nurev_w == 0);
 	ts += m_params->m_nurev_w*nu_rev_score;
-	asserta(!isnan(ts));//@@TODO
-	asserta(!isinf(ts));//@@TODO
 
 	const float selfw = m_params->m_self_w;
 	if (selfw > 0)
 		ts -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
-	asserta(!isnan(ts));//@@TODO
-	asserta(!isinf(ts));//@@TODO
 
 	if (m_params->m_lddt_w > 0)
 		{
@@ -285,8 +281,6 @@ float flat_bench2::calc_ts(
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
 		ts += m_params->m_lddt_w*lddt*500;
-		asserta(!isnan(ts));//@@TODO
-		asserta(!isinf(ts));//@@TODO
 		}
 
 	if (m_params->m_lddtx_w > 0)
@@ -300,8 +294,6 @@ float flat_bench2::calc_ts(
 			nmatch, distmx_i, distmx_j,
 			TD.m_considered_vec, TD.m_preserved_vec);
 		ts += m_params->m_lddtx_w*lddt*500*Lfactor;
-		asserta(!isnan(ts));//@@TODO
-		asserta(!isinf(ts));//@@TODO
 		}
 
 	if (m_params->m_dali_w > 0)
@@ -311,22 +303,13 @@ float flat_bench2::calc_ts(
 			TD.m_pos_js, L_j,
 			nmatch, distmx_i, distmx_j);
 		ts += m_params->m_dali_w*dali*10;
-		asserta(!isnan(ts));//@@TODO
-		asserta(!isinf(ts));//@@TODO
 		}
 
 	if (m_params->m_dalix_w > 0)
 		{
 		Die("TODO");
-		//float dalix = flat_get_dalix(
-		//	label_i, label_j, path,
-		//	lo_i, L_i, lo_j, L_j,
-		//	distmx_i, distmx_j, TD.m_colscores);
-		//ts += m_params->m_dalix_w*dalix*10;
 		}
 
-	asserta(!isnan(ts));//@@TODO
-	asserta(!isinf(ts));//@@TODO
 	return ts;
 	}
 
@@ -795,9 +778,42 @@ void flat_bench2::align_pair_timealn(
 	lock.unlock();
 	}
 
+void flat_bench2::align_pair_single_feature(uint pairidx)
+	{
+	float sw_flatmx_scoreonly(XDPMem &Mem,
+		const uint8_t *A, uint LA,
+		const uint8_t *B, uint LB,
+		const float *flatmx, uint alpha_size,
+		float Open, float Ext);
+
+	asserta(m_feature_logodds != 0);
+
+	uint NQ = uint(m_Labels.size());
+	uint i, j;
+	triangle_k_to_ij(pairidx, NQ, i, j);
+	const uint8_t *codeseq_i = m_feature_codeseq_vec[i];
+	const uint8_t *codeseq_j = m_feature_codeseq_vec[j];
+	uint L_i = m_feature_codeseq_lengths[i];
+	uint L_j = m_feature_codeseq_lengths[j];
+
+	thread_local XDPMem Mem;
+	float score = sw_flatmx_scoreonly(
+		Mem,
+		codeseq_i, L_i,
+		codeseq_j, L_j,
+		m_feature_logodds, m_feature_alpha_size,
+		m_feature_gap_open, m_feature_gap_ext);
+	m_Scores[pairidx] = score;
+	}
+
 void flat_bench2::align_pair(
 	uint pairidx, flat_bench2_thread_data &TD)
 	{
+	if (m_single_feature)
+		{
+		align_pair_single_feature(pairidx);
+		return;
+		}
 	if (m_timealn)
 		{
 		align_pair_timealn(pairidx, TD);
@@ -1073,6 +1089,8 @@ void flat_bench2::update_params(
 	const vector<string> &names,
 	const vector<float> &values)
 	{
+	if (m_single_feature)
+		return;
 	asserta(m_cdvec != 0);
 	vector<string> alpha_names;
 	vector<float> weights;
@@ -1166,8 +1184,58 @@ void flat_bench2::load_mega_paths(const string &fn)
 	CloseStdioFile(f);
 	}
 
+void flat_bench2::load_single_feature(
+	const string &fastafn,
+	const string &logoddsfn,
+	float gap_open, float gap_ext)
+	{
+	ProgressLog("load_single_feature(%s, %s)",
+		fastafn.c_str(), logoddsfn.c_str());
+	asserta(gap_open > 0);
+	asserta(gap_ext >= 0);
+
+	vector<float> logodds;
+	uint alpha_size = flat_params::read_logodds(logoddsfn, logodds);
+	m_feature_logodds = myalloc(float, alpha_size*alpha_size);
+	for (uint i = 0; i < alpha_size*alpha_size; ++i)
+		m_feature_logodds[i] = logodds[i];
+
+	m_feature_gap_open = -gap_open;
+	m_feature_gap_ext = -gap_ext;
+	m_feature_alpha_size = alpha_size;
+	m_single_feature = true;
+
+	asserta(fastafn != "");
+	asserta(logoddsfn != "");
+	asserta(alpha_size > 1 && alpha_size <= 36);
+	const uint8_t *char_to_letter =
+		(alpha_size == 20 ? g_CharToLetterAmino : g_CharToLetterMu);
+
+	SeqDB DB;
+	DB.FromFasta(fastafn);
+	DB.ToLetters(char_to_letter);
+	DB.TruncLabels();
+	DB.SetLabelToIndex();
+	const uint ndom = m_look->get_ndom();
+	m_feature_codeseq_vec = myalloc(uint8_t *, ndom);
+	m_feature_codeseq_lengths = myalloc(uint, ndom);
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		const string &dom = m_look->get_dom(domidx);
+		uint seqidx = DB.GetSeqIndex(dom);
+		uint L = DB.GetSeqLength(seqidx);
+		m_feature_codeseq_vec[domidx] = myalloc(uint8_t, L);
+		memcpy(m_feature_codeseq_vec[domidx],
+			(const uint8_t *) DB.m_Seqs[seqidx].c_str(), L);
+		m_feature_codeseq_lengths[domidx] = L;
+		}
+	}
+
 void cmd_flat_bench2()
 	{
+	asserta(!optset_dope);
+	asserta(!optset_subdope);
+
 	const bool output_nu_paths = optset_output2;
 	const bool input_mega_paths = optset_input2;
 	if (output_nu_paths)
@@ -1199,8 +1267,20 @@ void cmd_flat_bench2()
 	flat_bench2 FB;
 	FB.m_params = &params;
 	FB.ReadLookup(opt(lookup));
-	FB.load_chains(chains);
-	FB.write_nu_hexfasta(opt(hexfasta));
+	if (optset_logodds)
+		{
+		asserta(optset_gapopen);
+		asserta(optset_gapext);
+		FB.load_single_feature(
+			g_Arg1, opt(logodds),
+			(float) opt(gapopen), (float) opt(gapext));
+		}
+	else
+		{
+		FB.load_chains(chains);
+		FB.write_nu_hexfasta(opt(hexfasta));
+		}
+
 	FB.update_params(param_names, param_values);
 	FB.m_nu_only = opt(nuonly);
 	FB.m_timealn = opt(timealn);
@@ -1249,7 +1329,7 @@ void cmd_flat_bench2()
 
 	FB.SetScoreOrder();
 	FB.Bench();
-	FB.WriteHits(opt(output), opt(include_self), opt(triangle));
+	FB.WriteHits(opt(output), opt(include_self), opt(triangle), opt(include_fam));
 
 	double align_count = double(FB.m_aln_count);
 	double mega_fwd_test_count = double(FB.m_mega_fwd_test_count);

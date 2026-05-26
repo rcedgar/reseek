@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "kappa_mermx.h"
+#include "flat_params.h"
 
 /***
 $src/2025-10_reseek_tune [f31f3ea]
@@ -12,7 +13,7 @@ reseek [c04b808]
 	-output merge.logodds \
 	-output2 merge.cpp // << C++ source below
 ***/
-extern const int16_t kappa32_flat_logodds[1024] = {
+int16_t kappa32_flat_logodds[1024] = {
 19,2,1,-6,13,-3,-4,-11,11,-6,-7,-14,5,-11,-13,-19,15,-1,-3,-9,9,-7,-8,-15,16,-1,-2,-9,10,-6,-7,-14,
 2,7,3,1,-3,2,-3,-5,-6,-1,-5,-7,-11,-6,-11,-13,-1,4,-1,-3,-7,-2,-7,-9,-1,4,0,-2,-6,-1,-6,-8,
 1,3,8,-4,-4,-3,3,-10,-7,-5,0,-12,-13,-11,-6,-18,-3,-1,4,-8,-8,-7,-1,-14,-2,0,5,-7,-7,-6,0,-13,
@@ -66,4 +67,33 @@ const kappa_mermx &GetKappaMerMx(uint k)
 		}
 	(*s_ptrkappaMerMx).Init(MxPtrs, k, AS, 2);
 	return *s_ptrkappaMerMx;
+	}
+
+//	static uint read_logodds(const string &fn, vector<float> &logodds);
+void load_kappa_integer_logodds(const string &fn, double scalef)
+	{
+	vector<float> logodds;
+	flat_params::read_logodds(fn, logodds);
+	asserta(logodds.size() == 32*32);
+	Log("int16_t kappa32_flat_logodds[1024] = {\n");
+	for (uint i = 0; i < 32*32; ++i)
+		{
+		double score = logodds[i]*scalef;
+		int intscore = int(round(score));
+		int16_t intscore16 = int16_t(intscore);
+		asserta(intscore16 == intscore);
+		kappa32_flat_logodds[i] = intscore16;
+		if (i > 0)
+			Log(",");
+		if (i > 0 && i%32 == 0)
+			Log("\n");
+		Log(" %3d", intscore);
+		}
+	Log("\n};\n");
+	}
+
+void cmd_load_kappa_logodds()
+	{
+	asserta(optset_scalef);
+	load_kappa_integer_logodds(g_Arg1, opt(scalef));
 	}

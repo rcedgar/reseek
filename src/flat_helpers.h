@@ -369,3 +369,10 @@ void codeseq_to_hexfasta(FILE *f, const string &label,
 
 void codeseq_to_fasta(FILE *f, const string &label,
 	const uint8_t *codeseq, uint L, uint alpha_size);
+
+uint logodds_and_freqmx_from_lines(
+	const vector<string> &lines,
+	vector<double> &logoddsmx,
+	vector<double> &freqmx);
+
+void set_sec4_groups(const string &sec4_groups);

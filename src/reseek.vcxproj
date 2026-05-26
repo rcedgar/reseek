@@ -665,6 +665,7 @@
     <ClInclude Include="pearson_correl.h" />
     <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="prefiltermuparams.h" />
+    <ClInclude Include="prefilter_kappa.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="procstats.h" />
     <ClInclude Include="profileloader.h" />
