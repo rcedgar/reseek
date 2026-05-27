@@ -268,7 +268,7 @@ void cmd_prefilter_kappa()
 
 	if (optset_dope)
 		{
-		uint nhit = 0;
+		uint npass = 0;
 		uint nindope = 0;
 		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
 			prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
@@ -285,7 +285,7 @@ void cmd_prefilter_kappa()
 					{
 					const string &t = TDB.GetLabel(tidx);
 					uint tdomidx = look.get_domidx(t);
-					++nhit;
+					++npass;
 					if (dope.in_square_ij(qidx, tidx))
 						++nindope;
 					}
@@ -294,7 +294,7 @@ void cmd_prefilter_kappa()
 		double pct = GetPct(nindope, 2*dope.m_nhit);
 
 		//ProgressLog("%u / %u filter hits also in dope\n",
-		//	nindope, nhit);
+		//	nindope, npass);
 		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
 		//	nindope, 2*dope.m_nhit, pct);
 
@@ -303,6 +303,7 @@ void cmd_prefilter_kappa()
 		Progress(" pattern=%s", DSSParams::m_PrefilterKappaPattern.c_str());
 		Progress(" kmer=%d", DSSParams::m_PrefilterMinKappaKmerPairScore);
 		Progress(" diag=%d", DSSParams::m_PrefilterMinKappaMinDiagScore);
+		Progress(" npass=%u", npass);
 		Progress("\n");
 
 		Log("@FEV@");
@@ -311,6 +312,7 @@ void cmd_prefilter_kappa()
 		Log("\tpattern=%s", DSSParams::m_PrefilterKappaPattern.c_str());
 		Log("\tkmer=%d", DSSParams::m_PrefilterMinKappaKmerPairScore);
 		Log("\tdiag=%d", DSSParams::m_PrefilterMinKappaMinDiagScore);
+		Log("\tnpass=%u", npass);
 		Log("\n");
 		}
 	}

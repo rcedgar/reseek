@@ -193,7 +193,7 @@ void cmd_prefilter_mu()
 
 	if (optset_dope)
 		{
-		uint nhit = 0;
+		uint npass = 0;
 		uint nindope = 0;
 		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
 			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
@@ -210,14 +210,14 @@ void cmd_prefilter_mu()
 					{
 					const string &t = TDB.GetLabel(tidx);
 					uint tdomidx = look.get_domidx(t);
-					++nhit;
+					++npass;
 					if (dope.in_square_ij(qidx, tidx))
 						++nindope;
 					}
 				}
 			}
 		//ProgressLog("%u / %u filter hits also in dope\n",
-		//	nindope, nhit);
+		//	nindope, npass);
 
 		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
 		//	nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
@@ -228,6 +228,7 @@ void cmd_prefilter_mu()
 		Progress(" secs=%u", filter_secs);
 		Progress(" pattern=%s", prefiltermu_pattern);
 		Progress(" kmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Progress(" npass=%u", npass);
 		Progress("\n");
 
 		Log("@FEV@");
@@ -235,6 +236,7 @@ void cmd_prefilter_mu()
 		Log("\tsecs=%u", filter_secs);
 		Log("\tpattern=%s", prefiltermu_pattern);
 		Log("\tkmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Log("\tnpass=%u", npass);
 		Log("\n");
 		}
 	}
