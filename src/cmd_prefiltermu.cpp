@@ -216,10 +216,25 @@ void cmd_prefilter_mu()
 					}
 				}
 			}
-		ProgressLog("%u / %u filter hits also in dope\n",
-			nindope, nhit);
+		//ProgressLog("%u / %u filter hits also in dope\n",
+		//	nindope, nhit);
 
-		ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
-			nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
+		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
+		//	nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
+
+		double pct = GetPct(nindope, 2*dope.m_nhit);
+
+		Progress("pct=%.1f", pct);
+		Progress(" secs=%u", filter_secs);
+		Progress(" pattern=%s", prefiltermu_pattern);
+		Progress(" kmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Progress("\n");
+
+		Log("@FEV@");
+		Log("\tpct=%.1f", pct);
+		Log("\tsecs=%u", filter_secs);
+		Log("\tpattern=%s", prefiltermu_pattern);
+		Log("\tkmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Log("\n");
 		}
 	}
