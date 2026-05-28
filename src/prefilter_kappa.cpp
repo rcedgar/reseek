@@ -1,6 +1,6 @@
 #include "myutils.h"
 #include "prefilter_kappa.h"
-#include "dssparams.h"
+#include "flat_params.h"
 #include "sort.h"
 
 RankedScoresBag prefilter_kappa::m_RSB;
@@ -151,7 +151,7 @@ void prefilter_kappa::SetQDB(const SeqDB &QDB)
 
 	bool TargetNeighborhood = !g_QueryNeighborhood;
 	if (TargetNeighborhood)
-		m_NeighborKmers = myalloc(uint, DSSParams::m_PrefilterKappaDictSize);
+		m_NeighborKmers = myalloc(uint, flat_params::m_kappa_dict_size);
 	else
 		m_NeighborKmers = 0;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -212,9 +212,9 @@ void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	assert(Kmer < DSSParams::m_PrefilterKappaDictSize);
-	assert(m_KmerSelfScores[Kmer] >=  DSSParams::m_PrefilterMinKappaKmerPairScore);
-	short MinKmerScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
+	assert(Kmer < flat_params::m_PrefilterKappaDictSize);
+	assert(m_KmerSelfScores[Kmer] >=  flat_params::m_PrefilterMinKappaKmerPairScore);
+	short MinKmerScore =  flat_params::m_kappa_min_kmerpairscore;
 
 // Construct high-scoring neighborhood
 	const uint HSKmerCount =
@@ -311,7 +311,7 @@ void prefilter_kappa::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
 		return;
-	if (DiagScore < DSSParams::m_PrefilterMinKappaMinDiagScore)
+	if (DiagScore < flat_params::m_kappa_min_mindiagscore)
 		return;
 	asserta(QSeqIdx < UINT16_MAX);
 	if (DiagScore >= UINT16_MAX)

@@ -2,6 +2,24 @@
 #include "flat_params.h"
 #include "sort.h"
 
+//int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
+//int DSSParams::m_PrefilterMinKappaMinDiagScore = 0;
+//
+//uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
+//uint DSSParams::m_PrefilterKappaKmerWidth = 4;
+//uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
+//string DSSParams::m_PrefilterKappaPattern = "1010011";
+
+int flat_params::m_kappa_min_kmerpairscore = 50;
+int flat_params::m_kappa_min_mindiagscore = 0;
+string flat_params::m_kappa_pattern = "1010011";
+uint flat_params::m_kappa_kmer_nrones = KAPPA_NRONES;
+uint flat_params::m_kappa_kmer_width = 7;
+uint flat_params::m_kappa_dict_size = myipow(KAPPA_AS, KAPPA_NRONES);
+uint8_t *flat_params::m_kappa_kmer_onesoffsets;
+uint flat_params::m_rsb_size = 1500;
+
+
 /////////////////////
 // Chain quantization
 // MUST RE-TRAIN THRESHOLDS AND LOGODDS

@@ -2,8 +2,9 @@
 #include "kappa_mermx.h"
 #include "alpha.h"
 #include "sort.h"
-#include "kappa_prefilter_params.h"
-#include "dssparams.h"
+//#include "kappa_prefilter_params.h"
+//#include "dssparams.h"
+#include "flat_params.h"
 #include "quarts.h"
 
 static mutex g_Lock;
@@ -556,7 +557,7 @@ uint kappa_mermx::GetHighScoring5mers(uint ABCDE, short MinScore, uint *Fivemers
 				}
 			}
 		}
-	asserta(n <= DSSParams::m_PrefilterKappaDictSize);
+	asserta(n <= flat_params::m_kappa_dict_size);
 	return n;
 	}
 
@@ -720,40 +721,40 @@ __________  Mu_____________________________
        690  Median
 
 __________  Kappa__________________________
-DSSParams::m_PrefilterMinKappaKmerPairScore()=55
-     33.6M  DSSParams::m_PrefilterKappaDictSize
+flat_params::m_PrefilterMinKappaKmerPairScore()=55
+     33.6M  flat_params::m_PrefilterKappaDictSize
        23G  Total size of all neighborhoods
      12.8M  Kmers with low self score (38.2%)
      83.9k  Max size 'YYYYY' (83940)
       1121  Mean
        120  Median
 
-DSSParams::m_PrefilterMinKappaKmerPairScore()=54
-     33.6M  DSSParams::m_PrefilterKappaDictSize
+flat_params::m_PrefilterMinKappaKmerPairScore()=54
+     33.6M  flat_params::m_PrefilterKappaDictSize
        29G  Total size of all neighborhoods
      10.9M  Kmers with low self score (32.4%)
      96.0k  Max size 'YYYYY' (96025)
       1278  Mean
        139  Median
 
-DSSParams::m_PrefilterMinKappaKmerPairScore()=53
-     33.6M  DSSParams::m_PrefilterKappaDictSize
+flat_params::m_PrefilterMinKappaKmerPairScore()=53
+     33.6M  flat_params::m_PrefilterKappaDictSize
        36G  Total size of all neighborhoods
       9.5M  Kmers with low self score (28.2%)
     110.2k  Max size 'YYYYY' (110250)
       1480  Mean
        153  Median
 
-DSSParams::m_PrefilterMinKappaKmerPairScore()=52
-     33.6M  DSSParams::m_PrefilterKappaDictSize
+flat_params::m_PrefilterMinKappaKmerPairScore()=52
+     33.6M  flat_params::m_PrefilterKappaDictSize
        44G  Total size of all neighborhoods
       8.6M  Kmers with low self score (25.5%)
     125.0k  Max size 'YYYYY' (124955)
       1753  Mean
         47  Median
 
-DSSParams::m_PrefilterMinKappaKmerPairScore()=48
-     33.6M  DSSParams::m_PrefilterKappaDictSize
+flat_params::m_PrefilterMinKappaKmerPairScore()=48
+     33.6M  flat_params::m_PrefilterKappaDictSize
        98G  Total size of all neighborhoods
       6.8M  Kmers with low self score (20.3%)
     205.4k  Max size 'YYYYY' (205351)
@@ -764,14 +765,14 @@ DSSParams::m_PrefilterMinKappaKmerPairScore()=48
 void cmd_kappa_kmrnbh()
 	{
 	const kappa_mermx &ScoreMx = GetKappaMerMx(5);
-	uint *Kmers = myalloc(uint, DSSParams::m_PrefilterKappaDictSize);
-	uint MinScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
+	uint *Kmers = myalloc(uint, flat_params::m_kappa_dict_size);
+	uint MinScore =  flat_params::m_kappa_min_kmerpairscore;
 	uint64 Sumn = 0;
 	uint Maxn = 0;
 	uint MaxKmer = UINT_MAX;
-	const uint N = DSSParams::m_PrefilterKappaDictSize;
+	const uint N = flat_params::m_kappa_dict_size;
 	vector<float> Sizes;
-	Sizes.reserve(DSSParams::m_PrefilterKappaDictSize);
+	Sizes.reserve(flat_params::m_kappa_dict_size);
 	uint M = 0;
 	uint LowSelfScore = 0;
 #if LOW_COMPLEXITY
@@ -779,7 +780,7 @@ void cmd_kappa_kmrnbh()
 #endif
 	for (uint Kmer = 0; Kmer < N; ++Kmer)
 		{
-		ProgressStep(Kmer, DSSParams::m_PrefilterKappaDictSize, "Neighborhood");
+		ProgressStep(Kmer, flat_params::m_kappa_dict_size, "Neighborhood");
 #if LOW_COMPLEXITY
 		uint mlc = ScoreMx.GetMaxLetterCount(Kmer);
 		if (mlc >= 3)
@@ -792,7 +793,7 @@ void cmd_kappa_kmrnbh()
 		if (n == 0)
 			{
 			short SelfScore = ScoreMx.GetScoreKmerPair(Kmer, Kmer);
-			asserta(SelfScore < DSSParams::m_PrefilterMinKappaKmerPairScore);
+			asserta(SelfScore < flat_params::m_kappa_min_kmerpairscore);
 			++LowSelfScore;
 			continue;
 			}
@@ -809,11 +810,12 @@ void cmd_kappa_kmrnbh()
 	QuartsFloat Q;
 	GetQuartsFloat(Sizes, Q);
 
-	ProgressLog("DSSParams::m_PrefilterMinKappaKmerPairScore()=%d\n",
-		DSSParams::m_PrefilterMinKappaKmerPairScore);
+	ProgressLog("flat_params::m_PrefilterMinKappaKmerPairScore()=%d\n",
+		flat_params::m_kappa_min_kmerpairscore);
 
 	string TmpStr;
-	ProgressLog("%10.10s  DSSParams::m_PrefilterKappaDictSize\n", IntToStr(DSSParams::m_PrefilterKappaDictSize));
+	ProgressLog("%10.10s  flat_params::m_PrefilterKappaDictSize\n",
+		IntToStr(flat_params::m_kappa_dict_size));
 
 	ProgressLog("%10.10s  Total size of all neighborhoods\n",
 				Int64ToStr(Sumn));

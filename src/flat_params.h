@@ -7,6 +7,8 @@
 static const float BAD_SCORE = -9999;
 static const float MIN_SANE_SCORE = -1000;
 static const float MAX_SANE_SCORE = 1000;
+static const uint KAPPA_AS = 32;
+static const uint KAPPA_NRONES = 4;
 
 class flat_params
 	{
@@ -43,6 +45,16 @@ public:
 	float m_nu_filter_rev_w = FLT_MAX;
 	float m_nu_filter_min_fwd_score = FLT_MAX;
 	float m_nu_filter_min_combined_score = FLT_MAX;
+
+	static string m_kappa_pattern;
+	static uint m_kappa_kmer_nrones;
+	static uint m_kappa_kmer_width;
+	static uint m_kappa_dict_size;
+	static uint8_t *m_kappa_kmer_onesoffsets;
+	static int m_kappa_min_kmerpairscore;
+	static int m_kappa_min_mindiagscore;
+	
+	static uint m_rsb_size;
 
 	// alphabets
 	uint32 m_nfeat = UINT_MAX;

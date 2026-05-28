@@ -50,13 +50,13 @@ public:
 
 	static uint m_rsb_size;
 	static int m_PrefilterMinMuKmerPairScore;
-	static int m_PrefilterMinKappaKmerPairScore;
-	static int m_PrefilterMinKappaMinDiagScore;
-	static string m_PrefilterKappaPattern;
-	static uint m_PrefilterKappaKmerNrOnes;
-	static uint m_PrefilterKappaKmerWidth;
-	static uint m_PrefilterKappaDictSize;
-	static uint8_t *m_PrefilterKappaKmerOnesOffsets;
+	//static int m_PrefilterMinKappaKmerPairScore;
+	//static int m_PrefilterMinKappaMinDiagScore;
+	//static string m_PrefilterKappaPattern;
+	//static uint m_PrefilterKappaKmerNrOnes;
+	//static uint m_PrefilterKappaKmerWidth;
+	//static uint m_PrefilterKappaDictSize;
+	//static uint8_t *m_PrefilterKappaKmerOnesOffsets;
 
 	static uint m_MKFL;
 	static int m_MKF_X1;

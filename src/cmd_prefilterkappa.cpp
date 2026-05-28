@@ -1,9 +1,8 @@
 #include "myutils.h"
-#include "dssparams.h"
 #include "prefilter_kappa.h"
 #include "kappa_mermx.h"
 #include "kappa_dex.h"
-#include "kappa_prefilter_params.h"
+#include "flat_params.h"
 #include "bitdope.h"
 #include "lookup.h"
 #include <chrono>
@@ -21,20 +20,20 @@
 // Sum3 from hits (v2.7 verysensitive AND kappa filtered)
 /////////////////////////////////////////////////////////
 
-//int DSSParams::m_PrefilterMinKappaKmerPairScore = 28;
-//int DSSParams::m_PrefilterMinKappaMinDiagScore = 100;
-int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
-int DSSParams::m_PrefilterMinKappaMinDiagScore = 0;
-
-uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
-uint DSSParams::m_PrefilterKappaKmerWidth = 4;
-uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
-string DSSParams::m_PrefilterKappaPattern = "1010011";
+//int flat_params::m_kappa_min_mindiagscore = 28;
+//int flat_params::m_PrefilterMinKappaMinDiagScore = 100;
+//int flat_params::m_kappa_min_mindiagscore = 50;
+//int flat_params::m_PrefilterMinKappaMinDiagScore = 0;
+//
+//uint flat_params::m_PrefilterKappaKmerNrOnes = 4;
+//uint flat_params::m_PrefilterKappaKmerWidth = 4;
+//uint flat_params::m_kappa_dict_size = myipow(32, 4);
+//string flat_params::m_PrefilterKappaPattern = "1010011";
 
 //static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
-//uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
+//uint8_t *flat_params::m_PrefilterKappaKmerOnesOffsets =
 //	KappaKmerOnesOffsets;
-uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets = 0;
+//uint8_t *flat_params::m_PrefilterKappaKmerOnesOffsets = 0;
 /////////////////////////////////////////////////////
 
 static uint s_NextTIdx = 0;
@@ -143,25 +142,25 @@ void cmd_prefilter_kappa()
 	void SetQueryNeighborhood(uint QSeqCount);
 	SetQueryNeighborhood(QSeqCount);
 
-	prefilter_kappa::m_RSB.m_B = DSSParams::m_rsb_size;
+	prefilter_kappa::m_RSB.m_B = flat_params::m_rsb_size;
 	prefilter_kappa::m_RSB.Init(QSeqCount);
 
 	if (optset_kappa_pattern)
-		DSSParams::m_PrefilterKappaPattern = opt(kappa_pattern);
-	uint k = get_nr_pattern_ones(DSSParams::m_PrefilterKappaPattern);
-	uint K = uint(DSSParams::m_PrefilterKappaPattern.size());
-	DSSParams::m_PrefilterKappaKmerOnesOffsets = myalloc(uint8_t, k);
-	fill_pattern_offsets(DSSParams::m_PrefilterKappaPattern,
-		DSSParams::m_PrefilterKappaKmerOnesOffsets);
+		flat_params::m_kappa_pattern = opt(kappa_pattern);
+	uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
+	uint K = uint(flat_params::m_kappa_pattern.size());
+	flat_params::m_kappa_kmer_onesoffsets = myalloc(uint8_t, k);
+	fill_pattern_offsets(flat_params::m_kappa_pattern,
+		flat_params::m_kappa_kmer_onesoffsets);
 
-	DSSParams::m_PrefilterKappaKmerNrOnes = k; 
-	DSSParams::m_PrefilterKappaKmerWidth = K;
-	DSSParams::m_PrefilterKappaDictSize = myipow(32, k);
+	flat_params::m_kappa_kmer_nrones = k; 
+	flat_params::m_kappa_kmer_width = K;
+	flat_params::m_kappa_dict_size = myipow(KAPPA_AS, k);
 
 	if (optset_kappa_minkmerscore)
-		DSSParams::m_PrefilterMinKappaKmerPairScore = opt(kappa_minkmerscore);
+		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
 	if (optset_kappa_mindiagscore)
-		DSSParams::m_PrefilterMinKappaMinDiagScore = opt(kappa_mindiagscore);
+		flat_params::m_kappa_min_mindiagscore = opt(kappa_mindiagscore);
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.Init();
@@ -171,13 +170,13 @@ void cmd_prefilter_kappa()
 	asserta(ScoreMx.m_k == k);
 
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinKappaKmerPairScore;
+	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_mindiagscore;
 	QKmerIndex.FromSeqDB(QDB);
 #if DEBUG
 	QKmerIndex.Validate();
 #endif
 	asserta(QKmerIndex.m_k == k);
-	asserta(QKmerIndex.m_DictSize == DSSParams::m_PrefilterKappaDictSize);
+	asserta(QKmerIndex.m_DictSize == flat_params::m_kappa_dict_size);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
 	s_ptrQDB = &QDB;
@@ -295,18 +294,18 @@ void cmd_prefilter_kappa()
 
 		Progress("pct=%.1f", pct);
 		Progress(" secs=%u", filter_secs);
-		Progress(" pattern=%s", DSSParams::m_PrefilterKappaPattern.c_str());
-		Progress(" kmer=%d", DSSParams::m_PrefilterMinKappaKmerPairScore);
-		Progress(" diag=%d", DSSParams::m_PrefilterMinKappaMinDiagScore);
+		Progress(" pattern=%s", flat_params::m_kappa_pattern.c_str());
+		Progress(" kmer=%d", flat_params::m_kappa_min_mindiagscore);
+		Progress(" diag=%d", flat_params::m_kappa_min_mindiagscore);
 		Progress(" npass=%u", npass);
 		Progress("\n");
 
 		Log("@FEV@");
 		Log("\tpct=%.1f", pct);
 		Log("\tsecs=%u", filter_secs);
-		Log("\tpattern=%s", DSSParams::m_PrefilterKappaPattern.c_str());
-		Log("\tkmer=%d", DSSParams::m_PrefilterMinKappaKmerPairScore);
-		Log("\tdiag=%d", DSSParams::m_PrefilterMinKappaMinDiagScore);
+		Log("\tpattern=%s", flat_params::m_kappa_pattern.c_str());
+		Log("\tkmer=%d", flat_params::m_kappa_min_mindiagscore);
+		Log("\tdiag=%d", flat_params::m_kappa_min_mindiagscore);
 		Log("\tnpass=%u", npass);
 		Log("\n");
 		}

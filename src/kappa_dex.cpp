@@ -4,8 +4,9 @@
 #include "kappa_mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
-#include "kappa_prefilter_params.h"
-#include "dssparams.h"
+//#include "kappa_prefilter_params.h"
+//#include "dssparams.h"
+#include "flat_params.h"
 #include "binner.h"
 
 uint8_t *kappa_dex::m_Offsets;
@@ -15,10 +16,10 @@ uint32_t kappa_dex::m_K;
 
 void kappa_dex::Init()
 	{
-	m_Offsets = DSSParams::m_PrefilterKappaKmerOnesOffsets;
-	m_DictSize = DSSParams::m_PrefilterKappaDictSize;
-	m_k = DSSParams::m_PrefilterKappaKmerNrOnes;
-	m_K = DSSParams::m_PrefilterKappaKmerWidth;
+	m_Offsets = flat_params::m_kappa_kmer_onesoffsets;
+	m_DictSize = flat_params::m_kappa_dict_size;
+	m_k = flat_params::m_kappa_kmer_nrones;
+	m_K = flat_params::m_kappa_kmer_width;
 	}
 
 const uint32_t kappa_dex::m_ItemSize = 6;	// 4 byte SeqIdx + 2 byte Pos
@@ -112,7 +113,7 @@ const char *kappa_dex::KmerToStr(uint Kmer, string &s) const
 void kappa_dex::Alloc_Pass1()
 	{
 	if (m_AddNeighborhood && m_NeighborKmers == 0)
-		m_NeighborKmers = myalloc(uint, DSSParams::m_PrefilterKappaDictSize);
+		m_NeighborKmers = myalloc(uint, flat_params::m_kappa_dict_size);
 
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
@@ -170,11 +171,11 @@ void  kappa_dex::AddSeq_Pass1()
 		if (m_AddNeighborhood)
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
-			   DSSParams::m_PrefilterMinMuKmerPairScore, m_NeighborKmers);
+			   flat_params::m_kappa_min_kmerpairscore, m_NeighborKmers);
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < DSSParams::m_PrefilterKappaDictSize);
+				asserta(NeighborKmer < flat_params::m_kappa_dict_size);
 				asserta(m_Size < UINT_MAX);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
@@ -219,11 +220,11 @@ void kappa_dex::AddSeq_Pass2()
 		if (m_AddNeighborhood)
 			{
 			uint n = m_ptrScoreMx->GetHighScoringKmers(Kmer, 
-			   DSSParams::m_PrefilterMinMuKmerPairScore, m_NeighborKmers);
+			   flat_params::m_kappa_min_kmerpairscore, m_NeighborKmers);
 			for (uint j = 0; j < n; ++j)
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
-				asserta(NeighborKmer < DSSParams::m_PrefilterKappaDictSize);
+				asserta(NeighborKmer < flat_params::m_kappa_dict_size);
 				uint DataOffset = m_Finger[NeighborKmer+1];
 				Put(DataOffset, m_SeqIdx, SeqPos);
 				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
@@ -551,7 +552,7 @@ void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
-		assert(Kmer < DSSParams::m_PrefilterKappaDictSize);
+		assert(Kmer < flat_params::m_PrefilterKappaDictSize);
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else
