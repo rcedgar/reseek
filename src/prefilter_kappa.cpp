@@ -5,6 +5,60 @@
 
 RankedScoresBag prefilter_kappa::m_RSB;
 
+static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
+	{
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Str); ++i)
+		{
+		char c = Str[i];
+		asserta(c == '0' || c == '1');
+		if (c == '1')
+			offsets[n++] = i;
+		}
+	}
+
+static uint get_nr_pattern_ones(const string &Str)
+	{
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Str); ++i)
+		{
+		char c = Str[i];
+		asserta(c == '0' || c == '1');
+		if (c == '1')
+			++n;
+		}
+	return n;
+	}
+
+bool prefilter_kappa::m_init_kappa_done = false;
+void prefilter_kappa::init_kappa()
+	{
+	asserta(!m_init_kappa_done);
+
+	if (optset_rsb_size)
+		flat_params::m_rsb_size = opt(rsb_size);
+	prefilter_kappa::m_RSB.m_B = flat_params::m_rsb_size;
+
+	if (optset_kappa_pattern)
+		flat_params::m_kappa_pattern = opt(kappa_pattern);
+	uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
+	uint K = uint(flat_params::m_kappa_pattern.size());
+	flat_params::m_kappa_kmer_onesoffsets = myalloc(uint8_t, k);
+	fill_pattern_offsets(flat_params::m_kappa_pattern,
+		flat_params::m_kappa_kmer_onesoffsets);
+
+	flat_params::m_kappa_kmer_nrones = k; 
+	flat_params::m_kappa_kmer_width = K;
+	flat_params::m_kappa_dict_size = myipow(KAPPA_AS, k);
+
+	if (optset_kappa_minkmerscore)
+		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
+	if (optset_kappa_mindiagscore)
+		flat_params::m_kappa_min_mindiagscore = opt(kappa_mindiagscore);
+
+	m_init_kappa_done = true;
+	}
+
 //////////////////////////////////////////////
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
@@ -134,6 +188,8 @@ prefilter_kappa::~prefilter_kappa()
 
 void prefilter_kappa::SetQDB(const SeqDB &QDB)
 	{
+	asserta(m_init_kappa_done);
+
 	m_QDB = &QDB;
 	m_QSeqCount = QDB.GetSeqCount();
 
@@ -196,13 +252,8 @@ void prefilter_kappa::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 
 	Reset();
 	Search_TargetKmers();
-	if (m_OneHitDiag)
-		ExtendOneHitDiagsToHSPs();
-	else
-		{
-		FindTwoHitDiags();
-		ExtendTwoHitDiagsToHSPs();
-		}
+	FindTwoHitDiags();
+	ExtendTwoHitDiagsToHSPs();
 	}
 
 void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
@@ -275,10 +326,7 @@ void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
 #endif
 		if (Diag > m_Mask14)
 			continue;
-		if (m_OneHitDiag)
-			OneHitDiagAdd(QSeqIdx, Diag);
-		else
-			m_DiagBag.Add(QSeqIdx, Diag);
+		m_DiagBag.Add(QSeqIdx, Diag);
 		}
 	}
 	
@@ -456,26 +504,5 @@ void prefilter_kappa::LogTargetKmers() const
 		string tmp;
 		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
 		Log("[%4u]  %08x  %s\n", PosT, Kmer, KmerStr);
-		}
-	}
-
-void prefilter_kappa::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
-	{
-	uint32_t SeqIdx16 = (SeqIdx & 0xffff);
-	asserta(SeqIdx16 == SeqIdx);
-	uint32_t pair = (SeqIdx16 << 16) | (uint32_t(Diag));
-	m_OneHitDiags.insert(pair);
-	}
-
-void prefilter_kappa::ExtendOneHitDiagsToHSPs()
-	{
-	for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
-		 iter != m_OneHitDiags.end(); ++iter)
-		{
-		uint32_t pair = *iter;
-		uint32_t QSeqIdx = (pair >> 16);
-		uint16_t Diag = uint16_t(pair & 0xffff);
-		int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
-		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
 		}
 	}

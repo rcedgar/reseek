@@ -39,13 +39,16 @@ public:
 	float m_dalix_w = FLT_MAX;
 	float m_nurev_w = FLT_MAX;
 
-	// filters
+	// mega filters
 	float m_mega_filter_min_fwd = FLT_MAX;
+
+	// nu filter
 	float m_nu_filter_self_w = FLT_MAX;
 	float m_nu_filter_rev_w = FLT_MAX;
 	float m_nu_filter_min_fwd_score = FLT_MAX;
 	float m_nu_filter_min_combined_score = FLT_MAX;
 
+	// kappa filter
 	static string m_kappa_pattern;
 	static uint m_kappa_kmer_nrones;
 	static uint m_kappa_kmer_width;
@@ -53,7 +56,6 @@ public:
 	static uint8_t *m_kappa_kmer_onesoffsets;
 	static int m_kappa_min_kmerpairscore;
 	static int m_kappa_min_mindiagscore;
-	
 	static uint m_rsb_size;
 
 	// alphabets

@@ -362,6 +362,7 @@
     <ClCompile Include="kappa_dex.cpp" />
     <ClCompile Include="kappa_mermx.cpp" />
     <ClCompile Include="kappa_mxdata.cpp" />
+    <ClCompile Include="kappa_seqsource.cpp" />
     <ClCompile Include="landmark.cpp" />
     <ClCompile Include="landmarks.cpp" />
     <ClCompile Include="lddt_fa2.cpp" />
@@ -608,6 +609,7 @@
     <ClInclude Include="kappa_dex.h" />
     <ClInclude Include="kappa_mermx.h" />
     <ClInclude Include="kappa_prefilter_params.h" />
+    <ClInclude Include="kappa_seqsource.h" />
     <ClInclude Include="landmark.h" />
     <ClInclude Include="landmarks.h" />
     <ClInclude Include="letteralndb.h" />

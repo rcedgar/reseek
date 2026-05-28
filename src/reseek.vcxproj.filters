@@ -833,6 +833,9 @@
     <ClCompile Include="flat_search.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kappa_seqsource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1373,6 +1376,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bitdope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_seqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

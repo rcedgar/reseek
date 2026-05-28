@@ -74,8 +74,6 @@ public:
 //  finds two-hit diagonals.
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
-	bool m_OneHitDiag = false;
-	set<uint32_t> m_OneHitDiags;
 
 //////////////////////////////////////////////////////
 // Current Target sequence
@@ -86,7 +84,8 @@ public:
 	uint m_TL = UINT_MAX;
 	vector<uint> m_TKmers;
 
-	// Pending (query, target, score) for batched AddScoresBatch; not cleared per target.
+	// Pending (query, target, score) for batched 
+	//   AddScoresBatch; not cleared per target.
 	vector<RankedScoreBatchEntry> m_RSBPending;
 
 public:
@@ -106,7 +105,6 @@ public:
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
 	void Search_TargetKmer(uint Kmer, uint TPos);
 	void FindTwoHitDiags();
-	void ExtendOneHitDiagsToHSPs();
 	void ExtendTwoHitDiagsToHSPs();
 	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
@@ -121,5 +119,10 @@ public:
 	void LogQueryKmers(uint QSeqIdx) const;
 	uint GetQKmer(uint QSeqIdx, uint QPos) const;
 	void LogTargetKmers() const;
-	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
+
+public:
+	static bool m_init_kappa_done;
+
+public:
+	static void init_kappa();
 	};

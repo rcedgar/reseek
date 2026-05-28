@@ -7,68 +7,13 @@
 #include "lookup.h"
 #include <chrono>
 
-/////////////////////////////////////////////////////
-// Kappa prefilter
-// $src/2025-10_reseek_tune [f8b7229]
-// reseek v2.9.i86linux64 [89b34d9]
-// C:\src\notebooks\2026-04-09_kappa_two_hit_diag_param_manual_explore.txt
-// C:\src\2025-10_reseek_tune\bash\test_kappa_prefilter_new_defaults_2026-04-09.bash
-// __________________________________________________  Pattern  Kmer   Diag  PFhits  PFTime
-// SEPQ0.1=0.296 SEPQ1=0.399 SEPQ10=0.493 Sum3=1.684 |    1111    28    100     9 M   00:11 <<== set these defaults 2026-04-09
-// SEPQ0.1=0.290 SEPQ1=0.399 SEPQ10=0.499 Sum3=1.677 | ......Mu bitdope....    12 M   00:33
-// 
-// Sum3 from hits (v2.7 verysensitive AND kappa filtered)
-/////////////////////////////////////////////////////////
-
-//int flat_params::m_kappa_min_mindiagscore = 28;
-//int flat_params::m_PrefilterMinKappaMinDiagScore = 100;
-//int flat_params::m_kappa_min_mindiagscore = 50;
-//int flat_params::m_PrefilterMinKappaMinDiagScore = 0;
-//
-//uint flat_params::m_PrefilterKappaKmerNrOnes = 4;
-//uint flat_params::m_PrefilterKappaKmerWidth = 4;
-//uint flat_params::m_kappa_dict_size = myipow(32, 4);
-//string flat_params::m_PrefilterKappaPattern = "1010011";
-
-//static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
-//uint8_t *flat_params::m_PrefilterKappaKmerOnesOffsets =
-//	KappaKmerOnesOffsets;
-//uint8_t *flat_params::m_PrefilterKappaKmerOnesOffsets = 0;
-/////////////////////////////////////////////////////
-
-static uint s_NextTIdx = 0;
-static mutex m_NextTIdxLock;
+static atomic<uint> s_NextTIdx = 0;
 static const kappa_mermx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const SeqDB *s_ptrTDB = 0;
 static const kappa_dex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
 static time_t s_TimeLastProgress;
-
-static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
-	{
-	uint n = 0;
-	for (uint i = 0; i < SIZE(Str); ++i)
-		{
-		char c = Str[i];
-		asserta(c == '0' || c == '1');
-		if (c == '1')
-			offsets[n++] = i;
-		}
-	}
-
-static uint get_nr_pattern_ones(const string &Str)
-	{
-	uint n = 0;
-	for (uint i = 0; i < SIZE(Str); ++i)
-		{
-		char c = Str[i];
-		asserta(c == '0' || c == '1');
-		if (c == '1')
-			++n;
-		}
-	return n;
-	}
 
 static void ThreadBody(uint ThreadIndex)
 	{
@@ -82,10 +27,7 @@ static void ThreadBody(uint ThreadIndex)
 
 	for (;;)
 		{
-		m_NextTIdxLock.lock();
-		uint TSeqIdx = s_NextTIdx;
-		if (s_NextTIdx < TSeqCount)
-			++s_NextTIdx;
+		uint TSeqIdx = s_NextTIdx++;
 		if (TSeqIdx > 0 && TSeqIdx + 1 < TSeqCount)
 			{
 			time_t now = time(0);
@@ -93,8 +35,7 @@ static void ThreadBody(uint ThreadIndex)
 				ProgressStep(TSeqIdx, TSeqCount, "Filtering");
 			s_TimeLastProgress = now;
 			}
-		m_NextTIdxLock.unlock();
-		if (TSeqIdx == TSeqCount)
+		if (TSeqIdx >= TSeqCount)
 			return;
 
 		Pref.m_TSeqIdx = TSeqIdx;
@@ -120,19 +61,14 @@ void cmd_prefilter_kappa()
 		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
 		}
 
-	//asserta(optset_logodds);
-	const double scalef = (optset_scalef ? opt(scalef) : 5);
-	void load_kappa_integer_logodds(const string &fn, double scalef);
-	load_kappa_integer_logodds(opt(logodds), scalef);
-
 	const string &QueryKappa_FN = g_Arg1;
-	const string &DB3Di_FN = opt(db);
+	const string &DBFN = opt(db);
 
 	SeqDB QDB;
 	SeqDB TDB;
 
 	QDB.FromFasta(QueryKappa_FN);
-	TDB.FromFasta(DB3Di_FN);
+	TDB.FromFasta(DBFN);
 
 	QDB.ToLetters(g_CharToLetterMu);
 	TDB.ToLetters(g_CharToLetterMu);
@@ -142,29 +78,13 @@ void cmd_prefilter_kappa()
 	void SetQueryNeighborhood(uint QSeqCount);
 	SetQueryNeighborhood(QSeqCount);
 
-	prefilter_kappa::m_RSB.m_B = flat_params::m_rsb_size;
+	prefilter_kappa::init_kappa();
 	prefilter_kappa::m_RSB.Init(QSeqCount);
-
-	if (optset_kappa_pattern)
-		flat_params::m_kappa_pattern = opt(kappa_pattern);
-	uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
-	uint K = uint(flat_params::m_kappa_pattern.size());
-	flat_params::m_kappa_kmer_onesoffsets = myalloc(uint8_t, k);
-	fill_pattern_offsets(flat_params::m_kappa_pattern,
-		flat_params::m_kappa_kmer_onesoffsets);
-
-	flat_params::m_kappa_kmer_nrones = k; 
-	flat_params::m_kappa_kmer_width = K;
-	flat_params::m_kappa_dict_size = myipow(KAPPA_AS, k);
-
-	if (optset_kappa_minkmerscore)
-		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
-	if (optset_kappa_mindiagscore)
-		flat_params::m_kappa_min_mindiagscore = opt(kappa_mindiagscore);
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.Init();
 
+	const uint k = flat_params::m_kappa_kmer_nrones;
 	const kappa_mermx &GetKappaMerMx(uint k);
 	const kappa_mermx &ScoreMx = GetKappaMerMx(k);
 	asserta(ScoreMx.m_k == k);
