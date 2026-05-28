@@ -5,7 +5,6 @@
 #include "flat_params.h"
 #include "bitdope.h"
 #include "lookup.h"
-#include <chrono>
 
 static atomic<uint> s_NextTIdx = 0;
 static const kappa_mermx *s_ptrScoreMx;
@@ -46,21 +45,143 @@ static void ThreadBody(uint ThreadIndex)
 		}
 	}
 
+static void write_tsv(const string &fn)
+	{
+	if (fn == "") return;
+
+	FILE *fTsv = CreateStdioFile(fn);
+	prefilter_kappa::m_RSB.ToTsv(fTsv);
+	CloseStdioFile(s_fTsv);
+	}
+
+static void write_tsv_with_labels(
+	const string &fn,
+	const SeqDB &QDB,
+	const SeqDB &TDB)
+	{
+	if (fn == "") return;
+
+	const uint QSeqCount = QDB.GetSeqCount();
+	const uint TSeqCount = TDB.GetSeqCount();
+
+	vector<string> QLabels;
+	vector<string> TLabels;
+	for (uint i = 0; i < QSeqCount; ++i)
+		QLabels.push_back(QDB.GetLabel(i));
+	for (uint i = 0; i < TSeqCount; ++i)
+		TLabels.push_back(TDB.GetLabel(i));
+
+	FILE *fTsv = CreateStdioFile(opt(output3));
+	prefilter_kappa::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+	CloseStdioFile(s_fTsv);
+	}
+
+static void write_tsv_with_scores(
+	const string &fn,
+	const SeqDB &QDB,
+	const SeqDB &TDB)
+	{
+	if (fn == "") return;
+
+	const uint QSeqCount = QDB.GetSeqCount();
+	const uint TSeqCount = TDB.GetSeqCount();
+
+	vector<string> QLabels;
+	vector<string> TLabels;
+
+	for (uint i = 0; i < QSeqCount; ++i)
+		QLabels.push_back(QDB.GetLabel(i));
+	for (uint i = 0; i < TSeqCount; ++i)
+		TLabels.push_back(TDB.GetLabel(i));
+
+	FILE *f = CreateStdioFile(fn);
+	const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+		prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
+	asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+	for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+		{
+		const string &q = QLabels[qidx];
+		const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+		for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+			{
+			uint16_t score = row[tidx];
+			if (score > 0)
+				{
+				const string &t = TLabels[tidx];
+				fprintf(f, "%s\t%s\t%u\n",
+					q.c_str(), t.c_str(), score);
+				}
+			}
+		}
+	CloseStdioFile(f);
+	}
+
+static void bench(
+	uint filter_secs,
+	const SeqDB &QDB,
+	const SeqDB &TDB)
+	{
+	if (!optset_dope) return;
+
+	const uint QSeqCount = QDB.GetSeqCount();
+	const uint TSeqCount = TDB.GetSeqCount();
+
+	bitdope dope;
+	lookup look;
+
+	const string &lookupfn =
+		(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
+	look.from_tsv(lookupfn);
+	dope.m_look = &look;
+	dope.from_file(opt(dope));
+	dope.set_square();
+	ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
+
+	uint npass = 0;
+	uint nindope = 0;
+	const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+		prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
+	asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+	for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+		{
+		const string &q = QDB.GetLabel(qidx);
+		uint qdomidx = look.get_domidx(q);
+		const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+		for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+			{
+			uint16_t score = row[tidx];
+			if (score > 0)
+				{
+				const string &t = TDB.GetLabel(tidx);
+				uint tdomidx = look.get_domidx(t);
+				++npass;
+				if (dope.in_square_ij(qidx, tidx))
+					++nindope;
+				}
+			}
+		}
+	double pct = GetPct(nindope, 2*dope.m_nhit);
+
+	Progress("pct=%.1f", pct);
+	Progress(" secs=%u", filter_secs);
+	Progress(" pattern=%s", flat_params::m_kappa_pattern.c_str());
+	Progress(" kmer=%d", flat_params::m_kappa_min_mindiagscore);
+	Progress(" diag=%d", flat_params::m_kappa_min_mindiagscore);
+	Progress(" npass=%u", npass);
+	Progress("\n");
+
+	Log("@FEV@");
+	Log("\tpct=%.1f", pct);
+	Log("\tsecs=%u", filter_secs);
+	Log("\tpattern=%s", flat_params::m_kappa_pattern.c_str());
+	Log("\tkmer=%d", flat_params::m_kappa_min_mindiagscore);
+	Log("\tdiag=%d", flat_params::m_kappa_min_mindiagscore);
+	Log("\tnpass=%u", npass);
+	Log("\n");
+	}
+
 void cmd_prefilter_kappa()
 	{
-	lookup look;
-	bitdope dope;
-	if (optset_dope)
-		{
-		const string &lookupfn =
-			(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
-		look.from_tsv(lookupfn);
-		dope.m_look = &look;
-		dope.from_file(opt(dope));
-		dope.set_square();
-		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
-		}
-
 	const string &QueryKappa_FN = g_Arg1;
 	const string &DBFN = opt(db);
 
@@ -107,7 +228,6 @@ void cmd_prefilter_kappa()
 	ProgressStep(0, TSeqCount, "Filtering");
 	time_t t_start = time(0);
 	s_TimeLastProgress = t_start;
-	auto chrono_start = std::chrono::high_resolution_clock::now();
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
@@ -124,109 +244,14 @@ void cmd_prefilter_kappa()
 
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
-	auto chrono_end = std::chrono::high_resolution_clock::now();
 
-	double elapsed_ms = std::chrono::duration<double, std::milli>
-		(chrono_end - chrono_start).count();
-	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
-	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
 	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
 	ProgressLog("Prefilter hits  %s\n", FloatToStr(total));
 
-	{
-	FILE *fTsv = CreateStdioFile(opt(output));
-	prefilter_kappa::m_RSB.ToTsv(fTsv);
-	CloseStdioFile(s_fTsv);
-	}
-
+	bench(filter_secs, QDB, TDB);
+	write_tsv(opt(output));
+	write_tsv_with_labels(opt(output3), QDB, TDB);
 #if STORE_PAIR_SCORES
-	if (optset_output2)
-		{
-		vector<string> QLabels;
-		vector<string> TLabels;
-		for (uint i = 0; i < QSeqCount; ++i)
-			QLabels.push_back(QDB.GetLabel(i));
-		for (uint i = 0; i < TSeqCount; ++i)
-			TLabels.push_back(TDB.GetLabel(i));
-
-		FILE *f = CreateStdioFile(opt(output2));
-		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
-			prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
-		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
-		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
-			{
-			const string &q = QLabels[qidx];
-			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
-			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
-				{
-				uint16_t score = row[tidx];
-				if (score > 0)
-					{
-					const string &t = TLabels[tidx];
-					fprintf(f, "%s\t%s\t%u\n",
-						q.c_str(), t.c_str(), score);
-					}
-				}
-			}
-		CloseStdioFile(f);
-		}
+	write_tsv_with_scores(opt(output2), QDB, TDB);
 #endif
-
-	if (optset_output3)
-		{
-		vector<string> QLabels;
-		vector<string> TLabels;
-		for (uint i = 0; i < QSeqCount; ++i)
-			QLabels.push_back(QDB.GetLabel(i));
-		for (uint i = 0; i < TSeqCount; ++i)
-			TLabels.push_back(TDB.GetLabel(i));
-		FILE *fTsv = CreateStdioFile(opt(output3));
-		prefilter_kappa::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
-		CloseStdioFile(s_fTsv);
-		}
-
-	if (optset_dope)
-		{
-		uint npass = 0;
-		uint nindope = 0;
-		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
-			prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
-		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
-		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
-			{
-			const string &q = QDB.GetLabel(qidx);
-			uint qdomidx = look.get_domidx(q);
-			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
-			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
-				{
-				uint16_t score = row[tidx];
-				if (score > 0)
-					{
-					const string &t = TDB.GetLabel(tidx);
-					uint tdomidx = look.get_domidx(t);
-					++npass;
-					if (dope.in_square_ij(qidx, tidx))
-						++nindope;
-					}
-				}
-			}
-		double pct = GetPct(nindope, 2*dope.m_nhit);
-
-		Progress("pct=%.1f", pct);
-		Progress(" secs=%u", filter_secs);
-		Progress(" pattern=%s", flat_params::m_kappa_pattern.c_str());
-		Progress(" kmer=%d", flat_params::m_kappa_min_mindiagscore);
-		Progress(" diag=%d", flat_params::m_kappa_min_mindiagscore);
-		Progress(" npass=%u", npass);
-		Progress("\n");
-
-		Log("@FEV@");
-		Log("\tpct=%.1f", pct);
-		Log("\tsecs=%u", filter_secs);
-		Log("\tpattern=%s", flat_params::m_kappa_pattern.c_str());
-		Log("\tkmer=%d", flat_params::m_kappa_min_mindiagscore);
-		Log("\tdiag=%d", flat_params::m_kappa_min_mindiagscore);
-		Log("\tnpass=%u", npass);
-		Log("\n");
-		}
 	}

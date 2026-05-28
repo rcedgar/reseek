@@ -10,6 +10,7 @@
 #include "diag.h"
 #include "rankedscoresbag.h"
 #include "kappa_prefilter_params.h"
+#include "kappa_seqsource.h"
 
 extern int16_t kappa32_flat_logodds[32*32];
 
@@ -48,7 +49,6 @@ public:
 
 //////////////////////////////////////
 // Index of k-mers in the Query.
-// These are 3Di 6-mers
 //////////////////////////////////////
 	const kappa_dex *m_QKmerIndex = 0;
 	const int16_t *m_KmerSelfScores = 0;
@@ -125,4 +125,7 @@ public:
 
 public:
 	static void init_kappa();
+	//static void run_filter(
+	//	const uint8_t **m_query_kappa_codeseq_vec,
+	//	kappa_seqsource &kss);
 	};
