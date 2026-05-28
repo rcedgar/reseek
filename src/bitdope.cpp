@@ -8,31 +8,6 @@ void trunc_label(string &Label);
 uint8_t *read_bitdope(const string &fn,
 	uint32_t &ndom, uint32_t &nhit)
 	{
-	//uint32_t magic;
-	//FILE *f = OpenStdioFile(fn);
-	//ReadStdioFile(f, &magic, sizeof(magic));
-	//asserta(magic == MAGIC);
-	//ReadStdioFile(f, &ndom, sizeof(ndom));
-	//uint32_t K = triangle_get_K(ndom);
-	//uint32_t bytes = (K + 7)/8;
-	//uint8_t *bitvec = myalloc(uint8_t, bytes);
-
-	//ReadStdioFile(f, bitvec, bytes);
-	//ReadStdioFile(f, &magic, sizeof(magic));
-	//asserta(magic == MAGIC);
-	//CloseStdioFile(f);
-
-	//nhit = 0;
-	//for (uint i = 0; i < bytes; ++i)
-	//	{
-	//	uint8_t b = bitvec[i];
-	//	for (uint j = 0; j < 8; ++j)
-	//		{
-	//		if (b & (1 << j))
-	//			++nhit;
-	//		}
-	//	}
-	//return bitvec;
 	bitdope dope;
 	dope.from_file(fn);
 	ndom = dope.m_ndom;
@@ -77,6 +52,7 @@ void cmd_bitdope()
 	vector<string> flds;
 	uint nhit = 0;
 	uint ntp = 0;
+	uint discarded = 0;
 	while (ReadLineStdioFile(f, line))
 		{
 		Split(line, flds, '\t');
@@ -92,6 +68,14 @@ void cmd_bitdope()
 		uint k = triangle_ij_to_k(minidx, maxidx, ndom);
 		if (look.is_tp_ij(minidx, maxidx))
 			++ntp;
+		else
+			{
+			if (optset_truth)
+				{
+				++discarded;
+				continue;
+				}
+			}
 		const uint8_t thebit = (1 << (k%8));
 		if ((bitvec[k/8] & thebit) == 0)
 			{
@@ -114,6 +98,8 @@ void cmd_bitdope()
 	ProgressLog("nhit %u, ntp %u\n", nhit, ntp);
 	if (nbit != nhit)
 		Die("nbit %u, nhit %u", nbit, nhit);
+	if (discarded > 0)
+		ProgressLog("discarded %u\n", discarded);
 
 	FILE *fOut = CreateStdioFile(opt(output));
 	WriteStdioFile(fOut, &MAGIC, sizeof(MAGIC));
@@ -122,11 +108,8 @@ void cmd_bitdope()
 	WriteStdioFile(fOut, &MAGIC, sizeof(MAGIC));
 	CloseStdioFile(fOut);
 
-	//uint32_t ndom2, nhit2;
-	//const uint8_t *bitvec2 =
-	//	read_bitdope(opt(output), ndom2, nhit2);
-
 	bitdope dope2;
+	dope2.m_look = &look;
 	dope2.from_file(opt(output));
 	asserta(dope2.m_ndom == ndom);
 	if (dope2.m_nhit != nhit)

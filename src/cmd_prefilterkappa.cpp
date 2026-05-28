@@ -24,12 +24,12 @@
 //int DSSParams::m_PrefilterMinKappaKmerPairScore = 28;
 //int DSSParams::m_PrefilterMinKappaMinDiagScore = 100;
 int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
-int DSSParams::m_PrefilterMinKappaMinDiagScore = 150;
+int DSSParams::m_PrefilterMinKappaMinDiagScore = 0;
 
 uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
 uint DSSParams::m_PrefilterKappaKmerWidth = 4;
 uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
-string DSSParams::m_PrefilterKappaPattern = "11010001";
+string DSSParams::m_PrefilterKappaPattern = "1010011";
 
 //static uint8_t KappaKmerOnesOffsets[] = {0, 1, 3, 7};
 //uint8_t *DSSParams::m_PrefilterKappaKmerOnesOffsets =
@@ -121,8 +121,8 @@ void cmd_prefilter_kappa()
 		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
 		}
 
-	asserta(optset_logodds);
-	const double scalef = (optset_scalef ? opt(scalef) : 10);
+	//asserta(optset_logodds);
+	const double scalef = (optset_scalef ? opt(scalef) : 5);
 	void load_kappa_integer_logodds(const string &fn, double scalef);
 	load_kappa_integer_logodds(opt(logodds), scalef);
 
@@ -292,11 +292,6 @@ void cmd_prefilter_kappa()
 				}
 			}
 		double pct = GetPct(nindope, 2*dope.m_nhit);
-
-		//ProgressLog("%u / %u filter hits also in dope\n",
-		//	nindope, npass);
-		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
-		//	nindope, 2*dope.m_nhit, pct);
 
 		Progress("pct=%.1f", pct);
 		Progress(" secs=%u", filter_secs);

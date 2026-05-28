@@ -16,7 +16,7 @@ public:
 public:
 	void from_file(const string &fn)
 		{
-		asserta(m_look != 0);
+		//asserta(m_look != 0);
 
 		m_nhit = 0;
 		uint32_t magic;
@@ -24,7 +24,7 @@ public:
 		ReadStdioFile(f, &magic, sizeof(magic));
 		asserta(magic == MAGIC);
 		ReadStdioFile(f, &m_ndom, sizeof(m_ndom));
-		asserta(m_ndom == m_look->get_ndom());
+		//asserta(m_ndom == m_look->get_ndom());
 		uint32_t K = triangle_get_K(m_ndom);
 		uint32_t bytes = (K + 7)/8;
 		m_dope = myalloc(uint8_t, bytes);

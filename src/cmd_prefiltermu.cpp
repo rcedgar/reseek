@@ -216,11 +216,6 @@ void cmd_prefilter_mu()
 					}
 				}
 			}
-		//ProgressLog("%u / %u filter hits also in dope\n",
-		//	nindope, npass);
-
-		//ProgressLog("%u / %u dope passed filter (%.2f%%)\n",
-		//	nindope, 2*dope.m_nhit, GetPct(nindope, 2*dope.m_nhit));
 
 		double pct = GetPct(nindope, 2*dope.m_nhit);
 

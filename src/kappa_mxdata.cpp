@@ -45,7 +45,7 @@ int16_t kappa32_flat_logodds[1024] = {
 10,-6,-7,-14,16,-1,-2,-9,11,-6,-7,-14,16,0,-1,-8,4,-13,-14,-21,9,-7,-8,-15,13,-3,-4,-11,19,3,1,-5,
 -6,-1,-6,-8,-1,4,0,-2,-6,-1,-5,-7,0,5,0,-2,-13,-8,-12,-14,-7,-2,-7,-9,-3,2,-3,-5,3,8,3,1,
 -7,-6,0,-13,-2,0,5,-7,-7,-5,0,-12,-1,0,6,-7,-14,-12,-7,-19,-8,-7,-1,-14,-4,-3,3,-10,1,3,8,-4,
--14,-8,-13,1,-9,-2,-7,7,-14,-7,-12,2,-8,-2,-7,7,-21,-14,-19,-5,-15,-9,-14,0,-11,-5,-10,4,-5,1,-4,10};
+-14,-8,-13,1,-9,-2,-7,7,-14,-7,-12,2,-8,-2,-7,7,-21,-14,-19,-5,-15,-9,-14,0,-11,-5,-10,4,-5,1,-4,10 };
 
 static kappa_mermx *s_ptrkappaMerMx = 0;
 
@@ -73,9 +73,41 @@ const kappa_mermx &GetKappaMerMx(uint k)
 void load_kappa_integer_logodds(const string &fn, double scalef)
 	{
 	vector<float> logodds;
-	flat_params::read_logodds(fn, logodds);
-	asserta(logodds.size() == 32*32);
-	Log("int16_t kappa32_flat_logodds[1024] = {\n");
+	if (fn == "")
+		{
+		extern const vector<string> g_alpha_collect_lines;
+		collect C; // TODO should be one global collect object for defaults
+		C.from_lines(g_alpha_collect_lines);
+
+		const vector<string> &logodds_lines = C.get_lines("kappa32.logodds");
+		uint alpha_size = flat_params::lines2logoddsmx(logodds_lines, logodds);
+		asserta(alpha_size == 32);
+
+		const uint n = alpha_size*alpha_size;
+		for (uint k = 0; k < n; ++k)
+			{
+			const float score = logodds[k];
+			asserta(score >= MIN_SANE_SCORE && score <= MAX_SANE_SCORE);
+			logodds[k] = score;
+			}
+		}
+	else
+		{
+		flat_params::read_logodds(fn, logodds);
+		asserta(logodds.size() == 32*32);
+		}
+	Log("// before scale=%.1f\n", scalef);
+	Log("int16_t logodds[1024] = {\n");
+	for (uint i = 0; i < 32*32; ++i)
+		{
+		if (i > 0)
+			Log(",");
+		if (i > 0 && i%32 == 0)
+			Log("\n");
+		Log(" %.1f", logodds[i]);
+		}
+	Log("\n};\n");
+
 	for (uint i = 0; i < 32*32; ++i)
 		{
 		double score = logodds[i]*scalef;
@@ -83,11 +115,16 @@ void load_kappa_integer_logodds(const string &fn, double scalef)
 		int16_t intscore16 = int16_t(intscore);
 		asserta(intscore16 == intscore);
 		kappa32_flat_logodds[i] = intscore16;
+		}
+
+	Log("int16_t kappa32_flat_logodds[1024] = {\n");
+	for (uint i = 0; i < 32*32; ++i)
+		{
 		if (i > 0)
 			Log(",");
 		if (i > 0 && i%32 == 0)
 			Log("\n");
-		Log(" %3d", intscore);
+		Log(" %3d", kappa32_flat_logodds[i]);
 		}
 	Log("\n};\n");
 	}

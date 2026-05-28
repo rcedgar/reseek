@@ -41,12 +41,12 @@ const vector<string> &collect::get_lines(const string &name) const
 	return iter->second;
 	}
 
-void collect::append_kappa()
-	{
-	asserta(optset_sec4_groups);
-	asserta(optset_kappa_logodds);
-	set_sec4_groups(opt(sec4_groups));
-	vector<string> lines;
-	ReadLinesFromFile(opt(kappa_logodds), lines);
-	m_name2lines["kappa32.logodds"] = lines;
-	}
+//void collect::append_kappa()
+//	{
+//	asserta(optset_sec4_groups);
+//	asserta(optset_kappa_logodds);
+//	set_sec4_groups(opt(sec4_groups));
+//	vector<string> lines;
+//	ReadLinesFromFile(opt(kappa_logodds), lines);
+//	m_name2lines["kappa32.logodds"] = lines;
+//	}
