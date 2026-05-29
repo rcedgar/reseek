@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
+#include "flat_helpers.h"
 #include "flat_chain_reader.h"
 #include "chaq.h"
 #include "seqdb.h"
@@ -130,11 +131,19 @@ void cmd_convert_can_to_kappa_fasta()
 	CloseStdioFile(f);
 	}
 
-void cmd_convert_structs_to_bca()
+static void convert_structs_to_bcx(const string &bcxfn, bool WithNu)
 	{
 	const string &chainfn = g_Arg1;
-	if (optset_output) Die("Use -bca not -output");
-	if (!optset_bca) Die("Must specify -bca OUTPUTFILE");
+	if (WithNu)
+		{
+		if (!optset_bcb) Die("Must specify -bcb OUTPUTFILE");
+		}
+	else
+		{
+		if (!optset_bca) Die("Must specify -bca OUTPUTFILE");
+		}
+
+	if (optset_output) Die("Use -bca or -bcb not -output");
 
 	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
@@ -148,7 +157,7 @@ void cmd_convert_structs_to_bca()
 	CR.Open(g_Arg1);
 
 	BCAData BCA;
-	BCA.Create(opt(bca));
+	BCA.Create(bcxfn, WithNu);
 
 	uint nchain = 0;
 	for (;;)
@@ -163,4 +172,57 @@ void cmd_convert_structs_to_bca()
 	Progress("finalizing... ");
 	BCA.Close();
 	Progress("done\n");
+	}
+
+void cmd_convert_structs_to_bca()
+	{
+	convert_structs_to_bcx(opt(bca), false);
+	}
+
+void cmd_convert_structs_to_bcb()
+	{
+	convert_structs_to_bcx(opt(bcb), true);
+	}
+
+void cmd_convert_bcb_to_fasta()
+	{
+	if (optset_output) Die("Use -fasta not -output");
+	if (!optset_fasta) Die("Must specify -fasta FILENAME");
+	BCAData BCA;
+	BCA.Open(g_Arg1);
+	FILE *f = CreateStdioFile(opt(fasta));
+	const uint nchain = BCA.GetChainCount();
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		if (chainidx%1000 == 0)
+			Progress("%u chains\r", chainidx);
+		flat_chain_t *chain = BCA.read_flat_chain(chainidx);
+		chain->to_fasta(f);
+		delete chain;
+		}
+	Progress("%u chains\n", nchain);
+	CloseStdioFile(f);
+	}
+
+void cmd_convert_bcb_to_nuhexfasta()
+	{
+	if (optset_output) Die("Use -hexfasta not -output");
+	if (optset_fasta) Die("Use -hexfasta not -fasta");
+	if (!optset_hexfasta) Die("Must specify -hexfasta FILENAME");
+	BCAData BCA;
+	BCA.Open(g_Arg1);
+	FILE *f = CreateStdioFile(opt(hexfasta));
+	const uint nchain = BCA.GetChainCount();
+	const uint maxL = 4000;//TODO
+	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		if (chainidx%1000 == 0)
+			Progress("%u chains\r", chainidx);
+		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, maxL);
+		const string &label = BCA.m_Labels[chainidx];
+		codeseq_to_hexfasta(f, label, codeseq_nu, L);
+		}
+	Progress("%u chains\n", nchain);
+	CloseStdioFile(f);
 	}

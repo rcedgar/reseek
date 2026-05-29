@@ -4,7 +4,7 @@ if [ ! -d ../.git ] ; then
   if [ ! -f git_hash.h ] ; then
     echo "0" > git_hash.h
   fi
-  echo "Repo not found, git hash set to zero"
+#  echo "Repo not found, git hash set to zero"
   exit 0
 fi
 
@@ -25,7 +25,7 @@ if [[ "$old_sum" != "$new_sum" ]] ; then
 fi
 
 if [[ ! -s git_hash.h ||  "$old_sum" != "$new_sum" ]] ; then
-	echo sum1=`sum git_hash.h` sum2=`sum /tmp/git_hash.h`
+#	echo sum1=`sum git_hash.h` sum2=`sum /tmp/git_hash.h`
 	echo Update git_hash.h
 	/bin/mv -v /tmp/git_hash.h .
 else

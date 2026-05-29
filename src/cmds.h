@@ -149,5 +149,8 @@ C(flat_search)
 C(convert_structs_to_can)
 C(convert_can_to_kappa_fasta)
 C(convert_structs_to_bca)
+C(convert_structs_to_bcb)
+C(convert_bcb_to_fasta)
+C(convert_bcb_to_nuhexfasta)
 
 #undef C

@@ -1,7 +1,9 @@
 #include "myutils.h"
 #include "flat_chain.h"
+#include "flat_params.h"
 #include "pdbchain.h"
 #include "bcadata.h"
+#include "chaq.h"
 
 void BCAData::Close()
 	{
@@ -13,14 +15,16 @@ void BCAData::Close()
 		Die("BCAData::Close(), not open");
 	}
 
-void BCAData::Create(const string &FN)
+void BCAData::Create(const string &FN, bool WithNu)
 	{
 	if (FN == "")
 		Die("Empty BCA filename");
 	asserta(!m_Writing && !m_Reading);
+	m_HasNuSequences = WithNu;
 	m_FN = FN;
 	m_f = CreateStdioFile(FN);
-	WriteStdioFile(m_f, &BCA_MAGIC, sizeof(BCA_MAGIC));
+	const uint Magic = (WithNu ? BCB_MAGIC : BCA_MAGIC);
+	WriteStdioFile(m_f, &Magic, sizeof(Magic));
 
 // Placeholder #1 overwritten with number of chains
 // Placeholder #2 overwritten with address of labels in Close()
@@ -30,19 +34,53 @@ void BCAData::Create(const string &FN)
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
 	m_Writing = true;
+
+	const uint N = 1024*1024;
+	m_Labels.reserve(N);
+	m_Offsets.reserve(N);
+	m_SeqLengths.reserve(N);
+	}
+
+uint64 BCAData::get_offset_aaseq(uint idx) const
+	{
+	asserta(idx < m_Offsets.size());
+	uint64 offset = m_Offsets[idx];
+	return offset;
+	}
+
+uint64 BCAData::get_offset_nuseq(uint idx) const
+	{
+	asserta(idx < m_SeqLengths.size());
+	uint64 offset_ICs = get_offset_ICs(idx);
+	uint L = m_SeqLengths[idx];
+	uint64 offset_nuseq = offset_ICs + 6*L;
+	return offset_nuseq;
+	}
+
+uint64 BCAData::get_offset_ICs(uint idx) const
+	{
+	asserta(idx < m_SeqLengths.size());
+	uint64 offset_aaseq = get_offset_aaseq(idx);
+	uint L = m_SeqLengths[idx];
+	uint64 offset_ICs = offset_aaseq + L;
+	return offset_ICs;
 	}
 
 void BCAData::write_flat_chain(const flat_chain_t *chain)
 	{
 	asserta(m_Writing && !m_Reading);
+	uint L = chain->get_length();
+	if (L == 0) return;
 	uint64_t Offset = GetStdioFilePos64(m_f);
 	size_t n = m_Offsets.size();
 	asserta(m_SeqLengths.size() == n);
-	uint L = chain->get_length();
 	if (n > 0)
 		{
 		uint Ln_1 = m_SeqLengths[n-1];
-		asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
+		if (m_HasNuSequences)
+			asserta(Offset == m_Offsets[n-1] + 8*Ln_1);
+		else
+			asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
 		}
 	const char *seq = chain->m_aa->m_data;
 	uint Idx = SIZE(m_Labels);
@@ -54,13 +92,37 @@ void BCAData::write_flat_chain(const flat_chain_t *chain)
 	vector<uint16_t> ICs;
 	chain->get_ICs(ICs);
 	asserta(SIZE(ICs) == 3*L);
+	assert(GetStdioFilePos64(m_f) == get_offset_aaseq(Idx));
 	WriteStdioFile64(m_f, seq, L);
+	assert(GetStdioFilePos64(m_f) == get_offset_ICs(Idx));
 	WriteStdioFile64(m_f, ICs.data(), 6*L);
+	if (m_HasNuSequences)
+		{
+		assert(GetStdioFilePos64(m_f) == get_offset_nuseq(Idx));
+		append_codeseq_nu(chain);
+		}
+	}
+
+void BCAData::append_codeseq_nu(const flat_chain_t *chain)
+	{
+	if (m_distmx == 0)
+		{
+		m_distmx = myalloc(sid_t,
+			flat_params::m_distmx_bandwidth*m_maxL);
+		m_codeseq_nu = myalloc(uint8_t, m_maxL);
+		chaq::alloc_chaq_vecs2(m_cv, m_maxL);
+		}
+	const uint L = chain->get_length();
+	asserta(L <= m_maxL);//TODO
+	chaq::fill_codeseq_nu_from_chain(
+		chain, m_distmx, &m_cv, m_codeseq_nu, m_maxL);
+	WriteStdioFile64(m_f, m_codeseq_nu, L);
 	}
 
 void BCAData::WriteChain(const PDBChain &Chain)
 	{
 	asserta(m_Writing && !m_Reading);
+	asserta(!m_HasNuSequences);
 	uint64_t Offset = GetStdioFilePos64(m_f);
 	size_t n = m_Offsets.size();
 	asserta(m_SeqLengths.size() == n);
@@ -96,8 +158,12 @@ void BCAData::Open(const string &FN)
 
 	uint32_t Magic;
 	ReadStdioFile(m_f, &Magic, sizeof(Magic));
-	if (Magic != BCA_MAGIC)
-		Die("Bad magic %08lx, invalid .bca file '%s'",
+	if (Magic == BCA_MAGIC)
+		m_HasNuSequences = false;
+	else if (Magic == BCB_MAGIC)
+		m_HasNuSequences = true;
+	else
+		Die("Bad magic %08lx, invalid .bcx file '%s'",
 		  Magic, FN.c_str());
 
 // Placeholder #1 overwritten with number of chains
@@ -120,7 +186,7 @@ void BCAData::Open(const string &FN)
 	for (uint64 i = 0; i < ChainCount64; ++i)
 		{
 		uint L = m_SeqLengths[i];
-		uint Bytes = 7*L;
+		uint Bytes = (m_HasNuSequences ? 8*L : 7*L);
 		m_Offsets.push_back(Offset);
 		Offset += Bytes;
 		}
@@ -229,6 +295,27 @@ static inline void aos_to_soa_u16(
     }
 }
 
+uint BCAData::read_codeseq_nu(
+	uint8_t *codeseq_nu, uint idx, uint buffer_length) const
+	{
+	asserta(m_Reading && !m_Writing);
+	uint L = GetSeqLength(idx);
+	asserta(L <= buffer_length);
+	uint64 offset = get_offset_nuseq(idx);
+	uint64 nL = ReadStdioFile64_NoFail(m_f, offset, codeseq_nu, L);
+	if (nL != L)
+		{
+		Log("FN=%s\n", m_FN.c_str());
+		Log("ChainIdx=%u\n", idx);
+		Log("Chains=%u\n", SIZE(m_SeqLengths));
+		Log("L=%u\n", L);
+		Log("SeqOffset=%llu\n", (unsigned long long) offset);
+		Log("nL=%llu\n", (unsigned long long) nL);
+		Die("BCAData::read_codeseq_nu()");
+		}
+	return L;
+	}
+
 flat_chain_t* BCAData::read_flat_chain(uint64 ChainIdx) const
 	{
 	asserta(m_Reading && !m_Writing);
@@ -271,6 +358,7 @@ flat_chain_t* BCAData::read_flat_chain(uint64 ChainIdx) const
 void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	{
 	asserta(m_Reading && !m_Writing);
+	asserta(!m_HasNuSequences);
 	Chain.Clear();
 	uint L = GetSeqLength(ChainIdx);
 	uint64 SeqOffset = GetSeqOffset(ChainIdx);
@@ -318,10 +406,17 @@ void cmd_bca_stats()
 	BCAData BCA;
 	BCA.Open(g_Arg1);
 	uint ChainCount = BCA.GetChainCount();
-	ProgressLog("%10u  Chains\n", ChainCount);
+	ProgressLog("%10u  Chains with_nu=%c (%s)\n",
+		ChainCount,
+		tof(BCA.m_HasNuSequences),
+		FloatToStr(ChainCount));
 	uint64 SumL = 0;
 	for (uint i = 0; i < ChainCount; ++i)
 		SumL += BCA.m_SeqLengths[i];
-	ProgressLog("%10u  Residues\n", SumL);
-	ProgressLog("%.0f  Label data bytes\n", (double) BCA.m_LabelDataSize64);
+	ProgressLog("%10u  Residues (%s)\n",
+		SumL,
+		FloatToStr(double(SumL)));
+	ProgressLog("%10.0f  Label data bytes (%s)\n",
+		(double) BCA.m_LabelDataSize64,
+		FloatToStr((double) BCA.m_LabelDataSize64));
 	}
