@@ -69,6 +69,26 @@ public:
 		return m_L;
 		}
 
+	void get_ICs(vector<uint16_t> &ICs) const
+		{
+		uint L = get_length();
+		ICs.clear();
+		ICs.reserve(3*L);
+		const ic_t *data = m_xyz->m_data;
+		for (uint pos = 0; pos < L; ++pos)
+			{
+			uint k = 3*pos;
+
+			ic_t ic_x = data[k];
+			ic_t ic_y = data[k+1];
+			ic_t ic_z = data[k+2];
+
+			ICs.push_back(ic_x);
+			ICs.push_back(ic_y);
+			ICs.push_back(ic_z);
+			}
+		}
+
 	void get_ic_xyz(uint i, ic_t &ic_x, ic_t &ic_y, ic_t &ic_z) const
 		{
 		const ic_t *data = m_xyz->m_data;

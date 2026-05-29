@@ -129,3 +129,38 @@ void cmd_convert_can_to_kappa_fasta()
 	Progress("%u sequences\n", nseq);
 	CloseStdioFile(f);
 	}
+
+void cmd_convert_structs_to_bca()
+	{
+	const string &chainfn = g_Arg1;
+	if (optset_output) Die("Use -bca not -output");
+	if (!optset_bca) Die("Must specify -bca OUTPUTFILE");
+
+	const uint maxL = 4000;
+	const uint M = flat_params::m_distmx_bandwidth;
+	sid_t *distmx = myalloc(sid_t, maxL*M);
+	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	chaq_vecs2 cv;
+	chaq::alloc_chaq_vecs2(cv, maxL);
+
+	flat_chain_reader CR;
+	CR.Open(g_Arg1);
+
+	BCAData BCA;
+	BCA.Create(opt(bca));
+
+	uint nchain = 0;
+	for (;;)
+		{
+		const flat_chain_t *chain = CR.GetNext();
+		if (chain == 0) break;
+		++nchain;
+		if (nchain%1000 == 0) Progress("%u chains read\r", nchain);
+		BCA.write_flat_chain(chain);
+		}
+	Progress("%u chains read\n", nchain);
+	Progress("finalizing... ");
+	BCA.Close();
+	Progress("done\n");
+	}

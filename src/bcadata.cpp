@@ -32,6 +32,32 @@ void BCAData::Create(const string &FN)
 	m_Writing = true;
 	}
 
+void BCAData::write_flat_chain(const flat_chain_t *chain)
+	{
+	asserta(m_Writing && !m_Reading);
+	uint64_t Offset = GetStdioFilePos64(m_f);
+	size_t n = m_Offsets.size();
+	asserta(m_SeqLengths.size() == n);
+	uint L = chain->get_length();
+	if (n > 0)
+		{
+		uint Ln_1 = m_SeqLengths[n-1];
+		asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
+		}
+	const char *seq = chain->m_aa->m_data;
+	uint Idx = SIZE(m_Labels);
+	asserta(SIZE(m_SeqLengths) == Idx);
+
+	m_Labels.push_back(chain->m_label);
+	m_SeqLengths.push_back(L);
+	m_Offsets.push_back(Offset);
+	vector<uint16_t> ICs;
+	chain->get_ICs(ICs);
+	asserta(SIZE(ICs) == 3*L);
+	WriteStdioFile64(m_f, seq, L);
+	WriteStdioFile64(m_f, ICs.data(), 6*L);
+	}
+
 void BCAData::WriteChain(const PDBChain &Chain)
 	{
 	asserta(m_Writing && !m_Reading);

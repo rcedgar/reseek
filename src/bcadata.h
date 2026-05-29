@@ -27,6 +27,7 @@ public:
 	void WriteChain(const PDBChain &Chain);
 	void ReadChain(uint64 ChainIdx, PDBChain &Chain) const;
 	flat_chain_t* read_flat_chain(uint64 ChainIdx) const;
+	void write_flat_chain(const flat_chain_t *chain);
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;

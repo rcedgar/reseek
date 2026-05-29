@@ -148,5 +148,6 @@ C(load_kappa_logodds)
 C(flat_search)
 C(convert_structs_to_can)
 C(convert_can_to_kappa_fasta)
+C(convert_structs_to_bca)
 
 #undef C
