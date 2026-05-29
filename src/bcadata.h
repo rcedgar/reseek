@@ -29,6 +29,19 @@ public:
 	void Create(const string &FN, bool WithNu = false);
 	void Open(const string &FN);
 	void WriteChain(const PDBChain &Chain);
+
+	const string &GetLabel(uint idx) const
+		{
+		asserta(idx < m_Labels.size());
+		return m_Labels[idx];
+		}
+
+	uint GetSeqLength(uint idx) const
+		{
+		asserta(idx < m_SeqLengths.size());
+		return m_SeqLengths[idx];
+		}
+
 	void ReadChain(uint64 ChainIdx, PDBChain &Chain) const;
 	flat_chain_t* read_flat_chain(uint64 ChainIdx) const;
 	void write_flat_chain(const flat_chain_t *chain);
@@ -42,6 +55,9 @@ public:
 	uint64 get_offset_ICs(uint idx) const;
 	uint64 get_offset_aaseq(uint idx) const;
 	uint64 get_offset_nuseq(uint idx) const;
+	void make_kappa_codeseqs(
+		uint8_t ***ptr_kappa_codeseqs,
+		uint **ptr_lengths) const;
 
 private:
 	void CloseWriter();

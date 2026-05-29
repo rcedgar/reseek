@@ -53,7 +53,9 @@ After Pass 2:
 	vector<uint> m_KmerToDataStart;
 #endif
 
-	const SeqDB *m_SeqDB = 0;
+	//const SeqDB *m_SeqDB = 0;
+	vector<string> *m_labels;
+	uint m_nseq = 0;
 	uint32_t m_Size = 0;
 	uint32_t *m_Finger = 0;
 	uint8_t *m_Data = 0;
@@ -72,10 +74,38 @@ After Pass 2:
 	const MerMx *m_ptrScoreMx = 0;
 	short m_MinKmerScore = INT16_MAX;
 	uint *m_NeighborKmers = 0;
+	uint8_t **m_kappa_codeseqs = 0;
+	const uint *m_seq_lengths = 0;
 
 public:
 	void Init();
 	void FromSeqDB(const SeqDB &Input);
+	void from_codeseqs(
+		uint8_t **kappa_codeseqs,
+		const uint *lengths,
+		const vector<string> &labels,
+		uint nseq);
+
+	uint get_seq_length(uint idx) const
+		{
+		assert(idx < m_nseq);
+		return m_seq_lengths[idx];
+		}
+	const char *get_label(uint idx) const
+		{
+		assert(m_labels != 0);
+		assert(idx < m_labels->size());
+		return (*m_labels)[idx].c_str();
+		}
+
+	const uint8_t *get_byte_seq(uint idx) const
+		{
+		assert(m_kappa_codeseqs != 0);
+		assert(idx < m_nseq);
+		assert(m_kappa_codeseqs[idx] != 0);
+		return m_kappa_codeseqs[idx];
+		}
+
 	const char *KmerToStr(uint Kmer, string &s) const;
 	uint StrToKmer(const string &s) const;
 	uint BytesToKmer(const byte *s) const;

@@ -135,7 +135,7 @@ public:
 public:
 	static void init_kappa();
 	static void run_filter(
-		uint8_t **query_kappa_codeseq_vec,
+		uint8_t **query_kappa_codeseqs,
 		const uint *query_lengths,
 		uint NQ, kappa_seqsource &db_ss);
 	static void static_thread_body(uint threadidx);

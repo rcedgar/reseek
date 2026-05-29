@@ -125,6 +125,18 @@ void chaq::sec32_codeseq_to_sec4(
 		}
 	}
 
+void chaq::codeseq_nu_to_kappa_inplace(
+	uint8_t *codeseq, uint L)
+	{
+	for (uint i = 0; i < L; ++i)
+		{
+		uint8_t nu_code = codeseq[i];
+		uint8_t kappa_code = g_nucode_to_kappacode[nu_code];
+		assert(kappa_code < 32);
+		codeseq[i] = kappa_code;
+		}
+	}
+
 void chaq::codeseq_nu_to_kappa(
 	const uint8_t *codeseq_nu, uint L,
 	uint8_t *codeseq_kappa, size_t codeseq_kappa_bytes)

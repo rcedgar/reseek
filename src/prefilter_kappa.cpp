@@ -599,12 +599,12 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 	}
 
 void prefilter_kappa::run_filter(
-	uint8_t **query_kappa_codeseq_vec,
+	uint8_t **query_kappa_codeseqs,
 	const uint *query_lengths,
 	uint NQ,
 	kappa_seqsource &db_ss)
 	{
-	m_query_kappa_codeseq_vec = query_kappa_codeseq_vec;
+	m_query_kappa_codeseq_vec = query_kappa_codeseqs;
 	m_query_lengths = query_lengths;
 	m_QSeqCount = NQ;
 	m_db_seqsource = &db_ss;

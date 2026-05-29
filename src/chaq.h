@@ -250,6 +250,9 @@ public:
 		const uint8_t *codeseq_nu, uint L,
 		uint8_t *codeseq_kappa, size_t codeseq_kappa_bytes);
 
+	static void codeseq_nu_to_kappa_inplace(
+		uint8_t *codeseq, uint L);
+
 	static void fill_codeseq_nu(
 		const char *charseq_aa20,
 		const uint8_t *codeseq_pm2,

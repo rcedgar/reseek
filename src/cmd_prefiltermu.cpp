@@ -6,6 +6,8 @@
 #include "bitdope.h"
 #include <chrono>
 
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint TSeqCount);
+
 static uint s_NextTIdx = 0;
 static mutex m_NextTIdxLock;
 static const MerMx *s_ptrScoreMx;
@@ -85,8 +87,7 @@ void cmd_prefilter_mu()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	void SetQueryNeighborhood(uint QSeqCount);
-	SetQueryNeighborhood(QSeqCount);
+	decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
 
 	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
 	PrefilterMu::m_RSB.Init(QSeqCount);

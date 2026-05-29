@@ -3,6 +3,7 @@
 #include "kappa_mermx.h"
 #include "kappa_dex.h"
 #include "flat_params.h"
+#include "flat_helpers.h"
 #include "bitdope.h"
 #include "lookup.h"
 
@@ -162,8 +163,7 @@ void cmd_prefilter_kappa()
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
-	void SetQueryNeighborhood(uint QSeqCount);
-	SetQueryNeighborhood(QSeqCount);
+	decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
 
 	prefilter_kappa::init_kappa();
 	prefilter_kappa::m_RSB.Init(QSeqCount);

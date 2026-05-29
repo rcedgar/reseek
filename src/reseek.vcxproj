@@ -284,6 +284,7 @@
     <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
+    <ClCompile Include="cmd_prefilterkappa_bcb.cpp" />
     <ClCompile Include="collect.cpp" />
     <ClCompile Include="convert_can.cpp" />
     <ClCompile Include="dss_logodds.cpp" />

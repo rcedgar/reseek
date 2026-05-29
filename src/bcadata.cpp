@@ -401,6 +401,27 @@ void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
 	Chain.m_Label = m_Labels[ChainIdx];
 	}
 
+void BCAData::make_kappa_codeseqs(
+	uint8_t ***ptr_kappa_codeseqs,
+	uint **ptr_lengths) const
+	{
+	const uint nchain = GetChainCount();
+	uint8_t **kappa_codeseqs = myalloc(uint8_t *, nchain);
+	uint *lengths = myalloc(uint, nchain);
+
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		const uint L = GetSeqLength(chainidx);
+		lengths[chainidx] = L;
+		uint8_t *kappa_codeseq = myalloc(uint8_t, L);
+		read_codeseq_nu(kappa_codeseq, chainidx, L);
+		chaq::codeseq_nu_to_kappa_inplace(kappa_codeseq, L);
+		kappa_codeseqs[chainidx] = kappa_codeseq;
+		}
+	*ptr_kappa_codeseqs = kappa_codeseqs;
+	*ptr_lengths = lengths;
+	}
+
 void cmd_bca_stats()
 	{
 	BCAData BCA;

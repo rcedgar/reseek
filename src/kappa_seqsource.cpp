@@ -33,6 +33,22 @@ bool kappa_seqsource::GetNextLo(SeqInfo *SI)
 		return false;
 		}
 
+	case KSSS_bcb:
+		{
+		uint idx = m_seqdbidx++;
+		SI->m_Index = idx;
+		if (idx >= m_bcb->GetChainCount()) return false;
+		const string &label = m_bcb->GetLabel(idx);
+		SI->SetLabel(label.c_str());
+		const uint L = m_bcb->GetSeqLength(idx);
+		SI->AllocL(L);
+		uint L2 = m_bcb->read_codeseq_nu(SI->m_SeqBuffer, idx, L);
+		asserta(L2 == L);
+		SI->m_L = L;
+		chaq::codeseq_nu_to_kappa_inplace(SI->m_SeqBuffer, L);
+		return true;
+		}
+
 	case KSSS_seqdb:
 		{
 		uint idx = m_seqdbidx++;
@@ -87,6 +103,12 @@ void kappa_seqsource::OpenChains(const string &FileName)
 	m_CR.Open(FileName);
 	}
 
+void kappa_seqsource::OpenBCB(const BCAData &bcb)
+	{
+	m_KSSS = KSSS_bcb;
+	m_bcb = &bcb;
+	}
+
 void kappa_seqsource::OpenSeqDB(const SeqDB &DB, bool codes)
 	{
 	m_KSSS = KSSS_seqdb;
@@ -109,6 +131,15 @@ uint kappa_seqsource::GetPctDoneX10()
 		{
 		uint N = m_seqdb->GetSeqCount();
 		uint pctx10 = uint((m_seqdbidx*1000.0)/N);
+		if (pctx10 == 0) pctx10 = 1;
+		if (pctx10 >= 999) pctx10 = 998;
+		return pctx10;
+		}
+
+	case KSSS_bcb:
+		{
+		uint N = m_bcb->GetChainCount();
+		uint pctx10 = uint((m_bcbidx*1000.0)/N);
 		if (pctx10 == 0) pctx10 = 1;
 		if (pctx10 >= 999) pctx10 = 998;
 		return pctx10;

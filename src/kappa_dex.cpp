@@ -360,7 +360,8 @@ void kappa_dex::LogIndexKmer(uint Kmer) const
 
 void kappa_dex::ValidateKmer(uint Kmer) const
 	{
-	const uint QSeqCount = m_SeqDB->GetSeqCount();
+	const uint QSeqCount = m_nseq;
+	asserta(QSeqCount > 0);
 	uint n = GetRowSize(Kmer);
 	uint DataOffset = m_Finger[Kmer];
 	asserta(DataOffset <= m_Size);
@@ -377,11 +378,11 @@ void kappa_dex::ValidateKmer(uint Kmer) const
 			Log("QSeqIdx=%u, SeqPos=%u\n", SeqIdx, SeqPos);
 			Die("kappa_dex::ValidateKmer(Kmer=0x%x)", Kmer);
 			}
-		uint QL = m_SeqDB->GetSeqLength(SeqIdx);
+		uint QL = get_seq_length(SeqIdx);
 		asserta(SeqPos < QL);
 		if (!m_AddNeighborhood)
 			{
-			const byte *Seq = m_SeqDB->GetByteSeq(SeqIdx);
+			const byte *Seq = get_byte_seq(SeqIdx);
 			uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
 			asserta(Check_Kmer == Kmer);
 			}
@@ -396,9 +397,73 @@ uint kappa_dex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) con
 	return Kmer;
 	}
 
+void kappa_dex::from_codeseqs(
+	uint8_t **kappa_codeseqs,
+	const uint *lengths,
+	const vector<string> &labels,
+	uint nseq)
+	{
+	//m_SeqDB = 0;
+	m_kappa_codeseqs = kappa_codeseqs;
+	m_seq_lengths = lengths;
+	m_nseq = nseq;
+	if (m_AddNeighborhood && m_ptrScoreMx == 0)
+		m_ptrScoreMx = &GetMuMerMx(m_k);
+
+	Alloc_Pass1();
+	for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+		{
+		ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 1");
+		const char *Label = 0; // TODO m_SeqDB->GetLabel(SeqIdx).c_str();
+		const byte *Seq = kappa_codeseqs[SeqIdx];
+		const uint L = lengths[SeqIdx];
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass1();
+		}
+#if KAPPA_DEBUG_CHECKS
+	CheckAfterPass1();
+#endif
+
+	AdjustFinger();
+#if KAPPA_DEBUG_CHECKS
+	CheckAfterAdjust();
+#endif
+
+	Alloc_Pass2();
+	for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+		{
+		ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 2");
+		const char *Label = 0; // TODO m_SeqDB->GetLabel(SeqIdx).c_str();
+		const byte *Seq = kappa_codeseqs[SeqIdx];
+		const uint L = lengths[SeqIdx];
+		SetSeq(SeqIdx, Label, Seq, L);
+		AddSeq_Pass2();
+		}
+	SetRowSizes();
+#if KAPPA_DEBUG_CHECKS
+	CheckAfterPass2();
+#endif
+
+#if KAPPA_DEBUG_CHECKS
+	{
+	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
+		{
+		uint RowSize = GetRowSize(Kmer);
+		uint Check_RowSize = m_KmerToCount1[Kmer];
+		asserta(Check_RowSize == RowSize);
+		if (RowSize == 0)
+			continue;
+		uint Offset = m_Finger[Kmer];
+		uint Check_Offset = m_KmerToDataStart[Kmer];
+		}
+	}
+	Validate();
+#endif
+	}
+
 void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-mers
 	{
-	m_SeqDB = &Input;
+	//m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
 	if (m_AddNeighborhood && m_ptrScoreMx == 0)
 		m_ptrScoreMx = &GetMuMerMx(m_k);
@@ -407,7 +472,7 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "kappa_dex pass 1");
-		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
+		const char *Label = get_label(SeqIdx);
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
 		SetSeq(SeqIdx, Label, Seq, L);
@@ -426,7 +491,7 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)
 		{
 		ProgressStep(SeqIdx, SeqCount, "kappa_dex pass 2");
-		const char *Label = m_SeqDB->GetLabel(SeqIdx).c_str();
+		const char *Label = get_label(SeqIdx);
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
 		SetSeq(SeqIdx, Label, Seq, L);

@@ -376,3 +376,4 @@ uint logodds_and_freqmx_from_lines(
 	vector<double> &freqmx);
 
 void set_sec4_groups(const string &sec4_groups);
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount);

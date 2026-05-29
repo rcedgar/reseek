@@ -6,6 +6,8 @@
 #include "seqinfo.h"
 #include "mymutex.h"
 
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint TSeqCount);
+
 static const MerMx *s_ptrScoreMx;
 static const SeqDB *s_ptrQDB = 0;
 static const MuDex *s_ptrQKmerIndex = 0;
@@ -61,7 +63,7 @@ static void ThreadBody_Filter(uint ThreadIndex)
 		}
 	}
 
-void SetQueryNeighborhood(uint QSeqCount)
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
 	{
 	if (opt(idxq))
 		g_QueryNeighborhood = true;
@@ -81,7 +83,7 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 	map<uint, vector<uint> > &TargetIdxToQueryIdxs)
 	{
 	const uint QSeqCount = QDB.GetSeqCount();
-	SetQueryNeighborhood(QSeqCount);
+	decide_query_or_db_kmer_neighborhood(QSeqCount, UINT_MAX);
 
 	s_SS = &FSS;
 	s_SS->m_ASCII = false;

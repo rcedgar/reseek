@@ -27,7 +27,7 @@ fi
 if [[ ! -s git_hash.h ||  "$old_sum" != "$new_sum" ]] ; then
 #	echo sum1=`sum git_hash.h` sum2=`sum /tmp/git_hash.h`
 	echo Update git_hash.h
-	/bin/mv -v /tmp/git_hash.h .
+	/bin/mv /tmp/git_hash.h .
 else
 	echo No change git_hash.h
 fi
