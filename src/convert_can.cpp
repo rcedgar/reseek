@@ -226,3 +226,29 @@ void cmd_convert_bcb_to_nuhexfasta()
 	Progress("%u chains\n", nchain);
 	CloseStdioFile(f);
 	}
+
+void cmd_convert_bcb_to_kappafasta()
+	{
+	if (optset_output) Die("Use -fasta not -output");
+	if (!optset_fasta) Die("Must specify -fasta FILENAME");
+	BCAData BCA;
+	BCA.Open(g_Arg1);
+	FILE *f = CreateStdioFile(opt(fasta));
+	const uint nchain = BCA.GetChainCount();
+	const uint maxL = 4000;//TODO
+	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		if (chainidx%1000 == 0)
+			Progress("%u chains\r", chainidx);
+		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, maxL);
+		const string &label = BCA.m_Labels[chainidx];
+		chaq::codeseq_nu_to_kappa(
+			codeseq_nu, L,
+			codeseq_kappa, maxL);
+		codeseq_to_fasta(f, label, codeseq_kappa, L, KAPPA_AS);
+		}
+	Progress("%u chains\n", nchain);
+	CloseStdioFile(f);
+	}
