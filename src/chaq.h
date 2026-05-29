@@ -257,4 +257,12 @@ public:
 		const uint L,
 		uint8_t *codeseq_nu,
 		size_t codeseq_nu_bytes);
+
+	static void fill_codeseq_nu_from_chain(
+		const flat_chain_t *chain,
+		sid_t *distmx_buffer,
+		chaq_vecs2 *cv_buffer,
+		uint8_t *codeseq_nu,
+		uint buffer_L);
+
 	};

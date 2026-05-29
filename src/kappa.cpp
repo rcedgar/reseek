@@ -4,8 +4,6 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 
-// $src/reseek_tune2/py/map_nu_to_kappa.py
-// sec4_groups=AB-CDGINZ-EFJLKMORSTacdef-HPQUVWXYb
 uint8_t s_sec32_to_sec4[32] = {
  0, 0, 1, 1, 2, 2, 1, 3, 1, 2, 2, 2, 2, 1, 2, 3, 3, 2, 2, 2, 3, 3, 3, 3, 3, 1, 2, 3, 2, 2, 2, 2
 };
@@ -169,6 +167,27 @@ void chaq::fill_codeseq_nu(
 		}
 	}
 
+void chaq::fill_codeseq_nu_from_chain(
+	const flat_chain_t *chain,
+	sid_t *distmx_buffer,
+	chaq_vecs2 *cv_buffer,
+	uint8_t *codeseq_nu,
+	uint buffer_L)
+	{
+	const uint L = chain->get_length();
+	asserta(L <= buffer_L);
+
+	sid_t *distmx = distmx_buffer;
+	chaq_vecs2 *cv = cv_buffer;
+	const char *charseq_aa20 = chain->m_aa->m_data;
+
+	chaq::fill_distmx(chain, distmx);
+	chaq::fill_chaq_vecs2(distmx, L, *cv);
+	chaq::fill_codeseq_nu(
+		charseq_aa20, cv->pm2_codeseq, cv->sec32_codeseq,
+		L, codeseq_nu, buffer_L);
+	}
+
 void codeseq_to_hexfasta(FILE *f, const string &label,
 	const uint8_t *codeseq, uint L)
 	{
@@ -259,7 +278,7 @@ void cmd_kappa_fasta()
 		fkappa = CreateStdioFile(opt(output));
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
-		ProgressStep(chainidx, nchain, "Writing hex/fasta");
+		ProgressStep(chainidx, nchain, "Writing nu hex / kappa fasta");
 		const flat_chain_t *chain = chains[chainidx];
 		const char *charseq_aa20 = chain->m_aa->m_data;
 		const uint L = chain->get_length();

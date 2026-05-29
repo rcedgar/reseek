@@ -285,6 +285,7 @@
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="cmd_prefilterkappa.cpp" />
     <ClCompile Include="collect.cpp" />
+    <ClCompile Include="convert_can.cpp" />
     <ClCompile Include="dss_logodds.cpp" />
     <ClCompile Include="dump_chaq.cpp" />
     <ClCompile Include="dump_dss.cpp" />

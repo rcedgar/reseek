@@ -9,7 +9,9 @@ class BCAData
 public:
 	vector<string> m_Labels;
 	vector<uint64_t> m_Offsets; // start of IC vector in file
+	vector<uint64_t> m_NuOffsets; // start of Nu sequences in file (iff .bcb)
 	vector<uint32_t> m_SeqLengths;
+	bool m_HasNuSequences = false;
 	string m_FN;
 	FILE *m_f = 0;
 	bool m_Writing = false;
@@ -36,3 +38,4 @@ private:
 	};
 
 const uint32_t BCA_MAGIC = 0xBCABCA;
+const uint32_t BCB_MAGIC = 0xBCABCB;

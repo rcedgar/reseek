@@ -100,6 +100,7 @@ STR_OPT(aagroups)
 STR_OPT(sec4_groups)
 STR_OPT(kappa_logodds)
 STR_OPT(logodds)
+STR_OPT(can)
 
 UNS_OPT(threads)
 UNS_OPT(alpha_size)

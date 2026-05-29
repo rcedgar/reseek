@@ -836,6 +836,9 @@
     <ClCompile Include="kappa_seqsource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="convert_can.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
