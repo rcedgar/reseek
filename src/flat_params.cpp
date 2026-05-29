@@ -12,6 +12,7 @@
 
 int flat_params::m_kappa_min_kmerpairscore = 50;
 int flat_params::m_kappa_min_mindiagscore = 0;
+uint flat_params::m_kappa_min_chainlength = 32;
 string flat_params::m_kappa_pattern = "1010011";
 uint flat_params::m_kappa_kmer_nrones = KAPPA_NRONES;
 uint flat_params::m_kappa_kmer_width = 7;

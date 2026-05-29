@@ -1,9 +1,17 @@
 #include "myutils.h"
 #include "prefilter_kappa.h"
 #include "flat_params.h"
+#include "seqinfo.h"
 #include "sort.h"
 
 RankedScoresBag prefilter_kappa::m_RSB;
+const uint8_t **prefilter_kappa::m_query_kappa_codeseq_vec = 0;
+kappa_seqsource *prefilter_kappa::m_db_seqsource = 0;
+const SeqDB *prefilter_kappa::m_QDB; // TODO -- obsolete
+uint prefilter_kappa::m_QSeqCount = 0;
+atomic<time_t> prefilter_kappa::m_time_last_progress;
+const kappa_mermx *prefilter_kappa::m_ptrScoreMx;
+const kappa_dex *prefilter_kappa::m_ptrQKmerIndex;
 
 static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
 	{
@@ -184,6 +192,29 @@ prefilter_kappa::~prefilter_kappa()
 	{
 	if (!m_RSBPending.empty())
 		m_RSB.AddScoresBatch(m_RSBPending);
+	}
+
+void prefilter_kappa::alloc()
+	{
+	asserta(m_QSeqCount > 0);
+	m_RSBPending.clear();
+	m_RSBPending.reserve(RSB_BATCH);
+
+	m_QSeqIdxToBestDiagScore = myalloc(uint16_t, m_QSeqCount);
+	m_QSeqIdxsWithTwoHitDiag = myalloc(uint16_t, m_QSeqCount);
+
+	for (uint i = 0; i < m_QSeqCount; ++i)
+		{
+		m_QSeqIdxToBestDiagScore[i] = 0;
+		m_QSeqIdxsWithTwoHitDiag[i] = UINT16_MAX;
+		}
+
+	bool TargetNeighborhood = !g_QueryNeighborhood;
+	if (TargetNeighborhood)
+		m_NeighborKmers = myalloc(uint, flat_params::m_kappa_dict_size);
+	else
+		m_NeighborKmers = 0;
+	m_NrQueriesWithTwoHitDiag = 0;
 	}
 
 void prefilter_kappa::SetQDB(const SeqDB &QDB)
@@ -505,4 +536,82 @@ void prefilter_kappa::LogTargetKmers() const
 		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
 		Log("[%4u]  %08x  %s\n", PosT, Kmer, KmerStr);
 		}
+	}
+
+void prefilter_kappa::static_thread_body(uint threadidx)
+	{
+	asserta(prefilter_kappa::m_QSeqCount > 0);
+
+	prefilter_kappa Pref;
+	Pref.m_ScoreMx = m_ptrScoreMx;
+	Pref.m_QKmerIndex = m_ptrQKmerIndex;
+	Pref.m_KmerSelfScores = m_ptrQKmerIndex->m_KmerSelfScores;
+	Pref.alloc();
+
+	ObjMgr OM;
+
+	uint counter = 0;
+	for (;;)
+		{
+		SeqInfo *TargetSI = OM.GetSeqInfo();
+		bool ok = m_db_seqsource->GetNext(TargetSI);
+		if (!ok)
+			return;
+		if (++counter%100 == 0)
+			{
+			time_t now = time(0);
+			if (now > m_time_last_progress)
+				{
+				uint pctx10 = m_db_seqsource->GetPctDoneX10();
+				if (pctx10 >= 999) pctx10 = 998;
+				ProgressStep(pctx10, 1000, "Filtering");
+				}
+			m_time_last_progress = now;
+			}
+
+		uint TL = TargetSI->m_L;
+		if (TL < flat_params::m_kappa_min_chainlength)
+			{
+			OM.Down(TargetSI);
+			continue;
+			}
+
+		const uint TSeqIdx = UINT_MAX; // not used
+		const uint8_t * TSeq = TargetSI->m_Seq;
+		const string &TLabel = TargetSI->m_Label;
+		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
+
+		OM.Down(TargetSI);
+		}
+	}
+
+void prefilter_kappa::run_filter(
+	const uint8_t **query_kappa_codeseq_vec, uint NQ,
+	kappa_seqsource &db_ss)
+	{
+	m_query_kappa_codeseq_vec = query_kappa_codeseq_vec;
+	m_db_seqsource = &db_ss;
+
+	ProgressStep(0, 1000, "Kappa filter");
+	time_t t_start = time(0);
+	m_time_last_progress = t_start;
+
+	vector<thread *> ts;
+	uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(static_thread_body, ThreadIndex);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+	ProgressStep(999, 1000, "Kappa filter");
+
+	time_t t_end = time(0);
+	uint filter_secs = uint(t_end - t_start);
+
+	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
+	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
 	}

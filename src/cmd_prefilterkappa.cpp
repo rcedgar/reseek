@@ -81,8 +81,8 @@ static void write_tsv_with_scores(
 	const SeqDB &QDB,
 	const SeqDB &TDB)
 	{
+#if STORE_PAIR_SCORES
 	if (fn == "") return;
-
 	const uint QSeqCount = QDB.GetSeqCount();
 	const uint TSeqCount = TDB.GetSeqCount();
 
@@ -114,6 +114,9 @@ static void write_tsv_with_scores(
 			}
 		}
 	CloseStdioFile(f);
+#else
+	Die("write_tsv_with_scores() STORE_PAIR_SCORES=0");
+#endif
 	}
 
 static void bench(
@@ -248,10 +251,8 @@ void cmd_prefilter_kappa()
 	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
 	ProgressLog("Prefilter hits  %s\n", FloatToStr(total));
 
-	bench(filter_secs, QDB, TDB);
 	write_tsv(opt(output));
-	write_tsv_with_labels(opt(output3), QDB, TDB);
-#if STORE_PAIR_SCORES
 	write_tsv_with_scores(opt(output2), QDB, TDB);
-#endif
+	write_tsv_with_labels(opt(output3), QDB, TDB);
+	bench(filter_secs, QDB, TDB);
 	}

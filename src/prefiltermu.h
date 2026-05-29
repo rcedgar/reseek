@@ -43,8 +43,8 @@ public:
 // Query DB is typically smaller, indexed in memory
 // Sequences are integers 0..19 not ASCII chars
 ///////////////////////////////////////////////////
-	const SeqDB *m_QDB = 0;
-	uint m_QSeqCount = UINT_MAX;
+	const SeqDB *m_QDB;
+	uint m_QSeqCount;
 
 //////////////////////////////////////
 // Index of k-mers in the Query.

@@ -56,6 +56,7 @@ public:
 	static uint8_t *m_kappa_kmer_onesoffsets;
 	static int m_kappa_min_kmerpairscore;
 	static int m_kappa_min_mindiagscore;
+	static uint m_kappa_min_chainlength;
 	static uint m_rsb_size;
 
 	// alphabets
