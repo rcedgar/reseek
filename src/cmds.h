@@ -146,6 +146,7 @@ C(top_bench)
 C(kappa_fasta)
 C(load_kappa_logodds)
 C(flat_search)
-C(convert_can)
+C(convert_structs_to_can)
+C(convert_can_to_kappa_fasta)
 
 #undef C
