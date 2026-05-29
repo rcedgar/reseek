@@ -35,7 +35,7 @@ bool kappa_seqsource::GetNextLo(SeqInfo *SI)
 
 	case KSSS_bcb:
 		{
-		uint idx = m_seqdbidx++;
+		uint idx = m_bcbidx++;
 		SI->m_Index = idx;
 		if (idx >= m_bcb->GetChainCount()) return false;
 		const string &label = m_bcb->GetLabel(idx);

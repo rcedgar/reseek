@@ -578,8 +578,8 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 				uint pctx10 = m_db_seqsource->GetPctDoneX10();
 				if (pctx10 >= 999) pctx10 = 998;
 				ProgressStep(pctx10, 1000, "Filtering");
+				m_time_last_progress = now;
 				}
-			m_time_last_progress = now;
 			}
 
 		uint TL = TargetSI->m_L;
