@@ -28,7 +28,8 @@ public:
 	// Batched RSB updates: flush when this many entries are pending.
 	static const uint RSB_BATCH = 512;
 
-	static const uint8_t **m_query_kappa_codeseq_vec;
+	static uint8_t **m_query_kappa_codeseq_vec;
+	static const uint *m_query_lengths;
 	//static uint m_NQ;
 	static kappa_seqsource *m_db_seqsource;
 	static atomic<time_t> m_time_last_progress;
@@ -51,7 +52,7 @@ public:
 // Query DB is typically smaller, indexed in memory
 // Sequences are integers 0..19 not ASCII chars
 ///////////////////////////////////////////////////
-	static const SeqDB *m_QDB; // TODO -- obsolete
+	//static const SeqDB *m_QDB; // TODO -- obsolete
 	static uint m_QSeqCount;
 
 //////////////////////////////////////
@@ -134,7 +135,8 @@ public:
 public:
 	static void init_kappa();
 	static void run_filter(
-		const uint8_t **query_kappa_codeseq_vec,
+		uint8_t **query_kappa_codeseq_vec,
+		const uint *query_lengths,
 		uint NQ, kappa_seqsource &db_ss);
 	static void static_thread_body(uint threadidx);
 	};

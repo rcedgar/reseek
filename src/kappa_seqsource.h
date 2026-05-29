@@ -21,6 +21,7 @@ public:
 	FASTASeqSource m_FSS;
 	const flat_chain_t *m_chain = 0;
 	const SeqDB *m_seqdb = 0;
+	bool m_seqdb_codes = false;
 	atomic<uint> m_seqdbidx = 0;
 	KSS_SOURCE m_KSSS = KSSS_none;
 
@@ -35,8 +36,8 @@ public:
 	virtual ~kappa_seqsource() {}
 
 public:
-	virtual unsigned GetPctDoneX10()
-		{ Die("kappa_seqsource::GetPctDoneX10()"); return 0; };
+	virtual unsigned GetPctDoneX10();
+
 	virtual const char *GetFileNameC() const
 		{ Die("kappa_seqsource::GetFileNameC()"); return 0; };
 	virtual void Rewind()
@@ -45,6 +46,6 @@ public:
 public:
 	void OpenFasta(const string &FileName);
 	void OpenChains(const string &FileName);
-	void OpenSeqDB(const SeqDB &DB);
+	void OpenSeqDB(const SeqDB &DB, bool codes);
 	void Close();
 	};

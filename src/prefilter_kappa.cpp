@@ -5,9 +5,9 @@
 #include "sort.h"
 
 RankedScoresBag prefilter_kappa::m_RSB;
-const uint8_t **prefilter_kappa::m_query_kappa_codeseq_vec = 0;
+uint8_t **prefilter_kappa::m_query_kappa_codeseq_vec = 0;
+const uint *prefilter_kappa::m_query_lengths = 0;
 kappa_seqsource *prefilter_kappa::m_db_seqsource = 0;
-const SeqDB *prefilter_kappa::m_QDB; // TODO -- obsolete
 uint prefilter_kappa::m_QSeqCount = 0;
 atomic<time_t> prefilter_kappa::m_time_last_progress;
 const kappa_mermx *prefilter_kappa::m_ptrScoreMx;
@@ -113,8 +113,10 @@ int prefilter_kappa::FindHSP(const byte *QSeq, uint QL, int Diag) const
 
 int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
+	const uint QL = m_query_lengths[QSeqIdx];
 #if TRACE
 	if (DoTrace(QSeqIdx))
 		Log("FindHSP(QL=%u, Diag=%d)\n", QL, Diag);
@@ -183,8 +185,10 @@ int prefilter_kappa::FindHSP2(const byte *QSeq, uint QL, int Diag,
 
 int prefilter_kappa::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
+	const uint QL = m_query_lengths[QSeqIdx];
 	return FindHSP2(QSeq, QL, Diag, Lo, Len);
 	}
 
@@ -219,29 +223,30 @@ void prefilter_kappa::alloc()
 
 void prefilter_kappa::SetQDB(const SeqDB &QDB)
 	{
-	asserta(m_init_kappa_done);
+	Die("prefilter_kappa::SetQDB()");
+	//asserta(m_init_kappa_done);
 
-	m_QDB = &QDB;
-	m_QSeqCount = QDB.GetSeqCount();
+	//m_QDB = &QDB;
+	//m_QSeqCount = QDB.GetSeqCount();
 
-	m_RSBPending.clear();
-	m_RSBPending.reserve(RSB_BATCH);
+	//m_RSBPending.clear();
+	//m_RSBPending.reserve(RSB_BATCH);
 
-	m_QSeqIdxToBestDiagScore = myalloc(uint16_t, m_QSeqCount);
-	m_QSeqIdxsWithTwoHitDiag = myalloc(uint16_t, m_QSeqCount);
+	//m_QSeqIdxToBestDiagScore = myalloc(uint16_t, m_QSeqCount);
+	//m_QSeqIdxsWithTwoHitDiag = myalloc(uint16_t, m_QSeqCount);
 
-	for (uint i = 0; i < m_QSeqCount; ++i)
-		{
-		m_QSeqIdxToBestDiagScore[i] = 0;
-		m_QSeqIdxsWithTwoHitDiag[i] = UINT16_MAX;
-		}
+	//for (uint i = 0; i < m_QSeqCount; ++i)
+	//	{
+	//	m_QSeqIdxToBestDiagScore[i] = 0;
+	//	m_QSeqIdxsWithTwoHitDiag[i] = UINT16_MAX;
+	//	}
 
-	bool TargetNeighborhood = !g_QueryNeighborhood;
-	if (TargetNeighborhood)
-		m_NeighborKmers = myalloc(uint, flat_params::m_kappa_dict_size);
-	else
-		m_NeighborKmers = 0;
-	m_NrQueriesWithTwoHitDiag = 0;
+	//bool TargetNeighborhood = !g_QueryNeighborhood;
+	//if (TargetNeighborhood)
+	//	m_NeighborKmers = myalloc(uint, flat_params::m_kappa_dict_size);
+	//else
+	//	m_NeighborKmers = 0;
+	//m_NrQueriesWithTwoHitDiag = 0;
 	}
 
 void prefilter_kappa::Search_TargetKmers()
@@ -294,8 +299,9 @@ void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 #if TRACE
 	m_TBaseKmer = Kmer;
 #endif
-	assert(Kmer < flat_params::m_PrefilterKappaDictSize);
-	assert(m_KmerSelfScores[Kmer] >=  flat_params::m_PrefilterMinKappaKmerPairScore);
+	assert(Kmer < flat_params::m_kappa_dict_size);
+	if (m_KmerSelfScores[Kmer] < flat_params::m_kappa_min_kmerpairscore)
+		return;
 	short MinKmerScore =  flat_params::m_kappa_min_kmerpairscore;
 
 // Construct high-scoring neighborhood
@@ -334,7 +340,8 @@ void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
 		uint16_t QSeqPos;
 		m_QKmerIndex->Get(DataOffset++, QSeqIdx, QSeqPos);
 		asserta(QSeqIdx < m_QSeqCount);
-		uint QL32 = m_QDB->GetSeqLength(QSeqIdx);
+		//uint QL32 = m_QDB->GetSeqLength(QSeqIdx);
+		uint QL32 = m_query_lengths[QSeqIdx];
 		asserta(QL32 < UINT16_MAX);
 		uint16_t QL = uint16_t(QL32);
 		diag dg(QL, m_TL);
@@ -430,8 +437,10 @@ void prefilter_kappa::ExtendTwoHitDiagsToHSPs()
 
 int prefilter_kappa::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
+	const uint QL = m_query_lengths[QSeqIdx];
 	int DiagScore = FindHSP(QSeq, QL, Diag);
 #if TRACE
 	LogDiag(QSeqIdx, Diag);
@@ -460,17 +469,19 @@ void prefilter_kappa::Reset()
 
 void prefilter_kappa::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
-	const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
-	uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
+	//uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
+	const uint QL = m_query_lengths[QSeqIdx];
 	string QSeq_ascii;
 	for (uint i = 0; i < QL; ++i)
 		QSeq_ascii += g_LetterToCharMu[QSeq[i]];
 	int Score = FindHSP(QSeq, QL, Diag);
 	int Lo, Len;
 	int Score2 = FindHSP2(QSeq, QL, Diag, Lo, Len);
-	const string &QLabel = m_QDB->GetLabel(QSeqIdx);
-	Log("LogDiag(%s, %u) lo %d, len %d, score %d\n",
-		QLabel.c_str(), Diag, Lo, Len, Score);
+	//const string &QLabel = m_QDB->GetLabel(QSeqIdx);
+	Log("LogDiag(%u) lo %d, len %d, score %d\n",
+		Diag, Lo, Len, Score);
 	diag dg(QL, m_TL);
 	int ilo = dg.getmini(Diag) + Lo;
 	int jlo = dg.getminj(Diag) + Lo;
@@ -503,21 +514,23 @@ void prefilter_kappa::Search(uint TSeqIdx, const string &TLabel,
 
 uint prefilter_kappa::GetQKmer(uint QSeqIdx, uint QPos) const
 	{
-	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
+	//const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
+	const byte *Q = m_query_kappa_codeseq_vec[QSeqIdx];
 	uint Kmer = m_QKmerIndex->BytesToKmer(Q + QPos);
 	return Kmer;
 	}
 
 void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
 	{
-	const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
-	const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	//const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
+	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
+	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
+	const uint QL = m_query_lengths[QSeqIdx];
 	Log("\n");
-	Log("prefilter_kappa::LogQueryKmers() QL=%u >%s\n", 
-		QL, m_QDB->GetLabel(QSeqIdx).c_str());
+	Log("prefilter_kappa::LogQueryKmers() QL=%u\n", QL);
 	for (uint PosQ = 0; PosQ + kappa_dex::m_K <= QL; ++PosQ)
 		{
-		uint Kmer = m_QKmerIndex->BytesToKmer(Q + PosQ);
+		uint Kmer = m_QKmerIndex->BytesToKmer(QSeq + PosQ);
 		string tmp;
 		const char *KmerStr = m_QKmerIndex->KmerToStr(Kmer, tmp);
 		Log("[%4u]  %08x  %s\n", PosQ, Kmer, KmerStr);
@@ -557,7 +570,7 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 		bool ok = m_db_seqsource->GetNext(TargetSI);
 		if (!ok)
 			return;
-		if (++counter%100 == 0)
+		if ((counter++)%10 == 0)
 			{
 			time_t now = time(0);
 			if (now > m_time_last_progress)
@@ -576,7 +589,7 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 			continue;
 			}
 
-		const uint TSeqIdx = UINT_MAX; // not used
+		const uint TSeqIdx = TargetSI->m_Index;
 		const uint8_t * TSeq = TargetSI->m_Seq;
 		const string &TLabel = TargetSI->m_Label;
 		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
@@ -586,10 +599,14 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 	}
 
 void prefilter_kappa::run_filter(
-	const uint8_t **query_kappa_codeseq_vec, uint NQ,
+	uint8_t **query_kappa_codeseq_vec,
+	const uint *query_lengths,
+	uint NQ,
 	kappa_seqsource &db_ss)
 	{
 	m_query_kappa_codeseq_vec = query_kappa_codeseq_vec;
+	m_query_lengths = query_lengths;
+	m_QSeqCount = NQ;
 	m_db_seqsource = &db_ss;
 
 	ProgressStep(0, 1000, "Kappa filter");
@@ -608,9 +625,6 @@ void prefilter_kappa::run_filter(
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	ProgressStep(999, 1000, "Kappa filter");
-
-	time_t t_end = time(0);
-	uint filter_secs = uint(t_end - t_start);
 
 	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));

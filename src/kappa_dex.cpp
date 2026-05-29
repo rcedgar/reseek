@@ -552,7 +552,7 @@ void kappa_dex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		uint CheckKmer = GetSeqKmer(Seq, KmerStartPos, false);
 		asserta(CheckKmer == Kmer);
 #endif
-		assert(Kmer < flat_params::m_PrefilterKappaDictSize);
+		assert(Kmer < flat_params::m_kappa_dict_size);
 		if (m_KmerSelfScores != 0 && m_KmerSelfScores[Kmer] < m_MinKmerSelfScore)
 			Kmers.push_back(UINT_MAX);
 		else

@@ -6,44 +6,7 @@
 #include "bitdope.h"
 #include "lookup.h"
 
-static atomic<uint> s_NextTIdx = 0;
-static const kappa_mermx *s_ptrScoreMx;
-static const SeqDB *s_ptrQDB = 0;
-static const SeqDB *s_ptrTDB = 0;
-static const kappa_dex *s_ptrQKmerIndex = 0;
 static FILE *s_fTsv = 0;
-static time_t s_TimeLastProgress;
-
-static void ThreadBody(uint ThreadIndex)
-	{
-	const uint TSeqCount = s_ptrTDB->GetSeqCount();
-
-	prefilter_kappa Pref;
-	Pref.m_ScoreMx = s_ptrScoreMx;
-	Pref.m_QKmerIndex = s_ptrQKmerIndex;
-	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
-	Pref.SetQDB(*s_ptrQDB);
-
-	for (;;)
-		{
-		uint TSeqIdx = s_NextTIdx++;
-		if (TSeqIdx > 0 && TSeqIdx + 1 < TSeqCount)
-			{
-			time_t now = time(0);
-			if (now > s_TimeLastProgress)
-				ProgressStep(TSeqIdx, TSeqCount, "Filtering");
-			s_TimeLastProgress = now;
-			}
-		if (TSeqIdx >= TSeqCount)
-			return;
-
-		Pref.m_TSeqIdx = TSeqIdx;
-		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
-		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
-		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
-		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
-		}
-	}
 
 static void write_tsv(const string &fn)
 	{
@@ -223,33 +186,31 @@ void cmd_prefilter_kappa()
 	asserta(QKmerIndex.m_DictSize == flat_params::m_kappa_dict_size);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
-	s_ptrQDB = &QDB;
-	s_ptrTDB = &TDB;
-	s_ptrScoreMx = &ScoreMx;
-	s_ptrQKmerIndex = &QKmerIndex;
+	prefilter_kappa::m_ptrScoreMx = &ScoreMx;
+	prefilter_kappa::m_ptrQKmerIndex = &QKmerIndex;
 
-	ProgressStep(0, TSeqCount, "Filtering");
-	time_t t_start = time(0);
-	s_TimeLastProgress = t_start;
-
-	vector<thread *> ts;
-	uint ThreadCount = GetRequestedThreadCount();
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+	kappa_seqsource db_ss;
+	db_ss.OpenSeqDB(TDB, true);
+	const uint NQ = QDB.GetSeqCount();
+	uint8_t **query_kappa_codeseq_vec = myalloc(uint8_t *, NQ);
+	uint *query_lengths = myalloc(uint, NQ);
+	for (uint i = 0; i < NQ; ++i)
 		{
-		thread *t = new thread(ThreadBody, ThreadIndex);
-		ts.push_back(t);
+		uint L = QDB.GetSeqLength(i);
+		asserta(L > 0);
+		const byte *seq = QDB.GetByteSeq(i);
+		uint8_t *codeseq = myalloc(uint8_t, L);
+		query_lengths[i] = L;
+		for (uint pos = 0; pos < L; ++pos)
+			codeseq[pos] = seq[pos];
+		query_kappa_codeseq_vec[i] = codeseq;
 		}
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		ts[ThreadIndex]->join();
-	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		delete ts[ThreadIndex];
-	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
 
+	time_t t_start = time(0);
+	prefilter_kappa::run_filter(
+		query_kappa_codeseq_vec, query_lengths, NQ, db_ss);
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
-
-	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
-	ProgressLog("Prefilter hits  %s\n", FloatToStr(total));
 
 	write_tsv(opt(output));
 	write_tsv_with_scores(opt(output2), QDB, TDB);
