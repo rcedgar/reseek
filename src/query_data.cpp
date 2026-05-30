@@ -124,6 +124,7 @@ db_data *BCAData::get_db_data(
 	const uint8_t *prof_sec32 = mega_prof + L*size_t(fi_sec32);
 
 	uint8_t *codeseq_nu = myalloc(uint8_t, L);
+	uint8_t *codeseq_nu_rev = myalloc(uint8_t, L);
 
 	for (uint32_t pos = 0; pos < L; ++pos)
 		{
@@ -140,6 +141,7 @@ db_data *BCAData::get_db_data(
 		assert(code_nu < 256);
 
 		codeseq_nu[pos] = code_nu;
+		codeseq_nu_rev[L-pos-1] = code_nu;
 		}
 
 	parasail_profile_t *parasail_prof = parasail_profile_create_avx_256_16(
@@ -148,6 +150,7 @@ db_data *BCAData::get_db_data(
 	dd->m_chain = chain;
 	dd->m_distmx = distmx;
 	dd->m_codeseq_nu = codeseq_nu;
+	dd->m_codeseq_nu_rev = codeseq_nu_rev;
 	dd->m_parasail_prof = parasail_prof;
 	return dd;
 	}

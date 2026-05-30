@@ -32,6 +32,8 @@ static void thread_body(uint threadidx)
 
 	uint scratch_buffer_bytes = 2*chain_data::m_maxL;
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
+	chaq_vecs2 cv;
+	chaq::alloc_chaq_vecs2(cv, chain_data::m_maxL);
 	for (;;)
 		{
 		const uint chainidx = s_next++;
@@ -55,7 +57,7 @@ static void thread_body(uint threadidx)
 			chain_data::from_chain(
 				*s_params,
 				*chains[chainidx], s_bits,
-				mem, scratch_buffer, scratch_buffer_bytes);
+				mem, scratch_buffer, scratch_buffer_bytes, &cv);
 
 		scratch.reset();
 		}
@@ -92,7 +94,8 @@ void chain_data::make_mega_prof(
 	uint8_t *mega_prof,
 	uint mega_prof_bytes,
 	uint8_t *scratch_buffer,
-	uint scratch_buffer_bytes)
+	uint scratch_buffer_bytes,
+	chaq_vecs2 *cv)
 	{
 	const uint L = chain.get_length();
 	asserta(L > 0);
@@ -101,8 +104,7 @@ void chain_data::make_mega_prof(
 	asserta(nfeat > 0);
 	asserta(mega_prof_bytes >= nfeat*L);
 
-	chaq_vecs2 cv;
-	chaq::fill_chaq_vecs2(distmx, L, cv);
+	chaq::fill_chaq_vecs2(distmx, L, *cv);
 
 #if DEBUG
 	memset(mega_prof, 0xff, nfeat*L);
@@ -117,7 +119,7 @@ void chain_data::make_mega_prof(
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
 		chaq::fast_get_codeseq(
 			params, &chain, distmx,
-			&cv, fan, alpha_size, codeseq,
+			cv, fan, alpha_size, codeseq,
 			scratch_buffer, scratch_buffer_bytes);
 
 #if DEBUG
@@ -193,7 +195,8 @@ chain_data *chain_data::from_chain(
 	uint32_t bits,
 	scratch_mem &mem,
 	uint8_t *scratch_buffer,
-	uint scratch_buffer_bytes)
+	uint scratch_buffer_bytes,
+	chaq_vecs2 *cv)
 	{
 	asserta(bits & bit_distmx);
 
@@ -223,7 +226,7 @@ chain_data *chain_data::from_chain(
 	cd->m_mega_prof = mem.get<uint8_t>(L*nfeat);
 	make_mega_prof(params, chain, cd->m_distmx,
 		cd->m_mega_prof, prof_bytes,
-		scratch_buffer, scratch_buffer_bytes);
+		scratch_buffer, scratch_buffer_bytes, cv);
 
 	if (want_pssm_fwd || want_pssm_rev)
 		{

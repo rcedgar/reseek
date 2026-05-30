@@ -6,6 +6,8 @@
 #include "flat_helpers.h"
 #include "nu_filter.h"
 
+#define WRITE_TARGET_INFO	0
+
 void cmd_flat_search()
 	{
 	const string &QFN = g_Arg1;
@@ -80,6 +82,22 @@ void cmd_flat_search()
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
 	kappa_filter::m_RSB.GetTargetInfo(dbidxs, dbidx_to_qidxs);
+#if WRITE_TARGET_INFO
+	{
+	FILE *f = CreateStdioFile("flat_search_target_info.tmp");
+	for (size_t i = 0; i < dbidxs.size(); ++i)
+		{
+		uint dbidx = dbidxs[i];
+		const vector<uint> &qidxs = dbidx_to_qidxs[dbidx];
+		for (auto qidx : qidxs)
+			{
+			const char *qlabel = QBCA.m_Labels[qidx].c_str();
+			const char *dblabel = DBBCA.m_Labels[dbidx].c_str();
+			fprintf(f, "%s\t%s\n", qlabel, dblabel);
+			}
+		}
+	}
+#endif
 	time_t t_kappa_filter_end = time(0);
 	uint kappa_filter_secs = uint(t_kappa_filter_end - t_kappa_filter_start);
 	ProgressLog("Kappa filter %u secs\n", kappa_filter_secs);

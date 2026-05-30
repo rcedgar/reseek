@@ -465,6 +465,10 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 	{
 	//m_SeqDB = &Input;
 	const uint SeqCount = Input.GetSeqCount();
+	m_labels = &Input.m_Labels;
+	uint *seq_lengths = myalloc(uint, SeqCount);
+	m_seq_lengths = seq_lengths;
+	m_nseq = SeqCount;
 	if (m_AddNeighborhood && m_ptrScoreMx == 0)
 		m_ptrScoreMx = &GetMuMerMx(m_k);
 
@@ -475,6 +479,7 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 		const char *Label = get_label(SeqIdx);
 		const byte *Seq = Input.GetByteSeq(SeqIdx);
 		const uint L = Input.GetSeqLength(SeqIdx);
+		seq_lengths[SeqIdx] = L;
 		SetSeq(SeqIdx, Label, Seq, L);
 		AddSeq_Pass1();
 		}

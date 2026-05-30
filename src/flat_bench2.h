@@ -36,8 +36,9 @@ public:
 	atomic<uint> m_aln_count = 0;
 	atomic<uint> m_mega_fwd_test_count= 0;
 	atomic<uint> m_mega_fwd_pass_count= 0;
-	atomic<uint> m_mu_fwd_reject_count = 0;
-	atomic<uint> m_mu_combined_reject_count = 0;
+	atomic<uint> m_nu_fwd_reject_count = 0;
+	atomic<uint> m_nu_combined_reject_count = 0;
+	atomic<uint> m_nu_pass_count = 0;
 
 	bool m_output_nu_paths = false;
 	bool m_input_mega_paths = false;

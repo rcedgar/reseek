@@ -179,9 +179,9 @@ void cmd_kappa_filter()
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_mindiagscore;
 	QKmerIndex.FromSeqDB(QDB);
-#if DEBUG
-	QKmerIndex.Validate();
-#endif
+//#if DEBUG
+//	QKmerIndex.Validate();
+//#endif
 	asserta(QKmerIndex.m_k == k);
 	asserta(QKmerIndex.m_DictSize == flat_params::m_kappa_dict_size);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);

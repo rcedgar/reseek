@@ -9,7 +9,7 @@ public:
 	static const uint m_maxL;
 	static const flat_params *m_params;
 	static uint m_query_nchain;
-	static const vector<string> *m_query_ptr_labels;
+	static const vector<string> *m_ptr_query_labels;
 	static parasail_profile_t **m_query_parasail_profs;
 	static parasail_profile_t **m_query_parasail_prof_revs;
 	static const uint *m_query_lengths;

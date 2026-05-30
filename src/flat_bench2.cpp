@@ -9,6 +9,8 @@
 #include "seqdb.h"
 #include "getticks.h"
 
+#define WRITE_NU_SELF_REV_SCORES	0
+
 uint flat_bench2::m_maxL = 4000;
 
 static FILE *s_f_nu_paths;
@@ -24,8 +26,9 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 	ProgressStep(0, PairCount, "Aligning");
 	m_next_pairidx = 0;
 	m_aln_count = 0;
-	m_mu_fwd_reject_count = 0;
-	m_mu_combined_reject_count = 0;
+	m_nu_fwd_reject_count = 0;
+	m_nu_combined_reject_count = 0;
+	m_nu_pass_count = 0;
 
 	time_t t1 = time(0);
 
@@ -110,6 +113,9 @@ void flat_bench2::set_nu_self_rev_scores()
 	if (m_nu_self_rev_scores == 0)
 		m_nu_self_rev_scores = myalloc(float, ndom);
 
+#if WRITE_NU_SELF_REV_SCORES
+	FILE *ftmp = CreateStdioFile("nu_self_rev_scores.tmp");
+#endif
 	for (uint domidx = 0; domidx < ndom; ++domidx)
 		{
 		const chain_data *cd = m_cdvec[domidx];
@@ -127,7 +133,14 @@ void flat_bench2::set_nu_self_rev_scores()
 			TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes,
 			0, 0, 0);
 		m_nu_self_rev_scores[domidx] = float(self_rev_score);
+#if WRITE_NU_SELF_REV_SCORES
+		fprintf(ftmp, "%s\t%d\n", m_look->get_dom(domidx).c_str(), self_rev_score);
+#endif
+
 		}
+#if WRITE_NU_SELF_REV_SCORES
+	CloseStdioFile(ftmp);
+#endif
 	}
 
 void flat_bench2::set_mega_self_rev_score(
@@ -640,7 +653,7 @@ void flat_bench2::align_pair_nu_only(
 		TD.m_parasail_nomalloc_workspace, TD.m_parasail_nomalloc_workspace_bytes);
 	if (fwd_score < m_params->m_nu_filter_min_fwd_score)
 		{
-		++m_mu_fwd_reject_count;
+		++m_nu_fwd_reject_count;
 		return;
 		}
 
@@ -662,9 +675,10 @@ void flat_bench2::align_pair_nu_only(
 		revw*nu_rev_score;
 	if (nu_combined_score < m_params->m_nu_filter_min_combined_score)
 		{
-		++m_mu_combined_reject_count;
+		++m_nu_combined_reject_count;
 		return;
 		}
+	++m_nu_pass_count;
 	asserta(!isnan(nu_combined_score));
 	asserta(!isinf(nu_combined_score));
 	m_Scores[pairidx] = nu_combined_score;
@@ -866,7 +880,7 @@ void flat_bench2::align_pair(
 			&nu_fwd_hi_i, &nu_fwd_hi_j);
 		if (fwd_score < m_params->m_nu_filter_min_fwd_score)
 			{
-			++m_mu_fwd_reject_count;
+			++m_nu_fwd_reject_count;
 			return;
 			}
 
@@ -888,9 +902,10 @@ void flat_bench2::align_pair(
 			revw*nu_rev_score;
 		if (nu_combined_score < m_params->m_nu_filter_min_combined_score)
 			{
-			++m_mu_combined_reject_count;
+			++m_nu_combined_reject_count;
 			return;
 			}
+		++m_nu_pass_count;
 		}
 	
 	const uint8_t *prof_i = cd_i->m_mega_prof;
@@ -1334,13 +1349,14 @@ void cmd_flat_bench2()
 	double align_count = double(FB.m_aln_count);
 	double mega_fwd_test_count = double(FB.m_mega_fwd_test_count);
 	double mega_fwd_pass_count = double(FB.m_mega_fwd_pass_count);
-	double mu_fwd_reject_count = double(FB.m_mu_fwd_reject_count);
-	double mu_combined_reject_count = double(FB.m_mu_combined_reject_count);
+	double nu_fwd_reject_count = double(FB.m_nu_fwd_reject_count);
+	double nu_combined_reject_count = double(FB.m_nu_combined_reject_count);
 	double mega_passed_pct = GetPct(mega_fwd_pass_count, mega_fwd_test_count);
 	double ts_pct = GetPct(mega_fwd_pass_count, align_count);
-	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%%\n",
-		GetPct(mu_fwd_reject_count, align_count),
-		GetPct(mu_combined_reject_count, align_count),
-		GetPct(mu_fwd_reject_count+mu_combined_reject_count, align_count));
+	ProgressLog("Mu filter fwd %.1f%%, combined %.1f%%, total %.1f%%, passed %u\n",
+		GetPct(nu_fwd_reject_count, align_count),
+		GetPct(nu_combined_reject_count, align_count),
+		GetPct(nu_fwd_reject_count+nu_combined_reject_count, align_count),
+		FB.m_nu_pass_count.load());
 	ProgressLog("Mega fwd filter passed %.1f%%\n", mega_passed_pct);
 	}

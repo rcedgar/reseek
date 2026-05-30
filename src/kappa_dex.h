@@ -54,7 +54,7 @@ After Pass 2:
 #endif
 
 	//const SeqDB *m_SeqDB = 0;
-	vector<string> *m_labels;
+	const vector<string> *m_labels;
 	uint m_nseq = 0;
 	uint32_t m_Size = 0;
 	uint32_t *m_Finger = 0;

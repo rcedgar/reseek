@@ -4,6 +4,7 @@
 #include "parasail.h"
 #include "flat_chain.h"
 #include "scratch_mem.h"
+#include "chaq.h"
 
 class flat_params;
 
@@ -59,7 +60,8 @@ public:
 		uint32_t bits,
 		scratch_mem &mem,
 		uint8_t *scratch_buffer,
-		uint scratch_buffer_bytes);
+		uint scratch_buffer_bytes,
+		chaq_vecs2 *cv);
 
 	static void update_pssms_cd(
 		const flat_params &params, chain_data *cd);
@@ -93,7 +95,8 @@ public:
 		uint8_t *mega_prof,
 		uint mega_prof_bytes,
 		uint8_t *scratch_buffer,
-		uint scratch_buffer_bytes);
+		uint scratch_buffer_bytes,
+		chaq_vecs2 *cv);
 
 	static void write_fastas(
 		const flat_params &params,

@@ -3,10 +3,13 @@
 #include "flat_nu_aligner.h"
 #include "flat_params.h"
 
+#define WRITE_QUERY_NU_SELF_REV_SCORES	0
+#define WRITE_DB_NU_SELF_REV_SCORES		0
+
 const BCAData *nu_filter::m_dbbca;
 const flat_params *nu_filter::m_params;
 uint nu_filter::m_query_nchain = 0;
-const vector<string> *nu_filter::m_query_ptr_labels = 0;
+const vector<string> *nu_filter::m_ptr_query_labels = 0;
 parasail_profile_t **nu_filter::m_query_parasail_profs = 0;
 parasail_profile_t **nu_filter::m_query_parasail_prof_revs = 0;
 const uint *nu_filter::m_query_lengths = 0;
@@ -27,7 +30,7 @@ void nu_filter::set_query_parasail_profiles(
 	const uint *lengths,
 	uint nchain)
 	{
-	m_query_ptr_labels = &labels;
+	m_ptr_query_labels = &labels;
 	m_query_parasail_profs = parasail_profs;
 	m_query_parasail_prof_revs = parasail_prof_revs;
 	m_query_lengths = lengths;
@@ -47,6 +50,9 @@ void nu_filter::set_query_self_rev_scores(
 	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
 
 	Progress("Query Nu self-scores...");
+#if WRITE_QUERY_NU_SELF_REV_SCORES
+	FILE *ftmp = CreateStdioFile("query_self_rev_scores.tmp");
+#endif
 	for (uint qidx = 0; qidx < m_query_nchain; ++qidx)
 		{
 		const uint LQ = m_query_lengths[qidx];
@@ -56,7 +62,13 @@ void nu_filter::set_query_self_rev_scores(
 			query_para_prof_rev, (const char *) query_codeseq_nu, LQ,
 			open, ext, workspace, workspace_bytes);
 		m_query_self_rev_scores[qidx] = rev_score;
+#if WRITE_QUERY_NU_SELF_REV_SCORES
+		fprintf(ftmp, "%s\t%d\n", (*m_ptr_query_labels)[qidx].c_str(), rev_score);
+#endif
 		}
+#if WRITE_QUERY_NU_SELF_REV_SCORES
+	CloseStdioFile(ftmp);
+#endif
 	Progress(" done.\n");
 	myfree(workspace);
 	}
@@ -100,12 +112,21 @@ void nu_filter::static_thread_body(uint threadidx)
 		asserta(nq > 0);
 		db_data *dd = dbbca.get_db_data(params, dbidx, &cv);
 		uint8_t *db_codeseq_nu = dd->m_codeseq_nu;
+		uint8_t *db_codeseq_nu_rev = dd->m_codeseq_nu_rev;
 		const uint LT = dd->m_chain->get_length();
 
 		parasail_profile_t *db_para_prof = dd->m_parasail_prof;
 		int db_self_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
-			db_para_prof, (const char *) db_codeseq_nu, LT, open, ext,
+			db_para_prof, (const char *) db_codeseq_nu_rev, LT, open, ext,
 			workspace, workspace_bytes);
+#if WRITE_DB_NU_SELF_REV_SCORES
+		static FILE *ftmp = 0;
+		static mutex tmp_lock;
+		tmp_lock.lock();
+		if (ftmp == 0) ftmp = CreateStdioFile("db_nu_self_rev_scores.tmp");
+		fprintf(ftmp, "%s\t%d\n", m_dbbca->m_Labels[dbidx].c_str(), db_self_rev_score);
+		tmp_lock.unlock();
+#endif
 
 		for (uint j = 0; j < nq; ++j)
 			{
