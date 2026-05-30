@@ -1,17 +1,17 @@
 #include "myutils.h"
-#include "prefilter_kappa.h"
+#include "kappa_filter.h"
 #include "flat_params.h"
 #include "seqinfo.h"
 #include "sort.h"
 
-RankedScoresBag prefilter_kappa::m_RSB;
-uint8_t **prefilter_kappa::m_query_kappa_codeseq_vec = 0;
-const uint *prefilter_kappa::m_query_lengths = 0;
-kappa_seqsource *prefilter_kappa::m_db_seqsource = 0;
-uint prefilter_kappa::m_QSeqCount = 0;
-atomic<time_t> prefilter_kappa::m_time_last_progress;
-const kappa_mermx *prefilter_kappa::m_ptrScoreMx;
-const kappa_dex *prefilter_kappa::m_ptrQKmerIndex;
+RankedScoresBag kappa_filter::m_RSB;
+uint8_t **kappa_filter::m_query_kappa_codeseq_vec = 0;
+const uint *kappa_filter::m_query_lengths = 0;
+kappa_seqsource *kappa_filter::m_db_seqsource = 0;
+uint kappa_filter::m_QSeqCount = 0;
+atomic<time_t> kappa_filter::m_time_last_progress;
+const kappa_mermx *kappa_filter::m_ptrScoreMx;
+const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 
 static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
 	{
@@ -38,14 +38,14 @@ static uint get_nr_pattern_ones(const string &Str)
 	return n;
 	}
 
-bool prefilter_kappa::m_init_kappa_done = false;
-void prefilter_kappa::init_kappa()
+bool kappa_filter::m_init_kappa_done = false;
+void kappa_filter::init_kappa()
 	{
 	asserta(!m_init_kappa_done);
 
 	if (optset_rsb_size)
 		flat_params::m_rsb_size = opt(rsb_size);
-	prefilter_kappa::m_RSB.m_B = flat_params::m_rsb_size;
+	kappa_filter::m_RSB.m_B = flat_params::m_rsb_size;
 
 	if (optset_kappa_pattern)
 		flat_params::m_kappa_pattern = opt(kappa_pattern);
@@ -71,7 +71,7 @@ void prefilter_kappa::init_kappa()
 // 	FindHSP searches for the highest-scoring
 // 	ungapped alignment on a given diagonal.
 //////////////////////////////////////////////
-int prefilter_kappa::FindHSP(const byte *QSeq, uint QL, int Diag) const
+int kappa_filter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	{
 	asserta(Diag >= 0);
 	const int LQ = int(QL);
@@ -111,7 +111,7 @@ int prefilter_kappa::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	return B;
 	}
 
-int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
+int kappa_filter::FindHSP(uint QSeqIdx, int Diag) const
 	{
 	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -128,7 +128,7 @@ int prefilter_kappa::FindHSP(uint QSeqIdx, int Diag) const
 // 	FindHSP plus "traceback", i.e. returns
 // 	start position and length of HSP.
 //////////////////////////////////////////////
-int prefilter_kappa::FindHSP2(const byte *QSeq, uint QL, int Diag,
+int kappa_filter::FindHSP2(const byte *QSeq, uint QL, int Diag,
 							  int &Lo, int &Len) const
 	{
 	asserta(Diag >= 0);
@@ -183,7 +183,7 @@ int prefilter_kappa::FindHSP2(const byte *QSeq, uint QL, int Diag,
 	return B;
 	}
 
-int prefilter_kappa::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
+int kappa_filter::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
 	{
 	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -192,13 +192,13 @@ int prefilter_kappa::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
 	return FindHSP2(QSeq, QL, Diag, Lo, Len);
 	}
 
-prefilter_kappa::~prefilter_kappa()
+kappa_filter::~kappa_filter()
 	{
 	if (!m_RSBPending.empty())
 		m_RSB.AddScoresBatch(m_RSBPending);
 	}
 
-void prefilter_kappa::alloc()
+void kappa_filter::alloc()
 	{
 	asserta(m_QSeqCount > 0);
 	m_RSBPending.clear();
@@ -221,9 +221,9 @@ void prefilter_kappa::alloc()
 	m_NrQueriesWithTwoHitDiag = 0;
 	}
 
-void prefilter_kappa::SetQDB(const SeqDB &QDB)
+void kappa_filter::SetQDB(const SeqDB &QDB)
 	{
-	Die("prefilter_kappa::SetQDB()");
+	Die("kappa_filter::SetQDB()");
 	//asserta(m_init_kappa_done);
 
 	//m_QDB = &QDB;
@@ -249,7 +249,7 @@ void prefilter_kappa::SetQDB(const SeqDB &QDB)
 	//m_NrQueriesWithTwoHitDiag = 0;
 	}
 
-void prefilter_kappa::Search_TargetKmers()
+void kappa_filter::Search_TargetKmers()
 	{
 	m_QKmerIndex->GetKmers(m_TSeq, m_TL, m_TKmers);
 	const uint NK = SIZE(m_TKmers);
@@ -278,7 +278,7 @@ void prefilter_kappa::Search_TargetKmers()
 		}
 	}
 
-void prefilter_kappa::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
+void kappa_filter::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 				   const byte *TSeq, uint TL)
 	{
 	m_TSeqIdx = TSeqIdx;
@@ -292,7 +292,7 @@ void prefilter_kappa::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 	ExtendTwoHitDiagsToHSPs();
 	}
 
-void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
+void kappa_filter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 	{
 	if (Kmer == UINT_MAX)
 		return;
@@ -320,7 +320,7 @@ void prefilter_kappa::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 		}
 	}
 
-void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
+void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 	{
 	uint RowSize = m_QKmerIndex->GetRowSize(TKmer);
 #if TRACE
@@ -368,7 +368,7 @@ void prefilter_kappa::Search_TargetKmer(uint TKmer, uint TPos)
 		}
 	}
 	
-void prefilter_kappa::FindTwoHitDiags()
+void kappa_filter::FindTwoHitDiags()
 	{
 	m_DiagBag.ClearDupes();
 	m_DiagBag.SetDupes();
@@ -377,7 +377,7 @@ void prefilter_kappa::FindTwoHitDiags()
 #endif
 	}
 
-void prefilter_kappa::GetResults(vector<uint> &QSeqIdxs,
+void kappa_filter::GetResults(vector<uint> &QSeqIdxs,
 						   vector<uint16_t> &DiagScores) const
 	{
 	QSeqIdxs.clear();
@@ -393,7 +393,7 @@ void prefilter_kappa::GetResults(vector<uint> &QSeqIdxs,
 		}
 	}
 
-void prefilter_kappa::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
+void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
 		return;
@@ -422,7 +422,7 @@ void prefilter_kappa::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 		}
 	}
 
-void prefilter_kappa::ExtendTwoHitDiagsToHSPs()
+void kappa_filter::ExtendTwoHitDiagsToHSPs()
 	{
 	uint DupeCount = m_DiagBag.m_DupeCount;
 	m_NrQueriesWithTwoHitDiag = 0;
@@ -435,7 +435,7 @@ void prefilter_kappa::ExtendTwoHitDiagsToHSPs()
 		}
 	}
 
-int prefilter_kappa::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
+int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
 	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -448,7 +448,7 @@ int prefilter_kappa::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	return DiagScore;
 	}
 
-void prefilter_kappa::Reset()
+void kappa_filter::Reset()
 	{
 	for (uint HitIdx = 0; HitIdx < m_NrQueriesWithTwoHitDiag; ++HitIdx)
 		{
@@ -467,7 +467,7 @@ void prefilter_kappa::Reset()
 	m_DiagBag.Reset();
 	}
 
-void prefilter_kappa::LogDiag(uint QSeqIdx, uint16_t Diag) const
+void kappa_filter::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	{
 	//const byte *QSeq = m_QDB->GetByteSeq(QSeqIdx);
 	//uint QL = m_QDB->GetSeqLength(QSeqIdx);
@@ -493,7 +493,7 @@ void prefilter_kappa::LogDiag(uint QSeqIdx, uint16_t Diag) const
 	asserta(Score2 == Score);
 	}
 
-void prefilter_kappa::Search(uint TSeqIdx, const string &TLabel,
+void kappa_filter::Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL)
 	{
 	Search_TargetSeq(TSeqIdx, TLabel, TSeq, TL);
@@ -512,7 +512,7 @@ void prefilter_kappa::Search(uint TSeqIdx, const string &TLabel,
 		}
 	}
 
-uint prefilter_kappa::GetQKmer(uint QSeqIdx, uint QPos) const
+uint kappa_filter::GetQKmer(uint QSeqIdx, uint QPos) const
 	{
 	//const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
 	const byte *Q = m_query_kappa_codeseq_vec[QSeqIdx];
@@ -520,14 +520,14 @@ uint prefilter_kappa::GetQKmer(uint QSeqIdx, uint QPos) const
 	return Kmer;
 	}
 
-void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
+void kappa_filter::LogQueryKmers(uint QSeqIdx) const
 	{
 	//const byte *Q = m_QDB->GetByteSeq(QSeqIdx);
 	//const uint QL = m_QDB->GetSeqLength(QSeqIdx);
 	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
 	const uint QL = m_query_lengths[QSeqIdx];
 	Log("\n");
-	Log("prefilter_kappa::LogQueryKmers() QL=%u\n", QL);
+	Log("kappa_filter::LogQueryKmers() QL=%u\n", QL);
 	for (uint PosQ = 0; PosQ + kappa_dex::m_K <= QL; ++PosQ)
 		{
 		uint Kmer = m_QKmerIndex->BytesToKmer(QSeq + PosQ);
@@ -537,10 +537,10 @@ void prefilter_kappa::LogQueryKmers(uint QSeqIdx) const
 		}
 	}
 
-void prefilter_kappa::LogTargetKmers() const
+void kappa_filter::LogTargetKmers() const
 	{
 	Log("\n");
-	Log("prefilter_kappa::LogTargetKmers() TL=%u >%s\n", 
+	Log("kappa_filter::LogTargetKmers() TL=%u >%s\n", 
 		m_TL, m_TLabel);
 	for (uint PosT = 0; PosT + kappa_dex::m_K <= m_TL; ++PosT)
 		{
@@ -551,11 +551,11 @@ void prefilter_kappa::LogTargetKmers() const
 		}
 	}
 
-void prefilter_kappa::static_thread_body(uint threadidx)
+void kappa_filter::static_thread_body(uint threadidx)
 	{
-	asserta(prefilter_kappa::m_QSeqCount > 0);
+	asserta(kappa_filter::m_QSeqCount > 0);
 
-	prefilter_kappa Pref;
+	kappa_filter Pref;
 	Pref.m_ScoreMx = m_ptrScoreMx;
 	Pref.m_QKmerIndex = m_ptrQKmerIndex;
 	Pref.m_KmerSelfScores = m_ptrQKmerIndex->m_KmerSelfScores;
@@ -598,7 +598,7 @@ void prefilter_kappa::static_thread_body(uint threadidx)
 		}
 	}
 
-void prefilter_kappa::run_filter(
+void kappa_filter::run_filter(
 	uint8_t **query_kappa_codeseqs,
 	const uint *query_lengths,
 	uint NQ,
@@ -626,6 +626,6 @@ void prefilter_kappa::run_filter(
 		delete ts[ThreadIndex];
 	ProgressStep(999, 1000, "Kappa filter");
 
-	uint total = prefilter_kappa::m_RSB.TruncateAllQueryVecs();
+	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
 	}

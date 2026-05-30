@@ -1139,3 +1139,44 @@ void chaq::fill_chaq_vecs2(
 	get_sec_codeseq(32, distmx, L, cv.sec32_codeseq);
 	get_pm_codeseq(cv.pensids, cv.mensids, L, cv.pm2_codeseq);
 	}
+
+uint8_t *chaq::make_mega_prof(
+	const flat_params &params,
+	const flat_chain_t *chain,
+	const sid_t *distmx,
+	chaq_vecs2 *scratch_cv,
+	uint8_t *scratch_buffer,
+	uint scratch_buffer_bytes)
+	{
+	const uint L = chain->get_length();
+	asserta(L > 0);
+
+	const uint nfeat = params.m_nfeat;
+	asserta(nfeat > 0);
+	uint8_t *mega_prof = myalloc(uint8_t, nfeat*L);
+
+	chaq::fill_chaq_vecs2(distmx, L, *scratch_cv);
+
+#if DEBUG
+	memset(mega_prof, 0xff, nfeat*L);
+#endif
+
+	for (uint fi = 0; fi < nfeat; ++fi)
+		{
+		const FAN fan = params.m_fans[fi];
+		const uint alpha_size = params.m_alpha_sizes[fi];
+
+		uint8_t *codeseq = mega_prof + fi*L;
+		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
+		chaq::fast_get_codeseq(
+			params, chain, distmx, scratch_cv, fan, alpha_size,
+			codeseq, scratch_buffer, scratch_buffer_bytes);
+
+#if DEBUG
+		for (uint pos = 0; pos < L; ++pos)
+			assert(codeseq[pos] < alpha_size);
+#endif
+		}
+
+	return mega_prof;
+	}

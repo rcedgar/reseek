@@ -83,9 +83,6 @@ public:
 		return (m_nu_filter ? m_fp.m_nu_codeseqs_rev[domidx] : 0);
 		}
 
-	void load_codeseqvec_from_feature_fasta(
-		const string &fn, uint alpha_size);
-
 public:
 	virtual void ThreadBody_All(uint ThreadIdx);
 	virtual void ThreadBody_Dope(uint ThreadIdx);

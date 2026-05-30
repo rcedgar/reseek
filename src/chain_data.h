@@ -58,7 +58,8 @@ public:
 		const flat_chain_t &chain,
 		uint32_t bits,
 		scratch_mem &mem,
-		scratch_mem &scratch);
+		uint8_t *scratch_buffer,
+		uint scratch_buffer_bytes);
 
 	static void update_pssms_cd(
 		const flat_params &params, chain_data *cd);
@@ -90,8 +91,9 @@ public:
 		const flat_chain_t &chain,
 		const sid_t *distmx,
 		uint8_t *mega_prof,
-		size_t bytes,
-		scratch_mem &scratch);
+		uint mega_prof_bytes,
+		uint8_t *scratch_buffer,
+		uint scratch_buffer_bytes);
 
 	static void write_fastas(
 		const flat_params &params,

@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
+#include "flat_helpers.h"
 #include "sort.h"
 
 //int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
@@ -39,6 +40,26 @@ const float *flat_params::m_LDDT_thresholds = thresholds;
 uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
 ///////////////////////////////////////////////
+
+void flat_params::init_from_cmdline()
+	{
+	vector<string> param_names;
+	vector<float> param_values;
+	parse_varstr(opt(varstr), param_names, param_values);
+
+	vector<string> alpha_names;
+	vector<string> scalar_names;
+	vector<float> weights;
+	vector<float> scalar_values;
+	flat_classify_params(
+		param_names, param_values,
+		alpha_names, weights,
+		scalar_names, scalar_values);
+
+	const string &alphadir = opt(alphadir);
+	set_scalars(scalar_names, scalar_values);
+	init_from_alphadir(alphadir, alpha_names);
+	}
 
 // non-alpha
 void flat_params::set_scalars(

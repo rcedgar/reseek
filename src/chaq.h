@@ -212,6 +212,14 @@ public:
 	static void alloc_chaq_vecs2(chaq_vecs2 &cv, uint L);
 	static void free_chaq_vecs2(chaq_vecs2 &cv);
 
+	static uint8_t *make_mega_prof(
+		const flat_params &params,
+		const flat_chain_t *chain,
+		const sid_t *distmx,
+		chaq_vecs2 *scratch_cv,
+		uint8_t *scratch_buffer,
+		uint scratch_buffer_bytes);
+
 	static void fill_chaq_vecs2(
 		cp_sid_t distmx,
 		uint L,
@@ -227,16 +235,17 @@ public:
 		const flat_params &params,
 		const flat_chain_t *chain,
 		const sid_t *distmx,
-		const chaq_vecs *cv,
+		const chaq_vecs2 *cv,
 		FAN fan,
 		uint alpha_size,
 		p_uint8_t codeseq,
-		scratch_mem &scratch);
+		uint8_t *scratch_buffer,
+		uint scratch_buffer_bytes);
 
 	static void fast_get_values(
 		const flat_params &params,
 		const sid_t *distmx,
-		const chaq_vecs *cv,
+		const chaq_vecs2 *cv,
 		const flat_chain_t *chain,
 		FAN fan,
 		uint alpha_size,

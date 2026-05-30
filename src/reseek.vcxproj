@@ -283,8 +283,8 @@
     <ClCompile Include="align_bag.cpp" />
     <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
-    <ClCompile Include="cmd_prefilterkappa.cpp" />
-    <ClCompile Include="cmd_prefilterkappa_bcb.cpp" />
+    <ClCompile Include="cmd_kappa_filter.cpp" />
+    <ClCompile Include="cmd_kappa_filter_bcb.cpp" />
     <ClCompile Include="collect.cpp" />
     <ClCompile Include="convert_can.cpp" />
     <ClCompile Include="dss_logodds.cpp" />
@@ -380,6 +380,7 @@
     <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
+    <ClCompile Include="nu_filter.cpp" />
     <ClCompile Include="nu_threshold.cpp" />
     <ClCompile Include="operator_new.cpp" />
     <ClCompile Include="optimizearea.cpp" />
@@ -405,7 +406,7 @@
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="postmufilter_alternate.cpp" />
     <ClCompile Include="prefiltermu.cpp" />
-    <ClCompile Include="prefilter_kappa.cpp" />
+    <ClCompile Include="kappa_filter.cpp" />
     <ClCompile Include="prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
     <ClCompile Include="puu.cpp" />
@@ -413,6 +414,7 @@
     <ClCompile Include="chain_data.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
+    <ClCompile Include="query_data.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
     <ClCompile Include="read_alphadir.cpp" />
@@ -610,7 +612,7 @@
     <ClInclude Include="kabsch_quad.h" />
     <ClInclude Include="kappa_dex.h" />
     <ClInclude Include="kappa_mermx.h" />
-    <ClInclude Include="kappa_prefilter_params.h" />
+    <ClInclude Include="kappa_filter_params.h" />
     <ClInclude Include="kappa_seqsource.h" />
     <ClInclude Include="landmark.h" />
     <ClInclude Include="landmarks.h" />
@@ -642,6 +644,7 @@
     <ClInclude Include="next_line.h" />
     <ClInclude Include="nnvec.h" />
     <ClInclude Include="nu.h" />
+    <ClInclude Include="nu_filter.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />
@@ -671,13 +674,14 @@
     <ClInclude Include="pearson_correl.h" />
     <ClInclude Include="prefiltermu.h" />
     <ClInclude Include="prefiltermuparams.h" />
-    <ClInclude Include="prefilter_kappa.h" />
+    <ClInclude Include="kappa_filter.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="procstats.h" />
     <ClInclude Include="profileloader.h" />
     <ClInclude Include="puu.h" />
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="chain_data.h" />
+    <ClInclude Include="query_data.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="round3sigfig.h" />

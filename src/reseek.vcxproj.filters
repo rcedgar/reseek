@@ -698,10 +698,10 @@
     <ClCompile Include="kappa_mermx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_prefilterkappa.cpp">
+    <ClCompile Include="cmd_kappa_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="prefilter_kappa.cpp">
+    <ClCompile Include="kappa_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="kappa_dex.cpp">
@@ -839,7 +839,13 @@
     <ClCompile Include="convert_can.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_prefilterkappa_bcb.cpp">
+    <ClCompile Include="cmd_kappa_filter_bcb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="query_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1306,7 +1312,7 @@
     <ClInclude Include="kappa_mermx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kappa_prefilter_params.h">
+    <ClInclude Include="kappa_filter_params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kappa_dex.h">
@@ -1378,13 +1384,19 @@
     <ClInclude Include="top_bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prefilter_kappa.h">
+    <ClInclude Include="kappa_filter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bitdope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kappa_seqsource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="query_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

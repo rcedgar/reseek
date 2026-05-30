@@ -76,6 +76,8 @@ public:
 	vector<string> m_symbolsvec;
 
 public:
+	void init_from_cmdline();
+
 	void set_scalars(
 		const vector<string> &names,
 		const vector<float> &values);

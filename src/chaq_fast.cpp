@@ -8,7 +8,7 @@
 void chaq::fast_get_values(
 	const flat_params &params,
 	const sid_t *distmx,
-	const chaq_vecs *cv,
+	const chaq_vecs2 *cv,
 	const flat_chain_t *chain,
 	FAN fan,
 	uint alpha_size,
@@ -120,11 +120,12 @@ void chaq::fast_get_codeseq(
 	const flat_params &params,
 	const flat_chain_t *chain,
 	const sid_t *distmx,
-	const chaq_vecs *cv,
+	const chaq_vecs2 *cv,
 	FAN fan,
 	uint alpha_size,
 	p_uint8_t codeseq,
-	scratch_mem &scratch)
+	uint8_t *scratch_buffer,
+	uint scratch_buffer_bytes)
 	{
 	const uint L = chain->get_length();
 	switch (fan)
@@ -238,7 +239,8 @@ void chaq::fast_get_codeseq(
 		{
 		cp_uint16_t thresholds = get_thresholds(params, fan, alpha_size);
 		const uint16_t undef_value = get_undef_value(params, fan, alpha_size);
-		uint16_t *values = scratch.get<uint16_t>(L);
+		asserta(scratch_buffer_bytes >= sizeof(uint16_t)*L);
+		uint16_t *values = (uint16_t *) scratch_buffer;
 		chaq::fast_get_values(params, distmx, cv, chain, fan, alpha_size, values);
 		for (uint i = 0; i < L; ++i)
 			{
@@ -310,16 +312,18 @@ void cmd_test_chaq_fast()
 		sid_t *distmx = myalloc(sid_t, L*M);
 		chaq::fill_distmx(chain, distmx);
 
-		chaq_vecs cv;
-		chaq::fill_chaq_vecs_scratch_mem(distmx, L, cv, mem1);
+		chaq_vecs2 cv;
+		chaq::fill_chaq_vecs2(distmx, L, cv);
 
-		size_t scratch_bytes2 = chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
-		scratch_mem scratch2(scratch_bytes2*L);
+		//size_t scratch_bytes2 = chaq::get_fast_get_codeseq_scratch_bytes_per_pos();
+		uint scratch_buffer_bytes = 2*L;
+		uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 
 		chaq::slow_get_codeseq(
 			params, chain, fan, alpha_size, slow_codeseq);
 		chaq::fast_get_codeseq(
-			params, chain, distmx, &cv, fan, alpha_size, fast_codeseq, scratch2);
+			params, chain, distmx, &cv, fan, alpha_size, fast_codeseq,
+			scratch_buffer, scratch_buffer_bytes);
 
 		for (uint pos = 0; pos < L; ++pos)
 			{

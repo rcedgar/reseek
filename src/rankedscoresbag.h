@@ -44,7 +44,7 @@ public:
 	const vector<uint> &GetTargetIdxs(uint QueryIdx) const;
 	void GetTargetInfo(
 		vector<uint> &TargetIdxs,
-		map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
+		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
 	// Caller must hold m_DataLock (e.g. use AddScoresBatch for batched updates).

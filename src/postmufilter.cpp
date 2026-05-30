@@ -25,7 +25,7 @@ static atomic<uint> s_TargetCounter;
 static uint s_TargetCount;
 static const vector<ChainBag *> *s_ptrCBQs;
 static const vector<uint> *s_ptrTargetIdxs;
-static const map<uint, vector<uint> > *s_ptrTargetIdxToQueryIdxs;
+static const unordered_map<uint, vector<uint> > *s_ptrTargetIdxToQueryIdxs;
 static BCAData *s_ptrDB;
 static uint s_ScannedCount;
 static double s_MaxEvalue = 10;
@@ -83,7 +83,7 @@ static void ThreadBody_Scan(uint ThreadIndex)
 		DB.ReadChain(TargetIdx, ChainT);
 		MakeBag(ChainT, CBT, D, DASelfRevT, MKF);
 
-		map<uint, vector<uint> >::const_iterator iter =
+		unordered_map<uint, vector<uint> >::const_iterator iter =
 			s_ptrTargetIdxToQueryIdxs->find(TargetIdx);
 		asserta(iter != s_ptrTargetIdxToQueryIdxs->end());
 		const vector<uint> &QueryIdxs = iter->second;
@@ -118,7 +118,7 @@ void PostMuFilter(
 	const vector<ChainBag *> &CBQs,
 	const string &DBBCAFN,
 	const vector<uint> &TargetIdxs,
-	const map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	const unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
 	const string &HitsFN)
 	{
 	time_t t0 = time(0);

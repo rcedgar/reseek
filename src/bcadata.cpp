@@ -156,6 +156,10 @@ void BCAData::Open(const string &FN)
 
 	m_f = OpenStdioFile(FN);
 
+	m_scratch_buffer_bytes = 2*m_maxL;
+	m_scratch_buffer = myalloc(uint8_t, m_scratch_buffer_bytes);
+	chaq::alloc_chaq_vecs2(m_cv, m_maxL);
+
 	uint32_t Magic;
 	ReadStdioFile(m_f, &Magic, sizeof(Magic));
 	if (Magic == BCA_MAGIC)
@@ -284,15 +288,15 @@ uint BCAData::GetSeqLength(uint64 ChainIdx) const
 // convert flat x0,y0,z0, x1,y1,z1 ...
 // to flat x0,x1 ... y0,y1 ... z0,y1
 static inline void aos_to_soa_u16(
-    const uint16_t* __restrict aos,
-    uint16_t* __restrict soa,
-    uint32_t L
+	const uint16_t* __restrict aos,
+	uint16_t* __restrict soa,
+	uint32_t L
 ){
-    for (uint32_t i = 0; i < L; ++i) {
-        soa[i] = aos[3*i + 0];
-        soa[L + i] = aos[3*i + 1];
-        soa[2*L + i] = aos[3*i + 2];
-    }
+	for (uint32_t i = 0; i < L; ++i) {
+		soa[i] = aos[3*i + 0];
+		soa[L + i] = aos[3*i + 1];
+		soa[2*L + i] = aos[3*i + 2];
+	}
 }
 
 uint BCAData::read_codeseq_nu(
@@ -418,6 +422,32 @@ void BCAData::make_kappa_codeseqs(
 		chaq::codeseq_nu_to_kappa_inplace(kappa_codeseq, L);
 		kappa_codeseqs[chainidx] = kappa_codeseq;
 		}
+	*ptr_kappa_codeseqs = kappa_codeseqs;
+	*ptr_lengths = lengths;
+	}
+
+void BCAData::make_nu_and_kappa_codeseqs(
+	uint8_t ***ptr_nu_codeseqs,
+	uint8_t ***ptr_kappa_codeseqs,
+	uint **ptr_lengths) const
+	{
+	const uint nchain = GetChainCount();
+	uint8_t **nu_codeseqs = myalloc(uint8_t *, nchain);
+	uint8_t **kappa_codeseqs = myalloc(uint8_t *, nchain);
+	uint *lengths = myalloc(uint, nchain);
+
+	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+		{
+		const uint L = GetSeqLength(chainidx);
+		lengths[chainidx] = L;
+		uint8_t *nu_codeseq = myalloc(uint8_t, L);
+		uint8_t *kappa_codeseq = myalloc(uint8_t, L);
+		read_codeseq_nu(nu_codeseq, chainidx, L);
+		chaq::codeseq_nu_to_kappa(nu_codeseq, L, kappa_codeseq, L);
+		nu_codeseqs[chainidx] = kappa_codeseq;
+		kappa_codeseqs[chainidx] = kappa_codeseq;
+		}
+	*ptr_nu_codeseqs = nu_codeseqs;
 	*ptr_kappa_codeseqs = kappa_codeseqs;
 	*ptr_lengths = lengths;
 	}

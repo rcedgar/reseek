@@ -9,7 +9,7 @@
 #include "seqdb.h"
 #include "diag.h"
 #include "rankedscoresbag.h"
-#include "kappa_prefilter_params.h"
+#include "kappa_filter_params.h"
 #include "kappa_seqsource.h"
 
 extern int16_t kappa32_flat_logodds[32*32];
@@ -21,7 +21,7 @@ extern int16_t kappa32_flat_logodds[32*32];
 // with 2-kmer diagonals and their scores.
 ///////////////////////////////////////////////////////////
 
-class prefilter_kappa
+class kappa_filter
 	{
 public:
 	static RankedScoresBag m_RSB;
@@ -52,7 +52,6 @@ public:
 // Query DB is typically smaller, indexed in memory
 // Sequences are integers 0..19 not ASCII chars
 ///////////////////////////////////////////////////
-	//static const SeqDB *m_QDB; // TODO -- obsolete
 	static uint m_QSeqCount;
 
 //////////////////////////////////////
@@ -97,8 +96,8 @@ public:
 	vector<RankedScoreBatchEntry> m_RSBPending;
 
 public:
-	prefilter_kappa() = default;
-	~prefilter_kappa();
+	kappa_filter() = default;
+	~kappa_filter();
 
 	void SetQDB(const SeqDB &QDB);
 	void Search(uint TSeqIdx, const string &TLabel,

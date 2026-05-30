@@ -80,7 +80,7 @@ void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
 	}
 
 void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
-	map<uint, vector<uint> > &TargetIdxToQueryIdxs)
+	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs)
 	{
 	const uint QSeqCount = QDB.GetSeqCount();
 	decide_query_or_db_kmer_neighborhood(QSeqCount, UINT_MAX);

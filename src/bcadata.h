@@ -2,6 +2,7 @@
 
 class PDBChain;
 #include "flat_chain.h"
+#include "query_data.h"
 #include "chaq.h"
 
 // Binary C-alpha
@@ -20,6 +21,8 @@ public:
 	uint64 m_LabelDataSize64 = UINT64_MAX;
 	sid_t *m_distmx = 0;
 	chaq_vecs2 m_cv;
+	uint8_t *m_scratch_buffer = 0;
+	uint m_scratch_buffer_bytes = 0;
 	uint8_t *m_codeseq_nu = 0;
 	uint m_maxL = 4000;
 	mutable mutex m_ReadLock;
@@ -58,6 +61,13 @@ public:
 	void make_kappa_codeseqs(
 		uint8_t ***ptr_kappa_codeseqs,
 		uint **ptr_lengths) const;
+	void make_nu_and_kappa_codeseqs(
+		uint8_t ***ptr_nu_codeseqs,
+		uint8_t ***ptr_kappa_codeseqs,
+		uint **ptr_lengths) const;
+	query_data *get_query_data(const flat_params &params,
+		uint idx);
+	query_data **get_query_data_vec(const flat_params &params);
 
 private:
 	void CloseWriter();

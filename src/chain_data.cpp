@@ -3,7 +3,6 @@
 #include "chaq.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_params.h"
 #include "flat_bench.h"
 #include "flat_nu_aligner.h"
 #include "scratch_mem.h"
@@ -31,6 +30,8 @@ static void thread_body(uint threadidx)
 
 	scratch_mem scratch(chain_data::m_maxL*s_scratch_bytes_per_pos);
 
+	uint scratch_buffer_bytes = 2*chain_data::m_maxL;
+	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	for (;;)
 		{
 		const uint chainidx = s_next++;
@@ -54,7 +55,7 @@ static void thread_body(uint threadidx)
 			chain_data::from_chain(
 				*s_params,
 				*chains[chainidx], s_bits,
-				mem, scratch);
+				mem, scratch_buffer, scratch_buffer_bytes);
 
 		scratch.reset();
 		}
@@ -89,18 +90,19 @@ void chain_data::make_mega_prof(
 	const flat_chain_t &chain,
 	const sid_t *distmx,
 	uint8_t *mega_prof,
-	size_t bytes,
-	scratch_mem &scratch)
+	uint mega_prof_bytes,
+	uint8_t *scratch_buffer,
+	uint scratch_buffer_bytes)
 	{
 	const uint L = chain.get_length();
 	asserta(L > 0);
 
 	const uint nfeat = params.m_nfeat;
 	asserta(nfeat > 0);
-	asserta(bytes >= nfeat*L);
+	asserta(mega_prof_bytes >= nfeat*L);
 
-	chaq_vecs cv;
-	chaq::fill_chaq_vecs_scratch_mem(distmx, L, cv, scratch);
+	chaq_vecs2 cv;
+	chaq::fill_chaq_vecs2(distmx, L, cv);
 
 #if DEBUG
 	memset(mega_prof, 0xff, nfeat*L);
@@ -115,8 +117,8 @@ void chain_data::make_mega_prof(
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
 		chaq::fast_get_codeseq(
 			params, &chain, distmx,
-			&cv, fan, alpha_size,
-			codeseq, scratch);
+			&cv, fan, alpha_size, codeseq,
+			scratch_buffer, scratch_buffer_bytes);
 
 #if DEBUG
 		for (uint pos = 0; pos < L; ++pos)
@@ -190,7 +192,8 @@ chain_data *chain_data::from_chain(
 	const flat_chain_t &chain,
 	uint32_t bits,
 	scratch_mem &mem,
-	scratch_mem &scratch)
+	uint8_t *scratch_buffer,
+	uint scratch_buffer_bytes)
 	{
 	asserta(bits & bit_distmx);
 
@@ -216,10 +219,11 @@ chain_data *chain_data::from_chain(
 	const bool want_nu_codeseq = (bits & bit_nu_codeseq) != 0;
 
 	asserta(want_mega_prof);
-	size_t prof_bytes = L*nfeat;
+	uint prof_bytes = L*nfeat;
 	cd->m_mega_prof = mem.get<uint8_t>(L*nfeat);
 	make_mega_prof(params, chain, cd->m_distmx,
-		cd->m_mega_prof, prof_bytes, scratch);
+		cd->m_mega_prof, prof_bytes,
+		scratch_buffer, scratch_buffer_bytes);
 
 	if (want_pssm_fwd || want_pssm_rev)
 		{

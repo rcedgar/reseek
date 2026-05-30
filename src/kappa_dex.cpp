@@ -4,7 +4,7 @@
 #include "kappa_mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
-//#include "kappa_prefilter_params.h"
+//#include "kappa_filter_params.h"
 //#include "dssparams.h"
 #include "flat_params.h"
 #include "binner.h"

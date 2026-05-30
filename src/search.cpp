@@ -9,13 +9,13 @@
 
 void MakeBags(const vector<PDBChain *> Chains, vector<ChainBag *> &Bags);
 void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
-	map<uint, vector<uint> > &TargetIdxToQueryIdxs);
+	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs);
 
 void PostMuFilter(
 	const vector<ChainBag *> &CBQs,
 	const string &DBBCAFN,
 	const vector<uint> &TargetIdxs,
-	const map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	const unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
 	const string &HitsFN);
 
 void SelfSearch()
@@ -126,7 +126,7 @@ void cmd_search()
 	DBSS.OpenChains(DBFN);
 
 	vector<uint> TargetIdxs;
-	map<uint, vector<uint> > TargetIdxToQueryIdxs;
+	unordered_map<uint, vector<uint> > TargetIdxToQueryIdxs;
 	MuPreFilter(MuQueryDB, DBSS, TargetIdxs, TargetIdxToQueryIdxs);
 
 	DSSParams::SetAlgoMode(DM_AlwaysFast);

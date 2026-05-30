@@ -1,5 +1,5 @@
 #include "myutils.h"
-#include "prefilter_kappa.h"
+#include "kappa_filter.h"
 #include "kappa_mermx.h"
 #include "kappa_dex.h"
 #include "flat_params.h"
@@ -14,7 +14,7 @@ static void write_tsv(const string &fn)
 	if (fn == "") return;
 
 	FILE *fTsv = CreateStdioFile(fn);
-	prefilter_kappa::m_RSB.ToTsv(fTsv);
+	kappa_filter::m_RSB.ToTsv(fTsv);
 	CloseStdioFile(s_fTsv);
 	}
 
@@ -36,7 +36,7 @@ static void write_tsv_with_labels(
 		TLabels.push_back(TDB.GetLabel(i));
 
 	FILE *fTsv = CreateStdioFile(opt(output3));
-	prefilter_kappa::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+	kappa_filter::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
 	CloseStdioFile(s_fTsv);
 	}
 
@@ -60,7 +60,7 @@ static void write_tsv_with_scores(
 
 	FILE *f = CreateStdioFile(fn);
 	const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
-		prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
+		kappa_filter::m_RSB.m_QueryIdxToTopScoreVec;
 	asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
 	for (uint qidx = 0; qidx < QSeqCount; ++qidx)
 		{
@@ -107,7 +107,7 @@ static void bench(
 	uint npass = 0;
 	uint nindope = 0;
 	const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
-		prefilter_kappa::m_RSB.m_QueryIdxToTopScoreVec;
+		kappa_filter::m_RSB.m_QueryIdxToTopScoreVec;
 	asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
 	for (uint qidx = 0; qidx < QSeqCount; ++qidx)
 		{
@@ -147,7 +147,7 @@ static void bench(
 	Log("\n");
 	}
 
-void cmd_prefilter_kappa()
+void cmd_kappa_filter()
 	{
 	const string &QueryKappa_FN = g_Arg1;
 	const string &DBFN = opt(db);
@@ -165,8 +165,8 @@ void cmd_prefilter_kappa()
 
 	decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
 
-	prefilter_kappa::init_kappa();
-	prefilter_kappa::m_RSB.Init(QSeqCount);
+	kappa_filter::init_kappa();
+	kappa_filter::m_RSB.Init(QSeqCount);
 
 	kappa_dex QKmerIndex;
 	QKmerIndex.Init();
@@ -186,8 +186,8 @@ void cmd_prefilter_kappa()
 	asserta(QKmerIndex.m_DictSize == flat_params::m_kappa_dict_size);
 	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
 
-	prefilter_kappa::m_ptrScoreMx = &ScoreMx;
-	prefilter_kappa::m_ptrQKmerIndex = &QKmerIndex;
+	kappa_filter::m_ptrScoreMx = &ScoreMx;
+	kappa_filter::m_ptrQKmerIndex = &QKmerIndex;
 
 	kappa_seqsource db_ss;
 	db_ss.OpenSeqDB(TDB, true);
@@ -207,7 +207,7 @@ void cmd_prefilter_kappa()
 		}
 
 	time_t t_start = time(0);
-	prefilter_kappa::run_filter(
+	kappa_filter::run_filter(
 		query_kappa_codeseq_vec, query_lengths, NQ, db_ss);
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
