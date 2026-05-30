@@ -19,16 +19,16 @@ static __m256i *nomalloc_bump___m256i(char *&p, char *end, size_t alignment, int
 	return r;
 	}
 
-size_t parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(int s1Len)
+uint parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(int s1Len)
 	{
 	asserta(s1Len > 0);
 	const int segWidth = 16;
 	const int segLen = (s1Len + segWidth - 1) / segWidth;
-	const size_t slab = (size_t) segLen * sizeof(__m256i);
-	size_t total = 0;
+	const uint slab = (size_t) segLen * sizeof(__m256i);
+	uint total = 0;
 	for (int i = 0; i < 4; ++i)
 		{
-		total = nomalloc_align_up(total, 32);
+		total = (uint) nomalloc_align_up(total, 32);
 		total += slab;
 		}
 	return total;

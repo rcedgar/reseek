@@ -575,9 +575,12 @@ void kappa_filter::static_thread_body(uint threadidx)
 			time_t now = time(0);
 			if (now > m_time_last_progress)
 				{
+				static mutex s_progress_lock;
+				s_progress_lock.lock();
 				uint pctx10 = m_db_seqsource->GetPctDoneX10();
 				if (pctx10 >= 999) pctx10 = 998;
-				ProgressStep(pctx10, 1000, "Filtering");
+				ProgressStep(pctx10, 1000, "Kappa filter");
+				s_progress_lock.unlock();
 				m_time_last_progress = now;
 				}
 			}

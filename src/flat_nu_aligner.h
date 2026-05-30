@@ -10,8 +10,8 @@ class flat_nu_aligner
 	{
 public:
 	static parasail_matrix_t m_matrix;
-	static int m_open;
-	static int m_ext;
+	static int m_open;	// TODO should be in flat_params
+	static int m_ext;	// TODO should be in flat_params
 	static int m_saturated_score;
 
 	static atomic<uint32_t> m_aln_count;

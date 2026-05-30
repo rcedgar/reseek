@@ -1,38 +1,180 @@
 #include "myutils.h"
 #include "nu_filter.h"
 #include "flat_nu_aligner.h"
+#include "flat_params.h"
 
-uint nu_filter::m_nchain = 0;
-const vector<string> *nu_filter::m_ptr_labels = 0;
-parasail_profile_t **nu_filter::m_parasail_profs = 0;
-parasail_profile_t **nu_filter::m_parasail_prof_revs = 0;
-const uint *nu_filter::m_lengths = 0;
+const BCAData *nu_filter::m_dbbca;
+const flat_params *nu_filter::m_params;
+uint nu_filter::m_query_nchain = 0;
+const vector<string> *nu_filter::m_query_ptr_labels = 0;
+parasail_profile_t **nu_filter::m_query_parasail_profs = 0;
+parasail_profile_t **nu_filter::m_query_parasail_prof_revs = 0;
+const uint *nu_filter::m_query_lengths = 0;
+int *nu_filter::m_query_self_rev_scores = 0;
+const unordered_map<uint, vector<uint> > *nu_filter::m_dbidx_to_qidxs = 0;
+const vector<uint> *nu_filter::m_dbidxs = 0;
+atomic<uint> nu_filter::m_next;
+const uint nu_filter::m_maxL = 4000;
+atomic<uint> nu_filter::m_npair;
+atomic<uint> nu_filter::m_reject_fwd;
+atomic<uint> nu_filter::m_reject_cmb;
+atomic<uint> nu_filter::m_npass;
 
 void nu_filter::set_query_parasail_profiles(
 	const vector<string> &labels,
-	const uint8_t **codeseqs_nu,
+	parasail_profile_t **parasail_profs,
+	parasail_profile_t **parasail_prof_revs,
 	const uint *lengths,
 	uint nchain)
 	{
-	asserta(m_nchain == 0);
-	asserta(labels.size() == nchain);
-	m_nchain = nchain;
-	m_ptr_labels = &labels;
-	m_lengths = lengths;
-	m_parasail_profs = myalloc(parasail_profile_t *, nchain);
-	m_parasail_prof_revs = myalloc(parasail_profile_t *, nchain);
+	m_query_ptr_labels = &labels;
+	m_query_parasail_profs = parasail_profs;
+	m_query_parasail_prof_revs = parasail_prof_revs;
+	m_query_lengths = lengths;
+	m_query_nchain = nchain;
+	}
 
-	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+void nu_filter::set_query_self_rev_scores(
+	uint8_t **query_codeseq_nus)
+	{
+	asserta(m_query_self_rev_scores == 0);
+	asserta(m_query_nchain > 0);
+	m_query_self_rev_scores = myalloc(int, m_query_nchain);
+	const int open = flat_nu_aligner::m_open;
+	const int ext = flat_nu_aligner::m_ext;
+	uint workspace_bytes =
+		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
+	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
+
+	Progress("Query Nu self-scores...");
+	for (uint qidx = 0; qidx < m_query_nchain; ++qidx)
 		{
-		const uint8_t *nu_codeseq = codeseqs_nu[chainidx];
-		uint L = lengths[chainidx];
-		parasail_profile_t *prof = parasail_profile_create_avx_256_16(
-			(const char *) nu_codeseq, L, &flat_nu_aligner::m_matrix);
-		uint8_t *revseq = myalloc(uint8_t, L);
-		for (uint i = 0; i < L; ++i)
-			revseq[i] = nu_codeseq[L-i-1];
-		parasail_profile_t *prof_rev = parasail_profile_create_avx_256_16(
-			(const char *) nu_codeseq, L, &flat_nu_aligner::m_matrix);
-		myfree(revseq);
-		} 
+		const uint LQ = m_query_lengths[qidx];
+		const uint8_t *query_codeseq_nu = query_codeseq_nus[qidx];
+		parasail_profile_t *query_para_prof_rev = m_query_parasail_prof_revs[qidx];
+		int rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+			query_para_prof_rev, (const char *) query_codeseq_nu, LQ,
+			open, ext, workspace, workspace_bytes);
+		m_query_self_rev_scores[qidx] = rev_score;
+		}
+	Progress(" done.\n");
+	myfree(workspace);
+	}
+
+void nu_filter::static_thread_body(uint threadidx)
+	{
+	const flat_params &params = *m_params;
+	const BCAData &dbbca = *m_dbbca;
+	const vector<uint> &dbidxs = *m_dbidxs;
+	const unordered_map<uint, vector<uint> > dbidx_to_qidxs = *m_dbidx_to_qidxs;
+	const int open = flat_nu_aligner::m_open;
+	const int ext = flat_nu_aligner::m_ext;
+	const uint ndb = uint(dbidxs.size());
+	uint workspace_bytes =
+		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
+	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
+	chaq_vecs2 cv;
+	chaq::alloc_chaq_vecs2(cv, m_maxL);
+	const uint ndbidxs = uint(m_dbidxs->size());
+	const float revw = m_params->m_nu_filter_rev_w;
+	const float selfw = m_params->m_nu_filter_self_w;
+
+	for (;;)
+		{
+		uint k = m_next++;
+		if (k + 1 == ndbidxs || (k%100 == 0 && k > 0 && k + 1 < ndbidxs))
+			{
+			static mutex progress_lock;
+			progress_lock.lock();
+			ProgressStep(k, ndbidxs, "Nu filter");
+			progress_lock.unlock();
+			}
+		if (k >= ndbidxs) return;
+
+		uint dbidx = dbidxs[k];
+		unordered_map<uint, vector<uint> >::const_iterator iter =
+			dbidx_to_qidxs.find(dbidx);
+		asserta(iter != dbidx_to_qidxs.end());
+		const vector<uint> &qidxs = iter->second;
+		const uint nq = uint(qidxs.size());
+		asserta(nq > 0);
+		db_data *dd = dbbca.get_db_data(params, dbidx, &cv);
+		uint8_t *db_codeseq_nu = dd->m_codeseq_nu;
+		const uint LT = dd->m_chain->get_length();
+
+		parasail_profile_t *db_para_prof = dd->m_parasail_prof;
+		int db_self_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+			db_para_prof, (const char *) db_codeseq_nu, LT, open, ext,
+			workspace, workspace_bytes);
+
+		for (uint j = 0; j < nq; ++j)
+			{
+			++m_npair;
+			uint qidx = qidxs[j];
+			asserta(qidx < m_query_nchain);
+			parasail_profile_t *query_para_prof = m_query_parasail_profs[qidx];
+			int fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+				query_para_prof, (const char *) db_codeseq_nu, LT, open, ext,
+				workspace, workspace_bytes);
+			if (fwd_score < params.m_nu_filter_min_fwd_score)
+				{
+				++m_reject_fwd;
+				continue;
+				}
+
+			parasail_profile_t *query_para_prof_rev = m_query_parasail_prof_revs[qidx];
+			int rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+				query_para_prof, (const char *) db_codeseq_nu, LT, open, ext,
+				workspace, workspace_bytes);
+
+			float self_score = (db_self_rev_score + 
+				m_query_self_rev_scores[qidx])/2.0f;
+
+			float combined_score = float(fwd_score) - selfw*self_score - revw*rev_score;
+			if (combined_score < m_params->m_nu_filter_min_combined_score)
+				{
+				++m_reject_cmb;
+				continue;
+				}
+			++m_npass;
+			}
+		db_data::delete_db_data(dd);
+		}
+	}
+
+void nu_filter::run_filter(
+	const flat_params &params,
+	const BCAData &dbbca,
+	const vector<uint> &dbidxs,
+	const unordered_map<uint, vector<uint> > &dbidx_to_qidxs)
+	{
+	m_npair = 0;
+	m_reject_fwd = 0;
+	m_reject_cmb = 0;
+	m_npass = 0;
+
+	uint ndbidxs = uint(dbidxs.size());
+	m_params = &params;
+	m_dbbca = &dbbca;
+	m_dbidxs = &dbidxs;
+	m_dbidx_to_qidxs = &dbidx_to_qidxs;
+
+	ProgressStep(0, ndbidxs, "Nu filter");
+
+	vector<thread *> ts;
+	uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(static_thread_body, ThreadIndex);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+
+	ProgressLog("%10u  Nu filter npair\n", m_npair.load());
+	ProgressLog("%10u  Nu filter nreject_fwd\n", m_reject_fwd.load());
+	ProgressLog("%10u  Nu filter nreject_cmb\n", m_reject_cmb.load());
+	ProgressLog("%10u  Nu filter pass\n", m_npass.load());
 	}

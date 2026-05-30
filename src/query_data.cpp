@@ -91,6 +91,67 @@ query_data *BCAData::get_query_data(
 	return qd;
 	}
 
+db_data *BCAData::get_db_data(
+	const flat_params &params,
+	uint idx,
+	chaq_vecs2 *cv) const
+	{
+	db_data *dd = new db_data;
+
+	flat_chain_t *chain = read_flat_chain(idx);
+	const uint32_t L = chain->get_length();
+	asserta(L > 0);
+	asserta(L <= m_maxL);
+
+	const uint32_t M = params.m_distmx_bandwidth;
+	const uint32_t nfeat = params.m_nfeat;
+
+	sid_t *distmx = myalloc(sid_t, L*M);
+	chaq::fill_distmx(chain->m_xyz->m_data, L, distmx);
+
+	uint8_t *mega_prof = chaq::make_mega_prof(params, chain, distmx,
+		cv, m_scratch_buffer, m_scratch_buffer_bytes);
+
+	const uint32_t *alpha_sizes = params.m_alpha_sizes;
+	const uint nr_pssm_floats = L*params.m_sum_alpha_sizes;
+
+	const uint32_t fi_aa20 = params.get_fi(FAN_aa, 20);
+	const uint32_t fi_pm2 = params.get_fi(FAN_pm, 2);
+	const uint32_t fi_sec32 = params.get_fi(FAN_sec, 32);
+
+	const uint8_t *prof_aa20 = mega_prof + L*size_t(fi_aa20);
+	const uint8_t *prof_pm2 = mega_prof + L*size_t(fi_pm2);
+	const uint8_t *prof_sec32 = mega_prof + L*size_t(fi_sec32);
+
+	uint8_t *codeseq_nu = myalloc(uint8_t, L);
+
+	for (uint32_t pos = 0; pos < L; ++pos)
+		{
+		const uint8_t code_aa20 = prof_aa20[pos];
+		const uint8_t code_pm2 = prof_pm2[pos];
+		const uint8_t code_sec32 = prof_sec32[pos];
+
+		assert(code_aa20 < 20);
+		assert(code_pm2 < 2);
+		assert(code_sec32 < 32);
+
+		const uint8_t code_aa4 = chaq::m_aacode2aa4code[code_aa20];
+		const uint8_t code_nu = uint8_t(code_aa4 + 4*code_pm2 + 4*2*code_sec32);
+		assert(code_nu < 256);
+
+		codeseq_nu[pos] = code_nu;
+		}
+
+	parasail_profile_t *parasail_prof = parasail_profile_create_avx_256_16(
+		(const char *) codeseq_nu, L, &flat_nu_aligner::m_matrix);
+
+	dd->m_chain = chain;
+	dd->m_distmx = distmx;
+	dd->m_codeseq_nu = codeseq_nu;
+	dd->m_parasail_prof = parasail_prof;
+	return dd;
+	}
+
 query_data **BCAData::get_query_data_vec(const flat_params &params)
 	{
 	uint nchain = GetChainCount();
@@ -100,4 +161,15 @@ query_data **BCAData::get_query_data_vec(const flat_params &params)
 		vec[idx] = get_query_data(params, idx);
 	Progress(" done\n");
 	return vec;
+	}
+
+void db_data::delete_db_data(db_data *dd)
+	{
+	delete dd->m_chain;
+	myfree(dd->m_distmx);
+	myfree(dd->m_codeseq_nu);
+	parasail_profile_free(dd->m_parasail_prof);
+	dd->m_chain = 0;
+	dd->m_distmx = 0;
+	dd->m_parasail_prof = 0;
 	}

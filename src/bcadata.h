@@ -65,8 +65,11 @@ public:
 		uint8_t ***ptr_nu_codeseqs,
 		uint8_t ***ptr_kappa_codeseqs,
 		uint **ptr_lengths) const;
-	query_data *get_query_data(const flat_params &params,
-		uint idx);
+	db_data *get_db_data(
+		const flat_params &params,
+		uint idx,
+		chaq_vecs2 *cv) const;
+	query_data *get_query_data(const flat_params &params, uint idx);
 	query_data **get_query_data_vec(const flat_params &params);
 
 private:
