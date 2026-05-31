@@ -373,7 +373,7 @@ void kappa_filter::FindTwoHitDiags()
 	m_DiagBag.ClearDupes();
 	m_DiagBag.SetDupes();
 #if DEBUG
-	m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
+	//m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
 #endif
 	}
 

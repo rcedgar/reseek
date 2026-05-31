@@ -166,7 +166,7 @@ static void convert_structs_to_bcx(const string &bcxfn, bool WithNu)
 		if (chain == 0) break;
 		++nchain;
 		if (nchain%1000 == 0) Progress("%u chains read\r", nchain);
-		BCA.write_flat_chain(chain);
+		BCA.write_flat_chain(chain, &cv);
 		}
 	Progress("%u chains read\n", nchain);
 	Progress("finalizing... ");

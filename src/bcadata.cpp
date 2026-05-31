@@ -66,7 +66,7 @@ uint64 BCAData::get_offset_ICs(uint idx) const
 	return offset_ICs;
 	}
 
-void BCAData::write_flat_chain(const flat_chain_t *chain)
+void BCAData::write_flat_chain(const flat_chain_t *chain, chaq_vecs2 *cv)
 	{
 	asserta(m_Writing && !m_Reading);
 	uint L = chain->get_length();
@@ -99,23 +99,25 @@ void BCAData::write_flat_chain(const flat_chain_t *chain)
 	if (m_HasNuSequences)
 		{
 		assert(GetStdioFilePos64(m_f) == get_offset_nuseq(Idx));
-		append_codeseq_nu(chain);
+		append_codeseq_nu(chain, cv);
 		}
 	}
 
-void BCAData::append_codeseq_nu(const flat_chain_t *chain)
+void BCAData::append_codeseq_nu(
+	const flat_chain_t *chain,
+	chaq_vecs2 *cv)
 	{
 	if (m_distmx == 0)
 		{
 		m_distmx = myalloc(sid_t,
 			flat_params::m_distmx_bandwidth*m_maxL);
 		m_codeseq_nu = myalloc(uint8_t, m_maxL);
-		chaq::alloc_chaq_vecs2(m_cv, m_maxL);
+		chaq::alloc_chaq_vecs2(*cv, m_maxL);
 		}
 	const uint L = chain->get_length();
 	asserta(L <= m_maxL);//TODO
 	chaq::fill_codeseq_nu_from_chain(
-		chain, m_distmx, &m_cv, m_codeseq_nu, m_maxL);
+		chain, m_distmx, cv, m_codeseq_nu, m_maxL);
 	WriteStdioFile64(m_f, m_codeseq_nu, L);
 	}
 
@@ -156,9 +158,9 @@ void BCAData::Open(const string &FN)
 
 	m_f = OpenStdioFile(FN);
 
-	m_scratch_buffer_bytes = 2*m_maxL;
-	m_scratch_buffer = myalloc(uint8_t, m_scratch_buffer_bytes);
-	chaq::alloc_chaq_vecs2(m_cv, m_maxL);
+	//m_scratch_buffer_bytes = 2*m_maxL;
+	//m_scratch_buffer = myalloc(uint8_t, m_scratch_buffer_bytes);
+	//chaq::alloc_chaq_vecs2(m_cv, m_maxL);
 
 	uint32_t Magic;
 	ReadStdioFile(m_f, &Magic, sizeof(Magic));

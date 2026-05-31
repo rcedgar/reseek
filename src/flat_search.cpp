@@ -21,7 +21,7 @@ void cmd_flat_search()
 
 	flat_params params;
 	params.init_from_cmdline();
-	query_data **query_data_vec = QBCA.get_query_data_vec(params);
+	struct_data **struct_data_vec = QBCA.get_struct_data_vec(params);
 
 	DBBCA.Open(DBFN);
 
@@ -45,18 +45,26 @@ void cmd_flat_search()
 
 	uint8_t **query_kappa_codeseqs = myalloc(uint8_t *, nquery);
 	uint8_t **query_nu_codeseqs = myalloc(uint8_t *, nquery);
+	uint8_t **query_mega_profs = myalloc(uint8_t *, nquery);
+	const float **query_mega_pssms = myalloc(const float *, nquery);
+	const float **query_mega_pssm_revs = myalloc(const float *, nquery);
 	uint *query_lengths = myalloc(uint, nquery);
+	const sid_t **query_distmxs = myalloc(const sid_t *, nquery);
 	parasail_profile_t **query_parasail_profs = myalloc(parasail_profile_t *, nquery);
 	parasail_profile_t **query_parasail_prof_revs = myalloc(parasail_profile_t *, nquery);
 
 	for (uint chainidx = 0; chainidx < nquery; ++chainidx)
 		{
-		uint L = query_data_vec[chainidx]->m_chain->get_length();
+		uint L = struct_data_vec[chainidx]->m_chain->get_length();
 		query_lengths[chainidx] = L;
-		query_nu_codeseqs[chainidx] = query_data_vec[chainidx]->m_codeseq_nu;
-		query_kappa_codeseqs[chainidx] = query_data_vec[chainidx]->m_codeseq_kappa;
-		query_parasail_profs[chainidx] = query_data_vec[chainidx]->m_parasail_prof;
-		query_parasail_prof_revs[chainidx] = query_data_vec[chainidx]->m_parasail_prof_rev;
+		query_nu_codeseqs[chainidx] = struct_data_vec[chainidx]->m_codeseq_nu;
+		query_kappa_codeseqs[chainidx] = struct_data_vec[chainidx]->m_codeseq_kappa;
+		query_parasail_profs[chainidx] = struct_data_vec[chainidx]->m_parasail_prof;
+		query_parasail_prof_revs[chainidx] = struct_data_vec[chainidx]->m_parasail_prof_rev;
+		query_mega_profs[chainidx] = struct_data_vec[chainidx]->m_mega_prof;
+		query_mega_pssms[chainidx] = struct_data_vec[chainidx]->m_mega_pssm;
+		query_mega_pssm_revs[chainidx] = struct_data_vec[chainidx]->m_mega_pssm_rev;
+		query_distmxs[chainidx] = struct_data_vec[chainidx]->m_distmx;
 		}
 
 	QKmerIndex.from_codeseqs(
@@ -102,14 +110,20 @@ void cmd_flat_search()
 	uint kappa_filter_secs = uint(t_kappa_filter_end - t_kappa_filter_start);
 	ProgressLog("Kappa filter %u secs\n", kappa_filter_secs);
 
-	nu_filter::set_query_parasail_profiles(
+	nu_filter::set_params(params);
+	nu_filter::set_query_data(
 		QBCA.m_Labels,
 		query_parasail_profs,
 		query_parasail_prof_revs,
-		query_lengths, nquery);
+		query_mega_pssms,
+		query_mega_pssm_revs,
+		query_distmxs,
+		query_lengths,
+		nquery);
 
 	nu_filter::set_query_self_rev_scores(query_nu_codeseqs);
-	nu_filter::run_filter(params, DBBCA, dbidxs, dbidx_to_qidxs);
+	nu_filter::set_query_mega_self_rev_scores(query_mega_profs);
+	nu_filter::run_filter(DBBCA, dbidxs, dbidx_to_qidxs);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", kappa_filter_secs);

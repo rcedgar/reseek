@@ -2,7 +2,7 @@
 
 class PDBChain;
 #include "flat_chain.h"
-#include "query_data.h"
+#include "struct_data.h"
 #include "chaq.h"
 
 // Binary C-alpha
@@ -20,9 +20,9 @@ public:
 	uint64 m_SeqLengthsPos64 = UINT64_MAX;
 	uint64 m_LabelDataSize64 = UINT64_MAX;
 	sid_t *m_distmx = 0;
-	chaq_vecs2 m_cv;
-	uint8_t *m_scratch_buffer = 0;
-	uint m_scratch_buffer_bytes = 0;
+	//chaq_vecs2 m_cv;
+	//uint8_t *m_scratch_buffer = 0;
+	//uint m_scratch_buffer_bytes = 0;
 	uint8_t *m_codeseq_nu = 0;
 	uint m_maxL = 4000;
 	mutable mutex m_ReadLock;
@@ -47,12 +47,14 @@ public:
 
 	void ReadChain(uint64 ChainIdx, PDBChain &Chain) const;
 	flat_chain_t* read_flat_chain(uint64 ChainIdx) const;
-	void write_flat_chain(const flat_chain_t *chain);
+	void write_flat_chain(const flat_chain_t *chain,
+		chaq_vecs2 *cv);
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;
 	uint GetSeqLength(uint64 ChainIdx) const;
-	void append_codeseq_nu(const flat_chain_t *chain);
+	void append_codeseq_nu(const flat_chain_t *chain,
+		chaq_vecs2 *cv);
 	uint read_codeseq_nu(
 		uint8_t *codeseq_nu, uint idx, uint buffer_length) const;
 	uint64 get_offset_ICs(uint idx) const;
@@ -65,12 +67,16 @@ public:
 		uint8_t ***ptr_nu_codeseqs,
 		uint8_t ***ptr_kappa_codeseqs,
 		uint **ptr_lengths) const;
-	db_data *get_db_data(
+
+	struct_data *get_struct_data(
 		const flat_params &params,
 		uint idx,
-		chaq_vecs2 *cv) const;
-	query_data *get_query_data(const flat_params &params, uint idx);
-	query_data **get_query_data_vec(const flat_params &params);
+		chaq_vecs2 *cv,
+		uint8_t *scratch_buffer,
+		uint scratch_buffer_bytes) const;
+
+
+	struct_data **get_struct_data_vec(const flat_params &params);
 
 private:
 	void CloseWriter();

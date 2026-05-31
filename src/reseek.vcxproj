@@ -414,7 +414,7 @@
     <ClCompile Include="chain_data.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
-    <ClCompile Include="query_data.cpp" />
+    <ClCompile Include="struct_data.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
     <ClCompile Include="read_alphadir.cpp" />
@@ -681,7 +681,7 @@
     <ClInclude Include="puu.h" />
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="chain_data.h" />
-    <ClInclude Include="query_data.h" />
+    <ClInclude Include="struct_data.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="reseek_calibrate.h" />
     <ClInclude Include="round3sigfig.h" />

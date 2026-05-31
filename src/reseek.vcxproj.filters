@@ -845,7 +845,7 @@
     <ClCompile Include="nu_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="query_data.cpp">
+    <ClCompile Include="struct_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1396,7 +1396,7 @@
     <ClInclude Include="nu_filter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="query_data.h">
+    <ClInclude Include="struct_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
