@@ -6,12 +6,8 @@
 #include "flat_helpers.h"
 #include "nu_filter.h"
 
-#define WRITE_TARGET_INFO	1
-
 void cmd_flat_search_kappa()
 	{
-	Die("TODO");
-#if 0
 	const string &QFN = g_Arg1;
 	const string &DBFN = opt(db);
 
@@ -93,22 +89,26 @@ void cmd_flat_search_kappa()
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
 	kappa_filter::m_RSB.GetTargetInfo(dbidxs, dbidx_to_qidxs);
-#if WRITE_TARGET_INFO
-	{
-	FILE *f = CreateStdioFile("flat_search_target_info.tmp");
-	for (size_t i = 0; i < dbidxs.size(); ++i)
+	if (optset_output2)
 		{
-		uint dbidx = dbidxs[i];
-		const vector<uint> &qidxs = dbidx_to_qidxs[dbidx];
-		for (auto qidx : qidxs)
+		const string &fn = opt(output2);
+		FILE *f = CreateStdioFile(fn);
+		Progress("Writing %s ...", fn.c_str());
+		for (size_t i = 0; i < dbidxs.size(); ++i)
 			{
-			const char *qlabel = QBCA.m_Labels[qidx].c_str();
-			const char *dblabel = DBBCA.m_Labels[dbidx].c_str();
-			fprintf(f, "%s\t%s\n", qlabel, dblabel);
+			uint dbidx = dbidxs[i];
+			const vector<uint> &qidxs = dbidx_to_qidxs[dbidx];
+			for (auto qidx : qidxs)
+				{
+				const char *qlabel = QBCA.m_Labels[qidx].c_str();
+				const char *dblabel = DBBCA.m_Labels[dbidx].c_str();
+				fprintf(f, "%s\t%s\n", qlabel, dblabel);
+				}
 			}
+		Progress(" done\n");
+		CloseStdioFile(f);
 		}
-	}
-#endif
+
 	time_t t_kappa_filter_end = time(0);
 	uint kappa_filter_secs = uint(t_kappa_filter_end - t_kappa_filter_start);
 	ProgressLog("Kappa filter %u secs\n", kappa_filter_secs);
@@ -126,9 +126,10 @@ void cmd_flat_search_kappa()
 
 	nu_filter::set_query_self_rev_scores(query_nu_codeseqs);
 	nu_filter::set_query_mega_self_rev_scores(query_mega_profs);
-	nu_filter::run_filter(DBBCA, dbidxs, dbidx_to_qidxs);
+	nu_filter::m_fhits = CreateStdioFile(opt(output));
+	nu_filter::run_filter_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
+	CloseStdioFile(nu_filter::m_fhits);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", nu_filter_secs);
-#endif
 	}

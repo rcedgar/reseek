@@ -132,7 +132,7 @@ static void bench(
 	Progress("pct=%.1f", pct);
 	Progress(" secs=%u", filter_secs);
 	Progress(" pattern=%s", flat_params::m_kappa_pattern.c_str());
-	Progress(" kmer=%d", flat_params::m_kappa_min_diagscore);
+	Progress(" kmer=%d", flat_params::m_kappa_min_kmerpairscore);
 	Progress(" diag=%d", flat_params::m_kappa_min_diagscore);
 	Progress(" npass=%u", npass);
 	Progress("\n");
@@ -141,7 +141,7 @@ static void bench(
 	Log("\tpct=%.1f", pct);
 	Log("\tsecs=%u", filter_secs);
 	Log("\tpattern=%s", flat_params::m_kappa_pattern.c_str());
-	Log("\tkmer=%d", flat_params::m_kappa_min_diagscore);
+	Log("\tkmer=%d", flat_params::m_kappa_min_kmerpairscore);
 	Log("\tdiag=%d", flat_params::m_kappa_min_diagscore);
 	Log("\tnpass=%u", npass);
 	Log("\n");

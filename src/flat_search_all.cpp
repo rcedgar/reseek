@@ -64,5 +64,7 @@ void cmd_flat_search_all()
 
 	nu_filter::set_query_self_rev_scores(query_nu_codeseqs);
 	nu_filter::set_query_mega_self_rev_scores(query_mega_profs);
+	nu_filter::m_fhits = CreateStdioFile(opt(output));
 	nu_filter::run_filter_all_vs_all(DBBCA);
+	CloseStdioFile(nu_filter::m_fhits);
 	}

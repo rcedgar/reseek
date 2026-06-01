@@ -40,6 +40,9 @@ public:
 	static atomic<uint> m_reject_mega_fwd;
 	static atomic<uint> m_nhit;
 
+	static FILE *m_fhits;
+	static mutex m_hits_lock;
+
 public:
 	static void set_params(const flat_params &params)
 		{

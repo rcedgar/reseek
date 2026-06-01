@@ -33,6 +33,8 @@ float *nu_filter::m_query_mega_self_rev_scores;
 uint nu_filter::m_ndbidxs;
 NF_MODE nu_filter::m_mode = NF_invalid;
 vector<uint> nu_filter::m_qidxs_all;
+FILE *nu_filter::m_fhits;
+mutex nu_filter::m_hits_lock;
 
 #if WRITE_TS_TERMS
 static FILE *g_ftsv;
@@ -324,6 +326,16 @@ void nu_filter::static_thread_body(uint threadidx)
 			TS += m_params->m_nurev_w*nu_rev_score;	// TODO +ve sign?!
 			TS += m_params->m_lddt_w*lddt*500;
 			TS += m_params->m_dali_w*dali*10;
+
+			if (m_fhits != 0)
+				{
+				m_hits_lock.lock();
+				fprintf(m_fhits, "%.3g\t%s\t%s\n",
+					TS,
+					query_label.c_str(),
+					db_label.c_str());
+				m_hits_lock.unlock();
+				}
 
 #if WRITE_TS_TERMS
 			g_tsv_lock.lock();
