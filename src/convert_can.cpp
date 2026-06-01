@@ -127,6 +127,8 @@ void cmd_convert_can_to_kappa_fasta()
 		char kappa_char = g_LetterToCharMu[kappa_code];
 		kappa_seq += kappa_char;
 		}
+	if (!kappa_seq.empty())
+		SeqToFasta(f, label, kappa_seq);
 	Progress("%u sequences\n", nseq);
 	CloseStdioFile(f);
 	}

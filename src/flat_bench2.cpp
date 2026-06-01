@@ -10,6 +10,12 @@
 #include "getticks.h"
 
 #define WRITE_NU_SELF_REV_SCORES	0
+#define WRITE_TS_TERMS				1
+
+#if WRITE_TS_TERMS
+static FILE *s_fts;
+static mutex s_ts_lock;
+#endif
 
 uint flat_bench2::m_maxL = 4000;
 
@@ -298,6 +304,7 @@ float flat_bench2::calc_ts(
 
 	if (m_params->m_lddtx_w > 0)
 		{
+		asserta(false);//lddtx screwed up?
 		float L = (L_i + L_j)/2.0f + 50;
 		float Lfactor = float(fwd_ncol)/L;
 
@@ -934,6 +941,12 @@ void flat_bench2::align_pair(
 	score += mega_fwd_score;
 	++m_mega_fwd_pass_count;
 
+#if WRITE_TS_TERMS
+	string ts_str;
+	Psa(ts_str, "%s\t%s", cd_i->m_label.c_str(), cd_j->m_label.c_str());
+	Psa(ts_str, "\t%.3g", mega_fwd_score);
+#endif
+
 	uint nmatch = path2posvecs3(TD.m_path_buffer, ncol,
 		lo_i, L_i, lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
 
@@ -1023,8 +1036,15 @@ void flat_bench2::align_pair(
 		asserta(!isinf(score_rev));
 		asserta(!isnan(score));
 		asserta(!isinf(score));
+#if WRITE_TS_TERMS
+		Psa(ts_str, "\t%.3g", score_rev);
+#endif
 		}
 	score += m_params->m_nurev_w*nu_rev_score;
+#if WRITE_TS_TERMS
+	Psa(ts_str, "\t%.3g", nu_rev_score);
+#endif
+
 	asserta(!isnan(nu_rev_score));
 	asserta(!isinf(nu_rev_score));
 	asserta(!isnan(score));
@@ -1033,12 +1053,16 @@ void flat_bench2::align_pair(
 	const float selfw = m_params->m_self_w;
 	if (selfw > 0)
 		{
-		score -= selfw*(m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+		float self_score = (m_self_rev_scores[i] + m_self_rev_scores[j])/2;
+		score -= selfw*self_score;
 		asserta(!isnan(m_self_rev_scores[i]));
 		asserta(!isnan(m_self_rev_scores[j]));
 		asserta(!isinf(score));
 		asserta(!isnan(score));
 		asserta(!isinf(score));
+#if WRITE_TS_TERMS
+		Psa(ts_str, "\t%.3g", self_score);
+#endif
 		}
 
 	if (m_params->m_lddt_w > 0)
@@ -1053,10 +1077,14 @@ void flat_bench2::align_pair(
 		asserta(!isinf(lddt));
 		asserta(!isnan(score));
 		asserta(!isinf(score));
+#if WRITE_TS_TERMS
+		Psa(ts_str, "\t%.3g", lddt);
+#endif
 		}
 
 	if (m_params->m_lddtx_w > 0)
 		{
+		asserta(false);//lddtx screwed up?
 		float L = (L_i + L_j)/2.0f + 50;
 		float Lfactor = float(ncol)/L;
 
@@ -1083,6 +1111,9 @@ void flat_bench2::align_pair(
 		score += m_params->m_dali_w*dali*10;
 		asserta(!isnan(score));
 		asserta(!isinf(score));
+#if WRITE_TS_TERMS
+		Psa(ts_str, "\t%.3g", dali);
+#endif
 		}
 
 	if (m_params->m_dalix_w > 0)
@@ -1094,6 +1125,12 @@ void flat_bench2::align_pair(
 		//	distmx_i, distmx_j, TD.m_colscores);
 		//score += m_params->m_dalix_w*dalix*10;
 		}
+#if WRITE_TS_TERMS
+	Psa(ts_str, "\t%.3g", score);
+	s_ts_lock.lock();
+	fprintf(s_fts, "%s\n", ts_str.c_str());
+	s_ts_lock.unlock();
+#endif
 
 	asserta(!isnan(score));
 	asserta(!isinf(score));
@@ -1248,6 +1285,9 @@ void flat_bench2::load_single_feature(
 
 void cmd_flat_bench2()
 	{
+#if WRITE_TS_TERMS
+	s_fts = CreateStdioFile("ts.tmp");
+#endif
 	asserta(!optset_dope);
 	asserta(!optset_subdope);
 
@@ -1359,4 +1399,7 @@ void cmd_flat_bench2()
 		GetPct(nu_fwd_reject_count+nu_combined_reject_count, align_count),
 		FB.m_nu_pass_count.load());
 	ProgressLog("Mega fwd filter passed %.1f%%\n", mega_passed_pct);
+#if WRITE_TS_TERMS
+	CloseStdioFile(s_fts);
+#endif
 	}

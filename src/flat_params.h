@@ -55,7 +55,7 @@ public:
 	static uint m_kappa_dict_size;
 	static uint8_t *m_kappa_kmer_onesoffsets;
 	static int m_kappa_min_kmerpairscore;
-	static int m_kappa_min_mindiagscore;
+	static int m_kappa_min_diagscore;
 	static uint m_kappa_min_chainlength;
 	static uint m_rsb_size;
 

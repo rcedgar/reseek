@@ -62,7 +62,7 @@ void kappa_filter::init_kappa()
 	if (optset_kappa_minkmerscore)
 		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
 	if (optset_kappa_mindiagscore)
-		flat_params::m_kappa_min_mindiagscore = opt(kappa_mindiagscore);
+		flat_params::m_kappa_min_diagscore = opt(kappa_mindiagscore);
 
 	m_init_kappa_done = true;
 	}
@@ -397,7 +397,7 @@ void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	{
 	if (DiagScore <= 0)
 		return;
-	if (DiagScore < flat_params::m_kappa_min_mindiagscore)
+	if (DiagScore < flat_params::m_kappa_min_diagscore)
 		return;
 	asserta(QSeqIdx < UINT16_MAX);
 	if (DiagScore >= UINT16_MAX)

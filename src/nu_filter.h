@@ -3,6 +3,13 @@
 #include "parasail_nomalloc.h"
 #include "bcadata.h"
 
+enum NF_MODE
+	{
+	NF_invalid,
+	NF_all_vs_all,
+	NF_kappa
+	};
+
 class nu_filter
 	{
 public:
@@ -22,12 +29,16 @@ public:
 	static const BCAData *m_dbbca;
 	static const unordered_map<uint, vector<uint> > *m_dbidx_to_qidxs;
 	static const vector<uint> *m_dbidxs;
+	static uint m_ndbidxs;
+	static NF_MODE m_mode;
+	static vector<uint> m_qidxs_all;
 
 	static atomic<uint> m_npair;
 	static atomic<uint> m_reject_fwd;
 	static atomic<uint> m_reject_cmb;
 	static atomic<uint> m_npass;
 	static atomic<uint> m_reject_mega_fwd;
+	static atomic<uint> m_nhit;
 
 public:
 	static void set_params(const flat_params &params)
@@ -51,7 +62,12 @@ public:
 	static void set_query_mega_self_rev_scores(
 		uint8_t **query_mega_profs);
 
-	static void run_filter(
+	static void run_filter();
+
+	static void run_filter_all_vs_all(
+		const BCAData &dbbca);
+
+	static void run_filter_post_kappa(
 		const BCAData &dbbca,
 		const vector<uint> &dbidxs,
 		const unordered_map<uint, vector<uint> > &dbidx_to_qidxs);

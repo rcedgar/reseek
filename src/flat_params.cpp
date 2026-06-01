@@ -12,7 +12,7 @@
 //string DSSParams::m_PrefilterKappaPattern = "1010011";
 
 int flat_params::m_kappa_min_kmerpairscore = 50;
-int flat_params::m_kappa_min_mindiagscore = 0;
+int flat_params::m_kappa_min_diagscore = 0;
 uint flat_params::m_kappa_min_chainlength = 32;
 string flat_params::m_kappa_pattern = "1010011";
 uint flat_params::m_kappa_kmer_nrones = KAPPA_NRONES;
@@ -59,6 +59,17 @@ void flat_params::init_from_cmdline()
 	const string &alphadir = opt(alphadir);
 	set_scalars(scalar_names, scalar_values);
 	init_from_alphadir(alphadir, alpha_names);
+	uint n = SIZE(alpha_names);
+	asserta(SIZE(weights) == n);
+	unordered_map<string, float> NameToWeight;
+	for (uint i = 0; i < n; ++i)
+		{
+		const string &name = alpha_names[i];
+		if (NameToWeight.find(name) != NameToWeight.end())
+			Die("Dupe name in spec '%s'", name.c_str());
+		NameToWeight[name] = weights[i];
+		}
+	apply_weights(NameToWeight);
 	}
 
 // non-alpha
@@ -163,6 +174,16 @@ void flat_params::logme()
 	w(nu_filter_rev_w);
 	w(nu_filter_min_fwd_score);
 	w(nu_filter_min_combined_score);
+#undef w
+
+#define w(x)	Log("%10d  %s\n", m_##x, #x)
+	w(kappa_kmer_nrones);
+	w(kappa_kmer_width);
+	w(kappa_dict_size);
+	w(kappa_min_kmerpairscore);
+	w(kappa_min_diagscore);
+	w(kappa_min_chainlength);
+	w(rsb_size);
 #undef w
 
 #define w(x)	Log("%10u  %s\n", m_##x, #x)

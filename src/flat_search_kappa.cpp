@@ -6,10 +6,12 @@
 #include "flat_helpers.h"
 #include "nu_filter.h"
 
-#define WRITE_TARGET_INFO	0
+#define WRITE_TARGET_INFO	1
 
-void cmd_flat_search()
+void cmd_flat_search_kappa()
 	{
+	Die("TODO");
+#if 0
 	const string &QFN = g_Arg1;
 	const string &DBFN = opt(db);
 
@@ -21,6 +23,7 @@ void cmd_flat_search()
 
 	flat_params params;
 	params.init_from_cmdline();
+	params.logme();
 	struct_data **struct_data_vec = QBCA.get_struct_data_vec(params);
 
 	DBBCA.Open(DBFN);
@@ -41,7 +44,7 @@ void cmd_flat_search()
 	asserta(ScoreMx.m_k == k);
 
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_mindiagscore;
+	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_diagscore;
 
 	uint8_t **query_kappa_codeseqs = myalloc(uint8_t *, nquery);
 	uint8_t **query_nu_codeseqs = myalloc(uint8_t *, nquery);
@@ -126,5 +129,6 @@ void cmd_flat_search()
 	nu_filter::run_filter(DBBCA, dbidxs, dbidx_to_qidxs);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
-	ProgressLog("Nu filter %u secs\n", kappa_filter_secs);
+	ProgressLog("Nu filter %u secs\n", nu_filter_secs);
+#endif
 	}

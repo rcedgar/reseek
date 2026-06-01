@@ -57,7 +57,7 @@ static void bench(
 	Progress(" secs=%u", filter_secs);
 	Progress(" pattern=%s", flat_params::m_kappa_pattern.c_str());
 	Progress(" kmer=%d", flat_params::m_kappa_min_kmerpairscore);
-	Progress(" diag=%d", flat_params::m_kappa_min_mindiagscore);
+	Progress(" diag=%d", flat_params::m_kappa_min_diagscore);
 	Progress(" npass=%u", npass);
 	Progress("\n");
 
@@ -66,7 +66,7 @@ static void bench(
 	Log("\tsecs=%u", filter_secs);
 	Log("\tpattern=%s", flat_params::m_kappa_pattern.c_str());
 	Log("\tkmer=%d", flat_params::m_kappa_min_kmerpairscore);
-	Log("\tdiag=%d", flat_params::m_kappa_min_mindiagscore);
+	Log("\tdiag=%d", flat_params::m_kappa_min_diagscore);
 	Log("\tnpass=%u", npass);
 	Log("\n");
 	}
@@ -104,7 +104,7 @@ void cmd_kappa_filter_bcb()
 	asserta(ScoreMx.m_k == k);
 
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_mindiagscore;
+	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_diagscore;
 	QKmerIndex.from_codeseqs(query_kappa_codeseqs, query_lengths,
 		QBCA.m_Labels, QSeqCount);
 #if DEBUG

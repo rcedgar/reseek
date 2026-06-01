@@ -344,7 +344,8 @@
     <ClCompile Include="flat_params.cpp" />
     <ClCompile Include="flat_profiles.cpp" />
     <ClCompile Include="flat_quantize.cpp" />
-    <ClCompile Include="flat_search.cpp" />
+    <ClCompile Include="flat_search_all.cpp" />
+    <ClCompile Include="flat_search_kappa.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="flat_ts.cpp" />
     <ClCompile Include="fragaligner.cpp" />
