@@ -6,7 +6,7 @@
 
 #define WRITE_QUERY_NU_SELF_REV_SCORES	0
 #define WRITE_DB_NU_SELF_REV_SCORES		0
-#define WRITE_TS_TERMS					1
+#define WRITE_TS_TERMS					0
 
 const BCAData *nu_filter::m_dbbca;
 const flat_params *nu_filter::m_params;

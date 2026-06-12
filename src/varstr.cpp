@@ -52,14 +52,15 @@ static const string fast_varstr_fold =
 "minfwd=20;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=140;nfmincmb=70;aa20=0.0001;pm2=0.0001;revw=9.96E-01;selfw=9.16E-01;gap2=7.07E-01;lddt=1.10E-01;dali=6.52E-03;nensec32=2.71E-01;aa4=1.84E-01;sec32=1.00E-01;nendist32=8.82E-02;mendist32=1.13E-01;ppack32=1.01E-01;pmdd32=1.32E-02;mpack32=6.72E-02;angle32=1.65E-02;pendist32=4.49E-02;lddtx=0;dalix=0;nurevw=0;";
 //^^^^^^^^                                ^^^^^^^^^^^^^^^^^^^^^^^^
 
+// TODO nurevw=0 added by hand for fam, seems not optimized in TS
 static const string best_varstr_fam =
 //"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;";
-"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0";
+"minfwd=16.191;nfselfw=5.0E-01;nurevw=0;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0";
 
 static const string fast_varstr_fam =
 //"minfwd=16.191;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=113.85;nfmincmb=40;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;";
-"minfwd=20;nfselfw=5.0E-01;nfrevw=0.28992;nfminfwd=140;nfmincmb=70;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0;";
-//^^^^^^^^                                ^^^^^^^^^^^^^^^^^^^^^^^^
+"minfwd=20;nfselfw=5.0E-01;nurevw=0;nfrevw=0.28992;nfminfwd=140;nfmincmb=70;pm2=0.0001;selfw=6.49E-01;lddt=1.05E+00;revw=6.36E-01;gap2=4.48E-01;dali=3.47E-04;aa20=6.07E-01;nendist32=1.04E-01;mendist32=1.03E-01;sec32=4.53E-02;pendist32=3.09E-02;pmdiff32=3.19E-02;nensec32=3.57E-02;turnd32=2.05E-02;mensec32=2.15E-02;lddtx=0;dalix=0;";
+//^^^^^^^^                                         ^^^^^^^^^^^^^^^^^^^^^^^^
 
 void parse_varstr(
 	const string &arg_VarStr,
