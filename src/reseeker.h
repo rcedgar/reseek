@@ -10,11 +10,13 @@ enum NF_MODE
 	NF_kappa
 	};
 
-class nu_filter
+class reseeker
 	{
 public:
 	static const uint m_maxL;
 	static const flat_params *m_params;
+	static const flat_params *m_params2;
+	static const flat_params *m_params3;
 	static uint m_query_nchain;
 	static const vector<string> *m_ptr_query_labels;
 	static parasail_profile_t **m_query_parasail_profs;
@@ -38,6 +40,8 @@ public:
 	static atomic<uint> m_reject_cmb;
 	static atomic<uint> m_npass;
 	static atomic<uint> m_reject_mega_fwd;
+	static atomic<uint> m_reject_min_fold_ts;
+	static atomic<uint> m_accept_min_fold_ts;
 	static atomic<uint> m_nhit;
 
 	static FILE *m_fhits;

@@ -13,17 +13,17 @@ static const uint KAPPA_NRONES = 4;
 class flat_params
 	{
 public:
-	// static fixed parameters
+	// static const parameters
 	// changing these requires re-training
 	// log-odds and quantization thresholds
-	static uint32_t m_nn_min_offset;
-	static uint32_t m_distmx_bandwidth;
-	static uint32_t m_turnd_w;
-	static uint32_t m_angle_n;
+	static const uint32_t m_nn_min_offset;
+	static const uint32_t m_distmx_bandwidth;
+	static const uint32_t m_turnd_w;
+	static const uint32_t m_angle_n;
 
-	static float m_LDDT_R0;
+	static const float m_LDDT_R0;
 	static const float *m_LDDT_thresholds;
-	static uint m_LDDT_nr_thresholds;
+	static const uint m_LDDT_nr_thresholds;
 
 public:
 	// alignment
@@ -76,6 +76,7 @@ public:
 	vector<string> m_symbolsvec;
 
 public:
+	void init_from_varstr(const string &varstr);
 	void init_from_cmdline();
 
 	void set_scalars(

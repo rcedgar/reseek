@@ -26,26 +26,31 @@ uint flat_params::m_rsb_size = 1500;
 // Chain quantization
 // MUST RE-TRAIN THRESHOLDS AND LOGODDS
 ///////////////////////////////////////
-uint32_t flat_params::m_nn_min_offset = 12;
-uint32_t flat_params::m_distmx_bandwidth = 256;
-uint32_t flat_params::m_turnd_w = 5;
-uint32_t flat_params::m_angle_n = 4;
+uint32_t const flat_params::m_nn_min_offset = 12;
+uint32_t const flat_params::m_distmx_bandwidth = 256;
+uint32_t const flat_params::m_turnd_w = 5;
+uint32_t const flat_params::m_angle_n = 4;
 ////////////////////////////////////
 
 ///////////////////////
 // LDDT -- special case
-float flat_params::m_LDDT_R0 = 15;
+float const flat_params::m_LDDT_R0 = 15;
 static const float thresholds[] = { 0.5, 1, 2, 4 };
 const float *flat_params::m_LDDT_thresholds = thresholds;
-uint flat_params::m_LDDT_nr_thresholds
+const uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
 ///////////////////////////////////////////////
 
 void flat_params::init_from_cmdline()
 	{
+	init_from_varstr(opt(varstr));
+	}
+
+void flat_params::init_from_varstr(const string &varstr)
+	{
 	vector<string> param_names;
 	vector<float> param_values;
-	parse_varstr(opt(varstr), param_names, param_values);
+	parse_varstr(varstr, param_names, param_values);
 
 	vector<string> alpha_names;
 	vector<string> scalar_names;

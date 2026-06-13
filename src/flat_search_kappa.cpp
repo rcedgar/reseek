@@ -4,7 +4,7 @@
 #include "kappa_dex.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "nu_filter.h"
+#include "reseeker.h"
 
 void cmd_flat_search_kappa()
 	{
@@ -113,8 +113,8 @@ void cmd_flat_search_kappa()
 	uint kappa_filter_secs = uint(t_kappa_filter_end - t_kappa_filter_start);
 	ProgressLog("Kappa filter %u secs\n", kappa_filter_secs);
 
-	nu_filter::set_params(params);
-	nu_filter::set_query_data(
+	reseeker::set_params(params);
+	reseeker::set_query_data(
 		QBCA.m_Labels,
 		query_parasail_profs,
 		query_parasail_prof_revs,
@@ -124,11 +124,11 @@ void cmd_flat_search_kappa()
 		query_lengths,
 		nquery);
 
-	nu_filter::set_query_self_rev_scores(query_nu_codeseqs);
-	nu_filter::set_query_mega_self_rev_scores(query_mega_profs);
-	nu_filter::m_fhits = CreateStdioFile(opt(output));
-	nu_filter::run_filter_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
-	CloseStdioFile(nu_filter::m_fhits);
+	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
+	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
+	reseeker::m_fhits = CreateStdioFile(opt(output));
+	reseeker::run_filter_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
+	CloseStdioFile(reseeker::m_fhits);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", nu_filter_secs);

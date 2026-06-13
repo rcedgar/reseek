@@ -381,7 +381,7 @@
     <ClCompile Include="nu.cpp" />
     <ClCompile Include="nucluster.cpp" />
     <ClCompile Include="nuscop40.cpp" />
-    <ClCompile Include="nu_filter.cpp" />
+    <ClCompile Include="reseeker.cpp" />
     <ClCompile Include="nu_threshold.cpp" />
     <ClCompile Include="operator_new.cpp" />
     <ClCompile Include="optimizearea.cpp" />
@@ -415,6 +415,7 @@
     <ClCompile Include="chain_data.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
+    <ClCompile Include="reseeker_thread_body.cpp" />
     <ClCompile Include="struct_data.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />
@@ -645,7 +646,7 @@
     <ClInclude Include="next_line.h" />
     <ClInclude Include="nnvec.h" />
     <ClInclude Include="nu.h" />
-    <ClInclude Include="nu_filter.h" />
+    <ClInclude Include="reseeker.h" />
     <ClInclude Include="objcounter.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="paralign.h" />

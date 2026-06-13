@@ -172,7 +172,8 @@ void cmd_dump_chaq()
 	{
 	const string &chainfn = g_Arg1;
 	vector<vector<uint8_t> > codeseqs;
-	if (optset_bandwidth) flat_params::m_distmx_bandwidth = opt(bandwidth);
+	asserta(!optset_bandwidth);
+	//if (optset_bandwidth) flat_params::m_distmx_bandwidth = opt(bandwidth);
 	FILE *f = CreateStdioFile(opt(output));
 
 	vector<flat_chain_t *> chains;

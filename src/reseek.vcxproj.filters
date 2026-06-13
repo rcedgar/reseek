@@ -842,13 +842,16 @@
     <ClCompile Include="cmd_kappa_filter_bcb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_filter.cpp">
+    <ClCompile Include="reseeker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="struct_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_search_all.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseeker_thread_body.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1396,7 +1399,7 @@
     <ClInclude Include="kappa_seqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_filter.h">
+    <ClInclude Include="reseeker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="struct_data.h">

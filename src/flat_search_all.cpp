@@ -4,7 +4,7 @@
 #include "kappa_dex.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "nu_filter.h"
+#include "reseeker.h"
 
 void cmd_flat_search_all()
 	{
@@ -51,8 +51,8 @@ void cmd_flat_search_all()
 		query_distmxs[chainidx] = struct_data_vec[chainidx]->m_distmx;
 		}
 
-	nu_filter::set_params(params);
-	nu_filter::set_query_data(
+	reseeker::set_params(params);
+	reseeker::set_query_data(
 		QBCA.m_Labels,
 		query_parasail_profs,
 		query_parasail_prof_revs,
@@ -62,9 +62,9 @@ void cmd_flat_search_all()
 		query_lengths,
 		nquery);
 
-	nu_filter::set_query_self_rev_scores(query_nu_codeseqs);
-	nu_filter::set_query_mega_self_rev_scores(query_mega_profs);
-	nu_filter::m_fhits = CreateStdioFile(opt(output));
-	nu_filter::run_filter_all_vs_all(DBBCA);
-	CloseStdioFile(nu_filter::m_fhits);
+	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
+	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
+	reseeker::m_fhits = CreateStdioFile(opt(output));
+	reseeker::run_filter_all_vs_all(DBBCA);
+	CloseStdioFile(reseeker::m_fhits);
 	}
