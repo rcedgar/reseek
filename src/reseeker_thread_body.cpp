@@ -3,8 +3,9 @@
 #include "flat_nu_aligner.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
+#include "hitdata.h"
 
-static double s_min_fold_ts = 30;//TODO param
+static double s_min_ts = 15;//TODO param
 
 void reseeker::static_thread_body(uint threadidx)
 	{
@@ -33,6 +34,7 @@ void reseeker::static_thread_body(uint threadidx)
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	chaq_vecs2 cv;
 	chaq::alloc_chaq_vecs2(cv, m_maxL);
+	hitdata hit;
 
 	for (;;)
 		{
@@ -41,7 +43,7 @@ void reseeker::static_thread_body(uint threadidx)
 			{
 			static mutex progress_lock;
 			progress_lock.lock();
-			ProgressStep(k, m_ndbidxs, "Nu filter");
+			ProgressStep(k, m_ndbidxs, "reseek");
 			progress_lock.unlock();
 			}
 		if (k >= m_ndbidxs) return;
@@ -74,22 +76,22 @@ void reseeker::static_thread_body(uint threadidx)
 		const vector<uint> &qidxs = *ptr_qidxs;
 		const uint nq = uint(qidxs.size());
 		asserta(nq > 0);
-		struct_data *db_data = dbbca.get_struct_data(
+		struct_data *target_data = dbbca.get_struct_data(
 			params, dbidx,
 			&cv, scratch_buffer, scratch_buffer_bytes);
-		const string &db_label = dbbca.m_Labels[dbidx];
-		uint8_t *db_codeseq_nu = db_data->m_codeseq_nu;
-		uint8_t *db_codeseq_nu_rev = db_data->m_codeseq_nu_rev;
-		uint8_t *db_mega_prof = db_data->m_mega_prof;
-		const sid_t *db_distmx = db_data->m_distmx;
-		const uint LT = db_data->m_chain->get_length();
+		const string &target_label = dbbca.m_Labels[dbidx];
+		uint8_t *target_codeseq_nu = target_data->m_codeseq_nu;
+		uint8_t *target_codeseq_nu_rev = target_data->m_codeseq_nu_rev;
+		uint8_t *target_mega_prof = target_data->m_mega_prof;
+		const sid_t *target_distmx = target_data->m_distmx;
+		const uint LT = target_data->m_chain->get_length();
 
-		parasail_profile_t *db_para_prof = db_data->m_parasail_prof;
-		int db_self_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
-			db_para_prof, (const char *) db_codeseq_nu_rev, LT, nu_open, nu_ext,
+		parasail_profile_t *target_para_prof = target_data->m_parasail_prof;
+		int target_self_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+			target_para_prof, (const char *) target_codeseq_nu_rev, LT, nu_open, nu_ext,
 			workspace, workspace_bytes);
 
-		float db_mega_self_rev_score = FLT_MAX; // calculate only if needed
+		float target_mega_self_rev_score = FLT_MAX; // calculate only if needed
 		for (uint j = 0; j < nq; ++j)
 			{
 			++m_npair;
@@ -101,10 +103,10 @@ void reseeker::static_thread_body(uint threadidx)
 			/////////////////////////////////////////////
 			// Nu filter -- forward score
 			/////////////////////////////////////////////
-			int fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
-				query_para_prof, (const char *) db_codeseq_nu, LT, nu_open, nu_ext,
+			int nu_fwd_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
+				query_para_prof, (const char *) target_codeseq_nu, LT, nu_open, nu_ext,
 				workspace, workspace_bytes);
-			if (fwd_score < params.m_nu_filter_min_fwd_score)
+			if (nu_fwd_score < params.m_nu_filter_min_fwd_score)
 				{
 				++m_reject_fwd;
 				continue;
@@ -112,16 +114,16 @@ void reseeker::static_thread_body(uint threadidx)
 
 			parasail_profile_t *query_para_prof_rev = m_query_parasail_prof_revs[qidx];
 			int nu_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
-				query_para_prof_rev, (const char *) db_codeseq_nu, LT, nu_open, nu_ext,
+				query_para_prof_rev, (const char *) target_codeseq_nu, LT, nu_open, nu_ext,
 				workspace, workspace_bytes);
 
-			float self_score = (db_self_rev_score + 
+			float self_score = (target_self_rev_score + 
 				m_query_self_rev_scores[qidx])/2.0f;
 
 			/////////////////////////////////////////////
 			// Nu filter -- combined score
 			/////////////////////////////////////////////
-			float combined_score = float(fwd_score) - selfw*self_score - revw*nu_rev_score;
+			float combined_score = float(nu_fwd_score) - selfw*self_score - revw*nu_rev_score;
 			if (combined_score < m_params->m_nu_filter_min_combined_score)
 				{
 				++m_reject_cmb;
@@ -139,7 +141,7 @@ void reseeker::static_thread_body(uint threadidx)
 			uint lo_i, lo_j, ncol;
 			float mega_fwd_score = sw_flat_pssm(
 				scratch_rows, TB, scratch_pssms,
-				db_mega_prof, LT, query_mega_pssm, LQ,
+				target_mega_prof, LT, query_mega_pssm, LQ,
 				m_params->m_feature_block_offsets,
 				m_params->m_nfeat,
 				-m_params->m_open,
@@ -147,7 +149,7 @@ void reseeker::static_thread_body(uint threadidx)
 				lo_i, lo_j, path_buffer, ncol);
 			const uint L_i = LT;
 			const uint L_j = LQ;
-			const sid_t *distmx_i = db_distmx;
+			const sid_t *distmx_i = target_distmx;
 			const sid_t *distmx_j = m_query_distmxs[qidx];
 
 			/////////////////////////////////////////////
@@ -159,16 +161,16 @@ void reseeker::static_thread_body(uint threadidx)
 				continue;
 				}
 
-			if (db_mega_self_rev_score == FLT_MAX)
+			if (target_mega_self_rev_score == FLT_MAX)
 				{
 				/////////////////////////////////////////////
 				// db mega self-rev score is needed
 				/////////////////////////////////////////////
-				const uint8_t *db_mega_prof = db_data->m_mega_prof;
-				const float *db_mega_pssm_rev = db_data->m_mega_pssm_rev;
-				db_mega_self_rev_score = sw_flat_pssm_scoreonly(
+				const uint8_t *target_mega_prof = target_data->m_mega_prof;
+				const float *target_mega_pssm_rev = target_data->m_mega_pssm_rev;
+				target_mega_self_rev_score = sw_flat_pssm_scoreonly(
 					scratch_rows, scratch_pssms,
-					db_mega_prof, LT, db_mega_pssm_rev, LT,
+					target_mega_prof, LT, target_mega_pssm_rev, LT,
 					m_params->m_feature_block_offsets,
 					m_params->m_nfeat,
 					-m_params->m_open,
@@ -180,7 +182,7 @@ void reseeker::static_thread_body(uint threadidx)
 			/////////////////////////////////////////////
 			float mega_rev_score = sw_flat_pssm_scoreonly(
 				scratch_rows, scratch_pssms,
-				db_mega_prof, LT, query_mega_pssm_rev, LQ,
+				target_mega_prof, LT, query_mega_pssm_rev, LQ,
 				m_params->m_feature_block_offsets,
 				m_params->m_nfeat,
 				-m_params->m_open,
@@ -214,9 +216,9 @@ void reseeker::static_thread_body(uint threadidx)
 			asserta(m_params->m_lddtx_w == 0);
 			asserta(m_params->m_dalix_w == 0);
 
-			asserta(db_mega_self_rev_score != FLT_MAX);
+			asserta(target_mega_self_rev_score != FLT_MAX);
 			float mega_self_score =
-				(db_mega_self_rev_score + query_mega_self_rev_score)/2;
+				(target_mega_self_rev_score + query_mega_self_rev_score)/2;
 			
 			/////////////////////////////////////////////
 			// Test statistic (TS)
@@ -229,24 +231,49 @@ void reseeker::static_thread_body(uint threadidx)
 			TS += m_params->m_lddt_w*lddt*500;
 			TS += m_params->m_dali_w*dali*10;
 
-			if (TS < s_min_fold_ts)
+			if (TS < s_min_ts)
 				{
-				++m_reject_min_fold_ts;
+				++m_reject_min_ts;
 				continue;
 				}
-			++m_accept_min_fold_ts;
+			++m_accept_min_ts;
 
-			if (m_fhits != 0)
+			hit.reset();
+			hit.query = m_ptr_query_chains[qidx];
+			hit.target = target_data->m_chain;
+			hit.path = path_buffer;
+			hit.ncol = ncol;
+			hit.nu_fwd_score = float(nu_fwd_score);
+			hit.nu_rev_score = float(nu_rev_score);
+			hit.mega_fwd_score = mega_fwd_score;
+			hit.mega_rev_score = mega_rev_score;
+			hit.lddt = lddt;
+			hit.dali = dali;
+			hit.TS = TS;
+
+			asserta(m_fhit);
+			if (m_fhit)
 				{
-				m_hits_lock.lock();
-				fprintf(m_fhits, "%.3g\t%s\t%s\n",
-					TS,
-					query_label.c_str(),
-					db_label.c_str());
-				m_hits_lock.unlock();
+				// fprintf is thread-safe
+				//fprintf(m_fhit, "%.3g\t%s\t%s\n",
+				//	TS,
+				//	query_label.c_str(),
+				//	target_label.c_str());
+				string str;
+				str = query_label;
+				str += "\t" + target_label;
+				Psa(str, "\t%.3g", TS);
+				Psa(str, "\t%.3g", float(nu_fwd_score));
+				Psa(str, "\t%.3g", float(nu_rev_score));
+				Psa(str, "\t%.3g", float(mega_fwd_score));
+				Psa(str, "\t%.3g", float(mega_rev_score));
+				Psa(str, "\t%.3g", lddt);
+				Psa(str, "\t%.3g", dali);
+				str += "\n";
+				fputs(str.c_str(), m_fhit);
 				}
 			}
 
-		struct_data::free_struct_data(db_data);
+		struct_data::free_struct_data(target_data);
 		}
 	}

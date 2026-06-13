@@ -854,6 +854,12 @@
     <ClCompile Include="reseeker_thread_body.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hitdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hjtsv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -1403,6 +1409,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="struct_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hitdata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

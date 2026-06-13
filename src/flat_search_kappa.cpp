@@ -42,6 +42,7 @@ void cmd_flat_search_kappa()
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_diagscore;
 
+	const flat_chain_t **query_chains = myalloc(const flat_chain_t *, nquery);
 	uint8_t **query_kappa_codeseqs = myalloc(uint8_t *, nquery);
 	uint8_t **query_nu_codeseqs = myalloc(uint8_t *, nquery);
 	uint8_t **query_mega_profs = myalloc(uint8_t *, nquery);
@@ -55,6 +56,7 @@ void cmd_flat_search_kappa()
 	for (uint chainidx = 0; chainidx < nquery; ++chainidx)
 		{
 		uint L = struct_data_vec[chainidx]->m_chain->get_length();
+		query_chains[chainidx] = struct_data_vec[chainidx]->m_chain;
 		query_lengths[chainidx] = L;
 		query_nu_codeseqs[chainidx] = struct_data_vec[chainidx]->m_codeseq_nu;
 		query_kappa_codeseqs[chainidx] = struct_data_vec[chainidx]->m_codeseq_kappa;
@@ -115,6 +117,7 @@ void cmd_flat_search_kappa()
 
 	reseeker::set_params(params);
 	reseeker::set_query_data(
+		query_chains,
 		QBCA.m_Labels,
 		query_parasail_profs,
 		query_parasail_prof_revs,
@@ -126,9 +129,7 @@ void cmd_flat_search_kappa()
 
 	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
 	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
-	reseeker::m_fhits = CreateStdioFile(opt(output));
-	reseeker::run_filter_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
-	CloseStdioFile(reseeker::m_fhits);
+	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", nu_filter_secs);

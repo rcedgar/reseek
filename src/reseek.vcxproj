@@ -157,7 +157,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -255,7 +255,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -350,6 +350,7 @@
     <ClCompile Include="flat_ts.cpp" />
     <ClCompile Include="fragaligner.cpp" />
     <ClCompile Include="hexintseq.cpp" />
+    <ClCompile Include="hitdata.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="flat_hjjoin.cpp" />
     <ClCompile Include="hjmega.cpp" />
@@ -358,6 +359,7 @@
     <ClCompile Include="hjnugaps.cpp" />
     <ClCompile Include="hjnumega.cpp" />
     <ClCompile Include="hjnumegarev.cpp" />
+    <ClCompile Include="hjtsv.cpp" />
     <ClCompile Include="join_features.cpp" />
     <ClCompile Include="kabsch_quad.cpp" />
     <ClCompile Include="kabsch_quad_fit.cpp" />
@@ -610,6 +612,7 @@
     <ClInclude Include="fragaligner.h" />
     <ClInclude Include="get_distinct_window_extrema.h" />
     <ClInclude Include="hexintseq.h" />
+    <ClInclude Include="hitdata.h" />
     <ClInclude Include="kabsch.h" />
     <ClInclude Include="kabsch_quad.h" />
     <ClInclude Include="kappa_dex.h" />

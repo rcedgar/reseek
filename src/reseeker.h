@@ -3,6 +3,8 @@
 #include "parasail_nomalloc.h"
 #include "bcadata.h"
 
+class flat_chain_t;
+
 enum NF_MODE
 	{
 	NF_invalid,
@@ -15,9 +17,8 @@ class reseeker
 public:
 	static const uint m_maxL;
 	static const flat_params *m_params;
-	static const flat_params *m_params2;
-	static const flat_params *m_params3;
 	static uint m_query_nchain;
+	static const flat_chain_t **m_ptr_query_chains;
 	static const vector<string> *m_ptr_query_labels;
 	static parasail_profile_t **m_query_parasail_profs;
 	static parasail_profile_t **m_query_parasail_prof_revs;
@@ -40,12 +41,14 @@ public:
 	static atomic<uint> m_reject_cmb;
 	static atomic<uint> m_npass;
 	static atomic<uint> m_reject_mega_fwd;
-	static atomic<uint> m_reject_min_fold_ts;
-	static atomic<uint> m_accept_min_fold_ts;
+	static atomic<uint> m_reject_min_ts;
+	static atomic<uint> m_accept_min_ts;
 	static atomic<uint> m_nhit;
 
-	static FILE *m_fhits;
-	static mutex m_hits_lock;
+	static FILE *m_fhit;
+	static FILE *m_faln;
+	//static mutex m_hit_lock; // exploit fputs thread-safety
+	static mutex m_aln_lock;
 
 public:
 	static void set_params(const flat_params &params)
@@ -54,6 +57,7 @@ public:
 		}
 
 	static void set_query_data(
+		const flat_chain_t **ptr_query_chains,
 		const vector<string> &labels,
 		parasail_profile_t **query_parasail_profs,
 		parasail_profile_t **query_parasail_prof_revs,
@@ -69,15 +73,21 @@ public:
 	static void set_query_mega_self_rev_scores(
 		uint8_t **query_mega_profs);
 
-	static void run_filter();
+	static void search();
 
-	static void run_filter_all_vs_all(
+	static void search_all_vs_all(
 		const BCAData &dbbca);
 
-	static void run_filter_post_kappa(
+	static void search_post_kappa(
 		const BCAData &dbbca,
 		const vector<uint> &dbidxs,
 		const unordered_map<uint, vector<uint> > &dbidx_to_qidxs);
 
 	static void static_thread_body(uint threadidx);
+
+	static void close_files()
+		{
+		CloseStdioFile(m_fhit);
+		CloseStdioFile(m_faln);
+		}
 	};

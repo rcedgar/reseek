@@ -155,5 +155,6 @@ C(convert_structs_to_bcb)
 C(convert_bcb_to_fasta)
 C(convert_bcb_to_nuhexfasta)
 C(convert_bcb_to_kappafasta)
+C(hjtsv)
 
 #undef C

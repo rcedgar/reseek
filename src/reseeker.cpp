@@ -4,10 +4,10 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 
-
-const BCAData *reseeker::m_dbbca;
-const flat_params *reseeker::m_params;
 uint reseeker::m_query_nchain = 0;
+const BCAData *reseeker::m_dbbca = 0;
+const flat_params *reseeker::m_params = 0;
+const flat_chain_t **reseeker::m_ptr_query_chains = 0;
 const vector<string> *reseeker::m_ptr_query_labels = 0;
 parasail_profile_t **reseeker::m_query_parasail_profs = 0;
 parasail_profile_t **reseeker::m_query_parasail_prof_revs = 0;
@@ -22,8 +22,8 @@ atomic<uint> reseeker::m_reject_fwd;
 atomic<uint> reseeker::m_reject_cmb;
 atomic<uint> reseeker::m_npass;
 atomic<uint> reseeker::m_reject_mega_fwd;
-atomic<uint> reseeker::m_accept_min_fold_ts;
-atomic<uint> reseeker::m_reject_min_fold_ts;
+atomic<uint> reseeker::m_accept_min_ts;
+atomic<uint> reseeker::m_reject_min_ts;
 atomic<uint> reseeker::m_nhit;
 const sid_t **reseeker::m_query_distmxs;
 const float **reseeker::m_query_mega_pssms;
@@ -32,10 +32,13 @@ float *reseeker::m_query_mega_self_rev_scores;
 uint reseeker::m_ndbidxs;
 NF_MODE reseeker::m_mode = NF_invalid;
 vector<uint> reseeker::m_qidxs_all;
-FILE *reseeker::m_fhits;
-mutex reseeker::m_hits_lock;
+FILE *reseeker::m_fhit;
+FILE *reseeker::m_faln;
+//mutex reseeker::m_hit_lock; // exploit fputs thread-safety
+mutex reseeker::m_aln_lock;
 
 void reseeker::set_query_data(
+	const flat_chain_t **ptr_query_chains,
 	const vector<string> &labels,
 	parasail_profile_t **parasail_profs,
 	parasail_profile_t **parasail_prof_revs,
@@ -45,6 +48,7 @@ void reseeker::set_query_data(
 	const uint *lengths,
 	uint nchain)
 	{
+	m_ptr_query_chains = ptr_query_chains;
 	m_ptr_query_labels = &labels;
 	m_query_parasail_profs = parasail_profs;
 	m_query_parasail_prof_revs = parasail_prof_revs;
@@ -111,7 +115,7 @@ void reseeker::set_query_self_rev_scores(
 	myfree(workspace);
 	}
 
-void reseeker::run_filter()
+void reseeker::search()
 	{
 	asserta(m_params != 0);
 
@@ -121,7 +125,11 @@ void reseeker::run_filter()
 	m_npass = 0;
 	m_next = 0;
 
-	ProgressStep(0, m_ndbidxs, "Nu filter");
+	vector<FILE *> fs;
+	if (optset_output)
+		reseeker::m_fhit = CreateStdioFile(opt(output));
+
+	ProgressStep(0, m_ndbidxs, "reseek");
 
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
@@ -134,16 +142,17 @@ void reseeker::run_filter()
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+	reseeker::close_files();
 
 	ProgressLog("%10u  Nu filter npair\n", m_npair.load());
 	ProgressLog("%10u  Nu filter nreject_fwd\n", m_reject_fwd.load());
 	ProgressLog("%10u  Nu filter nreject_cmb\n", m_reject_cmb.load());
 	ProgressLog("%10u  Nu filter pass\n", m_npass.load());
-	ProgressLog("%10u  Mega filter reject\n", m_reject_min_fold_ts.load());
-	ProgressLog("%10u  Mega filter pass\n", m_accept_min_fold_ts.load());
+	ProgressLog("%10u  Mega filter reject\n", m_reject_min_ts.load());
+	ProgressLog("%10u  Mega filter pass\n", m_accept_min_ts.load());
 	}
 
-void reseeker::run_filter_all_vs_all(const BCAData &dbbca)
+void reseeker::search_all_vs_all(const BCAData &dbbca)
 	{
 	m_ndbidxs = dbbca.GetChainCount();
 	m_dbbca = &dbbca;
@@ -155,10 +164,10 @@ void reseeker::run_filter_all_vs_all(const BCAData &dbbca)
 	for (uint i = 0; i < m_query_nchain; ++i)
 		m_qidxs_all.push_back(i);
 
-	run_filter();
+	search();
 	}
 
-void reseeker::run_filter_post_kappa(
+void reseeker::search_post_kappa(
 	const BCAData &dbbca,
 	const vector<uint> &dbidxs,
 	const unordered_map<uint, vector<uint> > &dbidx_to_qidxs)
@@ -170,5 +179,5 @@ void reseeker::run_filter_post_kappa(
 	m_mode = NF_kappa;
 	m_qidxs_all.clear();
 
-	run_filter();
+	search();
 	}
