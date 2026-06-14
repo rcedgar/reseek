@@ -5,7 +5,7 @@
 #include "flat_helpers.h"
 #include "hitdata.h"
 
-static double s_min_ts = 15;//TODO param
+static double s_min_ts_fold = 30;//TODO param
 
 void reseeker::static_thread_body(uint threadidx)
 	{
@@ -231,7 +231,7 @@ void reseeker::static_thread_body(uint threadidx)
 			TS += m_params->m_lddt_w*lddt*500;
 			TS += m_params->m_dali_w*dali*10;
 
-			if (TS < s_min_ts)
+			if (TS < s_min_ts_fold)
 				{
 				++m_reject_min_ts;
 				continue;

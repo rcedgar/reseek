@@ -76,7 +76,6 @@ void flat_params::alloc(uint32 nfeat)
 	assert(m_feature_block_offsets == 0);
 	asserta(m_alpha_names.empty());
 	asserta(m_fans.empty());
-	asserta(m_symbolsvec.empty());
 
 	m_nfeat = nfeat;
 	m_weights = myalloc(float, m_nfeat);
@@ -102,7 +101,6 @@ void flat_params::alloc(uint32 nfeat)
 
 	m_alpha_names.resize(nfeat, "");
 	m_fans.resize(nfeat, FAN_COUNT);
-	m_symbolsvec.resize(nfeat);
 	}
 
 void flat_params::read_logoddsvec(const vector<string> &fns)
