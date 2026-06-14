@@ -157,6 +157,10 @@ public:
 
 	void check_sane_scores();
 
+	static void assert_compatible(
+		const flat_params &a,
+		const flat_params &b);
+
 	void set_symbolsvec();
 	void set_feature_block_offsets();
 

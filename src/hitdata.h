@@ -19,7 +19,9 @@ public:
 	float lddt = 0;
 	float dali = 0;
 
-	float TS = 0;
+	float TS_fold = 0;
+	float TS_sf = 0;
+	float TS_fam = 0;
 
 public:
 	void reset()
@@ -36,6 +38,8 @@ public:
 		mega_rev_score = 0;
 		lddt = 0;
 		dali = 0;
-		TS = 0;
+		TS_fold = 0;
+		TS_sf = 0;
+		TS_fam = 0;
 		}
 	};

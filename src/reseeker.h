@@ -16,7 +16,9 @@ class reseeker
 	{
 public:
 	static const uint m_maxL;
-	static const flat_params *m_params;
+	static const flat_params *m_params_fold;
+	static const flat_params *m_params_sf;
+	static const flat_params *m_params_fam;
 	static uint m_query_nchain;
 	static const flat_chain_t **m_ptr_query_chains;
 	static const vector<string> *m_ptr_query_labels;
@@ -24,10 +26,16 @@ public:
 	static parasail_profile_t **m_query_parasail_prof_revs;
 	static const sid_t **m_query_distmxs;
 	static const uint *m_query_lengths;
-	static const float **m_query_mega_pssms;
-	static const float **m_query_mega_pssm_revs;
+	static const float **m_query_mega_pssms_fold;
+	static const float **m_query_mega_pssm_revs_fold;
+	static const float **m_query_mega_pssms_sf;
+	static const float **m_query_mega_pssm_revs_sf;
+	static const float **m_query_mega_pssms_fam;
+	static const float **m_query_mega_pssm_revs_fam;
 	static int *m_query_self_rev_scores;
-	static float *m_query_mega_self_rev_scores;
+	static float *m_query_mega_self_rev_scores_fold;
+	static float *m_query_mega_self_rev_scores_sf;
+	static float *m_query_mega_self_rev_scores_fam;
 	static atomic<uint> m_next;
 	static const BCAData *m_dbbca;
 	static const unordered_map<uint, vector<uint> > *m_dbidx_to_qidxs;
@@ -51,9 +59,19 @@ public:
 	static mutex m_aln_lock;
 
 public:
-	static void set_params(const flat_params &params)
+	static void set_params_fold(const flat_params *params)
 		{
-		m_params = &params;
+		m_params_fold = params;
+		}
+
+	static void set_params_sf(const flat_params *params)
+		{
+		m_params_sf = params;
+		}
+
+	static void set_params_fam(const flat_params *params)
+		{
+		m_params_fam = params;
 		}
 
 	static void set_query_data(
@@ -61,8 +79,12 @@ public:
 		const vector<string> &labels,
 		parasail_profile_t **query_parasail_profs,
 		parasail_profile_t **query_parasail_prof_revs,
-		const float **query_mega_pssms,
-		const float **query_mega_pssm_revs,
+		const float **query_mega_pssms_fold,
+		const float **query_mega_pssm_revs_fold,
+		const float **query_mega_pssms_sf,
+		const float **query_mega_pssm_revs_sf,
+		const float **query_mega_pssms_fam,
+		const float **query_mega_pssm_revs_fam,
 		const sid_t **query_distmxs,
 		const uint *query_lengths,
 		uint nchain);
