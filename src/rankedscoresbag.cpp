@@ -265,6 +265,51 @@ void RankedScoresBag::GetTargetInfo(
 	Progress(" %u targets\n", TargetCount);
 	}
 
+void RankedScoresBag::GetTargetInfoSorted(
+	vector<uint> &TargetIdxs,
+	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const
+	{
+	TargetIdxToQueryIdxs.clear();
+	TargetIdxs.clear();
+	Progress("Make target info (sorted)...");
+	unordered_map<uint, vector<pair<uint, uint16_t> > > TargetIdxToPairs;
+	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
+		{
+		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
+		const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
+		const uint n = SIZE(ScoreVec);
+		for (uint i = 0; i < n; ++i)
+			{
+			uint TargetIdx = TargetIdxVec[i];
+			uint16_t Score = ScoreVec[i];
+			if (TargetIdxToPairs.find(TargetIdx) == TargetIdxToPairs.end())
+				{
+				TargetIdxs.push_back(TargetIdx);
+				vector<pair<uint, uint16_t> > Empty;
+				TargetIdxToPairs[TargetIdx] = Empty;
+				}
+			TargetIdxToPairs[TargetIdx].push_back(make_pair(QueryIdx, Score));
+			}
+		}
+	const uint TargetCount = SIZE(TargetIdxs);
+	QuickSortInPlace(TargetIdxs.data(), TargetCount);
+	for (uint k = 0; k < TargetCount; ++k)
+		{
+		uint TargetIdx = TargetIdxs[k];
+		vector<pair<uint, uint16_t> > &Pairs = TargetIdxToPairs[TargetIdx];
+		std::sort(Pairs.begin(), Pairs.end(),
+			[](const pair<uint, uint16_t> &a, const pair<uint, uint16_t> &b)
+				{
+				return a.second > b.second;
+				});
+		vector<uint> &QIdxs = TargetIdxToQueryIdxs[TargetIdx];
+		QIdxs.reserve(Pairs.size());
+		for (uint i = 0; i < SIZE(Pairs); ++i)
+			QIdxs.push_back(Pairs[i].first);
+		}
+	Progress(" %u targets\n", TargetCount);
+	}
+
 void RankedScoresBag::ToTsv(FILE *f)
 	{
 	if (f == 0)

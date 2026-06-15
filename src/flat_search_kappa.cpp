@@ -90,7 +90,7 @@ void cmd_flat_search_kappa()
 
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
-	kappa_filter::m_RSB.GetTargetInfo(dbidxs, dbidx_to_qidxs);
+	kappa_filter::m_RSB.GetTargetInfoSorted(dbidxs, dbidx_to_qidxs);
 	if (optset_output2)
 		{
 		const string &fn = opt(output2);

@@ -33,17 +33,16 @@ public:
 	vector<vector<uint16_t> > m_QueryIdxToFullScoreVec;
 	vector<vector<uint> > m_QueryIdxToFullTargetIdxVec;
 #endif
-#if STORE_PAIR_SCORES
 	vector<vector<uint16_t> > m_QueryIdxToTopScoreVec;
-#endif
 
 public:
 	void Init(uint QueryCount);
 	uint TruncateAllQueryVecs();
 	void TruncateVecs(uint QIdx);
 	const vector<uint> &GetTargetIdxs(uint QueryIdx) const;
-	void GetTargetInfo(
-		vector<uint> &TargetIdxs,
+	void GetTargetInfo(vector<uint> &TargetIdxs,
+		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
+	void GetTargetInfoSorted(vector<uint> &TargetIdxs,
 		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
