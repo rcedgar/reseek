@@ -143,26 +143,6 @@ void flat_params::check_sane_scores()
 		}
 	}
 
-void flat_params::assert_compatible(
-	const flat_params &a,
-	const flat_params &b)
-	{
-	asserta(a.m_nfeat == b.m_nfeat);
-	asserta(a.m_alpha_names == b.m_alpha_names);
-	asserta(a.m_fans == b.m_fans);
-	for (uint fi = 0; fi < a.m_nfeat; ++fi)
-		{
-		asserta(a.m_alpha_sizes[fi] == b.m_alpha_sizes[fi]);
-		asserta(a.m_feature_block_offsets[fi] ==
-			b.m_feature_block_offsets[fi]);
-		uint AS = a.m_alpha_sizes[fi];
-		uint N = AS*AS;
-		for (uint k = 0; k < N; ++k)
-			asserta(a.m_unweighted_logoddsvec[fi][k] ==
-				b.m_unweighted_logoddsvec[fi][k]);
-		}
-	}
-
 void flat_params::set_symbolsvec()
 	{
 	asserta(m_nfeat > 0);

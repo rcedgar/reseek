@@ -6,9 +6,7 @@
 
 uint reseeker::m_query_nchain = 0;
 const BCAData *reseeker::m_dbbca = 0;
-const flat_params *reseeker::m_params_fold = 0;
-const flat_params *reseeker::m_params_sf = 0;
-const flat_params *reseeker::m_params_fam = 0;
+const flat_params *reseeker::m_params = 0;
 const flat_chain_t **reseeker::m_ptr_query_chains = 0;
 const vector<string> *reseeker::m_ptr_query_labels = 0;
 parasail_profile_t **reseeker::m_query_parasail_profs = 0;
@@ -28,15 +26,9 @@ atomic<uint> reseeker::m_accept_min_ts;
 atomic<uint> reseeker::m_reject_min_ts;
 atomic<uint> reseeker::m_nhit;
 const sid_t **reseeker::m_query_distmxs;
-const float **reseeker::m_query_mega_pssms_fold;
-const float **reseeker::m_query_mega_pssm_revs_fold;
-const float **reseeker::m_query_mega_pssms_sf;
-const float **reseeker::m_query_mega_pssm_revs_sf;
-const float **reseeker::m_query_mega_pssms_fam;
-const float **reseeker::m_query_mega_pssm_revs_fam;
-float *reseeker::m_query_mega_self_rev_scores_fold;
-float *reseeker::m_query_mega_self_rev_scores_sf;
-float *reseeker::m_query_mega_self_rev_scores_fam;
+const float **reseeker::m_query_mega_pssms;
+const float **reseeker::m_query_mega_pssm_revs;
+float *reseeker::m_query_mega_self_rev_scores;
 uint reseeker::m_ndbidxs;
 NF_MODE reseeker::m_mode = NF_invalid;
 vector<uint> reseeker::m_qidxs_all;
@@ -45,44 +37,13 @@ FILE *reseeker::m_faln;
 //mutex reseeker::m_hit_lock; // exploit fputs thread-safety
 mutex reseeker::m_aln_lock;
 
-static void compute_query_mega_self_rev_scores(
-	const flat_params &params,
-	const float **query_mega_pssm_revs,
-	uint8_t **query_mega_profs,
-	float *scores)
-	{
-	float *scratch_rows = myalloc(float, 2*reseeker::m_maxL + 2);
-	const float **scratch_pssms = myalloc(const float *, params.m_nfeat);
-
-	for (uint qidx = 0; qidx < reseeker::m_query_nchain; ++qidx)
-		{
-		const uint LQ = reseeker::m_query_lengths[qidx];
-		const float *query_mega_pssm_rev = query_mega_pssm_revs[qidx];
-		const uint8_t *query_mega_prof = query_mega_profs[qidx];
-		float score = sw_flat_pssm_scoreonly(
-			scratch_rows, scratch_pssms,
-			query_mega_prof, LQ, query_mega_pssm_rev, LQ,
-			params.m_feature_block_offsets,
-			params.m_nfeat,
-			-params.m_open,
-			-params.m_ext);
-		scores[qidx] = score;
-		}
-	myfree(scratch_rows);
-	myfree(scratch_pssms);
-	}
-
 void reseeker::set_query_data(
 	const flat_chain_t **ptr_query_chains,
 	const vector<string> &labels,
 	parasail_profile_t **parasail_profs,
 	parasail_profile_t **parasail_prof_revs,
-	const float **query_mega_pssms_fold,
-	const float **query_mega_pssm_revs_fold,
-	const float **query_mega_pssms_sf,
-	const float **query_mega_pssm_revs_sf,
-	const float **query_mega_pssms_fam,
-	const float **query_mega_pssm_revs_fam,
+	const float **query_mega_pssms,
+	const float **query_mega_pssm_revs,
 	const sid_t **query_distmxs,
 	const uint *lengths,
 	uint nchain)
@@ -91,12 +52,8 @@ void reseeker::set_query_data(
 	m_ptr_query_labels = &labels;
 	m_query_parasail_profs = parasail_profs;
 	m_query_parasail_prof_revs = parasail_prof_revs;
-	m_query_mega_pssms_fold = query_mega_pssms_fold;
-	m_query_mega_pssm_revs_fold = query_mega_pssm_revs_fold;
-	m_query_mega_pssms_sf = query_mega_pssms_sf;
-	m_query_mega_pssm_revs_sf = query_mega_pssm_revs_sf;
-	m_query_mega_pssms_fam = query_mega_pssms_fam;
-	m_query_mega_pssm_revs_fam = query_mega_pssm_revs_fam;
+	m_query_mega_pssms = query_mega_pssms;
+	m_query_mega_pssm_revs = query_mega_pssm_revs;
 	m_query_distmxs = query_distmxs;
 	m_query_lengths = lengths;
 	m_query_nchain = nchain;
@@ -105,46 +62,30 @@ void reseeker::set_query_data(
 void reseeker::set_query_mega_self_rev_scores(
 	uint8_t **query_mega_profs)
 	{
+	asserta(m_query_mega_self_rev_scores == 0);
 	asserta(m_query_nchain > 0);
-	asserta(m_params_fold != 0);
+	m_query_mega_self_rev_scores = myalloc(float, m_query_nchain);
+	float *scratch_rows = myalloc(float, 2*m_maxL + 2);
+	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
 
-	if (m_query_mega_self_rev_scores_fold == 0)
+	Progress("Query Mega self-scores...");
+	for (uint qidx = 0; qidx < m_query_nchain; ++qidx)
 		{
-		m_query_mega_self_rev_scores_fold = myalloc(float, m_query_nchain);
-		Progress("Query Mega self-scores (fold)...");
-		compute_query_mega_self_rev_scores(
-			*m_params_fold,
-			m_query_mega_pssm_revs_fold,
-			query_mega_profs,
-			m_query_mega_self_rev_scores_fold);
-		Progress(" done.\n");
+		const uint LQ = m_query_lengths[qidx];
+		const float *query_mega_pssm_rev = m_query_mega_pssm_revs[qidx];
+		const uint8_t *query_mega_prof = query_mega_profs[qidx];
+		float score = sw_flat_pssm_scoreonly(
+			scratch_rows, scratch_pssms,
+			query_mega_prof, LQ, query_mega_pssm_rev, LQ,
+			m_params->m_feature_block_offsets,
+			m_params->m_nfeat,
+			-m_params->m_open,
+			-m_params->m_ext);
+		m_query_mega_self_rev_scores[qidx] = score;
 		}
-
-	if (m_params_sf != 0 && m_query_mega_self_rev_scores_sf == 0)
-		{
-		asserta(m_query_mega_pssms_sf != 0);
-		m_query_mega_self_rev_scores_sf = myalloc(float, m_query_nchain);
-		Progress("Query Mega self-scores (sf)...");
-		compute_query_mega_self_rev_scores(
-			*m_params_sf,
-			m_query_mega_pssm_revs_sf,
-			query_mega_profs,
-			m_query_mega_self_rev_scores_sf);
-		Progress(" done.\n");
-		}
-
-	if (m_params_fam != 0 && m_query_mega_self_rev_scores_fam == 0)
-		{
-		asserta(m_query_mega_pssms_fam != 0);
-		m_query_mega_self_rev_scores_fam = myalloc(float, m_query_nchain);
-		Progress("Query Mega self-scores (fam)...");
-		compute_query_mega_self_rev_scores(
-			*m_params_fam,
-			m_query_mega_pssm_revs_fam,
-			query_mega_profs,
-			m_query_mega_self_rev_scores_fam);
-		Progress(" done.\n");
-		}
+	myfree(scratch_rows);
+	myfree(scratch_pssms);
+	Progress(" done.\n");
 	}
 
 void reseeker::set_query_self_rev_scores(
@@ -176,7 +117,7 @@ void reseeker::set_query_self_rev_scores(
 
 void reseeker::search()
 	{
-	asserta(m_params_fold != 0);
+	asserta(m_params != 0);
 
 	m_npair = 0;
 	m_reject_fwd = 0;

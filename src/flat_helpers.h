@@ -377,28 +377,3 @@ uint logodds_and_freqmx_from_lines(
 
 void set_sec4_groups(const string &sec4_groups);
 void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount);
-
-void flat_collect_alpha_names_from_varstr(
-	const string &varstr,
-	vector<string> &alpha_names);
-
-void flat_union_alpha_names(
-	const vector<string> &varstrs,
-	vector<string> &union_names);
-
-string flat_expand_varstr(
-	const string &varstr,
-	const vector<string> &union_names);
-
-void flat_init_reseeker_params(
-	flat_params &params_fold,
-	flat_params &params_sf,
-	flat_params &params_fam);
-
-void flat_build_query_mega_pssms(
-	uint nquery,
-	uint8_t **query_mega_profs,
-	const uint *query_lengths,
-	const flat_params &params,
-	const float **&query_mega_pssms,
-	const float **&query_mega_pssm_revs);
