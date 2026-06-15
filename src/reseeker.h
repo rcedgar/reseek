@@ -35,6 +35,7 @@ public:
 	static uint m_ndbidxs;
 	static NF_MODE m_mode;
 	static vector<uint> m_qidxs_all;
+	static float m_mints;
 
 	static atomic<uint> m_npair;
 	static atomic<uint> m_reject_fwd;

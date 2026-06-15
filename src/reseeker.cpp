@@ -36,6 +36,7 @@ FILE *reseeker::m_fhit;
 FILE *reseeker::m_faln;
 //mutex reseeker::m_hit_lock; // exploit fputs thread-safety
 mutex reseeker::m_aln_lock;
+float reseeker::m_mints = 0;
 
 void reseeker::set_query_data(
 	const flat_chain_t **ptr_query_chains,
