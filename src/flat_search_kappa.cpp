@@ -90,7 +90,9 @@ void cmd_flat_search_kappa()
 
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
-	kappa_filter::m_RSB.GetTargetInfoSorted(dbidxs, dbidx_to_qidxs);
+	uint max_queries_per_target = 0;
+	kappa_filter::m_RSB.GetTargetInfoSorted(
+		dbidxs, dbidx_to_qidxs, max_queries_per_target);
 	if (optset_output2)
 		{
 		const string &fn = opt(output2);
@@ -127,8 +129,10 @@ void cmd_flat_search_kappa()
 		query_lengths,
 		nquery);
 
+	if (optset_mints) reseeker::m_mints = float(opt(mints));
 	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
 	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
+	reseeker::m_max_queries_per_target = max_queries_per_target;
 	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);

@@ -36,10 +36,11 @@ public:
 	static NF_MODE m_mode;
 	static vector<uint> m_qidxs_all;
 	static float m_mints;
+	static uint m_max_queries_per_target;
 
 	static atomic<uint> m_npair;
 	static atomic<uint> m_reject_fwd;
-	static atomic<uint> m_reject_cmb;
+	static atomic<uint> m_nu_reject_cmb;
 	static atomic<uint> m_npass;
 	static atomic<uint> m_reject_mega_fwd;
 	static atomic<uint> m_reject_min_ts;
@@ -85,6 +86,7 @@ public:
 		const unordered_map<uint, vector<uint> > &dbidx_to_qidxs);
 
 	static void static_thread_body(uint threadidx);
+	static void static_thread_body_nusort(uint threadidx);
 
 	static void close_files()
 		{

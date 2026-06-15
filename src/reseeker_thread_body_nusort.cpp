@@ -5,8 +5,11 @@
 #include "flat_helpers.h"
 #include "hitdata.h"
 
-void reseeker::static_thread_body(uint threadidx)
+void reseeker::static_thread_body_nusort(uint threadidx)
 	{
+	Die("TODO -- unfinished");
+	asserta(m_max_queries_per_target > 0);
+	uint *sorted_qidxs = myalloc(uint, m_max_queries_per_target);
 	const BCAData &dbbca = *m_dbbca;
 
 	const int nu_open = flat_nu_aligner::m_open;
@@ -46,6 +49,7 @@ void reseeker::static_thread_body(uint threadidx)
 			}
 		if (k >= m_ndbidxs) return;
 
+		uint nq_accept_nu = 0;
 		const vector<uint> *ptr_qidxs = 0;
 		uint dbidx = UINT_MAX;
 
@@ -261,8 +265,8 @@ void reseeker::static_thread_body(uint threadidx)
 				str = query_label;
 				str += "\t" + target_label;
 				Psa(str, "\t%.3g", TS);
-				Psa(str, "\t%.3g", float(nu_fwd_score));
 				Psa(str, "\t%.3g", nu_combined_score);
+				//Psa(str, "\t%.3g", float(nu_fwd_score));
 				//Psa(str, "\t%.3g", float(nu_rev_score));
 				//Psa(str, "\t%.3g", float(mega_fwd_score));
 				//Psa(str, "\t%.3g", float(mega_rev_score));

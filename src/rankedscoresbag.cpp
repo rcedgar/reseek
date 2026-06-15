@@ -267,8 +267,10 @@ void RankedScoresBag::GetTargetInfo(
 
 void RankedScoresBag::GetTargetInfoSorted(
 	vector<uint> &TargetIdxs,
-	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const
+	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	uint &max_queries_per_target) const
 	{
+	max_queries_per_target = 0;
 	TargetIdxToQueryIdxs.clear();
 	TargetIdxs.clear();
 	Progress("Make target info (sorted)...");
@@ -303,11 +305,13 @@ void RankedScoresBag::GetTargetInfoSorted(
 				return a.second > b.second;
 				});
 		vector<uint> &QIdxs = TargetIdxToQueryIdxs[TargetIdx];
-		QIdxs.reserve(Pairs.size());
-		for (uint i = 0; i < SIZE(Pairs); ++i)
+		uint nq = uint(Pairs.size());
+		max_queries_per_target = max(nq, max_queries_per_target);
+		QIdxs.reserve(nq);
+		for (uint i = 0; i < nq; ++i)
 			QIdxs.push_back(Pairs[i].first);
 		}
-	Progress(" %u targets\n", TargetCount);
+	Progress(" %u targets, maxqpert %u\n", TargetCount, &max_queries_per_target);
 	}
 
 void RankedScoresBag::ToTsv(FILE *f)

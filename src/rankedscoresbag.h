@@ -43,7 +43,8 @@ public:
 	void GetTargetInfo(vector<uint> &TargetIdxs,
 		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
 	void GetTargetInfoSorted(vector<uint> &TargetIdxs,
-		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
+		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+		uint &max_queries_per_target) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
 	// Caller must hold m_DataLock (e.g. use AddScoresBatch for batched updates).
