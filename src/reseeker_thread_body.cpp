@@ -47,6 +47,7 @@ void reseeker::static_thread_body(uint threadidx)
 		if (k >= m_ndbidxs) return;
 
 		const vector<uint> *ptr_qidxs = 0;
+		const vector<uint> *ptr_diagscores = 0;
 		uint dbidx = UINT_MAX;
 
 		switch (m_mode)
@@ -65,6 +66,11 @@ void reseeker::static_thread_body(uint threadidx)
 				m_dbidx_to_qidxs->find(dbidx);
 			asserta(iter != m_dbidx_to_qidxs->end());
 			ptr_qidxs = &iter->second;
+			unordered_map<uint, vector<uint> >::const_iterator iter_diag =
+				m_dbidx_to_diagscores->find(dbidx);
+			asserta(iter_diag != m_dbidx_to_diagscores->end());
+			ptr_diagscores = &iter_diag->second;
+			asserta(ptr_diagscores->size() == ptr_qidxs->size());
 			break;
 			}
 
@@ -94,6 +100,9 @@ void reseeker::static_thread_body(uint threadidx)
 			{
 			++m_npair;
 			uint qidx = qidxs[j];
+			uint kappa_diag_score = 0;
+			if (m_mode == NF_kappa)
+				kappa_diag_score = (*ptr_diagscores)[j];
 			asserta(qidx < m_query_nchain);
 			const string &query_label = (*m_ptr_query_labels)[qidx];
 			parasail_profile_t *query_para_prof = m_query_parasail_profs[qidx];
@@ -263,6 +272,7 @@ void reseeker::static_thread_body(uint threadidx)
 				Psa(str, "\t%.3g", TS);
 				Psa(str, "\t%.3g", float(nu_fwd_score));
 				Psa(str, "\t%.3g", nu_combined_score);
+				Psa(str, "\t%u", kappa_diag_score);
 				//Psa(str, "\t%.3g", float(nu_rev_score));
 				//Psa(str, "\t%.3g", float(mega_fwd_score));
 				//Psa(str, "\t%.3g", float(mega_rev_score));

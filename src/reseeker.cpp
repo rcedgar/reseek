@@ -14,6 +14,7 @@ parasail_profile_t **reseeker::m_query_parasail_prof_revs = 0;
 const uint *reseeker::m_query_lengths = 0;
 int *reseeker::m_query_self_rev_scores = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_qidxs = 0;
+const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_diagscores = 0;
 const vector<uint> *reseeker::m_dbidxs = 0;
 atomic<uint> reseeker::m_next;
 const uint reseeker::m_maxL = 4000;
@@ -160,6 +161,7 @@ void reseeker::search_all_vs_all(const BCAData &dbbca)
 	m_dbbca = &dbbca;
 	m_dbidxs = 0;
 	m_dbidx_to_qidxs = 0;
+	m_dbidx_to_diagscores = 0;
 	m_mode = NF_all_vs_all;
 	m_qidxs_all.clear();
 	m_qidxs_all.reserve(m_query_nchain);
@@ -172,12 +174,14 @@ void reseeker::search_all_vs_all(const BCAData &dbbca)
 void reseeker::search_post_kappa(
 	const BCAData &dbbca,
 	const vector<uint> &dbidxs,
-	const unordered_map<uint, vector<uint> > &dbidx_to_qidxs)
+	const unordered_map<uint, vector<uint> > &dbidx_to_qidxs,
+	const unordered_map<uint, vector<uint> > &dbidx_to_diagscores)
 	{
 	m_ndbidxs = uint(dbidxs.size());
 	m_dbbca = &dbbca;
 	m_dbidxs = &dbidxs;
 	m_dbidx_to_qidxs = &dbidx_to_qidxs;
+	m_dbidx_to_diagscores = &dbidx_to_diagscores;
 	m_mode = NF_kappa;
 	m_qidxs_all.clear();
 

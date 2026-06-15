@@ -44,6 +44,7 @@ public:
 		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs) const;
 	void GetTargetInfoSorted(vector<uint> &TargetIdxs,
 		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+		unordered_map<uint, vector<uint> > &TargetIdxToDiagScores,
 		uint &max_queries_per_target) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);

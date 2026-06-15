@@ -242,7 +242,7 @@ void RankedScoresBag::GetTargetInfo(
 	{
 	TargetIdxToQueryIdxs.clear();
 	TargetIdxs.clear();
-	Progress("Make target info...");
+	Progress("Make target info (unsorted)...\n");
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
 		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
@@ -262,18 +262,20 @@ void RankedScoresBag::GetTargetInfo(
 		}
 	const uint TargetCount = SIZE(TargetIdxs);
 	QuickSortInPlace(TargetIdxs.data(), TargetCount);
-	Progress(" %u targets\n", TargetCount);
+	Progress("%u targets\n", TargetCount);
 	}
 
 void RankedScoresBag::GetTargetInfoSorted(
 	vector<uint> &TargetIdxs,
 	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	unordered_map<uint, vector<uint> > &TargetIdxToDiagScores,
 	uint &max_queries_per_target) const
 	{
 	max_queries_per_target = 0;
 	TargetIdxToQueryIdxs.clear();
+	TargetIdxToDiagScores.clear();
 	TargetIdxs.clear();
-	Progress("Make target info (sorted)...");
+	Progress("Make target info (sorted)...\n");
 	unordered_map<uint, vector<pair<uint, uint16_t> > > TargetIdxToPairs;
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
@@ -305,13 +307,18 @@ void RankedScoresBag::GetTargetInfoSorted(
 				return a.second > b.second;
 				});
 		vector<uint> &QIdxs = TargetIdxToQueryIdxs[TargetIdx];
+		vector<uint> &DiagScores = TargetIdxToDiagScores[TargetIdx];
 		uint nq = uint(Pairs.size());
 		max_queries_per_target = max(nq, max_queries_per_target);
 		QIdxs.reserve(nq);
+		DiagScores.reserve(nq);
 		for (uint i = 0; i < nq; ++i)
+			{
 			QIdxs.push_back(Pairs[i].first);
+			DiagScores.push_back(Pairs[i].second);
+			}
 		}
-	Progress(" %u targets, maxqpert %u\n", TargetCount, &max_queries_per_target);
+	Progress("%u targets, maxqpert %u\n", TargetCount, max_queries_per_target);
 	}
 
 void RankedScoresBag::ToTsv(FILE *f)

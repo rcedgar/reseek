@@ -31,6 +31,7 @@ public:
 	static atomic<uint> m_next;
 	static const BCAData *m_dbbca;
 	static const unordered_map<uint, vector<uint> > *m_dbidx_to_qidxs;
+	static const unordered_map<uint, vector<uint> > *m_dbidx_to_diagscores;
 	static const vector<uint> *m_dbidxs;
 	static uint m_ndbidxs;
 	static NF_MODE m_mode;
@@ -83,7 +84,8 @@ public:
 	static void search_post_kappa(
 		const BCAData &dbbca,
 		const vector<uint> &dbidxs,
-		const unordered_map<uint, vector<uint> > &dbidx_to_qidxs);
+		const unordered_map<uint, vector<uint> > &dbidx_to_qidxs,
+		const unordered_map<uint, vector<uint> > &dbidx_to_diagscores);
 
 	static void static_thread_body(uint threadidx);
 	static void static_thread_body_nusort(uint threadidx);
