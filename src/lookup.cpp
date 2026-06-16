@@ -276,6 +276,7 @@ uint lookup::get_singleton_count() const
 		}
 
 	case LT_SAME_SF:
+	case LT_TOP_SF:
 		{
 		vector<uint> sfidx2ndom(m_sfs.size());
 		for (size_t domidx = 0; domidx < m_domidx2sfidx.size(); ++domidx)
@@ -289,6 +290,7 @@ uint lookup::get_singleton_count() const
 		}
 
 	case LT_SAME_FOLD:
+	case LT_TOP_FOLD:
 		{
 		vector<uint> foldidx2ndom(m_folds.size());
 		for (size_t domidx = 0; domidx < m_domidx2foldidx.size(); ++domidx)
@@ -446,11 +448,11 @@ void lookup::fill()
 	{
 	if (m_LT == LT_SAME_FAM)
 		fill_fam();
-	else if (m_LT == LT_SAME_SF)
+	else if (m_LT == LT_SAME_SF || m_LT == LT_TOP_SF)
 		fill_sf();
 	else if (m_LT == LT_DIFF_FAM_SAME_SF)
 		fill_sfx();
-	else if (m_LT == LT_SAME_FOLD)
+	else if (m_LT == LT_SAME_FOLD || m_LT == LT_TOP_FOLD)
 		fill_fold();
 	else if (m_LT == LT_DIFF_SF_SAME_FOLD)
 		fill_foldx();

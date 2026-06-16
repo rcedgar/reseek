@@ -9,7 +9,9 @@ enum LOOK_TRUTH
 	LT_SAME_SF,
 	LT_DIFF_FAM_SAME_SF,
 	LT_DIFF_SF_SAME_FOLD,
-	LT_SAME_FOLD
+	LT_SAME_FOLD,
+	LT_TOP_SF,
+	LT_TOP_FOLD
 	};
 
 class flat_chain_t;
@@ -54,6 +56,10 @@ public:
 				m_LT = LT_SAME_FOLD;
 			else if (t == "foldx")
 				m_LT = LT_DIFF_SF_SAME_FOLD;
+			else if (t == "topsf")
+				m_LT = LT_TOP_SF;
+			else if (t == "topfold")
+				m_LT = LT_TOP_FOLD;
 			else
 				Die("Invalid -truth '%s'", t.c_str());
 			}
@@ -98,6 +104,10 @@ public:
 			return "fold";
 		else if (m_LT == LT_DIFF_SF_SAME_FOLD)
 			return "foldx";
+		else if (m_LT == LT_TOP_SF)
+			return "topsf";
+		else if (m_LT == LT_TOP_FOLD)
+			return "topfold";
 		else
 			Die("get_truthstr()");
 		return "ERROR";
@@ -239,11 +249,11 @@ public:
 
 	bool is_tp_ij(uint i, uint j) const
 		{
-		if (m_LT == LT_SAME_SF)
+		if (m_LT == LT_SAME_SF || m_LT == LT_TOP_SF)
 			return same_sf_ij(i, j);
 		else if (m_LT == LT_SAME_FAM)
 			return same_fam_ij(i, j);
-		else if (m_LT == LT_SAME_FOLD)
+		else if (m_LT == LT_SAME_FOLD || m_LT == LT_TOP_FOLD)
 			return same_fold_ij(i, j);
 		else if (m_LT == LT_DIFF_FAM_SAME_SF)
 			return !same_fam_ij(i, j) && same_sf_ij(i, j);

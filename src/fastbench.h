@@ -14,6 +14,9 @@ public:
 	float m_SEPQ0_1 = FLT_MAX;
 	float m_SEPQ1 = FLT_MAX;
 	float m_SEPQ10 = FLT_MAX;
+	float m_SEPQtopA = FLT_MAX;
+	float m_SEPQtopB = FLT_MAX;
+	float m_SEPQtopC = FLT_MAX;
 	lookup *m_look = 0;
 	uint8_t *m_dope = 0;
 	uint32_t m_dope_nhit = 0;
@@ -54,6 +57,12 @@ public:
 	void SetLookupFromLabels();
 	void AppendHit(uint i, uint j, float Score);
 	double Bench(const string &Msg = "");
+	double BenchTop(const string &Msg = "");
+	double BenchPairCVE(const string &Msg = "");
+	bool IsTprHoldout(uint domidx_q, uint domidx_t) const;
+	bool IsFprHoldout(uint domidx_q, uint domidx_t) const;
+	bool BetterScore(float score1, float score2) const;
+	bool PassesThreshold(float score, float tau) const;
 	void SetScoreOrder();
 	void SetScoreOrder_Serial();
 #if PARALLEL_SORT

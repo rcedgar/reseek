@@ -2,6 +2,8 @@
 #include "triangle.h"
 #include "fastbench.h"
 #include "sort.h"
+#include <algorithm>
+#include <unordered_set>
 
 #define SAVE_NOT_IN_DOPE	0
 
@@ -100,15 +102,311 @@ bool FastBench::IsTP(uint LabelIdx_i, uint LabelIdx_j) const
 	return m_look->is_tp_ij(LabelIdx_i, LabelIdx_j);
 	}
 
+bool FastBench::IsTprHoldout(uint domidx_q, uint domidx_t) const
+	{
+	assert(m_look);
+	if (m_look->m_LT == LT_TOP_SF)
+		return m_look->same_fam_ij(domidx_q, domidx_t);
+	if (m_look->m_LT == LT_TOP_FOLD)
+		return m_look->same_sf_ij(domidx_q, domidx_t);
+	return false;
+	}
+
+bool FastBench::IsFprHoldout(uint domidx_q, uint domidx_t) const
+	{
+	assert(m_look);
+	if (m_look->m_LT == LT_TOP_SF)
+		return m_look->same_sf_ij(domidx_q, domidx_t);
+	if (m_look->m_LT == LT_TOP_FOLD)
+		return m_look->same_fold_ij(domidx_q, domidx_t);
+	return false;
+	}
+
+bool FastBench::BetterScore(float score1, float score2) const
+	{
+	if (score2 == FLT_MAX)
+		return score1 != FLT_MAX;
+	if (score1 == FLT_MAX)
+		return false;
+	if (m_scores_are_evalues)
+		return score1 < score2;
+	return score1 > score2;
+	}
+
+bool FastBench::PassesThreshold(float score, float tau) const
+	{
+	if (score == FLT_MAX)
+		return false;
+	if (m_scores_are_evalues)
+		return score <= tau;
+	return score >= tau;
+	}
+
+double FastBench::BenchTop(const string &Msg)
+	{
+	asserta(m_look);
+	asserta(m_Scores);
+	const uint ndom = m_look->get_ndom();
+	const uint K = triangle_get_K(ndom);
+
+	const bool top_sf = (m_look->m_LT == LT_TOP_SF);
+	const bool top_fold = (m_look->m_LT == LT_TOP_FOLD);
+	asserta(top_sf || top_fold);
+
+	vector<float> TprBestTp(ndom, FLT_MAX);
+	vector<float> TprBestFp(ndom, FLT_MAX);
+	vector<float> FprBestAny(ndom, FLT_MAX);
+
+	for (uint k = 0; k < K; ++k)
+		{
+		float Score = m_Scores[k];
+		if (Score == FLT_MAX)
+			continue;
+		uint domidx_i, domidx_j;
+		triangle_k_to_ij(k, ndom, domidx_i, domidx_j);
+		if (domidx_i == domidx_j)
+			continue;
+
+		auto UpdateQuery = [&](uint domidx_q, uint domidx_t)
+			{
+			if (!IsTprHoldout(domidx_q, domidx_t))
+				{
+				if (IsTP(domidx_q, domidx_t))
+					{
+					if (BetterScore(Score, TprBestTp[domidx_q]))
+						TprBestTp[domidx_q] = Score;
+					}
+				else if (BetterScore(Score, TprBestFp[domidx_q]))
+					{
+					TprBestFp[domidx_q] = Score;
+					}
+				}
+			if (!IsFprHoldout(domidx_q, domidx_t))
+				{
+				if (BetterScore(Score, FprBestAny[domidx_q]))
+					FprBestAny[domidx_q] = Score;
+				}
+			};
+
+		UpdateQuery(domidx_i, domidx_j);
+		UpdateQuery(domidx_j, domidx_i);
+		}
+
+	vector<bool> InQ(ndom, false);
+	if (top_sf)
+		{
+		const uint nsf = uint(m_look->m_sfs.size());
+		vector<unordered_set<uint> > sf_fams(nsf);
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			uint sfidx = m_look->m_domidx2sfidx[domidx];
+			uint famidx = m_look->m_domidx2famidx[domidx];
+			sf_fams[sfidx].insert(famidx);
+			}
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			uint sfidx = m_look->m_domidx2sfidx[domidx];
+			if (sf_fams[sfidx].size() >= 2)
+				InQ[domidx] = true;
+			}
+		}
+	else
+		{
+		const uint nfold = uint(m_look->m_folds.size());
+		vector<unordered_set<uint> > fold_sfs(nfold);
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			uint foldidx = m_look->m_domidx2foldidx[domidx];
+			uint sfidx = m_look->m_domidx2sfidx[domidx];
+			fold_sfs[foldidx].insert(sfidx);
+			}
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			uint foldidx = m_look->m_domidx2foldidx[domidx];
+			if (fold_sfs[foldidx].size() >= 2)
+				InQ[domidx] = true;
+			}
+		}
+
+	uint n_q = 0;
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		if (InQ[domidx])
+			++n_q;
+	asserta(n_q > 0);
+
+	auto GetBestTprAny = [&](uint domidx) -> float
+		{
+		const float best_tp = TprBestTp[domidx];
+		const float best_fp = TprBestFp[domidx];
+		if (best_tp == FLT_MAX && best_fp == FLT_MAX)
+			return FLT_MAX;
+		if (best_tp == FLT_MAX)
+			return best_fp;
+		if (best_fp == FLT_MAX)
+			return best_tp;
+		if (BetterScore(best_tp, best_fp))
+			return best_tp;
+		return best_fp;
+		};
+
+	auto TopIsTp = [&](uint domidx) -> bool
+		{
+		const float best_tp = TprBestTp[domidx];
+		const float best_fp = TprBestFp[domidx];
+		if (best_tp == FLT_MAX)
+			return false;
+		if (best_fp == FLT_MAX)
+			return true;
+		return BetterScore(best_tp, best_fp) || best_tp == best_fp;
+		};
+
+	vector<float> taus;
+	taus.reserve(n_q*2);
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		if (!InQ[domidx])
+			continue;
+		const float best_tpr = GetBestTprAny(domidx);
+		if (best_tpr != FLT_MAX)
+			taus.push_back(best_tpr);
+		if (FprBestAny[domidx] != FLT_MAX)
+			taus.push_back(FprBestAny[domidx]);
+		}
+	asserta(taus.size() > 0);
+	QuickSortInPlace(taus.data(), uint(taus.size()));
+	taus.erase(unique(taus.begin(), taus.end()), taus.end());
+	if (!m_scores_are_evalues)
+		reverse(taus.begin(), taus.end());
+
+	m_Sum3 = FLT_MAX;
+	m_SEPQtopA = FLT_MAX;
+	m_SEPQtopB = FLT_MAX;
+	m_SEPQtopC = FLT_MAX;
+
+	const float FprThreshA = 0.001f;
+	const float FprThreshB = 0.01f;
+	const float FprThreshC = 0.1f;
+
+	FILE *fRoc = 0;
+	if (optset_roc)
+		fRoc = CreateStdioFile(opt(roc));
+
+	auto WriteCvePoint = [&](float Tpr, float Fpr, float Score)
+		{
+		if (fRoc == 0)
+			return;
+		fprintf(fRoc, "%.6g", Fpr);
+		fprintf(fRoc, "\t%.6g", Tpr);
+		fprintf(fRoc, "\t%.6g", Score);
+		fprintf(fRoc, "\n");
+		};
+
+	auto UpdateSepq = [&](float Fpr, float Tpr)
+		{
+		if (Fpr >= FprThreshA && m_SEPQtopA == FLT_MAX)
+			m_SEPQtopA = Tpr;
+		if (Fpr >= FprThreshB && m_SEPQtopB == FLT_MAX)
+			m_SEPQtopB = Tpr;
+		if (Fpr >= FprThreshC && m_SEPQtopC == FLT_MAX)
+			m_SEPQtopC = Tpr;
+		};
+
+	auto ClassifyAtTau = [&](float tau, uint &n_tp, uint &n_fn,
+		uint &n_fp, uint &n_tn)
+		{
+		n_tp = n_fn = n_fp = n_tn = 0;
+		for (uint domidx = 0; domidx < ndom; ++domidx)
+			{
+			if (!InQ[domidx])
+				continue;
+			const float best_tpr = GetBestTprAny(domidx);
+			if (!PassesThreshold(best_tpr, tau))
+				++n_fn;
+			else if (TopIsTp(domidx))
+				++n_tp;
+
+			if (!PassesThreshold(FprBestAny[domidx], tau))
+				++n_tn;
+			else
+				++n_fp;
+			}
+		};
+
+	if (fRoc)
+		fprintf(fRoc, "FPR\tTPR\t%s\n",
+			m_scores_are_evalues ? "evalue" : "score");
+	//WriteCvePoint(0.0f, 0.0f,
+	//	m_scores_are_evalues ? 0.0f : FLT_MAX);
+
+	float final_tpr = 0.0f;
+	float final_fpr = 0.0f;
+	for (uint ti = 0; ti < uint(taus.size()); ++ti)
+		{
+		const float tau = taus[ti];
+		uint n_tp, n_fn, n_fp, n_tn;
+		ClassifyAtTau(tau, n_tp, n_fn, n_fp, n_tn);
+		const float tpr = float(n_tp)/float(n_tp + n_fn);
+		const float fpr = float(n_fp)/float(n_fp + n_tn);
+		WriteCvePoint(tpr, fpr, tau);
+		UpdateSepq(fpr, tpr);
+		final_tpr = tpr;
+		final_fpr = fpr;
+		}
+
+	{
+	const float loose_tau = m_scores_are_evalues ? FLT_MAX : -FLT_MAX;
+	uint n_tp, n_fn, n_fp, n_tn;
+	ClassifyAtTau(loose_tau, n_tp, n_fn, n_fp, n_tn);
+	final_tpr = float(n_tp)/float(n_tp + n_fn);
+	final_fpr = float(n_fp)/float(n_fp + n_tn);
+	WriteCvePoint(final_tpr, final_fpr, loose_tau);
+	UpdateSepq(final_fpr, final_tpr);
+	}
+
+	if (fRoc)
+		CloseStdioFile(fRoc);
+
+	if (m_SEPQtopA == FLT_MAX) m_SEPQtopA = final_tpr;
+	if (m_SEPQtopB == FLT_MAX) m_SEPQtopB = final_tpr;
+	if (m_SEPQtopC == FLT_MAX) m_SEPQtopC = final_tpr;
+
+	m_Sum3 = m_SEPQtopA*2.0f + m_SEPQtopB*1.5f + m_SEPQtopC;
+
+	if (Msg != "noshow")
+		{
+		if (Msg != "")
+			ProgressLog("%s ", Msg.c_str());
+		ProgressLog("N=%u", n_q);
+		ProgressLog(" SEPQ(FPR=%.3g)=%.3f", FprThreshA, m_SEPQtopA);
+		ProgressLog(" SEPQ(FPR=%.3g)=%.3f", FprThreshB, m_SEPQtopB);
+		ProgressLog(" SEPQ(FPR=%.3g)=%.3f", FprThreshC, m_SEPQtopC);
+		ProgressLog(" Sum3=%.3f", m_Sum3);
+		ProgressLog(" %s", m_look->get_truthstr());
+		if (m_name != "")
+			ProgressLog(" %s", m_name.c_str());
+		ProgressLog("\n");
+		}
+
+	asserta(!optset_top3);
+	return m_Sum3;
+	}
+
 double FastBench::Bench(const string &Msg)
+	{
+	asserta(m_look);
+	if (m_look->m_LT == LT_TOP_SF || m_look->m_LT == LT_TOP_FOLD)
+		return BenchTop(Msg);
+	return BenchPairCVE(Msg);
+	}
+
+// This is not ROC, it is Coverage vs. Error (CVE)
+double FastBench::BenchPairCVE(const string &Msg)
 	{
 	asserta(m_ScoreOrder != 0);
 	const uint ndom = m_look->get_ndom();
 	uint K = triangle_get_K(ndom);
 	uint nt = 0;
 	uint nf = 0;
-	uint nt_top = 0;
-	uint nf_top = 0;
 
 	m_Sum3 = FLT_MAX;
 	m_SEPQ0_1 = FLT_MAX;
@@ -116,8 +414,6 @@ double FastBench::Bench(const string &Msg)
 	m_SEPQ10 = FLT_MAX;
 
 	float LastScore = m_scores_are_evalues ? -9e9f : FLT_MAX;
-	const uint non_singleton_count =
-		ndom - m_look->get_singleton_count();
 
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
@@ -372,6 +668,9 @@ void FastBench::ClearHitsAndResults()
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
+	m_SEPQtopA = FLT_MAX;
+	m_SEPQtopB = FLT_MAX;
+	m_SEPQtopC = FLT_MAX;
 	SubclassClearHitsAndResults();
 	}
 
@@ -535,7 +834,8 @@ void cmd_fast_bench_hits()
 		qidx+1, tidx+1, scoreidx+1);
 
 	FB.ReadHits(hitsfn, qidx, tidx, scoreidx);
-	FB.SetScoreOrder();
+	if (FB.m_look->m_LT != LT_TOP_SF && FB.m_look->m_LT != LT_TOP_FOLD)
+		FB.SetScoreOrder();
 	FB.Bench();
 	}
 
@@ -548,6 +848,7 @@ void cmd_fast_bench_bits()
 	FastBench FB;
 	FB.ReadLookup(opt(lookup));
 	FB.ReadBits(bitsfn);
-	FB.SetScoreOrder();
+	if (FB.m_look->m_LT != LT_TOP_SF && FB.m_look->m_LT != LT_TOP_FOLD)
+		FB.SetScoreOrder();
 	FB.Bench();
 	}
