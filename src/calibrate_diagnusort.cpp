@@ -1,8 +1,12 @@
 #include "myutils.h"
 #include "lookup.h"
+#include "fastbench.h"
+#include "triangle.h"
 #include <set>
 
-static lookup s_look;
+static FastBench s_FB_storage;
+static FastBench *s_FB = 0;
+
 static uint s_nhit = 0;
 
 static vector<uint> s_query_domidx;
@@ -89,12 +93,62 @@ static void read_hits_tsv(const string &fn, const lookup &look)
 		s_nhit, look.get_ndom());
 	}
 
+static void fill_scores_from_TS()
+	{
+	asserta(s_FB);
+	asserta(s_FB->m_Scores);
+	const uint npair = s_FB->m_npair;
+	const bool top_mode =
+		(s_FB->m_look->m_LT == LT_TOP_SF ||
+		 s_FB->m_look->m_LT == LT_TOP_FOLD);
+	const float absent =
+		top_mode ? FLT_MAX : s_FB->get_missing_score();
+	for (uint k = 0; k < npair; ++k)
+		s_FB->m_Scores[k] = absent;
+
+	const uint ndom = s_FB->m_look->get_ndom();
+	for (uint hitidx = 0; hitidx < s_nhit; ++hitidx)
+		{
+		uint pairk = triangle_ij_to_k2(
+			s_query_domidx[hitidx],
+			s_target_domidx[hitidx],
+			ndom);
+		asserta(pairk < npair);
+		s_FB->m_Scores[pairk] = s_TS[hitidx];
+		}
+	}
+
+static double Eval3(const vector<string> &xv)
+	{
+	asserta(s_FB);
+	(void)xv;
+
+	s_FB->ClearHitsAndResults();
+	fill_scores_from_TS();
+
+	if (s_FB->m_look->m_LT != LT_TOP_SF &&
+	    s_FB->m_look->m_LT != LT_TOP_FOLD)
+		s_FB->SetScoreOrder();
+
+	return s_FB->Bench();
+	}
+
 void cmd_calibrate_diagnusort()
 	{
 	const string &hits_fn = g_Arg1;
 	const string lookup_fn =
 		optset_lookup ? opt(lookup) : "../data/scop40x.lookup";
 
-	s_look.from_tsv(lookup_fn);
-	read_hits_tsv(hits_fn, s_look);
+	s_FB = &s_FB_storage;
+	s_FB->m_scores_are_evalues = opt(scores_are_evalues);
+	s_FB->ReadLookup(lookup_fn);
+	if (optset_dope)
+		s_FB->ReadDope(opt(dope));
+	s_FB->Alloc();
+
+	read_hits_tsv(hits_fn, *s_FB->m_look);
+
+	vector<string> xv;
+	double Sum3 = Eval3(xv);
+	ProgressLog("Eval3 Sum3=%.3f\n", Sum3);
 	}
