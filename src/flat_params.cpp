@@ -41,6 +41,8 @@ const uint flat_params::m_LDDT_nr_thresholds
 	= sizeof(thresholds)/sizeof(thresholds[0]);
 ///////////////////////////////////////////////
 
+uint flat_params::m_max_nu_filter_accepts = 100;
+
 void flat_params::init_from_cmdline()
 	{
 	init_from_varstr(opt(varstr));

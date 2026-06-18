@@ -155,6 +155,7 @@ UNS_OPT(kappa_mindiagscore)
 UNS_OPT(entropyfi)
 UNS_OPT(mkfl)
 UNS_OPT(maxsecs)
+UNS_OPT(max_nu_accepts)
 
 FLT_OPT(maxgappct)
 FLT_OPT(minscore)

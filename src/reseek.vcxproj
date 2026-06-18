@@ -419,6 +419,7 @@
     <ClCompile Include="quantize.h" />
     <ClCompile Include="quantize2.cpp" />
     <ClCompile Include="reseeker_thread_body.cpp" />
+    <ClCompile Include="reseeker_thread_body_nusort.cpp" />
     <ClCompile Include="struct_data.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="cif2pdb.cpp" />

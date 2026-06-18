@@ -4,12 +4,23 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 #include "hitdata.h"
+#include <algorithm>
+
+struct nu_cache_entry
+	{
+	uint j;
+	int nu_fwd_score;
+	int nu_rev_score;
+	float nu_combined_score;
+	};
+
+static bool nu_cache_entry_gt(const nu_cache_entry &a, const nu_cache_entry &b)
+	{
+	return a.nu_combined_score > b.nu_combined_score;
+	}
 
 void reseeker::static_thread_body_nusort(uint threadidx)
 	{
-	Die("TODO -- unfinished");
-	asserta(m_max_queries_per_target > 0);
-	uint *sorted_qidxs = myalloc(uint, m_max_queries_per_target);
 	const BCAData &dbbca = *m_dbbca;
 
 	const int nu_open = flat_nu_aligner::m_open;
@@ -18,6 +29,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 	const flat_params &params = *m_params;
 	const float revw = m_params->m_nu_filter_rev_w;
 	const float selfw = m_params->m_nu_filter_self_w;
+	const uint max_nu_accepts = flat_params::m_max_nu_filter_accepts;
 
 	uint workspace_bytes =
 		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
@@ -33,6 +45,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 	uint *considered_vec = myalloc(uint, m_maxL);
 	uint *preserved_vec = myalloc(uint, m_maxL);
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
+	nu_cache_entry *nu_cache = myalloc(nu_cache_entry, m_max_queries_per_target);
 	chaq_vecs2 cv;
 	chaq::alloc_chaq_vecs2(cv, m_maxL);
 	hitdata hit;
@@ -49,8 +62,8 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			}
 		if (k >= m_ndbidxs) return;
 
-		uint nq_accept_nu = 0;
 		const vector<uint> *ptr_qidxs = 0;
+		const vector<uint> *ptr_diagscores = 0;
 		uint dbidx = UINT_MAX;
 
 		switch (m_mode)
@@ -69,6 +82,11 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 				m_dbidx_to_qidxs->find(dbidx);
 			asserta(iter != m_dbidx_to_qidxs->end());
 			ptr_qidxs = &iter->second;
+			unordered_map<uint, vector<uint> >::const_iterator iter_diag =
+				m_dbidx_to_diagscores->find(dbidx);
+			asserta(iter_diag != m_dbidx_to_diagscores->end());
+			ptr_diagscores = &iter_diag->second;
+			asserta(ptr_diagscores->size() == ptr_qidxs->size());
 			break;
 			}
 
@@ -83,23 +101,21 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			&cv, scratch_buffer, scratch_buffer_bytes);
 		const string &target_label = dbbca.m_Labels[dbidx];
 		uint8_t *target_codeseq_nu = target_data->m_codeseq_nu;
-		uint8_t *target_codeseq_nu_rev = target_data->m_codeseq_nu_rev;
 		uint8_t *target_mega_prof = target_data->m_mega_prof;
 		const sid_t *target_distmx = target_data->m_distmx;
 		const uint LT = target_data->m_chain->get_length();
 
 		parasail_profile_t *target_para_prof = target_data->m_parasail_prof;
 		int target_self_rev_score = parasail_sw_striped_profile_avx2_256_16_nomalloc(
-			target_para_prof, (const char *) target_codeseq_nu_rev, LT, nu_open, nu_ext,
-			workspace, workspace_bytes);
+			target_para_prof, (const char *) target_data->m_codeseq_nu_rev, LT,
+			nu_open, nu_ext, workspace, workspace_bytes);
 
-		float target_mega_self_rev_score = FLT_MAX; // calculate only if needed
+		uint n_cached = 0;
 		for (uint j = 0; j < nq; ++j)
 			{
 			++m_npair;
 			uint qidx = qidxs[j];
 			asserta(qidx < m_query_nchain);
-			const string &query_label = (*m_ptr_query_labels)[qidx];
 			parasail_profile_t *query_para_prof = m_query_parasail_profs[qidx];
 
 			/////////////////////////////////////////////
@@ -119,7 +135,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 				query_para_prof_rev, (const char *) target_codeseq_nu, LT, nu_open, nu_ext,
 				workspace, workspace_bytes);
 
-			float self_score = (target_self_rev_score + 
+			float self_score = (target_self_rev_score +
 				m_query_self_rev_scores[qidx])/2.0f;
 
 			/////////////////////////////////////////////
@@ -132,6 +148,38 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 				continue;
 				}
 			++m_npass;
+
+			asserta(n_cached < m_max_queries_per_target);
+			nu_cache_entry &e = nu_cache[n_cached++];
+			e.j = j;
+			e.nu_fwd_score = nu_fwd_score;
+			e.nu_rev_score = nu_rev_score;
+			e.nu_combined_score = nu_combined_score;
+			}
+
+		uint n_top = n_cached;
+		if (n_cached > max_nu_accepts)
+			{
+			std::nth_element(nu_cache, nu_cache + max_nu_accepts, nu_cache + n_cached,
+				nu_cache_entry_gt);
+			std::sort(nu_cache, nu_cache + max_nu_accepts, nu_cache_entry_gt);
+			n_top = max_nu_accepts;
+			}
+
+		float target_mega_self_rev_score = FLT_MAX; // calculate only if needed
+		for (uint i = 0; i < n_top; ++i)
+			{
+			const nu_cache_entry &e = nu_cache[i];
+			uint j = e.j;
+			uint qidx = qidxs[j];
+			uint kappa_diag_score = 0;
+			if (m_mode == NF_kappa)
+				kappa_diag_score = (*ptr_diagscores)[j];
+			asserta(qidx < m_query_nchain);
+			const string &query_label = (*m_ptr_query_labels)[qidx];
+			int nu_fwd_score = e.nu_fwd_score;
+			int nu_rev_score = e.nu_rev_score;
+			float nu_combined_score = e.nu_combined_score;
 
 			const uint LQ = m_query_lengths[qidx];
 			const float *query_mega_pssm = m_query_mega_pssms[qidx];
@@ -221,7 +269,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			asserta(target_mega_self_rev_score != FLT_MAX);
 			float mega_self_score =
 				(target_mega_self_rev_score + query_mega_self_rev_score)/2;
-			
+
 			/////////////////////////////////////////////
 			// Test statistic (TS)
 			/////////////////////////////////////////////
@@ -256,22 +304,13 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			asserta(m_fhit);
 			if (m_fhit)
 				{
-				// fprintf is thread-safe
-				//fprintf(m_fhit, "%.3g\t%s\t%s\n",
-				//	TS,
-				//	query_label.c_str(),
-				//	target_label.c_str());
 				string str;
 				str = query_label;
 				str += "\t" + target_label;
 				Psa(str, "\t%.3g", TS);
+				Psa(str, "\t%.3g", float(nu_fwd_score));
 				Psa(str, "\t%.3g", nu_combined_score);
-				//Psa(str, "\t%.3g", float(nu_fwd_score));
-				//Psa(str, "\t%.3g", float(nu_rev_score));
-				//Psa(str, "\t%.3g", float(mega_fwd_score));
-				//Psa(str, "\t%.3g", float(mega_rev_score));
-				//Psa(str, "\t%.3g", lddt);
-				//Psa(str, "\t%.3g", dali);
+				Psa(str, "\t%u", kappa_diag_score);
 				str += "\n";
 				fputs(str.c_str(), m_fhit);
 				}

@@ -25,6 +25,8 @@ public:
 	static const float *m_LDDT_thresholds;
 	static const uint m_LDDT_nr_thresholds;
 
+	static uint m_max_nu_filter_accepts;
+
 public:
 	// alignment
 	float m_open = FLT_MAX;

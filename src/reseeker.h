@@ -12,6 +12,8 @@ enum NF_MODE
 	NF_kappa
 	};
 
+typedef void (*ptr_thread_body_fn)(uint threadidx);
+
 class reseeker
 	{
 public:
