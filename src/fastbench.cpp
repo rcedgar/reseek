@@ -376,7 +376,6 @@ double FastBench::BenchTop(const string &Msg)
 		{
 		if (Msg != "")
 			ProgressLog("%s ", Msg.c_str());
-		ProgressLog("N=%u", n_q);
 		ProgressLog(" TEPQ%.3g=%.3f", FprThreshA, m_SEPQtopA);
 		ProgressLog(" TEPQ%.3g=%.3f", FprThreshB, m_SEPQtopB);
 		ProgressLog(" TEPQ%.3g=%.3f", FprThreshC, m_SEPQtopC);
