@@ -14,13 +14,13 @@ void flat_aligner::alloc()
 	{
 	const uint nfeat = m_params->m_nfeat;
 
-	m_pssmT = myalloc(float, m_maxL*m_params->get_sum_alpha_sizes());
-	m_pssm_reverseT = myalloc(float, m_maxL*m_params->get_sum_alpha_sizes());
+	m_pssmT = myalloc(float, flat_params::m_maxL*m_params->get_sum_alpha_sizes());
+	m_pssm_reverseT = myalloc(float, flat_params::m_maxL*m_params->get_sum_alpha_sizes());
 
-	m_scratch_rows = myalloc(float, 2*m_maxL + 2);
+	m_scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
 	m_scratch_pssms = myalloc(const float *, nfeat);
-	m_TB = myalloc(uint8_t, m_maxL*m_maxL);
-	m_path_buffer = myalloc(char, 2*m_maxL);
+	m_TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
+	m_path_buffer = myalloc(char, 2*flat_params::m_maxL);
 	}
 
 void flat_aligner::freemem()
@@ -35,7 +35,7 @@ void flat_aligner::freemem()
 
 void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT)
 	{
-	asserta(LT < m_maxL);
+	asserta(LT < flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
@@ -52,7 +52,7 @@ void flat_aligner::cache_reverseT(
 	const uint8_t *nu_codeseq_rev,
 	uint LT)
 	{
-	asserta(LT < m_maxL);
+	asserta(LT < flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
@@ -75,7 +75,7 @@ void flat_aligner::cacheT(
 	const uint8_t *nu_codeseq,
 	uint LT)
 	{
-	asserta(LT < m_maxL);
+	asserta(LT < flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;

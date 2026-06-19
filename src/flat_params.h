@@ -20,6 +20,7 @@ public:
 	static const uint32_t m_distmx_bandwidth;
 	static const uint32_t m_turnd_w;
 	static const uint32_t m_angle_n;
+	static const uint32_t m_maxL;
 
 	static const float m_LDDT_R0;
 	static const float *m_LDDT_thresholds;
@@ -49,6 +50,7 @@ public:
 	float m_nu_filter_rev_w = FLT_MAX;
 	float m_nu_filter_min_fwd_score = FLT_MAX;
 	float m_nu_filter_min_combined_score = FLT_MAX;
+	bool m_nu_only = false;
 
 	// kappa filter
 	static string m_kappa_pattern;

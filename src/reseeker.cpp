@@ -17,7 +17,6 @@ const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_qidxs = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_diagscores = 0;
 const vector<uint> *reseeker::m_dbidxs = 0;
 atomic<uint> reseeker::m_next;
-const uint reseeker::m_maxL = 4000;
 atomic<uint> reseeker::m_npair;
 atomic<uint> reseeker::m_reject_fwd;
 atomic<uint> reseeker::m_nu_reject_cmb;
@@ -65,10 +64,11 @@ void reseeker::set_query_data(
 void reseeker::set_query_mega_self_rev_scores(
 	uint8_t **query_mega_profs)
 	{
+	if (m_params->m_nu_only) return;
 	asserta(m_query_mega_self_rev_scores == 0);
 	asserta(m_query_nchain > 0);
 	m_query_mega_self_rev_scores = myalloc(float, m_query_nchain);
-	float *scratch_rows = myalloc(float, 2*m_maxL + 2);
+	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
 	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
 
 	Progress("Query Mega self-scores...");
@@ -100,7 +100,7 @@ void reseeker::set_query_self_rev_scores(
 	const int open = flat_nu_aligner::m_open;
 	const int ext = flat_nu_aligner::m_ext;
 	uint workspace_bytes =
-		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
+		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(flat_params::m_maxL);
 	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
 
 	Progress("Query Nu self-scores...");

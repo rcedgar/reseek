@@ -17,7 +17,6 @@ static FILE *s_fts;
 static mutex s_ts_lock;
 #endif
 
-uint flat_bench2::m_maxL = 4000;
 
 static FILE *s_f_nu_paths;
 static FILE *s_f_mega_paths;
@@ -75,7 +74,7 @@ void flat_bench2::thread_body_set_mega_self_rev_scores(uint threadidx)
 	uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
 
-	flat_bench2_thread_data TD(m_maxL, nfeat);
+	flat_bench2_thread_data TD(nfeat);
 	for (;;)
 		{
 		uint domidx = m_next_domidx++;
@@ -93,7 +92,7 @@ void flat_bench2::thread_body(uint threadidx)
 	uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
 
-	flat_bench2_thread_data TD(m_maxL, nfeat);
+	flat_bench2_thread_data TD(nfeat);
 	for (;;)
 		{
 		uint pairidx = m_next_pairidx++;
@@ -114,7 +113,7 @@ void flat_bench2::set_nu_self_rev_scores()
 		return;
 		}
 
-	flat_bench2_thread_data TD(m_maxL, m_params->m_nfeat);
+	flat_bench2_thread_data TD(m_params->m_nfeat);
 	const uint ndom = m_look->get_ndom();
 	if (m_nu_self_rev_scores == 0)
 		m_nu_self_rev_scores = myalloc(float, ndom);
@@ -282,7 +281,7 @@ float flat_bench2::calc_ts(
 		}
 
 	uint nmatch = path2posvecs3(TD.m_path_buffer, fwd_ncol,
-		fwd_lo_i, L_i, fwd_lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
+		fwd_lo_i, L_i, fwd_lo_j, L_j, TD.m_pos_is, TD.m_pos_js, flat_params::m_maxL);
 
 	float nu_rev_score = 0;//@@TODO
 	asserta(m_params->m_nurev_w == 0);
@@ -423,8 +422,8 @@ void flat_bench2::align_pair_input_mega_paths(
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
-	asserta(L_i <= m_maxL);
-	asserta(L_j <= m_maxL);
+	asserta(L_i <= flat_params::m_maxL); // TODO=maxL
+	asserta(L_j <= flat_params::m_maxL); // TODO=maxL
 
 	//float mega_score = score_path(
 	//	*cd_i, lo_i,
@@ -466,8 +465,8 @@ void flat_bench2::align_pair_output_nu_paths(
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
-	asserta(L_i <= m_maxL);
-	asserta(L_j <= m_maxL);
+	asserta(L_i <= flat_params::m_maxL); // TODO=maxL
+	asserta(L_j <= flat_params::m_maxL); // TODO=maxL
 
 	const int open = Paralign::m_Open;
 	const int ext = Paralign::m_Ext;
@@ -643,8 +642,8 @@ void flat_bench2::align_pair_nu_only(
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
-	asserta(L_i <= m_maxL);
-	asserta(L_j <= m_maxL);
+	asserta(L_i <= flat_params::m_maxL); // TODO=maxL
+	asserta(L_j <= flat_params::m_maxL); // TODO=maxL
 
 	int nu_rev_score = 0;
 	const int open = Paralign::m_Open;
@@ -736,8 +735,8 @@ void flat_bench2::align_pair_timealn(
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
-	asserta(L_i <= m_maxL);
-	asserta(L_j <= m_maxL);
+	asserta(L_i <= flat_params::m_maxL); // TODO=maxL
+	asserta(L_j <= flat_params::m_maxL); // TODO=maxL
 
 	const int open = Paralign::m_Open;
 	const int ext = Paralign::m_Ext;
@@ -867,8 +866,8 @@ void flat_bench2::align_pair(
 
 	const uint L_i = cd_i->m_L;
 	const uint L_j = cd_j->m_L;
-	asserta(L_i <= m_maxL);
-	asserta(L_j <= m_maxL);
+	asserta(L_i <= flat_params::m_maxL); // TODO=maxL
+	asserta(L_j <= flat_params::m_maxL); // TODO=maxL
 
 	float nu_rev_score = 0;
 	int nu_fwd_hi_i = -1;
@@ -948,7 +947,7 @@ void flat_bench2::align_pair(
 #endif
 
 	uint nmatch = path2posvecs3(TD.m_path_buffer, ncol,
-		lo_i, L_i, lo_j, L_j, TD.m_pos_is, TD.m_pos_js, TD.m_maxL);
+		lo_i, L_i, lo_j, L_j, TD.m_pos_is, TD.m_pos_js, flat_params::m_maxL);
 
 	if (s_f_mega_paths != 0)
 		{

@@ -37,9 +37,6 @@ static const uint32_t bits_db =
 class chain_data
 	{
 public:
-	static const uint32_t m_maxL;
-
-public:
 	flat_params *m_params = 0;
 	string m_label;
 	const flat_chain_t *m_chain = 0;

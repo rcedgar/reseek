@@ -30,6 +30,7 @@ uint32_t const flat_params::m_nn_min_offset = 12;
 uint32_t const flat_params::m_distmx_bandwidth = 256;
 uint32_t const flat_params::m_turnd_w = 5;
 uint32_t const flat_params::m_angle_n = 4;
+uint32_t const flat_params::m_maxL = 4000;
 ////////////////////////////////////
 
 ///////////////////////
@@ -46,6 +47,7 @@ uint flat_params::m_max_nu_filter_accepts = 100;
 void flat_params::init_from_cmdline()
 	{
 	init_from_varstr(opt(varstr));
+	if (optset_nuonly) m_nu_only = true;
 	}
 
 void flat_params::init_from_varstr(const string &varstr)

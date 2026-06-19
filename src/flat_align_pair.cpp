@@ -14,8 +14,6 @@
 #include "flat_aligner.h"
 #include "getticks.h"
 
-static const uint s_maxL = 4000;
-
 static uint s_nfeat;
 static uint *s_alpha_sizes;
 static uint *s_feature_block_offsets;
@@ -62,7 +60,7 @@ static float align_j(
 static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
 	{
 	uint Loi, Loj;
-	char *path_buffer = myalloc(char, 2*s_maxL);
+	char *path_buffer = myalloc(char, 2*flat_params::m_maxL);
 	uint ncol;
 	float score = align_j(label, prof_j, L_j,
 		Loi, Loj, path_buffer, ncol);
@@ -108,11 +106,11 @@ void cmd_flat_align_pairs_spec()
 		get_flat_pssm_feature_block_offsets(s_nfeat,
 			s_alpha_sizes, s_feature_block_offsets);
 
-	s_pssm_i = myalloc(float, s_maxL * sum_alpha_sizes);
+	s_pssm_i = myalloc(float, flat_params::m_maxL * sum_alpha_sizes);
 
-	s_scratch_rows = myalloc(float, 2*s_maxL + 2);
+	s_scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
 	s_scratch_pssms = myalloc(const float *, s_nfeat);
-	s_TB = myalloc(uint8_t, s_maxL*s_maxL);
+	s_TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
 
 	uint npairs = nprof*nprof;
 
@@ -127,7 +125,7 @@ void cmd_flat_align_pairs_spec()
 		uint L_i = SIZE(profiles[i]);
 		asserta(L_i%s_nfeat == 0);
 		L_i /= s_nfeat;
-		if (L_i > s_maxL) continue;
+		if (L_i > flat_params::m_maxL) continue;
 		cache_i(labels[i], profiles[i].data(), L_i);
 
 		for (uint j = 0; j < nprof; ++j)
@@ -136,7 +134,7 @@ void cmd_flat_align_pairs_spec()
 			uint L_j = SIZE(profiles[j]);
 			asserta(L_j%s_nfeat == 0);
 			L_j /= s_nfeat;
-			if (L_j > s_maxL) continue;
+			if (L_j > flat_params::m_maxL) continue;
 			align_j(labels[j], profiles[j].data(), L_j);
 			}
 		}
@@ -172,7 +170,7 @@ void cmd_flat_align_pairs_faprof()
 	for (uint i = 0; i < nprof; ++i)
 		{
 		uint L_i = fp.get_length(i);
-		if (L_i > s_maxL) continue;
+		if (L_i > flat_params::m_maxL) continue;
 		const string &label_i = fp.get_label(i);
 		const uint8_t *prof_i = fp.get_profile(i);
 		fa.cacheT(label_i, prof_i, L_i);
@@ -180,7 +178,7 @@ void cmd_flat_align_pairs_faprof()
 		for (uint j = 0; j < nprof; ++j)
 			{
 			uint L_j = fp.get_length(j);
-			if (L_j > s_maxL) continue;
+			if (L_j > flat_params::m_maxL) continue;
 			const string &label_j = fp.get_label(j);
 			const uint8_t *prof_j = fp.get_profile(j);
 			fa.alignQ(label_j, prof_j, L_j);

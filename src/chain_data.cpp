@@ -22,18 +22,16 @@ static const flat_params *s_params = 0;
 static size_t s_mem_bytes_per_pos;
 static size_t s_scratch_bytes_per_pos;
 
-const uint32_t chain_data::m_maxL = 4000;
-
 static void thread_body(uint threadidx)
 	{
 	const vector<flat_chain_t *> &chains = *s_chains;
 
-	scratch_mem scratch(chain_data::m_maxL*s_scratch_bytes_per_pos);
+	scratch_mem scratch(flat_params::m_maxL*s_scratch_bytes_per_pos);
 
-	uint scratch_buffer_bytes = 2*chain_data::m_maxL;
+	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, chain_data::m_maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 	for (;;)
 		{
 		const uint chainidx = s_next++;
@@ -41,7 +39,7 @@ static void thread_body(uint threadidx)
 			return;
 
 		const uint32_t L = chains[chainidx]->get_length();
-		asserta(L <= chain_data::m_maxL);
+		asserta(L <= flat_params::m_maxL); // TODO=maxL
 		const size_t nbytes = L*s_mem_bytes_per_pos;
 
 		const size_t off = s_mem_next.fetch_add(nbytes, std::memory_order_relaxed);
@@ -202,7 +200,7 @@ chain_data *chain_data::from_chain(
 
 	const uint32_t L = chain.get_length();
 	asserta(L > 0);
-	asserta(L <= m_maxL);
+	asserta(L <= flat_params::m_maxL); // TODO=maxL
 
 	chain_data *cd = new chain_data;
 	cd->m_label = chain.m_label;
@@ -400,7 +398,7 @@ void chain_data::log_mem_stats(
 		{
 		const chain_data *cd = cdvec[idx];
 		uint L = cd->m_L;
-		asserta(L <= m_maxL);
+		asserta(L <= flat_params::m_maxL); // TODO=maxL
 		if (cd->m_distmx != 0)
 			{
 			++n_distmx;

@@ -30,24 +30,25 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 	const float revw = m_params->m_nu_filter_rev_w;
 	const float selfw = m_params->m_nu_filter_self_w;
 	const uint max_nu_accepts = flat_params::m_max_nu_filter_accepts;
+	const bool nu_only = m_params->m_nu_only;
 
 	uint workspace_bytes =
-		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(m_maxL);
-	uint scratch_buffer_bytes = 2*m_maxL;
+		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(flat_params::m_maxL);
+	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
 
 	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
-	float *scratch_rows = myalloc(float, 2*m_maxL + 2);
+	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
 	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
-	uint8_t *TB = myalloc(uint8_t, m_maxL*m_maxL);
-	char *path_buffer = myalloc(char, 2*m_maxL);
-	uint *pos_is = myalloc(uint, m_maxL);
-	uint *pos_js = myalloc(uint, m_maxL);
-	uint *considered_vec = myalloc(uint, m_maxL);
-	uint *preserved_vec = myalloc(uint, m_maxL);
+	uint8_t *TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
+	char *path_buffer = myalloc(char, 2*flat_params::m_maxL);
+	uint *pos_is = myalloc(uint, flat_params::m_maxL);
+	uint *pos_js = myalloc(uint, flat_params::m_maxL);
+	uint *considered_vec = myalloc(uint, flat_params::m_maxL);
+	uint *preserved_vec = myalloc(uint, flat_params::m_maxL);
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	nu_cache_entry *nu_cache = myalloc(nu_cache_entry, m_max_queries_per_target);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, m_maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 	hitdata hit;
 
 	for (;;)
@@ -148,6 +149,21 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 				continue;
 				}
 			++m_npass;
+			if (nu_only)
+				{
+				if (m_fhit)
+					{
+					const string &query_label = (*m_ptr_query_labels)[qidx];
+					string str;
+					str = query_label;
+					str += "\t" + target_label;
+					Psa(str, "\t%.3g", nu_combined_score);
+					str += "\n";
+					// fprintf & fputs are thread-safe
+					fputs(str.c_str(), m_fhit);
+					}
+				continue;
+				}
 
 			asserta(n_cached < m_max_queries_per_target);
 			nu_cache_entry &e = nu_cache[n_cached++];
@@ -244,7 +260,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			float query_mega_self_rev_score = m_query_mega_self_rev_scores[qidx];
 
 			uint nmatch = path2posvecs3(path_buffer, ncol,
-				lo_i, L_i, lo_j, L_j, pos_is, pos_js, m_maxL);
+				lo_i, L_i, lo_j, L_j, pos_is, pos_js, flat_params::m_maxL);
 
 			/////////////////////////////////////////////
 			// LDDT

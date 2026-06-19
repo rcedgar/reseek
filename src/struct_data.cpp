@@ -4,6 +4,8 @@
 #include "struct_data.h"
 #include "flat_nu_aligner.h"
 
+#include "flat_params.h"
+
 struct_data *BCAData::get_struct_data(
 	const flat_params &params,
 	uint idx,
@@ -16,7 +18,7 @@ struct_data *BCAData::get_struct_data(
 	flat_chain_t *chain = read_flat_chain(idx);
 	const uint32_t L = chain->get_length();
 	asserta(L > 0);
-	asserta(L <= m_maxL);
+	asserta(L <= flat_params::m_maxL); // TODO=maxL
 
 	const uint32_t M = params.m_distmx_bandwidth;
 	const uint32_t nfeat = params.m_nfeat;
@@ -99,10 +101,10 @@ struct_data **BCAData::get_struct_data_vec(const flat_params &params)
 	{
 	uint nchain = GetChainCount();
 	Progress("get_query_data_vec()...");
-	uint scratch_buffer_bytes = 2*m_maxL;
+	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, m_maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 	struct_data **vec = myalloc(struct_data *, nchain);
 	for (uint idx = 0; idx < nchain; ++idx)
 		vec[idx] = get_struct_data(params, idx,

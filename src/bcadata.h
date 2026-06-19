@@ -24,7 +24,6 @@ public:
 	//uint8_t *m_scratch_buffer = 0;
 	//uint m_scratch_buffer_bytes = 0;
 	uint8_t *m_codeseq_nu = 0;
-	uint m_maxL = 4000;
 	mutable mutex m_ReadLock;
 
 public:

@@ -15,8 +15,6 @@ public:
 
 	flat_params *m_params = 0;
 
-	static uint m_maxL;
-
 public:
 	bool m_single_feature = false;
 	uint8_t **m_feature_codeseq_vec = 0;

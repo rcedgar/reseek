@@ -17,7 +17,6 @@ typedef void (*ptr_thread_body_fn)(uint threadidx);
 class reseeker
 	{
 public:
-	static const uint m_maxL;
 	static const flat_params *m_params;
 	static uint m_query_nchain;
 	static const flat_chain_t **m_ptr_query_chains;

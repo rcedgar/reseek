@@ -1125,7 +1125,7 @@ void chaq::fill_chaq_vecs2(
 	uint L,
 	chaq_vecs2 &cv)
 	{
-	asserta(L <= cv.maxL);
+	asserta(L <= cv.maxL); // TODO=maxL
 	fill_pen_men_vecs(distmx, L,
 		cv.pens, cv.pensids,
 		cv.mens, cv.mensids);

@@ -110,14 +110,14 @@ void BCAData::append_codeseq_nu(
 	if (m_distmx == 0)
 		{
 		m_distmx = myalloc(sid_t,
-			flat_params::m_distmx_bandwidth*m_maxL);
-		m_codeseq_nu = myalloc(uint8_t, m_maxL);
-		chaq::alloc_chaq_vecs2(*cv, m_maxL);
+			flat_params::m_distmx_bandwidth*flat_params::m_maxL);
+		m_codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+		chaq::alloc_chaq_vecs2(*cv, flat_params::m_maxL);
 		}
 	const uint L = chain->get_length();
-	asserta(L <= m_maxL);//TODO
+	asserta(L <= flat_params::m_maxL); // TODO=maxL
 	chaq::fill_codeseq_nu_from_chain(
-		chain, m_distmx, cv, m_codeseq_nu, m_maxL);
+		chain, m_distmx, cv, m_codeseq_nu, flat_params::m_maxL);
 	WriteStdioFile64(m_f, m_codeseq_nu, L);
 	}
 
@@ -306,7 +306,7 @@ uint BCAData::read_codeseq_nu(
 	{
 	asserta(m_Reading && !m_Writing);
 	uint L = GetSeqLength(idx);
-	asserta(L <= buffer_length);
+	asserta(L <= buffer_length); // TODO=maxL
 	uint64 offset = get_offset_nuseq(idx);
 	uint64 nL = ReadStdioFile64_NoFail(m_f, offset, codeseq_nu, L);
 	if (nL != L)

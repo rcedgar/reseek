@@ -187,7 +187,7 @@ void chaq::fill_codeseq_nu_from_chain(
 	uint buffer_L)
 	{
 	const uint L = chain->get_length();
-	asserta(L <= buffer_L);
+	asserta(L <= buffer_L); // TODO=maxL
 
 	sid_t *distmx = distmx_buffer;
 	chaq_vecs2 *cv = cv_buffer;
@@ -275,13 +275,12 @@ void cmd_kappa_fasta()
 		}
 	Log("\n};");
 
-	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
-	sid_t *distmx = myalloc(sid_t, maxL*M);
-	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
-	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	sid_t *distmx = myalloc(sid_t, flat_params::m_maxL*M);
+	uint8_t *codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 	FILE *fnu = 0;
 	if (optset_hexfasta)
 		fnu = CreateStdioFile(opt(hexfasta));
@@ -294,15 +293,15 @@ void cmd_kappa_fasta()
 		const flat_chain_t *chain = chains[chainidx];
 		const char *charseq_aa20 = chain->m_aa->m_data;
 		const uint L = chain->get_length();
-		asserta(L <= maxL);
+		asserta(L <= flat_params::m_maxL); // TODO=maxL
 		chaq::fill_distmx(chain, distmx);
 		chaq::fill_chaq_vecs2(distmx, L, cv);
 		chaq::fill_codeseq_nu(
 			charseq_aa20, cv.pm2_codeseq, cv.sec32_codeseq,
-			L, codeseq_nu, maxL);
+			L, codeseq_nu, flat_params::m_maxL);
 		chaq::codeseq_nu_to_kappa(
 			codeseq_nu, L,
-			codeseq_kappa, maxL);
+			codeseq_kappa, flat_params::m_maxL);
 		codeseq_to_fasta(fkappa, chain->m_label, codeseq_kappa, L, 32);
 		codeseq_to_hexfasta(fnu, chain->m_label, codeseq_nu, L);
 		}

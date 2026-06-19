@@ -13,13 +13,12 @@ void cmd_convert_structs_to_can()
 	if (optset_output) Die("Use -can not -output");
 	if (!optset_can) Die("Must specify -can OUTPUTFILE");
 
-	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
-	sid_t *distmx = myalloc(sid_t, maxL*M);
-	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
-	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	sid_t *distmx = myalloc(sid_t, flat_params::m_maxL*M);
+	uint8_t *codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 
 	flat_chain_reader CR;
 	CR.Open(g_Arg1);
@@ -34,9 +33,9 @@ void cmd_convert_structs_to_can()
 		++nchain;
 		if (nchain%1000 == 0) Progress("%u chains converted\r", nchain);
 		uint L = chain->get_length();
-		asserta(L < maxL);//TODO
+		asserta(L < flat_params::m_maxL); // TODO=maxL
 		chaq::fill_codeseq_nu_from_chain(
-			chain, distmx, &cv, codeseq_nu, maxL);
+			chain, distmx, &cv, codeseq_nu, flat_params::m_maxL);
 		const char *charseq_aa20 = chain->m_aa->m_data;
 		fprintf(fcan, ">%s\n", chain->m_label.c_str());
 		for (uint pos = 0; pos < L; ++pos)
@@ -147,13 +146,12 @@ static void convert_structs_to_bcx(const string &bcxfn, bool WithNu)
 
 	if (optset_output) Die("Use -bca or -bcb not -output");
 
-	const uint maxL = 4000;
 	const uint M = flat_params::m_distmx_bandwidth;
-	sid_t *distmx = myalloc(sid_t, maxL*M);
-	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
-	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	sid_t *distmx = myalloc(sid_t, flat_params::m_maxL*M);
+	uint8_t *codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
 	chaq_vecs2 cv;
-	chaq::alloc_chaq_vecs2(cv, maxL);
+	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
 
 	flat_chain_reader CR;
 	CR.Open(g_Arg1);
@@ -215,13 +213,12 @@ void cmd_convert_bcb_to_nuhexfasta()
 	BCA.Open(g_Arg1);
 	FILE *f = CreateStdioFile(opt(hexfasta));
 	const uint nchain = BCA.GetChainCount();
-	const uint maxL = 4000;//TODO
-	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
+	uint8_t *codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
 		if (chainidx%1000 == 0)
 			Progress("%u chains\r", chainidx);
-		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, maxL);
+		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, flat_params::m_maxL);
 		const string &label = BCA.m_Labels[chainidx];
 		codeseq_to_hexfasta(f, label, codeseq_nu, L);
 		}
@@ -237,18 +234,17 @@ void cmd_convert_bcb_to_kappafasta()
 	BCA.Open(g_Arg1);
 	FILE *f = CreateStdioFile(opt(fasta));
 	const uint nchain = BCA.GetChainCount();
-	const uint maxL = 4000;//TODO
-	uint8_t *codeseq_nu = myalloc(uint8_t, maxL);
-	uint8_t *codeseq_kappa = myalloc(uint8_t, maxL);
+	uint8_t *codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+	uint8_t *codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
 	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
 		{
 		if (chainidx%1000 == 0)
 			Progress("%u chains\r", chainidx);
-		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, maxL);
+		uint L = BCA.read_codeseq_nu(codeseq_nu, chainidx, flat_params::m_maxL);
 		const string &label = BCA.m_Labels[chainidx];
 		chaq::codeseq_nu_to_kappa(
 			codeseq_nu, L,
-			codeseq_kappa, maxL);
+			codeseq_kappa, flat_params::m_maxL);
 		codeseq_to_fasta(f, label, codeseq_kappa, L, KAPPA_AS);
 		}
 	Progress("%u chains\n", nchain);
