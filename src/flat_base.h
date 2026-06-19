@@ -43,6 +43,7 @@ protected:
 
 	flat_base(uint32_t n)
 		{
+		m_refcount = 0;
 		m_size = n;
 		m_data = n == 0 ? 0 : (T*) aligned_malloc(n*sizeof(T));
 #if TRACK_ACTIVE
