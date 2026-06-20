@@ -824,9 +824,6 @@
     <ClCompile Include="sw_flat_pssm_xdrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="top_bench.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="kappa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -860,7 +857,13 @@
     <ClCompile Include="hjtsv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="calibrate_diagnewsort.cpp">
+    <ClCompile Include="calibrate_diagnusort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseeker_thread_body_nusort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1282,6 +1285,9 @@
     <ClInclude Include="chainaa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="chainnu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="museq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1394,9 +1400,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sw_flat_pssm_xdrop.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="top_bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kappa_filter.h">

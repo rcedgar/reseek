@@ -116,6 +116,11 @@ void BCAData::append_codeseq_nu(
 		}
 	const uint L = chain->get_length();
 	asserta(L <= flat_params::m_maxL); // TODO=maxL
+	if (chain->has_nu())
+		{
+		WriteStdioFile64(m_f, chain->get_nu_data(), L);
+		return;
+		}
 	chaq::fill_codeseq_nu_from_chain(
 		chain, m_distmx, cv, m_codeseq_nu, flat_params::m_maxL);
 	WriteStdioFile64(m_f, m_codeseq_nu, L);

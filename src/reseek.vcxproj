@@ -327,6 +327,7 @@
     <ClCompile Include="flat_bench_struct_feature.cpp" />
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
+    <ClCompile Include="flat_convert.cpp" />
     <ClCompile Include="flat_dali.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_entropy.cpp" />
@@ -567,6 +568,7 @@
     <ClInclude Include="calibratesearcher.h" />
     <ClInclude Include="calibratesearcher2.h" />
     <ClInclude Include="chainaa.h" />
+    <ClInclude Include="chainnu.h" />
     <ClInclude Include="chainbag.h" />
     <ClInclude Include="chaindata.h" />
     <ClInclude Include="chaindistmx.h" />

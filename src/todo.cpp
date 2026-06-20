@@ -1,6 +1,9 @@
 /***
 TODOs
 
+Remove ref-counting.
+Exploit cached nu.
+
 reverse profiles not chains (handedness)
 
 Classify pair as fam / sf / fold, re-align

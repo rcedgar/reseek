@@ -2,6 +2,7 @@
 
 #include "flat_base.h"
 #include "chainaa.h"
+#include "chainnu.h"
 #include "chainxyz.h"
 
 static const size_t RESERVE_CHAIN_LENGTH = 400;
@@ -14,6 +15,7 @@ public:
 	string m_label = "_null_";
 	chainxyz_t *m_xyz = 0;
 	chainaa_t *m_aa = 0;
+	chainnu_t *m_nu = 0;
 	vector<string> m_lines;
 
 protected:
@@ -142,6 +144,19 @@ public:
 		assert(i < m_aa->m_size);
 		return m_aa->m_data[i];
 		}
+
+	bool has_nu() const
+		{
+		return m_nu != 0;
+		}
+
+	const uint8_t *get_nu_data() const
+		{
+		asserta(m_nu != 0);
+		return m_nu->m_data;
+		}
+
+	void set_nu_codes(const uint8_t *codes, uint L);
 
 public:
 	static uint16_t coord2ic(float X) { return uint16_t((X + 1000)*10 + 0.5); }

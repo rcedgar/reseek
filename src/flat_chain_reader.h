@@ -4,6 +4,8 @@
 #include "linereader2.h"
 #include "pdbfilescanner.h"
 #include "bcadata.h"
+#include "chaq.h"
+#include "flat_params.h"
 #include <list>
 
 class flat_chain_reader
@@ -14,6 +16,7 @@ public:
 		STATE_Closed,
 		STATE_PendingFile,
 		STATE_ReadingCALFile,
+		STATE_ReadingCANFile,
 		STATE_ReadingBCAFile,
 		STATE_ReadingPDBFile,
 		STATE_ReadingCIFFile,
@@ -40,6 +43,12 @@ public:
 	bool m_Trace = false;
 	bool m_SaveLines = false;
 
+	sid_t *m_distmx = 0;
+	uint8_t *m_codeseq_nu_scratch = 0;
+	chaq_vecs2 m_cv;
+	bool m_NuScratchInited = false;
+	uint64 m_LastBCAChainIdx = UINT64_MAX;
+
 // FS object shared with other threads
 	PDBFileScanner *m_ptrFS = 0;
 
@@ -64,6 +73,9 @@ private:
 	flat_chain_t *GetFirst_CAL(const string &FN);
 	flat_chain_t *GetNext_CAL();
 
+	flat_chain_t *GetFirst_CAN(const string &FN);
+	flat_chain_t *GetNext_CAN();
+
 	flat_chain_t *GetFirst_PDB(const string &FN);
 	flat_chain_t *GetNext_PDB();
 
@@ -80,6 +92,11 @@ private:
 	bool IsChainEndLine_PDB(const string &Line) const;
 	uint GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name);
 	void IncFormatErrors();
+	void InitNuScratch();
+	void FreeNuScratch();
+	void CacheNuOnChain(flat_chain_t *chain);
+	static uint8_t ParseNuHexField(const string &hex, const string &FN,
+		const string &line);
 	};
 
 void GetFallbackLabelFromFN(const string &FN, string &Label);

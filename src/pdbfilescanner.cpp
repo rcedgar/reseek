@@ -18,7 +18,7 @@ bool PDBFileScanner::IsStructureExt(const string &Ext) const
 	{
 	string LowerExt = Ext;
 	ToLower(LowerExt);
-	if (Ext == "bca")
+	if (Ext == "bca" || Ext == "bcb")
 		return true;
 
 #define x(s)	if (Ext == #s || Ext == string(#s) + string(".gz")) return true;
@@ -27,6 +27,7 @@ bool PDBFileScanner::IsStructureExt(const string &Ext) const
 	x(cif)
 	x(mmcif)
 	x(cal)
+	x(can)
 #undef x
 	return false;
 	}

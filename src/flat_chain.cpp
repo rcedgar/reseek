@@ -29,6 +29,21 @@ void flat_chain_t::set_aa(const vector<char> &aas)
 	memcpy(m_aa->m_data, aas.data(), L);
 	}
 
+void flat_chain_t::set_nu_codes(const uint8_t *codes, uint L)
+	{
+	asserta(L == m_L);
+	asserta(codes != 0);
+	if (m_nu == 0)
+		{
+#if TRACK_SRC
+		m_nu = chainnu_t::newflat_src(L, m_srcfile, m_srcline);
+#else
+		m_nu = chainnu_t::newflat(L);
+#endif
+		}
+	memcpy(m_nu->m_data, codes, L);
+	}
+
 bool flat_chain_t::from_pdb_lines(const string &label,
 	const vector<string> &lines, bool save_lines)
 	{
