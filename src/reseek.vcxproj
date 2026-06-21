@@ -413,6 +413,7 @@
     <ClCompile Include="prefiltermu.cpp" />
     <ClCompile Include="kappa_filter.cpp" />
     <ClCompile Include="prepare_query.cpp" />
+    <ClCompile Include="flat_prepare_query.cpp" />
     <ClCompile Include="profiletolines.cpp" />
     <ClCompile Include="puu.cpp" />
     <ClCompile Include="pwalndb.cpp" />

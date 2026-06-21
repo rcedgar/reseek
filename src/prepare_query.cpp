@@ -59,7 +59,7 @@ void cmd_prepare_query()
 	const uint InputChainCount = SIZE(InputChains);
 	const double MinPctId = 90;
 	const uint MinLen = (optset_minchainlength ? opt(minchainlength) : 1);
-	const uint MaxChains = (optset_minchainlength ? opt(n) : 4);
+	const uint MaxChains = (optset_n ? opt(n) : 4);
 	vector<PDBChain *> OutputChains;
 
 	set<uint> DeletedChainIdxs;

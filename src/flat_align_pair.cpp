@@ -1,189 +1,289 @@
-#if 0
 #include "myutils.h"
-#include "dss.h"
-#include "chaq.h"
-#include "flat_base.h"
 #include "flat_chain.h"
-#include "pdbchain.h"
-#include "flat_distmx.h"
-#include "pdbfilescanner.h"
 #include "flat_chain_reader.h"
-#include "flat_helpers.h"
 #include "flat_params.h"
-#include "flat_profiles.h"
 #include "flat_aligner.h"
-#include "getticks.h"
+#include "chain_data.h"
+#include "pdbchain.h"
+#include "abcxyz.h"
+#include "kabsch.h"
+#include "pdbfilescanner.h"
 
-static uint s_nfeat;
-static uint *s_alpha_sizes;
-static uint *s_feature_block_offsets;
-static float *s_pssm_i;
-static float **s_weighted_logoddsmxvec;
-static const uint8_t *s_prof_i;
-static uint s_L_i;
-static string s_label_i;
+static const uint32_t s_bits = bit_distmx | bit_mega_prof;
 
-static const float **__restrict s_scratch_pssms;
-static float *s_scratch_rows;
-static uint8_t *s_TB;
-
-static float s_open = -3;
-static float s_ext = -1;
-
-static void cache_i(const string &label, const uint8_t *prof_i, uint L_i)
+static void read_flat_chains_save_lines(const string &fn,
+	vector<flat_chain_t *> &chains)
 	{
-	s_label_i = label;
-	s_prof_i = prof_i;
-	s_L_i = L_i;
-	fill_flat_pssm(prof_i, L_i, s_nfeat, s_alpha_sizes,
-		s_feature_block_offsets, s_weighted_logoddsmxvec, s_pssm_i);
-	}
+	PDBFileScanner FS;
+	FS.Open(fn);
 
-static float align_j(
-	const string &label,
-	const uint8_t *prof_j,
-	uint L_j,
-	uint &Loi,
-	uint &Loj,
-	char *path_buffer,
-	uint &ncol)
-	{
-	float score = sw_flat_pssm(
-		s_scratch_rows, s_TB, s_scratch_pssms,
-		prof_j, L_j,
-		s_pssm_i, s_L_i, s_feature_block_offsets,
-		s_nfeat, s_open, s_ext,
-		Loi, Loj, path_buffer, ncol);
-	return score;
-	}
-
-static float align_j(const string &label, const uint8_t *prof_j, uint L_j)
-	{
-	uint Loi, Loj;
-	char *path_buffer = myalloc(char, 2*flat_params::m_maxL);
-	uint ncol;
-	float score = align_j(label, prof_j, L_j,
-		Loi, Loj, path_buffer, ncol);
-	return score;
-	}
-
-void cmd_flat_align_pairs_spec()
-	{
-	const string &specfn = g_Arg1;
-	vector<string> labels;
-	vector<vector<uint8_t> > profiles;
-	vector<string> feature_names;
-	vector<uint> alpha_sizes;
-	vector<vector<float> > logoddsmxvec;
-	read_profiles_and_logoddsvec(
-		specfn,
-		feature_names,
-		alpha_sizes,
-		labels,
-		profiles,
-		logoddsmxvec);
-
-	s_nfeat = SIZE(feature_names);
-	const uint nprof = SIZE(labels);
-
-	asserta(SIZE(alpha_sizes) == s_nfeat);
-	asserta(SIZE(profiles) == nprof);
-
-	s_alpha_sizes = alpha_sizes.data();
-
-	check_profiles(profiles, alpha_sizes);
-
-	s_weighted_logoddsmxvec = myalloc(float *, s_nfeat);
-	for (uint fi = 0; fi < s_nfeat; ++fi)
+	flat_chain_reader CR;
+	CR.m_SaveLines = true;
+	CR.Open(FS);
+	for (;;)
 		{
-		uint AS = alpha_sizes[fi];
-		asserta(AS >= 2 && AS < 256);
-		s_weighted_logoddsmxvec[fi] = logoddsmxvec[fi].data();
+		flat_chain_t *chain = CR.GetNext();
+		if (chain == 0)
+			break;
+		chains.push_back(chain);
+		}
+	}
+
+static void check_chain_lengths(const vector<flat_chain_t *> &chains,
+	const string &fn)
+	{
+	const uint n = uint(chains.size());
+	for (uint i = 0; i < n; ++i)
+		{
+		const uint L = chains[i]->get_length();
+		if (L == 0)
+			Die("Empty chain in %s", fn.c_str());
+		if (L > flat_params::m_maxL)
+			Die("Chain %s length %u exceeds max %u",
+				chains[i]->m_label.c_str(), L, flat_params::m_maxL);
+		}
+	}
+
+static void build_chain_data_vec(const flat_params &params,
+	const vector<flat_chain_t *> &chains,
+	vector<chain_data *> &cdvec)
+	{
+	const uint n = uint(chains.size());
+	cdvec.clear();
+	cdvec.resize(n, 0);
+	if (n == 0)
+		return;
+
+	chain_data **cd = myalloc(chain_data *, n);
+	chain_data::fill_chain_data_vec(params, chains, s_bits, cd);
+	for (uint i = 0; i < n; ++i)
+		cdvec[i] = cd[i];
+	myfree(cd);
+	}
+
+static void XformLine(const double t[3],
+	const double u[3][3], string &Line)
+	{
+	float x, y, z;
+	PDBChain::GetXYZFromATOMLine(Line, x, y, z);
+
+	double Pt[3];
+	double XPt[3];
+
+	Pt[0] = x;
+	Pt[1] = y;
+	Pt[2] = z;
+	transform(t, u, Pt, XPt);
+
+	x = (float) XPt[0];
+	y = (float) XPt[1];
+	z = (float) XPt[2];
+	PDBChain::SetXYZInATOMLine(Line, x, y, z, Line);
+	}
+
+static void XformLines(const double t[3],
+	const double u[3][3], vector<string> &Lines)
+	{
+	const uint N = SIZE(Lines);
+	for (uint i = 0; i < N; ++i)
+		{
+		string &Line = Lines[i];
+		if (PDBChain::IsATOMLine(Line))
+			XformLine(t, u, Line);
+		}
+	}
+
+static void FlatKabsch(const flat_chain_t &chainQ,
+	const flat_chain_t &chainT,
+	uint loQ, uint loT,
+	const char *path, uint ncol,
+	double t[3], double u[3][3])
+	{
+	uint M = 0;
+	for (uint col = 0; col < ncol; ++col)
+		if (path[col] == 'M')
+			++M;
+	if (M == 0)
+		Die("No aligned positions for superposition");
+
+	double **x = myalloc(double *, M);
+	double **y = myalloc(double *, M);
+	uint posQ = loQ;
+	uint posT = loT;
+	uint m = 0;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			x[m] = myalloc(double, 3);
+			y[m] = myalloc(double, 3);
+			float xq, yq, zq;
+			float xt, yt, zt;
+			chainQ.get_coords(posQ, xq, yq, zq);
+			chainT.get_coords(posT, xt, yt, zt);
+			x[m][0] = xq;
+			x[m][1] = yq;
+			x[m][2] = zq;
+			y[m][0] = xt;
+			y[m][1] = yt;
+			y[m][2] = zt;
+			++m;
+			++posQ;
+			++posT;
+			}
+		else if (c == 'D')
+			++posQ;
+		else if (c == 'I')
+			++posT;
+		else
+			asserta(false);
+		}
+	Kabsch(x, y, int(M), t, u);
+	for (uint i = 0; i < M; ++i)
+		{
+		myfree(x[i]);
+		myfree(y[i]);
+		}
+	myfree(x);
+	myfree(y);
+	}
+
+static float AlignPairFlat(flat_aligner &fa,
+	const chain_data &cdQ, const chain_data &cdT,
+	bool do_output)
+	{
+	const flat_chain_t *chainQ = cdQ.m_chain;
+	const flat_chain_t *chainT = cdT.m_chain;
+
+	fa.cacheT(cdT.m_label, cdT.m_mega_prof, 0, cdT.m_L);
+	fa.alignQ(cdQ.m_label, cdQ.m_mega_prof, 0, cdQ.m_L);
+	const float score = fa.m_score;
+
+	if (!do_output)
+		return score;
+
+	if (optset_aln)
+		{
+		FILE *f = CreateStdioFile(opt(aln));
+		fa.write_aln(f);
+		CloseStdioFile(f);
 		}
 
-	s_feature_block_offsets = myalloc(uint32_t, s_nfeat);
-	const uint32_t sum_alpha_sizes =
-		get_flat_pssm_feature_block_offsets(s_nfeat,
-			s_alpha_sizes, s_feature_block_offsets);
-
-	s_pssm_i = myalloc(float, flat_params::m_maxL * sum_alpha_sizes);
-
-	s_scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
-	s_scratch_pssms = myalloc(const float *, s_nfeat);
-	s_TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
-
-	uint npairs = nprof*nprof;
-
-	ProgressLog("%10u  features\n", s_nfeat);
-	ProgressLog("%10u  profiles\n", nprof);
-	ProgressLog("%10u  pairs\n", npairs);
-
-	uint counter = 0;
-	TICKS t1 = GetClockTicks();
-	for (uint i = 0; i < nprof; ++i)
+	if (optset_output || optset_output2)
 		{
-		uint L_i = SIZE(profiles[i]);
-		asserta(L_i%s_nfeat == 0);
-		L_i /= s_nfeat;
-		if (L_i > flat_params::m_maxL) continue;
-		cache_i(labels[i], profiles[i].data(), L_i);
+		if (chainQ->m_lines.empty() || chainT->m_lines.empty())
+			Die("-output/-output2 require PDB/CIF input with saved ATOM lines");
 
-		for (uint j = 0; j < nprof; ++j)
+		double t[3];
+		double u[3][3];
+		FlatKabsch(*chainQ, *chainT,
+			fa.m_loQ, fa.m_loT,
+			fa.m_path_buffer, fa.m_ncol, t, u);
+
+		vector<string> linesQ = chainQ->m_lines;
+		XformLines(t, u, linesQ);
+
+		if (optset_output)
 			{
-			//ProgressStep(counter++, npairs, "Aligning");
-			uint L_j = SIZE(profiles[j]);
-			asserta(L_j%s_nfeat == 0);
-			L_j /= s_nfeat;
-			if (L_j > flat_params::m_maxL) continue;
-			align_j(labels[j], profiles[j].data(), L_j);
+			FILE *f = CreateStdioFile(opt(output));
+			for (uint i = 0; i < SIZE(linesQ); ++i)
+				fprintf(f, "%s\n", linesQ[i].c_str());
+			CloseStdioFile(f);
+			}
+
+		if (optset_output2)
+			{
+			FILE *f = CreateStdioFile(opt(output2));
+			for (uint i = 0; i < SIZE(linesQ); ++i)
+				{
+				string line = linesQ[i];
+				if (line.size() > 21)
+					line[21] = '1';
+				fprintf(f, "%s\n", line.c_str());
+				}
+
+			const vector<string> &linesT = chainT->m_lines;
+			for (uint i = 0; i < SIZE(linesT); ++i)
+				{
+				string line = linesT[i];
+				if (line.size() > 21)
+					line[21] = '2';
+				fprintf(f, "%s\n", line.c_str());
+				}
+			CloseStdioFile(f);
 			}
 		}
-	TICKS t2 = GetClockTicks();
-	double t = double(t2 - t1);
-	ProgressLog("%.3g ticks\n", t);
+
+	return score;
 	}
 
-void cmd_flat_align_pairs_faprof()
+void cmd_flat_alignpair()
 	{
-	asserta(optset_mxpattern);
-	const string &faproffn = g_Arg1;
+	if (!optset_input2)
+		Die("Must specify -input2");
+	if (!optset_alphadir)
+		Die("Must specify -alphadir");
+	if (!optset_varstr)
+		Die("Must specify -varstr");
 
-	flat_profiles fp;
-	vector<string> feature_names;
-	vector<uint> alpha_sizes;
-	fp.read_profiles_faprof(faproffn, feature_names);
-	flat_params::init(feature_names);
-	flat_params::read_logoddsvec_pattern(opt(mxpattern));
-	flat_params::apply_unit_weights();
-	fp.check_profiles();
+	const string &qfn = g_Arg1;
+	const string &tfn = opt(input2);
+
+	vector<flat_chain_t *> chainsQ;
+	vector<flat_chain_t *> chainsT;
+	read_flat_chains_save_lines(qfn, chainsQ);
+	read_flat_chains_save_lines(tfn, chainsT);
+
+	const uint chain_count_q = uint(chainsQ.size());
+	const uint chain_count_t = uint(chainsT.size());
+	if (chain_count_q == 0)
+		Die("No chains found in %s", qfn.c_str());
+	if (chain_count_t == 0)
+		Die("No chains found in %s", tfn.c_str());
+
+	check_chain_lengths(chainsQ, qfn);
+	check_chain_lengths(chainsT, tfn);
+
+	flat_params params;
+	params.init_from_cmdline();
+
+	vector<chain_data *> cdvecQ;
+	vector<chain_data *> cdvecT;
+	build_chain_data_vec(params, chainsQ, cdvecQ);
+	build_chain_data_vec(params, chainsT, cdvecT);
 
 	flat_aligner fa;
+	fa.m_params = &params;
 	fa.alloc();
 
-	const uint nprof = fp.get_nprof();
-	const uint npairs = nprof*nprof;
-
-	ProgressLog("%10u  features\n", s_nfeat);
-	ProgressLog("%10u  profiles\n", nprof);
-	ProgressLog("%10u  pairs\n", npairs);
-
-	for (uint i = 0; i < nprof; ++i)
+	float best_score = -FLT_MAX;
+	uint best_chain_index_q = UINT_MAX;
+	uint best_chain_index_t = UINT_MAX;
+	for (uint chain_index_q = 0; chain_index_q < chain_count_q; ++chain_index_q)
 		{
-		uint L_i = fp.get_length(i);
-		if (L_i > flat_params::m_maxL) continue;
-		const string &label_i = fp.get_label(i);
-		const uint8_t *prof_i = fp.get_profile(i);
-		fa.cacheT(label_i, prof_i, L_i);
-
-		for (uint j = 0; j < nprof; ++j)
+		for (uint chain_index_t = 0; chain_index_t < chain_count_t; ++chain_index_t)
 			{
-			uint L_j = fp.get_length(j);
-			if (L_j > flat_params::m_maxL) continue;
-			const string &label_j = fp.get_label(j);
-			const uint8_t *prof_j = fp.get_profile(j);
-			fa.alignQ(label_j, prof_j, L_j);
-			fa.write_aln(g_fLog);
+			float score = AlignPairFlat(fa,
+				*cdvecQ[chain_index_q],
+				*cdvecT[chain_index_t],
+				false);
+			if (score > best_score)
+				{
+				best_score = score;
+				best_chain_index_q = chain_index_q;
+				best_chain_index_t = chain_index_t;
+				}
 			}
 		}
+
+	if (best_chain_index_q == UINT_MAX)
+		Die("No alignment found");
+
+	AlignPairFlat(fa,
+		*cdvecQ[best_chain_index_q],
+		*cdvecT[best_chain_index_t],
+		true);
+
+	fa.freemem();
 	}
-#endif // 0
