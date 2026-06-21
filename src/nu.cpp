@@ -262,6 +262,7 @@ void Nu::GetLetters(const PDBChain &Chain, vector<byte> &Letters)
 		}
 	}
 
+#if 0
 static void TestSetMu()
 	{
 	Nu A;
@@ -438,3 +439,4 @@ void cmd_test_nu()
 	TestSetMuComponents();
 	TestChains(g_Arg1);
 	}
+#endif

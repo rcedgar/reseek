@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 #include "dss.h"
@@ -136,3 +137,4 @@ void cmd_pdb2mega()
 
 	CloseStdioFile(fOut);
 	}
+#endif

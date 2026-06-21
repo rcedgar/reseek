@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "seqdb.h"
 #include "chaq.h"
@@ -111,3 +112,4 @@ void cmd_feat_fa_mi()
 		}
 	ProgressLog("MI=%.3g feat1=%s feat2=%s\n", MI, g_Arg1.c_str(), opt(input2));
 	}
+#endif

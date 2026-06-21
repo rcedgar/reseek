@@ -718,6 +718,7 @@ int16_t *MerMx::BuildSelfScores_Kmers() const
       1521  Mean
        690  Median
 ***/
+#if 0
 void cmd_kmrnbh()
 	{
 	const MerMx &ScoreMx = GetMuMerMx(5);
@@ -788,3 +789,4 @@ void cmd_kmrnbh()
 	ProgressLog("%10.10s  Mean\n", IntToStr(uint(Q.Avg)));
 	ProgressLog("%10.10s  Median\n", IntToStr(uint(Q.Med)));
 	}
+#endif

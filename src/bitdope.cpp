@@ -15,6 +15,7 @@ uint8_t *read_bitdope(const string &fn,
 	return dope.m_dope;
 	}
 
+#if 0
 void cmd_bitdope_stats()
 	{
 	bitdope dope;
@@ -22,6 +23,7 @@ void cmd_bitdope_stats()
 	ProgressLog("ndom=%u  nhit=%u  %s\n",
 		dope.m_ndom, dope.m_nhit, g_Arg1.c_str());
 	}
+#endif
 
 /***
 The -bitdope command creates a bit-vector file representing an 

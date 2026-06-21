@@ -6,6 +6,7 @@
 
 #define EVAL	0
 
+#if 0
 void cmd_train_feature2()
 	{
 	const string FeatureName = g_Arg1;
@@ -167,6 +168,7 @@ void cmd_train_feature2()
 		CloseStdioFile(fOut);
 		}
 	}
+#endif
 
 void cmd_checkfa2()
 	{

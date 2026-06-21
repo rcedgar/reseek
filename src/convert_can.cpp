@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
@@ -250,3 +251,4 @@ void cmd_convert_bcb_to_kappafasta()
 	Progress("%u chains\n", nchain);
 	CloseStdioFile(f);
 	}
+#endif

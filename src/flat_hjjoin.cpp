@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "parabench.h"
@@ -366,3 +367,5 @@ void cmd_flat_hjjoin()
 			s_Peaker->m_VarNames[i].c_str(),
 			best_values[i]);
 	}
+
+#endif

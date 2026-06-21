@@ -62,6 +62,7 @@ bool FeatureIsInt(uint FeatureIndex)
 	return FeatureIsInt(FEATURE(FeatureIndex));
 	}
 
+#if 0
 void cmd_feature_stats()
 	{
 	for (uint F = 0; F < FEATURE_COUNT; ++F)
@@ -75,7 +76,9 @@ void cmd_feature_stats()
 		ProgressLog("\n");
 		}
 	}
+#endif
 
+#if 0
 void cmd_dump_float_feature()
 	{
 	const string FeatureName = g_Arg1;
@@ -123,3 +126,4 @@ void cmd_dump_float_feature()
 
 	CloseStdioFile(fOut);
 	}
+#endif

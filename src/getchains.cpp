@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 
@@ -8,3 +9,4 @@ void cmd_getchains()
 	void cmd_convert();
 	cmd_convert();
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "parabench.h"
@@ -340,3 +341,5 @@ void cmd_hjnumega()
 	CloseStdioFile(Peaker::m_fTsv);
 	Paralign::LogMatrix();
 	}
+
+#endif

@@ -1282,6 +1282,7 @@ void flat_bench2::load_single_feature(
 		}
 	}
 
+#if 0
 void cmd_flat_bench2()
 	{
 #if WRITE_TS_TERMS
@@ -1402,3 +1403,4 @@ void cmd_flat_bench2()
 	CloseStdioFile(s_fts);
 #endif
 	}
+#endif

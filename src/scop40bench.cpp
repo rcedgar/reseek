@@ -671,6 +671,7 @@ void SCOP40Bench::WriteOutput(const string &Msg)
 	CloseStdioFile(fCVE);
 	}
 
+#if 0
 void cmd_scop40bench()
 	{
 	asserta(!optset_dope);
@@ -721,3 +722,4 @@ void cmd_scop40bench()
 	DSSAligner::ReportScoreDist();
 #endif
 	}
+#endif

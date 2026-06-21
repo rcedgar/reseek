@@ -267,6 +267,7 @@ void chaq::fast_get_codeseq(
 		}
 	}
 
+#if 0
 void cmd_test_chaq_fast()
 	{
 	asserta(optset_alphadir);
@@ -340,3 +341,4 @@ void cmd_test_chaq_fast()
 		myfree(fast_codeseq);
 		}
 	}
+#endif

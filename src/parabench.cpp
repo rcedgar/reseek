@@ -512,6 +512,7 @@ void ParaBench::SubclassClearHitsAndResults()
 // -seqsmethod		mu | numu (also mux but redundant)
 // -alignmethod		para | sw
 // -mxname			Mu_S_k_i8 | Mu_scop40_tm0_6_0_8_fa2 | musubstmx
+#if 0
 void cmd_para_scop40()
 	{
 	ParaBench PS;
@@ -581,3 +582,4 @@ void cmd_nu_rev()
 		}
 	CloseStdioFile(f);
 	}
+#endif

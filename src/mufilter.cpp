@@ -569,10 +569,10 @@ uint MuFilter(const DSSParams &Params,
 	}
 #endif // 0
 
+#if 0
 void cmd_mufilter()
 	{
 	Die("Obsolete");
-#if 0
 	asserta(optset_db);
 	const string &QueryFN = g_Arg1;			// Mu FASTA
 	const string &DBFN = string(opt(db));	// Mu FASTA
@@ -593,5 +593,5 @@ void cmd_mufilter()
 	MuQueryDB.FromFasta(QueryFN);
 
 	MuFilter(Params, MuQueryDB, FSS, opt(output));
-#endif
 	}
+#endif

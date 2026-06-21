@@ -39,6 +39,7 @@ hresh    Sum3  Passed    %pass  Speedup   %sum3+
   mufilter  1.6358  n=1890353   5.43%
 ***/
 
+#if 0
 void cmd_mu_threshold()
 	{
 	asserta(optset_lookup);
@@ -73,6 +74,7 @@ void cmd_mu_threshold()
 	ProgressLog("pct=%.3g%%;", GetPct(n, npair));
 	ProgressLog("\n");
 	}
+#endif
 
 void cmd_nu_threshold()
 	{

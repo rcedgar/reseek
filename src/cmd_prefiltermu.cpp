@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "prefiltermu.h"
@@ -236,3 +237,4 @@ void cmd_prefilter_mu()
 		Log("\n");
 		}
 	}
+#endif

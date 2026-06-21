@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "seqdb.h"
@@ -169,3 +170,4 @@ void cmd_lddt_fa2()
 		}
 	CloseStdioFile(fout);
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "parabench.h"
@@ -212,4 +213,5 @@ void cmd_hjnugaps()
 		BestSum3, BestOpen, BestExt, BestScaleFactor, Paralign::m_Bits);
 	ProgressLog("\n");
 	}
+#endif // 0
 #endif // 0

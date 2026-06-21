@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "parabench.h"
@@ -226,3 +227,5 @@ void cmd_hjmumx()
 		s_BestSum3, s_BestOpen, s_BestExt, ScaleFactor, Paralign::m_Bits);
 	ProgressLog("\n");
 	}
+
+#endif

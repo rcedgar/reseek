@@ -136,6 +136,7 @@ bool PDBFileScanner::GetNext(string &FN)
 	return Ok;
 	}
 
+#if 0
 void cmd_scan_files()
 	{
 	PDBFileScanner FS;
@@ -161,3 +162,4 @@ void cmd_scan_files()
 	Progress("%u files total\n", FS.m_FileCount);
 	CloseStdioFile(fOut);
 	}
+#endif

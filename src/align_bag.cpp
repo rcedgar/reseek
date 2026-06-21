@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 #include "statsig.h"
@@ -187,3 +188,5 @@ void cmd_align_bags()
 		}
 	CloseStdioFile(f);
 	}
+
+#endif

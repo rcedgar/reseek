@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "daliscorer.h"
 #include "featuretrainer2.h"
@@ -184,3 +185,5 @@ void cmd_fa2_lddt()
 		TotalColCount,
 		GetPct(KeptColCount, TotalColCount));
 	}
+
+#endif

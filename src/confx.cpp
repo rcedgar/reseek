@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -275,3 +276,5 @@ void cmd_confx_train()
 		K, M, N, opt(randseed), TopPct, ExpectedScore);
 	LO.MxToSrc(g_fLog, "Conf", ScoreMx);
 	}
+
+#endif

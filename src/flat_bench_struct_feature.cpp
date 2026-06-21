@@ -287,6 +287,7 @@ void flat_bench_struct_feature::read_chains(const string &fn)
 		}
 	}
 
+#if 0
 void cmd_flat_bench_struct_feature()
 	{
 	asserta(optset_lookup);
@@ -335,3 +336,4 @@ void cmd_flat_bench_struct_feature()
 	FB.Bench();
 	FB.WriteHits(opt(output), true);
 	}
+#endif

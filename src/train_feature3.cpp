@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "letteralndb.h"
 #include "pwalndb.h"
@@ -99,3 +100,5 @@ void cmd_train_feature3()
 	LogMxPtr<float>("LogOdds", "  %7.3g", LOMx, AS);
 	ProgressLog("ES %8.3f  %s\n", LADB.GetES(LADB.m_FreqsPtr), FeatureToStr(F));
 	}
+
+#endif

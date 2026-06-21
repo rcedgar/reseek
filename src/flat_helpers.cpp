@@ -504,6 +504,7 @@ void log_profile(
 		}
 	}
 
+#if 0
 void cmd_flat_profiles()
 	{
 	const string &specfn = g_Arg1;
@@ -569,6 +570,7 @@ void cmd_flat_profiles()
 	if (optset_faprof)
 		profiles2faprof(opt(faprof), feature_names, alpha_sizes, labels, profiles);
 	}
+#endif
 
 void write_flat_aln(
 	FILE *f,
@@ -644,6 +646,7 @@ void write_flat_aln(
 	fprintf(f, "score %.1f\n", score);
 	}
 
+#if 0
 void cmd_test_faprof()
 	{
 	vector<string> feature_names;
@@ -657,6 +660,7 @@ void cmd_test_faprof()
 		profiles);
 	profiles2faprof(opt(output), feature_names, alpha_sizes, labels, profiles);
 	}
+#endif
 
 void flat_logodds_symbols(
 	const float *logodds,

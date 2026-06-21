@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "fastaseqsource.h"
@@ -244,3 +245,5 @@ void cmd_nuscop40()
 		}
 	CloseStdioFile(fOut);
 	}
+
+#endif

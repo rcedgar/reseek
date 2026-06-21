@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 #include "chaq.h"
@@ -373,3 +374,5 @@ void cmd_test_flat_chains()
 		n_fract_diff_gt_1pct, N, GetPct(n_fract_diff_gt_1pct, N));
 	log_flat_stats();
 	}
+
+#endif

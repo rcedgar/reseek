@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "flat_bench2.h"
 #include "flat_helpers.h"
@@ -291,3 +292,5 @@ void cmd_flat_hjmega2()
 
 	CloseStdioFile(Peaker::m_fTsv);
 	}
+
+#endif

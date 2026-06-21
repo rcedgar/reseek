@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "subsetbench.h"
@@ -224,3 +225,5 @@ void cmd_hjmegasb()
 			}
 		}
 	}
+
+#endif

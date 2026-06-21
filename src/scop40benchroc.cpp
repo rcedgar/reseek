@@ -615,6 +615,7 @@ void SCOP40Bench::LoadHitsFromTsv(const string &FileName)
 	CloseStdioFile(f);
 	}
 
+#if 0
 void cmd_scop40bit2tsv()
 	{
 	asserta(optset_output);
@@ -655,6 +656,7 @@ void cmd_scop40bit2tsv()
 		}
 	CloseStdioFile(fOut);
 	}
+#endif
 
 float SCOP40Bench::GetEPQAtEvalueThreshold(const vector<float> &Evalues,
   const vector<uint> &NFPs, float Evalue) const
@@ -691,6 +693,7 @@ float SCOP40Bench::GetEvalueAtEPQThreshold(const vector<float> &Evalues,
 	return 9e9f;
 	}
 
+#if 0
 void cmd_scop40tsv2bit()
 	{
 	SCOP40Bench SB;
@@ -729,3 +732,4 @@ void cmd_scop40bit_roc()
 		}
 	SB.WriteOutput();
 	}
+#endif

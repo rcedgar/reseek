@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "flat_dist_types.h"
 #include "flat_base.h"
@@ -199,3 +200,5 @@ void cmd_nbr_stats()
 
 	log_flat_stats();
 	}
+
+#endif

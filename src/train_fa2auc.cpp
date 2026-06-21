@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "seqdb.h"
 #include "flat_chain.h"
@@ -346,3 +347,5 @@ void cmd_train_fa2auc()
 		ProgressLog("name=%s AUC=%.4f\n", name.c_str(), AUC);
 		}
 	}
+
+#endif

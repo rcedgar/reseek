@@ -16,6 +16,7 @@ static const string VarStr_aa20 = "aa4=5.15E-01;pm2=2.84E-01;sec32=2.00E-01;aa20
 
 //static const string VarStr_noaa20 = "aa4=5.15E-01;pm2=2.84E-01;sec32=2.00E-01;";
 
+#if 0
 void codeseq2hexfasta(
 	FILE *f, const string &label, const uint8_t *codeseq, uint L)
 	{
@@ -81,6 +82,7 @@ void cmd_test_nu_codeseqs()
 		}
 	CloseStdioFile(f);
 	}
+#endif
 
 void cmd_make_nu_parasail_matrix()
 	{

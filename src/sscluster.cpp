@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "logodds.h"
@@ -374,3 +375,4 @@ void cmd_sscluster()
 	  K, opt(myss3), M, N, opt(randseed), TopPct, ExpectedScore);
 	LO.MxToSrc(g_fLog, "Conf", ScoreMx);
 	}
+#endif

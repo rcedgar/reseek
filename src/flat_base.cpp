@@ -106,7 +106,7 @@ void log_flat_stats(const string &msg)
 #endif
 	}
 
-#if 1
+#if 0
 void cmd_test_flat()
 	{
 	auto p1 = chainaa_t::newflat(123);

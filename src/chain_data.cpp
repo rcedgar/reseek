@@ -518,6 +518,7 @@ void chain_data::write_fastas(
 		}
 	}
 
+#if 0
 void cmd_test_chain_data()
 	{
 	//asserta(optset_varstr);
@@ -549,3 +550,4 @@ void cmd_test_chain_data()
 	chain_data::log_mem_stats(params, cdvec, nchain);
 	chain_data::write_fastas(params, opt(fasta), cdvec, nchain);
 	}
+#endif

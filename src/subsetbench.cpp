@@ -725,6 +725,7 @@ void SubsetBench::LoadScoreMxs(vector<string> &FNs)
 		}
 	}
 
+#if 0
 void cmd_subset_bench_dope()
 	{
 	const string &HitsFN = g_Arg1;
@@ -824,6 +825,7 @@ void cmd_subset_bench_bs2fa()
 	SB.ReadByteSeqs(BSFN, AS, ByteSeqs);
 	SB.ByteSeqsToFasta(ByteSeqs, opt(output));
 	}
+#endif
 
 void SubsetBench::SetScoreOrder()
 	{
@@ -1040,6 +1042,7 @@ void SubsetBench::InitFB()
 	m_FB.Alloc();
 	}
 
+#if 0
 void cmd_subset_bench()
 	{
 	asserta(optset_bspattern);
@@ -1074,3 +1077,4 @@ void cmd_subset_bench()
 	SB.Bench();
 	SB.WriteHits(opt(output));
 	}
+#endif

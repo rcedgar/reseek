@@ -59,6 +59,7 @@ void PDBChain::GetSS(string &SS) const
 		}
 	}
 
+#if 0
 void cmd_pdb2ss()
 	{
 	const string &QueryFN = opt(pdb2ss);
@@ -81,3 +82,4 @@ void cmd_pdb2ss()
 		}
 	CloseStdioFile(f);
 	}
+#endif

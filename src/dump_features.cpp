@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 
@@ -15,3 +16,4 @@ void cmd_dump_features()
 		DSSParams::DumpFeature(F, FN);
 		}
 	}
+#endif

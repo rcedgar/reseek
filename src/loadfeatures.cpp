@@ -129,6 +129,7 @@ void DSSParams::DumpFeature(FEATURE F, const string &FN)
 	CloseStdioFile(f);
 	}
 
+#if 0
 void cmd_load_features()
 	{
 	DSSParams::LoadFeatures(g_Arg1);
@@ -147,3 +148,4 @@ void cmd_load_features()
 			}
 		}
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "scop40bench.h"
@@ -297,3 +298,5 @@ void cmd_hjmega()
 
 	CloseStdioFile(Peaker::m_fTsv);
 	}
+
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "lookup.h"
 #include "fastbench.h"
@@ -303,3 +304,5 @@ void cmd_calibrate_diagnusort()
 	ProgressLog("Eval3(true, true) Sum3=%.3f nfwd=%u nrev=%u nmega=%u t=%.3g\n",
 		Sum3, s_nparaln_fwd, s_nparaln_rev, s_nmegaln, t);
 	}
+
+#endif

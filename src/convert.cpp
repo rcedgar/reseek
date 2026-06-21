@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -408,3 +409,4 @@ void cmd_convert()
 	if (optset_bca)
 		BCA.Close();
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 #include "chainreader2.h"
@@ -115,3 +116,5 @@ void cmd_dump_dss()
 		}
 	CloseStdioFile(fOut);
 	}
+
+#endif

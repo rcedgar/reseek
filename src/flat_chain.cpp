@@ -184,6 +184,7 @@ void flat_chain_t::to_cal(FILE *f) const
 		}
 	}
 
+#if 0
 void cmd_test()
 	{
 	vector<flat_chain_t *>chains;
@@ -196,3 +197,4 @@ void cmd_test()
 	log_flat_stats();
 	CloseStdioFile(f);
 	}
+#endif

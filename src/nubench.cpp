@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "parabench.h"
@@ -60,3 +61,4 @@ void cmd_nubench()
 	PS.Bench();
 	PS.WriteHits(opt(output), opt(include_self), opt(triangle));
 	}
+#endif

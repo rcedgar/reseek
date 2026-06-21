@@ -81,6 +81,7 @@ const MerMx &GetMuMerMx(uint k)
 	return *s_ptrMuMerMx;
 	}
 
+#if 0
 void cmd_musubstmx()
 	{
 	FILE *f = CreateStdioFile(g_Arg1);
@@ -241,3 +242,4 @@ void cmd_musubstmx()
 
 	CloseStdioFile(f);
 	}
+#endif

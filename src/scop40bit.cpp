@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "scop40bench.h"
 #include "pdbchain.h"
@@ -14,3 +15,4 @@ void cmd_scop40bit()
 	SB.ReadHits(FN);
 	SB.WriteBit(opt(output));
 	}
+#endif

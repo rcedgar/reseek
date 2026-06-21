@@ -8,9 +8,11 @@
 #include <deque>
 #include <condition_variable>
 
+#if 0
 static string s_feature;
 static FastBench *s_FB;
 static flat_params *s_params = 0;
+#endif
 
 void trunc_label(string &Label);
 
@@ -94,6 +96,7 @@ void path2posvecs(
 		}
 	}
 
+#if 0
 uint path2posvecs2(
 	const string &labelQ, const string &labelT,
 	const string &path,
@@ -498,3 +501,4 @@ void cmd_bench_structure_feature()
 	FB.SetScoreOrder();
 	FB.Bench();
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "museqsource.h"
 #include "pdbchain.h"
@@ -50,3 +51,4 @@ void cmd_convert2mu()
 	Progress("%u chains converted  (%s)   \n", n, IntToStr(n));
 	CloseStdioFile(fFasta);
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 
@@ -63,3 +64,4 @@ void cmd_chains2pdbs()
 		Chain.ToPDB(fn);
 		}
 	}
+#endif

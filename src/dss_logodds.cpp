@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "features.h"
 #include "dssparams.h"
@@ -24,3 +25,4 @@ void cmd_dss_logodds()
 		}
 	CloseStdioFile(f);
 	}
+#endif

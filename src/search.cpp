@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 #include "seqdb.h"
@@ -132,3 +133,4 @@ void cmd_search()
 	DSSParams::SetAlgoMode(DM_AlwaysFast);
 	PostMuFilter(CBQs, DBFN, TargetIdxs, TargetIdxToQueryIdxs, opt(output));
 	}
+#endif

@@ -253,6 +253,7 @@ static void cmp_smx(
 					i, j, smx1[i*LB + j], smx2[i*LB + j]);
 	}
 
+#if 0
 void cmd_test_fill_smx()
 	{
 	const string &specfn = g_Arg1;
@@ -447,3 +448,4 @@ void cmd_test_fill_smx()
 	ProgressLog("%s  fast\n", FloatToStr(tfast));
 	ProgressLog("%s  pssm (%.1f%%)\n", FloatToStr(tpssm), GetPct(tfast-tpssm, tfast));
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chaq.h"
 #include "flat_chain.h"
@@ -187,3 +188,5 @@ void cmd_dump_chaq()
 
 	CloseStdioFile(f);
 	}
+
+#endif

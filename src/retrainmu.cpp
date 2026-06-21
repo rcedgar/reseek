@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "sort.h"
@@ -146,3 +147,5 @@ void cmd_retrainmu()
 		CloseStdioFile(fOut);
 		}
 	}
+
+#endif

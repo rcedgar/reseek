@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 #include "dssaligner.h"
@@ -211,3 +212,4 @@ void cmd_alignpair()
 	PDBChain *ChainT = ChainsT[BestChainIndexT];
 	AlignPair1(D, DA, ChainQ, ChainT, true);
 	}
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "statsig.h"
 #include "parabench.h"
@@ -266,3 +267,5 @@ void cmd_hjnumegarev()
 	//Optimize(SpecLines, PS, Best_y, Best_xv);
 	//PS.WriteHits(opt(output));
 	}
+
+#endif

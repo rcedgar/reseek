@@ -284,6 +284,7 @@ static void test_men(const vector<flat_chain_t *> &chains, uint M, uint m)
 	ProgressLog("%.3g ticks, %u diffs men\n", double(total_ticks), total_diffs);
 	}
 
+#if 0
 void cmd_test_flat_distmx()
 	{
 	const uint M = flat_params::m_distmx_bandwidth;
@@ -294,3 +295,4 @@ void cmd_test_flat_distmx()
 	test_pen(chains, M, 16);
 	test_men(chains, M, 16);
 	}
+#endif

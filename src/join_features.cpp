@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "lookup.h"
 #include "fastbench.h"
@@ -439,3 +440,5 @@ void cmd_join_features1()
 	CloseStdioFile(fout);
 	CloseStdioFile(fout2);
 	}
+
+#endif

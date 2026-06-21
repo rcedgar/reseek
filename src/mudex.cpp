@@ -551,6 +551,7 @@ void MuDex::GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const
 		}
 	}
 
+#if 0
 void cmd_mudex()
 	{
 	SeqDB Input;
@@ -611,3 +612,4 @@ void cmd_mudex()
 					i, n, Pct);
 		}
 	}
+#endif
