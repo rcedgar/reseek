@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "features.h"
 #include "pdbchain.h"
@@ -127,3 +128,4 @@ void cmd_dump_float_feature()
 	CloseStdioFile(fOut);
 	}
 #endif
+#endif // 0

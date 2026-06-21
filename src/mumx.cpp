@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 #include "mumx.h"
@@ -243,3 +244,4 @@ void cmd_musubstmx()
 	CloseStdioFile(f);
 	}
 #endif
+#endif // 0

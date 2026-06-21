@@ -1,5 +1,4 @@
 #include "myutils.h"
-//#include "pdbchain.h"
 #include "pdbfilescanner.h"
 #include "flat_chain.h"
 #include "flat_chain_reader.h"

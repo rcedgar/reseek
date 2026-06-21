@@ -1,6 +1,4 @@
 #include "myutils.h"
-#include "pdbchain.h"
-#include "chainreader2.h"
 #include "flat_chain_reader.h"
 #include "cif.h"
 #include <map>

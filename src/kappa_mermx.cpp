@@ -2,8 +2,6 @@
 #include "kappa_mermx.h"
 #include "alpha.h"
 #include "sort.h"
-//#include "kappa_filter_params.h"
-//#include "dssparams.h"
 #include "flat_params.h"
 #include "quarts.h"
 

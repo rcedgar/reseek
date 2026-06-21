@@ -1,5 +1,4 @@
 #include "myutils.h"
-#include "pdbchain.h"
 #include "flat_chain.h"
 #include "flat_distmx.h"
 #include "getticks.h"

@@ -3,7 +3,6 @@
 #include "alpha.h"
 #include "sort.h"
 #include "prefiltermuparams.h"
-#include "dssparams.h"
 #include "quarts.h"
 
 static mutex g_Lock;

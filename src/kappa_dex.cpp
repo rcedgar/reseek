@@ -4,8 +4,6 @@
 #include "kappa_mermx.h"
 #include "seqdb.h"
 #include "quarts.h"
-//#include "kappa_filter_params.h"
-//#include "dssparams.h"
 #include "flat_params.h"
 #include "binner.h"
 
@@ -407,8 +405,10 @@ void kappa_dex::from_codeseqs(
 	m_kappa_codeseqs = kappa_codeseqs;
 	m_seq_lengths = lengths;
 	m_nseq = nseq;
-	if (m_AddNeighborhood && m_ptrScoreMx == 0)
-		m_ptrScoreMx = &GetMuMerMx(m_k);
+	if (m_AddNeighborhood)
+		asserta(m_ptrScoreMx!=0);
+	//if (m_AddNeighborhood && m_ptrScoreMx == 0)
+	//	m_ptrScoreMx = &GetMuMerMx(m_k);
 
 	Alloc_Pass1();
 	for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
@@ -469,8 +469,10 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 	uint *seq_lengths = myalloc(uint, SeqCount);
 	m_seq_lengths = seq_lengths;
 	m_nseq = SeqCount;
-	if (m_AddNeighborhood && m_ptrScoreMx == 0)
-		m_ptrScoreMx = &GetMuMerMx(m_k);
+	if (m_AddNeighborhood)
+		asserta(m_ptrScoreMx != 0);
+	//if (m_AddNeighborhood && m_ptrScoreMx == 0)
+	//	m_ptrScoreMx = &GetMuMerMx(m_k);
 
 	Alloc_Pass1();
 	for (uint SeqIdx = 0; SeqIdx < SeqCount; ++SeqIdx)

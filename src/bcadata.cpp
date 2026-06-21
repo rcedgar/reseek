@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "flat_chain.h"
 #include "flat_params.h"
-#include "pdbchain.h"
 #include "bcadata.h"
 #include "chaq.h"
 

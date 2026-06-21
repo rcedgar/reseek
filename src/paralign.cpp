@@ -1,6 +1,5 @@
 #include "myutils.h"
 #include "paralign.h"
-#include "nu.h"
 #include "seqdb.h"
 #include "alpha.h"
 #include "cigar.h"

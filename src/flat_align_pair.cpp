@@ -4,7 +4,6 @@
 #include "flat_params.h"
 #include "flat_aligner.h"
 #include "chain_data.h"
-#include "pdbchain.h"
 #include "abcxyz.h"
 #include "kabsch.h"
 #include "pdbfilescanner.h"

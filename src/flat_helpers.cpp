@@ -5,7 +5,6 @@
 #include "flat_helpers.h"
 #include "features.h"
 #include "triangle.h"
-#include "dss.h"
 
 void flat_reverse_profile(
 	const uint8_t *prof,

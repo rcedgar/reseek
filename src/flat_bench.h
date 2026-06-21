@@ -1,6 +1,5 @@
 #pragma once
 
-#include "scop40bench.h"
 #include "fastbench.h"
 #include "flat_profiles.h"
 #include "flat_aligner.h"

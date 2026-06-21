@@ -966,7 +966,6 @@ double GetMemUseBytes()
 #include <netinet/icmp6.h>
 #include <sys/vmmeter.h>
 #include <sys/proc.h>
-// #include <mach/task_info.h>
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #include <mach/vm_statistics.h>

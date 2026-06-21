@@ -1,6 +1,5 @@
 #include "myutils.h"
 #include "kabsch.h"
-#include "pdbchain.h"
 
 /***
 Based on Kabsch() function in TM-align source code v20220412.
