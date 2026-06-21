@@ -11,36 +11,34 @@ if [ ! -x "$reseek" ] ; then
 fi
 
 OUT=../test_output/flat_convert
-IN=../test_data/mini.cal
+IN=../test_data/palms.bca
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
-echo "flat_convert smoke test: $IN"
-
 "$reseek" \
 	-flat_convert "$IN" \
-	-cal "$OUT/all.cal" \
-	-can "$OUT/all.can" \
-	-bca "$OUT/all.bca" \
-	-bcb "$OUT/all.bcb" \
-	-fasta "$OUT/all.fa" \
-	-hexfasta "$OUT/all.hex.fa" \
-	-kappafasta "$OUT/all.kappa.fa" \
+	-cal "$OUT/palms.cal" \
+	-can "$OUT/palms.can" \
+	-bca "$OUT/palms.bca" \
+	-bcb "$OUT/palms.bcb" \
+	-fasta "$OUT/palms.fa" \
+	-nuhexfasta "$OUT/palms.nu.hexfa" \
+	-kappafasta "$OUT/palms.kappa.fa" \
 	-log "$OUT/convert.log"
 
 "$reseek" \
-	-flat_convert "$OUT/all.bcb" \
+	-flat_convert "$OUT/palms.bcb" \
 	-fasta "$OUT/from_bcb.fa" \
 	-log "$OUT/from_bcb.log"
 
 "$reseek" \
-	-flat_convert "$OUT/all.can" \
+	-flat_convert "$OUT/palms.can" \
 	-fasta "$OUT/from_can.fa" \
 	-log "$OUT/from_can.log"
 
 "$reseek" \
-	-flat_convert "$OUT/all.cal" \
+	-flat_convert "$OUT/palms.cal" \
 	-fasta "$OUT/from_cal.fa" \
 	-log "$OUT/from_cal.log"
 

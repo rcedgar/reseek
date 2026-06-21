@@ -7,8 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fasta import ReadSeqsDict
 
 errors = 0
-COCoordTol = 0.05
-
+CCoordTol = 0.05
 
 def err(msg):
     global errors
@@ -183,18 +182,18 @@ def main():
         sys.exit(2)
 
     out = sys.argv[1]
-    all_fa = os.path.join(out, "all.fa")
-    all_cal = os.path.join(out, "all.cal")
-    all_can = os.path.join(out, "all.can")
-    all_hex = os.path.join(out, "all.hex.fa")
-    all_kappa = os.path.join(out, "all.kappa.fa")
+    palms_fa = os.path.join(out, "palms.fa")
+    palms_cal = os.path.join(out, "palms.cal")
+    palms_can = os.path.join(out, "palms.can")
+    palms_hex = os.path.join(out, "palms.nu.hexfa")
+    palms_kappa = os.path.join(out, "palms.kappa.fa")
     from_bcb = os.path.join(out, "from_bcb.fa")
     from_can = os.path.join(out, "from_can.fa")
     from_cal = os.path.join(out, "from_cal.fa")
     golden = os.path.join(os.path.dirname(out), "..", "test_data", "mini.fa")
     golden = os.path.normpath(golden)
 
-    for fn in (all_fa, all_cal, all_can, all_hex, all_kappa,
+    for fn in (palms_fa, palms_cal, palms_can, palms_hex, palms_kappa,
                from_bcb, from_can, from_cal):
         if not os.path.isfile(fn):
             err("missing output file: %s" % fn)
@@ -202,23 +201,23 @@ def main():
     if errors:
         sys.exit(1)
 
-    check_fasta_equal(all_fa, from_bcb)
-    check_fasta_equal(all_fa, from_can)
-    check_fasta_equal(all_fa, from_cal)
-    check_golden_fasta(all_fa, golden)
+    check_fasta_equal(palms_fa, from_bcb)
+    check_fasta_equal(palms_fa, from_can)
+    check_fasta_equal(palms_fa, from_cal)
+    check_golden_fasta(palms_fa, golden)
 
-    cal_chains = read_cal_chains(all_cal)
-    can_chains = read_can_chains(all_can)
+    cal_chains = read_cal_chains(palms_cal)
+    can_chains = read_can_chains(palms_can)
     check_cal_can_coords(cal_chains, can_chains)
-    check_nu_can_hex(can_chains, all_hex)
-    check_lengths(all_fa, all_hex, all_kappa)
-    check_kappa_alphabet(all_kappa)
+    check_nu_can_hex(can_chains, palms_hex)
+    check_lengths(palms_fa, palms_hex, palms_kappa)
+    check_kappa_alphabet(palms_kappa)
 
     if errors:
         print("FAILED: %u error(s)" % errors, file=sys.stderr)
         sys.exit(1)
 
-    print("ok flat_convert (%u chains)" % len(ReadSeqsDict(all_fa)))
+    print("ok flat_convert (%u chains)" % len(ReadSeqsDict(palms_fa)))
 
 
 if __name__ == "__main__":
