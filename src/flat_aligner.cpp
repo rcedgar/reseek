@@ -3,7 +3,6 @@
 #include "flat_params.h"
 #include "flat_aligner.h"
 #include "flat_helpers.h"
-#include "flat_alignx.h"
 #include "paralign.h"
 #include "cigar.h"
 

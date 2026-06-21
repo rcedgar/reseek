@@ -6,7 +6,6 @@
 #include "triangle.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_alignx.h"
 #include "flat_aligner.h"
 #include "thread_affinity.h"
 
@@ -190,8 +189,10 @@ void flat_bench::doQ(flat_aligner &fa, uint domidxQ, uint domidxT)
 		selfQ = m_self_rev_scores[domidxQ];
 		selfT = m_self_rev_scores[domidxT];
 		}
-	Score = flat_alignx::alignx(
-		fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
+	Score = 0;
+	Die("TODO");
+	//Score = flat_alignx::alignx(
+	//	fa, profQ, profT, distmxQ, distmxT, selfT, selfQ);
 	if (m_params->need_reverse())
 		{
 		asserta(m_params->m_rev_w > 0);

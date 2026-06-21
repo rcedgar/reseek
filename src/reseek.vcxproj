@@ -83,8 +83,8 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</GenerateManifest>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreBuildEventUseInBuild>
-    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
@@ -280,8 +280,6 @@
     <ClCompile Include="adler32.c" />
     <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
-    <ClCompile Include="cmd_kappa_filter.cpp" />
-    <ClCompile Include="cmd_kappa_filter_bcb.cpp" />
     <ClCompile Include="collect.cpp" />
     <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
@@ -296,7 +294,6 @@
     <ClCompile Include="chaq.cpp" />
     <ClCompile Include="fastbench.cpp" />
     <ClCompile Include="flat_aligner.cpp" />
-    <ClCompile Include="flat_alignx.cpp" />
     <ClCompile Include="flat_align_pair.cpp" />
     <ClCompile Include="flat_base.cpp" />
     <ClCompile Include="flat_bench.cpp" />
@@ -401,7 +398,6 @@
     <ClCompile Include="seqfeeder.cpp" />
     <ClCompile Include="sid2ic.cpp" />
     <ClCompile Include="statsig.cpp" />
-    <ClCompile Include="bench_structure_feature.cpp" />
     <ClCompile Include="sw_flat_pssm_xdrop.cpp" />
     <ClCompile Include="test_nu_codeseqs.cpp" />
     <ClCompile Include="test_sw.cpp" />

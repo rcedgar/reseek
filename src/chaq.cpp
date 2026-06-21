@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "flat_base.h"
 #include "flat_params.h"
-#include "flat_bench.h"
 #include "flat_distmx.h"
 #include "sec_kmeans.h"
 #include "scratch_mem.h"

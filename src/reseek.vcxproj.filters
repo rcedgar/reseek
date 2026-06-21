@@ -359,9 +359,6 @@
     <ClCompile Include="kappa_mermx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_kappa_filter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="kappa_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -369,9 +366,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="landmark.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bench_structure_feature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_lddt.cpp">
@@ -390,9 +384,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_dali.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="flat_alignx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="flat_params.cpp">
@@ -467,9 +458,6 @@
     <ClCompile Include="kappa_seqsource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmd_kappa_filter_bcb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reseeker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -510,7 +498,8 @@
     </ClInclude>
     <ClInclude Include="seqdb.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="fileseqsource.h">
+    </ClInclude>
+    <ClInclude Include="fileseqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="seqsource.h">
@@ -530,7 +519,8 @@
     </ClInclude>
     <ClInclude Include="cmds.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="logodds.h">
+    </ClInclude>
+    <ClInclude Include="logodds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pathinfo.h">
@@ -547,12 +537,14 @@
     </ClInclude>
     <ClInclude Include="intfeatures.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="xdpmem.h">
+    </ClInclude>
+    <ClInclude Include="xdpmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<ClInclude Include="swtrace.h">
+    <ClInclude Include="swtrace.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="timers.h">
+    </ClInclude>
+    <ClInclude Include="timers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="timing.h">
@@ -590,7 +582,8 @@
     </ClInclude>
     <ClInclude Include="cigar_template.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="gzguts.h">
+    </ClInclude>
+    <ClInclude Include="gzguts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zutil.h">
@@ -626,7 +619,7 @@
     <ClInclude Include="bcadata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<ClInclude Include="mermx.h">
+    <ClInclude Include="mermx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="primes.h">
@@ -640,20 +633,23 @@
     </ClInclude>
     <ClInclude Include="mymalloc.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="mudex.h">
+    </ClInclude>
+    <ClInclude Include="mudex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<ClInclude Include="mymutex.h">
+    <ClInclude Include="mymutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="seqfeeder.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="diaghsp.h">
+    </ClInclude>
+    <ClInclude Include="diaghsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="duper.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="rankedscoresbag.h">
+    </ClInclude>
+    <ClInclude Include="rankedscoresbag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="twohitdiag.h">
@@ -667,14 +663,17 @@
     </ClInclude>
     <ClInclude Include="alncounters.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="peaker.h">
+    </ClInclude>
+    <ClInclude Include="peaker.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="fastbench.h">
+    </ClInclude>
+    <ClInclude Include="fastbench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pwalndb.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="flat_enum.h">
+    </ClInclude>
+    <ClInclude Include="flat_enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_chain.h">
@@ -694,7 +693,8 @@
     </ClInclude>
     <ClInclude Include="sec_kmeans.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="chainxyz.h">
+    </ClInclude>
+    <ClInclude Include="chainxyz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chaindistmx.h">
@@ -705,11 +705,14 @@
     </ClInclude>
     <ClInclude Include="chainnu.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="sidvec.h">
+    </ClInclude>
+    <ClInclude Include="sidvec.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="flat_helpers.h">
+    </ClInclude>
+    <ClInclude Include="flat_helpers.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="flat_aligner.h">
+    </ClInclude>
+    <ClInclude Include="flat_aligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lookup.h">
@@ -735,7 +738,8 @@
     </ClInclude>
     <ClInclude Include="kappa_dex.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="get_distinct_window_extrema.h">
+    </ClInclude>
+    <ClInclude Include="get_distinct_window_extrema.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="flat_bench_struct_feature.h">
@@ -764,7 +768,8 @@
     </ClInclude>
     <ClInclude Include="final_nu_matrix.h">
       <Filter>Header Files</Filter>
-    </ClInclude><ClInclude Include="chain_data.h">
+    </ClInclude>
+    <ClInclude Include="chain_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scratch_mem.h">
@@ -801,6 +806,66 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hitdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="binner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_nu_aligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_profiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_type_names.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hexintseq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landmark.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnvec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="paralign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="getticks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermuparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="statsig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tabbedlines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tracebit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastaseqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

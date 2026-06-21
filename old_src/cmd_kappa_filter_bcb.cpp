@@ -4,7 +4,6 @@
 #include "kappa_dex.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "bitdope.h"
 #include "lookup.h"
 
 static void bench(

@@ -1,6 +1,5 @@
 #include "myutils.h"
 #include "logodds.h"
-#include "dssparams.h"
 #include "alpha.h"
 
 int8_t FloatToInt8(float x, float maxabsf, int8_t maxabsi)

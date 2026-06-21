@@ -3,7 +3,6 @@
 #include "chaq.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_bench.h"
 #include "flat_nu_aligner.h"
 #include "scratch_mem.h"
 #include "fan.h"

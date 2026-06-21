@@ -833,3 +833,67 @@ void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
 		}
 	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
 	}
+
+uint path2posvecs3(
+	const char *path, uint ncol,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	uint *posQs,
+	uint *posTs,
+	uint bufnpos)
+	{
+	uint posQ = loQ;
+	uint posT = loT;
+	uint nmatch = 0;
+	for (uint col = 0; col < ncol; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			assert(nmatch < bufnpos);
+			assert(posQ < LQ);
+			assert(posT < LT);
+			posQs[nmatch] = posQ;
+			posTs[nmatch] = posT;
+			++nmatch;
+			}
+		if (c == 'M' || c == 'D')
+			posQ++;
+		if (c == 'M' || c == 'I')
+			posT++;
+		}
+	asserta(nmatch < bufnpos);
+	return nmatch;
+	}
+
+void path2posvecs(
+	const string &labelQ, const string &labelT,
+	const string &path,
+	uint loQ, uint LQ,
+	uint loT, uint LT,
+	vector<uint> &posQs,
+	vector<uint> &posTs)
+	{
+	posQs.clear();
+	posTs.clear();
+	const uint colcount = uint(path.size());
+	posQs.reserve(colcount);
+	posTs.reserve(colcount);
+	uint posQ = loQ;
+	uint posT = loT;
+	for (uint col = 0; col < colcount; ++col)
+		{
+		char c = path[col];
+		if (c == 'M')
+			{
+			assert(posQ < LQ);
+			assert(posT < LT);
+			posQs.push_back(posQ);
+			posTs.push_back(posT);
+			}
+		if (c == 'M' || c == 'D')
+			posQ++;
+		if (c == 'M' || c == 'I')
+			posT++;
+		}
+	}

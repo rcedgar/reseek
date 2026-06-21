@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "seqdb.h"
 #include "flat_helpers.h"
-#include "flat_bench.h"
 #include "flat_params.h"
 
 // Make logodds for compound alphabet using
@@ -22,7 +21,6 @@ void cmd_flat_merge_logodds()
 
 	const string &VarStr = g_Arg1;
 
-	flat_bench FB;
 	vector<string> param_names;
 	vector<float> param_values;
 	parse_varstr(VarStr, param_names, param_values);

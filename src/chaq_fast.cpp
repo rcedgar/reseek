@@ -1,7 +1,6 @@
 #include "myutils.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
-#include "flat_bench.h"
 #include "chaq.h"
 #include "quantize.h"
 
