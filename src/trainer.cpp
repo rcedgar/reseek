@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "trainer.h"
 #include "scop40bench.h"
@@ -187,3 +188,4 @@ void Trainer::TrainLogOdds(
 			}
 		}
 	}
+#endif // 0

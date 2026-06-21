@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -61,3 +62,4 @@ void cmd_nn_primary_chain_dist()
 		}
 	CloseStdioFile(f);
 	}
+#endif // 0

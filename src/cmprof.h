@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "pdbchain.h"
@@ -59,3 +60,4 @@ public:
 	};
 
 double GetNormal(double Mu, double Sigma, double x);
+#endif // 0

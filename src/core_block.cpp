@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -96,3 +97,4 @@ IEALKYIKA       129     d3l0fa_
 	CloseStdioFile(fOut);
 	ProgressLog("%u not found, %u diff seq\n", SIZE(NotFound), DiffSeq);
 	}
+#endif 

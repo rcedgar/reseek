@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
@@ -1015,3 +1016,4 @@ uint DSS::Get_SSSB(uint Pos)
 	asserta(Pos < SIZE(Seq));
 	return Seq[Pos];
 	}
+#endif // 0

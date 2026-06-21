@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "sfasta.h"
@@ -1759,3 +1760,4 @@ void FeatureTrainer2::BinTsToSrc(FILE *f,
 	for (uint j = 0; j + 1 < m_AlphaSize; ++j)
 		fprintf(f, "BIN_T(%s, %2u, %.4g)\n", Name, j, BinTs[j]);
 	}
+#endif // 0

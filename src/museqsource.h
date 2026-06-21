@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include <stdio.h>
@@ -36,3 +37,4 @@ public:
 	void OpenChains(const string &FileName);
 	void Close();
 	};
+#endif // 0

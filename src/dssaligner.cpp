@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "mx.h"
 #include "dssaligner.h"
@@ -1512,3 +1513,4 @@ void DSSAligner::WriteDPMx(FILE *f, bool NonSelf) const
 		fprintf(f, "\n");
 		}
 	}
+#endif // 0

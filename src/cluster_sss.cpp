@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "ssslib.h"
 
@@ -42,3 +43,4 @@ void cmd_cluster_sss()
 	Lib.AssignLetters();
 	Lib.ToFasta(opt(fasta));
 	}
+#endif // 0

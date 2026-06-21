@@ -126,32 +126,32 @@ void BCAData::append_codeseq_nu(
 	WriteStdioFile64(m_f, m_codeseq_nu, L);
 	}
 
-void BCAData::WriteChain(const PDBChain &Chain)
-	{
-	asserta(m_Writing && !m_Reading);
-	asserta(!m_HasNuSequences);
-	uint64_t Offset = GetStdioFilePos64(m_f);
-	size_t n = m_Offsets.size();
-	asserta(m_SeqLengths.size() == n);
-	uint L = Chain.GetSeqLength();
-	if (n > 0)
-		{
-		uint Ln_1 = m_SeqLengths[n-1];
-		asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
-		}
-	const string &Seq = Chain.m_Seq;
-	uint Idx = SIZE(m_Labels);
-	asserta(SIZE(m_SeqLengths) == Idx);
-
-	m_Labels.push_back(Chain.m_Label);
-	m_SeqLengths.push_back(L);
-	m_Offsets.push_back(Offset);
-	vector<uint16_t> ICs;
-	Chain.GetICs(ICs);
-	asserta(SIZE(ICs) == 3*L);
-	WriteStdioFile64(m_f, Seq.c_str(), L);
-	WriteStdioFile64(m_f, ICs.data(), 6*L);
-	}
+//void BCAData::WriteChain(const PDBChain &Chain)
+//	{
+//	asserta(m_Writing && !m_Reading);
+//	asserta(!m_HasNuSequences);
+//	uint64_t Offset = GetStdioFilePos64(m_f);
+//	size_t n = m_Offsets.size();
+//	asserta(m_SeqLengths.size() == n);
+//	uint L = Chain.GetSeqLength();
+//	if (n > 0)
+//		{
+//		uint Ln_1 = m_SeqLengths[n-1];
+//		asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
+//		}
+//	const string &Seq = Chain.m_Seq;
+//	uint Idx = SIZE(m_Labels);
+//	asserta(SIZE(m_SeqLengths) == Idx);
+//
+//	m_Labels.push_back(Chain.m_Label);
+//	m_SeqLengths.push_back(L);
+//	m_Offsets.push_back(Offset);
+//	vector<uint16_t> ICs;
+//	Chain.GetICs(ICs);
+//	asserta(SIZE(ICs) == 3*L);
+//	WriteStdioFile64(m_f, Seq.c_str(), L);
+//	WriteStdioFile64(m_f, ICs.data(), 6*L);
+//	}
 
 void BCAData::Open(const string &FN)
 	{
@@ -366,51 +366,51 @@ flat_chain_t* BCAData::read_flat_chain(uint64 ChainIdx) const
 	return chain;
 	}
 
-void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
-	{
-	asserta(m_Reading && !m_Writing);
-	asserta(!m_HasNuSequences);
-	Chain.Clear();
-	uint L = GetSeqLength(ChainIdx);
-	uint64 SeqOffset = GetSeqOffset(ChainIdx);
-	char *Seq = myalloc(char, L+1);
-	m_ReadLock.lock();
-	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, Seq, L);
-	if (nL != L)
-		{
-		Log("FN=%s\n", m_FN.c_str());
-		Log("ChainIdx=%u\n", ChainIdx);
-		Log("Chains=%u\n", SIZE(m_SeqLengths));
-		Log("L=%u\n", L);
-		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
-		Log("nL=%llu\n", (unsigned long long) nL);
-		Die("BCAData::ReadChain(#2)");
-		}
-
-	Seq[L] = 0;
-	Chain.m_Seq = string(Seq);
-	myfree(Seq);
-
-	uint16_t *ICs = myalloc(uint16_t, 3*L);
-	uint64 BytesToRead = 6*L;
-	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L, ICs, BytesToRead);
-	m_ReadLock.unlock();
-	if (nIC != BytesToRead)
-		{
-		Log("FN=%s\n", m_FN.c_str());
-		Log("ChainIdx=%u\n", ChainIdx);
-		Log("Chains=%u\n", SIZE(m_SeqLengths));
-		Log("L=%u\n", L);
-		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
-		Log("nIC=%llu\n", (unsigned long long) nIC);
-		Die("BCAData::ReadChain(#2)");
-		}
-
-	Chain.CoordsFromICs(ICs, L);
-	myfree(ICs);
-	asserta(ChainIdx < SIZE(m_Labels));
-	Chain.m_Label = m_Labels[ChainIdx];
-	}
+//void BCAData::ReadChain(uint64 ChainIdx, PDBChain &Chain) const
+//	{
+//	asserta(m_Reading && !m_Writing);
+//	asserta(!m_HasNuSequences);
+//	Chain.Clear();
+//	uint L = GetSeqLength(ChainIdx);
+//	uint64 SeqOffset = GetSeqOffset(ChainIdx);
+//	char *Seq = myalloc(char, L+1);
+//	m_ReadLock.lock();
+//	uint64 nL = ReadStdioFile64_NoFail(m_f, SeqOffset, Seq, L);
+//	if (nL != L)
+//		{
+//		Log("FN=%s\n", m_FN.c_str());
+//		Log("ChainIdx=%u\n", ChainIdx);
+//		Log("Chains=%u\n", SIZE(m_SeqLengths));
+//		Log("L=%u\n", L);
+//		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+//		Log("nL=%llu\n", (unsigned long long) nL);
+//		Die("BCAData::ReadChain(#2)");
+//		}
+//
+//	Seq[L] = 0;
+//	Chain.m_Seq = string(Seq);
+//	myfree(Seq);
+//
+//	uint16_t *ICs = myalloc(uint16_t, 3*L);
+//	uint64 BytesToRead = 6*L;
+//	uint64 nIC = ReadStdioFile64_NoFail(m_f, SeqOffset + L, ICs, BytesToRead);
+//	m_ReadLock.unlock();
+//	if (nIC != BytesToRead)
+//		{
+//		Log("FN=%s\n", m_FN.c_str());
+//		Log("ChainIdx=%u\n", ChainIdx);
+//		Log("Chains=%u\n", SIZE(m_SeqLengths));
+//		Log("L=%u\n", L);
+//		Log("SeqOffset=%llu\n", (unsigned long long) SeqOffset);
+//		Log("nIC=%llu\n", (unsigned long long) nIC);
+//		Die("BCAData::ReadChain(#2)");
+//		}
+//
+//	Chain.CoordsFromICs(ICs, L);
+//	myfree(ICs);
+//	asserta(ChainIdx < SIZE(m_Labels));
+//	Chain.m_Label = m_Labels[ChainIdx];
+//	}
 
 void BCAData::make_kappa_codeseqs(
 	uint8_t ***ptr_kappa_codeseqs,

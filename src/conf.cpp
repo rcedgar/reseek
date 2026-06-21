@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -206,3 +207,4 @@ uint DSS::Get_RENConf(uint Pos)
 	uint Letter = Get_Conf(NEN);
 	return Letter;
 	}
+#endif // 0

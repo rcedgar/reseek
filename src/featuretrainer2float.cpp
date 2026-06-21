@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 
@@ -215,3 +216,4 @@ void FeatureTrainer2::TrainFloatFeature(
 		EvalAlnColCountVec, EvalAlnOpenVec, EvalAlnExtVec, EvalTPs,
 		ScoreMx, BestOpenPenalty, BestExtPenalty, BestBias);
 	}
+#endif // 0

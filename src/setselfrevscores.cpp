@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dbsearcher.h"
 
@@ -97,3 +98,4 @@ void cmd_test()
 		}
 	}
 #endif
+#endif // 0

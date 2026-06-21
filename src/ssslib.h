@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "fragaligner.h"
@@ -73,3 +74,4 @@ public:
 public:
 	static void StaticThreadBody(SSSLib *Lib, uint ThreadIndex);
 	};
+#endif // 0

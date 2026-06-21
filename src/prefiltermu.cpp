@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "prefiltermu.h"
 #include "dssparams.h"
@@ -455,3 +456,4 @@ void PrefilterMu::ToTsv(FILE *fTsv) const
 		}
 	CloseStdioFile(fTsv);
 	}
+#endif // 0

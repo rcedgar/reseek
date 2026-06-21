@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 
@@ -263,3 +264,4 @@ float DSSAligner::XDropHSP(uint Loi_in, uint Loj_in, uint Len,
 
 	return TotalScore;
 	}
+#endif // 0

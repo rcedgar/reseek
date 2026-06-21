@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "prefiltermu.h"
@@ -152,3 +153,4 @@ void MuPreFilter(SeqDB &QDB, MuSeqSource &FSS, vector<uint> &TargetIdxs,
 	ProgressLog("%s prefilter hits\n", FloatToStr(double(Total)));
 	PrefilterMu::m_RSB.GetTargetInfo(TargetIdxs, TargetIdxToQueryIdxs);
 	}
+#endif // 0

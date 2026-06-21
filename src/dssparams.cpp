@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "dss.h"
@@ -594,3 +595,4 @@ void DSSParams::LoadSSSB(const string &MxFN, const string &FastaFN)
 		m_Labels_SSSB, m_LabelToSeqIdx_SSSB, m_ScoreMx_SSSB);
 	CreateFeatureScoreMx(FEATURE_SSSB, m_ScoreMx_SSSB);
 	}
+#endif // 0

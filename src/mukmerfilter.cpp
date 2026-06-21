@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dbsearcher.h"
 #include "chainer.h"
@@ -545,3 +546,4 @@ void MuKmerFilter::LogHSP(uint Idx) const
 		Log("%c", SeqT[Loj+Col]);
 	Log("\n");
 	}
+#endif // 0

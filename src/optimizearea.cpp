@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "peaker.h"
@@ -143,3 +144,4 @@ void FeatureTrainer2::OptimizeArea(
 		ProgressLog("\n");
 		}
 	}
+#endif // 0

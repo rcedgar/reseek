@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "bytevecdb.h"
 #include "pdbchain.h"
@@ -73,3 +74,4 @@ uint ByteVecDB::GetCount(uint8_t Letter) const
 	asserta(m_CountsPtr != 0);
 	return m_CountsPtr[Letter];
 	}
+#endif // 0

@@ -1,3 +1,4 @@
+# if 0
 #pragma once
 
 #include "pdbchain.h"
@@ -26,3 +27,4 @@ public:
 
 	const float* GetDistMxPtr();
 	};
+#endif // 0

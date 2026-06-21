@@ -219,10 +219,6 @@ void read_logoddsvec(
 
 uint32_t get_alpha_size_from_feature_name(const string &name)
 	{
-	FEATURE F = StrToFeature(name.c_str(), true);
-	if (uint(F) != UINT_MAX)
-		return DSSParams::GetAlphaSize(F);
-
 	if (name == "aa" || name == "AA")
 		return 20;
 	uint n = 0;
@@ -741,4 +737,100 @@ void cmd_flat_logodds_info()
 			Log("%c", symbols[i*AS + j]);
 		Log("\n");
 		}
+	}
+
+static bool LabelAlreadyHasChain(const string &Label, 
+  const string &ChainStr)
+	{
+	uint chn = SIZE(ChainStr);
+	if (chn != 1)
+		return false;
+	uint labn = SIZE(Label);
+	if (labn < 6)
+		return false;
+	if (tolower(Label[labn-1]) != tolower(ChainStr[chn-1]))
+		return false;
+	char c = Label[labn-2];
+	if (c == '_' || c == ':' || c == '.')
+		return true;
+	return false;
+	}
+
+void ChainizeLabel(string &Label, const string &_ChainStr)
+	{
+	if (opt(nochainchar))
+		return;
+	string ChainStr = _ChainStr;
+	if (ChainStr == "" || ChainStr == " ")
+		ChainStr = '_';
+	if (LabelAlreadyHasChain(Label, _ChainStr))
+		return;
+	Label += (optset_chainsep ? string(opt(chainsep)) : "_");
+	Label += ChainStr;
+	}
+
+void GetFallbackLabelFromFN(const string &FN, string &Label)
+	{
+	GetStemName(FN, Label);
+
+/***
+Special case for anomalous SCOP40 domain names
+
+	d1dnu.1.pdb
+	01234567890
+
+d1dnu.1 d3n55.1 d1o7d.2 d1r8o.1 d1dy9.1 d1ko6.1 d1f8v.1 d1o7d.3 d1pyo.1
+d1qtn.1 d1sc3.1 d1f2t.1 d1xew.1 d1q7l.1 d1wht.1 d1w2w.1 d1k3b.1 d1or0.1
+d1gk9.1 d1k2x.1 d1apy.1 d2dg5.1 d1pya.1 d1mtp.1
+***/
+
+	string Ext;
+	GetExtFromPathName(FN, Ext);
+	ToLower(Ext);
+
+// Special-case for downloaded PDB files e.g. pdb1iv1.ent
+	if (Ext == "pdb" || Ext == "ent" || Ext == "pdb.gz" || Ext == "ent.gz")
+		{
+		if (Label.size() == 7 && Label[0] == 'p' && Label[1] == 'd' && Label[2] == 'b')
+			{
+			Label = Label.substr(3, string::npos);
+			ToUpper(Label);
+			}
+		}
+	}
+
+void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
+	{
+	M = 0;
+	D = 0;
+	I = 0;
+	for (uint i = 0; i < SIZE(Path); ++i)
+		{
+		char c = Path[i];
+		if (c == 'M')
+			++M;
+		else if (c == 'D')
+			++D;
+		else if (c == 'I')
+			++I;
+		}
+	}
+
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
+	{
+	static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
+	extern bool g_QueryNeighborhood;
+
+	if (opt(idxq))
+		g_QueryNeighborhood = true;
+	else if (opt(idxt))
+		g_QueryNeighborhood = false;
+	else
+		{
+		if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
+			g_QueryNeighborhood = true;
+		else
+			g_QueryNeighborhood = false;
+		}
+	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
 	}

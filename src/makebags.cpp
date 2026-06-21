@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 
@@ -100,3 +101,4 @@ void MakeBags(const vector<PDBChain *> Chains, vector<ChainBag *> &Bags)
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	}
+#endif // 0

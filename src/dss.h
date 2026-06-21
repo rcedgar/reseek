@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "myutils.h"
@@ -105,3 +106,4 @@ public:
 	static uint SSCharToInt(char c);
 	static uint SSCharToInt3(char c);
 	};
+#endif // 0

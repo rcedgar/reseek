@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "bcadata.h"
@@ -153,3 +154,4 @@ void cmd_split()
 	delete s_ptrBCAOut;
 	s_ptrBCAIn->Close();
 	}
+#endif // 0

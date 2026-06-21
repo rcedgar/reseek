@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "fragaligner.h"
 
@@ -291,3 +292,4 @@ void cmd_test()
 		MinOtherScore, MaxOtherScore);
 	}
 #endif
+#endif //0

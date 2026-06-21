@@ -377,3 +377,57 @@ uint logodds_and_freqmx_from_lines(
 
 void set_sec4_groups(const string &sec4_groups);
 void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount);
+static uint16_t CoordToIC(float X) { return uint16_t((X + 1000)*10 + 0.5); }
+static float ICToCoord(uint16_t IC) { return float(IC/10.0f) - 1000; }
+
+static float GetFloatFromString(const string &s, uint Pos, uint n)
+	{
+	string t = s.substr(Pos, n);
+	StripWhiteSpace(t);
+	float Value = (float) StrToFloat(t);
+	return Value;
+	}
+
+static void GetXYZFromATOMLine(const string &InputLine,
+  float &x, float &y, float &z)
+	{
+	x = GetFloatFromString(InputLine, 30, 8);
+	y = GetFloatFromString(InputLine, 38, 8);
+	z = GetFloatFromString(InputLine, 46, 8);
+	}
+
+static void SetXYZInATOMLine(const string &InputLine,
+  float x, float y, float z, string &OutputLine)
+	{
+	string sx;
+	string sy;
+	string sz;
+	Ps(sx, "%8.3f", x);
+	Ps(sy, "%8.3f", y);
+	Ps(sz, "%8.3f", z);
+	asserta(SIZE(sx) == 8);
+	asserta(SIZE(sy) == 8);
+	asserta(SIZE(sz) == 8);
+
+	OutputLine = InputLine;
+	for (uint i = 0; i < 8; ++i)
+		{
+		OutputLine[30+i] = sx[i];
+		OutputLine[38+i] = sy[i];
+		OutputLine[46+i] = sz[i];
+		}
+	}
+
+static bool IsATOMLine(const string &Line)
+	{
+	if (SIZE(Line) < 27)
+		return false;
+// Insertion code is old PDB hack to preserve numbering from
+// a reference sequence like NAST or ICTV numbers -- should
+// just ignore residue numbering.
+	//if (Line[26] != ' ') // insertion code
+	//	return false;
+	if (strncmp(Line.c_str(), "ATOM  ", 6) == 0)
+		return true;
+	return false;
+	}

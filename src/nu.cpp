@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "nu.h"
 #include "dss.h"
@@ -440,3 +441,4 @@ void cmd_test_nu()
 	TestChains(g_Arg1);
 	}
 #endif
+#endif // 0

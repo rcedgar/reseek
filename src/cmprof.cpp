@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "cmprof.h"
 #include "alpha.h"
@@ -278,3 +279,4 @@ void CMProf::SetMSA(const SeqDB &MSA)
 		m_UngappedSeqToIdx[UngappedSeq] = SeqIdx;
 		}
 	}
+#endif // 0

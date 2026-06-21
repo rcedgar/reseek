@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "scop40bench.h"
 #include "mx.h"
@@ -723,3 +724,4 @@ void cmd_scop40bench()
 #endif
 	}
 #endif
+#endif // 0

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "scop40bench.h"
 
@@ -45,3 +46,4 @@ void SCOP40Bench::MakeSubset(SCOP40Bench &Subset, uint Pct) const
 
 	Subset.Setup();
 	}
+#endif // 0

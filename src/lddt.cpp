@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 
@@ -122,3 +123,4 @@ double GetLDDT_muscle_fast(const PDBChain &Q, const PDBChain &T,
 	float avg = total/nr_cols;
 	return avg;
 	}
+#endif // 0

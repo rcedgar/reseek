@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "scop40bench.h"
 #include "sort.h"
@@ -733,3 +734,4 @@ void cmd_scop40bit_roc()
 	SB.WriteOutput();
 	}
 #endif
+#endif // 0

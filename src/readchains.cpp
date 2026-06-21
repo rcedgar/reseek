@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 
@@ -16,3 +17,4 @@ void ReadChains(const string &FileName, vector<PDBChain *> &Chains)
 		Chains.push_back(Chain);
 		}
 	}
+#endif

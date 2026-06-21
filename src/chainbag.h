@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "pdbchain.h"
@@ -29,3 +30,4 @@ public:
 		return m_ptrChain->m_Label;
 		}
 	};
+#endif // 0

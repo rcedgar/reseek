@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "parasail.h"
 #include "dssaligner.h"
@@ -281,3 +282,4 @@ int DSSAligner::AlignMuParaBags8(const ChainBag &BagA, const ChainBag &BagB)
 	return Score;
 	}
 
+#endif // 0

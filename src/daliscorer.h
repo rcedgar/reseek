@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 enum SYMMETRY
@@ -104,3 +105,4 @@ public:
 double DALI_dpscorefun(double a, double b);
 double GetDALIZFromScoreAndLengths(double DALIScore, uint QL, uint TL);
 extern float g_DALI_Theta;
+#endif // 0

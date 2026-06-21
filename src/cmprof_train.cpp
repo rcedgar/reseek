@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "cmprof.h"
 #include "chainreader2.h"
@@ -40,3 +41,4 @@ void cmd_cmprof_train()
 	Prof.FinalizeTrain();
 	Prof.ToFile(opt(output));
 	}
+#endif // 0

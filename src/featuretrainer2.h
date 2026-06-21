@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "features.h"
@@ -561,3 +562,4 @@ static void ScoreMxToTsv(FILE *f,
 static void BinTsToSrc(FILE *f,
 	const vector<float> &BinTs);
 };
+#endif // 0

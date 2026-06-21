@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "scop40bench.h"
@@ -131,3 +132,4 @@ public:
 	static void StaticThreadBody(SubsetBench *SB, uint ThreadIdx);
 	static void StaticThreadBodyAll(SubsetBench *SB, uint ThreadIdx);
 	};
+#endif // 0

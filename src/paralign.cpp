@@ -18,7 +18,7 @@ extern parasail_matrix_t parasail_mu_matrix;
 extern int Blosum62_int[20][20];
 extern int Mu_S_k_i8[36*36];
 extern int Mu_hjmumx[36*36];
-extern int parasail_mu_8[36*36];
+//extern int parasail_mu_8[36*36];
 extern int IntScoreMx_3Di[20*20];
 
 parasail_matrix_t Paralign::m_matrix;
@@ -512,35 +512,36 @@ para  3Di gap 80/20 N=11211 NT=454766 SEPQ0.1=0.080 SEPQ1=0.154 SEPQ10=0.267 Sum
 
 void Paralign::SetMu_parasail_mu_8()
 	{
-	m_Open = 2;
-	m_Ext = 1;
-	if (optset_intopen)
-		m_Open = opt(intopen);
-	if (optset_intext)
-		m_Ext = opt(intext);
+	Die("Obsolete");
+	//m_Open = 2;
+	//m_Ext = 1;
+	//if (optset_intopen)
+	//	m_Open = opt(intopen);
+	//if (optset_intext)
+	//	m_Ext = opt(intext);
 
-	int MinScore = 0;
-	int MaxScore = 0;
-	for (uint i = 0; i < 36*36; ++i)
-		{
-		int Score = Mu_S_k_i8[i];
-		if (i == 0 || Score < MinScore) MinScore = Score;
-		if (i == 0 || Score > MaxScore) MaxScore = Score;
-		}
-	m_matrix.size = 36;
-	m_matrix.length = 36;
-	m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
-	m_matrix.matrix = parasail_mu_8;
-	m_matrix.min = MinScore;
-	m_matrix.max = MaxScore;
-	int *Mapper = myalloc(int, 256);
-	memset(Mapper, 0, 256*sizeof(int));
-	for (int i = 0; i < 36; ++i)
-		Mapper[i] = i;
-	m_matrix.mapper = Mapper;
+	//int MinScore = 0;
+	//int MaxScore = 0;
+	//for (uint i = 0; i < 36*36; ++i)
+	//	{
+	//	int Score = Mu_S_k_i8[i];
+	//	if (i == 0 || Score < MinScore) MinScore = Score;
+	//	if (i == 0 || Score > MaxScore) MaxScore = Score;
+	//	}
+	//m_matrix.size = 36;
+	//m_matrix.length = 36;
+	//m_matrix.type = PARASAIL_MATRIX_TYPE_SQUARE;
+	//m_matrix.matrix = parasail_mu_8;
+	//m_matrix.min = MinScore;
+	//m_matrix.max = MaxScore;
+	//int *Mapper = myalloc(int, 256);
+	//memset(Mapper, 0, 256*sizeof(int));
+	//for (int i = 0; i < 36; ++i)
+	//	Mapper[i] = i;
+	//m_matrix.mapper = Mapper;
 
-	m_Bits = 8;
-	SetSWFastSubstMx_FromParasailMx();
+	//m_Bits = 8;
+	//SetSWFastSubstMx_FromParasailMx();
 	}
 
 void Paralign::Set_Mu_hjmux()
@@ -1121,61 +1122,61 @@ void Paralign::set_flat_compound(
 		}
 	}
 
-void Paralign::SetCompoundMx(
-	const vector<FEATURE> &Fs, const vector<float> &Weights,
-	int ScaleFactor, int Open, int Ext, int SaturatedScore)
-	{
-	const uint NF = SIZE(Fs);
-	asserta(SIZE(Weights) == NF);
-
-	vector<const float * const *> ScoreMxs;
-	for (uint i = 0; i < NF; ++i)
-		ScoreMxs.push_back(DSSParams::GetScoreMx(Fs[i]));
-
-	Nu TheNu;
-	TheNu.SetComponents(Fs, Weights);
-	uint AS = TheNu.GetAlphaSize();
-
-	m_SWFastSubstMx.clear();
-	m_SWFastSubstMx.resize(AS);
-	vector<vector<int> > IntScoreMx(AS);
-	for (uint i = 0; i < AS; ++i)
-		{
-		m_SWFastSubstMx[i].resize(AS);
-		IntScoreMx[i].resize(AS);
-
-		vector<byte> Lettersi;
-		TheNu.NuLetterToComponentLetters(i, Lettersi);
-		asserta(SIZE(Lettersi) == NF);
-
-
-		for (uint j = 0; j < AS; ++j)
-			{
-			vector<byte> Lettersj;
-			TheNu.NuLetterToComponentLetters(j, Lettersj);
-			asserta(SIZE(Lettersj) == NF);
-
-			float SumScore = 0;
-			for (uint k = 0; k < NF; ++k)
-				{
-				float wk = NF*Weights[k];
-				uint Letteri = Lettersi[k];
-				uint Letterj = Lettersj[k];
-				SumScore += wk*ScoreMxs[k][Letteri][Letterj];
-				}
-			float Score = ScaleFactor*SumScore;
-			m_SWFastSubstMx[i][j] = Score;
-			IntScoreMx[i][j] = int(round(Score));
-			}
-		}
-	bool SetSWFastMx = false;
-	if (opt(roundmx))
-		SetSWFastMx = true;
-	const int ScaledOpen = Open;
-	const int ScaledExt = Ext;
-	SetMatrix(IntScoreMx, ScaledOpen, ScaledExt,
-		SaturatedScore, SetSWFastMx);
-	}
+//void Paralign::SetCompoundMx(
+//	const vector<FEATURE> &Fs, const vector<float> &Weights,
+//	int ScaleFactor, int Open, int Ext, int SaturatedScore)
+//	{
+//	const uint NF = SIZE(Fs);
+//	asserta(SIZE(Weights) == NF);
+//
+//	vector<const float * const *> ScoreMxs;
+//	for (uint i = 0; i < NF; ++i)
+//		ScoreMxs.push_back(DSSParams::GetScoreMx(Fs[i]));
+//
+//	Nu TheNu;
+//	TheNu.SetComponents(Fs, Weights);
+//	uint AS = TheNu.GetAlphaSize();
+//
+//	m_SWFastSubstMx.clear();
+//	m_SWFastSubstMx.resize(AS);
+//	vector<vector<int> > IntScoreMx(AS);
+//	for (uint i = 0; i < AS; ++i)
+//		{
+//		m_SWFastSubstMx[i].resize(AS);
+//		IntScoreMx[i].resize(AS);
+//
+//		vector<byte> Lettersi;
+//		TheNu.NuLetterToComponentLetters(i, Lettersi);
+//		asserta(SIZE(Lettersi) == NF);
+//
+//
+//		for (uint j = 0; j < AS; ++j)
+//			{
+//			vector<byte> Lettersj;
+//			TheNu.NuLetterToComponentLetters(j, Lettersj);
+//			asserta(SIZE(Lettersj) == NF);
+//
+//			float SumScore = 0;
+//			for (uint k = 0; k < NF; ++k)
+//				{
+//				float wk = NF*Weights[k];
+//				uint Letteri = Lettersi[k];
+//				uint Letterj = Lettersj[k];
+//				SumScore += wk*ScoreMxs[k][Letteri][Letterj];
+//				}
+//			float Score = ScaleFactor*SumScore;
+//			m_SWFastSubstMx[i][j] = Score;
+//			IntScoreMx[i][j] = int(round(Score));
+//			}
+//		}
+//	bool SetSWFastMx = false;
+//	if (opt(roundmx))
+//		SetSWFastMx = true;
+//	const int ScaledOpen = Open;
+//	const int ScaledExt = Ext;
+//	SetMatrix(IntScoreMx, ScaledOpen, ScaledExt,
+//		SaturatedScore, SetSWFastMx);
+//	}
 
 #if 0
 void cmd_paralign_test()

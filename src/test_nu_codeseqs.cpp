@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_bench.h"
 #include "flat_helpers.h"
+#if 0
 
 /***
 $src/reseek_tune2/bash/reduce_aa4.bash
@@ -83,6 +84,8 @@ void cmd_test_nu_codeseqs()
 	CloseStdioFile(f);
 	}
 #endif
+
+#endif // 0
 
 void cmd_make_nu_parasail_matrix()
 	{

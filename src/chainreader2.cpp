@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 
@@ -377,3 +378,4 @@ bool ChainReader2::IsChainEndLine_PDB(const string &Line) const
 		return true;
 	return false;
 	}
+#endif // 0

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 
@@ -154,3 +155,4 @@ void FeatureTrainer2::Quantize_UndefReplaceUser(
 		}
 	asserta(SIZE(BinTs) + 1 == m_AlphaSize);
 	}
+#endif // 0

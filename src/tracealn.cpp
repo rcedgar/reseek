@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssaligner.h"
 #include "pdbchain.h"
@@ -81,3 +82,4 @@ void cmd_tracealn()
 			}
 		}
 	}
+#endif // 0

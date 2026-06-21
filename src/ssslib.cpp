@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "ssslib.h"
 #include "pdbchain.h"
@@ -586,3 +587,4 @@ void SSSLib::ToFasta(const string &FN) const
 		}
 	CloseStdioFile(f);
 	}
+#endif // 0

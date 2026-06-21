@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "seqdb.h"
@@ -53,3 +54,4 @@ public:
 	void EnumChainPairsT(TRAINER_ONPAIR_T OnPair);
 	void EnumChainPairsF(TRAINER_IS_TP IsTP, TRAINER_ONPAIR_F OnPair);
 	};
+#endif // 0

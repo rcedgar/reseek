@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "dss.h"
@@ -149,3 +150,4 @@ void cmd_load_features()
 		}
 	}
 #endif
+#endif // 0

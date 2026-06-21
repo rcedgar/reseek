@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "chainreader2.h"
@@ -119,3 +120,4 @@ void cmd_prepare_query()
 	BCA.Close();
 	CloseStdioFile(fOut);
 	}
+#endif // 0

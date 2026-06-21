@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include <map>
@@ -223,3 +224,4 @@ double GetDALIScore_Path_OffDiag(const PDBChain &Q, const PDBChain &T,
 		Die("GetDALIScore_Path_OffDiag() PosT=%u TL=%u", PosT, TL);
 	return GetDALIScore_OffDiag(Q, T, PosQs, PosTs);
 	}
+#endif // 0

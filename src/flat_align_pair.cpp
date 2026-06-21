@@ -8,6 +8,7 @@
 #include "abcxyz.h"
 #include "kabsch.h"
 #include "pdbfilescanner.h"
+#include "flat_helpers.h"
 
 static const uint32_t s_bits = bit_distmx | bit_mega_prof;
 
@@ -65,7 +66,7 @@ static void XformLine(const double t[3],
 	const double u[3][3], string &Line)
 	{
 	float x, y, z;
-	PDBChain::GetXYZFromATOMLine(Line, x, y, z);
+	GetXYZFromATOMLine(Line, x, y, z);
 
 	double Pt[3];
 	double XPt[3];
@@ -78,7 +79,7 @@ static void XformLine(const double t[3],
 	x = (float) XPt[0];
 	y = (float) XPt[1];
 	z = (float) XPt[2];
-	PDBChain::SetXYZInATOMLine(Line, x, y, z, Line);
+	SetXYZInATOMLine(Line, x, y, z, Line);
 	}
 
 static void XformLines(const double t[3],
@@ -88,7 +89,7 @@ static void XformLines(const double t[3],
 	for (uint i = 0; i < N; ++i)
 		{
 		string &Line = Lines[i];
-		if (PDBChain::IsATOMLine(Line))
+		if (IsATOMLine(Line))
 			XformLine(t, u, Line);
 		}
 	}

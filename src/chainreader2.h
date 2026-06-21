@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "pdbchain.h"
@@ -86,3 +87,4 @@ public:
 	};
 
 void GetFallbackLabelFromFN(const string &FN, string &Label);
+#endif // 0

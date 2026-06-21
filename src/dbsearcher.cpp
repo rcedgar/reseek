@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "cigar.h"
 #include "dss.h"
@@ -215,3 +216,4 @@ void DBSearcher::ShuffleProfile(vector<vector<byte> > &Profile)
 			swap(Profile[FeatIdx][i], Profile[FeatIdx][j]);
 		}
 	}
+#endif // 0

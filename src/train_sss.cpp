@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "featuretrainer2.h"
 #include "seqdb.h"
@@ -52,3 +53,4 @@ void cmd_train_sss()
 		CloseStdioFile(fOut);
 		}
 	}
+#endif // 0

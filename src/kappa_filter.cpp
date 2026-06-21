@@ -12,6 +12,7 @@ uint kappa_filter::m_QSeqCount = 0;
 atomic<time_t> kappa_filter::m_time_last_progress;
 const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
+bool g_QueryNeighborhood = true;
 
 static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
 	{

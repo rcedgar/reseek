@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "features.h"
 #include "dss.h"
@@ -110,3 +111,4 @@ void SetConfDiagw(float w)
 	for (uint i = 0; i < 16; ++i)
 		g_ScoreMxs2[FEATURE_Conf][i][i] = S_ij[16*i + i]*w;
 	}
+#endif // 0

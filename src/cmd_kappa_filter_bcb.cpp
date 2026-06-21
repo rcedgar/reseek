@@ -90,7 +90,7 @@ void cmd_kappa_filter_bcb()
 
 	const uint QSeqCount = QBCA.GetChainCount();
 	const uint TSeqCount = QBCA.GetChainCount();
-	decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
+	//decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
 
 	kappa_filter::init_kappa();
 	kappa_filter::m_RSB.Init(QSeqCount);

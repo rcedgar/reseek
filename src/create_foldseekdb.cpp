@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 #include "seqdb.h"
@@ -168,3 +169,4 @@ void cmd_create_foldseekdb()
 	CloseStdioFile(fSeqs3Di);
 	CloseStdioFile(fSource);
 	}
+#endif // 0

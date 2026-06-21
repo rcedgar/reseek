@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
@@ -97,3 +98,4 @@ void DSSAligner::PrettyAln(FILE *f,
 		fprintf(f, ", P-value %.3g", Pvalue);
 	fprintf(f, "\n");
 	}
+#endif // 0

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "seqdb.h"
 #include "chainreader2.h"
@@ -48,3 +49,4 @@ double DALIScorer::GetDALIScore_OffDiag(uint ChainIdx1, uint ChainIdx2,
 		}
 	return Sum;
 	}
+#endif // 0

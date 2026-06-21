@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dssparams.h"
 #include "dss.h"
@@ -29,3 +30,4 @@ void ProfileToLines(const vector<vector<byte> > &Profile,
 		asserta(SIZE(Line) == L);
 		}
 	}
+#endif // 0

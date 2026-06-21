@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "parabench.h"
 #include "triangle.h"
@@ -583,3 +584,4 @@ void cmd_nu_rev()
 	CloseStdioFile(f);
 	}
 #endif
+#endif // 0

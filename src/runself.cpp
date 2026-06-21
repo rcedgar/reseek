@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dbsearcher.h"
 #include "scop40bench.h"
@@ -165,3 +166,4 @@ void DBSearcher::RunSelf(bool ShowStats)
 	if (ShowStats)
 		RunStats();
 	}
+#endif // 0

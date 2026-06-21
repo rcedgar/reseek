@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "letteralndb.h"
 #include "pwalndb.h"
@@ -250,3 +251,4 @@ float *LetterAlnDB::GetLogOddsMxPtr2(
 			}
 	return Mx;
 	}
+#endif // 0

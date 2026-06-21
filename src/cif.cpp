@@ -102,6 +102,7 @@ ATOM   6     C  CG  . PRO A 1 1   ? -21.298 0.482   35.504  1.00 149.55 ? 1    P
 ATOM   7     C  CD  . PRO A 1 1   ? -21.457 0.838   37.004  1.00 109.96 ? 1    PRO A CD  1
 ***/
 
+#if 0
 void ChainReader2::IncFormatErrors()
 	{
 	m_CRGlobalLock.lock();
@@ -297,6 +298,7 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 	if (Chain != 0)
 		Chains.push_back(Chain);
 	}
+#endif // 0
 
 void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	vector<flat_chain_t *> &Chains, const string &FallbackLabel)

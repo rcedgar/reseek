@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainbag.h"
 #include "dssaligner.h"
@@ -169,3 +170,4 @@ void ChainBag::Validate(const char *Msg) const
 	if (ProfRev8 != 0)	asserta(ProfRev8->s1Len == L);
 	if (ProfRev16 != 0)	asserta(ProfRev16->s1Len == L);
 	}
+#endif // 0

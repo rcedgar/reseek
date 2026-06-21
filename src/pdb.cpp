@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 
@@ -127,3 +128,4 @@ void ChainReader2::ChainsFromLines_PDB(const vector<string> &Lines,
 		Chains.push_back(Chain);
 		}
 	}
+#endif // 0

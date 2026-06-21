@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "seqdb.h"
 #include "pdbchain.h"
@@ -208,3 +209,4 @@ void cmd_msta_lddtmuw1()
 		}
 	Log("\n");
 	}
+#endif // 0

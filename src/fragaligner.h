@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "pdbchain.h"
@@ -40,3 +41,4 @@ public:
 		vector<uint> &Idx_is, vector<uint> &Idx_js);
 	static float *MakeDistPairScoresPtr(uint DistN);
 	};
+#endif // 0

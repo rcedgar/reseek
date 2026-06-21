@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "scop40bench.h"
 #include <set>
@@ -116,3 +117,4 @@ void SCOP40Bench::ReadHits(const string &FN)
 	  iter != NotFound.end(); ++iter)
 		Log("NOTFOUND %s\n", iter->c_str());
 	}
+#endif // 0

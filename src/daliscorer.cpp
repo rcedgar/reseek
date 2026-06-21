@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "seqdb.h"
 #include "chainreader2.h"
@@ -532,3 +533,4 @@ void DALIScorer::SetDistMxs()
 		SetDistMx(ChainIdx);
 		}
 	}
+#endif // 0

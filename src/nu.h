@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "features.h"
@@ -50,3 +51,4 @@ public:
 	void GetLetters(const PDBChain &Chain, vector<byte> &Letters);
 	void GetLettersPtr(const PDBChain &Chain, byte *Letters);
 	};
+#endif // 0

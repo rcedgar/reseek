@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "museqsource.h"
 #include "seqinfo.h"
@@ -81,3 +82,4 @@ void MuSeqSource::OpenChains(const string &FileName)
 void MuSeqSource::Close()
 	{
 	}
+#endif // 0

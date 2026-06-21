@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dss.h"
 
@@ -225,3 +226,4 @@ void cmd_mu_mapping()
 		Log("\n");
 		}
 	}
+#endif // 0

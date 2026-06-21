@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "features.h"
@@ -178,3 +179,4 @@ private:
 	};
 
 uint GetPatternOnes(const string &Pattern);
+#endif // 0

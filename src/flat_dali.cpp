@@ -7,6 +7,111 @@
 
 static const float tx = 1.25;//TODO param
 //static float s_DALI_Theta = 0;
+float g_DALI_D = 20.0f;
+float g_DALI_d0 = 0.2f;
+float g_DALI_Theta = 1.0f;
+
+static const int TBLSZ = 100;
+static double *WeightLookup;
+
+/***
+DaliLite v5
+comparemodules.f, line 1436
+===========================
+		enveloperadius=20.0
+		x=1/(enveloperadius*enveloperadius)
+		do i=0,100
+				wght(i)=exp(-x*i*i)
+		end do
+***/
+static double Weight(double y)
+	{
+	int iy = int(y+0.5);
+	if (iy < 0)
+		iy = 0;
+	if (iy >= TBLSZ)
+		iy = TBLSZ-1;
+	double w2 = WeightLookup[iy];
+	return w2;
+	}
+
+static double Weight_NoLookup(double y)
+	{
+	//const double D = 20.0;
+	const double x = 1.0 / (g_DALI_D * g_DALI_D);
+	double w = exp(-x * y * y);
+	return w;
+	}
+
+static void FreeMe();
+
+static bool InitWeightLookup()
+	{
+	atexit(FreeMe);
+	WeightLookup = myalloc(double, TBLSZ);
+	for (int i = 0; i < TBLSZ; ++i)
+		{
+		double y = double(i);
+		double w = Weight_NoLookup(y);
+		WeightLookup[i] = w;
+		}
+	return true;
+	};
+static bool InitWeightLookupDone = InitWeightLookup();
+
+static void FreeMe()
+	{
+	myfree(WeightLookup);
+	}
+
+/***
+comparemodules.f, line 1397
+  a, b are integer distances in units of 1/10 Angstrom,
+  so multiply by 10 to get Angstroms.
+===========================
+		function dpscorefun(a,b) result(s)
+		implicit none
+		include 'parsizes.for'
+		real s
+		integer*2 a,b
+c
+		real x,y,d0
+		logical lela
+		parameter(lela=.true.)
+		parameter(d0=0.20)
+c !!!   elastic uses weights !!!
+		x=float(abs(a-b))/10
+		if(lela) then
+				y=float(a+b)/20
+				if(y.gt.100) then
+						s=0.0
+				else
+						if(y.gt.0) then
+						  s=wght(nint(y))*(d0-x/y)
+						else
+						  s=wght(nint(y))*d0
+						end if
+				end if
+		end if
+***/
+double DALI_dpscorefun(double a, double b)
+	{
+	double Score = 0;
+	double diff = fabs(a - b);
+	double mean = (a + b) / 2;
+	double ratio = diff/mean;
+	double w = Weight(mean);
+	if (mean > 100)
+		Score = 0;
+	else
+		{
+		if (mean > 0)
+			Score = w*(g_DALI_d0 - ratio);
+		else
+			Score = w*g_DALI_d0;
+		}
+	return Score;
+	}
 
 float flat_get_dali4(
 	const uint *posQs, uint LQ, 

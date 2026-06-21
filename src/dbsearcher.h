@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "profileloader.h"
@@ -100,3 +101,4 @@ public:
 	static void StaticThreadBodyQuery(uint ThreadIndex, DBSearcher *ptrDBS, ChainReader2 *ptrQueryCR);
 	static void StaticThreadBodySelf(uint ThreadIndex, DBSearcher *ptrDBS);
 	};
+#endif // 0

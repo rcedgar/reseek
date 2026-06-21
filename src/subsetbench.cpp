@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "subsetbench.h"
 #include "alpha.h"
@@ -1078,3 +1079,4 @@ void cmd_subset_bench()
 	SB.WriteHits(opt(output));
 	}
 #endif
+#endif // 0

@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "dssparams.h"
@@ -243,3 +244,4 @@ public:
 	static float StaticSubstScore(void *UserData_this, uint PosA, uint PosB);
 	static float StaticSubstScore_Trace(void *UserData_this, uint PosA, uint PosB);
 	};
+#endif // 0

@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chainreader2.h"
 #include "dss.h"
@@ -100,3 +101,4 @@ void ProfileLoader::Load(
 
 	Progress("%s chains loaded\n", IntToStr(m_Count));
 	}
+#endif // 0

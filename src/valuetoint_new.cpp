@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "features.h"
 #include "dss.h"
@@ -58,3 +59,4 @@ void DSSParams::OverwriteBinTs(FEATURE F,const vector<float> &BinTs)
 	asserta(SIZE(s_BinTsVec[F]) == n);
 	s_BinTsVec[F] = BinTs;
 	}
+#endif // 0

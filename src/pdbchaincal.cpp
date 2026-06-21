@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "abcxyz.h"
@@ -47,3 +48,4 @@ F       40.340  3.621   14.036
 		}
 	}
 
+#endif // 0

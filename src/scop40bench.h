@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "dbsearcher.h"
@@ -164,3 +165,4 @@ public:
 		return "*ERROR(";
 		}
 	};
+#endif // 0

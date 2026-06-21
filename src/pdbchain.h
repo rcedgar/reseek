@@ -1,3 +1,4 @@
+#if 0
 #ifndef pdbchain_h
 #define pdbchain_h
 
@@ -96,3 +97,4 @@ public:
 void ReadChains(const string &FileName, vector<PDBChain *> &Chains);
 
 #endif // pdbchain_h
+#endif // 0

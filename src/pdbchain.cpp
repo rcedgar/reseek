@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "dss.h"
@@ -529,3 +530,4 @@ void PDBChain::Flip()
 		m_Zs[i] = -m_Zs[i];
 		}
 	}
+#endif // 0

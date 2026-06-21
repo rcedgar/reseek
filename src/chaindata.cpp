@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "chaindata.h"
 
@@ -20,3 +21,4 @@ const float *ChainData::GetDistMxPtr()
 	m_DistMxPtr.Filled();
 	return DistMxPtr;
 	}
+#endif // 0

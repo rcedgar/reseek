@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "bytevecdb.h"
@@ -52,3 +53,4 @@ public:
 		const LetterAlnDB &LA_FP,
 		const float *LetterFreqsPtr);
 	};
+#endif // 0

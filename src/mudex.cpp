@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "alpha.h"
 #include "mudex.h"
@@ -613,3 +614,4 @@ void cmd_mudex()
 		}
 	}
 #endif
+#endif // 0

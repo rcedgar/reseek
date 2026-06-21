@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 
@@ -83,3 +84,4 @@ void cmd_pdb2ss()
 	CloseStdioFile(f);
 	}
 #endif
+#endif // 0

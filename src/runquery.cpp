@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "dbsearcher.h"
 #include "chainreader2.h"
@@ -123,3 +124,4 @@ void DBSearcher::RunQuery(ChainReader2 &QCR)
 	Progress("%s chains scanned   \n", IntToStr(m_ProcessedQueryCount));
 	RunStats();
 	}
+#endif // 0

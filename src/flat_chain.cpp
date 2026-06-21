@@ -1,10 +1,45 @@
 #include "myutils.h"
-#include "pdbchain.h"
+//#include "pdbchain.h"
 #include "pdbfilescanner.h"
 #include "flat_chain.h"
 #include "flat_chain_reader.h"
+#include "flat_helpers.h"
 
 void ChainizeLabel(string &Label, const string &_ChainStr);
+
+static bool GetFieldsFromATOMLine(const string &Line,
+  float &X, float &Y, float &Z, char &aa)
+	{
+	aa = 'X';
+	X = -999;
+	Y = -999;
+	Z = -999;
+	string AtomName = Line.substr(12, 4);
+	StripWhiteSpace(AtomName);
+	if (AtomName != "CA")
+		return false;
+	char AltLoc = Line[16];
+	if (AltLoc != ' ' && AltLoc != 'A' && AltLoc != '1')
+		return false;
+
+	string AAA = Line.substr(17, 3);
+	aa = GetOneFromThree(AAA);
+
+	string sX, sY, sZ;
+	sX = Line.substr(30, 8);
+	sY = Line.substr(38, 8);
+	sZ = Line.substr(46, 8);
+
+	StripWhiteSpace(sX);
+	StripWhiteSpace(sY);
+	StripWhiteSpace(sZ);
+
+	X = StrToFloatf(sX);
+	Y = StrToFloatf(sY);
+	Z = StrToFloatf(sZ);
+
+	return true;
+	}
 
 void flat_chain_t::set_xyz(const vector<float> &Xs,
 	const vector<float> &Ys, const vector<float> &Zs)
@@ -13,9 +48,9 @@ void flat_chain_t::set_xyz(const vector<float> &Xs,
 	//m_xyz->falloc(L);
 	for (uint32_t i = 0; i < L; ++i)
 		{
-		uint16_t ic_x = PDBChain::CoordToIC(Xs[i]);
-		uint16_t ic_y = PDBChain::CoordToIC(Ys[i]);
-		uint16_t ic_z = PDBChain::CoordToIC(Zs[i]);
+		uint16_t ic_x = CoordToIC(Xs[i]);
+		uint16_t ic_y = CoordToIC(Ys[i]);
+		uint16_t ic_z = CoordToIC(Zs[i]);
 		m_xyz->set(i, 0, ic_x);
 		m_xyz->set(i, 1, ic_y);
 		m_xyz->set(i, 2, ic_z);
@@ -80,7 +115,7 @@ bool flat_chain_t::from_pdb_lines(const string &label,
 
 		char aa;
 		float X, Y, Z;
-		bool IsCA = PDBChain::GetFieldsFromATOMLine(line, X, Y, Z, aa);
+		bool IsCA = GetFieldsFromATOMLine(line, X, Y, Z, aa);
 		if (!IsCA)
 			continue;
 

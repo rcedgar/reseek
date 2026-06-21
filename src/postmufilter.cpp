@@ -1,3 +1,4 @@
+#if 0
 /***
 Query bags are pre-computed.
 ThreadBody()
@@ -171,3 +172,4 @@ void PostMuFilter(
 	ProgressLog("%10u  m_XDropDiscardCount2\n", DSSAligner::m_XDropDiscardCount2.load());
 	ProgressLog("%10u  m_XDropAlnCount\n", DSSAligner::m_XDropAlnCount.load());
 	}
+#endif // 0

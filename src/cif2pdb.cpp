@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "pdbchain.h"
 #include "chainreader2.h"
@@ -257,3 +258,4 @@ void cmd_cif2pdb()
 		}
 	CloseStdioFile(f);
 	}
+#endif // 0
