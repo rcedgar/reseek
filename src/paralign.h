@@ -59,23 +59,12 @@ public:
 	static void InitGapLengthDist(uint MaxLen);
 	static void LogGapLengthDist();
 
-	static void Set_3Di();
-	static void Set_Mu_S_k_i8();
-	static void Set_Mu_hjmux();
-	static void SetMu_musubstmx();
-	static void SetMu_parasail_mu_8();
-	static void SetMu_scop40_tm0_6_0_8_fa2();
 	static void set_final_nu();
 	static void SetBlosum62();
 	static void SetMatrix(
 		const vector<vector<int> > &ScoreMx,
 		int Open, int Ext, int SaturatedScore,
 		bool SetSWFastMatrix = true);
-	static void SetSubstMxByName(const string &Name);
-	static void SetCompoundMx(
-		const vector<FEATURE> &Fs, const vector<float> &Weights,
-		int ScaleFactor, int Open, int Ext, int SaturatedScore);
-	static void set_nu();
 
 	static void set_flat_compound(
 		flat_params &params,

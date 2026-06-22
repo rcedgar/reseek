@@ -254,9 +254,6 @@
     <ClCompile Include="pwalndb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="3di_data.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="todo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
