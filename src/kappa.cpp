@@ -86,7 +86,7 @@ static void nu_to_components(
 #endif
 	}
 
-static uint8_t kappa_to_components(
+static void kappa_to_components(
 	uint8_t kappa, uint8_t &aa4, uint8_t &pm2, uint8_t &sec4)
 	{
 	asserta(kappa < 32);
