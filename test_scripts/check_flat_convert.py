@@ -3,6 +3,8 @@
 import os
 import sys
 
+outdir = "../test_output/flat_convert/"
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fasta import ReadSeqsDict
 
@@ -13,7 +15,6 @@ def err(msg):
     global errors
     errors += 1
     print("ERROR: %s" % msg, file=sys.stderr)
-
 
 def read_cal_chains(fn):
     chains = {}
@@ -176,49 +177,41 @@ def check_kappa_alphabet(kappa_fa):
                 err("label %s: unexpected kappa char '%s'" % (label, c))
 
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: check_flat_convert.py OUTDIR", file=sys.stderr)
-        sys.exit(2)
+# outdir = sys.argv[1]
+palms_fa = os.path.join(outdir, "palms.fa")
+palms_cal = os.path.join(outdir, "palms.cal")
+palms_can = os.path.join(outdir, "palms.can")
+palms_hex = os.path.join(outdir, "palms.nu.hexfa")
+palms_kappa = os.path.join(outdir, "palms.kappa.fa")
+from_bcb = os.path.join(outdir, "from_bcb.fa")
+from_can = os.path.join(outdir, "from_can.fa")
+from_cal = os.path.join(outdir, "from_cal.fa")
+golden = os.path.join(os.path.dirname(outdir), "..", "test_data", "mini.fa")
+golden = os.path.normpath(golden)
 
-    out = sys.argv[1]
-    palms_fa = os.path.join(out, "palms.fa")
-    palms_cal = os.path.join(out, "palms.cal")
-    palms_can = os.path.join(out, "palms.can")
-    palms_hex = os.path.join(out, "palms.nu.hexfa")
-    palms_kappa = os.path.join(out, "palms.kappa.fa")
-    from_bcb = os.path.join(out, "from_bcb.fa")
-    from_can = os.path.join(out, "from_can.fa")
-    from_cal = os.path.join(out, "from_cal.fa")
-    golden = os.path.join(os.path.dirname(out), "..", "test_data", "mini.fa")
-    golden = os.path.normpath(golden)
+for fn in (palms_fa, palms_cal, palms_can, palms_hex, palms_kappa,
+            from_bcb, from_can, from_cal):
+    if not os.path.isfile(fn):
+        err("missing output file: %s" % fn)
 
-    for fn in (palms_fa, palms_cal, palms_can, palms_hex, palms_kappa,
-               from_bcb, from_can, from_cal):
-        if not os.path.isfile(fn):
-            err("missing output file: %s" % fn)
+if errors:
+    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors), file=sys.stderr)
+    sys.exit(1)
 
-    if errors:
-        sys.exit(1)
+check_fasta_equal(palms_fa, from_bcb)
+check_fasta_equal(palms_fa, from_can)
+check_fasta_equal(palms_fa, from_cal)
+check_golden_fasta(palms_fa, golden)
 
-    check_fasta_equal(palms_fa, from_bcb)
-    check_fasta_equal(palms_fa, from_can)
-    check_fasta_equal(palms_fa, from_cal)
-    check_golden_fasta(palms_fa, golden)
+cal_chains = read_cal_chains(palms_cal)
+can_chains = read_can_chains(palms_can)
+check_cal_can_coords(cal_chains, can_chains)
+check_nu_can_hex(can_chains, palms_hex)
+check_lengths(palms_fa, palms_hex, palms_kappa)
+check_kappa_alphabet(palms_kappa)
 
-    cal_chains = read_cal_chains(palms_cal)
-    can_chains = read_can_chains(palms_can)
-    check_cal_can_coords(cal_chains, can_chains)
-    check_nu_can_hex(can_chains, palms_hex)
-    check_lengths(palms_fa, palms_hex, palms_kappa)
-    check_kappa_alphabet(palms_kappa)
+if errors:
+    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors), file=sys.stderr)
+    sys.exit(1)
 
-    if errors:
-        print("FAILED: %u error(s)" % errors, file=sys.stderr)
-        sys.exit(1)
-
-    print("ok flat_convert (%u chains)" % len(ReadSeqsDict(palms_fa)))
-
-
-if __name__ == "__main__":
-    main()
+print("%s SUCCESS" % sys.argv[0])

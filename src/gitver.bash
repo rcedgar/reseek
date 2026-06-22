@@ -16,18 +16,6 @@ echo "#define GIT_HASH \"$h\"" > /tmp/git_hash.h
 old_sum=`cat git_hash.h | sum`
 new_sum=`cat /tmp/git_hash.h | sum`
 
-if [[ ! -s git_hash.h ]] ; then
-	echo Not found git_hash.h
-fi
-
-if [[ "$old_sum" != "$new_sum" ]] ; then
-	echo Sum changed old=$old_sum new=$new_sum
-fi
-
 if [[ ! -s git_hash.h ||  "$old_sum" != "$new_sum" ]] ; then
-#	echo sum1=`sum git_hash.h` sum2=`sum /tmp/git_hash.h`
-	echo Update git_hash.h
 	/bin/mv /tmp/git_hash.h .
-else
-	echo No change git_hash.h
 fi

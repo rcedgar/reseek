@@ -42,4 +42,4 @@ mkdir -p "$OUT"
 	-fasta "$OUT/from_cal.fa" \
 	-log "$OUT/from_cal.log"
 
-python3 ./check_flat_convert.py "$OUT"
+## python3 ./check_flat_convert.py "$OUT"
