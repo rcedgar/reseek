@@ -67,6 +67,7 @@ static uint8_t components_to_kappa(
 	asserta(sec4 < 4);
 	uint kappa = aa4 + 4*pm2 + 4*2*sec4;
 	asserta(kappa < 32);
+	return kappa;
 	}
 
 static void nu_to_components(
