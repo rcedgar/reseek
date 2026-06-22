@@ -3,6 +3,8 @@
 #include "flat_nu_aligner.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
+#include "hitdata.h"
+#include "reseek_hit_sink.h"
 
 uint reseeker::m_query_nchain = 0;
 const BCAData *reseeker::m_dbbca = 0;
@@ -12,6 +14,7 @@ const vector<string> *reseeker::m_ptr_query_labels = 0;
 parasail_profile_t **reseeker::m_query_parasail_profs = 0;
 parasail_profile_t **reseeker::m_query_parasail_prof_revs = 0;
 const uint *reseeker::m_query_lengths = 0;
+chain_slice *reseeker::m_query_slices = 0;
 int *reseeker::m_query_self_rev_scores = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_qidxs = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_diagscores = 0;
@@ -59,6 +62,11 @@ void reseeker::set_query_data(
 	m_query_distmxs = query_distmxs;
 	m_query_lengths = lengths;
 	m_query_nchain = nchain;
+
+	myfree(m_query_slices);
+	m_query_slices = myalloc(chain_slice, nchain);
+	for (uint i = 0; i < nchain; ++i)
+		m_query_slices[i] = chain_slice_identity(i, lengths[i]);
 	}
 
 void reseeker::set_query_mega_self_rev_scores(
@@ -132,6 +140,8 @@ void reseeker::search()
 	if (optset_output)
 		reseeker::m_fhit = CreateStdioFile(opt(output));
 
+	reseek_hit_sink_begin();
+
 	if (optset_max_nu_accepts)
 		flat_params::m_max_nu_filter_accepts = opt(max_nu_accepts);
 	else
@@ -156,6 +166,7 @@ void reseeker::search()
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
+	reseek_hit_sink_flush(reseeker::m_fhit);
 	reseeker::close_files();
 
 	ProgressLog("%10u  Nu filter max accepts\n",

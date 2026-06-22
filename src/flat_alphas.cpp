@@ -143,27 +143,6 @@ void flat_params::check_sane_scores()
 		}
 	}
 
-void flat_params::set_symbolsvec()
-	{
-	asserta(m_nfeat > 0);
-	m_symbolsvec.clear();
-	m_symbolsvec.resize(m_nfeat);
-	for (uint fi = 0; fi < m_nfeat; ++fi)
-		get_logodds_symbols(
-			m_unweighted_logoddsvec[fi],
-			m_alpha_sizes[fi],
-			m_symbolsvec[fi]);
-	}
-
-const string &flat_params::get_symbols(uint fi)
-	{
-	asserta(fi < m_nfeat);
-	if (m_symbolsvec.empty())
-		set_symbolsvec();
-	asserta(m_symbolsvec.size() == m_nfeat);
-	return m_symbolsvec[fi];
-	}
-
 void flat_params::get_logodds_symbols(
 	const float *logodds, uint alpha_size, string &symbols)
 	{

@@ -133,7 +133,6 @@ void flat_params::init_from_collect(
 
 	apply_unit_weights();
 	set_feature_block_offsets();
-	set_symbolsvec();
 
 	ProgressLog("%s: %s\n", C.m_name.c_str(), compound.c_str());
 	}
@@ -194,7 +193,6 @@ void flat_params::init_from_fnprefixes(
 
 	apply_unit_weights();
 	set_feature_block_offsets();
-	set_symbolsvec();
 
 	ProgressLog("Loaded %s\n", compound.c_str());
 	}

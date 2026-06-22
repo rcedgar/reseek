@@ -42,7 +42,7 @@ python3 ./check_flat_convert.py >> $log
 python3 ./update_success_list.py $ver $date
 
 END_SECS=$SECONDS
-ELAPSED_SECS=$((END_SECS - START_SECS))
+ELAPSED_TOTAL=$((END_SECS - START_SECS))
 HOURS=$((ELAPSED_TOTAL / 3600))
 MINUTES=$(((ELAPSED_TOTAL % 3600) / 60))
 SECONDS_LEFT=$((ELAPSED_TOTAL % 60))

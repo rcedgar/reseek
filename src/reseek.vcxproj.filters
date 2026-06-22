@@ -464,6 +464,12 @@
     <ClCompile Include="flat_search_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="reseek_hit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseek_hit_sink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="reseeker_thread_body.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -803,6 +809,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hitdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reseeker_thread_body_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reseek_hit_sink.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="binner.h">

@@ -3,6 +3,12 @@
 import re
 import sys
 
+sfonly = False
+if len(sys.argv) > 1:
+	assert len(sys.argv) == 2
+	assert sys.argv[1] == "sf"
+	sfonly = True
+
 outdir = "../big_scop40x/"
 
 platform = "linux"
@@ -55,6 +61,9 @@ tup2top3 = {}
 platforms = (platform, )
 truths = ("fam", "sf", "fold")
 modes = ("kappa", "all")
+
+if sfonly:
+	truths = ("sf", )
 
 for platform in platforms:
 	for truth in truths:
