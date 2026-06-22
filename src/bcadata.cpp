@@ -463,10 +463,11 @@ void cmd_bca_stats()
 	BCAData BCA;
 	BCA.Open(g_Arg1);
 	uint ChainCount = BCA.GetChainCount();
-	ProgressLog("%10u  Chains with_nu=%c (%s)\n",
+	ProgressLog("%10u  Chains (%s) with_nu=%c\n",
 		ChainCount,
-		tof(BCA.m_HasNuSequences),
-		FloatToStr(ChainCount));
+		FloatToStr(ChainCount),
+		tof(BCA.m_HasNuSequences));
+
 	uint64 SumL = 0;
 	for (uint i = 0; i < ChainCount; ++i)
 		SumL += BCA.m_SeqLengths[i];

@@ -352,7 +352,7 @@ void reseeker_thread_body_impl(uint threadidx, bool use_nusort)
 		struct_data::free_struct_data(target_data);
 		}
 
-	reseek_hit_sink_thread_end();
+	reseek_hit_sink_thread_end(threadidx);
 
 	chaq::free_chaq_vecs2(cv);
 	myfree(scratch_buffer);

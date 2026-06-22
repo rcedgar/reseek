@@ -140,7 +140,8 @@ void reseeker::search()
 	if (optset_output)
 		reseeker::m_fhit = CreateStdioFile(opt(output));
 
-	reseek_hit_sink_begin();
+	const uint ThreadCount = GetRequestedThreadCount();
+	reseek_hit_sink_begin(ThreadCount);
 
 	if (optset_max_nu_accepts)
 		flat_params::m_max_nu_filter_accepts = opt(max_nu_accepts);
@@ -154,7 +155,6 @@ void reseeker::search()
 	ProgressStep(0, m_ndbidxs, "reseek");
 
 	vector<thread *> ts;
-	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		//thread *t = new thread(static_thread_body, ThreadIndex);

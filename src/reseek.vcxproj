@@ -357,6 +357,7 @@
     <ClCompile Include="chain_data.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="reseek_hit.cpp" />
+    <ClCompile Include="reseek_hit_merge.cpp" />
     <ClCompile Include="reseek_hit_sink.cpp" />
     <ClCompile Include="reseeker_thread_body.cpp" />
     <ClCompile Include="reseeker_thread_body_nusort.cpp" />
