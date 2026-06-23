@@ -2,7 +2,6 @@
 
 #include "parasail_nomalloc.h"
 #include "bcadata.h"
-#include "hitdata.h"
 
 class flat_chain_t;
 
@@ -26,7 +25,6 @@ public:
 	static parasail_profile_t **m_query_parasail_prof_revs;
 	static const sid_t **m_query_distmxs;
 	static const uint *m_query_lengths;
-	static chain_slice *m_query_slices;
 	static const float **m_query_mega_pssms;
 	static const float **m_query_mega_pssm_revs;
 	static int *m_query_self_rev_scores;

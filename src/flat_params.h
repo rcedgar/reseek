@@ -77,6 +77,7 @@ public:
 	uint32_t *m_axes = 0;
 	uint16_t *m_medians = 0;
 	uint16_t **m_thresholds = 0;
+	vector<string> m_symbolsvec;
 
 public:
 	void init_from_varstr(const string &varstr);
@@ -107,6 +108,8 @@ public:
 	void apply_weights(const unordered_map<string, float> &name2weight);
 
 	void apply_unit_weights();
+
+	const string &get_symbols(uint fi);
 
 	float prof_col_score(
 		const uint8_t *profQ, uint LQ, uint posQ,
@@ -158,6 +161,7 @@ public:
 
 	void check_sane_scores();
 
+	void set_symbolsvec();
 	void set_feature_block_offsets();
 
 	void get_compound_logodds_slow(vector<float> &logodds);
