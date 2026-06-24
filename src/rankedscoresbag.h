@@ -10,7 +10,11 @@
 ///////////////////////////////////////
 
 #define	CHECK_SCORE_VECS	0
-#define STORE_PAIR_SCORES	1	// TODO
+#define STORE_PAIR_SCORES	0
+#if STORE_PAIR_SCORES
+// Init(nquery) — does not pass DB size, so TopScoreVec rows are too small.
+#error "Unfixed STORE_PAIR_SCORES bug"
+#endif
 
 struct RankedScoreBatchEntry
 	{
