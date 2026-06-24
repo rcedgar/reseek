@@ -3,8 +3,39 @@
 #include "flat_chain.h"
 #include "flat_chain_reader.h"
 #include "flat_helpers.h"
+#include "flat_params.h"
+
+atomic<uint> g_flat_n_truncated_chains;
+
+uint flat_chain_cap_L(uint L)
+	{
+	if (L > flat_params::m_maxL)
+		{
+		g_flat_n_truncated_chains.fetch_add(1, memory_order_relaxed);
+		return flat_params::m_maxL;
+		}
+	return L;
+	}
+
+void log_flat_n_truncated_chains()
+	{
+	uint n = g_flat_n_truncated_chains.load();
+	if (n > 0)
+		ProgressLogPrefix("%u chains truncated to max length %u\n",
+			n, flat_params::m_maxL);
+	}
 
 void ChainizeLabel(string &Label, const string &_ChainStr);
+
+flat_chain_t::~flat_chain_t()
+	{
+	delete m_aa;
+	delete m_xyz;
+	delete m_nu;
+	m_aa = 0;
+	m_xyz = 0;
+	m_nu = 0;
+	}
 
 static bool GetFieldsFromATOMLine(const string &Line,
   float &X, float &Y, float &Z, char &aa)

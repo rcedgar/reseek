@@ -40,7 +40,9 @@ bool kappa_seqsource::GetNextLo(SeqInfo *SI)
 		if (idx >= m_bcb->GetChainCount()) return false;
 		const string &label = m_bcb->GetLabel(idx);
 		SI->SetLabel(label.c_str());
-		const uint L = m_bcb->GetSeqLength(idx);
+		uint L = m_bcb->GetSeqLength(idx);
+		if (L > flat_params::m_maxL)
+			L = flat_params::m_maxL;
 		SI->AllocL(L);
 		uint L2 = m_bcb->read_codeseq_nu(SI->m_SeqBuffer, idx, L);
 		asserta(L2 == L);

@@ -3,6 +3,7 @@
 #include "flat_nu_aligner.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
+#include "flat_chain.h"
 
 uint reseeker::m_query_nchain = 0;
 const BCAData *reseeker::m_dbbca = 0;
@@ -166,6 +167,7 @@ void reseeker::search()
 	ProgressLog("%10u  Nu filter pass\n", m_npass.load());
 	ProgressLog("%10u  Mega filter reject\n", m_reject_min_ts.load());
 	ProgressLog("%10u  Mega filter pass\n", m_accept_min_ts.load());
+	log_flat_n_truncated_chains();
 	}
 
 void reseeker::search_all_vs_all(const BCAData &dbbca)

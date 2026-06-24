@@ -110,7 +110,7 @@ static void ThreadBody(uint ThreadIndex)
 
 		const uint L = chain->get_length();
 		asserta(L > 0);
-		asserta(L < flat_params::m_maxL);
+		asserta(L <= flat_params::m_maxL);
 
 		s_LockStats.lock();
 		++s_InputCount;

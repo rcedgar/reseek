@@ -54,7 +54,7 @@ void flat_chain_reader::CacheNuOnChain(flat_chain_t *chain)
 	const uint L = chain->get_length();
 	if (L == 0)
 		return;
-	asserta(L < flat_params::m_maxL);
+	asserta(L <= flat_params::m_maxL);
 	InitNuScratch();
 	if (m_State == STATE_ReadingBCAFile && m_BCA.m_HasNuSequences)
 		{
@@ -523,6 +523,8 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 					bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
 					if (Ok)
 						Chains.push_back(Chain);
+					else
+						delete Chain;
 					ChainLines.clear();
 					EndOfChainFound = false;
 					AnyAtoms = false;
@@ -540,6 +542,9 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 		flat_chain_t* Chain = flat_chain_t::newflat(0);
 		bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
 		ChainLines.clear();
-		Chains.push_back(Chain);
+		if (Ok)
+			Chains.push_back(Chain);
+		else
+			delete Chain;
 		}
 	}

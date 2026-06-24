@@ -17,6 +17,8 @@ void cmd_flat_search_kappa()
 	QBCA.Open(QFN);
 	asserta(QBCA.m_HasNuSequences);
 
+	g_flat_n_truncated_chains = 0;
+
 	flat_params params;
 	params.init_from_cmdline();
 	params.logme();

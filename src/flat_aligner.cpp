@@ -34,7 +34,7 @@ void flat_aligner::freemem()
 
 void flat_aligner::cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT)
 	{
-	asserta(LT < flat_params::m_maxL); // TODO=maxL
+	asserta(LT <= flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
@@ -51,7 +51,7 @@ void flat_aligner::cache_reverseT(
 	const uint8_t *nu_codeseq_rev,
 	uint LT)
 	{
-	asserta(LT < flat_params::m_maxL); // TODO=maxL
+	asserta(LT <= flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;
@@ -74,7 +74,7 @@ void flat_aligner::cacheT(
 	const uint8_t *nu_codeseq,
 	uint LT)
 	{
-	asserta(LT < flat_params::m_maxL); // TODO=maxL
+	asserta(LT <= flat_params::m_maxL); // TODO=maxL
 	m_labelT = labelT;
 	m_profT = profT;
 	m_LT = LT;

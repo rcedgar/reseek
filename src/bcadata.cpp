@@ -310,7 +310,8 @@ uint BCAData::read_codeseq_nu(
 	{
 	asserta(m_Reading && !m_Writing);
 	uint L = GetSeqLength(idx);
-	asserta(L <= buffer_length); // TODO=maxL
+	if (L > buffer_length)
+		L = buffer_length;
 	uint64 offset = get_offset_nuseq(idx);
 	uint64 nL = ReadStdioFile64_NoFail(m_f, offset, codeseq_nu, L);
 	if (nL != L)
@@ -329,7 +330,7 @@ uint BCAData::read_codeseq_nu(
 flat_chain_t* BCAData::read_flat_chain(uint64 ChainIdx) const
 	{
 	asserta(m_Reading && !m_Writing);
-	uint L = GetSeqLength(ChainIdx);
+	uint L = flat_chain_cap_L(GetSeqLength(ChainIdx));
 	auto chain = flat_chain_t::newflat(L);
 	uint64 SeqOffset = GetSeqOffset(ChainIdx);
 	m_ReadLock.lock();

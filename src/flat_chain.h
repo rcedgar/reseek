@@ -43,6 +43,8 @@ protected:
 		}
 
 public:
+	~flat_chain_t();
+
 	void falloc(uint L)
 		{
 		asserta(m_L == 0);
@@ -226,6 +228,11 @@ public:
 		}
 #endif
 	};
+
+extern atomic<uint> g_flat_n_truncated_chains;
+
+uint flat_chain_cap_L(uint L);
+void log_flat_n_truncated_chains();
 
 void read_flat_chains(const string &fn, vector<flat_chain_t *> &chains);
 
