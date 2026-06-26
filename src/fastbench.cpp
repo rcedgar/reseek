@@ -505,9 +505,11 @@ void FastBench::ReadHits(
 	uint64 FileSize = GetStdioFileSize64(f);
 	time_t lastt = time(0);
 	set<string> missing;
+	uint linenr = 0;
 	while (ReadLineStdioFile(f, line))
 		{
-		if (StartsWith("line", "# ") || StartsWith(line, "q"))
+		++linenr;
+		if (line[0] == '#' || StartsWith(line, "q"))
 			continue;
 		if (++counter%100000 == 0)
 			{
@@ -521,7 +523,9 @@ void FastBench::ReadHits(
 				}
 			}
 		Split(line, flds, '\t');
-		asserta(flds.size() > maxidx);
+		if (flds.size() < maxidx)
+			Die("line %u not enough fields (%u) '%s'",
+				linenr, uint(flds.size()), line.c_str());
 		const string &q = flds[qidx];
 		if (q == "query") continue;
 		const string &t = flds[tidx];
@@ -760,6 +764,7 @@ void guess_fields(
 		{
 		bool ok = ReadLineStdioFile(f, line);
 		asserta(ok);
+		if (line[0] == '#') continue;
 		Split(line, flds, '\t');
 		asserta(flds.size() >= 3);
 		if (IsValidFloatStr(flds[0]))
