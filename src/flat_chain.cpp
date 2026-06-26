@@ -71,6 +71,15 @@ static bool GetFieldsFromATOMLine(const string &Line,
 	return true;
 	}
 
+void flat_chain_t::truncate(uint L)
+	{
+	if (L >= m_L) return;
+	if (m_aa) m_aa->truncate(L);
+	if (m_xyz) m_xyz->truncate(L);
+	if (m_nu) m_nu->truncate(L);
+	m_L = L;
+	}
+
 void flat_chain_t::set_xyz(const vector<float> &Xs,
 	const vector<float> &Ys, const vector<float> &Zs)
 	{

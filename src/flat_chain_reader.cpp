@@ -176,8 +176,14 @@ flat_chain_t* flat_chain_reader::GetNext()
 		if (!Chain)
 			return 0;
 
-		if (Chain->get_length() == 0)
+		uint L = Chain->get_length();
+		if (L == 0)
+			{
+			delete Chain;
 			continue;
+			}
+		if (L > flat_params::m_maxL)
+			Chain->truncate(flat_params::m_maxL);
 		CacheNuOnChain(Chain);
 		return Chain;
 		}

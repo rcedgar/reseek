@@ -58,6 +58,7 @@ public:
 #endif
 		}
 
+	void truncate(uint L);
 	void set_xyz(const vector<float> &Xs,
 		const vector<float> &Ys, const vector<float> &Zs);
 	void set_aa(const vector<char> &aas);

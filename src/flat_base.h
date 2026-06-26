@@ -99,6 +99,12 @@ public:
 		return m_refcount;
 		}
 
+	void truncate(uint L)
+		{
+		if (m_size <= L) return;
+		m_size = L;
+		}
+
 	void falloc(uint32_t n)
 		{
 		asserta(m_size == 0);
