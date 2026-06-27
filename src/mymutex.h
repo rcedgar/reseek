@@ -35,4 +35,10 @@ public:
 		}
 
 	void logme(const char *name = "mymutex");
+
+	void reset_stats()
+		{
+		m_nrcalls = 0;
+		m_blocked_ticks = 0;
+		}
 	};

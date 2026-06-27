@@ -1,14 +1,14 @@
 #ifndef seqsource_h
 #define seqsource_h
 
-#include <mutex>
+#include "mymutex.h"
 #include "objmgr.h"
 
 class SeqInfo;
 
 class SeqSource
 	{
-	mutex m_Lock;
+	mymutex m_Lock;
 
 public:
 	bool m_DoGetLock;
@@ -35,6 +35,8 @@ public:
 
 public:
 	bool GetNext(SeqInfo *SI);
+	void ResetLockStats();
+	void LogLockStats(const char *name = "SeqSource GetNext lock");
 	};
 
 SeqSource *MakeSeqSource(const string &FileName);

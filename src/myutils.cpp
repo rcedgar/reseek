@@ -2468,19 +2468,22 @@ unsigned GetRequestedThreadCount()
 	if (Done)
 		return N;
 	static bool MsgDone = false;
-	const char *env = std::getenv("RESEEK_THREADS");
-	if (env != 0)
+	if (!optset_threads)
 		{
-		N = StrToInt(env);
-		if (N == 0)
-			Die("RESEEK_THREADS=0");
-		if (!MsgDone)
+		const char *env = std::getenv("RESEEK_THREADS");
+		if (env != 0)
 			{
-			Progress("RESEEK_THREADS=%u\n", N);
-			MsgDone = true;
+			N = StrToInt(env);
+			if (N == 0)
+				Die("RESEEK_THREADS=0");
+			if (!MsgDone)
+				{
+				Progress("RESEEK_THREADS=%u\n", N);
+				MsgDone = true;
+				}
+			Done = true;
+			return N;
 			}
-		Done = true;
-		return N;
 		}
 	unsigned CoreCount = GetCPUCoreCount();
 	if (optset_threads)

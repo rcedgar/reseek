@@ -138,4 +138,5 @@ public:
 		const uint *query_lengths,
 		uint NQ, kappa_seqsource &db_ss);
 	static void static_thread_body(uint threadidx);
+	static void static_bcb_thread_body(uint threadidx);
 	};

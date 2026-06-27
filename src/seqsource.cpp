@@ -25,9 +25,9 @@ SeqSource::~SeqSource()
 
 bool SeqSource::GetNext(SeqInfo *SI)
 	{
-	m_Lock.lock();
+	m_Lock.mylock();
 	bool Ok = GetNextLo(SI);
-	m_Lock.unlock();
+	m_Lock.myunlock();
 
 	if (!Ok)
 		{
@@ -38,4 +38,14 @@ bool SeqSource::GetNext(SeqInfo *SI)
 
 	++m_SeqCount;
 	return true;
+	}
+
+void SeqSource::LogLockStats(const char *name)
+	{
+	m_Lock.logme(name);
+	}
+
+void SeqSource::ResetLockStats()
+	{
+	m_Lock.reset_stats();
 	}

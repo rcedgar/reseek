@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mymutex.h"
+
 ///////////////////////////////////////
 // RankedScoresBag is a container for
 // sorted lists of high-scoring
@@ -32,7 +34,7 @@ public:
 	vector<uint16_t> m_QueryIdxToLoScore;
 	uint m_QueryCount = UINT_MAX;
 
-	mutex m_DataLock;
+	mymutex m_DataLock;
 #if CHECK_SCORE_VECS
 	vector<vector<uint16_t> > m_QueryIdxToFullScoreVec;
 	vector<vector<uint> > m_QueryIdxToFullTargetIdxVec;
@@ -56,6 +58,7 @@ public:
 	void AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score);
 	// Sorts by QueryIdx, applies under one lock, clears Batch.
 	void AddScoresBatch(vector<RankedScoreBatchEntry> &Batch);
+	void LogLockStats(const char *name = "RankedScoresBag m_DataLock");
 	void ToTsv(FILE *fTsv);
 	void ToLabelsTsv(FILE *fTsv,
 					 const vector<string> &QLabels,

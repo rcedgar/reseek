@@ -602,6 +602,60 @@ void kappa_filter::static_thread_body(uint threadidx)
 		}
 	}
 
+void kappa_filter::static_bcb_thread_body(uint threadidx)
+	{
+	asserta(kappa_filter::m_QSeqCount > 0);
+	asserta(m_db_seqsource != 0);
+	asserta(m_db_seqsource->m_KSSS == KSSS_bcb);
+
+	kappa_seqsource &db = *m_db_seqsource;
+
+	kappa_filter Pref;
+	Pref.m_ScoreMx = m_ptrScoreMx;
+	Pref.m_QKmerIndex = m_ptrQKmerIndex;
+	Pref.m_KmerSelfScores = m_ptrQKmerIndex->m_KmerSelfScores;
+	Pref.alloc();
+
+	uint counter = 0;
+	for (;;)
+		{
+		KssBcbBatch *batch = db.claim_bcb_batch();
+		if (batch == 0)
+			return;
+
+		for (uint i = 0; i < batch->count; ++i)
+			{
+			const KssBcbSlot &slot = batch->slots[i];
+			asserta(slot.label != 0);
+
+			db.m_bcbidx = slot.idx + 1;
+
+			if ((counter++)%10 == 0)
+				{
+				time_t now = time(0);
+				if (now > m_time_last_progress)
+					{
+					static mutex s_progress_lock;
+					s_progress_lock.lock();
+					uint pctx10 = db.GetPctDoneX10();
+					if (pctx10 >= 999) pctx10 = 998;
+					ProgressStep(pctx10, 1000, "Kappa filter");
+					s_progress_lock.unlock();
+					m_time_last_progress = now;
+					}
+				}
+
+			if (slot.L < flat_params::m_kappa_min_chainlength)
+				continue;
+
+			Pref.Search(slot.idx, *slot.label,
+				slot.kappa.data(), slot.L);
+			}
+
+		db.release_bcb_batch(batch);
+		}
+	}
+
 void kappa_filter::run_filter(
 	uint8_t **query_kappa_codeseqs,
 	const uint *query_lengths,
@@ -617,18 +671,28 @@ void kappa_filter::run_filter(
 	time_t t_start = time(0);
 	m_time_last_progress = t_start;
 
+	db_ss.ResetLockStats();
+	m_RSB.m_DataLock.reset_stats();
+
+	const bool use_bcb_batch = (db_ss.m_KSSS == KSSS_bcb);
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		thread *t = new thread(static_thread_body, ThreadIndex);
-		ts.push_back(t);
+		if (use_bcb_batch)
+			ts.push_back(new thread(static_bcb_thread_body, ThreadIndex));
+		else
+			ts.push_back(new thread(static_thread_body, ThreadIndex));
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		ts[ThreadIndex]->join();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		delete ts[ThreadIndex];
 	ProgressStep(999, 1000, "Kappa filter");
+
+	ProgressLog("Kappa filter lock stats:\n");
+	db_ss.LogLockStats();
+	m_RSB.LogLockStats();
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));

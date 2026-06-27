@@ -12,7 +12,10 @@ void mymutex::logme(const char *name)
 	time_t secs = t1 - m_t0;
 	if (secs == 0)
 		secs = 1;
-	double ticks_per_sec = double(ticks1)/secs;
+	TICKS elapsed_ticks = ticks1 - m_ticks0;
+	if (elapsed_ticks == 0)
+		elapsed_ticks = 1;
+	double ticks_per_sec = double(elapsed_ticks)/secs;
 
 	ProgressLog("%s: %u calls, blocked %.3g ticks, %.2f secs (%.3g ticks/sec)\n",
 		name,

@@ -3,9 +3,234 @@
 #include "seqinfo.h"
 #include "alpha.h"
 #include "flat_params.h"
+#include "chaq.h"
 
 bool FastaFileIsNucleo(FILE *f);
 char GetFeatureChar(byte Letter, uint AlphaSize);
+
+// Fills one batch by sequentially reading nu sequences and
+// converting to kappa. Runs ONLY on the reader thread, which is
+// the sole user of the BCB FILE* during the scan, so no file lock
+// is needed. Returns the number of slots filled (0 at end of scan).
+uint kappa_seqsource::fill_bcb_batch(KssBcbBatch *batch)
+	{
+	const uint ChainCount = m_bcb->GetChainCount();
+	FILE *f = m_bcb->m_f;
+	const uint maxL = flat_params::m_maxL;
+
+	if (batch->slots.size() < KSS_BCB_BATCH)
+		batch->slots.resize(KSS_BCB_BATCH);
+
+	uint n = 0;
+	for (; n < KSS_BCB_BATCH; ++n)
+		{
+		if (m_bcb_scan_next_idx >= ChainCount)
+			break;
+
+		const uint idx = m_bcb_scan_next_idx++;
+		uint L = m_bcb->GetSeqLength(idx);
+		if (L > maxL)
+			L = maxL;
+
+#if DEBUG
+		asserta(GetStdioFilePos64(f) == m_bcb->get_offset_nuseq(idx));
+#endif
+
+		KssBcbSlot &slot = batch->slots[n];
+		slot.idx = idx;
+		slot.L = L;
+		slot.label = &m_bcb->GetLabel(idx);
+		slot.kappa.resize(L);
+
+		if (L > 0)
+			{
+			const uint64 nL = (uint64) fread(slot.kappa.data(), 1, L, f);
+			if (nL != L)
+				Die("kappa_seqsource::fill_bcb_batch() idx=%u L=%u", idx, L);
+			chaq::codeseq_nu_to_kappa_inplace(slot.kappa.data(), L);
+			}
+
+		if (m_bcb_scan_next_idx < ChainCount)
+			{
+			const uint Lskip = m_bcb->GetSeqLength(m_bcb_scan_next_idx);
+			SetStdioFilePos64(f, GetStdioFilePos64(f) + 7ull*Lskip);
+#if DEBUG
+			asserta(GetStdioFilePos64(f) ==
+				m_bcb->get_offset_nuseq(m_bcb_scan_next_idx));
+#endif
+			}
+		}
+	batch->count = n;
+	return n;
+	}
+
+void kappa_seqsource::bcb_reader_body()
+	{
+	asserta(m_bcb != 0);
+	FILE *f = m_bcb->m_f;
+	asserta(f != 0);
+	const uint ChainCount = m_bcb->GetChainCount();
+
+	m_bcb_scan_next_idx = 0;
+	if (ChainCount > 0)
+		SetStdioFilePos64(f, m_bcb->get_offset_nuseq(0));
+
+	for (;;)
+		{
+		KssBcbBatch *batch = 0;
+			{
+			std::unique_lock<mutex> lk(m_bcb_qmutex);
+			m_bcb_cv_free.wait(lk,
+				[this]{ return !m_bcb_free.empty() || m_bcb_stop; });
+			if (m_bcb_stop)
+				return;
+			batch = m_bcb_free.front();
+			m_bcb_free.pop_front();
+			}
+
+		const uint n = fill_bcb_batch(batch);
+		const bool done = (m_bcb_scan_next_idx >= ChainCount);
+
+			{
+			std::lock_guard<mutex> lk(m_bcb_qmutex);
+			if (n > 0)
+				m_bcb_filled.push_back(batch);
+			else
+				m_bcb_free.push_back(batch);
+			if (done)
+				m_bcb_reader_eof = true;
+			}
+		m_bcb_cv_filled.notify_all();
+
+		if (done)
+			return;
+		}
+	}
+
+void kappa_seqsource::start_bcb_reader()
+	{
+	if (m_bcb_reader_started)
+		return;
+	m_bcb_reader_started = true;
+	m_bcb_reader_eof = false;
+	m_bcb_stop = false;
+	m_bcb_scan_next_idx = 0;
+	m_bcb_cur = 0;
+	m_bcb_cur_pos = 0;
+
+	m_bcb_all_batches.clear();
+	m_bcb_free.clear();
+	m_bcb_filled.clear();
+	for (uint i = 0; i < KSS_BCB_NUM_BUFFERS; ++i)
+		{
+		KssBcbBatch *b = new KssBcbBatch;
+		m_bcb_all_batches.push_back(b);
+		m_bcb_free.push_back(b);
+		}
+
+	m_bcb_reader = new thread(&kappa_seqsource::bcb_reader_body, this);
+	}
+
+void kappa_seqsource::stop_bcb_reader()
+	{
+	if (!m_bcb_reader_started)
+		return;
+		{
+		std::lock_guard<mutex> lk(m_bcb_qmutex);
+		m_bcb_stop = true;
+		}
+	m_bcb_cv_free.notify_all();
+	if (m_bcb_reader != 0)
+		{
+		if (m_bcb_reader->joinable())
+			m_bcb_reader->join();
+		delete m_bcb_reader;
+		m_bcb_reader = 0;
+		}
+	for (size_t i = 0; i < m_bcb_all_batches.size(); ++i)
+		delete m_bcb_all_batches[i];
+	m_bcb_all_batches.clear();
+	m_bcb_free.clear();
+	m_bcb_filled.clear();
+	m_bcb_cur = 0;
+	m_bcb_cur_pos = 0;
+	m_bcb_reader_eof = false;
+	m_bcb_stop = false;
+	m_bcb_reader_started = false;
+	}
+
+KssBcbBatch *kappa_seqsource::claim_bcb_batch()
+	{
+	if (!m_bcb_reader_started)
+		start_bcb_reader();
+
+	std::unique_lock<mutex> lk(m_bcb_qmutex);
+	m_bcb_cv_filled.wait(lk,
+		[this]{ return !m_bcb_filled.empty() || m_bcb_reader_eof; });
+	if (m_bcb_filled.empty())
+		return 0;
+	KssBcbBatch *batch = m_bcb_filled.front();
+	m_bcb_filled.pop_front();
+	return batch;
+	}
+
+void kappa_seqsource::release_bcb_batch(KssBcbBatch *batch)
+	{
+	asserta(batch != 0);
+		{
+		std::lock_guard<mutex> lk(m_bcb_qmutex);
+		m_bcb_free.push_back(batch);
+		}
+	m_bcb_cv_free.notify_one();
+	}
+
+// Runs under SeqSource::m_Lock, so the consumer-side cursor
+// (m_bcb_cur / m_bcb_cur_pos) is single-threaded here. The lock
+// is held only for a dequeue + memcpy; all disk I/O happens on
+// the reader thread, overlapping with worker search.
+bool kappa_seqsource::get_next_bcb(SeqInfo *SI)
+	{
+	if (!m_bcb_reader_started)
+		start_bcb_reader();
+
+	if (m_bcb_cur == 0 || m_bcb_cur_pos >= m_bcb_cur->count)
+		{
+		if (m_bcb_cur != 0)
+			{
+				{
+				std::lock_guard<mutex> lk(m_bcb_qmutex);
+				m_bcb_free.push_back(m_bcb_cur);
+				}
+			m_bcb_cv_free.notify_one();
+			m_bcb_cur = 0;
+			}
+
+			{
+			std::unique_lock<mutex> lk(m_bcb_qmutex);
+			m_bcb_cv_filled.wait(lk,
+				[this]{ return !m_bcb_filled.empty() || m_bcb_reader_eof; });
+			if (m_bcb_filled.empty())
+				return false;
+			m_bcb_cur = m_bcb_filled.front();
+			m_bcb_filled.pop_front();
+			}
+		m_bcb_cur_pos = 0;
+		}
+
+	const KssBcbSlot &slot = m_bcb_cur->slots[m_bcb_cur_pos++];
+	asserta(slot.label != 0);
+
+	SI->m_Index = slot.idx;
+	SI->SetLabel(slot.label->c_str());
+	SI->AllocL(slot.L);
+	if (slot.L > 0)
+		memcpy(SI->m_SeqBuffer, slot.kappa.data(), slot.L);
+	SI->m_L = slot.L;
+	SI->m_Seq = SI->m_SeqBuffer;
+
+	m_bcbidx = slot.idx + 1;
+	return true;
+	}
 
 // Caller must own memory because SeqSource may be shared
 // between threads, so SeqInfo should be thread-private.
@@ -34,22 +259,7 @@ bool kappa_seqsource::GetNextLo(SeqInfo *SI)
 		}
 
 	case KSSS_bcb:
-		{
-		uint idx = m_bcbidx++;
-		SI->m_Index = idx;
-		if (idx >= m_bcb->GetChainCount()) return false;
-		const string &label = m_bcb->GetLabel(idx);
-		SI->SetLabel(label.c_str());
-		uint L = m_bcb->GetSeqLength(idx);
-		if (L > flat_params::m_maxL)
-			L = flat_params::m_maxL;
-		SI->AllocL(L);
-		uint L2 = m_bcb->read_codeseq_nu(SI->m_SeqBuffer, idx, L);
-		asserta(L2 == L);
-		SI->m_L = L;
-		chaq::codeseq_nu_to_kappa_inplace(SI->m_SeqBuffer, L);
-		return true;
-		}
+		return get_next_bcb(SI);
 
 	case KSSS_seqdb:
 		{
@@ -107,8 +317,10 @@ void kappa_seqsource::OpenChains(const string &FileName)
 
 void kappa_seqsource::OpenBCB(const BCAData &bcb)
 	{
+	stop_bcb_reader();
 	m_KSSS = KSSS_bcb;
 	m_bcb = &bcb;
+	m_bcbidx = 0;
 	}
 
 void kappa_seqsource::OpenSeqDB(const SeqDB &DB, bool codes)
@@ -156,4 +368,6 @@ uint kappa_seqsource::GetPctDoneX10()
 
 void kappa_seqsource::Close()
 	{
+	stop_bcb_reader();
+	m_bcb = 0;
 	}
