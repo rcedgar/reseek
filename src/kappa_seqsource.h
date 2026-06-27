@@ -57,7 +57,12 @@ public:
 //   remains for other callers.
 /////////////////////////////////////////////////////////////
 	static const uint KSS_BCB_BATCH = 1024;
-	static const uint KSS_BCB_NUM_BUFFERS = 16;
+// Buffer pool size scales with worker count: a worker holds one batch
+// for its entire inner loop, so the number of buffers caps how many
+// workers can run concurrently. Use several per thread so all workers
+// can hold a batch while the reader still has filled/free batches to
+// work ahead. Actual count = KSS_BCB_BUFFERS_PER_THREAD * nthreads.
+	static const uint KSS_BCB_BUFFERS_PER_THREAD = 4;
 
 // Reader-thread-private scan cursor
 	uint m_bcb_scan_next_idx = 0;

@@ -472,21 +472,59 @@ void BCAData::make_kappa_codeseqs(
 	uint8_t ***ptr_kappa_codeseqs,
 	uint **ptr_lengths) const
 	{
+	load_kappa_codeseqs(ptr_kappa_codeseqs, ptr_lengths);
+	}
+
+void BCAData::load_kappa_codeseqs(
+	uint8_t ***ptr_kappa_codeseqs,
+	uint **ptr_lengths) const
+	{
+	asserta(m_Reading && !m_Writing);
+	asserta(m_HasNuSequences);
 	const uint nchain = GetChainCount();
 	uint8_t **kappa_codeseqs = myalloc(uint8_t *, nchain);
 	uint *lengths = myalloc(uint, nchain);
 
-	for (uint chainidx = 0; chainidx < nchain; ++chainidx)
+	const uint maxL = flat_params::m_maxL;
+	uint8_t *buf = myalloc(uint8_t, maxL);
+	FILE *f = m_f;
+	if (nchain > 0)
+		SetStdioFilePos64(f, get_offset_nuseq(0));
+
+	for (uint idx = 0; idx < nchain; ++idx)
 		{
-		const uint L = GetSeqLength(chainidx);
-		lengths[chainidx] = L;
-		uint8_t *kappa_codeseq = myalloc(uint8_t, L);
-		read_codeseq_nu(kappa_codeseq, chainidx, L);
-		chaq::codeseq_nu_to_kappa_inplace(kappa_codeseq, L);
-		kappa_codeseqs[chainidx] = kappa_codeseq;
+		const uint origL = GetSeqLength(idx);
+		uint L = origL;
+		if (L > maxL)
+			L = maxL;
+		lengths[idx] = L;
+		kappa_codeseqs[idx] = (L > 0 ? myalloc(uint8_t, L) : 0);
+		if (L > 0)
+			{
+			const uint64 nL = (uint64) fread(buf, 1, L, f);
+			if (nL != L)
+				Die("BCAData::load_kappa_codeseqs() idx=%u L=%u", idx, L);
+			memcpy(kappa_codeseqs[idx], buf, L);
+			chaq::codeseq_nu_to_kappa_inplace(kappa_codeseqs[idx], L);
+			}
+		if (origL > L)
+			SetStdioFilePos64(f, GetStdioFilePos64(f) + uint64(origL - L));
 		}
+	myfree(buf);
 	*ptr_kappa_codeseqs = kappa_codeseqs;
 	*ptr_lengths = lengths;
+	}
+
+void BCAData::free_kappa_codeseqs(
+	uint8_t **kappa_codeseqs, uint *lengths, uint nchain)
+	{
+	if (kappa_codeseqs == 0)
+		return;
+	for (uint i = 0; i < nchain; ++i)
+		if (kappa_codeseqs[i] != 0)
+			myfree(kappa_codeseqs[i]);
+	myfree(kappa_codeseqs);
+	myfree(lengths);
 	}
 
 void BCAData::make_nu_and_kappa_codeseqs(

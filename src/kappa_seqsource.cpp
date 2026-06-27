@@ -118,7 +118,11 @@ void kappa_seqsource::start_bcb_reader()
 	m_bcb_all_batches.clear();
 	m_bcb_free.clear();
 	m_bcb_filled.clear();
-	for (uint i = 0; i < KSS_BCB_NUM_BUFFERS; ++i)
+	uint nthreads = GetRequestedThreadCount();
+	if (nthreads == 0)
+		nthreads = 1;
+	const uint num_buffers = KSS_BCB_BUFFERS_PER_THREAD * nthreads;
+	for (uint i = 0; i < num_buffers; ++i)
 		{
 		KssBcbBatch *b = new KssBcbBatch;
 		m_bcb_all_batches.push_back(b);

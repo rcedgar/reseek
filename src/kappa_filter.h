@@ -32,6 +32,10 @@ public:
 	static const uint *m_query_lengths;
 	//static uint m_NQ;
 	static kappa_seqsource *m_db_seqsource;
+	static uint8_t **m_db_kappa_codeseqs;
+	static uint *m_db_lengths;
+	static const vector<string> *m_db_labels;
+	static uint m_db_chain_count;
 	static atomic<time_t> m_time_last_progress;
 	static const kappa_mermx *m_ptrScoreMx;
 	static const kappa_dex *m_ptrQKmerIndex;
@@ -136,7 +140,14 @@ public:
 	static void run_filter(
 		uint8_t **query_kappa_codeseqs,
 		const uint *query_lengths,
-		uint NQ, kappa_seqsource &db_ss);
+		uint NQ,
+		kappa_seqsource *db_ss);
+	static void set_preloaded_db(
+		uint8_t **kappa_codeseqs,
+		uint *lengths,
+		const vector<string> *labels,
+		uint chain_count);
 	static void static_thread_body(uint threadidx);
 	static void static_bcb_thread_body(uint threadidx);
+	static void static_preload_thread_body(uint threadidx);
 	};

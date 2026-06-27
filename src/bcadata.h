@@ -70,6 +70,12 @@ public:
 	void make_kappa_codeseqs(
 		uint8_t ***ptr_kappa_codeseqs,
 		uint **ptr_lengths) const;
+// Sequential scan of contiguous nu section; use for preload benchmark.
+	void load_kappa_codeseqs(
+		uint8_t ***ptr_kappa_codeseqs,
+		uint **ptr_lengths) const;
+	static void free_kappa_codeseqs(
+		uint8_t **kappa_codeseqs, uint *lengths, uint nchain);
 	void make_nu_and_kappa_codeseqs(
 		uint8_t ***ptr_nu_codeseqs,
 		uint8_t ***ptr_kappa_codeseqs,
