@@ -6,7 +6,7 @@
 #include "flat_helpers.h"
 #include "reseeker.h"
 
-void cmd_flat_search_kappa()
+void cmd_search_kappa()
 	{
 	const string &QFN = g_Arg1;
 	const string &DBFN = opt(db);

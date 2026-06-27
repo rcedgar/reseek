@@ -21,6 +21,8 @@ uint kappa_seqsource::fill_bcb_batch(KssBcbBatch *batch)
 	if (batch->slots.size() < KSS_BCB_BATCH)
 		batch->slots.resize(KSS_BCB_BATCH);
 
+// nu records are contiguous (BCB v2), so the scan is a single pure
+// sequential read: no per-chain seek/skip between records.
 	uint n = 0;
 	for (; n < KSS_BCB_BATCH; ++n)
 		{
@@ -28,7 +30,8 @@ uint kappa_seqsource::fill_bcb_batch(KssBcbBatch *batch)
 			break;
 
 		const uint idx = m_bcb_scan_next_idx++;
-		uint L = m_bcb->GetSeqLength(idx);
+		const uint origL = m_bcb->GetSeqLength(idx);
+		uint L = origL;
 		if (L > maxL)
 			L = maxL;
 
@@ -49,16 +52,10 @@ uint kappa_seqsource::fill_bcb_batch(KssBcbBatch *batch)
 				Die("kappa_seqsource::fill_bcb_batch() idx=%u L=%u", idx, L);
 			chaq::codeseq_nu_to_kappa_inplace(slot.kappa.data(), L);
 			}
-
-		if (m_bcb_scan_next_idx < ChainCount)
-			{
-			const uint Lskip = m_bcb->GetSeqLength(m_bcb_scan_next_idx);
-			SetStdioFilePos64(f, GetStdioFilePos64(f) + 7ull*Lskip);
-#if DEBUG
-			asserta(GetStdioFilePos64(f) ==
-				m_bcb->get_offset_nuseq(m_bcb_scan_next_idx));
-#endif
-			}
+	// On-disk nu record is origL bytes; skip any remainder so the
+	// sequential scan stays aligned when L was capped to maxL.
+		if (origL > L)
+			SetStdioFilePos64(f, GetStdioFilePos64(f) + uint64(origL - L));
 		}
 	batch->count = n;
 	return n;
