@@ -1015,7 +1015,7 @@ void test_sw_flat_pssm_xdrop_active_paths(
 
 	++g_flat_xdrop_stats.active_paths_attempted;
 
-	float *scratch_rows = myalloc(float, 2 * LT + 2);
+	float *scratch_rows = myalloc(float, 2 * LT + 3);
 	const float **scratch_ppsms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, LQ * LT);
 	uint8_t *active = myalloc(uint8_t, LQ * LT);
@@ -1081,7 +1081,7 @@ void test_sw_flat_pssm_xdrop_banded_vs_ref(
 	float open, float ext,
 	uint ntrial)
 	{
-	float *scratch_rows = myalloc(float, 2 * LT + 2);
+	float *scratch_rows = myalloc(float, 2 * LT + 3);
 	const float **scratch_ppsms = myalloc(const float *, nfeat);
 	uint8_t *TBa = myalloc(uint8_t, LQ * LT);
 	uint8_t *TBb = myalloc(uint8_t, LQ * LT);
@@ -1150,7 +1150,7 @@ void test_sw_flat_pssm_xdrop_X_huge_vs_full(
 	const float X = 1e9f;
 	const uint posQ = 0, posT = 0;
 
-	// sw_flat_pssm init uses Drow[0..LT]; needs scratch_rows[2*LT+2]
+	// sw_flat_pssm init uses Drow[0..LT]; needs scratch_rows[2*LT+3]
 	float *scratch_rows = myalloc(float, 2 * LT + 3);
 	const float **scratch_ppsms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, LQ * LT);
@@ -1188,7 +1188,7 @@ void cmd_test_flat_xdrop()
 	const uint sum_as = get_flat_pssm_feature_block_offsets(
 		nfeat, alpha_sizes, feature_block_offsets);
 
-	float *scratch_rows = myalloc(float, 2 * maxL + 2);
+	float *scratch_rows = myalloc(float, 2 * maxL + 3);
 	const float **scratch_ppsms = myalloc(const float *, nfeat);
 	uint8_t *TB = myalloc(uint8_t, maxL * maxL);
 	float *pssm = myalloc(float, maxL * sum_as);

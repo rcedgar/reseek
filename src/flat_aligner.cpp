@@ -16,7 +16,7 @@ void flat_aligner::alloc()
 	m_pssmT = myalloc(float, flat_params::m_maxL*m_params->get_sum_alpha_sizes());
 	m_pssm_reverseT = myalloc(float, flat_params::m_maxL*m_params->get_sum_alpha_sizes());
 
-	m_scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
+	m_scratch_rows = myalloc(float, 2*flat_params::m_maxL + 3);
 	m_scratch_pssms = myalloc(const float *, nfeat);
 	m_TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
 	m_path_buffer = myalloc(char, 2*flat_params::m_maxL);

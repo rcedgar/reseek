@@ -69,7 +69,7 @@ void reseeker::set_query_mega_self_rev_scores(
 	asserta(m_query_mega_self_rev_scores == 0);
 	asserta(m_query_nchain > 0);
 	m_query_mega_self_rev_scores = myalloc(float, m_query_nchain);
-	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
+	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 3);
 	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
 
 	Progress("Query Mega self-scores...");
@@ -102,7 +102,7 @@ void reseeker::set_query_self_rev_scores(
 	const int ext = flat_nu_aligner::m_ext;
 	uint workspace_bytes =
 		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(flat_params::m_maxL);
-	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
+	uint8_t *workspace = myalloca(uint8_t, workspace_bytes);
 
 	Progress("Query Nu self-scores...");
 	for (uint qidx = 0; qidx < m_query_nchain; ++qidx)
@@ -116,7 +116,7 @@ void reseeker::set_query_self_rev_scores(
 		m_query_self_rev_scores[qidx] = nu_rev_score;
 		}
 	Progress(" done.\n");
-	myfree(workspace);
+	myfreea(workspace);
 	}
 
 void reseeker::search()

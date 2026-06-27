@@ -21,8 +21,8 @@ void reseeker::static_thread_body(uint threadidx)
 		parasail_nomalloc_sw_striped_profile_avx2_256_16_workspace_bytes(flat_params::m_maxL);
 	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
 
-	uint8_t *workspace = myalloc(uint8_t, workspace_bytes);
-	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 2);
+	uint8_t *workspace = myalloca(uint8_t, workspace_bytes);
+	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 3);
 	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
 	uint8_t *TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
 	char *path_buffer = myalloc(char, 2*flat_params::m_maxL);

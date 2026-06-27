@@ -577,7 +577,7 @@ void traceback_flat(const uint8_t *__restrict TB,
 		}
 	}
 
-// scratch_rows length 2*LB + 2
+// scratch_rows length 2*LB + 3
 // TB length LA*LB
 float sw_flat(
 	float *__restrict scratch_rows,
@@ -695,7 +695,7 @@ float sw_flat(
 	return BestScore;
 	}
 
-// scratch_rows length 2*LT + 2
+// scratch_rows length 2*LT + 3
 // TB length LQ*LT
 // scratch_ppsms length nfeat
 float sw_flat_pssm(

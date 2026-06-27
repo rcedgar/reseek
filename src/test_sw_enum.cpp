@@ -261,7 +261,7 @@ void cmd_test_sw_enum()
 	s_alpha_sizes[2] = 5;
 
 	s_feature_block_offsets = myalloc(uint32_t, s_nfeat);
-	s_scratch_rows = myalloc(float, 2*s_maxL + 2);
+	s_scratch_rows = myalloc(float, 2*s_maxL + 3);
 	s_scratch_pssms = myalloc(const float *, s_nfeat);
 	s_TB = myalloc(uint8_t, s_maxL*s_maxL);
 

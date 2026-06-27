@@ -5,7 +5,7 @@
 
 // Forward X-drop Smith–Waterman on flat multi-feature PSSM (0-based coords).
 // Explores i >= posQ, j >= posT. Open/Ext must be <= 0 (same as sw_flat_pssm).
-// TB length LQ*LT; scratch_rows length 2*LT+2; scratch_ppsms length nfeat.
+// TB length LQ*LT; scratch_rows length 2*LT+3; scratch_ppsms length nfeat.
 float sw_flat_pssm_xdrop_fwd(
 	float *__restrict scratch_rows,
 	uint8_t *__restrict TB,
