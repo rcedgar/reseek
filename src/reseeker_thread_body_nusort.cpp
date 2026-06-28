@@ -328,6 +328,7 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 				Psa(str, "\t%.3g", nu_combined_score);
 				Psa(str, "\t%u", kappa_diag_score);
 				str += "\n";
+				// fprintf & fputs are thread-safe
 				fputs(str.c_str(), m_fhit);
 				}
 			}

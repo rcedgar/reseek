@@ -1,7 +1,6 @@
 #if 0
 #include "myutils.h"
 #include "userfields.h"
-#include "dssaligner.h"
 #include "cigar.h"
 
 USERFIELD StrToUF(const char *Str)
@@ -150,4 +149,4 @@ void DSSAligner::WriteUserField(FILE *f, USERFIELD UF, bool Up)
 		Die("Unsupported user field %d='%s'", UF, UFToStr(UF));
 		}
 	}
-#endif // 0
+#endif
