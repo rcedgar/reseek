@@ -6,7 +6,7 @@
 #include "flat_helpers.h"
 #include "reseeker.h"
 
-void cmd_search_kappa()
+void cmd_flat_search_kappa()
 	{
 	const string &QFN = g_Arg1;
 	const string &DBFN = opt(db);
@@ -83,37 +83,12 @@ void cmd_search_kappa()
 	kappa_filter::m_ptrScoreMx = &ScoreMx;
 	kappa_filter::m_ptrQKmerIndex = &QKmerIndex;
 
-	uint8_t **db_kappa_codeseqs = 0;
-	uint *db_lengths = 0;
-	const uint db_chain_count = DBBCA.GetChainCount();
-	if (optset_kappa_preload)
-		{
-		ProgressLog("Preloading db kappa codeseqs (%s chains)...\n",
-			FloatToStr(db_chain_count));
-		time_t t_preload_start = time(0);
-		DBBCA.load_kappa_codeseqs(&db_kappa_codeseqs, &db_lengths);
-		uint preload_secs = uint(time(0) - t_preload_start);
-		ProgressLog("Preload %u secs\n", preload_secs);
-		kappa_filter::set_preloaded_db(
-			db_kappa_codeseqs, db_lengths,
-			&DBBCA.m_Labels, db_chain_count);
-		}
-	else
-		kappa_filter::set_preloaded_db(0, 0, 0, 0);
-
 	kappa_seqsource db_ss;
-	if (!optset_kappa_preload)
-		db_ss.OpenBCB(DBBCA);
+	db_ss.OpenBCB(DBBCA);
 
 	time_t t_kappa_filter_start = time(0);
 	kappa_filter::run_filter(
-		query_kappa_codeseqs, query_lengths, nquery,
-		optset_kappa_preload ? 0 : &db_ss);
-
-	if (db_kappa_codeseqs != 0)
-		BCAData::free_kappa_codeseqs(
-			db_kappa_codeseqs, db_lengths, db_chain_count);
-	kappa_filter::set_preloaded_db(0, 0, 0, 0);
+		query_kappa_codeseqs, query_lengths, nquery, db_ss);
 
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;

@@ -1,12 +1,7 @@
 #include "myutils.h"
 
-void WriteAnnotRow(
-	FILE *f,
-	const char *A,
-	const char *B,
-	const char *Path,
-	unsigned i, unsigned j,
-	unsigned ColLo, unsigned ColHi)
+void WriteAnnotRow(FILE *f, const byte *A, const byte *B, const char *Path,
+  unsigned i, unsigned j, unsigned ColLo, unsigned ColHi)
 	{
 	fprintf(f, "%5.5s ", "");
 	for (unsigned k = ColLo; k <= ColHi; ++k)
@@ -35,14 +30,8 @@ void WriteAnnotRow(
 	fprintf(f, "\n");
 	}
 
-void WriteBRow(
-	FILE *f,
-	const char *B,
-	const char *Path,
-	unsigned &j,
-	unsigned ColLo,
-	unsigned ColHi,
-	const char *LabelB)
+void WriteBRow(FILE *f, const byte *B, const char *Path,
+  unsigned &j, unsigned ColLo, unsigned ColHi, const string &LabelB)
 	{
 	fprintf(f, "%5u ", j+1);
 	for (unsigned k = ColLo; k <= ColHi; ++k)
@@ -53,17 +42,11 @@ void WriteBRow(
 		else
 			fprintf(f, "-");
 		}
-	fprintf(f, " %u  %s\n", j, LabelB);
+	fprintf(f, " %u  %s\n", j, LabelB.c_str());
 	}
 
-void WriteARow(
-	FILE *f,
-	const char *A,
-	const char *Path,
-	unsigned &i,
-	unsigned ColLo,
-	unsigned ColHi,
-	const char *LabelA)
+void WriteARow(FILE *f, const byte *A, const char *Path,
+  unsigned &i, unsigned ColLo, unsigned ColHi, const string &LabelA)
 	{
 	fprintf(f, "%5u ", i+1);
 	for (unsigned k = ColLo; k <= ColHi; ++k)
@@ -74,26 +57,23 @@ void WriteARow(
 		else
 			fprintf(f, "-");
 		}
-	fprintf(f, " %u  %s\n", i, LabelA);
+	fprintf(f, " %u  %s\n", i, LabelA.c_str());
 	}
 
-void WriteLocalAln(
-	FILE *f,
-	const char *LabelA, const char *A, uint LA,
-	const char *LabelB, const char *B, uint LB,
-	uint loA, uint loB,
-	const char *Path, uint ncol)
+void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
+  const string &LabelB, const byte *B,
+  uint Loi, uint Loj, const char *Path)
 	{
-	if (f == 0) return;
-	if (ncol == 0) return;
-	const unsigned BLOCK_SIZE = 80;
+	unsigned BLOCK_SIZE = 80;
+	if (optset_rowlen)
+		BLOCK_SIZE = opt(rowlen);
 	uint ColLo = 0;
-	uint ColHi = ncol - 1;
+	uint ColHi = (unsigned) strlen(Path) - 1;
 
 	asserta(ColHi >= ColLo);
 
-	unsigned PosA = loA;
-	unsigned PosB = loB;
+	unsigned PosA = Loi;
+	unsigned PosB = Loj;
 	unsigned ColFrom = ColLo;
 	for (;;)
 		{
@@ -112,84 +92,4 @@ void WriteLocalAln(
 
 		ColFrom += BLOCK_SIZE;
 		}
-	}
-
-// human-readable blast-like alignment
-// with aa sequence rows
-void human_aln(FILE *f,
-	const char *labelA, const char *seqA, uint LA,
-	const char *labelB, const char *seqB, uint LB,
-	uint LoA, uint LoB, const char *path, uint ncol, 
-	float pvalue)
-	{
-	if (f == 0)
-		return;
-
-	uint PosA = LoA;
-	uint PosB = LoB;
-	uint Ids = 0;
-	uint Gaps = 0;
-	for (uint Col = 0; Col < ncol; ++Col)
-		{
-		char c = path[Col];
-		switch (c)
-			{
-		case 'M':
-			{
-			asserta(PosA < LA);
-			asserta(PosB < LB);
-			char a = seqA[PosA];
-			char b = seqB[PosB];
-			++PosA;
-			++PosB;
-			if (a == b) ++Ids;
-			break;
-			}
-
-		case 'D':
-			asserta(PosA < LA);
-			++PosA;
-			++Gaps;
-			break;
-
-		case 'I':
-			asserta(PosB < LB);
-			++PosB;
-			++Gaps;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	double PctId = GetPct(Ids, ncol);
-	double PctGaps = GetPct(Gaps, ncol);
-
-	uint seglenA = PosA - LoA;
-	uint seglenB = PosB - LoB;
-	double pctcovA = GetPct(seglenA, LA);
-	double pctcovB = GetPct(seglenB, LB);
-
-	static mutex s_lock;
-	s_lock.lock();
-
-	fprintf(f, "\n");
-	fprintf(f, "_____________________________________________________________________________________________________________\n");
-
-	WriteLocalAln(f,
-		labelA, seqA, LA,
-		labelB, seqB, LB,
-		LoA, LoB, path, ncol);
-
-	fprintf(f, "Qry %u-%u/%u (%.1f%%) >%s\n",
-		LoA + 1, PosA, LA, pctcovA, labelA);
-	fprintf(f, " DB %u-%u/%u (%.1f%%) >%s\n",
-		LoB + 1, PosB, LB, pctcovB, labelB);
-
-	if (pvalue != FLT_MAX)
-		fprintf(f, "P-value %.3g, ", pvalue);
-	fprintf(f, "cols %u, gaps %u (%.1f%%), ids %u (%.1f%%)\n",
-	  ncol, Gaps, PctGaps, Ids, PctId);
-	fprintf(f, "\n");
-	s_lock.unlock();
 	}

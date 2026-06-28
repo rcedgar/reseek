@@ -67,9 +67,9 @@ void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t 
 
 void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
 	{
-	m_DataLock.mylock();
+	m_DataLock.lock();
 	AddScore_unlocked(QueryIdx, TargetIdx, Score);
-	m_DataLock.myunlock();
+	m_DataLock.unlock();
 	}
 
 void RankedScoresBag::AddScoresBatch(vector<RankedScoreBatchEntry> &Batch)
@@ -82,19 +82,14 @@ void RankedScoresBag::AddScoresBatch(vector<RankedScoreBatchEntry> &Batch)
 			{
 			return a.QueryIdx < b.QueryIdx;
 			});
-	m_DataLock.mylock();
+	m_DataLock.lock();
 	for (uint i = 0; i < N; ++i)
 		{
 		const RankedScoreBatchEntry &e = Batch[i];
 		AddScore_unlocked(e.QueryIdx, e.TargetIdx, e.Score);
 		}
-	m_DataLock.myunlock();
+	m_DataLock.unlock();
 	Batch.clear();
-	}
-
-void RankedScoresBag::LogLockStats(const char *name)
-	{
-	m_DataLock.logme(name);
 	}
 
 #if CHECK_SCORE_VECS

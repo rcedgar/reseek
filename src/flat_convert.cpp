@@ -16,11 +16,9 @@ static FILE *s_fKappaFasta = 0;
 static PDBFileScanner *s_ptrFS = 0;
 static BCAData *s_ptrBCA = 0;
 static BCAData *s_ptrBCB = 0;
-static BCAData *s_ptrInputBCA = 0;
 
 static bool s_want_bcb = false;
 static bool s_want_kappafasta = false;
-static bool s_UseBCAChainIndex = false;
 
 static mutex s_LockStats;
 static mutex s_LockCal;
@@ -39,9 +37,6 @@ static uint s_OutputCount = 0;
 static time_t s_LastTime = 0;
 static set<string> *s_ptrLabelSet = 0;
 static uint s_LabelSetSize = 0;
-
-static atomic<uint> s_NextInputChainIdx;
-static uint s_InputChainCount = 0;
 
 static void WriteCan(FILE *f, const flat_chain_t *chain)
 	{
@@ -74,140 +69,6 @@ static void WriteKappaFasta(FILE *f, const flat_chain_t *chain,
 	codeseq_to_fasta(f, chain->m_label, codeseq_kappa, L, KAPPA_AS);
 	}
 
-static void MaybeProgressReport()
-	{
-	s_LockStats.lock();
-	time_t Now = time(0);
-	if (Now - s_LastTime > 0)
-		{
-		if (s_LabelSetSize > 0)
-			Progress("%u / %u chains found (%s searched)\r",
-				s_OutputCount, s_LabelSetSize,
-				IntToStr(s_InputCount));
-		else if (s_TooShort > 0)
-			Progress("%s chains, %.1f%% too short (min %u, shortest %u)\r",
-			  IntToStr(s_Converted), GetPct(s_TooShort, s_Converted),
-			  s_MinChainLength, s_Shortest);
-		else
-			Progress("%s chains converted\r", IntToStr(s_Converted));
-		uint ne = flat_chain_reader::m_CRGlobalFormatErrors;
-		if (ne > 0)
-			Progress(" %u format errors", ne);
-		s_LastTime = Now;
-		}
-	s_LockStats.unlock();
-	}
-
-static void ProcessOneChain(flat_chain_t *chain, chaq_vecs2 *cv,
-	uint8_t *codeseq_kappa)
-	{
-	const uint L = chain->get_length();
-	asserta(L > 0);
-	asserta(L <= flat_params::m_maxL);
-
-	s_LockStats.lock();
-	++s_InputCount;
-	s_Shortest = min(L, s_Shortest);
-	s_LockStats.unlock();
-
-	if (s_ptrLabelSet != 0)
-		{
-		string UpperLabel = chain->m_label;
-		ToUpper(UpperLabel);
-		set<string>::iterator iter = s_ptrLabelSet->find(UpperLabel);
-		if (iter == s_ptrLabelSet->end())
-			{
-			delete chain;
-			return;
-			}
-		}
-
-	if (L < s_MinChainLength)
-		{
-		s_LockStats.lock();
-		++s_TooShort;
-		s_LockStats.unlock();
-		delete chain;
-		return;
-		}
-
-	if (optset_subsample)
-		{
-		s_LockStats.lock();
-		uint n = s_InputCount;
-		s_LockStats.unlock();
-		if (n%opt(subsample) != 0)
-			{
-			delete chain;
-			return;
-			}
-		}
-
-	s_LockStats.lock();
-	++s_OutputCount;
-	if (s_ptrLabelSet != 0)
-		{
-		string UpperLabel = chain->m_label;
-		ToUpper(UpperLabel);
-		s_ptrLabelSet->erase(UpperLabel);
-		}
-	s_LockStats.unlock();
-
-	asserta(chain->has_nu());
-	const uint8_t *nu = chain->get_nu_data();
-
-	if (s_fCal != 0)
-		{
-		s_LockCal.lock();
-		chain->to_cal(s_fCal);
-		s_LockCal.unlock();
-		}
-
-	if (s_fCan != 0)
-		{
-		s_LockCan.lock();
-		WriteCan(s_fCan, chain);
-		s_LockCan.unlock();
-		}
-
-	if (s_fFasta != 0)
-		{
-		s_LockFasta.lock();
-		chain->to_fasta(s_fFasta);
-		s_LockFasta.unlock();
-		}
-
-	if (s_fNuHexFasta != 0)
-		{
-		s_LockNuHexFasta.lock();
-		codeseq_to_hexfasta(s_fNuHexFasta, chain->m_label, nu, L);
-		s_LockNuHexFasta.unlock();
-		}
-
-	if (s_fKappaFasta != 0)
-		{
-		s_LockKappaFasta.lock();
-		WriteKappaFasta(s_fKappaFasta, chain, codeseq_kappa);
-		s_LockKappaFasta.unlock();
-		}
-
-	if (s_ptrBCA != 0 || s_ptrBCB != 0)
-		{
-		s_LockBCA.lock();
-		if (s_ptrBCA != 0)
-			s_ptrBCA->write_flat_chain(chain, cv);
-		if (s_ptrBCB != 0)
-			s_ptrBCB->write_flat_chain(chain, cv);
-		s_LockBCA.unlock();
-		}
-
-	s_LockStats.lock();
-	++s_Converted;
-	s_LockStats.unlock();
-
-	delete chain;
-	}
-
 static void ThreadBody(uint ThreadIndex)
 	{
 	chaq_vecs2 cv;
@@ -222,13 +83,136 @@ static void ThreadBody(uint ThreadIndex)
 
 	for (;;)
 		{
-		MaybeProgressReport();
+		s_LockStats.lock();
+		time_t Now = time(0);
+		if (Now - s_LastTime > 0)
+			{
+			if (s_LabelSetSize > 0)
+				Progress("%u / %u chains found (%s searched)\r",
+					s_OutputCount, s_LabelSetSize,
+					IntToStr(s_InputCount));
+			else if (s_TooShort > 0)
+				Progress("%s chains, %.1f%% too short (min %u, shortest %u)\r",
+				  IntToStr(s_Converted), GetPct(s_TooShort, s_Converted),
+				  s_MinChainLength, s_Shortest);
+			else
+				Progress("%s chains converted\r", IntToStr(s_Converted));
+			uint ne = flat_chain_reader::m_CRGlobalFormatErrors;
+			if (ne > 0)
+				Progress(" %u format errors", ne);
+			s_LastTime = Now;
+			}
+		s_LockStats.unlock();
 
 		flat_chain_t *chain = CR.GetNext();
 		if (chain == 0)
 			break;
 
-		ProcessOneChain(chain, s_want_bcb ? &cv : 0, codeseq_kappa);
+		const uint L = chain->get_length();
+		asserta(L > 0);
+		asserta(L <= flat_params::m_maxL);
+
+		s_LockStats.lock();
+		++s_InputCount;
+		s_Shortest = min(L, s_Shortest);
+		s_LockStats.unlock();
+
+		if (s_ptrLabelSet != 0)
+			{
+			string UpperLabel = chain->m_label;
+			ToUpper(UpperLabel);
+			set<string>::iterator iter = s_ptrLabelSet->find(UpperLabel);
+			if (iter == s_ptrLabelSet->end())
+				{
+				delete chain;
+				continue;
+				}
+			}
+
+		if (L < s_MinChainLength)
+			{
+			s_LockStats.lock();
+			++s_TooShort;
+			s_LockStats.unlock();
+			delete chain;
+			continue;
+			}
+
+		if (optset_subsample)
+			{
+			s_LockStats.lock();
+			uint n = s_InputCount;
+			s_LockStats.unlock();
+			if (n%opt(subsample) != 0)
+				{
+				delete chain;
+				continue;
+				}
+			}
+
+		s_LockStats.lock();
+		++s_OutputCount;
+		if (s_ptrLabelSet != 0)
+			{
+			string UpperLabel = chain->m_label;
+			ToUpper(UpperLabel);
+			s_ptrLabelSet->erase(UpperLabel);
+			}
+		s_LockStats.unlock();
+
+		asserta(chain->has_nu());
+		const uint8_t *nu = chain->get_nu_data();
+
+		if (s_fCal != 0)
+			{
+			s_LockCal.lock();
+			chain->to_cal(s_fCal);
+			s_LockCal.unlock();
+			}
+
+		if (s_fCan != 0)
+			{
+			s_LockCan.lock();
+			WriteCan(s_fCan, chain);
+			s_LockCan.unlock();
+			}
+
+		if (s_fFasta != 0)
+			{
+			s_LockFasta.lock();
+			chain->to_fasta(s_fFasta);
+			s_LockFasta.unlock();
+			}
+
+		if (s_fNuHexFasta != 0)
+			{
+			s_LockNuHexFasta.lock();
+			codeseq_to_hexfasta(s_fNuHexFasta, chain->m_label, nu, L);
+			s_LockNuHexFasta.unlock();
+			}
+
+		if (s_fKappaFasta != 0)
+			{
+			s_LockKappaFasta.lock();
+			WriteKappaFasta(s_fKappaFasta, chain, codeseq_kappa);
+			s_LockKappaFasta.unlock();
+			}
+
+		if (s_ptrBCA != 0 || s_ptrBCB != 0)
+			{
+			s_LockBCA.lock();
+			if (s_ptrBCA != 0)
+				s_ptrBCA->write_flat_chain(chain, &cv);
+			if (s_ptrBCB != 0)
+				s_ptrBCB->write_flat_chain(chain, &cv);
+			s_LockBCA.unlock();
+			}
+
+		s_LockStats.lock();
+		++s_Converted;
+		s_LockStats.unlock();
+
+		delete chain;
 		}
 
 	if (s_want_bcb)
@@ -236,76 +220,7 @@ static void ThreadBody(uint ThreadIndex)
 	myfree(codeseq_kappa);
 	}
 
-static void ThreadBodyBCA(uint ThreadIndex)
-	{
-	const bool input_has_nu = s_ptrInputBCA->m_HasNuSequences;
-	chaq_vecs2 cv;
-	bool have_cv = false;
-	if (s_want_bcb || !input_has_nu)
-		{
-		chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
-		have_cv = true;
-		}
-	sid_t *distmx = 0;
-	uint8_t *codeseq_nu_scratch = myalloc(uint8_t, flat_params::m_maxL);
-	if (!input_has_nu)
-		{
-		const uint M = flat_params::m_distmx_bandwidth;
-		distmx = myalloc(sid_t, flat_params::m_maxL*M);
-		}
-
-	uint8_t *codeseq_kappa = 0;
-	if (s_want_kappafasta)
-		codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
-
-	for (;;)
-		{
-		MaybeProgressReport();
-
-		uint idx = s_NextInputChainIdx++;
-		if (idx >= s_InputChainCount)
-			break;
-
-		flat_chain_t *chain = s_ptrInputBCA->read_flat_chain(idx);
-		const uint L = chain->get_length();
-		if (L == 0)
-			{
-			delete chain;
-			continue;
-			}
-		if (L > flat_params::m_maxL)
-			chain->truncate(flat_params::m_maxL);
-
-		if (!chain->has_nu())
-			{
-			if (input_has_nu)
-				{
-				uint nL = s_ptrInputBCA->read_codeseq_nu(
-					codeseq_nu_scratch, idx, flat_params::m_maxL);
-				asserta(nL == chain->get_length());
-				chain->set_nu_codes(codeseq_nu_scratch, nL);
-				}
-			else
-				{
-				asserta(have_cv);
-				chaq::fill_codeseq_nu_from_chain(
-					chain, distmx, &cv,
-					codeseq_nu_scratch, flat_params::m_maxL);
-				chain->set_nu_codes(codeseq_nu_scratch, chain->get_length());
-				}
-			}
-
-		ProcessOneChain(chain, s_want_bcb ? &cv : 0, codeseq_kappa);
-		}
-
-	if (have_cv)
-		chaq::free_chaq_vecs2(cv);
-	myfree(distmx);
-	myfree(codeseq_nu_scratch);
-	myfree(codeseq_kappa);
-	}
-
-void cmd_convert()
+void cmd_flat_convert()
 	{
 	if (optset_output)
 		Die("Use -cal, -can, -bca, -bcb, -fasta, -nuhexfasta or "
@@ -355,28 +270,9 @@ void cmd_convert()
 		s_LabelSetSize = 0;
 		}
 
-	string InputExt;
-	GetExtFromPathName(g_Arg1, InputExt);
-	ToLower(InputExt);
-
-	BCAData InputBCA;
 	PDBFileScanner FS;
-	s_UseBCAChainIndex = false;
-	s_ptrInputBCA = 0;
-	s_ptrFS = 0;
-	if (IsRegularFile(g_Arg1) && (InputExt == "bca" || InputExt == "bcb"))
-		{
-		InputBCA.Open(g_Arg1);
-		s_ptrInputBCA = &InputBCA;
-		s_InputChainCount = InputBCA.GetChainCount();
-		s_NextInputChainIdx = 0;
-		s_UseBCAChainIndex = true;
-		}
-	else
-		{
-		FS.Open(g_Arg1);
-		s_ptrFS = &FS;
-		}
+	FS.Open(g_Arg1);
+	s_ptrFS = &FS;
 
 	s_fCal = CreateStdioFile(opt(cal));
 	s_fCan = CreateStdioFile(opt(can));
@@ -409,12 +305,7 @@ void cmd_convert()
 	vector<thread *> ts;
 	const uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
-		{
-		if (s_UseBCAChainIndex)
-			ts.push_back(new thread(ThreadBodyBCA, ThreadIndex));
-		else
-			ts.push_back(new thread(ThreadBody, ThreadIndex));
-		}
+		ts.push_back(new thread(ThreadBody, ThreadIndex));
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		ts[ThreadIndex]->join();
@@ -493,8 +384,6 @@ void cmd_convert()
 
 	s_ptrBCA = 0;
 	s_ptrBCB = 0;
-	s_ptrInputBCA = 0;
 	s_ptrFS = 0;
 	s_ptrLabelSet = 0;
-	s_UseBCAChainIndex = false;
 	}

@@ -476,9 +476,6 @@
     <ClCompile Include="flat_convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="userfields.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">
@@ -866,12 +863,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fastaseqsource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="userfieldnames.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="userfields.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

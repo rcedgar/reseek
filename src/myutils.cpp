@@ -2468,24 +2468,21 @@ unsigned GetRequestedThreadCount()
 	if (Done)
 		return N;
 	static bool MsgDone = false;
-	unsigned CoreCount = GetCPUCoreCount();
-	if (!optset_threads)
+	const char *env = std::getenv("RESEEK_THREADS");
+	if (env != 0)
 		{
-		const char *env = std::getenv("RESEEK_THREADS");
-		if (env != 0)
+		N = StrToInt(env);
+		if (N == 0)
+			Die("RESEEK_THREADS=0");
+		if (!MsgDone)
 			{
-			N = StrToInt(env);
-			if (N == 0)
-				Die("RESEEK_THREADS=0");
-			if (!MsgDone)
-				{
-				Progress("RESEEK_THREADS=%u (%u CPU cores)\n", N, CoreCount);
-				MsgDone = true;
-				}
-			Done = true;
-			return N;
+			Progress("RESEEK_THREADS=%u\n", N);
+			MsgDone = true;
 			}
+		Done = true;
+		return N;
 		}
+	unsigned CoreCount = GetCPUCoreCount();
 	if (optset_threads)
 		N = opt(threads);
 	else

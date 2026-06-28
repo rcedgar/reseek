@@ -148,6 +148,8 @@ void reseeker::search()
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
+		//thread *t = new thread(static_thread_body, ThreadIndex);
+		//thread *t = new thread(static_thread_body_nusort, ThreadIndex);
 		thread *t = new thread(thread_body, ThreadIndex);
 		ts.push_back(t);
 		}

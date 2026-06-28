@@ -207,7 +207,7 @@ void cmd_kappa_filter()
 
 	time_t t_start = time(0);
 	kappa_filter::run_filter(
-		query_kappa_codeseq_vec, query_lengths, NQ, &db_ss);
+		query_kappa_codeseq_vec, query_lengths, NQ, db_ss);
 	time_t t_end = time(0);
 	uint filter_secs = uint(t_end - t_start);
 

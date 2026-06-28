@@ -1,11 +1,6 @@
 #pragma once
 
 #include <stdio.h>
-#include <vector>
-#include <deque>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include "fastaseqsource.h"
 #include "flat_chain_reader.h"
 #include "seqdb.h"
@@ -18,20 +13,6 @@ enum KSS_SOURCE
 	KSSS_chains,
 	KSSS_seqdb,
 	KSSS_bcb
-	};
-
-struct KssBcbSlot
-	{
-	uint idx = UINT_MAX;
-	uint L = 0;
-	const string *label = 0;
-	vector<uint8_t> kappa;
-	};
-
-struct KssBcbBatch
-	{
-	vector<KssBcbSlot> slots;
-	uint count = 0;
 	};
 
 class kappa_seqsource : public SeqSource
@@ -48,55 +29,15 @@ public:
 	const BCAData *m_bcb = 0;
 	KSS_SOURCE m_KSSS = KSSS_none;
 
-/////////////////////////////////////////////////////////////
-// BCB async double-buffered prefetch.
-//   A dedicated reader thread streams nu sequences from the
-//   BCB file sequentially (one seek, then skip-and-read),
-//   converts nu->kappa, and fills batches. kappa_filter workers claim
-//   whole batches (claim_bcb_batch) and search lock-free; GetNext()
-//   remains for other callers.
-/////////////////////////////////////////////////////////////
-	static const uint KSS_BCB_BATCH = 1024;
-// Buffer pool size scales with worker count: a worker holds one batch
-// for its entire inner loop, so the number of buffers caps how many
-// workers can run concurrently. Use several per thread so all workers
-// can hold a batch while the reader still has filled/free batches to
-// work ahead. Actual count = KSS_BCB_BUFFERS_PER_THREAD * nthreads.
-	static const uint KSS_BCB_BUFFERS_PER_THREAD = 4;
-
-// Reader-thread-private scan cursor
-	uint m_bcb_scan_next_idx = 0;
-
-// Buffer pool and queues (guarded by m_bcb_qmutex)
-	vector<KssBcbBatch *> m_bcb_all_batches;
-	deque<KssBcbBatch *> m_bcb_free;
-	deque<KssBcbBatch *> m_bcb_filled;
-	mutex m_bcb_qmutex;
-	condition_variable m_bcb_cv_filled;
-	condition_variable m_bcb_cv_free;
-	bool m_bcb_reader_eof = false;
-	bool m_bcb_stop = false;
-	bool m_bcb_reader_started = false;
-	thread *m_bcb_reader = 0;
-
-// Consumer-side current batch for GetNext() (guarded by SeqSource::m_Lock)
-	KssBcbBatch *m_bcb_cur = 0;
-	uint m_bcb_cur_pos = 0;
-
 public:
 	virtual bool GetIsNucleo() { return false; }
 
 protected:
 	virtual bool GetNextLo(SeqInfo *SI);
-	bool get_next_bcb(SeqInfo *SI);
-	void start_bcb_reader();
-	void stop_bcb_reader();
-	void bcb_reader_body();
-	uint fill_bcb_batch(KssBcbBatch *batch);
 
 public:
 	kappa_seqsource() {}
-	virtual ~kappa_seqsource() { stop_bcb_reader(); }
+	virtual ~kappa_seqsource() {}
 
 public:
 	virtual unsigned GetPctDoneX10();
@@ -112,8 +53,4 @@ public:
 	void OpenSeqDB(const SeqDB &DB, bool codes);
 	void OpenBCB(const BCAData &bcb);
 	void Close();
-
-// Lock-free batch consumer for kappa_filter (uses m_bcb_qmutex only).
-	KssBcbBatch *claim_bcb_batch();
-	void release_bcb_batch(KssBcbBatch *batch);
 	};
