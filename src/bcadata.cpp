@@ -32,7 +32,20 @@ void BCAData::Create(const string &FN, bool WithNu)
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
 	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+	if (WithNu)
+		{
+// Placeholder #4 overwritten with start of contiguous nu section (BCB only)
+		WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+		}
 	m_Writing = true;
+
+// nu bytes are streamed to a temp file during writing, then appended as
+// one contiguous section in CloseWriter (keeps peak memory bounded).
+	if (m_HasNuSequences)
+		{
+		m_NuTmpFN = FN + ".nutmp";
+		m_nu_tmp_f = CreateStdioFile(m_NuTmpFN);
+		}
 
 	const uint N = 1024*1024;
 	m_Labels.reserve(N);
@@ -47,13 +60,15 @@ uint64 BCAData::get_offset_aaseq(uint idx) const
 	return offset;
 	}
 
+// Contiguous nu layout: nu records are packed back-to-back in chain-index
+// order in a section starting at m_NuSeqPos64. Offset of chain idx is the
+// section base plus the sum of lengths of all preceding chains.
 uint64 BCAData::get_offset_nuseq(uint idx) const
 	{
-	asserta(idx < m_SeqLengths.size());
-	uint64 offset_ICs = get_offset_ICs(idx);
-	uint L = m_SeqLengths[idx];
-	uint64 offset_nuseq = offset_ICs + 6*L;
-	return offset_nuseq;
+	asserta(m_HasNuSequences);
+	asserta(m_NuSeqPos64 != UINT64_MAX);
+	asserta(idx < m_NuPrefix.size());
+	return m_NuSeqPos64 + m_NuPrefix[idx];
 	}
 
 uint64 BCAData::get_offset_ICs(uint idx) const
@@ -73,13 +88,12 @@ void BCAData::write_flat_chain(const flat_chain_t *chain, chaq_vecs2 *cv)
 	uint64_t Offset = GetStdioFilePos64(m_f);
 	size_t n = m_Offsets.size();
 	asserta(m_SeqLengths.size() == n);
+// nu is no longer interleaved, so every chain occupies 7*L bytes
+// (AA + ICs) in the main stream regardless of m_HasNuSequences.
 	if (n > 0)
 		{
 		uint Ln_1 = m_SeqLengths[n-1];
-		if (m_HasNuSequences)
-			asserta(Offset == m_Offsets[n-1] + 8*Ln_1);
-		else
-			asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
+		asserta(Offset == m_Offsets[n-1] + 7*Ln_1);
 		}
 	const char *seq = chain->m_aa->m_data;
 	uint Idx = SIZE(m_Labels);
@@ -96,10 +110,7 @@ void BCAData::write_flat_chain(const flat_chain_t *chain, chaq_vecs2 *cv)
 	assert(GetStdioFilePos64(m_f) == get_offset_ICs(Idx));
 	WriteStdioFile64(m_f, ICs.data(), 6*L);
 	if (m_HasNuSequences)
-		{
-		assert(GetStdioFilePos64(m_f) == get_offset_nuseq(Idx));
 		append_codeseq_nu(chain, cv);
-		}
 	}
 
 void BCAData::append_codeseq_nu(
@@ -115,14 +126,15 @@ void BCAData::append_codeseq_nu(
 		}
 	const uint L = chain->get_length();
 	asserta(L <= flat_params::m_maxL); // TODO=maxL
+	asserta(m_nu_tmp_f != 0);
 	if (chain->has_nu())
 		{
-		WriteStdioFile64(m_f, chain->get_nu_data(), L);
+		WriteStdioFile64(m_nu_tmp_f, chain->get_nu_data(), L);
 		return;
 		}
 	chaq::fill_codeseq_nu_from_chain(
 		chain, m_distmx, cv, m_codeseq_nu, flat_params::m_maxL);
-	WriteStdioFile64(m_f, m_codeseq_nu, L);
+	WriteStdioFile64(m_nu_tmp_f, m_codeseq_nu, L);
 	}
 
 //void BCAData::WriteChain(const PDBChain &Chain)
@@ -179,10 +191,15 @@ void BCAData::Open(const string &FN)
 // Placeholder #1 overwritten with number of chains
 // Placeholder #2 overwritten with address of labels in Close()
 // Placeholder #3 overwritten with size of labels data
+// Placeholder #4 overwritten with start of contiguous nu section
 	uint64_t ChainCount64;
 	ReadStdioFile(m_f, &ChainCount64, sizeof(uint64_t));
 	ReadStdioFile(m_f, &m_SeqLengthsPos64, sizeof(uint64_t));
 	ReadStdioFile(m_f, &m_LabelDataSize64, sizeof(uint64_t));
+	if (m_HasNuSequences)
+		ReadStdioFile(m_f, &m_NuSeqPos64, sizeof(uint64_t));
+	else
+		m_NuSeqPos64 = UINT64_MAX;
 	uint64 Offset = GetStdioFilePos64(m_f);
 
 	uint ChainCount = uint(ChainCount64);
@@ -193,12 +210,18 @@ void BCAData::Open(const string &FN)
 
 	SetStdioFilePos64(m_f, m_SeqLengthsPos64);
 	ReadStdioFile64NoPos(m_f, m_SeqLengths.data(), SeqLengthsBytes);
+
+// AA+ICs occupy 7*L per chain in the main stream; nu (if present) lives
+// in a separate contiguous section, indexed by m_NuPrefix.
+	m_NuPrefix.resize(ChainCount64);
+	uint64 NuPrefix = 0;
 	for (uint64 i = 0; i < ChainCount64; ++i)
 		{
 		uint L = m_SeqLengths[i];
-		uint Bytes = (m_HasNuSequences ? 8*L : 7*L);
 		m_Offsets.push_back(Offset);
-		Offset += Bytes;
+		Offset += 7*uint64(L);
+		m_NuPrefix[i] = NuPrefix;
+		NuPrefix += L;
 		}
 
 	uint LabelDataSize = uint(m_LabelDataSize64);
@@ -224,14 +247,22 @@ void BCAData::Clear()
 	m_Labels.clear();
 	m_Offsets.clear();
 	m_SeqLengths.clear();
+	m_NuPrefix.clear();
 	m_FN.clear();
 	if (m_f != 0)
 		CloseStdioFile(m_f);
 	m_f = 0;
+	if (m_nu_tmp_f != 0)
+		{
+		CloseStdioFile(m_nu_tmp_f);
+		m_nu_tmp_f = 0;
+		}
+	m_NuTmpFN.clear();
 	m_Writing = false;
 	m_Reading = false;
 	m_SeqLengthsPos64 = UINT64_MAX;
 	m_LabelDataSize64 = UINT64_MAX;
+	m_NuSeqPos64 = UINT64_MAX;
 	}
 
 void BCAData::CloseReader()
@@ -245,6 +276,32 @@ void BCAData::CloseWriter()
 	asserta(m_Writing && !m_Reading);
 
 	const uint ChainCount = GetChainCount();
+
+// The AA+ICs section is now complete; the contiguous nu section (if any)
+// is appended here by streaming the temp file in.
+	if (m_HasNuSequences)
+		{
+		asserta(m_nu_tmp_f != 0);
+		m_NuSeqPos64 = GetStdioFilePos64(m_f);
+		fflush(m_nu_tmp_f);
+		SetStdioFilePos64(m_nu_tmp_f, 0);
+		const size_t BufBytes = 4*1024*1024;
+		uint8_t *buf = myalloc(uint8_t, BufBytes);
+		for (;;)
+			{
+			size_t n = fread(buf, 1, BufBytes, m_nu_tmp_f);
+			if (n == 0)
+				break;
+			WriteStdioFile64(m_f, buf, n);
+			}
+		myfree(buf);
+		CloseStdioFile(m_nu_tmp_f);
+		m_nu_tmp_f = 0;
+		DeleteStdioFile(m_NuTmpFN);
+		}
+	else
+		m_NuSeqPos64 = UINT64_MAX;
+
 	m_SeqLengthsPos64 = GetStdioFilePos64(m_f);
 	WriteStdioFile64(m_f, m_SeqLengths.data(), sizeof(uint32_t)*ChainCount);
 
@@ -264,9 +321,12 @@ void BCAData::CloseWriter()
 // #1 number of chains
 // #2 address of labels
 // #3 size of labels data
+// #4 start of contiguous nu section
 	WriteStdioFile(m_f, &ChainCount64, sizeof(ChainCount64));
 	WriteStdioFile(m_f, &m_SeqLengthsPos64, sizeof(m_SeqLengthsPos64));
 	WriteStdioFile(m_f, &m_LabelDataSize64, sizeof(m_LabelDataSize64));
+	if (m_HasNuSequences)
+		WriteStdioFile(m_f, &m_NuSeqPos64, sizeof(m_NuSeqPos64));
 	Clear();
 	}
 

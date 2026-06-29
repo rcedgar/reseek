@@ -19,12 +19,20 @@ public:
 	bool m_Reading = false;
 	uint64 m_SeqLengthsPos64 = UINT64_MAX;
 	uint64 m_LabelDataSize64 = UINT64_MAX;
+// Start of the contiguous nu-sequence section (BCB only; UINT64_MAX if none).
+	uint64 m_NuSeqPos64 = UINT64_MAX;
+// Prefix sums of m_SeqLengths: byte offset of chain idx's nu within the
+// contiguous nu section (m_NuPrefix[idx]); built at Open.
+	vector<uint64_t> m_NuPrefix;
 	sid_t *m_distmx = 0;
 	//chaq_vecs2 m_cv;
 	//uint8_t *m_scratch_buffer = 0;
 	//uint m_scratch_buffer_bytes = 0;
 	uint8_t *m_codeseq_nu = 0;
 	mutable mutex m_ReadLock;
+// Temp file accumulating nu bytes during write; appended contiguously at close.
+	FILE *m_nu_tmp_f = 0;
+	string m_NuTmpFN;
 
 public:
 	void Clear();
@@ -83,4 +91,6 @@ private:
 	};
 
 const uint32_t BCA_MAGIC = 0xBCABCA;
-const uint32_t BCB_MAGIC = 0xBCBBCB;
+// BCB layout v2: contiguous nu section + 4th header field (m_NuSeqPos64).
+// Value bumped from 0xBCBBCB so pre-v2 .bcb files are rejected, not misread.
+const uint32_t BCB_MAGIC = 0xBCBBC2;
