@@ -5,6 +5,7 @@
 #include "bcadata.h"
 #include "chaq.h"
 #include <thread>
+#include <atomic>
 #include <set>
 
 static FILE *s_fCal = 0;
@@ -220,6 +221,199 @@ static void ThreadBody(uint ThreadIndex)
 	myfree(codeseq_kappa);
 	}
 
+// ---- Fast parallel path: single .bca/.bcb source -> -bca/-bcb output -----
+//
+// The generic path routes a single input file through one PDBFileScanner,
+// so only one thread does any work. For an indexed source (.bca/.bcb) we can
+// instead partition chains by index and have every thread read + compute nu
+// + write its own output shard in parallel. Limited to BCA/BCB outputs with
+// no label filtering; everything else falls back to the generic path.
+
+static BCAData *s_fast_src = 0;
+static BCAData *s_fast_bca = 0;
+static BCAData *s_fast_bcb = 0;
+static uint s_fast_N = 0;
+static uint s_fast_minlen = 1;
+static std::atomic<uint> s_fast_next;
+static std::atomic<uint> s_fast_done;
+static mutex s_fast_stats_lock;
+static uint s_fast_input = 0;
+static uint s_fast_converted = 0;
+static uint s_fast_tooshort = 0;
+static uint s_fast_shortest = UINT_MAX;
+
+static void FastThreadBody(uint ThreadIndex)
+	{
+	const uint maxL = flat_params::m_maxL;
+	uint8_t *nu_read = 0;
+	if (s_fast_src->m_HasNuSequences)
+		nu_read = myalloc(uint8_t, maxL);
+
+	uint loc_input = 0;
+	uint loc_conv = 0;
+	uint loc_short = 0;
+	uint loc_shortest = UINT_MAX;
+
+	const uint CHUNK = 256;
+	time_t LastTime = 0;
+	for (;;)
+		{
+		uint begin = s_fast_next.fetch_add(CHUNK);
+		if (begin >= s_fast_N)
+			break;
+		uint end = begin + CHUNK;
+		if (end > s_fast_N)
+			end = s_fast_N;
+
+		for (uint idx = begin; idx < end; ++idx)
+			{
+			flat_chain_t *chain = s_fast_src->read_flat_chain(idx);
+			const uint L = chain->get_length();
+			if (L == 0)
+				{
+				delete chain;
+				continue;
+				}
+			++loc_input;
+			loc_shortest = min(L, loc_shortest);
+
+			if (L < s_fast_minlen)
+				{
+				++loc_short;
+				delete chain;
+				continue;
+				}
+
+			if (optset_subsample && ((idx + 1) % opt(subsample)) != 0)
+				{
+				delete chain;
+				continue;
+				}
+
+// Carry forward stored nu for BCB sources (read_codeseq_nu is not internally
+// locked, so guard the shared source handle here).
+			if (nu_read != 0)
+				{
+				s_fast_src->m_ReadLock.lock();
+				uint nL = s_fast_src->read_codeseq_nu(nu_read, idx, maxL);
+				s_fast_src->m_ReadLock.unlock();
+				asserta(nL == L);
+				chain->set_nu_codes(nu_read, L);
+				}
+
+			if (s_fast_bca != 0)
+				s_fast_bca->write_flat_chain_shard(ThreadIndex, chain);
+			if (s_fast_bcb != 0)
+				s_fast_bcb->write_flat_chain_shard(ThreadIndex, chain);
+			++loc_conv;
+			delete chain;
+			}
+
+		s_fast_done.fetch_add(end - begin);
+		if (ThreadIndex == 0)
+			{
+			time_t Now = time(0);
+			if (Now - LastTime > 0)
+				{
+				Progress("%u / %u chains converted\r",
+					s_fast_done.load(), s_fast_N);
+				LastTime = Now;
+				}
+			}
+		}
+
+	myfree(nu_read);
+
+	s_fast_stats_lock.lock();
+	s_fast_input += loc_input;
+	s_fast_converted += loc_conv;
+	s_fast_tooshort += loc_short;
+	if (loc_shortest < s_fast_shortest)
+		s_fast_shortest = loc_shortest;
+	s_fast_stats_lock.unlock();
+	}
+
+static bool FastPathEligible(bool want_cal, bool want_can, bool want_bca,
+	bool want_bcb, bool want_fasta, bool want_nuhexfasta,
+	bool want_kappafasta, bool have_labels)
+	{
+	if (want_cal || want_can || want_fasta || want_nuhexfasta ||
+		want_kappafasta)
+		return false;
+	if (!(want_bca || want_bcb))
+		return false;
+	if (have_labels)
+		return false;
+	if (!IsRegularFile(g_Arg1))
+		return false;
+	string Ext;
+	GetExtFromPathName(g_Arg1, Ext);
+	ToLower(Ext);
+	return (Ext == "bca" || Ext == "bcb");
+	}
+
+static void RunFastBcx(bool want_bca, bool want_bcb)
+	{
+	BCAData src;
+	src.Open(g_Arg1);
+	const uint N = src.GetChainCount();
+
+	BCAData out_bca;
+	BCAData out_bcb;
+	const uint ThreadCount = GetRequestedThreadCount();
+	if (want_bca)
+		out_bca.CreateSharded(opt(bca), false, ThreadCount);
+	if (want_bcb)
+		out_bcb.CreateSharded(opt(bcb), true, ThreadCount);
+
+	s_fast_src = &src;
+	s_fast_bca = (want_bca ? &out_bca : 0);
+	s_fast_bcb = (want_bcb ? &out_bcb : 0);
+	s_fast_N = N;
+	s_fast_minlen = s_MinChainLength;
+	s_fast_next = 0;
+	s_fast_done = 0;
+	s_fast_input = 0;
+	s_fast_converted = 0;
+	s_fast_tooshort = 0;
+	s_fast_shortest = UINT_MAX;
+
+	vector<thread *> ts;
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts.push_back(new thread(FastThreadBody, ThreadIndex));
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		ts[ThreadIndex]->join();
+		delete ts[ThreadIndex];
+		}
+
+	if (want_bca)
+		{
+		Progress("finalizing BCA... ");
+		out_bca.CloseSharded();
+		Progress("done\n");
+		}
+	if (want_bcb)
+		{
+		Progress("finalizing BCB... ");
+		out_bcb.CloseSharded();
+		Progress("done\n");
+		}
+	src.Close();
+
+	ProgressLog("\n");
+	ProgressLogPrefix("%u / %u converted (%s)\n",
+		s_fast_converted, s_fast_input, IntToStr(s_fast_input));
+	if (s_fast_tooshort > 0)
+		ProgressLogPrefix("%u too short (min length %u, shortest %u)\n",
+			s_fast_tooshort, s_fast_minlen,
+			(s_fast_shortest == UINT_MAX ? 0 : s_fast_shortest));
+
+	s_fast_src = 0;
+	s_fast_bca = 0;
+	s_fast_bcb = 0;
+	}
+
 void cmd_flat_convert()
 	{
 	if (optset_output)
@@ -268,6 +462,19 @@ void cmd_flat_convert()
 		{
 		s_ptrLabelSet = 0;
 		s_LabelSetSize = 0;
+		}
+
+	if (FastPathEligible(want_cal, want_can, want_bca, s_want_bcb,
+		want_fasta, want_nuhexfasta, s_want_kappafasta,
+		s_ptrLabelSet != 0))
+		{
+		RunFastBcx(want_bca, s_want_bcb);
+		uint ne = flat_chain_reader::m_CRGlobalFormatErrors;
+		if (ne > 0)
+			ProgressLogPrefix("%u format errors\n", ne);
+		s_ptrFS = 0;
+		s_ptrLabelSet = 0;
+		return;
 		}
 
 	PDBFileScanner FS;

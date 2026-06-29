@@ -271,36 +271,30 @@ void BCAData::CloseReader()
 	Clear();
 	}
 
-void BCAData::CloseWriter()
+// Stream a write-then-read temp file's full contents to the end of m_f.
+void BCAData::AppendTempFileToMain(FILE *tmp_f)
 	{
-	asserta(m_Writing && !m_Reading);
-
-	const uint ChainCount = GetChainCount();
-
-// The AA+ICs section is now complete; the contiguous nu section (if any)
-// is appended here by streaming the temp file in.
-	if (m_HasNuSequences)
+	asserta(tmp_f != 0);
+	fflush(tmp_f);
+	SetStdioFilePos64(tmp_f, 0);
+	const size_t BufBytes = 4*1024*1024;
+	uint8_t *buf = myalloc(uint8_t, BufBytes);
+	for (;;)
 		{
-		asserta(m_nu_tmp_f != 0);
-		m_NuSeqPos64 = GetStdioFilePos64(m_f);
-		fflush(m_nu_tmp_f);
-		SetStdioFilePos64(m_nu_tmp_f, 0);
-		const size_t BufBytes = 4*1024*1024;
-		uint8_t *buf = myalloc(uint8_t, BufBytes);
-		for (;;)
-			{
-			size_t n = fread(buf, 1, BufBytes, m_nu_tmp_f);
-			if (n == 0)
-				break;
-			WriteStdioFile64(m_f, buf, n);
-			}
-		myfree(buf);
-		CloseStdioFile(m_nu_tmp_f);
-		m_nu_tmp_f = 0;
-		DeleteStdioFile(m_NuTmpFN);
+		size_t n = fread(buf, 1, BufBytes, tmp_f);
+		if (n == 0)
+			break;
+		WriteStdioFile64(m_f, buf, n);
 		}
-	else
-		m_NuSeqPos64 = UINT64_MAX;
+	myfree(buf);
+	}
+
+// Write the seq-length table and label data at the current file position,
+// then rewind and patch the header placeholders. Assumes the main stream
+// (and nu section / m_NuSeqPos64) are already in place.
+void BCAData::WriteSeqLengthsLabelsHeader()
+	{
+	const uint ChainCount = GetChainCount();
 
 	m_SeqLengthsPos64 = GetStdioFilePos64(m_f);
 	WriteStdioFile64(m_f, m_SeqLengths.data(), sizeof(uint32_t)*ChainCount);
@@ -327,6 +321,169 @@ void BCAData::CloseWriter()
 	WriteStdioFile(m_f, &m_LabelDataSize64, sizeof(m_LabelDataSize64));
 	if (m_HasNuSequences)
 		WriteStdioFile(m_f, &m_NuSeqPos64, sizeof(m_NuSeqPos64));
+	}
+
+void BCAData::CloseWriter()
+	{
+	asserta(m_Writing && !m_Reading);
+
+// The AA+ICs section is now complete; the contiguous nu section (if any)
+// is appended here by streaming the temp file in.
+	if (m_HasNuSequences)
+		{
+		asserta(m_nu_tmp_f != 0);
+		m_NuSeqPos64 = GetStdioFilePos64(m_f);
+		AppendTempFileToMain(m_nu_tmp_f);
+		CloseStdioFile(m_nu_tmp_f);
+		m_nu_tmp_f = 0;
+		DeleteStdioFile(m_NuTmpFN);
+		}
+	else
+		m_NuSeqPos64 = UINT64_MAX;
+
+	WriteSeqLengthsLabelsHeader();
+	Clear();
+	}
+
+// ---- Parallel sharded writing -------------------------------------------
+
+void BCAData::CreateSharded(const string &FN, bool WithNu, uint nshard)
+	{
+	if (FN == "")
+		Die("Empty BCA filename");
+	asserta(!m_Writing && !m_Reading);
+	asserta(nshard >= 1);
+	m_HasNuSequences = WithNu;
+	m_FN = FN;
+	m_f = CreateStdioFile(FN);
+	const uint Magic = (WithNu ? BCB_MAGIC : BCA_MAGIC);
+	WriteStdioFile(m_f, &Magic, sizeof(Magic));
+
+// Placeholders #1..#3 (and #4 for BCB), patched in WriteSeqLengthsLabelsHeader.
+	uint64_t Placeholder = 0;
+	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+	WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+	if (WithNu)
+		WriteStdioFile(m_f, &Placeholder, sizeof(Placeholder));
+	m_Writing = true;
+
+	const uint Reserve = 1024*1024;
+	m_Labels.reserve(Reserve);
+	m_Offsets.reserve(Reserve);
+	m_SeqLengths.reserve(Reserve);
+
+	m_Shards.resize(nshard);
+	for (uint s = 0; s < nshard; ++s)
+		{
+		Shard *sh = new Shard;
+		sh->aa_fn = FN + ".aatmp." + std::to_string(s);
+		sh->aa_f = CreateStdioFile(sh->aa_fn);
+		if (WithNu)
+			{
+			sh->nu_fn = FN + ".nutmp." + std::to_string(s);
+			sh->nu_f = CreateStdioFile(sh->nu_fn);
+			}
+		m_Shards[s] = sh;
+		}
+	}
+
+void BCAData::write_flat_chain_shard(uint s, const flat_chain_t *chain)
+	{
+	asserta(m_Writing && !m_Reading);
+	asserta(s < SIZE(m_Shards));
+	Shard *sh = m_Shards[s];
+	const uint L = chain->get_length();
+	if (L == 0)
+		return;
+	const char *seq = chain->m_aa->m_data;
+
+	sh->labels.push_back(chain->m_label);
+	sh->seqlengths.push_back(L);
+
+	vector<uint16_t> ICs;
+	chain->get_ICs(ICs);
+	asserta(SIZE(ICs) == 3*L);
+	WriteStdioFile64(sh->aa_f, seq, L);
+	WriteStdioFile64(sh->aa_f, ICs.data(), 6*L);
+
+	if (m_HasNuSequences)
+		{
+		asserta(sh->nu_f != 0);
+		asserta(L <= flat_params::m_maxL);
+		if (chain->has_nu())
+			WriteStdioFile64(sh->nu_f, chain->get_nu_data(), L);
+		else
+			{
+			if (sh->distmx == 0)
+				{
+				sh->distmx = myalloc(sid_t,
+					flat_params::m_distmx_bandwidth*flat_params::m_maxL);
+				sh->codeseq_nu = myalloc(uint8_t, flat_params::m_maxL);
+				chaq::alloc_chaq_vecs2(sh->cv, flat_params::m_maxL);
+				sh->cv_inited = true;
+				}
+			chaq::fill_codeseq_nu_from_chain(
+				chain, sh->distmx, &sh->cv,
+				sh->codeseq_nu, flat_params::m_maxL);
+			WriteStdioFile64(sh->nu_f, sh->codeseq_nu, L);
+			}
+		}
+	}
+
+void BCAData::CloseSharded()
+	{
+	asserta(m_Writing && !m_Reading);
+	asserta(!m_Shards.empty());
+
+// Main stream = AA+ICs of all shards concatenated in shard order, with the
+// global label/length tables built in the same order.
+	for (uint s = 0; s < SIZE(m_Shards); ++s)
+		{
+		Shard *sh = m_Shards[s];
+		AppendTempFileToMain(sh->aa_f);
+		const uint ns = SIZE(sh->seqlengths);
+		asserta(SIZE(sh->labels) == ns);
+		for (uint i = 0; i < ns; ++i)
+			{
+			m_SeqLengths.push_back(sh->seqlengths[i]);
+			m_Labels.push_back(sh->labels[i]);
+			}
+		}
+
+// Contiguous nu section, same shard order.
+	if (m_HasNuSequences)
+		{
+		m_NuSeqPos64 = GetStdioFilePos64(m_f);
+		for (uint s = 0; s < SIZE(m_Shards); ++s)
+			AppendTempFileToMain(m_Shards[s]->nu_f);
+		}
+	else
+		m_NuSeqPos64 = UINT64_MAX;
+
+	WriteSeqLengthsLabelsHeader();
+
+// Release shard temp files and scratch.
+	for (uint s = 0; s < SIZE(m_Shards); ++s)
+		{
+		Shard *sh = m_Shards[s];
+		if (sh->aa_f != 0)
+			{
+			CloseStdioFile(sh->aa_f);
+			DeleteStdioFile(sh->aa_fn);
+			}
+		if (sh->nu_f != 0)
+			{
+			CloseStdioFile(sh->nu_f);
+			DeleteStdioFile(sh->nu_fn);
+			}
+		myfree(sh->distmx);
+		myfree(sh->codeseq_nu);
+		if (sh->cv_inited)
+			chaq::free_chaq_vecs2(sh->cv);
+		delete sh;
+		}
+	m_Shards.clear();
 	Clear();
 	}
 

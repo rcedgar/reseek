@@ -34,6 +34,26 @@ public:
 	FILE *m_nu_tmp_f = 0;
 	string m_NuTmpFN;
 
+// Sharded (parallel) writing. Each shard is owned by a single thread and
+// streams its AA+ICs and nu bytes to private temp files plus local
+// label/length tables. CloseSharded concatenates shards in shard order;
+// because the reader recomputes all offsets from m_SeqLengths, the only
+// requirement is that the four per-shard streams agree on chain order.
+	struct Shard
+		{
+		FILE *aa_f = 0;			// AA + ICs bytes (7*L per chain)
+		FILE *nu_f = 0;			// nu bytes (L per chain, BCB only)
+		string aa_fn;
+		string nu_fn;
+		vector<string> labels;
+		vector<uint32_t> seqlengths;
+		sid_t *distmx = 0;		// per-shard scratch for nu computation
+		uint8_t *codeseq_nu = 0;
+		chaq_vecs2 cv;
+		bool cv_inited = false;
+		};
+	vector<Shard *> m_Shards;
+
 public:
 	void Clear();
 	void Create(const string &FN, bool WithNu = false);
@@ -56,6 +76,12 @@ public:
 	flat_chain_t* read_flat_chain(uint64 ChainIdx) const;
 	void write_flat_chain(const flat_chain_t *chain,
 		chaq_vecs2 *cv);
+
+// Parallel sharded writing (single-writer-per-shard, merged at close).
+	void CreateSharded(const string &FN, bool WithNu, uint nshard);
+	void write_flat_chain_shard(uint shard, const flat_chain_t *chain);
+	void CloseSharded();
+
 	void Close();
 	uint GetChainCount() const { return SIZE(m_Labels); }
 	uint64 GetSeqOffset(uint64 ChainIdx) const;
@@ -88,6 +114,9 @@ public:
 private:
 	void CloseWriter();
 	void CloseReader();
+// Shared by CloseWriter and CloseSharded.
+	void AppendTempFileToMain(FILE *tmp_f);
+	void WriteSeqLengthsLabelsHeader();
 	};
 
 const uint32_t BCA_MAGIC = 0xBCABCA;
