@@ -189,7 +189,7 @@ static void log_runstats(const RunStats& rs, FILE* f)
         cpu_frac = cpu_sec / (wall_sec * denom);
 
     // ru.ru_maxrss is kb
-    double peak_mem_bytes = double(ru.ru_maxrss)*1024.0
+    double peak_mem_bytes = double(ru.ru_maxrss)*1024.0;
 
     fprintf(f, "Peak mem %s", MemBytesToStr(peak_mem_bytes));
     fprintf(f, ", avg. CPU %.1f%%", 100.0*cpu_frac);
