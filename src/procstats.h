@@ -99,17 +99,8 @@ static void log_runstats(const RunStats& rs, FILE* f)
 
     double peak_mem_bytes = double(pmc.PeakWorkingSetSize);
 
-    //fprintf(f,
-    //    "peak_rss_mb=%.1f cpu_used_pct=%.1f user=%.3f sys=%.3f wall=%.3f ncpu_eff=%.0f\n",
-    //    double(pmc.PeakWorkingSetSize) / (1024.0 * 1024.0),
-    //    100.0 * cpu_frac,
-    //    user_sec,
-    //    sys_sec,
-    //    wall_sec,
-    //    denom);
-
     fprintf(f, "Peak mem %s", MemBytesToStr(peak_mem_bytes));
-    fprintf(f, ", CPU %.1f%%", 100.0*cpu_frac);
+    fprintf(f, ", avg. CPU %.1f%%", 100.0*cpu_frac);
     fprintf(f, "\n");
 }
 
@@ -197,14 +188,21 @@ static void log_runstats(const RunStats& rs, FILE* f)
     if (wall_sec > 0)
         cpu_frac = cpu_sec / (wall_sec * denom);
 
-    fprintf(f,
-        "peak_rss_mb=%.1f cpu_used_pct=%.1f user=%.3f sys=%.3f wall=%.3f ncpu_eff=%.0f\n",
-        double(ru.ru_maxrss) / 1024.0,
-        100.0 * cpu_frac,
-        user_sec,
-        sys_sec,
-        wall_sec,
-        denom);
+    // ru.ru_maxrss is kb
+    double peak_mem_bytes = double(ru.ru_maxrss)*1024.0
+
+    fprintf(f, "Peak mem %s", MemBytesToStr(peak_mem_bytes));
+    fprintf(f, ", avg. CPU %.1f%%", 100.0*cpu_frac);
+    fprintf(f, "\n");
+
+    //fprintf(f,
+    //    "peak_rss_mb=%.1f cpu_used_pct=%.1f user=%.3f sys=%.3f wall=%.3f ncpu_eff=%.0f\n",
+    //    double(ru.ru_maxrss) / 1024.0,
+    //    100.0 * cpu_frac,
+    //    user_sec,
+    //    sys_sec,
+    //    wall_sec,
+    //    denom);
 }
 
 #endif

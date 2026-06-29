@@ -317,7 +317,6 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 			hit.dali = dali;
 			hit.TS = TS;
 
-			asserta(m_fhit);
 			if (m_fhit)
 				{
 				string str;
