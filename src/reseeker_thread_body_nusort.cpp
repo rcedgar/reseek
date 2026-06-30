@@ -21,6 +21,7 @@ static bool nu_cache_entry_gt(const nu_cache_entry &a, const nu_cache_entry &b)
 
 void reseeker::static_thread_body_nusort(uint threadidx)
 	{
+	Die("static_thread_body_nusort() called");
 	const BCAData &dbbca = *m_dbbca;
 
 	const int nu_open = flat_nu_aligner::m_open;
