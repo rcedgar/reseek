@@ -44,22 +44,22 @@ void hitdata::fill()
 				++ids;
 			else
 				++diffs;
-			++qhi;
-			++thi;
+			++qpos;
+			++tpos;
 			break;
 			}
 
 		case 'D':
 			{
 			++gaps;
-			++qhi;
+			++tpos;
 			break;
 			}
 
 		case 'I':
 			{
-			++thi;
 			++gaps;
+			++qpos;
 			break;
 			}
 		default: asserta(false);

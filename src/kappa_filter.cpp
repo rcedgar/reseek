@@ -628,7 +628,7 @@ void kappa_filter::static_bcb_thread_body(uint threadidx)
 			const KssBcbSlot &slot = batch->slots[i];
 			asserta(slot.label != 0);
 
-			db.m_bcbidx = slot.idx + 1;
+			++db.m_bcb_done_count;
 
 			if ((counter++)%10 == 0)
 				{

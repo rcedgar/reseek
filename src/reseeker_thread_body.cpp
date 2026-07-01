@@ -272,8 +272,8 @@ void reseeker::static_thread_body(uint threadidx)
 			hit.mega_rev_score = mega_rev_score;
 			hit.lddt = lddt;
 			hit.dali = dali;
-			hit.qlo = lo_i;
-			hit.tlo = lo_j;
+			hit.qlo = lo_j;
+			hit.tlo = lo_i;
 			hit.TS = TS;
 			hit.fill();
 

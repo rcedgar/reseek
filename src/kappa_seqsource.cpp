@@ -196,7 +196,7 @@ bool kappa_seqsource::get_next_bcb(SeqInfo *SI)
 			if (slot.L > 0)
 				memcpy(SI->m_SeqBuffer, slot.kappa.data(), slot.L);
 			SI->m_L = slot.L;
-			m_bcbidx = slot.idx + 1;
+			++m_bcb_done_count;
 			return true;
 			}
 
@@ -305,7 +305,7 @@ void kappa_seqsource::OpenBCB(const BCAData &bcb)
 	{
 	m_KSSS = KSSS_bcb;
 	m_bcb = &bcb;
-	m_bcbidx = 0;
+	m_bcb_done_count = 0;
 	}
 
 void kappa_seqsource::OpenSeqDB(const SeqDB &DB, bool codes)
@@ -338,7 +338,7 @@ uint kappa_seqsource::GetPctDoneX10()
 	case KSSS_bcb:
 		{
 		uint N = m_bcb->GetChainCount();
-		uint pctx10 = uint((m_bcbidx*1000.0)/N);
+		uint pctx10 = uint((m_bcb_done_count*1000.0)/N);
 		if (pctx10 == 0) pctx10 = 1;
 		if (pctx10 >= 999) pctx10 = 998;
 		return pctx10;

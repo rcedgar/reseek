@@ -44,7 +44,7 @@ public:
 	const SeqDB *m_seqdb = 0;
 	bool m_seqdb_codes = false;
 	atomic<uint> m_seqdbidx = 0;
-	atomic<uint> m_bcbidx = 0;
+	atomic<uint> m_bcb_done_count = 0;
 	const BCAData *m_bcb = 0;
 	KSS_SOURCE m_KSSS = KSSS_none;
 

@@ -153,7 +153,6 @@ void reseeker::append_userfield(
 	case UF_tlo:
 		{
 		Psa(s, "%u", hit.tlo+1);
-		asserta(false);
 		break;
 		}
 
