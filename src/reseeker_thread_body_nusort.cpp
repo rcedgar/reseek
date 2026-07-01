@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "reseeker.h"
 #include "flat_nu_aligner.h"
@@ -335,3 +336,4 @@ void reseeker::static_thread_body_nusort(uint threadidx)
 		struct_data::free_struct_data(target_data);
 		}
 	}
+#endif // 0

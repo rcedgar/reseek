@@ -323,6 +323,7 @@
     <ClCompile Include="flat_search_kappa.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
     <ClCompile Include="hexintseq.cpp" />
+    <ClCompile Include="hitdata.cpp" />
     <ClCompile Include="hj.cpp" />
     <ClCompile Include="hjtsv.cpp" />
     <ClCompile Include="kabsch_quad.cpp" />
@@ -426,6 +427,7 @@
     <ClCompile Include="varstr.cpp" />
     <ClCompile Include="viterbifastmem.cpp" />
     <ClCompile Include="writelocalaln.cpp" />
+    <ClCompile Include="write_hit.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
     <ClCompile Include="zutil.c" />
@@ -539,6 +541,8 @@
     <ClInclude Include="tunable_flat_params.h" />
     <ClInclude Include="twohitdiag.h" />
     <ClInclude Include="usage.h" />
+    <ClInclude Include="userfieldnames.h" />
+    <ClInclude Include="userfields.h" />
     <ClInclude Include="xdpmem.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />

@@ -798,12 +798,12 @@ d1gk9.1 d1k2x.1 d1apy.1 d2dg5.1 d1pya.1 d1mtp.1
 		}
 	}
 
-void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
+void GetPathCounts(const char *Path, uint ncol, uint &M, uint &D, uint &I)
 	{
 	M = 0;
 	D = 0;
 	I = 0;
-	for (uint i = 0; i < SIZE(Path); ++i)
+	for (uint i = 0; i < ncol; ++i)
 		{
 		char c = Path[i];
 		if (c == 'M')
@@ -813,6 +813,12 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 		else if (c == 'I')
 			++I;
 		}
+	}
+
+
+void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
+	{
+	GetPathCounts(Path.c_str(), uint(Path.size()), M, D, I);
 	}
 
 void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)

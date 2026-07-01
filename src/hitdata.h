@@ -5,6 +5,7 @@ class flat_chain_t;
 class hitdata
 	{
 public:
+// Set by reseeker
 	const flat_chain_t *query = 0;
 	const flat_chain_t *target = 0;
 	const char *path = 0;
@@ -15,11 +16,20 @@ public:
 	float nu_rev_score = 0;
 	float mega_fwd_score = 0;
 	float mega_rev_score = 0;
-
+	uint qlo = 0;
+	uint tlo = 0;
 	float lddt = 0;
 	float dali = 0;
-
 	float TS = 0;
+
+// Derived, set by fill()
+	uint ids = UINT_MAX;
+	uint diffs = UINT_MAX;
+	uint gaps = UINT_MAX;
+	uint qhi = UINT_MAX;
+	uint thi = UINT_MAX;
+	double pvalue = FLT_MAX;
+	string cigar;
 
 public:
 	void reset()
@@ -37,5 +47,12 @@ public:
 		lddt = 0;
 		dali = 0;
 		TS = 0;
+
+		qhi = UINT_MAX;
+		thi = UINT_MAX;
+		pvalue = FLT_MAX;
+		cigar.clear();
 		}
+
+	void fill();
 	};

@@ -2,8 +2,10 @@
 
 #include "parasail_nomalloc.h"
 #include "bcadata.h"
+#include "userfields.h"
 
 class flat_chain_t;
+class hitdata;
 
 enum NF_MODE
 	{
@@ -49,6 +51,8 @@ public:
 	static atomic<uint> m_accept_min_ts;
 	static atomic<uint> m_nhit;
 
+	static vector<USERFIELD> m_UFs;
+
 	static FILE *m_fhit;
 	static FILE *m_faln;
 	//static mutex m_hit_lock; // exploit fputs thread-safety
@@ -58,6 +62,7 @@ public:
 	static void set_params(const flat_params &params)
 		{
 		m_params = &params;
+		init_userfields();
 		}
 
 	static void set_query_data(
@@ -89,7 +94,14 @@ public:
 		const unordered_map<uint, vector<uint> > &dbidx_to_diagscores);
 
 	static void static_thread_body(uint threadidx);
-	static void static_thread_body_nusort(uint threadidx);
+	//static void static_thread_body_nusort(uint threadidx);
+	static void write_tsv(const hitdata &hit);
+	static void write_aln(const hitdata &hit);
+	static void init_userfields();
+	static void append_userfield(
+		string &s,
+		const hitdata &hit,
+		USERFIELD UF);
 
 	static void close_files()
 		{

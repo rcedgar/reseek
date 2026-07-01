@@ -24,6 +24,7 @@ void PathToLs(const string &Path, uint &QL, uint &TL);
 void ExpandParaCigar(const string &s, string &Path);
 void ExpandParaCigar_reverseDI(const string &s, string &Path);
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
+void GetPathCounts(const char *Path, uint ncol, uint &M, uint &D, uint &I);
 
 uint find_closest_point(
 	const string &cigar,

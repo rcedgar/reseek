@@ -10,6 +10,14 @@ static const float MAX_SANE_SCORE = 1000;
 static const uint KAPPA_AS = 32;
 static const uint KAPPA_NRONES = 4;
 
+enum PVALUE_MODE
+	{
+	PVM_invalid,
+	PVM_fam,
+	PVM_sf,
+	PVM_fold
+	};
+
 class flat_params
 	{
 public:
@@ -78,6 +86,9 @@ public:
 	uint16_t *m_medians = 0;
 	uint16_t **m_thresholds = 0;
 	vector<string> m_symbolsvec;
+
+	// p-value
+	PVALUE_MODE m_pvm = PVM_invalid;
 
 public:
 	void init_from_varstr(const string &varstr);

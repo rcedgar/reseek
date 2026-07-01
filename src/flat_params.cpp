@@ -46,7 +46,18 @@ uint flat_params::m_max_nu_filter_accepts = 0;
 
 void flat_params::init_from_cmdline()
 	{
-	init_from_varstr(opt(varstr));
+	if (!optset_stats)
+		Die("Must set -stats LEVEL (family, superfamily or fold)");
+
+	const string stats = opt(stats);
+	if (stats == "family")
+		init_from_varstr("=fam");
+	else if (stats == "superfamily")
+		init_from_varstr("=sf");
+	else if (stats == "fold")
+		init_from_varstr("=fold");
+	else
+		Die("Invalid -stats '%s', must be family, superfamily or fold", stats.c_str());
 	if (optset_nuonly) m_nu_only = true;
 	}
 
@@ -96,6 +107,7 @@ void flat_params::set_scalars(
 	m_dali_w = FLT_MAX;
 	m_dalix_w = FLT_MAX;
 	m_nurev_w = FLT_MAX;
+	m_pvm = PVM_invalid;
 
 	// filters
 	m_mega_filter_min_fwd = FLT_MAX;
@@ -113,6 +125,17 @@ void flat_params::set_scalars(
 			{
 			m_open = value;
 			m_ext = value/10;
+			}
+		else if (name == "pv")
+			{
+			if (value == 1)
+				m_pvm = PVM_fam;
+			else if (value == 2)
+				m_pvm = PVM_sf;
+			else if (value == 3)
+				m_pvm = PVM_fold;
+			else
+				Die("invalid pvm=%.3g in varstr", value);
 			}
 #define x(param_name, m_name)	else if (name == #param_name) m_name = value;
 #include "tunable_flat_params.h"
@@ -133,7 +156,7 @@ void flat_params::set_scalars(
 	asserta(m_nu_filter_self_w != FLT_MAX);
 	asserta(m_nu_filter_rev_w != FLT_MAX);
 	asserta(m_nu_filter_min_fwd_score != FLT_MAX);
-	asserta(m_nu_filter_min_combined_score != FLT_MAX);
+	asserta(m_pvm != PVM_invalid);
 	}
 
 bool flat_params::need_distmx()

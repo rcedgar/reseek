@@ -37,8 +37,9 @@ FILE *reseeker::m_fhit;
 FILE *reseeker::m_faln;
 //mutex reseeker::m_hit_lock; // exploit fputs thread-safety
 mutex reseeker::m_aln_lock;
-float reseeker::m_mints = -999;
+float reseeker::m_mints = 0;
 uint reseeker::m_max_queries_per_target = 0;
+vector<USERFIELD> reseeker::m_UFs;
 
 void reseeker::set_query_data(
 	const flat_chain_t **ptr_query_chains,
@@ -133,14 +134,14 @@ void reseeker::search()
 	if (optset_output)
 		reseeker::m_fhit = CreateStdioFile(opt(output));
 
-	if (optset_max_nu_accepts)
-		flat_params::m_max_nu_filter_accepts = opt(max_nu_accepts);
-	else
-		flat_params::m_max_nu_filter_accepts = 0;
-	ptr_thread_body_fn thread_body =
-		(flat_params::m_max_nu_filter_accepts > 0 ?
-		static_thread_body_nusort :
-		static_thread_body);
+	//if (optset_max_nu_accepts)
+	//	flat_params::m_max_nu_filter_accepts = opt(max_nu_accepts);
+	//else
+	//	flat_params::m_max_nu_filter_accepts = 0;
+	//ptr_thread_body_fn thread_body =
+	//	(flat_params::m_max_nu_filter_accepts > 0 ?
+	//	static_thread_body_nusort :
+	//	static_thread_body);
 
 	ProgressStep(0, m_ndbidxs, "reseek");
 
@@ -148,9 +149,8 @@ void reseeker::search()
 	uint ThreadCount = GetRequestedThreadCount();
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
-		//thread *t = new thread(static_thread_body, ThreadIndex);
-		//thread *t = new thread(static_thread_body_nusort, ThreadIndex);
-		thread *t = new thread(thread_body, ThreadIndex);
+		//thread *t = new thread(thread_body, ThreadIndex);
+		thread *t = new thread(static_thread_body, ThreadIndex);
 		ts.push_back(t);
 		}
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
