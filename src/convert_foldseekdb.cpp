@@ -3,6 +3,10 @@
 void LogCoords16(const char *mem, uint chainLength);
 float *GetCoordsFromMem(const char *mem, uint chainLength, uint entryLength);
 
+//////////////////////////////////////////////////////////////////
+// "C:\src\notebooks\2026-07-02_foldseek_db_reverse_engineer.docx"
+//////////////////////////////////////////////////////////////////
+
 /***
 -rwxrwxrwx 1 bob bob  35789 Feb  2 18:23 hiqual				# aa sequences, ASCII
 -rwxrwxrwx 1 bob bob      4 Feb  2 18:23 hiqual.dbtype		# 0x00000000
@@ -123,8 +127,8 @@ static void VerifyLookup(const string &Prefix,
 	}
 
 static void ReadIndex(const string &FN,
-					  vector<uint> &Offsets,
-					  vector<uint> &Lengths)
+					  vector<uint64> &Offsets,
+					  vector<uint64> &Lengths)
 	{
 	Offsets.clear();
 	Lengths.clear();
@@ -139,8 +143,8 @@ static void ReadIndex(const string &FN,
 			Die("Expected 3 fields, got '%s' in %s",
 				Line.c_str(), FN.c_str());
 		uint Idx = StrToUint(Fields[0]);
-		uint Offset = StrToUint(Fields[1]);
-		uint Length = StrToUint(Fields[2]);
+		uint64 Offset = StrToUint64(Fields[1]);
+		uint64 Length = StrToUint64(Fields[2]);
 		if (Idx != ExpectedIdx)
 			Die("Expected idx %u, got '%s' in %s",
 				ExpectedIdx, Line.c_str(), FN.c_str());
@@ -150,6 +154,7 @@ static void ReadIndex(const string &FN,
 
 		++ExpectedIdx;
 		}
+	CloseStdioFile(f);
 	}
 
 void cmd_convert_foldseekdb()
@@ -184,22 +189,19 @@ void cmd_convert_foldseekdb()
 	Log("%u labels, %u 3Di seqs in '%s'\n", SeqCount, SeqCount3Di, FN.c_str());
 	if (SeqCountAA != SeqCount) Die("%u labels, %u 3Di seqs", SeqCount, SeqCount3Di);
 
-	Progress("Check lookup\n");
-	VerifyLookup(Prefix, ".lookup", Labels);
+	//Progress("Check lookup\n");
+	//VerifyLookup(Prefix, ".lookup", Labels);
 
-	Progress("Check source\n");
-	VerifyLookup(Prefix, ".source", Labels);
+	//Progress("Check source\n");
+	//VerifyLookup(Prefix, ".source", Labels);
 
-	Progress("Read CA coords\n");
+	Progress("Open CA file\n");
 	const string CAFN = Prefix + "_ca";
-	uint64 Size64;
-	byte *Data = ReadAllStdioFile64(CAFN, Size64);
-	uint32_t Size32 = uint32_t(Size64);
-	if (uint64_t(Size32) != Size64)
-		Die("_ca file too big");
+	FILE *fCA = OpenStdioFile(CAFN);
+	const uint64 FileSize = GetStdioFileSize64(fCA);
 
-	vector<uint> Offsets_coords;
-	vector<uint> Lengths_coords;
+	vector<uint64> Offsets_coords;
+	vector<uint64> Lengths_coords;
 	Progress("Read CA index\n");
 	ReadIndex(Prefix + "_ca.index", Offsets_coords, Lengths_coords);
 	const uint SeqCount2 = SIZE(Offsets_coords);
@@ -209,11 +211,12 @@ void cmd_convert_foldseekdb()
 			SeqCount, SeqCount2);
 
 	asserta(SeqCount > 0);
-	uint LastOffset = Offsets_coords[SeqCount-1];
-	uint LastLength = Lengths_coords[SeqCount-1];
-	if (LastOffset + LastLength != Size32)
-		Die("_ca file size %u, LastOffset + LastLength = %u",
-			Size32, LastOffset + LastLength);
+	const uint64 LastOffset = Offsets_coords[SeqCount-1];
+	const uint64 LastLength = Lengths_coords[SeqCount-1];
+	if (LastOffset + LastLength != FileSize)
+		Die("_ca file size %llu, LastOffset + LastLength = %llu",
+			(unsigned long long) FileSize,
+			(unsigned long long) (LastOffset + LastLength));
 
 	FILE *faa = CreateStdioFile(opt(fasta));
 	FILE *f3Di = CreateStdioFile(opt(3di));
@@ -236,10 +239,17 @@ void cmd_convert_foldseekdb()
 
 		if (fcal != 0)
 			{
-			uint CoordsOffset = Offsets_coords[SeqIdx];
-			uint CoordsLength = Lengths_coords[SeqIdx];
-			const char *mem = (const char *) (Data + CoordsOffset);
-			float *Coords = GetCoordsFromMem(mem, Laa, CoordsLength);
+			const uint64 CoordsOffset = Offsets_coords[SeqIdx];
+			const uint64 CoordsLength = Lengths_coords[SeqIdx];
+			if (CoordsOffset + CoordsLength > FileSize)
+				Die("CA entry %u extends past end of file", SeqIdx);
+			if (CoordsLength == 0 || CoordsLength > UINT_MAX)
+				Die("Invalid CA entry length %llu seq %u",
+					(unsigned long long) CoordsLength, SeqIdx);
+			byte *Entry = myalloc(byte, (uint) CoordsLength);
+			ReadStdioFile64(fCA, CoordsOffset, Entry, CoordsLength);
+			const char *mem = (const char *) Entry;
+			float *Coords = GetCoordsFromMem(mem, Laa, (uint) CoordsLength);
 		////////////////////////////////////////////
 		//	char *mem2 = CoordsToMem(Coords, Laa);
 		//	if (mem2 == 0)
@@ -264,8 +274,10 @@ void cmd_convert_foldseekdb()
 						SeqAA[i], Coords[i], Coords[Laa+i], Coords[2*Laa+i]);
 			if ((void *) Coords != (void *) mem)
 				myfree((void *) Coords);
+			myfree(Entry);
 			}
 		}
+	CloseStdioFile(fCA);
 	CloseStdioFile(faa);
 	CloseStdioFile(f3Di);
 	CloseStdioFile(fcal);

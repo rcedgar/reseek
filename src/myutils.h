@@ -328,6 +328,8 @@ unsigned StrToUint(const char *s);
 unsigned StrToUint_err(const char *s);
 unsigned StrToUint(const string &s);
 unsigned StrToUint_err(const string &s);
+uint64 StrToUint64(const char *s);
+uint64 StrToUint64(const string &s);
 int StrToInt(const string &s);
 double StrToMemBytes(const string &s);
 double StrToFloat(const string &s);

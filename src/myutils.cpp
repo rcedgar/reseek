@@ -1165,6 +1165,27 @@ unsigned StrToUint(const string &s)
 	return StrToUint(s.c_str());
 	}
 
+uint64 StrToUint64(const char *s)
+	{
+	const char *s0 = s;
+	if (!IsUintStr(s0))
+		Die("Invalid integer '%s'", s0);
+	uint64 n = 0;
+	while (char c = *s++)
+		{
+		const uint64 digit = (c - '0');
+		if (n > UINT64_MAX / 10 || (n == UINT64_MAX / 10 && digit > UINT64_MAX % 10))
+			Die("Integer overflow '%s'", s0);
+		n = n*10 + digit;
+		}
+	return n;
+	}
+
+uint64 StrToUint64(const string &s)
+	{
+	return StrToUint64(s.c_str());
+	}
+
 unsigned StrToUint_err(const string &s)
 	{
 	return StrToUint_err(s.c_str());
