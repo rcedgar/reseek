@@ -22,7 +22,7 @@ errors = 0
 def err(msg):
     global errors
     errors += 1
-    print("ERROR: %s" % msg, file=sys.stderr)
+    print("ERROR: %s" % msg)
 
 
 def is_upper_aa(c):

@@ -14,7 +14,7 @@ CCoordTol = 0.05
 def err(msg):
     global errors
     errors += 1
-    print("ERROR: %s" % msg, file=sys.stderr)
+    print("ERROR: %s" % msg)
 
 def read_cal_chains(fn):
     chains = {}
@@ -195,7 +195,7 @@ for fn in (palms_fa, palms_cal, palms_can, palms_hex, palms_kappa,
         err("missing output file: %s" % fn)
 
 if errors:
-    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors), file=sys.stderr)
+    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors))
     sys.exit(1)
 
 check_fasta_equal(palms_fa, from_bcb)
@@ -211,7 +211,7 @@ check_lengths(palms_fa, palms_hex, palms_kappa)
 check_kappa_alphabet(palms_kappa)
 
 if errors:
-    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors), file=sys.stderr)
+    print("%s FAILED: %u error(s)" %  (sys.argv[0], errors))
     sys.exit(1)
 
 print("%s SUCCESS" % sys.argv[0])

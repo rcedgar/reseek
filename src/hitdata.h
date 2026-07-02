@@ -1,7 +1,7 @@
 #pragma once
 
 class flat_chain_t;
-enum PVALUE_MODE;
+#include "flat_params.h"
 
 class hitdata
 	{
