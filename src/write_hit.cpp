@@ -56,9 +56,12 @@ void reseeker::write_tsv(const hitdata &hit)
 	{
 	if (m_fhit == 0) return;
 	string str;
-	str = hit.query->m_label;
-	str += "\t" + hit.target->m_label;
-	Psa(str, "\t%.3g", hit.TS);
+	//str = hit.query->m_label;
+	//str += "\t" + hit.target->m_label;
+	//Psa(str, "\t%.3g", hit.TS);
+
+	for (auto uf : m_UFs)
+		append_userfield(str, hit, uf);
 	str += "\n";
 	// fprintf & fputs are thread-safe
 	fputs(str.c_str(), m_fhit);
@@ -117,9 +120,9 @@ void reseeker::append_userfield(
 		if (P >= 1)
 			s += "1.000";
 		else if (P > 0.001)
-			Ps(s, "%.4f", P);
+			Psa(s, "%.4f", P);
 		else
-			Ps(s, "%.4g", P);
+			Psa(s, "%.4g", P);
 		break;
 		}
 
@@ -182,7 +185,7 @@ void reseeker::append_userfield(
 
 	case UF_cigar:
 		{
-		s += hit.cigar;
+		s.append(hit.cigar_ptr(), hit.cigar_length());
 		break;
 		}
 
@@ -191,12 +194,16 @@ void reseeker::append_userfield(
 		string row;
 		row.reserve(hit.ncol);
 		uint qpos = hit.qlo;
+		const uint LQ = hit.query->m_L;
 		const char *qaa = hit.query->m_aa->m_data;
 		for (uint i = 0; i < hit.ncol; ++i)
 			{
 			char c = hit.path[i];
-			if (c == 'M' || c == 'D')
+			if (c == 'M' || c == 'I')
+				{
+				assert(qpos < LQ);
 				row += qaa[qpos++];
+				}
 			else
 				row += '-';
 			}
@@ -209,12 +216,16 @@ void reseeker::append_userfield(
 		string row;
 		row.reserve(hit.ncol);
 		uint tpos = hit.tlo;
+		const uint LT = hit.target->m_L;
 		const char *taa = hit.target->m_aa->m_data;
 		for (uint i = 0; i < hit.ncol; ++i)
 			{
 			char c = hit.path[i];
-			if (c == 'M' || c == 'I')
+			if (c == 'M' || c == 'D')
+				{
+				assert(tpos < LT);
 				row += taa[tpos++];
+				}
 			else
 				row += '-';
 			}

@@ -1,6 +1,7 @@
 #pragma once
 
 class flat_chain_t;
+enum PVALUE_MODE;
 
 class hitdata
 	{
@@ -29,9 +30,25 @@ public:
 	uint qhi = UINT_MAX;
 	uint thi = UINT_MAX;
 	double pvalue = FLT_MAX;
-	string cigar;
+
+	static const uint CIGAR_BUFSIZE = 4000;
 
 public:
+	~hitdata()
+		{
+		cigar_free();
+		}
+
+	const char *cigar_ptr() const
+		{
+		return cigar_heap ? cigar_heap : cigar_buf;
+		}
+
+	uint cigar_length() const
+		{
+		return cigar_len;
+		}
+
 	void reset()
 		{
 		query = 0;
@@ -51,8 +68,21 @@ public:
 		qhi = UINT_MAX;
 		thi = UINT_MAX;
 		pvalue = FLT_MAX;
-		cigar.clear();
+		cigar_free();
+		cigar_len = 0;
 		}
 
-	void fill();
+	void fill(const flat_params &params);
+	double calc_pvalue(double TS, PVALUE_MODE pvm);
+
+private:
+	char cigar_buf[CIGAR_BUFSIZE];
+	char *cigar_heap = 0;
+	uint cigar_heap_cap = 0;
+	uint cigar_len = 0;
+
+	void cigar_free();
+	bool cigar_ensure(uint need);
+	void cigar_put_uint(uint n);
+	void cigar_put_op(uint n, char op);
 	};

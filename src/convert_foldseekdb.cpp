@@ -145,9 +145,9 @@ static void ReadIndex(const string &FN,
 		uint Idx = StrToUint(Fields[0]);
 		uint64 Offset = StrToUint64(Fields[1]);
 		uint64 Length = StrToUint64(Fields[2]);
-		if (Idx != ExpectedIdx)
-			Die("Expected idx %u, got '%s' in %s",
-				ExpectedIdx, Line.c_str(), FN.c_str());
+		//if (Idx != ExpectedIdx)
+		//	Die("Expected idx %u, got '%s' in %s",
+		//		ExpectedIdx, Line.c_str(), FN.c_str());
 
 		Offsets.push_back(Offset);
 		Lengths.push_back(Length);

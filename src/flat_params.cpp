@@ -50,14 +50,14 @@ void flat_params::init_from_cmdline()
 		Die("Must set -stats LEVEL (family, superfamily or fold)");
 
 	const string stats = opt(stats);
-	if (stats == "family")
+	if (stats == "family" || stats == "fam")
 		init_from_varstr("=fam");
-	else if (stats == "superfamily")
+	else if (stats == "superfamily" || stats == "sf")
 		init_from_varstr("=sf");
 	else if (stats == "fold")
 		init_from_varstr("=fold");
 	else
-		Die("Invalid -stats '%s', must be family, superfamily or fold", stats.c_str());
+		Die("Invalid -stats '%s', must be family, fam, superfamily, sf or fold", stats.c_str());
 	if (optset_nuonly) m_nu_only = true;
 	}
 

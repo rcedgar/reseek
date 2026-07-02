@@ -5,6 +5,43 @@
 #include "flat_helpers.h"
 #include "hitdata.h"
 
+static void validate_hit(const hitdata &hit)
+	{
+	const char *qaa = hit.query->m_aa->m_data;
+	const char *taa = hit.target->m_aa->m_data;
+	uint qpos = hit.qlo;
+	uint tpos = hit.tlo;
+	const uint LQ = hit.query->m_L;
+	const uint LT = hit.target->m_L;
+	for (uint i = 0; i < hit.ncol; ++i)
+		{
+		char c = hit.path[i];
+		switch (c)
+			{
+		case 'M':
+			asserta(qpos < LQ);
+			asserta(tpos < LT);
+			++qpos;
+			++tpos;
+			break;
+
+		case 'D':
+			asserta(tpos < LT);
+			++tpos;
+			break;
+
+		case 'I':
+			asserta(qpos < LQ);
+			++qpos;
+			break;
+
+		default:
+			asserta(false);
+			}
+		}
+
+	}
+
 void reseeker::static_thread_body(uint threadidx)
 	{
 	const BCAData &dbbca = *m_dbbca;
@@ -275,8 +312,10 @@ void reseeker::static_thread_body(uint threadidx)
 			hit.qlo = lo_j;
 			hit.tlo = lo_i;
 			hit.TS = TS;
-			hit.fill();
-
+			hit.fill(params);
+#if DEBUG
+			validate_hit(hit);
+#endif
 			write_tsv(hit);
 			write_aln(hit);
 			//if (m_fhit)

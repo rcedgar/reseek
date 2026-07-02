@@ -337,6 +337,7 @@
     <ClCompile Include="lddt_fa2.cpp" />
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="mysegmask.cpp" />
+    <ClCompile Include="pvalue.cpp" />
     <ClCompile Include="reseeker.cpp" />
     <ClCompile Include="nu_threshold.cpp" />
     <ClCompile Include="packing.cpp" />

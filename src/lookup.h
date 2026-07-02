@@ -46,9 +46,9 @@ public:
 		if (optset_truth)
 			{
 			const string &t = opt(truth);
-			if (t == "fam")
+			if (t == "fam" || t == "family")
 				m_LT = LT_SAME_FAM;
-			else if (t == "sf")
+			else if (t == "sf" || t == "superfamily")
 				m_LT = LT_SAME_SF;
 			else if (t == "sfx")
 				m_LT = LT_DIFF_FAM_SAME_SF;
