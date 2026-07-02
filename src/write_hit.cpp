@@ -176,7 +176,7 @@ void reseeker::append_userfield(
 
 	case UF_pctid:
 		{
-		Ps(s, "%.1f", GetPct(hit.ncol, hit.ids));
+		Ps(s, "%.1f", GetPct(hit.ids, hit.ncol));
 		break;
 		}
 

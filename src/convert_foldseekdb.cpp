@@ -168,7 +168,7 @@ void cmd_convert_foldseekdb()
 	string FN = Prefix + "_h";
 	ReadNulTerminatedSeqs(FN, Labels);
 	const uint SeqCount = SIZE(Labels);
-	Log("%u labels in '%s'\n", SeqCount, FN.c_str());
+	ProgressLog("%u labels in '%s' (%s)\n", SeqCount, FN.c_str(), FloatToStr(SeqCount));
 
 	Progress("Read aa seqs\n");
 	FN = Prefix;

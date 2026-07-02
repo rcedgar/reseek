@@ -315,8 +315,9 @@ static void FastThreadBody(uint ThreadIndex)
 			time_t Now = time(0);
 			if (Now - LastTime > 0)
 				{
-				Progress("%u / %u chains converted\r",
-					s_fast_done.load(), s_fast_N);
+				uint done = s_fast_done.load();
+				Progress("%u / %u chains converted (%.2f%%)\r",
+					done, s_fast_N, GetPct(done, s_fast_N));
 				LastTime = Now;
 				}
 			}
