@@ -31,7 +31,12 @@ public:
 	uint thi = UINT_MAX;
 	double pvalue = FLT_MAX;
 
+private:
 	static const uint CIGAR_BUFSIZE = 4000;
+	char cigar_buf[CIGAR_BUFSIZE];
+	char *cigar_heap = 0;
+	uint cigar_heap_cap = 0;
+	uint cigar_len = 0;
 
 public:
 	~hitdata()
@@ -74,12 +79,6 @@ public:
 
 	void fill(const flat_params &params);
 	double calc_pvalue(double TS, PVALUE_MODE pvm);
-
-private:
-	char cigar_buf[CIGAR_BUFSIZE];
-	char *cigar_heap = 0;
-	uint cigar_heap_cap = 0;
-	uint cigar_len = 0;
 
 	void cigar_free();
 	bool cigar_ensure(uint need);
