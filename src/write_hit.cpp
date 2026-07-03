@@ -70,7 +70,7 @@ void reseeker::write_tsv(const hitdata &hit)
 void reseeker::init_userfields()
 	{
 	static const vector<USERFIELD> default_columns = 
-		{ UF_query, UF_target, UF_raw };
+		{ UF_query, UF_target, UF_pvalue };
 
 	if (optset_columns)
 		{
