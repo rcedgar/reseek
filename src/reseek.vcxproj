@@ -337,6 +337,7 @@
     <ClCompile Include="lddt_fa2.cpp" />
     <ClCompile Include="lookup.cpp" />
     <ClCompile Include="mysegmask.cpp" />
+    <ClCompile Include="calc_tm.cpp" />
     <ClCompile Include="pvalue.cpp" />
     <ClCompile Include="reseeker.cpp" />
     <ClCompile Include="nu_threshold.cpp" />
@@ -360,7 +361,6 @@
     <ClCompile Include="chain_data.cpp" />
     <ClCompile Include="quantize.h" />
     <ClCompile Include="reseeker_thread_body.cpp" />
-    <ClCompile Include="reseeker_thread_body_nusort.cpp" />
     <ClCompile Include="struct_data.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="read_alphadir.cpp" />

@@ -11,6 +11,7 @@ public:
 	bool m_scores_are_evalues = false;
 	float *m_Scores = 0;
 	float m_Sum3 = FLT_MAX;
+	float m_SFFP = FLT_MAX;
 	float m_SEPQ0_1 = FLT_MAX;
 	float m_SEPQ1 = FLT_MAX;
 	float m_SEPQ10 = FLT_MAX;
@@ -59,6 +60,7 @@ public:
 	double Bench(const string &Msg = "");
 	double BenchTop(const string &Msg = "");
 	double BenchPairCVE(const string &Msg = "");
+	double calc_sffp();
 	bool IsTprHoldout(uint domidx_q, uint domidx_t) const;
 	bool IsFprHoldout(uint domidx_q, uint domidx_t) const;
 	bool BetterScore(float score1, float score2) const;

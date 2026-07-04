@@ -257,6 +257,12 @@ void reseeker::append_userfield(
 		break;
 		}
 
+	case UF_tm:
+		{
+		Psa(s, "%.3g", hit.TM);
+		break;
+		}
+
 	case UF_ids:
 		{
 		Psa(s, "%u", hit.ids);

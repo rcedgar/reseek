@@ -20,6 +20,7 @@ static double EvalSum3(const vector<string> &xv)
 	s_FB->Search(ThreadCount, false, optset_dope, UINT_MAX);
 	s_FB->SetScoreOrder_Parallel();
 	double Sum3 = s_FB->Bench();
+	if (opt(sffp)) return s_FB->m_SFFP;
 	return Sum3;
 	}
 

@@ -65,6 +65,55 @@ void hitdata::cigar_put_op(uint n, char op)
 	p[cigar_len++] = op;
 	}
 
+void hitdata::tm_coord_free()
+	{
+	if (tm_x_heap != 0)
+		{
+		myfree(tm_x_heap);
+		tm_x_heap = 0;
+		}
+	if (tm_y_heap != 0)
+		{
+		myfree(tm_y_heap);
+		tm_y_heap = 0;
+		}
+	tm_heap_cap = 0;
+	}
+
+bool hitdata::tm_coord_ensure(uint npairs)
+	{
+	if (npairs <= TM_BUFSIZE)
+		return true;
+
+	if (npairs <= tm_heap_cap)
+		return true;
+
+	const uint new_cap = npairs;
+	double *nx = (double *) myalloc(double, new_cap*3);
+	double *ny = (double *) myalloc(double, new_cap*3);
+	tm_coord_free();
+	tm_x_heap = nx;
+	tm_y_heap = ny;
+	tm_heap_cap = new_cap;
+	return true;
+	}
+
+double *hitdata::tm_x_data(uint npairs)
+	{
+	if (npairs <= TM_BUFSIZE)
+		return tm_x_buf;
+	asserta(tm_x_heap != 0);
+	return tm_x_heap;
+	}
+
+double *hitdata::tm_y_data(uint npairs)
+	{
+	if (npairs <= TM_BUFSIZE)
+		return tm_y_buf;
+	asserta(tm_y_heap != 0);
+	return tm_y_heap;
+	}
+
 void hitdata::fill(const flat_params &params)
 	{
 	ids = 0;
@@ -136,4 +185,5 @@ void hitdata::fill(const flat_params &params)
 	qhi = qpos - 1;
 	thi = tpos - 1;
 	pvalue = calc_pvalue(TS, params.m_pvm);
+	TM = float(calc_tm_iterate());
 	}

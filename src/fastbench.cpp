@@ -476,6 +476,67 @@ double FastBench::BenchPairCVE(const string &Msg)
 	return m_Sum3;
 	}
 
+double FastBench::calc_sffp()
+	{
+	asserta(m_look);
+	asserta(m_Scores);
+	const uint ndom = m_look->get_ndom();
+	const uint K = triangle_get_K(ndom);
+	const uint NT = m_look->m_NT;
+	if (NT == 0)
+		{
+		m_SFFP = 0;
+		return 0;
+		}
+
+	// Pass 1: find best FP score per query
+	vector<float> best_fp(ndom, FLT_MAX);
+	for (uint k = 0; k < K; ++k)
+		{
+		float Score = m_Scores[k];
+		if (Score == FLT_MAX)
+			continue;
+		uint domidx_i, domidx_j;
+		triangle_k_to_ij(k, ndom, domidx_i, domidx_j);
+		if (domidx_i == domidx_j)
+			continue;
+		if (IsIgnored(domidx_i, domidx_j))
+			continue;
+		if (!IsTP(domidx_i, domidx_j))
+			{
+			if (BetterScore(Score, best_fp[domidx_i]))
+				best_fp[domidx_i] = Score;
+			if (BetterScore(Score, best_fp[domidx_j]))
+				best_fp[domidx_j] = Score;
+			}
+		}
+
+	// Pass 2: count TPs per query with score strictly better than best FP
+	uint total_tp_above = 0;
+	for (uint k = 0; k < K; ++k)
+		{
+		float Score = m_Scores[k];
+		if (Score == FLT_MAX)
+			continue;
+		uint domidx_i, domidx_j;
+		triangle_k_to_ij(k, ndom, domidx_i, domidx_j);
+		if (domidx_i == domidx_j)
+			continue;
+		if (IsIgnored(domidx_i, domidx_j))
+			continue;
+		if (IsTP(domidx_i, domidx_j))
+			{
+			if (best_fp[domidx_i] == FLT_MAX || BetterScore(Score, best_fp[domidx_i]))
+				++total_tp_above;
+			if (best_fp[domidx_j] == FLT_MAX || BetterScore(Score, best_fp[domidx_j]))
+				++total_tp_above;
+			}
+		}
+
+	m_SFFP = float(total_tp_above) / float(NT);
+	return m_SFFP;
+	}
+
 void FastBench::ReadHits(
 	const string &FN,
 	uint qidx,
@@ -668,6 +729,7 @@ void FastBench::WriteHits(const string &FN, bool IncludeSelf,
 void FastBench::ClearHitsAndResults()
 	{
 	m_Sum3 = FLT_MAX;
+	m_SFFP = FLT_MAX;
 	m_SEPQ0_1 = FLT_MAX;
 	m_SEPQ1 = FLT_MAX;
 	m_SEPQ10 = FLT_MAX;
@@ -801,6 +863,8 @@ void guess_fields(
 		}
 	if (opt(scores_are_evalues))
 		scores_are_evalues = true;
+	else if (opt(scores_are_not_evalues))
+		scores_are_evalues = false;
 	else
 		scores_are_evalues = (nlt1 > 10);
 	if (qfi == UINT_MAX)
@@ -841,6 +905,11 @@ void cmd_fast_bench_hits()
 	if (FB.m_look->m_LT != LT_TOP_SF && FB.m_look->m_LT != LT_TOP_FOLD)
 		FB.SetScoreOrder();
 	FB.Bench();
+	if (opt(sffp))
+		{
+		double sffp = FB.calc_sffp();
+		ProgressLog("SFFP=%.4f\n", sffp);
+		}
 	}
 
 void cmd_fast_bench_bits()
