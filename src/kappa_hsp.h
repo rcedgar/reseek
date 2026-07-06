@@ -9,3 +9,5 @@ void kappa_get_hsp_limits(int LQ, int LT, int Diag,
 
 int kappa_find_hsp(const byte *QSeq, const byte *TSeq,
 	int LQ, int LT, int Diag);
+
+int kappa_max_pos_logodds();

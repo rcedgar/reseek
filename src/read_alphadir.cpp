@@ -135,7 +135,7 @@ void flat_params::init_from_collect(
 	set_feature_block_offsets();
 	set_symbolsvec();
 
-	ProgressLog("%s: %s\n", C.m_name.c_str(), compound.c_str());
+	Log("%s: %s\n", C.m_name.c_str(), compound.c_str());
 	}
 
 void flat_params::init_from_fnprefixes(

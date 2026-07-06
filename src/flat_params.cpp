@@ -3,15 +3,7 @@
 #include "flat_helpers.h"
 #include "sort.h"
 
-//int DSSParams::m_PrefilterMinKappaKmerPairScore = 50;
-//int DSSParams::m_PrefilterMinKappaMinDiagScore = 0;
-//
-//uint DSSParams::m_PrefilterKappaKmerNrOnes = 4;
-//uint DSSParams::m_PrefilterKappaKmerWidth = 4;
-//uint DSSParams::m_PrefilterKappaDictSize = myipow(32, 4);
-//string DSSParams::m_PrefilterKappaPattern = "1010011";
-
-int flat_params::m_kappa_min_kmerpairscore = 50;
+int flat_params::m_kappa_min_kmerpairscore = 65;
 int flat_params::m_kappa_min_diagscore = 0;
 uint flat_params::m_kappa_min_chainlength = 32;
 string flat_params::m_kappa_pattern = "1010011";
@@ -20,7 +12,8 @@ uint flat_params::m_kappa_kmer_width = 7;
 uint flat_params::m_kappa_dict_size = myipow(KAPPA_AS, KAPPA_NRONES);
 uint8_t *flat_params::m_kappa_kmer_onesoffsets;
 uint flat_params::m_rsb_size = 1500;
-
+bool flat_params::m_kappa_hsp_rsb_prune = false;
+int flat_params::m_kappa_max_pos_logodds = 0;
 
 /////////////////////
 // Chain quantization
@@ -48,6 +41,21 @@ void flat_params::init_from_cmdline()
 	{
 	if (!optset_stats)
 		Die("Must set -stats LEVEL (family, superfamily or fold)");
+	uint nmode = 0;
+	if (opt(fast))
+		{
+		flat_params::m_kappa_min_kmerpairscore = 70;
+		}
+	else if (opt(sensitive))
+		{
+		flat_params::m_kappa_min_kmerpairscore = 60;
+		}
+	else if (opt(verysensitive))
+		{
+		flat_params::m_kappa_min_kmerpairscore = 50;
+		}
+	else
+		Die("Must set -fast, -sensitive or -verysensitive");
 
 	const string stats = opt(stats);
 	if (stats == "family" || stats == "fam")
@@ -216,6 +224,8 @@ void flat_params::logme()
 	w(kappa_min_diagscore);
 	w(kappa_min_chainlength);
 	w(rsb_size);
+	Log("%10d  kappa_hsp_rsb_prune\n", m_kappa_hsp_rsb_prune);
+	Log("%10d  kappa_max_pos_logodds\n", m_kappa_max_pos_logodds);
 #undef w
 
 #define w(x)	Log("%10u  %s\n", m_##x, #x)

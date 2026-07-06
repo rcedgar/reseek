@@ -69,3 +69,15 @@ int kappa_find_hsp(const byte *QSeq, const byte *TSeq,
 		}
 	return B;
 	}
+
+int kappa_max_pos_logodds()
+	{
+	int mx = 0;
+	for (uint i = 0; i < 32*32; ++i)
+		{
+		const int s = int(kappa32_flat_logodds[i]);
+		if (s > mx)
+			mx = s;
+		}
+	return mx;
+	}

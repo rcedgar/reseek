@@ -318,19 +318,6 @@ void reseeker::static_thread_body(uint threadidx)
 #endif
 			write_tsv(hit);
 			write_aln(hit);
-			//if (m_fhit)
-			//	{
-				//string str;
-				//str = query_label;
-				//str += "\t" + target_label;
-				//Psa(str, "\t%.3g", TS);
-				//Psa(str, "\t%.3g", float(nu_fwd_score));
-				//Psa(str, "\t%.3g", nu_combined_score);
-				//Psa(str, "\t%u", kappa_diag_score);
-				//str += "\n";
-				//// fprintf & fputs are thread-safe
-				//fputs(str.c_str(), m_fhit);
-			//	}
 			}
 
 		struct_data::free_struct_data(target_data);

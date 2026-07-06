@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "reseeker.h"
 #include "hitdata.h"
+#include "flat_helpers.h"
 
 /***
 Called from mulitple threads.
@@ -48,22 +49,38 @@ static const char *PvalueToStr(double P, string &s)
 
 void reseeker::write_aln(const hitdata &hit)
 	{
-	if (m_faln == 0) return;
-	Die("reseeker::write_aln() TODO");
+	if (m_faln == 0)
+		return;
+
+	lock_guard<mutex> lock(m_aln_lock);
+
+	fprintf(m_faln, "\n");
+	fprintf(m_faln, "_____________________________________________________________________________________________________________\n");
+
+	string labelQ, labelT;
+	WriteLocalAln(m_faln,
+		hit.query->m_label, (const byte *) hit.query->m_aa->m_data,
+		hit.target->m_label, (const byte *) hit.target->m_aa->m_data,
+		hit.qlo, hit.tlo,
+		hit.path);
+
+	fprintf(m_faln, "%s [%u-%u/%u aa]\n",
+		hit.query->m_label.c_str(), hit.qlo + 1, hit.qhi + 1, hit.query->m_L);
+	fprintf(m_faln, "%s [%u-%u/%u aa]\n",
+		hit.target->m_label.c_str(), hit.tlo + 1, hit.thi + 1, hit.target->m_L);
+
+	string s;
+	fprintf(m_faln, "P-value %s, cols %u, gaps %u, ids %u (%.1f%%)\n",
+		PvalueToStr(hit.pvalue, s), hit.ncol, hit.gaps, hit.ids,
+		GetPct(hit.ids, hit.ncol));
 	}
 
 void reseeker::write_tsv(const hitdata &hit)
 	{
 	if (m_fhit == 0) return;
 	string str;
-	//str = hit.query->m_label;
-	//str += "\t" + hit.target->m_label;
-	//Psa(str, "\t%.3g", hit.TS);
-
 	for (auto uf : m_UFs)
 		append_userfield(str, hit, uf);
-	str += "\n";
-	// fprintf & fputs are thread-safe
 	fputs(str.c_str(), m_fhit);
 	}
 

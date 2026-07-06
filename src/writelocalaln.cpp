@@ -19,9 +19,9 @@ void WriteAnnotRow(FILE *f, const byte *A, const byte *B, const char *Path,
 		else
 			{
 			if (c == 'D')
-				++i;
-			else if (c == 'I')
 				++j;
+			else if (c == 'I')
+				++i;
 			else
 				asserta(false);
 			fprintf(f, " ");
@@ -37,7 +37,7 @@ void WriteBRow(FILE *f, const byte *B, const char *Path,
 	for (unsigned k = ColLo; k <= ColHi; ++k)
 		{
 		char c = Path[k];
-		if (c == 'M' || c == 'I')
+		if (c == 'M' || c == 'D')
 			fprintf(f, "%c", B[j++]);
 		else
 			fprintf(f, "-");
@@ -52,7 +52,7 @@ void WriteARow(FILE *f, const byte *A, const char *Path,
 	for (unsigned k = ColLo; k <= ColHi; ++k)
 		{
 		char c = Path[k];
-		if (c == 'M' || c == 'D')
+		if (c == 'M' || c == 'I')
 			fprintf(f, "%c", A[i++]);
 		else
 			fprintf(f, "-");
@@ -60,8 +60,8 @@ void WriteARow(FILE *f, const byte *A, const char *Path,
 	fprintf(f, " %u  %s\n", i, LabelA.c_str());
 	}
 
-void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
-  const string &LabelB, const byte *B,
+void WriteLocalAln(FILE *f, const string &aLabelA, const byte *A,
+  const string &aLabelB, const byte *B,
   uint Loi, uint Loj, const char *Path)
 	{
 	unsigned BLOCK_SIZE = 80;
@@ -69,6 +69,11 @@ void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
 		BLOCK_SIZE = opt(rowlen);
 	uint ColLo = 0;
 	uint ColHi = (unsigned) strlen(Path) - 1;
+
+	string LabelA, LabelB;
+	void trunc_label(const string &s, string &t);
+	trunc_label(aLabelA, LabelA);
+	trunc_label(aLabelB, LabelB);
 
 	asserta(ColHi >= ColLo);
 

@@ -3,6 +3,8 @@
 #include "sort.h"
 #include <algorithm>
 
+std::atomic<bool> RankedScoresBag::m_AnyLoScoreActive(false);
+
 const vector<uint> &RankedScoresBag::GetTargetIdxs(uint QueryIdx) const
 	{
 	asserta(QueryIdx < SIZE(m_QueryIdxToTargetIdxVec));
@@ -35,7 +37,14 @@ void RankedScoresBag::TruncateVecs(uint QueryIdx)
 	m_QueryIdxToTargetIdxVec[QueryIdx] = NewTargetIdxVec;
 	m_QueryIdxToScoreVec[QueryIdx] = NewScoreVec;
 	m_QueryIdxToLoScore[QueryIdx] = NewLo;
+	m_AnyLoScoreActive.store(true, std::memory_order_release);
 	myfree(Order);
+	}
+
+uint16_t RankedScoresBag::GetLoScore(uint QueryIdx) const
+	{
+	asserta(QueryIdx < m_QueryCount);
+	return m_QueryIdxToLoScore[QueryIdx];
 	}
 
 void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score)
@@ -357,6 +366,7 @@ void RankedScoresBag::Init(uint QueryCount)
 	m_QueryIdxToScoreVec.resize(QueryCount);
 	m_QueryIdxToTargetIdxVec.resize(QueryCount);
 	m_QueryIdxToLoScore.resize(QueryCount, 0);
+	m_AnyLoScoreActive.store(false, std::memory_order_relaxed);
 #if CHECK_SCORE_VECS
 	m_QueryIdxToFullTargetIdxVec.resize(QueryCount);
 	m_QueryIdxToFullScoreVec.resize(QueryCount);

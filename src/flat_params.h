@@ -70,6 +70,8 @@ public:
 	static int m_kappa_min_diagscore;
 	static uint m_kappa_min_chainlength;
 	static uint m_rsb_size;
+	static bool m_kappa_hsp_rsb_prune;
+	static int m_kappa_max_pos_logodds;
 
 	// alphabets
 	uint32 m_nfeat = UINT_MAX;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 ///////////////////////////////////////
 // RankedScoresBag is a container for
 // sorted lists of high-scoring
@@ -31,6 +33,7 @@ public:
 	vector<vector<uint> > m_QueryIdxToTargetIdxVec;
 	vector<uint16_t> m_QueryIdxToLoScore;
 	uint m_QueryCount = UINT_MAX;
+	static std::atomic<bool> m_AnyLoScoreActive;
 
 	mutex m_DataLock;
 #if CHECK_SCORE_VECS
@@ -50,6 +53,8 @@ public:
 		unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
 		unordered_map<uint, vector<uint> > &TargetIdxToDiagScores,
 		uint &max_queries_per_target) const;
+
+	uint16_t GetLoScore(uint QueryIdx) const;
 
 	void AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score);
 	// Caller must hold m_DataLock (e.g. use AddScoresBatch for batched updates).

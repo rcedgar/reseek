@@ -133,15 +133,8 @@ void reseeker::search()
 	vector<FILE *> fs;
 	if (optset_output)
 		reseeker::m_fhit = CreateStdioFile(opt(output));
-
-	//if (optset_max_nu_accepts)
-	//	flat_params::m_max_nu_filter_accepts = opt(max_nu_accepts);
-	//else
-	//	flat_params::m_max_nu_filter_accepts = 0;
-	//ptr_thread_body_fn thread_body =
-	//	(flat_params::m_max_nu_filter_accepts > 0 ?
-	//	static_thread_body_nusort :
-	//	static_thread_body);
+	if (optset_aln)
+		reseeker::m_faln = CreateStdioFile(opt(aln));
 
 	ProgressStep(0, m_ndbidxs, "reseek");
 
