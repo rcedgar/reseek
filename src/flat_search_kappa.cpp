@@ -42,7 +42,8 @@ void cmd_flat_search_kappa()
 	asserta(ScoreMx.m_k == k);
 
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_diagscore;
+	QKmerIndex.m_MinKmerSelfScore = flat_params::m_kappa_min_kmerpairscore;
+	setup_kappa_qkmer_index(QKmerIndex, ScoreMx);
 
 	const flat_chain_t **query_chains = myalloc(const flat_chain_t *, nquery);
 	uint8_t **query_kappa_codeseqs = myalloc(uint8_t *, nquery);

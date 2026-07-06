@@ -380,6 +380,9 @@ uint logodds_and_freqmx_from_lines(
 
 void set_sec4_groups(const string &sec4_groups);
 void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount);
+class kappa_dex;
+class kappa_mermx;
+void setup_kappa_qkmer_index(kappa_dex &QKmerIndex, const kappa_mermx &ScoreMx);
 static uint16_t CoordToIC(float X) { return uint16_t((X + 1000)*10 + 0.5); }
 static float ICToCoord(uint16_t IC) { return float(IC/10.0f) - 1000; }
 

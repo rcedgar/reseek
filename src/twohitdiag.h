@@ -74,6 +74,8 @@ public:
 	uint32_t *m_DupeSeqIdxs = 0;
 	uint16_t *m_DupeDiags = 0;
 
+	Duper *m_Duper = 0;
+
 public:
 	TwoHitDiag();
 	~TwoHitDiag();

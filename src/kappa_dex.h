@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mermx.h"
+class kappa_mermx;
 
 #define KAPPA_DEBUG_CHECKS	0
 
@@ -71,7 +71,7 @@ After Pass 2:
 	vector<uint> m_Kmers;
 
 	bool m_AddNeighborhood = false;
-	const MerMx *m_ptrScoreMx = 0;
+	const kappa_mermx *m_ptrScoreMx = 0;
 	short m_MinKmerScore = INT16_MAX;
 	uint *m_NeighborKmers = 0;
 	uint8_t **m_kappa_codeseqs = 0;

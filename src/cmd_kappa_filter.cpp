@@ -177,6 +177,7 @@ void cmd_kappa_filter()
 
 	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	QKmerIndex.m_MinKmerSelfScore =  flat_params::m_kappa_min_diagscore;
+	setup_kappa_qkmer_index(QKmerIndex, ScoreMx);
 	QKmerIndex.FromSeqDB(QDB);
 //#if DEBUG
 //	QKmerIndex.Validate();

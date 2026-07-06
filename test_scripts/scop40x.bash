@@ -20,7 +20,7 @@ cd $outdir
 db=../test_data/scop40x.bcb
 lookup=../test_data/scop40x.lookup
 
-for mode in all kappa
+for mode in kappa # all
 do
 	for truth in fold sf fam
 	do
@@ -28,7 +28,7 @@ do
 		hits=$outdir/$name.hits
 		reseek \
 			-flat_search_$mode $db \
-			-varstr =$truth \
+			-stats $truth \
 			-db $db \
 			-output $hits \
 			-log $name.search.log

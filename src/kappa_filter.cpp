@@ -10,6 +10,8 @@ const uint *kappa_filter::m_query_lengths = 0;
 kappa_seqsource *kappa_filter::m_db_seqsource = 0;
 uint kappa_filter::m_QSeqCount = 0;
 atomic<time_t> kappa_filter::m_time_last_progress;
+atomic<uint64_t> kappa_filter::m_diag_bag_seed_total;
+atomic<uint64_t> kappa_filter::m_diag_bag_twohit_total;
 const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 bool g_QueryNeighborhood = true;
@@ -344,9 +346,7 @@ void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 		//uint QL32 = m_QDB->GetSeqLength(QSeqIdx);
 		uint QL32 = m_query_lengths[QSeqIdx];
 		asserta(QL32 < UINT16_MAX);
-		uint16_t QL = uint16_t(QL32);
-		diag dg(QL, m_TL);
-		uint16_t Diag = dg.getd(QSeqPos, TPos);
+		uint16_t Diag = uint16_t(QL32 + TPos - QSeqPos - 1);
 #if TRACE
 		{
 		string TKmerStr;
@@ -371,8 +371,12 @@ void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 	
 void kappa_filter::FindTwoHitDiags()
 	{
+	const uint seed_count = m_DiagBag.m_Size;
 	m_DiagBag.ClearDupes();
 	m_DiagBag.SetDupes();
+	const uint twohit_count = m_DiagBag.m_DupeCount;
+	m_diag_bag_seed_total += seed_count;
+	m_diag_bag_twohit_total += twohit_count;
 #if DEBUG
 	//m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
 #endif
@@ -670,6 +674,8 @@ void kappa_filter::run_filter(
 	ProgressStep(0, 1000, "Kappa filter");
 	time_t t_start = time(0);
 	m_time_last_progress = t_start;
+	m_diag_bag_seed_total = 0;
+	m_diag_bag_twohit_total = 0;
 
 	const bool use_bcb_batch = (db_ss.m_KSSS == KSSS_bcb);
 	vector<thread *> ts;
@@ -688,5 +694,9 @@ void kappa_filter::run_filter(
 	ProgressStep(999, 1000, "Kappa filter");
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
+	ProgressLog("Kappa diag-bag  seeds=%s  two-hit=%s  idxq=%c\n",
+		Int64ToStr(m_diag_bag_seed_total.load()),
+		Int64ToStr(m_diag_bag_twohit_total.load()),
+		tof(g_QueryNeighborhood));
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
 	}

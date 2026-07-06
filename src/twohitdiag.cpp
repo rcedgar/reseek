@@ -70,7 +70,8 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 		{
 		// Overflow, needs new data
 		uint32_t *OldOverflow = m_Overflows[Rdx];
-		uint32_t *NewOverflow = myalloc(uint32_t, Size + m_FixedItemsPerRdx);
+		uint NewCap = Size + max(m_FixedItemsPerRdx, Size - m_FixedItemsPerRdx);
+		uint32_t *NewOverflow = myalloc(uint32_t, NewCap);
 		if (Size == m_FixedItemsPerRdx)
 			{
 			// First overflow
@@ -80,7 +81,8 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 		else
 			{
 			// Expand overflow buffer
-			memcpy(NewOverflow, OldOverflow, Size*sizeof(uint32_t));
+			uint overflow_n = Size - m_FixedItemsPerRdx;
+			memcpy(NewOverflow, OldOverflow, overflow_n*sizeof(uint32_t));
 			myfree(OldOverflow);
 			}
 		m_Overflows[Rdx] = NewOverflow;
@@ -370,11 +372,14 @@ void TwoHitDiag::SetDupesRdx(uint Rdx)
 	uint Size = m_Sizes[Rdx];
 	if (Size < 2)
 		return;
-	Duper &D = *new Duper(Size);
-	AddItems(D, Rdx);
-	for (uint j = 0; j < D.m_DupeCount; ++j)
+	if (m_Duper == 0)
+		m_Duper = new Duper(Size);
+	else
+		m_Duper->Init(Size);
+	AddItems(*m_Duper, Rdx);
+	for (uint j = 0; j < m_Duper->m_DupeCount; ++j)
 		{
-		uint32_t Item = D.m_Dupes[j];
+		uint32_t Item = m_Duper->m_Dupes[j];
 
 		uint16_t Diag;
 		uint32_t SeqIdx = CvtItem(Rdx, Item, Diag);
@@ -383,7 +388,6 @@ void TwoHitDiag::SetDupesRdx(uint Rdx)
 		m_DupeDiags[m_DupeCount] = Diag;
 		++m_DupeCount;
 		}
-	delete &D;
 	}
 
 void TwoHitDiag::SetDupes()

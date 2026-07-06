@@ -33,6 +33,8 @@ public:
 	//static uint m_NQ;
 	static kappa_seqsource *m_db_seqsource;
 	static atomic<time_t> m_time_last_progress;
+	static atomic<uint64_t> m_diag_bag_seed_total;
+	static atomic<uint64_t> m_diag_bag_twohit_total;
 	static const kappa_mermx *m_ptrScoreMx;
 	static const kappa_dex *m_ptrQKmerIndex;
 

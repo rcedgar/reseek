@@ -10,11 +10,19 @@ static uint g_PrimeCount = uint(sizeof(g_Primes)/sizeof(g_Primes[0]));
 
 uint FindPrime(uint Min, uint Max)
 	{
-	for (unsigned i = 0; i < g_PrimeCount; ++i)
+	if (Min > Max)
+		return (Min + Max)/2 + 1;
+	uint lo = 0;
+	uint hi = g_PrimeCount;
+	while (lo < hi)
 		{
-		uint Prime = g_Primes[i];
-		if (Prime >= Min && Prime <= Max)
-			return Prime;
+		uint mid = (lo + hi)/2;
+		if (g_Primes[mid] < Min)
+			lo = mid + 1;
+		else
+			hi = mid;
 		}
+	if (lo < g_PrimeCount && g_Primes[lo] <= Max)
+		return g_Primes[lo];
 	return (Min + Max)/2 + 1;
 	}

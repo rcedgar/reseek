@@ -5,6 +5,9 @@
 #include "flat_helpers.h"
 #include "features.h"
 #include "triangle.h"
+#include "kappa_dex.h"
+#include "kappa_mermx.h"
+#include "kappa_filter_params.h"
 
 void flat_reverse_profile(
 	const uint8_t *prof,
@@ -846,23 +849,36 @@ void GetPathCounts(const string &Path, uint &M, uint &D, uint &I)
 
 void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
 	{
-	static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
 	extern bool g_QueryNeighborhood;
 	g_QueryNeighborhood = true;
-	return;
-
 	if (opt(idxq))
 		g_QueryNeighborhood = true;
 	else if (opt(idxt))
 		g_QueryNeighborhood = false;
-	else
-		{
-		if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
-			g_QueryNeighborhood = true;
-		else
-			g_QueryNeighborhood = false;
-		}
-	Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
+	ProgressLog("Index %s k-mer neighborhoods\n", 
+		g_QueryNeighborhood ? "query" : "target");
+	return;
+
+	//static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
+	//if (opt(idxq))
+	//	g_QueryNeighborhood = true;
+	//else if (opt(idxt))
+	//	g_QueryNeighborhood = false;
+	//else
+	//	{
+	//	if (QSeqCount <= MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD)
+	//		g_QueryNeighborhood = true;
+	//	else
+	//		g_QueryNeighborhood = false;
+	//	}
+	//Log("g_QueryNeighborhood=%c\n", tof(g_QueryNeighborhood));
+	}
+
+void setup_kappa_qkmer_index(kappa_dex &QKmerIndex, const kappa_mermx &ScoreMx)
+	{
+	QKmerIndex.m_AddNeighborhood = g_QueryNeighborhood;
+	if (g_QueryNeighborhood)
+		QKmerIndex.m_ptrScoreMx = &ScoreMx;
 	}
 
 uint path2posvecs3(
