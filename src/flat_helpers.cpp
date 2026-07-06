@@ -768,6 +768,29 @@ void ChainizeLabel(string &Label, const string &_ChainStr)
 	Label += ChainStr;
 	}
 
+char ExtractChainIdFromLabel(const string &Label)
+	{
+	string lab = Label;
+	trunc_label(lab);
+	if (opt(nochainchar))
+		return 'A';
+	const string sep = optset_chainsep ? opt(chainsep) : "_";
+	const uint sepLen = SIZE(sep);
+	const uint labLen = SIZE(lab);
+	if (sepLen > 0 && labLen >= sepLen + 1)
+		{
+		if (lab.substr(labLen - sepLen - 1, sepLen) == sep)
+			return lab[labLen - 1];
+		}
+	if (labLen >= 2)
+		{
+		char sep2 = lab[labLen - 2];
+		if (sep2 == '_' || sep2 == ':' || sep2 == '.')
+			return lab[labLen - 1];
+		}
+	return 'A';
+	}
+
 void GetFallbackLabelFromFN(const string &FN, string &Label)
 	{
 	GetStemName(FN, Label);
@@ -825,6 +848,8 @@ void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint DBSeqCount)
 	{
 	static const uint MAX_QUERY_CHAINS_FOR_QUERY_NEIGHBORHOOD = 100;
 	extern bool g_QueryNeighborhood;
+	g_QueryNeighborhood = true;
+	return;
 
 	if (opt(idxq))
 		g_QueryNeighborhood = true;

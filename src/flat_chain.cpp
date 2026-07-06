@@ -26,6 +26,7 @@ void log_flat_n_truncated_chains()
 	}
 
 void ChainizeLabel(string &Label, const string &_ChainStr);
+void GetThreeFromOne(char aa, string &AAA);
 
 flat_chain_t::~flat_chain_t()
 	{
@@ -255,6 +256,52 @@ void flat_chain_t::to_cal(FILE *f) const
 		float x, y, z;
 		get_coords(i, x, y, z);
 		fprintf(f, "%c\t%.1f\t%.1f\t%.1f\n", aa, x, y, z);
+		}
+	}
+
+void flat_chain_t::to_pdb(const string &fn, char chainId) const
+	{
+	if (fn == "")
+		return;
+	FILE *f = CreateStdioFile(fn);
+	to_pdb(f, chainId);
+	CloseStdioFile(f);
+	}
+
+void flat_chain_t::to_pdb(FILE *f, char chainId) const
+	{
+	if (f == 0)
+		return;
+	const uint L = get_length();
+	for (uint i = 0; i < L; ++i)
+		{
+		char aa = get_aa(i);
+		string sAAA;
+		GetThreeFromOne(aa, sAAA);
+		const char *AAA = sAAA.c_str();
+		float x, y, z;
+		get_coords(i, x, y, z);
+
+		fprintf(f, "ATOM  ");
+		fprintf(f, "%5u", i+1);
+		fprintf(f, " ");
+		fprintf(f, " CA ");
+		fprintf(f, " ");
+		fprintf(f, "%3.3s", AAA);
+		fprintf(f, " ");
+		fprintf(f, "%c", chainId);
+		fprintf(f, "%4u", i+1);
+		fprintf(f, " ");
+		fprintf(f, "   ");
+		fprintf(f, "%8.3f", x);
+		fprintf(f, "%8.3f", y);
+		fprintf(f, "%8.3f", z);
+		fprintf(f, "%6.2f", 1.0);
+		fprintf(f, "%6.2f", 0.0);
+		fprintf(f, "          ");
+		fprintf(f, " C");
+		fprintf(f, "  ");
+		fprintf(f, "\n");
 		}
 	}
 

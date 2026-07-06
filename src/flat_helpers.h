@@ -179,6 +179,9 @@ void trunc_label(const string &Label,
 
 void trunc_label(string &Label);
 
+void ChainizeLabel(string &Label, const string &ChainStr);
+char ExtractChainIdFromLabel(const string &Label);
+
 uint32_t get_alpha_size_from_feature_name(const string &name);
 
 static inline const uint8_t *get_letter2char(uint alpha_size)

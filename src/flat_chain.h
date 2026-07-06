@@ -68,6 +68,8 @@ public:
 	void to_fasta(FILE *f) const;
 	void to_cal(const string &fn) const;
 	void to_cal(FILE *f) const;
+	void to_pdb(const string &fn, char chainId) const;
+	void to_pdb(FILE *f, char chainId) const;
 
 	uint32_t get_length() const
 		{

@@ -42,4 +42,11 @@ mkdir -p "$OUT"
 	-fasta "$OUT/from_cal.fa" \
 	-log "$OUT/from_cal.log"
 
+PDBDIR="$OUT/pdbca"
+mkdir -p "$PDBDIR"
+"$reseek" \
+	-flat_convert "$IN" \
+	-pdbcaoutdir "$PDBDIR" \
+	-log "$OUT/pdbca.log"
+
 ## python3 ./check_flat_convert.py "$OUT"

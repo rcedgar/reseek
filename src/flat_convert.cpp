@@ -20,6 +20,8 @@ static BCAData *s_ptrBCB = 0;
 
 static bool s_want_bcb = false;
 static bool s_want_kappafasta = false;
+static bool s_want_pdbcaoutdir = false;
+static string s_pdbcaoutdir;
 
 static mutex s_LockStats;
 static mutex s_LockCal;
@@ -28,6 +30,7 @@ static mutex s_LockFasta;
 static mutex s_LockNuHexFasta;
 static mutex s_LockKappaFasta;
 static mutex s_LockBCA;
+static mutex s_LockPdbCaOut;
 
 static uint s_MinChainLength = 1;
 static uint s_Converted = 0;
@@ -68,6 +71,36 @@ static void WriteKappaFasta(FILE *f, const flat_chain_t *chain,
 	chaq::codeseq_nu_to_kappa(
 		nu, L, codeseq_kappa, flat_params::m_maxL);
 	codeseq_to_fasta(f, chain->m_label, codeseq_kappa, L, KAPPA_AS);
+	}
+
+static string MakeUniquePdbPath(const string &dir, const string &label)
+	{
+	string base = dir;
+	Dirize(base);
+	base += label;
+	string path = base + ".pdb";
+	if (!StdioFileExists(path))
+		return path;
+	for (uint n = 1; n < 10000; ++n)
+		{
+		string pathN;
+		Ps(pathN, "%s_dupe%03u.pdb", base.c_str(), n);
+		if (!StdioFileExists(pathN))
+			return pathN;
+		}
+	Die("Too many duplicate PDB files for label '%s'", label.c_str());
+	return "";
+	}
+
+static void WritePdbCa(const flat_chain_t *chain)
+	{
+	s_LockPdbCaOut.lock();
+	string label = chain->m_label;
+	trunc_label(label);
+	string path = MakeUniquePdbPath(s_pdbcaoutdir, label);
+	char chainId = ExtractChainIdFromLabel(label);
+	chain->to_pdb(path, chainId);
+	s_LockPdbCaOut.unlock();
 	}
 
 static void ThreadBody(uint ThreadIndex)
@@ -209,6 +242,9 @@ static void ThreadBody(uint ThreadIndex)
 			s_LockBCA.unlock();
 			}
 
+		if (s_want_pdbcaoutdir)
+			WritePdbCa(chain);
+
 		s_LockStats.lock();
 		++s_Converted;
 		s_LockStats.unlock();
@@ -336,10 +372,10 @@ static void FastThreadBody(uint ThreadIndex)
 
 static bool FastPathEligible(bool want_cal, bool want_can, bool want_bca,
 	bool want_bcb, bool want_fasta, bool want_nuhexfasta,
-	bool want_kappafasta, bool have_labels)
+	bool want_kappafasta, bool want_pdbcaoutdir, bool have_labels)
 	{
 	if (want_cal || want_can || want_fasta || want_nuhexfasta ||
-		want_kappafasta)
+		want_kappafasta || want_pdbcaoutdir)
 		return false;
 	if (!(want_bca || want_bcb))
 		return false;
@@ -418,8 +454,8 @@ static void RunFastBcx(bool want_bca, bool want_bcb)
 void cmd_flat_convert()
 	{
 	if (optset_output)
-		Die("Use -cal, -can, -bca, -bcb, -fasta, -nuhexfasta or "
-		  "-kappafasta not -output");
+		Die("Use -cal, -can, -bca, -bcb, -fasta, -nuhexfasta, "
+		  "-kappafasta or -pdbcaoutdir not -output");
 
 	const bool want_cal = optset_cal;
 	const bool want_can = optset_can;
@@ -428,11 +464,15 @@ void cmd_flat_convert()
 	const bool want_fasta = optset_fasta;
 	const bool want_nuhexfasta = optset_nuhexfasta;
 	s_want_kappafasta = optset_kappafasta;
+	s_want_pdbcaoutdir = optset_pdbcaoutdir;
+	s_pdbcaoutdir = opt(pdbcaoutdir);
 
 	if (!want_cal && !want_can && !want_bca && !s_want_bcb &&
-		!want_fasta && !want_nuhexfasta && !s_want_kappafasta)
+		!want_fasta && !want_nuhexfasta && !s_want_kappafasta &&
+		!s_want_pdbcaoutdir)
 		Die("Must specify one or more output options: "
-		  "-cal, -can, -bca, -bcb, -fasta, -nuhexfasta, -kappafasta");
+		  "-cal, -can, -bca, -bcb, -fasta, -nuhexfasta, -kappafasta, "
+		  "-pdbcaoutdir");
 
 	s_MinChainLength = 1;
 	if (optset_minchainlength)
@@ -467,7 +507,7 @@ void cmd_flat_convert()
 
 	if (FastPathEligible(want_cal, want_can, want_bca, s_want_bcb,
 		want_fasta, want_nuhexfasta, s_want_kappafasta,
-		s_ptrLabelSet != 0))
+		s_want_pdbcaoutdir, s_ptrLabelSet != 0))
 		{
 		RunFastBcx(want_bca, s_want_bcb);
 		uint ne = flat_chain_reader::m_CRGlobalFormatErrors;

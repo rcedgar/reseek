@@ -5,6 +5,7 @@
 C(gunzip)
 C(gunzip_lines)
 C(bca_stats)
+C(bcx_subsample)
 C(flat_alignpair)
 C(binner)
 C(convert_foldseekdb)

@@ -290,6 +290,7 @@
     <ClCompile Include="alpha.cpp" />
     <ClCompile Include="alpha2.cpp" />
     <ClCompile Include="bcadata.cpp" />
+    <ClCompile Include="bcx_subsample.cpp" />
     <ClCompile Include="blosum62.cpp" />
     <ClCompile Include="chaq.cpp" />
     <ClCompile Include="fastbench.cpp" />
