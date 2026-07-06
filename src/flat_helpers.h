@@ -118,8 +118,8 @@ void write_flat_aln(
 	float score,
 	const string &style = "");
 
-void WriteLocalAln(FILE *f, const string &LabelA, const byte *A,
-	const string &LabelB, const byte *B,
+void WriteLocalAln(FILE *f, const string &LabelA, const uint8_t *A,
+	const string &LabelB, const uint8_t *B,
 	uint Loi, uint Loj, const char *Path);
 
 void flat_logodds_symbols(
