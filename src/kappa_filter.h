@@ -34,7 +34,7 @@ public:
 	static kappa_seqsource *m_db_seqsource;
 	static atomic<time_t> m_time_last_progress;
 	static atomic<uint64_t> m_diag_bag_seed_total;
-	static atomic<uint64_t> m_diag_bag_twohit_total;
+	static atomic<uint64_t> m_diag_bag_unique_fine_total;
 	static const kappa_mermx *m_ptrScoreMx;
 	static const kappa_dex *m_ptrQKmerIndex;
 
@@ -79,8 +79,8 @@ public:
 //  m_DiagBag stores k-mer matches between the current
 //  Target sequence and Query sequences.
 // 	Matches are stored as (QSeqIdx, DiagIdx) pairs.
-//  After scanning all k-mers, TwoHitDiag::SetDupes()
-//  finds two-hit diagonals.
+//  After scanning all k-mers, TwoHitDiag::SetUniqueFine()
+//  dedupes fine (QSeqIdx, Diag) pairs before HSP extension.
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
 

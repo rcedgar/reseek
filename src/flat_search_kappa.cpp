@@ -121,6 +121,7 @@ void cmd_flat_search_kappa()
 	time_t t_kappa_filter_end = time(0);
 	uint kappa_filter_secs = uint(t_kappa_filter_end - t_kappa_filter_start);
 	ProgressLog("Kappa filter %u secs\n", kappa_filter_secs);
+	if (opt(filter_only)) return;
 
 	reseeker::set_params(params);
 	reseeker::set_query_data(

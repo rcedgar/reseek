@@ -1,8 +1,8 @@
 #include "myutils.h"
 #include "kappa_filter.h"
+#include "kappa_hsp.h"
 #include "flat_params.h"
 #include "seqinfo.h"
-#include "sort.h"
 
 RankedScoresBag kappa_filter::m_RSB;
 uint8_t **kappa_filter::m_query_kappa_codeseq_vec = 0;
@@ -11,7 +11,7 @@ kappa_seqsource *kappa_filter::m_db_seqsource = 0;
 uint kappa_filter::m_QSeqCount = 0;
 atomic<time_t> kappa_filter::m_time_last_progress;
 atomic<uint64_t> kappa_filter::m_diag_bag_seed_total;
-atomic<uint64_t> kappa_filter::m_diag_bag_twohit_total;
+atomic<uint64_t> kappa_filter::m_diag_bag_unique_fine_total;
 const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 bool g_QueryNeighborhood = true;
@@ -76,42 +76,7 @@ void kappa_filter::init_kappa()
 //////////////////////////////////////////////
 int kappa_filter::FindHSP(const byte *QSeq, uint QL, int Diag) const
 	{
-	asserta(Diag >= 0);
-	const int LQ = int(QL);
-	const int LT = int(m_TL);
-	const int d = Diag;
-	int mini = LQ - d - 1;
-	if (mini < 0)
-		mini = 0;
-	int minj = d + 1 - LQ;
-	if (minj < 0)
-		minj = 0;
-	int maxi = LQ + LT - d - 2;
-	if (maxi >= LQ)
-		maxi = LQ - 1;
-	const int n = maxi - mini + 1;
-	asserta(n > 0);
-
-	const byte *q = QSeq + mini;
-	const byte *t = m_TSeq + minj;
-	int B = 0;
-	int F = 0;
-	for (int k = 0; k < n; ++k)
-		{
-		const byte bq = *q++;
-		const byte bt = *t++;
-#if !defined(NDEBUG)
-		assert(bq < KAPPA_AS);
-		assert(bt < KAPPA_AS);
-#endif
-		const int Score = int(kappa32_flat_logodds[(unsigned) bq*32u + (unsigned) bt]);
-		F += Score;
-		if (F > B)
-			B = F;
-		else if (F < 0)
-			F = 0;
-		}
-	return B;
+	return kappa_find_hsp(QSeq, m_TSeq, int(QL), int(m_TL), Diag);
 	}
 
 int kappa_filter::FindHSP(uint QSeqIdx, int Diag) const
@@ -372,11 +337,10 @@ void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 void kappa_filter::FindTwoHitDiags()
 	{
 	const uint seed_count = m_DiagBag.m_Size;
-	m_DiagBag.ClearDupes();
-	m_DiagBag.SetDupes();
-	const uint twohit_count = m_DiagBag.m_DupeCount;
+	m_DiagBag.SetUniqueFine();
+	const uint unique_fine_count = m_DiagBag.m_DupeCount;
 	m_diag_bag_seed_total += seed_count;
-	m_diag_bag_twohit_total += twohit_count;
+	m_diag_bag_unique_fine_total += unique_fine_count;
 #if DEBUG
 	//m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
 #endif
@@ -429,13 +393,13 @@ void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 
 void kappa_filter::ExtendTwoHitDiagsToHSPs()
 	{
-	uint DupeCount = m_DiagBag.m_DupeCount;
+	const uint DupeCount = m_DiagBag.m_DupeCount;
 	m_NrQueriesWithTwoHitDiag = 0;
 	for (uint i = 0; i < DupeCount; ++i)
 		{
-		uint32_t QSeqIdx = m_DiagBag.m_DupeSeqIdxs[i];
-		uint16_t Diag = m_DiagBag.m_DupeDiags[i];
-		int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
+		const uint32_t QSeqIdx = m_DiagBag.m_DupeSeqIdxs[i];
+		const uint16_t Diag = m_DiagBag.m_DupeDiags[i];
+		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
 		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
 		}
 	}
@@ -675,7 +639,7 @@ void kappa_filter::run_filter(
 	time_t t_start = time(0);
 	m_time_last_progress = t_start;
 	m_diag_bag_seed_total = 0;
-	m_diag_bag_twohit_total = 0;
+	m_diag_bag_unique_fine_total = 0;
 
 	const bool use_bcb_batch = (db_ss.m_KSSS == KSSS_bcb);
 	vector<thread *> ts;
@@ -694,9 +658,9 @@ void kappa_filter::run_filter(
 	ProgressStep(999, 1000, "Kappa filter");
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
-	ProgressLog("Kappa diag-bag  seeds=%s  two-hit=%s  idxq=%c\n",
+	ProgressLog("Kappa diag-bag  seeds=%s  unique_fine=%s  idxq=%c\n",
 		Int64ToStr(m_diag_bag_seed_total.load()),
-		Int64ToStr(m_diag_bag_twohit_total.load()),
+		Int64ToStr(m_diag_bag_unique_fine_total.load()),
 		tof(g_QueryNeighborhood));
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
 	}

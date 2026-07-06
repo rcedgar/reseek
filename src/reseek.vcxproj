@@ -356,6 +356,7 @@
     <ClCompile Include="mmseqs_index_dump.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="kappa_filter.cpp" />
+    <ClCompile Include="kappa_hsp.cpp" />
     <ClCompile Include="flat_prepare_query.cpp" />
     <ClCompile Include="puu.cpp" />
     <ClCompile Include="pwalndb.cpp" />
@@ -518,6 +519,7 @@
     <ClInclude Include="peaker.h" />
     <ClInclude Include="prefiltermuparams.h" />
     <ClInclude Include="kappa_filter.h" />
+    <ClInclude Include="kappa_hsp.h" />
     <ClInclude Include="primes.h" />
     <ClInclude Include="procstats.h" />
     <ClInclude Include="puu.h" />

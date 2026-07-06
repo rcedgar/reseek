@@ -48,3 +48,5 @@ do
 		fi
 	done
 done
+
+grep 3= $outdir/*3.log

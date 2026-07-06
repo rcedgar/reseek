@@ -1,6 +1,7 @@
 #pragma once
 
 class Duper;
+class PairDuper;
 
 /***
 Radix
@@ -71,10 +72,12 @@ public:
 	uint32_t *m_Data = 0;
 
 	uint32_t m_DupeCount = 0;
+	uint32_t m_DupeAllocSize = 0;
 	uint32_t *m_DupeSeqIdxs = 0;
 	uint16_t *m_DupeDiags = 0;
 
 	Duper *m_Duper = 0;
+	PairDuper *m_PairDuper = 0;
 
 public:
 	TwoHitDiag();
@@ -156,6 +159,8 @@ public:
 	void AppendAll(uint Rdx, vector<pair<uint32_t, uint16_t> > &SeqIdxDiagPairs) const;
 	void SetDupes();
 	void SetDupesRdx(uint Rdx);
+	void SetUniqueFine();
+	void SetUniqueFineRdx(uint Rdx);
 	void AddItems(Duper &D, uint Rdx) const;
 	void ClearDupes();
 	void CheckDupes();

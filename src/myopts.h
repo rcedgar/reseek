@@ -244,6 +244,7 @@ FLAG_OPT(nuonly)
 FLAG_OPT(timealn)
 FLAG_OPT(top3)
 FLAG_OPT(sffp)
+FLAG_OPT(filter_only)
 
 #undef FLAG_OPT
 #undef UNS_OPT

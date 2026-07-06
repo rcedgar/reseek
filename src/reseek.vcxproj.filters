@@ -362,6 +362,9 @@
     <ClCompile Include="kappa_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kappa_hsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="kappa_dex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -797,6 +800,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kappa_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_hsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bitdope.h">
