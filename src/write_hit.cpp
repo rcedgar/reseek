@@ -81,6 +81,7 @@ void reseeker::write_tsv(const hitdata &hit)
 	string str;
 	for (auto uf : m_UFs)
 		append_userfield(str, hit, uf);
+	str += "\n";
 	fputs(str.c_str(), m_fhit);
 	}
 

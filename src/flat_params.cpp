@@ -44,18 +44,14 @@ void flat_params::init_from_cmdline()
 	uint nmode = 0;
 	if (opt(fast))
 		{
-		flat_params::m_kappa_min_kmerpairscore = 70;
+		flat_params::m_kappa_min_kmerpairscore = 65;
 		}
 	else if (opt(sensitive))
 		{
-		flat_params::m_kappa_min_kmerpairscore = 60;
-		}
-	else if (opt(verysensitive))
-		{
-		flat_params::m_kappa_min_kmerpairscore = 50;
+		flat_params::m_kappa_min_kmerpairscore = 55;
 		}
 	else
-		Die("Must set -fast, -sensitive or -verysensitive");
+		Die("Must set -fast or -sensitive");
 
 	const string stats = opt(stats);
 	if (stats == "family" || stats == "fam")
