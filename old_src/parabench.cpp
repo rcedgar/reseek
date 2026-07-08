@@ -1,0 +1,587 @@
+#if 0
+#include "myutils.h"
+#include "parabench.h"
+#include "triangle.h"
+#include "nu.h"
+#include "sort.h"
+#include "seqdb.h"
+#include "alpha.h"
+#include "hexintseq.h"
+#include <numeric>
+
+/////////////////////////////////////////
+// Hack because of K<->L bug in alpha.cpp
+//   baked into mumx_data.cpp
+/////////////////////////////////////////
+// unsigned char g_CharToLetterMu[256] =
+// ...
+//	9  ,         // [ 74] 'J'
+//	11 ,         // [ 75] 'L'
+//	10 ,         // [ 76] 'K'
+//	12 ,         // [ 77] 'M'
+//
+//unsigned char g_LetterToCharMu[256] =
+// ...
+//	'J',           // [9]
+//	'L',           // [10]
+//	'K',           // [11]
+//	'M',           // [12]
+/////////////////////////////////////////
+void FixMuByteSeq(vector<byte> &ByteSeq)
+	{
+	for (uint i = 0; i < SIZE(ByteSeq); ++i)
+		{
+		byte Letter = ByteSeq[i];
+		if (Letter == 11)
+			ByteSeq[i] = 10;
+		else if (Letter == 10)
+			ByteSeq[i] = 11;
+		}
+	}
+
+void ParaBench::AppendHit_rev(uint i, uint j, float Score)
+	{
+	uint k = triangle_ij_to_k(i, j, m_ndom);
+	m_Scores_rev[k] = Score;
+	}
+
+void ParaBench::SubclassAppendHit(uint i, uint j, float Score)
+	{
+	if (m_DoReverse)
+		{
+		uint k = triangle_ij_to_k(i, j, m_ndom);
+		m_Scores_fwd[k] = Score;
+		}
+	}
+
+float ParaBench::GetSelfScore_rev(Paralign &PA, uint ChainIdx)
+	{
+	asserta(m_AlignMethod == "para");
+	const string &Label = m_Labels[ChainIdx];
+	const vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+	uint L = SIZE(ByteSeq);
+	PA.m_Q = ByteSeq.data();
+	PA.m_LQ = L;
+
+	PA.SetQueryProfile(Label, ByteSeq.data(), L);
+	PA.Align_ScoreOnly_rev(Label, ByteSeq.data(), L);
+	return (float) PA.m_Score_rev;
+	}
+
+void ParaBench::SetSelfScores_rev(const string &AlignMethod)
+	{
+	InitThreads(AlignMethod, true);
+	if (m_SelfScores_rev != 0)
+		myfree(m_SelfScores_rev);
+	m_SelfScores_rev = myalloc(float, m_ndom);
+	Paralign PA;
+	PA.m_DoReverse = true;
+	Progress("Self scores... ");
+	for (uint i = 0; i < m_ndom; ++i)
+		m_SelfScores_rev[i] = GetSelfScore_rev(PA, i);
+	Progress("done\n");
+	}
+
+void ParaBench::Align(uint ThreadIdx, uint i, uint j)
+	{
+	const string &Label_j = m_Labels[j];
+	const vector<byte> &ByteSeq_j = m_ByteSeqs[j];
+	uint L_j = SIZE(ByteSeq_j);
+
+	if (i != m_QueryIdxs[ThreadIdx])
+		{
+		SetQuery(ThreadIdx, i);
+		m_QueryIdxs[ThreadIdx] = i;
+		}
+
+	Paralign &PA = *m_PAs[ThreadIdx];
+	PA.m_LabelT = Label_j;
+	PA.m_T = ByteSeq_j.data();
+	PA.m_LT = L_j;
+
+	if (m_AlignMethod == "sw")
+		{
+		asserta(!m_DoReverse);
+		PA.Align_SWFast(Label_j, ByteSeq_j.data(), L_j);
+		AppendHit(i, j, PA.m_SWFastScore);
+		}
+	else if (m_AlignMethod == "para")
+		{
+		PA.Align_ScoreOnly(Label_j, ByteSeq_j.data(), L_j);
+		AppendHit(i, j, (float) PA.m_Score);
+		if (m_DoReverse)
+			{
+			PA.Align_ScoreOnly_rev(Label_j, ByteSeq_j.data(), L_j);
+			AppendHit_rev(i, j, (float) PA.m_Score_rev);
+			}
+		}
+	else
+		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
+	}
+
+void ParaBench::SetQuery(uint ThreadIdx, uint i)
+	{
+	const string &Label_i = m_Labels[i];
+	const vector<byte> &ByteSeq_i = m_ByteSeqs[i];
+	uint L_i = SIZE(ByteSeq_i);
+	Paralign &PA = *m_PAs[ThreadIdx];
+	PA.m_Q = ByteSeq_i.data();
+	PA.m_LQ = L_i;
+
+	if (m_AlignMethod == "para")
+		{
+		PA.SetQueryProfile(Label_i, ByteSeq_i.data(), L_i);
+		if (m_DoReverse)
+			PA.SetQueryProfile_rev(ByteSeq_i.data(), L_i);
+		}
+	else if (m_AlignMethod == "sw")
+		;
+	else
+		Die("m_AlignMethod=%s", m_AlignMethod.c_str());
+	}
+
+void ParaBench::InitThreads(const string &AlignMethod, bool DoReverse)
+	{
+	FastBench::Alloc();
+
+	m_AlignMethod = AlignMethod;
+
+	ProgressLog("Search %s %s %s\n",
+		m_AlignMethod.c_str(),
+		m_SubstMxName.c_str(),
+		m_ByteSeqMethod.c_str());
+
+	asserta(m_Chains.empty() || m_ndom == SIZE(m_Chains));
+	asserta(m_ndom == SIZE(m_ByteSeqs));
+	uint PairCount2 = triangle_get_K(m_ndom);
+	asserta(m_npair == PairCount2);
+	if (m_Scores_fwd != 0)
+		myfree(m_Scores_fwd);
+	if (m_Scores_rev != 0)
+		myfree(m_Scores_rev);
+	if (m_DoReverse)
+		{
+		m_Scores_fwd = myalloc(float, m_npair);
+		m_Scores_rev = myalloc(float, m_npair);
+		}
+	const uint ThreadCount = GetRequestedThreadCount();
+	m_PAs.clear();
+	m_QueryIdxs.clear();
+	for (uint i = 0; i < ThreadCount; ++i)
+		{
+		Paralign *PA = new Paralign;
+		PA->m_DoReverse = DoReverse;
+		m_PAs.push_back(PA);
+		m_QueryIdxs.push_back(UINT_MAX);
+		}
+	}
+
+void ParaBench::Search(const string &AlignMethod, bool DoReverse)
+	{
+	InitThreads(AlignMethod, DoReverse);
+	atomic<uint> Counter = 0;
+	ProgressStep(0, m_npair, "Aligning");
+
+	const uint ThreadCount = GetRequestedThreadCount();
+#pragma omp parallel num_threads(ThreadCount)
+	{
+	uint ThreadIdx = GetThreadIndex();
+#pragma omp for
+	for (int PairIdx = 0; PairIdx < int(m_npair); ++PairIdx)
+		{
+		++Counter;
+		if (Counter.load()%1000 == 0)
+			{
+#pragma omp critical
+				{
+				ProgressStep(Counter.load(), m_npair, "Aligning");
+				}
+			}
+
+		uint i, j;
+		triangle_k_to_ij(PairIdx, m_ndom, i, j);
+		Align(ThreadIdx, i, j);
+		}
+	}
+
+	ProgressStep(m_npair-1, m_npair, "Aligning");
+	ProgressLog("%u saturated, %u 8-bit, %u 16-bit, %u SW\n",
+		Paralign::m_SaturatedCount.load(),
+		Paralign::m_Count8.load(),
+		Paralign::m_Count16.load(),
+		Paralign::m_CountSWFast.load());
+	}
+
+void ParaBench::to_hexfasta(const string &hexfastafn) const
+	{
+	if (hexfastafn == "")
+		return;
+	ProgressLog("Writing %s\n", hexfastafn.c_str());
+	FILE *f = CreateStdioFile(hexfastafn);
+	const uint n = uint(m_ByteSeqs.size());
+	for (uint i = 0; i < n; ++i)
+		{
+		const byte *byteseq = m_ByteSeqs[i].data();
+		const string &label = m_look->get_dom(i);
+		const uint L = uint(m_ByteSeqs[i].size());
+		string hexseq;
+		hexseq.reserve(L);
+		for (uint pos = 0; pos < L; ++pos)
+			Psa(hexseq, "%02x", byteseq[pos]);
+		SeqToFasta(f, label, hexseq);
+		}
+	CloseStdioFile(f);
+	}
+
+void ParaBench::GetByteSeqs(const string &FN, const string &Method)
+	{
+	m_ByteSeqMethod = Method;
+	if (Method == "muletters")
+		GetByteSeqs_muletters(FN);
+	else if (Method == "dss3")
+		GetByteSeqs_dss3(FN);
+	else if (Method == "numu")
+		GetByteSeqs_numu(FN);
+	else if (Method == "nuletters")
+		GetByteSeqs_nu(FN);
+	else if (Method == "3Di")
+		GetByteSeqs_3Di(FN);
+	else
+		Die("GetByteSeqs(%s)", Method.c_str());
+
+	m_ndom = SIZE(m_ByteSeqs);
+	m_npair = m_ndom*(m_ndom-1)/2 + m_ndom;
+	}
+
+// Construct Mu from components to validate that it
+// reproduces DSS::GetMu(). Otherwise this is redundant,
+// better to use ParaBench::GetByteSeqs_DSS().
+void ParaBench::GetByteSeqs_dss3(const string &FN)
+	{
+	ReadChains(FN, m_Chains);
+	const uint ChainCount = SIZE(m_Chains);
+
+	DSS D;
+	m_ByteSeqs.clear();
+	m_ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		m_Labels.push_back(Chain.m_Label);
+		D.Init(Chain);
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		ByteSeq.reserve(L);
+		for (uint Pos = 0; Pos < L; ++Pos)
+			{
+			uint Letter_SS3 = D.GetFeature(FEATURE_SS3, Pos);
+			uint Letter_NENSS3 = D.GetFeature(FEATURE_NENSS3, Pos);
+			uint Letter_RENDist4 = D.GetFeature(FEATURE_RENDist4, Pos);
+			byte Letter = Letter_SS3 + Letter_NENSS3*3 + Letter_RENDist4*3*3;
+			byte Letter2 = D.Get_Mu(Pos);
+			assert(Letter == Letter2);
+			asserta(Letter < 36);
+			ByteSeq.push_back(Letter);
+			}
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
+		}
+	}
+
+// Use DSS::GetMuLetters()
+void ParaBench::GetByteSeqs_muletters(const string &FN)
+	{
+	ReadChains(FN, m_Chains);
+	const uint ChainCount = SIZE(m_Chains);
+	DSS D;
+	m_ByteSeqs.clear();
+	m_ByteSeqs.resize(ChainCount);
+	vector<string> Labels;
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "DSS::GetMuLetters()");
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		Labels.push_back(Chain.m_Label);
+		D.Init(Chain);
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		D.GetMuLetters(ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
+		}
+
+	if (m_look == 0) m_look = new lookup;
+	m_look->from_labels(Labels);
+	}
+
+void ParaBench::GetByteSeqs_nu(const string &hexfastafn)
+	{
+	uint alpha_size = 256; // flat_params::get_compound_alpha_size();
+	map<string, uint> label2seqidx;
+	ReadHexIntSeqs<uint8_t>(
+		alpha_size,
+		hexfastafn,
+		m_ByteSeqs,
+		m_Labels,
+		label2seqidx);
+	}
+
+void ParaBench::GetByteSeqs_3Di(const string &FN)
+	{
+	m_ByteSeqs.clear();
+	m_Labels.clear();
+
+	SeqDB Seqs;
+	Seqs.FromFasta(FN);
+	Seqs.ToLetters(g_CharToLetterAmino);
+
+	const uint ChainCount = Seqs.GetSeqCount();
+	m_ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "GetByteSeqs_3Di()");
+		const string &Label = Seqs.GetLabel(ChainIdx);
+		uint L = Seqs.GetSeqLength(ChainIdx);
+		m_Labels.push_back(Label);
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		ByteSeq.resize(L);
+		const byte *bs = Seqs.GetByteSeq(ChainIdx);
+		memcpy(ByteSeq.data(), bs, L);
+		}
+	}
+
+void ParaBench::GetByteSeqs_numu(const string &FN)
+	{
+	m_ByteSeqs.clear();
+	m_Labels.clear();
+
+	Nu A;
+	A.SetMu();
+
+	ReadChains(FN, m_Chains);
+	const uint ChainCount = SIZE(m_Chains);
+	m_ByteSeqs.resize(ChainCount);
+	for (uint ChainIdx = 0; ChainIdx < ChainCount; ++ChainIdx)
+		{
+		ProgressStep(ChainIdx, ChainCount, "Nu::GetLetters(Mu)");
+		const PDBChain &Chain = *m_Chains[ChainIdx];
+		const uint L = Chain.GetSeqLength();
+		vector<byte> &ByteSeq = m_ByteSeqs[ChainIdx];
+		A.GetLetters(Chain, ByteSeq);
+		if (opt(fixmubyteseq))
+			FixMuByteSeq(ByteSeq);
+		m_Labels.push_back(Chain.m_Label);
+		}
+	}
+
+void ParaBench::BenchRev(const string &Msg, 
+	float SelfWeight, float RevWeight)
+	{
+	asserta(m_DoReverse);
+	asserta(m_SelfScores_rev != 0);
+	asserta(m_Scores_fwd != 0);
+	asserta(m_Scores_rev != 0);
+	asserta(m_Scores != 0);
+
+	uint K = triangle_get_K(m_ndom);
+	for (uint HitIdx = 0; HitIdx < K; ++HitIdx)
+		{
+		uint LabelIdx_i, LabelIdx_j;
+		triangle_k_to_ij(HitIdx, m_ndom, LabelIdx_i, LabelIdx_j);
+		if (LabelIdx_i == LabelIdx_j)
+			continue;
+		float SelfScore_rev_i = m_SelfScores_rev[LabelIdx_i];
+		float SelfScore_rev_j = m_SelfScores_rev[LabelIdx_j];
+		float Score_fwd = m_Scores_fwd[HitIdx];
+		float Score_rev = m_Scores_rev[HitIdx];
+		
+		m_Scores[HitIdx] = Score_fwd - RevWeight*Score_rev -
+			SelfWeight*(SelfScore_rev_i + SelfScore_rev_j);
+		}
+	SetScoreOrder();
+	Bench(Msg);
+	}
+
+void ParaBench::WriteRevTsv(const string &FN) const
+	{
+	asserta(m_DoReverse);
+	if (FN == "")
+		return;
+	asserta(m_ScoreOrder != 0);
+	asserta(m_SelfScores_rev != 0);
+	asserta(m_Scores_rev != 0);
+	asserta(m_Scores_fwd != 0);
+
+	FILE *f = CreateStdioFile(FN);
+
+	fprintf(f, "%u\n", m_ndom);
+	for (uint i = 0; i < m_ndom; ++i)
+		fprintf(f, "%u\t%s\t%.3g\n",
+			i, m_Labels[i].c_str(), m_SelfScores_rev[i]);
+
+	uint K = triangle_get_K(m_ndom);
+	for (uint k = 0; k < K; ++k)
+		{
+		ProgressStep(k, K, "Writing %s", FN.c_str());
+		uint HitIdx = m_ScoreOrder[k];
+		uint i, j;
+		triangle_k_to_ij(HitIdx, m_ndom, i, j);
+		if (i == j)
+			continue;
+
+		fprintf(f, "%.3g", m_Scores_fwd[HitIdx]);
+		fprintf(f, "\t%.3g", m_Scores_rev[HitIdx]);
+		fprintf(f, "\t%s", m_Labels[i].c_str());
+		fprintf(f, "\t%s", m_Labels[j].c_str());
+		fprintf(f, "\n");
+		}
+	CloseStdioFile(f);
+	}
+
+void ParaBench::ClearHitsAndResults()
+	{
+	Paralign::ClearStats();
+	myfree(m_Scores);
+	myfree(m_Scores_fwd);
+	myfree(m_Scores_rev);
+	myfree(m_SelfScores_rev);
+	m_Scores = 0;
+	m_Scores_fwd = 0;
+	m_Scores_rev = 0;
+	m_SelfScores_rev = 0;
+	m_Sum3 = FLT_MAX;
+	for (uint i = 0; i < SIZE(m_PAs); ++i)
+		delete m_PAs[i];
+	m_PAs.clear();
+	}
+
+void ParaBench::SetGapParams(int Open, int Ext)
+	{
+	Paralign::m_Open = Open;
+	Paralign::m_Ext = Ext;
+	}
+
+void ParaBench::MakeSubset(ParaBench &Subset, uint SubsetPct)
+	{
+	vector<uint> ChainIdxs;
+	const uint ChainCount = SIZE(m_Labels);
+	const uint SubsetChainCount = (ChainCount*SubsetPct)/100;
+	asserta(SubsetChainCount > 0 && SubsetChainCount <= ChainCount);
+	for (uint i = 0; i < ChainCount; ++i)
+		ChainIdxs.push_back(i);
+	Shuffle(ChainIdxs);
+
+	Subset.m_ndom = SubsetChainCount;
+	Subset.m_npair = SubsetChainCount*(SubsetChainCount-1)/2 + SubsetChainCount;
+	Subset.m_AlignMethod = m_AlignMethod;
+	Subset.m_SubstMxName = m_SubstMxName;
+	Subset.m_ByteSeqMethod = m_ByteSeqMethod;
+	Subset.m_ScoreOrder = 0;
+
+	Subset.m_Chains.clear();
+	Subset.m_Labels.clear();
+	Subset.m_ByteSeqs.clear();
+
+	Subset.m_Chains.reserve(SubsetChainCount);
+	Subset.m_Labels.reserve(SubsetChainCount);
+	Subset.m_ByteSeqs.reserve(SubsetChainCount);
+
+	for (uint i = 0; i < SubsetChainCount; ++i)
+		{
+		uint Idx = ChainIdxs[i];
+		PDBChain *Chain = m_Chains[Idx];
+		Subset.m_Chains.push_back(Chain);
+		Subset.m_Labels.push_back(Chain->m_Label);
+		Subset.m_ByteSeqs.push_back(m_ByteSeqs[Idx]);
+		}
+	Subset.SetLookupFromLabels();
+	}
+
+void ParaBench::SubclassClearHitsAndResults()
+	{
+	Paralign::ClearStats();
+	myfree(m_Scores_fwd);
+	myfree(m_Scores_rev);
+	myfree(m_SelfScores_rev);
+	m_Scores_fwd = 0;
+	m_Scores_rev = 0;
+	m_SelfScores_rev = 0;
+	for (uint i = 0; i < SIZE(m_PAs); ++i)
+		delete m_PAs[i];
+	m_PAs.clear();
+	}
+
+// -seqsmethod		mu | numu (also mux but redundant)
+// -alignmethod		para | sw
+// -mxname			Mu_S_k_i8 | Mu_scop40_tm0_6_0_8_fa2 | musubstmx
+#if 0
+void cmd_para_scop40()
+	{
+	ParaBench PS;
+	PS.GetByteSeqs(g_Arg1, opt(seqsmethod));
+	PS.SetLookupFromLabels();
+	Paralign::SetSubstMxByName(opt(mxname));
+	PS.Search(opt(alignmethod), false);
+	PS.SetScoreOrder();
+	PS.WriteHits(opt(output));
+
+	string Msg;
+	Ps(Msg, "%s %s %s gap %d/%d N=%u NT=%u",
+		PS.m_AlignMethod.c_str(),
+		PS.m_SubstMxName.c_str(),
+		PS.m_ByteSeqMethod.c_str(),
+		Paralign::m_Open,
+		Paralign::m_Ext,
+		PS.m_ndom,
+		PS.m_look->m_NT);
+	PS.Bench(Msg);
+	}
+
+void cmd_nu_rev()
+	{
+	asserta(optset_mxpattern);
+	asserta(optset_lookup);
+	asserta(optset_output);
+
+	asserta(!optset_db);
+	asserta(!optset_intopen);
+	asserta(!optset_intext);
+	asserta(!optset_scalef);
+	asserta(!optset_scale);
+	asserta(!optset_alignmethod);
+
+	const string &DBFN = g_Arg1;
+
+	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
+	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
+
+	Die("TODO");
+	//flat_params::init(feature_names);
+	//flat_params::read_logoddsvec_pattern(opt(mxpattern));
+
+	//unordered_map<string, float> name2weight;
+	//for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	//	name2weight[feature_names[fi]] = weights[fi];
+
+	const float Scale = 8.39f;
+	const int IntOpen = 23;
+	const int IntExt = 3;
+	const int IntSaturatedScore = 777;
+	Die("TODO");
+	//Paralign::set_flat_compound(*s_params, name2weight,
+	//	Scale, IntOpen, IntExt, IntSaturatedScore);
+
+	ParaBench PS;
+	PS.GetByteSeqs(DBFN, "nuletters");
+	PS.ReadLookup(opt(lookup));
+	PS.SetSelfScores_rev("para");
+	FILE *f = CreateStdioFile(opt(output));
+	const uint ndom = PS.m_look->get_ndom();
+	for (uint domidx = 0; domidx < ndom; ++domidx)
+		{
+		const string &label = PS.m_look->get_dom(domidx);
+		fprintf(f, "%s\t%.4g\n", label.c_str(), PS.m_SelfScores_rev[domidx]);
+		}
+	CloseStdioFile(f);
+	}
+#endif
+#endif // 0

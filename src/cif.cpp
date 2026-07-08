@@ -1,6 +1,5 @@
 #include "myutils.h"
-#include "pdbchain.h"
-#include "chainreader2.h"
+#include "flat_chain_reader.h"
 #include "cif.h"
 #include <map>
 
@@ -101,6 +100,7 @@ ATOM   6     C  CG  . PRO A 1 1   ? -21.298 0.482   35.504  1.00 149.55 ? 1    P
 ATOM   7     C  CD  . PRO A 1 1   ? -21.457 0.838   37.004  1.00 109.96 ? 1    PRO A CD  1
 ***/
 
+#if 0
 void ChainReader2::IncFormatErrors()
 	{
 	m_CRGlobalLock.lock();
@@ -295,4 +295,214 @@ void ChainReader2::ChainsFromLines_CIF(const vector<string> &Lines,
 		}
 	if (Chain != 0)
 		Chains.push_back(Chain);
+	}
+#endif // 0
+
+void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
+	vector<flat_chain_t *> &Chains, const string &FallbackLabel)
+	{
+	Chains.clear();
+	string TmpBaseLabel = FallbackLabel;
+	const string &Line0 = Lines[0];
+	if (StartsWith(Line0, "data_"))
+		{
+		vector<string> Fields;
+		Split(Line0, Fields, '_');
+		if (SIZE(Fields) == 2 && Fields[0] != "data")
+			{
+			TmpBaseLabel = Fields[1];
+			if (TmpBaseLabel == "")
+				TmpBaseLabel = FallbackLabel;
+			}
+		}
+	const string &BaseLabel = TmpBaseLabel;
+
+	string CurrentChainStr;
+	const uint N = SIZE(Lines);
+	CIF_PARSER_STATE PS = PS_WaitingForLoop;
+	vector<string> FieldList;
+	vector<string> ATOMLines;
+	vector<float> Xs, Ys, Zs;
+	vector<char> aas;
+	Xs.reserve(RESERVE_CHAIN_LENGTH);
+	Ys.reserve(RESERVE_CHAIN_LENGTH);
+	Zs.reserve(RESERVE_CHAIN_LENGTH);
+	aas.reserve(RESERVE_CHAIN_LENGTH);
+	for (uint i = 0; i < N; ++i)
+		{
+		const string &Line = Lines[i];
+		if (!Line.empty() && Line[0] == '#')
+			continue;
+		if (PS == PS_Finished)
+			break;
+
+		switch (PS)
+			{
+		case PS_WaitingForLoop:
+			{
+			if (Line == "loop_")
+				{
+				PS = PS_AtLoop;
+				continue;
+				}
+			break;
+			}
+
+		case PS_AtLoop:
+			{
+			if (StartsWith(Line, "_atom_site."))
+				{
+				PS = PS_InFieldList;
+				string Name = Line;
+				StripWhiteSpace(Name);
+				FieldList.push_back(Name);
+				}
+			else
+				PS = PS_WaitingForLoop;
+			break;
+			}
+
+		case PS_InFieldList:
+			{
+			if (StartsWith(Line, "_atom_site."))
+				{
+				string Name = Line;
+				StripWhiteSpace(Name);
+				FieldList.push_back(Name);
+				}
+			else if (Line == "loop_")
+				PS = PS_AtLoop;
+			else if (StartsWith(Line, "ATOM ") ||
+					 StartsWith(Line, "HETATM"))
+				{
+				PS = PS_InATOMs;
+				ATOMLines.push_back(Line);
+				}
+			break;
+			}
+
+		case PS_InATOMs:
+			{
+			if (StartsWith(Line, "ATOM ") ||
+				StartsWith(Line, "HETATM"))
+				ATOMLines.push_back(Line);
+			else
+				PS = PS_Finished;
+			break;
+			}
+
+		default:
+			asserta(false);
+			}
+		}
+
+	const uint FieldCount = SIZE(FieldList);
+	map<string, uint> FieldToIdx;
+	for (uint Idx = 0; Idx < FieldCount ; ++Idx)
+		FieldToIdx[FieldList[Idx]] = Idx;
+
+	uint Chain_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.auth_asym_id");
+	uint CA_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_atom_id");
+	uint X_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_x");
+	uint Y_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_y");
+	uint Z_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_z");
+	uint aa_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_comp_id");
+	uint ModelNr_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.pdbx_PDB_model_num");
+
+	if (Chain_FldIdx == UINT_MAX) return;
+	if (CA_FldIdx == UINT_MAX) return;
+	if (X_FldIdx == UINT_MAX) return;
+	if (Y_FldIdx == UINT_MAX) return;
+	if (Z_FldIdx == UINT_MAX) return;
+	if (aa_FldIdx == UINT_MAX) return;
+	uint CurrentModelNr = UINT_MAX;
+
+	const uint ATOMLineCount = SIZE(ATOMLines);
+	for (uint i = 0; i < ATOMLineCount; ++i)
+		{
+		const string &Line = ATOMLines[i];
+		vector<string> Fields;
+		SplitWhite(Line, Fields);
+		uint n = SIZE(Fields);
+		if (n != FieldCount)
+			{
+			IncFormatErrors();
+			Log("%s: Expected %u fields got %u in '%s'\n",
+			  m_CurrentFN.c_str(), FieldCount, n, Line.c_str());
+			return;
+			}
+
+		const string &CA_Fld = Fields[CA_FldIdx];
+		if (CA_Fld != "CA")
+			continue;
+
+		if (ModelNr_FldIdx != UINT_MAX)
+			{
+			uint ModelNr = (uint) atoi(Fields[ModelNr_FldIdx].c_str());
+			if (CurrentModelNr != UINT_MAX && ModelNr != CurrentModelNr)
+				break;
+			CurrentModelNr = ModelNr;
+			}
+
+		const string &Chain_Fld = Fields[Chain_FldIdx];
+		string ChainStr = Chain_Fld;
+		if (ChainStr == "")
+			ChainStr = "__";
+		if (ChainStr != CurrentChainStr)
+			{
+			if (!aas.empty())
+				{
+				string Label = BaseLabel;
+				ChainizeLabel(Label, CurrentChainStr);
+				auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
+				Chains.push_back(chain);
+				aas.clear();
+				Xs.clear();
+				Ys.clear();
+				Zs.clear();
+				}
+			CurrentChainStr = ChainStr;
+			}
+
+		const string &aa_Fld = Fields[aa_FldIdx];
+		if (SIZE(aa_Fld) != 3)
+			continue;
+		float X = StrToFloatf(Fields[X_FldIdx]);
+		float Y = StrToFloatf(Fields[Y_FldIdx]);
+		float Z = StrToFloatf(Fields[Z_FldIdx]);
+		char aa = GetOneFromThree(aa_Fld);
+
+		aas.push_back(aa);
+		Xs.push_back(X);
+		Ys.push_back(Y);
+		Zs.push_back(Z);
+		}
+	if (!aas.empty())
+		{
+		string Label = BaseLabel;
+		ChainizeLabel(Label, CurrentChainStr);
+		auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
+		Chains.push_back(chain);
+		}
+	}
+
+void flat_chain_reader::IncFormatErrors()
+	{
+	m_CRGlobalLock.lock();
+	++m_CRGlobalFormatErrors;
+	m_CRGlobalLock.unlock();
+	}
+
+uint flat_chain_reader::GetCIFFieldIdx(const map<string, uint> &FieldToIdx, const string &Name)
+	{
+	map<string, uint>::const_iterator iter = FieldToIdx.find(Name);
+	if (iter == FieldToIdx.end())
+		{
+		IncFormatErrors();
+		Log("%s: CIF field %s not found\n",
+		  m_CurrentFN.c_str(), Name.c_str());
+		return UINT_MAX;
+		}
+	uint Idx = iter->second;
+	return Idx;
 	}

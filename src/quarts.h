@@ -124,7 +124,7 @@ struct QuartsFloat
 
 	void LogMe() const
 		{
-		Log("N=u", N);
+		Log("N=%u", N);
 		Log(", Min=%.3g", Min);
 		Log(", LoQ=%.3g", LoQ);
 		Log(", Med=%.3g", Med);
@@ -133,6 +133,21 @@ struct QuartsFloat
 		Log(", Avg=%.3g", Avg);
 		Log(", StdDev=%.3g", StdDev);
 		Log("\n");
+		}
+
+	void ToTsv(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		fprintf(f, "%u", N);
+		fprintf(f, "\t%.3g", Min);
+		fprintf(f, "\t%.3g", LoQ);
+		fprintf(f, "\t%.3g", Med);
+		fprintf(f, "\t%.3g", HiQ);
+		fprintf(f, "\t%.3g", Max);
+		fprintf(f, "\t%.3g", Avg);
+		fprintf(f, "\t%.3g", StdDev);
+		fprintf(f, "\n");
 		}
 	};
 

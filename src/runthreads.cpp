@@ -1,5 +1,4 @@
 #include "myutils.h"
-//#include "runthreads.h"
 
 void RunThreads(fn_thread_body Body, void *ptrUserData)
 	{

@@ -10,6 +10,92 @@
 
 #define LOGDIAGALNS	0
 
+/***
+Hash set for unique (SeqIdx, Diag) pairs.
+Same open-addressing pattern as Duper.
+***/
+
+class PairDuper
+	{
+public:
+	uint32_t m_InputSize = 0;
+	uint32_t m_AllocInputSize = 0;
+	uint32_t m_TableSize = 0;
+	uint32_t m_Epoch = 1;
+	uint64_t *m_Keys = 0;
+	uint32_t *m_Gen = 0;
+
+public:
+	~PairDuper()
+		{
+		myfree(m_Keys);
+		myfree(m_Gen);
+		m_Keys = 0;
+		m_Gen = 0;
+		m_TableSize = 0;
+		m_AllocInputSize = 0;
+		}
+
+	static uint64_t Pack(uint32_t SeqIdx, uint16_t Diag)
+		{
+		return (uint64_t(SeqIdx) << 16) | uint64_t(Diag);
+		}
+
+	void Init(uint32_t InputSize)
+		{
+		m_InputSize = InputSize;
+		if (InputSize <= m_AllocInputSize && m_Keys != 0)
+			{
+			++m_Epoch;
+			if (m_Epoch == 0)
+				{
+				zero_array(m_Gen, m_TableSize);
+				m_Epoch = 1;
+				}
+			return;
+			}
+		myfree(m_Keys);
+		myfree(m_Gen);
+		m_Keys = 0;
+		m_Gen = 0;
+		m_TableSize = 0;
+		m_AllocInputSize = 0;
+		if (InputSize == 0)
+			return;
+
+		uint FindPrime(uint Min, uint Max);
+		uint N = InputSize + 7;
+		uint Lo = N*3;
+		uint Hi = Lo + Lo/4;
+		m_TableSize = FindPrime(Lo, Hi);
+		m_AllocInputSize = InputSize;
+		m_Keys = myalloc(uint64_t, m_TableSize);
+		m_Gen = myalloc(uint32_t, m_TableSize);
+		zero_array(m_Gen, m_TableSize);
+		m_Epoch = 1;
+		}
+
+	bool AddIfNew(uint32_t SeqIdx, uint16_t Diag)
+		{
+		uint64_t Key = Pack(SeqIdx, Diag);
+		uint32_t h = uint32_t(Key%m_TableSize);
+		for (uint k = 0; k < m_TableSize; ++k)
+			{
+			uint32_t Idx = (h + k)%m_TableSize;
+			if (m_Gen[Idx] != m_Epoch)
+				{
+				m_Keys[Idx] = Key;
+				m_Gen[Idx] = m_Epoch;
+				return true;
+				}
+			else if (m_Keys[Idx] == Key)
+				return false;
+			}
+		Die("PairDuper::AddIfNew() overflow");
+		return false;
+		}
+	};
+
 void StrToMuLetters(const string &StrSeq, byte *Letters)
 	{
 	const uint L = SIZE(StrSeq);
@@ -70,7 +156,8 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 		{
 		// Overflow, needs new data
 		uint32_t *OldOverflow = m_Overflows[Rdx];
-		uint32_t *NewOverflow = myalloc(uint32_t, Size + m_FixedItemsPerRdx);
+		uint NewCap = Size + max(m_FixedItemsPerRdx, Size - m_FixedItemsPerRdx);
+		uint32_t *NewOverflow = myalloc(uint32_t, NewCap);
 		if (Size == m_FixedItemsPerRdx)
 			{
 			// First overflow
@@ -80,7 +167,8 @@ void TwoHitDiag::Add(uint32_t SeqIdx, uint16_t Diag)
 		else
 			{
 			// Expand overflow buffer
-			memcpy(NewOverflow, OldOverflow, Size*sizeof(uint32_t));
+			uint overflow_n = Size - m_FixedItemsPerRdx;
+			memcpy(NewOverflow, OldOverflow, overflow_n*sizeof(uint32_t));
 			myfree(OldOverflow);
 			}
 		m_Overflows[Rdx] = NewOverflow;
@@ -365,16 +453,85 @@ void TwoHitDiag::AddItems(Duper &D, uint Rdx) const
 		D.Add(Overflow[i]);
 	}
 
+void TwoHitDiag::SetUniqueFineRdx(uint Rdx)
+	{
+	assert(m_PairDuper != 0);
+
+	uint Size = m_Sizes[Rdx];
+	const uint32_t *BasePtr = m_Data + Rdx*m_FixedItemsPerRdx;
+	uint n1 = min(Size, m_FixedItemsPerRdx);
+	for (uint i = 0; i < n1; ++i)
+		{
+		uint16_t Diag;
+		uint32_t SeqIdx = GetAllBits(Rdx, BasePtr + i, Diag);
+		if (m_PairDuper->AddIfNew(SeqIdx, Diag))
+			{
+			m_DupeSeqIdxs[m_DupeCount] = SeqIdx;
+			m_DupeDiags[m_DupeCount] = Diag;
+			++m_DupeCount;
+			}
+		}
+	if (Size <= m_FixedItemsPerRdx)
+		{
+		assert(m_Overflows[Rdx] == 0);
+		return;
+		}
+
+	const uint32_t *Overflow = m_Overflows[Rdx];
+	assert(Overflow != 0);
+	uint Remainder = Size - m_FixedItemsPerRdx;
+	for (uint i = 0; i < Remainder; ++i)
+		{
+		uint16_t Diag;
+		uint32_t SeqIdx = GetAllBits(Rdx, Overflow + i, Diag);
+		if (m_PairDuper->AddIfNew(SeqIdx, Diag))
+			{
+			m_DupeSeqIdxs[m_DupeCount] = SeqIdx;
+			m_DupeDiags[m_DupeCount] = Diag;
+			++m_DupeCount;
+			}
+		}
+	}
+
+void TwoHitDiag::SetUniqueFine()
+	{
+	m_DupeCount = 0;
+	if (m_Size == 0)
+		return;
+
+	if (m_DupeAllocSize < m_Size)
+		{
+		if (m_DupeSeqIdxs != 0)
+			{
+			myfree(m_DupeSeqIdxs);
+			myfree(m_DupeDiags);
+			}
+		m_DupeSeqIdxs = myalloc(uint32_t, m_Size);
+		m_DupeDiags = myalloc(uint16_t, m_Size);
+		m_DupeAllocSize = m_Size;
+		}
+
+	if (m_PairDuper == 0)
+		m_PairDuper = new PairDuper();
+	m_PairDuper->Init(m_Size);
+
+	for (uint i = 0; i < m_BusyCount; ++i)
+		SetUniqueFineRdx(m_BusyRdxs[i]);
+	}
+
 void TwoHitDiag::SetDupesRdx(uint Rdx)
 	{
 	uint Size = m_Sizes[Rdx];
 	if (Size < 2)
 		return;
-	Duper &D = *new Duper(Size);
-	AddItems(D, Rdx);
-	for (uint j = 0; j < D.m_DupeCount; ++j)
+	if (m_Duper == 0)
+		m_Duper = new Duper(Size);
+	else
+		m_Duper->Init(Size);
+	AddItems(*m_Duper, Rdx);
+	for (uint j = 0; j < m_Duper->m_DupeCount; ++j)
 		{
-		uint32_t Item = D.m_Dupes[j];
+		uint32_t Item = m_Duper->m_Dupes[j];
 
 		uint16_t Diag;
 		uint32_t SeqIdx = CvtItem(Rdx, Item, Diag);
@@ -383,7 +540,6 @@ void TwoHitDiag::SetDupesRdx(uint Rdx)
 		m_DupeDiags[m_DupeCount] = Diag;
 		++m_DupeCount;
 		}
-	delete &D;
 	}
 
 void TwoHitDiag::SetDupes()

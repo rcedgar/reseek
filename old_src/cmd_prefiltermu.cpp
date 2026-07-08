@@ -1,0 +1,240 @@
+#if 0
+#include "myutils.h"
+#include "dssparams.h"
+#include "prefiltermu.h"
+#include "prefiltermuparams.h"
+#include "lookup.h"
+#include "bitdope.h"
+#include <chrono>
+
+void decide_query_or_db_kmer_neighborhood(uint QSeqCount, uint TSeqCount);
+
+static uint s_NextTIdx = 0;
+static mutex m_NextTIdxLock;
+static const MerMx *s_ptrScoreMx;
+static const SeqDB *s_ptrQDB = 0;
+static const SeqDB *s_ptrTDB = 0;
+static const MuDex *s_ptrQKmerIndex = 0;
+static FILE *s_fTsv = 0;
+static time_t s_TimeLastProgress;
+static atomic<uint> s_TotalPassedFilter;
+
+static void ThreadBody(uint ThreadIndex)
+	{
+	const uint TSeqCount = s_ptrTDB->GetSeqCount();
+
+	PrefilterMu Pref;
+	Pref.m_ScoreMx = s_ptrScoreMx;
+	Pref.m_QKmerIndex = s_ptrQKmerIndex;
+	Pref.m_KmerSelfScores = s_ptrQKmerIndex->m_KmerSelfScores;
+	Pref.SetQDB(*s_ptrQDB);
+
+	for (;;)
+		{
+		m_NextTIdxLock.lock();
+		uint TSeqIdx = s_NextTIdx;
+		if (s_NextTIdx < TSeqCount)
+			++s_NextTIdx;
+		if (TSeqIdx > 0 && TSeqIdx + 1 < TSeqCount)
+			{
+			time_t now = time(0);
+			if (now > s_TimeLastProgress)
+				ProgressStep(TSeqIdx, TSeqCount, "Filtering");
+			s_TimeLastProgress = now;
+			}
+		m_NextTIdxLock.unlock();
+		if (TSeqIdx == TSeqCount)
+			{
+			s_TotalPassedFilter += Pref.m_NrQueriesWithTwoHitDiag;
+			return;
+			}
+
+		Pref.m_TSeqIdx = TSeqIdx;
+		const byte *TSeq = s_ptrTDB->GetByteSeq(TSeqIdx);
+		const string &TLabel = s_ptrTDB->GetLabel(TSeqIdx);
+		uint TL = s_ptrTDB->GetSeqLength(TSeqIdx);
+		Pref.Search(TSeqIdx, TLabel, TSeq, TL);
+		}
+	}
+
+void cmd_prefilter_mu()
+	{
+	lookup look;
+	bitdope dope;
+	if (optset_dope)
+		{
+		const string &lookupfn =
+			(optset_lookup ? opt(lookup) : "../data/scop40x.lookup");
+		look.from_tsv(lookupfn);
+		dope.m_look = &look;
+		dope.from_file(opt(dope));
+		dope.set_square();
+		ProgressLog("dope %s hits\n", FloatToStr(dope.m_nhit));
+		}
+
+	const uint k = MuDex::m_k;
+
+	const string &QueryMu_FN = g_Arg1;
+	const string &DB3Di_FN = opt(db);
+
+	SeqDB QDB;
+	SeqDB TDB;
+
+	QDB.FromFasta(QueryMu_FN);
+	TDB.FromFasta(DB3Di_FN);
+
+	QDB.ToLetters(g_CharToLetterMu);
+	TDB.ToLetters(g_CharToLetterMu);
+	const uint QSeqCount = QDB.GetSeqCount();
+	const uint TSeqCount = TDB.GetSeqCount();
+
+	decide_query_or_db_kmer_neighborhood(QSeqCount, TSeqCount);
+
+	PrefilterMu::m_RSB.m_B = DSSParams::m_rsb_size;
+	PrefilterMu::m_RSB.Init(QSeqCount);
+
+	const MerMx &ScoreMx = GetMuMerMx(k);
+	asserta(ScoreMx.m_k == k);
+
+	MuDex QKmerIndex;
+	QKmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
+	QKmerIndex.m_MinKmerSelfScore =  DSSParams::m_PrefilterMinMuKmerPairScore;
+	QKmerIndex.FromSeqDB(QDB);
+#if DEBUG
+	QKmerIndex.Validate();
+#endif
+	asserta(QKmerIndex.m_k == k);
+	asserta(QKmerIndex.m_DictSize == PREFILTER_KMER_DICT_SIZE);
+	asserta(ScoreMx.m_AS_pow[k] == QKmerIndex.m_DictSize);
+
+	s_ptrQDB = &QDB;
+	s_ptrTDB = &TDB;
+	s_ptrScoreMx = &ScoreMx;
+	s_ptrQKmerIndex = &QKmerIndex;
+
+	ProgressStep(0, TSeqCount, "Filtering");
+	time_t t_start = time(0);
+	s_TimeLastProgress = t_start;
+	auto chrono_start = std::chrono::high_resolution_clock::now();
+
+	vector<thread *> ts;
+	uint ThreadCount = GetRequestedThreadCount();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		{
+		thread *t = new thread(ThreadBody, ThreadIndex);
+		ts.push_back(t);
+		}
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		ts[ThreadIndex]->join();
+	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+		delete ts[ThreadIndex];
+	ProgressStep(TSeqCount-1, TSeqCount, "Filtering");
+
+	time_t t_end = time(0);
+	uint filter_secs = uint(t_end - t_start);
+	double SeqsPerSec = double(TSeqCount)/filter_secs;
+	auto chrono_end = std::chrono::high_resolution_clock::now();
+
+	double elapsed_ms = std::chrono::duration<double, std::milli>
+		(chrono_end - chrono_start).count();
+	double SeqsPerMs= double(TSeqCount)/elapsed_ms;
+	ProgressLog("Passed          %s\n", FloatToStr(s_TotalPassedFilter));
+	ProgressLog("Seqs/ms         %s\n", FloatToStr(SeqsPerMs));
+
+	{
+	FILE *fTsv = CreateStdioFile(opt(output));
+	PrefilterMu::m_RSB.ToTsv(fTsv);
+	CloseStdioFile(s_fTsv);
+	}
+
+#if STORE_PAIR_SCORES
+	if (optset_output2)
+		{
+		vector<string> QLabels;
+		vector<string> TLabels;
+		for (uint i = 0; i < QSeqCount; ++i)
+			QLabels.push_back(QDB.GetLabel(i));
+		for (uint i = 0; i < TSeqCount; ++i)
+			TLabels.push_back(TDB.GetLabel(i));
+
+		FILE *f = CreateStdioFile(opt(output2));
+		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
+		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+			{
+			const string &q = QLabels[qidx];
+			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+				{
+				uint16_t score = row[tidx];
+				if (score > 0)
+					{
+					const string &t = TLabels[tidx];
+					fprintf(f, "%s\t%s\t%u\n",
+						q.c_str(), t.c_str(), score);
+					}
+				}
+			}
+		CloseStdioFile(f);
+		}
+#endif
+
+	if (optset_output3)
+		{
+		vector<string> QLabels;
+		vector<string> TLabels;
+		for (uint i = 0; i < QSeqCount; ++i)
+			QLabels.push_back(QDB.GetLabel(i));
+		for (uint i = 0; i < TSeqCount; ++i)
+			TLabels.push_back(TDB.GetLabel(i));
+		FILE *fTsv = CreateStdioFile(opt(output3));
+		PrefilterMu::m_RSB.ToLabelsTsv(fTsv, QLabels, TLabels);
+		CloseStdioFile(s_fTsv);
+		}
+
+	if (optset_dope)
+		{
+		uint npass = 0;
+		uint nindope = 0;
+		const vector<vector<uint16_t> > &QueryIdxToTopScoreVec =
+			PrefilterMu::m_RSB.m_QueryIdxToTopScoreVec;
+		asserta(QueryIdxToTopScoreVec.size() == QSeqCount);
+		for (uint qidx = 0; qidx < QSeqCount; ++qidx)
+			{
+			const string &q = QDB.GetLabel(qidx);
+			uint qdomidx = look.get_domidx(q);
+			const vector<uint16_t> &row = QueryIdxToTopScoreVec[qidx];
+			for (uint tidx = 0; tidx < TSeqCount; ++tidx)
+				{
+				uint16_t score = row[tidx];
+				if (score > 0)
+					{
+					const string &t = TDB.GetLabel(tidx);
+					uint tdomidx = look.get_domidx(t);
+					++npass;
+					if (dope.in_square_ij(qidx, tidx))
+						++nindope;
+					}
+				}
+			}
+
+		double pct = GetPct(nindope, 2*dope.m_nhit);
+
+		Progress("pct=%.1f", pct);
+		Progress(" secs=%u", filter_secs);
+		Progress(" pattern=%s", prefiltermu_pattern);
+		Progress(" kmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Progress(" npass=%u", npass);
+		Progress("\n");
+
+		Log("@FEV@");
+		Log("\tpct=%.1f", pct);
+		Log("\tsecs=%u", filter_secs);
+		Log("\tpattern=%s", prefiltermu_pattern);
+		Log("\tkmer=%d", DSSParams::m_PrefilterMinMuKmerPairScore);
+		Log("\tnpass=%u", npass);
+		Log("\n");
+		}
+	}
+#endif

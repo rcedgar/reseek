@@ -3,6 +3,12 @@
 
 const int SIZE_32 = 32;
 
+// NOTE -- sometimes parasail_cigar_decode returns
+// cig_rev->beg_query=0, cig_rev->beg_ref=0 and
+// a CIGAR string which begins with Ds or Is
+// This is a quirk more than a bug, it's a non-
+// standard way to represent local alignment
+
 /***
 https://samtools.github.io/hts-specs/SAMv1.pdf
  
@@ -183,6 +189,8 @@ const char *LocalCIGARToPath(const string &CIGAR, string &Path,
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
+		if (Op == '=' || Op == 'X')
+			Op = 'M';
 		if (FlipDI)
 			{
 			if (Op == 'D')
@@ -204,7 +212,7 @@ const char *LocalCIGARToPath(const string &CIGAR, string &Path,
 	return Path.c_str();
 	}
 
-const char *CIGARToPath(const string &CIGAR, string &Path)
+const char *CIGARToPath(const string &CIGAR, string &Path, bool FlipDI)
 	{
 	Path.clear();
 
@@ -217,6 +225,13 @@ const char *CIGARToPath(const string &CIGAR, string &Path)
 	for (uint i = 0; i < n; ++i)
 		{
 		char Op = Ops[i];
+		if (FlipDI)
+			{
+			if (Op == 'D')
+				Op = 'I';
+			else if (Op == 'I')
+				Op = 'D';
+			}
 		asserta(Op == 'M' || Op == 'D' || Op == 'I');
 		uint OpLength = OpLengths[i];
 		for (uint j = 0; j < OpLength; ++j)
@@ -417,4 +432,96 @@ void ExpandParaCigar_reverseDI(const string &s, string &Path)
 		for (uint j = 0; j < ns[i]; ++j)
 			Path += Op;
 		}
+	}
+
+void parasail_cigar_to_path(
+	const string &para_cigar,
+	uint para_loi, uint para_loj,
+	uint &loi, uint &loj,
+	string &path)
+	{
+	path.clear();
+	path.reserve(1000);
+	asserta(!para_cigar.empty());
+	string ops;
+	vector<uint> ns;
+	CIGARGetOps(para_cigar, ops, ns);
+	const uint N = uint(ns.size());
+	loi = para_loi;
+	loj = para_loj;
+	asserta(N > 0);
+	uint i0 = 0;
+	char op0 = ops[0];
+	if (op0 == 'D')
+		{
+		asserta(para_loi == 0);
+		asserta(para_loj == 0);
+		loj += ns[0];
+		i0 = 1;
+		}
+	else if (op0 == 'I')
+		{
+		asserta(para_loi == 0);
+		asserta(para_loj == 0);
+		loi += ns[0];
+		i0 = 1;
+		}
+
+	for (uint i = i0; i < N; ++i)
+		{
+		char op = ops[i];
+		if (op == '=' || op == 'X')
+			op = 'M';
+		else if (op == 'D')
+			op = 'I';
+		else if (op == 'I')
+			op = 'D';
+		else
+			Die("op=%c", op);
+		uint n = ns[i];
+		for (uint k = 0; k < ns[i]; ++k)
+			path += op;
+		}
+	}
+
+uint find_closest_point(
+	const string &cigar,
+	uint loQ, uint loT,
+	uint LQ, uint LT,
+	uint posQ, uint posT,
+	uint &closest_posQ, uint &closest_posT)
+	{
+	string path;
+	CIGARToPath(cigar, path, true);
+	closest_posQ = loQ;
+	closest_posT = loT;
+	uint pQ = loQ;
+	uint pT = loT;
+	int mind = abs(int(closest_posQ - posQ)) + abs(int(closest_posT - posT));
+	const uint n = uint(path.size());
+	for (uint i = 0; i < n; ++i)
+		{
+		char c = path[i];
+		asserta(pQ < LQ);
+		asserta(pT < LT);
+		if (c == 'M')
+			{
+			int d = abs(int(posQ - pQ)) + abs(int(posT - pT));
+			if (d < mind)
+				{
+				closest_posQ = pQ;
+				closest_posT = pT;
+				mind = d;
+				}
+			++pQ;
+			++pT;
+			}
+		else if (c == 'D')
+			++pQ;
+		else if (c == 'I')
+			++pT;
+		else
+			Die("c=%c", c);
+		}
+	return mind;
 	}

@@ -1,0 +1,271 @@
+#if 0
+#include "myutils.h"
+#include "statsig.h"
+#include "parabench.h"
+#include "peaker.h"
+
+static ParaBench *s_PS;
+static Peaker *s_Peaker;
+static flat_params *s_params;
+
+static void GetFeatures(const string &s,
+	vector<FEATURE> &Fs, vector<float> &Weights)
+	{
+	Fs.clear();
+	Weights.clear();
+	vector<string> Fields;
+	Split(s, Fields, ';');
+	const uint n = SIZE(Fields);
+	for (uint Idx = 0; Idx < n; ++Idx)
+		{
+		vector<string> Fields2;
+		Split(Fields[Idx], Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		FEATURE F = StrToFeature(Fields2[0].c_str());
+		float Weight = StrToFloatf(Fields2[1]);
+		Fs.push_back(F);
+		Weights.push_back(Weight);
+		}
+	}
+
+static int LocalStrToInt(const string &s)
+	{
+	float f = StrToFloatf(s);
+	int i = int(round(f));
+	float f2 = float(i);
+	asserta(f == f2);
+	return i;
+	}
+
+static double EvalSum3(const vector<string> &xv)
+	{
+	asserta(s_Peaker != 0);
+	const uint VarCount = s_Peaker->GetVarCount();
+	if (opt(selfonly))
+		{
+		asserta(SIZE(xv) == VarCount);
+		asserta(VarCount == 1);
+		asserta(s_Peaker->m_VarNames[0] == "selfw");
+
+		float SelfWeight = StrToFloatf(xv[0]);
+		float RevWeight = 0;
+		s_PS->BenchRev("EvalSum3_selfonly()", SelfWeight, RevWeight);
+		}
+	else
+		{
+		asserta(SIZE(xv) == VarCount);
+		asserta(VarCount == 2);
+		asserta(s_Peaker->m_VarNames[0] == "selfw");
+		asserta(s_Peaker->m_VarNames[1] == "revw");
+
+		float SelfWeight = StrToFloatf(xv[0]);
+		float RevWeight = StrToFloatf(xv[1]);
+		s_PS->BenchRev("EvalSum3()", SelfWeight, RevWeight);
+		}
+	asserta(!opt(top3));
+	return s_PS->m_Sum3;
+	}
+
+static double EvalSum3_VarStr(
+	ParaBench &PS,
+	const string &VarStr)
+	{
+	vector<string> Fields, Fields2;
+	Split(VarStr, Fields, ';');
+	const uint VarCount = SIZE(Fields);
+
+	float ScaleFactor = 1;
+	if (optset_scale)
+		ScaleFactor = float(opt(scalef));
+	int Open = 0;
+	int Ext = 0;
+	int SaturatedScore = 777;
+	unordered_map<string, float> name2weight;
+	for (uint VarIdx = 0; VarIdx < VarCount; ++VarIdx)
+		{
+		const string &Field = Fields[VarIdx];
+		Split(Field, Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		const string &VarName = Fields2[0];
+		const string &sValue = Fields2[1];
+		if (VarName == "open")
+			Open = StrToInt(sValue);
+		else if (VarName == "ext")
+			Ext = StrToInt(sValue);
+		else if (VarName == "gap2")
+			Die("-gap2 not supported for integer scoring");
+		else
+			name2weight[VarName] = StrToFloatf(sValue);
+		}
+
+	Paralign::set_flat_compound(*s_params, name2weight,
+		ScaleFactor, Open, Ext, SaturatedScore);
+	PS.ClearHitsAndResults();
+	PS.Search("para", true);
+	PS.SetScoreOrder();
+	double Sum3 = PS.Bench();
+	return Sum3;
+	}
+
+static void Optimize(
+	const vector<string> &SpecLines,
+	ParaBench &PS,
+	double &Best_y,
+	vector<string> &Best_xv)
+	{
+	const string OptName("latinclimb");
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+
+	uint LatinBinCount = Peaker::SpecGetInt(GlobalSpec, "latin", UINT_MAX);
+	uint HJCount = Peaker::SpecGetInt(GlobalSpec, "hj", UINT_MAX);
+	asserta(LatinBinCount != UINT_MAX);
+	asserta(HJCount != UINT_MAX);
+
+	Peaker &P = *new Peaker(0, OptName);
+	P.Init(SpecLines, EvalSum3);
+	s_Peaker = &P;
+	s_PS = &PS;
+
+	ProgressLog("=========================================\n");
+	ProgressLog("%s latin (%u)\n", OptName.c_str(), LatinBinCount);
+	ProgressLog("=========================================\n");
+	asserta(LatinBinCount > 0);
+	P.RunLatin(LatinBinCount);
+
+	vector<uint> TopEvalIdxs;
+	P.GetTopEvalIdxs(HJCount, TopEvalIdxs);
+	const uint n = SIZE(TopEvalIdxs);
+	if (n == 0)
+		Die("No evals %s", OptName.c_str());
+
+	for (uint k = 0; k < n; ++k)
+		{
+		ProgressLog("=========================================\n");
+		ProgressLog("%s HJ %u/%u\n", OptName.c_str(), k+1, n);
+		ProgressLog("=========================================\n");
+
+		uint EvalIdx = TopEvalIdxs[k];
+		string ChildName;
+		Ps(ChildName, "HJ%u/%u", k+1, n);
+		Peaker *Child = P.MakeChild(ChildName);
+		double y = P.m_ys[EvalIdx];
+		const vector<string> &xv = P.m_xvs[EvalIdx];
+		Child->AppendResult(xv, y, "HJstart");
+		Child->HJ_RunHookeJeeves();
+		P.AppendChildResults(*Child);
+		delete Child;
+		ProgressLog("=========================================\n");
+		ProgressLog("%s HJ %u/%u converged\n", OptName.c_str(), k+1, n);
+		ProgressLog("=========================================\n");
+		}
+	Best_y = P.m_Best_y;
+	Best_xv = P.m_Best_xv;
+	ProgressLog("=========================================\n");
+	ProgressLog("%s completed\n", OptName.c_str());
+	ProgressLog("=========================================\n");
+	}
+
+static void Climb(ParaBench &PS, const vector<string> &SpecLines)
+	{
+	string GlobalSpec;
+	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
+
+	vector<string> Fields;
+	string ParamStr;
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i];
+		if (StartsWith(Line, "#init "))
+			{
+			ParamStr = Line.substr(6);
+			break;
+			}
+		}
+	if (ParamStr.empty())
+		Die("Missing #init in spec");
+
+	vector<string> Fields2, VarNames, Init_xv;
+	Split(ParamStr, Fields, ';');
+	for (uint i = 0; i < SIZE(Fields); ++i)
+		{
+		Split(Fields[i], Fields2, '=');
+		asserta(SIZE(Fields2) == 2);
+		VarNames.push_back(Fields2[0]);
+		Init_xv.push_back(Fields2[1]);
+		}
+	const uint VarCount = SIZE(VarNames);
+
+	s_PS = &PS;	
+	string PeakerName;
+	Ps(PeakerName, "climb");
+	Peaker Pfull(0, PeakerName);
+	Pfull.Init(SpecLines, EvalSum3);
+	s_Peaker = &Pfull;
+
+	Pfull.Evaluate(Init_xv, PeakerName + "_init");
+	Pfull.HJ_RunHookeJeeves();
+	Pfull.WriteFinalResults(g_fLog);
+	}
+
+// -nubench aa4=0.481;pm2=0.301;sec32=0.219; -db merge.hexfa 
+// -log nubenchmu.log -intopen 23 -intext 3 -scalef 8.39 
+// -mxpattern ../ff_logodds/@.logodds -keepscopid
+void cmd_hjnumegarev()
+	{
+	asserta(optset_mxpattern);
+
+	asserta(!optset_db);
+	asserta(!optset_intopen);
+	asserta(!optset_intext);
+	asserta(!optset_scalef);
+	asserta(!optset_scale);
+	asserta(!optset_alignmethod);
+
+	const string &DBFN = g_Arg1;
+
+	const vector<string> feature_names = {"aa4", "pm2", "sec32"};
+	const vector<float> weights = { 0.481f, 0.301f, 0.219f };
+
+	Die("TODO");
+	//flat_params::init(feature_names);
+	//flat_params::read_logoddsvec_pattern(opt(mxpattern));
+
+	//unordered_map<string, float> name2weight;
+	//for (uint fi = 0; fi < flat_params::m_nfeat; ++fi)
+	//	name2weight[feature_names[fi]] = weights[fi];
+
+	//const float Scale = 8.39f;
+	//const int IntOpen = 23;
+	//const int IntExt = 3;
+	//const int IntSaturatedScore = 777;
+	//Paralign::set_flat_compound(*s_params, name2weight,
+	//	Scale, IntOpen, IntExt, IntSaturatedScore);
+
+	//ParaBench PS;
+	//PS.GetByteSeqs(DBFN, "nuletters");
+	//PS.SetLookupFromLabels();
+	//PS.m_DoReverse = true;
+	//PS.SetSelfScores_rev("para");
+	//PS.Search("para", true);
+	//PS.SetScoreOrder();
+	//PS.WriteRevTsv(opt(output2));
+	//PS.Bench("Bench()");
+	//PS.BenchRev("BenchRev(0, 0)", 0, 0);
+
+	//vector<string> SpecLines;
+	//SpecLines.push_back("latin=32;");
+	//SpecLines.push_back("rates=1.3,1.05,1.02;");
+	//SpecLines.push_back("hj=2;");
+	//SpecLines.push_back("var=selfw;min=0;max=1;");
+
+	//double Best_y;
+	//vector<string> Best_xv;
+	//if (!opt(selfonly))
+	//	SpecLines.push_back	("var=revw;min=0;max=1;");
+
+	//Optimize(SpecLines, PS, Best_y, Best_xv);
+	//PS.WriteHits(opt(output));
+	}
+
+#endif

@@ -35,12 +35,6 @@
     <ClCompile Include="sort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="blosum62.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="objmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -68,25 +62,10 @@
     <ClCompile Include="abcxyz.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pdbchain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="getss.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="readchains.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="blosum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dss.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="logodds.cpp">
@@ -98,70 +77,16 @@
     <ClCompile Include="features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="float_feature_bins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sscluster.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="trainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="myss.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="valuetoint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="logaln.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dali.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cigar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scop40bench.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swgapless.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sweeper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="derepper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="murmurhash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dssparams.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="getbins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dssaligner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scalar_sweep.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scop40benchroc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xdropfwd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xdropbwd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_xdrop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="prettyaln.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="kabsch.cpp">
@@ -173,52 +98,13 @@
     <ClCompile Include="timing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="namedparams.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mumx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mumx_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="swgaplessint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msa2cmp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swgaplessprof.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="b62.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dbsearcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swfastpinop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swfastpinopgapless.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swgaplessprofb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reseek_main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pdb2mega.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="parasail_mu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="explore1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_para.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parasail.cpp">
@@ -227,43 +113,7 @@
     <ClCompile Include="parasail_cigar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_para_path.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_para_cal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scop40bit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="readhits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gumbel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibratesearcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="train_features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="trained_features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cif.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="chainreader2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="linereader2.cpp">
@@ -305,130 +155,19 @@
     <ClCompile Include="inffast.c">
       <Filter>Source Files C</Filter>
     </ClCompile>
-    <ClCompile Include="convert.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="userfields.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="daliscore_msa.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="daliscore_tsv.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pdbfilescanner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pdbchaincal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bcadata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="md5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="profileloader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="runself.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="runquery.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="daliscorer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="daliscore_msas2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="daliscore_msas.cpp">
+    <ClCompile Include="bcx_subsample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="runthreads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="distmx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testmodel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testmodel2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mu_mapping.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt_msa.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msta_scores.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt_muscle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt_foldmason.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt_msa_foldmason.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="zscorer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msta_score.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt_msas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cmprof.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cmprof_train.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msta_lddtmuw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msta_lddtmuw1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="writelocalaln.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate_masm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate5a.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lddt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="alignselfrev.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calibrate7.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="alignpair.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="getchains.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pdb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test_chrono_ticks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mermx.cpp">
@@ -437,58 +176,13 @@
     <ClCompile Include="prime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="diag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mukmerfilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="chainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mymalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymalloc_win_debug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xdrophsp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objcounter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mymalloc_dbg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mymalloc_gcc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="chains2pdbs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mukmerfilter2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mudex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="postmufilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tracealn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="chainbag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="museqsource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="convert2mu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="search.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="output.cpp">
@@ -500,9 +194,6 @@
     <ClCompile Include="tracebackbitmem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="global.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="binner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -512,15 +203,6 @@
     <ClCompile Include="foldseek_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="create_foldseekdb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cmd_prefiltermu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="prefiltermu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="diaghsp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -528,12 +210,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="duper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="muprefilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cca.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mymutex.cpp">
@@ -548,25 +224,268 @@
     <ClCompile Include="mmseqs_index_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="split.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="prepare_query.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shuffle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="align_bag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cif2pdb.cpp">
+    <ClCompile Include="flat_prepare_query.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="twohitdiag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lddt_bench.cpp">
+    <ClCompile Include="blosum62.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="alncounts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="peaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="triangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="paralign.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hexintseq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fastbench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pwalndb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="todo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_chain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chaq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_distmx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sid2ic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sec_kmeans.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_train_discrete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_quantize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quantize.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_helpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fill_smx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_sw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_sw_enum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="enum_paths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_bench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_align_pair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_alphas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_profiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bitdope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_hjmega.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_feat2fa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entropy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rocauc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_merge_features.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_threshold.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reduce_alphabet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mysegmask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_merge_logodds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_mxdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_mermx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_hsp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_dex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="landmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_lddt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_bench_struct_feature.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lddt_fa2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_entropy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="puu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_dali.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_params.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_chain_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_aligner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_lddt_old.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_hjmega_bracket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kabsch_quad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kabsch_quad_fit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="read_alphadir.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="collect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_nu_codeseqs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_nu_aligner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chain_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chaq_fast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="alpha_collect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="varstr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_bench2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_hjmega2_bracket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail_cigar_rce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail_result_to_path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parasail_nomalloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sw_flat_pssm_xdrop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_search_kappa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kappa_seqsource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseeker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="struct_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_search_all.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseeker_thread_body.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hjtsv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reseeker_thread_body_nusort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flat_convert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="write_hit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hitdata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -589,12 +508,6 @@
     <ClInclude Include="seqdb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sfastq.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fastaseqsource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="fileseqsource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -613,31 +526,13 @@
     <ClInclude Include="abcxyz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pdbchain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cmds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="best.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="filler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dssp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dss.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="logodds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pathinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="spher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="features.h">
@@ -652,40 +547,10 @@
     <ClInclude Include="intfeatures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tracebit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="xdpmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scop40bench.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sweeper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="megacluster.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="derepper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="murmur.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dssparams.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="swtrace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="counters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="getticks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="timers.h">
@@ -694,16 +559,10 @@
     <ClInclude Include="timing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dssaligner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mumx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cigar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dbsearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mx.h">
@@ -731,30 +590,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cigar_template.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calibratesearcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="binner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fasterf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="scalarparams.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calibratesearcher2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="chainreader2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gzguts.h">
@@ -787,28 +622,10 @@
     <ClInclude Include="linereader2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="userfieldnames.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="userfields.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pdbfilescanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bcadata.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="profileloader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="daliscorer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="distmxsearcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cmprof.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mermx.h">
@@ -823,28 +640,10 @@
     <ClInclude Include="chainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mukmerfilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mymalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="myallocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="objcounter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mudex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="chainbag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="museqsource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="output.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mymutex.h">
@@ -853,22 +652,10 @@
     <ClInclude Include="seqfeeder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reseek_calibrate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="statsig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="diaghsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="duper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="prefiltermu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="prefiltermuparams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rankedscoresbag.h">
@@ -878,6 +665,225 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alncounts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alncounters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="peaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastbench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pwalndb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_enum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_chain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_chain_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chaq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_distmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_dist_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sec_kmeans.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainxyz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chaindistmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainaa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chainnu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sidvec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_aligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lookup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="procstats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_featlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entropy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_mermx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_filter_params.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_dex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="get_distinct_window_extrema.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench_struct_feature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parallel_sort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="puu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_params.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_affinity.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kabsch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kabsch_quad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="collect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="final_nu_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chain_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scratch_mem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tunable_flat_params.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench2_thread_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parasail_nomalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sw_flat_pssm_xdrop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_hsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bitdope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kappa_seqsource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reseeker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="struct_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hitdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="binner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_bench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_nu_aligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_profiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flat_type_names.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hexintseq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landmark.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnvec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="paralign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="getticks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prefiltermuparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="statsig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tabbedlines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tracebit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fastaseqsource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="userfieldnames.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="userfields.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

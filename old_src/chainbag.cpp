@@ -1,0 +1,173 @@
+#if 0
+#include "myutils.h"
+#include "chainbag.h"
+#include "dssaligner.h"
+#include "parasail.h"
+#include "alncounts.h"
+
+bool DSSAligner::DoMKF_Bags(const ChainBag &BagA,
+							const ChainBag &BagB) const
+	{
+	if (BagA.m_ptrMuLetters == 0 || BagB.m_ptrMuLetters == 0)
+		return false;
+	if (BagA.m_ptrMuLetters == 0 || BagB.m_ptrMuLetters == 0)
+		return false;
+
+	uint LA = BagA.m_ptrChain->GetSeqLength();
+	uint LB = BagB.m_ptrChain->GetSeqLength();
+	if (LA >= DSSParams::m_MKFL)
+		return true;
+	if (LB >= DSSParams::m_MKFL)
+		return true;
+	return false;
+	}
+
+// Unconditionally align by MKF
+void DSSAligner::AlignBagsMKF(const ChainBag &BagA,
+							  const ChainBag &BagB)
+	{
+	ClearAlign();
+
+	m_ChainA = BagA.m_ptrChain;
+	m_ChainB = BagB.m_ptrChain;
+
+	m_ProfileA = BagA.m_ptrProfile;
+	m_ProfileB = BagB.m_ptrProfile;
+
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+
+	m_MKF.m_DA = this;
+	m_MKF.SetBagQ(BagA);
+	m_MKF.AlignBag(BagB);
+	PostAlignMKF();
+	}
+
+void DSSAligner::SetBagA(const ChainBag &BagA)
+	{
+	m_ChainA = BagA.m_ptrChain;
+	m_ProfileA = BagA.m_ptrProfile;
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_MuLettersA = BagA.m_ptrMuLetters;
+	m_ProfPara8 = BagA.m_ptrProfPara8;
+	m_ProfParaRev8 = BagA.m_ptrProfParaRev8;
+	m_ProfPara16 = BagA.m_ptrProfPara16;
+	m_ProfParaRev16 = BagA.m_ptrProfParaRev16;
+	m_MKF.SetBagQ(BagA);
+	}
+
+void DSSAligner::AlignBagB(const ChainBag &BagB)
+	{
+	incac(alignbags);
+	ClearAlign();
+
+	m_ChainB = BagB.m_ptrChain;
+	m_ProfileB = BagB.m_ptrProfile;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+	m_MuLettersB = BagB.m_ptrMuLetters;
+
+	if (DoMKF())
+		{
+		++m_PostMuFilterMKFCount;
+		m_MKF.m_DA = this;
+		m_MKF.AlignBag(BagB);
+		PostAlignMKF();
+		return;
+		}
+
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
+		{
+		float MuScore = GetMuScore();
+		if (MuScore < Omega)
+			{
+			++m_PostMuFilterOmegaDiscardCount;
+			return;
+			}
+		}
+	SetSMx_NoRev(*m_ProfileA, *m_ProfileB);
+	const uint LA = m_ChainA->GetSeqLength();
+	const uint LB = m_ChainB->GetSeqLength();
+
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	++m_PostMuFilterSWCount;
+	CalcEvalue();
+	}
+
+void DSSAligner::AlignBags(const ChainBag &BagA,
+						   const ChainBag &BagB)
+	{
+	incac(alignbags);
+	ClearAlign();
+
+	m_ChainA = BagA.m_ptrChain;
+	m_ChainB = BagB.m_ptrChain;
+
+	m_ProfileA = BagA.m_ptrProfile;
+	m_ProfileB = BagB.m_ptrProfile;
+
+	m_SelfRevScoreA = BagA.m_SelfRevScore;
+	m_SelfRevScoreB = BagB.m_SelfRevScore;
+
+	if (DoMKF_Bags(BagA, BagB))
+		{
+		++m_PostMuFilterMKFCount;
+		m_MKF.m_DA = this;
+		m_MKF.SetBagQ(BagA);
+		m_MKF.AlignBag(BagB);
+		PostAlignMKF();
+		return;
+		}
+
+	int Omega = DSSParams::GetOmega();
+	if (Omega > 0)
+		{
+		int MuScore = AlignMuParaBags_xx(BagA, BagB);
+		if (MuScore < Omega)
+			{
+			++m_PostMuFilterOmegaDiscardCount;
+			return;
+			}
+		}
+	SetSMx_NoRev(*BagA.m_ptrProfile, *BagB.m_ptrProfile);
+	const uint LA = BagA.m_ptrChain->GetSeqLength();
+	const uint LB = BagB.m_ptrChain->GetSeqLength();
+
+	uint Leni, Lenj;
+	m_AlnFwdScore = SWFast(m_Mem, GetSMxData(), LA, LB,
+	  DSSParams::m_GapOpen, DSSParams::m_GapExt,
+	  m_LoA, m_LoB, Leni, Lenj, m_Path);
+	++m_PostMuFilterSWCount;
+	CalcEvalue();
+	}
+
+void ChainBag::Validate(const char *Msg) const
+	{
+	if (m_ptrChain == 0)
+		{
+		asserta(m_ptrProfile == 0);
+		asserta(m_ptrMuLetters == 0);
+		asserta(m_ptrMuKmers == 0);
+		asserta(m_ptrProfPara8 == 0);
+		asserta(m_ptrProfPara16 == 0);
+		asserta(m_ptrProfParaRev8 == 0);
+		asserta(m_ptrProfParaRev16 == 0);
+		asserta(m_ptrKmerHashTableQ == 0);
+		return;
+		}
+	const uint L = m_ptrChain->GetSeqLength();
+	asserta(SIZE(*m_ptrMuLetters) == L);
+	asserta(SIZE(*m_ptrMuKmers) + 2 == L);
+	const parasail_profile_t *Prof8 = (const parasail_profile_t *) m_ptrProfPara8;
+	const parasail_profile_t *Prof16 = (const parasail_profile_t *) m_ptrProfPara16;
+	const parasail_profile_t *ProfRev8 = (const parasail_profile_t *) m_ptrProfParaRev8;
+	const parasail_profile_t *ProfRev16 = (const parasail_profile_t *) m_ptrProfParaRev16;
+	if (Prof8 != 0)		asserta(Prof8->s1Len == L);
+	if (Prof16 != 0)	asserta(Prof16->s1Len == L);
+	if (ProfRev8 != 0)	asserta(ProfRev8->s1Len == L);
+	if (ProfRev16 != 0)	asserta(ProfRev16->s1Len == L);
+	}
+#endif // 0

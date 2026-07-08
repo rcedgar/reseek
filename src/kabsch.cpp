@@ -1,5 +1,5 @@
 #include "myutils.h"
-#include "pdbchain.h"
+#include "kabsch.h"
 
 /***
 Based on Kabsch() function in TM-align source code v20220412.
@@ -327,63 +327,63 @@ double Kabsch(
 	return rms;
 	}
 
-double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
-  uint LoA, uint LoB, const string &Path,
-  double t[3], double u[3][3])
-	{
-	uint ColCount = SIZE(Path);
-	double **x = myalloc(double *, ColCount);
-	double **y = myalloc(double *, ColCount);
-	uint M = 0;
-	uint PosA = LoA;
-	uint PosB = LoB;
-	for (uint Col = 0; Col < ColCount; ++Col)
-		{
-		switch (Path[Col])
-			{
-		case 'M':
-			{
-			x[M] = myalloc(double, 3);
-			y[M] = myalloc(double, 3);
-			vector<double> PtA;
-			vector<double> PtB;
-			ChainA.GetPt(PosA, PtA);
-			ChainB.GetPt(PosB, PtB);
-			x[M][0] = PtA[0];
-			y[M][0] = PtB[0];
-			x[M][1] = PtA[1];
-			y[M][1] = PtB[1];
-			x[M][2] = PtA[2];
-			y[M][2] = PtB[2];
-			++PosA;
-			++PosB;
-			++M;
-			break;
-			}
-
-		case 'D':
-			++PosA;
-			break;
-
-		case 'I':
-			++PosB;
-			break;
-
-		default:
-			asserta(false);
-			}
-		}
-	double RMS = Kabsch(x, y, M, t, u);
-	for (uint i = 0; i < M; ++i)
-		{
-		myfree(x[i]);
-		myfree(y[i]);
-		}
-	myfree(x);
-	myfree(y);
-	asserta(M > 0);
-	return RMS/M;
-	}
+//double Kabsch(const PDBChain &ChainA, const PDBChain &ChainB,
+//  uint LoA, uint LoB, const string &Path,
+//  double t[3], double u[3][3])
+//	{
+//	uint ColCount = SIZE(Path);
+//	double **x = myalloc(double *, ColCount);
+//	double **y = myalloc(double *, ColCount);
+//	uint M = 0;
+//	uint PosA = LoA;
+//	uint PosB = LoB;
+//	for (uint Col = 0; Col < ColCount; ++Col)
+//		{
+//		switch (Path[Col])
+//			{
+//		case 'M':
+//			{
+//			x[M] = myalloc(double, 3);
+//			y[M] = myalloc(double, 3);
+//			vector<double> PtA;
+//			vector<double> PtB;
+//			ChainA.GetPt(PosA, PtA);
+//			ChainB.GetPt(PosB, PtB);
+//			x[M][0] = PtA[0];
+//			y[M][0] = PtB[0];
+//			x[M][1] = PtA[1];
+//			y[M][1] = PtB[1];
+//			x[M][2] = PtA[2];
+//			y[M][2] = PtB[2];
+//			++PosA;
+//			++PosB;
+//			++M;
+//			break;
+//			}
+//
+//		case 'D':
+//			++PosA;
+//			break;
+//
+//		case 'I':
+//			++PosB;
+//			break;
+//
+//		default:
+//			asserta(false);
+//			}
+//		}
+//	double RMS = Kabsch(x, y, M, t, u);
+//	for (uint i = 0; i < M; ++i)
+//		{
+//		myfree(x[i]);
+//		myfree(y[i]);
+//		}
+//	myfree(x);
+//	myfree(y);
+//	asserta(M > 0);
+//	return RMS/M;
+//	}
 
 #include "abcxyz.h"
 
@@ -438,7 +438,7 @@ static void Test(const double t_in[3],
 	}
 
 #if 0
-void cmd_test()
+void __cmd_test()
 	{
 	double t[3] = { 1, 2, 3 };
 	double u[3][3] =

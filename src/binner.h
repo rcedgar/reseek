@@ -157,6 +157,13 @@ public:
 		return BinLo;
 		}
 
+	T GetBinHi(uint32_t Bin) const
+		{
+		T BinSize = GetBinSize();
+		T BinHi = m_MinValue + (Bin+1)*BinSize;
+		return BinHi;
+		}
+
 	T GetBinMid(uint32_t Bin) const
 		{
 		T BinSize = GetBinSize();
@@ -176,6 +183,8 @@ public:
 
 	void ToTsv(const string &FileName) const
 		{
+		if (FileName == "")
+			return;
 		FILE *f = CreateStdioFile(FileName);
 		ToTsv(f);
 		CloseStdioFile(f);
@@ -240,6 +249,26 @@ public:
 			}
 		}
 
+	void ToHist(FILE *f) const
+		{
+		if (f == 0)
+			return;
+		const uint m = GetMaxCount();
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			T Mid = GetBinMid(Bin);
+			string s;
+			ValueToStr(Mid, s);
+			uint n = m_Bins[Bin];
+			string h;
+			uint w = (n*80)/m;
+			for (uint i = 0; i < w; ++i)
+				h += '*';
+			fprintf(f, "%10.10s  %10u  %s", s.c_str(), n, h.c_str());
+			fprintf(f, "\n");
+			}
+		}
+
 	void GetAccumBins(vector<uint> &AccumBins) const
 		{
 		AccumBins.clear();
@@ -285,6 +314,17 @@ public:
 			Sum += n;
 			}
 		return Sum;
+		}
+
+	uint GetMaxCount() const
+		{
+		uint Max = 0;
+		for (uint Bin = 0; Bin < m_BinCount; ++Bin)
+			{
+			uint n = m_Bins[Bin];
+			Max = max(Max, n);
+			}
+		return Max;
 		}
 
 // Cutoff which eliminates the largest TopN values.

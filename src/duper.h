@@ -15,6 +15,7 @@ class Duper
 	{
 public:
 	uint32_t m_InputSize = 0;
+	uint32_t m_AllocInputSize = 0;
 	uint32_t m_TableSize = 0;
 	uint32_t *m_Ints = 0;
 	uint8_t *m_Bits = 0;
@@ -24,6 +25,9 @@ public:
 public:
 	Duper(uint32_t InputSize);
 	~Duper();
+
+// Reuse allocated tables when InputSize <= m_AllocInputSize.
+	void Init(uint32_t InputSize);
 
 public:
 	uint32_t Hash(uint32_t i) const

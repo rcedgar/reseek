@@ -25,7 +25,9 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <list>
 #include <atomic>
+#include "git_hash.h"
 
 #ifndef _MSC_VER
 #include <inttypes.h>
@@ -39,7 +41,6 @@
 using namespace std;
 
 #ifdef _MSC_VER
-#include <crtdbg.h>
 #pragma warning(disable: 4996)	// deprecated functions
 #define _CRT_SECURE_NO_DEPRECATE	1
 #endif
@@ -55,6 +56,10 @@ using namespace std;
 #ifndef NDEBUG
 #define	DEBUG	1
 #define	_DEBUG	1
+#endif
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
 #endif
 
 #define byte rce__byte
@@ -114,7 +119,6 @@ static inline char yon(bool x)		{ return x ? 'Y' : 'N';	}
 static inline const char *YesOrNo(bool x)	{ return x ? "Yes" : "No"; }
 static inline const char *plurals(unsigned n) { return n == 1 ? "" : "s"; }
 
-extern const char *g_GitVer;
 extern vector<string> g_Argv;
 extern string g_Arg1;
 extern mutex g_DieLock;
@@ -158,7 +162,7 @@ void Pr(FILE *f, const char *Format, ...);
 
 // Stdio functions with size args:
 byte *ReadAllStdioFile32(FILE *f, uint32 &FileSize);
-byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize);
+byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize); 
 
 byte *ReadAllStdioFile(FILE *f, uint32 &FileSize);
 byte *ReadAllStdioFile64(FILE *f, uint64 &FileSize);
@@ -204,7 +208,7 @@ void WriteStdioFile64(FILE *f, uint64 Pos, const void *Buffer, uint64 Bytes);
 void WriteStdioFile(FILE *f, const void *Buffer, uint32 Bytes);
 void WriteStdioFile64(FILE *f, const void *Buffer, uint64 Bytes);
 
-void Ps(string &Str, const char *Format, ...);
+const string &Ps(string &Str, const char *Format, ...);
 void Psa(string &Str, const char *Format, ...);
 void Psasc(string &Str, const char *Format, ...);
 void Pf(FILE *f, const char *Format, ...);
@@ -250,6 +254,8 @@ void Progress(const char *szFormat, ...);
 void Progress(const string &Str);
 void ProgressLog(const char *szFormat, ...);
 void ProgressLogPrefix(const char *Format, ...);
+void ProgressLogNoPrefix(const char *Format, ...);
+void ProgressPrefixLog(const char *Format, ...);
 
 void ProgressFileInit(FILE *f, const char *Format = 0, ...);
 void ProgressFileStep(const char *Format = 0, ...);
@@ -286,14 +292,11 @@ inline bool feq(double x, double y, double epsilon)
 
 inline bool feq(double x, double y)
 	{
+	if (fabs(x) < 1e-9 && fabs(y) < 1e-9)
+		return true;
 	if (x < -1e6 && y < -1e6)
 		return true;
-	double e = epsilon;
-	if (fabs(x) > 10000)
-		e = fabs(x)/10000;
-	if (fabs(x - y) > e)
-		return false;
-	return true;
+	return fabs(x - y)/fabs(x + y) < 0.01;
 	}
 
 #define asserteq(x, y)	assert(feq(x, y))
@@ -304,6 +307,7 @@ inline bool feq(double x, double y)
 
 void InitRand();
 unsigned randu32();
+double randf(double maxvalue);
 void SplitWhite(const string &Str, vector<string> &Fields);
 void Split(const string &Str, vector<string> &Fields, char Sep = '\t');
 bool EndsWith(const string &s, const string &t);
@@ -320,12 +324,12 @@ void PrintCopyright(FILE *f);
 extern string g_ShortCmdLine;
 
 const char *MemBytesToStr(double Bytes);
-static inline const char *MemBytesToStr(uint64 Bytes) { return MemBytesToStr((double) Bytes); }
-static inline const char *MemBytesToStr(uint32 Bytes) { return MemBytesToStr((double) Bytes); }
 unsigned StrToUint(const char *s);
 unsigned StrToUint_err(const char *s);
 unsigned StrToUint(const string &s);
 unsigned StrToUint_err(const string &s);
+uint64 StrToUint64(const char *s);
+uint64 StrToUint64(const string &s);
 int StrToInt(const string &s);
 double StrToMemBytes(const string &s);
 double StrToFloat(const string &s);
@@ -335,6 +339,8 @@ double StrToFloat(const char *s);
 double StrToFloat_err(const char *s);
 const char *GetElapsedTimeStr(string &s);
 const char *GetMaxRAMStr(string &s);
+bool IsValidFloatStr(const string &s);
+bool IsValidFloatStr(const char *s);
 
 const char *GetBaseName(const char *PathName);
 void GetBaseName(const string &PathName, string &Base);
@@ -385,6 +391,7 @@ void RevCompSeq(string &Seq);
 void StripGaps(string &Seq);
 void ToLower(string &Str);
 void StripWhiteSpace(string &Str);
+void StripAllWhiteSpace(string &Str);
 void TruncateAtFirstWhiteSpace(string &Str);
 char GetOneFromThree(const string &AAA);
 void ReadLinesFromFile(const string &FileName, vector<string> &Lines);
@@ -395,9 +402,10 @@ bool IsDirectory(const string &PathName);
 bool IsRegularFile(const string &PathName);
 void Dirize(string &Dir);
 void MyutilsExit();
-const char *GetCurrentThreadStr(string &s);
 uint GetUniqueInt();
 void GetTmpFileName(string &FN);
+void* aligned_malloc(size_t bytes);
+void aligned_free(void *p);
 
 typedef void fn_thread_body(uint ThreadIndex, void *ptrUserData);
 void RunThreads(fn_thread_body Body, void *ptrUserData);
@@ -412,5 +420,21 @@ double GetTicksPerSec();
 #include "mymalloc.h"
 
 #define TRACE_XDROP	0
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define warn(msg) _Pragma("GCC warning \"" msg "\"")
+#elif defined(_MSC_VER)
+    #define warn(msg) __pragma(message("WARNING: " msg))
+#else
+    #define warn(msg)
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define todo _Pragma("GCC warning TODO " __FILE__)
+#elif defined(_MSC_VER)
+    #define todo __pragma(warning())
+#else
+    #define todo	/* empty */
+#endif
 
 #endif	// myutils_h

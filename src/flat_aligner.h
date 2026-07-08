@@ -1,0 +1,88 @@
+#pragma once
+
+class flat_params;
+class Paralign;
+
+class flat_aligner
+	{
+public:
+	flat_params *m_params = 0;
+	float *__restrict m_pssmT = 0;
+	float *__restrict m_pssm_reverseT = 0;
+
+	string m_labelQ;
+	string m_labelT;
+
+	const uint8_t *__restrict m_profQ = 0;
+	const uint8_t *__restrict m_profT = 0;
+
+	uint m_LQ = 0;
+	uint m_LT = 0;
+
+	const float **__restrict m_scratch_pssms = 0;
+	float *m_scratch_rows = 0;
+	uint8_t *__restrict m_TB = 0;
+
+	float m_score = 0;
+	float m_reverse_score = 0;
+	bool m_reverse_score_set = false;
+	uint m_loQ = UINT_MAX;
+	uint m_loT = UINT_MAX;
+	char *m_path_buffer = 0;
+	uint m_ncol = 0;
+
+//	bool m_nu_only = false;
+//	bool m_nu_filter = false;
+//	bool m_nu_filter_reject = false;
+//	Paralign *m_pa = 0;
+//
+//public:
+//	static atomic<uint> m_nu_filter_reject_count;
+	static atomic<uint> m_aln_count;
+
+public:
+	void alloc();
+	void freemem();
+	void cacheT(
+		const string &labelT,
+		const uint8_t *profT,
+		const uint8_t *nu_codeseq,
+		uint LT);
+
+	void clear_align()
+		{
+		m_loQ = UINT_MAX;
+		m_loT = UINT_MAX;
+		m_ncol = 0;
+		m_score = 0;
+		m_reverse_score = 0;
+		m_reverse_score_set = false;
+		//m_nu_filter_reject = false;
+		}
+
+	// cache reversed T instead of T (=> m_pssmT)
+	void cacheT_reversed(const string &labelT, const uint8_t *profT, uint LT);
+
+	// case reverseT in addition to T (=> m_pssm_reverseT)
+	void cache_reverseT(
+		const string &labelT,
+		const uint8_t *profT,
+		const uint8_t *nu_codeseq_rev,
+		uint LT);
+
+	void alignQ(
+		const string &labelQ,
+		const uint8_t *profQ,
+		const uint8_t *nu_codeseqQ,
+		uint LQ);
+
+	void align_reverse();
+	void write_aln(FILE *f) const;
+	void write_tsv(FILE *f) const;
+	uint get_match_count() const;
+	uint get_path_str(string &path) const;
+	float get_self_rev_score(
+		const string &labelQ, 
+		const uint8_t *profQ, uint LQ);
+	void validate_path() const;
+	};

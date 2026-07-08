@@ -28,9 +28,15 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <malloc.h>
 #endif
 
 #include "myutils.h"
+#include <omp.h>
+unsigned GetThreadIndex()
+	{
+	return omp_get_thread_num();
+	}
 
 bool IsDirectory(const string& PathName)
 {
@@ -122,39 +128,32 @@ void GetBaseName(const string &PathName, string &Base)
 	Base = string(GetBaseName(PathName.c_str()));
 	}
 
+// Extract the "stem" of a filename with optional path
+// and optional extension, e.g.
+//								vvvvvvvvvvvv basename
+//		/home/user/fred/project/somefile.txt
+//								^^^^^^^^ stem
+// Used for PDB and CIF fall-back label
 void GetStemName(const string &PathName, string &Stem)
 	{
 	string Base;
 	GetBaseName(PathName, Base);
 	vector<string> Fields;
 	Split(Base, Fields, '.');
-
-	const uint n = SIZE(Fields);
-	if (n == 0)
-		{
-		Stem.clear();
-		return;
-		}
+	uint n = SIZE(Fields);
 	if (n == 1)
 		{
 		Stem = Fields[0];
 		return;
 		}
-
-	uint upto = n - 1;
-	if (Fields[n-1] == "gz" && n > 2)
-		upto = n - 2;
-
-	Stem.clear();
-	for (uint i = 0; i < upto; ++i)
+	if (Fields[n-1] == "gz")
+		--n;
+	for (uint i = 0; i + 1 < n; ++i)
 		{
 		if (i > 0)
-			Stem.push_back('.');
+			Stem += '.';
 		Stem += Fields[i];
 		}
-
-	if (Stem.empty())
-		Stem = Fields[0];
 	}
 
 void GetExtFromPathName(const string &PathName, string &Ext)
@@ -390,7 +389,6 @@ void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 		ProgressLog("Pos=%llu\n", (unsigned long long) Pos);
 		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);
 		ProgressLog("BytesRead=%llu\n", (unsigned long long) BytesRead);
-		ProgressLog("thread=%s\n", GetCurrentThreadStr(ts));
 		Die("ReadStdioFile64() failed, errno=%d", (int) errno);
 		}
 	}
@@ -611,28 +609,46 @@ bool ReadLineStdioFile(FILE *f, char *Line, uint32 Bytes)
 	return true;
 	}
 
+static void AppendLineChunkSkipCr(string &Line, const char *Begin, const char *End)
+	{
+	while (Begin < End)
+		{
+		while (Begin < End && *Begin == '\r')
+			++Begin;
+		if (Begin >= End)
+			break;
+		const char *RunStart = Begin;
+		while (Begin < End && *Begin != '\r')
+			++Begin;
+		Line.append(RunStart, Begin - RunStart);
+		}
+	}
+
 // Return false on EOF, true if line successfully read.
 bool ReadLineStdioFile(FILE *f, string &Line)
 	{
 	Line.clear();
+	char Buffer[64*1024];
 	for (;;)
 		{
-		int c = fgetc(f);
-		if (c == -1)
+		if (NULL == fgets(Buffer, (int) sizeof(Buffer), f))
 			{
 			if (feof(f))
-				{
-				if (!Line.empty())
-					return true;
-				return false;
-				}
-			Die("ReadLineStdioFile, errno=%d", errno);
+				return !Line.empty();
+			if (ferror(f))
+				Die("ReadLineStdioFile, errno=%d", errno);
+			Die("ReadLineStdioFile: fgets=0, feof=0, ferror=0");
 			}
-		if (c == '\r')
-			continue;
-		if (c == '\n')
+		char *Newline = strchr(Buffer, '\n');
+		if (NULL != Newline)
+			{
+			AppendLineChunkSkipCr(Line, Buffer, Newline);
 			return true;
-		Line.push_back((char) c);
+			}
+		size_t ChunkBytes = strlen(Buffer);
+		AppendLineChunkSkipCr(Line, Buffer, Buffer + ChunkBytes);
+		if (ChunkBytes + 1 < sizeof(Buffer))
+			return true;
 		}
 	}
 
@@ -769,6 +785,7 @@ void SetLogFileName(const string &FileName)
 	if (FileName.empty())
 		return;
 	g_fLog = CreateStdioFile(FileName);
+	setbuf(g_fLog, 0);
 	}
 
 void Log(const char *Format, ...)
@@ -858,11 +875,13 @@ void mysleep(unsigned ms)
 double GetMemUseBytes()
 	{
 	HANDLE hProc = GetCurrentProcess();
-	PROCESS_MEMORY_COUNTERS PMC;
-	BOOL bOk = GetProcessMemoryInfo(hProc, &PMC, sizeof(PMC));
+	PROCESS_MEMORY_COUNTERS_EX PMC;
+	BOOL bOk = GetProcessMemoryInfo(hProc,
+		(PROCESS_MEMORY_COUNTERS*) &PMC, sizeof(PMC));
 	if (!bOk)
 		return 1000000;
-	double Bytes = (double) PMC.WorkingSetSize;
+	// double Bytes = (double) PMC.WorkingSetSize;
+	double Bytes = (double) PMC.PrivateUsage;
 	UpdMemUse(Bytes);
 	return Bytes;
 	}
@@ -897,38 +916,41 @@ double GetPhysMemBytes()
 	}
 
 double GetMemUseBytes()
-	{
-	static char statm[SIZE_64];
-	static int PageSize = 1;
-	if (0 == statm[0])
+{
+	// Report resident set size (RSS) on Linux so progress memory
+	// reflects actual process footprint rather than glibc arena growth.
+	// arena/hblkhd can monotonically increase with thread churn.
+	double total = 0.0;
+	FILE *f = fopen("/proc/self/status", "r");
+	if (f != 0)
 		{
-		PageSize = sysconf(_SC_PAGESIZE);
-		pid_t pid = getpid();
-		snprintf(statm, SIZE_64, "/proc/%d/statm", (int) pid);
+		char Line[256];
+		while (fgets(Line, sizeof(Line), f))
+			{
+			unsigned long kb = 0;
+			if (sscanf(Line, "VmRSS: %lu kB", &kb) == 1)
+				{
+				total = double(kb)*1024.0;
+				break;
+				}
+			}
+		fclose(f);
 		}
 
-	int fd = open(statm, O_RDONLY);
-	if (fd < 0)
-		return 0.0;
-	char Buffer[64];
-	int n = read(fd, Buffer, sizeof(Buffer) - 1);
-	close(fd);
-	fd = -1;
+	if (total <= 0.0)
+		{
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+		struct mallinfo2 mi = mallinfo2();
+		total = double(mi.arena) + double(mi.hblkhd);
+#else
+		struct mallinfo mi = mallinfo();
+		total = double(mi.arena) + double(mi.hblkhd);
+#endif
+		}
 
-	if (n <= 0)
-		return 0.0;
-
-	Buffer[n] = 0;
-	const char *p = strchr(Buffer, ' ');
-	if (p == 0)
-		return 0.0;
-
-	double Pages = atof(p);
-
-	double Bytes = Pages*PageSize;
-	UpdMemUse(Bytes);
-	return Bytes;
-	}
+	UpdMemUse(total);
+	return total;
+}
 
 #elif defined(__MACH__)
 #include <memory.h>
@@ -944,7 +966,6 @@ double GetMemUseBytes()
 #include <netinet/icmp6.h>
 #include <sys/vmmeter.h>
 #include <sys/proc.h>
-// #include <mach/task_info.h>
 #include <mach/task.h>
 #include <mach/mach_init.h>
 #include <mach/vm_statistics.h>
@@ -1079,13 +1100,15 @@ const char *MemBytesToStr(double Bytes)
 	static char Str[SIZE_32];
 
 	if (Bytes < 1e4)
-		snprintf(Str, SIZE_32, "%.1fb", Bytes);
+		snprintf(Str, SIZE_32, "%.0f", Bytes);
 	else if (Bytes < 1e6)
 		snprintf(Str, SIZE_32, "%.1fkb", Bytes/1e3);
 	else if (Bytes < 10e6)
 		snprintf(Str, SIZE_32, "%.1fMb", Bytes/1e6);
 	else if (Bytes < 1e9)
 		snprintf(Str, SIZE_32, "%.0fMb", Bytes/1e6);
+	else if (Bytes < 10e9)
+		snprintf(Str, SIZE_32, "%.2fGb", Bytes/1e9);
 	else if (Bytes < 100e9)
 		snprintf(Str, SIZE_32, "%.1fGb", Bytes/1e9);
 	else
@@ -1142,6 +1165,27 @@ unsigned StrToUint(const string &s)
 	return StrToUint(s.c_str());
 	}
 
+uint64 StrToUint64(const char *s)
+	{
+	const char *s0 = s;
+	if (!IsUintStr(s0))
+		Die("Invalid integer '%s'", s0);
+	uint64 n = 0;
+	while (char c = *s++)
+		{
+		const uint64 digit = (c - '0');
+		if (n > UINT64_MAX / 10 || (n == UINT64_MAX / 10 && digit > UINT64_MAX % 10))
+			Die("Integer overflow '%s'", s0);
+		n = n*10 + digit;
+		}
+	return n;
+	}
+
+uint64 StrToUint64(const string &s)
+	{
+	return StrToUint64(s.c_str());
+	}
+
 unsigned StrToUint_err(const string &s)
 	{
 	return StrToUint_err(s.c_str());
@@ -1160,6 +1204,18 @@ double StrToFloat_err(const char *s)
 	if (*p != 0)
 		return DBL_MAX;
 	return d;
+	}
+
+bool IsValidFloatStr(const char *s)
+	{
+	char *p;
+	double d = strtod(s, &p);
+	return (*p == 0);
+	}
+
+bool IsValidFloatStr(const string &s)
+	{
+	return IsValidFloatStr(s.c_str());
 	}
 
 double StrToFloat(const char *s)
@@ -1399,11 +1455,45 @@ void ProgressLogPrefix(const char *Format, ...)
 	va_end(ArgList);
 
 	Log("%s", Str.c_str());
+
 	bool SavedPrefix = g_ProgressPrefixOn;
 	g_ProgressPrefixOn = true;
 	Progress("%s", Str.c_str());
 	g_ProgressPrefixOn = SavedPrefix;
 	}
+
+void ProgressLogNoPrefix(const char *Format, ...)
+	{
+	string Str;
+	va_list ArgList;
+	va_start(ArgList, Format);
+	myvstrprintf(Str, Format, ArgList);
+	va_end(ArgList);
+
+	Log("%s", Str.c_str());
+	bool SavedPrefix = g_ProgressPrefixOn;
+	g_ProgressPrefixOn = false;
+	Progress("%s", Str.c_str());
+	g_ProgressPrefixOn = SavedPrefix;
+	}
+
+void ProgressPrefixLog(const char* Format, ...)
+{
+	string Str;
+	va_list ArgList;
+	va_start(ArgList, Format);
+	myvstrprintf(Str, Format, ArgList);
+	va_end(ArgList);
+
+	string PrefixStr;
+	GetProgressPrefixStr(PrefixStr);
+	Log("%s %s", PrefixStr.c_str(), Str.c_str());
+
+	bool SavedPrefix = g_ProgressPrefixOn;
+	g_ProgressPrefixOn = true;
+	Progress("%s", Str.c_str());
+	g_ProgressPrefixOn = SavedPrefix;
+}
 
 void Pr(FILE *f, const char *Format, ...)
 	{
@@ -2109,10 +2199,6 @@ void Split(const string &Str, vector<string> &Fields, char Sep)
 		Fields.push_back(s);
 	}
 
-const char *g_GitVer = 
-#include "gitver.txt"
-		;
-
 void Version(FILE *f)
 	{
 	if (f == 0)
@@ -2127,7 +2213,7 @@ void Version(FILE *f)
 	;
 	fprintf(f, "\n");
 
-	fprintf(f, "reseek v%s.%s%s [%s]\n", MY_VERSION, GetPlatform(), Flags, g_GitVer);
+	fprintf(f, "reseek v%s.%s%s [%s]\n", MY_VERSION, GetPlatform(), Flags, GIT_HASH);
 	}
 
 void PrintHelp()
@@ -2288,6 +2374,14 @@ uint32 RandInt32()
 	return g_X[0];
 	}
 
+double randf(double maxvalue)
+	{
+	const uint M = 3141592;
+	double r = double(randu32()%M)/(M-1);
+	asserta(r >= 0 && r <= 1);
+	return r*maxvalue;
+	}
+
 unsigned randu32()
 	{
 	return (unsigned) RandInt32();
@@ -2310,23 +2404,6 @@ void InitRand()
 	for (unsigned i = 0; i < 100; i++)
 		RandInt32();
 	}
-
-//unsigned GetCPUCoreCount()
-//	{
-//#ifdef _MSC_VER
-//	SYSTEM_INFO SI;
-//	GetSystemInfo(&SI);
-//	unsigned n = SI.dwNumberOfProcessors;
-//	if (n == 0 || n > 64)
-//		return 1;
-//	return n;
-//#else
-//	long n = sysconf(_SC_NPROCESSORS_ONLN);
-//	if (n <= 0)
-//		return 1;
-//	return (unsigned) n;
-//#endif
-//	}
 
 unsigned GetCPUCoreCount()
 	{
@@ -2374,12 +2451,13 @@ unsigned GetCPUCoreCount()
 #undef myalloc
 #undef myfree
 
-void Ps(string &Str, const char *Format, ...)
+const string &Ps(string &Str, const char *Format, ...)
 	{
 	va_list ArgList;
 	va_start(ArgList, Format);
 	myvstrprintf(Str, Format, ArgList);
 	va_end(ArgList);
+	return Str;
 	}
 
 void Pf(FILE *f, const char *Format, ...)
@@ -2410,8 +2488,22 @@ unsigned GetRequestedThreadCount()
 	static bool Done = false;
 	if (Done)
 		return N;
+	static bool MsgDone = false;
 	unsigned CoreCount = GetCPUCoreCount();
-	bool MsgDone = false;
+	const char *env = std::getenv("RESEEK_THREADS");
+	if (env != 0)
+		{
+		N = StrToInt(env);
+		if (N == 0)
+			Die("RESEEK_THREADS=0");
+		if (!MsgDone)
+			{
+			Progress("RESEEK_THREADS=%u (%u CPU cores)\n", N, CoreCount);
+			MsgDone = true;
+			}
+		Done = true;
+		return N;
+		}
 	if (optset_threads)
 		N = opt(threads);
 	else
@@ -2455,6 +2547,13 @@ void TruncateAtFirstWhiteSpace(string &Str)
 			return;
 			}
 		}
+	}
+
+void StripAllWhiteSpace(string &Str)
+	{
+	string tmp;
+	for (auto c : Str) if (!isspace(c)) tmp += c;
+	Str = tmp;
 	}
 
 void StripWhiteSpace(string &Str)
@@ -2544,15 +2643,6 @@ void MyutilsExit()
 	CloseStdioFile(g_fLog);
 	}
 
-const char *GetCurrentThreadStr(string &s)
-	{
-	auto myid = this_thread::get_id();
-	stringstream ss;
-	ss << myid;
-	s = ss.str();
-	return s.c_str();
-	}
-
 uint GetUniqueInt()
 	{
 	uint pid = uint(getpid());
@@ -2611,4 +2701,30 @@ uint Replace(string &s, const string &from, const string &to)
 		return 0;
 	s = s.replace(n, from.size(), to);
 	return 1;
+	}
+
+void* aligned_malloc(size_t bytes)
+	{
+	const size_t alignment = 32;
+
+#if defined(_MSC_VER)
+	return _aligned_malloc(bytes, alignment);
+#else
+	// posix_memalign requires alignment to be power-of-two
+	// and multiple of sizeof(void*)
+	static_assert(alignment >= sizeof(void*));
+	void* p = 0;
+	int rc = posix_memalign(&p, alignment, bytes);
+	asserta(rc == 0);
+	return p;
+#endif
+	}
+
+void aligned_free(void* p)
+	{
+#if defined(_MSC_VER)
+	_aligned_free(p);
+#else
+	free(p);
+#endif
 	}

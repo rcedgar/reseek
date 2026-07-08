@@ -1,5 +1,4 @@
 #include "myutils.h"
-#include "pdbchain.h"
 
 void GetPathCounts(const string &Path, uint &M, uint &D, uint &I);
 

@@ -13,8 +13,8 @@ const uint FEATURE_COUNT = 0 +
 
 const char *FeatureToStr(uint FeatureIndex);
 const char *FeatureToStr(FEATURE f);
-FEATURE StrToFeature(const char *s);
-uint StrToFeatureIndex(const char *s);
+FEATURE StrToFeature(const char *s, bool ErrOk = false);
+uint StrToFeatureIndex(const char *s, bool ErrOk = false);
 bool FeatureIsInt(FEATURE f);
 bool FeatureIsInt(uint FeatureIndex);
 

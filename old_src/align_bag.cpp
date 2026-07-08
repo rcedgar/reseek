@@ -1,0 +1,192 @@
+#if 0
+#include "myutils.h"
+#include "dssaligner.h"
+#include "statsig.h"
+
+extern float GetSelfRevScore(DSSAligner &DA, DSS &D, const PDBChain &Chain,
+					  const vector<vector<byte> > &Profile,
+					  const vector<byte> *ptrMuLetters,
+					  const vector<uint> *ptrMuKmers);
+
+
+ChainBag *MakeBag(
+	MuKmerFilter &MKF,
+	DSSAligner &DA_selfrev,
+	DSS &D,
+	const PDBChain &QChain)
+	{
+	D.Init(QChain);
+
+	vector<vector<byte> > *ptrQProfile = new vector<vector<byte> >;
+	vector<byte> *ptrQMuLetters = new vector<byte>;
+	vector<uint> *ptrQMuKmers = new vector<uint>;
+
+	D.GetProfile(*ptrQProfile);
+	D.GetMuLetters(*ptrQMuLetters);
+	D.GetMuKmers(*ptrQMuLetters, *ptrQMuKmers, DSSParams::m_MKFPatternStr);
+
+	float QSelfRevScore = 
+		GetSelfRevScore(DA_selfrev, D, QChain,
+				*ptrQProfile, ptrQMuLetters, ptrQMuKmers);
+
+	uint16_t *HT = MKF.CreateEmptyHashTable();
+	MKF.SetHashTable(*ptrQMuKmers, HT);
+
+	ChainBag *ptrCBQ = new ChainBag;
+	ptrCBQ->m_ptrChain = &QChain;
+	ptrCBQ->m_ptrProfile = ptrQProfile;
+	ptrCBQ->m_ptrMuLetters = ptrQMuLetters;
+	ptrCBQ->m_ptrMuKmers = ptrQMuKmers;
+	ptrCBQ->m_SelfRevScore = QSelfRevScore;
+	ptrCBQ->m_ptrProfPara8 = DA_selfrev.m_ProfPara8;
+	ptrCBQ->m_ptrProfPara16 = DA_selfrev.m_ProfPara16;
+	ptrCBQ->m_ptrProfParaRev8 = DA_selfrev.m_ProfParaRev8;
+	ptrCBQ->m_ptrProfParaRev16 = DA_selfrev.m_ProfParaRev16;
+	ptrCBQ->m_ptrKmerHashTableQ = HT;
+
+	return ptrCBQ;
+	}
+
+// Align pair, exactly one chain in each input file.
+void cmd_align_bag()
+	{
+	if (!optset_input2)
+		Die("Must specify -input2");
+
+	const string &QFN = g_Arg1;
+	const string &TFN = opt(input2);
+
+	vector<PDBChain *> ChainsQ;
+	vector<PDBChain *> ChainsT;
+	ReadChains(QFN, ChainsQ);
+	ReadChains(TFN, ChainsT);
+
+	optset_sensitive = true;
+	opt(sensitive) = true;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega8 = 0;
+	DSSParams::m_Omega16 = 0;
+
+	const uint ChainCountQ = SIZE(ChainsQ);
+	const uint ChainCountT = SIZE(ChainsT);
+	asserta(ChainCountQ == 1);
+	asserta(ChainCountT == 1);
+
+	const PDBChain &ChainQ = *ChainsQ[0];
+	const PDBChain &ChainT = *ChainsT[0];
+
+	DSS D;
+	MuKmerFilter MKF;
+	DSSAligner DA;
+	DSSAligner DA_selfrev;
+
+	ChainBag &BagA = *MakeBag(MKF, DA_selfrev, D, ChainQ);
+	ChainBag &BagB = *MakeBag(MKF, DA_selfrev, D, ChainT);
+
+	DA.AlignBagsMKF(BagA, BagB);
+	if (DA.m_Path == "")
+		ProgressLog("No alignment found\n");
+	else
+		DA.ToAln(g_fLog, true);
+	}
+
+// Align all-vs-all, compare with full S-W
+void cmd_align_bags()
+	{
+	const string &QFN = g_Arg1;
+	FILE *f = CreateStdioFile(opt(output));
+
+	vector<PDBChain *> Chains;
+	ReadChains(QFN, Chains);
+
+	optset_sensitive = true;
+	opt(sensitive) = true;
+	DSSParams::Init(DM_AlwaysSensitive);
+	DSSParams::m_Omega8 = 0;
+	DSSParams::m_Omega16 = 0;
+
+	const uint ChainCount = SIZE(Chains);
+
+	DSS D;
+	MuKmerFilter MKF;
+	DSSAligner DA_sw;
+	DSSAligner DA_bag;
+	DSSAligner DA_selfrev;
+
+	uint PairCount = ChainCount + ChainCount*(ChainCount-1)/2;
+	uint PairIndex = 0;
+	for (uint ChainIndexA = 0; ChainIndexA < ChainCount; ++ChainIndexA)
+		{
+		const PDBChain &ChainA = *Chains[ChainIndexA];
+		ChainBag &BagA = *MakeBag(MKF, DA_selfrev, D, ChainA);
+
+		vector<vector<byte> > ProfileA;
+		D.Init(ChainA);
+		D.GetProfile(ProfileA);
+		float SelfRevScoreA = GetSelfRevScore(DA_selfrev, D, ChainA, ProfileA, 0, 0);
+		DA_sw.SetQuery(ChainA, &ProfileA, 0, 0, SelfRevScoreA);
+
+		for (uint ChainIndexB = ChainIndexA; ChainIndexB < ChainCount; ++ChainIndexB)
+			{
+			ProgressStep(PairIndex++, PairCount, "Aligning");
+			const PDBChain &ChainB = *Chains[ChainIndexB];
+
+			uint LA = ChainA.GetSeqLength();
+			uint LB = ChainB.GetSeqLength();
+			if (LA < 400 || LB < 400)
+				continue;
+
+			vector<vector<byte> > ProfileB;
+			D.Init(ChainB);
+			D.GetProfile(ProfileB);
+			float SelfRevScoreB = GetSelfRevScore(DA_selfrev, D, ChainB, ProfileB, 0, 0);
+
+			DA_sw.SetTarget(ChainB, &ProfileB, 0, 0, SelfRevScoreB);
+			DA_sw.Align_NoAccel();
+			float E_sw = DA_sw.GetEvalue(true);
+			if (E_sw > 1)
+				continue;
+
+			ChainBag &BagB = *MakeBag(MKF, DA_selfrev, D, ChainB);
+			DA_bag.AlignBagsMKF(BagA, BagB);
+
+			if (f == 0)
+				continue;
+
+			bool problem = false;
+			bool b = (DA_bag.m_MKF.m_BestChainScore > 0);
+
+			fprintf(f, "%s", ChainA.m_Label.c_str());
+			fprintf(f, "\t%s", ChainB.m_Label.c_str());
+
+			fprintf(f, "\t%.2e", DA_sw.GetEvalue(true));
+			if (b)
+				fprintf(f, "\t%.2e", DA_bag.GetEvalue(true));
+			else
+				{
+				if (E_sw < 0.01)
+					problem = true;
+				fprintf(f, "\tPROBE");
+				}
+
+			float PctId_sw = DA_sw.GetPctId();
+			float PctId_bag = DA_bag.GetPctId();
+			fprintf(f, "\t%.1f", PctId_sw);
+			if (b)
+				{
+				if (PctId_sw - PctId_bag > 5)
+					problem = true;
+				fprintf(f, "\t%.1f", DA_bag.GetPctId());
+				}
+			else
+				fprintf(f, "\tnobag");
+			if (problem)
+				fprintf(f, "\tPROBLEM");
+			fprintf(f, "\n");
+			fflush(f);
+			}
+		}
+	CloseStdioFile(f);
+	}
+
+#endif

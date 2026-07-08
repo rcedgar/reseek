@@ -2,7 +2,7 @@
 
 #include "mermx.h"
 
-#define DEBUG_CHECKS	0
+#define MUDEX_DEBUG_CHECKS	0
 
 class SeqDB;
 

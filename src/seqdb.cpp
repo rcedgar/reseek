@@ -82,6 +82,28 @@ const byte *SeqDB::GetByteSeq(unsigned SeqIndex) const
 	return (const byte *) m_Seqs[SeqIndex].c_str();
 	}
 
+uint SeqDB::GetUngappedSeqLength(unsigned SeqIndex) const
+	{
+	assert(SeqIndex < SIZE(m_Seqs));
+	const string &Seq = m_Seqs[SeqIndex];
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Seq); ++i)
+		if (!isgap(Seq[i]))
+			++n;
+	return n;
+	}
+
+void SeqDB::GetUngappedSeq(unsigned SeqIndex, string &USeq) const
+	{
+	USeq.clear();
+	assert(SeqIndex < SIZE(m_Seqs));
+	const string &Seq = m_Seqs[SeqIndex];
+	uint n = 0;
+	for (uint i = 0; i < SIZE(Seq); ++i)
+		if (!isgap(Seq[i]))
+			USeq += Seq[i];
+	}
+
 const string& SeqDB::GetSeq(unsigned SeqIndex) const
 	{
 	assert(SeqIndex < SIZE(m_Seqs));
@@ -257,10 +279,12 @@ void SeqDB::TruncLabels()
 	uint SeqCount = GetSeqCount();
 	for (unsigned SeqIndex = 0; SeqIndex < SeqCount; ++SeqIndex)
 		{
-		const string &Label = m_Labels[SeqIndex];
-		size_t n = Label.find(' ');
-		if (n != string::npos && n > 0)
-			m_Labels[SeqIndex][n] = 0;
+		//const string &Label = m_Labels[SeqIndex];
+		//size_t n = Label.find(' ');
+		//if (n != string::npos && n > 0)
+		//	m_Labels[SeqIndex][n] = 0;
+		void trunc_label(string &Label);
+		trunc_label(m_Labels[SeqIndex]);
 		}
 	}
 

@@ -3,6 +3,7 @@
 #endif
 
 F(AA)
+F(B62)
 #include "intfeatures.h"
 #include "floatfeatures.h"
 

@@ -4,6 +4,8 @@ echo
 echo _run_tests.bash
 echo
 
+START_SECS=$SECONDS
+
 if [ x$reseek == x ] ; then
 	echo "reseek not set"
 	exit 1
@@ -15,7 +17,7 @@ if [ ! -d ../big_data ] ; then
 fi
 
 if [ `uname -n` != "rip" ] ; then
-	echo Must run on rip
+	echo "Must run on rip (time and memory use checks depend on PC)"
 	exit 1
 fi
 
@@ -32,23 +34,22 @@ git status >> $log
 
 echo STARTED `date` >> $log
 
-./idxqt_speed.bash
-./convert.bash
-./align.bash
-./alignpair.bash
-./columns.bash
-./search.bash
-./scop40.bash
-./pdb2mega.bash
+./flat_convert.bash
+./scop40x.bash
 
-python3 ./check_idxqt_speed.py >> $log
-python3 ./check_logs.py >> $log
-python3 ./check_convert.py >> $log
-python3 ./check_columns.py >> $log
-python3 ./check_scop40.py >> $log
-
+python3 ./check_scop40x.py >> $log
+python3 ./check_flat_convert.py >> $log
 python3 ./update_success_list.py $ver $date
 
-echo COMPLETED $date >> $log
+END_SECS=$SECONDS
+ELAPSED_TOTAL=$((END_SECS - START_SECS))
+HOURS=$((ELAPSED_TOTAL / 3600))
+MINUTES=$(((ELAPSED_TOTAL % 3600) / 60))
+SECONDS_LEFT=$((ELAPSED_TOTAL % 60))
 
-echo $date $ver SUCCESS >> $log
+HH=$(printf "%02d" $HOURS)
+MM=$(printf "%02d" $MINUTES)
+SS=$(printf "%02d" $SECONDS_LEFT)
+
+echo "SUCCESS $date elapsed $HH:$MM:$SS" \
+	| tee -a $log

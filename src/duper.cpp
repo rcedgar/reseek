@@ -1,32 +1,63 @@
 #include "myutils.h"
 #include "duper.h"
 
-Duper::Duper(uint InputSize)
+static void FreeDuperTables(Duper &D)
+	{
+	myfree(D.m_Ints);
+	myfree(D.m_Bits);
+	myfree(D.m_Dupes);
+	D.m_Ints = 0;
+	D.m_Bits = 0;
+	D.m_Dupes = 0;
+	D.m_TableSize = 0;
+	D.m_AllocInputSize = 0;
+	}
+
+static void AllocDuperTables(Duper &D, uint InputSize)
 	{
 	asserta(InputSize < UINT_MAX/4);
-	m_InputSize = InputSize;
+	D.m_InputSize = InputSize;
+	D.m_AllocInputSize = InputSize;
 
 	uint FindPrime(uint Min, uint Max);
 	uint N = InputSize + 7;
 	uint Lo = N*3;
 	uint Hi = Lo + Lo/4;
-	m_TableSize = FindPrime(Lo, Hi);
-	m_Ints = myalloc(uint32_t, m_TableSize);
-	memset(m_Ints, 0xff, m_TableSize*sizeof(uint32_t));
+	D.m_TableSize = FindPrime(Lo, Hi);
+	D.m_Ints = myalloc(uint32_t, D.m_TableSize);
+	memset(D.m_Ints, 0xff, D.m_TableSize*sizeof(uint32_t));
 
-	uint BitBytes = (m_TableSize + 7)/8;
-	m_Bits = myalloc(uint8_t, BitBytes);
-	memset(m_Bits, 0, BitBytes);
+	uint BitBytes = (D.m_TableSize + 7)/8;
+	D.m_Bits = myalloc(uint8_t, BitBytes);
+	memset(D.m_Bits, 0, BitBytes);
 
-	m_Dupes = myalloc(uint32_t, m_InputSize);
-	m_DupeCount = 0;
+	D.m_Dupes = myalloc(uint32_t, InputSize);
+	D.m_DupeCount = 0;
+	}
+
+Duper::Duper(uint InputSize)
+	{
+	AllocDuperTables(*this, InputSize);
 	}
 
 Duper::~Duper()
 	{
-	myfree(m_Ints);
-	myfree(m_Bits);
-	myfree(m_Dupes);
+	FreeDuperTables(*this);
+	}
+
+void Duper::Init(uint InputSize)
+	{
+	m_DupeCount = 0;
+	m_InputSize = InputSize;
+	if (InputSize <= m_AllocInputSize && m_Ints != 0)
+		{
+		memset(m_Ints, 0xff, m_TableSize*sizeof(uint32_t));
+		uint BitBytes = (m_TableSize + 7)/8;
+		memset(m_Bits, 0, BitBytes);
+		return;
+		}
+	FreeDuperTables(*this);
+	AllocDuperTables(*this, InputSize);
 	}
 
 void Duper::Add(uint32_t i)
@@ -78,6 +109,16 @@ static uint Test()
 	for (uint i = 0; i < N; ++i)
 		D.Add(v[i]);
 	asserta(DupeCount == D.m_DupeCount);
+
+	Duper D2(1);
+	for (uint i = 0; i < N; ++i)
+		{
+		D2.Init(N);
+		D2.m_DupeCount = 0;
+		for (uint j = 0; j < N; ++j)
+			D2.Add(v[j]);
+		asserta(DupeCount == D2.m_DupeCount);
+		}
 	return DupeCount;
 	}
 
