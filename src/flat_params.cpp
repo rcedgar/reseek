@@ -53,6 +53,13 @@ void flat_params::init_from_cmdline()
 	else
 		Die("Must set -fast or -sensitive");
 
+	if (optset_pvalue)
+		{
+		m_max_pvalue = opt(pvalue);
+		if (m_max_pvalue > 1 || m_max_pvalue <= 0)
+			Die("Invalid -pvalue, must be >0 and <= 1");
+		}
+
 	const string stats = opt(stats);
 	if (stats == "family" || stats == "fam")
 		init_from_varstr("=fam");

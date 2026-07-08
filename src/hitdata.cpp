@@ -185,5 +185,5 @@ void hitdata::fill(const flat_params &params)
 	qhi = qpos - 1;
 	thi = tpos - 1;
 	pvalue = calc_pvalue(TS, params.m_pvm);
-	TM = float(calc_tm_iterate());
+	//TM = float(calc_tm_iterate());
 	}

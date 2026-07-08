@@ -91,6 +91,7 @@ public:
 
 	// p-value
 	PVALUE_MODE m_pvm = PVM_invalid;
+	double m_max_pvalue = 1e-3;
 
 public:
 	void init_from_varstr(const string &varstr);

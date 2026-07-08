@@ -75,6 +75,14 @@ void reseeker::write_aln(const hitdata &hit)
 		GetPct(hit.ids, hit.ncol));
 	}
 
+void reseeker::write_hit(const flat_params &params, const hitdata &hit)
+	{
+	if (hit.pvalue > params.m_max_pvalue)
+		return;
+	write_tsv(hit);
+	write_aln(hit);
+	}
+
 void reseeker::write_tsv(const hitdata &hit)
 	{
 	if (m_fhit == 0) return;
@@ -88,7 +96,17 @@ void reseeker::write_tsv(const hitdata &hit)
 void reseeker::init_userfields()
 	{
 	static const vector<USERFIELD> default_columns = 
-		{ UF_query, UF_target, UF_pvalue };
+		{
+		UF_query,
+		UF_target,
+		UF_qlo,
+		UF_qhi,
+		UF_ql,
+		UF_tlo,
+		UF_thi,
+		UF_tl,
+		UF_pctid,
+		UF_pvalue };
 
 	if (optset_columns)
 		{
@@ -295,7 +313,7 @@ void reseeker::append_userfield(
 
 	case UF_aq:
 		{
-		Die("AQ TODO");
+		Die("AQ not supported in version 3+");
 		break;
 		}
 

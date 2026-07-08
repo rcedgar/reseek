@@ -50,5 +50,7 @@ C(flat_search_all)
 C(flat_search_kappa)
 C(flat_convert)
 C(hjtsv)
+C(search)
+C(convert)
 
 #undef C

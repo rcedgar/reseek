@@ -635,3 +635,8 @@ void cmd_flat_convert()
 	s_ptrFS = 0;
 	s_ptrLabelSet = 0;
 	}
+
+void cmd_convert()
+	{
+	cmd_flat_convert();
+	}

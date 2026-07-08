@@ -144,3 +144,8 @@ void cmd_flat_search_kappa()
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", nu_filter_secs);
 	}
+
+void cmd_search()
+	{
+	cmd_flat_search_kappa();
+	}

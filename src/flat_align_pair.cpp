@@ -287,3 +287,8 @@ void cmd_flat_alignpair()
 
 	fa.freemem();
 	}
+
+void cmd_alignpair()
+	{
+	cmd_flat_alignpair();
+	}

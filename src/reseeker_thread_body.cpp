@@ -316,8 +316,7 @@ void reseeker::static_thread_body(uint threadidx)
 #if DEBUG
 			validate_hit(hit);
 #endif
-			write_tsv(hit);
-			write_aln(hit);
+			write_hit(params, hit);
 			}
 
 		struct_data::free_struct_data(target_data);

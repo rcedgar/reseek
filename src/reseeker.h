@@ -95,8 +95,7 @@ public:
 
 	static void static_thread_body(uint threadidx);
 	//static void static_thread_body_nusort(uint threadidx);
-	static void write_tsv(const hitdata &hit);
-	static void write_aln(const hitdata &hit);
+	static void write_hit(const flat_params &params, const hitdata &hit);
 	static void init_userfields();
 	static void append_userfield(
 		string &s,
@@ -108,4 +107,8 @@ public:
 		CloseStdioFile(m_fhit);
 		CloseStdioFile(m_faln);
 		}
+
+private:
+	static void write_tsv(const hitdata &hit);
+	static void write_aln(const hitdata &hit);
 	};
