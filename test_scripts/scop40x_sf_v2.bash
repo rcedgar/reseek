@@ -1,24 +1,30 @@
 #!/bin/bash -e
 
+reseek=../github_releases/reseek-v2.8-linux-x86
+
+if [ ! -x $reseek ] ; then
+	echo Download ../github_releases/reseek-v2.8-linux-x86 and chmod +x
+	exit 1
+fi
+
 truth=sf
 
-outdir=../big_scop40x
+outdir=../big_scop40x_v2
 rm -rf $outdir/
 mkdir -p $outdir
 cd $outdir
 
-db=../test_data/scop40x.bcb
+db=../test_data/scop40x.bca
 lookup=../test_data/scop40x.lookup
 
 for mode in fast sensitive
 do
-	name=$truth.$mode
+	name=v2_$mode
 	hits=$outdir/$name.hits
-	reseek \
+	$reseek \
 		-search $db \
 		-$mode \
-		-stats $truth \
-		-columns query+target+pvalue \
+		-columns query+target+evalue \
 		-db $db \
 		-output $hits \
 		-log $name.search.log

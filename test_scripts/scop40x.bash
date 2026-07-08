@@ -27,7 +27,8 @@ do
 		name=$truth.$mode.$os
 		hits=$outdir/$name.hits
 		reseek \
-			-flat_search_$mode $db \
+			-search $db \
+			-$mode \
 			-stats $truth \
 			-db $db \
 			-output $hits \

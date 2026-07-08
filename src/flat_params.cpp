@@ -42,16 +42,24 @@ void flat_params::init_from_cmdline()
 	if (!optset_stats)
 		Die("Must set -stats LEVEL (family, superfamily or fold)");
 	uint nmode = 0;
+	string smode;
 	if (opt(fast))
 		{
 		flat_params::m_kappa_min_kmerpairscore = 65;
+		smode = "fast";
 		}
 	else if (opt(sensitive))
 		{
 		flat_params::m_kappa_min_kmerpairscore = 55;
+		smode = "sensitive";
+		}
+	else if (opt(verysensitive))
+		{
+		flat_params::m_kappa_min_kmerpairscore = 50;
+		smode = "verysensitive";
 		}
 	else
-		Die("Must set -fast or -sensitive");
+		Die("Must set -fast, -sensitive or -verysensitive");
 
 	if (optset_pvalue)
 		{
@@ -69,7 +77,7 @@ void flat_params::init_from_cmdline()
 		init_from_varstr("=fold");
 	else
 		Die("Invalid -stats '%s', must be family, fam, superfamily, sf or fold", stats.c_str());
-	if (optset_nuonly) m_nu_only = true;
+	ProgressLog("%s %s\n", smode.c_str(), stats.c_str());
 	}
 
 void flat_params::init_from_varstr(const string &varstr)

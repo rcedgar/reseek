@@ -33,9 +33,6 @@ public:
 	//static uint m_NQ;
 	static kappa_seqsource *m_db_seqsource;
 	static atomic<time_t> m_time_last_progress;
-	static atomic<uint64_t> m_diag_bag_seed_total;
-	static atomic<uint64_t> m_diag_bag_unique_fine_total;
-	static atomic<uint64_t> m_hsp_rsb_prune_skipped_total;
 	static const kappa_mermx *m_ptrScoreMx;
 	static const kappa_dex *m_ptrQKmerIndex;
 
@@ -97,10 +94,6 @@ public:
 	// Pending (query, target, score) for batched 
 	//   AddScoresBatch; not cleared per target.
 	vector<RankedScoreBatchEntry> m_RSBPending;
-
-	uint64_t m_hsp_rsb_prune_skipped_local = 0;
-
-	void FlushHspPruneStats() const;
 
 public:
 	kappa_filter() = default;

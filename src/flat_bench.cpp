@@ -632,9 +632,8 @@ void cmd_flat_bench()
 	FB.set_distmxs(chains);
 	FB.load_profiles_chains(chains);
 	const bool nufilter = opt(nufilter);
-	const bool nuonly = opt(nuonly);
-	FB.m_nu_only = nuonly;
-	if (nufilter || nuonly)
+	FB.m_nu_only = false;
+	if (nufilter)
 		FB.init_nu_filter(opt(hexfasta));
 	FB.UpdateParamsFromVarStr(param_names, param_values);
 	FB.LogParams();

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 truth=superfamily
-mode=kappa
+mode=fast
 db=../test_data/palms.bcb
 fa=palms.fa
 hits=../test_output/palms.hits
@@ -15,7 +15,8 @@ reseek \
 	-log test_columns_convert_fasta.log
 
 reseek \
-	-flat_search_$mode $db \
+	-search $db \
+	-$mode \
 	-db $db \
 	-stats $truth \
 	-columns $cols \

@@ -169,11 +169,11 @@ void reseeker::append_userfield(
 		if (E >= 100)
 			s += "100";
 		else if (E > 1)
-			Ps(s, "%.2f", E);
+			Psa(s, "%.2f", E);
 		else if (E > 0.001)
-			Ps(s, "%.4f", E);
+			Psa(s, "%.4f", E);
 		else
-			Ps(s, "%.4g", E);
+			Psa(s, "%.4g", E);
 		break;
 		}
 
@@ -215,7 +215,7 @@ void reseeker::append_userfield(
 
 	case UF_pctid:
 		{
-		Ps(s, "%.1f", GetPct(hit.ids, hit.ncol));
+		Psa(s, "%.1f", GetPct(hit.ids, hit.ncol));
 		break;
 		}
 

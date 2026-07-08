@@ -10,17 +10,7 @@ const uint *kappa_filter::m_query_lengths = 0;
 kappa_seqsource *kappa_filter::m_db_seqsource = 0;
 uint kappa_filter::m_QSeqCount = 0;
 atomic<time_t> kappa_filter::m_time_last_progress;
-atomic<uint64_t> kappa_filter::m_diag_bag_seed_total;
-atomic<uint64_t> kappa_filter::m_diag_bag_unique_fine_total;
-atomic<uint64_t> kappa_filter::m_hsp_rsb_prune_skipped_total;
 
-void kappa_filter::FlushHspPruneStats() const
-	{
-	if (m_hsp_rsb_prune_skipped_local > 0)
-		m_hsp_rsb_prune_skipped_total.fetch_add(
-			m_hsp_rsb_prune_skipped_local,
-			std::memory_order_relaxed);
-	}
 const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 bool g_QueryNeighborhood = true;
@@ -351,8 +341,6 @@ void kappa_filter::FindTwoHitDiags()
 	const uint seed_count = m_DiagBag.m_Size;
 	m_DiagBag.SetUniqueFine();
 	const uint unique_fine_count = m_DiagBag.m_DupeCount;
-	m_diag_bag_seed_total += seed_count;
-	m_diag_bag_unique_fine_total += unique_fine_count;
 #if DEBUG
 	//m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
 #endif
@@ -433,7 +421,6 @@ int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 			const int bound = n * flat_params::m_kappa_max_pos_logodds;
 			if (bound < LoScore)
 				{
-				++m_hsp_rsb_prune_skipped_local;
 				return 0;
 				}
 			}
@@ -568,7 +555,6 @@ void kappa_filter::static_thread_body(uint threadidx)
 		bool ok = m_db_seqsource->GetNext(TargetSI);
 		if (!ok)
 			{
-			Pref.FlushHspPruneStats();
 			return;
 			}
 		if ((counter++)%10 == 0)
@@ -622,7 +608,6 @@ void kappa_filter::static_bcb_thread_body(uint threadidx)
 		KssBcbBatch *batch = db.claim_bcb_batch();
 		if (batch == 0)
 			{
-			Pref.FlushHspPruneStats();
 			return;
 			}
 
@@ -673,9 +658,6 @@ void kappa_filter::run_filter(
 	ProgressStep(0, 1000, "Kappa filter");
 	time_t t_start = time(0);
 	m_time_last_progress = t_start;
-	m_diag_bag_seed_total = 0;
-	m_diag_bag_unique_fine_total = 0;
-	m_hsp_rsb_prune_skipped_total = 0;
 	RankedScoresBag::m_AnyLoScoreActive.store(false, std::memory_order_relaxed);
 
 	const bool use_bcb_batch = (db_ss.m_KSSS == KSSS_bcb);
@@ -695,12 +677,5 @@ void kappa_filter::run_filter(
 	ProgressStep(999, 1000, "Kappa filter");
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
-	ProgressLog("Kappa diag-bag  seeds=%s  unique_fine=%s  idxq=%c\n",
-		Int64ToStr(m_diag_bag_seed_total.load()),
-		Int64ToStr(m_diag_bag_unique_fine_total.load()),
-		tof(g_QueryNeighborhood));
-	if (flat_params::m_kappa_hsp_rsb_prune)
-		ProgressLog("Kappa HSP rsb-prune  skipped=%s\n",
-			Int64ToStr(m_hsp_rsb_prune_skipped_total.load()));
 	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
 	}
