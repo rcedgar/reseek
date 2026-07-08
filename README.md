@@ -132,14 +132,14 @@ warning: Using 'dlopen' in statically linked applications requires
 [https://drive5.com/reseek](https://drive5.com/reseek)
 
 ### Searching very large databases
-Reseek and Foldseek achieve orders of magnitude faster searches of large database such as AFDB compared to previous state-of-the-art methods DALI and TM-align. In terms of accuracy, my benchmark results show that Reseek-fast (i.e., with the `-fast`) option has higher accuracy than all other algorithms by most metrics, but scaling compared to Foldseek involves quite different trade-offs (preprint in preparation). Foldseek indexes the whole database in memory, which sometimes enables sub-linear scaling with number of query structures but requires a large amount of RAM. Reseek indexes the query, thereby using much less RAM with linear scaling in query size (note this can be achieved by splitting the query into subsets and running the subsets serially). The results below illustrate the point. Random subsets of the PDB with 100, 1,100 and 10,000 structures were searched against a subset of AFDB which was clustered at 50% aa similarity. Experiments were run on a machine with 780Gb RAM using 64 threads. Results are shown below. With 100 structures, reseek is faster, but with more structures the sub-linear scaling of Foldseek is faster.
+Reseek and Foldseek achieve orders of magnitude faster searches of large database such as AFDB compared to previous state-of-the-art methods DALI and TM-align. In terms of accuracy, my benchmark results show that Reseek-fast (i.e., with the `-fast`) option has higher accuracy than all other algorithms by most metrics, but scaling compared to Foldseek involves quite different trade-offs (preprint in preparation). Foldseek indexes the whole database in memory, which sometimes enables sub-linear scaling with number of query structures but requires a large amount of RAM. Reseek indexes the query, thereby using much less RAM with linear scaling in query size. With more than ~1,000 query structures, for Reseek it is recommended to split the query into subsets of ~1k and search these separately. The results below illustrate the point. Random subsets of the PDB with 100, 1,100 and 10,000 structures were searched against a subset of AFDB which was clustered at 50% aa similarity. Experiments were run on a machine with 780Gb RAM using 64 threads. Results are shown below. With 100 structures, reseek is faster, but with 1,000+ structures Foldseek is faster.
 
 <pre>
   query   ____________Elapsed time_______________
 structs   foldseek  reseek-fast  reseek-sensitive
     100         9m          6m                23m
-   1000        19m         61m                 4h  
-  10000      2h33m         12h                40h
+   1000        19m         61m             4h:45m  
+  10000      2h33m         12h                60h
 
   query   _____________Max memory________________
 structs   foldseek  reseek-fast  reseek-sensitive
