@@ -5,8 +5,21 @@
 
 int flat_params::m_kappa_min_kmerpairscore = 65;
 int flat_params::m_kappa_min_diagscore = 0;
-uint flat_params::m_kappa_min_chainlength = 32;
+uint flat_params::m_kappa_min_chainlength =
+	flat_params::DEFAULT_MIN_CHAINLENGTH;
 string flat_params::m_kappa_pattern = "1010011";
+
+uint flat_params::get_min_chainlength()
+	{
+	if (optset_minchainlength)
+		return opt(minchainlength);
+	return DEFAULT_MIN_CHAINLENGTH;
+	}
+
+void flat_params::sync_min_chainlength()
+	{
+	m_kappa_min_chainlength = get_min_chainlength();
+	}
 uint flat_params::m_kappa_kmer_nrones = KAPPA_NRONES;
 uint flat_params::m_kappa_kmer_width = 7;
 uint flat_params::m_kappa_dict_size = myipow(KAPPA_AS, KAPPA_NRONES);
@@ -60,6 +73,8 @@ void flat_params::init_from_cmdline()
 		}
 	else
 		Die("Must set -fast, -sensitive or -verysensitive");
+
+	sync_min_chainlength();
 
 	if (optset_pvalue)
 		{

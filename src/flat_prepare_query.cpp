@@ -72,7 +72,7 @@ void cmd_flat_prepare_query()
 	const uint input_chain_count = uint(input_chains.size());
 
 	const double min_pct_id = 90;
-	const uint min_len = (optset_minchainlength ? opt(minchainlength) : 1);
+	const uint min_len = flat_params::get_min_chainlength();
 	const uint max_chains = (optset_n ? opt(n) : 4);
 
 	vector<flat_chain_t *> output_chains;

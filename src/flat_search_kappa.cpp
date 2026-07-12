@@ -22,12 +22,13 @@ void cmd_flat_search_kappa()
 	flat_params params;
 	params.init_from_cmdline();
 	params.logme();
-	struct_data **struct_data_vec = QBCA.get_struct_data_vec(params);
+	vector<string> query_labels;
+	struct_data **struct_data_vec = QBCA.get_struct_data_vec(params, query_labels);
 
 	DBBCA.Open(DBFN);
 
-	const uint nquery = QBCA.GetChainCount();
-	const uint TSeqCount = QBCA.GetChainCount();
+	const uint nquery = uint(query_labels.size());
+	const uint TSeqCount = DBBCA.GetChainCount();
 	decide_query_or_db_kmer_neighborhood(nquery, TSeqCount);
 
 	kappa_filter::init_kappa();
@@ -73,7 +74,7 @@ void cmd_flat_search_kappa()
 
 	QKmerIndex.from_codeseqs(
 		query_kappa_codeseqs, query_lengths,
-		QBCA.m_Labels, nquery);
+		query_labels, nquery);
 #if DEBUG
 	QKmerIndex.Validate();
 #endif
@@ -109,7 +110,7 @@ void cmd_flat_search_kappa()
 			const vector<uint> &qidxs = dbidx_to_qidxs[dbidx];
 			for (auto qidx : qidxs)
 				{
-				const char *qlabel = QBCA.m_Labels[qidx].c_str();
+				const char *qlabel = query_labels[qidx].c_str();
 				const char *dblabel = DBBCA.m_Labels[dbidx].c_str();
 				fprintf(f, "%s\t%s\n", qlabel, dblabel);
 				}
@@ -126,7 +127,7 @@ void cmd_flat_search_kappa()
 	reseeker::set_params(params);
 	reseeker::set_query_data(
 		query_chains,
-		QBCA.m_Labels,
+		query_labels,
 		query_parasail_profs,
 		query_parasail_prof_revs,
 		query_mega_pssms,

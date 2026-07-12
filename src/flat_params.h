@@ -69,9 +69,14 @@ public:
 	static int m_kappa_min_kmerpairscore;
 	static int m_kappa_min_diagscore;
 	static uint m_kappa_min_chainlength;
+	static const uint DEFAULT_MIN_CHAINLENGTH = 32;
 	static uint m_rsb_size;
 	static bool m_kappa_hsp_rsb_prune;
 	static int m_kappa_max_pos_logodds;
+
+	// -minchainlength if set, else DEFAULT_MIN_CHAINLENGTH (32).
+	static uint get_min_chainlength();
+	static void sync_min_chainlength();
 
 	// alphabets
 	uint32 m_nfeat = UINT_MAX;

@@ -97,19 +97,47 @@ struct_data *BCAData::get_struct_data(
 	return sd;
 	}
 
-struct_data **BCAData::get_struct_data_vec(const flat_params &params)
+struct_data **BCAData::get_struct_data_vec(const flat_params &params,
+	vector<string> &kept_labels)
 	{
-	uint nchain = GetChainCount();
+	const uint nchain = GetChainCount();
+	const uint minL = flat_params::get_min_chainlength();
 	Progress("get_query_data_vec()...");
 	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
 	uint8_t *scratch_buffer = myalloc(uint8_t, scratch_buffer_bytes);
 	chaq_vecs2 cv;
 	chaq::alloc_chaq_vecs2(cv, flat_params::m_maxL);
-	struct_data **vec = myalloc(struct_data *, nchain);
+
+	vector<struct_data *> kept;
+	kept_labels.clear();
+	kept.reserve(nchain);
+	kept_labels.reserve(nchain);
+	uint too_short = 0;
 	for (uint idx = 0; idx < nchain; ++idx)
-		vec[idx] = get_struct_data(params, idx,
-			&cv, scratch_buffer, scratch_buffer_bytes);
+		{
+		const uint L = flat_chain_cap_L(GetSeqLength(idx));
+		if (L < minL)
+			{
+			++too_short;
+			continue;
+			}
+		kept.push_back(get_struct_data(params, idx,
+			&cv, scratch_buffer, scratch_buffer_bytes));
+		kept_labels.push_back(m_Labels[idx]);
+		}
+
+	const uint nkept = uint(kept.size());
+	struct_data **vec = myalloc(struct_data *, nkept);
+	for (uint i = 0; i < nkept; ++i)
+		vec[i] = kept[i];
+
 	Progress(" done\n");
+	if (too_short > 0)
+		ProgressLog("%u queries skipped (min chain length %u)\n",
+			too_short, minL);
+	if (nkept == 0)
+		Die("No queries with length >= %u", minL);
+
 	chaq::free_chaq_vecs2(cv);
 	myfree(scratch_buffer);
 	return vec;

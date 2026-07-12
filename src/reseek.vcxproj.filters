@@ -278,6 +278,9 @@
     <ClCompile Include="sec_kmeans.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sec32_kmeans.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="flat_train_discrete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

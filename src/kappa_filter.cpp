@@ -68,6 +68,7 @@ void kappa_filter::init_kappa()
 	if (optset_kappa_hsp_rsb_prune)
 		flat_params::m_kappa_hsp_rsb_prune = true;
 	flat_params::m_kappa_max_pos_logodds = kappa_max_pos_logodds();
+	flat_params::sync_min_chainlength();
 
 	m_init_kappa_done = true;
 	}

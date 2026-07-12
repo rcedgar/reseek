@@ -109,7 +109,8 @@ public:
 		uint scratch_buffer_bytes) const;
 
 
-	struct_data **get_struct_data_vec(const flat_params &params);
+	struct_data **get_struct_data_vec(const flat_params &params,
+		vector<string> &kept_labels);
 
 private:
 	void CloseWriter();

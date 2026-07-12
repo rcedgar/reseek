@@ -65,6 +65,8 @@ Position-specific gap penalties.
 
 Redefine neighbors after local alignment is constructed.
 
+turnd and angle have almost same information?
+
 Low-complexity weighting
 
 >d1g9ga_/a.102.1.2 (nendist)

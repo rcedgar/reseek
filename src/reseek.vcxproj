@@ -399,6 +399,7 @@
     <ClCompile Include="logodds.cpp" />
     <ClCompile Include="mergefwdback.cpp" />
     <ClCompile Include="sec_kmeans.cpp" />
+    <ClCompile Include="sec32_kmeans.cpp" />
     <ClCompile Include="seqfeeder.cpp" />
     <ClCompile Include="sid2ic.cpp" />
     <ClCompile Include="statsig.cpp" />

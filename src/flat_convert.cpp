@@ -474,9 +474,7 @@ void cmd_flat_convert()
 		  "-cal, -can, -bca, -bcb, -fasta, -nuhexfasta, -kappafasta, "
 		  "-pdbcaoutdir");
 
-	s_MinChainLength = 1;
-	if (optset_minchainlength)
-		s_MinChainLength = opt(minchainlength);
+	s_MinChainLength = flat_params::get_min_chainlength();
 
 	vector<string> Labels;
 	if (optset_labels)

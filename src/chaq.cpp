@@ -388,6 +388,14 @@ void chaq::get_turnd_values(cp_sid_t distmx, uint L,
 	{
 	const uint w = flat_params::m_turnd_w;
 
+	// Avoid unsigned underflow of L-w when L < w (and OOB writes when L < w).
+	if (L <= 2*w)
+		{
+		for (uint pos = 0; pos < L; ++pos)
+			values[pos] = undef_value;
+		return;
+		}
+
 	for (uint pos = 0; pos < w; ++pos)
 		values[pos] = undef_value;
 
@@ -991,6 +999,14 @@ void chaq::slow_get_angle_values(
 	const uint16_t undef_value = radians_to_uint16(0);
 
 	const uint L = chain->get_length();
+
+	// Avoid unsigned underflow of L-n-1 when L < n+1 (and OOB writes when L < n).
+	if (L <= 2*n)
+		{
+		for (uint pos = 0; pos < L; ++pos)
+			values[pos] = undef_value;
+		return;
+		}
 
 	for (uint pos = 0; pos < n; ++pos)
 		values[pos] = undef_value;
