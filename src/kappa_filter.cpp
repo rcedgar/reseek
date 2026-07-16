@@ -15,7 +15,7 @@ const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 bool g_QueryNeighborhood = true;
 
-static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
+void fill_pattern_offsets(const string &Str, uint8_t *offsets)
 	{
 	uint n = 0;
 	for (uint i = 0; i < SIZE(Str); ++i)
@@ -27,7 +27,7 @@ static void fill_pattern_offsets(const string &Str, uint8_t *offsets)
 		}
 	}
 
-static uint get_nr_pattern_ones(const string &Str)
+uint get_nr_pattern_ones(const string &Str)
 	{
 	uint n = 0;
 	for (uint i = 0; i < SIZE(Str); ++i)
@@ -45,30 +45,13 @@ void kappa_filter::init_kappa()
 	{
 	asserta(!m_init_kappa_done);
 
-	if (optset_rsb_size)
-		flat_params::m_rsb_size = opt(rsb_size);
+	flat_params::init_kappa();
 	kappa_filter::m_RSB.m_B = flat_params::m_rsb_size;
 
-	if (optset_kappa_pattern)
-		flat_params::m_kappa_pattern = opt(kappa_pattern);
-	uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
-	uint K = uint(flat_params::m_kappa_pattern.size());
-	flat_params::m_kappa_kmer_onesoffsets = myalloc(uint8_t, k);
-	fill_pattern_offsets(flat_params::m_kappa_pattern,
-		flat_params::m_kappa_kmer_onesoffsets);
-
-	flat_params::m_kappa_kmer_nrones = k; 
-	flat_params::m_kappa_kmer_width = K;
-	flat_params::m_kappa_dict_size = myipow(KAPPA_AS, k);
-
-	if (optset_kappa_minkmerscore)
-		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
-	if (optset_kappa_mindiagscore)
-		flat_params::m_kappa_min_diagscore = opt(kappa_mindiagscore);
-	if (optset_kappa_hsp_rsb_prune)
-		flat_params::m_kappa_hsp_rsb_prune = true;
-	flat_params::m_kappa_max_pos_logodds = kappa_max_pos_logodds();
-	flat_params::sync_min_chainlength();
+	//uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
+	//uint K = uint(flat_params::m_kappa_pattern.size());
+	//fill_pattern_offsets(flat_params::m_kappa_pattern,
+	//	flat_params::m_kappa_kmer_onesoffsets);
 
 	m_init_kappa_done = true;
 	}

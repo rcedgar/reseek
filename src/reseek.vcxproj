@@ -281,6 +281,7 @@
     <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="collect.cpp" />
+    <ClCompile Include="creatindex.cpp" />
     <ClCompile Include="entropy.cpp" />
     <ClCompile Include="enum_paths.cpp" />
     <ClCompile Include="fan.cpp" />
@@ -354,6 +355,7 @@
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="mmseqs_index_dump.cpp" />
+    <ClCompile Include="foldseek_idx_dump.cpp" />
     <ClCompile Include="mymutex.cpp" />
     <ClCompile Include="kappa_filter.cpp" />
     <ClCompile Include="kappa_hsp.cpp" />

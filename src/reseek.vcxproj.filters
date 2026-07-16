@@ -224,6 +224,9 @@
     <ClCompile Include="mmseqs_index_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="foldseek_idx_dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="flat_prepare_query.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -479,9 +482,6 @@
     <ClCompile Include="hjtsv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="reseeker_thread_body_nusort.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="flat_convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -489,6 +489,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hitdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calc_tm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pvalue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="creatindex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

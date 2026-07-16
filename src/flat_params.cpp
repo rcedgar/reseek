@@ -20,6 +20,7 @@ void flat_params::sync_min_chainlength()
 	{
 	m_kappa_min_chainlength = get_min_chainlength();
 	}
+
 uint flat_params::m_kappa_kmer_nrones = KAPPA_NRONES;
 uint flat_params::m_kappa_kmer_width = 7;
 uint flat_params::m_kappa_dict_size = myipow(KAPPA_AS, KAPPA_NRONES);
@@ -49,6 +50,36 @@ const uint flat_params::m_LDDT_nr_thresholds
 ///////////////////////////////////////////////
 
 uint flat_params::m_max_nu_filter_accepts = 0;
+
+void flat_params::init_kappa()
+	{
+	if (optset_rsb_size)
+		flat_params::m_rsb_size = opt(rsb_size);
+	if (optset_kappa_pattern)
+		flat_params::m_kappa_pattern = opt(kappa_pattern);
+
+	uint get_nr_pattern_ones(const string &Str);
+	uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
+	uint K = uint(flat_params::m_kappa_pattern.size());
+	flat_params::m_kappa_kmer_onesoffsets = myalloc(uint8_t, k);
+	flat_params::m_kappa_kmer_nrones = k; 
+	flat_params::m_kappa_kmer_width = K;
+	flat_params::m_kappa_dict_size = myipow(KAPPA_AS, k);
+	void fill_pattern_offsets(const string &Str, uint8_t *offsets);
+	fill_pattern_offsets(flat_params::m_kappa_pattern,
+		flat_params::m_kappa_kmer_onesoffsets);
+
+	if (optset_kappa_minkmerscore)
+		flat_params::m_kappa_min_kmerpairscore = opt(kappa_minkmerscore);
+	if (optset_kappa_mindiagscore)
+		flat_params::m_kappa_min_diagscore = opt(kappa_mindiagscore);
+	if (optset_kappa_hsp_rsb_prune)
+		flat_params::m_kappa_hsp_rsb_prune = true;
+
+	int kappa_max_pos_logodds();
+	flat_params::m_kappa_max_pos_logodds = kappa_max_pos_logodds();
+	flat_params::sync_min_chainlength();
+	}
 
 void flat_params::init_from_cmdline()
 	{
@@ -93,6 +124,7 @@ void flat_params::init_from_cmdline()
 	else
 		Die("Invalid -stats '%s', must be family, fam, superfamily, sf or fold", stats.c_str());
 	ProgressLog("%s %s\n", smode.c_str(), stats.c_str());
+	init_kappa();
 	}
 
 void flat_params::init_from_varstr(const string &varstr)

@@ -206,6 +206,7 @@ public:
 		const vector<string> &alpha_names);
 
 public:
+	static void init_kappa();
 	static uint read_logodds(const string &fn, vector<float> &logodds);
 	static uint lines2logoddsmx(const vector<string> &lines,
 		vector<float> &logoddsmx);

@@ -231,7 +231,10 @@ bool kappa_seqsource::GetNextLo(SeqInfo *SI)
 			return false;
 		byte *Seq = SI->m_SeqBuffer;
 		for (uint i = 0; i < SI->m_L; ++i)
+			{
 			Seq[i] = g_CharToLetterMu[Seq[i]];
+			assert(Seq[i] < 32);
+			}
 		return true;
 		}
 
