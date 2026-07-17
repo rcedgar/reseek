@@ -506,6 +506,9 @@
     <ClCompile Include="idx_prefilter_prehsp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="idx_search_kappa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

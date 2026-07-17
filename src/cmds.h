@@ -58,5 +58,6 @@ C(createindex)
 C(idx_stats)
 C(idx_probe)
 C(idx_prefilter_prehsp)
+C(idx_search_kappa)
 
 #undef C

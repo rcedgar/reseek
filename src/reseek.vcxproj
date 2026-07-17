@@ -330,6 +330,7 @@
     <ClCompile Include="hjtsv.cpp" />
     <ClCompile Include="idx_probe.cpp" />
     <ClCompile Include="idx_prefilter_prehsp.cpp" />
+    <ClCompile Include="idx_search_kappa.cpp" />
     <ClCompile Include="kabsch_quad.cpp" />
     <ClCompile Include="kabsch_quad_fit.cpp" />
     <ClCompile Include="kappa.cpp" />
