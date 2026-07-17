@@ -3,16 +3,20 @@
 #include "kappa_hsp.h"
 #include "flat_params.h"
 #include "seqinfo.h"
+#include <mutex>
 
 RankedScoresBag kappa_filter::m_RSB;
 uint8_t **kappa_filter::m_query_kappa_codeseq_vec = 0;
 const uint *kappa_filter::m_query_lengths = 0;
+const vector<string> *kappa_filter::m_query_labels = 0;
 kappa_seqsource *kappa_filter::m_db_seqsource = 0;
 uint kappa_filter::m_QSeqCount = 0;
 atomic<time_t> kappa_filter::m_time_last_progress;
 
 const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
+FILE *kappa_filter::m_f_prehsp_dump = 0;
+mutex kappa_filter::m_prehsp_dump_mutex;
 bool g_QueryNeighborhood = true;
 
 void fill_pattern_offsets(const string &Str, uint8_t *offsets)
@@ -245,10 +249,14 @@ void kappa_filter::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 	Reset();
 	Search_TargetKmers();
 	if (flat_params::m_kappa_onehitdiag)
+		{
+		DumpPreHSPHits();
 		ExtendOneHitDiagsToHSPs();
+		}
 	else
 		{
 		FindTwoHitDiags();
+		DumpPreHSPHits();
 		ExtendTwoHitDiagsToHSPs();
 		}
 	}
@@ -359,6 +367,75 @@ void kappa_filter::ExtendOneHitDiagsToHSPs()
 		const uint16_t Diag = uint16_t(pair & 0xffff);
 		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
 		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
+		}
+	}
+
+void kappa_filter::set_prehsp_dump(FILE *f, const vector<string> *query_labels)
+	{
+	m_f_prehsp_dump = f;
+	m_query_labels = query_labels;
+	}
+
+void kappa_filter::write_prehsp_tsv_header(FILE *f, const char *path_tag)
+	{
+	asserta(f != 0);
+	fprintf(f, "# idx_prefilter_prehsp\n");
+	fprintf(f, "# path\t%s\n", path_tag);
+	const char *diag_mode = "unique_fine";
+	if (flat_params::m_kappa_onehitdiag)
+		diag_mode = "onehit_insert";
+	else if (flat_params::m_kappa_twohitdiag)
+		diag_mode = "twohit_dupes";
+	fprintf(f, "# diag_mode\t%s\n", diag_mode);
+	fprintf(f, "# minkmerscore\t%d\n", flat_params::m_kappa_min_kmerpairscore);
+	fprintf(f, "# fields\tq_label\tt_label\tqidx\ttidx\tdiag\n");
+	}
+
+void kappa_filter::write_prehsp_hit(FILE *f,
+	const char *qlabel, const char *tlabel,
+	uint qidx, uint tidx, uint16_t diag)
+	{
+	asserta(f != 0);
+	if (qlabel == 0) qlabel = "-";
+	if (tlabel == 0) tlabel = "-";
+	fprintf(f, "%s\t%s\t%u\t%u\t%u\n", qlabel, tlabel, qidx, tidx, diag);
+	}
+
+void kappa_filter::DumpPreHSPHits() const
+	{
+	if (m_f_prehsp_dump == 0)
+		return;
+
+	const char *tlabel = m_TLabel.c_str();
+	lock_guard<mutex> lock(m_prehsp_dump_mutex);
+
+	if (flat_params::m_kappa_onehitdiag)
+		{
+		for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
+			 iter != m_OneHitDiags.end(); ++iter)
+			{
+			const uint32_t pair = *iter;
+			const uint qidx = (pair >> 16);
+			const uint16_t diag = uint16_t(pair & 0xffff);
+			const char *qlabel = "-";
+			if (m_query_labels != 0 && qidx < SIZE(*m_query_labels))
+				qlabel = (*m_query_labels)[qidx].c_str();
+			write_prehsp_hit(m_f_prehsp_dump, qlabel, tlabel,
+				qidx, m_TSeqIdx, diag);
+			}
+		return;
+		}
+
+	const uint n = m_DiagBag.m_DupeCount;
+	for (uint i = 0; i < n; ++i)
+		{
+		const uint qidx = m_DiagBag.m_DupeSeqIdxs[i];
+		const uint16_t diag = m_DiagBag.m_DupeDiags[i];
+		const char *qlabel = "-";
+		if (m_query_labels != 0 && qidx < SIZE(*m_query_labels))
+			qlabel = (*m_query_labels)[qidx].c_str();
+		write_prehsp_hit(m_f_prehsp_dump, qlabel, tlabel,
+			qidx, m_TSeqIdx, diag);
 		}
 	}
 

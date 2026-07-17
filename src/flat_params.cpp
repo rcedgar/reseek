@@ -28,6 +28,26 @@ uint8_t *flat_params::m_kappa_kmer_onesoffsets;
 uint flat_params::m_rsb_size = 1500;
 bool flat_params::m_kappa_hsp_rsb_prune = false;
 int flat_params::m_kappa_max_pos_logodds = 0;
+
+/***
+C:\src\reseek_bench3\bash\onehitdiag_twohitdiag_test.bash
+
+SEPQ0.1=0.298 SEPQ1=0.407 SEPQ10=0.462 Sum3=1.667 sf Kappa filter 13 secs	9.80Gb	01:16	default	
+SEPQ0.1=0.298 SEPQ1=0.407 SEPQ10=0.462 Sum3=1.667 sf Kappa filter 19 secs	9.68Gb	01:19	onehitdiag
+SEPQ0.1=0.287 SEPQ1=0.383 SEPQ10=0.424 Sum3=1.573 sf Kappa filter  7 secs	9.70Gb	01:02	twohitdiag
+ 
+PDB vs. 100
+Kappa filter 39 secs	4.91Gb	2:09	default
+Kappa filter 71 secs	4.12Gb	3:19	onehitdiag
+Kappa filter 22 secs	4.52Gb	1:48	twohitdiag
+
+AFDB50 vs. 100
+Kappa filter 252 secs	10.2Gb	4:48	default
+Kappa filter 472 secs	11.3Gb	08:14	onehitdiag
+Kappa filter 121 secs	10.2Gb	02:46	twohitdiag
+Kappa filter 118 secs	 8.3Gb	02:30	twohitdiag kappa_hsp_rsb_prune 
+Kappa filter 113 secs	 8.3Gb	02:30	twohitdiag kappa_hsp_rsb_prune kappa_mindiagscore 200
+***/
 bool flat_params::m_kappa_onehitdiag = false;
 bool flat_params::m_kappa_twohitdiag = false;
 

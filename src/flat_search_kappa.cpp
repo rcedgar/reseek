@@ -88,9 +88,24 @@ void cmd_flat_search_kappa()
 	kappa_seqsource db_ss;
 	db_ss.OpenBCB(DBBCA);
 
+	FILE *f_prehsp = 0;
+	if (optset_dump_prefilter_prehsp)
+		{
+		f_prehsp = CreateStdioFile(opt(dump_prefilter_prehsp));
+		kappa_filter::write_prehsp_tsv_header(f_prehsp, "query_index");
+		kappa_filter::set_prehsp_dump(f_prehsp, &query_labels);
+		}
+
 	time_t t_kappa_filter_start = time(0);
 	kappa_filter::run_filter(
 		query_kappa_codeseqs, query_lengths, nquery, db_ss);
+
+	if (f_prehsp != 0)
+		{
+		kappa_filter::set_prehsp_dump(0, 0);
+		CloseStdioFile(f_prehsp);
+		f_prehsp = 0;
+		}
 
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;

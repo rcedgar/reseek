@@ -57,5 +57,6 @@ C(convert)
 C(createindex)
 C(idx_stats)
 C(idx_probe)
+C(idx_prefilter_prehsp)
 
 #undef C

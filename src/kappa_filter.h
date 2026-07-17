@@ -11,7 +11,11 @@
 #include "rankedscoresbag.h"
 #include "kappa_filter_params.h"
 #include "kappa_seqsource.h"
+#include <cstdio>
 #include <set>
+#include <mutex>
+#include <vector>
+#include <string>
 
 extern int16_t kappa32_flat_logodds[32*32];
 
@@ -31,11 +35,15 @@ public:
 
 	static uint8_t **m_query_kappa_codeseq_vec;
 	static const uint *m_query_lengths;
+	static const vector<string> *m_query_labels;
 	//static uint m_NQ;
 	static kappa_seqsource *m_db_seqsource;
 	static atomic<time_t> m_time_last_progress;
 	static const kappa_mermx *m_ptrScoreMx;
 	static const kappa_dex *m_ptrQKmerIndex;
+	// Pre-HSP dump (-dump_prefilter_prehsp); null if disabled.
+	static FILE *m_f_prehsp_dump;
+	static mutex m_prehsp_dump_mutex;
 
 #if TRACE
 public:
@@ -121,6 +129,7 @@ public:
 	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
 	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
+	void DumpPreHSPHits() const;
 	void GetResults(vector<uint> &QSeqIdxs,
 					vector<uint16_t> &DiagScores) const;
 	void LogDiag(uint QSeqIdx, uint16_t Diag) const;
@@ -139,6 +148,11 @@ public:
 
 public:
 	static void init_kappa();
+	static void set_prehsp_dump(FILE *f, const vector<string> *query_labels);
+	static void write_prehsp_tsv_header(FILE *f, const char *path_tag);
+	static void write_prehsp_hit(FILE *f,
+		const char *qlabel, const char *tlabel,
+		uint qidx, uint tidx, uint16_t diag);
 	static void run_filter(
 		uint8_t **query_kappa_codeseqs,
 		const uint *query_lengths,
