@@ -55,5 +55,6 @@ C(hjtsv)
 C(search)
 C(convert)
 C(createindex)
+C(idx_stats)
 
 #undef C

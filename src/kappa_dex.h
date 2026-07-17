@@ -144,9 +144,15 @@ public:
 						  vector<uint> &Kmers, vector<uint> &Sizes) const;
 	uint GetKmerMaxLetterCount(uint Kmer);
 
+	void ToFile(const string &FN) const;
+	void FromFile(const string &FN);
+
 #if KAPPA_DEBUG_CHECKS
 	void CheckAfterPass1() const;
 	void CheckAfterAdjust() const;
 	void CheckAfterPass2() const;
 #endif
 	};
+
+const uint32_t KAPPA_DEX_MAGIC = 0x4B444558; // 'KDEX'
+const uint32_t KAPPA_DEX_VERSION = 1;
