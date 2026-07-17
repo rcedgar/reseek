@@ -66,7 +66,6 @@ const unsigned MY_IO_BUFSIZ = 32000;
 const unsigned MAX_FORMATTED_STRING_LENGTH = 64000;
 
 
-static char *g_IOBuffers[256];
 static time_t g_StartTime = time(0);
 extern vector<string> g_Argv;
 static double g_PeakMemUseBytes;
@@ -185,26 +184,15 @@ static void AllocBuffer(FILE *f)
 #if	DEBUG
 	setbuf(f, 0);
 #else
-	int fd = fileno(f);
-	if (fd < 0 || fd >= 256)
-		return;
-	if (g_IOBuffers[fd] == 0)
-		g_IOBuffers[fd] = myalloc(char, MY_IO_BUFSIZ);
-	setvbuf(f, g_IOBuffers[fd], _IOFBF, MY_IO_BUFSIZ);
+	// CRT-owned buffer. Never setvbuf with myalloc: FreeBuffer was disabled,
+	// fd slots reuse, and SetLogFileName does setbuf(f,0) after AllocBuffer
+	// (Release-only heap corruption → crash in CRT atexit/_free_base).
+	setvbuf(f, 0, _IOFBF, MY_IO_BUFSIZ);
 #endif
 	}
 
 static void FreeBuffer(FILE *f)
 	{
-#if	0
-	int fd = fileno(f);
-	if (fd < 0 || fd >= 256)
-		return;
-	if (g_IOBuffers[fd] == 0)
-		return;
-	myfree(g_IOBuffers[fd]);
-	g_IOBuffers[fd] = 0;
-#endif
 	}
 
 unsigned GetElapsedSecs()

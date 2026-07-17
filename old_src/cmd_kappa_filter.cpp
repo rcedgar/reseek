@@ -1,3 +1,4 @@
+#if 0
 #include "myutils.h"
 #include "kappa_filter.h"
 #include "kappa_mermx.h"
@@ -217,3 +218,4 @@ void cmd_kappa_filter()
 	write_tsv_with_labels(opt(output3), QDB, TDB);
 	bench(filter_secs, QDB, TDB);
 	}
+#endif

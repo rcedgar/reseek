@@ -106,6 +106,7 @@ STR_OPT(logodds)
 STR_OPT(can)
 STR_OPT(stats)
 
+UNS_OPT(bail)
 UNS_OPT(threads)
 UNS_OPT(alpha_size)
 UNS_OPT(alpha_size1)

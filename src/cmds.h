@@ -56,5 +56,6 @@ C(search)
 C(convert)
 C(createindex)
 C(idx_stats)
+C(idx_probe)
 
 #undef C

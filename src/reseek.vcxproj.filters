@@ -500,6 +500,9 @@
     <ClCompile Include="creatindex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="idx_probe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myutils.h">

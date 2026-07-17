@@ -542,7 +542,8 @@ void kappa_dex::SetRowSizes()
 
 void kappa_dex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	{
-	assert(DataOffset < m_Size);
+	asserta(DataOffset < m_Size);
+	asserta(m_Data != 0);
 	uint64 Bytes64 = uint64(m_ItemSize)*uint64(DataOffset);
 	uint8_t *ptr = m_Data + Bytes64;
 	*(uint32_t *) ptr = SeqIdx;
