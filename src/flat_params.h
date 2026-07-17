@@ -73,6 +73,11 @@ public:
 	static uint m_rsb_size;
 	static bool m_kappa_hsp_rsb_prune;
 	static int m_kappa_max_pos_logodds;
+	// Diag collection mode (default: unique-fine via bag + SetUniqueFine):
+	//   -onehitdiag: dedup (q,diag) on insert, skip TwoHitDiag bag
+	//   -twohitdiag: bag + SetDupes (require >=2 seed hits on diagonal)
+	static bool m_kappa_onehitdiag;
+	static bool m_kappa_twohitdiag;
 
 	// -minchainlength if set, else DEFAULT_MIN_CHAINLENGTH (32).
 	static uint get_min_chainlength();

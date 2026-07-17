@@ -48,10 +48,12 @@ void kappa_filter::init_kappa()
 	flat_params::init_kappa();
 	kappa_filter::m_RSB.m_B = flat_params::m_rsb_size;
 
-	//uint k = get_nr_pattern_ones(flat_params::m_kappa_pattern);
-	//uint K = uint(flat_params::m_kappa_pattern.size());
-	//fill_pattern_offsets(flat_params::m_kappa_pattern,
-	//	flat_params::m_kappa_kmer_onesoffsets);
+	const char *diag_mode = "unique_fine";
+	if (flat_params::m_kappa_onehitdiag)
+		diag_mode = "onehit_insert";
+	else if (flat_params::m_kappa_twohitdiag)
+		diag_mode = "twohit_dupes";
+	ProgressLog("Kappa diag mode %s\n", diag_mode);
 
 	m_init_kappa_done = true;
 	}
@@ -242,8 +244,13 @@ void kappa_filter::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 
 	Reset();
 	Search_TargetKmers();
-	FindTwoHitDiags();
-	ExtendTwoHitDiagsToHSPs();
+	if (flat_params::m_kappa_onehitdiag)
+		ExtendOneHitDiagsToHSPs();
+	else
+		{
+		FindTwoHitDiags();
+		ExtendTwoHitDiagsToHSPs();
+		}
 	}
 
 void kappa_filter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
@@ -316,18 +323,43 @@ void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 #endif
 		if (Diag > m_Mask14)
 			continue;
-		m_DiagBag.Add(QSeqIdx, Diag);
+		if (flat_params::m_kappa_onehitdiag)
+			OneHitDiagAdd(QSeqIdx, Diag);
+		else
+			m_DiagBag.Add(QSeqIdx, Diag);
 		}
 	}
 	
 void kappa_filter::FindTwoHitDiags()
 	{
-	const uint seed_count = m_DiagBag.m_Size;
-	m_DiagBag.SetUniqueFine();
-	const uint unique_fine_count = m_DiagBag.m_DupeCount;
+	if (flat_params::m_kappa_twohitdiag)
+		m_DiagBag.SetDupes();
+	else
+		m_DiagBag.SetUniqueFine();
 #if DEBUG
 	//m_DiagBag.Validate(m_QSeqCount, INT16_MAX);
 #endif
+	}
+
+void kappa_filter::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
+	{
+	asserta(SeqIdx < UINT16_MAX);
+	const uint32_t pair = (uint32_t(SeqIdx) << 16) | uint32_t(Diag);
+	m_OneHitDiags.insert(pair);
+	}
+
+void kappa_filter::ExtendOneHitDiagsToHSPs()
+	{
+	m_NrQueriesWithTwoHitDiag = 0;
+	for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
+		 iter != m_OneHitDiags.end(); ++iter)
+		{
+		const uint32_t pair = *iter;
+		const uint32_t QSeqIdx = (pair >> 16);
+		const uint16_t Diag = uint16_t(pair & 0xffff);
+		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
+		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
+		}
 	}
 
 void kappa_filter::GetResults(vector<uint> &QSeqIdxs,
@@ -434,6 +466,7 @@ void kappa_filter::Reset()
 #endif
 	m_NrQueriesWithTwoHitDiag = 0;
 	m_DiagBag.Reset();
+	m_OneHitDiags.clear();
 	}
 
 void kappa_filter::LogDiag(uint QSeqIdx, uint16_t Diag) const

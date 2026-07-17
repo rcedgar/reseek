@@ -547,8 +547,19 @@ void TwoHitDiag::SetDupes()
 	m_DupeCount = 0;
 	if (m_Size < 2)
 		return;
-	m_DupeSeqIdxs = myalloc(uint32_t, m_Size);
-	m_DupeDiags = myalloc(uint16_t, m_Size);
+
+	if (m_DupeAllocSize < m_Size)
+		{
+		if (m_DupeSeqIdxs != 0)
+			{
+			myfree(m_DupeSeqIdxs);
+			myfree(m_DupeDiags);
+			}
+		m_DupeSeqIdxs = myalloc(uint32_t, m_Size);
+		m_DupeDiags = myalloc(uint16_t, m_Size);
+		m_DupeAllocSize = m_Size;
+		}
+
 	for (uint i = 0; i < m_BusyCount; ++i)
 		SetDupesRdx(m_BusyRdxs[i]);
 	}
@@ -565,6 +576,8 @@ void TwoHitDiag::ClearDupes()
 		}
 	else
 		assert(m_DupeDiags == 0);
+	m_DupeAllocSize = 0;
+	m_DupeCount = 0;
 	}
 
 void TwoHitDiag::CheckDupes()

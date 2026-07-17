@@ -28,6 +28,8 @@ uint8_t *flat_params::m_kappa_kmer_onesoffsets;
 uint flat_params::m_rsb_size = 1500;
 bool flat_params::m_kappa_hsp_rsb_prune = false;
 int flat_params::m_kappa_max_pos_logodds = 0;
+bool flat_params::m_kappa_onehitdiag = false;
+bool flat_params::m_kappa_twohitdiag = false;
 
 /////////////////////
 // Chain quantization
@@ -76,6 +78,11 @@ void flat_params::init_kappa()
 	if (optset_kappa_hsp_rsb_prune)
 		flat_params::m_kappa_hsp_rsb_prune = true;
 
+	if (opt(onehitdiag) && opt(twohitdiag))
+		Die("-onehitdiag and -twohitdiag are mutually exclusive");
+	flat_params::m_kappa_onehitdiag = opt(onehitdiag);
+	flat_params::m_kappa_twohitdiag = opt(twohitdiag);
+
 	int kappa_max_pos_logodds();
 	flat_params::m_kappa_max_pos_logodds = kappa_max_pos_logodds();
 	flat_params::sync_min_chainlength();
@@ -106,6 +113,11 @@ void flat_params::init_from_cmdline()
 		Die("Must set -fast, -sensitive or -verysensitive");
 
 	sync_min_chainlength();
+
+	if (opt(onehitdiag) && opt(twohitdiag))
+		Die("-onehitdiag and -twohitdiag are mutually exclusive");
+	flat_params::m_kappa_onehitdiag = opt(onehitdiag);
+	flat_params::m_kappa_twohitdiag = opt(twohitdiag);
 
 	if (optset_pvalue)
 		{
@@ -284,6 +296,16 @@ void flat_params::logme()
 	w(rsb_size);
 	Log("%10d  kappa_hsp_rsb_prune\n", m_kappa_hsp_rsb_prune);
 	Log("%10d  kappa_max_pos_logodds\n", m_kappa_max_pos_logodds);
+	Log("%10d  kappa_onehitdiag\n", m_kappa_onehitdiag);
+	Log("%10d  kappa_twohitdiag\n", m_kappa_twohitdiag);
+	{
+	const char *diag_mode = "unique_fine";
+	if (m_kappa_onehitdiag)
+		diag_mode = "onehit_insert";
+	else if (m_kappa_twohitdiag)
+		diag_mode = "twohit_dupes";
+	Log("           kappa_diag_mode  %s\n", diag_mode);
+	}
 #undef w
 
 #define w(x)	Log("%10u  %s\n", m_##x, #x)

@@ -11,6 +11,7 @@
 #include "rankedscoresbag.h"
 #include "kappa_filter_params.h"
 #include "kappa_seqsource.h"
+#include <set>
 
 extern int16_t kappa32_flat_logodds[32*32];
 
@@ -77,10 +78,13 @@ public:
 //  m_DiagBag stores k-mer matches between the current
 //  Target sequence and Query sequences.
 // 	Matches are stored as (QSeqIdx, DiagIdx) pairs.
-//  After scanning all k-mers, TwoHitDiag::SetUniqueFine()
-//  dedupes fine (QSeqIdx, Diag) pairs before HSP extension.
+//  Default: TwoHitDiag::SetUniqueFine() dedupes before HSP.
+//  -twohitdiag: SetDupes() keeps only >=2-hit diagonals.
+//  -onehitdiag: skip bag; unique pairs in m_OneHitDiags.
 //////////////////////////////////////////////////////
 	TwoHitDiag m_DiagBag;
+	// Packed (QSeqIdx<<16)|Diag; used only when -onehitdiag.
+	set<uint32_t> m_OneHitDiags;
 
 //////////////////////////////////////////////////////
 // Current Target sequence
@@ -112,9 +116,11 @@ public:
 	void Search_TargetKmerNeighborhood(uint Kmer, uint TPos);
 	void Search_TargetKmer(uint Kmer, uint TPos);
 	void FindTwoHitDiags();
+	void ExtendOneHitDiagsToHSPs();
 	void ExtendTwoHitDiagsToHSPs();
 	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
 	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
+	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
 	void GetResults(vector<uint> &QSeqIdxs,
 					vector<uint16_t> &DiagScores) const;
 	void LogDiag(uint QSeqIdx, uint16_t Diag) const;
