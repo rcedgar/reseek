@@ -10,6 +10,22 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
+static inline uint64_t AtomicFetchAddU64(uint64_t *p, uint64_t add)
+	{
+#if defined(__GNUC__) || defined(__clang__)
+	return __atomic_fetch_add(p, add, __ATOMIC_RELAXED);
+#elif defined(_MSC_VER)
+	return (uint64_t)_InterlockedExchangeAdd64(
+		reinterpret_cast<volatile long long *>(p),
+		(long long)add);
+#else
+	return std::atomic_ref<uint64_t>(*p).fetch_add(add, std::memory_order_relaxed);
+#endif
+	}
 
 uint8_t *kappa_dex::m_Offsets;
 uint32_t kappa_dex::m_DictSize;
@@ -598,8 +614,7 @@ void kappa_dex::from_codeseqs(
 					if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
 						continue;
 					const uint64_t DataOffset =
-						std::atomic_ref<uint64_t>(m_Finger[Kmer + 1])
-							.fetch_add(1, std::memory_order_relaxed);
+						AtomicFetchAddU64(&m_Finger[Kmer + 1], 1);
 					Put(DataOffset, SeqIdx, uint16_t(pos));
 					}
 				}
