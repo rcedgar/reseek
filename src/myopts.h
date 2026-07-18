@@ -250,6 +250,7 @@ FLAG_OPT(sffp)
 FLAG_OPT(filter_only)
 FLAG_OPT(kappa_hsp_rsb_prune)
 FLAG_OPT(roundtrip)
+FLAG_OPT(unique_kmer)
 
 #undef FLAG_OPT
 #undef UNS_OPT

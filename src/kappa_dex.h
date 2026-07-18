@@ -71,6 +71,7 @@ After Pass 2:
 	vector<uint> m_Kmers;
 
 	bool m_AddNeighborhood = false;
+	bool m_UniqueKmer = false;	// at most one posting per (kmer, seq); Foldseek-style
 	const kappa_mermx *m_ptrScoreMx = 0;
 	short m_MinKmerScore = INT16_MAX;
 	uint *m_NeighborKmers = 0;

@@ -10,9 +10,67 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <algorithm>
 #if defined(_MSC_VER)
 #include <intrin.h>
 #endif
+
+struct KappaKmerPos
+	{
+	uint32_t kmer;
+	uint16_t pos;
+	};
+
+static inline bool KappaKmerPosLess(const KappaKmerPos &a, const KappaKmerPos &b)
+	{
+	if (a.kmer != b.kmer)
+		return a.kmer < b.kmer;
+	return a.pos < b.pos;
+	}
+
+// Keep first position per kmer (Foldseek-style unique-per-seq).
+static uint UniqueKmerPosInPlace(KappaKmerPos *a, uint n)
+	{
+	if (n <= 1)
+		return n;
+	std::sort(a, a + n, KappaKmerPosLess);
+	uint w = 1;
+	for (uint r = 1; r < n; ++r)
+		{
+		if (a[r].kmer != a[w - 1].kmer)
+			a[w++] = a[r];
+		}
+	return w;
+	}
+
+// Extract (kmer,pos); skip low self-score. Optionally unique per kmer.
+static uint ExtractExactKmerPos(
+	const byte *Seq, uint L,
+	const uint8_t *Offsets, uint k, uint K,
+	const int16_t *SelfScores, int MinSelf,
+	bool unique_kmer,
+	KappaKmerPos *Out)
+	{
+	if (L < K)
+		return 0;
+	uint n = 0;
+	for (uint pos = 0; pos + K <= L; ++pos)
+		{
+		if (pos > UINT16_MAX)
+			break;
+		uint Kmer = 0;
+		for (uint i = 0; i < k; ++i)
+			Kmer = Kmer*KAPPA_AS + Seq[pos + Offsets[i]];
+		if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
+			continue;
+		Out[n].kmer = Kmer;
+		Out[n].pos = uint16_t(pos);
+		++n;
+		}
+	if (unique_kmer)
+		n = UniqueKmerPosInPlace(Out, n);
+	return n;
+	}
 
 static inline uint64_t AtomicFetchAddU64(uint64_t *p, uint64_t add)
 	{
@@ -159,6 +217,34 @@ void  kappa_dex::AddSeq_Pass1()
 	string Tmp;
 	Log("AddSeq_Pass1(%s) L=%u\n", m_Label, m_L);
 #endif
+	if (m_UniqueKmer)
+		{
+		asserta(!m_AddNeighborhood);
+		vector<KappaKmerPos> buf;
+		buf.reserve(SIZE(m_Kmers));
+		for (uint SeqPos = 0; SeqPos < SIZE(m_Kmers); ++SeqPos)
+			{
+			uint Kmer = m_Kmers[SeqPos];
+			if (Kmer == UINT_MAX || SeqPos > UINT16_MAX)
+				continue;
+			KappaKmerPos kp;
+			kp.kmer = Kmer;
+			kp.pos = uint16_t(SeqPos);
+			buf.push_back(kp);
+			}
+		const uint nk = UniqueKmerPosInPlace(buf.data(), SIZE(buf));
+		for (uint i = 0; i < nk; ++i)
+			{
+			const uint Kmer = buf[i].kmer;
+			m_Finger[Kmer+1] += 1;
+			++m_Size;
+#if KAPPA_DEBUG_CHECKS
+			m_KmerToCount1[Kmer] += 1;
+#endif
+			}
+		return;
+		}
+
 	const uint KmerCount = SIZE(m_Kmers);
 	for (uint SeqPos = 0; SeqPos < KmerCount; ++SeqPos)
 		{
@@ -208,6 +294,37 @@ void kappa_dex::AddSeq_Pass2()
 	string Tmp;
 	Log("AddSeq_Pass2(%s) L=%u\n", m_Label, m_L);
 #endif
+	if (m_UniqueKmer)
+		{
+		asserta(!m_AddNeighborhood);
+		vector<KappaKmerPos> buf;
+		buf.reserve(SIZE(m_Kmers));
+		for (uint SeqPos = 0; SeqPos < SIZE(m_Kmers); ++SeqPos)
+			{
+			uint Kmer = m_Kmers[SeqPos];
+			if (Kmer == UINT_MAX || SeqPos > UINT16_MAX)
+				continue;
+			KappaKmerPos kp;
+			kp.kmer = Kmer;
+			kp.pos = uint16_t(SeqPos);
+			buf.push_back(kp);
+			}
+		const uint nk = UniqueKmerPosInPlace(buf.data(), SIZE(buf));
+		for (uint i = 0; i < nk; ++i)
+			{
+			const uint Kmer = buf[i].kmer;
+			const uint16_t SeqPos = buf[i].pos;
+			uint64_t DataOffset = m_Finger[Kmer+1];
+			Put(DataOffset, m_SeqIdx, SeqPos);
+			m_Finger[Kmer+1] += 1;
+#if KAPPA_DEBUG_CHECKS
+			assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
+			m_KmerToCount2[Kmer] += 1;
+#endif
+			}
+		return;
+		}
+
 	const uint KmerCount = SIZE(m_Kmers);
 	for (uint SeqPos = 0; SeqPos < KmerCount; ++SeqPos)
 		{
@@ -407,31 +524,6 @@ uint kappa_dex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) con
 	return Kmer;
 	}
 
-// Extract exact kmers (skip low self-score). Returns count written to Out[].
-// Out must hold at least max(0, L-K+1) slots.
-static uint ExtractExactKmers(
-	const byte *Seq, uint L,
-	const uint8_t *Offsets, uint k, uint K,
-	const int16_t *SelfScores, int MinSelf,
-	uint *Out)
-	{
-	if (L < K)
-		return 0;
-	uint n = 0;
-	for (uint pos = 0; pos + K <= L; ++pos)
-		{
-		if (pos > UINT16_MAX)
-			break;
-		uint Kmer = 0;
-		for (uint i = 0; i < k; ++i)
-			Kmer = Kmer*KAPPA_AS + Seq[pos + Offsets[i]];
-		if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
-			continue;
-		Out[n++] = Kmer;
-		}
-	return n;
-	}
-
 void kappa_dex::from_codeseqs(
 	uint8_t **kappa_codeseqs,
 	const uint *lengths,
@@ -443,6 +535,10 @@ void kappa_dex::from_codeseqs(
 	m_nseq = nseq;
 	if (m_AddNeighborhood)
 		asserta(m_ptrScoreMx != 0);
+	if (m_UniqueKmer && m_AddNeighborhood)
+		Die("-unique_kmer is only supported for exact indexes (no neighborhoods)");
+	if (m_UniqueKmer)
+		ProgressLog("kappa_dex unique_kmer=yes (one posting per kmer per seq)\n");
 
 	if (nseq == 0)
 		{
@@ -494,8 +590,8 @@ void kappa_dex::from_codeseqs(
 		return;
 		}
 
-	ProgressLog("kappa_dex parallel build  threads=%u  nseq=%u\n",
-		ThreadCount, nseq);
+	ProgressLog("kappa_dex parallel build  threads=%u  nseq=%u  unique_kmer=%c\n",
+		ThreadCount, nseq, tof(m_UniqueKmer));
 
 	const uint DictSize = m_DictSize;
 	const uint k = m_k;
@@ -503,6 +599,7 @@ void kappa_dex::from_codeseqs(
 	const uint8_t *Offsets = m_Offsets;
 	const int16_t *SelfScores = m_KmerSelfScores;
 	const int MinSelf = m_MinKmerSelfScore;
+	const bool unique_kmer = m_UniqueKmer;
 
 	uint64_t **tls_counts = myalloc(uint64_t *, ThreadCount);
 	for (uint t = 0; t < ThreadCount; ++t)
@@ -522,8 +619,8 @@ void kappa_dex::from_codeseqs(
 			[&, tid]()
 			{
 			uint64_t *counts = tls_counts[tid];
-			vector<uint> kmers;
-			kmers.reserve(512);
+			vector<KappaKmerPos> buf;
+			buf.reserve(512);
 			for (;;)
 				{
 				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
@@ -540,12 +637,12 @@ void kappa_dex::from_codeseqs(
 				if (L < K)
 					continue;
 				const uint maxn = L - K + 1;
-				if (kmers.size() < maxn)
-					kmers.resize(maxn);
-				const uint nk = ExtractExactKmers(Seq, L, Offsets, k, K,
-					SelfScores, MinSelf, kmers.data());
+				if (buf.size() < maxn)
+					buf.resize(maxn);
+				const uint nk = ExtractExactKmerPos(Seq, L, Offsets, k, K,
+					SelfScores, MinSelf, unique_kmer, buf.data());
 				for (uint i = 0; i < nk; ++i)
-					counts[kmers[i]] += 1;
+					counts[buf[i].kmer] += 1;
 				}
 			}));
 		}
@@ -589,6 +686,8 @@ void kappa_dex::from_codeseqs(
 		ts.push_back(new thread(
 			[&]()
 			{
+			vector<KappaKmerPos> buf;
+			buf.reserve(512);
 			for (;;)
 				{
 				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
@@ -604,18 +703,18 @@ void kappa_dex::from_codeseqs(
 				const uint L = lengths[SeqIdx];
 				if (L < K)
 					continue;
-				for (uint pos = 0; pos + K <= L; ++pos)
+				const uint maxn = L - K + 1;
+				if (buf.size() < maxn)
+					buf.resize(maxn);
+				const uint nk = ExtractExactKmerPos(Seq, L, Offsets, k, K,
+					SelfScores, MinSelf, unique_kmer, buf.data());
+				for (uint i = 0; i < nk; ++i)
 					{
-					if (pos > UINT16_MAX)
-						break;
-					uint Kmer = 0;
-					for (uint j = 0; j < k; ++j)
-						Kmer = Kmer*KAPPA_AS + Seq[pos + Offsets[j]];
-					if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
-						continue;
+					const uint Kmer = buf[i].kmer;
+					const uint16_t pos = buf[i].pos;
 					const uint64_t DataOffset =
 						AtomicFetchAddU64(&m_Finger[Kmer + 1], 1);
-					Put(DataOffset, SeqIdx, uint16_t(pos));
+					Put(DataOffset, SeqIdx, pos);
 					}
 				}
 			}));

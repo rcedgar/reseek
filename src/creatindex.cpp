@@ -120,7 +120,10 @@ void cmd_createindex()
 	KmerIndex.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
 	KmerIndex.m_MinKmerSelfScore = flat_params::m_kappa_min_kmerpairscore;
 	KmerIndex.m_AddNeighborhood = false;
+	KmerIndex.m_UniqueKmer = opt(unique_kmer);
 	KmerIndex.m_ptrScoreMx = 0;
+	if (KmerIndex.m_UniqueKmer)
+		ProgressLog("createindex -unique_kmer\n");
 
 	if (EndsWith(g_Arg1, ".bcb"))
 		{

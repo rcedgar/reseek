@@ -383,8 +383,10 @@ void cmd_idx_search_kappa()
 		Index.m_KmerSelfScores = ptrScoreMx->BuildSelfScores_Kmers();
 		Index.m_MinKmerSelfScore = MinScore;
 		Index.m_AddNeighborhood = false;
+		Index.m_UniqueKmer = opt(unique_kmer);
 		Index.m_ptrScoreMx = 0;
-		ProgressLog("Building kappa_dex on the fly from %s\n", opt(db));
+		ProgressLog("Building kappa_dex on the fly from %s%s\n",
+			opt(db), Index.m_UniqueKmer ? "  (-unique_kmer)" : "");
 		Index.from_codeseqs(t_kappa, t_lengths, t_labels, nseq);
 		asserta(Index.m_nseq == nseq);
 		ProgressLog("On-the-fly index ready  nseq=%u  postings=%s\n",
@@ -502,9 +504,9 @@ void cmd_idx_search_kappa()
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
 	time_t t1 = time(0);
-	ProgressLog("Kappa DB-index filter %u secs  prehsp=%llu  rsb_pairs=%u  hsp_targets=%llu  flushes=%llu\n",
+	ProgressLog("Kappa DB-index filter %u secs  prehsp=%s  rsb_pairs=%u  hsp_targets=%llu  flushes=%llu\n",
 		uint(t1 - t0),
-		(unsigned long long) Shared.n_prehsp.load(),
+		FloatToStr((float) Shared.n_prehsp.load()),
 		total,
 		(unsigned long long) Shared.n_hsp_accept.load(),
 		(unsigned long long) Shared.n_seed_flushes.load());
