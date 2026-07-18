@@ -158,8 +158,9 @@ void cmd_idx_stats()
 	{
 	kappa_dex Index;
 	Index.FromFile(g_Arg1);
-	ProgressLog("k=%u K=%u dict=%u nseq=%u postings=%u minself=%d\n",
-		Index.m_k, Index.m_K, Index.m_DictSize, Index.m_nseq, Index.m_Size,
+	ProgressLog("k=%u K=%u dict=%u nseq=%u postings=%s minself=%d\n",
+		Index.m_k, Index.m_K, Index.m_DictSize, Index.m_nseq,
+		Int64ToStr(Index.m_Size),
 		Index.m_MinKmerSelfScore);
 	Index.LogStats();
 	}

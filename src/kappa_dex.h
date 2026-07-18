@@ -48,19 +48,19 @@ After Pass 2:
 		= m_Finger[Kmer+1] - m_Finger[Kmer]
 ***/
 #if KAPPA_DEBUG_CHECKS
-	vector<uint> m_KmerToCount1;
-	vector<uint> m_KmerToCount2;
-	vector<uint> m_KmerToDataStart;
+	vector<uint64_t> m_KmerToCount1;
+	vector<uint64_t> m_KmerToCount2;
+	vector<uint64_t> m_KmerToDataStart;
 #endif
 
 	//const SeqDB *m_SeqDB = 0;
 	const vector<string> *m_labels;
 	uint m_nseq = 0;
-	uint32_t m_Size = 0;
-	uint32_t *m_Finger = 0;
+	uint64_t m_Size = 0;			// total postings
+	uint64_t *m_Finger = 0;			// DictSize+2 offsets into posting blob
 	uint8_t *m_Data = 0;
 	int16_t *m_KmerSelfScores = 0;
-	uint32_t *m_RowSizes = 0;
+	uint64_t *m_RowSizes = 0;
 	int m_MinKmerSelfScore = 0;
 
 // Current sequence
@@ -122,23 +122,22 @@ public:
 	void ValidateKmer(uint Kmer) const;
 	uint GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) const;
 	void LogIndexKmer(uint Kmer) const;
-	const uint32_t GetRowStart(uint Kmer) const
+	uint64_t GetRowStart(uint Kmer) const
 		{
 		assert(Kmer < m_DictSize);
 		return m_Finger[Kmer];
 		}
 
-	inline uint GetRowSize(uint Kmer) const
+	inline uint64_t GetRowSize(uint Kmer) const
 		{
 		assert(Kmer < m_DictSize);
-		//uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
-		uint n = m_RowSizes[Kmer];
+		uint64_t n = m_RowSizes[Kmer];
 		assert(m_Finger[Kmer] + n <= m_Size);
 		return n;
 		}
 
-	void Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos);
-	void Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const;
+	void Put(uint64_t DataOffset, uint32_t SeqIdx, uint16_t SeqPos);
+	void Get(uint64_t DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const;
 	void GetKmers(const byte *Seq, uint L, vector<uint> &Kmers) const;
 	void GetKmersAndSizes(const byte *Seq, uint L,
 						  vector<uint> &Kmers, vector<uint> &Sizes) const;
@@ -155,4 +154,7 @@ public:
 	};
 
 const uint32_t KAPPA_DEX_MAGIC = 0x4B444558; // 'KDEX'
-const uint32_t KAPPA_DEX_VERSION = 1;
+// v1: uint32 Size + uint32 Finger/RowSizes
+// v2: uint64 Size + uint64 Finger/RowSizes (posting scale > 2^32)
+const uint32_t KAPPA_DEX_VERSION = 2;
+const uint32_t KAPPA_DEX_VERSION_V1 = 1;

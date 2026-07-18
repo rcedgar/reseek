@@ -95,11 +95,11 @@ void cmd_idx_probe()
 				{
 				const uint Nbr = NeighborKmers[j];
 				asserta(Nbr < Index.m_DictSize);
-				const uint RowSize = Index.GetRowSize(Nbr);
+				const uint64_t RowSize = Index.GetRowSize(Nbr);
 				if (RowSize == 0)
 					continue;
-				uint DataOffset = Index.GetRowStart(Nbr);
-				for (uint c = 0; c < RowSize; ++c)
+				uint64_t DataOffset = Index.GetRowStart(Nbr);
+				for (uint64_t c = 0; c < RowSize; ++c)
 					{
 					uint32_t TSeqIdx;
 					uint16_t TPos;

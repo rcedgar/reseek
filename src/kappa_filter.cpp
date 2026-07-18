@@ -291,19 +291,19 @@ void kappa_filter::Search_TargetKmerNeighborhood(uint Kmer, uint TPos)
 
 void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 	{
-	uint RowSize = m_QKmerIndex->GetRowSize(TKmer);
+	uint64_t RowSize = m_QKmerIndex->GetRowSize(TKmer);
 #if TRACE
 	{
 	string KmerStr;
 	m_QKmerIndex->KmerToStr(m_TBaseKmer, KmerStr);
-	Log("Search_TargetKmer(TPos=%u, TKmer=%s) RowSize=%u\n",
-		TPos, KmerStr.c_str(), RowSize);
+	Log("Search_TargetKmer(TPos=%u, TKmer=%s) RowSize=%s\n",
+		TPos, KmerStr.c_str(), Int64ToStr(RowSize));
 	}
 #endif
 	if (RowSize == 0)
 		return;
-	uint DataOffset = m_QKmerIndex->GetRowStart(TKmer);
-	for (uint ColIdx = 0; ColIdx < RowSize; ++ColIdx)
+	uint64_t DataOffset = m_QKmerIndex->GetRowStart(TKmer);
+	for (uint64_t ColIdx = 0; ColIdx < RowSize; ++ColIdx)
 		{
 		uint32_t QSeqIdx;
 		uint16_t QSeqPos;

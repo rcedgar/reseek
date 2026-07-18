@@ -115,7 +115,7 @@ void kappa_dex::Alloc_Pass1()
 
 // Pass1 m_Finger[Kmer] = Count
 	asserta(m_Finger == 0 && m_Data == 0);
-	m_Finger = myalloc(uint32_t, m_DictSize + 2);
+	m_Finger = myalloc(uint64_t, m_DictSize + 2);
 	zero_array(m_Finger, m_DictSize+2);
 #if KAPPA_DEBUG_CHECKS
 	m_KmerToCount1.resize(m_DictSize, 0);
@@ -152,8 +152,6 @@ void  kappa_dex::AddSeq_Pass1()
 			}
 
 	// Pass 1, m_Finger[Kmer+1] is count
-		asserta(m_Size < UINT_MAX);
-		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 		++m_Size;
 #if KAPPA_DEBUG_CHECKS
@@ -174,8 +172,6 @@ void  kappa_dex::AddSeq_Pass1()
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
 				asserta(NeighborKmer < flat_params::m_kappa_dict_size);
-				asserta(m_Size < UINT_MAX);
-				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
 				++m_Size;
 #if KAPPA_DEBUG_CHECKS
@@ -203,17 +199,16 @@ void kappa_dex::AddSeq_Pass2()
 #endif
 			continue;
 			}
-		uint DataOffset = m_Finger[Kmer+1];
+		uint64_t DataOffset = m_Finger[Kmer+1];
 		Put(DataOffset, m_SeqIdx, SeqPos);
-		asserta(m_Finger[Kmer+1] < UINT_MAX);
 		m_Finger[Kmer+1] += 1;
 #if KAPPA_DEBUG_CHECKS
 		assert(m_KmerToDataStart[Kmer] + m_KmerToCount2[Kmer] == DataOffset);
 		m_KmerToCount2[Kmer] += 1;
 #endif
 #if TRACE
-		Log("[%4u] %08x %s DO=%u\n",
-			SeqPos, Kmer, KmerToStr(Kmer, Tmp), DataOffset);
+		Log("[%4u] %08x %s DO=%s\n",
+			SeqPos, Kmer, KmerToStr(Kmer, Tmp), Int64ToStr(DataOffset));
 #endif
 		if (m_AddNeighborhood)
 			{
@@ -223,9 +218,8 @@ void kappa_dex::AddSeq_Pass2()
 				{
 				uint NeighborKmer = m_NeighborKmers[j];
 				asserta(NeighborKmer < flat_params::m_kappa_dict_size);
-				uint DataOffset = m_Finger[NeighborKmer+1];
+				uint64_t DataOffset = m_Finger[NeighborKmer+1];
 				Put(DataOffset, m_SeqIdx, SeqPos);
-				asserta(m_Finger[NeighborKmer+1] < UINT_MAX);
 				m_Finger[NeighborKmer+1] += 1;
 #if KAPPA_DEBUG_CHECKS
 				assert(m_KmerToDataStart[NeighborKmer] + 
@@ -240,31 +234,31 @@ void kappa_dex::AddSeq_Pass2()
 void kappa_dex::LogStats() const
 	{
 	vector<uint> RowSizes;
-	uint Sum = 0;
+	uint64_t Sum = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
-		uint Size = GetRowSize(Kmer);
+		uint64_t Size = GetRowSize(Kmer);
 		Sum += Size;
-		RowSizes.push_back(Size);
+		RowSizes.push_back(Size > UINT_MAX ? UINT_MAX : uint(Size));
 		}
 	Quarts Q;
 	GetQuarts(RowSizes, Q);
 	Log("RowSizes: ");
 	Q.LogMe();
-	Log("Total = %u (%s)\n", Sum, IntToStr(Sum));
+	Log("Total = %s\n", Int64ToStr(Sum));
 	}
 
 #if KAPPA_DEBUG_CHECKS
 void kappa_dex::CheckAfterPass1() const
 	{
-	uint Check_Size = 0;
+	uint64_t Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
-		uint n = m_Finger[Kmer+1];
-		uint Check_n = m_KmerToCount1[Kmer];
+		uint64_t n = m_Finger[Kmer+1];
+		uint64_t Check_n = m_KmerToCount1[Kmer];
 		if (Check_n != n)
 			{
-			Log("Kmer %08x DictSize %08x Check_n %u n %u\n",
+			Log("Kmer %08x DictSize %08x Check_n %" PRIu64 " n %" PRIu64 "\n",
 				Kmer, m_DictSize, Check_n, n);
 			Die("CheckAfterPass1");
 			}
@@ -277,14 +271,14 @@ void kappa_dex::CheckAfterPass1() const
 void kappa_dex::CheckAfterAdjust() const
 	{
 	assert(m_Finger[m_DictSize+1] == m_Size);
-	uint Check_Size = 0;
+	uint64_t Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
-		uint n = m_Finger[Kmer+2] - m_Finger[Kmer+1];
-		uint Check_n = m_KmerToCount1[Kmer];
+		uint64_t n = m_Finger[Kmer+2] - m_Finger[Kmer+1];
+		uint64_t Check_n = m_KmerToCount1[Kmer];
 		if (Check_n != n)
 			{
-			Log("Kmer %08x DictSize %08x Check_n %u n %u\n",
+			Log("Kmer %08x DictSize %08x Check_n %" PRIu64 " n %" PRIu64 "\n",
 				Kmer, m_DictSize, Check_n, n);
 			Die("CheckAfterAdjust");
 			}
@@ -296,15 +290,15 @@ void kappa_dex::CheckAfterAdjust() const
 
 void kappa_dex::CheckAfterPass2() const
 	{
-	uint Check_Size = 0;
+	uint64_t Check_Size = 0;
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
 		{
-		uint n = m_Finger[Kmer+1] - m_Finger[Kmer];
-		uint Check_n1 = m_KmerToCount1[Kmer];
-		uint Check_n2 = m_KmerToCount2[Kmer];
+		uint64_t n = m_Finger[Kmer+1] - m_Finger[Kmer];
+		uint64_t Check_n1 = m_KmerToCount1[Kmer];
+		uint64_t Check_n2 = m_KmerToCount2[Kmer];
 		if (Check_n1 != n || Check_n2 != n)
 			{
-			Log("Kmer %08x DictSize %08x Check_n1 %u Check_n2 %u n %u\n",
+			Log("Kmer %08x DictSize %08x Check_n1 %" PRIu64 " Check_n2 %" PRIu64 " n %" PRIu64 "\n",
 				Kmer, m_DictSize, Check_n1, Check_n2, n);
 			Die("CheckAfterPass2");
 			}
@@ -317,14 +311,13 @@ void kappa_dex::CheckAfterPass2() const
 
 void kappa_dex::AdjustFinger()
 	{
-	uint Sum = 0;
+	uint64_t Sum = 0;
 	for (uint Kmer = 0; Kmer <= m_DictSize; ++Kmer)
 		{
 #if KAPPA_DEBUG_CHECKS
 		m_KmerToDataStart.push_back(Sum);
 #endif
-		uint Kmer_Size = m_Finger[Kmer+1];
-		asserta(m_Finger[Kmer+1] < UINT_MAX);
+		uint64_t Kmer_Size = m_Finger[Kmer+1];
 		m_Finger[Kmer+1] = Sum;
 		Sum += Kmer_Size;
 		}
@@ -339,19 +332,17 @@ void kappa_dex::Validate() const
 
 void kappa_dex::LogIndexKmer(uint Kmer) const
 	{
-	uint n = GetRowSize(Kmer);
+	uint64_t n = GetRowSize(Kmer);
 	string Tmp;
-	uint DataOffset = m_Finger[Kmer];
-	Log("LogIndexKmer(%08x) %s size=%u DO=%u",
-		Kmer, KmerToStr(Kmer, Tmp), n, DataOffset);
-	for (uint i = 0; i < n; ++i)
+	uint64_t DataOffset = m_Finger[Kmer];
+	Log("LogIndexKmer(%08x) %s size=%s DO=%s",
+		Kmer, KmerToStr(Kmer, Tmp), Int64ToStr(n), Int64ToStr(DataOffset));
+	for (uint64_t i = 0; i < n; ++i)
 		{
 		uint32_t SeqIdx;
 		uint16_t SeqPos;
 		Get(DataOffset+i, SeqIdx, SeqPos);
 		Log(" %u:%u", SeqIdx, SeqPos);
-		//uint Check_Kmer = GetSeqKmer(SeqIdx, SeqPos);
-		//asserta(Check_Kmer == Kmer);
 		}
 	Log("\n");
 	}
@@ -360,10 +351,10 @@ void kappa_dex::ValidateKmer(uint Kmer) const
 	{
 	const uint QSeqCount = m_nseq;
 	asserta(QSeqCount > 0);
-	uint n = GetRowSize(Kmer);
-	uint DataOffset = m_Finger[Kmer];
+	uint64_t n = GetRowSize(Kmer);
+	uint64_t DataOffset = m_Finger[Kmer];
 	asserta(DataOffset <= m_Size);
-	for (uint i = 0; i < n; ++i)
+	for (uint64_t i = 0; i < n; ++i)
 		{
 		uint32_t SeqIdx;
 		uint16_t SeqPos;
@@ -371,8 +362,8 @@ void kappa_dex::ValidateKmer(uint Kmer) const
 		if (SeqIdx >= QSeqCount)
 			{
 			Log("m_Size = %s\n", Int64ToStr(m_Size));
-			Log("m_Finger[0x%x] = %u\n", Kmer, m_Finger[Kmer]);
-			Log("i=%u n=%u\n", i, n);
+			Log("m_Finger[0x%x] = %s\n", Kmer, Int64ToStr(m_Finger[Kmer]));
+			Log("i=%s n=%s\n", Int64ToStr(i), Int64ToStr(n));
 			Log("QSeqIdx=%u, SeqPos=%u\n", SeqIdx, SeqPos);
 			Die("kappa_dex::ValidateKmer(Kmer=0x%x)", Kmer);
 			}
@@ -384,6 +375,7 @@ void kappa_dex::ValidateKmer(uint Kmer) const
 			uint Check_Kmer = GetSeqKmer(Seq, SeqPos, false);
 			asserta(Check_Kmer == Kmer);
 			}
+		++DataOffset;
 		}
 	}
 
@@ -528,23 +520,16 @@ void kappa_dex::FromSeqDB(const SeqDB &Input)//TODO FromBags already have Mu k-m
 
 void kappa_dex::SetRowSizes()
 	{
-	//m_RowSizes = myalloc(uint16_t, m_DictSize);
-	m_RowSizes = myalloc(uint32_t, m_DictSize);
+	m_RowSizes = myalloc(uint64_t, m_DictSize);
 	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
-		{
-		uint32_t RowSize32 = m_Finger[Kmer+1] - m_Finger[Kmer];
-		//uint16_t RowSize = uint16_t(RowSize32);
-		//assert(uint32_t(RowSize) == RowSize32);
-		//m_RowSizes[Kmer] = RowSize;
-		m_RowSizes[Kmer] = RowSize32;
-		}
+		m_RowSizes[Kmer] = m_Finger[Kmer+1] - m_Finger[Kmer];
 	}
 
-void kappa_dex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
+void kappa_dex::Put(uint64_t DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 	{
 	asserta(DataOffset < m_Size);
 	asserta(m_Data != 0);
-	uint64 Bytes64 = uint64(m_ItemSize)*uint64(DataOffset);
+	uint64 Bytes64 = uint64(m_ItemSize)*DataOffset;
 	uint8_t *ptr = m_Data + Bytes64;
 	*(uint32_t *) ptr = SeqIdx;
 	*(uint16_t *) (ptr + 4) = SeqPos;
@@ -559,9 +544,9 @@ void kappa_dex::Put(uint DataOffset, uint32_t SeqIdx, uint16_t SeqPos)
 #endif
 	}
 
-void kappa_dex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
+void kappa_dex::Get(uint64_t DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 	{
-	const uint8_t *ptr = m_Data + m_ItemSize*uint64(DataOffset);
+	const uint8_t *ptr = m_Data + m_ItemSize*DataOffset;
 	SeqIdx = *(uint32_t *) ptr;
 	SeqPos = *(uint16_t *) (ptr + 4);
 	}
@@ -569,18 +554,18 @@ void kappa_dex::Get(uint DataOffset, uint32_t &SeqIdx, uint16_t &SeqPos) const
 /***
 Binary kappa_dex layout (little-endian):
 	uint32 MAGIC ('KDEX')
-	uint32 VERSION
+	uint32 VERSION (2)
 	uint32 KAPPA_AS (must be 32)
 	uint32 ItemSize (must be 6)
 	uint32 k
 	uint32 K
 	uint32 DictSize
 	uint32 nseq
-	uint32 Size          // posting count
+	uint64 Size          // posting count (v1 used uint32)
 	uint32 MinKmerSelfScore
 	uint8  Offsets[k]
-	uint32 Finger[DictSize+2]
-	uint32 RowSizes[DictSize]
+	uint64 Finger[DictSize+2]     // v1: uint32
+	uint64 RowSizes[DictSize]     // v1: uint32
 	uint8  Data[Size*ItemSize]
 	uint32 MAGIC
 ***/
@@ -606,7 +591,7 @@ void kappa_dex::ToFile(const string &FN) const
 	uint32_t K = m_K;
 	uint32_t DictSize = m_DictSize;
 	uint32_t nseq = m_nseq;
-	uint32_t Size = m_Size;
+	uint64_t Size = m_Size;
 	uint32_t MinSelf = uint32_t(m_MinKmerSelfScore);
 
 	WriteStdioFile(f, &Magic, sizeof(Magic));
@@ -621,9 +606,9 @@ void kappa_dex::ToFile(const string &FN) const
 	WriteStdioFile(f, &MinSelf, sizeof(MinSelf));
 	WriteStdioFile(f, m_Offsets, k);
 
-	const uint64 FingerBytes = uint64(DictSize + 2) * sizeof(uint32_t);
-	const uint64 RowBytes = uint64(DictSize) * sizeof(uint32_t);
-	const uint64 DataBytes = uint64(Size) * uint64(ItemSize);
+	const uint64 FingerBytes = uint64(DictSize + 2) * sizeof(uint64_t);
+	const uint64 RowBytes = uint64(DictSize) * sizeof(uint64_t);
+	const uint64 DataBytes = Size * uint64(ItemSize);
 	asserta(FingerBytes <= UINT_MAX);
 	asserta(RowBytes <= UINT_MAX);
 	WriteStdioFile(f, m_Finger, uint32(FingerBytes));
@@ -633,8 +618,9 @@ void kappa_dex::ToFile(const string &FN) const
 	WriteStdioFile(f, &Magic, sizeof(Magic));
 	CloseStdioFile(f);
 
-	ProgressLog("Wrote kappa_dex %s  nseq=%u  postings=%u (%s)  dict=%u\n",
-		FN.c_str(), nseq, Size, MemBytesToStr(double(DataBytes)), DictSize);
+	ProgressLog("Wrote kappa_dex %s  nseq=%u  postings=%s (%s)  dict=%u\n",
+		FN.c_str(), nseq, Int64ToStr(Size), MemBytesToStr(double(DataBytes)),
+		DictSize);
 	}
 
 void kappa_dex::FromFile(const string &FN)
@@ -656,13 +642,12 @@ void kappa_dex::FromFile(const string &FN)
 	uint32_t K = 0;
 	uint32_t DictSize = 0;
 	uint32_t nseq = 0;
-	uint32_t Size = 0;
 	uint32_t MinSelf = 0;
 
 	ReadStdioFile(f, &Magic, sizeof(Magic));
 	asserta(Magic == KAPPA_DEX_MAGIC);
 	ReadStdioFile(f, &Version, sizeof(Version));
-	asserta(Version == KAPPA_DEX_VERSION);
+	asserta(Version == KAPPA_DEX_VERSION || Version == KAPPA_DEX_VERSION_V1);
 	ReadStdioFile(f, &AS, sizeof(AS));
 	asserta(AS == KAPPA_AS);
 	ReadStdioFile(f, &ItemSize, sizeof(ItemSize));
@@ -671,7 +656,17 @@ void kappa_dex::FromFile(const string &FN)
 	ReadStdioFile(f, &K, sizeof(K));
 	ReadStdioFile(f, &DictSize, sizeof(DictSize));
 	ReadStdioFile(f, &nseq, sizeof(nseq));
-	ReadStdioFile(f, &Size, sizeof(Size));
+
+	uint64_t Size = 0;
+	if (Version == KAPPA_DEX_VERSION)
+		ReadStdioFile(f, &Size, sizeof(Size));
+	else
+		{
+		uint32_t Size32 = 0;
+		ReadStdioFile(f, &Size32, sizeof(Size32));
+		Size = Size32;
+		}
+
 	ReadStdioFile(f, &MinSelf, sizeof(MinSelf));
 	asserta(k > 0 && k <= 32);
 	asserta(K >= k);
@@ -693,16 +688,37 @@ void kappa_dex::FromFile(const string &FN)
 	for (uint i = 0; i < k; ++i)
 		asserta(m_Offsets[i] < K);
 
-	const uint64 FingerBytes = uint64(DictSize + 2) * sizeof(uint32_t);
-	const uint64 RowBytes = uint64(DictSize) * sizeof(uint32_t);
-	const uint64 DataBytes = uint64(Size) * uint64(ItemSize);
-	asserta(FingerBytes <= UINT_MAX);
-	asserta(RowBytes <= UINT_MAX);
+	const uint64 DataBytes = Size * uint64(ItemSize);
+	m_Finger = myalloc(uint64_t, DictSize + 2);
+	m_RowSizes = myalloc(uint64_t, DictSize);
 
-	m_Finger = myalloc(uint32_t, DictSize + 2);
-	m_RowSizes = myalloc(uint32_t, DictSize);
-	ReadStdioFile(f, m_Finger, uint32(FingerBytes));
-	ReadStdioFile(f, m_RowSizes, uint32(RowBytes));
+	if (Version == KAPPA_DEX_VERSION)
+		{
+		const uint64 FingerBytes = uint64(DictSize + 2) * sizeof(uint64_t);
+		const uint64 RowBytes = uint64(DictSize) * sizeof(uint64_t);
+		asserta(FingerBytes <= UINT_MAX);
+		asserta(RowBytes <= UINT_MAX);
+		ReadStdioFile(f, m_Finger, uint32(FingerBytes));
+		ReadStdioFile(f, m_RowSizes, uint32(RowBytes));
+		}
+	else
+		{
+		const uint64 FingerBytes = uint64(DictSize + 2) * sizeof(uint32_t);
+		const uint64 RowBytes = uint64(DictSize) * sizeof(uint32_t);
+		asserta(FingerBytes <= UINT_MAX);
+		asserta(RowBytes <= UINT_MAX);
+		uint32_t *Finger32 = myalloc(uint32_t, DictSize + 2);
+		uint32_t *RowSizes32 = myalloc(uint32_t, DictSize);
+		ReadStdioFile(f, Finger32, uint32(FingerBytes));
+		ReadStdioFile(f, RowSizes32, uint32(RowBytes));
+		for (uint i = 0; i < DictSize + 2; ++i)
+			m_Finger[i] = Finger32[i];
+		for (uint i = 0; i < DictSize; ++i)
+			m_RowSizes[i] = RowSizes32[i];
+		myfree(Finger32);
+		myfree(RowSizes32);
+		}
+
 	asserta(m_Finger[0] == 0);
 	asserta(m_Finger[DictSize + 1] == Size);
 
@@ -726,8 +742,9 @@ void kappa_dex::FromFile(const string &FN)
 	asserta(GetStdioFilePos64(f) == FileSize);
 	CloseStdioFile(f);
 
-	ProgressLog("Read kappa_dex %s  nseq=%u  postings=%u (%s)  dict=%u\n",
-		FN.c_str(), nseq, Size, MemBytesToStr(double(DataBytes)), DictSize);
+	ProgressLog("Read kappa_dex %s  nseq=%u  postings=%s (%s)  dict=%u\n",
+		FN.c_str(), nseq, Int64ToStr(Size), MemBytesToStr(double(DataBytes)),
+		DictSize);
 	}
 
 void kappa_dex::GetKmersAndSizes(const byte *Seq, uint L,
@@ -757,9 +774,9 @@ void kappa_dex::GetKmersAndSizes(const byte *Seq, uint L,
 		else
 			{
 			Kmer = Kmer%m_DictSize;
-			uint Size = GetRowSize(Kmer);
+			uint64_t Size = GetRowSize(Kmer);
 			Kmers.push_back(Kmer);
-			Sizes.push_back(Kmer);
+			Sizes.push_back(Size > UINT_MAX ? UINT_MAX : uint(Size));
 			}
 		}
 	}
