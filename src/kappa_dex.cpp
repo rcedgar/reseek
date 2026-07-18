@@ -6,6 +6,10 @@
 #include "quarts.h"
 #include "flat_params.h"
 #include "binner.h"
+#include <atomic>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 uint8_t *kappa_dex::m_Offsets;
 uint32_t kappa_dex::m_DictSize;
@@ -387,68 +391,231 @@ uint kappa_dex::GetSeqKmer(const byte *Seq, uint SeqPos, bool SelfScoreMask) con
 	return Kmer;
 	}
 
+// Extract exact kmers (skip low self-score). Returns count written to Out[].
+// Out must hold at least max(0, L-K+1) slots.
+static uint ExtractExactKmers(
+	const byte *Seq, uint L,
+	const uint8_t *Offsets, uint k, uint K,
+	const int16_t *SelfScores, int MinSelf,
+	uint *Out)
+	{
+	if (L < K)
+		return 0;
+	uint n = 0;
+	for (uint pos = 0; pos + K <= L; ++pos)
+		{
+		if (pos > UINT16_MAX)
+			break;
+		uint Kmer = 0;
+		for (uint i = 0; i < k; ++i)
+			Kmer = Kmer*KAPPA_AS + Seq[pos + Offsets[i]];
+		if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
+			continue;
+		Out[n++] = Kmer;
+		}
+	return n;
+	}
+
 void kappa_dex::from_codeseqs(
 	uint8_t **kappa_codeseqs,
 	const uint *lengths,
 	const vector<string> &labels,
 	uint nseq)
 	{
-	//m_SeqDB = 0;
 	m_kappa_codeseqs = kappa_codeseqs;
 	m_seq_lengths = lengths;
 	m_nseq = nseq;
 	if (m_AddNeighborhood)
-		asserta(m_ptrScoreMx!=0);
-	//if (m_AddNeighborhood && m_ptrScoreMx == 0)
-	//	m_ptrScoreMx = &GetMuMerMx(m_k);
+		asserta(m_ptrScoreMx != 0);
+
+	if (nseq == 0)
+		{
+		Alloc_Pass1();
+		AdjustFinger();
+		Alloc_Pass2();
+		SetRowSizes();
+		return;
+		}
 
 	Alloc_Pass1();
-	for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+
+	const uint ThreadCount = GetRequestedThreadCount();
+	const bool do_parallel = (!m_AddNeighborhood && ThreadCount > 1 && nseq >= 64);
+
+	if (!do_parallel)
 		{
-		ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 1");
-		const char *Label = 0; // TODO m_SeqDB->GetLabel(SeqIdx).c_str();
-		const byte *Seq = kappa_codeseqs[SeqIdx];
-		const uint L = lengths[SeqIdx];
-		SetSeq(SeqIdx, Label, Seq, L);
-		AddSeq_Pass1();
+		for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+			{
+			ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 1");
+			const char *Label = 0;
+			const byte *Seq = kappa_codeseqs[SeqIdx];
+			const uint L = lengths[SeqIdx];
+			SetSeq(SeqIdx, Label, Seq, L);
+			AddSeq_Pass1();
+			}
+#if KAPPA_DEBUG_CHECKS
+		CheckAfterPass1();
+#endif
+		AdjustFinger();
+#if KAPPA_DEBUG_CHECKS
+		CheckAfterAdjust();
+#endif
+		Alloc_Pass2();
+		for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+			{
+			ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 2");
+			const char *Label = 0;
+			const byte *Seq = kappa_codeseqs[SeqIdx];
+			const uint L = lengths[SeqIdx];
+			SetSeq(SeqIdx, Label, Seq, L);
+			AddSeq_Pass2();
+			}
+		SetRowSizes();
+#if KAPPA_DEBUG_CHECKS
+		CheckAfterPass2();
+		Validate();
+#endif
+		return;
 		}
+
+	ProgressLog("kappa_dex parallel build  threads=%u  nseq=%u\n",
+		ThreadCount, nseq);
+
+	const uint DictSize = m_DictSize;
+	const uint k = m_k;
+	const uint K = m_K;
+	const uint8_t *Offsets = m_Offsets;
+	const int16_t *SelfScores = m_KmerSelfScores;
+	const int MinSelf = m_MinKmerSelfScore;
+
+	uint64_t **tls_counts = myalloc(uint64_t *, ThreadCount);
+	for (uint t = 0; t < ThreadCount; ++t)
+		{
+		tls_counts[t] = myalloc(uint64_t, DictSize);
+		zero_array(tls_counts[t], DictSize);
+		}
+
+	{
+	std::atomic<uint> next_seq{0};
+	std::mutex progress_lock;
+	vector<thread *> ts;
+	ProgressStep(0, nseq, "kappa_dex pass 1");
+	for (uint tid = 0; tid < ThreadCount; ++tid)
+		{
+		ts.push_back(new thread(
+			[&, tid]()
+			{
+			uint64_t *counts = tls_counts[tid];
+			vector<uint> kmers;
+			kmers.reserve(512);
+			for (;;)
+				{
+				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
+				if (SeqIdx >= nseq)
+					break;
+				if ((SeqIdx & 0x3ff) == 0)
+					{
+					lock_guard<mutex> lock(progress_lock);
+					if (SeqIdx < nseq)
+						ProgressStep(SeqIdx, nseq, "kappa_dex pass 1");
+					}
+				const byte *Seq = kappa_codeseqs[SeqIdx];
+				const uint L = lengths[SeqIdx];
+				if (L < K)
+					continue;
+				const uint maxn = L - K + 1;
+				if (kmers.size() < maxn)
+					kmers.resize(maxn);
+				const uint nk = ExtractExactKmers(Seq, L, Offsets, k, K,
+					SelfScores, MinSelf, kmers.data());
+				for (uint i = 0; i < nk; ++i)
+					counts[kmers[i]] += 1;
+				}
+			}));
+		}
+	for (uint tid = 0; tid < ThreadCount; ++tid)
+		{
+		ts[tid]->join();
+		delete ts[tid];
+		}
+	ProgressStep(nseq - 1, nseq, "kappa_dex pass 1");
+	}
+
+	m_Size = 0;
+	for (uint Kmer = 0; Kmer < DictSize; ++Kmer)
+		{
+		uint64_t c = 0;
+		for (uint t = 0; t < ThreadCount; ++t)
+			c += tls_counts[t][Kmer];
+		m_Finger[Kmer + 1] = c;
+		m_Size += c;
+		}
+	for (uint t = 0; t < ThreadCount; ++t)
+		myfree(tls_counts[t]);
+	myfree(tls_counts);
+
 #if KAPPA_DEBUG_CHECKS
 	CheckAfterPass1();
 #endif
-
 	AdjustFinger();
 #if KAPPA_DEBUG_CHECKS
 	CheckAfterAdjust();
 #endif
-
 	Alloc_Pass2();
-	for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
+
+	{
+	std::atomic<uint> next_seq{0};
+	std::mutex progress_lock;
+	vector<thread *> ts;
+	ProgressStep(0, nseq, "kappa_dex pass 2");
+	for (uint tid = 0; tid < ThreadCount; ++tid)
 		{
-		ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 2");
-		const char *Label = 0; // TODO m_SeqDB->GetLabel(SeqIdx).c_str();
-		const byte *Seq = kappa_codeseqs[SeqIdx];
-		const uint L = lengths[SeqIdx];
-		SetSeq(SeqIdx, Label, Seq, L);
-		AddSeq_Pass2();
+		ts.push_back(new thread(
+			[&]()
+			{
+			for (;;)
+				{
+				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
+				if (SeqIdx >= nseq)
+					break;
+				if ((SeqIdx & 0x3ff) == 0)
+					{
+					lock_guard<mutex> lock(progress_lock);
+					if (SeqIdx < nseq)
+						ProgressStep(SeqIdx, nseq, "kappa_dex pass 2");
+					}
+				const byte *Seq = kappa_codeseqs[SeqIdx];
+				const uint L = lengths[SeqIdx];
+				if (L < K)
+					continue;
+				for (uint pos = 0; pos + K <= L; ++pos)
+					{
+					if (pos > UINT16_MAX)
+						break;
+					uint Kmer = 0;
+					for (uint j = 0; j < k; ++j)
+						Kmer = Kmer*KAPPA_AS + Seq[pos + Offsets[j]];
+					if (SelfScores != 0 && SelfScores[Kmer] < MinSelf)
+						continue;
+					const uint64_t DataOffset =
+						std::atomic_ref<uint64_t>(m_Finger[Kmer + 1])
+							.fetch_add(1, std::memory_order_relaxed);
+					Put(DataOffset, SeqIdx, uint16_t(pos));
+					}
+				}
+			}));
 		}
+	for (uint tid = 0; tid < ThreadCount; ++tid)
+		{
+		ts[tid]->join();
+		delete ts[tid];
+		}
+	ProgressStep(nseq - 1, nseq, "kappa_dex pass 2");
+	}
+
 	SetRowSizes();
 #if KAPPA_DEBUG_CHECKS
 	CheckAfterPass2();
-#endif
-
-#if KAPPA_DEBUG_CHECKS
-	{
-	for (uint Kmer = 0; Kmer < m_DictSize; ++Kmer)
-		{
-		uint RowSize = GetRowSize(Kmer);
-		uint Check_RowSize = m_KmerToCount1[Kmer];
-		asserta(Check_RowSize == RowSize);
-		if (RowSize == 0)
-			continue;
-		uint Offset = m_Finger[Kmer];
-		uint Check_Offset = m_KmerToDataStart[Kmer];
-		}
-	}
 	Validate();
 #endif
 	}

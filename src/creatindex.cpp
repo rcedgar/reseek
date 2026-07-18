@@ -146,12 +146,13 @@ void cmd_createindex()
 
 	KmerIndex.ToFile(opt(output));
 
-	kappa_dex Check;
-	Check.FromFile(opt(output));
-
-	RoundTripCheck(KmerIndex, Check);
-
-	Check.LogStats();
+	if (opt(roundtrip))
+		{
+		kappa_dex Check;
+		Check.FromFile(opt(output));
+		RoundTripCheck(KmerIndex, Check);
+		Check.LogStats();
+		}
 	}
 
 void cmd_idx_stats()

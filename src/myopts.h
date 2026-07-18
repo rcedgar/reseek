@@ -248,6 +248,7 @@ FLAG_OPT(top3)
 FLAG_OPT(sffp)
 FLAG_OPT(filter_only)
 FLAG_OPT(kappa_hsp_rsb_prune)
+FLAG_OPT(roundtrip)
 
 #undef FLAG_OPT
 #undef UNS_OPT
