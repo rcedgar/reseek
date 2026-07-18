@@ -17,7 +17,9 @@
 void set_default_stats();
 
 static const uint32_t IDX_DIAG_MASK14 = 0b11111111111111;
-static const uint IDX_SEED_BUF_MIN = 1000000;
+// Fixed per-thread raw-seed cap (Foldseek-style). Do NOT scale with nseq —
+// 2*nseq on ~50M DBs yields ~1e8 and stalls inside a single query.
+static const uint IDX_SEED_BUF_CAP = 1000000;
 
 static int ExtendDiagToHSP_DB(
 	const byte *QSeq, uint QL,
@@ -69,11 +71,41 @@ struct IdxSearchShared
 	uint seed_cap = 0;
 	FILE *f_prehsp = 0;
 	atomic<uint> next_qidx{0};
+	atomic<uint> n_queries_done{0};
 	atomic<uint64> n_prehsp{0};
 	atomic<uint64> n_hsp_accept{0};
 	atomic<uint64> n_seed_flushes{0};
 	atomic<time_t> time_last_progress{0};
 	};
+
+static void MaybeReportIdxProgress(IdxSearchShared *S)
+	{
+	const time_t now = time(0);
+	if (now <= S->time_last_progress.load(memory_order_relaxed))
+		return;
+	static mutex s_progress_lock;
+	lock_guard<mutex> lock(s_progress_lock);
+	if (now <= S->time_last_progress.load(memory_order_relaxed))
+		return;
+	const uint nquery = S->nquery;
+	if (nquery == 0)
+		return;
+	uint done = S->n_queries_done.load(memory_order_relaxed);
+	if (done > nquery)
+		done = nquery;
+	// ProgressStep(i,N) requires i < N; i==0 resets internals — avoid after start.
+	uint i = done;
+	if (i >= nquery)
+		i = nquery - 1;
+	if (i == 0)
+		i = 1;
+	ProgressStep(i, nquery,
+		"Kappa DB-index filter  done=%u/%u  flushes=%llu  prehsp=%llu",
+		done, nquery,
+		(unsigned long long) S->n_seed_flushes.load(memory_order_relaxed),
+		(unsigned long long) S->n_prehsp.load(memory_order_relaxed));
+	S->time_last_progress.store(now, memory_order_relaxed);
+	}
 
 static void idx_search_thread_body(IdxSearchShared *S)
 	{
@@ -101,9 +133,7 @@ static void idx_search_thread_body(IdxSearchShared *S)
 
 	uint64 local_prehsp = 0;
 	uint64 local_hsp_accept = 0;
-	uint64 local_flushes = 0;
 	uint n_thit = 0;
-	uint counter = 0;
 
 	auto NoteBest = [&](uint qidx, const byte *QSeq, uint QL,
 		const char *QLabel, uint tidx, uint16_t diag)
@@ -140,7 +170,7 @@ static void idx_search_thread_body(IdxSearchShared *S)
 		const uint n = SIZE(SeedBuf);
 		if (n == 0)
 			return;
-		++local_flushes;
+		S->n_seed_flushes.fetch_add(1, memory_order_relaxed);
 
 		sort(SeedBuf.begin(), SeedBuf.end(),
 			[](const IdxSeed &a, const IdxSeed &b)
@@ -184,6 +214,12 @@ static void idx_search_thread_body(IdxSearchShared *S)
 			}
 
 		SeedBuf.clear();
+		if (local_prehsp > 0)
+			{
+			S->n_prehsp.fetch_add(local_prehsp, memory_order_relaxed);
+			local_prehsp = 0;
+			}
+		MaybeReportIdxProgress(S);
 		};
 
 	auto PushSeed = [&](uint qidx, const byte *QSeq, uint QL, const char *QLabel,
@@ -203,24 +239,14 @@ static void idx_search_thread_body(IdxSearchShared *S)
 		if (qidx >= S->nquery)
 			break;
 
-		if ((++counter) % 10 == 0)
-			{
-			time_t now = time(0);
-			if (now > S->time_last_progress.load(memory_order_relaxed))
-				{
-				static mutex s_progress_lock;
-				lock_guard<mutex> lock(s_progress_lock);
-				const uint done = min(qidx + 1, S->nquery);
-				uint pctx10 = (S->nquery == 0) ? 0 : (done * 1000u) / S->nquery;
-				if (pctx10 >= 999) pctx10 = 998;
-				ProgressStep(pctx10, 1000, "Kappa DB-index filter");
-				S->time_last_progress.store(now, memory_order_relaxed);
-				}
-			}
+		MaybeReportIdxProgress(S);
 
 		const uint QL = S->q_lengths[qidx];
 		if (QL < flat_params::m_kappa_min_chainlength || QL < Index.m_K)
+			{
+			S->n_queries_done.fetch_add(1, memory_order_relaxed);
 			continue;
+			}
 
 		const byte *QSeq = S->q_kappa[qidx];
 		const char *QLabel = (*S->query_labels)[qidx].c_str();
@@ -281,6 +307,14 @@ static void idx_search_thread_body(IdxSearchShared *S)
 			if (Pending.size() >= kappa_filter::RSB_BATCH)
 				kappa_filter::m_RSB.AddScoresBatch(Pending);
 			}
+
+		S->n_queries_done.fetch_add(1, memory_order_relaxed);
+		if (local_prehsp > 0)
+			{
+			S->n_prehsp.fetch_add(local_prehsp, memory_order_relaxed);
+			local_prehsp = 0;
+			}
+		MaybeReportIdxProgress(S);
 		}
 
 	if (!Pending.empty())
@@ -288,7 +322,6 @@ static void idx_search_thread_body(IdxSearchShared *S)
 
 	S->n_prehsp.fetch_add(local_prehsp, memory_order_relaxed);
 	S->n_hsp_accept.fetch_add(local_hsp_accept, memory_order_relaxed);
-	S->n_seed_flushes.fetch_add(local_flushes, memory_order_relaxed);
 
 	myfree(NeighborKmers);
 	myfree(TBestScore);
@@ -430,7 +463,7 @@ void cmd_idx_search_kappa()
 		fprintf(f_prehsp, "# targets\t%s\n", opt(db));
 		}
 
-	const uint SeedCap = max(Index.m_nseq * 2u, IDX_SEED_BUF_MIN);
+	const uint SeedCap = IDX_SEED_BUF_CAP;
 
 	IdxSearchShared Shared;
 	Shared.Index = &Index;
@@ -450,7 +483,8 @@ void cmd_idx_search_kappa()
 	const uint ThreadCount = GetRequestedThreadCount();
 	ProgressLog("Kappa DB-index filter threads %u  queries %u  seed_buf %u\n",
 		ThreadCount, nquery, SeedCap);
-	ProgressStep(0, 1000, "Kappa DB-index filter");
+	asserta(nquery > 0);
+	ProgressStep(0, nquery, "Kappa DB-index filter");
 	time_t t0 = time(0);
 
 	vector<thread *> ts;
@@ -461,7 +495,7 @@ void cmd_idx_search_kappa()
 	for (uint ti = 0; ti < ThreadCount; ++ti)
 		delete ts[ti];
 
-	ProgressStep(999, 1000, "Kappa DB-index filter");
+	ProgressStep(nquery - 1, nquery, "Kappa DB-index filter");
 
 	if (f_prehsp != 0)
 		CloseStdioFile(f_prehsp);
