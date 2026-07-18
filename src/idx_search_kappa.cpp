@@ -69,11 +69,13 @@ struct IdxSearchShared
 	const vector<string> *t_labels = 0;
 	uint nquery = 0;
 	uint seed_cap = 0;
+	uint max_seqs = 0;	// 0 = unlimited; else Foldseek-like top-N HSP floor
 	FILE *f_prehsp = 0;
 	atomic<uint> next_qidx{0};
 	atomic<uint> n_queries_done{0};
 	atomic<uint64> n_prehsp{0};
 	atomic<uint64> n_hsp_accept{0};
+	atomic<uint64> n_hsp_skip{0};
 	atomic<uint64> n_seed_flushes{0};
 	atomic<time_t> time_last_progress{0};
 	};
@@ -114,6 +116,7 @@ static void idx_search_thread_body(IdxSearchShared *S)
 	const int MinScore = S->MinScore;
 	const uint nseq = Index.m_nseq;
 	const uint SeedCap = S->seed_cap;
+	const uint MaxSeqs = S->max_seqs;
 	const bool twohit = flat_params::m_kappa_twohitdiag;
 
 	uint *NeighborKmers = myalloc(uint, Index.m_DictSize);
@@ -133,7 +136,49 @@ static void idx_search_thread_body(IdxSearchShared *S)
 
 	uint64 local_prehsp = 0;
 	uint64 local_hsp_accept = 0;
+	uint64 local_hsp_skip = 0;
 	uint n_thit = 0;
+	uint16_t max_seqs_floor = 0;
+
+	auto RecomputeMaxSeqsFloor = [&]()
+		{
+		if (MaxSeqs == 0 || n_thit < MaxSeqs)
+			{
+			max_seqs_floor = 0;
+			return;
+			}
+		uint16_t mn = UINT16_MAX;
+		for (uint i = 0; i < n_thit; ++i)
+			{
+			const uint16_t sc = TBestScore[THitList[i]];
+			if (sc < mn)
+				mn = sc;
+			}
+		max_seqs_floor = (mn == UINT16_MAX) ? 0 : mn;
+		};
+
+	auto EvictWorstIfNeeded = [&]()
+		{
+		if (MaxSeqs == 0)
+			return;
+		while (n_thit > MaxSeqs)
+			{
+			uint worst_i = 0;
+			uint16_t worst_sc = TBestScore[THitList[0]];
+			for (uint i = 1; i < n_thit; ++i)
+				{
+				const uint16_t sc = TBestScore[THitList[i]];
+				if (sc < worst_sc)
+					{
+					worst_sc = sc;
+					worst_i = i;
+					}
+				}
+			TBestScore[THitList[worst_i]] = 0;
+			THitList[worst_i] = THitList[--n_thit];
+			}
+		RecomputeMaxSeqsFloor();
+		};
 
 	auto NoteBest = [&](uint qidx, const byte *QSeq, uint QL,
 		const char *QLabel, uint tidx, uint16_t diag)
@@ -150,6 +195,21 @@ static void idx_search_thread_body(IdxSearchShared *S)
 		if (TL < flat_params::m_kappa_min_chainlength)
 			return;
 
+		const bool already = (TBestScore[tidx] != 0);
+
+		// Foldseek-like: once top-N is full, skip HSP that cannot beat the floor.
+		if (!already && max_seqs_floor > 0)
+			{
+			int mini, minj, n;
+			kappa_get_hsp_limits(int(QL), int(TL), int(diag), mini, minj, n);
+			const int bound = n * flat_params::m_kappa_max_pos_logodds;
+			if (bound < int(max_seqs_floor))
+				{
+				++local_hsp_skip;
+				return;
+				}
+			}
+
 		int DiagScore = ExtendDiagToHSP_DB(QSeq, QL, S->t_kappa[tidx], TL,
 			diag, qidx, kappa_filter::m_RSB);
 		if (DiagScore <= 0)
@@ -159,10 +219,18 @@ static void idx_search_thread_body(IdxSearchShared *S)
 		if (DiagScore >= UINT16_MAX)
 			DiagScore = UINT16_MAX - 1;
 		const uint16_t sc = uint16_t(DiagScore);
-		if (TBestScore[tidx] == 0)
+
+		if (!already && max_seqs_floor > 0 && sc <= max_seqs_floor)
+			{
+			++local_hsp_skip;
+			return;
+			}
+
+		if (!already)
 			THitList[n_thit++] = tidx;
 		if (sc > TBestScore[tidx])
 			TBestScore[tidx] = sc;
+		EvictWorstIfNeeded();
 		};
 
 	auto FlushSeeds = [&](uint qidx, const byte *QSeq, uint QL, const char *QLabel)
@@ -254,6 +322,7 @@ static void idx_search_thread_body(IdxSearchShared *S)
 		SeedBuf.clear();
 		TwoHitCarry.clear();
 		n_thit = 0;
+		max_seqs_floor = 0;
 
 		Index.GetKmers(QSeq, QL, QKmers);
 		const uint NK = SIZE(QKmers);
@@ -322,6 +391,7 @@ static void idx_search_thread_body(IdxSearchShared *S)
 
 	S->n_prehsp.fetch_add(local_prehsp, memory_order_relaxed);
 	S->n_hsp_accept.fetch_add(local_hsp_accept, memory_order_relaxed);
+	S->n_hsp_skip.fetch_add(local_hsp_skip, memory_order_relaxed);
 
 	myfree(NeighborKmers);
 	myfree(TBestScore);
@@ -479,12 +549,17 @@ void cmd_idx_search_kappa()
 	Shared.t_labels = &t_labels;
 	Shared.nquery = nquery;
 	Shared.seed_cap = SeedCap;
+	Shared.max_seqs = optset_max_seqs ? opt(max_seqs) : 0;
 	Shared.f_prehsp = f_prehsp;
 	Shared.time_last_progress = time(0);
 
 	const uint ThreadCount = GetRequestedThreadCount();
-	ProgressLog("Kappa DB-index filter threads %u  queries %u  seed_buf %u\n",
-		ThreadCount, nquery, SeedCap);
+	if (Shared.max_seqs > 0)
+		ProgressLog("Kappa DB-index filter threads %u  queries %u  seed_buf %u  max_seqs %u\n",
+			ThreadCount, nquery, SeedCap, Shared.max_seqs);
+	else
+		ProgressLog("Kappa DB-index filter threads %u  queries %u  seed_buf %u  max_seqs=off\n",
+			ThreadCount, nquery, SeedCap);
 	asserta(nquery > 0);
 	ProgressStep(0, nquery, "Kappa DB-index filter");
 	time_t t0 = time(0);
@@ -504,11 +579,12 @@ void cmd_idx_search_kappa()
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
 	time_t t1 = time(0);
-	ProgressLog("Kappa DB-index filter %u secs  prehsp=%s  rsb_pairs=%u  hsp_targets=%llu  flushes=%llu\n",
+	ProgressLog("Kappa DB-index filter %u secs  prehsp=%s  rsb_pairs=%u  hsp_targets=%llu  hsp_skip=%llu  flushes=%llu\n",
 		uint(t1 - t0),
 		FloatToStr((float) Shared.n_prehsp.load()),
 		total,
 		(unsigned long long) Shared.n_hsp_accept.load(),
+		(unsigned long long) Shared.n_hsp_skip.load(),
 		(unsigned long long) Shared.n_seed_flushes.load());
 
 	vector<uint> dbidxs;
