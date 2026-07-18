@@ -298,9 +298,8 @@ static void idx_search_thread_body(IdxSearchShared *S)
 void cmd_idx_search_kappa()
 	{
 	asserta(optset_db);
-	asserta(optset_input2);
 	asserta(EndsWith(g_Arg1, ".bcb"));
-	asserta(EndsWith(string(opt(input2)), ".bcb"));
+	asserta(EndsWith(string(opt(db)), ".bcb"));
 
 	set_default_stats();
 	flat_params params;
@@ -311,34 +310,55 @@ void cmd_idx_search_kappa()
 
 	kappa_filter::init_kappa();
 
-	kappa_dex Index;
-	Index.FromFile(opt(db));
-	asserta(Index.m_nseq > 0);
-	asserta(Index.m_DictSize > 0);
-
-	const uint k = Index.m_k;
-	const kappa_mermx &GetKappaMerMx(uint k);
-	const kappa_mermx &ScoreMx = GetKappaMerMx(k);
-	asserta(ScoreMx.m_k == k);
-	asserta(ScoreMx.m_AS_pow[k] == Index.m_DictSize);
-
-	Index.m_KmerSelfScores = ScoreMx.BuildSelfScores_Kmers();
-	const int MinScore = flat_params::m_kappa_min_kmerpairscore;
-	if (MinScore != Index.m_MinKmerSelfScore)
-		ProgressLog("Warning: -kappa_minkmerscore %d != index MinKmerSelfScore %d\n",
-			MinScore, Index.m_MinKmerSelfScore);
-
-	ProgressLog("Index db k-mer neighborhoods (exact .kdx, hood on query)\n");
-
 	BCAData DBBCA;
-	DBBCA.Open(opt(input2));
+	DBBCA.Open(opt(db));
 	asserta(DBBCA.m_HasNuSequences);
-	asserta(DBBCA.GetChainCount() == Index.m_nseq);
 
 	uint8_t **t_kappa = 0;
 	uint *t_lengths = 0;
 	DBBCA.make_kappa_codeseqs(&t_kappa, &t_lengths);
 	const vector<string> &t_labels = DBBCA.m_Labels;
+	const uint nseq = DBBCA.GetChainCount();
+
+	kappa_dex Index;
+	const kappa_mermx &GetKappaMerMx(uint k);
+	const int MinScore = flat_params::m_kappa_min_kmerpairscore;
+	const kappa_mermx *ptrScoreMx = 0;
+
+	if (optset_kdx)
+		{
+		Index.FromFile(opt(kdx));
+		asserta(Index.m_nseq > 0);
+		asserta(Index.m_DictSize > 0);
+		asserta(Index.m_nseq == nseq);
+		const uint k = Index.m_k;
+		ptrScoreMx = &GetKappaMerMx(k);
+		asserta(ptrScoreMx->m_k == k);
+		asserta(ptrScoreMx->m_AS_pow[k] == Index.m_DictSize);
+		Index.m_KmerSelfScores = ptrScoreMx->BuildSelfScores_Kmers();
+		if (MinScore != Index.m_MinKmerSelfScore)
+			ProgressLog("Warning: -kappa_minkmerscore %d != index MinKmerSelfScore %d\n",
+				MinScore, Index.m_MinKmerSelfScore);
+		ProgressLog("Loaded .kdx %s  (exact DB index, hood on query)\n", opt(kdx));
+		}
+	else
+		{
+		Index.Init();
+		const uint k = flat_params::m_kappa_kmer_nrones;
+		ptrScoreMx = &GetKappaMerMx(k);
+		asserta(ptrScoreMx->m_k == k);
+		Index.m_KmerSelfScores = ptrScoreMx->BuildSelfScores_Kmers();
+		Index.m_MinKmerSelfScore = MinScore;
+		Index.m_AddNeighborhood = false;
+		Index.m_ptrScoreMx = 0;
+		ProgressLog("Building kappa_dex on the fly from %s\n", opt(db));
+		Index.from_codeseqs(t_kappa, t_lengths, t_labels, nseq);
+		asserta(Index.m_nseq == nseq);
+		ProgressLog("On-the-fly index ready  nseq=%u  postings=%s\n",
+			nseq, Int64ToStr(Index.m_Size));
+		}
+
+	const kappa_mermx &ScoreMx = *ptrScoreMx;
 
 	BCAData QBCA;
 	QBCA.Open(g_Arg1);
@@ -402,9 +422,12 @@ void cmd_idx_search_kappa()
 		{
 		f_prehsp = CreateStdioFile(opt(dump_prefilter_prehsp));
 		kappa_filter::write_prehsp_tsv_header(f_prehsp, "db_index");
-		fprintf(f_prehsp, "# index\t%s\n", opt(db));
+		if (optset_kdx)
+			fprintf(f_prehsp, "# index\t%s\n", opt(kdx));
+		else
+			fprintf(f_prehsp, "# index\ton_the_fly\n");
 		fprintf(f_prehsp, "# query\t%s\n", g_Arg1.c_str());
-		fprintf(f_prehsp, "# targets\t%s\n", opt(input2));
+		fprintf(f_prehsp, "# targets\t%s\n", opt(db));
 		}
 
 	const uint SeedCap = max(Index.m_nseq * 2u, IDX_SEED_BUF_MIN);

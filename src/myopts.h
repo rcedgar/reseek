@@ -106,6 +106,7 @@ STR_OPT(kappa_logodds)
 STR_OPT(logodds)
 STR_OPT(can)
 STR_OPT(stats)
+STR_OPT(kdx)
 
 UNS_OPT(bail)
 UNS_OPT(threads)
