@@ -528,7 +528,8 @@ void kappa_dex::from_codeseqs(
 	uint8_t **kappa_codeseqs,
 	const uint *lengths,
 	const vector<string> &labels,
-	uint nseq)
+	uint nseq,
+	uint build_threads)
 	{
 	m_kappa_codeseqs = kappa_codeseqs;
 	m_seq_lengths = lengths;
@@ -551,7 +552,7 @@ void kappa_dex::from_codeseqs(
 
 	Alloc_Pass1();
 
-	const uint ThreadCount = GetRequestedThreadCount();
+	const uint ThreadCount = (build_threads == 0) ? GetRequestedThreadCount() : build_threads;
 	const bool do_parallel = (!m_AddNeighborhood && ThreadCount > 1 && nseq >= 64);
 
 	if (!do_parallel)

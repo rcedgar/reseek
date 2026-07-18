@@ -81,11 +81,13 @@ After Pass 2:
 public:
 	void Init();
 	void FromSeqDB(const SeqDB &Input);
+	// build_threads: 0 = GetRequestedThreadCount(); 1 = serial (used by DB shards).
 	void from_codeseqs(
 		uint8_t **kappa_codeseqs,
 		const uint *lengths,
 		const vector<string> &labels,
-		uint nseq);
+		uint nseq,
+		uint build_threads = 0);
 
 	uint get_seq_length(uint idx) const
 		{
