@@ -753,6 +753,7 @@ Binary kappa_dex layout (little-endian):
 ***/
 void kappa_dex::ToFile(const string &FN) const
 	{
+	if (FN == "") return;
 	asserta(FN != "");
 	asserta(m_Finger != 0);
 	asserta(m_RowSizes != 0);
