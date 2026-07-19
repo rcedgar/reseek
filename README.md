@@ -37,6 +37,8 @@ On the [SCOP40 benchmark test](https://www.pnas.org/doi/abs/10.1073/pnas.95.11.6
 
 Reseek also provides a more accurate estimate of statistical significance, enabling users to set a cutoff based on an acceptable number of false positives for a given search, while Foldseek E-values may over-estimate significance by 5 to 6 orders of magnitude (reference below).
 
+Paper is here: [https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf](https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf).
+
 ### YouTube talk describing the algorithm
 
 Reseek is based on sequence alignment where each residue in the protein backbone is represented by a letter in a novel “mega-alphabet” of 85,899,345,920 (∼10<sup>11</sup>) distinct structure states. This talk explains how it works.
@@ -160,14 +162,17 @@ structs   foldseek  reseek-fast  reseek-sensitive
 
 [cath40.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/cath40.bcb) &nbsp;&nbsp;CATH40 34,647 structures (41Mb)
 
-### SCOP40 benchmark code and results (version 2, update for version 3 soon)
-Method sensitivity was measured on the SCOP40 benchmark using superfamily as
-the truth standard, focusing on the regime with false-positive error
-rates <10 per query, corresponding to E<10 for an ideal _E_-value.
-
+### SCOP40 benchmark code and results
 https://github.com/rcedgar/reseek_bench
 
-![Reseek](https://drive5.com/images/reseek_readme.jpg)
+![Reseek](https://drive5.com/images/reseek3_accuracy_preprint_fig.jpg)
+
+**Accuracy plots for SCOP40c superfamily and fold.**   
+The figure gives CVE, PR and ROC plots for the tested algorithm
+using SCOP40c (curated SCOP40, [https://github.com/rcedgar/scop40c](https://github.com/rcedgar/scop40c)) as reference and superfamily and fold as truth standards. For a CVE plot, a lower curve is better while
+for PR and ROC a higher curve is better. These curves show that Reseek-sensitive has higher accuracy than other
+tested methods in the high-scoring regime (up to 10 errors per query for CVE, ≥ 70% precision for PR and < 10−4
+FPR for ROC).
 
 ### References
 
@@ -175,3 +180,5 @@ Edgar RC. "Protein structure alignment by Reseek improves sensitivity to remote 
 [https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215](https://academic.oup.com/bioinformatics/article/40/11/btae687/7901215)
 
 Edgar RC. and Sahakyan S. "Protein structure alignment significance is often exaggerated" (_bioRxiv_ 2025) [https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1](https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1)
+
+Edgar RC. Rich structure alphabets enable highest accuracy protein search (2026) [https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf](https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf)
