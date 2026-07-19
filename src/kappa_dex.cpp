@@ -529,7 +529,8 @@ void kappa_dex::from_codeseqs(
 	const uint *lengths,
 	const vector<string> &labels,
 	uint nseq,
-	uint build_threads)
+	uint build_threads,
+	bool quiet)
 	{
 	m_kappa_codeseqs = kappa_codeseqs;
 	m_seq_lengths = lengths;
@@ -538,7 +539,7 @@ void kappa_dex::from_codeseqs(
 		asserta(m_ptrScoreMx != 0);
 	if (m_UniqueKmer && m_AddNeighborhood)
 		Die("-unique_kmer is only supported for exact indexes (no neighborhoods)");
-	if (m_UniqueKmer)
+	if (m_UniqueKmer && !quiet)
 		ProgressLog("kappa_dex unique_kmer=yes (one posting per kmer per seq)\n");
 
 	if (nseq == 0)
@@ -559,7 +560,8 @@ void kappa_dex::from_codeseqs(
 		{
 		for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
 			{
-			ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 1");
+			if (!quiet)
+				ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 1");
 			const char *Label = 0;
 			const byte *Seq = kappa_codeseqs[SeqIdx];
 			const uint L = lengths[SeqIdx];
@@ -576,7 +578,8 @@ void kappa_dex::from_codeseqs(
 		Alloc_Pass2();
 		for (uint SeqIdx = 0; SeqIdx < m_nseq; ++SeqIdx)
 			{
-			ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 2");
+			if (!quiet)
+				ProgressStep(SeqIdx, m_nseq, "kappa_dex pass 2");
 			const char *Label = 0;
 			const byte *Seq = kappa_codeseqs[SeqIdx];
 			const uint L = lengths[SeqIdx];
@@ -591,8 +594,9 @@ void kappa_dex::from_codeseqs(
 		return;
 		}
 
-	ProgressLog("kappa_dex parallel build  threads=%u  nseq=%u  unique_kmer=%c\n",
-		ThreadCount, nseq, tof(m_UniqueKmer));
+	if (!quiet)
+		ProgressLog("kappa_dex parallel build  threads=%u  nseq=%u  unique_kmer=%c\n",
+			ThreadCount, nseq, tof(m_UniqueKmer));
 
 	const uint DictSize = m_DictSize;
 	const uint k = m_k;
@@ -613,7 +617,8 @@ void kappa_dex::from_codeseqs(
 	std::atomic<uint> next_seq{0};
 	std::mutex progress_lock;
 	vector<thread *> ts;
-	ProgressStep(0, nseq, "kappa_dex pass 1");
+	if (!quiet)
+		ProgressStep(0, nseq, "kappa_dex pass 1");
 	for (uint tid = 0; tid < ThreadCount; ++tid)
 		{
 		ts.push_back(new thread(
@@ -627,7 +632,7 @@ void kappa_dex::from_codeseqs(
 				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
 				if (SeqIdx >= nseq)
 					break;
-				if ((SeqIdx & 0x3ff) == 0)
+				if (!quiet && (SeqIdx & 0x3ff) == 0)
 					{
 					lock_guard<mutex> lock(progress_lock);
 					if (SeqIdx < nseq)
@@ -652,7 +657,8 @@ void kappa_dex::from_codeseqs(
 		ts[tid]->join();
 		delete ts[tid];
 		}
-	ProgressStep(nseq - 1, nseq, "kappa_dex pass 1");
+	if (!quiet)
+		ProgressStep(nseq - 1, nseq, "kappa_dex pass 1");
 	}
 
 	m_Size = 0;
@@ -681,7 +687,8 @@ void kappa_dex::from_codeseqs(
 	std::atomic<uint> next_seq{0};
 	std::mutex progress_lock;
 	vector<thread *> ts;
-	ProgressStep(0, nseq, "kappa_dex pass 2");
+	if (!quiet)
+		ProgressStep(0, nseq, "kappa_dex pass 2");
 	for (uint tid = 0; tid < ThreadCount; ++tid)
 		{
 		ts.push_back(new thread(
@@ -694,7 +701,7 @@ void kappa_dex::from_codeseqs(
 				const uint SeqIdx = next_seq.fetch_add(1, std::memory_order_relaxed);
 				if (SeqIdx >= nseq)
 					break;
-				if ((SeqIdx & 0x3ff) == 0)
+				if (!quiet && (SeqIdx & 0x3ff) == 0)
 					{
 					lock_guard<mutex> lock(progress_lock);
 					if (SeqIdx < nseq)
@@ -725,7 +732,8 @@ void kappa_dex::from_codeseqs(
 		ts[tid]->join();
 		delete ts[tid];
 		}
-	ProgressStep(nseq - 1, nseq, "kappa_dex pass 2");
+	if (!quiet)
+		ProgressStep(nseq - 1, nseq, "kappa_dex pass 2");
 	}
 
 	SetRowSizes();

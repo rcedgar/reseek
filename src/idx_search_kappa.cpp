@@ -426,11 +426,32 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 struct IdxShardArgs
 	{
 	IdxSearchShared *S = 0;
+	kappa_dex *Index = 0;
 	uint seq_lo = 0;
 	uint seq_hi = 0;
 	uint shard_id = 0;
 	uint nshards = 0;
 	};
+
+static void idx_build_shard_index(IdxShardArgs *A)
+	{
+	IdxSearchShared *S = A->S;
+	const uint lo = A->seq_lo;
+	const uint hi = A->seq_hi;
+	asserta(hi >= lo);
+	const uint nshard = hi - lo;
+	kappa_dex &Index = *A->Index;
+	Index.Init();
+	asserta(S->KmerSelfScores != 0);
+	Index.m_KmerSelfScores = S->KmerSelfScores;
+	Index.m_MinKmerSelfScore = S->MinScore;
+	Index.m_AddNeighborhood = false;
+	Index.m_UniqueKmer = opt(unique_kmer);
+	Index.m_ptrScoreMx = 0;
+	// Serial + quiet: shard workers already run in parallel; outer Progress wraps phase.
+	Index.from_codeseqs(S->t_kappa + lo, S->t_lengths + lo, *S->t_labels,
+		nshard, /*build_threads=*/1, /*quiet=*/true);
+	}
 
 static void idx_search_shard_thread(IdxShardArgs *A)
 	{
@@ -446,21 +467,9 @@ static void idx_search_shard_thread(IdxShardArgs *A)
 		return;
 		}
 
-	kappa_dex Index;
-	Index.Init();
-	asserta(S->KmerSelfScores != 0);
-	Index.m_KmerSelfScores = S->KmerSelfScores;
-	Index.m_MinKmerSelfScore = S->MinScore;
-	Index.m_AddNeighborhood = false;
-	Index.m_UniqueKmer = opt(unique_kmer);
-	Index.m_ptrScoreMx = 0;
-	// Serial build: shard workers already run in parallel.
-	Index.from_codeseqs(S->t_kappa + lo, S->t_lengths + lo, *S->t_labels,
-		nshard, /*build_threads=*/1);
-
 	IdxThreadCtx Ctx;
 	Ctx.S = S;
-	Ctx.Index = &Index;
+	Ctx.Index = A->Index;
 	Ctx.seq_base = lo;
 	Ctx.all_queries = true;
 	idx_search_thread_body(&Ctx);
@@ -507,8 +516,8 @@ void cmd_idx_search_kappa()
 		const uint k = flat_params::m_kappa_kmer_nrones;
 		ptrScoreMx = &GetKappaMerMx(k);
 		asserta(ptrScoreMx->m_k == k);
-		ProgressLog("DB-shard mode  shards=%u  nseq=%u  (private index per shard, all queries)\n",
-			DbShards, nseq);
+		ProgressLog("DB-shard mode  shards=%u  nseq=%u  (private index per shard, all queries)%s\n",
+			DbShards, nseq, opt(unique_kmer) ? "  (-unique_kmer)" : "");
 		}
 	else if (optset_kdx)
 		{
@@ -658,28 +667,49 @@ void cmd_idx_search_kappa()
 		else
 			ProgressLog("Kappa DB-index filter db_shards %u  queries %u  seed_buf %u  max_seqs=off\n",
 				T, nquery, SeedCap);
-		ProgressStep(0, Shared.progress_total, "Kappa DB-index filter");
 
+		vector<kappa_dex *> shard_indexes(T);
 		vector<IdxShardArgs> args(T);
-		vector<thread *> ts;
 		for (uint ti = 0; ti < T; ++ti)
 			{
 			const uint lo = uint((uint64_t(ti) * nseq) / T);
 			const uint hi = uint((uint64_t(ti + 1) * nseq) / T);
+			shard_indexes[ti] = new kappa_dex;
 			args[ti].S = &Shared;
+			args[ti].Index = shard_indexes[ti];
 			args[ti].seq_lo = lo;
 			args[ti].seq_hi = hi;
 			args[ti].shard_id = ti;
 			args[ti].nshards = T;
-			ts.push_back(new thread(idx_search_shard_thread, &args[ti]));
 			}
+
+		Progress("Building %u DB shard indexes ...", T);
+		{
+		vector<thread *> ts;
+		for (uint ti = 0; ti < T; ++ti)
+			ts.push_back(new thread(idx_build_shard_index, &args[ti]));
 		for (uint ti = 0; ti < T; ++ti)
 			ts[ti]->join();
 		for (uint ti = 0; ti < T; ++ti)
 			delete ts[ti];
+		}
+		Progress(" done.\n");
 
+		ProgressStep(0, Shared.progress_total, "Kappa DB-index filter");
+		{
+		vector<thread *> ts;
+		for (uint ti = 0; ti < T; ++ti)
+			ts.push_back(new thread(idx_search_shard_thread, &args[ti]));
+		for (uint ti = 0; ti < T; ++ti)
+			ts[ti]->join();
+		for (uint ti = 0; ti < T; ++ti)
+			delete ts[ti];
+		}
 		ProgressStep(Shared.progress_total - 1, Shared.progress_total,
 			"Kappa DB-index filter");
+
+		for (uint ti = 0; ti < T; ++ti)
+			delete shard_indexes[ti];
 		}
 	else
 		{

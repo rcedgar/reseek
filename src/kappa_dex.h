@@ -82,12 +82,14 @@ public:
 	void Init();
 	void FromSeqDB(const SeqDB &Input);
 	// build_threads: 0 = GetRequestedThreadCount(); 1 = serial (used by DB shards).
+	// quiet: skip ProgressStep / ProgressLog (DB sharding: one outer start/end).
 	void from_codeseqs(
 		uint8_t **kappa_codeseqs,
 		const uint *lengths,
 		const vector<string> &labels,
 		uint nseq,
-		uint build_threads = 0);
+		uint build_threads = 0,
+		bool quiet = false);
 
 	uint get_seq_length(uint idx) const
 		{
