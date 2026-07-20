@@ -25,18 +25,18 @@ public:
 	float *m_feature_logodds = 0;
 
 	chain_data **m_cdvec = 0;
-	atomic<uint> m_next_pairidx = 0;
-	atomic<uint> m_next_domidx = 0;
+	atomic<uint> m_next_pairidx{0};
+	atomic<uint> m_next_domidx{0};
 	float *m_self_rev_scores = 0;
 	float *m_nu_self_rev_scores = 0;
 	bool m_nu_only = false;
 	bool m_timealn = false;
-	atomic<uint> m_aln_count = 0;
-	atomic<uint> m_mega_fwd_test_count= 0;
-	atomic<uint> m_mega_fwd_pass_count= 0;
-	atomic<uint> m_nu_fwd_reject_count = 0;
-	atomic<uint> m_nu_combined_reject_count = 0;
-	atomic<uint> m_nu_pass_count = 0;
+	atomic<uint> m_aln_count{0};
+	atomic<uint> m_mega_fwd_test_count{0};
+	atomic<uint> m_mega_fwd_pass_count{0};
+	atomic<uint> m_nu_fwd_reject_count{0};
+	atomic<uint> m_nu_combined_reject_count{0};
+	atomic<uint> m_nu_pass_count{0};
 
 	bool m_output_nu_paths = false;
 	bool m_input_mega_paths = false;
