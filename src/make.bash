@@ -1,7 +1,7 @@
 mkdir -p ../bin
 
 ./gitver.bash
-python3 ../py/vcxproj_make_e539775.py --openmp --bash 2> make.stderr
+python3 ../py/vcxproj_make_0c8d9d1.py --openmp --x86-64-v3 --bash 2> make.stderr
 rc=$?
 
 echo
