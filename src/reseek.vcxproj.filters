@@ -395,6 +395,9 @@
     <ClCompile Include="flat_dali.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dali_roundtrip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="flat_params.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

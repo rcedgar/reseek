@@ -358,6 +358,10 @@ void flat_make_peaker_spec_range(
 	vector<string> &lines,
 	double rate = 1.1);
 
+void validate_flat_peaker_spec(
+	const vector<string> &SpecLines,
+	vector<string> &alpha_names);
+
 uint path2posvecs3(
 	const char *path, uint ncol,
 	uint loQ, uint LQ,

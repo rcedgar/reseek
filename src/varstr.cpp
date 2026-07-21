@@ -1,6 +1,9 @@
 #include "myutils.h"
 #include "flat_helpers.h"
 #include "flat_params.h"
+#include "peaker.h"
+#include "fan.h"
+#include <unordered_set>
 
 /***
 [scalar]     0.89  gap2
@@ -161,6 +164,15 @@ void flat_make_varstr(const flat_params &params, string &varstr)
 	{
 	varstr.clear();
 
+	if (params.m_pvm == PVM_fam)
+		Psa(varstr, "pv=1;\n");
+	else if (params.m_pvm == PVM_sf)
+		Psa(varstr, "pv=2;\n");
+	else if (params.m_pvm == PVM_fold)
+		Psa(varstr, "pv=3;\n");
+	else
+		Die("flat_make_varstr: invalid pvm");
+
 	if (feq(params.m_open, params.m_ext*10))
 		Psa(varstr, "gap2=%.4g;\n", params.m_open);
 	else
@@ -177,9 +189,18 @@ void flat_make_varstr(const flat_params &params, string &varstr)
 	for (uint fi = 0; fi < params.m_nfeat; ++fi)
 		{
 		Psa(varstr, "%s=%.4g;\n",
-			params.m_alpha_names[fi],
+			params.m_alpha_names[fi].c_str(),
 			params.m_weights[fi]);
 		}
+	}
+
+static float pvm_to_float(PVALUE_MODE pvm)
+	{
+	if (pvm == PVM_fam) return 1;
+	if (pvm == PVM_sf) return 2;
+	if (pvm == PVM_fold) return 3;
+	Die("pvm_to_float: invalid pvm");
+	return 0;
 	}
 
 void flat_make_peaker_spec_const(
@@ -188,6 +209,9 @@ void flat_make_peaker_spec_const(
 	lines.clear();
 
 	string line;
+	Ps(line, "var=pv;constant=%.4g;", pvm_to_float(params.m_pvm));
+	lines.push_back(line);
+
 	if (feq(params.m_open, params.m_ext*10))
 		{
 		Ps(line, "var=gap2;constant=%.4g;", params.m_open);
@@ -198,7 +222,7 @@ void flat_make_peaker_spec_const(
 		Ps(line, "var=open;constant=%.4g;", params.m_open);
 		lines.push_back(line);
 
-		Ps(line, "var=ext;constant=%.4g", params.m_ext);
+		Ps(line, "var=ext;constant=%.4g;", params.m_ext);
 		lines.push_back(line);
 		}
 
@@ -210,8 +234,8 @@ void flat_make_peaker_spec_const(
 
 	for (uint fi = 0; fi < params.m_nfeat; ++fi)
 		{
-		Ps(line, "var=%s;constant=%.4g;isalpha=yes;",
-			params.m_alpha_names[fi],
+		Ps(line, "var=%s;constant=%.4g;isalpha=yes;weight=yes;",
+			params.m_alpha_names[fi].c_str(),
 			params.m_weights[fi]);
 		lines.push_back(line);
 		}
@@ -225,6 +249,10 @@ void flat_make_peaker_spec_range(
 	lines.clear();
 
 	string line;
+	// pv is discrete; keep constant in range templates
+	Ps(line, "var=pv;constant=%.4g;", pvm_to_float(params.m_pvm));
+	lines.push_back(line);
+
 	if (feq(params.m_open, params.m_ext*10))
 		{
 		Ps(line, "var=gap2;min=%.4g;max=%.4g;",
@@ -237,7 +265,7 @@ void flat_make_peaker_spec_range(
 			params.m_open/rate, params.m_open*rate);
 		lines.push_back(line);
 
-		Ps(line, "var=ext;constant=%.4g",
+		Ps(line, "var=ext;min=%.4g;max=%.4g;",
 			params.m_ext/rate, params.m_ext*rate);
 		lines.push_back(line);
 		}
@@ -254,10 +282,123 @@ void flat_make_peaker_spec_range(
 
 	for (uint fi = 0; fi < params.m_nfeat; ++fi)
 		{
-		Ps(line, "var=%s;min=%.4g;max=%.4g;isalpha=yes;",
-			params.m_alpha_names[fi],
-			params.m_weights[fi]/rate,
-			params.m_weights[fi]*rate);
+		float w = params.m_weights[fi];
+		if (w == 0)
+			Ps(line, "var=%s;constant=0;isalpha=yes;weight=yes;",
+				params.m_alpha_names[fi].c_str());
+		else
+			Ps(line, "var=%s;min=%.4g;max=%.4g;isalpha=yes;weight=yes;",
+				params.m_alpha_names[fi].c_str(),
+				w/rate, w*rate);
 		lines.push_back(line);
 		}
 	}
+
+static bool is_known_scalar_name(const string &name)
+	{
+	if (name == "gap2" || name == "pv")
+		return true;
+#define x(param_name, member_name) if (name == #param_name) return true;
+#include "tunable_flat_params.h"
+	return false;
+	}
+
+void validate_flat_peaker_spec(
+	const vector<string> &SpecLines,
+	vector<string> &alpha_names)
+	{
+	alpha_names.clear();
+
+	unordered_set<string> seen_names;
+	unordered_set<string> scalar_names;
+	bool has_gap2 = false;
+	bool has_open = false;
+	bool has_ext = false;
+
+	for (uint i = 0; i < SIZE(SpecLines); ++i)
+		{
+		const string &Line = SpecLines[i];
+		if (Line.empty() || StartsWith(Line, "#"))
+			continue;
+		if (!StartsWith(Line, "var="))
+			continue;
+
+		string name;
+		Peaker::SpecGetStr(Line, "var", name, "");
+		if (name.empty())
+			Die("peaker spec line missing var= name: %s", Line.c_str());
+		if (seen_names.find(name) != seen_names.end())
+			Die("Duplicate peaker var '%s'", name.c_str());
+		seen_names.insert(name);
+
+		const bool isalpha = Peaker::SpecGetBool(Line, "isalpha", false);
+		const bool isweight = Peaker::SpecGetBool(Line, "weight", false);
+		string constant;
+		Peaker::SpecGetStr(Line, "constant", constant, "");
+		string minv;
+		string maxv;
+		Peaker::SpecGetStr(Line, "min", minv, "");
+		Peaker::SpecGetStr(Line, "max", maxv, "");
+		const bool has_const = (constant != "");
+		const bool has_range = (minv != "" && maxv != "");
+		if (has_const == has_range)
+			Die("Peaker var '%s' must have either constant= or min=+max= (not both/neither)",
+				name.c_str());
+		if ((minv != "") != (maxv != ""))
+			Die("Peaker var '%s' needs both min= and max=", name.c_str());
+
+		if (isalpha)
+			{
+			if (is_known_scalar_name(name))
+				Die("Peaker var '%s' is a scalar but has isalpha=yes", name.c_str());
+			uint alpha_size = 0;
+			FAN fan = parse_alpha_name(name, alpha_size);
+			if (fan == FAN_COUNT || alpha_size == 0)
+				Die("Invalid alphabet name in peaker spec '%s'", name.c_str());
+			alpha_names.push_back(name);
+			}
+		else
+			{
+			if (isweight)
+				Die("weight=yes is only legal with isalpha=yes (var=%s)", name.c_str());
+			if (!is_known_scalar_name(name))
+				Die("Unknown peaker scalar '%s' (alphabet names require isalpha=yes)",
+					name.c_str());
+			scalar_names.insert(name);
+			if (name == "gap2") has_gap2 = true;
+			if (name == "open") has_open = true;
+			if (name == "ext") has_ext = true;
+			}
+		}
+
+	if (SIZE(alpha_names) == 0)
+		Die("Peaker spec must include at least one alphabet (isalpha=yes)");
+
+	if (has_gap2)
+		{
+		if (has_open || has_ext)
+			Die("Peaker spec: use gap2 or open+ext, not both");
+		}
+	else
+		{
+		if (!has_open || !has_ext)
+			Die("Peaker spec: missing gap2, or missing open/ext");
+		}
+
+	if (scalar_names.find("pv") == scalar_names.end())
+		Die("Peaker spec missing required scalar pv");
+
+#define x(param_name, member_name)	\
+	if (string(#param_name) != "open" && string(#param_name) != "ext") { \
+		if (scalar_names.find(#param_name) == scalar_names.end()) \
+			Die("Peaker spec missing required scalar %s", #param_name); }
+#include "tunable_flat_params.h"
+
+	for (unordered_set<string>::const_iterator it = scalar_names.begin();
+		it != scalar_names.end(); ++it)
+		{
+		if (!is_known_scalar_name(*it))
+			Die("Unexpected scalar '%s'", it->c_str());
+		}
+	}
+

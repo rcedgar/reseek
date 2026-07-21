@@ -1,9 +1,12 @@
 #include "myutils.h"
-#include "flat_bench.h"
+#include "flat_bench2.h"
 #include "flat_helpers.h"
 #include "peaker.h"
+#include "paralign.h"
+#include "chain_data.h"
+#include <unordered_map>
 
-static flat_bench *s_FB;
+static flat_bench2 *s_FB;
 static Peaker *s_Peaker;
 static flat_params *s_params = 0;
 
@@ -14,10 +17,13 @@ static double EvalSum3(const vector<string> &xv)
 	asserta(SIZE(xv) == VarCount);
 	string VarStr;
 	s_Peaker->xv2xss(xv, VarStr);
-	s_FB->UpdateParamsFromVarStr(VarStr);
+	vector<string> param_names;
+	vector<float> param_values;
+	parse_varstr(VarStr, param_names, param_values);
+	s_FB->update_params(param_names, param_values);
 	s_FB->ClearHitsAndResults();
 	uint ThreadCount = GetRequestedThreadCount();
-	s_FB->Search(ThreadCount, false, optset_dope, UINT_MAX);
+	s_FB->search(ThreadCount, false);
 	s_FB->SetScoreOrder_Parallel();
 	double Sum3 = s_FB->Bench();
 	if (opt(sffp)) return s_FB->m_SFFP;
@@ -27,7 +33,7 @@ static double EvalSum3(const vector<string> &xv)
 static void Optimize(
 	const string &OptName,
 	const vector<string> &SpecLines,
-	flat_bench &FB,
+	flat_bench2 &FB,
 	double &Best_y,
 	vector<string> &Best_xv)
 	{
@@ -84,12 +90,8 @@ static void Optimize(
 	ProgressLog("=========================================\n");
 	}
 
-static void Climb(flat_bench &FullFB, const vector<string> &SpecLines)
+static void Climb(flat_bench2 &FullFB, const vector<string> &SpecLines)
 	{
-	string GlobalSpec;
-	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-
-	vector<string> Fields;
 	string ParamStr;
 	for (uint i = 0; i < SIZE(SpecLines); ++i)
 		{
@@ -103,35 +105,44 @@ static void Climb(flat_bench &FullFB, const vector<string> &SpecLines)
 	if (ParamStr.empty())
 		Die("Missing #init in spec");
 
-	vector<string> Fields2, VarNames, Init_xv;
+	vector<string> Fields, Fields2;
+	unordered_map<string, string> NameToInit;
 	Split(ParamStr, Fields, ';');
 	for (uint i = 0; i < SIZE(Fields); ++i)
 		{
+		if (Fields[i].empty())
+			continue;
 		Split(Fields[i], Fields2, '=');
 		asserta(SIZE(Fields2) == 2);
-		VarNames.push_back(Fields2[0]);
-		Init_xv.push_back(Fields2[1]);
+		NameToInit[Fields2[0]] = Fields2[1];
 		}
-	const uint VarCount = SIZE(VarNames);
 
-	s_FB = &FullFB;	
+	s_FB = &FullFB;
 	string PeakerName;
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
 	Pfull.Init(SpecLines, EvalSum3);
 	s_Peaker = &Pfull;
 
+	const uint VarCount = Pfull.GetVarCount();
+	vector<string> Init_xv;
+	for (uint i = 0; i < VarCount; ++i)
+		{
+		const string &name = Pfull.m_VarNames[i];
+		unordered_map<string, string>::const_iterator it = NameToInit.find(name);
+		if (it == NameToInit.end())
+			Die("Climb #init missing peaker var '%s'", name.c_str());
+		Init_xv.push_back(it->second);
+		}
+
 	Pfull.Evaluate(Init_xv, PeakerName + "_init");
 	Pfull.HJ_RunHookeJeeves();
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
-static void Resume(flat_bench &FullFB, const vector<string> &SpecLines)
+static void Resume(flat_bench2 &FullFB, const vector<string> &SpecLines)
 	{
-	string GlobalSpec;
-	Peaker::GetGlobalSpec(SpecLines, GlobalSpec);
-
-	s_FB = &FullFB;	
+	s_FB = &FullFB;
 	string PeakerName;
 	Ps(PeakerName, "climb");
 	Peaker Pfull(0, PeakerName);
@@ -143,9 +154,23 @@ static void Resume(flat_bench &FullFB, const vector<string> &SpecLines)
 	Pfull.WriteFinalResults(g_fLog);
 	}
 
+static void DoConst(flat_bench2 &FullFB, const vector<string> &SpecLines)
+	{
+	s_FB = &FullFB;
+	string PeakerName;
+	Ps(PeakerName, "const");
+	Peaker Pfull(0, PeakerName);
+	Pfull.Init(SpecLines, EvalSum3);
+	s_Peaker = &Pfull;
+	vector<string> xv;
+	Pfull.GetAllConst_xv(xv);
+	Pfull.Evaluate(xv, PeakerName + "_const");
+	Pfull.WriteFinalResults(g_fLog);
+	}
+
 static void SubClimb(
-	flat_bench &FullFB, 
-	flat_bench &SubsetFB, 
+	flat_bench2 &FullFB,
+	flat_bench2 &SubsetFB,
 	const vector<string> &SpecLines)
 	{
 	string GlobalSpec;
@@ -161,12 +186,12 @@ static void SubClimb(
 		{
 		double Best_y;
 		vector<string> Best_xv;
-		ProgressLog("Subset %u chains\n", SubsetFB.m_fp.get_nprof());
+		ProgressLog("Subset %u domains\n", SubsetFB.m_look->get_ndom());
 		string OptName;
 		Ps(OptName, "sub%u", SubsetIter);
 		Optimize(OptName, SpecLines, SubsetFB, Best_y, Best_xv);
 
-		s_FB = &FullFB;	
+		s_FB = &FullFB;
 		string PeakerName;
 		Ps(PeakerName, "all%u", SubsetIter);
 		Peaker Pfull(0, PeakerName);
@@ -194,27 +219,26 @@ void get_alpha_names_from_peaker_spec_file_lines(
 	vector<string> &lines,
 	vector<string> &alpha_names)
 	{
-	alpha_names.clear();
-	vector<string> flds;
-	for (size_t i = 0; i < lines.size(); ++i)
-		{
-		const string &line = lines[i];
-		if (!StartsWith(line, "var="))
-			continue;
-		Split(line, flds, ';');
-		const string var_eq_name = flds[0];
-		Split(var_eq_name, flds, '=');
-		asserta(flds.size() == 2);
-		const string &name = flds[1];
-		if (line.find("isalpha=yes;") != string::npos)
-			alpha_names.push_back(name);
-		}
+	validate_flat_peaker_spec(lines, alpha_names);
+	}
+
+static void setup_bench(
+	flat_bench2 &FB,
+	flat_params &params,
+	const vector<flat_chain_t *> &chains,
+	const string &dope_fn,
+	bool have_dope)
+	{
+	FB.m_params = &params;
+	FB.load_chains(chains);
+	chain_data::log_mem_stats(params, FB.m_cdvec, FB.m_look->get_ndom());
+	if (have_dope)
+		FB.ReadDope(dope_fn);
+	FB.Alloc();
 	}
 
 void cmd_flat_hjmega()
 	{
-	asserta(optset_alphadir);
-
 	asserta(!optset_fapattern);
 	asserta(!optset_mxpattern);
 	asserta(!optset_varstr); // must assert agrees with spec
@@ -225,26 +249,25 @@ void cmd_flat_hjmega()
 	ReadLinesFromFile(SpecFN, SpecLines);
 
 	vector<string> alpha_names;
-	get_alpha_names_from_peaker_spec_file_lines(
-		SpecLines, alpha_names);
+	validate_flat_peaker_spec(SpecLines, alpha_names);
 
 	void OpenOutputFiles();
 	OpenOutputFiles();
 	Peaker::m_fTsv = CreateStdioFile(opt(output2));
 
-	flat_bench FullFB;
-	FullFB.ReadLookup(opt(lookup));
+	Paralign::set_final_nu();
+
 	flat_params params;
-	params.init_from_alphadir(opt(alphadir), alpha_names);
+	const string alphadir = optset_alphadir ? string(opt(alphadir)) : "";
+	params.init_from_alphadir(alphadir, alpha_names);
 	s_params = &params;
 
 	vector<flat_chain_t *> chains;
 	read_flat_chains(opt(input), chains);
-	FullFB.load_profiles_chains(chains);
-	FullFB.set_distmxs(chains);
-	if (optset_dope)
-		FullFB.ReadDope(opt(dope));
-	FullFB.Alloc();
+
+	flat_bench2 FullFB;
+	FullFB.ReadLookup(opt(lookup));
+	setup_bench(FullFB, params, chains, opt(dope), optset_dope);
 
 	if (optset_input2)
 		{
@@ -262,20 +285,18 @@ void cmd_flat_hjmega()
 	if (Strategy == "")
 		Die("Missing strategy=");
 
-	if (Strategy == "climb")
+	if (Strategy == "const")
+		DoConst(FullFB, SpecLines);
+	else if (Strategy == "climb")
 		Climb(FullFB, SpecLines);
 	else if (Strategy == "subclimb")
 		{
 		asserta(optset_subdope);
 		asserta(optset_sublookup);
 
-		flat_bench SubsetFB;
+		flat_bench2 SubsetFB;
 		SubsetFB.ReadLookup(opt(sublookup));
-		SubsetFB.load_profiles_chains(chains);
-		SubsetFB.set_distmxs(chains);
-		SubsetFB.LogParams();
-		SubsetFB.ReadDope(opt(subdope));
-		SubsetFB.Alloc();
+		setup_bench(SubsetFB, params, chains, opt(subdope), true);
 		SubClimb(FullFB, SubsetFB, SpecLines);
 		}
 	else if (Strategy == "latinclimb")

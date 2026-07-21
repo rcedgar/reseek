@@ -53,6 +53,8 @@ public:
 	vector<float> m_mega_path_score_revs;
 
 public:
+	// If dope was loaded via ReadDope, iterates m_dope_ks only;
+	// otherwise iterates the full upper triangle (including diagonal).
 	void search(uint nthread, bool pin_threads);
 	void align_pair(uint pairidx, flat_bench2_thread_data &TD);
 	void align_pair_single_feature(uint pairidx);

@@ -304,6 +304,7 @@
     <ClCompile Include="flat_chain.cpp" />
     <ClCompile Include="flat_chain_reader.cpp" />
     <ClCompile Include="flat_convert.cpp" />
+    <ClCompile Include="dali_roundtrip.cpp" />
     <ClCompile Include="flat_dali.cpp" />
     <ClCompile Include="flat_distmx.cpp" />
     <ClCompile Include="flat_entropy.cpp" />

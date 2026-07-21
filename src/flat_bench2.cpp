@@ -26,9 +26,19 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 	FastBench::Alloc();
 
 	const uint NQ = SIZE(m_Labels);
-	const uint PairCount = triangle_get_K(NQ);
+	const uint TrianglePairCount = triangle_get_K(NQ);
+	const bool use_dope = (m_dope != 0);
+	const uint WorkCount = use_dope ? m_dope_nhit : TrianglePairCount;
+	asserta(WorkCount > 0);
+	asserta(m_Scores != 0);
+	asserta(m_npair == TrianglePairCount);
 
-	ProgressStep(0, PairCount, "Aligning");
+	// Reset so stale scores from a prior Peaker eval cannot leak
+	// (especially important when only dope pairs are re-scored).
+	for (uint i = 0; i < TrianglePairCount; ++i)
+		m_Scores[i] = FLT_MAX;
+
+	ProgressStep(0, WorkCount, use_dope ? "Aligning (dope)" : "Aligning");
 	m_next_pairidx = 0;
 	m_aln_count = 0;
 	m_nu_fwd_reject_count = 0;
@@ -52,9 +62,14 @@ void flat_bench2::search(uint nthread, bool pin_threads)
 		delete ts[threadidx];
 
 	time_t t2 = time(0);
-	ProgressStep(PairCount-1, PairCount,
+	ProgressStep(WorkCount-1, WorkCount,
 		"Search time %.0f secs", double(t2 - t1));
-	Log("Search time %.0f secs\n", double(t2 - t1));
+	Log("Search time %.0f secs (dope=%c work=%u / triangle=%u)\n",
+		double(t2 - t1), tof(use_dope), WorkCount, TrianglePairCount);
+	Log("Nu filter fwd_reject %u combined_reject %u pass %u\n",
+		uint(m_nu_fwd_reject_count),
+		uint(m_nu_combined_reject_count),
+		uint(m_nu_pass_count));
 	}
 
 void flat_bench2::static_thread_body(flat_bench2 *FB, uint threadidx)
@@ -88,6 +103,8 @@ void flat_bench2::thread_body(uint threadidx)
 	{
 	const uint NQ = SIZE(m_Labels);
 	const uint npair = triangle_get_K(NQ);
+	const bool use_dope = (m_dope != 0);
+	const uint WorkCount = use_dope ? m_dope_nhit : npair;
 
 	uint nfeat = m_params->m_nfeat;
 	asserta(nfeat > 0);
@@ -95,12 +112,15 @@ void flat_bench2::thread_body(uint threadidx)
 	flat_bench2_thread_data TD(nfeat);
 	for (;;)
 		{
-		uint pairidx = m_next_pairidx++;
-		if (pairidx >= npair)
+		uint workidx = m_next_pairidx++;
+		if (workidx >= WorkCount)
 			return;
+		uint pairidx = use_dope ? m_dope_ks[workidx] : workidx;
+		asserta(pairidx < npair);
 		uint progress_count = m_aln_count++;
 		if (threadidx == 0 && progress_count%1000 == 0)
-			ProgressStep(progress_count, npair, "Aligning");
+			ProgressStep(progress_count, WorkCount,
+				use_dope ? "Aligning (dope)" : "Aligning");
 		align_pair(pairidx, TD);
 		}
 	}

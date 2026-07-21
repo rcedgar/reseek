@@ -254,6 +254,7 @@ void flat_params::set_scalars(
 	asserta(m_nu_filter_self_w != FLT_MAX);
 	asserta(m_nu_filter_rev_w != FLT_MAX);
 	asserta(m_nu_filter_min_fwd_score != FLT_MAX);
+	asserta(m_nu_filter_min_combined_score != FLT_MAX);
 	asserta(m_pvm != PVM_invalid);
 	}
 
