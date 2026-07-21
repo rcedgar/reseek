@@ -113,13 +113,57 @@ double DALI_dpscorefun(double a, double b)
 	return Score;
 	}
 
+static size_t dali_align_up(size_t n, size_t alignment)
+	{
+	asserta(alignment > 0);
+	const size_t mask = alignment - 1;
+	asserta((alignment & mask) == 0);
+	return (n + mask) & ~mask;
+	}
+
+static float dali_pair_term(
+	uint posQi, uint posTi,
+	uint posQj, uint posTj,
+	const sid_t *distmxQ, const sid_t *distmxT)
+	{
+	const uint M = flat_params::m_distmx_bandwidth;
+	const uint diffij_Q = (posQi > posQj) ? (posQi - posQj) : (posQj - posQi);
+	const uint diffij_T = (posTi > posTj) ? (posTi - posTj) : (posTj - posTi);
+	if (diffij_Q > M || diffij_T > M)
+		return 0.0f;
+
+	const uint kQ = banded_ij_to_k(posQi, posQj);
+	const uint kT = banded_ij_to_k(posTi, posTj);
+	const float dQ = sqrtf(sid2dist2(distmxQ[kQ]));
+	const float dT = sqrtf(sid2dist2(distmxT[kT]));
+	return (float) DALI_dpscorefun(dQ, dT);
+	}
+
+size_t dali_greedy_terms_bytes(uint nmatch)
+	{
+	if (nmatch == 0)
+		return 0;
+	asserta(nmatch <= SIZE_T_MAX / nmatch);
+	const size_t n2 = (size_t) nmatch * (size_t) nmatch;
+	asserta(n2 <= (SIZE_T_MAX - (alignof(float) - 1)) / sizeof(float));
+	return (alignof(float) - 1) + n2 * sizeof(float);
+	}
+
+size_t dali_greedy_work_bytes(uint nmatch)
+	{
+	if (nmatch == 0)
+		return 0;
+	asserta(nmatch <= (SIZE_T_MAX - (alignof(float) - 1)) / sizeof(float));
+	size_t bytes = (alignof(float) - 1) + (size_t) nmatch * sizeof(float);
+	asserta(bytes <= SIZE_T_MAX - (size_t) nmatch);
+	return bytes + (size_t) nmatch;
+	}
+
 float flat_get_dali4(
 	const uint *posQs, uint LQ, 
 	const uint *posTs, uint LT, uint nmatch,
 	const sid_t *distmxQ, const sid_t *distmxT)
 	{
-	const uint M = flat_params::m_distmx_bandwidth;
-
 	extern float g_DALI_Theta;
 	float score = g_DALI_Theta*nmatch;
 	for (uint coli = 0; coli < nmatch; ++coli)
@@ -140,21 +184,135 @@ float flat_get_dali4(
 			assert(posQj < LQ);
 			assert(posTj < LT);
 
-			int diffij_Q = abs(int(posQi) - int(posQj));
-			int diffij_T = abs(int(posTi) - int(posTj));
-			if (diffij_Q > int(M) || diffij_T > int(M))
-				continue;
-			uint kQ = banded_ij_to_k(posQi, posQj);
-			uint kT = banded_ij_to_k(posTi, posTj);
-			sid_t sid_dQ_squared = distmxQ[kQ];
-			sid_t sid_dT_squared = distmxT[kT];
-			float dQ_squared = sid2dist2(sid_dQ_squared);
-			float dT_squared = sid2dist2(sid_dT_squared);
-			float dQ = sqrtf(dQ_squared);
-			float dT = sqrtf(dT_squared);
+			score += dali_pair_term(
+				posQi, posTi, posQj, posTj, distmxQ, distmxT);
+			}
+		}
+	return score;
+	}
 
-			double DALI_dpscorefun(double a, double b);
-			score += (float) DALI_dpscorefun(dQ, dT);
+float dali_greedy(
+	const uint *posQs, uint LQ,
+	const uint *posTs, uint LT, uint nmatch,
+	const sid_t *distmxQ, const sid_t *distmxT,
+	void *terms_scratch, size_t terms_bytes,
+	void *work_scratch, size_t work_bytes,
+	uint *retained_cols, uint retained_cols_capacity,
+	uint &nretained)
+	{
+	nretained = 0;
+	if (nmatch == 0)
+		return 0.0f;
+
+	asserta(posQs != 0);
+	asserta(posTs != 0);
+	asserta(distmxQ != 0);
+	asserta(distmxT != 0);
+	asserta(terms_scratch != 0);
+	asserta(work_scratch != 0);
+	asserta(retained_cols != 0);
+	asserta(retained_cols_capacity >= nmatch);
+
+	const size_t need_terms = dali_greedy_terms_bytes(nmatch);
+	const size_t need_work = dali_greedy_work_bytes(nmatch);
+	asserta(terms_bytes >= need_terms);
+	asserta(work_bytes >= need_work);
+
+	char *tp = (char *) terms_scratch;
+	char *tend = tp + terms_bytes;
+	tp = (char *) dali_align_up((size_t) tp, alignof(float));
+	asserta((size_t) (tend - tp) >= (size_t) nmatch * (size_t) nmatch * sizeof(float));
+	float *terms = (float *) tp;
+
+	char *wp = (char *) work_scratch;
+	char *wend = wp + work_bytes;
+	wp = (char *) dali_align_up((size_t) wp, alignof(float));
+	asserta((size_t) (wend - wp) >= (size_t) nmatch * sizeof(float));
+	float *colscores = (float *) wp;
+	wp += (size_t) nmatch * sizeof(float);
+	asserta((size_t) (wend - wp) >= (size_t) nmatch);
+	uint8_t *active = (uint8_t *) wp;
+
+	extern float g_DALI_Theta;
+	for (uint i = 0; i < nmatch; ++i)
+		{
+		const uint posQi = posQs[i];
+		const uint posTi = posTs[i];
+		asserta(posQi != UINT_MAX);
+		asserta(posTi != UINT_MAX);
+		asserta(posQi < LQ);
+		asserta(posTi < LT);
+
+		terms[(size_t) i * nmatch + i] = 0.0f;
+		float cscore = g_DALI_Theta;
+		for (uint j = 0; j < nmatch; ++j)
+			{
+			if (j == i)
+				continue;
+			const uint posQj = posQs[j];
+			const uint posTj = posTs[j];
+			asserta(posQj != UINT_MAX);
+			asserta(posTj != UINT_MAX);
+			asserta(posQj < LQ);
+			asserta(posTj < LT);
+
+			const float t = dali_pair_term(
+				posQi, posTi, posQj, posTj, distmxQ, distmxT);
+			terms[(size_t) i * nmatch + j] = t;
+			cscore += t;
+			}
+		colscores[i] = cscore;
+		active[i] = 1;
+		}
+
+	uint nactive = nmatch;
+	for (;;)
+		{
+		uint worst = UINT_MAX;
+		float worst_score = 0.0f;
+		for (uint i = 0; i < nmatch; ++i)
+			{
+			if (!active[i])
+				continue;
+			if (colscores[i] >= 0.0f)
+				continue;
+			if (worst == UINT_MAX || colscores[i] < worst_score)
+				{
+				worst = i;
+				worst_score = colscores[i];
+				}
+			}
+		if (worst == UINT_MAX)
+			break;
+
+		active[worst] = 0;
+		--nactive;
+		const float *row = terms + (size_t) worst * nmatch;
+		for (uint j = 0; j < nmatch; ++j)
+			{
+			if (!active[j])
+				continue;
+			colscores[j] -= row[j];
+			}
+		}
+
+	nretained = 0;
+	for (uint i = 0; i < nmatch; ++i)
+		{
+		if (!active[i])
+			continue;
+		retained_cols[nretained++] = i;
+		}
+	asserta(nretained == nactive);
+
+	float score = g_DALI_Theta * (float) nretained;
+	for (uint ii = 0; ii < nretained; ++ii)
+		{
+		const uint i = retained_cols[ii];
+		for (uint jj = ii + 1; jj < nretained; ++jj)
+			{
+			const uint j = retained_cols[jj];
+			score += terms[(size_t) i * nmatch + j];
 			}
 		}
 	return score;

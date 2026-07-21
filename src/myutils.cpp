@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <float.h>
 #include <mutex>
+#include <filesystem>
 #include "getticks.h"
 
 #ifdef _MSC_VER
@@ -41,14 +42,14 @@ unsigned GetThreadIndex()
 bool IsDirectory(const string& PathName)
 {
 	std::error_code ec;
-	bool IsDir = std::filesystem::is_directory(PathName);
+	bool IsDir = filesystem::is_directory(PathName);
 	return IsDir;
 }
 
 bool IsRegularFile(const string& PathName)
 {
 	std::error_code ec;
-	bool IsFile = std::filesystem::is_regular_file(PathName);
+	bool IsFile = filesystem::is_regular_file(PathName);
 	return IsFile;
 }
 

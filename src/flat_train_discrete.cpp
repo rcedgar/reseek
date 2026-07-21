@@ -50,8 +50,8 @@ double get_expected_score(
 	vector<vector<double> > &scoremx)
 	{
 	size_t alpha_size = freqs.size();
-	asserta(size(scoremx) == alpha_size);
-	asserta(size(freqs) == alpha_size);
+	asserta(SIZE(scoremx) == alpha_size);
+	asserta(SIZE(freqs) == alpha_size);
 	double ES = 0;
 	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
 		{
@@ -70,7 +70,7 @@ double get_expected_score_flat(
 	const vector<double> &scoremx)
 	{
 	size_t alpha_size = freqs.size();
-	asserta(size(scoremx) == alpha_size*alpha_size);
+	asserta(SIZE(scoremx) == alpha_size*alpha_size);
 	double ES = 0;
 	for (uint letter1 = 0; letter1 < alpha_size; ++letter1)
 		{
@@ -588,7 +588,7 @@ void write_freqsmx(FILE *f,
 	const uint alpha_size = SIZE(logoddsmx);
 	time_t t = time(0);
 	char timeString[16];
-	strftime(timeString, size(timeString), "%Y-%m-%d", gmtime(&t));
+	strftime(timeString, sizeof(timeString), "%Y-%m-%d", gmtime(&t));
 	fprintf(f, "freqs\t%u\n", alpha_size);
 	for (uint i = 0; i < alpha_size; ++i)
 		{
@@ -610,7 +610,7 @@ void write_logoddsmx(FILE *f,
 	const uint alpha_size = SIZE(logoddsmx);
 	time_t t = time(0);
 	char timeString[16];
-	strftime(timeString, size(timeString), "%Y-%m-%d", gmtime(&t));
+	strftime(timeString, sizeof(timeString), "%Y-%m-%d", gmtime(&t));
 	fprintf(f, "# %s\n", cmd.c_str());
 	fprintf(f, "# [%s] %s\n", GIT_HASH, timeString);
 	fprintf(f, "logodds\t%u\n", alpha_size);

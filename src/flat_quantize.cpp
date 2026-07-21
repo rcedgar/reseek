@@ -84,7 +84,7 @@ void cmd_flat_quantize()
 	GetCmdLine(cmd);
 	time_t t = time(0);
 	char timeString[16];
-	strftime(timeString, size(timeString), "%Y-%m-%d", gmtime(&t));
+	strftime(timeString, sizeof(timeString), "%Y-%m-%d", gmtime(&t));
 
 	ProgressLog("X  %7.7s  %7.7s  %7.7s\n", "Thresh.", "Size", "Diff");
 	for (uint i = 0; i < alpha_size; ++i)

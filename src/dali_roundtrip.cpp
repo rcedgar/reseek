@@ -11,7 +11,7 @@ query+target+qlo+qhi+tlo+thi+cigar+dali
     0      1   2   3   4   5     6    7
 
 Output tsv:
-query+target+qlo+qhi+tlo+thi+cigar+dali+dali2
+query+target+dali2+dali_greedy
 ***/
 
 static uint GetChainIdx(
@@ -138,6 +138,9 @@ void cmd_dali_roundtrip()
 	vector<string> Fields;
 	vector<uint> PosQs;
 	vector<uint> PosTs;
+	vector<uint8_t> DaliTermsScratch;
+	vector<uint8_t> DaliWorkScratch;
+	vector<uint> RetainedCols;
 	uint LineNr = 0;
 	while (ReadLineStdioFile(fIn, Line))
 		{
@@ -178,11 +181,29 @@ void cmd_dali_roundtrip()
 			PosQs.data(), Q->m_L,
 			PosTs.data(), T->m_L, SIZE(PosQs),
 			DistMxs[QIdx], DistMxs[TIdx]);
+		const uint NMatch = SIZE(PosQs);
+		const size_t TermsBytes = dali_greedy_terms_bytes(NMatch);
+		const size_t WorkBytes = dali_greedy_work_bytes(NMatch);
+		if (DaliTermsScratch.size() < TermsBytes)
+			DaliTermsScratch.resize(TermsBytes);
+		if (DaliWorkScratch.size() < WorkBytes)
+			DaliWorkScratch.resize(WorkBytes);
+		if (RetainedCols.size() < NMatch)
+			RetainedCols.resize(NMatch);
+		uint NRetained = 0;
+		const float DaliGreedy = dali_greedy(
+			PosQs.data(), Q->m_L,
+			PosTs.data(), T->m_L, NMatch,
+			DistMxs[QIdx], DistMxs[TIdx],
+			DaliTermsScratch.data(), DaliTermsScratch.size(),
+			DaliWorkScratch.data(), DaliWorkScratch.size(),
+			RetainedCols.data(), SIZE(RetainedCols), NRetained);
 		// fprintf(fOut, "%s\t%.3g\n", Line.c_str(), Dali2);
 		if (fOut != 0)
 			{
 			fprintf(fOut, "%s", Fields[0].c_str());
 			fprintf(fOut, "\t%s", Fields[1].c_str());
+			fprintf(fOut, "\t%.3g", DaliGreedy);
 			fprintf(fOut, "\t%.3g", Dali2);
 			fprintf(fOut, "\n");
 			}

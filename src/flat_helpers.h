@@ -375,6 +375,26 @@ float flat_get_dali4(
 	const uint *posTs, uint LT, uint nmatch,
 	const sid_t *distmxQ, const sid_t *distmxT);
 
+/* Bytes for float[nmatch*nmatch] pair-term cache (includes float alignment padding). */
+size_t dali_greedy_terms_bytes(uint nmatch);
+
+/* Bytes for float[nmatch] column scores + uint8_t[nmatch] active flags
+   (includes float alignment padding). */
+size_t dali_greedy_work_bytes(uint nmatch);
+
+/* Adaptive greedy DALI column pruning. No allocation.
+   Fills retained_cols[0..nretained) with original column indices in ascending order.
+   Caller must supply terms_scratch and work_scratch sized via the helpers above;
+   retained_cols must have capacity >= nmatch (except nmatch==0). */
+float dali_greedy(
+	const uint *posQs, uint LQ,
+	const uint *posTs, uint LT, uint nmatch,
+	const sid_t *distmxQ, const sid_t *distmxT,
+	void *terms_scratch, size_t terms_bytes,
+	void *work_scratch, size_t work_bytes,
+	uint *retained_cols, uint retained_cols_capacity,
+	uint &nretained);
+
 void codeseq_to_hexfasta(FILE *f, const string &label,
 	const uint8_t *codeseq, uint L);
 
