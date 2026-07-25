@@ -691,6 +691,7 @@ void cmd_bca_stats()
 	ProgressLog("%10u  Residues (%s)\n",
 		SumL,
 		FloatToStr(double(SumL)));
+	ProgressLog("%10u  Mean length\n", SumL/ChainCount);
 	ProgressLog("%10.0f  Label data bytes (%s)\n",
 		(double) BCA.m_LabelDataSize64,
 		FloatToStr((double) BCA.m_LabelDataSize64));
