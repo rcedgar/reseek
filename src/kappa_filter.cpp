@@ -918,7 +918,7 @@ void kappa_filter::log_filter_diagnostics(uint NQ, uint NDB, uint total, uint rs
 		const KappaThreadDiag &d = m_thread_diags[ti];
 		if (d.targets == 0 && d.batches == 0)
 			continue;
-		ProgressLog("  thr%u  batches=%u targets=%llu hsp=%llu hsp_cells=%llu secs=%u\n",
+		Log("  thr%u  batches=%u targets=%llu hsp=%llu hsp_cells=%llu secs=%u\n",
 			ti, d.batches,
 			(unsigned long long) d.targets,
 			(unsigned long long) d.hsp,

@@ -8,6 +8,22 @@
 bool FastaFileIsNucleo(FILE *f);
 char GetFeatureChar(byte Letter, uint AlphaSize);
 
+uint kappa_seqsource::choose_bcb_batch_size(uint ndb, uint nthreads)
+	{
+	if (nthreads == 0)
+		nthreads = 1;
+	if (ndb == 0)
+		return 1;
+	// Aim for ~OVERSUBSCRIBE work units per thread.
+	const uint want_units = KSS_BCB_OVERSUBSCRIBE * nthreads;
+	uint g = ndb / want_units;
+	if (g < 1)
+		g = 1;
+	if (g > KSS_BCB_BATCH_MAX)
+		g = KSS_BCB_BATCH_MAX;
+	return g;
+	}
+
 // Fills one batch by sequentially reading nu sequences and
 // converting to kappa. Runs ONLY on the reader thread, which is
 // the sole user of the BCB FILE* during the scan.
@@ -16,12 +32,14 @@ uint kappa_seqsource::fill_bcb_batch(KssBcbBatch *batch)
 	const uint ChainCount = m_bcb->GetChainCount();
 	FILE *f = m_bcb->m_f;
 	const uint maxL = flat_params::m_maxL;
+	const uint batch_size = m_bcb_batch_size;
+	asserta(batch_size > 0);
 
-	if (batch->slots.size() < KSS_BCB_BATCH)
-		batch->slots.resize(KSS_BCB_BATCH);
+	if (batch->slots.size() < batch_size)
+		batch->slots.resize(batch_size);
 
 	uint n = 0;
-	for (; n < KSS_BCB_BATCH; ++n)
+	for (; n < batch_size; ++n)
 		{
 		if (m_bcb_scan_next_idx >= ChainCount)
 			break;
@@ -116,6 +134,13 @@ void kappa_seqsource::start_bcb_reader()
 	uint nthreads = GetRequestedThreadCount();
 	if (nthreads == 0)
 		nthreads = 1;
+	asserta(m_bcb != 0);
+	const uint ndb = m_bcb->GetChainCount();
+	m_bcb_batch_size = choose_bcb_batch_size(ndb, nthreads);
+	const uint nunits = (ndb + m_bcb_batch_size - 1) / m_bcb_batch_size;
+	ProgressLog("Kappa BCB batch_size=%u  NDB=%u threads=%u units=%u\n",
+		m_bcb_batch_size, ndb, nthreads, nunits);
+
 	const uint num_buffers = KSS_BCB_BUFFERS_PER_THREAD * nthreads;
 	for (uint i = 0; i < num_buffers; ++i)
 		{

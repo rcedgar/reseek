@@ -54,12 +54,19 @@ public:
 //   contiguous nu section, converts nu->kappa, and fills
 //   batches. kappa_filter workers claim whole batches and
 //   search lock-free.
+//
+// Claim grain is chosen at reader start so that
+//   ceil(NDB / batch_size) >= ~4 * nthreads
+// (capped), otherwise small DBs only keep 2-3 cores busy.
 /////////////////////////////////////////////////////////////
-	static const uint KSS_BCB_BATCH = 1024;
+	static const uint KSS_BCB_BATCH_MAX = 64;
+	static const uint KSS_BCB_OVERSUBSCRIBE = 4;
 // Buffer pool scales with worker count: each worker holds one
 // batch for its entire inner loop, so pool depth must exceed
 // thread count for all workers to run concurrently.
 	static const uint KSS_BCB_BUFFERS_PER_THREAD = 4;
+
+	uint m_bcb_batch_size = KSS_BCB_BATCH_MAX;
 
 // Reader-thread-private scan cursor
 	uint m_bcb_scan_next_idx = 0;
@@ -90,6 +97,7 @@ protected:
 	void stop_bcb_reader();
 	void bcb_reader_body();
 	uint fill_bcb_batch(KssBcbBatch *batch);
+	static uint choose_bcb_batch_size(uint ndb, uint nthreads);
 
 public:
 	kappa_seqsource() {}
