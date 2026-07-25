@@ -11,6 +11,8 @@
 #include "rankedscoresbag.h"
 #include "kappa_filter_params.h"
 #include "kappa_seqsource.h"
+#include "getticks.h"
+#include <atomic>
 #include <cstdio>
 #include <set>
 #include <mutex>
@@ -25,6 +27,19 @@ extern int16_t kappa32_flat_logodds[32*32];
 // For one target sequence build a list of query sequences
 // with 2-kmer diagonals and their scores.
 ///////////////////////////////////////////////////////////
+
+struct KappaThreadDiag
+	{
+	uint batches = 0;
+	uint64 targets = 0;
+	uint64 hsp = 0;
+	uint64 hsp_cells = 0;
+	uint64 ticks_seed = 0;
+	uint64 ticks_diag = 0;
+	uint64 ticks_hsp = 0;
+	uint64 ticks_rsb = 0;
+	uint secs = 0;
+	};
 
 class kappa_filter
 	{
@@ -44,6 +59,19 @@ public:
 	// Pre-HSP dump (-dump_prefilter_prehsp); null if disabled.
 	static FILE *m_f_prehsp_dump;
 	static mutex m_prehsp_dump_mutex;
+
+	// Flat-path filter volume stats (summed from per-thread locals).
+	static atomic<uint64> m_n_targets;
+	static atomic<uint64> m_n_targets_skipped;
+	static atomic<uint64> m_n_index_postings;
+	static atomic<uint64> m_n_prehsp;
+	static atomic<uint64> m_n_hsp;
+	static atomic<uint64> m_n_hsp_prune;
+	static atomic<uint64> m_n_hsp_cells;
+	static atomic<uint64> m_n_rsb_qt_pairs;
+
+	// Per-thread balance / phase diagnostics (indexed by threadidx).
+	static vector<KappaThreadDiag> m_thread_diags;
 
 #if TRACE
 public:
@@ -107,9 +135,25 @@ public:
 	//   AddScoresBatch; not cleared per target.
 	vector<RankedScoreBatchEntry> m_RSBPending;
 
+	// Per-thread locals; flushed to static atomics in destructor.
+	uint64 m_local_n_targets = 0;
+	uint64 m_local_n_targets_skipped = 0;
+	uint64 m_local_n_index_postings = 0;
+	uint64 m_local_n_prehsp = 0;
+	uint64 m_local_n_hsp = 0;
+	uint64 m_local_n_hsp_prune = 0;
+	uint64 m_local_n_hsp_cells = 0;
+	uint64 m_local_n_rsb_qt_pairs = 0;
+	uint64 m_local_ticks_seed = 0;
+	uint64 m_local_ticks_diag = 0;
+	uint64 m_local_ticks_hsp = 0;
+	uint64 m_local_ticks_rsb = 0;
+
 public:
 	kappa_filter() = default;
 	~kappa_filter();
+	void flush_filter_stats();
+	void record_thread_diag(uint threadidx, uint batches, uint secs);
 
 	void SetQDB(const SeqDB &QDB);
 	void Search(uint TSeqIdx, const string &TLabel,
@@ -148,6 +192,8 @@ public:
 
 public:
 	static void init_kappa();
+	static void reset_filter_stats();
+	static void log_filter_diagnostics(uint NQ, uint NDB, uint total, uint rsb_sat);
 	static void set_prehsp_dump(FILE *f, const vector<string> *query_labels);
 	static void write_prehsp_tsv_header(FILE *f, const char *path_tag);
 	static void write_prehsp_hit(FILE *f,

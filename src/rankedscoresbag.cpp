@@ -327,7 +327,7 @@ void RankedScoresBag::GetTargetInfoSorted(
 			DiagScores.push_back(Pairs[i].second);
 			}
 		}
-	Progress("%u targets, maxqpert %u\n", TargetCount, max_queries_per_target);
+	ProgressLog("%u targets, maxqpert %u\n", TargetCount, max_queries_per_target);
 	}
 
 void RankedScoresBag::ToTsv(FILE *f)

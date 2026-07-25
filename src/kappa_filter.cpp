@@ -17,6 +17,15 @@ const kappa_mermx *kappa_filter::m_ptrScoreMx;
 const kappa_dex *kappa_filter::m_ptrQKmerIndex;
 FILE *kappa_filter::m_f_prehsp_dump = 0;
 mutex kappa_filter::m_prehsp_dump_mutex;
+atomic<uint64> kappa_filter::m_n_targets{0};
+atomic<uint64> kappa_filter::m_n_targets_skipped{0};
+atomic<uint64> kappa_filter::m_n_index_postings{0};
+atomic<uint64> kappa_filter::m_n_prehsp{0};
+atomic<uint64> kappa_filter::m_n_hsp{0};
+atomic<uint64> kappa_filter::m_n_hsp_prune{0};
+atomic<uint64> kappa_filter::m_n_hsp_cells{0};
+atomic<uint64> kappa_filter::m_n_rsb_qt_pairs{0};
+vector<KappaThreadDiag> kappa_filter::m_thread_diags;
 bool g_QueryNeighborhood = true;
 
 void fill_pattern_offsets(const string &Str, uint8_t *offsets)
@@ -156,6 +165,62 @@ kappa_filter::~kappa_filter()
 	{
 	if (!m_RSBPending.empty())
 		m_RSB.AddScoresBatch(m_RSBPending);
+	flush_filter_stats();
+	}
+
+void kappa_filter::flush_filter_stats()
+	{
+	if (m_local_n_targets != 0)
+		m_n_targets.fetch_add(m_local_n_targets, memory_order_relaxed);
+	if (m_local_n_targets_skipped != 0)
+		m_n_targets_skipped.fetch_add(m_local_n_targets_skipped, memory_order_relaxed);
+	if (m_local_n_index_postings != 0)
+		m_n_index_postings.fetch_add(m_local_n_index_postings, memory_order_relaxed);
+	if (m_local_n_prehsp != 0)
+		m_n_prehsp.fetch_add(m_local_n_prehsp, memory_order_relaxed);
+	if (m_local_n_hsp != 0)
+		m_n_hsp.fetch_add(m_local_n_hsp, memory_order_relaxed);
+	if (m_local_n_hsp_prune != 0)
+		m_n_hsp_prune.fetch_add(m_local_n_hsp_prune, memory_order_relaxed);
+	if (m_local_n_hsp_cells != 0)
+		m_n_hsp_cells.fetch_add(m_local_n_hsp_cells, memory_order_relaxed);
+	if (m_local_n_rsb_qt_pairs != 0)
+		m_n_rsb_qt_pairs.fetch_add(m_local_n_rsb_qt_pairs, memory_order_relaxed);
+	m_local_n_targets = 0;
+	m_local_n_targets_skipped = 0;
+	m_local_n_index_postings = 0;
+	m_local_n_prehsp = 0;
+	m_local_n_hsp = 0;
+	m_local_n_hsp_prune = 0;
+	m_local_n_hsp_cells = 0;
+	m_local_n_rsb_qt_pairs = 0;
+	}
+
+void kappa_filter::record_thread_diag(uint threadidx, uint batches, uint secs)
+	{
+	asserta(threadidx < SIZE(m_thread_diags));
+	KappaThreadDiag &d = m_thread_diags[threadidx];
+	d.batches = batches;
+	d.targets = m_local_n_targets;
+	d.hsp = m_local_n_hsp;
+	d.hsp_cells = m_local_n_hsp_cells;
+	d.ticks_seed = m_local_ticks_seed;
+	d.ticks_diag = m_local_ticks_diag;
+	d.ticks_hsp = m_local_ticks_hsp;
+	d.ticks_rsb = m_local_ticks_rsb;
+	d.secs = secs;
+	}
+
+void kappa_filter::reset_filter_stats()
+	{
+	m_n_targets.store(0, memory_order_relaxed);
+	m_n_targets_skipped.store(0, memory_order_relaxed);
+	m_n_index_postings.store(0, memory_order_relaxed);
+	m_n_prehsp.store(0, memory_order_relaxed);
+	m_n_hsp.store(0, memory_order_relaxed);
+	m_n_hsp_prune.store(0, memory_order_relaxed);
+	m_n_hsp_cells.store(0, memory_order_relaxed);
+	m_n_rsb_qt_pairs.store(0, memory_order_relaxed);
 	}
 
 void kappa_filter::alloc()
@@ -247,17 +312,33 @@ void kappa_filter::Search_TargetSeq(uint TSeqIdx, const string &TLabel,
 	m_TL = TL;
 
 	Reset();
+
+	TICKS t0 = GetClockTicks();
 	Search_TargetKmers();
+	TICKS t1 = GetClockTicks();
+	m_local_ticks_seed += t1 - t0;
+
 	if (flat_params::m_kappa_onehitdiag)
 		{
 		DumpPreHSPHits();
+		t0 = GetClockTicks();
 		ExtendOneHitDiagsToHSPs();
+		t1 = GetClockTicks();
+		m_local_ticks_hsp += t1 - t0;
 		}
 	else
 		{
+		t0 = GetClockTicks();
 		FindTwoHitDiags();
+		t1 = GetClockTicks();
+		m_local_ticks_diag += t1 - t0;
+
 		DumpPreHSPHits();
+
+		t0 = GetClockTicks();
 		ExtendTwoHitDiagsToHSPs();
+		t1 = GetClockTicks();
+		m_local_ticks_hsp += t1 - t0;
 		}
 	}
 
@@ -302,6 +383,7 @@ void kappa_filter::Search_TargetKmer(uint TKmer, uint TPos)
 #endif
 	if (RowSize == 0)
 		return;
+	m_local_n_index_postings += RowSize;
 	uint64_t DataOffset = m_QKmerIndex->GetRowStart(TKmer);
 	for (uint64_t ColIdx = 0; ColIdx < RowSize; ++ColIdx)
 		{
@@ -359,6 +441,7 @@ void kappa_filter::OneHitDiagAdd(uint SeqIdx, uint16_t Diag)
 void kappa_filter::ExtendOneHitDiagsToHSPs()
 	{
 	m_NrQueriesWithTwoHitDiag = 0;
+	m_local_n_prehsp += m_OneHitDiags.size();
 	for (set<uint32_t>::const_iterator iter = m_OneHitDiags.begin();
 		 iter != m_OneHitDiags.end(); ++iter)
 		{
@@ -487,6 +570,7 @@ void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 void kappa_filter::ExtendTwoHitDiagsToHSPs()
 	{
 	const uint DupeCount = m_DiagBag.m_DupeCount;
+	m_local_n_prehsp += DupeCount;
 	m_NrQueriesWithTwoHitDiag = 0;
 	for (uint i = 0; i < DupeCount; ++i)
 		{
@@ -502,23 +586,27 @@ int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
 	const uint QL = m_query_lengths[QSeqIdx];
 
+	int mini, minj, n;
+	kappa_get_hsp_limits(int(QL), int(m_TL), int(Diag),
+		mini, minj, n);
+
 	if (flat_params::m_kappa_hsp_rsb_prune &&
 		m_RSB.m_AnyLoScoreActive.load(std::memory_order_relaxed))
 		{
 		const uint16_t LoScore = m_RSB.GetLoScore(QSeqIdx);
 		if (LoScore > 0)
 			{
-			int mini, minj, n;
-			kappa_get_hsp_limits(int(QL), int(m_TL), int(Diag),
-				mini, minj, n);
 			const int bound = n * flat_params::m_kappa_max_pos_logodds;
 			if (bound < LoScore)
 				{
+				++m_local_n_hsp_prune;
 				return 0;
 				}
 			}
 		}
 
+	++m_local_n_hsp;
+	m_local_n_hsp_cells += uint64(n);
 	int DiagScore = FindHSP(QSeq, QL, Diag);
 #if TRACE
 	LogDiag(QSeqIdx, Diag);
@@ -575,8 +663,11 @@ void kappa_filter::LogDiag(uint QSeqIdx, uint16_t Diag) const
 void kappa_filter::Search(uint TSeqIdx, const string &TLabel,
 				const byte *TSeq, uint TL)
 	{
+	++m_local_n_targets;
 	Search_TargetSeq(TSeqIdx, TLabel, TSeq, TL);
 
+	TICKS t0 = GetClockTicks();
+	m_local_n_rsb_qt_pairs += m_NrQueriesWithTwoHitDiag;
 	for (uint i = 0; i < m_NrQueriesWithTwoHitDiag; ++i)
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[i];
@@ -589,6 +680,8 @@ void kappa_filter::Search(uint TSeqIdx, const string &TLabel,
 		if (m_RSBPending.size() >= RSB_BATCH)
 			m_RSB.AddScoresBatch(m_RSBPending);
 		}
+	TICKS t1 = GetClockTicks();
+	m_local_ticks_rsb += t1 - t0;
 	}
 
 uint kappa_filter::GetQKmer(uint QSeqIdx, uint QPos) const
@@ -634,6 +727,8 @@ void kappa_filter::static_thread_body(uint threadidx)
 	{
 	asserta(kappa_filter::m_QSeqCount > 0);
 
+	const time_t t_thread_start = time(0);
+
 	kappa_filter Pref;
 	Pref.m_ScoreMx = m_ptrScoreMx;
 	Pref.m_QKmerIndex = m_ptrQKmerIndex;
@@ -648,9 +743,7 @@ void kappa_filter::static_thread_body(uint threadidx)
 		SeqInfo *TargetSI = OM.GetSeqInfo();
 		bool ok = m_db_seqsource->GetNext(TargetSI);
 		if (!ok)
-			{
-			return;
-			}
+			break;
 		if ((counter++)%10 == 0)
 			{
 			time_t now = time(0);
@@ -669,6 +762,7 @@ void kappa_filter::static_thread_body(uint threadidx)
 		uint TL = TargetSI->m_L;
 		if (TL < flat_params::m_kappa_min_chainlength)
 			{
+			++Pref.m_local_n_targets_skipped;
 			OM.Down(TargetSI);
 			continue;
 			}
@@ -680,6 +774,9 @@ void kappa_filter::static_thread_body(uint threadidx)
 
 		OM.Down(TargetSI);
 		}
+
+	const uint secs = uint(time(0) - t_thread_start);
+	Pref.record_thread_diag(threadidx, 0, secs);
 	}
 
 void kappa_filter::static_bcb_thread_body(uint threadidx)
@@ -688,6 +785,7 @@ void kappa_filter::static_bcb_thread_body(uint threadidx)
 	asserta(m_db_seqsource != 0);
 	asserta(m_db_seqsource->m_KSSS == KSSS_bcb);
 
+	const time_t t_thread_start = time(0);
 	kappa_seqsource &db = *m_db_seqsource;
 
 	kappa_filter Pref;
@@ -697,13 +795,13 @@ void kappa_filter::static_bcb_thread_body(uint threadidx)
 	Pref.alloc();
 
 	uint counter = 0;
+	uint batches = 0;
 	for (;;)
 		{
 		KssBcbBatch *batch = db.claim_bcb_batch();
 		if (batch == 0)
-			{
-			return;
-			}
+			break;
+		++batches;
 
 		for (uint i = 0; i < batch->count; ++i)
 			{
@@ -728,13 +826,104 @@ void kappa_filter::static_bcb_thread_body(uint threadidx)
 				}
 
 			if (slot.L < flat_params::m_kappa_min_chainlength)
+				{
+				++Pref.m_local_n_targets_skipped;
 				continue;
+				}
 
 			Pref.Search(slot.idx, *slot.label,
 				slot.kappa.data(), slot.L);
 			}
 
 		db.release_bcb_batch(batch);
+		}
+
+	const uint secs = uint(time(0) - t_thread_start);
+	Pref.record_thread_diag(threadidx, batches, secs);
+	}
+
+void kappa_filter::log_filter_diagnostics(uint NQ, uint NDB, uint total, uint rsb_sat)
+	{
+	const uint B = kappa_filter::m_RSB.m_B;
+	uint64 idx_postings = 0;
+	if (m_ptrQKmerIndex != 0)
+		idx_postings = m_ptrQKmerIndex->m_Size;
+
+	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
+	ProgressLog("Kappa filter stats  NQ=%u NDB=%u B=%u idx_postings=%llu\n",
+		NQ, NDB, B, (unsigned long long) idx_postings);
+	ProgressLog("  targets=%llu skipped=%llu postings_visited=%llu prehsp=%llu\n",
+		(unsigned long long) m_n_targets.load(memory_order_relaxed),
+		(unsigned long long) m_n_targets_skipped.load(memory_order_relaxed),
+		(unsigned long long) m_n_index_postings.load(memory_order_relaxed),
+		(unsigned long long) m_n_prehsp.load(memory_order_relaxed));
+	ProgressLog("  hsp=%llu hsp_prune=%llu hsp_cells=%llu rsb_qt=%llu rsb_sat=%u\n",
+		(unsigned long long) m_n_hsp.load(memory_order_relaxed),
+		(unsigned long long) m_n_hsp_prune.load(memory_order_relaxed),
+		(unsigned long long) m_n_hsp_cells.load(memory_order_relaxed),
+		(unsigned long long) m_n_rsb_qt_pairs.load(memory_order_relaxed),
+		rsb_sat);
+
+	const uint nthreads = SIZE(m_thread_diags);
+	uint busy = 0;
+	uint batches_total = 0;
+	uint max_secs = 0;
+	uint min_busy_secs = UINT_MAX;
+	uint64 sum_secs = 0;
+	uint64 ticks_seed = 0;
+	uint64 ticks_diag = 0;
+	uint64 ticks_hsp = 0;
+	uint64 ticks_rsb = 0;
+	for (uint ti = 0; ti < nthreads; ++ti)
+		{
+		const KappaThreadDiag &d = m_thread_diags[ti];
+		batches_total += d.batches;
+		ticks_seed += d.ticks_seed;
+		ticks_diag += d.ticks_diag;
+		ticks_hsp += d.ticks_hsp;
+		ticks_rsb += d.ticks_rsb;
+		if (d.targets == 0 && d.batches == 0)
+			continue;
+		++busy;
+		sum_secs += d.secs;
+		if (d.secs > max_secs)
+			max_secs = d.secs;
+		if (d.secs < min_busy_secs)
+			min_busy_secs = d.secs;
+		}
+	if (busy == 0)
+		min_busy_secs = 0;
+
+	ProgressLog("Kappa thread balance  nthreads=%u busy=%u batches=%u max_secs=%u min_busy_secs=%u sum_secs=%llu\n",
+		nthreads, busy, batches_total, max_secs, min_busy_secs,
+		(unsigned long long) sum_secs);
+
+	const uint64 ticks_all = ticks_seed + ticks_diag + ticks_hsp + ticks_rsb;
+	uint pct_seed = 0;
+	uint pct_diag = 0;
+	uint pct_hsp = 0;
+	uint pct_rsb = 0;
+	if (ticks_all > 0)
+		{
+		pct_seed = uint((ticks_seed * 100) / ticks_all);
+		pct_diag = uint((ticks_diag * 100) / ticks_all);
+		pct_hsp = uint((ticks_hsp * 100) / ticks_all);
+		pct_rsb = uint((ticks_rsb * 100) / ticks_all);
+		}
+	ProgressLog("Kappa phases pct  seed=%u diag=%u hsp=%u rsb=%u\n",
+		pct_seed, pct_diag, pct_hsp, pct_rsb);
+
+	for (uint ti = 0; ti < nthreads; ++ti)
+		{
+		const KappaThreadDiag &d = m_thread_diags[ti];
+		if (d.targets == 0 && d.batches == 0)
+			continue;
+		ProgressLog("  thr%u  batches=%u targets=%llu hsp=%llu hsp_cells=%llu secs=%u\n",
+			ti, d.batches,
+			(unsigned long long) d.targets,
+			(unsigned long long) d.hsp,
+			(unsigned long long) d.hsp_cells,
+			d.secs);
 		}
 	}
 
@@ -748,6 +937,7 @@ void kappa_filter::run_filter(
 	m_query_lengths = query_lengths;
 	m_QSeqCount = NQ;
 	m_db_seqsource = &db_ss;
+	reset_filter_stats();
 
 	ProgressStep(0, 1000, "Kappa filter");
 	time_t t_start = time(0);
@@ -757,6 +947,7 @@ void kappa_filter::run_filter(
 	const bool use_bcb_batch = (db_ss.m_KSSS == KSSS_bcb);
 	vector<thread *> ts;
 	uint ThreadCount = GetRequestedThreadCount();
+	m_thread_diags.assign(ThreadCount, KappaThreadDiag());
 	for (uint ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 		{
 		if (use_bcb_batch)
@@ -771,5 +962,18 @@ void kappa_filter::run_filter(
 	ProgressStep(999, 1000, "Kappa filter");
 
 	uint total = kappa_filter::m_RSB.TruncateAllQueryVecs();
-	ProgressLog("Kappa prefilter hits  %s\n", FloatToStr(total));
+
+	uint rsb_sat = 0;
+	const uint B = kappa_filter::m_RSB.m_B;
+	for (uint q = 0; q < NQ; ++q)
+		{
+		if (SIZE(kappa_filter::m_RSB.m_QueryIdxToTargetIdxVec[q]) >= B)
+			++rsb_sat;
+		}
+
+	uint NDB = 0;
+	if (db_ss.m_bcb != 0)
+		NDB = db_ss.m_bcb->GetChainCount();
+
+	log_filter_diagnostics(NQ, NDB, total, rsb_sat);
 	}
