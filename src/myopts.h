@@ -254,7 +254,6 @@ FLAG_OPT(filter_only)
 FLAG_OPT(kappa_hsp_rsb_prune)
 FLAG_OPT(roundtrip)
 FLAG_OPT(unique_kmer)
-FLAG_OPT(hsp_align)
 FLAG_OPT(hsp_align_check)
 
 #undef FLAG_OPT

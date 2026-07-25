@@ -51,7 +51,7 @@ Kappa filter 113 secs	 8.3Gb	02:30	twohitdiag kappa_hsp_rsb_prune kappa_mindiags
 bool flat_params::m_kappa_onehitdiag = false;
 bool flat_params::m_kappa_twohitdiag = false;
 
-bool flat_params::m_hsp_align = false;
+bool flat_params::m_hsp_align = true;
 bool flat_params::m_hsp_align_check = false;
 uint flat_params::m_hsp_align_min_length =
 	flat_params::DEFAULT_HSP_ALIGN_MIN_LENGTH;
@@ -120,8 +120,6 @@ void flat_params::init_kappa()
 
 	if (opt(hsp_align_check))
 		flat_params::m_hsp_align_check = true;
-	if (opt(hsp_align) || flat_params::m_hsp_align_check)
-		flat_params::m_hsp_align = true;
 	if (optset_mkfl)
 		flat_params::m_hsp_align_min_length = opt(mkfl);
 	if (optset_hsp_x2)
@@ -137,16 +135,19 @@ void flat_params::init_from_cmdline()
 	if (opt(fast))
 		{
 		flat_params::m_kappa_min_kmerpairscore = 65;
+		flat_params::m_rsb_size = 1500;
 		smode = "fast";
 		}
 	else if (opt(sensitive))
 		{
 		flat_params::m_kappa_min_kmerpairscore = 55;
+		flat_params::m_rsb_size = 3000;
 		smode = "sensitive";
 		}
 	else if (opt(verysensitive))
 		{
 		flat_params::m_kappa_min_kmerpairscore = 50;
+		flat_params::m_rsb_size = 5000;
 		smode = "verysensitive";
 		}
 	else
