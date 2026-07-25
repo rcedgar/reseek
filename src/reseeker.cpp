@@ -4,6 +4,7 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 #include "flat_chain.h"
+#include "sw_flat_pssm_xdrop.h"
 
 uint reseeker::m_query_nchain = 0;
 const BCAData *reseeker::m_dbbca = 0;
@@ -16,6 +17,9 @@ const uint *reseeker::m_query_lengths = 0;
 int *reseeker::m_query_self_rev_scores = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_qidxs = 0;
 const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_diagscores = 0;
+const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_hspdiags = 0;
+const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_hsplos = 0;
+const unordered_map<uint, vector<uint> > *reseeker::m_dbidx_to_hsplens = 0;
 const vector<uint> *reseeker::m_dbidxs = 0;
 atomic<uint> reseeker::m_next;
 atomic<uint> reseeker::m_npair;
@@ -26,6 +30,15 @@ atomic<uint> reseeker::m_reject_mega_fwd;
 atomic<uint> reseeker::m_accept_min_ts;
 atomic<uint> reseeker::m_reject_min_ts;
 atomic<uint> reseeker::m_nhit;
+atomic<uint> reseeker::m_hsp_align_try;
+atomic<uint> reseeker::m_hsp_align_used;
+atomic<uint> reseeker::m_hsp_align_fallback;
+atomic<uint> reseeker::m_hsp_align_reject_score;
+atomic<uint> reseeker::m_hsp_align_reject_path;
+atomic<uint> reseeker::m_hsp_align_no_seed;
+atomic<uint> reseeker::m_hsp_align_check_ok;
+atomic<uint> reseeker::m_hsp_align_check_xdrop_lt;
+atomic<uint> reseeker::m_hsp_align_check_bug;
 const sid_t **reseeker::m_query_distmxs;
 const float **reseeker::m_query_mega_pssms;
 const float **reseeker::m_query_mega_pssm_revs;
@@ -129,6 +142,16 @@ void reseeker::search()
 	m_nu_reject_cmb = 0;
 	m_npass = 0;
 	m_next = 0;
+	m_hsp_align_try = 0;
+	m_hsp_align_used = 0;
+	m_hsp_align_fallback = 0;
+	m_hsp_align_reject_score = 0;
+	m_hsp_align_reject_path = 0;
+	m_hsp_align_no_seed = 0;
+	m_hsp_align_check_ok = 0;
+	m_hsp_align_check_xdrop_lt = 0;
+	m_hsp_align_check_bug = 0;
+	reset_sw_flat_pssm_xdrop_hsp_stats();
 
 	vector<FILE *> fs;
 	if (optset_output)
@@ -160,6 +183,22 @@ void reseeker::search()
 	ProgressLog("%10u  Nu filter pass\n", m_npass.load());
 	ProgressLog("%10u  Mega filter reject\n", m_reject_min_ts.load());
 	ProgressLog("%10u  Mega filter pass\n", m_accept_min_ts.load());
+	if (flat_params::m_hsp_align || flat_params::m_hsp_align_check)
+		{
+		ProgressLog("%10u  HSP Mega try\n", m_hsp_align_try.load());
+		ProgressLog("%10u  HSP Mega used\n", m_hsp_align_used.load());
+		ProgressLog("%10u  HSP Mega reject (no full-SW fallback)\n", m_hsp_align_fallback.load());
+		ProgressLog("%10u  HSP Mega reject low score/empty\n", m_hsp_align_reject_score.load());
+		ProgressLog("%10u  HSP Mega reject bad path\n", m_hsp_align_reject_path.load());
+		ProgressLog("%10u  HSP Mega long pair no seed\n", m_hsp_align_no_seed.load());
+		log_sw_flat_pssm_xdrop_hsp_stats();
+		}
+	if (flat_params::m_hsp_align_check)
+		{
+		ProgressLog("%10u  HSP check ok (near-equal)\n", m_hsp_align_check_ok.load());
+		ProgressLog("%10u  HSP check xdrop < full\n", m_hsp_align_check_xdrop_lt.load());
+		ProgressLog("%10u  HSP check xdrop > full (bug)\n", m_hsp_align_check_bug.load());
+		}
 	log_flat_n_truncated_chains();
 	}
 
@@ -170,6 +209,9 @@ void reseeker::search_all_vs_all(const BCAData &dbbca)
 	m_dbidxs = 0;
 	m_dbidx_to_qidxs = 0;
 	m_dbidx_to_diagscores = 0;
+	m_dbidx_to_hspdiags = 0;
+	m_dbidx_to_hsplos = 0;
+	m_dbidx_to_hsplens = 0;
 	m_mode = NF_all_vs_all;
 	m_qidxs_all.clear();
 	m_qidxs_all.reserve(m_query_nchain);
@@ -183,13 +225,19 @@ void reseeker::search_post_kappa(
 	const BCAData &dbbca,
 	const vector<uint> &dbidxs,
 	const unordered_map<uint, vector<uint> > &dbidx_to_qidxs,
-	const unordered_map<uint, vector<uint> > &dbidx_to_diagscores)
+	const unordered_map<uint, vector<uint> > &dbidx_to_diagscores,
+	const unordered_map<uint, vector<uint> > *dbidx_to_hspdiags,
+	const unordered_map<uint, vector<uint> > *dbidx_to_hsplos,
+	const unordered_map<uint, vector<uint> > *dbidx_to_hsplens)
 	{
 	m_ndbidxs = uint(dbidxs.size());
 	m_dbbca = &dbbca;
 	m_dbidxs = &dbidxs;
 	m_dbidx_to_qidxs = &dbidx_to_qidxs;
 	m_dbidx_to_diagscores = &dbidx_to_diagscores;
+	m_dbidx_to_hspdiags = dbidx_to_hspdiags;
+	m_dbidx_to_hsplos = dbidx_to_hsplos;
+	m_dbidx_to_hsplens = dbidx_to_hsplens;
 	m_mode = NF_kappa;
 	m_qidxs_all.clear();
 

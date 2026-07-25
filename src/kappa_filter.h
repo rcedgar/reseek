@@ -105,6 +105,9 @@ public:
 	uint m_NrQueriesWithTwoHitDiag = UINT_MAX;
 	uint16_t *m_QSeqIdxsWithTwoHitDiag = 0;
 	uint16_t *m_QSeqIdxToBestDiagScore = 0;
+	uint16_t *m_QSeqIdxToBestDiag = 0;
+	uint16_t *m_QSeqIdxToBestLo = 0;
+	uint16_t *m_QSeqIdxToBestLen = 0;
 
 // High-scoring k-mers in the neighborhood
 // of the current Target k-mer
@@ -171,7 +174,9 @@ public:
 	void ExtendOneHitDiagsToHSPs();
 	void ExtendTwoHitDiagsToHSPs();
 	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag);
-	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore);
+	int ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag, int &Lo, int &Len);
+	void AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore,
+		int Lo = 0, int Len = 0);
 	void OneHitDiagAdd(uint SeqIdx, uint16_t Diag);
 	void DumpPreHSPHits() const;
 	void GetResults(vector<uint> &QSeqIdxs,

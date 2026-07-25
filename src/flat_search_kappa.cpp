@@ -110,9 +110,13 @@ void cmd_flat_search_kappa()
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_diagscores;
+	unordered_map<uint, vector<uint> > dbidx_to_hspdiags;
+	unordered_map<uint, vector<uint> > dbidx_to_hsplos;
+	unordered_map<uint, vector<uint> > dbidx_to_hsplens;
 	uint max_queries_per_target = 0;
 	kappa_filter::m_RSB.GetTargetInfoSorted(
 		dbidxs, dbidx_to_qidxs, dbidx_to_diagscores,
+		dbidx_to_hspdiags, dbidx_to_hsplos, dbidx_to_hsplens,
 		max_queries_per_target);
 	if (optset_output2)
 		{
@@ -155,7 +159,8 @@ void cmd_flat_search_kappa()
 	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
 	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
 	reseeker::m_max_queries_per_target = max_queries_per_target;
-	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs, dbidx_to_diagscores);
+	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs, dbidx_to_diagscores,
+		&dbidx_to_hspdiags, &dbidx_to_hsplos, &dbidx_to_hsplens);
 	time_t t_nu_filter_end = time(0);
 	uint nu_filter_secs = uint(t_nu_filter_end - t_kappa_filter_end);
 	ProgressLog("Nu filter %u secs\n", nu_filter_secs);

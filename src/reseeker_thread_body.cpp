@@ -4,6 +4,9 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 #include "hitdata.h"
+#include "sw_flat_pssm_xdrop.h"
+#include "rankedscoresbag.h"
+#include "kappa_hsp.h"
 
 static void validate_hit(const hitdata &hit)
 	{
@@ -62,7 +65,10 @@ void reseeker::static_thread_body(uint threadidx)
 	float *scratch_rows = myalloc(float, 2*flat_params::m_maxL + 3);
 	const float **scratch_pssms = myalloc(const float *, m_params->m_nfeat);
 	uint8_t *TB = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
-	char *path_buffer = myalloc(char, 2*flat_params::m_maxL);
+	uint8_t *TB_bwd = myalloc(uint8_t, flat_params::m_maxL*flat_params::m_maxL);
+	// 3 regions for sw_flat_pssm_xdrop_hsp (fwd/bwd/merged)
+	char *path_buffer = myalloc(char, 6*flat_params::m_maxL + 16);
+	char *path_check = myalloc(char, 2*flat_params::m_maxL);
 	uint *pos_is = myalloc(uint, flat_params::m_maxL);
 	uint *pos_js = myalloc(uint, flat_params::m_maxL);
 	uint *considered_vec = myalloc(uint, flat_params::m_maxL);
@@ -86,6 +92,9 @@ void reseeker::static_thread_body(uint threadidx)
 
 		const vector<uint> *ptr_qidxs = 0;
 		const vector<uint> *ptr_diagscores = 0;
+		const vector<uint> *ptr_hspdiags = 0;
+		const vector<uint> *ptr_hsplos = 0;
+		const vector<uint> *ptr_hsplens = 0;
 		uint dbidx = UINT_MAX;
 
 		switch (m_mode)
@@ -109,6 +118,20 @@ void reseeker::static_thread_body(uint threadidx)
 			asserta(iter_diag != m_dbidx_to_diagscores->end());
 			ptr_diagscores = &iter_diag->second;
 			asserta(ptr_diagscores->size() == ptr_qidxs->size());
+			if (m_dbidx_to_hspdiags != 0)
+				{
+				asserta(m_dbidx_to_hsplos != 0 && m_dbidx_to_hsplens != 0);
+				auto it_d = m_dbidx_to_hspdiags->find(dbidx);
+				auto it_lo = m_dbidx_to_hsplos->find(dbidx);
+				auto it_ln = m_dbidx_to_hsplens->find(dbidx);
+				asserta(it_d != m_dbidx_to_hspdiags->end());
+				asserta(it_lo != m_dbidx_to_hsplos->end());
+				asserta(it_ln != m_dbidx_to_hsplens->end());
+				ptr_hspdiags = &it_d->second;
+				ptr_hsplos = &it_lo->second;
+				ptr_hsplens = &it_ln->second;
+				asserta(ptr_hspdiags->size() == ptr_qidxs->size());
+				}
 			break;
 			}
 
@@ -199,14 +222,99 @@ void reseeker::static_thread_body(uint threadidx)
 			// Mega forward score
 			/////////////////////////////////////////////
 			uint lo_i, lo_j, ncol;
-			float mega_fwd_score = sw_flat_pssm(
-				scratch_rows, TB, scratch_pssms,
-				target_mega_prof, LT, query_mega_pssm, LQ,
-				m_params->m_feature_block_offsets,
-				m_params->m_nfeat,
-				-m_params->m_open,
-				-m_params->m_ext,
-				lo_i, lo_j, path_buffer, ncol);
+			float mega_fwd_score = 0;
+			bool used_hsp_align = false;
+
+			const uint gate = flat_params::m_hsp_align_min_length;
+			const bool long_pair = (LQ >= gate || LT >= gate);
+			uint hsp_diag = HSP_SEED_NONE;
+			uint hsp_lo = 0;
+			uint hsp_len = 0;
+			if (ptr_hspdiags != 0)
+				{
+				hsp_diag = (*ptr_hspdiags)[j];
+				hsp_lo = (*ptr_hsplos)[j];
+				hsp_len = (*ptr_hsplens)[j];
+				}
+			const bool have_seed = (hsp_diag != HSP_SEED_NONE && hsp_len > 0);
+			const bool try_hsp = flat_params::m_hsp_align && long_pair && have_seed;
+			if (flat_params::m_hsp_align && long_pair && !have_seed)
+				++m_hsp_align_no_seed;
+
+			if (try_hsp)
+				{
+				++m_hsp_align_try;
+				int mini = 0, minj = 0, n = 0;
+				kappa_get_hsp_limits(int(LQ), int(LT), int(hsp_diag),
+					mini, minj, n);
+				(void) n;
+				// Seed mid-HSP (Mu XDropHSP style), not the HSP start edge.
+				const int seed_off = int(hsp_lo) + int(hsp_len) / 2;
+				const int pos_query = mini + seed_off;
+				const int pos_target = minj + seed_off;
+				asserta(pos_query >= 0 && uint(pos_query) < LQ);
+				asserta(pos_target >= 0 && uint(pos_target) < LT);
+
+				// sw_flat_pssm: prof = target, pssm = query
+				mega_fwd_score = sw_flat_pssm_xdrop_hsp(
+					scratch_rows, TB, TB_bwd, scratch_pssms,
+					target_mega_prof, LT, query_mega_pssm, LQ,
+					m_params->m_feature_block_offsets,
+					m_params->m_nfeat,
+					uint(pos_target), uint(pos_query),
+					flat_params::m_hsp_x2,
+					-m_params->m_open,
+					-m_params->m_ext,
+					lo_i, lo_j, path_buffer, ncol);
+
+				if (flat_params::m_hsp_align_check)
+					{
+					uint lo_i_f, lo_j_f, ncol_f;
+					float full_score = sw_flat_pssm(
+						scratch_rows, TB_bwd, scratch_pssms,
+						target_mega_prof, LT, query_mega_pssm, LQ,
+						m_params->m_feature_block_offsets,
+						m_params->m_nfeat,
+						-m_params->m_open,
+						-m_params->m_ext,
+						lo_i_f, lo_j_f, path_check, ncol_f);
+					(void) ncol_f;
+					const float eps = 1e-3f + 1e-5f * max(fabsf(full_score), 1.0f);
+					if (mega_fwd_score > full_score + eps)
+						{
+						++m_hsp_align_check_bug;
+						Die("hsp_align_check: xdrop=%.6g > full=%.6g (q=%s t=%s diag=%u lo=%u len=%u)",
+							mega_fwd_score, full_score,
+							query_label.c_str(), target_label.c_str(),
+							hsp_diag, hsp_lo, hsp_len);
+						}
+					else if (fabsf(mega_fwd_score - full_score) <= eps)
+						++m_hsp_align_check_ok;
+					else
+						++m_hsp_align_check_xdrop_lt;
+					}
+
+				if (mega_fwd_score < m_params->m_mega_filter_min_fwd || ncol == 0)
+					{
+					// Cheap reject — do not fall back to full Mega SW.
+					++m_hsp_align_fallback;
+					++m_hsp_align_reject_score;
+					++m_reject_mega_fwd;
+					continue;
+					}
+				used_hsp_align = true;
+				}
+			else
+				{
+				mega_fwd_score = sw_flat_pssm(
+					scratch_rows, TB, scratch_pssms,
+					target_mega_prof, LT, query_mega_pssm, LQ,
+					m_params->m_feature_block_offsets,
+					m_params->m_nfeat,
+					-m_params->m_open,
+					-m_params->m_ext,
+					lo_i, lo_j, path_buffer, ncol);
+				}
 			const uint L_i = LT;
 			const uint L_j = LQ;
 			const sid_t *distmx_i = target_distmx;
@@ -255,6 +363,18 @@ void reseeker::static_thread_body(uint threadidx)
 
 			uint nmatch = path2posvecs3(path_buffer, ncol,
 				lo_i, L_i, lo_j, L_j, pos_is, pos_js, flat_params::m_maxL);
+			if (nmatch == 0)
+				{
+				++m_reject_mega_fwd;
+				if (used_hsp_align)
+					{
+					++m_hsp_align_fallback;
+					++m_hsp_align_reject_path;
+					}
+				continue;
+				}
+			if (used_hsp_align)
+				++m_hsp_align_used;
 
 			/////////////////////////////////////////////
 			// LDDT

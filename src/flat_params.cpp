@@ -51,6 +51,17 @@ Kappa filter 113 secs	 8.3Gb	02:30	twohitdiag kappa_hsp_rsb_prune kappa_mindiags
 bool flat_params::m_kappa_onehitdiag = false;
 bool flat_params::m_kappa_twohitdiag = false;
 
+bool flat_params::m_hsp_align = false;
+bool flat_params::m_hsp_align_check = false;
+uint flat_params::m_hsp_align_min_length =
+	flat_params::DEFAULT_HSP_ALIGN_MIN_LENGTH;
+float flat_params::m_hsp_x2 = 20.0f;
+
+bool flat_params::want_hsp_seeds()
+	{
+	return m_hsp_align || m_hsp_align_check;
+	}
+
 /////////////////////
 // Chain quantization
 // MUST RE-TRAIN THRESHOLDS AND LOGODDS
@@ -106,6 +117,15 @@ void flat_params::init_kappa()
 	int kappa_max_pos_logodds();
 	flat_params::m_kappa_max_pos_logodds = kappa_max_pos_logodds();
 	flat_params::sync_min_chainlength();
+
+	if (opt(hsp_align_check))
+		flat_params::m_hsp_align_check = true;
+	if (opt(hsp_align) || flat_params::m_hsp_align_check)
+		flat_params::m_hsp_align = true;
+	if (optset_mkfl)
+		flat_params::m_hsp_align_min_length = opt(mkfl);
+	if (optset_hsp_x2)
+		flat_params::m_hsp_x2 = float(opt(hsp_x2));
 	}
 
 void flat_params::init_from_cmdline()
@@ -319,6 +339,10 @@ void flat_params::logme()
 	Log("%10d  kappa_max_pos_logodds\n", m_kappa_max_pos_logodds);
 	Log("%10d  kappa_onehitdiag\n", m_kappa_onehitdiag);
 	Log("%10d  kappa_twohitdiag\n", m_kappa_twohitdiag);
+	Log("%10d  hsp_align\n", m_hsp_align);
+	Log("%10d  hsp_align_check\n", m_hsp_align_check);
+	Log("%10u  hsp_align_min_length\n", m_hsp_align_min_length);
+	Log("%10.3g  hsp_x2\n", m_hsp_x2);
 	{
 	const char *diag_mode = "unique_fine";
 	if (m_kappa_onehitdiag)

@@ -79,9 +79,17 @@ public:
 	static bool m_kappa_onehitdiag;
 	static bool m_kappa_twohitdiag;
 
+	// HSP-seeded Mega X-drop for long chains (Mu MKFL analogue).
+	static bool m_hsp_align;
+	static bool m_hsp_align_check;
+	static uint m_hsp_align_min_length;
+	static const uint DEFAULT_HSP_ALIGN_MIN_LENGTH = 500;
+	static float m_hsp_x2;
+
 	// -minchainlength if set, else DEFAULT_MIN_CHAINLENGTH (32).
 	static uint get_min_chainlength();
 	static void sync_min_chainlength();
+	static bool want_hsp_seeds();
 
 	// alphabets
 	uint32 m_nfeat = UINT_MAX;

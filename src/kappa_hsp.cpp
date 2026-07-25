@@ -70,6 +70,48 @@ int kappa_find_hsp(const byte *QSeq, const byte *TSeq,
 	return B;
 	}
 
+int kappa_find_hsp2(const byte *QSeq, const byte *TSeq,
+	int LQ, int LT, int Diag, int &Lo, int &Len)
+	{
+	int mini, minj, n;
+	kappa_get_hsp_limits(LQ, LT, Diag, mini, minj, n);
+
+	const byte *q = QSeq + mini;
+	const byte *t = TSeq + minj;
+	int B = 0;
+	int F = 0;
+	int CurrLen = 0;
+	Lo = 0;
+	Len = 0;
+	int SuffixLo = 0;
+	for (int k = 0; k < n; ++k)
+		{
+		const unsigned bq = *q++;
+		const unsigned bt = *t++;
+#if !defined(NDEBUG)
+		assert(bq < KAPPA_AS);
+		assert(bt < KAPPA_AS);
+#endif
+		const int Score = int(kappa32_flat_logodds[bq * 32u + bt]);
+		F += Score;
+		if (F > B)
+			{
+			B = F;
+			Lo = SuffixLo;
+			Len = ++CurrLen;
+			}
+		else if (F > 0)
+			++CurrLen;
+		else
+			{
+			F = 0;
+			SuffixLo = k + 1;
+			CurrLen = 0;
+			}
+		}
+	return B;
+	}
+
 int kappa_max_pos_logodds()
 	{
 	int mx = 0;

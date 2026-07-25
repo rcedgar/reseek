@@ -2,6 +2,8 @@
 #include "kappa_filter.h"
 #include "kappa_hsp.h"
 #include "flat_params.h"
+#include "kappa_hsp.h"
+#include "flat_params.h"
 #include "seqinfo.h"
 #include <mutex>
 
@@ -100,56 +102,7 @@ int kappa_filter::FindHSP(uint QSeqIdx, int Diag) const
 int kappa_filter::FindHSP2(const byte *QSeq, uint QL, int Diag,
 							  int &Lo, int &Len) const
 	{
-	asserta(Diag >= 0);
-	const int LQ = int(QL);
-	const int LT = int(m_TL);
-	const int d = Diag;
-	int mini = LQ - d - 1;
-	if (mini < 0)
-		mini = 0;
-	int minj = d + 1 - LQ;
-	if (minj < 0)
-		minj = 0;
-	int maxi = LQ + LT - d - 2;
-	if (maxi >= LQ)
-		maxi = LQ - 1;
-	const int n = maxi - mini + 1;
-	asserta(n > 0);
-
-	const byte *q = QSeq + mini;
-	const byte *t = m_TSeq + minj;
-	int B = 0;
-	int F = 0;
-	int CurrLen = 0;
-	Lo = 0;
-	Len = 0;
-	int SuffixLo = 0;
-	for (int k = 0; k < n; ++k)
-		{
-		const byte bq = *q++;
-		const byte bt = *t++;
-#if !defined(NDEBUG)
-		assert(bq < KAPPA_AS);
-		assert(bt < KAPPA_AS);
-#endif
-		const int Score = int(kappa32_flat_logodds[(unsigned) bq*32u + (unsigned) bt]);
-		F += Score;
-		if (F > B)
-			{
-			B = F;
-			Lo = SuffixLo;
-			Len = ++CurrLen;
-			}
-		else if (F > 0)
-			++CurrLen;
-		else
-			{
-			F = 0;
-			SuffixLo = k+1;
-			CurrLen = 0;
-			}
-		}
-	return B;
+	return kappa_find_hsp2(QSeq, m_TSeq, int(QL), int(m_TL), Diag, Lo, Len);
 	}
 
 int kappa_filter::FindHSP2(uint QSeqIdx, int Diag, int &Lo, int &Len) const
@@ -231,11 +184,17 @@ void kappa_filter::alloc()
 
 	m_QSeqIdxToBestDiagScore = myalloc(uint16_t, m_QSeqCount);
 	m_QSeqIdxsWithTwoHitDiag = myalloc(uint16_t, m_QSeqCount);
+	m_QSeqIdxToBestDiag = myalloc(uint16_t, m_QSeqCount);
+	m_QSeqIdxToBestLo = myalloc(uint16_t, m_QSeqCount);
+	m_QSeqIdxToBestLen = myalloc(uint16_t, m_QSeqCount);
 
 	for (uint i = 0; i < m_QSeqCount; ++i)
 		{
 		m_QSeqIdxToBestDiagScore[i] = 0;
 		m_QSeqIdxsWithTwoHitDiag[i] = UINT16_MAX;
+		m_QSeqIdxToBestDiag[i] = HSP_SEED_NONE;
+		m_QSeqIdxToBestLo[i] = 0;
+		m_QSeqIdxToBestLen[i] = 0;
 		}
 
 	bool TargetNeighborhood = !g_QueryNeighborhood;
@@ -448,8 +407,9 @@ void kappa_filter::ExtendOneHitDiagsToHSPs()
 		const uint32_t pair = *iter;
 		const uint32_t QSeqIdx = (pair >> 16);
 		const uint16_t Diag = uint16_t(pair & 0xffff);
-		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
-		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
+		int Lo = 0, Len = 0;
+		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag, Lo, Len);
+		AddTwoHitDiag(QSeqIdx, Diag, DiagScore, Lo, Len);
 		}
 	}
 
@@ -538,7 +498,8 @@ void kappa_filter::GetResults(vector<uint> &QSeqIdxs,
 		}
 	}
 
-void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
+void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore,
+	int Lo, int Len)
 	{
 	if (DiagScore <= 0)
 		return;
@@ -548,10 +509,15 @@ void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	if (DiagScore >= UINT16_MAX)
 		DiagScore = UINT16_MAX-1;
 	uint16_t BestDiagScoreT = m_QSeqIdxToBestDiagScore[QSeqIdx];
+	const uint16_t uLo = (Lo < 0 || Lo >= 0xffff) ? 0 : uint16_t(Lo);
+	const uint16_t uLen = (Len < 0 || Len >= 0xffff) ? 0 : uint16_t(Len);
 	if (BestDiagScoreT == 0)
 		{
 		m_QSeqIdxsWithTwoHitDiag[m_NrQueriesWithTwoHitDiag++] = QSeqIdx;
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
+		m_QSeqIdxToBestDiag[QSeqIdx] = Diag;
+		m_QSeqIdxToBestLo[QSeqIdx] = uLo;
+		m_QSeqIdxToBestLen[QSeqIdx] = uLen;
 #if TRACE
 		if (DoTrace(QSeqIdx)) Log("AddTwoHitDiag(TSeqIdx=%u, QSeqIdx=%u, Diag=%u, DiagScore=%d) (first)\n",
 								  m_TSeqIdx, QSeqIdx, Diag, DiagScore);
@@ -560,6 +526,9 @@ void kappa_filter::AddTwoHitDiag(uint QSeqIdx, uint16_t Diag, int DiagScore)
 	else if (DiagScore > m_QSeqIdxToBestDiagScore[QSeqIdx])
 		{
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = DiagScore;
+		m_QSeqIdxToBestDiag[QSeqIdx] = Diag;
+		m_QSeqIdxToBestLo[QSeqIdx] = uLo;
+		m_QSeqIdxToBestLen[QSeqIdx] = uLen;
 #if TRACE
 		if (DoTrace(QSeqIdx)) Log("AddTwoHitDiag(TSeqIdx=%u, QSeqIdx=%u, Diag=%u, DiagScore=%d) (better)\n",
 								  m_TSeqIdx, QSeqIdx, Diag, DiagScore);
@@ -576,15 +545,25 @@ void kappa_filter::ExtendTwoHitDiagsToHSPs()
 		{
 		const uint32_t QSeqIdx = m_DiagBag.m_DupeSeqIdxs[i];
 		const uint16_t Diag = m_DiagBag.m_DupeDiags[i];
-		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag);
-		AddTwoHitDiag(QSeqIdx, Diag, DiagScore);
+		int Lo = 0, Len = 0;
+		const int DiagScore = ExtendDiagToHSP(QSeqIdx, Diag, Lo, Len);
+		AddTwoHitDiag(QSeqIdx, Diag, DiagScore, Lo, Len);
 		}
 	}
 
 int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 	{
+	int Lo = 0, Len = 0;
+	return ExtendDiagToHSP(QSeqIdx, Diag, Lo, Len);
+	}
+
+int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag,
+	int &Lo, int &Len)
+	{
 	const byte *QSeq = m_query_kappa_codeseq_vec[QSeqIdx];
 	const uint QL = m_query_lengths[QSeqIdx];
+	Lo = 0;
+	Len = 0;
 
 	int mini, minj, n;
 	kappa_get_hsp_limits(int(QL), int(m_TL), int(Diag),
@@ -607,7 +586,11 @@ int kappa_filter::ExtendDiagToHSP(uint32_t QSeqIdx, uint16_t Diag)
 
 	++m_local_n_hsp;
 	m_local_n_hsp_cells += uint64(n);
-	int DiagScore = FindHSP(QSeq, QL, Diag);
+	int DiagScore;
+	if (flat_params::want_hsp_seeds())
+		DiagScore = FindHSP2(QSeq, QL, Diag, Lo, Len);
+	else
+		DiagScore = FindHSP(QSeq, QL, Diag);
 #if TRACE
 	LogDiag(QSeqIdx, Diag);
 #endif
@@ -620,6 +603,9 @@ void kappa_filter::Reset()
 		{
 		uint QSeqIdx = m_QSeqIdxsWithTwoHitDiag[HitIdx];
 		m_QSeqIdxToBestDiagScore[QSeqIdx] = 0;
+		m_QSeqIdxToBestDiag[QSeqIdx] = HSP_SEED_NONE;
+		m_QSeqIdxToBestLo[QSeqIdx] = 0;
+		m_QSeqIdxToBestLen[QSeqIdx] = 0;
 		}
 #if DEBUG
 	{
@@ -676,6 +662,9 @@ void kappa_filter::Search(uint TSeqIdx, const string &TLabel,
 		e.QueryIdx = QSeqIdx;
 		e.TargetIdx = m_TSeqIdx;
 		e.Score = DiagScore;
+		e.Diag = m_QSeqIdxToBestDiag[QSeqIdx];
+		e.Lo = m_QSeqIdxToBestLo[QSeqIdx];
+		e.Len = m_QSeqIdxToBestLen[QSeqIdx];
 		m_RSBPending.push_back(e);
 		if (m_RSBPending.size() >= RSB_BATCH)
 			m_RSB.AddScoresBatch(m_RSBPending);

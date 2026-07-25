@@ -889,6 +889,10 @@ uint path2posvecs3(
 	uint *posTs,
 	uint bufnpos)
 	{
+	if (ncol == 0)
+		return 0;
+	if (loQ >= LQ || loT >= LT)
+		return 0;
 	uint posQ = loQ;
 	uint posT = loT;
 	uint nmatch = 0;
@@ -897,19 +901,29 @@ uint path2posvecs3(
 		char c = path[col];
 		if (c == 'M')
 			{
-			assert(nmatch < bufnpos);
-			assert(posQ < LQ);
-			assert(posT < LT);
+			if (nmatch >= bufnpos || posQ >= LQ || posT >= LT)
+				return 0;
 			posQs[nmatch] = posQ;
 			posTs[nmatch] = posT;
 			++nmatch;
 			}
+		else if (c != 'D' && c != 'I')
+			return 0;
 		if (c == 'M' || c == 'D')
-			posQ++;
+			{
+			++posQ;
+			if (posQ > LQ)
+				return 0;
+			}
 		if (c == 'M' || c == 'I')
-			posT++;
+			{
+			++posT;
+			if (posT > LT)
+				return 0;
+			}
 		}
-	asserta(nmatch < bufnpos);
+	if (nmatch == 0 || nmatch >= bufnpos)
+		return 0;
 	return nmatch;
 	}
 

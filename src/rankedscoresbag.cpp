@@ -21,21 +21,34 @@ void RankedScoresBag::TruncateVecs(uint QueryIdx)
 	uint *Order = myalloc(uint, CurrentSize);
 	QuickSortOrderDesc(ScoreVec.data(), CurrentSize, Order);
 	vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
+	vector<uint16_t> &DiagVec = m_QueryIdxToDiagVec[QueryIdx];
+	vector<uint16_t> &LoVec = m_QueryIdxToLoVec[QueryIdx];
+	vector<uint16_t> &LenVec = m_QueryIdxToLenVec[QueryIdx];
 	vector<uint16_t> NewScoreVec;
 	vector<uint> NewTargetIdxVec;
+	vector<uint16_t> NewDiagVec;
+	vector<uint16_t> NewLoVec;
+	vector<uint16_t> NewLenVec;
 	NewScoreVec.reserve(m_B);
 	NewTargetIdxVec.reserve(m_B);
+	NewDiagVec.reserve(m_B);
+	NewLoVec.reserve(m_B);
+	NewLenVec.reserve(m_B);
 	for (uint k = 0; k < m_B; ++k)
 		{
 		uint i = Order[k];
-		uint16_t Score = ScoreVec[i];
-		uint TargetIdx = TargetIdxVec[i];
-		NewScoreVec.push_back(Score);
-		NewTargetIdxVec.push_back(TargetIdx);
+		NewScoreVec.push_back(ScoreVec[i]);
+		NewTargetIdxVec.push_back(TargetIdxVec[i]);
+		NewDiagVec.push_back(DiagVec[i]);
+		NewLoVec.push_back(LoVec[i]);
+		NewLenVec.push_back(LenVec[i]);
 		}
 	uint16_t NewLo = NewScoreVec[m_B-1];
 	m_QueryIdxToTargetIdxVec[QueryIdx] = NewTargetIdxVec;
 	m_QueryIdxToScoreVec[QueryIdx] = NewScoreVec;
+	m_QueryIdxToDiagVec[QueryIdx] = NewDiagVec;
+	m_QueryIdxToLoVec[QueryIdx] = NewLoVec;
+	m_QueryIdxToLenVec[QueryIdx] = NewLenVec;
 	m_QueryIdxToLoScore[QueryIdx] = NewLo;
 	m_AnyLoScoreActive.store(true, std::memory_order_release);
 	myfree(Order);
@@ -47,7 +60,8 @@ uint16_t RankedScoresBag::GetLoScore(uint QueryIdx) const
 	return m_QueryIdxToLoScore[QueryIdx];
 	}
 
-void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score)
+void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t Score,
+	uint16_t Diag, uint16_t Lo, uint16_t Len)
 	{
 #if CHECK_SCORE_VECS
 	m_QueryIdxToFullTargetIdxVec[QueryIdx].push_back(TargetIdx);
@@ -59,6 +73,9 @@ void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t 
 		{
 		ScoreVec.push_back(Score);
 		m_QueryIdxToTargetIdxVec[QueryIdx].push_back(TargetIdx);
+		m_QueryIdxToDiagVec[QueryIdx].push_back(Diag);
+		m_QueryIdxToLoVec[QueryIdx].push_back(Lo);
+		m_QueryIdxToLenVec[QueryIdx].push_back(Len);
 		if (SIZE(ScoreVec) >= 2*m_B)
 			TruncateVecs(QueryIdx);
 #if STORE_PAIR_SCORES
@@ -76,8 +93,14 @@ void RankedScoresBag::AddScore_unlocked(uint QueryIdx, uint TargetIdx, uint16_t 
 
 void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score)
 	{
+	AddScore(QueryIdx, TargetIdx, Score, HSP_SEED_NONE, 0, 0);
+	}
+
+void RankedScoresBag::AddScore(uint QueryIdx, uint TargetIdx, uint16_t Score,
+	uint16_t Diag, uint16_t Lo, uint16_t Len)
+	{
 	m_DataLock.lock();
-	AddScore_unlocked(QueryIdx, TargetIdx, Score);
+	AddScore_unlocked(QueryIdx, TargetIdx, Score, Diag, Lo, Len);
 	m_DataLock.unlock();
 	}
 
@@ -95,7 +118,7 @@ void RankedScoresBag::AddScoresBatch(vector<RankedScoreBatchEntry> &Batch)
 	for (uint i = 0; i < N; ++i)
 		{
 		const RankedScoreBatchEntry &e = Batch[i];
-		AddScore_unlocked(e.QueryIdx, e.TargetIdx, e.Score);
+		AddScore_unlocked(e.QueryIdx, e.TargetIdx, e.Score, e.Diag, e.Lo, e.Len);
 		}
 	m_DataLock.unlock();
 	Batch.clear();
@@ -280,28 +303,63 @@ void RankedScoresBag::GetTargetInfoSorted(
 	unordered_map<uint, vector<uint> > &TargetIdxToDiagScores,
 	uint &max_queries_per_target) const
 	{
+	unordered_map<uint, vector<uint> > HspDiags;
+	unordered_map<uint, vector<uint> > HspLos;
+	unordered_map<uint, vector<uint> > HspLens;
+	GetTargetInfoSorted(TargetIdxs, TargetIdxToQueryIdxs, TargetIdxToDiagScores,
+		HspDiags, HspLos, HspLens, max_queries_per_target);
+	}
+
+void RankedScoresBag::GetTargetInfoSorted(
+	vector<uint> &TargetIdxs,
+	unordered_map<uint, vector<uint> > &TargetIdxToQueryIdxs,
+	unordered_map<uint, vector<uint> > &TargetIdxToDiagScores,
+	unordered_map<uint, vector<uint> > &TargetIdxToHspDiags,
+	unordered_map<uint, vector<uint> > &TargetIdxToHspLos,
+	unordered_map<uint, vector<uint> > &TargetIdxToHspLens,
+	uint &max_queries_per_target) const
+	{
 	max_queries_per_target = 0;
 	TargetIdxToQueryIdxs.clear();
 	TargetIdxToDiagScores.clear();
+	TargetIdxToHspDiags.clear();
+	TargetIdxToHspLos.clear();
+	TargetIdxToHspLens.clear();
 	TargetIdxs.clear();
 	Progress("Make target info (sorted)...\n");
-	unordered_map<uint, vector<pair<uint, uint16_t> > > TargetIdxToPairs;
+	// pair: (QueryIdx, Score, Diag, Lo, Len) packed via nested pairs
+	struct Hit
+		{
+		uint QueryIdx;
+		uint16_t Score;
+		uint16_t Diag;
+		uint16_t Lo;
+		uint16_t Len;
+		};
+	unordered_map<uint, vector<Hit> > TargetIdxToHits;
 	for (uint QueryIdx = 0; QueryIdx < m_QueryCount; ++QueryIdx)
 		{
 		const vector<uint16_t> &ScoreVec = m_QueryIdxToScoreVec[QueryIdx];
 		const vector<uint> &TargetIdxVec = m_QueryIdxToTargetIdxVec[QueryIdx];
+		const vector<uint16_t> &DiagVec = m_QueryIdxToDiagVec[QueryIdx];
+		const vector<uint16_t> &LoVec = m_QueryIdxToLoVec[QueryIdx];
+		const vector<uint16_t> &LenVec = m_QueryIdxToLenVec[QueryIdx];
 		const uint n = SIZE(ScoreVec);
+		asserta(SIZE(DiagVec) == n);
+		asserta(SIZE(LoVec) == n);
+		asserta(SIZE(LenVec) == n);
 		for (uint i = 0; i < n; ++i)
 			{
 			uint TargetIdx = TargetIdxVec[i];
-			uint16_t Score = ScoreVec[i];
-			if (TargetIdxToPairs.find(TargetIdx) == TargetIdxToPairs.end())
-				{
+			if (TargetIdxToHits.find(TargetIdx) == TargetIdxToHits.end())
 				TargetIdxs.push_back(TargetIdx);
-				vector<pair<uint, uint16_t> > Empty;
-				TargetIdxToPairs[TargetIdx] = Empty;
-				}
-			TargetIdxToPairs[TargetIdx].push_back(make_pair(QueryIdx, Score));
+			Hit h;
+			h.QueryIdx = QueryIdx;
+			h.Score = ScoreVec[i];
+			h.Diag = DiagVec[i];
+			h.Lo = LoVec[i];
+			h.Len = LenVec[i];
+			TargetIdxToHits[TargetIdx].push_back(h);
 			}
 		}
 	const uint TargetCount = SIZE(TargetIdxs);
@@ -309,22 +367,31 @@ void RankedScoresBag::GetTargetInfoSorted(
 	for (uint k = 0; k < TargetCount; ++k)
 		{
 		uint TargetIdx = TargetIdxs[k];
-		vector<pair<uint, uint16_t> > &Pairs = TargetIdxToPairs[TargetIdx];
-		std::sort(Pairs.begin(), Pairs.end(),
-			[](const pair<uint, uint16_t> &a, const pair<uint, uint16_t> &b)
+		vector<Hit> &Hits = TargetIdxToHits[TargetIdx];
+		std::sort(Hits.begin(), Hits.end(),
+			[](const Hit &a, const Hit &b)
 				{
-				return a.second > b.second;
+				return a.Score > b.Score;
 				});
 		vector<uint> &QIdxs = TargetIdxToQueryIdxs[TargetIdx];
 		vector<uint> &DiagScores = TargetIdxToDiagScores[TargetIdx];
-		uint nq = uint(Pairs.size());
+		vector<uint> &HspDiags = TargetIdxToHspDiags[TargetIdx];
+		vector<uint> &HspLos = TargetIdxToHspLos[TargetIdx];
+		vector<uint> &HspLens = TargetIdxToHspLens[TargetIdx];
+		uint nq = uint(Hits.size());
 		max_queries_per_target = max(nq, max_queries_per_target);
 		QIdxs.reserve(nq);
 		DiagScores.reserve(nq);
+		HspDiags.reserve(nq);
+		HspLos.reserve(nq);
+		HspLens.reserve(nq);
 		for (uint i = 0; i < nq; ++i)
 			{
-			QIdxs.push_back(Pairs[i].first);
-			DiagScores.push_back(Pairs[i].second);
+			QIdxs.push_back(Hits[i].QueryIdx);
+			DiagScores.push_back(Hits[i].Score);
+			HspDiags.push_back(Hits[i].Diag);
+			HspLos.push_back(Hits[i].Lo);
+			HspLens.push_back(Hits[i].Len);
 			}
 		}
 	ProgressLog("%u targets, maxqpert %u\n", TargetCount, max_queries_per_target);
@@ -363,8 +430,17 @@ void RankedScoresBag::ToTsv(FILE *f)
 void RankedScoresBag::Init(uint QueryCount)
 	{
 	m_QueryCount = QueryCount;
+	m_QueryIdxToScoreVec.clear();
+	m_QueryIdxToTargetIdxVec.clear();
+	m_QueryIdxToDiagVec.clear();
+	m_QueryIdxToLoVec.clear();
+	m_QueryIdxToLenVec.clear();
+	m_QueryIdxToLoScore.clear();
 	m_QueryIdxToScoreVec.resize(QueryCount);
 	m_QueryIdxToTargetIdxVec.resize(QueryCount);
+	m_QueryIdxToDiagVec.resize(QueryCount);
+	m_QueryIdxToLoVec.resize(QueryCount);
+	m_QueryIdxToLenVec.resize(QueryCount);
 	m_QueryIdxToLoScore.resize(QueryCount, 0);
 	m_AnyLoScoreActive.store(false, std::memory_order_relaxed);
 #if CHECK_SCORE_VECS

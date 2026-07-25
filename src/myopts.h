@@ -188,6 +188,7 @@ FLT_OPT(mindypct)
 FLT_OPT(maxdypct)
 FLT_OPT(gapopen)
 FLT_OPT(gapext)
+FLT_OPT(hsp_x2)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(compilerinfo)
@@ -253,6 +254,8 @@ FLAG_OPT(filter_only)
 FLAG_OPT(kappa_hsp_rsb_prune)
 FLAG_OPT(roundtrip)
 FLAG_OPT(unique_kmer)
+FLAG_OPT(hsp_align)
+FLAG_OPT(hsp_align_check)
 
 #undef FLAG_OPT
 #undef UNS_OPT

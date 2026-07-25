@@ -26,8 +26,11 @@ static int ExtendDiagToHSP_DB(
 	const byte *TSeq, uint TL,
 	uint16_t Diag,
 	uint QSeqIdx,
-	RankedScoresBag &RSB)
+	RankedScoresBag &RSB,
+	int &Lo, int &Len)
 	{
+	Lo = 0;
+	Len = 0;
 	if (flat_params::m_kappa_hsp_rsb_prune &&
 		RSB.m_AnyLoScoreActive.load(std::memory_order_relaxed))
 		{
@@ -42,6 +45,8 @@ static int ExtendDiagToHSP_DB(
 				return 0;
 			}
 		}
+	if (flat_params::want_hsp_seeds())
+		return kappa_find_hsp2(QSeq, TSeq, int(QL), int(TL), int(Diag), Lo, Len);
 	return kappa_find_hsp(QSeq, TSeq, int(QL), int(TL), int(Diag));
 	}
 
@@ -133,8 +138,13 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 
 	uint *NeighborKmers = myalloc(uint, Index.m_DictSize);
 	uint16_t *TBestScore = myalloc(uint16_t, nseq);
+	uint16_t *TBestDiag = myalloc(uint16_t, nseq);
+	uint16_t *TBestLo = myalloc(uint16_t, nseq);
+	uint16_t *TBestLen = myalloc(uint16_t, nseq);
 	uint32_t *THitList = myalloc(uint32_t, nseq);
 	zero_array(TBestScore, nseq);
+	for (uint i = 0; i < nseq; ++i)
+		TBestDiag[i] = HSP_SEED_NONE;
 
 	vector<IdxSeed> SeedBuf;
 	SeedBuf.reserve(SeedCap);
@@ -187,6 +197,7 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 					}
 				}
 			TBestScore[THitList[worst_i]] = 0;
+			TBestDiag[THitList[worst_i]] = HSP_SEED_NONE;
 			THitList[worst_i] = THitList[--n_thit];
 			}
 		RecomputeMaxSeqsFloor();
@@ -223,8 +234,9 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 				}
 			}
 
+		int Lo = 0, Len = 0;
 		int DiagScore = ExtendDiagToHSP_DB(QSeq, QL, S->t_kappa[tidx_global], TL,
-			diag, qidx, kappa_filter::m_RSB);
+			diag, qidx, kappa_filter::m_RSB, Lo, Len);
 		if (DiagScore <= 0)
 			return;
 		if (DiagScore < flat_params::m_kappa_min_diagscore)
@@ -242,7 +254,12 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 		if (!already)
 			THitList[n_thit++] = tidx_local;
 		if (sc > TBestScore[tidx_local])
+			{
 			TBestScore[tidx_local] = sc;
+			TBestDiag[tidx_local] = diag;
+			TBestLo[tidx_local] = (Lo < 0 || Lo >= 0xffff) ? 0 : uint16_t(Lo);
+			TBestLen[tidx_local] = (Len < 0 || Len >= 0xffff) ? 0 : uint16_t(Len);
+			}
 		EvictWorstIfNeeded();
 		};
 
@@ -380,6 +397,10 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 			e.QueryIdx = qidx;
 			e.TargetIdx = seq_base + tidx_local;
 			e.Score = sc;
+			e.Diag = TBestDiag[tidx_local];
+			e.Lo = TBestLo[tidx_local];
+			e.Len = TBestLen[tidx_local];
+			TBestDiag[tidx_local] = HSP_SEED_NONE;
 			Pending.push_back(e);
 			++local_hsp_accept;
 			if (Pending.size() >= kappa_filter::RSB_BATCH)
@@ -420,6 +441,9 @@ static void idx_search_thread_body(IdxThreadCtx *Ctx)
 
 	myfree(NeighborKmers);
 	myfree(TBestScore);
+	myfree(TBestDiag);
+	myfree(TBestLo);
+	myfree(TBestLen);
 	myfree(THitList);
 	}
 
@@ -756,9 +780,13 @@ void cmd_idx_search_kappa()
 	vector<uint> dbidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_qidxs;
 	unordered_map<uint, vector<uint> > dbidx_to_diagscores;
+	unordered_map<uint, vector<uint> > dbidx_to_hspdiags;
+	unordered_map<uint, vector<uint> > dbidx_to_hsplos;
+	unordered_map<uint, vector<uint> > dbidx_to_hsplens;
 	uint max_queries_per_target = 0;
 	kappa_filter::m_RSB.GetTargetInfoSorted(
 		dbidxs, dbidx_to_qidxs, dbidx_to_diagscores,
+		dbidx_to_hspdiags, dbidx_to_hsplos, dbidx_to_hsplens,
 		max_queries_per_target);
 
 	if (optset_output2)
@@ -804,7 +832,8 @@ void cmd_idx_search_kappa()
 	reseeker::set_query_self_rev_scores(query_nu_codeseqs);
 	reseeker::set_query_mega_self_rev_scores(query_mega_profs);
 	reseeker::m_max_queries_per_target = max_queries_per_target;
-	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs, dbidx_to_diagscores);
+	reseeker::search_post_kappa(DBBCA, dbidxs, dbidx_to_qidxs, dbidx_to_diagscores,
+		&dbidx_to_hspdiags, &dbidx_to_hsplos, &dbidx_to_hsplens);
 	time_t t2 = time(0);
 	ProgressLog("Nu filter %u secs\n", uint(t2 - t1));
 

@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <functional>
+#include <atomic>
 #include "sw_flat_pssm_xdrop.h"
 #include "flat_helpers.h"
 
@@ -324,9 +325,8 @@ static void traceback_flat_local(
 				return;
 				}
 			t = TB[(i - 1) * LB + (j - 1)];
-			if (t & TRACEBITS_DM) State = 'D';
-			else if (t & TRACEBITS_IM) State = 'I';
-			else if (t & TRACEBITS_SM)
+			// SM first: seed / local start may also carry MI/MD gap bits.
+			if (t & TRACEBITS_SM)
 				{
 				Leni = Besti - i + 1;
 				Lenj = Bestj - j + 1;
@@ -334,17 +334,36 @@ static void traceback_flat_local(
 				reverse_path_buffer(path_buffer, ncol);
 				return;
 				}
+			if (t & TRACEBITS_DM) State = 'D';
+			else if (t & TRACEBITS_IM) State = 'I';
 			else State = 'M';
 			--i; --j;
 			break;
 		case 'D':
-			asserta(i > 0);
+			if (i == 0)
+				{
+				// Undo edge emit; alignment ends at previous cell.
+				--ncol;
+				path_buffer[ncol] = 0;
+				Leni = Besti - i;
+				Lenj = Bestj - j;
+				reverse_path_buffer(path_buffer, ncol);
+				return;
+				}
 			t = TB[(i - 1) * LB + j];
 			State = (t & TRACEBITS_MD) ? 'M' : 'D';
 			--i;
 			break;
 		case 'I':
-			asserta(j > 0);
+			if (j == 0)
+				{
+				--ncol;
+				path_buffer[ncol] = 0;
+				Leni = Besti - i;
+				Lenj = Bestj - j;
+				reverse_path_buffer(path_buffer, ncol);
+				return;
+				}
 			t = TB[i * LB + (j - 1)];
 			State = (t & TRACEBITS_MI) ? 'M' : 'I';
 			--j;
@@ -415,6 +434,7 @@ enum class XdropDir { Fwd, Bwd };
 static float sw_flat_pssm_xdrop_fill(
 	bool banded,
 	XdropDir dir,
+	bool seed_anchored,
 	float *scratch_rows,
 	uint8_t *TB,
 	const float **scratch_ppsms,
@@ -453,8 +473,19 @@ static float sw_flat_pssm_xdrop_fill(
 		{
 		if (posQ == 0 || posT == 0)
 			return 0.0f;
-		seedQ = posQ - 1;
-		seedT = posT - 1;
+		// Bwd DP uses reverse indices: i=0,j=0 scores residues (posQ-1,posT-1).
+		// Free (non-anchored) mode still bands from absolute high corner for
+		// compatibility with existing tests; seed-anchored starts at (0,0).
+		if (seed_anchored)
+			{
+			seedQ = 0;
+			seedT = 0;
+			}
+		else
+			{
+			seedQ = posQ - 1;
+			seedT = posT - 1;
+			}
 		i_min = 0;
 		i_max = posQ - 1;
 		j_min = 0;
@@ -529,10 +560,22 @@ static float sw_flat_pssm_xdrop_fill(
 
 			// MATCH
 			{
-			float xM = M0;
-			if (Drow[j] > xM) { xM = Drow[j]; TraceBits = TRACEBITS_DM; }
-			if (I0 > xM) { xM = I0; TraceBits = TRACEBITS_IM; }
-			if (0.0f >= xM) { xM = 0.0f; TraceBits = TRACEBITS_SM; }
+			float xM;
+			const bool at_seed = (i_abs == seedQ && j == seedT);
+			if (seed_anchored && at_seed)
+				{
+				// Force path to start with a match at the seed (Mu XDropHSP).
+				xM = 0.0f;
+				TraceBits = TRACEBITS_SM;
+				}
+			else
+				{
+				xM = M0;
+				if (Drow[j] > xM) { xM = Drow[j]; TraceBits = TRACEBITS_DM; }
+				if (I0 > xM) { xM = I0; TraceBits = TRACEBITS_IM; }
+				if (!seed_anchored && 0.0f >= xM)
+					{ xM = 0.0f; TraceBits = TRACEBITS_SM; }
+				}
 
 			M0 = Mrow[j];
 			const float sub = (dir == XdropDir::Fwd)
@@ -677,6 +720,7 @@ static float sw_flat_pssm_xdrop_fill(
 static float sw_flat_pssm_xdrop_fwd_impl(
 	bool banded,
 	bool scoreonly,
+	bool seed_anchored,
 	float *scratch_rows,
 	uint8_t *TB,
 	const float **scratch_ppsms,
@@ -694,7 +738,7 @@ static float sw_flat_pssm_xdrop_fwd_impl(
 	ncol = 0;
 	XdropFillResult res;
 	const float score = sw_flat_pssm_xdrop_fill(
-		banded, XdropDir::Fwd,
+		banded, XdropDir::Fwd, seed_anchored,
 		scratch_rows, scoreonly ? 0 : TB,
 		scratch_ppsms, profQ, LQ, pssmT, LT,
 		feature_block_offsets, nfeat,
@@ -723,7 +767,7 @@ float sw_flat_pssm_xdrop_fwd(
 	uint &loQ, uint &loT,
 	char *path_buffer, uint &ncol)
 	{
-	return sw_flat_pssm_xdrop_fwd_impl(true, false,
+	return sw_flat_pssm_xdrop_fwd_impl(true, false, false,
 		scratch_rows, TB, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext, 0, loQ, loT, path_buffer, ncol);
@@ -741,7 +785,7 @@ float sw_flat_pssm_xdrop_fwd_scoreonly(
 	{
 	uint loQ, loT;
 	uint ncol;
-	return sw_flat_pssm_xdrop_fwd_impl(true, true,
+	return sw_flat_pssm_xdrop_fwd_impl(true, true, false,
 		scratch_rows, 0, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext, 0, loQ, loT, 0, ncol);
@@ -760,7 +804,7 @@ float sw_flat_pssm_xdrop_fwd_ref(
 	uint &loQ, uint &loT,
 	char *path_buffer, uint &ncol)
 	{
-	return sw_flat_pssm_xdrop_fwd_impl(false, false,
+	return sw_flat_pssm_xdrop_fwd_impl(false, false, false,
 		scratch_rows, TB, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext, active, loQ, loT, path_buffer, ncol);
@@ -768,6 +812,7 @@ float sw_flat_pssm_xdrop_fwd_ref(
 
 static float sw_flat_pssm_xdrop_bwd_impl(
 	bool scoreonly,
+	bool seed_anchored,
 	float *scratch_rows, uint8_t *TB,
 	const float **scratch_ppsms,
 	const uint8_t *profQ, uint LQ,
@@ -786,7 +831,7 @@ static float sw_flat_pssm_xdrop_bwd_impl(
 
 	XdropFillResult res;
 	const float score = sw_flat_pssm_xdrop_fill(
-		true, XdropDir::Bwd,
+		true, XdropDir::Bwd, seed_anchored,
 		scratch_rows, scoreonly ? 0 : TB,
 		scratch_ppsms, profQ, LQ, pssmT, LT,
 		feature_block_offsets, nfeat,
@@ -815,7 +860,7 @@ float sw_flat_pssm_xdrop_bwd(
 	uint &loQ, uint &loT,
 	char *path_buffer, uint &ncol)
 	{
-	return sw_flat_pssm_xdrop_bwd_impl(false,
+	return sw_flat_pssm_xdrop_bwd_impl(false, false,
 		scratch_rows, TB, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext, loQ, loT, path_buffer, ncol);
@@ -833,10 +878,139 @@ float sw_flat_pssm_xdrop_bwd_scoreonly(
 	{
 	uint loQ, loT;
 	uint ncol;
-	return sw_flat_pssm_xdrop_bwd_impl(true,
+	return sw_flat_pssm_xdrop_bwd_impl(true, false,
 		scratch_rows, 0, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext, loQ, loT, 0, ncol);
+	}
+
+// True if path from (loQ,loT) stays inside [0,LQ) x [0,LT) on every match.
+static bool xdrop_path_spans_ok(uint loQ, uint loT,
+	const char *path, uint ncol, uint LQ, uint LT)
+	{
+	if (ncol == 0)
+		return false;
+	if (loQ >= LQ || loT >= LT)
+		return false;
+	uint q = loQ;
+	uint t = loT;
+	uint nmatch = 0;
+	for (uint c = 0; c < ncol; ++c)
+		{
+		const char ch = path[c];
+		if (ch == 'M')
+			{
+			if (q >= LQ || t >= LT)
+				return false;
+			++nmatch;
+			++q;
+			++t;
+			}
+		else if (ch == 'D')
+			{
+			++q;
+			if (q > LQ)
+				return false;
+			}
+		else if (ch == 'I')
+			{
+			++t;
+			if (t > LT)
+				return false;
+			}
+		else
+			return false;
+		}
+	return nmatch > 0;
+	}
+
+// Strip leading/trailing I/D (adjust lo); require start/end M + valid spans.
+static bool xdrop_canonicalize_local_path(uint &loQ, uint &loT,
+	char *path, uint &ncol, uint LQ, uint LT, bool &did_trim)
+	{
+	did_trim = false;
+	if (ncol == 0)
+		return false;
+	uint start = 0;
+	while (start < ncol && (path[start] == 'I' || path[start] == 'D'))
+		{
+		if (path[start] == 'D')
+			++loQ;
+		else
+			++loT;
+		++start;
+		did_trim = true;
+		}
+	uint end = ncol;
+	while (end > start && (path[end - 1] == 'I' || path[end - 1] == 'D'))
+		{
+		--end;
+		did_trim = true;
+		}
+	if (end <= start)
+		return false;
+	if (path[start] != 'M' || path[end - 1] != 'M')
+		return false;
+	const uint new_ncol = end - start;
+	if (start > 0)
+		memmove(path, path + start, new_ncol);
+	path[new_ncol] = 0;
+	ncol = new_ncol;
+	return xdrop_path_spans_ok(loQ, loT, path, ncol, LQ, LT);
+	}
+
+// Checked lo = hi+1 - span; false on unsigned underflow.
+static bool xdrop_bwd_lo_ok(uint hi_plus_1, uint span, uint &lo_out)
+	{
+	if (span > hi_plus_1)
+		return false;
+	lo_out = hi_plus_1 - span;
+	return true;
+	}
+
+static std::atomic<uint> g_xdrop_hsp_calls{0};
+static std::atomic<uint> g_xdrop_hsp_ok_merged{0};
+static std::atomic<uint> g_xdrop_hsp_ok_fwd_only{0};
+static std::atomic<uint> g_xdrop_hsp_ok_bwd_only{0};
+static std::atomic<uint> g_xdrop_hsp_fail_empty{0};
+static std::atomic<uint> g_xdrop_hsp_fail_span{0};
+static std::atomic<uint> g_xdrop_hsp_fail_bwd_lo{0};
+static std::atomic<uint> g_xdrop_hsp_fail_not_local{0};
+static std::atomic<uint> g_xdrop_hsp_fwd_no_abut{0};
+static std::atomic<uint> g_xdrop_hsp_merge_fallback_fwd{0};
+static std::atomic<uint> g_xdrop_hsp_trimmed{0};
+
+void reset_sw_flat_pssm_xdrop_hsp_stats()
+	{
+	g_xdrop_hsp_calls = 0;
+	g_xdrop_hsp_ok_merged = 0;
+	g_xdrop_hsp_ok_fwd_only = 0;
+	g_xdrop_hsp_ok_bwd_only = 0;
+	g_xdrop_hsp_fail_empty = 0;
+	g_xdrop_hsp_fail_span = 0;
+	g_xdrop_hsp_fail_bwd_lo = 0;
+	g_xdrop_hsp_fail_not_local = 0;
+	g_xdrop_hsp_fwd_no_abut = 0;
+	g_xdrop_hsp_merge_fallback_fwd = 0;
+	g_xdrop_hsp_trimmed = 0;
+	}
+
+void log_sw_flat_pssm_xdrop_hsp_stats()
+	{
+	ProgressLog("%10u  XDropHSP calls\n", g_xdrop_hsp_calls.load());
+	ProgressLog("%10u  XDropHSP ok merged\n", g_xdrop_hsp_ok_merged.load());
+	ProgressLog("%10u  XDropHSP ok fwd-only\n", g_xdrop_hsp_ok_fwd_only.load());
+	ProgressLog("%10u  XDropHSP ok bwd-only\n", g_xdrop_hsp_ok_bwd_only.load());
+	ProgressLog("%10u  XDropHSP fail empty\n", g_xdrop_hsp_fail_empty.load());
+	ProgressLog("%10u  XDropHSP fail span\n", g_xdrop_hsp_fail_span.load());
+	ProgressLog("%10u  XDropHSP fail bwd lo\n", g_xdrop_hsp_fail_bwd_lo.load());
+	ProgressLog("%10u  XDropHSP fail not local (no terminal M)\n",
+		g_xdrop_hsp_fail_not_local.load());
+	ProgressLog("%10u  XDropHSP fwd no seed abut\n", g_xdrop_hsp_fwd_no_abut.load());
+	ProgressLog("%10u  XDropHSP merge fell back to fwd\n",
+		g_xdrop_hsp_merge_fallback_fwd.load());
+	ProgressLog("%10u  XDropHSP path trimmed leading/trailing gaps\n",
+		g_xdrop_hsp_trimmed.load());
 	}
 
 float sw_flat_pssm_xdrop_hsp(
@@ -852,39 +1026,146 @@ float sw_flat_pssm_xdrop_hsp(
 	uint &loQ, uint &loT,
 	char *path_buffer, uint &ncol)
 	{
-	char *fwd_path = path_buffer;
-	char *bwd_path = path_buffer + 2 * max(LQ, LT) + 4;
-	uint fwd_ncol = 0, bwd_ncol = 0;
-	uint fwd_loQ, fwd_loT, bwd_loQ, bwd_loT;
+	++g_xdrop_hsp_calls;
 
-	const float fwd_score = sw_flat_pssm_xdrop_fwd(
+	const uint path_span = 2 * max(LQ, LT) + 4;
+	char *fwd_path = path_buffer + path_span;
+	char *bwd_path = path_buffer + 2 * path_span;
+	uint fwd_ncol = 0, bwd_ncol = 0;
+	uint fwd_loQ = 0, fwd_loT = 0, bwd_loQ = 0, bwd_loT = 0;
+
+	const float fwd_score = sw_flat_pssm_xdrop_fwd_impl(true, false, true,
 		scratch_rows, TB_fwd, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
-		posQ, posT, X, Open, Ext,
+		posQ, posT, X, Open, Ext, 0,
 		fwd_loQ, fwd_loT, fwd_path, fwd_ncol);
 
-	const float bwd_score = sw_flat_pssm_xdrop_bwd(
+	const float bwd_score = sw_flat_pssm_xdrop_bwd_impl(false, true,
 		scratch_rows, TB_bwd, scratch_ppsms,
 		profQ, LQ, pssmT, LT, feature_block_offsets, nfeat,
 		posQ, posT, X, Open, Ext,
 		bwd_loQ, bwd_loT, bwd_path, bwd_ncol);
+	(void) bwd_loQ;
+	(void) bwd_loT;
 
-	if (fwd_score + bwd_score <= 0.0f)
+	auto fail = [&]() -> float
 		{
 		ncol = 0;
 		path_buffer[0] = 0;
 		loQ = loT = 0;
 		return 0.0f;
+		};
+
+	auto finish_ok = [&](float score, uint which) -> float
+		{
+		bool did_trim = false;
+		if (!xdrop_canonicalize_local_path(loQ, loT, path_buffer, ncol, LQ, LT, did_trim))
+			{
+			++g_xdrop_hsp_fail_not_local;
+			return fail();
+			}
+		if (did_trim)
+			++g_xdrop_hsp_trimmed;
+		if (which == 0) ++g_xdrop_hsp_ok_merged;
+		else if (which == 1) ++g_xdrop_hsp_ok_fwd_only;
+		else ++g_xdrop_hsp_ok_bwd_only;
+		return score;
+		};
+
+	auto take_fwd = [&]() -> float
+		{
+		if (fwd_ncol == 0 || fwd_score <= 0.0f)
+			{
+			++g_xdrop_hsp_fail_empty;
+			return fail();
+			}
+		if (!xdrop_path_spans_ok(fwd_loQ, fwd_loT, fwd_path, fwd_ncol, LQ, LT))
+			{
+			++g_xdrop_hsp_fail_span;
+			return fail();
+			}
+		memcpy(path_buffer, fwd_path, fwd_ncol + 1);
+		ncol = fwd_ncol;
+		loQ = fwd_loQ;
+		loT = fwd_loT;
+		return finish_ok(fwd_score, 1);
+		};
+
+	if (fwd_score + bwd_score <= 0.0f || (fwd_ncol == 0 && bwd_ncol == 0))
+		{
+		++g_xdrop_hsp_fail_empty;
+		return fail();
 		}
 
-	const uint FwdLoQ = (fwd_ncol > 0) ? fwd_loQ : posQ;
-	const uint FwdLoT = (fwd_ncol > 0) ? fwd_loT : posT;
-	const uint BwdHiQ = posQ - 1;
-	const uint BwdHiT = posT - 1;
-	MergeFwdBwdPaths(FwdLoQ, FwdLoT, fwd_path, fwd_ncol,
-		BwdHiQ, BwdHiT, bwd_path, bwd_ncol,
-		loQ, loT, path_buffer, ncol);
-	return fwd_score + bwd_score;
+	if (bwd_ncol > 1)
+		reverse_path_buffer(bwd_path, bwd_ncol);
+
+	const bool fwd_abuts = (fwd_ncol == 0) ||
+		(fwd_loQ == posQ && fwd_loT == posT);
+
+	if (fwd_ncol > 0 && !fwd_abuts)
+		{
+		++g_xdrop_hsp_fwd_no_abut;
+		return take_fwd();
+		}
+
+	if (bwd_ncol == 0)
+		return take_fwd();
+
+	if (fwd_ncol == 0)
+		{
+		uint BwdM, BwdD, BwdI;
+		GetPathCounts(bwd_path, bwd_ncol, BwdM, BwdD, BwdI);
+		uint lo_q = 0, lo_t = 0;
+		if (!xdrop_bwd_lo_ok(posQ, BwdM + BwdD, lo_q) ||
+			!xdrop_bwd_lo_ok(posT, BwdM + BwdI, lo_t))
+			{
+			++g_xdrop_hsp_fail_bwd_lo;
+			return fail();
+			}
+		if (!xdrop_path_spans_ok(lo_q, lo_t, bwd_path, bwd_ncol, LQ, LT))
+			{
+			++g_xdrop_hsp_fail_span;
+			return fail();
+			}
+		memcpy(path_buffer, bwd_path, bwd_ncol + 1);
+		ncol = bwd_ncol;
+		loQ = lo_q;
+		loT = lo_t;
+		return finish_ok(bwd_score, 2);
+		}
+
+	{
+	uint BwdM, BwdD, BwdI;
+	GetPathCounts(bwd_path, bwd_ncol, BwdM, BwdD, BwdI);
+	uint merge_loQ = 0, merge_loT = 0;
+	if (!xdrop_bwd_lo_ok(posQ, BwdM + BwdD, merge_loQ) ||
+		!xdrop_bwd_lo_ok(posT, BwdM + BwdI, merge_loT))
+		{
+		++g_xdrop_hsp_fail_bwd_lo;
+		++g_xdrop_hsp_merge_fallback_fwd;
+		return take_fwd();
+		}
+
+	uint merged_ncol = 0;
+	uint m_loQ = 0, m_loT = 0;
+	MergeFwdBwdPaths(posQ, posT, fwd_path, fwd_ncol,
+		posQ - 1, posT - 1, bwd_path, bwd_ncol,
+		m_loQ, m_loT, path_buffer, merged_ncol);
+
+	if (m_loQ != merge_loQ || m_loT != merge_loT ||
+		!xdrop_path_spans_ok(m_loQ, m_loT, path_buffer, merged_ncol, LQ, LT))
+		{
+		++g_xdrop_hsp_fail_span;
+		++g_xdrop_hsp_merge_fallback_fwd;
+		return take_fwd();
+		}
+
+	ncol = merged_ncol;
+	loQ = m_loQ;
+	loT = m_loT;
+	return finish_ok(fwd_score + bwd_score, 0);
+	}
 	}
 
 // ---------------------------------------------------------------------------

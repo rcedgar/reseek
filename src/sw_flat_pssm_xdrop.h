@@ -54,6 +54,9 @@ float sw_flat_pssm_xdrop_bwd_scoreonly(
 	float X, float Open, float Ext);
 
 // Fwd from (posQ,posT) + bwd from (posQ-1,posT-1), merged path (XDropHSP-style).
+// Extensions are seed-anchored (path must pass through the seed). Soft one-sided
+// result if abutment fails. Paths are trimmed to start/end with M. No full-SW fallback.
+// path_buffer must hold at least 3*(2*max(LQ,LT)+4) chars (fwd/bwd/merged regions).
 float sw_flat_pssm_xdrop_hsp(
 	float *__restrict scratch_rows,
 	uint8_t *__restrict TB_fwd,
@@ -67,6 +70,9 @@ float sw_flat_pssm_xdrop_hsp(
 	float X, float Open, float Ext,
 	uint &loQ, uint &loT,
 	char *path_buffer, uint &ncol);
+
+void reset_sw_flat_pssm_xdrop_hsp_stats();
+void log_sw_flat_pssm_xdrop_hsp_stats();
 
 // Reference: same X-drop rule, no j-band (validates banded implementation).
 float sw_flat_pssm_xdrop_fwd_ref(
