@@ -1,2 +1,7 @@
 *.bash eol=lf
 *.py eol=lf
+*.vcxproj eol=crlf
+*.vcxproj.filters eol=crlf
+*.sln eol=crlf
+*.props eol=crlf
+*.targets eol=crlf

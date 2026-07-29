@@ -325,6 +325,7 @@
     <ClCompile Include="flat_search_all.cpp" />
     <ClCompile Include="flat_search_kappa.cpp" />
     <ClCompile Include="flat_train_discrete.cpp" />
+    <ClCompile Include="getchains.cpp" />
     <ClCompile Include="hexintseq.cpp" />
     <ClCompile Include="hitdata.cpp" />
     <ClCompile Include="hj.cpp" />
