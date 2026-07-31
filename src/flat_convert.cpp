@@ -257,17 +257,96 @@ static void ThreadBody(uint ThreadIndex)
 	myfree(codeseq_kappa);
 	}
 
-// ---- Fast parallel path: single .bca/.bcb source -> -bca/-bcb output -----
+// ---- Fast parallel path: single .bca/.bcb source -> text and/or bcx -----
 //
 // The generic path routes a single input file through one PDBFileScanner,
-// so only one thread does any work. For an indexed source (.bca/.bcb) we can
-// instead partition chains by index and have every thread read + compute nu
-// + write its own output shard in parallel. Limited to BCA/BCB outputs with
-// no label filtering; everything else falls back to the generic path.
+// so only one thread does any work. For an indexed source (.bca/.bcb) we
+// partition chains by index; each thread reads, optionally attaches nu, and
+// writes its own output shard(s). Text shards are concatenated in thread
+// order at close. No label filtering; -pdbcaoutdir stays on the generic path.
+
+struct text_shards_t
+	{
+	string final_fn;
+	vector<string> tmp_fns;
+	vector<FILE *> fs;
+
+	void open(const string &fn, uint n)
+		{
+		asserta(fn != "");
+		asserta(n >= 1);
+		final_fn = fn;
+		tmp_fns.resize(n);
+		fs.resize(n);
+		for (uint i = 0; i < n; ++i)
+			{
+			Ps(tmp_fns[i], "%s.tmp.%u", fn.c_str(), i);
+			fs[i] = CreateStdioFile(tmp_fns[i]);
+			}
+		}
+
+	FILE *get(uint tid) const
+		{
+		asserta(tid < SIZE(fs));
+		return fs[tid];
+		}
+
+	void close_files()
+		{
+		for (uint i = 0; i < SIZE(fs); ++i)
+			CloseStdioFile(fs[i]);
+		fs.clear();
+		}
+	};
+
+static void ConcatShardFiles(const string &dest, const vector<string> &shards)
+	{
+	FILE *fout = CreateStdioFile(dest);
+	const uint BUF = 1u << 20;
+	byte *buf = myalloc(byte, BUF);
+	for (uint i = 0; i < SIZE(shards); ++i)
+		{
+		FILE *fin = OpenStdioFile(shards[i]);
+		uint64 sz = GetStdioFileSize64(fin);
+		uint64 pos = 0;
+		while (pos < sz)
+			{
+			uint64 n = sz - pos;
+			if (n > BUF)
+				n = BUF;
+			ReadStdioFile64(fin, pos, buf, n);
+			WriteStdioFile64(fout, buf, n);
+			pos += n;
+			}
+		CloseStdioFile(fin);
+		DeleteStdioFile(shards[i]);
+		}
+	CloseStdioFile(fout);
+	myfree(buf);
+	}
+
+static void FinalizeTextShards(text_shards_t &sh, const char *what)
+	{
+	if (sh.final_fn == "")
+		return;
+	sh.close_files();
+	Progress("finalizing %s... ", what);
+	ConcatShardFiles(sh.final_fn, sh.tmp_fns);
+	Progress("done\n");
+	sh.tmp_fns.clear();
+	sh.final_fn.clear();
+	}
 
 static BCAData *s_fast_src = 0;
 static BCAData *s_fast_bca = 0;
 static BCAData *s_fast_bcb = 0;
+static text_shards_t *s_fast_cal = 0;
+static text_shards_t *s_fast_can = 0;
+static text_shards_t *s_fast_fasta = 0;
+static text_shards_t *s_fast_nuhex = 0;
+static text_shards_t *s_fast_kappa = 0;
+static bool s_fast_need_nu = false;
+static bool s_fast_need_nu_on_chain = false;
 static uint s_fast_N = 0;
 static uint s_fast_minlen = 1;
 static std::atomic<uint> s_fast_next;
@@ -281,9 +360,22 @@ static uint s_fast_shortest = UINT_MAX;
 static void FastThreadBody(uint ThreadIndex)
 	{
 	const uint maxL = flat_params::m_maxL;
-	uint8_t *nu_read = 0;
-	if (s_fast_src->m_HasNuSequences)
-		nu_read = myalloc(uint8_t, maxL);
+	uint8_t *nu_buf = 0;
+	uint8_t *codeseq_kappa = 0;
+	sid_t *distmx = 0;
+	chaq_vecs2 cv;
+	bool cv_inited = false;
+
+	if (s_fast_need_nu)
+		nu_buf = myalloc(uint8_t, maxL);
+	if (s_fast_kappa != 0)
+		codeseq_kappa = myalloc(uint8_t, maxL);
+
+	FILE *fCal = (s_fast_cal ? s_fast_cal->get(ThreadIndex) : 0);
+	FILE *fCan = (s_fast_can ? s_fast_can->get(ThreadIndex) : 0);
+	FILE *fFasta = (s_fast_fasta ? s_fast_fasta->get(ThreadIndex) : 0);
+	FILE *fNuHex = (s_fast_nuhex ? s_fast_nuhex->get(ThreadIndex) : 0);
+	FILE *fKappa = (s_fast_kappa ? s_fast_kappa->get(ThreadIndex) : 0);
 
 	uint loc_input = 0;
 	uint loc_conv = 0;
@@ -326,17 +418,55 @@ static void FastThreadBody(uint ThreadIndex)
 				continue;
 				}
 
-// Carry forward stored nu for BCB sources (read_codeseq_nu is not internally
-// locked, so guard the shared source handle here).
-			if (nu_read != 0)
+			if (s_fast_need_nu_on_chain)
 				{
+				if (s_fast_src->m_HasNuSequences)
+					{
+					s_fast_src->m_ReadLock.lock();
+					uint nL = s_fast_src->read_codeseq_nu(nu_buf, idx, maxL);
+					s_fast_src->m_ReadLock.unlock();
+					asserta(nL == L);
+					chain->set_nu_codes(nu_buf, L);
+					}
+				else
+					{
+					if (!cv_inited)
+						{
+						distmx = myalloc(sid_t,
+							flat_params::m_distmx_bandwidth*maxL);
+						chaq::alloc_chaq_vecs2(cv, maxL);
+						cv_inited = true;
+						}
+					chaq::fill_codeseq_nu_from_chain(
+						chain, distmx, &cv, nu_buf, maxL);
+					chain->set_nu_codes(nu_buf, L);
+					}
+				}
+			else if (s_fast_need_nu && s_fast_src->m_HasNuSequences &&
+				s_fast_bcb != 0)
+				{
+// Pass stored nu through to BCB shard writer (avoids recomputing).
 				s_fast_src->m_ReadLock.lock();
-				uint nL = s_fast_src->read_codeseq_nu(nu_read, idx, maxL);
+				uint nL = s_fast_src->read_codeseq_nu(nu_buf, idx, maxL);
 				s_fast_src->m_ReadLock.unlock();
 				asserta(nL == L);
-				chain->set_nu_codes(nu_read, L);
+				chain->set_nu_codes(nu_buf, L);
 				}
 
+			if (fCal != 0)
+				chain->to_cal(fCal);
+			if (fCan != 0)
+				WriteCan(fCan, chain);
+			if (fFasta != 0)
+				chain->to_fasta(fFasta);
+			if (fNuHex != 0)
+				{
+				asserta(chain->has_nu());
+				codeseq_to_hexfasta(fNuHex, chain->m_label,
+					chain->get_nu_data(), L);
+				}
+			if (fKappa != 0)
+				WriteKappaFasta(fKappa, chain, codeseq_kappa);
 			if (s_fast_bca != 0)
 				s_fast_bca->write_flat_chain_shard(ThreadIndex, chain);
 			if (s_fast_bcb != 0)
@@ -359,7 +489,13 @@ static void FastThreadBody(uint ThreadIndex)
 			}
 		}
 
-	myfree(nu_read);
+	myfree(nu_buf);
+	myfree(codeseq_kappa);
+	if (cv_inited)
+		{
+		myfree(distmx);
+		chaq::free_chaq_vecs2(cv);
+		}
 
 	s_fast_stats_lock.lock();
 	s_fast_input += loc_input;
@@ -374,10 +510,10 @@ static bool FastPathEligible(bool want_cal, bool want_can, bool want_bca,
 	bool want_bcb, bool want_fasta, bool want_nuhexfasta,
 	bool want_kappafasta, bool want_pdbcaoutdir, bool have_labels)
 	{
-	if (want_cal || want_can || want_fasta || want_nuhexfasta ||
-		want_kappafasta || want_pdbcaoutdir)
+	if (want_pdbcaoutdir)
 		return false;
-	if (!(want_bca || want_bcb))
+	if (!(want_cal || want_can || want_bca || want_bcb ||
+		want_fasta || want_nuhexfasta || want_kappafasta))
 		return false;
 	if (have_labels)
 		return false;
@@ -389,7 +525,9 @@ static bool FastPathEligible(bool want_cal, bool want_can, bool want_bca,
 	return (Ext == "bca" || Ext == "bcb");
 	}
 
-static void RunFastBcx(bool want_bca, bool want_bcb)
+static void RunFastBcx(bool want_cal, bool want_can, bool want_bca,
+	bool want_bcb, bool want_fasta, bool want_nuhexfasta,
+	bool want_kappafasta)
 	{
 	BCAData src;
 	src.Open(g_Arg1);
@@ -397,15 +535,40 @@ static void RunFastBcx(bool want_bca, bool want_bcb)
 
 	BCAData out_bca;
 	BCAData out_bcb;
+	text_shards_t out_cal;
+	text_shards_t out_can;
+	text_shards_t out_fasta;
+	text_shards_t out_nuhex;
+	text_shards_t out_kappa;
 	const uint ThreadCount = GetRequestedThreadCount();
 	if (want_bca)
 		out_bca.CreateSharded(opt(bca), false, ThreadCount);
 	if (want_bcb)
 		out_bcb.CreateSharded(opt(bcb), true, ThreadCount);
+	if (want_cal)
+		out_cal.open(opt(cal), ThreadCount);
+	if (want_can)
+		out_can.open(opt(can), ThreadCount);
+	if (want_fasta)
+		out_fasta.open(opt(fasta), ThreadCount);
+	if (want_nuhexfasta)
+		out_nuhex.open(opt(nuhexfasta), ThreadCount);
+	if (want_kappafasta)
+		out_kappa.open(opt(kappafasta), ThreadCount);
+
+	s_fast_need_nu_on_chain =
+		(want_can || want_nuhexfasta || want_kappafasta);
+	s_fast_need_nu =
+		(s_fast_need_nu_on_chain || want_bcb);
 
 	s_fast_src = &src;
 	s_fast_bca = (want_bca ? &out_bca : 0);
 	s_fast_bcb = (want_bcb ? &out_bcb : 0);
+	s_fast_cal = (want_cal ? &out_cal : 0);
+	s_fast_can = (want_can ? &out_can : 0);
+	s_fast_fasta = (want_fasta ? &out_fasta : 0);
+	s_fast_nuhex = (want_nuhexfasta ? &out_nuhex : 0);
+	s_fast_kappa = (want_kappafasta ? &out_kappa : 0);
 	s_fast_N = N;
 	s_fast_minlen = s_MinChainLength;
 	s_fast_next = 0;
@@ -424,6 +587,16 @@ static void RunFastBcx(bool want_bca, bool want_bcb)
 		delete ts[ThreadIndex];
 		}
 
+	if (want_cal)
+		FinalizeTextShards(out_cal, "CAL");
+	if (want_can)
+		FinalizeTextShards(out_can, "CAN");
+	if (want_fasta)
+		FinalizeTextShards(out_fasta, "FASTA");
+	if (want_nuhexfasta)
+		FinalizeTextShards(out_nuhex, "nuhexfasta");
+	if (want_kappafasta)
+		FinalizeTextShards(out_kappa, "kappafasta");
 	if (want_bca)
 		{
 		Progress("finalizing BCA... ");
@@ -449,6 +622,13 @@ static void RunFastBcx(bool want_bca, bool want_bcb)
 	s_fast_src = 0;
 	s_fast_bca = 0;
 	s_fast_bcb = 0;
+	s_fast_cal = 0;
+	s_fast_can = 0;
+	s_fast_fasta = 0;
+	s_fast_nuhex = 0;
+	s_fast_kappa = 0;
+	s_fast_need_nu = false;
+	s_fast_need_nu_on_chain = false;
 	}
 
 void cmd_flat_convert()
@@ -507,7 +687,8 @@ void cmd_flat_convert()
 		want_fasta, want_nuhexfasta, s_want_kappafasta,
 		s_want_pdbcaoutdir, s_ptrLabelSet != 0))
 		{
-		RunFastBcx(want_bca, s_want_bcb);
+		RunFastBcx(want_cal, want_can, want_bca, s_want_bcb,
+			want_fasta, want_nuhexfasta, s_want_kappafasta);
 		uint ne = flat_chain_reader::m_CRGlobalFormatErrors;
 		if (ne > 0)
 			ProgressLogPrefix("%u format errors\n", ne);

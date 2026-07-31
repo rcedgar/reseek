@@ -61,5 +61,6 @@ C(idx_probe)
 C(idx_prefilter_prehsp)
 C(idx_search_kappa)
 C(getchains)
+C(getlabels)
 
 #undef C

@@ -159,3 +159,20 @@ void cmd_getchains()
 		Progress("\n");
 		}
 	}
+
+void cmd_getlabels()
+	{
+	asserta(optset_output);
+	BCAData src;
+	src.Open(g_Arg1);
+	const uint chain_count = src.GetChainCount();
+	FILE *fout = CreateStdioFile(opt(output));
+	for (uint i = 0; i < chain_count; ++i)
+		{
+		ProgressStep(i, chain_count, "writing labels");
+		const string &lab = src.GetLabel(i);
+		fputs(lab.c_str(), fout);
+		fputc('\n', fout);
+		}
+	CloseStdioFile(fout);
+	}

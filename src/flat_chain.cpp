@@ -248,15 +248,24 @@ void flat_chain_t::to_cal(FILE *f) const
 	{
 	if (f == 0)
 		return;
-	fprintf(f, ">%s\n", m_label.c_str());
-	uint L = get_length();
+	const uint L = get_length();
+	string buf;
+	buf.reserve(m_label.size() + 2 + size_t(L)*40);
+	buf.push_back('>');
+	buf += m_label;
+	buf.push_back('\n');
+	char line[64];
 	for (uint i = 0; i < L; ++i)
 		{
 		char aa = get_aa(i);
 		float x, y, z;
 		get_coords(i, x, y, z);
-		fprintf(f, "%c\t%.1f\t%.1f\t%.1f\n", aa, x, y, z);
+		int n = snprintf(line, sizeof(line), "%c\t%.1f\t%.1f\t%.1f\n",
+			aa, x, y, z);
+		asserta(n > 0 && n < (int) sizeof(line));
+		buf.append(line, size_t(n));
 		}
+	WriteStdioFile(f, buf.data(), uint32(buf.size()));
 	}
 
 void flat_chain_t::to_pdb(const string &fn, char chainId) const
