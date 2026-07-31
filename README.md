@@ -154,6 +154,10 @@ structs   foldseek  reseek-fast  reseek-sensitive
 
 [abdb50.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/afdb50.bcb) &nbsp;&nbsp;AFBD50 AFDB clustered at 50% aa identity 53.7M structures (107Gb)  
 
+[esmdb30.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/esmdb30.bcb) &nbsp;&nbsp;ESMDB30 ESM Altas clustered at 30% aa identity 34.6M structures (55Gb)  
+
+[bfvd.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/bfvd.bcb) &nbsp;&nbsp;Big Fine Virus DB 347k structures (486Mb)  
+
 [pdb.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/pdb.bcb) &nbsp;&nbsp;PDB 900k structures (1.7Gb)
 
 [scop40.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/scop40.bcb) &nbsp;&nbsp;SCOP40 11,211 structures (16Mb)
@@ -181,4 +185,4 @@ Edgar RC. "Protein structure alignment by Reseek improves sensitivity to remote 
 
 Edgar RC. and Sahakyan S. "Protein structure alignment significance is often exaggerated" (_bioRxiv_ 2025) [https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1](https://www.biorxiv.org/content/10.1101/2025.07.17.665375v1)
 
-Edgar RC. Rich structure alphabets enable highest accuracy protein search (2026) [https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf](https://drive5.com/reseek/Reseek3-2026-07-16_preprint.pdf)
+Edgar RC. Rich structure alphabets enable highest accuracy protein search (_bioRxiv_ 2026) [https://www.biorxiv.org/cgi/content/short/2026.07.24.740611v1](https://www.biorxiv.org/cgi/content/short/2026.07.24.740611v1)
