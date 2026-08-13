@@ -139,8 +139,8 @@ bool flat_chain_t::from_pdb_lines(const string &label,
 	for (uint lineNr = 0; lineNr < N; ++lineNr)
 		{
 		const string &line = lines[lineNr];
-	// Can be multiple models for same chain, use first only
-		if (StartsWith(line, "TER ") || StartsWith(line, "ENDMDL"))
+	// First model only; ignore TER (may appear mid-chain before HETATM).
+		if (StartsWith(line, "ENDMDL"))
 			break;
 		const size_t L = line.size();
 

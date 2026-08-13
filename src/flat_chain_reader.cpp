@@ -496,7 +496,11 @@ bool flat_chain_reader::IsATOMLine_PDB(const string &Line) const
 
 bool flat_chain_reader::IsChainEndLine_PDB(const string &Line) const
 	{
-	if (StartsWith(Line, "TER ") || StartsWith(Line, "ENDMDL"))
+	// ENDMDL ends the first model (later models ignored).
+	// Do not treat TER as chain end: mid-chain TER is common before
+	// HETATM chromophores (e.g. GFP CRO), with the same chain ID
+	// continuing afterward. Chain splits are by chain ID only.
+	if (StartsWith(Line, "ENDMDL"))
 		return true;
 	return false;
 	}
