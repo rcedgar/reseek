@@ -357,6 +357,7 @@
     <ClCompile Include="convert_foldseekdb.cpp" />
     <ClCompile Include="diaghsp.cpp" />
     <ClCompile Include="duper.cpp" />
+    <ClCompile Include="desc_db.cpp" />
     <ClCompile Include="foldseek_utils.cpp" />
     <ClCompile Include="binner.cpp" />
     <ClCompile Include="mmseqs_index_dump.cpp" />
@@ -460,6 +461,7 @@
     <ClInclude Include="diag.h" />
     <ClInclude Include="diaghsp.h" />
     <ClInclude Include="duper.h" />
+    <ClInclude Include="desc_db.h" />
     <ClInclude Include="entropy.h" />
     <ClInclude Include="fastbench.h" />
     <ClInclude Include="final_nu_matrix.h" />

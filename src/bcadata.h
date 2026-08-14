@@ -29,7 +29,6 @@ public:
 	//uint8_t *m_scratch_buffer = 0;
 	//uint m_scratch_buffer_bytes = 0;
 	uint8_t *m_codeseq_nu = 0;
-	mutable mutex m_ReadLock;
 // Temp file accumulating nu bytes during write; appended contiguously at close.
 	FILE *m_nu_tmp_f = 0;
 	string m_NuTmpFN;

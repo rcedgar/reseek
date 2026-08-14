@@ -340,11 +340,50 @@ uint32 ReadStdioFile_NoFail(FILE *f, void *Buffer, uint32 Bytes)
 	return BytesRead;
 	}
 
-void ReadStdioFile(FILE *f, uint32 Pos, void *Buffer, uint32 Bytes)
+// Positioned reads (Pos overloads) use pread / ReadFile+OVERLAPPED so they
+// do not move the stdio cursor and are safe for concurrent callers.
+static uint32 ReadStdioFilePread(FILE *f, uint64 Pos, void *Buffer, uint32 Bytes)
 	{
 	asserta(f != 0);
-	SetStdioFilePos(f, Pos);
-	uint32 BytesRead = (uint32) fread(Buffer, 1, Bytes, f);
+	if (Bytes == 0)
+		return 0;
+#ifdef _MSC_VER
+	HANDLE h = (HANDLE) _get_osfhandle(_fileno(f));
+	if (h == INVALID_HANDLE_VALUE)
+		{
+		LogStdioFileState(f);
+		Die("ReadStdioFilePread: invalid handle");
+		}
+	OVERLAPPED ov;
+	memset(&ov, 0, sizeof(ov));
+	ov.Offset = (DWORD) Pos;
+	ov.OffsetHigh = (DWORD) (Pos >> 32);
+	DWORD nread = 0;
+	if (!ReadFile(h, Buffer, Bytes, &nread, &ov))
+		{
+		DWORD err = GetLastError();
+		if (err == ERROR_HANDLE_EOF)
+			return nread;
+		LogStdioFileState(f);
+		Die("ReadFile(offset=%llu, bytes=%u) failed, err=%u",
+		  (unsigned long long) Pos, Bytes, (unsigned) err);
+		}
+	return nread;
+#else
+	ssize_t n = pread(fileno(f), Buffer, Bytes, (off_t) Pos);
+	if (n < 0)
+		{
+		LogStdioFileState(f);
+		Die("pread(offset=%llu, bytes=%u) failed, errno=%d",
+		  (unsigned long long) Pos, Bytes, errno);
+		}
+	return (uint32) n;
+#endif
+	}
+
+void ReadStdioFile(FILE *f, uint32 Pos, void *Buffer, uint32 Bytes)
+	{
+	uint32 BytesRead = ReadStdioFilePread(f, Pos, Buffer, Bytes);
 	if (BytesRead != Bytes)
 		{
 		LogStdioFileState(f);
@@ -355,25 +394,19 @@ void ReadStdioFile(FILE *f, uint32 Pos, void *Buffer, uint32 Bytes)
 
 uint64 ReadStdioFile64_NoFail(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 	{
-	asserta(f != 0);
 	uint32 Bytes32 = (uint32) Bytes;
 	asserta(Bytes32 == Bytes);
-	SetStdioFilePos64(f, Pos);
-	uint64 BytesRead = (uint64) fread(Buffer, 1, Bytes32, f);
-	return BytesRead;
+	return ReadStdioFilePread(f, Pos, Buffer, Bytes32);
 	}
 
 void ReadStdioFile64(FILE *f, uint64 Pos, void *Buffer, uint64 Bytes)
 	{
-	asserta(f != 0);
 	uint32 Bytes32 = (uint32) Bytes;
 	asserta(Bytes32 == Bytes);
-	SetStdioFilePos64(f, Pos);
-	uint64 BytesRead = (uint64) fread(Buffer, 1, Bytes32, f);
+	uint64 BytesRead = ReadStdioFilePread(f, Pos, Buffer, Bytes32);
 	if (BytesRead != Bytes)
 		{
 		LogStdioFileState(f);
-		string ts;
 		ProgressLog("\nf=%p\n", f);
 		ProgressLog("Pos=%llu\n", (unsigned long long) Pos);
 		ProgressLog("Bytes=%llu\n", (unsigned long long) Bytes);

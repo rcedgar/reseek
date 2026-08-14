@@ -212,6 +212,9 @@
     <ClCompile Include="duper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="desc_db.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="mymutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -680,6 +683,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="duper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="desc_db.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rankedscoresbag.h">

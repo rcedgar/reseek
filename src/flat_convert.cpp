@@ -422,9 +422,7 @@ static void FastThreadBody(uint ThreadIndex)
 				{
 				if (s_fast_src->m_HasNuSequences)
 					{
-					s_fast_src->m_ReadLock.lock();
 					uint nL = s_fast_src->read_codeseq_nu(nu_buf, idx, maxL);
-					s_fast_src->m_ReadLock.unlock();
 					asserta(nL == L);
 					chain->set_nu_codes(nu_buf, L);
 					}
@@ -446,9 +444,7 @@ static void FastThreadBody(uint ThreadIndex)
 				s_fast_bcb != 0)
 				{
 // Pass stored nu through to BCB shard writer (avoids recomputing).
-				s_fast_src->m_ReadLock.lock();
 				uint nL = s_fast_src->read_codeseq_nu(nu_buf, idx, maxL);
-				s_fast_src->m_ReadLock.unlock();
 				asserta(nL == L);
 				chain->set_nu_codes(nu_buf, L);
 				}
