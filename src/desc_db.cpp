@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "desc_db.h"
 
+#include <regex>
 #include <unordered_set>
 
 uint FindPrime(uint Min, uint Max);
@@ -288,6 +289,90 @@ static void DumpRecords(const desc_db &DB, FILE *fout)
 		fputs(desc, fout);
 		fputc('\n', fout);
 		}
+	}
+
+void cmd_append_desc()
+	{
+	asserta(optset_output);
+	asserta(optset_desc);
+	default_opt(tfield, 2);
+	if (opt(tfield) == 0)
+		Die("-tfield must be >= 1");
+	const uint tidx = opt(tfield) - 1;
+
+	regex labeledit_re;
+	const bool use_labeledit = optset_labeledit;
+	if (use_labeledit)
+		{
+		try
+			{
+			labeledit_re.assign(opt(labeledit));
+			}
+		catch (const regex_error &)
+			{
+			Die("Invalid -labeledit regex");
+			}
+		if (labeledit_re.mark_count() != 1)
+			Die("-labeledit must have exactly one capturing group");
+		}
+
+	desc_db DB;
+	DB.FromFile(opt(desc));
+
+	FILE *fin = OpenStdioFile(g_Arg1);
+	FILE *fout = CreateStdioFile(opt(output));
+	uint bad = 0;
+	string line;
+	vector<string> flds;
+	string desc;
+	smatch m;
+	ProgressFileInit(fin, "Appending descriptions");
+	while (ReadLineStdioFile(fin, line))
+		{
+		ProgressFileStep();
+		if (line.empty() || StartsWith(line, "#"))
+			{
+			fputs(line.c_str(), fout);
+			fputc('\n', fout);
+			continue;
+			}
+		Split(line, flds, '\t');
+		if (SIZE(flds) <= tidx)
+			{
+			++bad;
+			fputs(line.c_str(), fout);
+			fputc('\n', fout);
+			continue;
+			}
+		string key = flds[tidx];
+		if (use_labeledit)
+			{
+			if (!regex_search(key, m, labeledit_re) || m[1].length() == 0)
+				{
+				++bad;
+				fputs(line.c_str(), fout);
+				fputc('\n', fout);
+				continue;
+				}
+			key = m[1].str();
+			}
+		if (!DB.Get(key.c_str(), desc))
+			desc = "(missing description)";
+		flds[tidx] = key + " " + desc;
+		for (uint i = 0; i < SIZE(flds); ++i)
+			{
+			if (i > 0)
+				fputc('\t', fout);
+			fputs(flds[i].c_str(), fout);
+			}
+		fputc('\n', fout);
+		}
+	ProgressFileDone();
+	CloseStdioFile(fin);
+	CloseStdioFile(fout);
+	if (bad > 0)
+		Warning("%u bad line%s (too few fields or -labeledit no match)",
+		  bad, bad == 1 ? "" : "s");
 	}
 
 void cmd_desc_lookup()
