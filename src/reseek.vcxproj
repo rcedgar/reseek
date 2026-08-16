@@ -372,6 +372,7 @@
     <ClCompile Include="quantize.h" />
     <ClCompile Include="reseeker_thread_body.cpp" />
     <ClCompile Include="struct_data.cpp" />
+    <ClCompile Include="struct_desc.cpp" />
     <ClCompile Include="rankedscoresbag.cpp" />
     <ClCompile Include="read_alphadir.cpp" />
     <ClCompile Include="reduce_alphabet.cpp" />
@@ -536,6 +537,7 @@
     <ClInclude Include="pwalndb.h" />
     <ClInclude Include="chain_data.h" />
     <ClInclude Include="struct_data.h" />
+    <ClInclude Include="struct_desc.h" />
     <ClInclude Include="rankedscoresbag.h" />
     <ClInclude Include="scratch_mem.h" />
     <ClInclude Include="sec_kmeans.h" />

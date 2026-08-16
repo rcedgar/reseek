@@ -479,6 +479,9 @@
     <ClCompile Include="struct_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="struct_desc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="flat_search_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -845,6 +848,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="struct_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="struct_desc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hitdata.h">

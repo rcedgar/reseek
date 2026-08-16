@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_chain.h"
 #include "flat_chain_reader.h"
+#include "struct_desc.h"
 
 uint flat_chain_reader::m_CRGlobalChainCount;
 uint flat_chain_reader::m_CRGlobalFormatErrors;
@@ -509,11 +510,48 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
   vector<flat_chain_t *> &Chains, const string &Label) const
 	{
 	Chains.clear();
+
+	string Entry = Label;
+	string Title;
+	map<string, string> MolByChain;
+	map<string, vector<string> > RefsByChain;
+	ExtractPdbMeta(Lines, Entry, Title, MolByChain, RefsByChain);
+
 	const uint N = SIZE(Lines);
 	vector<string> ChainLines;
 	char CurrChainChar = 0;
 	bool AnyAtoms = false;
 	bool EndOfChainFound = false;
+
+	auto FinishChain = [&]()
+		{
+		if (!AnyAtoms || ChainLines.empty())
+			return;
+		flat_chain_t* Chain = flat_chain_t::newflat(0);
+		bool Ok = Chain->from_pdb_lines(Entry, ChainLines, m_SaveLines);
+		if (Ok)
+			{
+			string ChainStr;
+			ChainStr.push_back(CurrChainChar);
+			if (ChainStr == " " || ChainStr.empty())
+				ChainStr = "_";
+			string db_ref;
+			map<string, vector<string> >::const_iterator rit =
+				RefsByChain.find(ChainStr);
+			if (rit != RefsByChain.end())
+				db_ref = PreferUnp(rit->second);
+			string molecule = PickMoleculeByChain(MolByChain, ChainStr);
+			AppendStructDescToLabel(Chain->m_label, Entry, db_ref,
+			  molecule, Title);
+			Chains.push_back(Chain);
+			}
+		else
+			delete Chain;
+		ChainLines.clear();
+		EndOfChainFound = false;
+		AnyAtoms = false;
+		};
+
 	for (uint i = 0; i < N; ++i)
 		{
 		const string &Line = Lines[i];
@@ -526,19 +564,7 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 			char ChainChar = Line[21];
 			if (ChainChar != CurrChainChar)
 				{
-				if (AnyAtoms && !ChainLines.empty())
-					{
-					flat_chain_t* Chain = flat_chain_t::newflat(0);
-					string ChainStr;
-					bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
-					if (Ok)
-						Chains.push_back(Chain);
-					else
-						delete Chain;
-					ChainLines.clear();
-					EndOfChainFound = false;
-					AnyAtoms = false;
-					}
+				FinishChain();
 				CurrChainChar = ChainChar;
 				}
 			if (!EndOfChainFound)
@@ -547,14 +573,5 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 			}
 		}
 
-	if (!ChainLines.empty() && AnyAtoms)
-		{
-		flat_chain_t* Chain = flat_chain_t::newflat(0);
-		bool Ok = Chain->from_pdb_lines(Label, ChainLines, m_SaveLines);
-		ChainLines.clear();
-		if (Ok)
-			Chains.push_back(Chain);
-		else
-			delete Chain;
-		}
+	FinishChain();
 	}

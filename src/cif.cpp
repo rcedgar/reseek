@@ -1,6 +1,7 @@
 #include "myutils.h"
 #include "flat_chain_reader.h"
 #include "cif.h"
+#include "struct_desc.h"
 #include <map>
 
 void ChainizeLabel(string &Label, const string &ChainStr);
@@ -302,22 +303,18 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	vector<flat_chain_t *> &Chains, const string &FallbackLabel)
 	{
 	Chains.clear();
-	string TmpBaseLabel = FallbackLabel;
-	const string &Line0 = Lines[0];
-	if (StartsWith(Line0, "data_"))
-		{
-		vector<string> Fields;
-		Split(Line0, Fields, '_');
-		if (SIZE(Fields) == 2 && Fields[0] != "data")
-			{
-			TmpBaseLabel = Fields[1];
-			if (TmpBaseLabel == "")
-				TmpBaseLabel = FallbackLabel;
-			}
-		}
-	const string &BaseLabel = TmpBaseLabel;
+
+	string Entry;
+	string Title;
+	map<string, string> MolByEntity;
+	map<string, vector<string> > RefsByEntity;
+	ExtractCifMeta(Lines, FallbackLabel, Entry, Title, MolByEntity,
+	  RefsByEntity);
+	const string &BaseLabel = Entry;
 
 	string CurrentChainStr;
+	string CurrentEntityId;
+	map<string, string> ChainToEntity;
 	const uint N = SIZE(Lines);
 	CIF_PARSER_STATE PS = PS_WaitingForLoop;
 	vector<string> FieldList;
@@ -408,6 +405,13 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	uint Z_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.Cartn_z");
 	uint aa_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.label_comp_id");
 	uint ModelNr_FldIdx = GetCIFFieldIdx(FieldToIdx, "_atom_site.pdbx_PDB_model_num");
+	uint Entity_FldIdx = UINT_MAX;
+	{
+	map<string, uint>::const_iterator eit =
+		FieldToIdx.find("_atom_site.label_entity_id");
+	if (eit != FieldToIdx.end())
+		Entity_FldIdx = eit->second;
+	}
 
 	if (Chain_FldIdx == UINT_MAX) return;
 	if (CA_FldIdx == UINT_MAX) return;
@@ -416,6 +420,31 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	if (Z_FldIdx == UINT_MAX) return;
 	if (aa_FldIdx == UINT_MAX) return;
 	uint CurrentModelNr = UINT_MAX;
+
+	auto FinishChain = [&]()
+		{
+		if (aas.empty())
+			return;
+		string Label = BaseLabel;
+		ChainizeLabel(Label, CurrentChainStr);
+		string eid = CurrentEntityId;
+		if (eid.empty())
+			{
+			map<string, string>::const_iterator it =
+				ChainToEntity.find(CurrentChainStr);
+			if (it != ChainToEntity.end())
+				eid = it->second;
+			}
+		string db_ref = PickRefByEntity(RefsByEntity, eid);
+		string molecule = PickMoleculeByEntity(MolByEntity, eid);
+		AppendStructDescToLabel(Label, Entry, db_ref, molecule, Title);
+		auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
+		Chains.push_back(chain);
+		aas.clear();
+		Xs.clear();
+		Ys.clear();
+		Zs.clear();
+		};
 
 	const uint ATOMLineCount = SIZE(ATOMLines);
 	for (uint i = 0; i < ATOMLineCount; ++i)
@@ -448,20 +477,28 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 		string ChainStr = Chain_Fld;
 		if (ChainStr == "")
 			ChainStr = "__";
+		string entity_id;
+		if (Entity_FldIdx != UINT_MAX)
+			{
+			entity_id = Fields[Entity_FldIdx];
+			StripWhiteSpace(entity_id);
+			if (!CifValuePresent(entity_id))
+				entity_id.clear();
+			}
 		if (ChainStr != CurrentChainStr)
 			{
-			if (!aas.empty())
-				{
-				string Label = BaseLabel;
-				ChainizeLabel(Label, CurrentChainStr);
-				auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
-				Chains.push_back(chain);
-				aas.clear();
-				Xs.clear();
-				Ys.clear();
-				Zs.clear();
-				}
+			FinishChain();
 			CurrentChainStr = ChainStr;
+			CurrentEntityId = entity_id;
+			if (!entity_id.empty() &&
+			  ChainToEntity.find(ChainStr) == ChainToEntity.end())
+				ChainToEntity[ChainStr] = entity_id;
+			}
+		else if (CurrentEntityId.empty() && !entity_id.empty())
+			{
+			CurrentEntityId = entity_id;
+			if (ChainToEntity.find(ChainStr) == ChainToEntity.end())
+				ChainToEntity[ChainStr] = entity_id;
 			}
 
 		const string &aa_Fld = Fields[aa_FldIdx];
@@ -477,13 +514,7 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 		Ys.push_back(Y);
 		Zs.push_back(Z);
 		}
-	if (!aas.empty())
-		{
-		string Label = BaseLabel;
-		ChainizeLabel(Label, CurrentChainStr);
-		auto chain = flat_chain_t::newflat(Label, aas, Xs, Ys, Zs);
-		Chains.push_back(chain);
-		}
+	FinishChain();
 	}
 
 void flat_chain_reader::IncFormatErrors()
