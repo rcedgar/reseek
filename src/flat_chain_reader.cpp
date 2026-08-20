@@ -2,6 +2,8 @@
 #include "flat_chain.h"
 #include "flat_chain_reader.h"
 #include "struct_desc.h"
+#include "chaq.h"
+#include "flat_params.h"
 
 uint flat_chain_reader::m_CRGlobalChainCount;
 uint flat_chain_reader::m_CRGlobalFormatErrors;
@@ -10,10 +12,13 @@ void flat_chain_reader::InitNuScratch()
 	{
 	if (m_NuScratchInited)
 		return;
+	asserta(m_ComputeNu);
 	const uint M = flat_params::m_distmx_bandwidth;
 	m_distmx = myalloc(sid_t, flat_params::m_maxL*M);
 	m_codeseq_nu_scratch = myalloc(uint8_t, flat_params::m_maxL);
-	chaq::alloc_chaq_vecs2(m_cv, flat_params::m_maxL);
+	asserta(m_cv == 0);
+	m_cv = new chaq_vecs2;
+	chaq::alloc_chaq_vecs2(*m_cv, flat_params::m_maxL);
 	m_NuScratchInited = true;
 	}
 
@@ -23,7 +28,12 @@ void flat_chain_reader::FreeNuScratch()
 		return;
 	myfree(m_distmx);
 	myfree(m_codeseq_nu_scratch);
-	chaq::free_chaq_vecs2(m_cv);
+	if (m_cv != 0)
+		{
+		chaq::free_chaq_vecs2(*m_cv);
+		delete m_cv;
+		m_cv = 0;
+		}
 	m_distmx = 0;
 	m_codeseq_nu_scratch = 0;
 	m_NuScratchInited = false;
@@ -66,8 +76,9 @@ void flat_chain_reader::CacheNuOnChain(flat_chain_t *chain)
 		chain->set_nu_codes(m_codeseq_nu_scratch, L);
 		return;
 		}
+	asserta(m_cv != 0);
 	chaq::fill_codeseq_nu_from_chain(
-		chain, m_distmx, &m_cv,
+		chain, m_distmx, m_cv,
 		m_codeseq_nu_scratch, flat_params::m_maxL);
 	chain->set_nu_codes(m_codeseq_nu_scratch, L);
 	}
@@ -185,7 +196,8 @@ flat_chain_t* flat_chain_reader::GetNext()
 			}
 		if (L > flat_params::m_maxL)
 			Chain->truncate(flat_params::m_maxL);
-		CacheNuOnChain(Chain);
+		if (m_ComputeNu)
+			CacheNuOnChain(Chain);
 		return Chain;
 		}
 	}

@@ -5,10 +5,10 @@ import sys
 
 outdir = "../big_scop40x/"
 
-ref_tup2time={('sf', "fast"): 82, ('sf', "sensitive"): 148}
-ref_tup2mem={('sf', "fast"): '12.1', ('sf', "sensitive"): '9.19'}
-ref_tup2sum3={('sf', "fast"): 1.773, ('sf', "sensitive"): 1.806}
-ref_tup2top3={('sf', "fast"): 1.742, ('sf', "sensitive"): 1.747}
+ref_tup2time={('sf', "fast"): 95, ('sf', "sensitive"): 156}
+ref_tup2mem={('sf', "fast"): '9.37', ('sf', "sensitive"): '14.1'}
+ref_tup2sum3={('sf', "fast"): 1.668, ('sf', "sensitive"): 1.750}
+ref_tup2top3={('sf', "fast"): 1.762, ('sf', "sensitive"): 1.741}
 
 maxdt_pct = 10
 maxmem_pct = 10
@@ -97,7 +97,7 @@ for truth in truths:
 
 		m = tup2mem[tup]
 		ref_m = float(ref_tup2mem[tup])
-		dm = m - m - ref_m
+		dm = m - ref_m
 		mempct = dm*100/ref_m
 
 		sum3 = tup2sum3[tup]

@@ -4,9 +4,10 @@
 #include "linereader2.h"
 #include "pdbfilescanner.h"
 #include "bcadata.h"
-#include "chaq.h"
-#include "flat_params.h"
+#include "flat_dist_types.h"
 #include <list>
+
+struct chaq_vecs2;
 
 class flat_chain_reader
 	{
@@ -42,10 +43,13 @@ public:
 	string m_CurrentFN;
 	bool m_Trace = false;
 	bool m_SaveLines = false;
+// When true, GetNext() fills chain nu codes (BCB read or chaq). Default
+// false so MSA / structure-load paths do not pull chaq into the read loop.
+	bool m_ComputeNu = false;
 
 	sid_t *m_distmx = 0;
 	uint8_t *m_codeseq_nu_scratch = 0;
-	chaq_vecs2 m_cv;
+	chaq_vecs2 *m_cv = 0;
 	bool m_NuScratchInited = false;
 	uint64 m_LastBCAChainIdx = UINT64_MAX;
 

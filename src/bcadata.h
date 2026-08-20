@@ -2,7 +2,6 @@
 
 class PDBChain;
 #include "flat_chain.h"
-#include "struct_data.h"
 #include "chaq.h"
 
 // Binary C-alpha
@@ -99,17 +98,6 @@ public:
 		uint8_t ***ptr_nu_codeseqs,
 		uint8_t ***ptr_kappa_codeseqs,
 		uint **ptr_lengths) const;
-
-	struct_data *get_struct_data(
-		const flat_params &params,
-		uint idx,
-		chaq_vecs2 *cv,
-		uint8_t *scratch_buffer,
-		uint scratch_buffer_bytes) const;
-
-
-	struct_data **get_struct_data_vec(const flat_params &params,
-		vector<string> &kept_labels);
 
 private:
 	void CloseWriter();

@@ -96,34 +96,11 @@ void chain_data::make_mega_prof(
 	{
 	const uint L = chain.get_length();
 	asserta(L > 0);
-
 	const uint nfeat = params.m_nfeat;
 	asserta(nfeat > 0);
 	asserta(mega_prof_bytes >= nfeat*L);
-
-	chaq::fill_chaq_vecs2(distmx, L, *cv);
-
-#if DEBUG
-	memset(mega_prof, 0xff, nfeat*L);
-#endif
-
-	for (uint fi = 0; fi < nfeat; ++fi)
-		{
-		const FAN fan = params.m_fans[fi];
-		const uint alpha_size = params.m_alpha_sizes[fi];
-
-		uint8_t *codeseq = mega_prof + fi*L;
-		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
-		chaq::fast_get_codeseq(
-			params, &chain, distmx,
-			cv, fan, alpha_size, codeseq,
-			scratch_buffer, scratch_buffer_bytes);
-
-#if DEBUG
-		for (uint pos = 0; pos < L; ++pos)
-			assert(codeseq[pos] < alpha_size);
-#endif
-		}
+	chaq::fill_mega_prof(params, &chain, distmx, mega_prof,
+	  cv, scratch_buffer, scratch_buffer_bytes);
 	}
 
 void chain_data::get_from_chain_bytes_per_pos(

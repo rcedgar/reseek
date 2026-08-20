@@ -8,7 +8,9 @@
 #include "flat_chain.h"
 #include "rankedscoresbag.h"
 #include "reseeker.h"
+#include "reseeker.h"
 #include "bcadata.h"
+#include "bcadata_struct.h"
 #include <algorithm>
 #include <thread>
 #include <atomic>
@@ -607,7 +609,7 @@ void cmd_idx_search_kappa()
 		}
 	else
 		{
-		struct_data_vec = QBCA.get_struct_data_vec(params, query_labels);
+		struct_data_vec = bca_get_struct_data_vec(QBCA, params, query_labels);
 		nquery = uint(query_labels.size());
 		q_kappa = myalloc(uint8_t *, nquery);
 		q_lengths = myalloc(uint, nquery);

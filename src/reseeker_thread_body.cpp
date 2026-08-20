@@ -1,5 +1,6 @@
 #include "myutils.h"
 #include "reseeker.h"
+#include "bcadata_struct.h"
 #include "flat_nu_aligner.h"
 #include "flat_params.h"
 #include "flat_helpers.h"
@@ -141,7 +142,7 @@ void reseeker::static_thread_body(uint threadidx)
 		const vector<uint> &qidxs = *ptr_qidxs;
 		const uint nq = uint(qidxs.size());
 		asserta(nq > 0);
-		struct_data *target_data = dbbca.get_struct_data(
+		struct_data *target_data = bca_get_struct_data(dbbca,
 			params, dbidx,
 			&cv, scratch_buffer, scratch_buffer_bytes);
 		const string &target_label = dbbca.m_Labels[dbidx];

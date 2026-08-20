@@ -326,6 +326,7 @@ void kappa_seqsource::OpenChains(const string &FileName)
 	{
 	m_KSSS = KSSS_chains;
 	m_seqdb = 0;
+	m_CR.m_ComputeNu = true;
 	m_CR.Open(FileName);
 	}
 

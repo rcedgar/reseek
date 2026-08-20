@@ -5,6 +5,7 @@
 #include "flat_params.h"
 #include "flat_helpers.h"
 #include "reseeker.h"
+#include "bcadata_struct.h"
 
 void cmd_flat_search_kappa()
 	{
@@ -23,7 +24,7 @@ void cmd_flat_search_kappa()
 	params.init_from_cmdline();
 	params.logme();
 	vector<string> query_labels;
-	struct_data **struct_data_vec = QBCA.get_struct_data_vec(params, query_labels);
+	struct_data **struct_data_vec = bca_get_struct_data_vec(QBCA, params, query_labels);
 
 	DBBCA.Open(DBFN);
 

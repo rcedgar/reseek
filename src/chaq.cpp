@@ -1165,10 +1165,30 @@ uint8_t *chaq::make_mega_prof(
 	{
 	const uint L = chain->get_length();
 	asserta(L > 0);
-
 	const uint nfeat = params.m_nfeat;
 	asserta(nfeat > 0);
 	uint8_t *mega_prof = myalloc(uint8_t, nfeat*L);
+	fill_mega_prof(params, chain, distmx, mega_prof,
+	  scratch_cv, scratch_buffer, scratch_buffer_bytes);
+	return mega_prof;
+	}
+
+void chaq::fill_mega_prof(
+	const flat_params &params,
+	const flat_chain_t *chain,
+	const sid_t *distmx,
+	uint8_t *mega_prof,
+	chaq_vecs2 *scratch_cv,
+	uint8_t *scratch_buffer,
+	uint scratch_buffer_bytes)
+	{
+	const uint L = chain->get_length();
+	asserta(L > 0);
+
+	const uint nfeat = params.m_nfeat;
+	asserta(nfeat > 0);
+	asserta(mega_prof != 0);
+	asserta(scratch_cv != 0);
 
 	chaq::fill_chaq_vecs2(distmx, L, *scratch_cv);
 
@@ -1183,6 +1203,7 @@ uint8_t *chaq::make_mega_prof(
 
 		uint8_t *codeseq = mega_prof + fi*L;
 		uint8_t undef_code = chaq::get_undef_code(fan, alpha_size);
+		(void) undef_code;
 		chaq::fast_get_codeseq(
 			params, chain, distmx, scratch_cv, fan, alpha_size,
 			codeseq, scratch_buffer, scratch_buffer_bytes);
@@ -1192,6 +1213,4 @@ uint8_t *chaq::make_mega_prof(
 			assert(codeseq[pos] < alpha_size);
 #endif
 		}
-
-	return mega_prof;
 	}

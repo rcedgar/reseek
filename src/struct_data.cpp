@@ -1,21 +1,20 @@
 #include "myutils.h"
-#include "bcadata.h"
+#include "bcadata_struct.h"
 #include "flat_helpers.h"
-#include "struct_data.h"
 #include "flat_nu_aligner.h"
-
 #include "flat_params.h"
 
-struct_data *BCAData::get_struct_data(
+struct_data *bca_get_struct_data(
+	const BCAData &bca,
 	const flat_params &params,
 	uint idx,
 	chaq_vecs2 *cv,
 	uint8_t *scratch_buffer,
-	uint scratch_buffer_bytes) const
+	uint scratch_buffer_bytes)
 	{
 	struct_data *sd = new struct_data;
 
-	flat_chain_t *chain = read_flat_chain(idx);
+	flat_chain_t *chain = bca.read_flat_chain(idx);
 	const uint32_t L = chain->get_length();
 	asserta(L > 0);
 	asserta(L <= flat_params::m_maxL); // TODO=maxL
@@ -97,10 +96,12 @@ struct_data *BCAData::get_struct_data(
 	return sd;
 	}
 
-struct_data **BCAData::get_struct_data_vec(const flat_params &params,
+struct_data **bca_get_struct_data_vec(
+	BCAData &bca,
+	const flat_params &params,
 	vector<string> &kept_labels)
 	{
-	const uint nchain = GetChainCount();
+	const uint nchain = bca.GetChainCount();
 	const uint minL = flat_params::get_min_chainlength();
 	Progress("get_query_data_vec()...");
 	uint scratch_buffer_bytes = 2*flat_params::m_maxL;
@@ -115,15 +116,15 @@ struct_data **BCAData::get_struct_data_vec(const flat_params &params,
 	uint too_short = 0;
 	for (uint idx = 0; idx < nchain; ++idx)
 		{
-		const uint L = flat_chain_cap_L(GetSeqLength(idx));
+		const uint L = flat_chain_cap_L(bca.GetSeqLength(idx));
 		if (L < minL)
 			{
 			++too_short;
 			continue;
 			}
-		kept.push_back(get_struct_data(params, idx,
+		kept.push_back(bca_get_struct_data(bca, params, idx,
 			&cv, scratch_buffer, scratch_buffer_bytes));
-		kept_labels.push_back(m_Labels[idx]);
+		kept_labels.push_back(bca.m_Labels[idx]);
 		}
 
 	const uint nkept = uint(kept.size());

@@ -1,53 +1,48 @@
 #!/bin/bash -e
 
-un=`uname -o`
-if [ "$un" == Cygwin ] ; then
-	os=win
-elif [ "$un" == GNU/Linux ] ; then
-	os=linux
-else
-	echo Bad un=$un
+if [ x"$reseek" == x ] ; then
+	reseek=../bin/reseek
+fi
+
+if [ ! -x "$reseek" ] ; then
+	echo "ERROR: reseek not executable: $reseek"
+	echo "Set reseek=PATH or build ../bin/reseek"
 	exit 1
 fi
 
 outdir=../big_scop40x
-#####################
-rm -rf $outdir/*.$os.*
-##############
+rm -rf $outdir/
 mkdir -p $outdir
 cd $outdir
 
 db=../test_data/scop40x.bcb
 lookup=../test_data/scop40x.lookup
 
-for mode in kappa # all
+truth=sf
+for mode in fast sensitive
 do
-	for truth in fold sf fam
-	do
-		name=$truth.$mode.$os
-		hits=$outdir/$name.hits
-		reseek \
-			-search $db \
-			-$mode \
-			-stats $truth \
-			-db $db \
-			-output $hits \
-			-log $name.search.log
+	name=$truth.$mode
+	hits=$outdir/$name.hits
+	"$reseek" \
+		-search $db \
+		-$mode \
+		-stats $truth \
+		-columns query+target+pvalue \
+		-db $db \
+		-output $hits \
+		-log $name.search.log
 
-		reseek \
-			-fast_bench_hits $hits \
-			-lookup $lookup \
-			-truth $truth \
-			-log $name.sum3.log
+	"$reseek" \
+		-fast_bench_hits $hits \
+		-lookup $lookup \
+		-truth $truth \
+		-log $name.sum3.log
 
-		if [ $truth != fam ] ; then
-			reseek \
-				-fast_bench_hits $hits \
-				-lookup $lookup \
-				-truth top$truth \
-				-log $name.top3.log
-		fi
-	done
+	"$reseek" \
+		-fast_bench_hits $hits \
+		-lookup $lookup \
+		-truth top$truth \
+		-log $name.top3.log
 done
 
 grep 3= $outdir/*3.log

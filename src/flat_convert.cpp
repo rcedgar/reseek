@@ -113,6 +113,7 @@ static void ThreadBody(uint ThreadIndex)
 		codeseq_kappa = myalloc(uint8_t, flat_params::m_maxL);
 
 	flat_chain_reader CR;
+	CR.m_ComputeNu = true;
 	CR.Open(*s_ptrFS);
 
 	for (;;)
