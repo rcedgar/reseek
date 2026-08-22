@@ -54,6 +54,4 @@ sec_kmeans.cpp
 sec_kmeans.h
 sec32_kmeans.cpp
 tunable_flat_params.h
-sort.cpp
-sort.h
 tabbedlines.h
