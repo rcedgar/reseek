@@ -527,7 +527,8 @@ void flat_chain_reader::ChainsFromLines_PDB(const vector<string> &Lines,
 	string Title;
 	map<string, string> MolByChain;
 	map<string, vector<string> > RefsByChain;
-	ExtractPdbMeta(Lines, Entry, Title, MolByChain, RefsByChain);
+	if (!opt(label_by_filename))
+		ExtractPdbMeta(Lines, Entry, Title, MolByChain, RefsByChain);
 
 	const uint N = SIZE(Lines);
 	vector<string> ChainLines;

@@ -1,0 +1,16 @@
+data_TESTID
+
+_struct.title 'Test structure for label_by_filename'
+
+loop_
+_atom_site.group_PDB
+_atom_site.auth_asym_id
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.pdbx_PDB_model_num
+ATOM A CA ALA 1.000 2.000 3.000 1
+ATOM A CA GLY 4.000 5.000 6.000 1
+ATOM A CA ALA 7.000 8.000 9.000 1

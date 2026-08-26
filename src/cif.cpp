@@ -308,8 +308,11 @@ void flat_chain_reader::ChainsFromLines_CIF(const vector<string> &Lines,
 	string Title;
 	map<string, string> MolByEntity;
 	map<string, vector<string> > RefsByEntity;
-	ExtractCifMeta(Lines, FallbackLabel, Entry, Title, MolByEntity,
-	  RefsByEntity);
+	if (!opt(label_by_filename))
+		ExtractCifMeta(Lines, FallbackLabel, Entry, Title, MolByEntity,
+		  RefsByEntity);
+	else
+		Entry = FallbackLabel;
 	const string &BaseLabel = Entry;
 
 	string CurrentChainStr;

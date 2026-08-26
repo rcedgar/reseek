@@ -108,6 +108,8 @@ STRUCTS argument is one of:
 Other options:
    -log FILENAME              # Log file with errors, warnings, time and memory.
    -threads N                 # Number of threads, default number of CPU cores.
+   -label_by_filename         # Use filename for chain label; ignore HEADER, TITLE, data_ etc.
+   -trunclabels               # Omit DB ref, molecule and title from chain labels.
 
 More documentation at https://drive5.com/reseek
 </pre>

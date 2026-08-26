@@ -92,7 +92,7 @@ string PreferUnp(const vector<string> &refs)
 void AppendStructDescToLabel(string &Label, const string &Entry,
 	const string &DbRef, const string &Molecule, const string &Title)
 	{
-	if (opt(trunclabels))
+	if (opt(trunclabels) || opt(label_by_filename))
 		return;
 
 	const string seq_id = Label;

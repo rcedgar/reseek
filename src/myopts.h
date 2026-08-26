@@ -193,6 +193,7 @@ FLT_OPT(gapext)
 FLT_OPT(hsp_x2)
 
 FLAG_OPT(trunclabels)
+FLAG_OPT(label_by_filename)
 FLAG_OPT(compilerinfo)
 FLAG_OPT(quiet)
 FLAG_OPT(verbose)
