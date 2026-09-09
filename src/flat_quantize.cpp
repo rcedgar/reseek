@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "git_hash.h"
 #include "chaq.h"
 #include "flat_chain.h"
 #include "flat_params.h"

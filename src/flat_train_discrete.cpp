@@ -1,4 +1,5 @@
 #include "myutils.h"
+#include "git_hash.h"
 #include "seqdb.h"
 #include "alpha.h"
 

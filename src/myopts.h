@@ -2,8 +2,14 @@
 #define MY_VERSION	"3.0"
 #endif
 
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME	"reseek"
+#endif
+
 #define C(x)	STR_OPT(x)
 #include "cmds.h"
+
+#include "opt_core.h"
 
 STR_OPT(params)
 STR_OPT(roc)
@@ -51,7 +57,6 @@ STR_OPT(columns)
 STR_OPT(lddtmuw_jalview)
 STR_OPT(lddtmuw_pymol)
 STR_OPT(dbmu)
-STR_OPT(log)
 STR_OPT(input)
 STR_OPT(input2)
 STR_OPT(output)
@@ -111,7 +116,6 @@ STR_OPT(stats)
 STR_OPT(kdx)
 
 UNS_OPT(bail)
-UNS_OPT(threads)
 UNS_OPT(alpha_size)
 UNS_OPT(alpha_size1)
 UNS_OPT(alpha_size2)
@@ -125,7 +129,6 @@ UNS_OPT(muhsp)
 UNS_OPT(dbsize)
 UNS_OPT(maxseqlength)
 UNS_OPT(sfasta_buff_bytes)
-UNS_OPT(randseed)
 UNS_OPT(k)
 UNS_OPT(n)
 UNS_OPT(iters)
@@ -194,8 +197,6 @@ FLT_OPT(hsp_x2)
 
 FLAG_OPT(trunclabels)
 FLAG_OPT(label_by_filename)
-FLAG_OPT(compilerinfo)
-FLAG_OPT(quiet)
 FLAG_OPT(verbose)
 FLAG_OPT(noself)
 FLAG_OPT(selfrev0)

@@ -159,9 +159,11 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <AdditionalIncludeDirectories>.;../../d5/myutils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;../../d5/build-win/$(Configuration)/myutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -257,9 +259,11 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <AdditionalIncludeDirectories>.;../../d5/myutils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;../../d5/build-win/$(Configuration)/myutils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -277,7 +281,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="abcxyz.cpp" />
-    <ClCompile Include="adler32.c" />
     <ClCompile Include="alpha_collect.cpp" />
     <ClCompile Include="bitdope.cpp" />
     <ClCompile Include="collect.cpp" />
@@ -381,21 +384,12 @@
     <ClCompile Include="chainer.cpp" />
     <ClCompile Include="cif.cpp" />
     <ClCompile Include="cigar.cpp" />
-    <ClCompile Include="crc32.c" />
-    <ClCompile Include="deflate.c" />
     <ClCompile Include="mermx.cpp" />
-    <ClCompile Include="mymalloc.cpp" />
     <ClCompile Include="mymalloc_dbg.cpp" />
     <ClCompile Include="output.cpp" />
     <ClCompile Include="prime.cpp" />
     <ClCompile Include="pdbfilescanner.cpp" />
-    <ClCompile Include="gzipfileio.cpp" />
-    <ClCompile Include="gzlib.c" />
-    <ClCompile Include="gzread.c" />
-    <ClCompile Include="infback.c" />
-    <ClCompile Include="inffast.c" />
-    <ClCompile Include="inflate.c" />
-    <ClCompile Include="inftrees.c" />
+    <ClCompile Include="cmd_gzip.cpp" />
     <ClCompile Include="linereader2.cpp" />
     <ClCompile Include="parasail.cpp" />
     <ClCompile Include="parasail_cigar.cpp" />
@@ -419,7 +413,6 @@
     <ClCompile Include="timing.cpp" />
     <ClCompile Include="todo.cpp" />
     <ClCompile Include="tracebackbitmem.cpp" />
-    <ClCompile Include="trees.c" />
     <ClCompile Include="triangle.cpp" />
     <ClCompile Include="twohitdiag.cpp" />
     <ClCompile Include="one2three.cpp" />
@@ -427,7 +420,8 @@
     <ClCompile Include="fileseqsource.cpp" />
     <ClCompile Include="usage.cpp" />
     <ClCompile Include="linereader.cpp" />
-    <ClCompile Include="myutils.cpp" />
+    <ClCompile Include="mycmdline.cpp" />
+    <ClCompile Include="opts.cpp" />
     <ClCompile Include="objmgr.cpp" />
     <ClCompile Include="reseek_main.cpp" />
     <ClCompile Include="quarts.cpp" />
@@ -443,7 +437,6 @@
     <ClCompile Include="write_hit.cpp" />
     <ClCompile Include="xdropbwd.cpp" />
     <ClCompile Include="xdropfwd.cpp" />
-    <ClCompile Include="zutil.c" />
     <ClInclude Include="alncounters.h" />
     <ClInclude Include="alncounts.h" />
     <ClInclude Include="bcadata.h" />
@@ -497,12 +490,9 @@
     <ClInclude Include="lookup.h" />
     <ClInclude Include="mudex.h" />
     <ClInclude Include="mumx.h" />
-    <ClInclude Include="crc32.h" />
-    <ClInclude Include="deflate.h" />
     <ClInclude Include="featurelist.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="mermx.h" />
-    <ClInclude Include="mymalloc.h" />
     <ClInclude Include="mymutex.h" />
     <ClInclude Include="nnvec.h" />
     <ClInclude Include="reseeker.h" />
@@ -512,12 +502,6 @@
     <ClInclude Include="parasail_nomalloc.h" />
     <ClInclude Include="pdbfilescanner.h" />
     <ClInclude Include="floatfeatures.h" />
-    <ClInclude Include="getticks.h" />
-    <ClInclude Include="gzguts.h" />
-    <ClInclude Include="inffast.h" />
-    <ClInclude Include="inffixed.h" />
-    <ClInclude Include="inflate.h" />
-    <ClInclude Include="inftrees.h" />
     <ClInclude Include="intfeatures.h" />
     <ClInclude Include="linereader2.h" />
     <ClInclude Include="logodds.h" />
@@ -552,7 +536,6 @@
     <ClInclude Include="timers.h" />
     <ClInclude Include="timing.h" />
     <ClInclude Include="tracebit.h" />
-    <ClInclude Include="trees.h" />
     <ClInclude Include="triangle.h" />
     <ClInclude Include="tunable_flat_params.h" />
     <ClInclude Include="twohitdiag.h" />
@@ -560,9 +543,6 @@
     <ClInclude Include="userfieldnames.h" />
     <ClInclude Include="userfields.h" />
     <ClInclude Include="xdpmem.h" />
-    <ClInclude Include="zconf.h" />
-    <ClInclude Include="zlib.h" />
-    <ClInclude Include="zutil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="abcxyz.h" />
@@ -573,7 +553,6 @@
     <ClInclude Include="gobuff.h" />
     <ClInclude Include="linereader.h" />
     <ClInclude Include="myopts.h" />
-    <ClInclude Include="myutils.h" />
     <ClInclude Include="pathinfo.h" />
     <ClInclude Include="quarts.h" />
     <ClInclude Include="seqdb.h" />

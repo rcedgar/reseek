@@ -17,7 +17,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="myutils.cpp">
+    <ClCompile Include="opts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mycmdline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="alpha2.cpp">
@@ -119,41 +122,8 @@
     <ClCompile Include="linereader2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gzipfileio.cpp">
+    <ClCompile Include="cmd_gzip.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="adler32.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="crc32.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="deflate.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="gzlib.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="gzread.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="infback.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="inflate.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="inftrees.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="trees.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="zutil.c">
-      <Filter>Source Files C</Filter>
-    </ClCompile>
-    <ClCompile Include="inffast.c">
-      <Filter>Source Files C</Filter>
     </ClCompile>
     <ClCompile Include="pdbfilescanner.cpp">
       <Filter>Source Files</Filter>
@@ -177,9 +147,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="chainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mymalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mymalloc_dbg.cpp">
@@ -520,9 +487,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="myutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -622,33 +586,6 @@
     <ClInclude Include="cigar_template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gzguts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zutil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inftrees.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inflate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inffast.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inffixed.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="crc32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="deflate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="trees.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="linereader2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -668,9 +605,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mymalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mudex.h">
@@ -889,9 +823,6 @@
     <ClInclude Include="paralign.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="getticks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="prefiltermuparams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -905,12 +836,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="triangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zconf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fastaseqsource.h">
