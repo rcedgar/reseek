@@ -154,7 +154,7 @@ structs   foldseek  reseek-fast  reseek-sensitive
 
 [abdb50.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/afdb50.bcb) &nbsp;&nbsp;AFBD50 AFDB clustered at 50% aa identity 53.7M structures (107Gb)  
 
-[esmdb30.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/esmdb30.bcb) &nbsp;&nbsp;ESMDB30 ESM Altas clustered at 30% aa identity 34.6M structures (55Gb)  
+[esm30db.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/esm30db.bcb) &nbsp;&nbsp;ESMDB30 ESM Altas clustered at 30% aa identity 34.6M structures (55Gb)  
 
 [bfvd.bcb](https://serratus-public.s3.us-east-1.amazonaws.com/rce/reseek_dbs/bfvd.bcb) &nbsp;&nbsp;Big Fine Virus DB 347k structures (486Mb)  
 
